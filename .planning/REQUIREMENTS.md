@@ -35,8 +35,8 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **WORK-01**: Phase-based workflow (discuss → plan → execute → verify) operates end-to-end
 - [ ] **WORK-02**: .planning/ file state persists across context resets
 - [ ] **WORK-03**: Roadmap (ROADMAP.md) serves as editable source of truth for phases
-- [ ] **WORK-04**: STATE.md tracks current phase, progress, and project memory
-- [ ] **WORK-05**: Requirements traceability maps every requirement to a phase
+- [x] **WORK-04**: STATE.md tracks current phase, progress, and project memory
+- [x] **WORK-05**: Requirements traceability maps every requirement to a phase
 - [ ] **WORK-06**: Atomic git commits created per completed task
 
 ### Agent System
@@ -131,8 +131,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | WORK-01 | Phase 4 | Complete |
 | WORK-02 | Phase 4 | Pending |
 | WORK-03 | Phase 4 | Pending |
-| WORK-04 | Phase 4 | Pending |
-| WORK-05 | Phase 4 | Pending |
+| WORK-04 | Phase 4 | Complete |
+| WORK-05 | Phase 4 | Complete |
 | WORK-06 | Phase 4 | Pending |
 | AGNT-01 | Phase 5 | Pending |
 | AGNT-02 | Phase 5 | Pending |
