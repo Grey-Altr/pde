@@ -9,7 +9,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Plugin Identity
 
-- [ ] **PLUG-01**: PDE installable as Claude Code plugin via standard mechanism
+- [x] **PLUG-01**: PDE installable as Claude Code plugin via standard mechanism
 - [x] **PLUG-02**: plugin.json manifest with PDE name, description, and version 1.0.0
 - [x] **PLUG-03**: Plugin passes Claude Code validation and loads without errors
 - [ ] **PLUG-04**: Zero GSD references in any user-visible output or error message
@@ -111,7 +111,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PLUG-01 | Phase 1 | Pending |
+| PLUG-01 | Phase 1 | Complete |
 | PLUG-02 | Phase 1 | Complete |
 | PLUG-03 | Phase 1 | Complete |
 | PLUG-04 | Phase 7 | Pending |
