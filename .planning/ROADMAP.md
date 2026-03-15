@@ -191,7 +191,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 09-01-PLAN.md — Create lib/telemetry.cjs and verify all render.cjs commands execute without crash
+- [ ] 11-01-PLAN.md — Create 20 command stubs and audit for zero dangling /pde: references
 
 ## Progress
 
@@ -210,4 +210,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 8. Onboarding & Distribution | 4/4 | Complete   | 2026-03-15 |
 | 9. Fix Critical Runtime Crash | 1/1 | Complete   | 2026-03-15 |
 | 10. Fix STATE.md Regressions | 1/1 | Complete    | 2026-03-15 |
-| 11. Command Reference Cleanup | 0/0 | Not Started | — |
+| 11. Command Reference Cleanup | 0/1 | Not Started | — |
