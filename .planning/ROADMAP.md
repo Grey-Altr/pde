@@ -32,11 +32,10 @@ Decimal phases appear between their surrounding integers in numeric order.
   2. plugin.json displays name "Platform Development Engine", description, and version 1.0.0
   3. Claude Code validation passes — no missing required fields, no structural errors
   4. Plugin loads in a Claude Code session without throwing errors or warnings
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 01-01: Create/update plugin.json manifest with PDE identity and 1.0.0 versioning
-- [ ] 01-02: Validate plugin structure against Claude Code plugin requirements and fix any load errors
+- [ ] 01-01-PLAN.md — Create PDE plugin manifest, VERSION file, and validate plugin loads in Claude Code
 
 ### Phase 2: Tooling & Binary Rebrand
 **Goal**: All binary scripts and config infrastructure use PDE naming and paths with no GSD references
@@ -164,7 +163,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Plugin Identity | 0/2 | Not started | - |
+| 1. Plugin Identity | 0/1 | Not started | - |
 | 2. Tooling & Binary Rebrand | 0/4 | Not started | - |
 | 3. Workflow Commands | 0/4 | Not started | - |
 | 4. Workflow Engine | 0/4 | Not started | - |
