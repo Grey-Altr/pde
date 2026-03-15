@@ -61,6 +61,7 @@
  *   design lock-acquire <owner>        Acquire root DESIGN-STATE.md write lock
  *   design lock-release                Release root DESIGN-STATE.md write lock
  *   design lock-status                  Check root DESIGN-STATE.md write lock state
+ *   design manifest-set-top-level <field> <value>  Set root-level manifest field (e.g. projectName, productType)
  *
  * Validation:
  *   validate consistency               Check phase numbering, disk/roadmap sync
@@ -501,6 +502,8 @@ async function main() {
         design.cmdManifestRead(cwd, raw);
       } else if (subcommand === 'manifest-update') {
         design.cmdManifestUpdate(cwd, args[2], args[3], args[4], raw);
+      } else if (subcommand === 'manifest-set-top-level') {
+        design.cmdManifestSetTopLevel(cwd, args[2], args[3], raw);
       } else if (subcommand === 'artifact-path') {
         design.cmdArtifactPath(cwd, args[2], raw);
       } else if (subcommand === 'tokens-to-css') {
@@ -514,7 +517,7 @@ async function main() {
       } else if (subcommand === 'lock-status') {
         design.cmdLockStatus(cwd, raw);
       } else {
-        error('Unknown design subcommand. Available: ensure-dirs, manifest-read, manifest-update, artifact-path, tokens-to-css, coverage-check, lock-acquire, lock-release, lock-status');
+        error('Unknown design subcommand. Available: ensure-dirs, manifest-read, manifest-update, manifest-set-top-level, artifact-path, tokens-to-css, coverage-check, lock-acquire, lock-release, lock-status');
       }
       break;
     }

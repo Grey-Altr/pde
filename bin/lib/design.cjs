@@ -253,6 +253,19 @@ function cmdManifestUpdate(cwd, code, field, value, raw) {
   output(manifest, raw);
 }
 
+function cmdManifestSetTopLevel(cwd, field, value, raw) {
+  if (!field) {
+    error('field required for manifest-set-top-level');
+  }
+  const manifest = readManifest(cwd);
+  if (!manifest) {
+    error('design-manifest.json not found — run design ensure-dirs first');
+  }
+  manifest[field] = value;
+  writeManifest(cwd, manifest);
+  output(manifest, raw);
+}
+
 function cmdArtifactPath(cwd, code, raw) {
   const manifest = readManifest(cwd);
   if (!manifest) {
@@ -519,6 +532,18 @@ function runSelfTest() {
     assert.strictEqual(manifest.artifacts['BRF'].name, 'Brief');
   });
 
+  check('cmdManifestSetTopLevel sets root-level manifest field', () => {
+    const origWrite = process.stdout.write;
+    const origExit = process.exit;
+    process.stdout.write = () => true;
+    process.exit = () => {};
+    cmdManifestSetTopLevel(tmpDir, 'projectName', 'Test Project', false);
+    process.stdout.write = origWrite;
+    process.exit = origExit;
+    const manifest = readManifest(tmpDir);
+    assert.strictEqual(manifest.projectName, 'Test Project');
+  });
+
   check('writeManifest sets updatedAt to current ISO timestamp', () => {
     const before = new Date();
     const manifest = readManifest(tmpDir);
@@ -586,6 +611,7 @@ module.exports = {
   cmdEnsureDirs,
   cmdManifestRead,
   cmdManifestUpdate,
+  cmdManifestSetTopLevel,
   cmdArtifactPath,
   cmdTokensToCss,
   cmdCoverageCheck,
