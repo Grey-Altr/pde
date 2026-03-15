@@ -4,14 +4,14 @@ milestone: v1.0
 milestone_name: milestone
 current_plan: 3
 status: verifying
-stopped_at: Phase 8 context gathered
-last_updated: "2026-03-15T06:01:51.948Z"
+stopped_at: Completed 08-01-PLAN.md
+last_updated: "2026-03-15T06:29:50.078Z"
 last_activity: 2026-03-15
 progress:
   total_phases: 8
   completed_phases: 7
-  total_plans: 16
-  completed_plans: 16
+  total_plans: 19
+  completed_plans: 18
   percent: 83
 ---
 
@@ -66,6 +66,8 @@ Progress: [████████░░] 83%
 | Phase 06-templates-references P02 | 2min | 2 tasks | 1 files |
 | Phase 07-rebranding-completeness P01 | 5min | 1 tasks | 1 files |
 | Phase 07-rebranding-completeness P02 | 3min | 1 tasks | 0 files |
+| Phase 08-onboarding-distribution P02 | 5min | 1 tasks | 1 files |
+| Phase 08-onboarding-distribution P01 | 8min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -112,6 +114,10 @@ Recent decisions affecting current work:
 - [Phase 07-rebranding-completeness]: BRAND-04 and BRAND-05 verified: all banner() calls in workflows/ pass PDE-branded stage names; lib/ui/ contains zero GSD strings; splash.cjs line 89 shows Platform Development Engine
 - [Phase 07-01]: STATE.md frontmatter key corrected from gsd_state_version to pde_state_version
 - [Phase 07-01]: BRAND-06 (README branding) is Phase 8 scope — no README.md exists; ROADMAP Phase 7 header listing is a copy error
+- [Phase 08-02]: GETTING-STARTED.md at repo root, 351 lines, all 6 lifecycle sections plus prerequisites, philosophy, What's Next, and command cheat sheet
+- [Phase 08-02]: BRAND-06 fully satisfied: zero GSD references in GETTING-STARTED.md confirmed by grep
+- [Phase 08-01]: marketplace.json version stays at 0.1.0 — Plan 03 bumps all three files to 1.0.0 atomically after all Phase 8 deliverables complete
+- [Phase 08-01]: Username hardcoding check uses /Users/$USER/ pattern (not /Users/[a-zA-Z]) — avoids false positives on generic placeholder paths like /Users/name/ in documentation examples
 
 ### Pending Todos
 
@@ -124,6 +130,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-15T06:01:51.940Z
-Stopped at: Phase 8 context gathered
-Resume file: .planning/phases/08-onboarding-distribution/08-CONTEXT.md
+Last session: 2026-03-15T06:29:50.075Z
+Stopped at: Completed 08-01-PLAN.md
+Resume file: None
