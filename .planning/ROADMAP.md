@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Plugin Identity** - Establish PDE as a valid, installable Claude Code plugin with correct manifest (completed 2026-03-15)
 - [x] **Phase 2: Tooling & Binary Rebrand** - Rebrand pde-tools.cjs, bin scripts, and config directory paths (completed 2026-03-15)
 - [x] **Phase 3: Workflow Commands** - Rename all 29 /gsd: slash commands to /pde: equivalents (completed 2026-03-15)
-- [ ] **Phase 4: Workflow Engine** - Validate .planning/ state persistence, ROADMAP.md, STATE.md, and git integration
+- [x] **Phase 4: Workflow Engine** - Validate .planning/ state persistence, ROADMAP.md, STATE.md, and git integration (completed 2026-03-15)
 - [ ] **Phase 5: Agent System** - Rebrand all agent types and validate parallel orchestration with PDE paths
 - [ ] **Phase 6: Templates & References** - Migrate all templates and references to PDE branding
 - [ ] **Phase 7: Rebranding Completeness** - Grep-clean verification and elimination of all remaining GSD strings
@@ -162,7 +162,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 1. Plugin Identity | 2/2 | Complete   | 2026-03-15 |
 | 2. Tooling & Binary Rebrand | 1/1 | Complete   | 2026-03-15 |
 | 3. Workflow Commands | 3/3 | Complete   | 2026-03-15 |
-| 4. Workflow Engine | 2/3 | In Progress|  |
+| 4. Workflow Engine | 3/3 | Complete   | 2026-03-15 |
 | 5. Agent System | 0/4 | Not started | - |
 | 6. Templates & References | 0/2 | Not started | - |
 | 7. Rebranding Completeness | 0/3 | Not started | - |
