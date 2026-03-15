@@ -92,7 +92,7 @@ Plans:
   1. `design-manifest.json` top-level `projectName` and `productType` fields are populated after running `/pde:brief`
   2. A `manifest-set-top-level` subcommand (or equivalent) exists in pde-tools.cjs to set root-level manifest fields
   3. Phase 13.1 VALIDATION.md frontmatter reads `nyquist_compliant: true`
-**Plans**: TBD
+**Plans**: 1 plan
 Plans:
 - [ ] 13.2-01-PLAN.md — Manifest top-level support and Nyquist cleanup
 
@@ -203,7 +203,7 @@ Plans:
 | 12. Design Pipeline Infrastructure | 1/1 | Complete    | 2026-03-15 | - |
 | 13. Problem Framing (/pde:brief) | 1/1 | Complete    | 2026-03-15 | - |
 | 13.1 Hotfix — Tech Debt & Integration Fixes | 1/1 | Complete    | 2026-03-15 | - |
-| 13.2 Manifest Top-Level Fields & Nyquist Cleanup | v1.1 | 0/TBD | Not started | - |
+| 13.2 Manifest Top-Level Fields & Nyquist Cleanup | v1.1 | 0/1 | Not started | - |
 | 14. Design System (/pde:system) | v1.1 | 0/TBD | Not started | - |
 | 15. User Flow Mapping (/pde:flows) | v1.1 | 0/TBD | Not started | - |
 | 16. Wireframing (/pde:wireframe) | v1.1 | 0/TBD | Not started | - |
