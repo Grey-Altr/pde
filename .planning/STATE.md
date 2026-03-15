@@ -4,14 +4,14 @@ milestone: v1.0
 milestone_name: milestone
 current_plan: 3
 status: verifying
-stopped_at: Completed 04-04-PLAN.md
-last_updated: "2026-03-15T03:51:00.173Z"
+stopped_at: Completed 05-01-PLAN.md
+last_updated: "2026-03-15T04:13:28.454Z"
 last_activity: 2026-03-15
 progress:
   total_phases: 8
   completed_phases: 4
-  total_plans: 10
-  completed_plans: 10
+  total_plans: 12
+  completed_plans: 11
   percent: 83
 ---
 
@@ -60,6 +60,7 @@ Progress: [████████░░] 83%
 | Phase 04-workflow-engine P01 | 7min | 2 tasks | 3 files |
 | Phase 04-workflow-engine P03 | 2min | 2 tasks | 3 files |
 | Phase 04-workflow-engine P04 | 1 | 1 tasks | 1 files |
+| Phase 05-agent-system P01 | 2min | 2 tasks | 0 files |
 
 ## Accumulated Context
 
@@ -92,6 +93,9 @@ Recent decisions affecting current work:
 - [Phase 04-03]: cmdCommit co-author parameter added as 6th argument — minimal change, backward compatible, no refactor of existing behavior
 - [Phase 04-03]: WORK-01 through WORK-06 all verified Complete — Phase 4 workflow engine verification fully satisfied
 - [Phase 04-workflow-engine]: STATE.md body format fixed to use 'Current Plan: N' and 'Total Plans in Phase: N' — matches cmdStateAdvancePlan expectations
+- [Phase 05-01]: AGNT-01 is ALREADY MET — MODEL_PROFILES has all 12 pde-* agent types matching all workflow subagent_types exactly
+- [Phase 05-01]: AGNT-05 is ALREADY MET — Zero gsd- strings exist anywhere in bin/ or workflows/
+- [Phase 05-01]: resolve-model returns inherit for opus-mapped agents (quality/balanced pde-planner) — not an error, signals parent model inheritance
 
 ### Pending Todos
 
@@ -104,6 +108,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-15T03:41:27.373Z
-Stopped at: Completed 04-04-PLAN.md
+Last session: 2026-03-15T04:13:28.451Z
+Stopped at: Completed 05-01-PLAN.md
 Resume file: None
