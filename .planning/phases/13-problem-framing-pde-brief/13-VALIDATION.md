@@ -1,7 +1,7 @@
 ---
 phase: 13
 slug: problem-framing-pde-brief
-status: draft
+status: complete
 nyquist_compliant: true
 wave_0_complete: true
 created: 2026-03-15
