@@ -42,8 +42,8 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Agent System
 
 - [x] **AGNT-01**: All GSD agent types functional with PDE naming (pde-project-researcher, pde-planner, etc.)
-- [ ] **AGNT-02**: Parallel agent orchestration with wave execution operates correctly
-- [ ] **AGNT-03**: Phase-aware research agents spawn before planning when configured
+- [x] **AGNT-02**: Parallel agent orchestration with wave execution operates correctly
+- [x] **AGNT-03**: Phase-aware research agents spawn before planning when configured
 - [x] **AGNT-04**: Model selection works via config.json model_profile setting
 - [x] **AGNT-05**: Agent spawning uses correct PDE paths (not GSD paths)
 
@@ -135,8 +135,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | WORK-05 | Phase 4 | Complete |
 | WORK-06 | Phase 4 | Complete |
 | AGNT-01 | Phase 5 | Complete |
-| AGNT-02 | Phase 5 | Pending |
-| AGNT-03 | Phase 5 | Pending |
+| AGNT-02 | Phase 5 | Complete |
+| AGNT-03 | Phase 5 | Complete |
 | AGNT-04 | Phase 5 | Complete |
 | AGNT-05 | Phase 5 | Complete |
 | TOOL-01 | Phase 2 | Complete |
