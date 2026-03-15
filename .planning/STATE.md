@@ -4,14 +4,14 @@ milestone: v1.0
 milestone_name: milestone
 current_plan: 3
 status: verifying
-stopped_at: Completed 08-03-PLAN.md — PDE v1.0.0 released
-last_updated: "2026-03-15T06:34:25.784Z"
+stopped_at: Completed 08-04-PLAN.md — README.md gap closure complete, Phase 8 fully done
+last_updated: "2026-03-15T06:49:49.830Z"
 last_activity: 2026-03-15
 progress:
   total_phases: 8
   completed_phases: 8
-  total_plans: 19
-  completed_plans: 19
+  total_plans: 20
+  completed_plans: 20
   percent: 83
 ---
 
@@ -69,6 +69,7 @@ Progress: [████████░░] 83%
 | Phase 08-onboarding-distribution P02 | 5min | 1 tasks | 1 files |
 | Phase 08-onboarding-distribution P01 | 8min | 2 tasks | 2 files |
 | Phase 08-onboarding-distribution P03 | 5min | 2 tasks | 4 files |
+| Phase 08-onboarding-distribution P04 | 2min | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -121,6 +122,8 @@ Recent decisions affecting current work:
 - [Phase 08-01]: Username hardcoding check uses /Users/$USER/ pattern (not /Users/[a-zA-Z]) — avoids false positives on generic placeholder paths like /Users/name/ in documentation examples
 - [Phase 08-03]: v1.0.0 tag created locally only — user pushes at their discretion via git push origin v1.0.0
 - [Phase 08-03]: BRAND-06 satisfied: zero GSD references in README.md
+- [Phase 08-04]: README.md line count gap closed by expanding License section and adding Questions? section — no content removed
+- [Phase 08-04]: Questions? section points to GitHub issues, consistent with prior user decision to avoid troubleshooting section
 
 ### Pending Todos
 
@@ -133,6 +136,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-15T06:34:25.780Z
-Stopped at: Completed 08-03-PLAN.md — PDE v1.0.0 released
+Last session: 2026-03-15T06:49:49.827Z
+Stopped at: Completed 08-04-PLAN.md — README.md gap closure complete, Phase 8 fully done
 Resume file: None
