@@ -1,0 +1,19 @@
+{
+  "name": "pde",
+  "owner": {
+    "name": "GreyA",
+    "email": "grey.altaer@gmail.com"
+  },
+  "metadata": {
+    "description": "Platform Development Engine — full lifecycle platform for solo agentic development"
+  },
+  "plugins": [
+    {
+      "name": "platform-development-engine",
+      "source": "./",
+      "description": "Full lifecycle platform: from raw idea to shipped product with research, planning, execution, and verification",
+      "version": "0.1.0",
+      "homepage": "https://github.com/Grey-Altr/pde"
+    }
+  ]
+}
