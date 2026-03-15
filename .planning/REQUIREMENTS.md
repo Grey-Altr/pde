@@ -16,19 +16,19 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Command Interface
 
-- [ ] **CMD-01**: All ~29 /gsd: slash commands operational as /pde: equivalents
-- [ ] **CMD-02**: /pde:new-project initializes a project with questioning, research, requirements, roadmap
-- [ ] **CMD-03**: /pde:plan-phase creates detailed phase plans with verification
-- [ ] **CMD-04**: /pde:execute-phase runs plans with wave-based parallelization
-- [ ] **CMD-05**: /pde:progress shows current project state and next actions
-- [ ] **CMD-06**: /pde:quick executes single tasks without full planning overhead
-- [ ] **CMD-07**: /pde:help displays all available PDE commands with descriptions
-- [ ] **CMD-08**: /pde:discuss-phase gathers context through adaptive questioning
-- [ ] **CMD-09**: /pde:verify-work validates built features against requirements
-- [ ] **CMD-10**: /pde:map-codebase analyzes existing codebases with parallel agents
-- [ ] **CMD-11**: /pde:new-milestone starts new milestone cycles
-- [ ] **CMD-12**: /pde:complete-milestone archives completed milestones
-- [ ] **CMD-13**: /pde:audit-milestone audits milestone completion against intent
+- [x] **CMD-01**: All ~29 /gsd: slash commands operational as /pde: equivalents
+- [x] **CMD-02**: /pde:new-project initializes a project with questioning, research, requirements, roadmap
+- [x] **CMD-03**: /pde:plan-phase creates detailed phase plans with verification
+- [x] **CMD-04**: /pde:execute-phase runs plans with wave-based parallelization
+- [x] **CMD-05**: /pde:progress shows current project state and next actions
+- [x] **CMD-06**: /pde:quick executes single tasks without full planning overhead
+- [x] **CMD-07**: /pde:help displays all available PDE commands with descriptions
+- [x] **CMD-08**: /pde:discuss-phase gathers context through adaptive questioning
+- [x] **CMD-09**: /pde:verify-work validates built features against requirements
+- [x] **CMD-10**: /pde:map-codebase analyzes existing codebases with parallel agents
+- [x] **CMD-11**: /pde:new-milestone starts new milestone cycles
+- [x] **CMD-12**: /pde:complete-milestone archives completed milestones
+- [x] **CMD-13**: /pde:audit-milestone audits milestone completion against intent
 
 ### Workflow Engine
 
@@ -115,19 +115,19 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PLUG-02 | Phase 1 | Complete |
 | PLUG-03 | Phase 1 | Complete |
 | PLUG-04 | Phase 7 | Pending |
-| CMD-01 | Phase 3 | Pending |
-| CMD-02 | Phase 3 | Pending |
-| CMD-03 | Phase 3 | Pending |
-| CMD-04 | Phase 3 | Pending |
-| CMD-05 | Phase 3 | Pending |
-| CMD-06 | Phase 3 | Pending |
-| CMD-07 | Phase 3 | Pending |
-| CMD-08 | Phase 3 | Pending |
-| CMD-09 | Phase 3 | Pending |
-| CMD-10 | Phase 3 | Pending |
-| CMD-11 | Phase 3 | Pending |
-| CMD-12 | Phase 3 | Pending |
-| CMD-13 | Phase 3 | Pending |
+| CMD-01 | Phase 3 | Complete |
+| CMD-02 | Phase 3 | Complete |
+| CMD-03 | Phase 3 | Complete |
+| CMD-04 | Phase 3 | Complete |
+| CMD-05 | Phase 3 | Complete |
+| CMD-06 | Phase 3 | Complete |
+| CMD-07 | Phase 3 | Complete |
+| CMD-08 | Phase 3 | Complete |
+| CMD-09 | Phase 3 | Complete |
+| CMD-10 | Phase 3 | Complete |
+| CMD-11 | Phase 3 | Complete |
+| CMD-12 | Phase 3 | Complete |
+| CMD-13 | Phase 3 | Complete |
 | WORK-01 | Phase 4 | Pending |
 | WORK-02 | Phase 4 | Pending |
 | WORK-03 | Phase 4 | Pending |
