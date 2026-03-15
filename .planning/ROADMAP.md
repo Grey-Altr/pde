@@ -31,6 +31,7 @@ Full details: .planning/milestones/v1.0-ROADMAP.md
 - [x] **Phase 12: Design Pipeline Infrastructure** — State management, artifact storage, token utilities, and write-lock protocol (completed 2026-03-15)
 - [x] **Phase 13: Problem Framing (/pde:brief)** — Structured brief from PROJECT.md context, product-type detection (completed 2026-03-15)
 - [x] **Phase 13.1: Hotfix — Tech Debt & Integration Fixes (Phases 12-13)** — Fix broken table schema, missing metadata, unimplemented subcommand, stale template entry, Nyquist gaps (completed 2026-03-15)
+- [ ] **Phase 13.2: Manifest Top-Level Fields & Nyquist Cleanup** — Add manifest-set-top-level subcommand, populate projectName/productType in /pde:brief, fix 13.1 Nyquist flag
 - [ ] **Phase 14: Design System (/pde:system)** — DTCG tokens, CSS custom properties, typography/color/spacing scale
 - [ ] **Phase 15: User Flow Mapping (/pde:flows)** — Mermaid flow diagrams, screen inventory for wireframe stage
 - [ ] **Phase 16: Wireframing (/pde:wireframe)** — Fidelity-controlled HTML/CSS wireframes per screen
@@ -81,6 +82,19 @@ Plans:
 **Plans**: 1 plan
 Plans:
 - [ ] 13.1-01-PLAN.md — Fix INT-02, INT-01, INT-03 code defects + metadata/Nyquist doc gaps
+
+### Phase 13.2: Manifest Top-Level Fields & Nyquist Cleanup
+**Goal**: Manifest top-level fields are populated by /pde:brief and Phase 13.1 Nyquist compliance is recorded accurately
+**Depends on**: Phase 13.1
+**Requirements**: INFRA-04 (manifest completeness), BRF-02 (brief → manifest wiring)
+**Gap Closure**: Closes integration gap and tech debt from v1.1 audit
+**Success Criteria** (what must be TRUE):
+  1. `design-manifest.json` top-level `projectName` and `productType` fields are populated after running `/pde:brief`
+  2. A `manifest-set-top-level` subcommand (or equivalent) exists in pde-tools.cjs to set root-level manifest fields
+  3. Phase 13.1 VALIDATION.md frontmatter reads `nyquist_compliant: true`
+**Plans**: TBD
+Plans:
+- [ ] 13.2-01-PLAN.md — Manifest top-level support and Nyquist cleanup
 
 ### Phase 14: Design System (/pde:system)
 **Goal**: A canonical DTCG design token set with derived CSS custom properties is available for all downstream skills to consume
@@ -189,6 +203,7 @@ Plans:
 | 12. Design Pipeline Infrastructure | 1/1 | Complete    | 2026-03-15 | - |
 | 13. Problem Framing (/pde:brief) | 1/1 | Complete    | 2026-03-15 | - |
 | 13.1 Hotfix — Tech Debt & Integration Fixes | 1/1 | Complete    | 2026-03-15 | - |
+| 13.2 Manifest Top-Level Fields & Nyquist Cleanup | v1.1 | 0/TBD | Not started | - |
 | 14. Design System (/pde:system) | v1.1 | 0/TBD | Not started | - |
 | 15. User Flow Mapping (/pde:flows) | v1.1 | 0/TBD | Not started | - |
 | 16. Wireframing (/pde:wireframe) | v1.1 | 0/TBD | Not started | - |

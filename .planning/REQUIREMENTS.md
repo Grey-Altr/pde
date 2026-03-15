@@ -12,12 +12,12 @@ Requirements for design pipeline release. Each maps to roadmap phases.
 - [x] **INFRA-01**: .planning/design/ directory created on first design skill invocation
 - [x] **INFRA-02**: DESIGN-STATE.md tracks pipeline stage completion with write-lock mechanism
 - [x] **INFRA-03**: bin/lib/design.cjs provides DTCG-to-CSS conversion and artifact path resolution
-- [x] **INFRA-04**: Design manifest (design-manifest.json) tracks all generated artifacts
+- [ ] **INFRA-04**: Design manifest (design-manifest.json) tracks all generated artifacts
 
 ### Problem Framing
 
 - [x] **BRF-01**: /pde:brief produces structured problem framing document from PROJECT.md context
-- [x] **BRF-02**: Brief detects product type (software/hardware/hybrid) and sets design constraints
+- [ ] **BRF-02**: Brief detects product type (software/hardware/hybrid) and sets design constraints
 
 ### User Flows
 
@@ -106,9 +106,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | INFRA-01 | Phase 12 | Complete |
 | INFRA-02 | Phase 12 | Complete |
 | INFRA-03 | Phase 12 | Complete |
-| INFRA-04 | Phase 12 | Complete |
+| INFRA-04 | Phase 12 (Phase 13.2 manifest top-level fix) | Pending |
 | BRF-01 | Phase 13 (Phase 13.1 metadata fix) | Complete |
-| BRF-02 | Phase 13 (Phase 13.1 metadata fix) | Complete |
+| BRF-02 | Phase 13 (Phase 13.2 manifest top-level fix) | Pending |
 | SYS-01 | Phase 14 | Pending |
 | SYS-02 | Phase 14 | Pending |
 | SYS-03 | Phase 14 | Pending |
