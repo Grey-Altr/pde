@@ -4,14 +4,14 @@ milestone: v1.0
 milestone_name: milestone
 current_plan: 1
 status: executing
-stopped_at: Phase 11 context gathered
-last_updated: "2026-03-15T18:50:18.508Z"
+stopped_at: Completed 11-01-PLAN.md
+last_updated: "2026-03-15T19:07:56.289Z"
 last_activity: 2026-03-15
 progress:
   total_phases: 11
-  completed_phases: 10
-  total_plans: 22
-  completed_plans: 22
+  completed_phases: 11
+  total_plans: 23
+  completed_plans: 23
   percent: 100
 ---
 
@@ -72,6 +72,7 @@ Progress: [██████████] 100%
 | Phase 08-onboarding-distribution P04 | 2min | 1 tasks | 1 files |
 | Phase 09-fix-runtime-crash P01 | 5min | 2 tasks | 1 files |
 | Phase 10-fix-statemd-regressions P01 | 8 | 2 tasks | 2 files |
+| Phase 11-command-reference-cleanup P01 | 3min | 2 tasks | 21 files |
 
 ## Accumulated Context
 
@@ -131,6 +132,9 @@ Recent decisions affecting current work:
 - [Phase Phase 10-01]: GSD layer line 640 is single regression source — one-line pde_state_version patch prevents all future gsd_state_version writes
 - [Phase Phase 10-01]: Historical gsd_state_version references in STATE.md Decisions preserved — factual records not active regressions
 - [Phase Phase 10-01]: Frontmatter percent fixed directly (83->100) without relying on GSD auto-sync since plan edits don't trigger GSD write
+- [Phase 11-01]: Workflow-backed stubs (resume-work, debug) use execution_context pointing to existing workflow files rather than duplicating logic
+- [Phase 11-01]: v2 stubs use inline process blocks (no execution_context) to avoid referencing nonexistent workflow files — planned status explicit in process block
+- [Phase 11-01]: migrate stub added via audit (Rule 2) — /pde:migrate in templates/design-milestone.md was not in the original 20-stub plan; audit found and closed the gap
 
 ### Pending Todos
 
@@ -143,6 +147,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-15T18:50:18.505Z
-Stopped at: Phase 11 context gathered
-Resume file: .planning/phases/11-command-reference-cleanup/11-CONTEXT.md
+Last session: 2026-03-15T19:07:56.286Z
+Stopped at: Completed 11-01-PLAN.md
+Resume file: None
