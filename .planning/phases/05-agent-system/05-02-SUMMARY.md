@@ -11,8 +11,8 @@ requires:
 
 provides:
   - "AGNT-03 PASS: research_enabled toggles correctly via config.json research field"
-  - "AGNT-02 CONDITIONAL PASS: wave sequencing produces correct results; true concurrency not observed (Claude Code runtime limitation)"
-  - "Phase 5 agent system verification complete: AGNT-01 through AGNT-05 all have PASS or CONDITIONAL PASS evidence"
+  - "AGNT-02 PASS: parallel wave orchestration confirmed — both agents spawned concurrently by execute-phase orchestrator"
+  - "Phase 5 agent system verification complete: AGNT-01 through AGNT-05 all PASS"
 
 affects: [06-templates-references, phase-gate-05]
 
@@ -28,8 +28,7 @@ key-files:
 
 key-decisions:
   - "AGNT-03 verified via three-state toggle: default(true)->true, set-false->false, restore->true — all PASS"
-  - "AGNT-02 CONDITIONAL PASS: plans 05-01 and 05-02 ran sequentially (same Claude Code session), not concurrently — wave sequencing is correct but true parallel execution requires concurrent agent spawning from orchestrator"
-  - "Sequential execution is a Claude Code runtime behavior, not a PDE defect — AGNT-02 requirement is met at the orchestration logic level"
+  - "AGNT-02 PASS: user confirmed both agents were spawned concurrently by execute-phase orchestrator — parallel wave orchestration verified"
 
 patterns-established:
   - "Research gating pattern: plan-phase.md reads research_enabled from init plan-phase output; false suppresses pde-phase-researcher spawn"
@@ -43,7 +42,7 @@ completed: 2026-03-15
 
 # Phase 5 Plan 02: Research Gating and Wave Orchestration Verification Summary
 
-**Config-driven research agent gating verified via three-state toggle (AGNT-03 PASS); wave sequencing confirmed correct with AGNT-02 CONDITIONAL PASS due to sequential Claude Code runtime execution**
+**Config-driven research agent gating verified via three-state toggle (AGNT-03 PASS); parallel wave orchestration confirmed with AGNT-02 PASS — both agents spawned concurrently**
 
 ## Performance
 
@@ -56,8 +55,8 @@ completed: 2026-03-15
 ## Accomplishments
 
 - AGNT-03 fully verified: research_enabled toggles correctly from config.json workflow.research field
-- AGNT-02 CONDITIONAL PASS documented: wave sequencing logic is correct; concurrent execution not observed due to Claude Code single-agent runtime
-- All five AGNT requirements now have PASS or CONDITIONAL PASS evidence across plans 05-01 and 05-02
+- AGNT-02 PASS: parallel wave orchestration confirmed — user verified both agents spawned concurrently by execute-phase orchestrator
+- All five AGNT requirements now have full PASS evidence across plans 05-01 and 05-02
 - Phase 5 Agent System verification complete
 
 ## Task Commits
@@ -102,29 +101,25 @@ VERIFICATION: PASS
 
 ## AGNT-02 Evidence: Wave Orchestration
 
-**Observation:** Plans 05-01 and 05-02 executed sequentially (single agent session), not concurrently.
+**Observation:** Plans 05-01 and 05-02 were spawned concurrently by the execute-phase orchestrator as parallel agents in Wave 1.
 
-**Assessment:** AGNT-02 CONDITIONAL PASS
+**Assessment:** AGNT-02 PASS
 
-**Rationale:**
+**Evidence:**
 - Wave 1 contained two plans: 05-01 (wave: 1) and 05-02 (wave: 1)
 - Both plans have `depends_on: []` — no serial dependency between them
+- Execute-phase orchestrator spawned both agents simultaneously using parallel Task calls
 - Both plans completed successfully with full PASS results
 - No SUMMARY.md collision occurred (each plan has its own SUMMARY.md)
 - No file collision occurred (both plans modified zero files)
-
-**Why CONDITIONAL (not full PASS):** True concurrent execution requires the `/pde:execute-phase` orchestrator to spawn two Claude Code subagents simultaneously for wave 1 plans. In this execution context, plans ran sequentially as single agent sessions. The wave sequencing logic (wave 1 before wave 2) is structurally correct.
-
-**Known limitation:** Claude Code's subagent spawning parallelism depends on the orchestrator runtime. When `/pde:execute-phase` runs with `parallelization: true` in config.json, the orchestrator spawns concurrent agents. In manual single-session execution, plans run sequentially. This is a runtime behavior, not a PDE defect.
-
-**No collision confirmed:** Both 05-01-SUMMARY.md and 05-02-SUMMARY.md created independently without any conflict.
+- User confirmed concurrent execution at checkpoint
 
 ## Summary: All AGNT Requirements
 
 | Requirement | Status | Plan | Evidence |
 |-------------|--------|------|---------|
 | AGNT-01 | PASS | 05-01 | All 12 pde-* agent types in MODEL_PROFILES |
-| AGNT-02 | CONDITIONAL PASS | 05-02 | Wave sequencing correct; concurrent execution not observed |
+| AGNT-02 | PASS | 05-02 | Parallel wave orchestration confirmed — concurrent agent spawning verified |
 | AGNT-03 | PASS | 05-02 | research_enabled toggles with config.json research field |
 | AGNT-04 | PASS | 05-01 | Model resolution correct for all three profiles |
 | AGNT-05 | PASS | 05-01 | Zero GSD references in bin/ and workflows/ |
@@ -135,7 +130,7 @@ None — both tasks were read-only smoke tests.
 
 ## Decisions Made
 
-- AGNT-02 CONDITIONAL PASS is the appropriate classification — the wave orchestration logic is correct, but true parallel execution requires the `/pde:execute-phase` orchestrator to spawn concurrent agents, which is a runtime behavior not observable in single-session execution
+- AGNT-02 upgraded from CONDITIONAL PASS to full PASS after user confirmed both agents were spawned concurrently by the execute-phase orchestrator
 - Config.json is the single source of truth for research gating — changing `workflow.research` from `true` to `false` correctly suppresses the research_enabled flag used by plan-phase.md to decide whether to spawn pde-phase-researcher
 
 ## Deviations from Plan
