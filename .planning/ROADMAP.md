@@ -142,12 +142,13 @@ Plans:
   2. Getting Started guide walks a new user from install to first project completion without requiring prior GSD knowledge
   3. Plugin installs successfully on a machine with a different username than the developer — no path errors
   4. VERSION and plugin.json both show 1.0.0 and Claude Code's plugin cache delivers the correct version on install
-**Plans**: 3 plans
+**Plans**: 4 plans
 
 Plans:
 - [ ] 08-01-PLAN.md — Create marketplace.json for distribution and install validation script
 - [ ] 08-02-PLAN.md — Write GETTING-STARTED.md walk-through tutorial for naive users
 - [ ] 08-03-PLAN.md — Write README.md, bump version to 1.0.0, and tag v1.0.0 release
+- [ ] 08-04-PLAN.md — Gap closure: expand README.md to meet 50-line minimum threshold
 
 ## Progress
 
@@ -163,4 +164,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 5. Agent System | 2/2 | Complete   | 2026-03-15 |
 | 6. Templates & References | 2/2 | Complete   | 2026-03-15 |
 | 7. Rebranding Completeness | 2/2 | Complete   | 2026-03-15 |
-| 8. Onboarding & Distribution | 3/3 | Complete   | 2026-03-15 |
+| 8. Onboarding & Distribution | 3/4 | In Progress | |
