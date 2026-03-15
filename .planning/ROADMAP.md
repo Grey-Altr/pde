@@ -111,11 +111,11 @@ Plans:
   1. Every template displays "PDE" in banners and stage names — no GSD strings appear in any generated artifact
   2. Reference documents use PDE naming throughout — any guide that mentions a command uses /pde: prefix
   3. A fresh project initialized via /pde:new-project produces .planning/ files with zero GSD strings
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 06-01: Update all template files with PDE branding (banners, stage names, status symbols)
-- [ ] 06-02: Update all reference and guide files with PDE naming and /pde: command references
+- [ ] 06-01-PLAN.md — Audit templates/ for zero GSD strings and verify template-to-output chain is PDE-branded
+- [ ] 06-02-PLAN.md — Audit references/ for zero GSD strings and verify /pde: command references are correct
 
 ### Phase 7: Rebranding Completeness
 **Goal**: Zero GSD strings exist anywhere in the codebase — grep clean across all file types
