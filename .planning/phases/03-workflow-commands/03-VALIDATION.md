@@ -48,14 +48,15 @@ created: 2026-03-14
 | 03-02-02 | 02 | 2 | CMD-03 | manual | Invoke `/pde:plan-phase 1` in Claude Code | N/A | ⬜ pending |
 | 03-02-03 | 02 | 2 | CMD-04 | manual | Invoke `/pde:execute-phase 1` in Claude Code | N/A | ⬜ pending |
 | 03-02-04 | 02 | 2 | CMD-09 | manual | Invoke `/pde:verify-work` in Claude Code | N/A | ⬜ pending |
-| 03-03-01 | 03 | 2 | CMD-05 | smoke | Invoke `/pde:progress` — pde-tools.cjs must resolve | N/A | ⬜ pending |
-| 03-03-02 | 03 | 2 | CMD-06 | manual | Invoke `/pde:quick` in Claude Code | N/A | ⬜ pending |
-| 03-03-03 | 03 | 2 | CMD-07 | smoke | Invoke `/pde:help` — must render command list | N/A | ⬜ pending |
-| 03-03-04 | 03 | 2 | CMD-08 | manual | Invoke `/pde:discuss-phase` in Claude Code | N/A | ⬜ pending |
-| 03-03-05 | 03 | 2 | CMD-10 | manual | Invoke `/pde:map-codebase` in Claude Code | N/A | ⬜ pending |
-| 03-04-01 | 04 | 2 | CMD-11 | manual | Invoke `/pde:new-milestone` in Claude Code | N/A | ⬜ pending |
-| 03-04-02 | 04 | 2 | CMD-12 | manual | Invoke `/pde:complete-milestone` in Claude Code | N/A | ⬜ pending |
-| 03-04-03 | 04 | 2 | CMD-13 | manual | Invoke `/pde:audit-milestone` in Claude Code | N/A | ⬜ pending |
+| 03-02-05 | 02 | 2 | CMD-11 | smoke | `grep -q "pde:new-milestone" commands/new-milestone.md && echo PASS \|\| echo FAIL` | ❌ W0 | ⬜ pending |
+| 03-02-06 | 02 | 2 | CMD-12 | smoke | `grep -q "pde:complete-milestone" commands/complete-milestone.md && echo PASS \|\| echo FAIL` | ❌ W0 | ⬜ pending |
+| 03-02-07 | 02 | 2 | CMD-13 | smoke | `grep -q "pde:audit-milestone" commands/audit-milestone.md && echo PASS \|\| echo FAIL` | ❌ W0 | ⬜ pending |
+| 03-03-01 | 03 | 3 | CMD-05 | smoke | Invoke `/pde:progress` — pde-tools.cjs must resolve | N/A | ⬜ pending |
+| 03-03-02 | 03 | 3 | CMD-06 | manual | Invoke `/pde:quick` in Claude Code | N/A | ⬜ pending |
+| 03-03-03 | 03 | 3 | CMD-07 | smoke | Invoke `/pde:help` — must render command list | N/A | ⬜ pending |
+| 03-03-04 | 03 | 3 | CMD-08 | manual | Invoke `/pde:discuss-phase` in Claude Code | N/A | ⬜ pending |
+| 03-03-05 | 03 | 3 | CMD-10 | manual | Invoke `/pde:map-codebase` in Claude Code | N/A | ⬜ pending |
+| 03-03-06 | 03 | 3 | CMD-11,12,13 | manual | Verify `/pde:new-milestone`, `/pde:complete-milestone`, `/pde:audit-milestone` appear in palette (covered by Plan 03 Task 2 checkpoint) | N/A | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
