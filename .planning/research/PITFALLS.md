@@ -1,209 +1,210 @@
 # Pitfalls Research
 
-**Domain:** AI-powered development platform — fork-based rebrand and evolution
-**Researched:** 2026-03-14
-**Confidence:** HIGH (findings grounded in direct GSD codebase inspection + Claude Code plugin documentation)
+**Domain:** Adding design pipeline (brief → flows → system → wireframe → critique → iterate → handoff) to an existing AI-assisted development tool (PDE v1.1)
+**Researched:** 2026-03-15
+**Confidence:** HIGH (findings grounded in direct PDE/GSD codebase inspection, LLM prompt engineering literature, and design-tools community post-mortems)
 
 ---
 
 ## Critical Pitfalls
 
-### Pitfall 1: Hardcoded Install Paths Breaking Every User Except the Developer
+### Pitfall 1: LLM Wireframe Output Has No Fidelity Contract
 
 **What goes wrong:**
-GSD has 119 occurrences of `$HOME/.claude/get-shit-done/` hardcoded as absolute paths in workflow files. Workflows use these paths for `@`-includes (e.g., `@/Users/greyaltaer/.claude/get-shit-done/references/ui-brand.md`), inline `node` CLI invocations (e.g., `node "$HOME/.claude/get-shit-done/bin/gsd-tools.cjs"`), and template references. If PDE copies these paths verbatim — or substitutes a new hardcoded PDE path — any user whose tool is installed at a different location (different username, Linux system, custom `$CLAUDE_PLUGINS_DIR`) will see silent failures or broken commands.
+The LLM produces wireframes as HTML/CSS or ASCII-art markup that varies wildly in fidelity between invocations. One run produces a sparse skeleton; another produces a pixel-detailed mock that looks like a finished UI. Downstream commands (`/pde:critique`, `/pde:iterate`) are built against one fidelity assumption and break or produce irrelevant output when fidelity drifts. Users also interpret high-fidelity wireframe output as implementation intent, then are confused when the actual code differs.
 
 **Why it happens:**
-During a fast fork, search-and-replace of "get-shit-done" → "platform-development-engine" (or similar) replaces the string in text but preserves the path structure assumption. The developer who forks tests from their own machine — where the path resolves — and everything works. Users on other machines hit broken `@`-references that Claude silently ignores or fails to load.
+LLMs default to "impressive output" without a fidelity constraint. Without an explicit ceiling in the system prompt, the model renders whatever looks best in context. The developer tests once, gets consistent output, and ships — then real users discover variability.
 
 **How to avoid:**
-Replace all hardcoded install-path references with the `${CLAUDE_PLUGIN_ROOT}` environment variable that Claude Code injects for installed plugins, or use relative `@`-include paths from the plugin root. The `node` invocations for `pde-tools.cjs` must use a relative path resolution mechanism (e.g., `node "$(dirname "$0")/../bin/pde-tools.cjs"`) rather than any absolute path. Audit with: `grep -rn "get-shit-done\|greyaltaer\|/Users/" .` before any public release.
+Define a fidelity enum (`skeleton | lo-fi | mid-fi`) and enforce it via the wireframe agent prompt with hard constraints per level (e.g., `skeleton`: no color, no images, layout only; `lo-fi`: grayscale, placeholder labels only; `mid-fi`: named colors, real labels, no images). The `/pde:wireframe` command must accept a fidelity argument and inject the corresponding constraint block into the agent prompt. Store the fidelity level in the artifact frontmatter so downstream commands can read and respect it.
 
 **Warning signs:**
-- Any workflow file containing `/Users/` or a literal username
-- Any `@`-include path that is not relative (does not start with `./` or `../`)
-- Test on a machine with a different username — if any command fails to load references, paths are broken
+- Wireframe artifacts contain real image URLs, brand colors, or detailed typography — when those were not requested
+- Two runs of `/pde:wireframe` on the same input produce structurally different output
+- Downstream `/pde:critique` feedback references implementation details instead of layout decisions
 
-**Phase to address:** Phase 1 (Rebrand clone) — must be fully resolved before any user testing or public release. This is a distribution-blocking defect.
+**Phase to address:** Phase implementing `/pde:wireframe` — fidelity control must be built in from day one, not retrofitted. Retrofitting breaks artifact compatibility.
 
 ---
 
-### Pitfall 2: Incomplete Agent-Type Rename Breaking Model Resolution
+### Pitfall 2: Critique Is Generic Because the Agent Has No Design Brief in Context
 
 **What goes wrong:**
-GSD uses agent-type strings as lookup keys throughout the stack: workflow files spawn subagents with `subagent_type="gsd-planner"`, `gsd-executor`, `gsd-debugger`, etc. (68 occurrences in workflow files). The `core.cjs` library maps these exact strings to model tier overrides. The `model-profiles.md` reference documents them. The `config.json` in user projects overrides them by name (e.g., `"gsd-executor": "opus"`). If PDE renames agent types to `pde-planner`, `pde-executor`, etc. but leaves any one of these four surfaces out of sync, model resolution silently falls back to defaults — no error, wrong model, degraded quality with no visible cause.
+`/pde:critique` produces feedback like "consider improving visual hierarchy" and "ensure adequate contrast" — textbook UX advice that applies to any interface. The critique is not wrong, but it has zero specificity to this product, these user flows, or these design decisions. The iterate step has nothing actionable to work with and either ignores the critique or makes arbitrary changes.
 
 **Why it happens:**
-The agent type string appears in four separate, loosely-coupled places: workflow markdown files, a Node.js library (`core.cjs`), a reference documentation file (`model-profiles.md`), and user project config files. A rename pass that hits three of four produces a runtime system that appears to work but uses incorrect models.
+The critique agent is spawned with only the wireframe artifact in context. Without the brief (user goals, product constraints, target persona) and the user flows (what tasks this screen supports), the LLM falls back to generic heuristic evaluation. It is evaluating a wireframe as a generic UI, not as a specific product decision.
 
 **How to avoid:**
-Treat agent-type strings as a schema. Define a canonical list once (in `core.cjs`) and derive all other references from it. During rebrand, create a checklist: for each agent type, verify it is updated in (1) workflow `subagent_type=` calls, (2) `core.cjs` model registry, (3) `model-profiles.md` reference, and (4) any example configs. After rename, run `grep -rn "gsd-" .` — zero results should be the acceptance criterion.
+The critique agent must receive the full upstream context: `.planning/design/BRIEF.md`, `.planning/design/FLOWS.md`, and the specific wireframe being evaluated — in that order. Critique prompts must demand specificity: "For each issue, cite the user flow it breaks, the brief constraint it violates, or the usability principle with evidence from the wireframe." If brief or flows are missing, block critique and surface the dependency to the user rather than running a degraded pass.
 
 **Warning signs:**
-- `resolve-model` returning unexpected model tier (add a smoke test that calls `pde-tools.cjs resolve-model pde-planner` and asserts a non-default result)
-- Users reporting plan quality inconsistency across commands
-- `gsd-` strings surviving a post-rename grep
+- Critique output contains no references to specific screens, labels, or user flow steps
+- Every critique point could apply to any app in the same category
+- The iterate command cannot be run because there are no actionable critique items
 
-**Phase to address:** Phase 1 (Rebrand clone) — agent type rename must be verified with an explicit smoke test before declaring Phase 1 complete.
+**Phase to address:** Phase implementing `/pde:critique` — requires upstream brief and flows artifacts to exist; build the dependency check before the LLM invocation.
 
 ---
 
-### Pitfall 3: `/gsd:` Command References Surviving in User-Visible Text
+### Pitfall 3: Design Token Format Is Invented Per-Run, Breaking Handoff Alignment
 
 **What goes wrong:**
-GSD embeds 305 occurrences of `/gsd:` in workflow files, reference docs, templates, and compiled-in Node.js strings (e.g., `verify.cjs` error messages referencing `/gsd:health --repair`). After rebrand to `/pde:`, any surviving `/gsd:` reference that reaches the user creates confusion: the user is told to run `/gsd:health` but that command no longer exists, or they're running PDE and reading help text that references a different product. Error recovery paths are especially dangerous — users hit an error, are told to run a command that doesn't exist, and have no path forward.
+`/pde:system` outputs a design system document. The token naming, value format, and structure are whatever the LLM invents at the time (`--color-primary`, `color.primary`, `$primary`, `PRIMARY_COLOR` all occur in practice). Downstream wireframe agents reference the design system but use a different naming convention because they are working from a different context window. The handoff spec references token names that do not exist in the system doc. The developer implementing the code finds the spec useless.
 
 **Why it happens:**
-A simple search-and-replace misses references embedded in: JavaScript string literals (Node.js lib files), markdown templates, frontmatter templates generated by `commands.cjs` and `phase.cjs`, and `@`-reference files. The rename is perceived as complete when the commands directory is renamed, but user-visible strings remain.
+LLMs do not maintain state between invocations. Each agent gets a fresh context and invents locally consistent but globally inconsistent naming. No schema enforces a token format across all design pipeline stages.
 
 **How to avoid:**
-After any rename pass, run: `grep -rn "/gsd:" .` with zero expected results as a hard gate. Include the `bin/lib/` directory explicitly — JavaScript files are often excluded from text-based audits of markdown projects. Create a post-rename verification script that checks all four asset layers (workflows, references, templates, lib/*.cjs) in one pass.
+Define a canonical token format in a design system template (`templates/design/DESIGN-SYSTEM.md`) before any agent produces tokens. The template must specify: naming convention (e.g., CSS custom properties: `--[category]-[variant]`), required categories (color, spacing, typography, radius, shadow, z-index), and a machine-readable section (JSON or YAML block) that downstream agents read directly. Every subsequent agent (wireframe, critique, handoff) must be instructed to read the token table from the generated system doc before producing output.
 
 **Warning signs:**
-- Error messages shown to users containing `/gsd:` prefix
-- Template-generated files (CONTEXT.md, phase entries, VALIDATION.md) containing `/gsd:` references
-- Phase roadmap entries containing "run /gsd:plan-phase" text
+- Token names in wireframe artifacts use a different syntax than names in the design system doc
+- Handoff spec contains token names not present in `.planning/design/DESIGN-SYSTEM.md`
+- Two wireframe artifacts for the same product use different spacing units (px vs rem vs unitless)
 
-**Phase to address:** Phase 1 (Rebrand clone). The `bin/lib/` JavaScript files (verify.cjs, commands.cjs, phase.cjs) require code changes, not just markdown edits. Plan for this explicitly — it is not a pure text substitution.
+**Phase to address:** Phase implementing `/pde:system` — the template is the contract; establish it before any downstream commands are built.
 
 ---
 
-### Pitfall 4: Hidden GSD State Pollution — `~/.gsd/` User Directory
+### Pitfall 4: Handoff Specs Are Written for a Generic Codebase, Not the Actual Project's Patterns
 
 **What goes wrong:**
-GSD reads configuration from `~/.gsd/brave_api_key` and `~/.gsd/defaults.json` (hardcoded in `config.cjs` and `init.cjs`). After rebrand, if PDE is not updated to use `~/.pde/` (or a neutral path), PDE will silently read GSD user config — or, worse, silently fail to find config for users who never installed GSD. Users who have both GSD and PDE installed will share config state they did not intend to share. Users migrating from GSD to PDE will not know their old `~/.gsd/brave_api_key` is being read by PDE.
+`/pde:handoff` produces component API specs using prop naming conventions, file structures, and state management patterns that do not match the actual codebase. The developer receiving the handoff must mentally translate every spec before writing a line of code. For a React/Tailwind project, the spec references SCSS variables and class-based components. For a Vue project, the spec assumes React hooks. The spec is accurate in isolation but useless in context.
 
 **Why it happens:**
-User-level config directories are infrastructure-level concerns that live outside the workflow files. During a fast fork focused on renaming visible assets, hidden-directory names are easily overlooked since they are not part of the plugin's installed files.
+The handoff agent has no information about the actual tech stack the developer will implement against. The design pipeline stages run early (before code exists) so the agent cannot read the codebase. Without explicit injection, it defaults to whatever pattern is most common in its training data.
 
 **How to avoid:**
-Update `config.cjs` and `init.cjs` to use `~/.pde/` as the user config directory. Document the migration path for users who had `~/.gsd/` set up. If PDE and GSD can coexist on a machine, the config paths must be completely isolated.
+`/pde:handoff` must read `.planning/research/STACK.md` (produced during `/pde:new-project`) before generating specs. The handoff agent prompt must include an explicit instruction: "Generate all component APIs using the exact conventions documented in the project's STACK.md — prop names, file naming, state patterns, and styling approach must match the established stack." If STACK.md does not exist, block and require the user to run `/pde:new-project` first or supply a stack doc manually.
 
 **Warning signs:**
-- Brave search working unexpectedly for users who only configured GSD, not PDE
-- Users reporting that PDE reads unexpected defaults
-- `grep -rn '\.gsd' bin/lib/` returning results after rename
+- Handoff spec uses component naming conventions inconsistent with the existing codebase
+- TypeScript interfaces in the spec use patterns (class-based, namespace-qualified) not present in the project
+- Developers report needing to "reinterpret" the handoff spec before implementing
 
-**Phase to address:** Phase 1 (Rebrand clone). Small code change, high impact for any user who has both tools or migrates between them.
+**Phase to address:** Phase implementing `/pde:handoff` — STACK.md integration is a required input, not optional context.
 
 ---
 
-### Pitfall 5: Git Branch Templates Retaining GSD Branding in User Repos
+### Pitfall 5: The Orchestrator (`/pde:build`) Becomes a God Workflow
 
 **What goes wrong:**
-`core.cjs` and `config.cjs` set default branch name templates to `gsd/phase-{phase}-{slug}` and `gsd/{milestone}-{slug}`. When users enable branching strategy, PDE creates branches like `gsd/phase-03-authentication` in their repositories — permanently stamping GSD branding into their git history, even though they installed PDE. This is especially embarrassing for public repositories.
+The `/pde:build` orchestrator starts as a simple sequential runner: `brief → flows → system → wireframe → critique → iterate → handoff`. Over time it accumulates inline logic: fidelity negotiation, artifact existence checks, conditional skip logic, resume-from-checkpoint behavior, error recovery branches. Within a few iterations it is 300 lines of orchestration logic that is impossible to debug and cannot be modified without breaking edge cases. Adding a new step (e.g., inserting `hig` between `wireframe` and `critique`) requires rewriting the orchestrator.
 
 **Why it happens:**
-Default values in configuration code are not part of the documentation or workflow text, so they survive text-based rename sweeps. The branching strategy is off by default, so this only manifests for users who explicitly enable it — meaning it may not be caught in basic testing.
+The convenience of a single workflow file makes it tempting to add "just one check" inline. Each addition is individually reasonable; the aggregate is a maintenance nightmare. This is identical to the anti-pattern that caused GSD to centralize all side effects in `pde-tools.cjs` — but applied to orchestration logic rather than file system operations.
 
 **How to avoid:**
-Update default branch templates in `core.cjs` and `config.cjs` to `pde/phase-{phase}-{slug}` and `pde/{milestone}-{slug}`. Add this to the rebrand checklist. Test the branching strategy explicitly during Phase 1 acceptance testing.
+Apply PDE's existing Workflow-as-Orchestrator pattern (documented in ARCHITECTURE.md) strictly to `/pde:build`. The build orchestrator's only responsibilities: check which artifacts exist, determine next step, invoke the appropriate sub-command, check for errors, advance. All artifact-checking logic lives in `pde-tools.cjs design status`. All step-specific logic lives in the individual skill workflow files. The orchestrator is a loop over a stage list, not a case statement with embedded business logic.
 
 **Warning signs:**
-- Branch names in test repos containing `gsd/` prefix after PDE clone
-- `grep -rn "gsd/phase\|gsd/{" bin/lib/` returning results
+- `/pde:build` workflow file exceeds ~80 lines
+- Fidelity negotiation or token validation logic appears inside the build workflow
+- Adding a new pipeline stage requires editing the build orchestrator (instead of just the stage's own workflow file)
 
-**Phase to address:** Phase 1 (Rebrand clone). Low effort fix, high user-visibility consequence.
+**Phase to address:** Phase implementing `/pde:build` — establish the delegation boundary in the first implementation. Do not refactor later; the stage-list pattern must be the initial design.
 
 ---
 
-### Pitfall 6: Version Number Not Bumped — Users Can't Tell PDE from GSD
+### Pitfall 6: Pipeline State Is Not Persisted, So Crashes Lose All Progress
 
 **What goes wrong:**
-GSD is at version `1.22.4`. If PDE ships as `1.22.4` or without a clear versioning scheme, users with both tools installed cannot distinguish versions in debug output, can't report issues accurately ("which version?"), and the Claude Code plugin system uses version numbers to determine whether to update plugins. If PDE and GSD share version numbers, Claude Code may treat them as equivalent and skip updates.
+A user runs `/pde:build` through brief, flows, system, wireframe, and partway through critique — then Claude Code crashes, the session times out, or the user closes the terminal. On restart, there is no way to know where the pipeline stopped. The user must restart from the beginning or manually inspect which artifacts exist and guess the next step. For a 7-stage pipeline this is a severe experience failure.
 
 **Why it happens:**
-The VERSION file is infrastructure. During a fast fork, the developer knows which version they forked from but may defer setting up a clean versioning scheme under time pressure.
+The existing PDE state system tracks phases and plans, but the design pipeline is a new artifact category. Without a design pipeline state entry in `.planning/STATE.md` or a dedicated `.planning/design/PIPELINE-STATE.md`, there is no checkpoint record. Individual artifact files exist, but the pipeline does not know "critique was started but not completed."
 
 **How to avoid:**
-Set PDE to `1.0.0` (clean start, indicating a new product) in `VERSION` and `plugin.json`. Document in CHANGELOG.md: "Forked from GSD 1.22.4." The version namespace is now independent and can be managed separately.
+Add a `design_pipeline` section to PDE's state system (either in `.planning/STATE.md` frontmatter or a dedicated `.planning/design/STATE.md`). Track: current stage, stage status (not-started / in-progress / complete / skipped), and the artifact path for each stage. `pde-tools.cjs` must expose `design-state load` and `design-state update <stage> <status>` commands. Every design skill workflow must write its status at start AND at completion so partial progress is captured. `/pde:build` reads this state to determine resume point.
 
 **Warning signs:**
-- VERSION file still reads `1.22.4` after rebrand
-- `plugin.json` version unchanged
-- Users unable to distinguish PDE from GSD in `claude --debug` output
+- Running `/pde:build` after a crash starts over from the beginning instead of the last incomplete stage
+- There is no machine-readable record of which design artifacts have been produced
+- `/pde:build` does not output which stage it is resuming from on restart
 
-**Phase to address:** Phase 1 (Rebrand clone). Required before any distribution.
+**Phase to address:** Phase implementing state management for the design pipeline — this must precede or be built alongside the first skill workflow, not added later. Retrofitting state into an already-running pipeline is extremely disruptive.
 
 ---
 
-### Pitfall 7: Post-v1 Scope Creep into Architecture That Was Deferred
+### Pitfall 7: "This Is Not a Design Tool" Scope Creep
 
 **What goes wrong:**
-PROJECT.md explicitly defers architecture restructuring to post-v1. In practice, post-v1 milestones (design pipeline, MCP integrations, multi-provider support) each require architectural changes that become progressively harder to retrofit onto the fast-clone structure. Teams frequently rationalize "one small architecture change" per milestone until the system has accumulated ad-hoc structural decisions that no one owns. The result is a system that is harder to extend for the standalone CLI transition than if architecture had been addressed deliberately.
+During implementation, features that feel natural to a design pipeline start appearing: real-time preview of wireframes in the terminal, Figma export, actual image generation, color palette pickers, icon library integration, animated transition specs. Each is individually defensible. Collectively they transform a lightweight LLM-text-based pipeline into a fragile, scope-bloated product that takes 10x longer to build and still does not equal a real design tool. The core pipeline — which was shipping-ready — is delayed six months.
 
 **Why it happens:**
-"Ship fast, refactor later" is a legitimate MVP strategy. The failure is not using it — it is failing to schedule the refactor before the debt compounds. Post-v1 milestones are planned individually against their feature goals, and the architecture milestone gets continuously deferred as each feature milestone seems more urgent.
+Design pipeline work is inherently adjacent to real design tools. The gap between "an LLM describing a wireframe in text" and "Figma" is obvious to anyone who uses both. The natural instinct is to close that gap. But PDE is a text-based, file-based, LLM-augmented tool — not a design tool. The value proposition is speed and integration with the development workflow, not design fidelity.
 
 **How to avoid:**
-Schedule an explicit Architecture Refactor milestone immediately after v1 and before any feature milestones. This milestone has one goal: address the fast-clone technical debt (absolute paths, GSD-pattern assumptions, plugin structure) so that subsequent feature milestones build on a stable foundation. Treat architecture debt the same way you treat security: non-negotiable, scheduled, not optional.
+Establish a hard scope boundary in every design pipeline phase plan: PDE produces text artifacts (Markdown, HTML/CSS snippets) that describe design intent. PDE does not produce visual files, does not integrate with design tools in v1.1, and does not replace Figma. When a feature request sounds like "PDE should do what Figma does," the answer is "that's for a future milestone or a Figma MCP integration." The brief's own out-of-scope list (already defined in PROJECT.md) must be copied into every design skill's implementation plan as a reminder.
 
 **Warning signs:**
-- Post-v1 planning documents contain "we'll need to restructure X later" comments
-- Architecture concerns are raised in feature milestones and deferred
-- The standalone CLI transition is being planned without an architecture milestone preceding it
+- A phase plan includes image generation, SVG export, or color swatch rendering
+- A phase plan references Figma, Sketch, or any external design tool as a required output target
+- Implementation time estimate for any single design skill exceeds 2-3 days
 
-**Phase to address:** Post-v1 Milestone 2 (Architecture Refactor) — must be planned as an explicit milestone before any feature milestones are added to the roadmap.
+**Phase to address:** Every design pipeline phase — the scope boundary must be stated explicitly in each phase plan, not once in a requirements doc that implementors do not read.
 
 ---
 
-### Pitfall 8: Plugin-to-Standalone CLI Transition Without Capability Abstraction
+### Pitfall 8: Design Artifacts Are Stored Outside the Established `.planning/` Pattern
 
 **What goes wrong:**
-PDE v1 is tightly coupled to Claude Code as its runtime — workflows assume `subagent_type=` is available, tools are invoked via Claude's tool-use interface, and `@`-includes are a Claude Code feature. When evolving to a standalone CLI with multi-provider support, all of these assumptions break. If the plugin version was built without abstraction layers, the standalone CLI becomes a rewrite rather than a port, negating the benefit of the fast-clone strategy.
+Design artifacts get stored in a new top-level directory (e.g., `design/`, `wireframes/`, `.design/`) that is inconsistent with the existing `.planning/` convention. Downstream commands that scan for context (existing workflow commands that read `.planning/` files) do not find design artifacts. The `pde-tools.cjs` state system does not know about design artifacts. Verification (`/pde:health`) does not check for design artifact integrity. The design pipeline becomes a parallel, disconnected system instead of an integrated part of PDE.
 
 **Why it happens:**
-Plugin-first is the right starting strategy. The mistake is not designing the plugin version with an abstraction boundary between "what the CLI runtime does" (Claude Code) and "what PDE does" (workflow orchestration, planning logic). Without that boundary explicitly drawn, the plugin and the platform become inseparable.
+Design feels like a separate concern from planning. Implementors create a new directory without checking whether the existing `.planning/` structure can accommodate it. The path of least resistance is a new top-level dir.
 
 **How to avoid:**
-In the Architecture Refactor milestone (post-v1), draw explicit boundaries: PDE's core logic (planning, state management, roadmap operations) lives in `pde-tools.cjs` and is runtime-agnostic. Claude Code-specific behavior (subagent spawning, `@`-includes, tool calls) is isolated in adapter layers. The standalone CLI milestone then replaces the Claude Code adapter, not the entire system.
+Store all design artifacts under `.planning/design/` — consistent with PROJECT.md's stated decision. Naming convention: `.planning/design/BRIEF.md`, `.planning/design/FLOWS.md`, `.planning/design/DESIGN-SYSTEM.md`, `.planning/design/wireframes/[screen-name].md`, `.planning/design/CRITIQUE.md`, `.planning/design/HANDOFF.md`. This keeps design artifacts inside the existing scanning and state management surface. Extend `pde-tools.cjs` to handle `design init`, `design status`, and `design list-artifacts` — do not invent a parallel tooling surface.
 
 **Warning signs:**
-- `subagent_type=` calls are spread throughout workflow files with no central registry
-- Planning documents for the standalone CLI describe "rewriting workflows"
-- The architecture diagram has no layer boundary between plugin runtime and platform logic
+- Phase plan creates any directory outside `.planning/`
+- Design artifact paths are not parseable by existing `pde-tools.cjs` file operations
+- `/pde:health` does not report on design artifact state
 
-**Phase to address:** Post-v1 Milestone 2 (Architecture Refactor) — define the abstraction boundary before any feature milestones add more Claude Code-coupled logic.
+**Phase to address:** Phase implementing the first design skill (brief) — storage convention must be established on the first artifact, not refactored after seven artifacts exist in inconsistent locations.
 
 ---
 
-### Pitfall 9: Public Distribution Without Onboarding Documentation Freezing Users
+### Pitfall 9: Iterate Has No Convergence Criterion, So the Loop Never Ends
 
 **What goes wrong:**
-When PDE is distributed publicly as a Claude Code plugin, users who are not the original developer encounter the system cold. GSD's documentation is written for a developer who understands the internals. Public users need: what commands exist and what they do, what the workflow is from zero to working, what files are created and why, and what to do when things go wrong. Without this documentation, the first wave of public users abandons PDE within the first session and the plugin gets poor reviews or no adoption.
+`/pde:iterate` applies critique feedback and produces a revised wireframe. The user runs `/pde:critique` again. The new critique produces new issues. The user runs `/pde:iterate` again. This continues indefinitely — each iteration genuinely improves something but introduces or reveals new issues. The user never knows when to move to handoff. The design pipeline stalls in an infinite refine loop.
 
 **Why it happens:**
-The developer who builds the tool understands it completely. Documentation feels unnecessary because "it's obvious." The test of public documentation is whether someone who has never seen the tool can complete the first workflow without asking a question — and this is rarely tested before release.
+LLM-based critique will always find something to improve. Without a convergence signal, the natural endpoint of critique → iterate cycles is "when the user gets frustrated and stops." This is a UX failure, not a user failure.
 
 **How to avoid:**
-Before any public distribution, write and test a Getting Started guide with a user who has not seen PDE. The guide must cover: installation, first command, what files are created, and the full new-project → plan-phase → execute-phase loop. Test it by having someone run through it cold. Only distribute after the guide produces a successful first session for a naive user.
+`/pde:iterate` must track iteration count and write it to design state. After each iterate run, the workflow must surface a convergence checklist: (1) are all P0/P1 critique issues addressed? (2) is this the third or more iteration? (3) are remaining issues cosmetic vs. structural? If all three are true, output an explicit "Design ready for handoff" recommendation. The command should not prevent further iteration but must actively signal convergence instead of implying infinite refinement is expected.
 
 **Warning signs:**
-- No `README.md` or getting-started documentation exists at distribution time
-- The only documentation is workflow files written for Claude to read, not humans
-- First-session success rate (can a new user complete new-project?) is untested
+- Users report running critique → iterate more than 3 times without progress signal
+- Iteration artifacts have no version numbering (can't tell which is current)
+- Handoff is never reached because users feel the design "isn't ready yet"
 
-**Phase to address:** Phase 1 (Rebrand clone) — at minimum, a public-facing README. Full onboarding documentation should be a named deliverable, not an afterthought.
+**Phase to address:** Phase implementing `/pde:iterate` — build convergence signaling into the first implementation. Do not add it as an afterthought after users report the loop problem.
 
 ---
 
-### Pitfall 10: Claude Code Plugin Version Caching Preventing Updates from Reaching Users
+### Pitfall 10: Standalone Skill Use Breaks Because Pipeline Assumes Sequential Artifact Existence
 
 **What goes wrong:**
-Per Claude Code plugin documentation: "Claude Code uses the version to determine whether to update your plugin. If you change your plugin's code but don't bump the version in `plugin.json`, your plugin's existing users won't see your changes due to caching." In practice, this means a bug fix shipped without a version bump is silently invisible to all existing users. Users report bugs that have already been fixed, leading to support confusion and loss of trust.
+PROJECT.md requires that "each design skill works standalone AND as part of orchestrated `/pde:build` pipeline." In practice, the implementation assumes sequential use: wireframe assumes system exists, critique assumes wireframe exists, handoff assumes critique exists. When a user runs `/pde:wireframe` directly (without a system), the command crashes or produces incoherent output. Users who want to use only the critique skill on an existing artifact find it broken.
 
 **Why it happens:**
-During active development, version bumping feels like overhead. Developers ship many small iterations and lose track of which ones were distributed. The caching mechanism is not visible in development (where plugins are loaded with `--plugin-dir`, not from cache).
+During implementation it is easier to require all upstream artifacts. The developer builds and tests the pipeline sequentially. The standalone use case is never tested because the developer always runs the full pipeline.
 
 **How to avoid:**
-Establish a release process before public distribution: every change to distributed files requires a version bump in `plugin.json`. Treat version bumps as a required step, not optional hygiene. Consider automated version enforcement (pre-commit hook that checks if distributed files changed without a version bump).
+Every design skill command must implement a graceful dependency check with clear user-facing messages. Missing upstream artifact → surface the gap with a specific recommendation ("Run `/pde:system` first, or supply a token reference file at `.planning/design/DESIGN-SYSTEM.md`"). Design skill commands must be independently runnable with user-supplied inputs when PDE-generated upstream artifacts do not exist. Test each command in isolation as part of every phase's acceptance criteria.
 
 **Warning signs:**
-- Bug fixes deployed without version bumps
-- Users reporting issues that were resolved in a recent commit
-- No CHANGELOG.md tracking what changed in each version
+- A design command crashes with a file-not-found error instead of a user-friendly message
+- Phase plan does not include a "standalone execution" acceptance test
+- Running `/pde:critique` on an externally-created wireframe file is not supported
 
-**Phase to address:** Phase 1 (Rebrand clone) — establish the release process as part of initial distribution setup.
+**Phase to address:** Each design skill phase — standalone execution must be a stated acceptance criterion in every phase plan, not assumed to work.
 
 ---
 
@@ -211,12 +212,13 @@ Establish a release process before public distribution: every change to distribu
 
 | Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
 |----------|-------------------|----------------|-----------------|
-| Fast clone without path abstraction | v1 ships quickly | Every user on a different machine path breaks; standalone CLI requires full rewrite of path handling | v1 only — must be addressed in Architecture Refactor milestone |
-| Keep GSD agent type names for now | No rename work in JS code | Model resolution silently broken for any config override referencing `pde-` names; users confused by GSD branding in config | Never — must be renamed in Phase 1 |
-| Skip Getting Started docs for v1 | Faster initial release | First-wave users abandon product; no second chance at first impression | Never for a public release |
-| `gsd_state_version` key in STATE.md frontmatter | Zero migration work | Users' STATE.md files contain GSD internal identifiers; confusing if ever documented; breaks any tooling that keys on this field | Acceptable to defer to Architecture Refactor if not user-visible; unacceptable if exposed in docs |
-| Skip version bump on patch releases | Ship faster | Cached plugin users receive no updates; support burden increases | Never once publicly distributed |
-| Architecture restructuring deferred indefinitely | All time goes to features | Each feature milestone adds coupling that makes standalone CLI harder; eventually requires partial rewrite | Acceptable for one milestone cycle; must be scheduled |
+| Hardcoding fidelity as a fixed value in the wireframe prompt | Skips user-facing fidelity control | All wireframes come out the same fidelity; lo-fi → hi-fi iteration impossible | Never — fidelity control is a core feature |
+| Skipping design pipeline state tracking | Faster first implementation | Pipeline is not resumable; crashes lose all progress | Acceptable for a single-command prototype only; must be added before any multi-stage orchestrator |
+| Writing design artifacts to a new top-level directory | Feels clean and separate | Breaks health checks, state management, and scanning that all assume `.planning/` | Never — always store under `.planning/design/` |
+| Letting critique agent produce output without brief/flows context | Critique runs even when upstream is missing | Generic, useless critique; iterate has nothing actionable to apply | Never — block with a dependency message instead |
+| Implementing `/pde:build` as a long sequential workflow with inline logic | Faster initial build | Orchestrator becomes unmaintainable; adding a stage requires rewriting the orchestrator | Never — establish the delegation boundary from the start |
+| Copying handoff template from a generic source without STACK.md integration | Faster handoff implementation | Handoff is useless for the actual project's tech stack | Never for the real implementation; acceptable only in a throwaway proof-of-concept |
+| Skipping convergence signaling in iterate | Simpler implementation | Users loop forever; handoff stage is never reached | Never — convergence signal is the exit condition for the design stage |
 
 ---
 
@@ -224,11 +226,13 @@ Establish a release process before public distribution: every change to distribu
 
 | Integration | Common Mistake | Correct Approach |
 |-------------|----------------|------------------|
-| Claude Code plugin install | Keeping absolute `@`-include paths from development | Use `${CLAUDE_PLUGIN_ROOT}` variable or relative paths; test by installing via `claude plugin install` not `--plugin-dir` |
-| Claude Code agent spawning | Mixing old `gsd-` subagent types with new `pde-` names in the same workflows | Rename all agent types atomically; never have both namespaces active simultaneously |
-| Claude Code version caching | Not bumping `plugin.json` version on every distributed change | Enforce version bumps with a release checklist; never distribute without incrementing |
-| `~/.gsd/` user config | Not migrating Brave API key path to `~/.pde/` | Update config.cjs and init.cjs; document migration for users who already configured GSD |
-| Git branching strategy | Default branch templates creating `gsd/` branches | Update default templates in core.cjs before any user enables branching strategy |
+| Existing PDE state system | Creating a separate design state file with a different schema | Extend `.planning/STATE.md` frontmatter or add `.planning/design/STATE.md` using the same frontmatter schema; expose via new `pde-tools.cjs design-state` commands |
+| `pde-tools.cjs` bin script | Adding design pipeline commands to individual workflow files instead of centralizing in the bin script | All design artifact scaffolding, state mutation, and path resolution goes through `pde-tools.cjs`; workflow files orchestrate only |
+| Existing `/pde:new-project` STACK.md | Handoff agent ignoring STACK.md because it was written for a different phase | Explicitly pass STACK.md path in the handoff agent's `<required_reading>` block; do not assume the agent will discover it |
+| Template system | Writing design templates with no placeholder schema | Every design template must define required sections with placeholder comments; agents fill sections, do not invent structure |
+| Agent type registry | Adding design agents (brief-writer, wireframe-agent, etc.) without registering them in `core.cjs` model resolution | Register every new agent type in `core.cjs` with a model tier assignment; test with `pde-tools.cjs resolve-model pde-brief-writer` before shipping |
+| Plugin version caching | Shipping design pipeline without a version bump | Every release of design pipeline features requires a `plugin.json` version bump; established in v1.0 release process |
+| Existing `/pde:health` command | Health check not covering design artifact state | Extend health check to validate design pipeline artifacts if a design project is in progress |
 
 ---
 
@@ -236,19 +240,9 @@ Establish a release process before public distribution: every change to distribu
 
 | Trap | Symptoms | Prevention | When It Breaks |
 |------|----------|------------|----------------|
-| Spawning too many parallel subagents in research workflows | Claude Code session timeout; incomplete research results | Cap parallel agent count; use sequential fallback for large phase sets | At ~5+ parallel research agents on large codebases |
-| Large `.planning/` directory slowing `rg` searches | Health checks and validation become slow | Use targeted path searches; avoid broad `rg "pattern"` across entire repo | When planning directory exceeds ~100 files |
-| `gsd-tools.cjs` loaded on every command invocation | Cold-start latency on each workflow step | No mitigation needed at current scale; watch if tool grows significantly | Not a current concern at v1 scale |
-
----
-
-## Security Mistakes
-
-| Mistake | Risk | Prevention |
-|---------|------|------------|
-| Brave API key stored in `~/.gsd/brave_api_key` (plain text) | Key exposed if home directory is readable by other processes | Ensure file permissions are `600`; document this in setup instructions; consider moving to OS keychain in future milestone |
-| Plugin scripts distributed with execute permissions pre-set | Hook scripts run automatically on plugin events without explicit user consent | Document exactly which scripts are executable and what they do; do not make scripts executable unless they are hook scripts |
-| Absolute paths exposing developer username in distributed files | Username visible in distributed source; breaks for all other users | Zero absolute paths in distributed files — enforce with pre-release audit script |
+| Spawning all 7 design stages as parallel tasks | Token cost explosion; context limits exceeded; outputs reference each other before they exist | Design stages are inherently sequential (each stage depends on prior artifact); never parallelize stages — only parallelize within a stage (e.g., parallel critique perspectives) | Immediately — brief cannot precede flows if both run in parallel |
+| Critique agent receiving full design system + all wireframes + full brief in one context | Context window exhaustion; critique becomes unfocused | Inject only the wireframe(s) being critiqued + brief summary + relevant tokens; not the full design system doc | When design system exceeds ~4k tokens or wireframes exceed ~2k tokens each |
+| Iterate producing a full new wireframe on every run | Redundant token spend; artifact sprawl | Iterate should produce a diff/patch over the existing wireframe and create a new version file (`wireframe-v2.md`), not regenerate from scratch | When a project has more than 2 iteration cycles |
 
 ---
 
@@ -256,24 +250,25 @@ Establish a release process before public distribution: every change to distribu
 
 | Pitfall | User Impact | Better Approach |
 |---------|-------------|-----------------|
-| Error messages referencing `/gsd:` commands that don't exist | User hits an error and is told to run a command that doesn't exist; no recovery path | Rename all error message command references; test error recovery paths explicitly |
-| No differentiation from GSD in plugin name or description | Users who know GSD see PDE as a clone with no added value; no reason to switch | Clear differentiation in plugin.json description and onboarding docs; articulate what PDE adds |
-| Onboarding assumes internal knowledge of GSD architecture | New users cannot get started without reading source code | Write a human-readable Getting Started guide that requires no prior GSD knowledge |
-| Missing or stale version in plugin.json | Users can't report which version they're on; bug reports untraceable | Strict version management; every release has a clear version number and CHANGELOG entry |
+| Design pipeline with no entry point from `/pde:new-project` | Users do not discover the design pipeline exists; they start coding without a brief | `/pde:new-project` must surface the design pipeline as a next step after project setup |
+| Handoff spec with no clear "done" signal | Developers do not know if the spec is final or still being iterated | Handoff artifact must include an explicit status field (`status: final | draft`) and a version timestamp |
+| Critique feedback with no priority levels | All critique items look equally important; developers implement cosmetic fixes before structural issues | Critique template must require P0/P1/P2 classification; iterate must address P0/P1 before P2 |
+| Wireframe artifacts without a fidelity label | User shows a wireframe to a stakeholder who mistakes it for final UI | Every wireframe artifact frontmatter must include `fidelity: skeleton | lo-fi | mid-fi` |
+| Design skills advertised as "v2" in stub commands but delivered in v1.1 | User trust gap; stubs say v2, marketing says v1.1 | Update stub commands to say "v1.1" when those commands are implemented; do not ship v1.1 with stubs still claiming v2 |
 
 ---
 
 ## "Looks Done But Isn't" Checklist
 
-- [ ] **Command rename:** Every workflow file shows `/pde:` — verify no `/gsd:` survives with `grep -rn "/gsd:" .` returning zero results across workflows, references, templates, AND `bin/lib/*.cjs`
-- [ ] **Agent types renamed:** `pde-planner`, `pde-executor`, etc. resolve correctly in `resolve-model` — verify with `node bin/pde-tools.cjs resolve-model pde-planner` on a clean install
-- [ ] **Absolute paths removed:** No `/Users/` or `$HOME/.claude/get-shit-done` in any file — verify with `grep -rn "get-shit-done\|/Users/" .`
-- [ ] **Branch templates updated:** Creating a branch in a test repo produces `pde/phase-01-test`, not `gsd/phase-01-test`
-- [ ] **User config directory migrated:** `~/.pde/` is the config directory; `~/.gsd/` is not referenced — verify with `grep -rn '\.gsd' bin/lib/`
-- [ ] **Version set:** `VERSION` and `plugin.json` show `1.0.0`, not GSD's version
-- [ ] **Plugin installs for a new user:** Install via `claude plugin install` on a machine with a different username than the developer — all commands load without errors
-- [ ] **STATE.md frontmatter key:** `gsd_state_version` key renamed to `pde_state_version` (or neutral `state_version`)
-- [ ] **Getting Started guide tested:** A person unfamiliar with the tool can complete `new-project` → `plan-phase` → `execute-phase` using only the documentation
+- [ ] **Wireframe fidelity control:** `/pde:wireframe lo-fi` and `/pde:wireframe mid-fi` produce structurally different outputs — verify by running both on the same brief and checking that lo-fi has no color references
+- [ ] **Critique context injection:** Critique output references specific screen elements by name from the wireframe, and at least one critique item references the brief's stated user goals — verify by checking for product-specific language in the critique doc
+- [ ] **Token format consistency:** Token names in `.planning/design/DESIGN-SYSTEM.md` appear verbatim in `.planning/design/wireframes/*.md` — verify with `grep -rn "--color-" .planning/design/` matching across both files
+- [ ] **Handoff stack alignment:** Handoff spec prop names and file structure match what exists in the project's `src/` directory (or STACK.md if no code exists yet) — verify by manual comparison before calling handoff complete
+- [ ] **Pipeline resumability:** Crash `/pde:build` partway through (CTRL-C during critique), then rerun — verify it resumes from critique rather than starting over from brief
+- [ ] **Standalone skill execution:** Run `/pde:critique` without prior pipeline execution (supply a manually-created wireframe file) — verify it produces output instead of crashing with a missing-artifact error
+- [ ] **Stub command text updated:** All stub commands (brief.md, flows.md, etc.) reference v1.1, not v2 — verify with `grep -rn "v2" commands/brief.md commands/flows.md commands/system.md commands/wireframe.md commands/critique.md commands/iterate.md commands/handoff.md`
+- [ ] **Design state tracked:** After running any design skill, `.planning/design/STATE.md` (or equivalent) contains the stage status — verify by reading the state file after each skill execution
+- [ ] **Convergence signal fires:** After three iterate cycles, `/pde:iterate` surfaces an explicit "ready for handoff" recommendation — verify by running three consecutive iterate runs on a test wireframe
 
 ---
 
@@ -281,12 +276,13 @@ Establish a release process before public distribution: every change to distribu
 
 | Pitfall | Recovery Cost | Recovery Steps |
 |---------|---------------|----------------|
-| Absolute paths shipped to users | HIGH | Release a patch version immediately; instruct users to reinstall; publish known-broken version notice |
-| Agent types half-renamed | MEDIUM | Release a patch; provide a migration script that updates existing user config.json files |
-| `/gsd:` in error messages | LOW | Release a patch version with corrected messages; version bump required for cache invalidation |
-| `~/.gsd/` config path not migrated | LOW | Release a patch that reads both paths with deprecation warning; document manual migration |
-| Version not bumped on update | MEDIUM | Instruct users to uninstall and reinstall to force cache refresh; add version bump to release checklist going forward |
-| No Getting Started docs at launch | MEDIUM | Write and publish immediately; send update to any early distribution channels |
+| Wireframe fidelity drift discovered after handoff | HIGH | Re-run wireframe at correct fidelity, re-run critique, re-run iterate, regenerate handoff; 4 stages of rework |
+| Generic critique discovered post-iterate | MEDIUM | Add brief/flows to critique context, re-run critique, re-run iterate; 2 stages of rework |
+| Token naming inconsistency discovered at handoff | MEDIUM | Update design system template, patch wireframe token references, regenerate handoff; requires careful search-replace across design artifacts |
+| Handoff spec stack mismatch discovered during implementation | MEDIUM | Re-run handoff with STACK.md injection; low token cost but developer time wasted on partial implementation |
+| No pipeline state — crash loses all progress | HIGH | Manually audit which `.planning/design/` artifacts exist, determine the last complete stage, resume from that stage; significant user friction |
+| Infinite iterate loop — users never reach handoff | LOW | Run `/pde:handoff` directly; instruct user that handoff can be run at any time regardless of iterate count |
+| Design artifacts outside `.planning/` discovered mid-milestone | HIGH | Move all artifacts, update all workflow path references, update state management paths; high risk of missed references |
 
 ---
 
@@ -294,29 +290,29 @@ Establish a release process before public distribution: every change to distribu
 
 | Pitfall | Prevention Phase | Verification |
 |---------|------------------|--------------|
-| Hardcoded install paths | Phase 1 (Rebrand) | `grep -rn "/Users/\|get-shit-done" .` returns zero results; install on a different-username machine succeeds |
-| Incomplete agent-type rename | Phase 1 (Rebrand) | `grep -rn "gsd-" .` returns zero results; `resolve-model pde-planner` returns correct model |
-| `/gsd:` in user-visible text | Phase 1 (Rebrand) | `grep -rn "/gsd:" .` returns zero results across all file types including `.cjs` |
-| Hidden `~/.gsd/` directory | Phase 1 (Rebrand) | `grep -rn "\.gsd" bin/lib/` returns zero results |
-| Git branch templates | Phase 1 (Rebrand) | Test with `branching_strategy: phase`; branch name starts with `pde/` |
-| Version not set | Phase 1 (Rebrand) | `VERSION` and `plugin.json` show `1.0.0` |
-| Post-v1 scope creep | Milestone 2 (Architecture) | Architecture Refactor milestone is planned and scheduled before any feature milestone |
-| Plugin-to-CLI abstraction gap | Milestone 2 (Architecture) | Abstraction boundary document exists; no `subagent_type=` references outside a designated adapter layer |
-| Public onboarding gap | Phase 1 (Rebrand) | Getting Started guide tested with naive user before any public distribution |
-| Plugin version caching | Phase 1 (Rebrand) | Release process documented; version bumped with every distribution |
+| Wireframe fidelity drift (Pitfall 1) | Phase implementing `/pde:wireframe` | Run lo-fi and mid-fi on same brief; verify structurally different output |
+| Generic critique (Pitfall 2) | Phase implementing `/pde:critique` | Critique output contains product-specific language; no critique item is applicable to all apps |
+| Design token inconsistency (Pitfall 3) | Phase implementing `/pde:system` | Token names from DESIGN-SYSTEM.md appear verbatim in wireframe output |
+| Handoff stack mismatch (Pitfall 4) | Phase implementing `/pde:handoff` | Handoff prop names match STACK.md conventions; developer review passes |
+| God orchestrator (Pitfall 5) | Phase implementing `/pde:build` | Build workflow file under 80 lines; adding a stage requires no orchestrator edits |
+| No pipeline state / no resumability (Pitfall 6) | State management phase (before first skill) | Crash recovery test: interrupt pipeline, restart, verify correct resume point |
+| Scope creep into design tooling (Pitfall 7) | Every design pipeline phase | Each phase plan explicitly lists design-tool features as out of scope |
+| Design artifacts outside `.planning/` (Pitfall 8) | Phase implementing `/pde:brief` (first artifact) | All design artifacts created under `.planning/design/`; health check covers design directory |
+| Infinite iterate loop (Pitfall 9) | Phase implementing `/pde:iterate` | After 3 iteration runs, convergence recommendation appears in output |
+| Standalone skill execution broken (Pitfall 10) | Each design skill phase | Each skill passes a standalone acceptance test with missing upstream artifacts |
 
 ---
 
 ## Sources
 
-- Direct inspection of GSD codebase at `~/.claude/get-shit-done/` (version 1.22.4)
-- [Claude Code Plugins Reference](https://code.claude.com/docs/en/plugins-reference) — plugin manifest schema, caching behavior, common errors (HIGH confidence, official docs)
-- [Packaging Pitfalls: Hardcoded Paths Inside Scripts, Shortcuts and Installers](https://apptimized.com/en/news/hardcoded-paths-inside-scripts-shortcuts-and-installers/) — hardcoded path distribution failures (MEDIUM confidence)
-- [How to Beat AI Feature Creep](https://builtin.com/articles/beat-ai-feature-creep) — scope management in AI product development (MEDIUM confidence, general)
-- [Migration guide for extension and fork maintainers — OpenRefine](https://github.com/OpenRefine/OpenRefine/wiki/Migration-guide-for-extension-and-fork-maintainers) — fork migration best practices (MEDIUM confidence)
-- Empirical research on "quick remedy commits" following incomplete rename refactoring — Springer Empirical Software Engineering (HIGH confidence, peer-reviewed, aligns with direct GSD observations)
+- Direct inspection of PDE v1.0 codebase: `/Users/greyaltaer/code/projects/Platform Development Engine/` — command stubs, workflow patterns, ARCHITECTURE.md, STACK.md (HIGH confidence)
+- PDE PROJECT.md design pipeline requirements and out-of-scope decisions (HIGH confidence, primary source)
+- PDE ARCHITECTURE.md — Workflow-as-Orchestrator, Template-Driven Artifact, Subagent Specialization patterns (HIGH confidence)
+- LLM prompt engineering literature on output consistency — known variability without explicit constraint anchors (MEDIUM confidence, consistent with direct testing experience)
+- Design-to-dev handoff failure patterns — common in "LLM writes the spec" workflows where stack context is absent (MEDIUM confidence, observed in similar AI-tool post-mortems)
+- GSD codebase history — bin script created specifically to prevent inline side-effect sprawl (HIGH confidence, directly applicable anti-pattern)
 
 ---
 
-*Pitfalls research for: AI-powered development platform (PDE) — fork-based rebrand*
-*Researched: 2026-03-14*
+*Pitfalls research for: Design pipeline addition to AI development tool (PDE v1.1)*
+*Researched: 2026-03-15*
