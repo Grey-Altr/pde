@@ -103,37 +103,37 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INFRA-01 | - | Pending |
-| INFRA-02 | - | Pending |
-| INFRA-03 | - | Pending |
-| INFRA-04 | - | Pending |
-| BRF-01 | - | Pending |
-| BRF-02 | - | Pending |
-| FLW-01 | - | Pending |
-| FLW-02 | - | Pending |
-| SYS-01 | - | Pending |
-| SYS-02 | - | Pending |
-| SYS-03 | - | Pending |
-| WFR-01 | - | Pending |
-| WFR-02 | - | Pending |
-| WFR-03 | - | Pending |
-| CRT-01 | - | Pending |
-| CRT-02 | - | Pending |
-| CRT-03 | - | Pending |
-| ITR-01 | - | Pending |
-| ITR-02 | - | Pending |
-| HND-01 | - | Pending |
-| HND-02 | - | Pending |
-| HND-03 | - | Pending |
-| ORC-01 | - | Pending |
-| ORC-02 | - | Pending |
-| ORC-03 | - | Pending |
+| INFRA-01 | Phase 12 | Pending |
+| INFRA-02 | Phase 12 | Pending |
+| INFRA-03 | Phase 12 | Pending |
+| INFRA-04 | Phase 12 | Pending |
+| BRF-01 | Phase 13 | Pending |
+| BRF-02 | Phase 13 | Pending |
+| SYS-01 | Phase 14 | Pending |
+| SYS-02 | Phase 14 | Pending |
+| SYS-03 | Phase 14 | Pending |
+| FLW-01 | Phase 15 | Pending |
+| FLW-02 | Phase 15 | Pending |
+| WFR-01 | Phase 16 | Pending |
+| WFR-02 | Phase 16 | Pending |
+| WFR-03 | Phase 16 | Pending |
+| CRT-01 | Phase 17 | Pending |
+| CRT-02 | Phase 17 | Pending |
+| CRT-03 | Phase 17 | Pending |
+| ITR-01 | Phase 18 | Pending |
+| ITR-02 | Phase 18 | Pending |
+| HND-01 | Phase 19 | Pending |
+| HND-02 | Phase 19 | Pending |
+| HND-03 | Phase 19 | Pending |
+| ORC-01 | Phase 20 | Pending |
+| ORC-02 | Phase 20 | Pending |
+| ORC-03 | Phase 20 | Pending |
 
 **Coverage:**
-- v1.1 requirements: 25 total (4 INFRA + 2 BRF + 2 FLW + 3 SYS + 3 WFR + 3 CRT + 2 ITR + 3 HND + 3 ORC)
-- Mapped to phases: 0
-- Unmapped: 25 ⚠️
+- v1.1 requirements: 25 total (4 INFRA + 2 BRF + 3 SYS + 2 FLW + 3 WFR + 3 CRT + 2 ITR + 3 HND + 3 ORC)
+- Mapped to phases: 25
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-15*
-*Last updated: 2026-03-15 after initial definition*
+*Last updated: 2026-03-15 after roadmap creation (v1.1 traceability complete)*

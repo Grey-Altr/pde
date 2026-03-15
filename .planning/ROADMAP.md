@@ -3,6 +3,7 @@
 ## Milestones
 
 - ✅ **v1.0 MVP** — Phases 1-11 (shipped 2026-03-15)
+- 🔄 **v1.1 Design Pipeline** — Phases 12-20 (in progress)
 
 ## Phases
 
@@ -25,6 +26,117 @@ Full details: .planning/milestones/v1.0-ROADMAP.md
 
 </details>
 
+### v1.1 Design Pipeline (Phases 12-20)
+
+- [ ] **Phase 12: Design Pipeline Infrastructure** — State management, artifact storage, token utilities, and write-lock protocol
+- [ ] **Phase 13: Problem Framing (/pde:brief)** — Structured brief from PROJECT.md context, product-type detection
+- [ ] **Phase 14: Design System (/pde:system)** — DTCG tokens, CSS custom properties, typography/color/spacing scale
+- [ ] **Phase 15: User Flow Mapping (/pde:flows)** — Mermaid flow diagrams, screen inventory for wireframe stage
+- [ ] **Phase 16: Wireframing (/pde:wireframe)** — Fidelity-controlled HTML/CSS wireframes per screen
+- [ ] **Phase 17: Design Critique (/pde:critique)** — Multi-perspective review with severity ratings and fix recommendations
+- [ ] **Phase 18: Critique-Driven Iteration (/pde:iterate)** — Artifact revision loop with convergence signal
+- [ ] **Phase 19: Design-to-Code Handoff (/pde:handoff)** — TypeScript interfaces, component APIs, STACK.md-aligned specs
+- [ ] **Phase 20: Pipeline Orchestrator (/pde:build)** — Thin orchestrator over all 7 skills via DESIGN-STATE
+
+## Phase Details
+
+### Phase 12: Design Pipeline Infrastructure
+**Goal**: The design pipeline's shared foundation is in place — state tracking, artifact storage, token conversion, and manifest operations work before any skill produces output
+**Depends on**: Nothing (first v1.1 phase)
+**Requirements**: INFRA-01, INFRA-02, INFRA-03, INFRA-04
+**Success Criteria** (what must be TRUE):
+  1. Running any design skill for the first time creates `.planning/design/` and all domain subdirectories automatically
+  2. DESIGN-STATE.md tracks which pipeline stages are complete and enforces write-lock so concurrent writes cannot corrupt state
+  3. `bin/lib/design.cjs` converts a DTCG JSON token tree to CSS custom properties via `dtcgToCss()` with no npm dependencies
+  4. `design-manifest.json` records every generated artifact with path, type, version, and dependency metadata
+**Plans**: TBD
+
+### Phase 13: Problem Framing (/pde:brief)
+**Goal**: Users can frame their product problem into a structured brief that anchors all downstream design stages
+**Depends on**: Phase 12
+**Requirements**: BRF-01, BRF-02
+**Success Criteria** (what must be TRUE):
+  1. `/pde:brief` reads PROJECT.md and produces a structured `BRF-brief-v1.md` in `.planning/design/strategy/` covering problem statement, personas, jobs-to-be-done, goals, constraints, and non-goals
+  2. The brief detects software/hardware/hybrid product type and records design constraints specific to that type
+  3. DESIGN-STATE.md is updated to reflect brief completion when the skill finishes
+  4. Running `/pde:brief` standalone (without `/pde:build`) produces the same artifact as running it via the orchestrator
+**Plans**: TBD
+
+### Phase 14: Design System (/pde:system)
+**Goal**: A canonical DTCG design token set with derived CSS custom properties is available for all downstream skills to consume
+**Depends on**: Phase 13
+**Requirements**: SYS-01, SYS-02, SYS-03
+**Success Criteria** (what must be TRUE):
+  1. `/pde:system` produces a valid DTCG 2025.10 JSON file with color, typography, and spacing tokens using `$value`/`$type` structure
+  2. `assets/tokens.css` is generated from DTCG tokens via `dtcgToCss()` and is immediately consumable by wireframe HTML files
+  3. Typography scale, color palette, and spacing tokens are all present and reference-able by name in downstream artifacts
+  4. Token naming is locked in the design system document before any wireframe is generated, preventing cross-stage naming inconsistency
+**Plans**: TBD
+
+### Phase 15: User Flow Mapping (/pde:flows)
+**Goal**: Every user persona's journey is mapped as a Mermaid flow diagram and a screen inventory is extracted for the wireframe stage
+**Depends on**: Phase 13
+**Requirements**: FLW-01, FLW-02
+**Success Criteria** (what must be TRUE):
+  1. `/pde:flows` produces at least one Mermaid flowchart diagram in `.planning/design/ux/` covering the happy path and error states for each persona in the brief
+  2. Flow diagrams include decision branches and edge cases, not just linear happy paths
+  3. A screen inventory is derived from flow node labels and written to a machine-readable format that `/pde:wireframe` reads as its screen list
+**Plans**: TBD
+
+### Phase 16: Wireframing (/pde:wireframe)
+**Goal**: Every screen in the flow inventory has a browser-viewable wireframe at an explicitly controlled fidelity level
+**Depends on**: Phase 14, Phase 15
+**Requirements**: WFR-01, WFR-02, WFR-03
+**Success Criteria** (what must be TRUE):
+  1. `/pde:wireframe` produces a self-contained HTML file for each screen that opens in a browser without a server
+  2. Wireframes consume CSS custom properties from `assets/tokens.css` so design system changes cascade to wireframes
+  3. The fidelity level (`lo-fi`, `mid-fi`, `hi-fi`) is enforced by an explicit enum — running the command twice at the same fidelity level produces the same structural output, not wildly different results
+  4. Each wireframe includes state variants (default, loading, error) and annotation comments describing interaction behavior
+**Plans**: TBD
+
+### Phase 17: Design Critique (/pde:critique)
+**Goal**: Every wireframe receives a multi-perspective usability review grounded in the project's own brief and flows, not generic UI heuristics
+**Depends on**: Phase 16
+**Requirements**: CRT-01, CRT-02, CRT-03
+**Success Criteria** (what must be TRUE):
+  1. `/pde:critique` performs review from four perspectives: UX/usability, visual hierarchy, accessibility, and business alignment
+  2. The command is blocked — with a clear recovery message — if brief or flows are absent from context, preventing generic critique that ignores product intent
+  3. Every finding has a severity rating (Critical / High / Medium / Low) and an actionable recommendation, not just a description of the problem
+  4. Critique output includes a "What Works" section to preserve intentional design decisions during iteration
+**Plans**: TBD
+
+### Phase 18: Critique-Driven Iteration (/pde:iterate)
+**Goal**: Users can revise wireframes against critique findings and know when the design is ready to hand off
+**Depends on**: Phase 17
+**Requirements**: ITR-01, ITR-02
+**Success Criteria** (what must be TRUE):
+  1. `/pde:iterate` produces new versioned wireframe files (`WFR-screen-v2.html`) — original files are never overwritten
+  2. Each iteration run produces a change log mapping critique findings to applied changes, and a deferred list for issues not addressed
+  3. After three or more iteration cycles, the command surfaces an explicit convergence checklist and a "ready for handoff" recommendation based on remaining open issues
+**Plans**: TBD
+
+### Phase 19: Design-to-Code Handoff (/pde:handoff)
+**Goal**: Implementation engineers receive complete, stack-aligned component specifications derived from the full design pipeline without having to interpret wireframes manually
+**Depends on**: Phase 18
+**Requirements**: HND-01, HND-02, HND-03
+**Success Criteria** (what must be TRUE):
+  1. `/pde:handoff` synthesizes all design pipeline artifacts into a single implementation specification document in `.planning/design/handoff/`
+  2. TypeScript interfaces are generated for every component with props, types, and variant signatures derived from wireframe annotations
+  3. The command reads `.planning/research/STACK.md` and aligns prop naming, import patterns, and component API conventions to the project's actual tech stack — blocked with a recovery message if STACK.md is absent
+  4. `design-manifest.json` is fully populated with all artifact paths, versions, and component-to-artifact mappings
+**Plans**: TBD
+
+### Phase 20: Pipeline Orchestrator (/pde:build)
+**Goal**: Users can run the full brief-to-handoff design pipeline with a single command, resumable from any interruption point
+**Depends on**: Phase 19
+**Requirements**: ORC-01, ORC-02, ORC-03
+**Success Criteria** (what must be TRUE):
+  1. `/pde:build` reads DESIGN-STATE.md and invokes only the incomplete pipeline stages in dependency order, skipping stages already complete
+  2. After a simulated mid-pipeline interruption, re-running `/pde:build` resumes from the last complete stage without re-running earlier stages or losing artifacts
+  3. Each skill invoked via `/pde:build` produces identical output to running that skill standalone — the orchestrator adds no logic of its own, delegating all skill behavior to individual workflows
+  4. Human verification gates appear between stages so users can inspect output before the next stage begins
+**Plans**: TBD
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -40,3 +152,12 @@ Full details: .planning/milestones/v1.0-ROADMAP.md
 | 9. Fix Critical Runtime Crash | v1.0 | 1/1 | Complete | 2026-03-15 |
 | 10. Fix STATE.md Regressions | v1.0 | 1/1 | Complete | 2026-03-15 |
 | 11. Command Reference Cleanup | v1.0 | 1/1 | Complete | 2026-03-15 |
+| 12. Design Pipeline Infrastructure | v1.1 | 0/TBD | Not started | - |
+| 13. Problem Framing (/pde:brief) | v1.1 | 0/TBD | Not started | - |
+| 14. Design System (/pde:system) | v1.1 | 0/TBD | Not started | - |
+| 15. User Flow Mapping (/pde:flows) | v1.1 | 0/TBD | Not started | - |
+| 16. Wireframing (/pde:wireframe) | v1.1 | 0/TBD | Not started | - |
+| 17. Design Critique (/pde:critique) | v1.1 | 0/TBD | Not started | - |
+| 18. Critique-Driven Iteration (/pde:iterate) | v1.1 | 0/TBD | Not started | - |
+| 19. Design-to-Code Handoff (/pde:handoff) | v1.1 | 0/TBD | Not started | - |
+| 20. Pipeline Orchestrator (/pde:build) | v1.1 | 0/TBD | Not started | - |
