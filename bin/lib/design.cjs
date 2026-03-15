@@ -14,7 +14,7 @@ const { output, error } = require('./core.cjs');
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const DOMAIN_DIRS = ['assets', 'strategy', 'ux', 'visual', 'review', 'handoff'];
+const DOMAIN_DIRS = ['assets', 'strategy', 'ux', 'visual', 'review', 'handoff', 'hardware'];
 const WRITE_LOCK_TTL_MS = 60000;
 
 // ─── stripCommentKeys ─────────────────────────────────────────────────────────
@@ -36,7 +36,7 @@ function stripCommentKeys(obj) {
 // ─── ensureDesignDirs ─────────────────────────────────────────────────────────
 
 /**
- * Create .planning/design/ and all 6 domain subdirectories.
+ * Create .planning/design/ and all domain subdirectories.
  * Idempotent — does not overwrite existing DESIGN-STATE.md or manifest.
  * Initializes root DESIGN-STATE.md from templates/design-state-root.md.
  * Initializes design-manifest.json from templates/design-manifest.json
@@ -301,6 +301,29 @@ function cmdLockRelease(cwd, raw) {
   output({ released: true }, raw);
 }
 
+function cmdLockStatus(cwd, raw) {
+  const stateFilePath = path.join(cwd, '.planning', 'design', 'DESIGN-STATE.md');
+  if (!fs.existsSync(stateFilePath)) {
+    output({ locked: false, owner: null, since: null, expires: null, stale: false }, raw);
+    return;
+  }
+  const content = fs.readFileSync(stateFilePath, 'utf-8');
+  const writeLockSectionPattern = /(### Write Lock\n\| Locked By \| Since \| Expires \|\n\|[-| ]+\|\n)([\s\S]*?)(?=\n##|\n### (?!Write Lock)|$)/;
+  const match = content.match(writeLockSectionPattern);
+  const tableBody = match ? match[2] : '';
+  const dataRowPattern = /^\| (?!<!--)([^|]+) \| ([^|]+) \| ([^|]+) \|$/m;
+  const dataRowMatch = tableBody.match(dataRowPattern);
+  if (!dataRowMatch) {
+    output({ locked: false, owner: null, since: null, expires: null, stale: false }, raw);
+    return;
+  }
+  const owner = dataRowMatch[1].trim();
+  const since = dataRowMatch[2].trim();
+  const expires = dataRowMatch[3].trim();
+  const stale = new Date(expires) <= new Date();
+  output({ locked: !stale, owner, since, expires, stale }, raw);
+}
+
 // ─── Self-Test ────────────────────────────────────────────────────────────────
 
 function runSelfTest() {
@@ -349,7 +372,7 @@ function runSelfTest() {
     assert.ok(fs.existsSync(path.join(tmpDir, '.planning', 'design')));
   });
 
-  check('creates all 6 domain subdirectories', () => {
+  check('creates all 7 domain subdirectories', () => {
     for (const domain of DOMAIN_DIRS) {
       assert.ok(
         fs.existsSync(path.join(tmpDir, '.planning', 'design', domain)),
@@ -431,6 +454,22 @@ function runSelfTest() {
     const result = acquireWriteLock(tmpDir, 'fresh-owner');
     assert.strictEqual(result, true, 'Should acquire lock when stale lock exists');
     releaseWriteLock(tmpDir);
+  });
+
+  check('cmdLockStatus returns locked: false when no lock held', () => {
+    // After the releaseWriteLock from previous test, no lock row exists
+    // Mock process.exit and process.stdout.write to capture output without exiting
+    const origWrite = process.stdout.write;
+    const origExit = process.exit;
+    let captured = '';
+    process.stdout.write = (msg) => { captured += msg; return true; };
+    process.exit = () => {};
+    cmdLockStatus(tmpDir, false);
+    process.stdout.write = origWrite;
+    process.exit = origExit;
+    const result = JSON.parse(captured);
+    assert.strictEqual(result.locked, false);
+    assert.strictEqual(result.owner, null);
   });
 
   // ─── Test group 3: dtcgToCssLines ────────────────────────────────────────
@@ -552,4 +591,5 @@ module.exports = {
   cmdCoverageCheck,
   cmdLockAcquire,
   cmdLockRelease,
+  cmdLockStatus,
 };

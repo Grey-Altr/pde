@@ -404,7 +404,7 @@ Read the current root DESIGN-STATE.md, then apply these three updates using the 
 
 1. **Cross-Domain Dependency Map** — add BRF row if not already present:
    ```
-   | BRF | Design Brief | strategy | v{N} | -- | {date} |
+   | BRF | strategy | -- | current |
    ```
 
 2. **Quick Reference section** — add or update these rows:
