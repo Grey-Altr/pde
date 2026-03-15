@@ -47,13 +47,10 @@ Plans:
   2. All bin scripts reference `~/.pde/` for global config, not `~/.gsd/`
   3. Config system reads from and writes to `~/.pde/defaults.json` — two installs (GSD and PDE) do not share config state
   4. Git branch templates use `pde/` prefix — no branches are created with `gsd/` prefix
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 02-01: Rename gsd-tools.cjs to pde-tools.cjs and update all internal references
-- [ ] 02-02: Update all bin scripts to reference ~/.pde/ config paths
-- [ ] 02-03: Update config.cjs and init.cjs to use ~/.pde/ directory
-- [ ] 02-04: Update git branch templates to use pde/ prefix
+- [ ] 02-01-PLAN.md — Copy rebranded bin files from reference installation and verify all TOOL requirements
 
 ### Phase 3: Workflow Commands
 **Goal**: All 29 /pde: slash commands are operational and accept user invocations in Claude Code
@@ -165,7 +162,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Plugin Identity | 2/2 | Complete   | 2026-03-15 |
-| 2. Tooling & Binary Rebrand | 0/4 | Not started | - |
+| 2. Tooling & Binary Rebrand | 0/1 | Not started | - |
 | 3. Workflow Commands | 0/4 | Not started | - |
 | 4. Workflow Engine | 0/4 | Not started | - |
 | 5. Agent System | 0/4 | Not started | - |
