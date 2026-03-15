@@ -61,8 +61,8 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **BRAND-01**: Zero occurrences of "gsd" or "GSD" in any source file (case-insensitive grep clean)
 - [x] **BRAND-02**: Zero occurrences of "get-shit-done" in any path reference
 - [x] **BRAND-03**: Zero hardcoded absolute paths containing specific usernames
-- [ ] **BRAND-04**: All UI banners display "PDE ►" instead of "GSD ►"
-- [ ] **BRAND-05**: All stage names, status symbols, and progress displays use PDE branding
+- [x] **BRAND-04**: All UI banners display "PDE ►" instead of "GSD ►"
+- [x] **BRAND-05**: All stage names, status symbols, and progress displays use PDE branding
 - [x] **BRAND-06**: README and any documentation reference PDE, not GSD
 
 ## v2 Requirements
@@ -148,8 +148,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | BRAND-01 | Phase 10 | Pending |
 | BRAND-02 | Phase 7 | Complete |
 | BRAND-03 | Phase 7 | Complete |
-| BRAND-04 | Phase 9 | Pending |
-| BRAND-05 | Phase 9 | Pending |
+| BRAND-04 | Phase 9 | Complete |
+| BRAND-05 | Phase 9 | Complete |
 | BRAND-06 | Phase 8 | Complete |
 
 **Coverage:**
