@@ -36,7 +36,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 Plans:
 - [x] 01-01-PLAN.md — Create PDE plugin manifest, VERSION file, and validate plugin loads in Claude Code
-- [ ] 01-02-PLAN.md — Gap closure: fix ROADMAP spec conflict and push to GitHub for PLUG-01 verification
+- [x] 01-02-PLAN.md — Gap closure: fix ROADMAP spec conflict and push to GitHub for PLUG-01 verification
 
 ### Phase 2: Tooling & Binary Rebrand
 **Goal**: All binary scripts and config infrastructure use PDE naming and paths with no GSD references
@@ -50,7 +50,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 02-01-PLAN.md — Copy rebranded bin files from reference installation and verify all TOOL requirements
+- [x] 02-01-PLAN.md — Copy rebranded bin files from reference installation and verify all TOOL requirements
 
 ### Phase 3: Workflow Commands
 **Goal**: All 29 /pde: slash commands are operational and accept user invocations in Claude Code
@@ -65,9 +65,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 03-01-PLAN.md — Copy workflows, lib/ui, references, and templates from PDE reference; fix all hardcoded paths to use CLAUDE_PLUGIN_ROOT
-- [ ] 03-02-PLAN.md — Create 34 command stubs in commands/ with pde: prefix and validate plugin structure
-- [ ] 03-03-PLAN.md — Smoke test /pde:progress and /pde:help; user verifies commands in palette
+- [x] 03-01-PLAN.md — Copy workflows, lib/ui, references, and templates from PDE reference; fix all hardcoded paths to use CLAUDE_PLUGIN_ROOT
+- [x] 03-02-PLAN.md — Create 34 command stubs in commands/ with pde: prefix and validate plugin structure
+- [x] 03-03-PLAN.md — Smoke test /pde:progress and /pde:help; user verifies commands in palette
 
 ### Phase 4: Workflow Engine
 **Goal**: The .planning/ state layer persists correctly across context resets and all state files use PDE conventions
@@ -82,10 +82,10 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 04-01-PLAN.md — Verify .planning/ state persistence, STATE.md frontmatter sync, and ROADMAP.md round-trip editing
-- [ ] 04-02-PLAN.md — Verify STATE.md CRUD lifecycle and requirements traceability auto-population
-- [ ] 04-03-PLAN.md — Fix Co-Authored-By attribution gap in cmdCommit and verify atomic git commit protocol
-- [ ] 04-04-PLAN.md — Gap closure: fix stale STATE.md body narrative and align field format with cmdStateAdvancePlan
+- [x] 04-01-PLAN.md — Verify .planning/ state persistence, STATE.md frontmatter sync, and ROADMAP.md round-trip editing
+- [x] 04-02-PLAN.md — Verify STATE.md CRUD lifecycle and requirements traceability auto-population
+- [x] 04-03-PLAN.md — Fix Co-Authored-By attribution gap in cmdCommit and verify atomic git commit protocol
+- [x] 04-04-PLAN.md — Gap closure: fix stale STATE.md body narrative and align field format with cmdStateAdvancePlan
 
 ### Phase 5: Agent System
 **Goal**: All PDE agent types are functional with correct naming and paths, and parallel orchestration works
@@ -100,8 +100,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 05-01-PLAN.md — Audit agent type registry, verify zero GSD references, and smoke test model selection across all profiles
-- [ ] 05-02-PLAN.md — Smoke test research agent gating via config toggle and verify parallel wave orchestration
+- [x] 05-01-PLAN.md — Audit agent type registry, verify zero GSD references, and smoke test model selection across all profiles
+- [x] 05-02-PLAN.md — Smoke test research agent gating via config toggle and verify parallel wave orchestration
 
 ### Phase 6: Templates & References
 **Goal**: All templates and references carry PDE branding with no GSD banners, stage names, or path references
@@ -114,8 +114,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 06-01-PLAN.md — Audit templates/ for zero GSD strings and verify template-to-output chain is PDE-branded
-- [ ] 06-02-PLAN.md — Audit references/ for zero GSD strings and verify /pde: command references are correct
+- [x] 06-01-PLAN.md — Audit templates/ for zero GSD strings and verify template-to-output chain is PDE-branded
+- [x] 06-02-PLAN.md — Audit references/ for zero GSD strings and verify /pde: command references are correct
 
 ### Phase 7: Rebranding Completeness
 **Goal**: Zero GSD strings exist anywhere in the codebase — grep clean across all file types
@@ -130,8 +130,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 07-01-PLAN.md — Fix STATE.md frontmatter key and run comprehensive grep audit for BRAND-01, BRAND-02, BRAND-03, PLUG-04
-- [ ] 07-02-PLAN.md — Verify UI banners, stage names, and splash screen use PDE branding (BRAND-04, BRAND-05, BRAND-06)
+- [x] 07-01-PLAN.md — Fix STATE.md frontmatter key and run comprehensive grep audit for BRAND-01, BRAND-02, BRAND-03, PLUG-04
+- [x] 07-02-PLAN.md — Verify UI banners, stage names, and splash screen use PDE branding (BRAND-04, BRAND-05, BRAND-06)
 
 ### Phase 8: Onboarding & Distribution
 **Goal**: PDE is publicly distributable with documentation that enables a naive user to succeed on first session
@@ -145,10 +145,10 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 08-01-PLAN.md — Create marketplace.json for distribution and install validation script
-- [ ] 08-02-PLAN.md — Write GETTING-STARTED.md walk-through tutorial for naive users
-- [ ] 08-03-PLAN.md — Write README.md, bump version to 1.0.0, and tag v1.0.0 release
-- [ ] 08-04-PLAN.md — Gap closure: expand README.md to meet 50-line minimum threshold
+- [x] 08-01-PLAN.md — Create marketplace.json for distribution and install validation script
+- [x] 08-02-PLAN.md — Write GETTING-STARTED.md walk-through tutorial for naive users
+- [x] 08-03-PLAN.md — Write README.md, bump version to 1.0.0, and tag v1.0.0 release
+- [x] 08-04-PLAN.md — Gap closure: expand README.md to meet 50-line minimum threshold
 
 ### Phase 9: Fix Critical Runtime Crash (telemetry.cjs)
 **Goal:** Restore UI rendering chain by creating the missing telemetry.cjs module that render.cjs depends on
@@ -162,7 +162,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 09-01-PLAN.md — Create lib/telemetry.cjs and verify all render.cjs commands execute without crash
+- [x] 09-01-PLAN.md — Create lib/telemetry.cjs and verify all render.cjs commands execute without crash
 
 ### Phase 10: Fix STATE.md Regressions
 **Goal:** Eliminate gsd_state_version regression and fix stale body/progress fields in STATE.md
@@ -177,7 +177,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 10-01-PLAN.md — Fix gsd_state_version regression, update stale body narrative, and patch GSD layer
+- [x] 10-01-PLAN.md — Fix gsd_state_version regression, update stale body narrative, and patch GSD layer
 
 ### Phase 11: Command Reference Cleanup
 **Goal:** Remove or stub dangling command references that break user expectations
@@ -191,7 +191,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 11-01-PLAN.md — Create 20 command stubs and audit for zero dangling /pde: references
+- [x] 11-01-PLAN.md — Create 20 command stubs and audit for zero dangling /pde: references
 
 ## Progress
 
@@ -210,4 +210,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 8. Onboarding & Distribution | 4/4 | Complete   | 2026-03-15 |
 | 9. Fix Critical Runtime Crash | 1/1 | Complete   | 2026-03-15 |
 | 10. Fix STATE.md Regressions | 1/1 | Complete    | 2026-03-15 |
-| 11. Command Reference Cleanup | 1/1 | Complete   | 2026-03-15 |
+| 11. Command Reference Cleanup | 1/1 | Complete    | 2026-03-15 |

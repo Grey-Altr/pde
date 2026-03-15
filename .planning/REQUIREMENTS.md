@@ -154,13 +154,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 **Coverage:**
 - v1 requirements: 40 total (4 PLUG + 13 CMD + 6 WORK + 5 AGNT + 6 TOOL + 6 BRAND)
-- Satisfied: 34
-- Pending (gap closure): 6 (PLUG-04, BRAND-01, BRAND-04, BRAND-05, WORK-04, PLUG-01 partial)
+- Complete: 40
+- Pending: 0
 - Mapped to phases: 40
 - Unmapped: 0 ✓
 
-Note: Source file stated 30 requirements but enumeration counts 40. All 40 enumerated requirements are mapped.
-
 ---
 *Requirements defined: 2026-03-14*
-*Last updated: 2026-03-14 after roadmap creation — traceability populated*
+*Last updated: 2026-03-15 — coverage note corrected (all 40 requirements complete)*

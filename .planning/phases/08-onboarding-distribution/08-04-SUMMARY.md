@@ -62,7 +62,7 @@ Each task was committed atomically:
 
 1. **Task 1: Expand README.md to meet 50-line minimum** - `fdec4d5` (feat)
 
-**Plan metadata:** (pending final commit)
+**Plan metadata:** `3363159` (docs: complete plan)
 
 ## Files Created/Modified
 
@@ -92,3 +92,10 @@ Phase 8 is now fully complete. All automated checks pass. README.md satisfies th
 ---
 *Phase: 08-onboarding-distribution*
 *Completed: 2026-03-15*
+
+## Self-Check: PASSED
+
+- README.md: FOUND (51 lines)
+- 08-04-SUMMARY.md: FOUND
+- Task commit fdec4d5: FOUND
+- Plan metadata commit 3363159: FOUND
