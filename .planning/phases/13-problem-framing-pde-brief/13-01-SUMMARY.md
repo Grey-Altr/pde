@@ -32,6 +32,7 @@ metrics:
   completed_date: "2026-03-15"
   tasks_completed: 2
   files_modified: 2
+requirements-completed: [BRF-01, BRF-02]
 ---
 
 # Phase 13 Plan 01: /pde:brief Workflow Implementation Summary
