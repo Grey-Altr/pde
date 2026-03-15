@@ -9,10 +9,10 @@ Requirements for design pipeline release. Each maps to roadmap phases.
 
 ### Infrastructure
 
-- [ ] **INFRA-01**: .planning/design/ directory created on first design skill invocation
-- [ ] **INFRA-02**: DESIGN-STATE.md tracks pipeline stage completion with write-lock mechanism
-- [ ] **INFRA-03**: bin/lib/design.cjs provides DTCG-to-CSS conversion and artifact path resolution
-- [ ] **INFRA-04**: Design manifest (design-manifest.json) tracks all generated artifacts
+- [x] **INFRA-01**: .planning/design/ directory created on first design skill invocation
+- [x] **INFRA-02**: DESIGN-STATE.md tracks pipeline stage completion with write-lock mechanism
+- [x] **INFRA-03**: bin/lib/design.cjs provides DTCG-to-CSS conversion and artifact path resolution
+- [x] **INFRA-04**: Design manifest (design-manifest.json) tracks all generated artifacts
 
 ### Problem Framing
 
@@ -103,10 +103,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INFRA-01 | Phase 12 | Pending |
-| INFRA-02 | Phase 12 | Pending |
-| INFRA-03 | Phase 12 | Pending |
-| INFRA-04 | Phase 12 | Pending |
+| INFRA-01 | Phase 12 | Complete |
+| INFRA-02 | Phase 12 | Complete |
+| INFRA-03 | Phase 12 | Complete |
+| INFRA-04 | Phase 12 | Complete |
 | BRF-01 | Phase 13 | Pending |
 | BRF-02 | Phase 13 | Pending |
 | SYS-01 | Phase 14 | Pending |
