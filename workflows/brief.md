@@ -441,6 +441,16 @@ node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update BRF status
 node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update BRF version {N}
 ```
 
+**Set manifest root-level fields:**
+
+- `{project_name}` — Extract from PROJECT.md: use the `name:` frontmatter field if present, otherwise use the text of the first `# Heading`. If neither is available, use `"unknown"`.
+- `{product_type}` — Use the product type string already resolved in Step 4 (one of: `software`, `hardware`, `hybrid`).
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level projectName "{project_name}"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level productType {product_type}
+```
+
 Display: `Step 7/7: Root DESIGN-STATE and manifest updated.`
 
 ---
