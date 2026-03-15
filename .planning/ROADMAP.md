@@ -62,7 +62,9 @@ Plans:
   2. The brief detects software/hardware/hybrid product type and records design constraints specific to that type
   3. DESIGN-STATE.md is updated to reflect brief completion when the skill finishes
   4. Running `/pde:brief` standalone (without `/pde:build`) produces the same artifact as running it via the orchestrator
-**Plans**: TBD
+**Plans:** 1 plan
+Plans:
+- [ ] 13-01-PLAN.md — Brief workflow and command wiring
 
 ### Phase 14: Design System (/pde:system)
 **Goal**: A canonical DTCG design token set with derived CSS custom properties is available for all downstream skills to consume
@@ -155,7 +157,7 @@ Plans:
 | 10. Fix STATE.md Regressions | v1.0 | 1/1 | Complete | 2026-03-15 |
 | 11. Command Reference Cleanup | v1.0 | 1/1 | Complete | 2026-03-15 |
 | 12. Design Pipeline Infrastructure | 1/1 | Complete    | 2026-03-15 | - |
-| 13. Problem Framing (/pde:brief) | v1.1 | 0/TBD | Not started | - |
+| 13. Problem Framing (/pde:brief) | v1.1 | 0/1 | Not started | - |
 | 14. Design System (/pde:system) | v1.1 | 0/TBD | Not started | - |
 | 15. User Flow Mapping (/pde:flows) | v1.1 | 0/TBD | Not started | - |
 | 16. Wireframing (/pde:wireframe) | v1.1 | 0/TBD | Not started | - |
