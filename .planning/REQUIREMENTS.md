@@ -12,7 +12,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **PLUG-01**: PDE installable as Claude Code plugin via standard mechanism
 - [x] **PLUG-02**: plugin.json manifest with PDE name, description, and version 1.0.0
 - [x] **PLUG-03**: Plugin passes Claude Code validation and loads without errors
-- [ ] **PLUG-04**: Zero GSD references in any user-visible output or error message
+- [x] **PLUG-04**: Zero GSD references in any user-visible output or error message
 
 ### Command Interface
 
@@ -58,12 +58,12 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Rebranding Completeness
 
-- [ ] **BRAND-01**: Zero occurrences of "gsd" or "GSD" in any source file (case-insensitive grep clean)
-- [ ] **BRAND-02**: Zero occurrences of "get-shit-done" in any path reference
-- [ ] **BRAND-03**: Zero hardcoded absolute paths containing specific usernames
-- [ ] **BRAND-04**: All UI banners display "PDE ►" instead of "GSD ►"
-- [ ] **BRAND-05**: All stage names, status symbols, and progress displays use PDE branding
-- [ ] **BRAND-06**: README and any documentation reference PDE, not GSD
+- [x] **BRAND-01**: Zero occurrences of "gsd" or "GSD" in any source file (case-insensitive grep clean)
+- [x] **BRAND-02**: Zero occurrences of "get-shit-done" in any path reference
+- [x] **BRAND-03**: Zero hardcoded absolute paths containing specific usernames
+- [x] **BRAND-04**: All UI banners display "PDE ►" instead of "GSD ►"
+- [x] **BRAND-05**: All stage names, status symbols, and progress displays use PDE branding
+- [x] **BRAND-06**: README and any documentation reference PDE, not GSD
 
 ## v2 Requirements
 
@@ -114,7 +114,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PLUG-01 | Phase 1 | Complete |
 | PLUG-02 | Phase 1 | Complete |
 | PLUG-03 | Phase 1 | Complete |
-| PLUG-04 | Phase 7 | Pending |
+| PLUG-04 | Phase 7 | Complete |
 | CMD-01 | Phase 3 | Complete |
 | CMD-02 | Phase 3 | Complete |
 | CMD-03 | Phase 3 | Complete |
@@ -145,12 +145,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TOOL-04 | Phase 6 | Complete |
 | TOOL-05 | Phase 2 | Complete |
 | TOOL-06 | Phase 2 | Complete |
-| BRAND-01 | Phase 7 | Pending |
-| BRAND-02 | Phase 7 | Pending |
-| BRAND-03 | Phase 7 | Pending |
-| BRAND-04 | Phase 7 | Pending |
-| BRAND-05 | Phase 7 | Pending |
-| BRAND-06 | Phase 8 | Pending |
+| BRAND-01 | Phase 7 | Complete |
+| BRAND-02 | Phase 7 | Complete |
+| BRAND-03 | Phase 7 | Complete |
+| BRAND-04 | Phase 7 | Complete |
+| BRAND-05 | Phase 7 | Complete |
+| BRAND-06 | Phase 8 | Complete |
 
 **Coverage:**
 - v1 requirements: 40 total (4 PLUG + 13 CMD + 6 WORK + 5 AGNT + 6 TOOL + 6 BRAND)
