@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Design Pipeline
-status: verifying
-stopped_at: "Completed 13-01-PLAN.md: /pde:brief workflow and command wired"
-last_updated: "2026-03-15T21:54:10.303Z"
-last_activity: "2026-03-15 — Phase 13 Plan 01 complete: /pde:brief workflow and command wired"
+status: completed
+stopped_at: "Completed 13.1-01-PLAN.md: all 5 integration defects resolved"
+last_updated: "2026-03-15T22:57:08.889Z"
+last_activity: "2026-03-15 — Phase 13.1 Plan 01 complete: INT-02, INT-01, INT-03, metadata, Nyquist fixes"
 progress:
-  total_phases: 9
-  completed_phases: 2
-  total_plans: 2
-  completed_plans: 2
-  percent: 0
+  total_phases: 10
+  completed_phases: 3
+  total_plans: 3
+  completed_plans: 3
+  percent: 100
 ---
 
 # Project State
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-03-15)
 
 ## Current Position
 
-Phase: 13 of 20 (Problem Framing — /pde:brief)
+Phase: 13.1 of 20 (Hotfix — Tech Debt & Integration Fixes)
 Plan: 1 of 1 (complete)
-Status: Phase complete — ready for verification
-Last activity: 2026-03-15 — Phase 13 Plan 01 complete: /pde:brief workflow and command wired
+Status: Phase complete — all 5 integration defects resolved
+Last activity: 2026-03-15 — Phase 13.1 Plan 01 complete: INT-02, INT-01, INT-03, metadata, Nyquist fixes
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
@@ -48,6 +48,7 @@ Progress: [░░░░░░░░░░] 0%
 *Updated after each plan completion*
 | Phase 12 P01 | 2min | 2 tasks | 2 files |
 | Phase 13 P01 | 5min | 2 tasks | 2 files |
+| Phase 13.1 P01 | 3min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -66,6 +67,7 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 13]: [13-01] Jobs-to-be-done section placed between Target Users and Constraints — added in workflow output instructions without modifying template file
 - [Phase 13]: [13-01] --force flag implemented as skill-specific flag on /pde:brief for non-interactive re-generation
 - [Phase 13]: [13-01] Scope Boundaries (Out of scope sub-section) serves as non-goals section — no new template section needed
+- [Phase 13.1]: [13.1-01] cmdLockStatus self-test mocks process.exit to prevent output() from terminating test runner
 
 ### Pending Todos
 
@@ -79,6 +81,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-15T21:50:54.937Z
-Stopped at: Completed 13-01-PLAN.md: /pde:brief workflow and command wired
+Last session: 2026-03-15T22:57:08.886Z
+Stopped at: Completed 13.1-01-PLAN.md: all 5 integration defects resolved
 Resume file: None

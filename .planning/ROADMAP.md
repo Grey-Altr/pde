@@ -30,7 +30,7 @@ Full details: .planning/milestones/v1.0-ROADMAP.md
 
 - [x] **Phase 12: Design Pipeline Infrastructure** — State management, artifact storage, token utilities, and write-lock protocol (completed 2026-03-15)
 - [x] **Phase 13: Problem Framing (/pde:brief)** — Structured brief from PROJECT.md context, product-type detection (completed 2026-03-15)
-- [ ] **Phase 13.1: Hotfix — Tech Debt & Integration Fixes (Phases 12-13)** — Fix broken table schema, missing metadata, unimplemented subcommand, stale template entry, Nyquist gaps
+- [x] **Phase 13.1: Hotfix — Tech Debt & Integration Fixes (Phases 12-13)** — Fix broken table schema, missing metadata, unimplemented subcommand, stale template entry, Nyquist gaps (completed 2026-03-15)
 - [ ] **Phase 14: Design System (/pde:system)** — DTCG tokens, CSS custom properties, typography/color/spacing scale
 - [ ] **Phase 15: User Flow Mapping (/pde:flows)** — Mermaid flow diagrams, screen inventory for wireframe stage
 - [ ] **Phase 16: Wireframing (/pde:wireframe)** — Fidelity-controlled HTML/CSS wireframes per screen
@@ -188,7 +188,7 @@ Plans:
 | 11. Command Reference Cleanup | v1.0 | 1/1 | Complete | 2026-03-15 |
 | 12. Design Pipeline Infrastructure | 1/1 | Complete    | 2026-03-15 | - |
 | 13. Problem Framing (/pde:brief) | 1/1 | Complete    | 2026-03-15 | - |
-| 13.1 Hotfix — Tech Debt & Integration Fixes | v1.1 | 0/1 | Not started | - |
+| 13.1 Hotfix — Tech Debt & Integration Fixes | 1/1 | Complete   | 2026-03-15 | - |
 | 14. Design System (/pde:system) | v1.1 | 0/TBD | Not started | - |
 | 15. User Flow Mapping (/pde:flows) | v1.1 | 0/TBD | Not started | - |
 | 16. Wireframing (/pde:wireframe) | v1.1 | 0/TBD | Not started | - |
