@@ -2,8 +2,8 @@
 phase: 13
 slug: problem-framing-pde-brief
 status: draft
-nyquist_compliant: false
-wave_0_complete: false
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-15
 ---
 
@@ -38,9 +38,11 @@ created: 2026-03-15
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 13-01-01 | 01 | 1 | BRF-01 | smoke | `grep -l 'problem_statement' workflows/brief.md` | ❌ W0 | ⬜ pending |
-| 13-01-02 | 01 | 1 | BRF-02 | smoke | `grep -l 'product_type' workflows/brief.md` | ❌ W0 | ⬜ pending |
-| 13-01-03 | 01 | 1 | BRF-01 | smoke | `grep -l 'brief' commands/brief.md` | ✅ | ⬜ pending |
+| 13-01-T1a | 01 | 1 | BRF-01 | smoke | `grep -q 'ensure-dirs' workflows/brief.md && grep -q 'BRF-brief' workflows/brief.md && echo OK` | ❌ W1 | ⬜ pending |
+| 13-01-T1b | 01 | 1 | BRF-02 | smoke | `grep -q 'software' workflows/brief.md && grep -q 'hardware' workflows/brief.md && grep -q 'hybrid' workflows/brief.md && echo OK` | ❌ W1 | ⬜ pending |
+| 13-01-T2 | 01 | 1 | BRF-01 | smoke | `grep -q '@workflows/brief.md' commands/brief.md && echo OK` | ❌ W1 | ⬜ pending |
+
+*Note: T1a and T1b are sub-checks of Plan 13-01 Task 1 (BRF-01 brief generation + BRF-02 type detection). T2 maps to Task 2 (command wiring).*
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -67,11 +69,11 @@ created: 2026-03-15
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 5s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 5s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-03-15
