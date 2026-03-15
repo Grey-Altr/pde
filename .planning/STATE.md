@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Design Pipeline
 status: completed
-stopped_at: "Completed 13.1-01-PLAN.md: all 5 integration defects resolved"
-last_updated: "2026-03-15T23:00:12.257Z"
+stopped_at: "Completed 13.2-01-PLAN.md: manifest-set-top-level subcommand, brief.md Step 7 wiring, 13.1-VALIDATION.md Nyquist fix"
+last_updated: "2026-03-15T23:32:58.466Z"
 last_activity: "2026-03-15 — Phase 13.1 Plan 01 complete: INT-02, INT-01, INT-03, metadata, Nyquist fixes"
 progress:
-  total_phases: 10
-  completed_phases: 3
-  total_plans: 3
-  completed_plans: 3
+  total_phases: 11
+  completed_phases: 4
+  total_plans: 4
+  completed_plans: 4
   percent: 100
 ---
 
@@ -49,6 +49,7 @@ Progress: [██████████] 100%
 | Phase 12 P01 | 2min | 2 tasks | 2 files |
 | Phase 13 P01 | 5min | 2 tasks | 2 files |
 | Phase 13.1 P01 | 3min | 2 tasks | 5 files |
+| Phase 13.2-manifest-top-level-nyquist-cleanup P01 | 2min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -68,6 +69,7 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 13]: [13-01] --force flag implemented as skill-specific flag on /pde:brief for non-interactive re-generation
 - [Phase 13]: [13-01] Scope Boundaries (Out of scope sub-section) serves as non-goals section — no new template section needed
 - [Phase 13.1]: [13.1-01] cmdLockStatus self-test mocks process.exit to prevent output() from terminating test runner
+- [Phase 13.2-01]: manifest-set-top-level uses (cwd, field, value, raw) signature; placed after lock-release in brief Step 7; self-test uses process.exit mock pattern from Phase 13.1
 
 ### Pending Todos
 
@@ -81,6 +83,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-15T22:57:08.886Z
-Stopped at: Completed 13.1-01-PLAN.md: all 5 integration defects resolved
+Last session: 2026-03-15T23:32:58.463Z
+Stopped at: Completed 13.2-01-PLAN.md: manifest-set-top-level subcommand, brief.md Step 7 wiring, 13.1-VALIDATION.md Nyquist fix
 Resume file: None
