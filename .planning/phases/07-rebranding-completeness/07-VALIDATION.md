@@ -2,7 +2,7 @@
 phase: 7
 slug: rebranding-completeness
 status: draft
-nyquist_compliant: false
+nyquist_compliant: true
 wave_0_complete: false
 created: 2026-03-14
 ---
@@ -20,7 +20,7 @@ created: 2026-03-14
 | **Framework** | None — grep-based bash validation (no test runner) |
 | **Config file** | none |
 | **Quick run command** | `grep -rni "gsd" bin/ lib/ commands/ workflows/ templates/ references/ 2>/dev/null \| wc -l` (expect: `0`) |
-| **Full suite command** | Run all four audit greps from Per-Task Verification Map; all must return `0` |
+| **Full suite command** | Run all six audit greps from Per-Task Verification Map; all must return `0` (or match found for splash check) |
 | **Estimated runtime** | ~2 seconds |
 
 ---
@@ -41,9 +41,9 @@ created: 2026-03-14
 | 07-01-01 | 01 | 1 | BRAND-01, BRAND-02 | smoke | `grep -rni "gsd\|get-shit-done" bin/ lib/ commands/ workflows/ templates/ references/ .claude-plugin/ 2>/dev/null \| wc -l` (expect: `0`) | N/A — bash | ⬜ pending |
 | 07-01-02 | 01 | 1 | PLUG-04 | smoke | `grep -rn "/gsd:" bin/ lib/ commands/ workflows/ 2>/dev/null \| wc -l` (expect: `0`) | N/A — bash | ⬜ pending |
 | 07-01-03 | 01 | 1 | BRAND-03 | smoke | `grep -rn "\.gsd\|/\.gsd" bin/ lib/ commands/ workflows/ templates/ references/ 2>/dev/null \| wc -l` (expect: `0`) | N/A — bash | ⬜ pending |
-| 07-02-01 | 02 | 1 | BRAND-03 | smoke | `grep -rni "greyaltaer" bin/ lib/ commands/ workflows/ templates/ references/ 2>/dev/null \| wc -l` (expect: `0`) | N/A — bash | ⬜ pending |
-| 07-03-01 | 03 | 1 | BRAND-04 | smoke | `grep -rn "banner.*GSD" workflows/ 2>/dev/null \| wc -l` (expect: `0`) | N/A — bash | ⬜ pending |
-| 07-03-02 | 03 | 1 | BRAND-05 | smoke | `grep "Platform Development Engine" lib/ui/splash.cjs` (expect: match found) | N/A — bash | ⬜ pending |
+| 07-01-04 | 01 | 1 | BRAND-03 | smoke | `grep -rni "greyaltaer\|/Users/[a-zA-Z0-9_-]*/" bin/ lib/ commands/ workflows/ templates/ references/ 2>/dev/null \| grep -v "/Users/name/" \| grep -v "/users/" \| wc -l` (expect: `0`) | N/A — bash | ⬜ pending |
+| 07-02-01 | 02 | 1 | BRAND-04 | smoke | `grep -rn "banner.*GSD" workflows/ 2>/dev/null \| wc -l` (expect: `0`) | N/A — bash | ⬜ pending |
+| 07-02-02 | 02 | 1 | BRAND-05 | smoke | `grep "Platform Development Engine" lib/ui/splash.cjs` (expect: match found) | N/A — bash | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -67,11 +67,11 @@ Every success criterion is expressible as a grep command with a deterministic ex
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 2s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 2s
+- [x] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** pending
