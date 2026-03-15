@@ -12,7 +12,7 @@ PDE v1 is a disciplined fork-and-rebrand of GSD (Get Shit Done) into a publicly 
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [x] **Phase 1: Plugin Identity** - Establish PDE as a valid, installable Claude Code plugin with correct manifest (completed 2026-03-15)
+- [ ] **Phase 1: Plugin Identity** - Establish PDE as a valid, installable Claude Code plugin with correct manifest
 - [ ] **Phase 2: Tooling & Binary Rebrand** - Rebrand pde-tools.cjs, bin scripts, and config directory paths
 - [ ] **Phase 3: Workflow Commands** - Rename all 29 /gsd: slash commands to /pde: equivalents
 - [ ] **Phase 4: Workflow Engine** - Validate .planning/ state persistence, ROADMAP.md, STATE.md, and git integration
@@ -29,13 +29,14 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Requirements**: PLUG-01, PLUG-02, PLUG-03
 **Success Criteria** (what must be TRUE):
   1. User can run `claude plugin install` with the PDE plugin and it installs without errors
-  2. plugin.json displays name "Platform Development Engine", description, and version 1.0.0
+  2. plugin.json contains name "platform-development-engine" (kebab-case machine ID), description, and version 0.1.0 (per user decision — bumps to 1.0.0 after Phase 7 or 8)
   3. Claude Code validation passes — no missing required fields, no structural errors
   4. Plugin loads in a Claude Code session without throwing errors or warnings
-**Plans**: 1 plan
+**Plans**: 2 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Create PDE plugin manifest, VERSION file, and validate plugin loads in Claude Code
+- [x] 01-01-PLAN.md — Create PDE plugin manifest, VERSION file, and validate plugin loads in Claude Code
+- [ ] 01-02-PLAN.md — Gap closure: fix ROADMAP spec conflict and push to GitHub for PLUG-01 verification
 
 ### Phase 2: Tooling & Binary Rebrand
 **Goal**: All binary scripts and config infrastructure use PDE naming and paths with no GSD references
@@ -163,7 +164,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Plugin Identity | 1/1 | Complete   | 2026-03-15 |
+| 1. Plugin Identity | 1/2 | Gap closure | - |
 | 2. Tooling & Binary Rebrand | 0/4 | Not started | - |
 | 3. Workflow Commands | 0/4 | Not started | - |
 | 4. Workflow Engine | 0/4 | Not started | - |
