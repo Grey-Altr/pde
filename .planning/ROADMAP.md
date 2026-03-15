@@ -127,12 +127,11 @@ Plans:
   3. `grep -rn "\.gsd\|/\.gsd" .` returns zero results — no hardcoded config paths remain
   4. No hardcoded absolute paths containing specific usernames appear in any file
   5. All UI banners display "PDE ►" and all stage/status displays use PDE branding
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 07-01: Run comprehensive grep audit and fix any surviving gsd/GSD/get-shit-done occurrences
-- [ ] 07-02: Fix all hardcoded absolute paths containing usernames
-- [ ] 07-03: Verify all UI banners and stage name displays are PDE-branded
+- [ ] 07-01-PLAN.md — Fix STATE.md frontmatter key and run comprehensive grep audit for BRAND-01, BRAND-02, BRAND-03, PLUG-04
+- [ ] 07-02-PLAN.md — Verify UI banners, stage names, and splash screen use PDE branding (BRAND-04, BRAND-05, BRAND-06)
 
 ### Phase 8: Onboarding & Distribution
 **Goal**: PDE is publicly distributable with documentation that enables a naive user to succeed on first session
@@ -164,5 +163,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 4. Workflow Engine | 4/4 | Complete   | 2026-03-15 |
 | 5. Agent System | 2/2 | Complete   | 2026-03-15 |
 | 6. Templates & References | 2/2 | Complete   | 2026-03-15 |
-| 7. Rebranding Completeness | 0/3 | Not started | - |
+| 7. Rebranding Completeness | 0/2 | Not started | - |
 | 8. Onboarding & Distribution | 0/4 | Not started | - |
