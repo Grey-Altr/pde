@@ -97,13 +97,11 @@ Plans:
   3. Research agents spawn before planning when config.json has `"research": true`
   4. Model selection resolves correctly for `pde-planner` and other PDE agent types via model_profile config
   5. No agent spawning calls reference GSD paths — all use PDE plugin paths
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 05-01: Rename all agent definition files and update agent-type identifiers throughout workflows
-- [ ] 05-02: Update core.cjs agent registry and model-profiles reference to use PDE agent names
-- [ ] 05-03: Validate parallel wave orchestration with a multi-agent execute-phase run
-- [ ] 05-04: Validate model selection smoke test for pde-planner agent type
+- [ ] 05-01-PLAN.md — Audit agent type registry, verify zero GSD references, and smoke test model selection across all profiles
+- [ ] 05-02-PLAN.md — Smoke test research agent gating via config toggle and verify parallel wave orchestration
 
 ### Phase 6: Templates & References
 **Goal**: All templates and references carry PDE branding with no GSD banners, stage names, or path references
@@ -164,7 +162,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 2. Tooling & Binary Rebrand | 1/1 | Complete   | 2026-03-15 |
 | 3. Workflow Commands | 3/3 | Complete   | 2026-03-15 |
 | 4. Workflow Engine | 4/4 | Complete   | 2026-03-15 |
-| 5. Agent System | 0/4 | Not started | - |
+| 5. Agent System | 0/2 | Not started | - |
 | 6. Templates & References | 0/2 | Not started | - |
 | 7. Rebranding Completeness | 0/3 | Not started | - |
 | 8. Onboarding & Distribution | 0/4 | Not started | - |
