@@ -1,0 +1,20 @@
+{
+  "_template_note": "This is a template for handoff manifest files. Replace all placeholder values before use. Remove this _template_note field in actual manifests.",
+  "schema_version": "1.0.0",
+  "source_stage": "{source_stage}",
+  "target_stage": "{target_stage}",
+  "created_at": "{ISO 8601 datetime}",
+  "origin": "pipeline",
+  "project_name": "{project_name}",
+  "project_description": "{project_description}",
+  "artifacts": [
+    {
+      "name": "{artifact_name}",
+      "path": "artifacts/{artifact_filename}",
+      "type": "{artifact_type}"
+    }
+  ],
+  "metadata": {
+    "pipeline_version": "1.0"
+  }
+}

@@ -1,0 +1,116 @@
+{
+  "_comment": "Design Manifest Schema Template v1.0 -- Structured inventory of all PDE design artifacts. Generated/updated by each artifact-producing skill on completion. PDE reads this to discover design artifacts during engineering phases.",
+
+  "schemaVersion": "1.0.0",
+
+  "projectName": "string -- project name from design brief",
+  "productType": "software | hardware | hybrid",
+  "outputRoot": "string -- path to output directory (e.g., ./pde-output or .planning/design)",
+  "mode": "standalone | pde-integrated",
+  "generatedAt": "ISO 8601 timestamp -- when manifest was first created",
+  "updatedAt": "ISO 8601 timestamp -- when manifest was last modified",
+
+  "artifacts": {
+    "_comment": "Each key is an artifact code (e.g., BRF, SYS, WFR-login). Every artifact-producing skill adds/updates its entry here on completion.",
+
+    "BRF": {
+      "_comment": "Example entry showing all fields. Each artifact follows this structure.",
+      "code": "BRF",
+      "name": "Design Brief",
+      "type": "brief",
+      "domain": "strategy",
+      "path": "strategy/BRF-brief-v1.md",
+      "status": "draft",
+      "version": 1,
+      "dependsOn": [],
+      "children": ["FLW-main", "SYS"],
+      "tokens": [],
+      "implementation": {
+        "_comment": "PDE planner reads this section to understand how this artifact maps to engineering work.",
+        "routes": [],
+        "components": [],
+        "tokenRefs": [],
+        "notes": "Defines product scope, personas, and constraints. Informs all subsequent design and engineering decisions.",
+        "suggestedPhase": "01-foundation"
+      }
+    },
+
+    "FLW-main": {
+      "code": "FLW-main",
+      "name": "Main User Flow",
+      "type": "flow",
+      "domain": "ux",
+      "path": "ux/FLW-main-v1.md",
+      "status": "draft",
+      "version": 1,
+      "dependsOn": ["BRF"],
+      "children": ["WFR-login", "WFR-dashboard"],
+      "tokens": [],
+      "implementation": {
+        "routes": ["/login", "/dashboard", "/settings"],
+        "components": [],
+        "tokenRefs": [],
+        "notes": "Defines navigation structure and user journey. Maps to route architecture.",
+        "suggestedPhase": "02-core-features"
+      }
+    },
+
+    "SYS": {
+      "code": "SYS",
+      "name": "Design System",
+      "type": "design-system",
+      "domain": "visual",
+      "path": "visual/SYS-tokens-v1.css",
+      "status": "draft",
+      "version": 1,
+      "dependsOn": ["BRF"],
+      "children": [],
+      "tokens": ["--color-primary-500", "--font-size-base", "--space-4", "--radius-md"],
+      "implementation": {
+        "routes": [],
+        "components": [],
+        "tokenRefs": ["--color-primary-*", "--color-neutral-*", "--font-size-*", "--space-*", "--radius-*", "--shadow-*"],
+        "notes": "CSS custom properties defining the visual language. Import as the first stylesheet. All components reference these tokens.",
+        "suggestedPhase": "01-foundation"
+      }
+    },
+
+    "WFR-login": {
+      "code": "WFR-login",
+      "name": "Login Screen Wireframe",
+      "type": "wireframe",
+      "domain": "ux",
+      "path": "ux/WFR-login-v1.html",
+      "status": "draft",
+      "version": 1,
+      "dependsOn": ["FLW-main", "SYS"],
+      "children": [],
+      "tokens": ["--color-primary-500", "--color-neutral-100", "--font-size-lg", "--space-4", "--radius-md"],
+      "implementation": {
+        "routes": ["/login"],
+        "components": ["LoginForm", "EmailInput", "PasswordInput", "SubmitButton", "SocialLogin"],
+        "tokenRefs": ["--color-primary-500", "--color-neutral-100", "--font-size-lg", "--space-4"],
+        "notes": "Single-column centered form. Email + password with social login options. Error states for invalid credentials. Redirect to dashboard on success.",
+        "suggestedPhase": "02-core-features"
+      }
+    }
+  },
+
+  "tokenDependencyMap": {
+    "_comment": "Maps design tokens to the artifacts that use them. Enables staleness tracking: if a token value changes, all dependent artifacts may need updating.",
+    "--color-primary-500": ["WFR-login", "WFR-dashboard"],
+    "--font-size-lg": ["WFR-login"],
+    "--space-4": ["WFR-login", "WFR-dashboard"],
+    "--radius-md": ["WFR-login"]
+  },
+
+  "designCoverage": {
+    "_comment": "Boolean flags indicating which design artifact types exist. PDE uses this to determine what design context is available for engineering planning.",
+    "hasDesignSystem": false,
+    "hasWireframes": false,
+    "hasFlows": false,
+    "hasHardwareSpec": false,
+    "hasCritique": false,
+    "hasHandoff": false
+  }
+}
