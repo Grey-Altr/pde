@@ -12,7 +12,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **PLUG-01**: PDE installable as Claude Code plugin via standard mechanism
 - [x] **PLUG-02**: plugin.json manifest with PDE name, description, and version 1.0.0
 - [x] **PLUG-03**: Plugin passes Claude Code validation and loads without errors
-- [x] **PLUG-04**: Zero GSD references in any user-visible output or error message
+- [ ] **PLUG-04**: Zero GSD references in any user-visible output or error message
 
 ### Command Interface
 
@@ -35,7 +35,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **WORK-01**: Phase-based workflow (discuss → plan → execute → verify) operates end-to-end
 - [x] **WORK-02**: .planning/ file state persists across context resets
 - [x] **WORK-03**: Roadmap (ROADMAP.md) serves as editable source of truth for phases
-- [x] **WORK-04**: STATE.md tracks current phase, progress, and project memory
+- [ ] **WORK-04**: STATE.md tracks current phase, progress, and project memory
 - [x] **WORK-05**: Requirements traceability maps every requirement to a phase
 - [x] **WORK-06**: Atomic git commits created per completed task
 
@@ -58,11 +58,11 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Rebranding Completeness
 
-- [x] **BRAND-01**: Zero occurrences of "gsd" or "GSD" in any source file (case-insensitive grep clean)
+- [ ] **BRAND-01**: Zero occurrences of "gsd" or "GSD" in any source file (case-insensitive grep clean)
 - [x] **BRAND-02**: Zero occurrences of "get-shit-done" in any path reference
 - [x] **BRAND-03**: Zero hardcoded absolute paths containing specific usernames
-- [x] **BRAND-04**: All UI banners display "PDE ►" instead of "GSD ►"
-- [x] **BRAND-05**: All stage names, status symbols, and progress displays use PDE branding
+- [ ] **BRAND-04**: All UI banners display "PDE ►" instead of "GSD ►"
+- [ ] **BRAND-05**: All stage names, status symbols, and progress displays use PDE branding
 - [x] **BRAND-06**: README and any documentation reference PDE, not GSD
 
 ## v2 Requirements
@@ -114,7 +114,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PLUG-01 | Phase 1 | Complete |
 | PLUG-02 | Phase 1 | Complete |
 | PLUG-03 | Phase 1 | Complete |
-| PLUG-04 | Phase 7 | Complete |
+| PLUG-04 | Phase 10 | Pending |
 | CMD-01 | Phase 3 | Complete |
 | CMD-02 | Phase 3 | Complete |
 | CMD-03 | Phase 3 | Complete |
@@ -131,7 +131,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | WORK-01 | Phase 4 | Complete |
 | WORK-02 | Phase 4 | Complete |
 | WORK-03 | Phase 4 | Complete |
-| WORK-04 | Phase 4 | Complete |
+| WORK-04 | Phase 10 | Pending |
 | WORK-05 | Phase 4 | Complete |
 | WORK-06 | Phase 4 | Complete |
 | AGNT-01 | Phase 5 | Complete |
@@ -145,15 +145,17 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TOOL-04 | Phase 6 | Complete |
 | TOOL-05 | Phase 2 | Complete |
 | TOOL-06 | Phase 2 | Complete |
-| BRAND-01 | Phase 7 | Complete |
+| BRAND-01 | Phase 10 | Pending |
 | BRAND-02 | Phase 7 | Complete |
 | BRAND-03 | Phase 7 | Complete |
-| BRAND-04 | Phase 7 | Complete |
-| BRAND-05 | Phase 7 | Complete |
+| BRAND-04 | Phase 9 | Pending |
+| BRAND-05 | Phase 9 | Pending |
 | BRAND-06 | Phase 8 | Complete |
 
 **Coverage:**
 - v1 requirements: 40 total (4 PLUG + 13 CMD + 6 WORK + 5 AGNT + 6 TOOL + 6 BRAND)
+- Satisfied: 34
+- Pending (gap closure): 6 (PLUG-04, BRAND-01, BRAND-04, BRAND-05, WORK-04, PLUG-01 partial)
 - Mapped to phases: 40
 - Unmapped: 0 ✓
 

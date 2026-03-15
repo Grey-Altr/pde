@@ -150,6 +150,40 @@ Plans:
 - [ ] 08-03-PLAN.md — Write README.md, bump version to 1.0.0, and tag v1.0.0 release
 - [ ] 08-04-PLAN.md — Gap closure: expand README.md to meet 50-line minimum threshold
 
+### Phase 9: Fix Critical Runtime Crash (telemetry.cjs)
+**Goal:** Restore UI rendering chain by creating the missing telemetry.cjs module that render.cjs depends on
+**Depends on:** Phase 8
+**Requirements:** BRAND-04, BRAND-05
+**Gap Closure:** Closes gaps from v1.0 audit — CRITICAL integration break (render.cjs → telemetry.cjs MODULE_NOT_FOUND)
+**Success Criteria** (what must be TRUE):
+  1. `lib/telemetry.cjs` exists and `require('../telemetry.cjs')` in render.cjs resolves without error
+  2. All ~60 banner() and panel() calls across 14 workflow files execute without MODULE_NOT_FOUND
+  3. UI banners display "PDE ►" and stage/progress displays render correctly
+**Plans**: 0 plans
+
+### Phase 10: Fix STATE.md Regressions
+**Goal:** Eliminate gsd_state_version regression and fix stale body/progress fields in STATE.md
+**Depends on:** Phase 9
+**Requirements:** PLUG-04, BRAND-01, WORK-04
+**Gap Closure:** Closes gaps from v1.0 audit — STATE.md frontmatter regression and stale body
+**Success Criteria** (what must be TRUE):
+  1. STATE.md frontmatter contains no `gsd_state_version` key — uses `pde_state_version` or equivalent
+  2. STATE.md body narrative reflects current project state (not stale "Phase 4" text)
+  3. progress.percent shows 100% (all 20/20 plans complete)
+  4. State-writing code (cmdStateAdvancePlan and related) preserves the corrected key on subsequent writes
+**Plans**: 0 plans
+
+### Phase 11: Command Reference Cleanup
+**Goal:** Remove or stub dangling command references that break user expectations
+**Depends on:** Phase 10
+**Requirements:** CMD-01
+**Gap Closure:** Closes gaps from v1.0 audit — unregistered command references
+**Success Criteria** (what must be TRUE):
+  1. `/pde:recommend` either has a command stub or is removed from new-project.md output
+  2. All /pde: commands referenced in reference docs are either registered or clearly marked as v2/future
+  3. No user-facing workflow output suggests a command that doesn't exist
+**Plans**: 0 plans
+
 ## Progress
 
 **Execution Order:**
@@ -165,3 +199,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 6. Templates & References | 2/2 | Complete   | 2026-03-15 |
 | 7. Rebranding Completeness | 2/2 | Complete   | 2026-03-15 |
 | 8. Onboarding & Distribution | 4/4 | Complete   | 2026-03-15 |
+| 9. Fix Critical Runtime Crash | 0/0 | Not Started | — |
+| 10. Fix STATE.md Regressions | 0/0 | Not Started | — |
+| 11. Command Reference Cleanup | 0/0 | Not Started | — |
