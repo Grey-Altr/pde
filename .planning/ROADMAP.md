@@ -62,13 +62,12 @@ Plans:
   3. `/pde:progress` shows current project state and next recommended action
   4. `/pde:help` lists all available PDE commands with accurate descriptions
   5. All 29 /pde: commands appear in Claude Code's command palette and are invokable without errors
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 03-01: Rename workflow files from /gsd: to /pde: prefix and update all internal command references
-- [ ] 03-02: Validate core lifecycle commands (new-project, plan-phase, execute-phase, verify-work)
-- [ ] 03-03: Validate utility commands (progress, quick, help, discuss-phase, map-codebase)
-- [ ] 03-04: Validate milestone commands (new-milestone, complete-milestone, audit-milestone)
+- [ ] 03-01-PLAN.md — Copy workflows, lib/ui, references, and templates from PDE reference; fix all hardcoded paths to use CLAUDE_PLUGIN_ROOT
+- [ ] 03-02-PLAN.md — Create 34 command stubs in commands/ with pde: prefix and validate plugin structure
+- [ ] 03-03-PLAN.md — Smoke test /pde:progress and /pde:help; user verifies commands in palette
 
 ### Phase 4: Workflow Engine
 **Goal**: The .planning/ state layer persists correctly across context resets and all state files use PDE conventions
@@ -163,7 +162,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 |-------|----------------|--------|-----------|
 | 1. Plugin Identity | 2/2 | Complete   | 2026-03-15 |
 | 2. Tooling & Binary Rebrand | 1/1 | Complete   | 2026-03-15 |
-| 3. Workflow Commands | 0/4 | Not started | - |
+| 3. Workflow Commands | 0/3 | Not started | - |
 | 4. Workflow Engine | 0/4 | Not started | - |
 | 5. Agent System | 0/4 | Not started | - |
 | 6. Templates & References | 0/2 | Not started | - |
