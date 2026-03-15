@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: completed
-stopped_at: Completed 01-02-PLAN.md
-last_updated: "2026-03-15T01:40:29.401Z"
-last_activity: 2026-03-14 — ROADMAP spec fixed, GitHub remote configured and pushed, plugin install deferred
+status: in_progress
+stopped_at: Completed 02-01-PLAN.md
+last_updated: "2026-03-15T02:03:00Z"
+last_activity: 2026-03-14 — Phase 2 Plan 1 complete — bin/ directory established with pde-tools.cjs and 11 lib modules
 progress:
   total_phases: 8
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
-  percent: 2
+  total_plans: 3
+  completed_plans: 3
+  percent: 5
 ---
 
 # Project State
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-14)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 1 — Plugin Identity
+**Current focus:** Phase 2 — Tooling & Binary Rebrand
 
 ## Current Position
 
-Phase: 1 of 8 (Plugin Identity) — COMPLETE
-Plan: 2 of 2 in current phase — COMPLETE
-Status: Phase 1 complete, ready for Phase 2
-Last activity: 2026-03-14 — ROADMAP spec fixed, GitHub remote configured and pushed, plugin install deferred
+Phase: 2 of 8 (Tooling & Binary Rebrand) — IN PROGRESS
+Plan: 1 of 1 in current phase — COMPLETE
+Status: Phase 2 Plan 1 complete, bin/ directory established
+Last activity: 2026-03-14 — bin/ established with pde-tools.cjs + 11 lib modules, all TOOL requirements satisfied
 
-Progress: [░░░░░░░░░░] 2%
+Progress: [░░░░░░░░░░] 5%
 
 ## Performance Metrics
 
@@ -66,6 +66,8 @@ Recent decisions affecting current work:
 - [Phase 01-plugin-identity]: RESOLVED: CLAUDE_PLUGIN_ROOT IS injected by Claude Code runtime — safe to use in Phase 2+ bin scripts
 - [Phase 01-plugin-identity P02]: claude plugin install via GitHub URL requires marketplace.json — deferred to a later distribution phase; plugin structure verified correct locally
 - [Phase 01-plugin-identity P02]: PLUG-01 end-to-end install test is DEFERRED (not failed) — GitHub remote is live, plugin.json valid, marketplace registration needed for install command to succeed
+- [Phase 02-tooling-binary-rebrand P01]: gsd_state_version open question resolved — bin/lib/state.cjs writes pde_state_version (already rebranded); gsd_state_version in STATE.md is GSD-layer internal, not user-visible
+- [Phase 02-tooling-binary-rebrand P01]: TOOL-05 brave_api_key check — config.cjs uses path.join construction, not literal string; requirement IS met functionally
 
 ### Pending Todos
 
@@ -73,11 +75,11 @@ None yet.
 
 ### Blockers/Concerns
 
-- [Research flag]: Confirm `${CLAUDE_PLUGIN_ROOT}` is actually injected by Claude Code runtime before committing to it in Phase 1 — fallback is relative path resolution in the bin script
-- [Research flag]: Verify `gsd_state_version` frontmatter key is not user-visible — if it is, fix in Phase 7; if not, defer to Architecture Refactor milestone
+- [Phase 3 concern]: Verify `${CLAUDE_PLUGIN_ROOT}` is available in bash blocks inside .md workflow files (not just the plugin process itself) — Phase 3 will need to validate this when updating workflow files
+- [RESOLVED - Phase 02 P01]: `gsd_state_version` frontmatter key verified not user-visible — bin/lib/state.cjs writes `pde_state_version`; no action needed before Phase 7
 
 ## Session Continuity
 
-Last session: 2026-03-14T18:31:21Z
-Stopped at: Completed 01-02-PLAN.md
+Last session: 2026-03-15T02:03:00Z
+Stopped at: Completed 02-01-PLAN.md
 Resume file: None

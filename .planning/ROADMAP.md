@@ -13,7 +13,7 @@ PDE v1 is a disciplined fork-and-rebrand of GSD (Get Shit Done) into a publicly 
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Plugin Identity** - Establish PDE as a valid, installable Claude Code plugin with correct manifest (completed 2026-03-15)
-- [ ] **Phase 2: Tooling & Binary Rebrand** - Rebrand pde-tools.cjs, bin scripts, and config directory paths
+- [x] **Phase 2: Tooling & Binary Rebrand** - Rebrand pde-tools.cjs, bin scripts, and config directory paths (completed 2026-03-15)
 - [ ] **Phase 3: Workflow Commands** - Rename all 29 /gsd: slash commands to /pde: equivalents
 - [ ] **Phase 4: Workflow Engine** - Validate .planning/ state persistence, ROADMAP.md, STATE.md, and git integration
 - [ ] **Phase 5: Agent System** - Rebrand all agent types and validate parallel orchestration with PDE paths
@@ -162,7 +162,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Plugin Identity | 2/2 | Complete   | 2026-03-15 |
-| 2. Tooling & Binary Rebrand | 0/1 | Not started | - |
+| 2. Tooling & Binary Rebrand | 1/1 | Complete   | 2026-03-15 |
 | 3. Workflow Commands | 0/4 | Not started | - |
 | 4. Workflow Engine | 0/4 | Not started | - |
 | 5. Agent System | 0/4 | Not started | - |
