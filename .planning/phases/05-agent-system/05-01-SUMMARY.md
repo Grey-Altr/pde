@@ -153,3 +153,9 @@ None — no external service configuration required.
 ---
 *Phase: 05-agent-system*
 *Completed: 2026-03-15*
+
+## Self-Check: PASSED
+
+- FOUND: .planning/phases/05-agent-system/05-01-SUMMARY.md
+- FOUND: commit 3e39932 (Task 1)
+- FOUND: commit 01630a5 (Task 2)
