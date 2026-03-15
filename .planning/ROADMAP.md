@@ -49,7 +49,9 @@ Full details: .planning/milestones/v1.0-ROADMAP.md
   2. DESIGN-STATE.md tracks which pipeline stages are complete and enforces write-lock so concurrent writes cannot corrupt state
   3. `bin/lib/design.cjs` converts a DTCG JSON token tree to CSS custom properties via `dtcgToCss()` with no npm dependencies
   4. `design-manifest.json` records every generated artifact with path, type, version, and dependency metadata
-**Plans**: TBD
+**Plans:** 1 plan
+Plans:
+- [ ] 12-01-PLAN.md — Design infrastructure library (design.cjs) and pde-tools.cjs router
 
 ### Phase 13: Problem Framing (/pde:brief)
 **Goal**: Users can frame their product problem into a structured brief that anchors all downstream design stages
@@ -152,7 +154,7 @@ Full details: .planning/milestones/v1.0-ROADMAP.md
 | 9. Fix Critical Runtime Crash | v1.0 | 1/1 | Complete | 2026-03-15 |
 | 10. Fix STATE.md Regressions | v1.0 | 1/1 | Complete | 2026-03-15 |
 | 11. Command Reference Cleanup | v1.0 | 1/1 | Complete | 2026-03-15 |
-| 12. Design Pipeline Infrastructure | v1.1 | 0/TBD | Not started | - |
+| 12. Design Pipeline Infrastructure | v1.1 | 0/1 | Not started | - |
 | 13. Problem Framing (/pde:brief) | v1.1 | 0/TBD | Not started | - |
 | 14. Design System (/pde:system) | v1.1 | 0/TBD | Not started | - |
 | 15. User Flow Mapping (/pde:flows) | v1.1 | 0/TBD | Not started | - |
