@@ -1,10 +1,10 @@
 ---
-pde_state_version: 1.0
+gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Design Pipeline
 status: verifying
 stopped_at: "Completed 12-01-PLAN.md: design pipeline infrastructure library and pde-tools.cjs router"
-last_updated: "2026-03-15T21:14:36.687Z"
+last_updated: "2026-03-15T21:18:02.856Z"
 last_activity: "2026-03-15 — Phase 12 Plan 01 complete: design pipeline infrastructure library"
 progress:
   total_phases: 9

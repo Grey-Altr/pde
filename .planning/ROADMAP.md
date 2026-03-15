@@ -154,7 +154,7 @@ Plans:
 | 9. Fix Critical Runtime Crash | v1.0 | 1/1 | Complete | 2026-03-15 |
 | 10. Fix STATE.md Regressions | v1.0 | 1/1 | Complete | 2026-03-15 |
 | 11. Command Reference Cleanup | v1.0 | 1/1 | Complete | 2026-03-15 |
-| 12. Design Pipeline Infrastructure | 1/1 | Complete   | 2026-03-15 | - |
+| 12. Design Pipeline Infrastructure | 1/1 | Complete    | 2026-03-15 | - |
 | 13. Problem Framing (/pde:brief) | v1.1 | 0/TBD | Not started | - |
 | 14. Design System (/pde:system) | v1.1 | 0/TBD | Not started | - |
 | 15. User Flow Mapping (/pde:flows) | v1.1 | 0/TBD | Not started | - |
