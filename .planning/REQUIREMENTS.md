@@ -37,7 +37,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **WORK-03**: Roadmap (ROADMAP.md) serves as editable source of truth for phases
 - [x] **WORK-04**: STATE.md tracks current phase, progress, and project memory
 - [x] **WORK-05**: Requirements traceability maps every requirement to a phase
-- [ ] **WORK-06**: Atomic git commits created per completed task
+- [x] **WORK-06**: Atomic git commits created per completed task
 
 ### Agent System
 
@@ -133,7 +133,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | WORK-03 | Phase 4 | Complete |
 | WORK-04 | Phase 4 | Complete |
 | WORK-05 | Phase 4 | Complete |
-| WORK-06 | Phase 4 | Pending |
+| WORK-06 | Phase 4 | Complete |
 | AGNT-01 | Phase 5 | Pending |
 | AGNT-02 | Phase 5 | Pending |
 | AGNT-03 | Phase 5 | Pending |
