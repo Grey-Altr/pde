@@ -51,6 +51,16 @@
  *     [--name <name>]
  *     [--archive-phases]               Move phase dirs to milestones/vX.Y-phases/
  *
+ * Design Operations:
+ *   design ensure-dirs                 Create .planning/design/ and domain subdirs
+ *   design manifest-read               Output design-manifest.json as JSON
+ *   design manifest-update <code> <field> <value>  Update artifact field in manifest
+ *   design artifact-path <code>        Resolve canonical artifact path from manifest
+ *   design tokens-to-css <tokens-file> Convert DTCG JSON to CSS custom properties
+ *   design coverage-check              Return which artifact types exist
+ *   design lock-acquire <owner>        Acquire root DESIGN-STATE.md write lock
+ *   design lock-release                Release root DESIGN-STATE.md write lock
+ *
  * Validation:
  *   validate consistency               Check phase numbering, disk/roadmap sync
  *   validate health [--repair]         Check .planning/ integrity, optionally repair
@@ -472,6 +482,31 @@ async function main() {
         milestone.cmdMilestoneComplete(cwd, args[2], { name: milestoneName, archivePhases }, raw);
       } else {
         error('Unknown milestone subcommand. Available: complete');
+      }
+      break;
+    }
+
+    case 'design': {
+      const subcommand = args[1];
+      const design = require('./lib/design.cjs');
+      if (subcommand === 'ensure-dirs') {
+        design.cmdEnsureDirs(cwd, raw);
+      } else if (subcommand === 'manifest-read') {
+        design.cmdManifestRead(cwd, raw);
+      } else if (subcommand === 'manifest-update') {
+        design.cmdManifestUpdate(cwd, args[2], args[3], args[4], raw);
+      } else if (subcommand === 'artifact-path') {
+        design.cmdArtifactPath(cwd, args[2], raw);
+      } else if (subcommand === 'tokens-to-css') {
+        design.cmdTokensToCss(cwd, args[2], raw);
+      } else if (subcommand === 'coverage-check') {
+        design.cmdCoverageCheck(cwd, raw);
+      } else if (subcommand === 'lock-acquire') {
+        design.cmdLockAcquire(cwd, args[2], raw);
+      } else if (subcommand === 'lock-release') {
+        design.cmdLockRelease(cwd, raw);
+      } else {
+        error('Unknown design subcommand. Available: ensure-dirs, manifest-read, manifest-update, artifact-path, tokens-to-css, coverage-check, lock-acquire, lock-release');
       }
       break;
     }
