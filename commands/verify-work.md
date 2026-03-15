@@ -1,7 +1,7 @@
 ---
 name: pde:verify-work
-description: Validate built features against requirements and success criteria
-argument-hint: ""
+description: Validate built features through conversational UAT
+argument-hint: "[phase number, e.g., '4']"
 allowed-tools:
   - Read
   - Write

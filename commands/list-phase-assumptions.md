@@ -1,7 +1,7 @@
 ---
 name: pde:list-phase-assumptions
 description: List assumptions made during phase planning
-argument-hint: ""
+argument-hint: "[phase]"
 allowed-tools:
   - Read
   - Write

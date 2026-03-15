@@ -334,6 +334,7 @@ Present summary:
 ```
 All tests passed. Ready to continue.
 
+- `/pde:ui-review {phase}` — visual quality audit (if frontend files were modified)
 - `/pde:plan-phase {next}` — Plan next phase
 - `/pde:execute-phase {next}` — Execute next phase
 ```

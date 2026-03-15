@@ -1,7 +1,7 @@
 ---
 name: pde:add-todo
 description: Add a todo item to project tracking
-argument-hint: ""
+argument-hint: "[optional description]"
 allowed-tools:
   - Read
   - Write
@@ -10,6 +10,7 @@ allowed-tools:
   - Glob
   - Grep
   - Task
+  - AskUserQuestion
 ---
 <objective>
 Execute the /pde:add-todo workflow.

@@ -1,7 +1,7 @@
 ---
 name: pde:complete-milestone
 description: Archive and complete the current milestone
-argument-hint: ""
+argument-hint: "<version>"
 allowed-tools:
   - Read
   - Write

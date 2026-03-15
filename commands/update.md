@@ -10,6 +10,7 @@ allowed-tools:
   - Glob
   - Grep
   - Task
+  - AskUserQuestion
 ---
 <objective>
 Execute the /pde:update workflow.

@@ -1,7 +1,7 @@
 ---
 name: pde:set-profile
-description: Set model profile for agent selection
-argument-hint: ""
+description: Switch model profile for PDE agents (quality/balanced/budget/inherit)
+argument-hint: "<profile (quality|balanced|budget|inherit)>"
 allowed-tools:
   - Read
   - Write

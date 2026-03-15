@@ -1,7 +1,7 @@
 ---
 name: pde:new-project
-description: Initialize new project through unified flow -- questioning, research, requirements, roadmap
-argument-hint: ""
+description: Initialize a new project with deep context gathering and PROJECT.md
+argument-hint: "[--auto]"
 allowed-tools:
   - Read
   - Write
@@ -10,6 +10,7 @@ allowed-tools:
   - Glob
   - Grep
   - Task
+  - AskUserQuestion
 ---
 <objective>
 Execute the /pde:new-project workflow.

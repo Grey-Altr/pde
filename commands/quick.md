@@ -1,7 +1,7 @@
 ---
 name: pde:quick
 description: Execute single tasks without full planning overhead
-argument-hint: ""
+argument-hint: "[--full] [--discuss] [--research]"
 allowed-tools:
   - Read
   - Write
@@ -10,6 +10,7 @@ allowed-tools:
   - Glob
   - Grep
   - Task
+  - AskUserQuestion
 ---
 <objective>
 Execute the /pde:quick workflow.

@@ -1,7 +1,7 @@
 ---
 name: pde:plan-phase
-description: Create detailed phase plans with integrated research and verification
-argument-hint: ""
+description: Create detailed phase plan (PLAN.md) with verification loop
+argument-hint: "[phase] [--auto] [--research] [--skip-research] [--gaps] [--skip-verify] [--prd <file>]"
 allowed-tools:
   - Read
   - Write
@@ -10,6 +10,8 @@ allowed-tools:
   - Glob
   - Grep
   - Task
+  - WebFetch
+  - mcp__context7__*
 ---
 <objective>
 Execute the /pde:plan-phase workflow.

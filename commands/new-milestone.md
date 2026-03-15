@@ -1,7 +1,7 @@
 ---
 name: pde:new-milestone
 description: Start a new milestone cycle
-argument-hint: ""
+argument-hint: "[milestone name, e.g., 'v1.1 Notifications']"
 allowed-tools:
   - Read
   - Write
@@ -10,6 +10,7 @@ allowed-tools:
   - Glob
   - Grep
   - Task
+  - AskUserQuestion
 ---
 <objective>
 Execute the /pde:new-milestone workflow.

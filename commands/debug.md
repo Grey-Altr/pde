@@ -1,7 +1,7 @@
 ---
 name: pde:debug
-description: Diagnose and fix issues in your project
-argument-hint: ""
+description: Systematic debugging with persistent state across context resets
+argument-hint: "[issue description]"
 allowed-tools:
   - Read
   - Write
@@ -10,6 +10,7 @@ allowed-tools:
   - Glob
   - Grep
   - Task
+  - AskUserQuestion
 ---
 <objective>
 Execute the /pde:debug workflow.

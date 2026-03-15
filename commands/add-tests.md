@@ -1,7 +1,7 @@
 ---
 name: pde:add-tests
 description: Add tests for existing code
-argument-hint: ""
+argument-hint: "<phase> [additional instructions]"
 allowed-tools:
   - Read
   - Write
@@ -10,6 +10,7 @@ allowed-tools:
   - Glob
   - Grep
   - Task
+  - AskUserQuestion
 ---
 <objective>
 Execute the /pde:add-tests workflow.

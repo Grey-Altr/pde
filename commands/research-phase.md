@@ -1,7 +1,7 @@
 ---
 name: pde:research-phase
-description: Run technical research for a phase
-argument-hint: ""
+description: Research how to implement a phase (standalone - usually use /pde:plan-phase instead)
+argument-hint: "[phase]"
 allowed-tools:
   - Read
   - Write

@@ -1,7 +1,7 @@
 ---
 name: pde:map-codebase
 description: Analyze existing codebases with parallel agents
-argument-hint: ""
+argument-hint: "[optional: specific area to map, e.g., 'api' or 'auth']"
 allowed-tools:
   - Read
   - Write

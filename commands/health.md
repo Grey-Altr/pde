@@ -1,7 +1,7 @@
 ---
 name: pde:health
 description: Check project health and configuration
-argument-hint: ""
+argument-hint: "[--repair]"
 allowed-tools:
   - Read
   - Write
@@ -10,6 +10,7 @@ allowed-tools:
   - Glob
   - Grep
   - Task
+  - AskUserQuestion
 ---
 <objective>
 Execute the /pde:health workflow.

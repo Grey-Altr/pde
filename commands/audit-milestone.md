@@ -1,7 +1,7 @@
 ---
 name: pde:audit-milestone
 description: Audit milestone completion against original intent
-argument-hint: ""
+argument-hint: "[version]"
 allowed-tools:
   - Read
   - Write

@@ -1,7 +1,7 @@
 ---
 name: pde:discuss-phase
-description: Gather phase context through adaptive questioning
-argument-hint: ""
+description: Gather phase context through adaptive questioning before planning. Use --auto to skip interactive questions (Claude picks recommended defaults).
+argument-hint: "<phase> [--auto]"
 allowed-tools:
   - Read
   - Write
@@ -9,7 +9,10 @@ allowed-tools:
   - Bash
   - Glob
   - Grep
+  - AskUserQuestion
   - Task
+  - mcp__context7__resolve-library-id
+  - mcp__context7__query-docs
 ---
 <objective>
 Execute the /pde:discuss-phase workflow.

@@ -1,7 +1,7 @@
 ---
 name: pde:remove-phase
 description: Remove a phase from the roadmap
-argument-hint: ""
+argument-hint: "<phase-number>"
 allowed-tools:
   - Read
   - Write

@@ -1,7 +1,7 @@
 ---
 name: pde:insert-phase
 description: Insert a phase between existing phases
-argument-hint: ""
+argument-hint: "<after> <description>"
 allowed-tools:
   - Read
   - Write

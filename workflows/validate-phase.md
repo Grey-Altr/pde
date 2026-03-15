@@ -128,7 +128,7 @@ Handle return:
 git add {test_files}
 git commit -m "test(phase-${PHASE}): add Nyquist validation tests"
 
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" commit-docs "docs(phase-${PHASE}): add/update validation strategy"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" commit "docs(phase-${PHASE}): add/update validation strategy"
 ```
 
 ## 8. Results + Routing

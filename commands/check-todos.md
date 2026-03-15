@@ -1,7 +1,7 @@
 ---
 name: pde:check-todos
 description: Check and display outstanding todos
-argument-hint: ""
+argument-hint: "[area filter]"
 allowed-tools:
   - Read
   - Write
@@ -10,6 +10,7 @@ allowed-tools:
   - Glob
   - Grep
   - Task
+  - AskUserQuestion
 ---
 <objective>
 Execute the /pde:check-todos workflow.

@@ -1,7 +1,7 @@
 ---
 name: pde:validate-phase
-description: Validate phase plan structure
-argument-hint: ""
+description: Retroactively audit and fill Nyquist validation gaps for a completed phase
+argument-hint: "[phase number]"
 allowed-tools:
   - Read
   - Write
@@ -10,6 +10,7 @@ allowed-tools:
   - Glob
   - Grep
   - Task
+  - AskUserQuestion
 ---
 <objective>
 Execute the /pde:validate-phase workflow.

@@ -1,7 +1,7 @@
 ---
 name: pde:execute-phase
-description: Execute phase plans with wave-based parallelization
-argument-hint: ""
+description: Execute all plans in a phase with wave-based parallelization
+argument-hint: "<phase-number> [--gaps-only]"
 allowed-tools:
   - Read
   - Write
@@ -10,6 +10,8 @@ allowed-tools:
   - Glob
   - Grep
   - Task
+  - TodoWrite
+  - AskUserQuestion
 ---
 <objective>
 Execute the /pde:execute-phase workflow.

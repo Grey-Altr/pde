@@ -1,7 +1,7 @@
 ---
 name: pde:add-phase
 description: Add a new phase to the roadmap
-argument-hint: ""
+argument-hint: "<description>"
 allowed-tools:
   - Read
   - Write
