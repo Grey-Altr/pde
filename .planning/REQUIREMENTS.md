@@ -51,8 +51,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [x] **TOOL-01**: gsd-tools.cjs rebranded as pde-tools.cjs and fully functional
 - [x] **TOOL-02**: All bin scripts reference PDE paths (~/.pde/ instead of ~/.gsd/)
-- [ ] **TOOL-03**: Templates migrated with PDE branding (banners, stage names, references)
-- [ ] **TOOL-04**: References and guides updated with PDE naming
+- [x] **TOOL-03**: Templates migrated with PDE branding (banners, stage names, references)
+- [x] **TOOL-04**: References and guides updated with PDE naming
 - [x] **TOOL-05**: Config system uses ~/.pde/ for global defaults
 - [x] **TOOL-06**: Git branch templates use pde/ prefix instead of gsd/
 
@@ -141,8 +141,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AGNT-05 | Phase 5 | Complete |
 | TOOL-01 | Phase 2 | Complete |
 | TOOL-02 | Phase 2 | Complete |
-| TOOL-03 | Phase 6 | Pending |
-| TOOL-04 | Phase 6 | Pending |
+| TOOL-03 | Phase 6 | Complete |
+| TOOL-04 | Phase 6 | Complete |
 | TOOL-05 | Phase 2 | Complete |
 | TOOL-06 | Phase 2 | Complete |
 | BRAND-01 | Phase 7 | Pending |
