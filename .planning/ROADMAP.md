@@ -159,7 +159,10 @@ Plans:
   1. `lib/telemetry.cjs` exists and `require('../telemetry.cjs')` in render.cjs resolves without error
   2. All ~60 banner() and panel() calls across 14 workflow files execute without MODULE_NOT_FOUND
   3. UI banners display "PDE ►" and stage/progress displays render correctly
-**Plans**: 0 plans
+**Plans**: 1 plan
+
+Plans:
+- [ ] 09-01-PLAN.md — Create lib/telemetry.cjs and verify all render.cjs commands execute without crash
 
 ### Phase 10: Fix STATE.md Regressions
 **Goal:** Eliminate gsd_state_version regression and fix stale body/progress fields in STATE.md
@@ -171,7 +174,10 @@ Plans:
   2. STATE.md body narrative reflects current project state (not stale "Phase 4" text)
   3. progress.percent shows 100% (all 20/20 plans complete)
   4. State-writing code (cmdStateAdvancePlan and related) preserves the corrected key on subsequent writes
-**Plans**: 0 plans
+**Plans**: 1 plan
+
+Plans:
+- [ ] 09-01-PLAN.md — Create lib/telemetry.cjs and verify all render.cjs commands execute without crash
 
 ### Phase 11: Command Reference Cleanup
 **Goal:** Remove or stub dangling command references that break user expectations
@@ -182,7 +188,10 @@ Plans:
   1. `/pde:recommend` either has a command stub or is removed from new-project.md output
   2. All /pde: commands referenced in reference docs are either registered or clearly marked as v2/future
   3. No user-facing workflow output suggests a command that doesn't exist
-**Plans**: 0 plans
+**Plans**: 1 plan
+
+Plans:
+- [ ] 09-01-PLAN.md — Create lib/telemetry.cjs and verify all render.cjs commands execute without crash
 
 ## Progress
 
