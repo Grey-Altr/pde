@@ -30,6 +30,7 @@ Full details: .planning/milestones/v1.0-ROADMAP.md
 
 - [x] **Phase 12: Design Pipeline Infrastructure** — State management, artifact storage, token utilities, and write-lock protocol (completed 2026-03-15)
 - [x] **Phase 13: Problem Framing (/pde:brief)** — Structured brief from PROJECT.md context, product-type detection (completed 2026-03-15)
+- [ ] **Phase 13.1: Hotfix — Tech Debt & Integration Fixes (Phases 12-13)** — Fix broken table schema, missing metadata, unimplemented subcommand, stale template entry, Nyquist gaps
 - [ ] **Phase 14: Design System (/pde:system)** — DTCG tokens, CSS custom properties, typography/color/spacing scale
 - [ ] **Phase 15: User Flow Mapping (/pde:flows)** — Mermaid flow diagrams, screen inventory for wireframe stage
 - [ ] **Phase 16: Wireframing (/pde:wireframe)** — Fidelity-controlled HTML/CSS wireframes per screen
@@ -65,6 +66,19 @@ Plans:
 **Plans:** 1/1 plans complete
 Plans:
 - [ ] 13-01-PLAN.md — Brief workflow and command wiring
+
+### Phase 13.1: Hotfix — Tech Debt & Integration Fixes (Phases 12-13)
+**Goal**: All integration defects and metadata gaps from completed phases 12-13 are resolved before new phases begin
+**Depends on**: Phase 13
+**Requirements**: BRF-01 (metadata fix), INFRA-01 (template fix), INFRA-02 (subcommand fix)
+**Gap Closure**: Closes gaps from v1.1 milestone audit
+**Success Criteria** (what must be TRUE):
+  1. `workflows/brief.md` Step 7 Cross-Domain Dependency Map writes correct column count matching DESIGN-STATE.md table schema (INT-02 fix)
+  2. `lock-status` subcommand is implemented in design.cjs and callable via pde-tools.cjs (INT-01 fix)
+  3. `hardware` domain directory is created by DOMAIN_DIRS in design.cjs, matching DESIGN-STATE.md template (INT-03 fix)
+  4. Phase 13 SUMMARY frontmatter `requirements-completed` lists `[BRF-01, BRF-02]` (metadata fix)
+  5. Phase 12 Nyquist validation passes (`nyquist_compliant: true`, `wave_0_complete: true`)
+**Plans**: TBD
 
 ### Phase 14: Design System (/pde:system)
 **Goal**: A canonical DTCG design token set with derived CSS custom properties is available for all downstream skills to consume
@@ -158,6 +172,7 @@ Plans:
 | 11. Command Reference Cleanup | v1.0 | 1/1 | Complete | 2026-03-15 |
 | 12. Design Pipeline Infrastructure | 1/1 | Complete    | 2026-03-15 | - |
 | 13. Problem Framing (/pde:brief) | 1/1 | Complete    | 2026-03-15 | - |
+| 13.1 Hotfix — Tech Debt & Integration Fixes | v1.1 | 0/TBD | Not started | - |
 | 14. Design System (/pde:system) | v1.1 | 0/TBD | Not started | - |
 | 15. User Flow Mapping (/pde:flows) | v1.1 | 0/TBD | Not started | - |
 | 16. Wireframing (/pde:wireframe) | v1.1 | 0/TBD | Not started | - |
