@@ -79,12 +79,13 @@ Plans:
   3. STATE.md accurately tracks current phase, plan, and last activity after each workflow step
   4. Requirements traceability table in REQUIREMENTS.md maps every requirement to a phase after roadmap creation
   5. Atomic git commits are created per completed task with PDE co-author attribution
-**Plans**: 3 plans
+**Plans**: 4 plans
 
 Plans:
 - [ ] 04-01-PLAN.md — Verify .planning/ state persistence, STATE.md frontmatter sync, and ROADMAP.md round-trip editing
 - [ ] 04-02-PLAN.md — Verify STATE.md CRUD lifecycle and requirements traceability auto-population
 - [ ] 04-03-PLAN.md — Fix Co-Authored-By attribution gap in cmdCommit and verify atomic git commit protocol
+- [ ] 04-04-PLAN.md — Gap closure: fix stale STATE.md body narrative and align field format with cmdStateAdvancePlan
 
 ### Phase 5: Agent System
 **Goal**: All PDE agent types are functional with correct naming and paths, and parallel orchestration works
