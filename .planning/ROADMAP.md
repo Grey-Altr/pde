@@ -79,13 +79,12 @@ Plans:
   3. STATE.md accurately tracks current phase, plan, and last activity after each workflow step
   4. Requirements traceability table in REQUIREMENTS.md maps every requirement to a phase after roadmap creation
   5. Atomic git commits are created per completed task with PDE co-author attribution
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 04-01: Verify .planning/ directory state persistence and ROADMAP.md round-trip editing
-- [ ] 04-02: Verify STATE.md update lifecycle (create, read, write, restore on resume)
-- [ ] 04-03: Verify requirements traceability population during roadmap creation
-- [ ] 04-04: Verify atomic git commit creation per completed task
+- [ ] 04-01-PLAN.md — Verify .planning/ state persistence, STATE.md frontmatter sync, and ROADMAP.md round-trip editing
+- [ ] 04-02-PLAN.md — Verify STATE.md CRUD lifecycle and requirements traceability auto-population
+- [ ] 04-03-PLAN.md — Fix Co-Authored-By attribution gap in cmdCommit and verify atomic git commit protocol
 
 ### Phase 5: Agent System
 **Goal**: All PDE agent types are functional with correct naming and paths, and parallel orchestration works
@@ -163,7 +162,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8
 | 1. Plugin Identity | 2/2 | Complete   | 2026-03-15 |
 | 2. Tooling & Binary Rebrand | 1/1 | Complete   | 2026-03-15 |
 | 3. Workflow Commands | 2/3 | In Progress|  |
-| 4. Workflow Engine | 0/4 | Not started | - |
+| 4. Workflow Engine | 0/3 | Not started | - |
 | 5. Agent System | 0/4 | Not started | - |
 | 6. Templates & References | 0/2 | Not started | - |
 | 7. Rebranding Completeness | 0/3 | Not started | - |
