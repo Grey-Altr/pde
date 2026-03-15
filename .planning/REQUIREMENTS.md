@@ -111,13 +111,54 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (Populated during roadmap creation) | | |
+| PLUG-01 | Phase 1 | Pending |
+| PLUG-02 | Phase 1 | Pending |
+| PLUG-03 | Phase 1 | Pending |
+| PLUG-04 | Phase 7 | Pending |
+| CMD-01 | Phase 3 | Pending |
+| CMD-02 | Phase 3 | Pending |
+| CMD-03 | Phase 3 | Pending |
+| CMD-04 | Phase 3 | Pending |
+| CMD-05 | Phase 3 | Pending |
+| CMD-06 | Phase 3 | Pending |
+| CMD-07 | Phase 3 | Pending |
+| CMD-08 | Phase 3 | Pending |
+| CMD-09 | Phase 3 | Pending |
+| CMD-10 | Phase 3 | Pending |
+| CMD-11 | Phase 3 | Pending |
+| CMD-12 | Phase 3 | Pending |
+| CMD-13 | Phase 3 | Pending |
+| WORK-01 | Phase 4 | Pending |
+| WORK-02 | Phase 4 | Pending |
+| WORK-03 | Phase 4 | Pending |
+| WORK-04 | Phase 4 | Pending |
+| WORK-05 | Phase 4 | Pending |
+| WORK-06 | Phase 4 | Pending |
+| AGNT-01 | Phase 5 | Pending |
+| AGNT-02 | Phase 5 | Pending |
+| AGNT-03 | Phase 5 | Pending |
+| AGNT-04 | Phase 5 | Pending |
+| AGNT-05 | Phase 5 | Pending |
+| TOOL-01 | Phase 2 | Pending |
+| TOOL-02 | Phase 2 | Pending |
+| TOOL-03 | Phase 6 | Pending |
+| TOOL-04 | Phase 6 | Pending |
+| TOOL-05 | Phase 2 | Pending |
+| TOOL-06 | Phase 2 | Pending |
+| BRAND-01 | Phase 7 | Pending |
+| BRAND-02 | Phase 7 | Pending |
+| BRAND-03 | Phase 7 | Pending |
+| BRAND-04 | Phase 7 | Pending |
+| BRAND-05 | Phase 7 | Pending |
+| BRAND-06 | Phase 8 | Pending |
 
 **Coverage:**
-- v1 requirements: 30 total
-- Mapped to phases: 0
-- Unmapped: 30 ⚠️
+- v1 requirements: 40 total (4 PLUG + 13 CMD + 6 WORK + 5 AGNT + 6 TOOL + 6 BRAND)
+- Mapped to phases: 40
+- Unmapped: 0 ✓
+
+Note: Source file stated 30 requirements but enumeration counts 40. All 40 enumerated requirements are mapped.
 
 ---
 *Requirements defined: 2026-03-14*
-*Last updated: 2026-03-14 after initial definition*
+*Last updated: 2026-03-14 after roadmap creation — traceability populated*
