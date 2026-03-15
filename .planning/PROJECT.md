@@ -22,19 +22,36 @@ Any user can go from idea to shipped product through a single platform that hand
 
 ### Active
 
-(Define in next milestone — use `/pde:new-milestone`)
+- [ ] Core design pipeline: brief → flows → system → wireframe → critique → iterate → handoff
+- [ ] Each design skill works standalone AND as part of orchestrated /pde:build pipeline
+- [ ] Design artifacts stored in .planning/design/ alongside planning state
+- [ ] Design-to-implementation handoff produces component APIs and TypeScript interfaces
+
+## Current Milestone: v1.1 Design Pipeline
+
+**Goal:** Add a complete design stage to PDE so users can go from problem framing through visual wireframes to implementation-ready specs — closing the gap between requirements and code.
+
+**Target features:**
+- Problem framing (/pde:brief)
+- User flow mapping (/pde:flows)
+- Design system generation (/pde:system)
+- Wireframing at controlled fidelity (/pde:wireframe)
+- Multi-perspective design critique (/pde:critique)
+- Critique-driven iteration (/pde:iterate)
+- Design-to-code handoff (/pde:handoff)
+- Orchestrated pipeline (/pde:build)
 
 ### Out of Scope
 
-- Design pipeline (wireframing, design systems, user flows) — candidate for v2.0
-- MCP server integrations (GitHub, Linear, Figma, Jira) — candidate for v2.0
-- Multi-AI-provider support (Gemini CLI, OpenCode, Codex) — candidate for v2.0
+- MCP server integrations (GitHub, Linear, Figma, Jira) — candidate for future milestone
+- Multi-AI-provider support (Gemini CLI, OpenCode, Codex) — candidate for future milestone
 - Standalone CLI distribution independent of Claude Code — post-v2
 - Multi-product-type support (hardware, content, non-software) — post-v2
 - Maintenance/analytics/feedback loops — post-v2
 - Real-time collaborative editing — conflicts with file-based state model
 - In-tool web dashboard / UI — markdown files are the dashboard
-- Architecture restructuring — v1 was fast clone; refactor when needed
+- Architecture restructuring — do when pain forces it
+- Advanced design skills (ideation, competitive analysis, opportunity scoring, HIG audit, mockups) — candidate for v1.2
 
 ## Context
 
@@ -66,5 +83,10 @@ Any user can go from idea to shipped product through a single platform that hand
 | Full telemetry implementation over stub | render.cjs consent and track-* need real persistence | ✓ Good — no crashes, UI renders cleanly |
 | 21 command stubs for dangling references | Stubs prevent user confusion; v2 implements full logic | ✓ Good — zero dangling /pde: references |
 
+| Core design pipeline for v1.1 | Closes the biggest gap in "idea to shipped product" promise; design stage missing | — Pending |
+| Standalone skills + orchestrator | Flexibility for ad-hoc use AND guided workflow | — Pending |
+| .planning/design/ for artifacts | Keeps design state with planning state; consistent with existing patterns | — Pending |
+| v1.1 not v2.0 | Incremental addition to existing platform, not a breaking change | — Pending |
+
 ---
-*Last updated: 2026-03-15 after v1.0 milestone*
+*Last updated: 2026-03-15 after v1.1 milestone start*
