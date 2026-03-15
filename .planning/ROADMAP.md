@@ -177,7 +177,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 09-01-PLAN.md — Create lib/telemetry.cjs and verify all render.cjs commands execute without crash
+- [ ] 10-01-PLAN.md — Fix gsd_state_version regression, update stale body narrative, and patch GSD layer
 
 ### Phase 11: Command Reference Cleanup
 **Goal:** Remove or stub dangling command references that break user expectations
