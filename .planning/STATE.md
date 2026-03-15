@@ -3,8 +3,8 @@ pde_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 04-02-PLAN.md
-last_updated: "2026-03-15T03:22:09.846Z"
+stopped_at: Completed 04-01-PLAN.md
+last_updated: "2026-03-15T03:22:18.893Z"
 last_activity: 2026-03-14 — Phase 4 STATE.md lifecycle verification
 progress:
   total_phases: 8
@@ -82,6 +82,9 @@ Recent decisions affecting current work:
 - [Phase 03-workflow-commands]: All 34 /pde: commands verified in Claude Code palette, satisfying CMD-01 through CMD-13 requirements
 - [Phase ?]: Phase 4: STATE.md CRUD lifecycle verified — all read/write operations confirmed working
 - [Phase 04-02]: advance-plan requires 'Current Plan:' body field format — STATE.md body using 'Plan: N of N' format returns an error (clean behavior, documented as format expectation)
+- [Phase Phase 04-workflow-engine]: Phase 3 checkbox was unchecked despite 3/3 summaries — pde-tools phase complete 3 fixed ROADMAP.md and REQUIREMENTS.md atomically
+- [Phase Phase 04-workflow-engine]: WORK-02 state persistence verified via bash subshell simulation — plain disk files survive context resets definitively
+- [Phase Phase 04-workflow-engine]: WORK-03 ROADMAP.md round-trip confirmed — get-phase reads disk directly, user edits immediately visible
 
 ### Pending Todos
 
@@ -94,6 +97,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-15T03:21:54.919Z
-Stopped at: Completed 04-02-PLAN.md
+Last session: 2026-03-15T03:22:18.891Z
+Stopped at: Completed 04-01-PLAN.md
 Resume file: None

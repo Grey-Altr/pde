@@ -33,8 +33,8 @@ Requirements for initial release. Each maps to roadmap phases.
 ### Workflow Engine
 
 - [x] **WORK-01**: Phase-based workflow (discuss → plan → execute → verify) operates end-to-end
-- [ ] **WORK-02**: .planning/ file state persists across context resets
-- [ ] **WORK-03**: Roadmap (ROADMAP.md) serves as editable source of truth for phases
+- [x] **WORK-02**: .planning/ file state persists across context resets
+- [x] **WORK-03**: Roadmap (ROADMAP.md) serves as editable source of truth for phases
 - [x] **WORK-04**: STATE.md tracks current phase, progress, and project memory
 - [x] **WORK-05**: Requirements traceability maps every requirement to a phase
 - [ ] **WORK-06**: Atomic git commits created per completed task
@@ -129,8 +129,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CMD-12 | Phase 3 | Complete |
 | CMD-13 | Phase 3 | Complete |
 | WORK-01 | Phase 4 | Complete |
-| WORK-02 | Phase 4 | Pending |
-| WORK-03 | Phase 4 | Pending |
+| WORK-02 | Phase 4 | Complete |
+| WORK-03 | Phase 4 | Complete |
 | WORK-04 | Phase 4 | Complete |
 | WORK-05 | Phase 4 | Complete |
 | WORK-06 | Phase 4 | Pending |
