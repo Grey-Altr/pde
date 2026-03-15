@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Design Pipeline
 status: verifying
-stopped_at: "Completed 12-01-PLAN.md: design pipeline infrastructure library and pde-tools.cjs router"
-last_updated: "2026-03-15T21:18:02.856Z"
-last_activity: "2026-03-15 — Phase 12 Plan 01 complete: design pipeline infrastructure library"
+stopped_at: "Completed 13-01-PLAN.md: /pde:brief workflow and command wired"
+last_updated: "2026-03-15T21:50:54.939Z"
+last_activity: "2026-03-15 — Phase 13 Plan 01 complete: /pde:brief workflow and command wired"
 progress:
   total_phases: 9
-  completed_phases: 1
-  total_plans: 1
-  completed_plans: 1
+  completed_phases: 2
+  total_plans: 2
+  completed_plans: 2
   percent: 0
 ---
 
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-03-15)
 
 ## Current Position
 
-Phase: 12 of 20 (Design Pipeline Infrastructure)
+Phase: 13 of 20 (Problem Framing — /pde:brief)
 Plan: 1 of 1 (complete)
 Status: Phase complete — ready for verification
-Last activity: 2026-03-15 — Phase 12 Plan 01 complete: design pipeline infrastructure library
+Last activity: 2026-03-15 — Phase 13 Plan 01 complete: /pde:brief workflow and command wired
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -47,6 +47,7 @@ Progress: [░░░░░░░░░░] 0%
 
 *Updated after each plan completion*
 | Phase 12 P01 | 2min | 2 tasks | 2 files |
+| Phase 13 P01 | 5min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -62,6 +63,9 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [v1.1 roadmap]: Phase 20 (build orchestrator) built last after all 7 skills independently validated
 - [Phase 12]: No npm dependencies for design.cjs — zero-dep implementation using only Node.js builtins (fs, path, os, assert)
 - [Phase 12]: Write-lock stored as DESIGN-STATE.md table row with 60s TTL, stale locks cleared automatically on next acquire
+- [Phase 13]: [13-01] Jobs-to-be-done section placed between Target Users and Constraints — added in workflow output instructions without modifying template file
+- [Phase 13]: [13-01] --force flag implemented as skill-specific flag on /pde:brief for non-interactive re-generation
+- [Phase 13]: [13-01] Scope Boundaries (Out of scope sub-section) serves as non-goals section — no new template section needed
 
 ### Pending Todos
 
@@ -75,6 +79,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-15T21:14:36.685Z
-Stopped at: Completed 12-01-PLAN.md: design pipeline infrastructure library and pde-tools.cjs router
+Last session: 2026-03-15T21:50:54.937Z
+Stopped at: Completed 13-01-PLAN.md: /pde:brief workflow and command wired
 Resume file: None

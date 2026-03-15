@@ -29,7 +29,7 @@ Full details: .planning/milestones/v1.0-ROADMAP.md
 ### v1.1 Design Pipeline (Phases 12-20)
 
 - [x] **Phase 12: Design Pipeline Infrastructure** — State management, artifact storage, token utilities, and write-lock protocol (completed 2026-03-15)
-- [ ] **Phase 13: Problem Framing (/pde:brief)** — Structured brief from PROJECT.md context, product-type detection
+- [x] **Phase 13: Problem Framing (/pde:brief)** — Structured brief from PROJECT.md context, product-type detection (completed 2026-03-15)
 - [ ] **Phase 14: Design System (/pde:system)** — DTCG tokens, CSS custom properties, typography/color/spacing scale
 - [ ] **Phase 15: User Flow Mapping (/pde:flows)** — Mermaid flow diagrams, screen inventory for wireframe stage
 - [ ] **Phase 16: Wireframing (/pde:wireframe)** — Fidelity-controlled HTML/CSS wireframes per screen
@@ -62,7 +62,7 @@ Plans:
   2. The brief detects software/hardware/hybrid product type and records design constraints specific to that type
   3. DESIGN-STATE.md is updated to reflect brief completion when the skill finishes
   4. Running `/pde:brief` standalone (without `/pde:build`) produces the same artifact as running it via the orchestrator
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 Plans:
 - [ ] 13-01-PLAN.md — Brief workflow and command wiring
 
@@ -157,7 +157,7 @@ Plans:
 | 10. Fix STATE.md Regressions | v1.0 | 1/1 | Complete | 2026-03-15 |
 | 11. Command Reference Cleanup | v1.0 | 1/1 | Complete | 2026-03-15 |
 | 12. Design Pipeline Infrastructure | 1/1 | Complete    | 2026-03-15 | - |
-| 13. Problem Framing (/pde:brief) | v1.1 | 0/1 | Not started | - |
+| 13. Problem Framing (/pde:brief) | 1/1 | Complete   | 2026-03-15 | - |
 | 14. Design System (/pde:system) | v1.1 | 0/TBD | Not started | - |
 | 15. User Flow Mapping (/pde:flows) | v1.1 | 0/TBD | Not started | - |
 | 16. Wireframing (/pde:wireframe) | v1.1 | 0/TBD | Not started | - |
