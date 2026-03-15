@@ -1,0 +1,13 @@
+{
+  "name": "platform-development-engine",
+  "version": "0.1.0",
+  "description": "Full lifecycle platform: from raw idea to shipped product with research, planning, execution, and verification",
+  "author": {
+    "name": "GreyA",
+    "email": "grey.altaer@gmail.com"
+  },
+  "homepage": "https://github.com/Grey-Altr/pde.git",
+  "repository": "https://github.com/Grey-Altr/pde.git",
+  "license": "MIT",
+  "keywords": ["platform", "development-lifecycle", "planning", "research", "execution", "verification", "workflow", "claude-code"]
+}
