@@ -260,14 +260,21 @@ async function main() {
     case 'commit': {
       const amend = args.includes('--amend');
       const filesIndex = args.indexOf('--files');
-      // Collect all positional args between command name and first flag,
-      // then join them — handles both quoted ("multi word msg") and
-      // unquoted (multi word msg) invocations from different shells
-      const endIndex = filesIndex !== -1 ? filesIndex : args.length;
-      const messageArgs = args.slice(1, endIndex).filter(a => !a.startsWith('--'));
+      const coAuthorIndex = args.indexOf('--co-author');
+      const coAuthor = coAuthorIndex !== -1 ? args[coAuthorIndex + 1] : null;
+      // Collect message: positional args between command name and first flag
+      const firstFlagIndex = [filesIndex, coAuthorIndex].filter(i => i !== -1).reduce((min, i) => Math.min(min, i), args.length);
+      const messageArgs = args.slice(1, firstFlagIndex).filter(a => !a.startsWith('--'));
       const message = messageArgs.join(' ') || undefined;
-      const files = filesIndex !== -1 ? args.slice(filesIndex + 1).filter(a => !a.startsWith('--')) : [];
-      commands.cmdCommit(cwd, message, files, raw, amend);
+      // Collect files: args after --files, stopping at next flag
+      const filesClean = [];
+      if (filesIndex !== -1) {
+        for (let i = filesIndex + 1; i < args.length; i++) {
+          if (args[i].startsWith('--')) break;
+          filesClean.push(args[i]);
+        }
+      }
+      commands.cmdCommit(cwd, message, filesClean, raw, amend, coAuthor);
       break;
     }
 

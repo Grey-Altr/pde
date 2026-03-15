@@ -213,7 +213,7 @@ function cmdResolveModel(cwd, agentType, raw) {
   output(result, raw, model);
 }
 
-function cmdCommit(cwd, message, files, raw, amend) {
+function cmdCommit(cwd, message, files, raw, amend, coAuthor) {
   if (!message && !amend) {
     error('commit message required');
   }
@@ -240,8 +240,14 @@ function cmdCommit(cwd, message, files, raw, amend) {
     execGit(cwd, ['add', file]);
   }
 
+  // Build commit message with optional Co-Authored-By trailer
+  let finalMessage = message;
+  if (coAuthor && !amend) {
+    finalMessage = `${message}\n\nCo-Authored-By: ${coAuthor}`;
+  }
+
   // Commit
-  const commitArgs = amend ? ['commit', '--amend', '--no-edit'] : ['commit', '-m', message];
+  const commitArgs = amend ? ['commit', '--amend', '--no-edit'] : ['commit', '-m', finalMessage];
   const commitResult = execGit(cwd, commitArgs);
   if (commitResult.exitCode !== 0) {
     if (commitResult.stdout.includes('nothing to commit') || commitResult.stderr.includes('nothing to commit')) {
