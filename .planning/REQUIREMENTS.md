@@ -32,7 +32,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Workflow Engine
 
-- [ ] **WORK-01**: Phase-based workflow (discuss → plan → execute → verify) operates end-to-end
+- [x] **WORK-01**: Phase-based workflow (discuss → plan → execute → verify) operates end-to-end
 - [ ] **WORK-02**: .planning/ file state persists across context resets
 - [ ] **WORK-03**: Roadmap (ROADMAP.md) serves as editable source of truth for phases
 - [ ] **WORK-04**: STATE.md tracks current phase, progress, and project memory
@@ -128,7 +128,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CMD-11 | Phase 3 | Complete |
 | CMD-12 | Phase 3 | Complete |
 | CMD-13 | Phase 3 | Complete |
-| WORK-01 | Phase 4 | Pending |
+| WORK-01 | Phase 4 | Complete |
 | WORK-02 | Phase 4 | Pending |
 | WORK-03 | Phase 4 | Pending |
 | WORK-04 | Phase 4 | Pending |
