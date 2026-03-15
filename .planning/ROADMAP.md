@@ -188,7 +188,7 @@ Plans:
 | 11. Command Reference Cleanup | v1.0 | 1/1 | Complete | 2026-03-15 |
 | 12. Design Pipeline Infrastructure | 1/1 | Complete    | 2026-03-15 | - |
 | 13. Problem Framing (/pde:brief) | 1/1 | Complete    | 2026-03-15 | - |
-| 13.1 Hotfix — Tech Debt & Integration Fixes | 1/1 | Complete   | 2026-03-15 | - |
+| 13.1 Hotfix — Tech Debt & Integration Fixes | 1/1 | Complete    | 2026-03-15 | - |
 | 14. Design System (/pde:system) | v1.1 | 0/TBD | Not started | - |
 | 15. User Flow Mapping (/pde:flows) | v1.1 | 0/TBD | Not started | - |
 | 16. Wireframing (/pde:wireframe) | v1.1 | 0/TBD | Not started | - |
