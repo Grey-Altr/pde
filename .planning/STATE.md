@@ -4,14 +4,14 @@ milestone: v1.0
 milestone_name: milestone
 current_plan: 3
 status: verifying
-stopped_at: Completed 08-01-PLAN.md
-last_updated: "2026-03-15T06:29:50.078Z"
+stopped_at: Completed 08-03-PLAN.md — PDE v1.0.0 released
+last_updated: "2026-03-15T06:34:25.784Z"
 last_activity: 2026-03-15
 progress:
   total_phases: 8
-  completed_phases: 7
+  completed_phases: 8
   total_plans: 19
-  completed_plans: 18
+  completed_plans: 19
   percent: 83
 ---
 
@@ -68,6 +68,7 @@ Progress: [████████░░] 83%
 | Phase 07-rebranding-completeness P02 | 3min | 1 tasks | 0 files |
 | Phase 08-onboarding-distribution P02 | 5min | 1 tasks | 1 files |
 | Phase 08-onboarding-distribution P01 | 8min | 2 tasks | 2 files |
+| Phase 08-onboarding-distribution P03 | 5min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -118,6 +119,8 @@ Recent decisions affecting current work:
 - [Phase 08-02]: BRAND-06 fully satisfied: zero GSD references in GETTING-STARTED.md confirmed by grep
 - [Phase 08-01]: marketplace.json version stays at 0.1.0 — Plan 03 bumps all three files to 1.0.0 atomically after all Phase 8 deliverables complete
 - [Phase 08-01]: Username hardcoding check uses /Users/$USER/ pattern (not /Users/[a-zA-Z]) — avoids false positives on generic placeholder paths like /Users/name/ in documentation examples
+- [Phase 08-03]: v1.0.0 tag created locally only — user pushes at their discretion via git push origin v1.0.0
+- [Phase 08-03]: BRAND-06 satisfied: zero GSD references in README.md
 
 ### Pending Todos
 
@@ -130,6 +133,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-15T06:29:50.075Z
-Stopped at: Completed 08-01-PLAN.md
+Last session: 2026-03-15T06:34:25.780Z
+Stopped at: Completed 08-03-PLAN.md — PDE v1.0.0 released
 Resume file: None
