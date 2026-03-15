@@ -44,4 +44,8 @@ See the [Getting Started guide](GETTING-STARTED.md) for a complete walk-through.
 
 ## License
 
-MIT
+MIT — see [LICENSE](LICENSE) for details.
+
+## Questions?
+
+Open an issue on [GitHub](https://github.com/Grey-Altr/pde/issues).
