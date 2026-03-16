@@ -1,0 +1,631 @@
+<purpose>
+Multi-perspective design critique of wireframes grounded in the project's brief and flows. Evaluates from four perspectives (UX/usability, visual hierarchy, accessibility, business alignment) with weighted scoring (UX: 1.5x, Visual Hierarchy: 1.0x, Accessibility: 1.5x, Business Alignment: 1.0x). Produces versioned CRT-critique-v{N}.md in .planning/design/review/ with severity-rated findings (critical/major/minor/nit), concrete actionable recommendations, a mandatory "What Works" section preserving intentional design decisions, and an Action List for /pde:iterate consumption. Hard-blocks when both brief and flows are absent (CRT-02), warns and continues when only one prerequisite is missing. Registered in the design manifest under artifact code CRT with hasCritique coverage flag set via read-before-set pattern.
+</purpose>
+
+<required_reading>
+@references/skill-style-guide.md
+@references/mcp-integration.md
+@references/design-principles.md
+@references/wcag-baseline.md
+</required_reading>
+
+<flags>
+## Supported Flags
+
+| Flag | Type | Behavior |
+|------|------|----------|
+| `--dry-run` | Boolean | Runs Steps 1-3 only, shows planned critique scope, prerequisite status, MCP availability. No report written. |
+| `--quick` | Boolean | Skip MCP enhancements (Axe, Sequential Thinking). Use design-principles.md and wcag-baseline.md directly. |
+| `--verbose` | Boolean | Show detailed progress, timing per step, reference loading details. |
+| `--no-mcp` | Boolean | Skip ALL MCP probes. Pure baseline mode. |
+| `--no-sequential-thinking` | Boolean | Skip Sequential Thinking MCP only. |
+| `--no-axe` | Boolean | Skip Axe a11y MCP specifically. Fall back to manual WCAG checklist from wcag-baseline.md. |
+| `--force` | Boolean | Skip confirmation when critique report already exists — overwrite without prompting. |
+| `--focused "perspective"` | String | Evaluate only the named perspective(s). Comma-separated. Valid values: ux, hierarchy, accessibility, business. |
+</flags>
+
+<process>
+
+## /pde:critique — Design Critique Pipeline
+
+Check for flags in $ARGUMENTS before beginning: `--dry-run`, `--quick`, `--verbose`, `--no-mcp`, `--no-sequential-thinking`, `--no-axe`, `--force`, `--focused`.
+
+---
+
+### Step 1/7: Initialize design directories
+
+```bash
+INIT=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design ensure-dirs)
+if [[ "$INIT" == @file:* ]]; then INIT=$(cat "${INIT#@file:}"); fi
+```
+
+Parse the JSON result. If the result contains an error field or the command exits non-zero:
+
+```
+Error: Failed to initialize design directories.
+  The design directory structure could not be created.
+  Check that .planning/ exists and is writable, then re-run /pde:critique.
+```
+
+Halt on error. On success, display: `Step 1/7: Design directories initialized.`
+
+---
+
+### Step 2/7: Check prerequisites and discover wireframes
+
+This step has six sub-sections executed in order.
+
+#### 2a. Check for design brief (soft dependency)
+
+Use the Glob tool to check for `.planning/design/strategy/BRF-brief-v*.md`. Sort all matches descending by version number (parse the `v{N}` suffix), read the highest version using the Read tool.
+
+- If absent: set `BRIEF_AVAILABLE = false`
+- If present: set `BRIEF_AVAILABLE = true`, store brief content as BRIEF_CONTEXT
+
+#### 2b. Check for user flows (soft dependency)
+
+Use the Glob tool to check for `.planning/design/ux/FLW-flows-v*.md`. Sort all matches descending by version number, read the highest version using the Read tool.
+
+- If absent: set `FLOWS_AVAILABLE = false`
+- If present: set `FLOWS_AVAILABLE = true`, store flows content as FLOWS_CONTEXT
+
+#### 2c. Hard-block check (CRT-02)
+
+```
+IF BRIEF_AVAILABLE is false AND FLOWS_AVAILABLE is false:
+  Output EXACTLY this error message:
+  ---
+  Error: Critique requires product context to avoid generic UI feedback.
+
+    Missing: Design brief (.planning/design/strategy/BRF-brief-v*.md)
+    Missing: User flows (.planning/design/ux/FLW-flows-v*.md)
+
+    Without these artifacts, /pde:critique can only apply generic UI heuristics
+    that ignore your product's goals, personas, and intended user journeys.
+
+    Run in order:
+      1. /pde:brief    -- defines product intent, personas, and constraints
+      2. /pde:flows    -- maps user journeys and screen inventory
+      3. /pde:wireframe -- generates screen wireframes (if not already done)
+      4. /pde:critique -- re-run after the above complete
+  ---
+  HALT. Do not proceed to Step 3.
+
+IF BRIEF_AVAILABLE is false (but flows present):
+  Output: "Warning: Design brief not found. Critique will proceed using flows and wireframes for context. Run /pde:brief first for richer product-aligned critique. (Continuing without brief...)"
+
+IF FLOWS_AVAILABLE is false (but brief present):
+  Output: "Warning: User flows not found. Critique will proceed using brief and wireframes for context. Run /pde:flows first for richer journey-aligned critique. (Continuing without flows...)"
+
+IF both available:
+  Display: "Step 2/7: Prerequisites verified. Brief v{N} and Flows v{M} loaded."
+```
+
+#### 2d. Discover wireframes to critique
+
+- If a screen argument is provided in $ARGUMENTS (comma-separated list of slugs): filter to those slugs only from `.planning/design/ux/wireframes/`
+- If no screen argument: use the Glob tool to find all `.html` files in `.planning/design/ux/wireframes/` excluding `index.html`
+- If no wireframes found: HALT with error:
+  ```
+  Error: No wireframes found in .planning/design/ux/wireframes/. Run /pde:wireframe first.
+  ```
+- Store list as WIREFRAME_FILES
+
+#### 2e. Read fidelity level from each wireframe
+
+For each wireframe file in WIREFRAME_FILES:
+- Use the Read tool to read the HTML file content
+- Extract fidelity from the `pde-layout--{fidelity}` class on the `<body>` element (values: lofi, midfi, hifi)
+- If mixed fidelity detected across files: note in report frontmatter Mode field as "full (mixed fidelity: lofi/hifi)" etc.
+- Store per-file fidelity as FIDELITY_MAP for severity calibration in Step 4
+
+#### 2f. Version gate
+
+Use the Glob tool to check for existing `CRT-critique-v*.md` in `.planning/design/review/`.
+
+- If found AND `--force` not present: prompt user:
+  ```
+  Critique report v{N} already exists. Overwrite? (Use --force to skip this prompt)
+  ```
+  If user confirms: set VERSION = max existing version + 1.
+- If `--force` present: set VERSION = max existing version + 1 silently.
+- If no existing reports: set VERSION = 1.
+
+Display: `Step 2/7: {N} wireframe(s) discovered at {fidelity} fidelity. Critique v{VERSION} will be generated.`
+
+---
+
+### Step 3/7: Probe MCP availability
+
+**Check flags first:**
+
+```
+IF --no-mcp in $ARGUMENTS:
+  SET SEQUENTIAL_THINKING_AVAILABLE = false
+  SET AXE_AVAILABLE = false
+  SKIP all MCP probes
+  continue to Step 4
+
+IF --quick in $ARGUMENTS:
+  SET SEQUENTIAL_THINKING_AVAILABLE = false
+  SET AXE_AVAILABLE = false
+  SKIP all MCP probes
+  continue to Step 4
+
+IF --no-sequential-thinking in $ARGUMENTS:
+  SET SEQUENTIAL_THINKING_AVAILABLE = false
+  SKIP Sequential Thinking probe
+
+IF --no-axe in $ARGUMENTS:
+  SET AXE_AVAILABLE = false
+  SKIP Axe probe
+```
+
+#### 3a. Sequential Thinking MCP probe (if not skipped by flags above)
+
+Attempt to call `mcp__sequential-thinking__think` with a simple test prompt `"Analyze the following: test"`.
+
+- Timeout: 30 seconds
+- If tool responds with reasoning: SET `SEQUENTIAL_THINKING_AVAILABLE = true`. Log: `  -> Sequential Thinking MCP: available`
+- If tool not found or errors: retry once (same 30s timeout)
+  - If retry succeeds: `SEQUENTIAL_THINKING_AVAILABLE = true`
+  - If retry fails: `SEQUENTIAL_THINKING_AVAILABLE = false`. Log: `  -> Sequential Thinking MCP: unavailable (continuing without)`
+
+#### 3b. Axe a11y MCP probe (if not skipped by flags above)
+
+Attempt to probe for a tool in the `mcp__a11y__*` namespace with a minimal test call.
+
+- If tool responds: SET `AXE_AVAILABLE = true`. Log: `  -> Axe MCP: available`
+- If tool not found or errors: SET `AXE_AVAILABLE = false`. Log: `  -> Axe MCP: unavailable. Using manual WCAG checklist from wcag-baseline.md.`
+
+**If `--dry-run` flag is active:** Display planned critique scope and HALT. Do not proceed to Step 4:
+
+```
+Dry run mode. No files will be written.
+
+Planned output:
+  File: .planning/design/review/CRT-critique-v{VERSION}.md
+
+Brief: {brief path or "not found"}
+Flows: {flows path or "not found"}
+Wireframes ({count}): {comma-separated file list}
+Fidelity: {detected fidelity or "mixed"}
+Perspectives: {all four or focused list}
+Sequential Thinking MCP: {available | unavailable}
+Axe MCP: {available | unavailable}
+```
+
+Display: `Step 3/7: MCP probes complete. Sequential Thinking: {yes|no}. Axe: {yes|no}.`
+
+---
+
+### Step 4/7: Evaluate wireframes across four perspectives
+
+Load evaluation references into context:
+- `@references/design-principles.md` — Nielsen H1-H10, Shneiderman S1-S8, Norman's principles, Gestalt laws, Fitts/Hick/Miller
+- `@references/wcag-baseline.md` — WCAG 2.2 Level A/AA criteria and POUR principles
+- `@templates/critique-report.md` — output format reference
+
+If `--focused` flag present: evaluate only the named perspective(s). Valid values: ux, hierarchy, accessibility, business. Otherwise evaluate all four.
+
+For each wireframe file in WIREFRAME_FILES:
+
+  Use the Read tool to read the wireframe HTML content.
+  Determine fidelity from FIDELITY_MAP for severity calibration.
+
+  Display progress: `Step 4/7: Evaluating {screen_slug} ({N} of {total})...`
+
+  #### Perspective 1: UX / Usability (weight 1.5x)
+
+  Evaluation frameworks:
+  - Nielsen's 10 Heuristics (H1-H10): Visibility of system status, match with real world, user control and freedom, consistency and standards, error prevention, recognition over recall, flexibility and efficiency, aesthetic and minimalist design, help users recognize/diagnose/recover, help and documentation
+  - Shneiderman's 8 Golden Rules (S1-S8): Strive for consistency, enable frequent users to use shortcuts, offer informative feedback, design dialogs to yield closure, prevent errors, permit easy reversal, support internal locus of control, reduce short-term memory load
+
+  Evaluate against:
+  - BRIEF_CONTEXT: Do screens serve the personas' stated goals? Does the interaction model reflect the product type and constraints?
+  - FLOWS_CONTEXT: Does this screen serve its designated journey step? Are entry points clear? Are exit paths obvious?
+  - Wireframe layout: Affordances, signifiers, feedback mechanisms, error recovery paths, cognitive load
+
+  Key evaluation questions:
+  - Does this screen clearly serve the persona's primary goal?
+  - Is there visible feedback for all user actions? (H1)
+  - Is the language consistent with users' mental models? (H2)
+  - Are there emergency exits for mistaken actions? (H3)
+  - Is the interaction model consistent across screens? (H4, S1)
+  - Does the design prevent errors before they occur? (H5)
+  - Is information presented at point of need — no memory load? (H6)
+  - Are affordances clear — does it look clickable/interactive? (Norman)
+  - Is error recovery supported with clear actions? (H9, S5, S6)
+
+  Severity escalation: H1 violations on screens with async operations are never below Major.
+
+  If SEQUENTIAL_THINKING_AVAILABLE: for complex or ambiguous findings, use `mcp__sequential-thinking__think` with prompt: `"For screen '{screen_slug}', evaluate this finding: '{finding description}'. Reason through: (1) the severity given the screen's role in the journey, (2) whether this is a structural issue or a content issue, (3) the most actionable suggestion given the current fidelity level."` Use the output to refine finding severity and suggestion.
+
+  #### Perspective 2: Visual Hierarchy (weight 1.0x)
+
+  Evaluation frameworks:
+  - Gestalt principles: proximity (related elements grouped), similarity (interactive elements look consistent), continuity (visual flow guides attention), closure (incomplete shapes perceived as whole), figure-ground (content distinct from background), common region (groupings by bounding regions)
+  - Norman's principles: affordance, signifiers, constraints, mapping, feedback, conceptual models
+  - Fitts's Law: interactive target size and distance affects usability — primary actions need to be large and close
+  - Hick's Law: decision time grows with number of options — too many choices slows users
+  - Miller's Law: working memory holds ~7 (plus or minus 2) items — chunk information accordingly
+
+  Evaluate against:
+  - Wireframe visual layout: spacing, grouping, hierarchy, information density
+  - Design token application (at midfi/hifi): correct token usage, consistent visual weight
+  - Navigation and layout patterns: progressive disclosure, visual flow from primary to secondary content
+
+  Key evaluation questions:
+  - Is the primary action visually prominent — the most prominent interactive element on screen?
+  - Are related elements visually grouped via proximity or common region? (Gestalt)
+  - Is cognitive load appropriate for this step in the user journey? (Miller, Hick)
+  - Are interactive elements visually distinguishable from static content? (Gestalt similarity)
+  - Do primary actions satisfy Fitts's Law — appropriately sized and positioned?
+  - Does whitespace create meaningful groupings that guide comprehension?
+  - Is the visual flow natural — does the eye move from most to least important?
+  - Does information density match the user's context at this journey step?
+
+  #### Perspective 3: Accessibility (weight 1.5x)
+
+  Evaluation frameworks:
+  - WCAG 2.2 Level A and AA criteria (all ~56 criteria)
+  - POUR principles: Perceivable, Operable, Understandable, Robust
+  - WCAG 2.2 new criteria: 2.4.11 Focus Not Obscured, 2.5.7 Dragging Movements, 2.5.8 Target Size Minimum, 3.2.6 Consistent Help, 3.3.7 Redundant Entry, 3.3.8 Accessible Authentication
+
+  If AXE_AVAILABLE: run automated WCAG scan on wireframe HTML using `mcp__a11y__*` tool. Tag all findings with "[Enhanced by Axe MCP]".
+  If AXE_AVAILABLE is false: use manual checklist evaluation from wcag-baseline.md.
+
+  Key evaluation questions:
+  - Semantic structure: Are landmark roles present? (role=banner, main, nav, contentinfo)
+  - Skip navigation: Is there a skip-to-main-content link as first body child?
+  - Form labels: Do all inputs have explicit `<label for="id">` associations?
+  - Accessible names: Do all interactive elements (buttons, links, icons) have accessible labels?
+  - Color contrast: Is text contrast >= 4.5:1 (normal text) and >= 3:1 (large text)? (WCAG 1.4.3)
+  - Focus management: Is focus order logical? Are focus indicators visible? (WCAG 2.4.11)
+  - Dynamic content: Are aria-live regions used for async updates?
+  - Target size: Are interactive targets >= 24x24 CSS pixels? (WCAG 2.5.8)
+  - Images: Do images have alt attributes (descriptive or empty for decorative)?
+  - Keyboard: Is all functionality operable by keyboard alone?
+
+  Fidelity calibration:
+  - At lofi: color contrast findings are severity "nit" (placeholder colors only — not real product colors)
+  - At midfi: color contrast findings are "minor" (placeholder colors still likely, but layout should use token references)
+  - At hifi: color contrast failures are "major" or "critical" (real product colors applied)
+
+  #### Perspective 4: Business Alignment (weight 1.0x)
+
+  Evaluate against:
+  - BRIEF_CONTEXT: product type, business goals, personas, constraints, scope boundaries, success metrics
+  - FLOWS_CONTEXT: business outcomes per journey step, conversion checkpoints, drop-off risk points
+
+  Key evaluation questions:
+  - Do screens support the user journeys defined in the flows document?
+  - Does feature emphasis match the product's positioning from the brief?
+  - Are any out-of-scope features present? (check brief Scope Boundaries section)
+  - Do primary CTAs align with persona goals stated in the brief?
+  - Are product type constraints visible in the interaction model? (e.g., offline-first, B2B workflow, consumer onboarding)
+  - Are brief constraints reflected? (e.g., platform constraints, accessibility requirements, data residency)
+  - Does the screen sequence reflect the intended conversion funnel?
+
+---
+
+#### Fidelity-severity calibration table
+
+Executors MUST apply this calibration when assigning severity to findings:
+
+| Finding Type | Lo-fi Severity | Mid-fi Severity | Hi-fi Severity |
+|--------------|----------------|-----------------|----------------|
+| Missing screen for journey step | Critical | Critical | Critical |
+| Color contrast failure | Skip (nit only if exact colors used) | Minor (placeholder colors) | Major/Critical |
+| CTA prominence (visual weight) | Minor (structure only) | Major | Major |
+| ARIA label missing | Major (structure visible in HTML) | Major | Critical |
+| Token not applied | Skip | Minor | Major |
+| Missing state variant (loading/error) | Minor | Major | Critical |
+| Out-of-scope feature present | Major | Major | Major |
+| Navigation inconsistency | Minor | Major | Major |
+
+---
+
+#### Score calculation per perspective
+
+```
+Score = 100 - (sum of finding penalties)
+  Critical finding: -25 points
+  Major finding: -10 points
+  Minor finding: -4 points
+  Nit: -1 point
+  Floor: 0 (score never goes negative)
+```
+
+---
+
+#### Finding format (every finding MUST include all fields)
+
+Every finding produced in Step 4 MUST have ALL of the following:
+
+- **Location:** screen-slug.html > section > element (CSS-selector-like path, e.g., `login.html > main > form > button.submit`)
+- **Severity:** `critical` | `major` | `minor` | `nit`
+- **Effort:** `quick-fix` | `moderate` | `significant`
+- **Issue:** Specific description of what is wrong or problematic
+- **Suggestion:** Concrete actionable fix with specific values — e.g., "Change font-size from `var(--font-size-xs)` to `var(--font-size-sm)`" NOT "increase font size"
+- **Reference:** The standard or principle supporting this finding — e.g., "Nielsen H1", "WCAG 2.5.8", "Gestalt proximity"
+- **Perspective:** Which of the four perspectives produced this finding (UX/Usability, Visual Hierarchy, Accessibility, Business Alignment)
+- **Weight:** Perspective weight (1.5x for UX and Accessibility, 1.0x for Visual Hierarchy and Business Alignment)
+
+---
+
+#### "What Works" identification (mandatory — CRT success criterion)
+
+For each perspective evaluated, identify 1-3 specific intentional design decisions that are correct and MUST be preserved during iteration. This section is mandatory. Do not omit it.
+
+Format as a table:
+
+| Element | What's Working | Perspective | Keep It |
+|---------|----------------|-------------|---------|
+| {screen-slug.html > element} | {specific observation about what is correct and why} | {perspective name} | Yes — do not change in iteration |
+
+Purpose: The /pde:iterate workflow reads this table to avoid undoing correct decisions while addressing findings.
+
+---
+
+### Step 5/7: Write versioned critique report
+
+#### 5a. Acquire write-lock
+
+```bash
+LOCK=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design lock-acquire critique)
+if [[ "$LOCK" == @file:* ]]; then LOCK=$(cat "${LOCK#@file:}"); fi
+```
+
+Parse `{"acquired": true/false}` from the result.
+
+- If `"acquired": true`: proceed.
+- If `"acquired": false`: wait 5 seconds, retry up to 3 times. If still false after 3 retries: warn and continue (do not halt):
+  ```
+  Warning: Could not acquire write lock. Proceeding without lock.
+    If concurrent writes occur, re-run /pde:critique to repair manifest state.
+  ```
+
+#### 5b. Assemble and write critique report
+
+Assemble the full critique report using `@templates/critique-report.md` as the structural scaffold.
+
+**Frontmatter:**
+```yaml
+---
+Generated: "{ISO date, e.g., 2026-03-15}"
+Skill: /pde:critique (CRT)
+Version: v{VERSION}
+Status: draft
+Mode: "{full|quick|focused} ({fidelity note if mixed fidelity detected})"
+Groups Evaluated: "UX/Usability, Visual Hierarchy, Accessibility, Business Alignment"
+Enhanced By: "{list of MCPs used, e.g., 'Sequential Thinking MCP, Axe MCP' or 'none'}"
+---
+```
+
+**Sections in order:**
+
+1. `# Critique Report: Wireframes v{VERSION} ({fidelity})`
+
+2. `## Summary Scorecard`
+
+   Table:
+   | Group | Score | Weight | Weighted |
+   |-------|-------|--------|----------|
+   | UX / Usability | {score}/100 | 1.5x | {score * 1.5} |
+   | Visual Hierarchy | {score}/100 | 1.0x | {score * 1.0} |
+   | Accessibility | {score}/100 | 1.5x | {score * 1.5} |
+   | Business Alignment | {score}/100 | 1.0x | {score * 1.0} |
+   | **Composite** | | | **{composite_score}** |
+
+   Composite calculation: `(UX*1.5 + hierarchy*1.0 + a11y*1.5 + business*1.0) / 5.0`
+
+   Letter grade:
+   - 90-100: A (handoff-ready)
+   - 80-89: B (iteration-recommended)
+   - 70-79: C (iteration-required)
+   - 60-69: D (major-revision-required)
+   - Below 60: F (major-revision-required)
+
+   Display: `**Overall:** {letter} | {numeric}/100 | {maturity_level}`
+
+3. `## What Works`
+
+   The table populated during Step 4's "What Works" identification. MUST NOT be omitted, even if sections were skipped via --focused. Minimum one row required.
+
+4. `## Findings by Priority`
+
+   All findings from Step 4 sorted by:
+   - Primary: severity (critical first, then major, then minor, then nit)
+   - Secondary: weight (1.5x before 1.0x within same severity)
+   - Tertiary: effort (quick-fix ranked higher for actionability)
+
+   Table columns: `#`, `Severity`, `Effort`, `Location`, `Issue`, `Suggestion`, `Perspective`, `Weight`
+
+5. `## Detailed Findings by Perspective Group`
+
+   A subsection for each perspective evaluated:
+   ```
+   ### UX / Usability
+
+   **Score:** {score}/100
+   **Rationale:** {1-2 sentence scoring rationale}
+
+   **Finding {n}: {concise finding title}**
+   - **Location:** {screen-slug.html > element path}
+   - **Severity:** {severity} | **Effort:** {effort}
+   - **Issue:** {detailed description}
+   - **Suggestion:** {concrete fix with specific values}
+   - **Reference:** {standard or principle}
+   ```
+
+6. `## Action List for /pde:iterate`
+
+   Priority-ordered checkbox list for iterate consumption:
+   ```
+   - [ ] {finding_summary} — {severity}/{effort}
+   ```
+   Critical findings first, then major, then minor, then nits.
+
+7. `## Resolved Findings (Cumulative)`
+
+   Empty on first run. Populated by /pde:iterate on subsequent runs.
+   ```
+   *No resolved findings yet. Re-run /pde:critique after /pde:iterate to populate.*
+   ```
+
+8. Footer:
+   ```
+   *Generated by PDE-OS /pde:critique | {date} | Mode: {mode} | Groups: {group_list}*
+   {If Axe MCP was used: "[Enhanced by Axe MCP — automated WCAG 2.2 scan]"}
+   {If Axe MCP was unavailable: "[Manual accessibility review — install a11y MCP for automated WCAG scanning]"}
+   ```
+
+Use the Write tool to write to `.planning/design/review/CRT-critique-v{VERSION}.md`.
+
+#### 5c. Release write-lock
+
+**ALWAYS release, even if an error occurred:**
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design lock-release critique
+```
+
+Display: `Step 5/7: Critique report written to .planning/design/review/CRT-critique-v{VERSION}.md`
+
+---
+
+### Step 6/7: Update ux domain DESIGN-STATE
+
+Use the Glob tool to check for `.planning/design/ux/DESIGN-STATE.md`.
+
+**If it does NOT exist:** Create it with the standard ux domain structure including an "Open Critique Items" table:
+
+```markdown
+# UX Domain Design State
+
+Updated: {YYYY-MM-DD}
+Domain: ux
+
+## Artifact Index
+
+| Code | Name | Skill | Status | Version | Enhanced By | Notes | Updated |
+|------|------|-------|--------|---------|-------------|-------|---------|
+| CRT | Design Critique | /pde:critique | draft | v{VERSION} | {MCPs used or none} | | {YYYY-MM-DD} |
+
+## Open Critique Items
+
+| ID | Source | Severity | Status |
+|----|--------|----------|--------|
+```
+
+**If it already exists:** Use the Read tool to read it, then use the Edit tool to apply these updates:
+
+1. Add or update the CRT row in the Artifact Index table:
+   ```
+   | CRT | Design Critique | /pde:critique | draft | v{VERSION} | {MCPs used or none} | | {YYYY-MM-DD} |
+   ```
+
+2. Find the "Open Critique Items" table section. For each Critical and Major finding from the critique report:
+   ```
+   | {finding_id, e.g., CRT-01} | CRT-critique-v{VERSION}.md | {critical|major} | open |
+   ```
+
+   Minor and nit findings are NOT added to DESIGN-STATE. This keeps the Open Critique Items table focused on action-required items only.
+
+Display: `Step 6/7: {N} critical/major findings added to ux/DESIGN-STATE.md Open Critique Items.`
+
+---
+
+### Step 7/7: Update root DESIGN-STATE + manifest + coverage flag
+
+#### 7a. Update root DESIGN-STATE.md
+
+Use the Read tool to read `.planning/design/DESIGN-STATE.md`. Then use the Edit tool to update the Pipeline Progress table to mark Critique as complete with the current date.
+
+Add or update the CRT row in any artifact tracking tables. Add an entry to the Decision Log:
+```
+| CRT | critique generated, fidelity: {fidelity}, {screen_count} screens, score: {composite}/100 | {YYYY-MM-DD} |
+```
+
+Add an entry to the Iteration History:
+```
+| CRT-critique-v{VERSION}.md | v{VERSION} | Created by /pde:critique | {YYYY-MM-DD} |
+```
+
+#### 7b. Register CRT artifact in manifest (7 calls — same pattern as wireframe.md)
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update CRT code CRT
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update CRT name "Design Critique"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update CRT type critique
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update CRT domain review
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update CRT path ".planning/design/review/CRT-critique-v${VERSION}.md"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update CRT status draft
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update CRT version ${VERSION}
+```
+
+#### 7c. Set coverage flag (CRITICAL — read-before-set to prevent clobber)
+
+```bash
+COV=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design coverage-check)
+if [[ "$COV" == @file:* ]]; then COV=$(cat "${COV#@file:}"); fi
+```
+
+Parse the JSON output from coverage-check. Extract ALL six current flag values: hasDesignSystem, hasFlows, hasWireframes, hasCritique, hasHandoff, hasHardwareSpec. Merge `hasCritique: true` while preserving all other values. Then write the full merged object:
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":{current},"hasFlows":{current},"hasWireframes":{current},"hasCritique":true,"hasHandoff":{current},"hasHardwareSpec":{current}}'
+```
+
+#### 7d. Output summary table (per skill-style-guide.md)
+
+```
+## /pde:critique Summary
+
+| Property | Value |
+|----------|-------|
+| Report | .planning/design/review/CRT-critique-v{VERSION}.md |
+| Screens Critiqued | {N} |
+| Fidelity | {fidelity} |
+| Composite Score | {score}/100 ({letter}) |
+| Maturity | {maturity_level} |
+| Critical Findings | {count} |
+| Major Findings | {count} |
+| Total Findings | {count} |
+| What Works | {count} items preserved |
+| Enhanced By | {MCP list or 'none'} |
+
+Next steps:
+  - Review critique: open .planning/design/review/CRT-critique-v{VERSION}.md
+  - Run /pde:iterate to address findings
+  - Re-run /pde:critique after iteration to verify improvements
+```
+
+Display: `Step 7/7: Manifest updated. Coverage: hasCritique = true. Done.`
+
+---
+
+## Anti-Patterns
+
+NEVER do any of the following:
+
+- Proceed past Step 2c when BRIEF_AVAILABLE is false AND FLOWS_AVAILABLE is false — the hard-block error is mandatory and protects output quality
+- Omit the "What Works" section — it is mandatory even when --focused flag narrows perspectives; minimum one row required
+- Set designCoverage without reading coverage-check first — `manifest-set-top-level` replaces the ENTIRE designCoverage object; skipping coverage-check resets flags set by other skills
+- Use perspective-only vague suggestions — every suggestion MUST include specific values (token names, exact numbers, concrete element changes)
+- Add Minor or Nit findings to DESIGN-STATE Open Critique Items — only Critical and Major findings belong there
+- Skip the lock-release in Step 5c — always release the lock even on error
+- Run Axe MCP on files that don't exist yet — only scan wireframe HTML files confirmed present in Step 2d
+- Produce findings without Reference field — every finding needs a grounding standard (Nielsen heuristic, WCAG criterion, Gestalt principle, etc.)
+- Apply hifi severity calibration to lofi wireframes — fidelity calibration table in Step 4 is mandatory
+- Omit the Action List for /pde:iterate section — the iterate skill reads this checklist to know what to address
+
+</process>
+
+<output>
+- `.planning/design/review/CRT-critique-v{N}.md` — versioned critique report with Summary Scorecard, What Works, Findings by Priority, Detailed Findings by Perspective, Action List for /pde:iterate, and Resolved Findings (empty on first run)
+- `.planning/design/ux/DESIGN-STATE.md` — ux domain state updated with CRT artifact row; Critical and Major findings added to Open Critique Items table
+- `.planning/design/DESIGN-STATE.md` — root state updated (Pipeline Progress, Decision Log, Iteration History)
+- `.planning/design/design-manifest.json` — manifest updated with CRT artifact entry and hasCritique: true in designCoverage
+</output>
