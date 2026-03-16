@@ -633,10 +633,10 @@ COV=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design coverage-check)
 if [[ "$COV" == @file:* ]]; then COV=$(cat "${COV#@file:}"); fi
 ```
 
-Parse the JSON output. Extract ALL six current flag values: hasDesignSystem, hasFlows, hasWireframes, hasCritique, hasHandoff, hasHardwareSpec. Merge `hasWireframes: true` while preserving all other values. Then write the full merged object:
+Parse the JSON output. Extract ALL seven current flag values: hasDesignSystem, hasFlows, hasWireframes, hasCritique, hasIterate, hasHandoff, hasHardwareSpec. Default any absent field to `false`. Merge `hasWireframes: true` while preserving all other values. Then write the full merged seven-field object:
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":{current},"hasFlows":{current},"hasWireframes":true,"hasCritique":{current},"hasHandoff":{current},"hasHardwareSpec":{current}}'
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":{current},"hasFlows":{current},"hasWireframes":true,"hasCritique":{current},"hasIterate":{current},"hasHandoff":{current},"hasHardwareSpec":{current}}'
 ```
 
 #### 7e. Release lock
