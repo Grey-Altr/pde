@@ -2,16 +2,16 @@
 pde_state_version: 1.0
 milestone: v1.2
 milestone_name: Advanced Design Skills
-status: executing
-stopped_at: "Completed 24-02-PLAN.md (schema migration: 6 workflows to 13-field coverage)"
-last_updated: "2026-03-16T20:52:40.558Z"
-last_activity: "2026-03-16 — Completed 24-01: manifest template extended to 13 designCoverage flags, ux/mockups added to DOMAIN_DIRS"
+status: planning
+stopped_at: Phase 25 context gathered
+last_updated: "2026-03-16T20:56:08.527Z"
+last_activity: 2026-03-16 — Phase 24 complete, transitioning to Phase 25
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 2
   completed_plans: 2
-  percent: 4
+  percent: 20
 ---
 
 # Project State
@@ -69,6 +69,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-16
-Stopped at: Phase 24 complete, ready to plan Phase 25
-Resume file: None
+Last session: 2026-03-16T20:56:08.525Z
+Stopped at: Phase 25 context gathered
+Resume file: .planning/phases/25-recommend-competitive-skills/25-CONTEXT.md
