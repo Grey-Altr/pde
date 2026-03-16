@@ -39,7 +39,7 @@ Full details: .planning/milestones/v1.0-ROADMAP.md
 - [x] **Phase 17: Design Critique (/pde:critique)** — Multi-perspective review with severity ratings and fix recommendations (completed 2026-03-16)
 - [x] **Phase 18: Critique-Driven Iteration (/pde:iterate)** — Artifact revision loop with convergence signal (completed 2026-03-16)
 - [x] **Phase 19: Design-to-Code Handoff (/pde:handoff)** — TypeScript interfaces, component APIs, STACK.md-aligned specs (completed 2026-03-16)
-- [ ] **Phase 20: Pipeline Orchestrator (/pde:build)** — Thin orchestrator over all 7 skills via DESIGN-STATE
+- [x] **Phase 20: Pipeline Orchestrator (/pde:build)** — Thin orchestrator over all 7 skills via DESIGN-STATE (completed 2026-03-16)
 
 ## Phase Details
 
@@ -197,7 +197,7 @@ Plans:
   2. After a simulated mid-pipeline interruption, re-running `/pde:build` resumes from the last complete stage without re-running earlier stages or losing artifacts
   3. Each skill invoked via `/pde:build` produces identical output to running that skill standalone — the orchestrator adds no logic of its own, delegating all skill behavior to individual workflows
   4. Human verification gates appear between stages so users can inspect output before the next stage begins
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 Plans:
 - [ ] 20-01-PLAN.md — Pipeline orchestrator workflow and command (coverage-driven stage sequencing, verification gates)
 
@@ -227,4 +227,4 @@ Plans:
 | 17. Design Critique (/pde:critique) | 1/1 | Complete    | 2026-03-16 | - |
 | 18. Critique-Driven Iteration (/pde:iterate) | 1/1 | Complete    | 2026-03-16 | - |
 | 19. Design-to-Code Handoff (/pde:handoff) | 1/1 | Complete   | 2026-03-16 | - |
-| 20. Pipeline Orchestrator (/pde:build) | v1.1 | 0/1 | Planning | - |
+| 20. Pipeline Orchestrator (/pde:build) | 1/1 | Complete   | 2026-03-16 | - |

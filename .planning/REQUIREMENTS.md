@@ -55,9 +55,9 @@ Requirements for design pipeline release. Each maps to roadmap phases.
 
 ### Orchestration
 
-- [ ] **ORC-01**: /pde:build orchestrates the full pipeline sequence via DESIGN-STATE
-- [ ] **ORC-02**: Each skill works standalone when invoked directly (not just via /pde:build)
-- [ ] **ORC-03**: /pde:build is a thin orchestrator — all skill logic stays in individual workflows
+- [x] **ORC-01**: /pde:build orchestrates the full pipeline sequence via DESIGN-STATE
+- [x] **ORC-02**: Each skill works standalone when invoked directly (not just via /pde:build)
+- [x] **ORC-03**: /pde:build is a thin orchestrator — all skill logic stays in individual workflows
 
 ## v2 Requirements
 
@@ -125,9 +125,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | HND-01 | Phase 19 | Complete |
 | HND-02 | Phase 19 | Complete |
 | HND-03 | Phase 19 | Complete |
-| ORC-01 | Phase 20 | Pending |
-| ORC-02 | Phase 20 | Pending |
-| ORC-03 | Phase 20 | Pending |
+| ORC-01 | Phase 20 | Complete |
+| ORC-02 | Phase 20 | Complete |
+| ORC-03 | Phase 20 | Complete |
 
 **Coverage:**
 - v1.1 requirements: 25 total (4 INFRA + 2 BRF + 3 SYS + 2 FLW + 3 WFR + 3 CRT + 2 ITR + 3 HND + 3 ORC)

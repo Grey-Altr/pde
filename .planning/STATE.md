@@ -1,16 +1,16 @@
 ---
-pde_state_version: 1.0
+gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Design Pipeline
 status: planning
-stopped_at: Phase 20 context gathered
-last_updated: "2026-03-16T04:47:41.586Z"
+stopped_at: Completed 20-pipeline-orchestrator-pde-build 20-01-PLAN.md
+last_updated: "2026-03-16T05:05:35.664Z"
 last_activity: 2026-03-16 — Phase 19 complete, transitioned to Phase 20
 progress:
   total_phases: 12
-  completed_phases: 11
-  total_plans: 12
-  completed_plans: 12
+  completed_phases: 12
+  total_plans: 13
+  completed_plans: 13
   percent: 100
 ---
 
@@ -58,6 +58,7 @@ Progress: [████████████████████] 12/12 p
 | Phase 17 P01 | 4min | 2 tasks | 2 files |
 | Phase 18 P01 | 4min | 2 tasks | 2 files |
 | Phase 19 P01 | 5min | 2 tasks | 2 files |
+| Phase 20-pipeline-orchestrator-pde-build P01 | 3min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -102,6 +103,9 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 19]: STACK.md is a hard dependency for /pde:handoff — framework detection without it produces unusable component stubs
 - [Phase 19]: HND-types-v{N}.ts contains only interface/type declarations — no imports, no runtime code, interface-only TypeScript for direct engineer import
 - [Phase 19]: Annotation completeness threshold is 50% — less than half of state divs annotated triggers degraded-quality warning; Sequential Thinking MCP used to infer interfaces from sparse wireframes
+- [Phase 20]: Orchestrator is strictly read-only — no coverage writes, no manifest mutations; each skill owns its own flag
+- [Phase 20]: Skill() invocation pattern chosen over Task() to avoid #686 nested-agent freeze
+- [Phase 20]: Brief completion checked via Glob on BRF-brief-v*.md (no hasBrief field — removed Phase 15.1)
 
 ### Pending Todos
 
@@ -113,6 +117,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-16T04:47:41.583Z
-Stopped at: Phase 20 context gathered
-Resume file: .planning/phases/20-pipeline-orchestrator-pde-build/20-CONTEXT.md
+Last session: 2026-03-16T05:05:35.661Z
+Stopped at: Completed 20-pipeline-orchestrator-pde-build 20-01-PLAN.md
+Resume file: None
