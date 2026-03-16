@@ -257,4 +257,4 @@ Plans:
 | 19. Design-to-Code Handoff (/pde:handoff) | 1/1 | Complete   | 2026-03-16 | - |
 | 20. Pipeline Orchestrator (/pde:build) | 1/1 | Complete    | 2026-03-16 | - |
 | 21. Fix Pipeline Integration Wiring | 1/1 | Complete    | 2026-03-16 | - |
-| 22. Nyquist Compliance & Tech Debt Cleanup | 1/1 | Complete   | 2026-03-16 | - |
+| 22. Nyquist Compliance & Tech Debt Cleanup | 1/1 | Complete    | 2026-03-16 | - |
