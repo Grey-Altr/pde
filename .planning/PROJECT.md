@@ -27,7 +27,15 @@ Any user can go from idea to shipped product through a single platform that hand
 
 ### Active
 
-(None yet — define with `/gsd:new-milestone`)
+<!-- Current scope: v1.2 Advanced Design Skills -->
+
+- [ ] Ideation skill with multi-phase diverge→converge exploration
+- [ ] Competitive analysis skill with structured landscape evaluation
+- [ ] Opportunity scoring skill with RICE framework
+- [ ] Mockup skill for hi-fi interactive HTML/CSS from wireframes
+- [ ] HIG audit skill with dual mode (light in critique, full standalone)
+- [ ] Recommend skill for MCP/tool discovery (integrated into ideation)
+- [ ] Build orchestrator expanded to handle full pipeline
 
 ### Out of Scope
 
@@ -39,7 +47,18 @@ Any user can go from idea to shipped product through a single platform that hand
 - Real-time collaborative editing — conflicts with file-based state model
 - In-tool web dashboard / UI — markdown files are the dashboard
 - Architecture restructuring — do when pain forces it
-- Advanced design skills (ideation, competitive analysis, opportunity scoring, HIG audit, mockups) — candidate for v1.2
+- Advanced design skills — moved to Active for v1.2
+
+## Current Milestone: v1.2 Advanced Design Skills
+
+**Goal:** Expand the design pipeline with advanced skills — ideation, competitive analysis, opportunity scoring, mockups, HIG audit, and tool discovery — creating a comprehensive design-to-implementation workflow.
+
+**Target features:**
+- Multi-phase ideation with diverge→converge exploration (includes tool discovery via recommend)
+- Competitive landscape analysis and RICE-scored opportunity evaluation as pre-pipeline research
+- Hi-fi mockup generation from refined wireframes (post-iterate, pre-handoff)
+- WCAG 2.2 AA / HIG audit with dual mode: light check during critique, full audit as gate before handoff
+- Expanded `/pde:build` orchestrator covering the full pipeline: ideate → competitive → opportunity → brief → system → flows → wireframe → critique(+HIG) → iterate → mockup → HIG(full) → handoff
 
 ## Context
 
@@ -87,4 +106,4 @@ Any user can go from idea to shipped product through a single platform that hand
 | Skill() over Task() invocation in build | Avoids #686 nested-agent freeze; Skill runs in same context | ✓ Good — Phase 20 |
 
 ---
-*Last updated: 2026-03-16 after v1.1 milestone*
+*Last updated: 2026-03-16 after v1.2 milestone start*
