@@ -197,7 +197,9 @@ Plans:
   2. After a simulated mid-pipeline interruption, re-running `/pde:build` resumes from the last complete stage without re-running earlier stages or losing artifacts
   3. Each skill invoked via `/pde:build` produces identical output to running that skill standalone — the orchestrator adds no logic of its own, delegating all skill behavior to individual workflows
   4. Human verification gates appear between stages so users can inspect output before the next stage begins
-**Plans**: 0 plans
+**Plans:** 1 plan
+Plans:
+- [ ] 20-01-PLAN.md — Pipeline orchestrator workflow and command (coverage-driven stage sequencing, verification gates)
 
 ## Progress
 
@@ -225,4 +227,4 @@ Plans:
 | 17. Design Critique (/pde:critique) | 1/1 | Complete    | 2026-03-16 | - |
 | 18. Critique-Driven Iteration (/pde:iterate) | 1/1 | Complete    | 2026-03-16 | - |
 | 19. Design-to-Code Handoff (/pde:handoff) | 1/1 | Complete   | 2026-03-16 | - |
-| 20. Pipeline Orchestrator (/pde:build) | v1.1 | 0/TBD | Not started | - |
+| 20. Pipeline Orchestrator (/pde:build) | v1.1 | 0/1 | Planning | - |
