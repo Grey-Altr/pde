@@ -184,7 +184,9 @@ Plans:
   2. TypeScript interfaces are generated for every component with props, types, and variant signatures derived from wireframe annotations
   3. The command reads `.planning/research/STACK.md` and aligns prop naming, import patterns, and component API conventions to the project's actual tech stack — blocked with a recovery message if STACK.md is absent
   4. `design-manifest.json` is fully populated with all artifact paths, versions, and component-to-artifact mappings
-**Plans**: 0 plans
+**Plans:** 1 plans
+Plans:
+- [ ] 19-01-PLAN.md — Handoff workflow and command wiring (artifact synthesis, TypeScript interfaces, STACK.md alignment)
 
 ### Phase 20: Pipeline Orchestrator (/pde:build)
 **Goal**: Users can run the full brief-to-handoff design pipeline with a single command, resumable from any interruption point
@@ -222,5 +224,5 @@ Plans:
 | 16. Wireframing (/pde:wireframe) | 1/1 | Complete    | 2026-03-16 | - |
 | 17. Design Critique (/pde:critique) | 1/1 | Complete    | 2026-03-16 | - |
 | 18. Critique-Driven Iteration (/pde:iterate) | 1/1 | Complete    | 2026-03-16 | - |
-| 19. Design-to-Code Handoff (/pde:handoff) | v1.1 | 0/TBD | Not started | - |
+| 19. Design-to-Code Handoff (/pde:handoff) | v1.1 | 0/1 | Not started | - |
 | 20. Pipeline Orchestrator (/pde:build) | v1.1 | 0/TBD | Not started | - |
