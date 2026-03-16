@@ -32,9 +32,9 @@ Requirements for design pipeline release. Each maps to roadmap phases.
 
 ### Wireframing
 
-- [ ] **WFR-01**: /pde:wireframe generates browser-viewable HTML/CSS at controlled fidelity levels (lofi/midfi/hifi)
-- [ ] **WFR-02**: Wireframes consume design system tokens for consistent styling
-- [ ] **WFR-03**: Fidelity level is enforced by enum — no drift between levels
+- [x] **WFR-01**: /pde:wireframe generates browser-viewable HTML/CSS at controlled fidelity levels (lofi/midfi/hifi)
+- [x] **WFR-02**: Wireframes consume design system tokens for consistent styling
+- [x] **WFR-03**: Fidelity level is enforced by enum — no drift between levels
 
 ### Design Critique
 
@@ -114,9 +114,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SYS-03 | Phase 14 | Complete |
 | FLW-01 | Phase 15 | Complete |
 | FLW-02 | Phase 15 | Complete |
-| WFR-01 | Phase 16 | Pending |
-| WFR-02 | Phase 16 | Pending |
-| WFR-03 | Phase 16 | Pending |
+| WFR-01 | Phase 16 | Complete |
+| WFR-02 | Phase 16 | Complete |
+| WFR-03 | Phase 16 | Complete |
 | CRT-01 | Phase 17 | Pending |
 | CRT-02 | Phase 17 | Pending |
 | CRT-03 | Phase 17 | Pending |

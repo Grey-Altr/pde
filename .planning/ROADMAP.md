@@ -35,7 +35,7 @@ Full details: .planning/milestones/v1.0-ROADMAP.md
 - [x] **Phase 14: Design System (/pde:system)** — DTCG tokens, CSS custom properties, typography/color/spacing scale
 - [x] **Phase 15: User Flow Mapping (/pde:flows)** — Mermaid flow diagrams, screen inventory for wireframe stage (completed 2026-03-16)
 - [x] **Phase 15.1: Fix Integration Gaps & Tech Debt (Phases 12-15)** — Fix hasBrief contradiction, Domain Files stubs, orphaned CLIs, Phase 14 Nyquist audit (completed 2026-03-16)
-- [ ] **Phase 16: Wireframing (/pde:wireframe)** — Fidelity-controlled HTML/CSS wireframes per screen
+- [x] **Phase 16: Wireframing (/pde:wireframe)** — Fidelity-controlled HTML/CSS wireframes per screen (completed 2026-03-16)
 - [ ] **Phase 17: Design Critique (/pde:critique)** — Multi-perspective review with severity ratings and fix recommendations
 - [ ] **Phase 18: Critique-Driven Iteration (/pde:iterate)** — Artifact revision loop with convergence signal
 - [ ] **Phase 19: Design-to-Code Handoff (/pde:handoff)** — TypeScript interfaces, component APIs, STACK.md-aligned specs
@@ -146,7 +146,7 @@ Plans:
   2. Wireframes consume CSS custom properties from `assets/tokens.css` so design system changes cascade to wireframes
   3. The fidelity level (`lo-fi`, `mid-fi`, `hi-fi`) is enforced by an explicit enum — running the command twice at the same fidelity level produces the same structural output, not wildly different results
   4. Each wireframe includes state variants (default, loading, error) and annotation comments describing interaction behavior
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 Plans:
 - [ ] 16-01-PLAN.md — Wireframe workflow and command wiring (HTML/CSS generation, fidelity enum, token consumption)
 
@@ -215,7 +215,7 @@ Plans:
 | 14. Design System (/pde:system) | v1.1 | Complete    | 2026-03-16 | 2026-03-16 |
 | 15. User Flow Mapping (/pde:flows) | 1/1 | Complete    | 2026-03-16 | - |
 | 15.1 Fix Integration Gaps & Tech Debt | 2/2 | Complete    | 2026-03-16 | - |
-| 16. Wireframing (/pde:wireframe) | v1.1 | 0/1 | Not started | - |
+| 16. Wireframing (/pde:wireframe) | 1/1 | Complete   | 2026-03-16 | - |
 | 17. Design Critique (/pde:critique) | v1.1 | 0/TBD | Not started | - |
 | 18. Critique-Driven Iteration (/pde:iterate) | v1.1 | 0/TBD | Not started | - |
 | 19. Design-to-Code Handoff (/pde:handoff) | v1.1 | 0/TBD | Not started | - |

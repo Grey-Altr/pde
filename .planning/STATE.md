@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Design Pipeline
 status: completed
-stopped_at: Completed 15.1-01-PLAN.md
-last_updated: "2026-03-16T01:56:56.302Z"
+stopped_at: Completed 16-01-PLAN.md
+last_updated: "2026-03-16T02:22:16.071Z"
 last_activity: "2026-03-16 — Phase 15 Plan 01 complete: workflows/flows.md (537-line /pde:flows workflow), commands/flows.md delegation"
 progress:
   total_phases: 12
-  completed_phases: 7
-  total_plans: 8
-  completed_plans: 8
+  completed_phases: 8
+  total_plans: 9
+  completed_plans: 9
   percent: 100
 ---
 
@@ -54,6 +54,7 @@ Progress: [██████████] 100%
 | Phase 15 P01 | 4min | 2 tasks | 2 files |
 | Phase 15.1 P02 | 2min | 2 tasks | 3 files |
 | Phase 15.1-fix-integration-gaps-tech-debt P01 | 6min | 3 tasks | 4 files |
+| Phase 16 P01 | 4min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -86,6 +87,9 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 15.1-01]: hasBrief removed from designCoverage merge in all workflow files — field not in live manifest schema; brief.md anti-pattern section is authoritative
 - [Phase 15.1-01]: tokens-to-css CLI generates only :root{} block; dark mode @media and [data-theme] blocks must be composed manually
 - [Phase 15.1-01]: Domain Files table empty in template and live DESIGN-STATE.md; rows appended on-demand by skills at first artifact write
+- [Phase 16]: Fixed wireframes/ directory as non-versioned path — Phase 17 critique needs stable path; overwrite on re-run is correct behavior
+- [Phase 16]: ANNOTATION: comments are mandatory on all state variants and interactive elements — Phase 19 handoff reads these to generate TypeScript component APIs
+- [Phase 16]: Lo-fi complex screen rules specified explicitly: data tables (header + 3 rows), dashboards (labeled gray boxes), charts (bounding box + type label) — addresses research flag for information-heavy screens
 
 ### Pending Todos
 
@@ -99,6 +103,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-16T01:52:51.723Z
-Stopped at: Completed 15.1-01-PLAN.md
+Last session: 2026-03-16T02:22:09.712Z
+Stopped at: Completed 16-01-PLAN.md
 Resume file: None
