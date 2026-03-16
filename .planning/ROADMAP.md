@@ -218,7 +218,7 @@ Plans:
 | 15. User Flow Mapping (/pde:flows) | 1/1 | Complete    | 2026-03-16 | - |
 | 15.1 Fix Integration Gaps & Tech Debt | 2/2 | Complete    | 2026-03-16 | - |
 | 16. Wireframing (/pde:wireframe) | 1/1 | Complete    | 2026-03-16 | - |
-| 17. Design Critique (/pde:critique) | 1/1 | Complete   | 2026-03-16 | - |
+| 17. Design Critique (/pde:critique) | 1/1 | Complete    | 2026-03-16 | - |
 | 18. Critique-Driven Iteration (/pde:iterate) | v1.1 | 0/TBD | Not started | - |
 | 19. Design-to-Code Handoff (/pde:handoff) | v1.1 | 0/TBD | Not started | - |
 | 20. Pipeline Orchestrator (/pde:build) | v1.1 | 0/TBD | Not started | - |

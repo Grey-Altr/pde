@@ -4,7 +4,7 @@ milestone: v1.1
 milestone_name: Design Pipeline
 status: completed
 stopped_at: Completed 17-01-PLAN.md
-last_updated: "2026-03-16T02:53:01.145Z"
+last_updated: "2026-03-16T02:55:49.790Z"
 last_activity: "2026-03-16 — Phase 15 Plan 01 complete: workflows/flows.md (537-line /pde:flows workflow), commands/flows.md delegation"
 progress:
   total_phases: 12
