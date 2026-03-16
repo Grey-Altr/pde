@@ -142,24 +142,20 @@ Display: `Step 2/7: {N} wireframe(s) discovered at {fidelity} fidelity. Critique
 ```
 IF --no-mcp in $ARGUMENTS:
   SET SEQUENTIAL_THINKING_AVAILABLE = false
-  SET AXE_AVAILABLE = false
   SKIP all MCP probes
   continue to Step 4
 
 IF --quick in $ARGUMENTS:
   SET SEQUENTIAL_THINKING_AVAILABLE = false
-  SET AXE_AVAILABLE = false
   SKIP all MCP probes
   continue to Step 4
 
 IF --no-sequential-thinking in $ARGUMENTS:
   SET SEQUENTIAL_THINKING_AVAILABLE = false
   SKIP Sequential Thinking probe
-
-IF --no-axe in $ARGUMENTS:
-  SET AXE_AVAILABLE = false
-  SKIP Axe probe
 ```
+
+Note: `--no-axe` flag is passed through to /pde:hig --light when Perspective 3 delegates to the HIG workflow. The Axe probe is handled inside the HIG skill, not here.
 
 #### 3a. Sequential Thinking MCP probe (if not skipped by flags above)
 
@@ -170,13 +166,6 @@ Attempt to call `mcp__sequential-thinking__think` with a simple test prompt `"An
 - If tool not found or errors: retry once (same 30s timeout)
   - If retry succeeds: `SEQUENTIAL_THINKING_AVAILABLE = true`
   - If retry fails: `SEQUENTIAL_THINKING_AVAILABLE = false`. Log: `  -> Sequential Thinking MCP: unavailable (continuing without)`
-
-#### 3b. Axe a11y MCP probe (if not skipped by flags above)
-
-Attempt to probe for a tool in the `mcp__a11y__*` namespace with a minimal test call.
-
-- If tool responds: SET `AXE_AVAILABLE = true`. Log: `  -> Axe MCP: available`
-- If tool not found or errors: SET `AXE_AVAILABLE = false`. Log: `  -> Axe MCP: unavailable. Using manual WCAG checklist from wcag-baseline.md.`
 
 **If `--dry-run` flag is active:** Display planned critique scope and HALT. Do not proceed to Step 4:
 
@@ -192,10 +181,10 @@ Wireframes ({count}): {comma-separated file list}
 Fidelity: {detected fidelity or "mixed"}
 Perspectives: {all four or focused list}
 Sequential Thinking MCP: {available | unavailable}
-Axe MCP: {available | unavailable}
+Accessibility: delegated to /pde:hig --light (Axe MCP handled by HIG skill)
 ```
 
-Display: `Step 3/7: MCP probes complete. Sequential Thinking: {yes|no}. Axe: {yes|no}.`
+Display: `Step 3/7: MCP probes complete. Sequential Thinking: {yes|no}.`
 
 ---
 
@@ -267,30 +256,21 @@ For each wireframe file in WIREFRAME_FILES:
 
   #### Perspective 3: Accessibility (weight 1.5x)
 
-  Evaluation frameworks:
-  - WCAG 2.2 Level A and AA criteria (all ~56 criteria)
-  - POUR principles: Perceivable, Operable, Understandable, Robust
-  - WCAG 2.2 new criteria: 2.4.11 Focus Not Obscured, 2.5.7 Dragging Movements, 2.5.8 Target Size Minimum, 3.2.6 Consistent Help, 3.3.7 Redundant Entry, 3.3.8 Accessible Authentication
-
-  If AXE_AVAILABLE: run automated WCAG scan on wireframe HTML using `mcp__a11y__*` tool. Tag all findings with "[Enhanced by Axe MCP]".
-  If AXE_AVAILABLE is false: use manual checklist evaluation from wcag-baseline.md.
-
-  Key evaluation questions:
-  - Semantic structure: Are landmark roles present? (role=banner, main, nav, contentinfo)
-  - Skip navigation: Is there a skip-to-main-content link as first body child?
-  - Form labels: Do all inputs have explicit `<label for="id">` associations?
-  - Accessible names: Do all interactive elements (buttons, links, icons) have accessible labels?
-  - Color contrast: Is text contrast >= 4.5:1 (normal text) and >= 3:1 (large text)? (WCAG 1.4.3)
-  - Focus management: Is focus order logical? Are focus indicators visible? (WCAG 2.4.11)
-  - Dynamic content: Are aria-live regions used for async updates?
-  - Target size: Are interactive targets >= 24x24 CSS pixels? (WCAG 2.5.8)
-  - Images: Do images have alt attributes (descriptive or empty for decorative)?
-  - Keyboard: Is all functionality operable by keyboard alone?
-
-  Fidelity calibration:
-  - At lofi: color contrast findings are severity "nit" (placeholder colors only — not real product colors)
-  - At midfi: color contrast findings are "minor" (placeholder colors still likely, but layout should use token references)
-  - At hifi: color contrast failures are "major" or "critical" (real product colors applied)
+  IF `workflows/hig.md` exists (check with Glob):
+    Load @workflows/hig.md with --light in $ARGUMENTS context
+    Execute only the --light abbreviated pipeline (5 mandatory checks: color contrast 1.4.3, focus visibility 2.4.11, touch targets 2.5.8, form labels, heading hierarchy)
+    The HIG workflow will apply fidelity calibration automatically based on artifact fidelity level
+    Embed returned findings directly as Accessibility perspective findings
+    Tag: [HIG skill -- /pde:hig --light]
+  ELSE (fallback -- workflows/hig.md not found):
+    Fall back to manual WCAG checklist:
+    - Load @references/wcag-baseline.md
+    - Check: Color contrast (WCAG 1.4.3), Focus visibility (2.4.11), Touch targets (2.5.8), Form labels, Heading hierarchy
+    - Apply fidelity calibration from the calibration table below:
+      - At lofi: color contrast findings are severity "nit" (placeholder colors only — not real product colors)
+      - At midfi: color contrast findings are "minor" (placeholder colors still likely, but layout should use token references)
+      - At hifi: color contrast failures are "major" or "critical" (real product colors applied)
+    Tag: [Manual WCAG review -- install /pde:hig for enhanced accessibility audit]
 
   #### Perspective 4: Business Alignment (weight 1.0x)
 
@@ -477,8 +457,8 @@ Enhanced By: "{list of MCPs used, e.g., 'Sequential Thinking MCP, Axe MCP' or 'n
 8. Footer:
    ```
    *Generated by PDE-OS /pde:critique | {date} | Mode: {mode} | Groups: {group_list}*
-   {If Axe MCP was used: "[Enhanced by Axe MCP — automated WCAG 2.2 scan]"}
-   {If Axe MCP was unavailable: "[Manual accessibility review — install a11y MCP for automated WCAG scanning]"}
+   {If HIG skill was used for Perspective 3: "[Accessibility by /pde:hig --light]"}
+   {If fallback WCAG checklist was used: "[Manual WCAG review -- install /pde:hig for enhanced accessibility audit]"}
    ```
 
 Use the Write tool to write to `.planning/design/review/CRT-critique-v{VERSION}.md`.
@@ -616,7 +596,7 @@ NEVER do any of the following:
 - Use perspective-only vague suggestions — every suggestion MUST include specific values (token names, exact numbers, concrete element changes)
 - Add Minor or Nit findings to DESIGN-STATE Open Critique Items — only Critical and Major findings belong there
 - Skip the lock-release in Step 5c — always release the lock even on error
-- Run Axe MCP on files that don't exist yet — only scan wireframe HTML files confirmed present in Step 2d
+- Invoke /pde:hig --light when wireframe files are not confirmed present — HIG --light requires an auditable artifact; verify artifacts exist before delegation
 - Produce findings without Reference field — every finding needs a grounding standard (Nielsen heuristic, WCAG criterion, Gestalt principle, etc.)
 - Apply hifi severity calibration to lofi wireframes — fidelity calibration table in Step 4 is mandatory
 - Omit the Action List for /pde:iterate section — the iterate skill reads this checklist to know what to address
