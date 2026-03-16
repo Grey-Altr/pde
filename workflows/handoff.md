@@ -84,7 +84,7 @@ COV_RAW=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design coverage-check)
 if [[ "$COV_RAW" == @file:* ]]; then COV_RAW=$(cat "${COV_RAW#@file:}"); fi
 ```
 
-Parse JSON from COV_RAW. Store all current flag values: `hasDesignSystem`, `hasFlows`, `hasWireframes`, `hasCritique`, `hasIterate`, `hasHardwareSpec`. If coverage-check fails or returns invalid JSON, default all to `false` and continue.
+Parse JSON from COV_RAW. Store all current flag values: `hasDesignSystem`, `hasFlows`, `hasWireframes`, `hasCritique`, `hasIterate`, `hasHandoff`, `hasHardwareSpec`. If coverage-check fails or returns invalid JSON, default all to `false` and continue.
 
 #### 2c. Find design brief (soft dependency)
 
