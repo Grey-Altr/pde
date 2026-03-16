@@ -28,9 +28,9 @@ Requirements for v1.2 Advanced Design Skills. Each maps to roadmap phases.
 
 ### Opportunity Scoring
 
-- [ ] **OPP-01**: User can score feature opportunities using RICE framework via `/pde:opportunity`
-- [ ] **OPP-02**: RICE scoring collects interactive user input for each dimension
-- [ ] **OPP-03**: Opportunity output includes sensitivity analysis and priority bucketing
+- [x] **OPP-01**: User can score feature opportunities using RICE framework via `/pde:opportunity`
+- [x] **OPP-02**: RICE scoring collects interactive user input for each dimension
+- [x] **OPP-03**: Opportunity output includes sensitivity analysis and priority bucketing
 
 ### Mockup
 
@@ -96,9 +96,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | COMP-01 | Phase 25 | Complete |
 | COMP-02 | Phase 25 | Complete |
 | COMP-03 | Phase 25 | Complete |
-| OPP-01 | Phase 26 | Pending |
-| OPP-02 | Phase 26 | Pending |
-| OPP-03 | Phase 26 | Pending |
+| OPP-01 | Phase 26 | Complete |
+| OPP-02 | Phase 26 | Complete |
+| OPP-03 | Phase 26 | Complete |
 | MOCK-01 | Phase 26 | Pending |
 | MOCK-02 | Phase 26 | Pending |
 | MOCK-03 | Phase 26 | Pending |

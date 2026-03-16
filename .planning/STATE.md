@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Advanced Design Skills
 status: planning
-stopped_at: Completed 25-02-PLAN.md
-last_updated: "2026-03-16T21:13:05.884Z"
+stopped_at: Completed 26-01-PLAN.md
+last_updated: "2026-03-16T22:02:50.263Z"
 last_activity: 2026-03-16 — Phase 24 complete, transitioning to Phase 25
 progress:
   total_phases: 5
   completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
+  total_plans: 7
+  completed_plans: 5
   percent: 20
 ---
 
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-16)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** v1.2 Advanced Design Skills — Phase 25: Recommend & Competitive Skills
+**Current focus:** v1.2 Advanced Design Skills — Phase 26: Opportunity, Mockup & HIG Skills
 
 ## Current Position
 
-Phase: 25 of 28 (Recommend & Competitive Skills)
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-03-16 — Phase 24 complete, transitioning to Phase 25
+Phase: 26 of 28 (Opportunity, Mockup & HIG Skills)
+Plan: 2 of 3 (completed 26-01, ready for 26-02)
+Status: In progress
+Last activity: 2026-03-16 — Phase 26 Plan 01 complete (opportunity skill + skill-registry.md)
 
-Progress: [████░░░░░░░░░░░░░░░░] 1/5 phases (20%)
+Progress: [███████░░░] 5/7 plans (71%)
 
 ## Performance Metrics
 
@@ -48,6 +48,7 @@ Progress: [████░░░░░░░░░░░░░░░░] 1/5 pha
 *Updated after each plan completion*
 | Phase 25-recommend-competitive-skills P01 | 3 | 1 tasks | 2 files |
 | Phase 25-recommend-competitive-skills P02 | 3 | 1 tasks | 2 files |
+| Phase 26-opportunity-mockup-hig-skills P01 | 525608 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -66,6 +67,8 @@ Recent decisions affecting current work:
 - [Phase 25-02]: WebSearch MCP is enhancement-only: skill completes fully with training knowledge, all training-knowledge claims default to [inferred]
 - [Phase 25-02]: Opportunity Highlights MUST be structured numbered list with Source/Estimated reach/Competitive advantage sub-fields for /pde:opportunity parsing
 - [Phase 25-02]: Coverage flag name is hasCompetitive (not hasCompetitiveAnalysis) per Phase 24 canonical 13-field schema
+- [Phase 26-01]: OPP skill uses only Sequential Thinking MCP — opportunity scoring relies on user-provided estimates, not live market data
+- [Phase 26-01]: skill-registry.md at project root satisfies LINT-010 for all 13 PDE skill codes
 
 ### Pending Todos
 
@@ -77,6 +80,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-16T21:10:00.777Z
-Stopped at: Completed 25-02-PLAN.md
+Last session: 2026-03-16T22:02:50.260Z
+Stopped at: Completed 26-01-PLAN.md
 Resume file: None
