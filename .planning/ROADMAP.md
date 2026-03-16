@@ -212,7 +212,7 @@ Plans:
 | 13.2 Manifest Top-Level Fields & Nyquist Cleanup | 1/1 | Complete    | 2026-03-15 | - |
 | 14. Design System (/pde:system) | v1.1 | Complete    | 2026-03-16 | 2026-03-16 |
 | 15. User Flow Mapping (/pde:flows) | 1/1 | Complete    | 2026-03-16 | - |
-| 15.1 Fix Integration Gaps & Tech Debt | 2/2 | Complete   | 2026-03-16 | - |
+| 15.1 Fix Integration Gaps & Tech Debt | 2/2 | Complete    | 2026-03-16 | - |
 | 16. Wireframing (/pde:wireframe) | v1.1 | 0/TBD | Not started | - |
 | 17. Design Critique (/pde:critique) | v1.1 | 0/TBD | Not started | - |
 | 18. Critique-Driven Iteration (/pde:iterate) | v1.1 | 0/TBD | Not started | - |
