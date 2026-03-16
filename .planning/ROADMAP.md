@@ -50,7 +50,7 @@ Full details: .planning/milestones/v1.1-ROADMAP.md
 
 </details>
 
-### 🚧 v1.2 Advanced Design Skills (In Progress)
+### v1.2 Advanced Design Skills (In Progress)
 
 **Milestone Goal:** Expand the design pipeline with six advanced skills — ideation, competitive analysis, opportunity scoring, hi-fi mockups, HIG audit, and tool discovery — creating a comprehensive pre-brief research layer and post-iterate quality gate, all orchestrable via an expanded `/pde:build`.
 
@@ -86,7 +86,10 @@ Plans:
   3. User can run `/pde:competitive` and receive a feature comparison matrix, positioning map, and explicit gap list covering 3+ direct competitors
   4. Every claim in competitive output carries a confidence label (confirmed / inferred / unverified)
   5. Competitive gaps are written to a structured artifact that the opportunity skill can read as candidate input
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 25-01-PLAN.md — Build /pde:recommend command stub and workflow (MCP/tool discovery with inline catalog)
+- [ ] 25-02-PLAN.md — Build /pde:competitive command stub and workflow (landscape analysis with confidence labels and structured gaps)
 
 ### Phase 26: Opportunity, Mockup & HIG Skills
 **Goal**: Users can score feature opportunities with real RICE input, generate hi-fi interactive mockups from refined wireframes, and run WCAG 2.2 AA / HIG audits with severity-rated findings
@@ -152,8 +155,8 @@ Plans:
 | 21. Fix Pipeline Integration Wiring | v1.1 | 1/1 | Complete | 2026-03-16 |
 | 22. Nyquist Compliance | v1.1 | 1/1 | Complete | 2026-03-16 |
 | 23. Wireframe Filename Fix | v1.1 | 1/1 | Complete | 2026-03-16 |
-| 24. Schema Migration & Infrastructure | 2/2 | Complete    | 2026-03-16 | - |
-| 25. Recommend & Competitive Skills | v1.2 | 0/TBD | Not started | - |
+| 24. Schema Migration & Infrastructure | v1.2 | 2/2 | Complete | 2026-03-16 |
+| 25. Recommend & Competitive Skills | v1.2 | 0/2 | Planning | - |
 | 26. Opportunity, Mockup & HIG Skills | v1.2 | 0/TBD | Not started | - |
 | 27. Ideation Skill & Brief Update | v1.2 | 0/TBD | Not started | - |
 | 28. Build Orchestrator Expansion | v1.2 | 0/TBD | Not started | - |
