@@ -88,8 +88,8 @@ Plans:
   5. Competitive gaps are written to a structured artifact that the opportunity skill can read as candidate input
 **Plans**: 2 plans
 Plans:
-- [ ] 25-01-PLAN.md — Build /pde:recommend command stub and workflow (MCP/tool discovery with inline catalog)
-- [ ] 25-02-PLAN.md — Build /pde:competitive command stub and workflow (landscape analysis with confidence labels and structured gaps)
+- [x] 25-01-PLAN.md — Build /pde:recommend command stub and workflow (MCP/tool discovery with inline catalog) (completed 2026-03-16)
+- [x] 25-02-PLAN.md — Build /pde:competitive command stub and workflow (landscape analysis with confidence labels and structured gaps) (completed 2026-03-16)
 
 ### Phase 26: Opportunity, Mockup & HIG Skills
 **Goal**: Users can score feature opportunities with real RICE input, generate hi-fi interactive mockups from refined wireframes, and run WCAG 2.2 AA / HIG audits with severity-rated findings
@@ -101,7 +101,11 @@ Plans:
   3. Mockup HTML preserves wireframe annotations as HTML comments traceable to the originating wireframe version
   4. User can run `/pde:hig` standalone and receive severity-rated findings covering color contrast (WCAG 1.4.3), focus visibility (2.4.11), touch targets (2.5.8), form labels, and heading hierarchy
   5. Running `/pde:critique` now delegates its HIG perspective to `/pde:hig --light` rather than applying inline logic; critique output and standalone HIG output use identical severity ratings for the same issue
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 26-01-PLAN.md — Build /pde:opportunity command and workflow (RICE scoring with interactive input, sensitivity analysis, Now/Next/Later buckets) + create skill-registry.md
+- [ ] 26-02-PLAN.md — Build /pde:mockup command and workflow (hi-fi HTML/CSS from wireframes with tokens, CSS-only interactions, annotation traceability)
+- [ ] 26-03-PLAN.md — Build /pde:hig command and workflow (WCAG 2.2 AA audit with --light mode) + update critique.md Perspective 3 delegation
 
 ### Phase 27: Ideation Skill & Brief Update
 **Goal**: Users can run multi-phase diverge→converge ideation that automatically invokes tool discovery, scores concept readiness, and produces a brief seed artifact; existing /pde:brief accepts upstream competitive and opportunity context
@@ -156,7 +160,7 @@ Plans:
 | 22. Nyquist Compliance | v1.1 | 1/1 | Complete | 2026-03-16 |
 | 23. Wireframe Filename Fix | v1.1 | 1/1 | Complete | 2026-03-16 |
 | 24. Schema Migration & Infrastructure | v1.2 | 2/2 | Complete | 2026-03-16 |
-| 25. Recommend & Competitive Skills | 2/2 | Complete    | 2026-03-16 | - |
-| 26. Opportunity, Mockup & HIG Skills | v1.2 | 0/TBD | Not started | - |
+| 25. Recommend & Competitive Skills | v1.2 | 2/2 | Complete | 2026-03-16 |
+| 26. Opportunity, Mockup & HIG Skills | v1.2 | 0/3 | Planning | - |
 | 27. Ideation Skill & Brief Update | v1.2 | 0/TBD | Not started | - |
 | 28. Build Orchestrator Expansion | v1.2 | 0/TBD | Not started | - |
