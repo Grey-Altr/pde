@@ -22,9 +22,9 @@ Requirements for v1.2 Advanced Design Skills. Each maps to roadmap phases.
 
 ### Competitive Analysis
 
-- [ ] **COMP-01**: User can run structured competitive landscape analysis via `/pde:competitive`
-- [ ] **COMP-02**: Competitive output includes feature comparison matrix and positioning map
-- [ ] **COMP-03**: Competitive gaps feed into opportunity scoring as candidate input
+- [x] **COMP-01**: User can run structured competitive landscape analysis via `/pde:competitive`
+- [x] **COMP-02**: Competitive output includes feature comparison matrix and positioning map
+- [x] **COMP-03**: Competitive gaps feed into opportunity scoring as candidate input
 
 ### Opportunity Scoring
 
@@ -93,9 +93,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | IDEAT-02 | Phase 27 | Pending |
 | IDEAT-03 | Phase 27 | Pending |
 | IDEAT-04 | Phase 27 | Pending |
-| COMP-01 | Phase 25 | Pending |
-| COMP-02 | Phase 25 | Pending |
-| COMP-03 | Phase 25 | Pending |
+| COMP-01 | Phase 25 | Complete |
+| COMP-02 | Phase 25 | Complete |
+| COMP-03 | Phase 25 | Complete |
 | OPP-01 | Phase 26 | Pending |
 | OPP-02 | Phase 26 | Pending |
 | OPP-03 | Phase 26 | Pending |
