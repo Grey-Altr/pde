@@ -32,7 +32,7 @@ Full details: .planning/milestones/v1.0-ROADMAP.md
 - [x] **Phase 13: Problem Framing (/pde:brief)** — Structured brief from PROJECT.md context, product-type detection (completed 2026-03-15)
 - [x] **Phase 13.1: Hotfix — Tech Debt & Integration Fixes (Phases 12-13)** — Fix broken table schema, missing metadata, unimplemented subcommand, stale template entry, Nyquist gaps (completed 2026-03-15)
 - [x] **Phase 13.2: Manifest Top-Level Fields & Nyquist Cleanup** — Add manifest-set-top-level subcommand, populate projectName/productType in /pde:brief, fix 13.1 Nyquist flag (completed 2026-03-15)
-- [ ] **Phase 14: Design System (/pde:system)** — DTCG tokens, CSS custom properties, typography/color/spacing scale
+- [x] **Phase 14: Design System (/pde:system)** — DTCG tokens, CSS custom properties, typography/color/spacing scale
 - [ ] **Phase 15: User Flow Mapping (/pde:flows)** — Mermaid flow diagrams, screen inventory for wireframe stage
 - [ ] **Phase 16: Wireframing (/pde:wireframe)** — Fidelity-controlled HTML/CSS wireframes per screen
 - [ ] **Phase 17: Design Critique (/pde:critique)** — Multi-perspective review with severity ratings and fix recommendations
@@ -107,7 +107,7 @@ Plans:
   4. Token naming is locked in the design system document before any wireframe is generated, preventing cross-stage naming inconsistency
 **Plans:** 1 plan
 Plans:
-- [ ] 14-01-PLAN.md — System workflow and command wiring (DTCG tokens, CSS, preview, usage guide)
+- [x] 14-01-PLAN.md — System workflow and command wiring (DTCG tokens, CSS, preview, usage guide)
 
 ### Phase 15: User Flow Mapping (/pde:flows)
 **Goal**: Every user persona's journey is mapped as a Mermaid flow diagram and a screen inventory is extracted for the wireframe stage
@@ -204,7 +204,7 @@ Plans:
 | 13. Problem Framing (/pde:brief) | 1/1 | Complete    | 2026-03-15 | - |
 | 13.1 Hotfix — Tech Debt & Integration Fixes | 1/1 | Complete    | 2026-03-15 | - |
 | 13.2 Manifest Top-Level Fields & Nyquist Cleanup | 1/1 | Complete    | 2026-03-15 | - |
-| 14. Design System (/pde:system) | v1.1 | 0/1 | Not started | - |
+| 14. Design System (/pde:system) | v1.1 | 1/1 | Complete | 2026-03-16 |
 | 15. User Flow Mapping (/pde:flows) | v1.1 | 0/TBD | Not started | - |
 | 16. Wireframing (/pde:wireframe) | v1.1 | 0/TBD | Not started | - |
 | 17. Design Critique (/pde:critique) | v1.1 | 0/TBD | Not started | - |

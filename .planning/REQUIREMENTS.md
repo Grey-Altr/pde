@@ -26,9 +26,9 @@ Requirements for design pipeline release. Each maps to roadmap phases.
 
 ### Design System
 
-- [ ] **SYS-01**: /pde:system generates DTCG JSON tokens as canonical source (W3C 2025.10 format)
-- [ ] **SYS-02**: CSS custom properties derived from DTCG tokens for wireframe consumption
-- [ ] **SYS-03**: Typography scale, color palette, and spacing tokens generated
+- [x] **SYS-01**: /pde:system generates DTCG JSON tokens as canonical source (W3C 2025.10 format)
+- [x] **SYS-02**: CSS custom properties derived from DTCG tokens for wireframe consumption
+- [x] **SYS-03**: Typography scale, color palette, and spacing tokens generated
 
 ### Wireframing
 
@@ -109,9 +109,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | INFRA-04 | Phase 12 (Phase 13.2 manifest top-level fix) | Complete |
 | BRF-01 | Phase 13 (Phase 13.1 metadata fix) | Complete |
 | BRF-02 | Phase 13 (Phase 13.2 manifest top-level fix) | Complete |
-| SYS-01 | Phase 14 | Pending |
-| SYS-02 | Phase 14 | Pending |
-| SYS-03 | Phase 14 | Pending |
+| SYS-01 | Phase 14 | Complete |
+| SYS-02 | Phase 14 | Complete |
+| SYS-03 | Phase 14 | Complete |
 | FLW-01 | Phase 15 | Pending |
 | FLW-02 | Phase 15 | Pending |
 | WFR-01 | Phase 16 | Pending |

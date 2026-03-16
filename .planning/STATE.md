@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Design Pipeline
-status: completed
-stopped_at: Phase 14 context gathered
-last_updated: "2026-03-16T00:10:25.012Z"
-last_activity: "2026-03-15 — Phase 13.1 Plan 01 complete: INT-02, INT-01, INT-03, metadata, Nyquist fixes"
+status: in-progress
+stopped_at: Phase 14 Plan 01 complete
+last_updated: "2026-03-16T00:32:37Z"
+last_activity: "2026-03-16 — Phase 14 Plan 01 complete: workflows/system.md (1388-line /pde:system workflow), commands/system.md delegation"
 progress:
   total_phases: 11
   completed_phases: 4
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-03-15)
 
 ## Current Position
 
-Phase: 13.1 of 20 (Hotfix — Tech Debt & Integration Fixes)
+Phase: 14 of 20 (Design System — /pde:system skill)
 Plan: 1 of 1 (complete)
-Status: Phase complete — all 5 integration defects resolved
-Last activity: 2026-03-15 — Phase 13.1 Plan 01 complete: INT-02, INT-01, INT-03, metadata, Nyquist fixes
+Status: Phase complete — workflows/system.md and commands/system.md delivered
+Last activity: 2026-03-16 — Phase 14 Plan 01 complete: workflows/system.md (1388-line /pde:system workflow), commands/system.md delegation
 
 Progress: [██████████] 100%
 
@@ -50,6 +50,7 @@ Progress: [██████████] 100%
 | Phase 13 P01 | 5min | 2 tasks | 2 files |
 | Phase 13.1 P01 | 3min | 2 tasks | 5 files |
 | Phase 13.2-manifest-top-level-nyquist-cleanup P01 | 2min | 2 tasks | 4 files |
+| Phase 14 P01 | 5min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -70,6 +71,9 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 13]: [13-01] Scope Boundaries (Out of scope sub-section) serves as non-goals section — no new template section needed
 - [Phase 13.1]: [13.1-01] cmdLockStatus self-test mocks process.exit to prevent output() from terminating test runner
 - [Phase 13.2-01]: manifest-set-top-level uses (cwd, field, value, raw) signature; placed after lock-release in brief Step 7; self-test uses process.exit mock pattern from Phase 13.1
+- [Phase 14-01]: generateCssVars() must NOT be used for dark mode — it only wraps in :root {}; dark mode requires manual @media + [data-theme] blocks
+- [Phase 14-01]: designCoverage always set as full JSON object after reading coverage-check output, to preserve flags from other skills
+- [Phase 14-01]: assets/tokens.css must be inline (no @import) for file:// URL compatibility in preview and wireframe consumption
 
 ### Pending Todos
 
@@ -83,6 +87,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-16T00:10:25.008Z
-Stopped at: Phase 14 context gathered
-Resume file: .planning/phases/14-design-system-pde-system/14-CONTEXT.md
+Last session: 2026-03-16T00:32:37Z
+Stopped at: Phase 14 Plan 01 complete
+Resume file: .planning/phases/14-design-system-pde-system/14-01-SUMMARY.md
