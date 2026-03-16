@@ -74,7 +74,7 @@ Full details: .planning/milestones/v1.1-ROADMAP.md
 **Plans**: 2 plans
 Plans:
 - [x] 24-01-PLAN.md — Extend manifest template with 13 coverage flags and add ux/mockups to ensureDesignDirs (completed 2026-03-16)
-- [ ] 24-02-PLAN.md — Migrate 6 workflow files from 7-field to 13-field coverage pattern
+- [x] 24-02-PLAN.md — Migrate 6 workflow files from 7-field to 13-field coverage pattern (completed 2026-03-16)
 
 ### Phase 25: Recommend & Competitive Skills
 **Goal**: Users can discover relevant MCP tools for their project and run a structured competitive landscape analysis, each as standalone commands

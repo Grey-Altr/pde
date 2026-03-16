@@ -68,12 +68,11 @@ Any user can go from idea to shipped product through a single platform that hand
 - **Tech stack:** Node.js (CommonJS), Claude Code plugin API, markdown-based state management
 - **Distribution:** Claude Code plugin via GitHub; marketplace registration pending
 - **Architecture:** skills (slash commands) → workflows → agents → templates → references → bin scripts → config
-- **Design pipeline:** 7 skills (brief, system, flows, wireframe, critique, iterate, handoff) + build orchestrator, DESIGN-STATE.md tracking, design-manifest.json artifact registry
+- **Design pipeline:** 7 skills (brief, system, flows, wireframe, critique, iterate, handoff) + build orchestrator, DESIGN-STATE.md tracking, design-manifest.json artifact registry (13 coverage flags, pass-through-all pattern)
 - **Known tech debt:**
   - PLUG-01 end-to-end `claude plugin install` from GitHub not tested (marketplace registration may be required)
   - TRACKING-PLAN.md referenced in consent panel does not exist
   - Historical commits e067974 and efe3af0 lack Co-Authored-By trailer (pre-fix, cannot change)
-  - iterate.md line 450 says 'six' flag values but command correctly sets all 7 (documentation-only)
   - lock-release calls use inconsistent trailing arguments across workflows (cosmetic, zero functional impact)
 
 ## Constraints
@@ -104,6 +103,8 @@ Any user can go from idea to shipped product through a single platform that hand
 | Interface-only TypeScript output (HND-types-v{N}.ts) | No imports or runtime code — direct engineer import without compilation issues | ✓ Good — Phase 19 |
 | Orchestrator is strictly read-only | No coverage writes, no manifest mutations; each skill owns its own flag | ✓ Good — Phase 20 |
 | Skill() over Task() invocation in build | Avoids #686 nested-agent freeze; Skill runs in same context | ✓ Good — Phase 20 |
+| Pass-through-all coverage pattern | Each skill reads all 13 flags, sets only its own — prevents clobber when mixing v1.1/v1.2 skills | ✓ Good — Phase 24 |
+| hasBrief excluded from designCoverage | Brief completion tracked via artifacts.BRF presence; coverage flags reserved for design output skills | ✓ Good — Phase 24 |
 
 ---
-*Last updated: 2026-03-16 after v1.2 milestone start*
+*Last updated: 2026-03-16 after Phase 24*
