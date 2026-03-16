@@ -478,7 +478,6 @@ if [[ "$COV" == @file:* ]]; then COV=$(cat "${COV#@file:}"); fi
 ```
 
 Parse the JSON output to extract current flag values for ALL fields:
-- `hasBrief` — current value from COV output
 - `hasDesignSystem` — current value from COV output
 - `hasWireframes` — current value from COV output
 - `hasCritique` — current value from COV output
@@ -488,7 +487,7 @@ Parse the JSON output to extract current flag values for ALL fields:
 Merge `hasFlows: true` into the existing values, then write the full object (all flags must be present):
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasFlows":true,"hasBrief":{current},"hasDesignSystem":{current},"hasWireframes":{current},"hasCritique":{current},"hasHandoff":{current},"hasHardwareSpec":{current}}'
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasFlows":true,"hasDesignSystem":{current},"hasWireframes":{current},"hasCritique":{current},"hasHandoff":{current},"hasHardwareSpec":{current}}'
 ```
 
 Display: `Step 7/7: Root DESIGN-STATE and manifest updated.`

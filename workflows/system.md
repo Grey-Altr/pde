@@ -1323,11 +1323,11 @@ First read current coverage state:
 node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design coverage-check
 ```
 
-Parse the result to get the current `designCoverage` object. Merge `hasDesignSystem: true` into the existing coverage object, preserving all other flags (e.g., if `hasBrief` was already `true`, it must remain `true`).
+Parse the result to get the current `designCoverage` object. Merge `hasDesignSystem: true` into the existing coverage object, preserving all other flags.
 
 Then write the full merged object back:
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":true,"hasBrief":{current_hasBrief},"hasWireframes":{current_hasWireframes},"hasFlows":{current_hasFlows},"hasCritique":{current_hasCritique},"hasHandoff":{current_hasHandoff}}'
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":true,"hasWireframes":{current_hasWireframes},"hasFlows":{current_hasFlows},"hasCritique":{current_hasCritique},"hasHandoff":{current_hasHandoff}}'
 ```
 
 Use the actual values read from coverage-check — do not hardcode false for fields that may have been set by other skills. The key invariant: `manifest-set-top-level` performs FLAT key assignment, so `designCoverage` must be set as the FULL JSON object every time.
