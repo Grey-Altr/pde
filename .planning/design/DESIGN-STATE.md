@@ -44,12 +44,6 @@ Schema: 1.0
 
 | Domain | File | Artifacts | Last Updated |
 |--------|------|-----------|--------------|
-| strategy | strategy/DESIGN-STATE.md | {count} | 2026-03-15 |
-| ux | ux/DESIGN-STATE.md | {count} | 2026-03-15 |
-| visual | visual/DESIGN-STATE.md | {count} | 2026-03-15 |
-| review | review/DESIGN-STATE.md | {count} | 2026-03-15 |
-| hardware | hardware/DESIGN-STATE.md | {count} | 2026-03-15 |
-| handoff | handoff/DESIGN-STATE.md | {count} | 2026-03-15 |
 <!-- Domain files are created on demand when first artifact is written to that domain -->
 <!-- Not all domains will be active for every project -->
 
