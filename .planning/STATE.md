@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Design Pipeline
 status: planning
-stopped_at: Completed 21-fix-pipeline-integration-wiring 21-01-PLAN.md
-last_updated: "2026-03-16T05:43:50.707Z"
+stopped_at: Completed 22-nyquist-compliance-tech-debt-cleanup 22-01-PLAN.md
+last_updated: "2026-03-16T06:14:15.951Z"
 last_activity: 2026-03-16 — Phase 19 complete, transitioned to Phase 20
 progress:
   total_phases: 14
-  completed_phases: 13
-  total_plans: 14
-  completed_plans: 14
+  completed_phases: 14
+  total_plans: 15
+  completed_plans: 15
   percent: 100
 ---
 
@@ -60,6 +60,7 @@ Progress: [████████████████████] 12/12 p
 | Phase 19 P01 | 5min | 2 tasks | 2 files |
 | Phase 20-pipeline-orchestrator-pde-build P01 | 3min | 2 tasks | 3 files |
 | Phase 21-fix-pipeline-integration-wiring P01 | 8min | 2 tasks | 7 files |
+| Phase 22-nyquist-compliance-tech-debt-cleanup P01 | 5min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -110,6 +111,9 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 21-fix-pipeline-integration-wiring]: MISS-01 closed: Skill added to commands/build.md allowed-tools — /pde:build can now invoke sub-skills at runtime
 - [Phase 21-fix-pipeline-integration-wiring]: BRK-01 closed: All 4 upstream workflows write all 7 designCoverage fields including hasIterate:{current} to prevent silent flag clobbering
 - [Phase 21-fix-pipeline-integration-wiring]: FLW-BRK-01 closed: Both manifest JSON files carry hasIterate: false as schema default
+- [Phase 22]: [22-01] Phase 16 validation rows marked pending (manual) — all tests require live /pde:wireframe run; Wave 0 artifacts confirmed existing
+- [Phase 22]: [22-01] Phase 21 skill paths corrected from nonexistent skills/ to workflows/ — project file layout has workflows/ not skills/
+- [Phase 22]: [22-01] handoff.md Step 2b documentation-only gap closed — Step 7c already wrote all 7 fields; only the description list needed hasHandoff added
 
 ### Pending Todos
 
@@ -121,6 +125,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-16T05:41:02.428Z
-Stopped at: Completed 21-fix-pipeline-integration-wiring 21-01-PLAN.md
+Last session: 2026-03-16T06:14:15.947Z
+Stopped at: Completed 22-nyquist-compliance-tech-debt-cleanup 22-01-PLAN.md
 Resume file: None
