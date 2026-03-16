@@ -3,7 +3,7 @@
 ## Milestones
 
 - ✅ **v1.0 MVP** — Phases 1-11 (shipped 2026-03-15)
-- 🔄 **v1.1 Design Pipeline** — Phases 12-22 (in progress)
+- 🔄 **v1.1 Design Pipeline** — Phases 12-23 (in progress)
 
 ## Phases
 
@@ -26,7 +26,7 @@ Full details: .planning/milestones/v1.0-ROADMAP.md
 
 </details>
 
-### v1.1 Design Pipeline (Phases 12-22)
+### v1.1 Design Pipeline (Phases 12-23)
 
 - [x] **Phase 12: Design Pipeline Infrastructure** — State management, artifact storage, token utilities, and write-lock protocol (completed 2026-03-15)
 - [x] **Phase 13: Problem Framing (/pde:brief)** — Structured brief from PROJECT.md context, product-type detection (completed 2026-03-15)
@@ -42,6 +42,7 @@ Full details: .planning/milestones/v1.0-ROADMAP.md
 - [x] **Phase 20: Pipeline Orchestrator (/pde:build)** — Thin orchestrator over all 7 skills via DESIGN-STATE (completed 2026-03-16)
 - [x] **Phase 21: Fix Pipeline Integration Wiring** — Add Skill to build command allowed-tools, fix hasIterate coverage clobbering in 4 workflows (completed 2026-03-16)
 - [x] **Phase 22: Nyquist Compliance & Tech Debt Cleanup** — Fix 4 non-compliant Nyquist phases, metadata gaps, documentation corrections (completed 2026-03-16)
+- [ ] **Phase 23: Fix Wireframe Filename Convention & Final Tech Debt** — Fix WFR- prefix mismatch between wireframe.md and iterate.md, resolve remaining metadata tech debt
 
 ## Phase Details
 
@@ -229,6 +230,21 @@ Plans:
 Plans:
 - [ ] 22-01-PLAN.md — Fix Nyquist compliance for 4 phases, correct metadata, update documentation
 
+### Phase 23: Fix Wireframe Filename Convention & Final Tech Debt
+**Goal**: The wireframe-to-iterate handoff works end-to-end and all v1.1 metadata tech debt is resolved
+**Depends on**: Phase 22
+**Requirements**: ITR-01, ITR-02 (integration fix)
+**Gap Closure**: Closes WIRE-01, FLW-BRK-01 from v1.1 audit + 4 LOW tech debt items
+**Success Criteria** (what must be TRUE):
+  1. `workflows/wireframe.md` writes wireframe files as `WFR-{slug}.html` (not `{slug}.html`), matching the prefix convention used in iterate.md Globs and manifest entries
+  2. Index.html link targets and manifest artifact paths use the `WFR-` prefix consistently
+  3. `/pde:iterate` can find wireframe files produced by `/pde:wireframe` via its `WFR-{slug}*.html` Glob pattern
+  4. Phase 13.2 SUMMARY frontmatter `requirements-completed` lists `[INFRA-04, BRF-02]`
+  5. Phase 14 and Phase 15.1 VALIDATION.md `status` is `complete` (not `draft`)
+  6. Phase 22 VALIDATION.md `nyquist_compliant: true`
+Plans:
+- [ ] 23-01-PLAN.md — Fix WFR- prefix in wireframe.md, update index/manifest paths, resolve 4 metadata tech debt items
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -258,3 +274,4 @@ Plans:
 | 20. Pipeline Orchestrator (/pde:build) | 1/1 | Complete    | 2026-03-16 | - |
 | 21. Fix Pipeline Integration Wiring | 1/1 | Complete    | 2026-03-16 | - |
 | 22. Nyquist Compliance & Tech Debt Cleanup | 1/1 | Complete    | 2026-03-16 | - |
+| 23. Fix Wireframe Filename Convention & Final Tech Debt | 0/1 | Planned | - | - |

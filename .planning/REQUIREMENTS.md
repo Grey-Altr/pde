@@ -120,8 +120,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CRT-01 | Phase 17 | Complete |
 | CRT-02 | Phase 17 | Complete |
 | CRT-03 | Phase 17 | Complete |
-| ITR-01 | Phase 18 | Complete |
-| ITR-02 | Phase 18 | Complete |
+| ITR-01 | Phase 18 (Phase 23 integration fix) | Complete |
+| ITR-02 | Phase 18 (Phase 23 integration fix) | Complete |
 | HND-01 | Phase 19 | Complete |
 | HND-02 | Phase 19 | Complete |
 | HND-03 | Phase 19 | Complete |
@@ -136,4 +136,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-03-15*
-*Last updated: 2026-03-15 after gap closure phase creation (Phases 21-22 added)*
+*Last updated: 2026-03-15 after gap closure phase creation (Phase 23 added for WIRE-01 fix)*
