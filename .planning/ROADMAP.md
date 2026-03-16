@@ -36,7 +36,7 @@ Full details: .planning/milestones/v1.0-ROADMAP.md
 - [x] **Phase 15: User Flow Mapping (/pde:flows)** — Mermaid flow diagrams, screen inventory for wireframe stage (completed 2026-03-16)
 - [x] **Phase 15.1: Fix Integration Gaps & Tech Debt (Phases 12-15)** — Fix hasBrief contradiction, Domain Files stubs, orphaned CLIs, Phase 14 Nyquist audit (completed 2026-03-16)
 - [x] **Phase 16: Wireframing (/pde:wireframe)** — Fidelity-controlled HTML/CSS wireframes per screen (completed 2026-03-16)
-- [ ] **Phase 17: Design Critique (/pde:critique)** — Multi-perspective review with severity ratings and fix recommendations
+- [x] **Phase 17: Design Critique (/pde:critique)** — Multi-perspective review with severity ratings and fix recommendations (completed 2026-03-16)
 - [ ] **Phase 18: Critique-Driven Iteration (/pde:iterate)** — Artifact revision loop with convergence signal
 - [ ] **Phase 19: Design-to-Code Handoff (/pde:handoff)** — TypeScript interfaces, component APIs, STACK.md-aligned specs
 - [ ] **Phase 20: Pipeline Orchestrator (/pde:build)** — Thin orchestrator over all 7 skills via DESIGN-STATE
@@ -159,7 +159,7 @@ Plans:
   2. The command is blocked — with a clear recovery message — if brief or flows are absent from context, preventing generic critique that ignores product intent
   3. Every finding has a severity rating (Critical / High / Medium / Low) and an actionable recommendation, not just a description of the problem
   4. Critique output includes a "What Works" section to preserve intentional design decisions during iteration
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 Plans:
 - [ ] 17-01-PLAN.md — Critique workflow and command wiring (4-perspective evaluation, severity scoring, What Works preservation)
 
@@ -218,7 +218,7 @@ Plans:
 | 15. User Flow Mapping (/pde:flows) | 1/1 | Complete    | 2026-03-16 | - |
 | 15.1 Fix Integration Gaps & Tech Debt | 2/2 | Complete    | 2026-03-16 | - |
 | 16. Wireframing (/pde:wireframe) | 1/1 | Complete    | 2026-03-16 | - |
-| 17. Design Critique (/pde:critique) | v1.1 | 0/1 | Not started | - |
+| 17. Design Critique (/pde:critique) | 1/1 | Complete   | 2026-03-16 | - |
 | 18. Critique-Driven Iteration (/pde:iterate) | v1.1 | 0/TBD | Not started | - |
 | 19. Design-to-Code Handoff (/pde:handoff) | v1.1 | 0/TBD | Not started | - |
 | 20. Pipeline Orchestrator (/pde:build) | v1.1 | 0/TBD | Not started | - |

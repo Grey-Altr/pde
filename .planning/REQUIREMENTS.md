@@ -38,9 +38,9 @@ Requirements for design pipeline release. Each maps to roadmap phases.
 
 ### Design Critique
 
-- [ ] **CRT-01**: /pde:critique performs multi-perspective review (UX, engineering, accessibility, business)
-- [ ] **CRT-02**: Critique requires brief and flows in context — blocked when absent
-- [ ] **CRT-03**: Critique produces severity-rated findings with actionable recommendations
+- [x] **CRT-01**: /pde:critique performs multi-perspective review (UX, engineering, accessibility, business)
+- [x] **CRT-02**: Critique requires brief and flows in context — blocked when absent
+- [x] **CRT-03**: Critique produces severity-rated findings with actionable recommendations
 
 ### Iteration
 
@@ -117,9 +117,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | WFR-01 | Phase 16 | Complete |
 | WFR-02 | Phase 16 | Complete |
 | WFR-03 | Phase 16 | Complete |
-| CRT-01 | Phase 17 | Pending |
-| CRT-02 | Phase 17 | Pending |
-| CRT-03 | Phase 17 | Pending |
+| CRT-01 | Phase 17 | Complete |
+| CRT-02 | Phase 17 | Complete |
+| CRT-03 | Phase 17 | Complete |
 | ITR-01 | Phase 18 | Pending |
 | ITR-02 | Phase 18 | Pending |
 | HND-01 | Phase 19 | Pending |
