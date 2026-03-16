@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Advanced Design Skills
-status: planning
-stopped_at: Completed 26-01-PLAN.md
-last_updated: "2026-03-16T22:02:50.263Z"
-last_activity: 2026-03-16 — Phase 24 complete, transitioning to Phase 25
+status: executing
+stopped_at: Completed 26-02-PLAN.md
+last_updated: "2026-03-16T22:04:51.823Z"
+last_activity: 2026-03-16 — Phase 26 Plan 01 complete (opportunity skill + skill-registry.md)
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 7
-  completed_plans: 5
-  percent: 20
+  completed_plans: 6
+  percent: 71
 ---
 
 # Project State
@@ -49,6 +49,7 @@ Progress: [███████░░░] 5/7 plans (71%)
 | Phase 25-recommend-competitive-skills P01 | 3 | 1 tasks | 2 files |
 | Phase 25-recommend-competitive-skills P02 | 3 | 1 tasks | 2 files |
 | Phase 26-opportunity-mockup-hig-skills P01 | 525608 | 2 tasks | 3 files |
+| Phase 26-opportunity-mockup-hig-skills P02 | 4 | 1 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -69,6 +70,9 @@ Recent decisions affecting current work:
 - [Phase 25-02]: Coverage flag name is hasCompetitive (not hasCompetitiveAnalysis) per Phase 24 canonical 13-field schema
 - [Phase 26-01]: OPP skill uses only Sequential Thinking MCP — opportunity scoring relies on user-provided estimates, not live market data
 - [Phase 26-01]: skill-registry.md at project root satisfies LINT-010 for all 13 PDE skill codes
+- [Phase 26-opportunity-mockup-hig-skills]: MCK: Mockup HTML is self-contained per screen with only tokens.css as external dependency -- no shared mockup.js or mockup.css bundle (MOCK-01)
+- [Phase 26-opportunity-mockup-hig-skills]: MCK: All interactive states use CSS pseudo-classes only -- single theme toggle JS is the only permitted script in mockup output (MOCK-02)
+- [Phase 26-opportunity-mockup-hig-skills]: MCK: Wireframes are a soft dependency -- skill warns and continues from brief/flows context when wireframes absent
 
 ### Pending Todos
 
@@ -80,6 +84,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-16T22:02:50.260Z
-Stopped at: Completed 26-01-PLAN.md
+Last session: 2026-03-16T22:04:51.820Z
+Stopped at: Completed 26-02-PLAN.md
 Resume file: None

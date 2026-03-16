@@ -34,9 +34,9 @@ Requirements for v1.2 Advanced Design Skills. Each maps to roadmap phases.
 
 ### Mockup
 
-- [ ] **MOCK-01**: User can generate hi-fi interactive HTML/CSS mockup from refined wireframe via `/pde:mockup`
-- [ ] **MOCK-02**: Mockup applies design tokens from tokens.css with CSS-only interactive states
-- [ ] **MOCK-03**: Mockup preserves wireframe annotations as HTML comments for handoff consumption
+- [x] **MOCK-01**: User can generate hi-fi interactive HTML/CSS mockup from refined wireframe via `/pde:mockup`
+- [x] **MOCK-02**: Mockup applies design tokens from tokens.css with CSS-only interactive states
+- [x] **MOCK-03**: Mockup preserves wireframe annotations as HTML comments for handoff consumption
 
 ### HIG Audit
 
@@ -99,9 +99,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | OPP-01 | Phase 26 | Complete |
 | OPP-02 | Phase 26 | Complete |
 | OPP-03 | Phase 26 | Complete |
-| MOCK-01 | Phase 26 | Pending |
-| MOCK-02 | Phase 26 | Pending |
-| MOCK-03 | Phase 26 | Pending |
+| MOCK-01 | Phase 26 | Complete |
+| MOCK-02 | Phase 26 | Complete |
+| MOCK-03 | Phase 26 | Complete |
 | HIG-01 | Phase 26 | Pending |
 | HIG-02 | Phase 26 | Pending |
 | HIG-03 | Phase 26 | Pending |
