@@ -125,9 +125,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | HND-01 | Phase 19 | Complete |
 | HND-02 | Phase 19 | Complete |
 | HND-03 | Phase 19 | Complete |
-| ORC-01 | Phase 20 | Complete |
+| ORC-01 | Phase 20 (Phase 21 integration fix) | Complete |
 | ORC-02 | Phase 20 | Complete |
-| ORC-03 | Phase 20 | Complete |
+| ORC-03 | Phase 20 (Phase 21 integration fix) | Complete |
 
 **Coverage:**
 - v1.1 requirements: 25 total (4 INFRA + 2 BRF + 3 SYS + 2 FLW + 3 WFR + 3 CRT + 2 ITR + 3 HND + 3 ORC)
@@ -136,4 +136,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-03-15*
-*Last updated: 2026-03-15 after roadmap creation (v1.1 traceability complete)*
+*Last updated: 2026-03-15 after gap closure phase creation (Phases 21-22 added)*

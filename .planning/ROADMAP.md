@@ -3,7 +3,7 @@
 ## Milestones
 
 - ✅ **v1.0 MVP** — Phases 1-11 (shipped 2026-03-15)
-- 🔄 **v1.1 Design Pipeline** — Phases 12-20 (in progress)
+- 🔄 **v1.1 Design Pipeline** — Phases 12-22 (in progress)
 
 ## Phases
 
@@ -26,7 +26,7 @@ Full details: .planning/milestones/v1.0-ROADMAP.md
 
 </details>
 
-### v1.1 Design Pipeline (Phases 12-20)
+### v1.1 Design Pipeline (Phases 12-22)
 
 - [x] **Phase 12: Design Pipeline Infrastructure** — State management, artifact storage, token utilities, and write-lock protocol (completed 2026-03-15)
 - [x] **Phase 13: Problem Framing (/pde:brief)** — Structured brief from PROJECT.md context, product-type detection (completed 2026-03-15)
@@ -40,6 +40,8 @@ Full details: .planning/milestones/v1.0-ROADMAP.md
 - [x] **Phase 18: Critique-Driven Iteration (/pde:iterate)** — Artifact revision loop with convergence signal (completed 2026-03-16)
 - [x] **Phase 19: Design-to-Code Handoff (/pde:handoff)** — TypeScript interfaces, component APIs, STACK.md-aligned specs (completed 2026-03-16)
 - [x] **Phase 20: Pipeline Orchestrator (/pde:build)** — Thin orchestrator over all 7 skills via DESIGN-STATE (completed 2026-03-16)
+- [ ] **Phase 21: Fix Pipeline Integration Wiring** — Add Skill to build command allowed-tools, fix hasIterate coverage clobbering in 4 workflows
+- [ ] **Phase 22: Nyquist Compliance & Tech Debt Cleanup** — Fix 4 non-compliant Nyquist phases, metadata gaps, documentation corrections
 
 ## Phase Details
 
@@ -201,6 +203,32 @@ Plans:
 Plans:
 - [ ] 20-01-PLAN.md — Pipeline orchestrator workflow and command (coverage-driven stage sequencing, verification gates)
 
+### Phase 21: Fix Pipeline Integration Wiring
+**Goal**: The /pde:build pipeline can invoke sub-skills at runtime and designCoverage fields are never silently clobbered by upstream skill re-runs
+**Depends on**: Phase 20
+**Requirements**: ORC-01, ORC-03 (integration fixes)
+**Gap Closure**: Closes MISS-01, BRK-01, FLW-BRK-01 from v1.1 audit
+**Success Criteria** (what must be TRUE):
+  1. `commands/build.md` allowed-tools list includes `Skill`, enabling `/pde:build` to invoke pipeline stages
+  2. All 4 upstream workflows (`system.md`, `flows.md`, `wireframe.md`, `critique.md`) write all 7 `designCoverage` fields when updating the manifest
+  3. `hasIterate: false` is present as a default in the manifest template and coverage-check CLI schema
+  4. Re-running any upstream skill after `/pde:iterate` preserves the `hasIterate: true` flag
+Plans:
+- [ ] 21-01-PLAN.md — Fix allowed-tools, update 4 workflow coverage writes, update manifest template and schema
+
+### Phase 22: Nyquist Compliance & Tech Debt Cleanup
+**Goal**: All v1.1 phases pass Nyquist compliance and remaining tech debt metadata items are resolved
+**Depends on**: Phase 21
+**Requirements**: (tech debt — no new requirements)
+**Gap Closure**: Closes Nyquist non-compliance for phases 16, 17, 18, 20 and metadata tech debt
+**Success Criteria** (what must be TRUE):
+  1. Phases 16, 17, 18, and 20 each have `nyquist_compliant: true` in their VALIDATION.md
+  2. Phase 13.2 SUMMARY frontmatter `requirements-completed` lists `[INFRA-04, BRF-02]`
+  3. `handoff.md` Step 2b coverage field list includes all 7 fields (GAP-01 documentation fix)
+  4. Overall Nyquist compliance is 12/12 phases compliant
+Plans:
+- [ ] 22-01-PLAN.md — Fix Nyquist compliance for 4 phases, correct metadata, update documentation
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -228,3 +256,5 @@ Plans:
 | 18. Critique-Driven Iteration (/pde:iterate) | 1/1 | Complete    | 2026-03-16 | - |
 | 19. Design-to-Code Handoff (/pde:handoff) | 1/1 | Complete   | 2026-03-16 | - |
 | 20. Pipeline Orchestrator (/pde:build) | 1/1 | Complete    | 2026-03-16 | - |
+| 21. Fix Pipeline Integration Wiring | 0/1 | Pending | - | - |
+| 22. Nyquist Compliance & Tech Debt Cleanup | 0/1 | Pending | - | - |
