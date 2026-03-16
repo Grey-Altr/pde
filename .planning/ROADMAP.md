@@ -40,7 +40,7 @@ Full details: .planning/milestones/v1.0-ROADMAP.md
 - [x] **Phase 18: Critique-Driven Iteration (/pde:iterate)** — Artifact revision loop with convergence signal (completed 2026-03-16)
 - [x] **Phase 19: Design-to-Code Handoff (/pde:handoff)** — TypeScript interfaces, component APIs, STACK.md-aligned specs (completed 2026-03-16)
 - [x] **Phase 20: Pipeline Orchestrator (/pde:build)** — Thin orchestrator over all 7 skills via DESIGN-STATE (completed 2026-03-16)
-- [ ] **Phase 21: Fix Pipeline Integration Wiring** — Add Skill to build command allowed-tools, fix hasIterate coverage clobbering in 4 workflows
+- [x] **Phase 21: Fix Pipeline Integration Wiring** — Add Skill to build command allowed-tools, fix hasIterate coverage clobbering in 4 workflows (completed 2026-03-16)
 - [ ] **Phase 22: Nyquist Compliance & Tech Debt Cleanup** — Fix 4 non-compliant Nyquist phases, metadata gaps, documentation corrections
 
 ## Phase Details
@@ -256,5 +256,5 @@ Plans:
 | 18. Critique-Driven Iteration (/pde:iterate) | 1/1 | Complete    | 2026-03-16 | - |
 | 19. Design-to-Code Handoff (/pde:handoff) | 1/1 | Complete   | 2026-03-16 | - |
 | 20. Pipeline Orchestrator (/pde:build) | 1/1 | Complete    | 2026-03-16 | - |
-| 21. Fix Pipeline Integration Wiring | 0/1 | Pending | - | - |
+| 21. Fix Pipeline Integration Wiring | 1/1 | Complete   | 2026-03-16 | - |
 | 22. Nyquist Compliance & Tech Debt Cleanup | 0/1 | Pending | - | - |

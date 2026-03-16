@@ -1,16 +1,16 @@
 ---
-pde_state_version: 1.0
+gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Design Pipeline
 status: planning
-stopped_at: Completed 20-pipeline-orchestrator-pde-build 20-01-PLAN.md
-last_updated: "2026-03-16T05:07:43.178Z"
+stopped_at: Completed 21-fix-pipeline-integration-wiring 21-01-PLAN.md
+last_updated: "2026-03-16T05:41:02.431Z"
 last_activity: 2026-03-16 — Phase 19 complete, transitioned to Phase 20
 progress:
-  total_phases: 12
-  completed_phases: 12
-  total_plans: 13
-  completed_plans: 13
+  total_phases: 14
+  completed_phases: 13
+  total_plans: 14
+  completed_plans: 14
   percent: 100
 ---
 
@@ -59,6 +59,7 @@ Progress: [████████████████████] 12/12 p
 | Phase 18 P01 | 4min | 2 tasks | 2 files |
 | Phase 19 P01 | 5min | 2 tasks | 2 files |
 | Phase 20-pipeline-orchestrator-pde-build P01 | 3min | 2 tasks | 3 files |
+| Phase 21-fix-pipeline-integration-wiring P01 | 8min | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -106,6 +107,9 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 20]: Orchestrator is strictly read-only — no coverage writes, no manifest mutations; each skill owns its own flag
 - [Phase 20]: Skill() invocation pattern chosen over Task() to avoid #686 nested-agent freeze
 - [Phase 20]: Brief completion checked via Glob on BRF-brief-v*.md (no hasBrief field — removed Phase 15.1)
+- [Phase 21-fix-pipeline-integration-wiring]: MISS-01 closed: Skill added to commands/build.md allowed-tools — /pde:build can now invoke sub-skills at runtime
+- [Phase 21-fix-pipeline-integration-wiring]: BRK-01 closed: All 4 upstream workflows write all 7 designCoverage fields including hasIterate:{current} to prevent silent flag clobbering
+- [Phase 21-fix-pipeline-integration-wiring]: FLW-BRK-01 closed: Both manifest JSON files carry hasIterate: false as schema default
 
 ### Pending Todos
 
@@ -117,6 +121,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-16T05:05:35.661Z
-Stopped at: Completed 20-pipeline-orchestrator-pde-build 20-01-PLAN.md
+Last session: 2026-03-16T05:41:02.428Z
+Stopped at: Completed 21-fix-pipeline-integration-wiring 21-01-PLAN.md
 Resume file: None
