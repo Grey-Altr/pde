@@ -86,4 +86,4 @@ created: 2026-03-15
 | Resolved | 4 |
 | Escalated | 0 |
 
-All 4 automated test commands referenced broken `.claude/skills/critique.md` path — corrected to `workflows/critique.md`. All 4 grep targets confirmed present (perspective=11, Hard-block/HALT present, severity=12, What Works=7).
+All 4 automated test commands referenced a broken path pointing to a nonexistent skills directory — corrected to `workflows/critique.md`. All 4 grep targets confirmed present (perspective=11, Hard-block/HALT present, severity=12, What Works=7).
