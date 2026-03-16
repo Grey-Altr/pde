@@ -105,7 +105,7 @@ Plans:
   2. `assets/tokens.css` is generated from DTCG tokens via `dtcgToCss()` and is immediately consumable by wireframe HTML files
   3. Typography scale, color palette, and spacing tokens are all present and reference-able by name in downstream artifacts
   4. Token naming is locked in the design system document before any wireframe is generated, preventing cross-stage naming inconsistency
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 Plans:
 - [x] 14-01-PLAN.md — System workflow and command wiring (DTCG tokens, CSS, preview, usage guide)
 
@@ -204,7 +204,7 @@ Plans:
 | 13. Problem Framing (/pde:brief) | 1/1 | Complete    | 2026-03-15 | - |
 | 13.1 Hotfix — Tech Debt & Integration Fixes | 1/1 | Complete    | 2026-03-15 | - |
 | 13.2 Manifest Top-Level Fields & Nyquist Cleanup | 1/1 | Complete    | 2026-03-15 | - |
-| 14. Design System (/pde:system) | v1.1 | 1/1 | Complete | 2026-03-16 |
+| 14. Design System (/pde:system) | v1.1 | Complete    | 2026-03-16 | 2026-03-16 |
 | 15. User Flow Mapping (/pde:flows) | v1.1 | 0/TBD | Not started | - |
 | 16. Wireframing (/pde:wireframe) | v1.1 | 0/TBD | Not started | - |
 | 17. Design Critique (/pde:critique) | v1.1 | 0/TBD | Not started | - |
