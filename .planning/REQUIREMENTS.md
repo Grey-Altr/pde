@@ -49,9 +49,9 @@ Requirements for design pipeline release. Each maps to roadmap phases.
 
 ### Handoff
 
-- [ ] **HND-01**: /pde:handoff synthesizes all design artifacts into implementation specifications
-- [ ] **HND-02**: Handoff produces component APIs with TypeScript interfaces
-- [ ] **HND-03**: Handoff reads STACK.md for project-specific technology alignment
+- [x] **HND-01**: /pde:handoff synthesizes all design artifacts into implementation specifications
+- [x] **HND-02**: Handoff produces component APIs with TypeScript interfaces
+- [x] **HND-03**: Handoff reads STACK.md for project-specific technology alignment
 
 ### Orchestration
 
@@ -122,9 +122,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CRT-03 | Phase 17 | Complete |
 | ITR-01 | Phase 18 | Complete |
 | ITR-02 | Phase 18 | Complete |
-| HND-01 | Phase 19 | Pending |
-| HND-02 | Phase 19 | Pending |
-| HND-03 | Phase 19 | Pending |
+| HND-01 | Phase 19 | Complete |
+| HND-02 | Phase 19 | Complete |
+| HND-03 | Phase 19 | Complete |
 | ORC-01 | Phase 20 | Pending |
 | ORC-02 | Phase 20 | Pending |
 | ORC-03 | Phase 20 | Pending |

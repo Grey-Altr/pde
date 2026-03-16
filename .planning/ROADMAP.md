@@ -38,7 +38,7 @@ Full details: .planning/milestones/v1.0-ROADMAP.md
 - [x] **Phase 16: Wireframing (/pde:wireframe)** — Fidelity-controlled HTML/CSS wireframes per screen (completed 2026-03-16)
 - [x] **Phase 17: Design Critique (/pde:critique)** — Multi-perspective review with severity ratings and fix recommendations (completed 2026-03-16)
 - [x] **Phase 18: Critique-Driven Iteration (/pde:iterate)** — Artifact revision loop with convergence signal (completed 2026-03-16)
-- [ ] **Phase 19: Design-to-Code Handoff (/pde:handoff)** — TypeScript interfaces, component APIs, STACK.md-aligned specs
+- [x] **Phase 19: Design-to-Code Handoff (/pde:handoff)** — TypeScript interfaces, component APIs, STACK.md-aligned specs (completed 2026-03-16)
 - [ ] **Phase 20: Pipeline Orchestrator (/pde:build)** — Thin orchestrator over all 7 skills via DESIGN-STATE
 
 ## Phase Details
@@ -184,7 +184,7 @@ Plans:
   2. TypeScript interfaces are generated for every component with props, types, and variant signatures derived from wireframe annotations
   3. The command reads `.planning/research/STACK.md` and aligns prop naming, import patterns, and component API conventions to the project's actual tech stack — blocked with a recovery message if STACK.md is absent
   4. `design-manifest.json` is fully populated with all artifact paths, versions, and component-to-artifact mappings
-**Plans:** 1 plans
+**Plans:** 1/1 plans complete
 Plans:
 - [ ] 19-01-PLAN.md — Handoff workflow and command wiring (artifact synthesis, TypeScript interfaces, STACK.md alignment)
 
@@ -224,5 +224,5 @@ Plans:
 | 16. Wireframing (/pde:wireframe) | 1/1 | Complete    | 2026-03-16 | - |
 | 17. Design Critique (/pde:critique) | 1/1 | Complete    | 2026-03-16 | - |
 | 18. Critique-Driven Iteration (/pde:iterate) | 1/1 | Complete    | 2026-03-16 | - |
-| 19. Design-to-Code Handoff (/pde:handoff) | v1.1 | 0/1 | Not started | - |
+| 19. Design-to-Code Handoff (/pde:handoff) | 1/1 | Complete   | 2026-03-16 | - |
 | 20. Pipeline Orchestrator (/pde:build) | v1.1 | 0/TBD | Not started | - |
