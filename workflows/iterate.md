@@ -447,10 +447,10 @@ COV=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design coverage-check)
 if [[ "$COV" == @file:* ]]; then COV=$(cat "${COV#@file:}"); fi
 ```
 
-Parse the JSON output from coverage-check. Extract ALL six current flag values: `hasDesignSystem`, `hasFlows`, `hasWireframes`, `hasCritique`, `hasHandoff`, `hasHardwareSpec`. Merge `hasIterate: true` as the seventh field while preserving all other values. Then write the full merged seven-field object:
+Parse the JSON output from coverage-check. Extract ALL thirteen current flag values: `hasDesignSystem`, `hasWireframes`, `hasFlows`, `hasHardwareSpec`, `hasCritique`, `hasIterate`, `hasHandoff`, `hasIdeation`, `hasCompetitive`, `hasOpportunity`, `hasMockup`, `hasHigAudit`, `hasRecommendations`. Default any absent field to `false`. Merge `hasIterate: true` while preserving all other twelve values. Then write the full merged thirteen-field object:
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":{current},"hasFlows":{current},"hasWireframes":{current},"hasCritique":{current},"hasIterate":true,"hasHandoff":{current},"hasHardwareSpec":{current}}'
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":{current},"hasWireframes":{current},"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":true,"hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current}}'
 ```
 
 Replace each `{current}` with the actual value read from coverage-check output (true or false).
@@ -554,5 +554,5 @@ Files produced by /pde:iterate:
 - `.planning/design/review/CRT-critique-v{N}.md` — updated: applied findings marked `[x]` in Action List, Resolved Findings table populated with applied finding rows
 - `.planning/design/ux/DESIGN-STATE.md` — ux domain state updated: ITR artifact row added to Artifact Index, resolved items updated to "resolved" in Open Critique Items table
 - `.planning/design/DESIGN-STATE.md` — root state updated: Pipeline Progress marks Iterate complete, Decision Log and Iteration History rows appended
-- `.planning/design/design-manifest.json` — manifest updated with ITR artifact entry and `hasIterate: true` in designCoverage (seventh field, introduced by this skill)
+- `.planning/design/design-manifest.json` — manifest updated with ITR artifact entry and `hasIterate: true` in designCoverage (all 13 fields preserved via read-before-set)
 </output>

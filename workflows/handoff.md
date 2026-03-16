@@ -84,7 +84,7 @@ COV_RAW=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design coverage-check)
 if [[ "$COV_RAW" == @file:* ]]; then COV_RAW=$(cat "${COV_RAW#@file:}"); fi
 ```
 
-Parse JSON from COV_RAW. Store all current flag values: `hasDesignSystem`, `hasFlows`, `hasWireframes`, `hasCritique`, `hasIterate`, `hasHandoff`, `hasHardwareSpec`. If coverage-check fails or returns invalid JSON, default all to `false` and continue.
+Parse JSON from COV_RAW. Store all current flag values: `hasDesignSystem`, `hasWireframes`, `hasFlows`, `hasHardwareSpec`, `hasCritique`, `hasIterate`, `hasHandoff`, `hasIdeation`, `hasCompetitive`, `hasOpportunity`, `hasMockup`, `hasHigAudit`, `hasRecommendations`. If coverage-check fails or returns invalid JSON, default all to `false` and continue.
 
 #### 2c. Find design brief (soft dependency)
 
@@ -619,10 +619,10 @@ COV=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design coverage-check)
 if [[ "$COV" == @file:* ]]; then COV=$(cat "${COV#@file:}"); fi
 ```
 
-Parse the JSON output from coverage-check. Extract ALL seven current flag values: `hasDesignSystem`, `hasFlows`, `hasWireframes`, `hasCritique`, `hasIterate`, `hasHandoff`, `hasHardwareSpec`. Default any absent field to `false`. Merge `hasHandoff: true` while preserving all other values. Then write the full merged seven-field object:
+Parse the JSON output from coverage-check. Extract ALL thirteen current flag values: `hasDesignSystem`, `hasWireframes`, `hasFlows`, `hasHardwareSpec`, `hasCritique`, `hasIterate`, `hasHandoff`, `hasIdeation`, `hasCompetitive`, `hasOpportunity`, `hasMockup`, `hasHigAudit`, `hasRecommendations`. Default any absent field to `false`. Merge `hasHandoff: true` while preserving all other twelve values. Then write the full merged thirteen-field object:
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":{current},"hasFlows":{current},"hasWireframes":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":true,"hasHardwareSpec":{current}}'
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":{current},"hasWireframes":{current},"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":true,"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current}}'
 ```
 
 Replace each `{current}` with the actual value read from coverage-check output (true or false).
@@ -662,7 +662,7 @@ NEVER do any of the following:
 
 - **Use mechanical string matching for framework detection:** A sentence like "Unlike React, this project uses Vue 3" must detect Vue. Scan for explicit positive assertions, not incidental mentions of framework names.
 
-- **Skip coverage-check before setting designCoverage:** `manifest-set-top-level` replaces the ENTIRE designCoverage object. Reading coverage-check first and preserving all 7 fields (hasDesignSystem, hasFlows, hasWireframes, hasCritique, hasIterate, hasHandoff, hasHardwareSpec) is mandatory to avoid clobbering flags set by other skills.
+- **Skip coverage-check before setting designCoverage:** `manifest-set-top-level` replaces the ENTIRE designCoverage object. Reading coverage-check first and preserving all 13 fields (hasDesignSystem, hasWireframes, hasFlows, hasHardwareSpec, hasCritique, hasIterate, hasHandoff, hasIdeation, hasCompetitive, hasOpportunity, hasMockup, hasHigAudit, hasRecommendations) is mandatory to avoid clobbering flags set by other skills.
 
 - **Include non-interface TypeScript in HND-types-v{N}.ts:** The types file must ONLY contain interface and type alias declarations. No exports default, no const, no imports, no JSX. This file is imported by engineers directly; any non-interface content breaks TypeScript compilation.
 
@@ -687,5 +687,5 @@ Files produced by /pde:handoff:
 - `.planning/design/handoff/HND-types-v{N}.ts` — TypeScript interface declarations only: export interface declarations with JSDoc comments for all screen components and shared components, section headers as comments, no imports or runtime code
 - `.planning/design/handoff/DESIGN-STATE.md` — handoff domain state: HND artifact row in Artifact Index with upstream dependencies listed
 - `.planning/design/DESIGN-STATE.md` — root state updated: Pipeline Progress marks Handoff complete, Decision Log and Iteration History rows appended
-- `.planning/design/design-manifest.json` — manifest updated with HND artifact entry and hasHandoff: true in designCoverage (all 7 fields preserved via read-before-set)
+- `.planning/design/design-manifest.json` — manifest updated with HND artifact entry and hasHandoff: true in designCoverage (all 13 fields preserved via read-before-set)
 </output>
