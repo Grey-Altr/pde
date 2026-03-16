@@ -1,6 +1,6 @@
 # Phase 19: Design-to-Code Handoff (/pde:handoff) - Research
 
-**Researched:** 2026-03-15
+**Researched:** 2026-03-15 (re-researched 2026-03-16)
 **Domain:** PDE skill workflow pattern — design pipeline synthesis, component API generation, TypeScript interface authoring
 **Confidence:** HIGH
 
@@ -11,22 +11,22 @@
 
 | ID | Description | Research Support |
 |----|-------------|-----------------|
-| HND-01 | /pde:handoff synthesizes all design artifacts into implementation specifications | The full upstream artifact set is discoverable from design-manifest.json and a set of Glob patterns. Templates/handoff-spec.md already defines the output document structure with Route Structure, Component APIs, Token Mappings, Accessibility Overview, Gap Analysis, Test Specs, and Per-Screen Detail Specs sections. The workflow reads every available upstream artifact (BRF brief, FLW flows + screen inventory, SYS design system, WFR wireframes, CRT critique reports, ITR changelogs) and synthesizes them into a single HND-handoff-spec-v{N}.md at `.planning/design/handoff/`. The manifest's designCoverage flags tell the skill which artifacts are available. |
-| HND-02 | Handoff produces component APIs with TypeScript interfaces | TypeScript interfaces are written by Claude as text output (per STACK.md confirmed decision: no json-schema-to-typescript). The primary source for interface shapes is wireframe ANNOTATION comments from WFR HTML files — Phase 16 made these mandatory. Each `<!-- ANNOTATION: ... -->` block above a `pde-state--*` div and each interactive element annotation describes triggers, payloads, and transitions. The skill synthesizes annotation content plus the critique report's findings into interface Props definitions with JSDoc. |
-| HND-03 | Handoff reads STACK.md for project-specific technology alignment | `.planning/research/STACK.md` exists in this project. The handoff skill reads it and aligns prop naming conventions, import patterns, and component stub templates to the detected framework (React/Vue/Svelte/none). The file is a hard dependency with a recovery message if absent. The handoff-spec.md template already includes React, Vue, and Svelte stubs in the Per-Screen Detail Specs section. |
+| HND-01 | /pde:handoff synthesizes all design artifacts into implementation specifications | The full upstream artifact set is discoverable from design-manifest.json and Glob patterns. templates/handoff-spec.md defines the output document structure with Design Coverage Summary, Route Structure, Component APIs, Token Mappings, Accessibility Overview, Gap Analysis, Test Specs, and Per-Screen Detail Specs sections. The workflow reads every available upstream artifact (BRF brief, FLW flows + screen inventory, SYS tokens.css, WFR wireframes, CRT critique reports, ITR changelogs) and synthesizes them into a single HND-handoff-spec-v{N}.md at `.planning/design/handoff/`. The manifest's designCoverage flags tell the skill which artifact types are available. |
+| HND-02 | Handoff produces component APIs with TypeScript interfaces | TypeScript interfaces are written by Claude as text output — confirmed in STACK.md: "Claude writes .ts files directly as text output." The primary source for interface shapes is wireframe ANNOTATION comments from WFR HTML files — Phase 16 made these mandatory. Each `<!-- ANNOTATION: ... -->` block above a `pde-state--*` div and each interactive element annotation describes triggers, payloads, and transitions. The skill synthesizes annotation content plus critique findings into interface Props definitions with JSDoc. |
+| HND-03 | Handoff reads STACK.md for project-specific technology alignment | `.planning/research/STACK.md` is confirmed present in this project. The handoff skill reads it and aligns prop naming conventions, import patterns, and component stub templates to the detected framework (React/Vue/Svelte/none). The file is a hard dependency with a recovery message if absent. templates/handoff-spec.md includes React, Vue, and Svelte stubs in Per-Screen Detail Specs. |
 </phase_requirements>
 
 ---
 
 ## Summary
 
-Phase 19 implements `/pde:handoff`, the terminal synthesis skill in the v1.1 design pipeline. Its job is to read every available upstream artifact produced by the pipeline — brief, flows, screen inventory, design system tokens, wireframe HTML (including all ANNOTATION comments), critique reports, and iteration changelogs — and synthesize them into two outputs: (1) a `HND-handoff-spec-v{N}.md` document that implementation engineers can use directly without accessing raw wireframes, and (2) a `HND-types-v{N}.ts` file containing TypeScript interface declarations for every identified component.
+Phase 19 implements `/pde:handoff`, the terminal synthesis skill in the v1.1 design pipeline. Its job is to read every available upstream artifact produced by the pipeline — brief, flows, screen inventory, design system tokens, wireframe HTML (including all ANNOTATION comments), critique reports, and iteration changelogs — and synthesize them into two outputs: (1) a `HND-handoff-spec-v{N}.md` document that implementation engineers can use without accessing raw wireframes, and (2) a `HND-types-v{N}.ts` file containing TypeScript interface declarations for every identified component.
 
 The implementation follows the identical 7-step PDE skill workflow pattern used across all prior skills (wireframe, flows, critique, iterate). All inputs are already in `.planning/design/` as files produced by prior skills. No new tools are needed: pde-tools.cjs handles manifest registration and lock management; Claude writes both the markdown spec and the TypeScript file as text output. The STACK.md prerequisite is the one genuinely new design decision — this skill must read it to know which framework stub to use for component API examples and import path conventions.
 
-The critical path for TypeScript interface quality runs through wireframe annotations. Phase 16 explicitly documented that ANNOTATION comments on all state variants and interactive elements are "mandatory — Phase 19 handoff reads these to generate TypeScript component APIs." If annotations are sparse, interface quality degrades. The research flag in STATE.md confirms this is a known risk; the skill should include an annotation completeness check as part of its prerequisite validation step.
+The critical path for TypeScript interface quality runs through wireframe annotations. Phase 16 explicitly documented that ANNOTATION comments on all state variants and interactive elements are "mandatory — Phase 19 handoff reads these to generate TypeScript component APIs." If annotations are sparse, interface quality degrades. The research flag in STATE.md confirms this is a known risk; the skill must include an annotation completeness check as part of its prerequisite validation step. A separate verified finding: `commands/handoff.md` currently contains a stub with wrong content ("Planned -- available in PDE v2") — it must be fully replaced, and `mcp__sequential-thinking__*` must be added to its `allowed-tools` frontmatter.
 
-**Primary recommendation:** Implement as a single `workflows/handoff.md` using the 7-step pipeline pattern, reading STACK.md as a hard dependency (with recovery message, not silent halt), synthesizing all available upstream artifacts, and writing two files: HND-handoff-spec-v{N}.md and HND-types-v{N}.ts. Wire `commands/handoff.md` as a delegation stub matching the exact pattern of `commands/critique.md` and `commands/iterate.md`.
+**Primary recommendation:** Implement as a single `workflows/handoff.md` using the 7-step pipeline pattern, reading STACK.md as a hard dependency (with recovery message, not silent halt), synthesizing all available upstream artifacts, and writing two files: HND-handoff-spec-v{N}.md and HND-types-v{N}.ts. Wire `commands/handoff.md` as a delegation stub matching the exact pattern of `commands/critique.md` and `commands/iterate.md`, adding `mcp__sequential-thinking__*` to allowed-tools.
 
 ---
 
@@ -40,8 +40,8 @@ The critical path for TypeScript interface quality runs through wireframe annota
 | `@references/skill-style-guide.md` | existing | Universal flags, output format, error messaging conventions | Required reading for all PDE skills |
 | `@references/mcp-integration.md` | existing | Sequential Thinking MCP probe pattern, flag handling | Required reading for all PDE skills with MCP enhancement |
 | Write tool | Claude tool | Create HND-handoff-spec-v{N}.md and HND-types-v{N}.ts | Same mechanism used by all prior skills |
-| Edit tool | Claude tool | Update domain DESIGN-STATE, critique report references | Preferred over full rewrite for targeted mutations |
-| `templates/handoff-spec.md` | existing | Output document scaffold with all required sections | Already defines the full handoff spec structure including hardware sections |
+| Edit tool | Claude tool | Update domain DESIGN-STATE, root DESIGN-STATE references | Preferred over full rewrite for targeted mutations |
+| `templates/handoff-spec.md` | existing (404 lines) | Output document scaffold with all required sections | Already defines the full handoff spec structure including conditional hardware sections |
 
 ### Supporting
 
@@ -57,7 +57,7 @@ The critical path for TypeScript interface quality runs through wireframe annota
 |------------|-----------|----------|
 | LLM-written TypeScript interfaces | json-schema-to-typescript v15 | Confirmed in STACK.md: LLM-authored TypeScript is more contextually accurate for UI component APIs; v15 CJS compatibility unconfirmed |
 | Claude writes HND-types-v{N}.ts | Compile annotations to schema then to TypeScript | Adds a mechanical transformation step; annotations describe behavior, not data schema — Claude's semantic reasoning produces better interfaces |
-| STACK.md for framework detection | Auto-detect package.json framework | User's STACK.md provides explicit intent; auto-detection from package.json can be wrong or project may not have package.json yet |
+| STACK.md for framework detection | Auto-detect package.json framework | User's STACK.md provides explicit intent; auto-detection from package.json can be wrong or the project may not have package.json yet |
 
 **Installation:** No new dependencies. Zero new npm packages. Everything runs on existing `pde-tools.cjs` and Claude tools.
 
@@ -77,14 +77,14 @@ The skill produces files in one existing directory:
 │   ├── FLW-flows-v{N}.md          # INPUT: user flows (soft dependency)
 │   ├── FLW-screen-inventory.json  # INPUT: screen inventory (soft dependency)
 │   └── wireframes/
-│       ├── WFR-{screen}.html      # INPUT: wireframes with ANNOTATION comments
-│       └── WFR-{screen}-v{N}.html # INPUT: iterated wireframes
+│       ├── WFR-{screen}.html      # INPUT: original wireframes
+│       └── WFR-{screen}-v{N}.html # INPUT: iterated wireframes (prefer these)
 ├── assets/
 │   └── tokens.css                 # INPUT: design system CSS (soft dependency)
 ├── review/
 │   ├── CRT-critique-v{N}.md       # INPUT: critique reports (soft dependency)
 │   └── ITR-changelog-v{N}.md      # INPUT: iteration changelogs (soft dependency)
-└── handoff/                       # OUTPUT directory
+└── handoff/                       # OUTPUT directory — pre-created by ensure-dirs
     ├── HND-handoff-spec-v{N}.md   # OUTPUT: implementation spec (Write tool)
     └── HND-types-v{N}.ts          # OUTPUT: TypeScript interfaces (Write tool)
 ```
@@ -93,6 +93,8 @@ The skill produces files in one existing directory:
 - Handoff spec: `HND-handoff-spec-v{N}.md` where N is the next available version integer.
 - TypeScript types: `HND-types-v{N}.ts` where N matches the handoff spec version.
 - Both files are versioned together — they form a pair for one handoff run.
+
+**NOTE on `handoff/` directory:** Confirmed in `bin/lib/design.cjs` line 17: `DOMAIN_DIRS = ['assets', 'strategy', 'ux', 'visual', 'review', 'handoff', 'hardware']`. The `handoff/` directory is created by `ensure-dirs` in Step 1 — no mkdir needed.
 
 ### Pattern 1: 7-Step Skill Workflow (established project pattern)
 
@@ -112,8 +114,8 @@ Step 2/7: Check prerequisites and discover artifacts
   2c. Discover brief: Glob for .planning/design/strategy/BRF-brief-v*.md (soft — warn if absent)
   2d. Discover flows: Glob for .planning/design/ux/FLW-flows-v*.md (soft — warn if absent)
   2e. Discover screen inventory: Glob for .planning/design/ux/FLW-screen-inventory.json (soft)
-  2f. Discover wireframes: Glob for .planning/design/ux/wireframes/WFR-*.html excluding index.html
-      For each screen: prefer highest versioned WFR-{screen}-v{N}.html over original WFR-{screen}.html
+  2f. Discover wireframes: Glob for .planning/design/ux/wireframes/WFR-*.html
+      Exclude index.html. For each screen: prefer highest versioned WFR-{screen}-v{N}.html
   2g. Discover design system tokens: Glob for .planning/design/assets/tokens.css (soft)
   2h. Discover critique: Glob for .planning/design/review/CRT-critique-v*.md (soft)
   2i. Discover changelogs: Glob for .planning/design/review/ITR-changelog-v*.md (soft)
@@ -133,10 +135,11 @@ Step 4/7: Synthesize artifacts into spec content
   4b. Extract ANNOTATION content from each wireframe's pde-state--* and interactive element blocks
   4c. Parse screen inventory for route mappings and component context
   4d. Parse design system tokens for Global Token Mappings section
-  4e. Parse critique What Works + Deferred findings for Completeness Warnings section
+  4e. Parse critique What Works + deferred findings for Completeness Warnings section
   4f. If SEQUENTIAL_THINKING_AVAILABLE and annotation coverage is low:
       use mcp__sequential-thinking__think to reason about implied component interfaces
-  4g. For each screen: derive component name list (from slug + type), TypeScript interface, breakpoint spec, interaction spec, token mappings, accessibility requirements, test spec
+  4g. For each screen: derive component name list, TypeScript interface, breakpoint spec,
+      interaction spec, token mappings, accessibility requirements, test spec
   4h. Build global sections: Design Coverage Summary, Route Structure, Shared Component APIs,
       Accessibility Overview, Gap Analysis, Test Specs Overview
 
@@ -146,7 +149,7 @@ Step 5/7: Write output files with lock
       Use templates/handoff-spec.md as structural scaffold
   5c. Write .planning/design/handoff/HND-types-v{HND_VERSION}.ts (Write tool)
       TypeScript interfaces only — no runtime code, no imports, just interface declarations
-  5e. Release lock-release pde-handoff (ALWAYS release, even on error)
+  5d. Release lock-release pde-handoff (ALWAYS release, even on error)
 
 Step 6/7: Update handoff domain DESIGN-STATE
   - Use Glob to find .planning/design/handoff/DESIGN-STATE.md
@@ -161,7 +164,7 @@ Step 7/7: Update root DESIGN-STATE + manifest + coverage flag
       - Iteration History: append HND-handoff-spec-v{HND_VERSION}.md entry
   7b. Register HND artifact in manifest (7 calls — same pattern as all prior skills)
   7c. Set coverage flag (read-before-set — CRITICAL to prevent clobber)
-      Set hasHandoff: true, preserving all other fields
+      See Pattern 6 below for the exact 6-or-7-field handling.
   7d. Output skill summary table (per skill-style-guide.md conventions)
 ```
 
@@ -186,7 +189,7 @@ Error: No STACK.md found at .planning/research/STACK.md.
 **Why hard dependency:** Without STACK.md, the component stubs section (React/Vue/Svelte) cannot be correctly generated. Producing framework-misaligned stubs is worse than halting — it creates confusion for the implementation engineer who receives the handoff spec.
 
 **STACK.md parsing targets:**
-- Framework: scan for "React", "Vue", "Svelte", "none" (case-insensitive) in the file
+- Framework: scan for "React", "Vue", "Svelte", "none" (case-insensitive) in table rows — look for `| React |` / `| Vue |` / `| Svelte |` patterns or explicit "Use X" statements
 - TypeScript presence: scan for "TypeScript: true" or "tsx" extension references
 - Import path pattern: scan for src/ path conventions mentioned in the stack
 - Token import path: scan for CSS import pattern or token file location
@@ -241,7 +244,7 @@ interface LoginFormProps {
 
 ### Pattern 4: Wireframe Version Selection (prefer iterated)
 
-**What:** For each screen, prefer the highest-versioned iterated wireframe (`WFR-{screen}-v{N}.html`) over the original (`WFR-{screen}.html`). Iterated wireframes contain critique-applied improvements and are the most recent state of the design.
+**What:** For each screen, prefer the highest-versioned iterated wireframe (`WFR-{screen}-v{N}.html`) over the original (`WFR-{screen}.html`). Iterated wireframes contain critique-applied improvements and are the most current state of the design.
 
 **When to use:** Step 2f, before any annotation parsing.
 
@@ -264,18 +267,45 @@ For each screen slug in screen inventory:
 **Completeness warning triggers:**
 - Wireframe exists but has zero `<!-- ANNOTATION: -->` comments → warn "No annotations found — TypeScript interface generated from element structure only, not behavioral specification"
 - Critique exists but has open Critical or Major findings → warn "{N} unresolved critical/major findings from CRT-critique-v{N}.md — review before implementation"
-- No iteration run (`hasIterate: false` in coverage) → info "Designs have not been through critique-driven iteration — consider running /pde:critique + /pde:iterate before implementing"
+- No iteration run (`hasIterate` is false or absent in coverage) → info "Designs have not been through critique-driven iteration — consider running /pde:critique + /pde:iterate before implementing"
 - Screen exists in screen inventory but no wireframe was generated → warn "Screen '{screen}' has no wireframe — no component spec produced for this screen"
+
+### Pattern 6: Coverage Flag Read-Before-Set with Field Defaulting
+
+**What:** The `designCoverage` object in the live manifest has a variable number of fields depending on which skills have run. The template provides 6 fields; Phase 18 (iterate) adds `hasIterate` as a 7th field at runtime. The handoff skill must safely merge `hasHandoff: true` regardless of whether `hasIterate` is present.
+
+**Critical detail confirmed by direct code inspection of `cmdCoverageCheck`:** The function returns `manifest.designCoverage` directly. If Phase 18 hasn't run, `hasIterate` will not be in the returned object. The read-before-set must default any absent field to `false`.
+
+**When to use:** Step 7c.
+
+**Safe merge approach:**
+
+```bash
+# Source: pattern derived from workflows/iterate.md Step 7c + direct design.cjs inspection
+COV=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design coverage-check)
+if [[ "$COV" == @file:* ]]; then COV=$(cat "${COV#@file:}"); fi
+# Parse COV JSON. For EACH of the following fields, extract the value OR default to false:
+#   hasDesignSystem, hasFlows, hasWireframes, hasCritique, hasIterate, hasHandoff, hasHardwareSpec
+# The field hasIterate may be absent if Phase 18 has not run — default to false if missing.
+# Set hasHandoff: true.
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage \
+  '{"hasDesignSystem":{current|false},"hasFlows":{current|false},"hasWireframes":{current|false},"hasCritique":{current|false},"hasIterate":{current|false},"hasHandoff":true,"hasHardwareSpec":{current|false}}'
+```
+
+**Why this matters:** The template `design-manifest.json` has only 6 fields (confirmed: hasDesignSystem, hasWireframes, hasFlows, hasHardwareSpec, hasCritique, hasHandoff — no hasIterate). The `hasIterate` field is added at runtime only when Phase 18 runs. The handoff skill must write all 7 fields regardless — Phase 20 (orchestrator) and future tools expect the complete schema.
 
 ### Anti-Patterns to Avoid
 
 - **Generating runtime code:** HND-types-v{N}.ts must contain ONLY TypeScript interface declarations. No `export default`, no `const`, no React component JSX — only `interface {Name} { ... }` and `type {Name} = { ... }` declarations. Implementation engineers or AI coding agents write the actual code.
 - **Overwriting existing handoff spec on re-run:** Always increment HND_VERSION. Never write to a path that already exists.
 - **Setting hasHandoff without coverage-check:** Same read-before-set pattern as every prior skill. Required to prevent clobbering other skills' coverage flags.
-- **Halting when upstream artifacts are missing:** Brief, flows, tokens, critique, changelogs are all soft dependencies. Emit warnings for each missing artifact and continue with the available data. Only STACK.md absence causes a halt.
+- **Halting when upstream artifacts are missing:** Brief, flows, tokens, critique, changelogs are all soft dependencies. Emit warnings for each missing artifact and continue with available data. Only STACK.md absence causes a halt.
 - **Reading STACK.md from a wrong location:** The hard dependency path is `.planning/research/STACK.md`. Do not search parent directories or project root — use this exact path.
 - **Assuming framework from package.json when STACK.md exists:** STACK.md is the authoritative source. Do not read package.json — STACK.md was explicitly created to provide this guidance.
 - **Mapping ANNOTATION comments mechanically:** Annotations describe behavioral intent. Use Claude's reasoning to map them to appropriate TypeScript signatures, not string extraction. An annotation saying "Click opens modal with {content}" → `isOpen: boolean; onClose: () => void;` — this requires semantic understanding.
+- **Searching STACK.md for framework by simple string presence:** STACK.md is free-form text. A sentence like "Unlike React, this project uses Vue 3" contains "React" but the project uses Vue. Look for table row patterns (`| React |`, `| Vue |`, `| Svelte |`) or explicit "Use X" directives, not arbitrary string matching.
+- **Assuming hasIterate exists in coverage-check output:** The template manifest has 6 fields, not 7. If Phase 18 hasn't run, `hasIterate` is absent. Default to `false` if the field is missing.
+- **Not updating commands/handoff.md:** The existing stub file must be fully replaced. The current content is "Planned -- available in PDE v2" and references "mockup" — both wrong. Also add `mcp__sequential-thinking__*` to allowed-tools in the frontmatter.
 
 ---
 
@@ -285,11 +315,11 @@ For each screen slug in screen inventory:
 |---------|-------------|-------------|-----|
 | Manifest registration | Custom JSON writer | `pde-tools.cjs design manifest-update HND ...` | Same 7-call pattern tested across 6 prior skills |
 | Write locking | Custom lock file | `pde-tools.cjs design lock-acquire pde-handoff` | 60s TTL, auto-clear on stale lock, operates on root DESIGN-STATE.md |
-| Coverage flag update | Direct JSON edit | `coverage-check` + `manifest-set-top-level designCoverage` | Read-before-set pattern prevents clobbering 7 existing flags |
+| Coverage flag update | Direct JSON edit | `coverage-check` + `manifest-set-top-level designCoverage` | Read-before-set pattern prevents clobbering existing flags; field count varies by pipeline progress |
 | TypeScript interface generation | json-schema-to-typescript | Claude writes TypeScript text directly | LLM-authored interfaces are more semantically accurate; confirmed in STACK.md |
 | Framework detection | package.json parser | Read `.planning/research/STACK.md` | STACK.md is explicit design intent; package.json auto-detection can be wrong |
 | Annotation extraction | HTML/regex parser | Claude reads wireframe HTML and reasons about annotations | Annotations describe behavioral semantics; regex extracts text but misses intent |
-| Handoff spec template | New document structure | Follow `templates/handoff-spec.md` exactly | Template already defines all required sections including hardware sections |
+| Handoff spec template | New document structure | Follow `templates/handoff-spec.md` exactly | Template already defines all required sections including conditional hardware sections |
 | Iteration depth detection | Separate state | Glob for `ITR-changelog-v*.md` (same pattern as iterate skill) | Self-evident from existing files; consistent with prior skills |
 
 **Key insight:** This skill is a synthesis task, not a transformation task. Claude's value here is interpreting meaning from ANNOTATION comments, critique findings, and design system tokens to produce coherent component interfaces — not mechanical extraction. The only mechanical operations (manifest update, lock management) are already handled by pde-tools.cjs.
@@ -314,7 +344,7 @@ For each screen slug in screen inventory:
 
 **Why it happens:** STACK.md is free-form text written by researchers, not a structured configuration file. Simple string search can produce false positives.
 
-**How to avoid:** When parsing STACK.md for framework, look for the primary framework recommendation section — typically under "Core Technologies" or "Standard Stack" tables. Look for patterns like `| React |`, `| Vue |`, `| Svelte |` in table rows, or explicit "Use X" statements. If ambiguous, output ALL three stub variants (React, Vue, Svelte) and note "Framework detection was ambiguous — review stubs and remove non-applicable sections."
+**How to avoid:** Look for primary framework recommendation section — typically under "Core Technologies" or "Standard Stack" tables. Look for patterns like `| React |`, `| Vue |`, `| Svelte |` in table rows, or explicit "Use X" statements. If ambiguous, output ALL three stub variants and note "Framework detection was ambiguous — review stubs and remove non-applicable sections."
 
 **Warning signs:** The user's project uses Vue but `HND-types-v{N}.ts` contains JSX-style React stubs.
 
@@ -332,19 +362,9 @@ For each screen slug in screen inventory:
 
 **What goes wrong:** Step 7c calls `manifest-set-top-level designCoverage` with only `{"hasHandoff": true}`, resetting all other coverage flags to their defaults.
 
-**Why it happens:** `manifest-set-top-level` replaces the ENTIRE designCoverage object. Called without a prior coverage-check, it wipes `hasDesignSystem`, `hasFlows`, `hasWireframes`, `hasCritique`, `hasIterate`, and `hasHardwareSpec`.
+**Why it happens:** `manifest-set-top-level` replaces the ENTIRE designCoverage object. Called without a prior coverage-check, it wipes all other flags.
 
-**How to avoid:** Always run `coverage-check` before calling `manifest-set-top-level`. Extract all current field values (now 7 fields, including `hasIterate` introduced by Phase 18) and merge `hasHandoff: true` before writing. The full object:
-
-```bash
-# Source: pattern from workflows/iterate.md Step 7c
-COV=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design coverage-check)
-if [[ "$COV" == @file:* ]]; then COV=$(cat "${COV#@file:}"); fi
-# Parse COV JSON. Extract ALL seven current flag values.
-# Merge hasHandoff: true.
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage \
-  '{"hasDesignSystem":{current},"hasFlows":{current},"hasWireframes":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":true,"hasHardwareSpec":{current}}'
-```
+**How to avoid:** Always run `coverage-check` before calling `manifest-set-top-level`. Extract all current field values and merge `hasHandoff: true` before writing. The full object now has up to 7 fields — if `hasIterate` is absent from coverage-check output (Phase 18 has not run), default it to false. Write all 7 fields explicitly.
 
 **Warning signs:** After running handoff, `coverage-check` shows `hasDesignSystem: false` when it was previously true.
 
@@ -356,7 +376,7 @@ node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level des
 
 **How to avoid:** For each screen slug, Glob separately for versioned files (`WFR-{screen}-v*.html`). If any versioned file exists, use the highest N. Only fall back to the original if no versioned file is found. See Pattern 4 above for exact logic.
 
-**Warning signs:** Handoff spec describes a design state that predates critique-driven improvements — e.g., missing an accessibility fix that was applied in `WFR-login-v1.html`.
+**Warning signs:** Handoff spec describes a design state that predates critique-driven improvements.
 
 ### Pitfall 6: Hardware Sections Written for Software-Only Product
 
@@ -364,9 +384,19 @@ node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level des
 
 **Why it happens:** The `templates/handoff-spec.md` template includes hardware sections. A naive "fill in the template" approach copies them for software products.
 
-**How to avoid:** Check the `productType` field from the design brief (or design-manifest.json). If `productType === "software"`, omit all hardware sections. If `productType === "hardware"`, omit the software component API sections. If `productType === "hybrid"`, include both. The template's `*(When product type is hardware or hybrid)*` comment marks the hardware section as conditional.
+**How to avoid:** Check `productType` from the design brief or design-manifest.json. If `productType === "software"`, omit all hardware sections. If `productType === "hardware"`, omit software-only component API sections. If `productType === "hybrid"`, include both. The template's `*(When product type is hardware or hybrid)*` comment marks the hardware section as conditional.
 
 **Warning signs:** Software product handoff spec contains `## BOM Export` table.
+
+### Pitfall 7: Forgetting to Update commands/handoff.md
+
+**What goes wrong:** The workflow file is created but `commands/handoff.md` still contains the old stub content ("Planned -- available in PDE v2"). The `/pde:handoff` command never executes the new workflow.
+
+**Why it happens:** commands/handoff.md already exists as a stub — easy to overlook when the workflow file is the main deliverable.
+
+**How to avoid:** Phase 19 must deliver TWO files: `workflows/handoff.md` (new) AND an updated `commands/handoff.md` (rewrite the stub). The current stub `allowed-tools` frontmatter also lacks `mcp__sequential-thinking__*` — add it.
+
+**Warning signs:** Running `/pde:handoff` shows "Planned -- available in PDE v2" instead of executing the workflow.
 
 ---
 
@@ -420,7 +450,7 @@ if [[ "$INIT" == @file:* ]]; then INIT=$(cat "${INIT#@file:}"); fi
 ### Lock-Acquire/Release for File Writes (Step 5)
 
 ```bash
-# Source: workflows/iterate.md Step 5a / workflows/critique.md Step 5a
+# Source: workflows/iterate.md Step 5a
 LOCK=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design lock-acquire pde-handoff)
 if [[ "$LOCK" == @file:* ]]; then LOCK=$(cat "${LOCK#@file:}"); fi
 # Parse {"acquired": true/false} — retry 3 times on false, warn and continue if still locked
@@ -442,20 +472,23 @@ node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update HND status
 node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update HND version ${HND_VERSION}
 ```
 
-### Coverage Flag (Step 7c — read-before-set with 7 fields)
+### Coverage Flag (Step 7c — read-before-set with field defaulting)
 
 ```bash
 # Source: workflows/iterate.md Step 7c — mandatory read-before-set
-# IMPORTANT: Phase 18 introduced hasIterate as the 7th field.
-# The live manifest NOW has 7 fields in designCoverage.
-# Read-before-set must extract ALL 7 values, not just the original 6.
+# CRITICAL: The live manifest may have 6 or 7 fields in designCoverage.
+#   - Template schema has 6 fields (no hasIterate)
+#   - hasIterate is added at runtime only when Phase 18 (/pde:iterate) runs
+#   - Default any absent field to false rather than omitting it
+#   - Always write all 7 fields to establish the complete schema for Phase 20+
 COV=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design coverage-check)
 if [[ "$COV" == @file:* ]]; then COV=$(cat "${COV#@file:}"); fi
-# Parse COV JSON. Extract all 7 current flag values: hasDesignSystem, hasFlows,
-# hasWireframes, hasCritique, hasIterate, hasHandoff, hasHardwareSpec.
+# Parse COV JSON. For each field, extract value or default to false:
+#   hasDesignSystem, hasFlows, hasWireframes, hasCritique,
+#   hasIterate (may be absent — default false), hasHandoff, hasHardwareSpec
 # Set hasHandoff: true.
 node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage \
-  '{"hasDesignSystem":{current},"hasFlows":{current},"hasWireframes":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":true,"hasHardwareSpec":{current}}'
+  '{"hasDesignSystem":{current|false},"hasFlows":{current|false},"hasWireframes":{current|false},"hasCritique":{current|false},"hasIterate":{current|false},"hasHandoff":true,"hasHardwareSpec":{current|false}}'
 ```
 
 ### TypeScript Interface Output Format (HND-types-v{N}.ts)
@@ -484,9 +517,27 @@ interface {ScreenName}{ComponentName}Props {
 }
 ```
 
-### commands/handoff.md Replacement (complete process section)
+### commands/handoff.md Replacement (complete file)
 
 ```markdown
+---
+name: pde:handoff
+description: Synthesize design pipeline artifacts into implementation specifications
+argument-hint: "[--quick] [--dry-run] [--verbose] [--no-mcp] [--no-sequential-thinking] [--force]"
+allowed-tools:
+  - Read
+  - Write
+  - Edit
+  - Bash
+  - Glob
+  - Grep
+  - Task
+  - mcp__sequential-thinking__*
+---
+<objective>
+Execute the /pde:handoff command.
+</objective>
+
 <process>
 Follow @workflows/handoff.md exactly.
 
@@ -494,7 +545,7 @@ Pass all of $ARGUMENTS to the workflow.
 </process>
 ```
 
-The `allowed-tools` frontmatter must include `mcp__sequential-thinking__*` (same as `commands/critique.md` and `commands/iterate.md`).
+The `allowed-tools` must include `mcp__sequential-thinking__*` — same as `commands/critique.md` and `commands/iterate.md`. The existing stub is missing this entry.
 
 ---
 
@@ -503,23 +554,23 @@ The `allowed-tools` frontmatter must include `mcp__sequential-thinking__*` (same
 | Old Approach | Current Approach | When Changed | Impact |
 |--------------|-----------------|--------------|--------|
 | handoff as planned stub (`commands/handoff.md` says "Planned -- available in PDE v2") | Full workflow implementation following 7-step pattern | Phase 19 | Replace stub content entirely; the stub references "mockup" in prerequisites which is wrong for v1.1 |
-| `hasHandoff` already in coverage schema | `hasHandoff` is one of the ORIGINAL 6 fields in the template manifest | Confirmed by design-manifest.json inspection | Unlike `hasIterate` (introduced by Phase 18), `hasHandoff` already exists — do NOT introduce it as new; just set it to true |
-| designCoverage has 6 fields | designCoverage now has 7 fields (hasIterate introduced by Phase 18) | Phase 18 | Coverage-check read-before-set must extract 7 fields, not 6 |
-| No `.planning/design/handoff/` content | HND-handoff-spec-v{N}.md and HND-types-v{N}.ts written here | Phase 19 | handoff/ directory already created by ensure-dirs (DOMAIN_DIRS includes "handoff"); no mkdir needed |
-| Critique and iterate are upstream inputs | handoff is a READER of CRT and ITR artifacts, not a writer | Architecture confirmed | handoff does NOT modify critique reports or changelogs — it reads them for Completeness Warnings and design decisions |
+| `hasHandoff` already in coverage schema (6 fields) | designCoverage now has 7 fields after Phase 18 runs (hasIterate added at runtime) | Phase 18 at runtime | Coverage-check read-before-set must default hasIterate to false if absent; always write all 7 fields |
+| designCoverage template has 6 fields | Live manifest may have 6 OR 7 fields (template does not include hasIterate) | Phase 18 introduced at runtime | Handoff skill must not assume a fixed field count — default any missing field to false |
+| No `.planning/design/handoff/` content | HND-handoff-spec-v{N}.md and HND-types-v{N}.ts written here | Phase 19 | handoff/ directory already created by ensure-dirs (DOMAIN_DIRS confirmed in design.cjs line 17) |
+| Critique and iterate are upstream inputs | handoff is a READER of CRT and ITR artifacts, not a writer | Architecture confirmed | handoff does NOT modify critique reports or changelogs — reads them for Completeness Warnings and design decisions |
 
 **Deprecated/outdated:**
-- `commands/handoff.md` stub: the `<process>` block must be replaced with the delegation pattern. The stub references "mockup" which is not part of the v1.1 pipeline.
-- The stub description mentions "component APIs, spacing and token annotations, interaction specifications, and an asset export manifest" — this remains accurate for the v1.1 output but "final mockups" as the source is wrong; the source is wireframes (not mockups).
+- `commands/handoff.md` stub: the entire `<process>` block must be replaced. The stub references "mockup" (not in v1.1 pipeline), calls it "PDE v2" (wrong — this IS v1.1), and lacks `mcp__sequential-thinking__*` in allowed-tools.
+- The stub description mentions "component APIs, spacing and token annotations, interaction specifications, and an asset export manifest" — the component APIs and interaction specs are correct, but "final mockups" as the source is wrong; the source is wireframes (not mockups).
 
 ---
 
 ## Open Questions
 
 1. **Whether to generate a separate HND-types-v{N}.ts or embed TypeScript inline in the spec**
-   - What we know: `templates/handoff-spec.md` includes TypeScript interfaces inline within the Per-Screen Detail Specs sections. The STACK.md describes TypeScript interfaces as a separate output.
-   - What's unclear: Whether implementation engineers prefer a single document (easier to read) or two files (easier to import the types file into a codebase).
-   - Recommendation: Generate BOTH. The spec document includes inline interface declarations for readability; the `.ts` file is the same content extracted for direct import. The cost is minimal (Claude writes the same content twice); the benefit is that engineers get the right file for each use case.
+   - What we know: `templates/handoff-spec.md` includes TypeScript interfaces inline within Per-Screen Detail Specs. A separate `.ts` file is also a natural output for direct import into codebases.
+   - What's unclear: Whether implementation engineers prefer a single document (easier to read) or two files (easier to import).
+   - Recommendation: Generate BOTH. The spec document includes inline interface declarations for readability; the `.ts` file is the same content extracted for direct import. The cost is minimal; the benefit is that engineers get the right file for each use case.
 
 2. **How to handle no upstream artifacts at all**
    - What we know: All non-STACK.md prerequisites are soft dependencies. The skill could theoretically run against an empty design directory.
@@ -527,9 +578,9 @@ The `allowed-tools` frontmatter must include `mcp__sequential-thinking__*` (same
    - Recommendation: After checking all soft dependencies in Step 2, count how many are present. If NONE are present (no brief, no flows, no wireframes, no tokens), emit a warning and halt gracefully: "No design artifacts found. Run /pde:brief, /pde:flows, /pde:wireframe before handoff." This prevents an empty spec from being written. One or more artifacts present → proceed with what's available.
 
 3. **Whether to register HND-types-v{N}.ts as a separate manifest artifact**
-   - What we know: The manifest uses a single entry per skill run (artifact code HND). The path points to one file. Prior skills (WFR) use the directory path when multiple files are produced.
+   - What we know: The manifest uses a single entry per skill run (artifact code HND). Prior skills (WFR) use the directory path when multiple files are produced.
    - What's unclear: Whether the types file warrants its own artifact code.
-   - Recommendation: Use a single HND artifact entry. Set path to `.planning/design/handoff/` (directory) to capture both files. This is consistent with how WFR registers the wireframes/ directory. Optionally add a second `HND-types` entry if Phase 20 (build orchestrator) needs to detect the types file separately — but do not over-engineer for a requirement that hasn't been stated.
+   - Recommendation: Use a single HND artifact entry. Set path to `.planning/design/handoff/` (directory) to capture both files. Consistent with how WFR registers the wireframes/ directory. Do not over-engineer for Phase 20 requirements that haven't been stated.
 
 ---
 
@@ -573,23 +624,22 @@ None — existing test infrastructure (`design.cjs --self-test`) covers the infr
 
 ### Primary (HIGH confidence)
 
-- `templates/handoff-spec.md` (full file, 404 lines) — complete output document structure: Design Coverage Summary, Route Structure, Global Token Mappings, Shared Component APIs, Accessibility Overview, Motion System, Gap Analysis, Test Specs Overview, Per-Screen Detail Specs (with React/Vue/Svelte stubs), Hardware Handoff (conditional on product type)
-- `templates/handoff-manifest.json` — confirmed: separate handoff manifest template exists (schema_version, source_stage, target_stage, artifacts array)
-- `commands/handoff.md` — confirmed stub: "Planned -- available in PDE v2" text to be replaced; allowed-tools already includes Read, Write, Edit, Bash, Glob, Grep, Task; missing `mcp__sequential-thinking__*`
-- `workflows/iterate.md` (full file) — canonical 7-step structure, lock-acquire/release pattern, manifest registration 7-call pattern, coverage-check read-before-set, anti-patterns — directly reused in handoff
-- `workflows/wireframe.md` Step 4d — confirmed: ANNOTATION comment format, placement rules, interactive element annotation types (modal, form, drawer, dropdown, tabs, pagination) — primary source for annotation parsing spec
-- `.planning/research/STACK.md` (full file) — confirmed: TypeScript interface generation decision ("Claude writes .ts files directly as text output"); STACK.md file path confirmed as `.planning/research/STACK.md`; framework detection from file reading not package.json
-- `bin/lib/design.cjs` (full file) — confirmed: `handoff` is in `DOMAIN_DIRS` array (line 17) — directory already created by ensure-dirs; `readManifest`, `writeManifest`, `updateManifestArtifact`, `cmdManifestSetTopLevel` implementations verified
-- `.planning/design/design-manifest.json` (live) — confirmed: `hasHandoff` IS in the original 6-field designCoverage schema (not introduced by Phase 19 — already present); `hasIterate` introduced by Phase 18 makes 7 total fields
-- `workflows/critique.md` commands/critique.md — confirmed delegation pattern: `Follow @workflows/critique.md exactly. Pass all of $ARGUMENTS to the workflow.`
-- `.planning/STATE.md` lines 93, 109 — Phase 16 decision: "ANNOTATION: comments are mandatory on all state variants and interactive elements — Phase 19 handoff reads these to generate TypeScript component APIs"; research flag: "TypeScript interface quality degrades if wireframe annotations are sparse"
-- `.planning/REQUIREMENTS.md` — HND-01, HND-02, HND-03 requirement text confirmed
-- `references/skill-style-guide.md` — error message structure (What/Why/What-to-do), summary table format, progress indicator format, prerequisite warning format
+- `templates/handoff-spec.md` (full file, 404 lines, re-read 2026-03-16) — complete output document structure: Design Coverage Summary, Route Structure, Global Token Mappings, Shared Component APIs, Accessibility Overview, Motion System, Gap Analysis, Test Specs Overview, Per-Screen Detail Specs with React/Vue/Svelte stubs, Hardware Handoff (conditional)
+- `templates/handoff-manifest.json` (re-read 2026-03-16) — separate handoff manifest template confirmed: schema_version, source_stage, target_stage, artifacts array
+- `commands/handoff.md` (re-read 2026-03-16) — confirmed stub: "Planned -- available in PDE v2" text to be replaced; allowed-tools MISSING `mcp__sequential-thinking__*`; must add it
+- `workflows/iterate.md` (full file, re-read 2026-03-16) — canonical 7-step structure confirmed; Step 7c coverage-check read-before-set pattern confirmed; 7-call manifest registration pattern confirmed; hasIterate introduced as 7th field confirmed
+- `workflows/wireframe.md` Step 4d — ANNOTATION comment format, placement rules, interactive element annotation types — primary source for annotation parsing spec
+- `.planning/research/STACK.md` (re-read 2026-03-16) — TypeScript interface generation decision confirmed ("Claude writes .ts files directly as text output"); STACK.md path confirmed as `.planning/research/STACK.md`
+- `bin/lib/design.cjs` (re-read 2026-03-16) — DOMAIN_DIRS confirmed at line 17: includes 'handoff' — directory created by ensure-dirs; `cmdCoverageCheck` confirmed: returns `manifest.designCoverage` directly (no field normalization — absent fields are absent in output)
+- `.planning/design/design-manifest.json` (live file, re-read 2026-03-16) — CRITICAL: live manifest currently has only 6 fields in designCoverage (no hasIterate field present — Phase 18 hasn't been run yet in this project); template confirms 6-field schema; hasHandoff IS in the original 6-field schema
+- `templates/design-manifest.json` (re-read 2026-03-16) — designCoverage schema confirmed: 6 fields in template (hasDesignSystem, hasWireframes, hasFlows, hasHardwareSpec, hasCritique, hasHandoff); hasIterate NOT in template
+- `.planning/config.json` — nyquist_validation: true — Validation Architecture section is required
+- `.planning/STATE.md` lines 93, 109 — Phase 16 decision: ANNOTATION comments mandatory; research flag: TypeScript interface quality degrades if wireframe annotations are sparse
 
 ### Secondary (MEDIUM confidence)
 
-- `templates/design-state-domain.md` — handoff domain DESIGN-STATE column names: Code, Name, Skill, Status, Version, Enhanced By, Dependencies, Updated (note: "Dependencies" is the column in domain template, not "Notes" as in ux domain)
-- `.planning/phases/18-critique-driven-iteration-pde-iterate/18-RESEARCH.md` — upstream interface confirmation: hasIterate field introduced, coverage flag now 7 fields, What Works parsing from live CRT file, iteration changelog format
+- `templates/design-state-domain.md` — handoff domain DESIGN-STATE column names: Code, Name, Skill, Status, Version, Enhanced By, Dependencies, Updated (note: "Dependencies" column, not "Notes")
+- `.planning/phases/18-critique-driven-iteration-pde-iterate/18-RESEARCH.md` — upstream interface confirmation: hasIterate field introduced by Phase 18, coverage flag now 7 fields, What Works parsing from live CRT file
 
 ### Tertiary (LOW confidence)
 
@@ -601,9 +651,10 @@ None — all claims in this research are grounded in directly read project files
 
 **Confidence breakdown:**
 - Standard stack: HIGH — all tools verified by direct inspection of existing skill workflows and design.cjs source; no new libraries required
-- Architecture patterns: HIGH — 7-step pattern observed across wireframe.md, flows.md, critique.md, iterate.md; annotation parsing source derived from wireframe.md Step 4d (verbatim rules); STACK.md path confirmed from live file; output structure derived from templates/handoff-spec.md
-- Pitfalls: HIGH — hasHandoff already-in-schema confirmed by direct manifest inspection; hasIterate-as-7th-field confirmed from Phase 18 research; annotation quality risk confirmed by STATE.md research flag; version gate logic derived from iterate.md and wireframe.md patterns; hardware section conditionality evident from template markers
+- Architecture patterns: HIGH — 7-step pattern observed across wireframe.md, flows.md, critique.md, iterate.md; annotation parsing source derived from wireframe.md Step 4d; STACK.md path confirmed from live file; output structure derived from templates/handoff-spec.md; handoff/ in DOMAIN_DIRS confirmed at line 17 of design.cjs
+- Pitfalls: HIGH — hasHandoff already-in-schema confirmed by direct manifest inspection; hasIterate-as-7th-field confirmed by iterate.md source AND coverage-check implementation; 6-field template schema confirmed by template file; annotation quality risk confirmed by STATE.md research flag
 - TypeScript generation: HIGH — STACK.md decision confirmed (LLM writes .ts directly); annotation-to-interface mapping derived from wireframe.md annotation format specifications
+- commands/handoff.md update: HIGH — file read directly; stub content and missing allowed-tools entry confirmed
 
-**Research date:** 2026-03-15
-**Valid until:** 2026-04-15 (stable project — no external dependencies that could drift)
+**Research date:** 2026-03-16
+**Valid until:** 2026-04-16 (stable project — no external dependencies that could drift)
