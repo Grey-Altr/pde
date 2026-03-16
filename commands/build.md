@@ -7,6 +7,7 @@ allowed-tools:
   - Bash
   - Glob
   - AskUserQuestion
+  - Skill
 ---
 <objective>
 Execute the /pde:build pipeline orchestrator.

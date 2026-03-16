@@ -5,7 +5,7 @@
   "outputRoot": "string -- path to output directory (e.g., ./pde-output or .planning/design)",
   "mode": "standalone | pde-integrated",
   "generatedAt": "2026-03-15T21:12:48.050Z",
-  "updatedAt": "2026-03-15T21:12:48.050Z",
+  "updatedAt": "2026-03-15T21:57:48.828Z",
   "artifacts": {},
   "tokenDependencyMap": {},
   "designCoverage": {
@@ -14,6 +14,7 @@
     "hasFlows": false,
     "hasHardwareSpec": false,
     "hasCritique": false,
+    "hasIterate": false,
     "hasHandoff": false
   }
 }
