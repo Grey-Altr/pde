@@ -146,7 +146,9 @@ Plans:
   2. Wireframes consume CSS custom properties from `assets/tokens.css` so design system changes cascade to wireframes
   3. The fidelity level (`lo-fi`, `mid-fi`, `hi-fi`) is enforced by an explicit enum — running the command twice at the same fidelity level produces the same structural output, not wildly different results
   4. Each wireframe includes state variants (default, loading, error) and annotation comments describing interaction behavior
-**Plans**: 0 plans
+**Plans:** 1 plan
+Plans:
+- [ ] 16-01-PLAN.md — Wireframe workflow and command wiring (HTML/CSS generation, fidelity enum, token consumption)
 
 ### Phase 17: Design Critique (/pde:critique)
 **Goal**: Every wireframe receives a multi-perspective usability review grounded in the project's own brief and flows, not generic UI heuristics
@@ -213,7 +215,7 @@ Plans:
 | 14. Design System (/pde:system) | v1.1 | Complete    | 2026-03-16 | 2026-03-16 |
 | 15. User Flow Mapping (/pde:flows) | 1/1 | Complete    | 2026-03-16 | - |
 | 15.1 Fix Integration Gaps & Tech Debt | 2/2 | Complete    | 2026-03-16 | - |
-| 16. Wireframing (/pde:wireframe) | v1.1 | 0/TBD | Not started | - |
+| 16. Wireframing (/pde:wireframe) | v1.1 | 0/1 | Not started | - |
 | 17. Design Critique (/pde:critique) | v1.1 | 0/TBD | Not started | - |
 | 18. Critique-Driven Iteration (/pde:iterate) | v1.1 | 0/TBD | Not started | - |
 | 19. Design-to-Code Handoff (/pde:handoff) | v1.1 | 0/TBD | Not started | - |
