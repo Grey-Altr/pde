@@ -171,7 +171,9 @@ Plans:
   1. `/pde:iterate` produces new versioned wireframe files (`WFR-screen-v2.html`) — original files are never overwritten
   2. Each iteration run produces a change log mapping critique findings to applied changes, and a deferred list for issues not addressed
   3. After three or more iteration cycles, the command surfaces an explicit convergence checklist and a "ready for handoff" recommendation based on remaining open issues
-**Plans**: 0 plans
+**Plans:** 1 plan
+Plans:
+- [ ] 18-01-PLAN.md — Iterate workflow and command wiring (versioned wireframe revision, changelog, convergence assessment)
 
 ### Phase 19: Design-to-Code Handoff (/pde:handoff)
 **Goal**: Implementation engineers receive complete, stack-aligned component specifications derived from the full design pipeline without having to interpret wireframes manually
@@ -219,6 +221,6 @@ Plans:
 | 15.1 Fix Integration Gaps & Tech Debt | 2/2 | Complete    | 2026-03-16 | - |
 | 16. Wireframing (/pde:wireframe) | 1/1 | Complete    | 2026-03-16 | - |
 | 17. Design Critique (/pde:critique) | 1/1 | Complete    | 2026-03-16 | - |
-| 18. Critique-Driven Iteration (/pde:iterate) | v1.1 | 0/TBD | Not started | - |
+| 18. Critique-Driven Iteration (/pde:iterate) | v1.1 | 0/1 | Not started | - |
 | 19. Design-to-Code Handoff (/pde:handoff) | v1.1 | 0/TBD | Not started | - |
 | 20. Pipeline Orchestrator (/pde:build) | v1.1 | 0/TBD | Not started | - |
