@@ -116,7 +116,10 @@ Plans:
   2. Recommend runs automatically at the diverge→converge checkpoint; feasibility annotations appear on each idea in the converge output
   3. Ideation produces an IDT artifact with status `ideation-complete` and a brief-seed section that `/pde:brief` can consume directly
   4. Running `/pde:brief` after competitive and opportunity runs automatically injects CMP/OPP context into the brief; running it without those artifacts produces the brief normally with a warning (not a failure)
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 27-01-PLAN.md — Build /pde:ideate command stub, workflow (two-pass diverge→converge), and IDT skill registry entry
+- [ ] 27-02-PLAN.md — Update /pde:brief with soft upstream context injection (IDT/CMP/OPP)
 
 ### Phase 28: Build Orchestrator Expansion
 **Goal**: Users can run `/pde:build` and execute the full 13-stage pipeline from ideation through handoff, with accurate stage tracking and the ability to enter the pipeline at any stage
@@ -161,6 +164,6 @@ Plans:
 | 23. Wireframe Filename Fix | v1.1 | 1/1 | Complete | 2026-03-16 |
 | 24. Schema Migration & Infrastructure | v1.2 | 2/2 | Complete | 2026-03-16 |
 | 25. Recommend & Competitive Skills | v1.2 | 2/2 | Complete | 2026-03-16 |
-| 26. Opportunity, Mockup & HIG Skills | 3/3 | Complete    | 2026-03-16 | - |
-| 27. Ideation Skill & Brief Update | v1.2 | 0/TBD | Not started | - |
+| 26. Opportunity, Mockup & HIG Skills | v1.2 | 3/3 | Complete | 2026-03-16 |
+| 27. Ideation Skill & Brief Update | v1.2 | 0/2 | Not started | - |
 | 28. Build Orchestrator Expansion | v1.2 | 0/TBD | Not started | - |
