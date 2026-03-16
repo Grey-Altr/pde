@@ -18,10 +18,10 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-15)
+See: .planning/PROJECT.md (updated 2026-03-16)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** v1.1 Design Pipeline — Phase 12: Design Pipeline Infrastructure
+**Current focus:** v1.1 Design Pipeline — Phase 15: User Flow Mapping (/pde:flows)
 
 ## Current Position
 
@@ -87,6 +87,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-16T00:32:37Z
-Stopped at: Phase 14 Plan 01 complete
-Resume file: .planning/phases/14-design-system-pde-system/14-01-SUMMARY.md
+Last session: 2026-03-16
+Stopped at: Phase 14 complete, ready to plan Phase 15
+Resume file: None

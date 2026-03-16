@@ -19,6 +19,7 @@ Any user can go from idea to shipped product through a single platform that hand
 - ✓ Plugin installable and usable in Claude Code — v1.0
 - ✓ All GSD templates, references, and configuration migrated — v1.0
 - ✓ GSD tooling rebranded and functional — v1.0
+- ✓ Design system generation produces DTCG tokens with CSS derivation — Phase 14
 
 ### Active
 
@@ -87,6 +88,8 @@ Any user can go from idea to shipped product through a single platform that hand
 | Standalone skills + orchestrator | Flexibility for ad-hoc use AND guided workflow | — Pending |
 | .planning/design/ for artifacts | Keeps design state with planning state; consistent with existing patterns | — Pending |
 | v1.1 not v2.0 | Incremental addition to existing platform, not a breaking change | — Pending |
+| DTCG 2025.10 + OKLCH + dual dark mode | Industry-standard token format with perceptually uniform color space; dark mode via @media + [data-theme] | ✓ Good — Phase 14 |
+| Inline tokens.css (no @import) | file:// URL compatibility for preview and wireframe consumption | ✓ Good — Phase 14 |
 
 ---
-*Last updated: 2026-03-15 after v1.1 milestone start*
+*Last updated: 2026-03-16 after Phase 14*
