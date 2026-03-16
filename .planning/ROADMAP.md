@@ -73,7 +73,7 @@ Full details: .planning/milestones/v1.1-ROADMAP.md
   4. The ux/mockups/ directory is created when `/pde:setup` or the design pipeline initializes
 **Plans**: 2 plans
 Plans:
-- [ ] 24-01-PLAN.md — Extend manifest template with 13 coverage flags and add ux/mockups to ensureDesignDirs
+- [x] 24-01-PLAN.md — Extend manifest template with 13 coverage flags and add ux/mockups to ensureDesignDirs (completed 2026-03-16)
 - [ ] 24-02-PLAN.md — Migrate 6 workflow files from 7-field to 13-field coverage pattern
 
 ### Phase 25: Recommend & Competitive Skills
@@ -152,7 +152,7 @@ Plans:
 | 21. Fix Pipeline Integration Wiring | v1.1 | 1/1 | Complete | 2026-03-16 |
 | 22. Nyquist Compliance | v1.1 | 1/1 | Complete | 2026-03-16 |
 | 23. Wireframe Filename Fix | v1.1 | 1/1 | Complete | 2026-03-16 |
-| 24. Schema Migration & Infrastructure | v1.2 | 0/2 | Not started | - |
+| 24. Schema Migration & Infrastructure | v1.2 | 1/2 | In progress | - |
 | 25. Recommend & Competitive Skills | v1.2 | 0/TBD | Not started | - |
 | 26. Opportunity, Mockup & HIG Skills | v1.2 | 0/TBD | Not started | - |
 | 27. Ideation Skill & Brief Update | v1.2 | 0/TBD | Not started | - |

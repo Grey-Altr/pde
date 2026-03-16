@@ -10,8 +10,8 @@ Requirements for v1.2 Advanced Design Skills. Each maps to roadmap phases.
 ### Infrastructure
 
 - [ ] **INFRA-01**: Coverage flag update pattern migrated to pass-through-all across existing skills
-- [ ] **INFRA-02**: Design manifest schema extended with new coverage flags (hasIdeation, hasCompetitive, hasOpportunity, hasMockup, hasHIG, hasRecommend)
-- [ ] **INFRA-03**: `ensureDesignDirs` updated with `ux/mockups` output directory
+- [x] **INFRA-02**: Design manifest schema extended with new coverage flags (hasIdeation, hasCompetitive, hasOpportunity, hasMockup, hasHIG, hasRecommend)
+- [x] **INFRA-03**: `ensureDesignDirs` updated with `ux/mockups` output directory
 
 ### Ideation
 
@@ -87,8 +87,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | INFRA-01 | Phase 24 | Pending |
-| INFRA-02 | Phase 24 | Pending |
-| INFRA-03 | Phase 24 | Pending |
+| INFRA-02 | Phase 24 | Complete (24-01) |
+| INFRA-03 | Phase 24 | Complete (24-01) |
 | IDEAT-01 | Phase 27 | Pending |
 | IDEAT-02 | Phase 27 | Pending |
 | IDEAT-03 | Phase 27 | Pending |
