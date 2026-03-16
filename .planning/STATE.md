@@ -1,11 +1,11 @@
 ---
-gsd_state_version: 1.0
+pde_state_version: 1.0
 milestone: v1.1
 milestone_name: Design Pipeline
-status: completed
-stopped_at: Completed 19-01-PLAN.md
-last_updated: "2026-03-16T04:30:39.831Z"
-last_activity: "2026-03-16 — Phase 15 Plan 01 complete: workflows/flows.md (537-line /pde:flows workflow), commands/flows.md delegation"
+status: planning
+stopped_at: Phase 20 context gathered
+last_updated: "2026-03-16T04:47:41.586Z"
+last_activity: 2026-03-16 — Phase 19 complete, transitioned to Phase 20
 progress:
   total_phases: 12
   completed_phases: 11
@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-16)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** v1.1 Design Pipeline — Phase 15: User Flow Mapping (/pde:flows)
+**Current focus:** v1.1 Design Pipeline — Phase 20: Pipeline Orchestrator (/pde:build)
 
 ## Current Position
 
-Phase: 15 of 20 (User Flow Mapping — /pde:flows skill)
-Plan: 1 of 1 (complete)
-Status: Phase complete — workflows/flows.md and commands/flows.md delivered
-Last activity: 2026-03-16 — Phase 15 Plan 01 complete: workflows/flows.md (537-line /pde:flows workflow), commands/flows.md delegation
+Phase: 20 of 20 (Pipeline Orchestrator — /pde:build)
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-03-16 — Phase 19 complete, transitioned to Phase 20
 
-Progress: [██████████] 100%
+Progress: [████████████████████] 12/12 plans (100%)
 
 ## Performance Metrics
 
@@ -109,12 +109,10 @@ None.
 
 ### Blockers/Concerns
 
-- [research flag] Phase 16 (wireframe): ASCII wireframe generation reliability for information-heavy screens (dashboards, data tables) should be stress-tested in acceptance criteria
-- [research flag] Phase 19 (handoff): TypeScript interface quality degrades if wireframe annotations are sparse — verify annotation completeness requirements in Phase 16 plan
 - [research flag] Phase 20 (build): Orchestrator crash-resume behavior requires explicit crash-recovery test cases in acceptance criteria
 
 ## Session Continuity
 
-Last session: 2026-03-16T04:30:39.827Z
-Stopped at: Completed 19-01-PLAN.md
-Resume file: None
+Last session: 2026-03-16T04:47:41.583Z
+Stopped at: Phase 20 context gathered
+Resume file: .planning/phases/20-pipeline-orchestrator-pde-build/20-CONTEXT.md
