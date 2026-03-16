@@ -227,4 +227,4 @@ Plans:
 | 17. Design Critique (/pde:critique) | 1/1 | Complete    | 2026-03-16 | - |
 | 18. Critique-Driven Iteration (/pde:iterate) | 1/1 | Complete    | 2026-03-16 | - |
 | 19. Design-to-Code Handoff (/pde:handoff) | 1/1 | Complete   | 2026-03-16 | - |
-| 20. Pipeline Orchestrator (/pde:build) | 1/1 | Complete   | 2026-03-16 | - |
+| 20. Pipeline Orchestrator (/pde:build) | 1/1 | Complete    | 2026-03-16 | - |
