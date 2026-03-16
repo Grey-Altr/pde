@@ -1,7 +1,7 @@
 # Stack Research
 
 **Domain:** AI-powered product development platform (Claude Code plugin, evolving to standalone CLI)
-**Researched:** 2026-03-15 (updated for v1.1 Design Pipeline)
+**Researched:** 2026-03-15 (updated for v1.1 Design Pipeline); v1.2 section added 2026-03-16
 **Confidence:** HIGH (core plugin stack, design pipeline additions), MEDIUM (post-v1 MCP/CLI evolution)
 
 ---
@@ -259,6 +259,153 @@ The Claude Code plugin ecosystem has evolved. GSD was built before the formal pl
 
 ---
 
+## v1.2 Stack: Advanced Design Skills
+
+### The Core Finding: Still No New npm Dependencies
+
+All six new skills (ideation, competitive, opportunity, mockup, hig, recommend) follow the identical architecture as v1.1: Claude Code markdown workflows, reference files loaded via `@` include, `pde-tools.cjs` extensions, and template files. No npm packages are added.
+
+The skills use five MCP servers that are already documented in `references/mcp-integration.md` and already installable via the existing `/pde:setup` command. No new MCP servers are needed.
+
+### New Skills and Their Primary Technology Dependencies
+
+| Skill | Artifact Code | New Reference Files | New pde-tools Commands | MCP Usage |
+|-------|---------------|--------------------|-----------------------|-----------|
+| /pde:ideation | IDT | ideation-techniques.md | manifest-set-coverage hasIdeation | Sequential Thinking |
+| /pde:competitive | CMP | (uses existing strategy-frameworks.md) | manifest-set-coverage hasCompetitive | Sequential Thinking, websearch |
+| /pde:opportunity | OPP | (uses existing strategy-frameworks.md) | manifest-set-coverage hasOpportunity | Sequential Thinking |
+| /pde:mockup | MCK | mockup-patterns.md | manifest-set-coverage hasMockup, ensure-dirs (ux/mockups/) | Playwright, Superpowers |
+| /pde:hig | HIG | (uses existing wcag-baseline.md, ios-hig.md, desktop-hig.md, interaction-patterns.md) | manifest-set-coverage hasHig | Axe a11y-mcp, Playwright, Sequential Thinking |
+| /pde:recommend | REC | mcp-registry-catalog.md | manifest-set-coverage hasRec, mcp-registry-search | Context7 |
+
+### MCP Servers: Versions and Integration Points
+
+All of these are already in `references/mcp-integration.md`. Listed here with current versions for the build implementation.
+
+| MCP Server | npm Package | Version (2026-03-16) | Install Command | New v1.2 Skills |
+|------------|-------------|---------------------|-----------------|-----------------|
+| Sequential Thinking | `@modelcontextprotocol/server-sequential-thinking` | 2025.12.18 | `claude mcp add sequential-thinking -- npx -y @modelcontextprotocol/server-sequential-thinking` | ideation (diverge/converge reasoning), opportunity (RICE calibration), hig (WCAG criterion evaluation) |
+| Axe a11y | `a11y-mcp` | 1.0.4 | `claude mcp add a11y -- npx a11y-mcp` | hig (automated WCAG 2.2 scan on generated HTML artifacts) |
+| Playwright | `@playwright/mcp@latest` | latest (auto-resolves) | `claude mcp add playwright -- npx @playwright/mcp@latest` | mockup (screenshot + responsive validation), hig (accessibility tree audit) |
+| Context7 | `@upstash/context7-mcp@latest` | 2.1.4 | `claude mcp add context7 -- npx -y @upstash/context7-mcp@latest` | recommend (library doc lookup for tool recommendations) |
+| Superpowers | Local install at `~/.claude/mcp-servers/` | varies | Via /pde:setup | mockup (browser preview of hi-fi HTML output) |
+
+**Source:** npm WebSearch 2026-03-16. Confidence: MEDIUM (WebSearch; direct npmjs.com page fetch returned 403).
+
+### MCP Registry API (for /pde:recommend)
+
+The official MCP Registry launched September 2025 at `registry.modelcontextprotocol.io`. It is publicly queryable with no authentication required.
+
+**API:**
+```
+GET https://registry.modelcontextprotocol.io/v0/servers
+  ?search={query}    — keyword filter
+  ?limit={N}         — page size (default 10)
+  ?cursor={cursor}   — pagination
+
+Response JSON:
+{
+  "servers": [
+    { "name": "...", "description": "...", "repository": "...", "version": "...", "packages": [...] }
+  ],
+  "metadata": { "count": N, "nextCursor": "..." }
+}
+```
+
+The API is at a v0.1 freeze (stable, no breaking changes). The `/pde:recommend` skill uses a new `pde-tools.cjs mcp-registry-search <query>` command that calls this endpoint via Node.js built-in `https` module — no new npm dependency.
+
+**Fallback:** When registry is unreachable, the skill uses a curated offline catalog in `references/mcp-registry-catalog.md` covering the 20 most common MCP servers for software projects. Same probe/use/degrade pattern as all other MCP integrations.
+
+**Source:** Nordic APIs article on MCP Registry API (2025), official registry at registry.modelcontextprotocol.io. Confidence: HIGH.
+
+### New Reference Files Needed
+
+| File | Why New (Not Extension of Existing) | Content |
+|------|-------------------------------------|---------|
+| `references/ideation-techniques.md` | No existing reference covers diverge/converge design methods | SCAMPER, brainwriting, crazy-8s (diverge); dot voting, impact/effort matrix, feasibility filters (converge); HMW framing; design sprint phase templates |
+| `references/mcp-registry-catalog.md` | Offline fallback for /pde:recommend when registry unreachable; distinct from mcp-integration.md (which covers probe/use/degrade, not discovery) | Curated list of ~20 high-value MCP servers with install commands, descriptions, use cases, project-type fit signals |
+| `references/mockup-patterns.md` | No existing reference covers hi-fi interaction CSS patterns | CSS animation tokens (transitions, keyframes), hover/focus/active state CSS patterns, Liquid Glass material CSS approximation for iOS 26 preview, JS-free interaction state classes |
+
+**References that already cover new skill needs (no new file needed):**
+- `references/strategy-frameworks.md` — RICE + Porter's Five Forces already complete; used by competitive and opportunity
+- `references/wcag-baseline.md` — All ~56 WCAG 2.2 A/AA criteria already documented; used by hig
+- `references/ios-hig.md` — iOS HIG patterns already documented; needs ONE addition: Liquid Glass material section for iOS 26+ audit
+- `references/desktop-hig.md` — macOS HIG patterns already documented
+- `references/interaction-patterns.md` — ARIA patterns, keyboard nav, focus management already documented
+
+### New pde-tools.cjs Commands Needed for v1.2
+
+These are Node.js additions to the existing `bin/pde-tools.cjs` binary using only built-in modules.
+
+| Command | Purpose | Implementation |
+|---------|---------|----------------|
+| `design manifest-set-coverage <flag> <value>` | Set a boolean coverage flag in designCoverage | JSON parse/mutate/write (same pattern as manifest-update) |
+| `design ensure-dirs-extended` | Create `ux/mockups/` subdirectory (not in v1.1 ensure-dirs) | fs.mkdirSync with recursive:true |
+| `mcp-registry-search <query> [--limit N]` | Query official MCP registry REST API | Built-in `https.get()`, JSON parse, return results array |
+
+### New Artifact Codes and Coverage Flags
+
+Additive changes to `design-manifest.json` schema (no schema version bump — all additive).
+
+| Artifact Code | Skill | Domain Subdirectory | File Pattern | designCoverage Flag |
+|---------------|-------|---------------------|--------------|---------------------|
+| `IDT` | /pde:ideation | `strategy/` | `IDT-ideation-v{N}.md` | `hasIdeation` |
+| `CMP` | /pde:competitive | `strategy/` | `CMP-landscape-v{N}.md` | `hasCompetitive` |
+| `OPP` | /pde:opportunity | `strategy/` | `OPP-evaluation-v{N}.md` | `hasOpportunity` |
+| `MCK-{screen}` | /pde:mockup | `ux/mockups/` | `MCK-{screen}-v{N}.html` | `hasMockup` |
+| `HIG` | /pde:hig | `review/` | `HIG-audit-v{N}.md` | `hasHig` |
+| `REC` | /pde:recommend | `strategy/` | `REC-recommendations-v{N}.md` | `hasRec` |
+
+### Template Status
+
+All but one template already exist (confirmed by directory listing of `templates/`):
+
+| Template | Status | Notes |
+|----------|--------|-------|
+| `templates/competitive-landscape.md` | EXISTS | Full template with market overview, competitor profiles, gap analysis |
+| `templates/opportunity-evaluation.md` | EXISTS | Full RICE + design-extension scoring table |
+| `templates/hig-audit.md` | EXISTS | POUR compliance view + HIG platform findings |
+| `templates/mockup-spec.md` | EXISTS | Visual design, interactions, component states, responsive behavior |
+| `templates/recommendations.md` | EXISTS | Machine-readable category/tool format with install commands |
+| `templates/ideation-brief.md` | MISSING — create in v1.2 | Needs: diverge phase section (HMW questions, raw ideas log), converge section (ranked concepts, scoring rationale, selected direction), tool/MCP recommendations section |
+
+### Build Orchestrator Expansion
+
+The existing `workflows/build.md` pipeline expands from 7 to 12 stages:
+
+```
+ideate → competitive → opportunity → brief → system → flows → wireframe →
+critique(+HIG light) → iterate → mockup → HIG(full) → handoff
+```
+
+The orchestrator reads `designCoverage` from the manifest. Adding five new boolean flags to `designCoverage` is the only structural change to the manifest schema. The Stage loop logic in build.md is generic and requires only the stage table to be extended.
+
+### Dual-Mode HIG Audit Architecture
+
+| Mode | Trigger | Depth | Output | WCAG Criteria Coverage |
+|------|---------|-------|--------|----------------------|
+| Light check | `--hig-light` flag (from /pde:critique) | Critical perceivable + operable (~15 criteria) | Findings folded into CRT report, no separate HIG artifact | 1.1.1, 1.3.1, 1.4.1, 1.4.3, 1.4.4, 2.1.1, 2.4.3, 2.4.7, 3.3.1, 3.3.2, plus 2.2 additions (2.5.8, 3.3.8) |
+| Full audit | Direct `/pde:hig` or build pipeline pre-handoff gate | All ~56 WCAG 2.2 A/AA criteria + HIG platform checklist | HIG-audit-v{N}.md, sets hasHig: true | All criteria in wcag-baseline.md |
+
+Axe a11y-mcp (automated scan) runs in full mode only — too expensive for the light check. Light mode uses only Claude's evaluation against the wcag-baseline.md reference.
+
+### Apple Liquid Glass (iOS 26) Impact on HIG Skill
+
+Apple announced the Liquid Glass design language at WWDC June 2025. It ships with iOS 26, iPadOS 26, macOS Tahoe 26, watchOS 26, tvOS 26. It is the most significant visual redesign since iOS 7.
+
+**Impact on /pde:hig:**
+- The existing `references/ios-hig.md` needs a new Liquid Glass section added (materials, translucency, refraction, motion-responsiveness, light/dark adaptation behavior)
+- HIG audit for iOS/iPadOS/macOS 26+ projects should check Liquid Glass adoption in navigation bars, tab bars, sheets, and popups
+- This is a reference file addition, NOT a new npm package or tool
+
+**Impact on /pde:mockup:**
+- When `references/mockup-patterns.md` is written, it should include a CSS approximation for Liquid Glass using `backdrop-filter: blur()` + `background: rgba()` for preview purposes (the real GPU-rendered material is native-only)
+
+**WCAG 2.2 Status Change:**
+WCAG 2.2 became ISO/IEC 40500:2025 in October 2025 — it is now an official international standard. The `/pde:hig` skill should reference WCAG 2.2 as the authoritative standard for all new audits (not WCAG 2.1).
+
+---
+
 ## Installation
 
 ### v1.1 Design Pipeline (No new npm dependencies)
@@ -275,6 +422,18 @@ node --version  # verify >= 20.0.0
 ```
 # Plugin consumers install via Claude Code (no npm step):
 # claude plugin install https://github.com/your-org/pde
+```
+
+### v1.2 Advanced Design Skills (No new npm dependencies either)
+
+```
+# Same as v1.1 — zero new npm dependencies.
+# MCP servers are user-installed once via /pde:setup:
+#   claude mcp add sequential-thinking -- npx -y @modelcontextprotocol/server-sequential-thinking
+#   claude mcp add a11y -- npx a11y-mcp
+#   claude mcp add playwright -- npx @playwright/mcp@latest
+#   claude mcp add context7 -- npx -y @upstash/context7-mcp@latest
+# These are already in mcp-integration.md. /pde:setup handles the install flow.
 ```
 
 ### Post-v1 MCP server development
@@ -306,6 +465,8 @@ npm install commander@^14.0.0
 | Commander 14 | oclif | If PDE becomes a Salesforce-scale CLI with plugin marketplace |
 | Commander 14 | Commander 15 (ESM) | Only if Node 22.12+ is the minimum target AND codebase is fully converted to ESM |
 | @modelcontextprotocol/sdk v1.x | v2.x | When v2 reaches stable release (anticipated Q1-Q2 2026 but not yet released) |
+| Node.js built-in https for MCP registry | axios or node-fetch | Never — zero-dep philosophy; built-in https handles unauthenticated GET with cursor pagination trivially |
+| a11y-mcp (free, MPL-2.0) | Deque axe-mcp-server (paid) | Only if Deque's paid Axe DevTools subscription is already active — same engine underneath |
 
 ---
 
@@ -319,12 +480,17 @@ npm install commander@^14.0.0
 | json-schema-to-typescript | CommonJS support unconfirmed at v15; LLM-authored TypeScript is more semantically accurate for UI component APIs | Claude writes .ts files directly |
 | Handlebars / Nunjucks / EJS | Template engines solve data-driven template rendering; PDE generates bespoke, contextual content | Claude writes HTML files directly |
 | Any server framework | PDE generates static files; no server needed; PROJECT.md explicitly excludes in-tool web dashboard | Static file generation only |
-| TypeScript for pde-tools.cjs | Out of scope for v1.1; rewriting is a risk | Keep CJS JavaScript; TypeScript appropriate for new MCP server code only |
+| TypeScript for pde-tools.cjs | Out of scope for v1.2; rewriting is a risk | Keep CJS JavaScript; TypeScript appropriate for new MCP server code only |
 | npm package dependencies in the plugin | Plugin consumers should not need npm install; zero-dep is a feature | Node.js built-ins only |
 | ESM for the core tools binary | Invoked via node file.cjs; ESM breaks this invocation pattern | CommonJS with .cjs extension |
 | Commander 15+ | ESM-only; requires Node 22.12+; incompatible with CJS codebase | Commander 14.x |
 | @modelcontextprotocol/sdk v2.x | Not yet stable as of 2026-03-15 | v1.27.1 |
 | node-fetch | Built into Node 18+; unnecessary dep | fetch (built-in) |
+| Deque axe-mcp-server | Requires paid Axe DevTools subscription; same axe-core engine as free a11y-mcp | a11y-mcp@1.0.4 (free, MPL-2.0) |
+| External competitive intelligence APIs (Crunchbase, SimilarWeb) | Requires API keys, external services; conflicts with PDE's no-auth design constraint | Claude training knowledge + Brave Search (existing websearch command in pde-tools.cjs) |
+| React/Vue components from /pde:mockup | Mockup outputs are HTML/CSS previews; framework components are /pde:handoff's domain | Plain HTML + CSS with state classes |
+| WCAG 3.0 / APCA contrast targets | WCAG 3.0 is Working Draft only; APCA not yet normative | WCAG 2.2 Level AA (now ISO/IEC 40500:2025) |
+| CSS preprocessors (Sass/Less) in mockup output | No build pipeline in PDE; file:// compatibility requires inline CSS | Native CSS custom properties + CSS nesting (baseline 2023, all modern browsers) |
 
 ---
 
@@ -362,6 +528,27 @@ npm install commander@^14.0.0
 - Do not rewrite pde-tools.cjs; expose it via CLI commands
 - Keep CJS throughout until ESM migration is planned as an explicit milestone
 
+**If ideation is run standalone (not via /pde:build):**
+- Outputs IDT-ideation-v{N}.md to .planning/design/strategy/
+- Sets hasIdeation: true in manifest
+- Does not depend on any prior artifacts — first stage in the full pipeline
+
+**If hig runs in light mode (from /pde:critique):**
+- Receives --hig-light flag
+- Skips axe-core full audit (too expensive for mid-pipeline check)
+- Evaluates ~15 critical WCAG criteria from wcag-baseline.md via Claude directly
+- Findings folded into CRT report; no separate HIG artifact created
+
+**If hig runs in full mode (standalone or build gate):**
+- Evaluates all ~56 WCAG 2.2 A/AA criteria
+- Probes axe-core via a11y-mcp for automated violations on HTML artifacts
+- Writes HIG-audit-v{N}.md, sets hasHig: true in manifest
+
+**If recommend runs without a STACK.md:**
+- Cannot detect project tech stack for targeted recommendations
+- Falls back to generic product-type-based recommendations (web/mobile/other)
+- Warns user to run /pde:setup or create STACK.md first
+
 ---
 
 ## Version Compatibility
@@ -378,6 +565,12 @@ npm install commander@^14.0.0
 | CommonJS (.cjs) | @terrazzo/cli 0.7.x | INCOMPATIBLE -- Terrazzo is ESM-only |
 | SKILL.md skills | .claude/commands/*.md | Both work; skills take precedence when names conflict |
 | DTCG tokens 2025.10 | CSS custom properties | Direct: $value becomes var(--token-name) |
+| a11y-mcp@1.0.4 | axe-core@4.11.1 | a11y-mcp pins axe-core internally; no separate axe-core install needed |
+| @playwright/mcp@latest | @playwright/test@1.50+ | Playwright MCP installs browser binaries on first use via npx playwright install |
+| @modelcontextprotocol/server-sequential-thinking@2025.12.18 | Node.js 18+ | Used via stdio MCP; no version lock needed beyond Node.js 18+ |
+| @upstash/context7-mcp@2.1.4 | Node.js 18+ | Used via npx; version auto-resolved at install time |
+| MCP Registry API v0/ | Node.js built-in https | API freeze at v0.1 since Sept 2025; stable for integration without auth |
+| Apple HIG Liquid Glass | iOS 26+ / macOS Tahoe+ only | Gate Liquid Glass audit criteria on platform target being iOS/iPadOS/macOS 26+ |
 
 ---
 
@@ -386,18 +579,19 @@ npm install commander@^14.0.0
 - Official Claude Code docs (code.claude.com/docs/en/skills) -- Skills format, SKILL.md frontmatter fields, invocation control [HIGH confidence]
 - Official Claude Code docs (code.claude.com/docs/en/plugins) -- Plugin structure, plugin.json manifest, directory layout [HIGH confidence]
 - Official Claude Code docs (code.claude.com/docs/en/sub-agents) -- Subagent frontmatter, model aliases, tools field [HIGH confidence]
-- PDE source code (direct read of bin/pde-tools.cjs, bin/lib/*.cjs) -- Zero-dependency Node.js pattern, built-in fetch, CJS format [HIGH confidence]
+- PDE source code (direct read of bin/pde-tools.cjs, bin/lib/*.cjs, commands/, workflows/, references/, templates/) -- Zero-dependency Node.js pattern, built-in fetch, CJS format, existing template coverage [HIGH confidence]
 - designtokens.org/tr/drafts/format/ -- DTCG 2025.10 stable spec, $value/$type format [HIGH confidence]
-- w3.org/community/design-tokens/2025/10/28/design-tokens-specification-reaches-first-stable-version/ -- DTCG first stable version announcement [HIGH confidence]
-- github.com/mermaid-js/mermaid issues #3590, #4148 -- Mermaid 10+ ESM-only confirmed, CommonJS broken [HIGH confidence]
+- [MCP Registry API Nordic APIs guide](https://nordicapis.com/getting-started-with-the-official-mcp-registry-api/) -- /v0/servers endpoint, ?search=, ?limit=, cursor pagination, unauthenticated GET, JSON schema [HIGH confidence]
+- [Official MCP Registry](https://registry.modelcontextprotocol.io/) -- Launched Sept 2025, v0.1 API freeze [HIGH confidence]
+- [a11y-mcp GitHub](https://github.com/priyankark/a11y-mcp) -- Free, MPL-2.0, wraps axe-core 4.11.1 [HIGH confidence]
+- [Playwright MCP GitHub](https://github.com/microsoft/playwright-mcp) -- Microsoft official, snapshot + screenshot modes, accessibility tree [HIGH confidence]
+- [Apple Liquid Glass announcement](https://www.apple.com/newsroom/2025/06/apple-introduces-a-delightful-and-elegant-new-software-design/) -- iOS 26 design language confirmed [HIGH confidence]
+- [WCAG 2.2 ISO standard](https://adaquickscan.com/blog/wcag-2-2-iso-standard-2025) -- WCAG 2.2 = ISO/IEC 40500:2025 (October 2025) [HIGH confidence]
+- npm registry WebSearch (2026-03-16): a11y-mcp@1.0.4, @modelcontextprotocol/server-sequential-thinking@2025.12.18, @upstash/context7-mcp@2.1.4 [MEDIUM confidence — WebSearch only; direct npmjs.com fetch returned 403]
+- github.com/mermaid-js/mermaid issues #3590, #4148 -- Mermaid 10+ ESM-only confirmed [HIGH confidence]
 - styledictionary.com/versions/v4/migration/ -- Style Dictionary v4+ ESM-only confirmed [HIGH confidence]
-- npm search results -- style-dictionary v5.3.3, Terrazzo @terrazzo/cli v0.7.2, mermaid v11.13.x (March 2026) -- ESM-only [MEDIUM confidence]
-- json-schema-to-typescript v15.0.4 -- latest version, CommonJS support unconfirmed [MEDIUM confidence]
-- github.com/orgs/mermaid-js/discussions/4148 -- LLM Mermaid text generation approach [MEDIUM confidence]
-- npm/GitHub search results -- Commander 14.x latest, Commander 15 ESM-only [MEDIUM confidence]
-- modelcontextprotocol.io/docs/sdk -- Transport options, stdio vs Streamable HTTP [HIGH confidence via WebSearch]
 
 ---
 
-*Stack research for: AI-powered product development platform (PDE), v1.1 Design Pipeline additions*
-*Researched: 2026-03-15*
+*Stack research for: AI-powered product development platform (PDE), v1.2 Advanced Design Skills additions*
+*Researched: 2026-03-16*

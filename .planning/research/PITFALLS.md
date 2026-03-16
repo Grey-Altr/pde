@@ -1,210 +1,230 @@
 # Pitfalls Research
 
-**Domain:** Adding design pipeline (brief → flows → system → wireframe → critique → iterate → handoff) to an existing AI-assisted development tool (PDE v1.1)
-**Researched:** 2026-03-15
-**Confidence:** HIGH (findings grounded in direct PDE/GSD codebase inspection, LLM prompt engineering literature, and design-tools community post-mortems)
+**Domain:** Adding advanced design skills (ideation, competitive analysis, opportunity scoring, mockups, HIG audit, tool discovery) to an existing 7-stage PDE design pipeline
+**Researched:** 2026-03-16
+**Confidence:** HIGH (grounded in direct inspection of v1.1 codebase, workflow contracts, manifest schema, and orchestrator anti-patterns; no external research required — the pitfalls emerge from the system's own structure)
 
 ---
 
 ## Critical Pitfalls
 
-### Pitfall 1: LLM Wireframe Output Has No Fidelity Contract
+### Pitfall 1: Orchestrator Stage Count Mismatch Silently Corrupts Pipeline State
 
 **What goes wrong:**
-The LLM produces wireframes as HTML/CSS or ASCII-art markup that varies wildly in fidelity between invocations. One run produces a sparse skeleton; another produces a pixel-detailed mock that looks like a finished UI. Downstream commands (`/pde:critique`, `/pde:iterate`) are built against one fidelity assumption and break or produce irrelevant output when fidelity drifts. Users also interpret high-fidelity wireframe output as implementation intent, then are confused when the actual code differs.
+The existing `build.md` orchestrator hardcodes "7 stages" in its display messages, stage tables, completion check (`if ALL 7 stages are complete`), the next-stage name lookup table, and the final summary block. When the pipeline expands to 12 stages, the orchestrator still reads designCoverage for 7 flags, reports "7/7 complete" after the original pipeline finishes, and halts — never invoking the 5 new stages (mockup, HIG, etc.). The new stages appear to be skipped by design rather than by broken logic, so the bug is invisible unless you count stage invocations.
 
 **Why it happens:**
-LLMs default to "impressive output" without a fidelity constraint. Without an explicit ceiling in the system prompt, the model renders whatever looks best in context. The developer tests once, gets consistent output, and ships — then real users discover variability.
+The build workflow was written with explicit stage counts baked into prose. Every "7 stages" reference is a magic number — not derived from the stage list. When adding stages, developers update the stage list but miss the half-dozen prose references to the old count. The orchestrator appears to work because all existing artifacts pass their checks, and the new stages just never run.
 
 **How to avoid:**
-Define a fidelity enum (`skeleton | lo-fi | mid-fi`) and enforce it via the wireframe agent prompt with hard constraints per level (e.g., `skeleton`: no color, no images, layout only; `lo-fi`: grayscale, placeholder labels only; `mid-fi`: named colors, real labels, no images). The `/pde:wireframe` command must accept a fidelity argument and inject the corresponding constraint block into the agent prompt. Store the fidelity level in the artifact frontmatter so downstream commands can read and respect it.
+Stage count must be derived dynamically in the orchestrator. The canonical stage list is the source of truth — the "N stages" number in all display messages should be `count(STAGE_LIST)`, not a hardcoded literal. Before implementing any new stage, audit `build.md` for all numeric literals (7, "7 stages", "7/7", `7 - N`) and replace with derived values. Add a `--dry-run` test as a verification step: stage count in dry-run output must match the number of skills being invoked.
 
 **Warning signs:**
-- Wireframe artifacts contain real image URLs, brand colors, or detailed typography — when those were not requested
-- Two runs of `/pde:wireframe` on the same input produce structurally different output
-- Downstream `/pde:critique` feedback references implementation details instead of layout decisions
+- `/pde:build --dry-run` shows "7 stages" after pipeline expansion
+- Running `/pde:build` after all original stages complete shows "Pipeline finished" without running mockup or HIG
+- `designCoverage` JSON has flags for new stages but build orchestrator never reads them
 
-**Phase to address:** Phase implementing `/pde:wireframe` — fidelity control must be built in from day one, not retrofitted. Retrofitting breaks artifact compatibility.
+**Phase to address:** Phase implementing the expanded `/pde:build` orchestrator — before any new stage is wired up, fix stage-count derivation and audit all magic numbers.
 
 ---
 
-### Pitfall 2: Critique Is Generic Because the Agent Has No Design Brief in Context
+### Pitfall 2: Pre-Pipeline Stages (Ideation, Competitive, Opportunity) Have No Coverage Flags in the Existing Schema
 
 **What goes wrong:**
-`/pde:critique` produces feedback like "consider improving visual hierarchy" and "ensure adequate contrast" — textbook UX advice that applies to any interface. The critique is not wrong, but it has zero specificity to this product, these user flows, or these design decisions. The iterate step has nothing actionable to work with and either ignores the critique or makes arbitrary changes.
+The `design-manifest.json` `designCoverage` object currently has 7 boolean flags: `hasDesignSystem`, `hasFlows`, `hasWireframes`, `hasCritique`, `hasIterate`, `hasHandoff`, `hasHardwareSpec`. The new pre-pipeline stages (ideate, competitive, opportunity) need coverage flags so the orchestrator can determine whether they are complete and whether to skip them on resume. If the flags are absent, the orchestrator has no coverage check to perform — so it re-runs these stages on every `/pde:build` invocation, even when the user already has a complete ideation doc and a competitive analysis they spent an hour on.
 
 **Why it happens:**
-The critique agent is spawned with only the wireframe artifact in context. Without the brief (user goals, product constraints, target persona) and the user flows (what tasks this screen supports), the LLM falls back to generic heuristic evaluation. It is evaluating a wireframe as a generic UI, not as a specific product decision.
+The `coverage-check` CLI command reads a fixed schema from `design-manifest.json`. New flags must be explicitly added to the schema and the CLI command. The v1.1 implementation pattern is "read-before-set" to avoid clobbering sibling flags — every skill reads ALL fields before writing. When new fields are added without updating this pattern in existing skills, the first existing skill to run after an upgrade will clobber the new flags back to `undefined` (which the orchestrator then treats as `false`).
 
 **How to avoid:**
-The critique agent must receive the full upstream context: `.planning/design/BRIEF.md`, `.planning/design/FLOWS.md`, and the specific wireframe being evaluated — in that order. Critique prompts must demand specificity: "For each issue, cite the user flow it breaks, the brief constraint it violates, or the usability principle with evidence from the wireframe." If brief or flows are missing, block critique and surface the dependency to the user rather than running a degraded pass.
+Step 1: Define the full v1.2 coverage schema before implementing any new skill — add `hasIdeation`, `hasCompetitive`, `hasOpportunity`, `hasMockup`, `hasHigAudit` to the schema (minimum; the orchestrator determines which new stages require flags). Step 2: Update the `coverage-check` command to emit these fields with a `false` default when absent. Step 3: Update ALL existing skills' read-before-set patterns to include the new fields in their merge operation. Do this schema migration as a standalone phase before any skill implementation.
 
 **Warning signs:**
-- Critique output contains no references to specific screens, labels, or user flow steps
-- Every critique point could apply to any app in the same category
-- The iterate command cannot be run because there are no actionable critique items
+- Running `/pde:competitive` then `/pde:brief` then checking coverage shows `hasCompetitive: undefined`
+- Existing skills' manifest-set-top-level calls do not include the new flag names
+- `/pde:build --dry-run` shows pre-pipeline stages as pending even when their output files exist
 
-**Phase to address:** Phase implementing `/pde:critique` — requires upstream brief and flows artifacts to exist; build the dependency check before the LLM invocation.
+**Phase to address:** Schema migration phase — must run before the first new skill is implemented. Blocking dependency for all v1.2 skill phases.
 
 ---
 
-### Pitfall 3: Design Token Format Is Invented Per-Run, Breaking Handoff Alignment
+### Pitfall 3: Ideation Diverge→Converge Is Treated as a Single LLM Pass
 
 **What goes wrong:**
-`/pde:system` outputs a design system document. The token naming, value format, and structure are whatever the LLM invents at the time (`--color-primary`, `color.primary`, `$primary`, `PRIMARY_COLOR` all occur in practice). Downstream wireframe agents reference the design system but use a different naming convention because they are working from a different context window. The handoff spec references token names that do not exist in the system doc. The developer implementing the code finds the spec useless.
+The multi-phase diverge→converge model requires at least two structurally distinct phases: broad exploration (diverge) and narrowing/selection (converge). If the ideation workflow is implemented as a single LLM prompt that "first diverges then converges," the LLM produces output that is simultaneously shallow on ideas (because it knows it must converge) and premature on selection (because divergence was not fully explored). The result looks like an ideation document but contains 3-5 ideas with no real exploration — essentially a summary of the obvious. The competitive analysis and opportunity scoring stages then operate on weak input, magnifying the quality deficit downstream.
 
 **Why it happens:**
-LLMs do not maintain state between invocations. Each agent gets a fresh context and invents locally consistent but globally inconsistent naming. No schema enforces a token format across all design pipeline stages.
+Implementing two distinct phases requires two separate user interactions or explicit intermediate checkpoints. Developers collapse it into one pass to reduce workflow complexity. The LLM happily complies — it will generate a "diverge" section and a "converge" section in one response, but the cognitive pressure to converge inhibits divergent generation.
 
 **How to avoid:**
-Define a canonical token format in a design system template (`templates/design/DESIGN-SYSTEM.md`) before any agent produces tokens. The template must specify: naming convention (e.g., CSS custom properties: `--[category]-[variant]`), required categories (color, spacing, typography, radius, shadow, z-index), and a machine-readable section (JSON or YAML block) that downstream agents read directly. Every subsequent agent (wireframe, critique, handoff) must be instructed to read the token table from the generated system doc before producing output.
+Implement ideation as a two-pass workflow with an explicit checkpoint between phases. Pass 1: generate N ideas (configurable; default 8-12) with NO winnowing — breadth only, no evaluative language, no ranking. Write IDT-ideation-v{N}.md with status `diverge-complete`. Pass 2 (separate invocation or explicit step): present ideas to user for reaction, then apply converge logic to narrow to the top 2-4 with rationale. This checkpoint is where `recommend` (tool discovery) integrates — tool suggestions surface during diverge so the user sees what's feasible before converge. The two-pass structure must be explicit in the workflow file, not collapsed into one step.
 
 **Warning signs:**
-- Token names in wireframe artifacts use a different syntax than names in the design system doc
-- Handoff spec contains token names not present in `.planning/design/DESIGN-SYSTEM.md`
-- Two wireframe artifacts for the same product use different spacing units (px vs rem vs unitless)
+- Ideation document has fewer than 6 distinct ideas in the diverge section
+- Ideas in the diverge section include evaluative language ("best option", "most viable") — this signals premature convergence
+- The workflow does not write an intermediate file between diverge and converge phases
 
-**Phase to address:** Phase implementing `/pde:system` — the template is the contract; establish it before any downstream commands are built.
+**Phase to address:** Phase implementing `/pde:ideation` — the two-pass structure is the core design of the skill, not an enhancement.
 
 ---
 
-### Pitfall 4: Handoff Specs Are Written for a Generic Codebase, Not the Actual Project's Patterns
+### Pitfall 4: Competitive Analysis Output Is Not Wired Into Downstream Brief Input
 
 **What goes wrong:**
-`/pde:handoff` produces component API specs using prop naming conventions, file structures, and state management patterns that do not match the actual codebase. The developer receiving the handoff must mentally translate every spec before writing a line of code. For a React/Tailwind project, the spec references SCSS variables and class-based components. For a Vue project, the spec assumes React hooks. The spec is accurate in isolation but useless in context.
+`/pde:competitive` produces a detailed landscape analysis with gap analysis, competitor strengths/weaknesses, and positioning opportunities. `/pde:opportunity` consumes competitive gaps as candidate inputs. But `/pde:brief` — which already exists in v1.1 — has no awareness of competitive analysis output. The brief agent writes market context, personas, and product positioning from scratch, ignoring the competitive landscape already documented. The result is a brief that is internally coherent but factually inconsistent with the competitive analysis (e.g., the brief says "no existing tools do X" while the competitive analysis notes three competitors who do X).
 
 **Why it happens:**
-The handoff agent has no information about the actual tech stack the developer will implement against. The design pipeline stages run early (before code exists) so the agent cannot read the codebase. Without explicit injection, it defaults to whatever pattern is most common in its training data.
+`/pde:brief` is a v1.1 skill with a fixed `<required_reading>` block. New upstream skills are not automatically added to existing skills' required reading. The brief skill predates the competitive and opportunity skills — it cannot read files that did not exist when it was written.
 
 **How to avoid:**
-`/pde:handoff` must read `.planning/research/STACK.md` (produced during `/pde:new-project`) before generating specs. The handoff agent prompt must include an explicit instruction: "Generate all component APIs using the exact conventions documented in the project's STACK.md — prop names, file naming, state patterns, and styling approach must match the established stack." If STACK.md does not exist, block and require the user to run `/pde:new-project` first or supply a stack doc manually.
+Update `brief.md` workflow to check for and optionally inject competitive and opportunity documents as soft-dependency context. In Step 2 (prerequisite check), add: check for `CMP-competitive-v*.md` in `.planning/design/strategy/` and `OPP-opportunity-v*.md`. If present, read them and inject into brief generation context with explicit instruction: "The competitive landscape analysis and opportunity scoring are upstream context — incorporate their market positioning and gap analysis into the brief's market context and differentiation sections." Mark as soft dependency — brief still runs without them, but with a warning that it will lack competitive grounding.
 
 **Warning signs:**
-- Handoff spec uses component naming conventions inconsistent with the existing codebase
-- TypeScript interfaces in the spec use patterns (class-based, namespace-qualified) not present in the project
-- Developers report needing to "reinterpret" the handoff spec before implementing
+- Brief's market context section makes claims that contradict the competitive analysis
+- Brief persona section does not reference the positioning opportunities identified in the opportunity evaluation
+- Brief is generated before competitive/opportunity, but no warning is issued
 
-**Phase to address:** Phase implementing `/pde:handoff` — STACK.md integration is a required input, not optional context.
+**Phase to address:** Phase updating `/pde:brief` for v1.2 context injection — this is an update to an existing skill, not a new skill, and must be planned as its own phase.
 
 ---
 
-### Pitfall 5: The Orchestrator (`/pde:build`) Becomes a God Workflow
+### Pitfall 5: HIG Dual-Mode Is Implemented as Two Separate Skills Instead of One Parameterized Skill
 
 **What goes wrong:**
-The `/pde:build` orchestrator starts as a simple sequential runner: `brief → flows → system → wireframe → critique → iterate → handoff`. Over time it accumulates inline logic: fidelity negotiation, artifact existence checks, conditional skip logic, resume-from-checkpoint behavior, error recovery branches. Within a few iterations it is 300 lines of orchestration logic that is impossible to debug and cannot be modified without breaking edge cases. Adding a new step (e.g., inserting `hig` between `wireframe` and `critique`) requires rewriting the orchestrator.
+The requirement is "HIG light in critique vs HIG full standalone." If this is implemented as two separate code paths — one embedded in the critique workflow and one in the standalone HIG skill — the two diverge over time. Light HIG in critique gets updated when critique is updated; full HIG in the standalone skill gets updated when someone specifically works on HIG. They end up checking different things, using different scoring, and producing findings that contradict each other when a user runs both. A user who runs critique (gets light HIG feedback) then runs `/pde:hig` (gets full HIG audit) sees different severity ratings for the same issues, which destroys trust in both outputs.
 
 **Why it happens:**
-The convenience of a single workflow file makes it tempting to add "just one check" inline. Each addition is individually reasonable; the aggregate is a maintenance nightmare. This is identical to the anti-pattern that caused GSD to centralize all side effects in `pde-tools.cjs` — but applied to orchestration logic rather than file system operations.
+Embedding HIG logic in critique.md is the path of least resistance during critique implementation. Then when the standalone skill is built, it replicates the logic independently rather than calling shared code. Both implementations work in isolation; the divergence only becomes visible when a user uses both in sequence.
 
 **How to avoid:**
-Apply PDE's existing Workflow-as-Orchestrator pattern (documented in ARCHITECTURE.md) strictly to `/pde:build`. The build orchestrator's only responsibilities: check which artifacts exist, determine next step, invoke the appropriate sub-command, check for errors, advance. All artifact-checking logic lives in `pde-tools.cjs design status`. All step-specific logic lives in the individual skill workflow files. The orchestrator is a loop over a stage list, not a case statement with embedded business logic.
+Define HIG audit logic once, in the HIG skill workflow. The critique skill invokes a partial HIG pass by calling `Skill("pde:hig", args="--light --screens {wireframe_list}")` or equivalent, rather than embedding HIG evaluation logic inline in the critique workflow. "Light mode" is a flag on the HIG skill, not a separate code path. This means the HIG skill must be built before critique is updated to include HIG integration — plan the phase order accordingly.
 
 **Warning signs:**
-- `/pde:build` workflow file exceeds ~80 lines
-- Fidelity negotiation or token validation logic appears inside the build workflow
-- Adding a new pipeline stage requires editing the build orchestrator (instead of just the stage's own workflow file)
+- `critique.md` contains HIG evaluation criteria written inline (not delegated to `hig.md`)
+- Light HIG findings in critique use different severity labels than full HIG findings in standalone
+- A finding is Critical in `/pde:hig` output and Major in `/pde:critique` output for the same element
 
-**Phase to address:** Phase implementing `/pde:build` — establish the delegation boundary in the first implementation. Do not refactor later; the stage-list pattern must be the initial design.
+**Phase to address:** Phase implementing `/pde:hig` — design the --light flag as a first-class mode from the start. Do not embed HIG logic in critique.
 
 ---
 
-### Pitfall 6: Pipeline State Is Not Persisted, So Crashes Lose All Progress
+### Pitfall 6: Mockup Skill Treats Wireframe as Source of Truth for Layout, Ignoring Iterate Revisions
 
 **What goes wrong:**
-A user runs `/pde:build` through brief, flows, system, wireframe, and partway through critique — then Claude Code crashes, the session times out, or the user closes the terminal. On restart, there is no way to know where the pipeline stopped. The user must restart from the beginning or manually inspect which artifacts exist and guess the next step. For a 7-stage pipeline this is a severe experience failure.
+`/pde:mockup` is a post-iterate skill — it generates hi-fi HTML/CSS from the iterated wireframe. If the mockup skill discovers wireframes by globbing for `WFR-*-v1.html` (the original wireframe naming) instead of `WFR-*-v{MAX}.html` (the most recent iterated version), it generates a hi-fi mockup from the original pre-critique wireframe. The mockup looks polished but embeds all the UX issues that iterate was supposed to fix. This bug is hard to detect because the mockup is visually impressive — users may not notice the structural regression until development review.
 
 **Why it happens:**
-The existing PDE state system tracks phases and plans, but the design pipeline is a new artifact category. Without a design pipeline state entry in `.planning/STATE.md` or a dedicated `.planning/design/PIPELINE-STATE.md`, there is no checkpoint record. Individual artifact files exist, but the pipeline does not know "critique was started but not completed."
+The wireframe naming convention uses version suffixes (WFR-login-v1.html, WFR-login-v2.html, WFR-login-v3.html). Iterate creates new versions; it does not overwrite. Mockup must select the highest version, which requires parsing version numbers from filenames — a step that is easy to skip in favor of a simple glob.
 
 **How to avoid:**
-Add a `design_pipeline` section to PDE's state system (either in `.planning/STATE.md` frontmatter or a dedicated `.planning/design/STATE.md`). Track: current stage, stage status (not-started / in-progress / complete / skipped), and the artifact path for each stage. `pde-tools.cjs` must expose `design-state load` and `design-state update <stage> <status>` commands. Every design skill workflow must write its status at start AND at completion so partial progress is captured. `/pde:build` reads this state to determine resume point.
+Mockup's artifact discovery step must use the same version-sorting logic already implemented in critique.md and iterate.md (sort by parsed `v{N}` suffix, select MAX). This logic is already written — it must not be reimplemented independently. Extract the version-sort logic into a `pde-tools.cjs design latest-artifact {code}` command that all skills call, so version resolution is centralized. Additionally, mockup should verify that the selected wireframe is the output of an iterate pass (check `ITR-changelog-v*.md` exists) and warn if generating from a pre-iterate wireframe.
 
 **Warning signs:**
-- Running `/pde:build` after a crash starts over from the beginning instead of the last incomplete stage
-- There is no machine-readable record of which design artifacts have been produced
-- `/pde:build` does not output which stage it is resuming from on restart
+- Mockup output filename contains a lower version number than the most recent iterate output
+- Running mockup immediately after a fresh wireframe (no iterate) produces same-version mockup as running after three iterate cycles
+- Mockup step in the orchestrator is marked as complete but the source wireframe version does not match the iterate output version
 
-**Phase to address:** Phase implementing state management for the design pipeline — this must precede or be built alongside the first skill workflow, not added later. Retrofitting state into an already-running pipeline is extremely disruptive.
+**Phase to address:** Phase implementing `/pde:mockup` — version-aware artifact discovery must be implemented from the start, not retrofitted.
 
 ---
 
-### Pitfall 7: "This Is Not a Design Tool" Scope Creep
+### Pitfall 7: Recommend (Tool Discovery) Is Implemented as a Standalone Report, Not as an Ideation Flow Input
 
 **What goes wrong:**
-During implementation, features that feel natural to a design pipeline start appearing: real-time preview of wireframes in the terminal, Figma export, actual image generation, color palette pickers, icon library integration, animated transition specs. Each is individually defensible. Collectively they transform a lightweight LLM-text-based pipeline into a fragile, scope-bloated product that takes 10x longer to build and still does not equal a real design tool. The core pipeline — which was shipping-ready — is delayed six months.
+The requirement states: "Recommend skill for MCP/tool discovery (integrated into ideation)." If `/pde:recommend` is implemented as a standalone tool that generates a static recommendations list and stops, it produces output but does not surface recommendations at the moment they are needed — during ideation diverge, when the user is deciding which ideas are feasible given available tools. The user runs ideation, then separately runs recommend, then tries to reconcile the two manually. The integration value — "this idea is now feasible because MCP X exists" — is lost.
 
 **Why it happens:**
-Design pipeline work is inherently adjacent to real design tools. The gap between "an LLM describing a wireframe in text" and "Figma" is obvious to anyone who uses both. The natural instinct is to close that gap. But PDE is a text-based, file-based, LLM-augmented tool — not a design tool. The value proposition is speed and integration with the development workflow, not design fidelity.
+Standalone implementation is simpler to build and test. Integration into an existing workflow (ideation) requires understanding the ideation workflow's lifecycle and inserting a probe at the right checkpoint. Developers default to standalone because it ships faster.
 
 **How to avoid:**
-Establish a hard scope boundary in every design pipeline phase plan: PDE produces text artifacts (Markdown, HTML/CSS snippets) that describe design intent. PDE does not produce visual files, does not integrate with design tools in v1.1, and does not replace Figma. When a feature request sounds like "PDE should do what Figma does," the answer is "that's for a future milestone or a Figma MCP integration." The brief's own out-of-scope list (already defined in PROJECT.md) must be copied into every design skill's implementation plan as a reminder.
+The recommend skill must expose two modes: (1) standalone report mode (for users who want tool discovery outside ideation) and (2) ideation-integration mode, which the ideation workflow calls after diverge-complete and before converge. In integration mode, recommend reads the IDT-ideation-v{N}.md diverge section, scans for tool/technology mentions in each idea, and produces a short per-idea feasibility annotation ("Idea 3 requires real-time data sync — Context7 MCP covers this; install with `npx @context7/mcp`"). The ideation workflow's converge step reads these annotations. This requires designing the ideation workflow and the recommend skill together — they share an interface.
 
 **Warning signs:**
-- A phase plan includes image generation, SVG export, or color swatch rendering
-- A phase plan references Figma, Sketch, or any external design tool as a required output target
-- Implementation time estimate for any single design skill exceeds 2-3 days
+- `/pde:recommend` can be run on any project with no reference to an ideation document
+- Ideation workflow does not call recommend at any step
+- Recommend output format is a standalone report, not a per-idea annotation format readable by ideation
 
-**Phase to address:** Every design pipeline phase — the scope boundary must be stated explicitly in each phase plan, not once in a requirements doc that implementors do not read.
+**Phase to address:** Phase implementing `/pde:ideation` AND `/pde:recommend` — these two skills must be designed together. Implement recommend first, since ideation calls it.
 
 ---
 
-### Pitfall 8: Design Artifacts Are Stored Outside the Established `.planning/` Pattern
+### Pitfall 8: RICE Scoring Numbers Are Invented, Not Grounded in Brief Constraints
 
 **What goes wrong:**
-Design artifacts get stored in a new top-level directory (e.g., `design/`, `wireframes/`, `.design/`) that is inconsistent with the existing `.planning/` convention. Downstream commands that scan for context (existing workflow commands that read `.planning/` files) do not find design artifacts. The `pde-tools.cjs` state system does not know about design artifacts. Verification (`/pde:health`) does not check for design artifact integrity. The design pipeline becomes a parallel, disconnected system instead of an integrated part of PDE.
+The RICE formula requires Reach (number of users), Impact (0.25–3 scale), Confidence (0.5–1.0), and Effort (person-weeks). When the opportunity skill runs before the brief is complete, the LLM invents plausible-sounding RICE numbers that have no basis in the actual product's persona definitions, stated constraints, or delivery timeline. Scores look precise (e.g., "Feature A: RICE 82.5, Feature B: RICE 47.3") but are numerologically fictional. Product decisions made on fictional RICE scores are worse than decisions made by intuition, because they carry false quantitative authority.
 
 **Why it happens:**
-Design feels like a separate concern from planning. Implementors create a new directory without checking whether the existing `.planning/` structure can accommodate it. The path of least resistance is a new top-level dir.
+The LLM will produce RICE scores for any input — it is pattern-matching to the scoring formula, not reasoning about the actual product. Without explicit grounding constraints injected from the brief and competitive analysis, every number is a plausible fiction.
 
 **How to avoid:**
-Store all design artifacts under `.planning/design/` — consistent with PROJECT.md's stated decision. Naming convention: `.planning/design/BRIEF.md`, `.planning/design/FLOWS.md`, `.planning/design/DESIGN-SYSTEM.md`, `.planning/design/wireframes/[screen-name].md`, `.planning/design/CRITIQUE.md`, `.planning/design/HANDOFF.md`. This keeps design artifacts inside the existing scanning and state management surface. Extend `pde-tools.cjs` to handle `design init`, `design status`, and `design list-artifacts` — do not invent a parallel tooling surface.
+The opportunity skill must treat RICE inputs as interactive user inputs, not LLM-generated values. The workflow must prompt the user to supply or confirm each score dimension before calculating. For Reach: extract the target persona count from the brief (if present) as a starting anchor and ask the user to confirm. For Effort: require the user to supply person-week estimates. For Confidence: offer a structured checklist that determines confidence from evidence quality (has competitive data? → 0.8; user research? → 1.0; assumption-only? → 0.5). The LLM's role is structuring the scoring process and providing the ranking output — not generating the input numbers.
 
 **Warning signs:**
-- Phase plan creates any directory outside `.planning/`
-- Design artifact paths are not parseable by existing `pde-tools.cjs` file operations
-- `/pde:health` does not report on design artifact state
+- Opportunity evaluation output was generated without a single user-facing prompt for input
+- RICE Reach values are not referenced against any persona count from the brief
+- Confidence values are all 0.8 (a suspiciously round default suggesting LLM fabrication)
 
-**Phase to address:** Phase implementing the first design skill (brief) — storage convention must be established on the first artifact, not refactored after seven artifacts exist in inconsistent locations.
+**Phase to address:** Phase implementing `/pde:opportunity` — interactive input collection must be designed as the core mechanic, not an optional enhancement.
 
 ---
 
-### Pitfall 9: Iterate Has No Convergence Criterion, So the Loop Never Ends
+### Pitfall 9: HIG Full Audit Blocks Handoff Instead of Gating It
 
 **What goes wrong:**
-`/pde:iterate` applies critique feedback and produces a revised wireframe. The user runs `/pde:critique` again. The new critique produces new issues. The user runs `/pde:iterate` again. This continues indefinitely — each iteration genuinely improves something but introduces or reveals new issues. The user never knows when to move to handoff. The design pipeline stalls in an infinite refine loop.
+The pipeline order is: mockup → HIG(full) → handoff. If the HIG full audit is implemented as a blocking hard dependency for handoff (handoff refuses to run if HIG is not complete), users who want to deliver a handoff for a web product where HIG Apple guidelines are irrelevant are blocked. Alternatively, if HIG is soft-optional, teams doing iOS/macOS apps skip it under time pressure and ship non-compliant designs. Neither outcome is right — the correct behavior is "HIG audit is required for platform-relevant products and advisory for others."
 
 **Why it happens:**
-LLM-based critique will always find something to improve. Without a convergence signal, the natural endpoint of critique → iterate cycles is "when the user gets frustrated and stops." This is a UX failure, not a user failure.
+Boolean blocking logic is easier to implement than conditional blocking based on platform context. Developers either hard-block all handoffs (too strict) or make HIG fully optional (too permissive).
 
 **How to avoid:**
-`/pde:iterate` must track iteration count and write it to design state. After each iterate run, the workflow must surface a convergence checklist: (1) are all P0/P1 critique issues addressed? (2) is this the third or more iteration? (3) are remaining issues cosmetic vs. structural? If all three are true, output an explicit "Design ready for handoff" recommendation. The command should not prevent further iteration but must actively signal convergence instead of implying infinite refinement is expected.
+The HIG skill must read the brief's platform field (set during `/pde:brief`) and determine whether HIG audit is platform-applicable. For `platform: web` or `platform: android`: HIG audit is advisory — running it is recommended but not required for handoff. For `platform: ios` or `platform: macos`: HIG audit is a required gate — handoff checks for `hasHigAudit: true` in designCoverage. The handoff workflow must implement this platform-conditional gate. The brief must require a `platform` field (currently it does not enforce one) — add this to the brief template as a required field.
 
 **Warning signs:**
-- Users report running critique → iterate more than 3 times without progress signal
-- Iteration artifacts have no version numbering (can't tell which is current)
-- Handoff is never reached because users feel the design "isn't ready yet"
+- Web-only projects are blocked from handoff because HIG is not marked complete
+- iOS projects proceed to handoff without a HIG audit flag
+- The platform field is optional in the brief template
 
-**Phase to address:** Phase implementing `/pde:iterate` — build convergence signaling into the first implementation. Do not add it as an afterthought after users report the loop problem.
+**Phase to address:** Phase implementing `/pde:hig` (define the platform-conditional gating logic) and phase updating `/pde:brief` (enforce the platform field).
 
 ---
 
-### Pitfall 10: Standalone Skill Use Breaks Because Pipeline Assumes Sequential Artifact Existence
+### Pitfall 10: New Stage Coverage Flags Are Clobbered by Existing Skills Running After New Stages
 
 **What goes wrong:**
-PROJECT.md requires that "each design skill works standalone AND as part of orchestrated `/pde:build` pipeline." In practice, the implementation assumes sequential use: wireframe assumes system exists, critique assumes wireframe exists, handoff assumes critique exists. When a user runs `/pde:wireframe` directly (without a system), the command crashes or produces incoherent output. Users who want to use only the critique skill on an existing artifact find it broken.
+This is the most insidious integration pitfall in the existing codebase, already documented as a critical anti-pattern in v1.1. The read-before-set pattern in designCoverage updates was established specifically to prevent flag clobbering. But the pattern only protects fields that existed when each skill was written. When v1.2 adds `hasIdeation`, `hasCompetitive`, etc., the existing skills (brief.md, system.md, flows.md, etc.) still perform their read-before-set including only 7 fields. If any existing skill runs AFTER a new v1.2 skill has set `hasIdeation: true`, the existing skill's manifest-set-top-level call will write a 7-field object without `hasIdeation` — effectively deleting the new flag.
 
 **Why it happens:**
-During implementation it is easier to require all upstream artifacts. The developer builds and tests the pipeline sequentially. The standalone use case is never tested because the developer always runs the full pipeline.
+The read-before-set pattern reads `coverage-check` and extracts named fields. The extraction is field-by-field, not pass-through-all. When the schema adds fields, the extraction step silently ignores them. The developer implementing v1.2 adds new flags but forgets to update the merge operation in all 7 existing skill workflows.
 
 **How to avoid:**
-Every design skill command must implement a graceful dependency check with clear user-facing messages. Missing upstream artifact → surface the gap with a specific recommendation ("Run `/pde:system` first, or supply a token reference file at `.planning/design/DESIGN-SYSTEM.md`"). Design skill commands must be independently runnable with user-supplied inputs when PDE-generated upstream artifacts do not exist. Test each command in isolation as part of every phase's acceptance criteria.
+Change the manifest-set-top-level call pattern in all skills to use a pass-through-all approach: read the full designCoverage JSON as a blob, merge only the specific field being set, write back the full blob. This means the merge operation in every skill becomes `Object.assign({}, parsedCoverageBlob, { thisSkillsFlag: true })` rather than an explicit enumeration of all 7+ fields. Make this the established pattern in skill-style-guide.md before any v1.2 skill is written, so new skills inherit the correct pattern. Then update all 7 existing skills to use pass-through-all.
 
 **Warning signs:**
-- A design command crashes with a file-not-found error instead of a user-friendly message
-- Phase plan does not include a "standalone execution" acceptance test
-- Running `/pde:critique` on an externally-created wireframe file is not supported
+- After running `/pde:ideation` (sets hasIdeation), then `/pde:brief` (existing skill), check `hasIdeation` — if it is `false` or `undefined`, the clobber bug is present
+- Any skill's workflow that lists all coverage flags explicitly by name (hasDesignSystem, hasFlows, etc.) is vulnerable
+- The skill-style-guide.md still documents the explicit-enumeration pattern from v1.1
 
-**Phase to address:** Each design skill phase — standalone execution must be a stated acceptance criterion in every phase plan, not assumed to work.
+**Phase to address:** Schema migration phase — fix the coverage update pattern across all existing skills before any new skill can set new flags. This must be the first phase of v1.2 implementation.
+
+---
+
+### Pitfall 11: Competitive Analysis Is Run with Stale Training Data Without User Verification
+
+**What goes wrong:**
+`/pde:competitive` generates a competitive landscape from the LLM's training data. Claude's training cutoff is August 2025. By the time v1.2 ships, major competitors may have shipped or pivoted. Pricing models change. Market leaders change. If the competitive analysis is presented as current without surfacing the staleness caveat clearly, product decisions are made on outdated intelligence. This is not a code bug — it is an output quality and trust problem. Users who later discover their competitive analysis was wrong lose confidence in the entire pipeline.
+
+**Why it happens:**
+LLMs answer competitive questions confidently and in the present tense. Without an explicit staleness warning in the output, users read "Competitor X charges $49/month" as a current fact.
+
+**How to avoid:**
+Every competitive analysis output must include a prominent "Data Currency" notice in the template frontmatter (already present in the v1.1 `competitive-landscape.md` template — it reads `"Analysis based on data available as of {date}. Verify critical data points before strategic decisions."`). The workflow must also inject the model's known training cutoff into the generation prompt so the LLM acknowledges temporal uncertainty in any market share, pricing, or feature claims. Additionally, the competitive skill should check for the Brave Search or WebSearch MCP availability and, if present, probe current competitor data to supplement training-data claims. Label all training-data-only claims with `[Training data — verify]`.
+
+**Warning signs:**
+- Competitive analysis output contains no data currency caveat
+- Pricing or market share numbers are stated as current facts without a source or date
+- The workflow never checks for web search MCP availability
+
+**Phase to address:** Phase implementing `/pde:competitive` — staleness caveat is a required feature, not a disclaimer.
 
 ---
 
@@ -212,13 +232,13 @@ Every design skill command must implement a graceful dependency check with clear
 
 | Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
 |----------|-------------------|----------------|-----------------|
-| Hardcoding fidelity as a fixed value in the wireframe prompt | Skips user-facing fidelity control | All wireframes come out the same fidelity; lo-fi → hi-fi iteration impossible | Never — fidelity control is a core feature |
-| Skipping design pipeline state tracking | Faster first implementation | Pipeline is not resumable; crashes lose all progress | Acceptable for a single-command prototype only; must be added before any multi-stage orchestrator |
-| Writing design artifacts to a new top-level directory | Feels clean and separate | Breaks health checks, state management, and scanning that all assume `.planning/` | Never — always store under `.planning/design/` |
-| Letting critique agent produce output without brief/flows context | Critique runs even when upstream is missing | Generic, useless critique; iterate has nothing actionable to apply | Never — block with a dependency message instead |
-| Implementing `/pde:build` as a long sequential workflow with inline logic | Faster initial build | Orchestrator becomes unmaintainable; adding a stage requires rewriting the orchestrator | Never — establish the delegation boundary from the start |
-| Copying handoff template from a generic source without STACK.md integration | Faster handoff implementation | Handoff is useless for the actual project's tech stack | Never for the real implementation; acceptable only in a throwaway proof-of-concept |
-| Skipping convergence signaling in iterate | Simpler implementation | Users loop forever; handoff stage is never reached | Never — convergence signal is the exit condition for the design stage |
+| Hardcoding stage count (7, 12) in build orchestrator | No changes needed to orchestrator logic | Every pipeline expansion requires a manual audit of magic numbers across build.md | Never — derive count from stage list |
+| Embedding HIG evaluation logic inline in critique.md | Faster critique shipping | HIG light and HIG full diverge over time; trust-destroying severity inconsistencies | Never — HIG logic lives in hig.md only |
+| Single-pass ideation (diverge + converge in one LLM call) | Simpler implementation | Shallow ideas; premature convergence; weak input to competitive and opportunity | Never for production; acceptable only in a throwaway prototype |
+| LLM-generated RICE numbers without user input | No user interaction required | Fictional quantitative precision; decisions with false authority | Never — RICE inputs must be user-confirmed |
+| Skipping coverage schema migration before new skill implementation | Can start coding new skills immediately | New flags clobbered by first existing skill that runs; pipeline corrupted silently | Never — schema migration is a blocking precondition |
+| Recommend as standalone-only (not integrated into ideation) | Simpler to build and test | Tool discovery value lost; integration benefit requires manual reconciliation | Acceptable as intermediate release state (standalone first, integration in next iteration) |
+| Treating HIG as universally required gate | Simple boolean logic | Web/Android projects blocked from handoff on irrelevant platform guidelines | Never — platform-conditional gate from the start |
 
 ---
 
@@ -226,13 +246,13 @@ Every design skill command must implement a graceful dependency check with clear
 
 | Integration | Common Mistake | Correct Approach |
 |-------------|----------------|------------------|
-| Existing PDE state system | Creating a separate design state file with a different schema | Extend `.planning/STATE.md` frontmatter or add `.planning/design/STATE.md` using the same frontmatter schema; expose via new `pde-tools.cjs design-state` commands |
-| `pde-tools.cjs` bin script | Adding design pipeline commands to individual workflow files instead of centralizing in the bin script | All design artifact scaffolding, state mutation, and path resolution goes through `pde-tools.cjs`; workflow files orchestrate only |
-| Existing `/pde:new-project` STACK.md | Handoff agent ignoring STACK.md because it was written for a different phase | Explicitly pass STACK.md path in the handoff agent's `<required_reading>` block; do not assume the agent will discover it |
-| Template system | Writing design templates with no placeholder schema | Every design template must define required sections with placeholder comments; agents fill sections, do not invent structure |
-| Agent type registry | Adding design agents (brief-writer, wireframe-agent, etc.) without registering them in `core.cjs` model resolution | Register every new agent type in `core.cjs` with a model tier assignment; test with `pde-tools.cjs resolve-model pde-brief-writer` before shipping |
-| Plugin version caching | Shipping design pipeline without a version bump | Every release of design pipeline features requires a `plugin.json` version bump; established in v1.0 release process |
-| Existing `/pde:health` command | Health check not covering design artifact state | Extend health check to validate design pipeline artifacts if a design project is in progress |
+| Existing `/pde:brief` skill | Not injecting competitive/opportunity context into brief generation | Update `brief.md` to soft-depend on `CMP-*` and `OPP-*` artifacts; read them before brief generation if present |
+| `designCoverage` schema | Adding new flags without updating existing skills' read-before-set merges | Fix all 7 existing skills to use pass-through-all merge pattern before adding any new flag |
+| Ideation ↔ Recommend integration | Recommend runs after ideation instead of during converge phase | Recommend must be invoked by ideation workflow at the diverge→converge checkpoint, not run separately |
+| Mockup ↔ Iterate version selection | Mockup globs for v1 wireframe instead of max-version | Use `pde-tools.cjs design latest-artifact WFR` pattern already used by critique and iterate |
+| HIG in critique vs. HIG standalone | Inline HIG logic in critique produces different results than standalone | Critique invokes HIG skill with `--light` flag; no inline HIG logic in critique.md |
+| Opportunity ↔ Competitive gap | Opportunity candidates are LLM-invented instead of drawn from competitive gaps | Opportunity skill reads `CMP-*.md` gap analysis section as primary candidate source |
+| Brief platform field ↔ HIG gate | Platform field absent from brief; HIG gate has no conditional logic | Add required platform field to brief template; HIG gate reads platform from brief frontmatter |
 
 ---
 
@@ -240,9 +260,10 @@ Every design skill command must implement a graceful dependency check with clear
 
 | Trap | Symptoms | Prevention | When It Breaks |
 |------|----------|------------|----------------|
-| Spawning all 7 design stages as parallel tasks | Token cost explosion; context limits exceeded; outputs reference each other before they exist | Design stages are inherently sequential (each stage depends on prior artifact); never parallelize stages — only parallelize within a stage (e.g., parallel critique perspectives) | Immediately — brief cannot precede flows if both run in parallel |
-| Critique agent receiving full design system + all wireframes + full brief in one context | Context window exhaustion; critique becomes unfocused | Inject only the wireframe(s) being critiqued + brief summary + relevant tokens; not the full design system doc | When design system exceeds ~4k tokens or wireframes exceed ~2k tokens each |
-| Iterate producing a full new wireframe on every run | Redundant token spend; artifact sprawl | Iterate should produce a diff/patch over the existing wireframe and create a new version file (`wireframe-v2.md`), not regenerate from scratch | When a project has more than 2 iteration cycles |
+| Running competitive analysis as one context-window pass for 8+ competitors | Context exhaustion; shallow competitor profiles; LLM starts confabulating details | Process competitors in batches of 3-4; aggregate after each batch | When competitor count exceeds 5 (typical mid-market product space) |
+| Ideation generating 12+ ideas in one pass | Ideas become variations on the same theme; divergence is shallow after idea #7 | Cap single-pass idea count at 6; run two passes for breadth; let user inject themes between passes | Any time a single LLM call is asked to produce more than 6 structurally distinct ideas |
+| Mockup generating full hi-fi HTML for all screens in one call | Context exhaustion; incomplete HTML; inconsistent token application | Generate mockup HTML one screen at a time; use the same per-screen batching pattern as wireframe.md | When wireframe count exceeds 3 screens |
+| HIG full audit loading all wireframes + all tokens + full brief in one context | Context limit reached; audit produces generic findings after first few screens | Load one screen at a time; use the per-screen evaluation loop pattern from critique.md | When wireframe count exceeds 2 or token file exceeds 3KB |
 
 ---
 
@@ -250,25 +271,28 @@ Every design skill command must implement a graceful dependency check with clear
 
 | Pitfall | User Impact | Better Approach |
 |---------|-------------|-----------------|
-| Design pipeline with no entry point from `/pde:new-project` | Users do not discover the design pipeline exists; they start coding without a brief | `/pde:new-project` must surface the design pipeline as a next step after project setup |
-| Handoff spec with no clear "done" signal | Developers do not know if the spec is final or still being iterated | Handoff artifact must include an explicit status field (`status: final | draft`) and a version timestamp |
-| Critique feedback with no priority levels | All critique items look equally important; developers implement cosmetic fixes before structural issues | Critique template must require P0/P1/P2 classification; iterate must address P0/P1 before P2 |
-| Wireframe artifacts without a fidelity label | User shows a wireframe to a stakeholder who mistakes it for final UI | Every wireframe artifact frontmatter must include `fidelity: skeleton | lo-fi | mid-fi` |
-| Design skills advertised as "v2" in stub commands but delivered in v1.1 | User trust gap; stubs say v2, marketing says v1.1 | Update stub commands to say "v1.1" when those commands are implemented; do not ship v1.1 with stubs still claiming v2 |
+| Ideation outputs 12 ideas with no guidance on how to converge | User overwhelmed; picks arbitrarily or asks for help | Converge step must actively narrow with rationale — do not present all ideas as equal |
+| Competitive analysis without "so what" implications | User reads facts but has no actionable direction | Every competitor finding must map to an implication: "Competitor X does not support Y — this is an opportunity for differentiation" |
+| RICE scoring with fabricated numbers | User presents scores to stakeholders; scores are challenged; trust lost | Interactive input collection for all RICE dimensions; confidence labels on all scores |
+| Mockup labeled as final design | Developers implement mockup without checking for pending handoff annotations | Mockup status field must be `draft` until HIG audit is clean; never auto-promote to `final` |
+| HIG audit producing 40+ findings | User does not know where to start; deferred entirely | HIG output must prioritize: Critical first, then Major; Minor findings collapsed by default; max 10 actionable items in summary |
+| Recommend outputting tool list with no project-relevance context | User does not know which tools apply to their situation | Every recommendation must include "Why for this project" rationale, not just generic tool description |
 
 ---
 
 ## "Looks Done But Isn't" Checklist
 
-- [ ] **Wireframe fidelity control:** `/pde:wireframe lo-fi` and `/pde:wireframe mid-fi` produce structurally different outputs — verify by running both on the same brief and checking that lo-fi has no color references
-- [ ] **Critique context injection:** Critique output references specific screen elements by name from the wireframe, and at least one critique item references the brief's stated user goals — verify by checking for product-specific language in the critique doc
-- [ ] **Token format consistency:** Token names in `.planning/design/DESIGN-SYSTEM.md` appear verbatim in `.planning/design/wireframes/*.md` — verify with `grep -rn "--color-" .planning/design/` matching across both files
-- [ ] **Handoff stack alignment:** Handoff spec prop names and file structure match what exists in the project's `src/` directory (or STACK.md if no code exists yet) — verify by manual comparison before calling handoff complete
-- [ ] **Pipeline resumability:** Crash `/pde:build` partway through (CTRL-C during critique), then rerun — verify it resumes from critique rather than starting over from brief
-- [ ] **Standalone skill execution:** Run `/pde:critique` without prior pipeline execution (supply a manually-created wireframe file) — verify it produces output instead of crashing with a missing-artifact error
-- [ ] **Stub command text updated:** All stub commands (brief.md, flows.md, etc.) reference v1.1, not v2 — verify with `grep -rn "v2" commands/brief.md commands/flows.md commands/system.md commands/wireframe.md commands/critique.md commands/iterate.md commands/handoff.md`
-- [ ] **Design state tracked:** After running any design skill, `.planning/design/STATE.md` (or equivalent) contains the stage status — verify by reading the state file after each skill execution
-- [ ] **Convergence signal fires:** After three iterate cycles, `/pde:iterate` surfaces an explicit "ready for handoff" recommendation — verify by running three consecutive iterate runs on a test wireframe
+- [ ] **Pipeline stage count:** `/pde:build --dry-run` shows exactly 12 stages (or whatever the final count is) — not 7 — verify by counting rows in the stage status table
+- [ ] **Coverage schema migration:** After running `/pde:ideation` then `/pde:brief`, check `designCoverage` — `hasIdeation` must still be `true` — verify with `node bin/pde-tools.cjs design coverage-check`
+- [ ] **Ideation two-pass structure:** IDT-ideation-v{N}.md contains a distinct "Diverge" section with 6+ ideas and a separate "Converge" section — verify that the diverge section was written before the converge section (check intermediate file or step output)
+- [ ] **Competitive staleness caveat:** `CMP-competitive-v*.md` frontmatter contains a `Data Currency` field with the current date — verify file was written with staleness language, not silently omitted
+- [ ] **Brief receives competitive context:** `/pde:brief` output references at least one finding from the competitive analysis when CMP doc exists — verify by checking brief market context section for competitor references
+- [ ] **RICE user interaction:** Running `/pde:opportunity` prompts the user for at least one score dimension — verify by running with no prep and confirming at least one `AskUserQuestion` is triggered
+- [ ] **HIG light in critique:** Running `/pde:critique` on an iOS project produces HIG findings — verify that these findings match the severity/content of what `/pde:hig --light` would produce on the same wireframe
+- [ ] **HIG platform gate:** Running `/pde:handoff` on an iOS project with `hasHigAudit: false` is blocked — verify with a dry-run on an iOS brief
+- [ ] **Mockup uses max-version wireframe:** Running `/pde:mockup` after 3 iterate cycles produces a mockup sourced from v3 wireframe, not v1 — verify `Source Wireframe` field in mockup frontmatter
+- [ ] **Recommend integration point:** During `/pde:ideation`, tool recommendations surface between diverge and converge — verify that the IDT document contains a "Tool Availability" or equivalent section populated before the converge selection
+- [ ] **Opportunity sourced from competitive gaps:** OPP-opportunity-v{N}.md Evaluation Candidates table lists items traced to `CMP-*.md` gap analysis — verify at least one candidate has `Source: competitive gap` label
 
 ---
 
@@ -276,13 +300,13 @@ Every design skill command must implement a graceful dependency check with clear
 
 | Pitfall | Recovery Cost | Recovery Steps |
 |---------|---------------|----------------|
-| Wireframe fidelity drift discovered after handoff | HIGH | Re-run wireframe at correct fidelity, re-run critique, re-run iterate, regenerate handoff; 4 stages of rework |
-| Generic critique discovered post-iterate | MEDIUM | Add brief/flows to critique context, re-run critique, re-run iterate; 2 stages of rework |
-| Token naming inconsistency discovered at handoff | MEDIUM | Update design system template, patch wireframe token references, regenerate handoff; requires careful search-replace across design artifacts |
-| Handoff spec stack mismatch discovered during implementation | MEDIUM | Re-run handoff with STACK.md injection; low token cost but developer time wasted on partial implementation |
-| No pipeline state — crash loses all progress | HIGH | Manually audit which `.planning/design/` artifacts exist, determine the last complete stage, resume from that stage; significant user friction |
-| Infinite iterate loop — users never reach handoff | LOW | Run `/pde:handoff` directly; instruct user that handoff can be run at any time regardless of iterate count |
-| Design artifacts outside `.planning/` discovered mid-milestone | HIGH | Move all artifacts, update all workflow path references, update state management paths; high risk of missed references |
+| Stage count mismatch discovered after orchestrator ships | MEDIUM | Audit build.md for all numeric literals; update to derived count; re-test dry-run |
+| Coverage flags clobbered by existing skill | HIGH | Run schema migration (fix all skills to pass-through-all); re-run the new skill to re-set its flag; verify with coverage-check |
+| Single-pass ideation producing thin ideas | MEDIUM | Delete IDT artifact; re-run ideation with explicit two-pass prompt enforcement; no downstream impact if caught before brief |
+| RICE scores found to be fabricated post-scoring | HIGH | Re-run opportunity scoring with interactive mode; if RICE was used in stakeholder decisions, flag all decisions as requiring revalidation |
+| Competitive analysis data found to be stale | MEDIUM | Re-run with web search MCP enabled; update CMP artifact in-place; downstream OPP and brief may need spot-updates |
+| Mockup sourced from wrong wireframe version | MEDIUM | Delete MCK artifact; re-run mockup; no cascade impact (mockup is pre-handoff) |
+| HIG light and HIG full diverge (different findings for same issue) | HIGH | Delete inline HIG logic from critique.md; implement HIG delegation to hig.md; re-run critique to regenerate CRT with consistent HIG findings |
 
 ---
 
@@ -290,29 +314,30 @@ Every design skill command must implement a graceful dependency check with clear
 
 | Pitfall | Prevention Phase | Verification |
 |---------|------------------|--------------|
-| Wireframe fidelity drift (Pitfall 1) | Phase implementing `/pde:wireframe` | Run lo-fi and mid-fi on same brief; verify structurally different output |
-| Generic critique (Pitfall 2) | Phase implementing `/pde:critique` | Critique output contains product-specific language; no critique item is applicable to all apps |
-| Design token inconsistency (Pitfall 3) | Phase implementing `/pde:system` | Token names from DESIGN-SYSTEM.md appear verbatim in wireframe output |
-| Handoff stack mismatch (Pitfall 4) | Phase implementing `/pde:handoff` | Handoff prop names match STACK.md conventions; developer review passes |
-| God orchestrator (Pitfall 5) | Phase implementing `/pde:build` | Build workflow file under 80 lines; adding a stage requires no orchestrator edits |
-| No pipeline state / no resumability (Pitfall 6) | State management phase (before first skill) | Crash recovery test: interrupt pipeline, restart, verify correct resume point |
-| Scope creep into design tooling (Pitfall 7) | Every design pipeline phase | Each phase plan explicitly lists design-tool features as out of scope |
-| Design artifacts outside `.planning/` (Pitfall 8) | Phase implementing `/pde:brief` (first artifact) | All design artifacts created under `.planning/design/`; health check covers design directory |
-| Infinite iterate loop (Pitfall 9) | Phase implementing `/pde:iterate` | After 3 iteration runs, convergence recommendation appears in output |
-| Standalone skill execution broken (Pitfall 10) | Each design skill phase | Each skill passes a standalone acceptance test with missing upstream artifacts |
+| Orchestrator stage count mismatch (Pitfall 1) | Phase expanding `/pde:build` | `/pde:build --dry-run` shows correct stage count matching stage list |
+| Pre-pipeline coverage flags absent (Pitfall 2) | Schema migration phase (first v1.2 phase) | `coverage-check` emits all v1.2 flags with `false` default; existing skills preserve new flags |
+| Ideation single-pass collapse (Pitfall 3) | Phase implementing `/pde:ideation` | IDT document contains 6+ ideas in diverge section; intermediate checkpoint exists |
+| Competitive output not wired into brief (Pitfall 4) | Phase updating `/pde:brief` for v1.2 context | Brief market context references CMP document when present |
+| HIG dual-mode divergence (Pitfall 5) | Phase implementing `/pde:hig` (before critique HIG integration) | Same wireframe produces identical severity findings via `--light` and via critique HIG section |
+| Mockup uses stale wireframe version (Pitfall 6) | Phase implementing `/pde:mockup` | Mockup Source Wireframe field matches max-version iterate output |
+| Recommend not integrated into ideation (Pitfall 7) | Phase implementing `/pde:recommend` (before ideation) | Ideation workflow calls recommend at diverge→converge checkpoint; IDT doc contains tool annotations |
+| RICE numbers invented (Pitfall 8) | Phase implementing `/pde:opportunity` | Opportunity workflow prompts user for at least Reach and Effort inputs |
+| HIG blocking non-platform-applicable products (Pitfall 9) | Phase implementing `/pde:hig` and phase updating `/pde:brief` | Web brief proceeds to handoff without HIG; iOS brief is gated on HIG |
+| Coverage flags clobbered by existing skills (Pitfall 10) | Schema migration phase (first v1.2 phase — blocking) | Running any existing skill after a new v1.2 skill preserves the new skill's flag |
+| Competitive analysis staleness (Pitfall 11) | Phase implementing `/pde:competitive` | CMP output includes Data Currency frontmatter; staleness language appears in output |
 
 ---
 
 ## Sources
 
-- Direct inspection of PDE v1.0 codebase: `/Users/greyaltaer/code/projects/Platform Development Engine/` — command stubs, workflow patterns, ARCHITECTURE.md, STACK.md (HIGH confidence)
-- PDE PROJECT.md design pipeline requirements and out-of-scope decisions (HIGH confidence, primary source)
-- PDE ARCHITECTURE.md — Workflow-as-Orchestrator, Template-Driven Artifact, Subagent Specialization patterns (HIGH confidence)
-- LLM prompt engineering literature on output consistency — known variability without explicit constraint anchors (MEDIUM confidence, consistent with direct testing experience)
-- Design-to-dev handoff failure patterns — common in "LLM writes the spec" workflows where stack context is absent (MEDIUM confidence, observed in similar AI-tool post-mortems)
-- GSD codebase history — bin script created specifically to prevent inline side-effect sprawl (HIGH confidence, directly applicable anti-pattern)
+- Direct inspection of PDE v1.1 codebase: `build.md` orchestrator, `critique.md`, `iterate.md`, `handoff.md`, `design-manifest.json` schema, `pde-tools.cjs` design subcommands — HIGH confidence (primary source)
+- PDE `PROJECT.md` v1.2 requirements and out-of-scope decisions — HIGH confidence
+- PDE v1.1 `PITFALLS.md` (previous research: 2026-03-15) — HIGH confidence, basis for coverage clobber and stage count pitfalls
+- Direct inspection of stub commands: `competitive.md`, `mockup.md`, `hig.md`, `opportunity.md`, `recommend.md` — all currently "Status: Planned" — HIGH confidence (these stubs reveal no existing logic, confirming clean-slate implementation)
+- `templates/competitive-landscape.md`, `templates/opportunity-evaluation.md`, `templates/hig-audit.md`, `templates/mockup-spec.md`, `templates/recommendations.md` — templates already exist; pitfalls emerge from workflow-to-template integration gaps — HIGH confidence
+- LLM output consistency patterns for multi-phase workflows — known diverge/converge collapse risk with single-pass prompts — MEDIUM confidence (consistent with established prompt engineering literature)
 
 ---
 
-*Pitfalls research for: Design pipeline addition to AI development tool (PDE v1.1)*
-*Researched: 2026-03-15*
+*Pitfalls research for: Adding advanced design skills (ideation, competitive, opportunity, mockup, HIG, recommend) to existing PDE v1.1 design pipeline*
+*Researched: 2026-03-16*

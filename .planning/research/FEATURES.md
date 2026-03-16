@@ -1,624 +1,640 @@
 # Feature Research
 
-**Domain:** AI-assisted design pipeline (brief → flows → system → wireframe → critique → iterate → handoff)
-**Researched:** 2026-03-15
-**Confidence:** HIGH (output formats, pipeline structure), MEDIUM (competitive positioning), MEDIUM (iteration/critique patterns)
+**Domain:** AI-assisted advanced design skills (ideation, competitive analysis, opportunity scoring, hi-fi mockup, HIG/WCAG audit, tool discovery)
+**Researched:** 2026-03-16
+**Confidence:** HIGH (RICE framework, WCAG 2.2, HIG structure), MEDIUM (ideation diverge/converge patterns, competitive analysis dimensions), MEDIUM (mockup fidelity bridge from lofi wireframes)
 
 ---
 
-> **Scope note:** This file replaces the v1.0 platform-level feature research. It focuses exclusively on the v1.1 design pipeline addition. The 7 skills are: `/pde:brief`, `/pde:flows`, `/pde:system`, `/pde:wireframe`, `/pde:critique`, `/pde:iterate`, `/pde:handoff`. Each section covers table stakes, differentiators, anti-features, expected output, and complexity for that skill.
+> **Scope note:** This file covers ONLY the six new v1.2 skills and the expanded `/pde:build` orchestrator. Existing v1.1 skills (brief, flows, system, wireframe, critique, iterate, handoff) are documented in the previous version of this file and are treated here as stable dependencies.
 
 ---
 
-## Pipeline Overview
+## Extended Pipeline Context
 
-The design pipeline is a linear dependency chain where each stage consumes the previous stage's output:
+The v1.2 skills extend the pipeline in two directions: upstream (ideation, competitive, opportunity — run before brief) and downstream (mockup, hig — run after iterate, before handoff). Recommend is a utility skill integrated into ideation but also callable standalone.
 
 ```
-brief → flows → system → wireframe → critique → iterate → handoff
+[NEW] ideate → competitive → opportunity → [EXISTING] brief → system → flows → wireframe → critique(+HIG light) → iterate → [NEW] mockup → [NEW] hig(full) → [EXISTING] handoff
 ```
 
-All stages also work standalone (ad-hoc invocation without running the full pipeline). The orchestrated `/pde:build` pipeline runs them sequentially with human verification gates between stages.
+The `/pde:build` orchestrator must be expanded from 7 stages to 12 stages covering the full pipeline.
 
 ---
 
-## Skill 1: Problem Framing (`/pde:brief`)
+## Skill A: Multi-Phase Ideation (`/pde:ideate`)
 
-**What it does:** Converts a raw idea, user request, or product description into a structured design brief that defines the problem, users, goals, constraints, and success criteria.
+**What it does:** Runs structured diverge→converge exploration before the brief is written. Produces a ranked set of product directions — each with concept description, key bets, risks, and fit against user need — plus a "recommended direction" for brief generation.
 
-**Primary output:** `.planning/design/brief.md` — a structured markdown document.
+**Primary output:** `.planning/design/strategy/IDT-ideation-v{N}.md`
+
+**Depends on:** Nothing (entry point); benefits from PROJECT.md for product type context
+
+**Integrates:** `/pde:recommend` (tool/MCP discovery during ideation to surface research tools)
 
 ### Table Stakes
 
 | Feature | Why Expected | Complexity | Notes |
 |---------|--------------|------------|-------|
-| Problem statement generation | Users expect AI to synthesize a crisp "who / what / why" from loose input | LOW | Classic HMW (How Might We) + Jobs-to-be-Done format |
-| User persona identification | Every design tool prompts for target user; missing it = brief is incomplete | LOW | 1-3 primary personas with role, goal, pain point |
-| Success criteria definition | "How will we know it worked?" is required before flows make sense | LOW | 3-5 measurable outcomes |
-| Constraint capture | Tech constraints (must use existing stack), business constraints (timeline, scope) | LOW | Pulled from PROJECT.md + user input |
-| Design goals vs non-goals | Without explicit non-goals, scope creeps into every subsequent stage | LOW | Explicit "out of scope" section |
-| Structured markdown output | Downstream stages (flows, system) parse the brief; must be consistent format | LOW | Fixed sections: problem, users, goals, constraints, success, non-goals |
+| Divergent idea generation (minimum 5 distinct directions) | Ideation without breadth is just refinement; users expect exploration | MEDIUM | Each direction: concept name, 2-sentence description, key bets, target user |
+| Convergence scoring/ranking against stated goal | Divergence without selection criteria produces unusable output | MEDIUM | Criteria: goal fit, feasibility, differentiability, scope; weighted sum |
+| Recommended direction output | AI must make a recommendation, not just list options | LOW | Single clear recommendation with rationale; not a committee |
+| Assumption capture per direction | Each direction rests on assumptions; surfaces them early before brief commits | LOW | "This direction assumes [X]" per concept |
+| Handoff to `/pde:brief` | Ideation output feeds brief.md as the chosen direction context | LOW | Recommended direction populates brief's problem statement seed |
 
 ### Differentiators
 
 | Feature | Value Proposition | Complexity | Notes |
 |---------|-------------------|------------|-------|
-| Requirements traceability back to REQUIREMENTS.md | Brief should validate against and reference existing project requirements | MEDIUM | Cross-link to .planning/REQUIREMENTS.md; flags gaps |
-| Persona-to-JTBD mapping | Converts persona + goal into a Jobs-to-be-Done statement for each user type | LOW | "When I [context] I want to [goal] so I can [outcome]" |
-| Assumption surfacing | Forces explicit listing of untested assumptions before flows are designed | LOW | Assumptions that would invalidate the design if wrong |
-| Existing design artifact detection | If brief.md already exists, diffs with current input rather than overwriting | MEDIUM | Supports iteration without losing prior decisions |
+| Multi-phase structure (diverge round 1 → reflect → diverge round 2 → converge) | Single-pass ideation anchors on first ideas; multi-phase overcomes anchoring bias | HIGH | Research: progressive ideation frameworks produce higher-novelty concepts (arxiv 2601.00475) |
+| HMW (How Might We) reframe per direction | Forces problem-first framing before solution generation | LOW | "How might we [verb] [user] so that [outcome]?" per direction |
+| Analogous domain import | Explicitly looks for parallel solutions from non-adjacent industries | MEDIUM | "How does [banking / healthcare / gaming] solve this?" — expands solution space |
+| Concept combination pass | After round 1, generates hybrid concepts by combining strongest elements of multiple directions | MEDIUM | Hybrid concepts often outperform any single direction |
+| Risk typology per direction | Technical risk, market risk, execution risk scored per direction | LOW | Informs opportunity scoring; directions with all-HIGH risks need evidence |
 
 ### Anti-Features
 
 | Feature | Why Requested | Why Problematic | Alternative |
 |---------|---------------|-----------------|-------------|
-| Competitive analysis during brief | "Research competitors" seems like part of framing | Wrong stage; competitors belong in research phase, not brief | Brief references SUMMARY.md from research phase if it exists |
-| Auto-generating user personas from thin air | "Just create personas for me" | Fabricated personas encode false assumptions that corrupt every downstream stage | Ask for target user description; generate persona structure, not personas from nothing |
-| Pixel-level constraints in brief | "What colors should we use?" | Too early; system design handles this; brief defines goals, not solutions | Redirect to `/pde:system` |
+| Immediately picking a winner in round 1 | "Skip to the answer" | Premature convergence produces uncreative output; users learn to game the first prompt | Two explicit phases: diverge (no judgment) then converge (scoring) |
+| Generating 20+ concepts | "More is better" | Cognitive overload; users don't evaluate 20 directions; selection quality drops | Cap at 5-8 divergent directions; quality > quantity |
+| Including implementation details in ideation | "What tech stack would each use?" | Premature technical framing anchors to familiar tech and kills novel directions | Ideation stays at concept level; system stage handles tech; stack is a brief constraint, not an ideation variable |
+| Auto-advancing to brief without user confirmation | "Save the click" | Ideation → brief is a high-value human decision point; AI should not bypass it | Gate: present recommended direction, require user confirmation before brief proceeds |
 
 **Output format:**
 ```markdown
-# Design Brief: [Project Name]
+# Ideation: [Project Name]
+**Phase:** Ideation
+**Directions explored:** N
 
-## Problem Statement
-[1-2 sentences: who has what problem in what context]
+## Divergence Round 1
 
-## Target Users
-- **[Persona 1]:** [role], needs [goal], struggles with [pain]
-- **[Persona 2]:** ...
+### Direction A: [Name]
+**Concept:** [2 sentences]
+**HMW:** How might we [verb] [user] so that [outcome]?
+**Key bets:** [What must be true for this to work]
+**Assumptions:** [What we're assuming about user, market, tech]
+**Risks:** Technical: [H/M/L] | Market: [H/M/L] | Execution: [H/M/L]
+**Analogous domain:** [Where this pattern already works]
 
-## Jobs to Be Done
-- When [context], I want to [action] so I can [outcome]
+[... Directions B through E ...]
 
-## Design Goals
-1. [Measurable goal]
+## Divergence Round 2 (Hybrids + Refinements)
 
-## Success Criteria
-- [ ] [Metric / observable outcome]
+### Direction AB: [Hybrid name]
+...
 
-## Constraints
-- Technical: [stack, platform, access limitations]
-- Scope: [what is explicitly excluded]
+## Convergence
 
-## Assumptions
-- [Assumption that, if wrong, changes the design direction]
+### Scoring Matrix
+| Direction | Goal Fit | Feasibility | Differentiation | Scope | Total |
+|-----------|----------|-------------|-----------------|-------|-------|
+| A | 4 | 3 | 4 | 3 | 14 |
 
-## Non-Goals
-- [Feature / concern explicitly out of scope]
+### Recommended Direction: [Name]
+**Rationale:** [Why this direction wins on the scoring criteria]
+**Key assumption to validate:** [The single most critical assumption before committing]
+
+## Next Step
+Run `/pde:competitive` to validate market positioning, or `/pde:brief` to start the design pipeline with this direction.
 ```
 
-**Complexity:** LOW — structured elicitation, no visual output, well-understood patterns.
+**Complexity:** HIGH — multi-phase structure, concept generation, cross-domain analogies, hybrid synthesis, and convergence scoring all require careful prompting and sequential thinking MCP.
 
 ---
 
-## Skill 2: User Flow Mapping (`/pde:flows`)
+## Skill B: Competitive Analysis (`/pde:competitive`)
 
-**What it does:** Produces a structured map of the paths users take through the product — entry points, decision nodes, happy paths, error states, and exit points — without specifying visual design.
+**What it does:** Produces a structured landscape evaluation of competing products — identifying their strengths, weaknesses, and positioning gaps — to inform the product's differentiation strategy.
 
-**Primary output:** `.planning/design/flows.md` — text-based flow diagrams per user journey.
+**Primary output:** `.planning/design/strategy/CMP-competitive-v{N}.md`
 
-**Consumes:** `brief.md` (personas, JTBD, goals)
+**Depends on:** Ideation output (IDT-ideation) OR brief.md for problem space context; soft dependency only
+
+**Typical dimensions researched:** Features, UX, pricing model, target user, onboarding, key differentiators, weaknesses, market positioning
 
 ### Table Stakes
 
 | Feature | Why Expected | Complexity | Notes |
 |---------|--------------|------------|-------|
-| Happy path per persona | The primary use case must be mapped for each defined persona | LOW | Linear sequence of steps from entry to goal completion |
-| Decision branch mapping | Every "if/else" moment a user hits (login vs signup, success vs error) | MEDIUM | Decision nodes with labeled branches |
-| Error state coverage | What happens when the happy path fails; missing = incomplete spec | MEDIUM | At minimum: empty state, validation error, network failure |
-| Entry point enumeration | All ways a user can arrive at a flow (direct nav, email link, notification) | LOW | Affects how each screen must handle cold vs warm entry |
-| Flow-to-screen labeling | Each step in the flow should name the screen or component it maps to | LOW | Enables wireframe stage to treat flows as an inventory |
-| Markdown text diagram output | LLMs cannot produce Figma files; ASCII/text flows work for all downstream consumers | LOW | Mermaid or indented list format; no image dependencies |
+| Competitor identification (minimum 3 direct, 2 indirect) | Analysis with fewer than 3 competitors lacks credibility | LOW | Direct = same problem/user; indirect = same user, different problem |
+| Feature matrix across competitors | Users expect a table: Feature A → which competitors have it | MEDIUM | ~10-15 features evaluated; binary or H/M/L scoring |
+| Positioning map | Two-axis perceptual map showing where competitors cluster and where gaps are | MEDIUM | Axes derived from the most differentiating dimensions, not arbitrary |
+| Explicit gap identification | "Where no competitor plays well" is the actionable output | MEDIUM | 2-4 opportunity gaps with supporting evidence |
+| Evidence basis (not fabricated) | Training data often has stale competitor feature info; must flag confidence level per claim | MEDIUM | Marks claims as [training data — verify] when not confirmed via MCP/web search |
 
 ### Differentiators
 
 | Feature | Value Proposition | Complexity | Notes |
 |---------|-------------------|------------|-------|
-| Edge case annotation | Flags known edge cases (power user, first-time user, empty state) explicitly at each node | MEDIUM | Adds "edge:" annotations to nodes without bloating main flow |
-| Cross-flow dependencies | When Flow A produces state that Flow B depends on (e.g., onboarding → main app), makes that dependency explicit | MEDIUM | Avoids flows that assume unreachable states |
-| Gap flagging against brief goals | After generating flows, checks whether each success criterion from brief.md has at least one flow that achieves it | MEDIUM | Outputs unmapped goals as explicit gaps |
-| Flow complexity scoring | Simple (3-5 steps), Medium (6-10), Complex (10+); flags complex flows for wireframe prioritization | LOW | Informs which flows need the most wireframe attention |
+| UX pattern analysis (not just features) | Feature lists miss HOW competitors solve problems; UX patterns are harder to copy | HIGH | Navigation model, onboarding approach, error recovery pattern per competitor |
+| Competitor weakness typology | "Hard to copy" vs "won't fix" vs "known issue they're working on" | MEDIUM | Changes strategy: attack won't-fix weaknesses, not known-issue ones |
+| Market segment mapping | Which competitor serves which user segment; identifies underserved segments | MEDIUM | Segment × competitor coverage matrix |
+| Feeds opportunity scoring | Each gap in the competitive matrix becomes an input to RICE scoring | LOW | CMP output consumed directly by `/pde:opportunity` |
+| WebSearch MCP integration | Uses live search to verify current competitor feature state | HIGH | Training data for competitor features can be 6-18 months stale; web search is the right source |
 
 ### Anti-Features
 
 | Feature | Why Requested | Why Problematic | Alternative |
 |---------|---------------|-----------------|-------------|
-| Generating visual flowcharts (PNG, SVG) | Flows feel more "real" as graphics | Requires image rendering infrastructure; LLMs cannot reliably produce correct images | Mermaid syntax — renders in most markdown viewers and GitHub; text is parseable by downstream stages |
-| Full happy-path-only flows | Simpler, faster | Error states missed in flow stage are missed in wireframe and handoff; technical debt compounds | Require at minimum 3 error states per major flow |
-| One giant flow document | "Put all flows in one place" | Monolithic flows obscure dependencies; hard to critique section by section | Separate flow per major user journey; index at top of flows.md |
+| Exhaustive competitor survey (10+ competitors) | "Be thorough" | Analysis paralysis; 10+ competitors obscures the signal; most don't matter for differentiation | Cap at 5 competitors (3 direct + 2 indirect); document why others were excluded |
+| Evaluating competitors on dimensions irrelevant to product | "Include pricing, team size, funding" | These matter for business strategy, not product design decisions | Scope strictly to dimensions that affect design: features, UX, user segment, onboarding |
+| Claiming live competitor features without web verification | Training data may be wrong or 18 months stale | Produces false competitive intelligence that corrupts gap analysis | Every competitor feature claim must be marked with confidence level; web verify top claims |
 
 **Output format:**
 ```markdown
-# User Flows: [Project Name]
-
-## Flow Index
-1. [Flow name] — [persona] — [goal]
-
----
-
-## Flow 1: [Name]
-**Persona:** [from brief]
-**Goal:** [JTBD from brief]
-**Entry points:** [direct URL, email link, notification]
-
-### Happy Path
-1. [Step] → [Screen/Component]
-2. [Decision] → Yes: [Step A] | No: [Step B]
-3. [Step] → [Screen/Component]
-4. [Outcome: goal achieved]
-
-### Error States
-- [Trigger] → [Error screen/message] → [Recovery path]
-
-### Edge Cases
-- edge: [condition] → [altered path]
-
-### Unmapped Goals (gaps)
-- [ ] [Success criterion from brief not covered by any flow]
-```
-
-**Complexity:** MEDIUM — requires reasoning about user mental models, state machines, and error coverage; not just content generation.
-
----
-
-## Skill 3: Design System Generation (`/pde:system`)
-
-**What it does:** Produces a design token set and component inventory for the product — color, typography, spacing, and the named components flows reference — without generating visual assets.
-
-**Primary output:** `.planning/design/system.md` — design tokens in structured markdown; component catalog.
-
-**Consumes:** `brief.md` (brand/constraint context), `flows.md` (component names from flow labels)
-
-### Table Stakes
-
-| Feature | Why Expected | Complexity | Notes |
-|---------|--------------|------------|-------|
-| Color token set | Every design system starts with a semantic color palette; missing = visual chaos | LOW | primary, secondary, surface, error, warning, success, text-* tokens |
-| Typography scale | Font size hierarchy is non-negotiable; devs need this to write CSS | LOW | xs, sm, base, lg, xl, 2xl + font-weight, line-height |
-| Spacing scale | Consistent spacing prevents component-by-component margin negotiation | LOW | 4px base unit; t-shirt sizes (xs=4, sm=8, md=16, lg=24, xl=32, 2xl=48) |
-| Component inventory from flows | Every screen label in flows.md becomes a component entry with props | MEDIUM | Ensures wireframe + handoff have a shared vocabulary |
-| Semantic naming convention | Tokens named by intent (color-feedback-error) not value (#FF0000) | LOW | Required for AI-parseable tokens per W3C Design Tokens spec (2025 stable) |
-| CSS variable export format | The canonical output format for browser-based implementation | LOW | `--color-primary: #value;` block; devs paste directly |
-
-### Differentiators
-
-| Feature | Value Proposition | Complexity | Notes |
-|---------|-------------------|------------|-------|
-| Derived tokens from base tokens | Generates full semantic palette from 2-3 brand colors (primary, accent, neutral) using lightness/saturation algorithms | MEDIUM | Avoids user needing color theory knowledge |
-| Component prop interface generation | For each component in inventory, generates a TypeScript-style prop interface stub | MEDIUM | Feeds directly into handoff stage; reduces double-work |
-| Accessibility check at token level | Flags any color pair (text/background) that fails WCAG AA contrast | LOW | Check color-text-primary on color-surface; surface+primary; etc. |
-| Conflict detection against existing system | If project already has CSS variables or a design system file, diffs rather than overwrites | HIGH | Prevents clobbering existing conventions |
-
-### Anti-Features
-
-| Feature | Why Requested | Why Problematic | Alternative |
-|---------|---------------|-----------------|-------------|
-| Generating actual image assets (icons, logos) | "Include brand assets" | LLMs cannot generate reliable image assets; SVG generation is error-prone | Document icon library to use (e.g., Lucide, Heroicons) by name; do not generate SVGs |
-| Full Figma-compatible token file export | "Export to Figma" | Requires MCP/Figma API integration; out of scope for v1.1 | Output W3C design token JSON format; comment as "Figma-compatible when MCP integration added" |
-| Generating a complete component library | "Build all our components" | Implementation work, not design work; crosses into code territory | System defines the what (component inventory + props); handoff generates the code stubs |
-
-**Output format:**
-```markdown
-# Design System: [Project Name]
-
-## Tokens
-
-### Color
-| Token | Value | Usage |
-|-------|-------|-------|
-| color-primary | #value | Primary actions, links |
-| color-surface | #value | Page/card backgrounds |
-| color-feedback-error | #value | Validation errors |
-
-### Typography
-| Token | Value | Usage |
-|-------|-------|-------|
-| text-base | 16px/1.5 | Body copy |
-| text-lg | 20px/1.4 | Subheadings |
-
-### Spacing
-| Token | Value |
-|-------|-------|
-| space-sm | 8px |
-| space-md | 16px |
-
-## CSS Variables
-\`\`\`css
-:root {
-  --color-primary: #value;
-  --space-md: 16px;
-}
-\`\`\`
-
-## Component Inventory
-| Component | From Flow | Props (stub) | Notes |
-|-----------|-----------|--------------|-------|
-| LoginForm | Flow 1 step 2 | email, password, onSubmit | Error state required |
-
-## Accessibility Flags
-- [ ] [Token pair]: [contrast ratio] — fails WCAG AA
-```
-
-**Complexity:** MEDIUM — token generation is structured; component inventory from flows requires parsing flow output; accessibility checking requires color math.
-
----
-
-## Skill 4: Wireframing (`/pde:wireframe`)
-
-**What it does:** Produces text-based (ASCII/Unicode box-drawing) wireframes for the screens identified in the flows, at a controlled fidelity level. No visual design — layout, hierarchy, and component placement only.
-
-**Primary output:** `.planning/design/wireframes/[screen-name].md` — one file per screen.
-
-**Consumes:** `flows.md` (screen inventory), `system.md` (component names)
-
-### Table Stakes
-
-| Feature | Why Expected | Complexity | Notes |
-|---------|--------------|------------|-------|
-| One wireframe per named screen in flows | Flows define the screen inventory; wireframe covers it completely | MEDIUM | Missing screens = incomplete spec for handoff |
-| ASCII/Unicode box-drawing layout | LLMs can produce reliable text wireframes; this is proven (BareMinimum, Mockdown, AsciiKit tools confirm the pattern) | LOW | Box-drawing chars: ┌ ─ ┐ │ └ ┘; fallback to [COMPONENT] labels |
-| Component label → system component mapping | Each element in the wireframe labeled with its system.md component name | LOW | `[LoginForm]`, `[Button: primary]`, not vague "box here" |
-| Fidelity control (lo / mid) | Lo-fi = layout only; mid-fi = labels + rough content areas | LOW | Default lo-fi; `--fidelity=mid` flag for stakeholder review versions |
-| Annotation layer | Behaviors, interactions, and state notes below each wireframe | MEDIUM | "On submit: show loading state → success state or inline error" |
-| Screen index file | `wireframes/index.md` lists all wireframes with flow references | LOW | Navigation aid for critique and handoff stages |
-
-### Differentiators
-
-| Feature | Value Proposition | Complexity | Notes |
-|---------|-------------------|------------|-------|
-| Responsive breakpoint variants | Desktop and mobile layouts for screens where layout differs significantly | MEDIUM | Controlled: only when brief specifies multi-device |
-| State variants per screen | Happy state, error state, empty state, loading state as separate wireframe blocks in same file | MEDIUM | Matches the error states documented in flows; ensures parity |
-| Interactive annotation (click targets) | Labels which elements are tappable/clickable and what they trigger | LOW | `[Button → triggers: flow-1-step-3]` |
-| Mermaid fallback for complex flows | For information-heavy screens (dashboards), a Mermaid diagram of data relationships | HIGH | Only when ASCII wireframe would be illegible at required scale |
-
-### Anti-Features
-
-| Feature | Why Requested | Why Problematic | Alternative |
-|---------|---------------|-----------------|-------------|
-| High-fidelity mockups | "Make it look real" | LLMs cannot produce reliable high-fi visual design; this is the wrong tool for that job | Define this as explicitly out of scope in /pde:wireframe help text; recommend Figma/Framer for hi-fi |
-| Pixel-precise measurements | "Add pixel dimensions to every element" | Premature specificity; wireframes establish hierarchy, not measurements; measurements belong in handoff | Spacing tokens (space-md, space-lg) rather than pixels in wireframe annotations |
-| Auto-generating all screens at once without review | "Generate every screen in one pass" | Individual screens need review before the next; batch generation produces compounding errors | Generate screens in flow order; pause for verification between flows |
-
-**Output format (per screen):**
-```
-# Wireframe: [Screen Name]
-**Flow:** [Flow name, step N]
-**Fidelity:** lo-fi
-**Component used:** [system.md component name]
-
-## Layout
-
-┌──────────────────────────────────────┐
-│  [Logo]           [Nav: main]        │
-├──────────────────────────────────────┤
-│                                      │
-│  [Heading: page title]               │
-│                                      │
-│  ┌────────────────────────────────┐  │
-│  │  [LoginForm]                  │  │
-│  │  [Input: email]               │  │
-│  │  [Input: password]            │  │
-│  │  [Button: primary "Sign In"]  │  │
-│  └────────────────────────────────┘  │
-│                                      │
-│  [Link: "Forgot password?"]          │
-└──────────────────────────────────────┘
-
-## Annotations
-- On submit: show [Spinner] → success → redirect to [Dashboard screen]
-- On error: show inline [AlertBanner: error] within LoginForm
-- "Forgot password?" → triggers Flow 3
-
-## States
-- Default (empty form)
-- Loading (submit in progress)
-- Error (validation failed)
-```
-
-**Complexity:** MEDIUM — ASCII layout generation is reliable for LLMs (confirmed by BareMinimum, AsciiKit patterns); state coverage and annotation require discipline.
-
----
-
-## Skill 5: Design Critique (`/pde:critique`)
-
-**What it does:** Evaluates the wireframes against the brief goals, flow coverage, design system consistency, and usability heuristics — from multiple perspectives (user, hierarchy, accessibility, flow coverage).
-
-**Primary output:** `.planning/design/critique.md` — structured issue list with severity and fix recommendations.
-
-**Consumes:** `brief.md` (goals, success criteria), `flows.md` (coverage check), `system.md` (consistency check), `wireframes/` (subject of critique)
-
-### Table Stakes
-
-| Feature | Why Expected | Complexity | Notes |
-|---------|--------------|------------|-------|
-| Heuristic evaluation against Nielsen's 10 | Industry-standard baseline; any UX critique tool references these | MEDIUM | Visibility, user control, consistency, error prevention, etc. |
-| Coverage check: wireframes vs flows | Every screen in flows.md must have a wireframe; gaps listed explicitly | LOW | Mechanical check; no subjective judgment needed |
-| Goal validation: does each wireframe advance at least one brief goal? | Brief exists so designs stay purposeful | MEDIUM | Cross-references success criteria from brief.md |
-| Severity rating per issue | Critical (blocks task completion), High (degrades experience), Medium (friction), Low (polish) | LOW | Enables prioritization in iterate stage |
-| Fix recommendation per issue | Issues without suggestions are noise; fixes are what iterate consumes | MEDIUM | "Issue: X → Suggested fix: Y" format |
-| System consistency check | Components used in wireframes match component inventory in system.md | LOW | Mechanical name-matching; flags unknown component references |
-
-### Differentiators
-
-| Feature | Value Proposition | Complexity | Notes |
-|---------|-------------------|------------|-------|
-| Multi-perspective critique structure | User perspective, visual hierarchy perspective, accessibility perspective, flow logic perspective — each as a distinct section | MEDIUM | Research (arxiv 2507.02306) shows AI critique finds 73-77% of usability issues vs 57-63% for 5 humans; structured perspectives improve coverage |
-| Assumption violation check | Cross-references brief.md assumptions against wireframe design; flags designs that embed a false assumption | MEDIUM | High-value catch that human review often misses |
-| Positive findings section | Not just problems — what works well and should be preserved across iterations | LOW | Prevents iterate stage from accidentally breaking good decisions |
-| Issue deduplication | When the same root problem causes multiple surface symptoms, group them | LOW | Reduces iterate scope bloat |
-
-### Anti-Features
-
-| Feature | Why Requested | Why Problematic | Alternative |
-|---------|---------------|-----------------|-------------|
-| Heatmap / eye-tracking simulation | "Show where users will look" | No reliable text-based equivalent; image-based analysis requires visual input PDE doesn't have | Describe visual hierarchy in annotations; note heading weight and CTA placement in critique |
-| Scoring / rating the overall design numerically | "Give it a 7/10" | Single scores mask which dimensions are good vs bad; provides false precision | Severity counts by category (critical: 2, high: 3, medium: 5) are more actionable |
-| Generating critique from wireframe images | "Upload a screenshot to critique" | PDE is text-native; image interpretation is unreliable for structural critique | Critique the markdown wireframe source; it has more structural information than a screenshot |
-
-**Output format:**
-```markdown
-# Design Critique: [Project Name]
-**Critiqued:** [list of wireframes reviewed]
+# Competitive Analysis: [Project Name]
 **Date:** [date]
+**Problem space:** [from ideation or brief]
 
-## Coverage Gaps
-- [ ] [Screen from flows.md] has no wireframe
+## Competitor Landscape
+
+### Direct Competitors
+| Competitor | Target User | Core Value Prop | Key Features | Notable UX Pattern |
+|------------|-------------|-----------------|--------------|-------------------|
+| [Name] | [who] | [what they do best] | [top 3-5] | [how they do it] |
+
+### Indirect Competitors
+...
+
+## Feature Matrix
+
+| Feature | [Comp A] | [Comp B] | [Comp C] | [Our Direction] |
+|---------|----------|----------|----------|-----------------|
+| [Feature 1] | Yes | Yes | No | Planned |
+| [Feature 2] | Yes | No | No | Planned |
+
+## Positioning Map
+
+**Axes:** [Dimension 1] vs [Dimension 2]
+[Text description of where each competitor falls]
+
+**Clusters:**
+- Cluster 1: [Comp A, Comp B] — [description]
+- Gap: [Where nobody plays well]
+
+## Opportunity Gaps
+
+### Gap 1: [Name]
+**Where:** [Position on the map]
+**Evidence:** [Why this gap exists and is real]
+**Design implication:** [How this shapes what to build]
+**Confidence:** [HIGH/MEDIUM/LOW] — [source: training data/web search/official docs]
+
+## Next Step
+Run `/pde:opportunity` to score these gaps using RICE, or `/pde:brief` to begin the pipeline with this direction.
+```
+
+**Complexity:** MEDIUM — structured evaluation against known dimensions; HIGH if WebSearch MCP integration is used for live competitor verification.
+
+---
+
+## Skill C: Opportunity Scoring (`/pde:opportunity`)
+
+**What it does:** Scores identified feature opportunities using the RICE framework (Reach × Impact × Confidence ÷ Effort) to produce a prioritized opportunity list. Inputs come from ideation direction, competitive gaps, and user-supplied opportunity list.
+
+**Primary output:** `.planning/design/strategy/OPP-opportunity-v{N}.md`
+
+**Depends on:** Ideation (IDT) and/or competitive (CMP) outputs for opportunity list; can also accept user-defined opportunities as input
+
+### Table Stakes
+
+| Feature | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| RICE score per opportunity | RICE is the dominant PM prioritization framework; any opportunity scoring tool uses it | LOW | Formula: (Reach × Impact × Confidence) ÷ Effort |
+| Scoring criteria definition before scoring | Criteria must be defined upfront or scores are meaningless | LOW | Document: what counts as "Reach = 5" vs "Reach = 1" for this product |
+| Ranked output with score visibility | Users expect to see the ranked list AND the component scores (not just totals) | LOW | Table: opportunity, Reach, Impact, Confidence, Effort, RICE Score, Rank |
+| Rationale per score component | "Why Reach = 4?" must be answerable; otherwise scores are fabricated | MEDIUM | One sentence of evidence per component |
+| MVP recommendation from top-scored opportunities | "What should we build first?" is the output users need | LOW | Top 3 opportunities by RICE score as MVP candidates |
+
+### Differentiators
+
+| Feature | Value Proposition | Complexity | Notes |
+|---------|-------------------|------------|-------|
+| Confidence calibration against competitive analysis | Confidence score explicitly informed by competitive gap evidence | MEDIUM | "Confidence = 4 because gap confirmed by competitive analysis; no competitor does this well" |
+| Effort normalization across opportunities | Effort scores must be on a shared scale; absolute hours are useless without anchoring | LOW | Anchor: "Effort = 3 = a 2-week sprint for one engineer" |
+| Sensitivity analysis | Shows which score component drives the result; "this opportunity ranks #1 primarily on low effort" | MEDIUM | Prevents false precision; surfaces which estimates need tightest validation |
+| Feeds brief.md and flows.md | Top-ranked opportunities become goals and success criteria in brief stage | LOW | OPP output explicitly references which opportunities brief.md should address |
+| Score update pattern | As validation evidence arrives, scores update; changelog tracks why they changed | LOW | RICE scores should not be locked; they're hypotheses |
+
+### Anti-Features
+
+| Feature | Why Requested | Why Problematic | Alternative |
+|---------|---------------|-----------------|-------------|
+| Pure numerical objectivity ("the RICE score decides") | RICE feels objective | RICE scores are estimates, not measurements; treating them as final decisions suppresses human judgment | Always present RICE as input to decision, not the decision itself; "RICE suggests X but note Y" |
+| Scoring 20+ opportunities at once | Thoroughness | With 20 items, scoring quality degrades and the ranked list is unwieldy; users act on top 5 anyway | Cap at 10 opportunities; if more exist, cluster into themes before scoring |
+| Single scoring session as final | "Score once and ship" | Market conditions change; new evidence arrives | Document scoring date and evidence basis; prompt re-score when brief or competitive analysis updates |
+
+**Output format:**
+```markdown
+# Opportunity Scoring: [Project Name]
+**Date:** [date]
+**Scoring criteria:**
+- Reach: number of users affected per quarter at launch scale
+- Impact: 1=marginal, 2=low, 3=medium, 4=high, 5=massive
+- Confidence: 1=guess, 3=validated pattern, 5=confirmed need
+- Effort: 1=days, 3=2-week sprint, 5=quarter+
+
+## Opportunities Scored
+
+| Opportunity | Reach | Impact | Confidence | Effort | RICE Score | Rank |
+|-------------|-------|--------|------------|--------|------------|------|
+| [Opp A] | 4 | 3 | 4 | 2 | 24 | #1 |
+| [Opp B] | 3 | 4 | 3 | 3 | 12 | #2 |
+
+### Score Rationale
+
+**[Opportunity A]**
+- Reach = 4: [evidence]
+- Impact = 3: [evidence]
+- Confidence = 4: [evidence; cross-references competitive gap if applicable]
+- Effort = 2: [evidence]
+
+## Sensitivity Analysis
+
+**[Opportunity A]** rank is primarily driven by low effort (Effort=2). If effort estimate is wrong (Effort=4), score drops to 12 and falls to #2.
+
+## MVP Candidates (Top 3)
+
+1. [Opp A] — RICE: 24 — [one-line rationale]
+2. [Opp B] — RICE: 12 — [one-line rationale]
+3. [Opp C] — RICE: 10 — [one-line rationale]
+
+## Next Step
+Run `/pde:brief` using these opportunities as goal inputs.
+```
+
+**Complexity:** MEDIUM — RICE math is trivial; the value and complexity is in calibrated rationale and sensitivity analysis.
+
+---
+
+## Skill D: Hi-Fi Mockup Generation (`/pde:mockup`)
+
+**What it does:** Upgrades iterated wireframes (WFR lofi/midfi) to high-fidelity browser-viewable HTML/CSS mockups with design system tokens applied, real interactions, and pixel-precise styling. Produces one self-contained HTML file per screen plus a navigation index.
+
+**Primary output:** `.planning/design/visual/MCK-{screen}-v{N}.html` (one per screen) + `MCK-index.html`
+
+**Depends on:** Wireframes (WFR — post-iterate), design system tokens (SYS — tokens.css), brief (for platform context)
+
+**Position in pipeline:** After iterate, before handoff. The current `/pde:wireframe --hifi` produces high-fidelity wireframes but not interactive mockups; this skill is the dedicated hi-fi output stage.
+
+### Table Stakes
+
+| Feature | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| Design token application (tokens.css consumed) | Hi-fi must use the project's actual design system tokens, not hardcoded values | LOW | Import tokens.css from assets/; use CSS custom properties throughout |
+| Real interactive states | Button hover, focus ring, disabled, loading spinner — browser-rendered via CSS | MEDIUM | Each interactive element gets :hover, :focus, :disabled states |
+| All state variants per screen | Default, loading, error, empty — each as a distinct section or toggle in the HTML file | MEDIUM | Matches the state variants documented in wireframe annotations |
+| Self-contained HTML (no server required) | File:// URL compatibility is a PDE invariant; devs and stakeholders open files directly | LOW | All CSS inline or in `<style>` block; no external CDN dependencies |
+| Navigation index | MCK-index.html links all screens; opens in browser as a clickable prototype | LOW | Same pattern as WFR-index.html already produced by wireframe skill |
+| Wireframe annotation preservation | Annotations from wireframe HTML files copied into mockup HTML as developer comments | LOW | Ensures handoff stage can still read annotations from mockup files |
+
+### Differentiators
+
+| Feature | Value Proposition | Complexity | Notes |
+|---------|-------------------|------------|-------|
+| CSS-only interactions (no JavaScript required) | Keeps mockup files simple; JS-heavy mockups are hard to inspect and extend | MEDIUM | :hover, :focus, :checked, CSS transitions cover ~80% of interactive states; JS only for modal toggle |
+| Responsive layout at defined breakpoints | Mockup shows desktop AND mobile at breakpoints defined in design system | HIGH | CSS Grid + media queries; breakpoints from SYS tokens or brief --platform flag |
+| Component annotation comments | Each component block in HTML annotated with its system.md component name and props | LOW | `<!-- [LoginForm] props: email, onSubmit | source: WFR-login-v2 -->` |
+| Playwright screenshot validation | If Playwright MCP available, take screenshots of each state for stakeholder review | MEDIUM | Screenshots stored alongside HTML; referenced in MCK-index.html |
+| Figma push (when Figma MCP available) | Upload mockup tokens and layout to Figma for team collaboration | HIGH | Optional enhancement; Figma MCP integration required; degrade gracefully |
+
+### Anti-Features
+
+| Feature | Why Requested | Why Problematic | Alternative |
+|---------|---------------|-----------------|-------------|
+| Full JavaScript application logic | "Make it work like the real app" | Mockup is a design artifact, not a prototype; implementing logic is building, not mocking | Document interactions in annotation comments; use CSS-only state simulation; full logic is the implementation phase |
+| Pixel-perfect image generation (PNG/SVG exports) | "Export screens as images for the deck" | Image generation from HTML is a Playwright/screenshot job, not a design stage output | Superpowers MCP browser preview or Playwright screenshot; don't bundle image generation into mockup skill |
+| Auto-generating mockup without iterate completing | "Skip to hi-fi directly from wireframe" | Skipping critique/iterate means hi-fi embeds unvalidated design decisions that are expensive to change | Hard prerequisite: check for iterate artifact (hasIterate flag); warn if not present |
+| Inline all design decisions (override tokens) | "This screen needs its own color" | One-off inline overrides create divergence from design system; handoff then has contradictions | Always use CSS custom properties from tokens.css; if a token is missing, add it to the system first |
+
+**Output format (single screen HTML structure):**
+```html
+<!DOCTYPE html>
+<!-- MCK-{screen}-v{N}.html -->
+<!-- Generated by /pde:mockup | Source: WFR-{screen}-v{N}.html | Date: {date} -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>[Screen Name] — [Project] Mockup</title>
+  <style>
+    /* Inline tokens from assets/tokens.css */
+    :root { --color-primary: ...; }
+    /* Component styles using tokens */
+    .login-form { padding: var(--space-md); }
+  </style>
+</head>
+<body>
+  <!-- [LoginForm] props: email, password, onSubmit | source: WFR-login-v2 annotation line 12 -->
+  <main>
+    <!-- DEFAULT STATE -->
+    <section data-state="default"> ... </section>
+    <!-- LOADING STATE -->
+    <section data-state="loading" hidden> ... </section>
+    <!-- ERROR STATE -->
+    <section data-state="error" hidden> ... </section>
+  </main>
+</body>
+</html>
+```
+
+**Complexity:** HIGH — applying design tokens, CSS interactive states, responsive layout, and annotation preservation across multiple screen files requires significant prompt engineering and validation.
+
+---
+
+## Skill E: HIG + WCAG Audit (`/pde:hig`)
+
+**What it does:** Audits design artifacts against Apple Human Interface Guidelines (HIG) and WCAG 2.2 AA standards. Operates in two modes: light (fast check integrated into critique pass) and full (comprehensive gate before handoff).
+
+**Primary output:** `.planning/design/review/HIG-audit-v{N}.md`
+
+**Depends on:** Wireframes (WFR) or mockups (MCK) as subject; design system tokens (SYS) for color contrast; brief (for platform context — iOS vs web vs both)
+
+**Dual mode:**
+- Light mode: Called by `/pde:critique` with `--hig` flag; adds HIG/WCAG findings to the critique report
+- Full mode: Standalone `/pde:hig` invocation; comprehensive gate before `/pde:handoff`
+
+### Table Stakes
+
+| Feature | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| Color contrast check (WCAG 1.4.3 AA) | Contrast failure is the #1 most common WCAG violation; any audit tool checks this | LOW | Text on background must be ≥4.5:1 (normal) or ≥3:1 (large); read from tokens.css |
+| Focus visibility check (WCAG 2.4.11) | New in WCAG 2.2; focus indicators must be visible; often missing in custom designs | LOW | Check that :focus styles exist; flag if focus-visible only without :focus fallback |
+| Touch target sizing (HIG + WCAG 2.5.8) | iOS HIG: 44×44pt minimum; WCAG 2.5.8 new in 2.2; critical for mobile | LOW | Check all interactive elements in wireframes/mockups for target size annotations |
+| Form labels (WCAG 1.3.1, 3.3.2) | Every input must have a visible or programmatic label; missing labels are ubiquitous | LOW | Check wireframe annotations for label elements; flag placeholders used as labels |
+| Heading hierarchy (WCAG 1.3.1) | h1 > h2 > h3 — skipping levels is a structural error | LOW | Check each screen wireframe/mockup for heading level notes |
+| Severity-rated findings | Critical (blocks access), Major (significant barrier), Minor (friction), Nit (best practice) | LOW | Same severity typology as /pde:critique for consistency |
+| HIG compliance check (when platform = ios/ipados) | Apple App Review checks HIG compliance; violations cause rejection | MEDIUM | Navigation patterns, safe area respect, system font usage, SF Symbols reference |
+| Remediation suggestion per finding | Finding without fix is noise; remediation is what makes the audit actionable | MEDIUM | "Issue: [what] → Fix: [how]" per finding |
+
+### Differentiators
+
+| Feature | Value Proposition | Complexity | Notes |
+|---------|-------------------|------------|-------|
+| Dual-mode architecture (light in critique, full standalone) | Light check catches critical issues early without cost of full audit; full audit is comprehensive gate | HIGH | Light mode: ~10 highest-impact checks; Full mode: all 87 WCAG 2.2 AA criteria coverage |
+| Platform-aware audit scope | iOS HIG rules differ from web WCAG; platform from DESIGN-STATE.md controls which rules apply | MEDIUM | platform=web → WCAG only; platform=ios → HIG + WCAG; platform=web,ios → both |
+| Axe MCP integration for automated detection | Axe a11y MCP can run programmatic checks on HTML mockups; catches contrast/ARIA issues automatically | HIGH | Baseline mode covers structure/semantic checks; Axe MCP adds automated contrast math and ARIA validation |
+| WCAG criterion cross-reference | Every finding links to the specific WCAG criterion number and success criterion | LOW | "Issue: contrast → WCAG 1.4.3 (Level AA)" — enables engineers to verify |
+| Pre-handoff gate integration | Full HIG audit is a required gate in `/pde:build` before handoff; cannot be skipped without `--force` | MEDIUM | hasHIG coverage flag in design manifest; handoff warns if not set |
+
+### Anti-Features
+
+| Feature | Why Requested | Why Problematic | Alternative |
+|---------|---------------|-----------------|-------------|
+| Claiming "WCAG 2.2 AA compliant" from a text audit | Users want a compliance badge | Text/AI audits catch 30-57% of WCAG violations (automation limit); claiming compliance is false | Output is "audit findings — [N] issues found" not "compliant"; note manual testing requirement |
+| Auditing against WCAG 3.0 | "Use the latest" | WCAG 3.0 is not published; guidelines are WCAG 2.2 AA as of 2026; referencing 3.0 creates confusion | Audit against WCAG 2.2 AA explicitly; flag any WCAG 3.0 candidate criteria as advisory only |
+| Including non-design issues (server-side, backend) | "Check everything for accessibility" | HIG/WCAG audit in design stage covers design decisions only; runtime accessibility (ARIA live regions, focus management on navigation) is implementation scope | Clearly scope: "This audit covers design-stage artifacts; runtime accessibility testing belongs in /pde:test" |
+
+**Output format:**
+```markdown
+# HIG + WCAG Audit: [Project Name]
+**Mode:** Full / Light
+**Platform:** [web / ios / web,ios]
+**Artifacts audited:** [list of WFR or MCK files]
+**Date:** [date]
 
 ## Summary
-- Critical issues: N
-- High issues: N
-- Medium issues: N
-- Low issues: N
+- Critical: N (blocks access)
+- Major: N (significant barrier)
+- Minor: N (friction)
+- Nit: N (best practice)
 
-## Perspective: User (Task Completion)
-### Issue C-01 [Critical]
+## Findings
+
+### [HIG-01] [Critical] Touch Target Too Small
+**Criterion:** HIG: 44×44pt minimum / WCAG 2.5.8 (AA, new in 2.2)
 **Screen:** [screen name]
-**Heuristic:** [Nielsen heuristic]
-**Observed:** [what the wireframe shows]
-**Problem:** [why this fails the user]
-**Fix:** [specific recommendation]
+**Finding:** [ButtonComponent] has 32×24pt tap target per annotation
+**Fix:** Increase to minimum 44×44pt; use padding to expand hit area without changing visual size
+**Confidence:** HIGH — size annotation explicit in wireframe
 
-## Perspective: Visual Hierarchy
-...
+### [ACC-01] [Major] Insufficient Color Contrast
+**Criterion:** WCAG 1.4.3 (Level AA)
+**Token:** color-text-secondary on color-surface
+**Finding:** Computed ratio 3.2:1; required 4.5:1 for normal text
+**Fix:** Darken color-text-secondary from #767676 to #595959 (achieves 4.6:1)
+**Confidence:** HIGH — computed from tokens.css values
 
-## Perspective: Accessibility
-...
+## Platform Notes (iOS-specific if applicable)
+- Safe area insets respected: [Yes/No — finding if No]
+- System font (SF Pro) or documented custom font: [Yes/No]
 
-## Perspective: Flow Logic
-...
-
-## What Works (Preserve in Iteration)
-- [Element/pattern that is correct and should not be changed]
-
-## Assumption Violations
-- [Assumption from brief] ↔ [Design decision that contradicts it]
+## Audit Scope
+- Automated checks (Axe MCP): [available/unavailable]
+- Manual checks performed: color contrast, heading hierarchy, form labels, focus visibility, touch targets
+- Manual checks NOT performed (require live browser + screen reader): keyboard traps, screen reader flow, live region announcements
 ```
 
-**Complexity:** MEDIUM — heuristic application and multi-perspective structuring require careful prompting; mechanical checks (coverage, consistency) are LOW complexity.
+**Complexity:** MEDIUM — structural checks against known criteria are systematic; HIGH for dual-mode architecture and Axe MCP integration path.
 
 ---
 
-## Skill 6: Critique-Driven Iteration (`/pde:iterate`)
+## Skill F: Tool/MCP Discovery (`/pde:recommend`)
 
-**What it does:** Takes the critique issue list and produces updated wireframes that address the flagged problems, with a change log documenting what changed and why.
+**What it does:** Analyzes project context (STACK.md, PROJECT.md, DESIGN-STATE.md, active milestone) and recommends relevant MCPs and tools that would enhance the development workflow. Also surfaces any MCP tools not yet configured in the project's MCP environment.
 
-**Primary output:** Updated files in `.planning/design/wireframes/` + `.planning/design/iterate-[N].md` change log.
+**Primary output:** `.planning/design/strategy/REC-recommend-v{N}.md` (when run standalone); inline section appended to IDT-ideation (when called during ideation)
 
-**Consumes:** `critique.md` (issue list), existing wireframes (subject of change)
+**Depends on:** STACK.md (tech stack detection), PROJECT.md (product type), DESIGN-STATE.md (MCP availability snapshot)
+
+**Integration points:** Called by `/pde:ideate` to discover research MCPs at start of ideation; callable standalone at any time
 
 ### Table Stakes
 
 | Feature | Why Expected | Complexity | Notes |
 |---------|--------------|------------|-------|
-| Issue-by-issue resolution | Each critique issue should be addressed or explicitly deferred with rationale | MEDIUM | Prevents critique becoming a "noted and ignored" list |
-| Change log per iteration | What changed, which issue it resolves, what the before state was | LOW | Enables reviewing decisions across multiple iterations |
-| Iteration numbering | Multiple critique/iterate cycles must be distinguishable | LOW | iterate-1.md, iterate-2.md; wireframes labeled with version |
-| Deferred issue list | Not every issue gets fixed in every iteration; deferrals need documented rationale | LOW | "Deferred: [issue] — [reason]" |
-| Regression check | Verify that fixing Issue A didn't break the pattern that was working (from "What Works" in critique) | MEDIUM | Cross-references the Preserve list from critique.md |
+| Current MCP availability check | Users expect to know what's active vs what's missing | LOW | Read MCP Availability from DESIGN-STATE.md; compare against known MCP list |
+| Stack-matched tool recommendations | "Given you're using React + TypeScript, here are the relevant MCPs" | MEDIUM | STACK.md detection → recommendation mapping per tech |
+| Installation instructions per recommendation | Recommendation without install path is not actionable | LOW | `claude mcp add [name] [command]` per recommendation |
+| Rationale per recommendation | "Why do I need this?" — each recommendation explains the workflow benefit | LOW | "Playwright MCP: enables screenshot validation in /pde:wireframe and /pde:mockup" |
+| Deduplication against already-installed MCPs | Don't recommend what's already there | LOW | Read DESIGN-STATE.md MCP Availability before recommending |
 
 ### Differentiators
 
 | Feature | Value Proposition | Complexity | Notes |
 |---------|-------------------|------------|-------|
-| Scope-controlled iteration | User can specify "address only Critical and High issues" to avoid over-editing | LOW | `--severity=critical,high` filter on which issues to resolve |
-| Before/after diff in change log | Change log shows the old wireframe annotation and new annotation side by side | MEDIUM | Makes the change auditable without needing to re-read both versions |
-| Recommendation to re-critique | After iteration, flags whether the changes introduced new issues worth a second critique pass | LOW | "Changes to [screen] may warrant re-critique: [reason]" |
+| Context-aware recommendation (milestone + phase aware) | Recommendations differ based on where you are in the pipeline | MEDIUM | Mid-design: prioritize Playwright + Axe; pre-ideation: prioritize web search + Context7; pre-handoff: prioritize Figma |
+| MCP tool search integration | With Claude Code's tool search feature (enabled by default), can discover MCPs via keyword search rather than only from known list | HIGH | Claude Code tool search defers tools; recommend can search for design-relevant MCP tools on demand |
+| Confidence level per recommendation | Some MCP tools are well-documented (Context7, Playwright); others have unstable APIs | LOW | HIGH confidence for official Anthropic MCPs; MEDIUM for community MCPs |
+| Priority ordering | Not all MCPs are equally valuable; rank by impact for this project type | LOW | P1 = universal (Sequential Thinking, Superpowers); P2 = design-specific (Playwright, Axe, Figma); P3 = optional |
 
 ### Anti-Features
 
 | Feature | Why Requested | Why Problematic | Alternative |
 |---------|---------------|-----------------|-------------|
-| Automatically re-running critique after iterate | "Just loop until no more issues" | Unconstrained critique-iterate loops diverge; human judgment needed to decide when good enough is good enough | Explicit human verification gate between iterate and any subsequent critique; do not automate the loop |
-| Wholesale redesign from critique | "The critique was bad; redesign everything" | Throws away correct decisions along with incorrect ones | Scope iteration to issue resolution; if redesign is truly needed, run a new `/pde:brief` → full pipeline pass |
-| Silent wireframe updates without change log | "Just update the files" | Loses the rationale for every decision; handoff engineers have no context for why things look the way they do | Change log is non-optional output of every iterate run |
+| Auto-installing MCPs without confirmation | "Just set it up" | Installing MCPs modifies the user's Claude Code environment; requires explicit consent | Always present recommendations with install command; never auto-execute `claude mcp add` |
+| Recommending MCPs for every possible use case | "Be comprehensive" | 20 recommendations creates decision paralysis; users install nothing | Top 5 recommendations sorted by impact for current context; full list in appendix |
+| Recommending MCPs that conflict with user's constraints | "Here's the best tool" | Some MCPs require paid APIs, Docker, specific OS; context-blind recommendations create friction | Check STACK.md and .planning/config.json for constraints before recommending |
 
-**Output format:**
+**Output format (standalone):**
 ```markdown
-# Design Iteration 1: [Project Name]
-**Issues addressed:** [N of M from critique.md]
-**Date:** [date]
+# Tool Recommendations: [Project Name]
+**Context:** [current pipeline stage + active milestone]
+**Generated:** [date]
 
-## Changes
+## Currently Available MCPs
+[From DESIGN-STATE.md MCP Availability snapshot]
 
-### Issue C-01 [Critical] — RESOLVED
-**Screen:** [screen name]
-**Change:** [what was modified]
-**Before:** [old annotation or layout note]
-**After:** [new annotation or layout note]
+## Recommended Additions
 
-### Issue H-03 [High] — DEFERRED
-**Reason:** [why not addressed now]
-**Planned for:** [next iteration / handoff decision]
+### P1 (High Impact — Universal)
 
-## Regression Check
-- Preserved: [element from critique Preserve list] — confirmed unchanged
+#### Sequential Thinking MCP
+**Why:** Enables multi-step reasoning in ideation, critique, and handoff stages
+**Benefit:** Ideation quality improves significantly; critique finds more issues
+**Install:** `claude mcp add sequential-thinking npx -y @modelcontextprotocol/server-sequential-thinking`
+**Confidence:** HIGH — official Anthropic MCP
 
-## Re-critique Recommended
-- [ ] [Screen name]: [reason change may have introduced new issue]
+### P2 (High Impact — Design Pipeline)
+
+#### Playwright MCP
+**Why:** Screenshot validation in /pde:wireframe and /pde:mockup
+**Benefit:** Catches layout rendering issues before stakeholder review
+**Install:** `claude mcp add playwright npx -y @modelcontextprotocol/server-playwright`
+**Confidence:** HIGH — official Anthropic MCP
+
+[...]
+
+## Full MCP Catalog
+[Table: MCP name, purpose, confidence, install command]
 ```
 
-**Complexity:** MEDIUM — issue-targeted editing of wireframes requires precise scoping; change log generation is LOW complexity.
+**Complexity:** LOW — primarily reading existing state files and matching against a recommendation catalog; MEDIUM when MCP tool search is used for dynamic discovery.
 
 ---
 
-## Skill 7: Design-to-Code Handoff (`/pde:handoff`)
+## Expanded Orchestrator (`/pde:build` v1.2)
 
-**What it does:** Converts the final design artifacts (system tokens, component inventory, wireframes, annotations) into implementation-ready specifications: TypeScript interfaces, component API contracts, file structure recommendations, and task breakdown for the implementation phase.
+**What it does:** Extends the existing 7-stage build pipeline to a 12-stage pipeline covering the full ideate → competitive → opportunity → brief → system → flows → wireframe → critique(+HIG light) → iterate → mockup → hig(full) → handoff sequence.
 
-**Primary output:** `.planning/design/handoff.md` — implementation spec; `.planning/design/interfaces/[component].ts.md` — typed prop interfaces.
-
-**Consumes:** All prior design artifacts (`brief.md`, `flows.md`, `system.md`, `wireframes/`, `critique.md`, latest `iterate-N.md`)
+**Depends on:** All 12 skill workflows; design manifest coverage flags
 
 ### Table Stakes
 
 | Feature | Why Expected | Complexity | Notes |
 |---------|--------------|------------|-------|
-| TypeScript interface per component | The #1 thing dev handoff must produce in 2026 TypeScript-first workflows | MEDIUM | Props, optional vs required, union types for variants (e.g., `variant: 'primary' \| 'ghost'`) |
-| CSS variable block | Tokens from system.md formatted as CSS custom properties ready to paste | LOW | Already generated in system.md; handoff consolidates and marks as final |
-| Component tree / composition map | Which components contain which child components; defines the render tree | MEDIUM | Derived from wireframe layout; `LoginPage → [Header, LoginForm → [Input, Input, Button]]` |
-| Screen-by-screen implementation task list | Ordered list of what to build, in dependency order | MEDIUM | Leaf components first, compositions after; each item is a concrete implementation task |
-| File path recommendations | Where each component lives in the project's existing directory structure | LOW | Reads existing codebase conventions from .planning/ or asks user |
-| Behavior specification | Interaction behaviors, state transitions, event handlers — the logic spec a developer needs | MEDIUM | Pulled from wireframe annotations and flow error states |
+| Resume from last complete stage (all 12 stages) | Existing behavior must be preserved and extended | MEDIUM | Coverage flags: hasIdeation, hasCompetitive, hasOpportunity + existing 7 |
+| New upstream stages optional (enter at brief) | Not every project needs ideation + competitive first; brief remains a valid entry point | LOW | If brief exists and ideation/competitive/opportunity are absent, treat them as skipped |
+| New downstream stages in correct order | mockup → hig(full) → handoff order must be enforced | LOW | mockup requires iterate (hasIterate); hig requires mockup or wireframes; handoff requires hig |
+| `--dry-run` shows all 12 stages with status | Users need visibility into the full pipeline state | LOW | Extend existing stage table from 7 to 12 rows |
+| HIG light mode triggered during critique stage | Critique now includes a fast HIG check; orchestrator passes `--hig` flag to critique | MEDIUM | Adds HIG findings to critique report without a separate stage |
 
 ### Differentiators
 
 | Feature | Value Proposition | Complexity | Notes |
 |---------|-------------------|------------|-------|
-| Implementation task → PDE task injection | Generates tasks formatted for `/pde:quick` or the next milestone's plan | HIGH | Closes the loop: design produces work items the PDE workflow engine can execute |
-| Existing component detection | Cross-checks component inventory against any existing component files in the codebase | HIGH | Prevents building LoginForm if auth/LoginForm.tsx already exists |
-| Accessibility implementation notes | WCAG requirements per component (aria-label, role, keyboard nav) from critique accessibility perspective | MEDIUM | Derived from critique.md accessibility section |
-| Storybook story stub generation | For each component, generates a minimal Storybook story skeleton showing each variant | MEDIUM | Optional; only when project uses Storybook (detected from package.json) |
+| Configurable entry point (`--from=brief`) | Power users can start anywhere without dry-running through all 12 stages | MEDIUM | `--from=[stage]` flag skips pre-stages; records in run log |
+| Stage grouping display | Three groups: Research (ideate/competitive/opportunity), Design (brief/system/flows/wireframe), Quality (critique/iterate/mockup/hig/handoff) | LOW | Cleaner user experience than a flat 12-stage list |
+| Recommend integration pre-ideation | Before running ideate, orchestrator calls recommend to surface relevant research MCPs | MEDIUM | Ensures user has best tools before starting |
 
 ### Anti-Features
 
 | Feature | Why Requested | Why Problematic | Alternative |
 |---------|---------------|-----------------|-------------|
-| Generating actual component implementation code | "Just write the components" | Implementation is for the coding phase; mixing design handoff with code generation conflates two phases and skips verification | Handoff produces the spec; coding phase executes it; this is the separation GSD enforces |
-| Figma export / design file generation | "Export to Figma for the team" | Requires Figma MCP integration (out of scope for v1.1) | Mark this as a v1.2 enhancement target when MCP integrations are added |
-| One-page mega-spec | "Put everything in one handoff doc" | Monolithic specs are not searchable; engineers skip to their component and miss cross-cutting notes | Per-component interface files + index handoff.md that links to each |
+| Auto-running all 12 stages without gates | "One click to design" | Without human verification at stage transitions, errors compound; a bad ideation → bad competitive → bad brief → everything downstream is wrong | Human verification gates remain between each stage group; no skipping gates without --force |
+| Treating research stages as required for existing projects | "Everything must run ideation first" | Projects that already have a brief and flows shouldn't be forced through ideation | Detection: if BRF artifact exists, research stages marked as optional/skipped by default |
 
-**Output format:**
-```markdown
-# Handoff: [Project Name]
-**Design version:** iterate-[N]
-**Date:** [date]
-
-## Implementation Order
-1. [Leaf component] — no dependencies
-2. [Component] — depends on #1
-3. [Screen] — depends on #1, #2
-
-## Component Interfaces
-
-### [ComponentName]
-\`\`\`typescript
-interface [ComponentName]Props {
-  // required
-  label: string;
-  onSubmit: (data: FormData) => void;
-  // optional
-  variant?: 'primary' | 'ghost';
-  disabled?: boolean;
-}
-\`\`\`
-**Location:** `src/components/[path]/[ComponentName].tsx`
-**Behaviors:**
-- [Interaction → state transition]
-**Accessibility:**
-- role="[role]", aria-label="[label]"
-
-## CSS Variables (final)
-\`\`\`css
-:root { /* from system.md — finalized */ }
-\`\`\`
-
-## Tasks for Implementation Phase
-- [ ] Implement [Component] — [estimated scope: small/medium/large]
-- [ ] Implement [Component] — depends on [Component]
+**Updated pipeline stage table:**
+```
+Stage | Skill              | Coverage Flag     | Status
+1/12  | /pde:ideate        | hasIdeation       | complete / pending / skipped
+2/12  | /pde:competitive   | hasCompetitive    | complete / pending / skipped
+3/12  | /pde:opportunity   | hasOpportunity    | complete / pending / skipped
+4/12  | /pde:brief         | Glob BRF-brief    | complete / pending
+5/12  | /pde:system        | hasDesignSystem   | complete / pending
+6/12  | /pde:flows         | hasFlows          | complete / pending
+7/12  | /pde:wireframe     | hasWireframes     | complete / pending
+8/12  | /pde:critique+HIG  | hasCritique       | complete / pending
+9/12  | /pde:iterate       | hasIterate        | complete / pending
+10/12 | /pde:mockup        | hasMockup         | complete / pending
+11/12 | /pde:hig (full)    | hasHIG            | complete / pending
+12/12 | /pde:handoff       | hasHandoff        | complete / pending
 ```
 
-**Complexity:** HIGH — requires synthesizing all prior artifacts, detecting existing code, generating typed interfaces, and producing ordered task lists. Most complex stage in the pipeline.
+**Complexity:** MEDIUM — extend existing orchestrator pattern; does not add skill logic, only stage detection and invocation. New coverage flags (hasIdeation, hasCompetitive, hasOpportunity, hasMockup, hasHIG) must be added to design manifest schema.
 
 ---
 
 ## Feature Dependencies
 
 ```
-[/pde:brief — brief.md]
-    └──required by──> [/pde:flows — flows.md]
-                          └──required by──> [/pde:system — system.md (component inventory)]
-                          └──required by──> [/pde:wireframe — wireframes/]
-                                                └──required by──> [/pde:critique — critique.md]
-                                                                      └──required by──> [/pde:iterate — iterate-N.md + updated wireframes]
-                                                                                            └──required by──> [/pde:handoff — handoff.md]
+[/pde:ideate — IDT-ideation]
+    └──feeds──> [/pde:competitive] (problem space context)
+    └──feeds──> [/pde:brief] (recommended direction as seed)
+    └──integrates──> [/pde:recommend] (tool discovery at ideation start)
 
-[/pde:system — system.md]
-    └──required by──> [/pde:wireframe] (component vocabulary)
-    └──required by──> [/pde:handoff] (CSS variables, prop interfaces)
+[/pde:competitive — CMP-competitive]
+    └──feeds──> [/pde:opportunity] (gap list as opportunity inputs)
+    └──feeds──> [/pde:brief] (positioning context)
 
-[/pde:critique — critique.md]
-    └──enhances──> [/pde:iterate] (issue list drives changes)
-    └──feeds──> [/pde:handoff] (accessibility notes, preserved patterns)
+[/pde:opportunity — OPP-opportunity]
+    └──feeds──> [/pde:brief] (scored opportunities as goal inputs)
 
-[/pde:iterate]
-    └──may loop back to──> [/pde:critique] (human-gated; not automatic)
+[/pde:brief → /pde:system → /pde:flows → /pde:wireframe — EXISTING]
+    └──required by──> [/pde:critique]
+    └──required by──> [/pde:mockup] (wireframes as source)
+
+[/pde:critique (+ HIG light)]
+    └──required by──> [/pde:iterate]
+
+[/pde:iterate — updated wireframes]
+    └──required by──> [/pde:mockup] (hi-fi source)
+    └──strongly recommended by──> [/pde:hig] (full)
+
+[/pde:mockup — MCK artifacts]
+    └──required by (soft)──> [/pde:hig] (full audit on hi-fi; can also audit WFR if no MCK)
+    └──feeds──> [/pde:handoff] (hi-fi annotations for implementation spec)
+
+[/pde:hig (full) — HIG-audit]
+    └──gate before──> [/pde:handoff] (accessibility gate in build orchestrator)
+
+[/pde:recommend]
+    └──enhances──> [/pde:ideate] (called inline)
+    └──standalone——> [any stage] (callable anytime)
+
+[SYS tokens.css]
+    └──required by──> [/pde:mockup] (token application)
+    └──required by──> [/pde:hig] (contrast calculations)
 ```
 
 ### Dependency Notes
 
-- **brief.md is the foundation:** Every stage derives context from it. A weak brief produces compounding errors in every downstream stage.
-- **flows.md drives the screen inventory:** Wireframe and system component lists are derived from flow stage labels. Running wireframe without flows means inventing the screen list from scratch.
-- **system.md must precede wireframe:** Component names in wireframes must match component names in system.md or handoff will find mismatches.
-- **critique is optional in the pipeline but strongly recommended:** Wireframe → handoff is possible, but skips the only structured quality gate before code is written.
-- **iterate is optional and repeatable:** 0 to N iterations. Each iteration requires another human verification decision before proceeding.
-- **handoff requires all prior artifacts:** It synthesizes everything; running handoff without complete prior stages produces an incomplete spec.
-
----
-
-## Standalone vs Orchestrated Use
-
-Each skill works in two modes:
-
-| Mode | How invoked | What it reads | What it writes |
-|------|-------------|---------------|----------------|
-| Standalone | `/pde:[skill]` directly | Whatever design artifacts exist in `.planning/design/` | Its own output file; skips stages not yet run |
-| Orchestrated | Via `/pde:build` pipeline | Full chain from prior stage output | Full chain; human verification gate between each stage |
-
-Standalone mode must be tolerant of missing upstream artifacts: if `flows.md` does not exist when `/pde:wireframe` is invoked, the command should ask the user for the screen list rather than failing.
+- **Upstream research stages (ideate, competitive, opportunity) are optional but synergistic:** Each stage's output is consumed by the next and ultimately seeds brief.md. If a project starts at brief without running them, brief quality suffers but the pipeline works.
+- **Mockup requires iterate completion:** Running mockup before critique/iterate means encoding unvalidated design decisions in hi-fi form — expensive to change. This is a soft warning in standalone mode, a hard gate in build mode.
+- **HIG audit can run on wireframes OR mockups:** Full audit is richer against mockup (has actual token values); light audit in critique runs against wireframes. Both modes share the same output format.
+- **Recommend has no hard dependencies:** It reads context but doesn't require any design artifacts. It can run before anything else.
+- **Design manifest schema must be extended:** Five new coverage flags (hasIdeation, hasCompetitive, hasOpportunity, hasMockup, hasHIG) must be added to pde-tools.cjs design coverage-check before any new skill can set them.
 
 ---
 
 ## MVP Definition
 
-### Launch With (v1.1)
+### Launch With (v1.2)
 
-All 7 skills at their table-stakes feature level, standalone and orchestrated.
+All six new skills at table-stakes feature level, standalone AND orchestrated through extended `/pde:build`.
 
-- [ ] `/pde:brief` — structured brief elicitation with fixed output format
-- [ ] `/pde:flows` — happy path + error states + edge cases per persona
-- [ ] `/pde:system` — color/type/spacing tokens + component inventory + CSS variables
-- [ ] `/pde:wireframe` — ASCII wireframes for all screens in flows + state variants + annotations
-- [ ] `/pde:critique` — heuristic evaluation + coverage check + severity-rated issues + fix recommendations
-- [ ] `/pde:iterate` — issue-targeted wireframe updates + change log + deferred issue list
-- [ ] `/pde:handoff` — TypeScript interfaces + implementation order + CSS variables + task list
-- [ ] `/pde:build` — orchestrated pipeline with human verification gates
-- [ ] `.planning/design/` artifact directory with consistent naming
+- [ ] `/pde:ideate` — multi-phase diverge/converge with HMW reframes, assumption capture, ranked output
+- [ ] `/pde:competitive` — 3 direct + 2 indirect competitor evaluation, feature matrix, gap identification
+- [ ] `/pde:opportunity` — RICE scoring with calibrated rationale and MVP candidate output
+- [ ] `/pde:mockup` — hi-fi HTML/CSS from wireframes with token application, interactive states, self-contained
+- [ ] `/pde:hig` — dual mode (light in critique, full standalone), WCAG 2.2 AA + platform HIG, severity-rated
+- [ ] `/pde:recommend` — MCP availability check, stack-matched recommendations, install commands
+- [ ] `/pde:build` expanded to 12 stages with new coverage flags in design manifest
 
-### Add After Validation (v1.2)
+### Add After Validation (v1.2.x)
 
-- [ ] Assumption violation detection in critique — needs proven brief format stability
-- [ ] Existing component detection in handoff — needs codebase indexing capability
-- [ ] Implementation task injection into PDE workflow engine — needs handoff-to-plan bridge
-- [ ] Figma MCP export from handoff — requires MCP integration milestone
-- [ ] Responsive wireframe variants — add when users report mobile design as blocker
-- [ ] Storybook story stub generation — add when users report Storybook usage
+- [ ] Concept combination (hybrid) pass in ideation — needs proven single-phase output quality first
+- [ ] WebSearch MCP integration in competitive — live competitor data; requires verifiable cite per claim
+- [ ] Axe MCP integration in HIG — automated contrast/ARIA detection; depends on Axe MCP stability
+- [ ] Figma MCP push from mockup — depends on Figma MCP availability; defer until MCP integration milestone
+- [ ] Sensitivity analysis in opportunity scoring — add after user feedback on base RICE output
 
 ### Future Consideration (v2+)
 
-- [ ] Competitive analysis as part of brief stage — requires research agent integration
-- [ ] AI-generated persona research from user interview transcripts — requires external data access
-- [ ] Image/screenshot-based design critique — requires reliable vision model integration
-- [ ] High-fidelity mockup generation — requires image generation pipeline
+- [ ] Interview synthesis in ideation — feeding user research transcripts into ideation context
+- [ ] Competitive monitoring (re-run competitive at intervals) — requires persistent state and scheduling
+- [ ] Full WCAG 3.0 criteria when published — standard not yet finalized as of 2026
 
 ---
 
@@ -626,64 +642,60 @@ All 7 skills at their table-stakes feature level, standalone and orchestrated.
 
 | Feature | User Value | Implementation Cost | Priority |
 |---------|------------|---------------------|----------|
-| `/pde:brief` — structured brief | HIGH | LOW | P1 |
-| `/pde:flows` — text flow diagrams | HIGH | MEDIUM | P1 |
-| `/pde:system` — token generation | HIGH | MEDIUM | P1 |
-| `/pde:wireframe` — ASCII wireframes | HIGH | MEDIUM | P1 |
-| `/pde:critique` — heuristic review | HIGH | MEDIUM | P1 |
-| `/pde:iterate` — targeted updates | HIGH | MEDIUM | P1 |
-| `/pde:handoff` — TypeScript interfaces + task list | HIGH | HIGH | P1 |
-| `/pde:build` — orchestrated pipeline | HIGH | MEDIUM | P1 |
-| Existing component detection | MEDIUM | HIGH | P2 |
-| Figma/MCP export | HIGH | HIGH | P2 (v1.2) |
-| Assumption violation detection | MEDIUM | MEDIUM | P2 |
-| Image-based critique | LOW | HIGH | P3 |
+| `/pde:ideate` — multi-phase diverge/converge | HIGH | HIGH | P1 |
+| `/pde:competitive` — landscape evaluation | HIGH | MEDIUM | P1 |
+| `/pde:opportunity` — RICE scoring | HIGH | MEDIUM | P1 |
+| `/pde:mockup` — hi-fi HTML/CSS from wireframes | HIGH | HIGH | P1 |
+| `/pde:hig` — dual-mode audit | HIGH | MEDIUM | P1 |
+| `/pde:recommend` — tool discovery | MEDIUM | LOW | P1 |
+| `/pde:build` extended to 12 stages | HIGH | MEDIUM | P1 |
+| HIG light mode in critique | MEDIUM | LOW | P1 (adds to existing skill) |
+| WebSearch MCP in competitive | MEDIUM | MEDIUM | P2 |
+| Axe MCP in HIG | MEDIUM | MEDIUM | P2 |
+| Figma push from mockup | HIGH | HIGH | P2 (v1.2.x — MCP dependency) |
+| Concept hybrid synthesis in ideation | MEDIUM | MEDIUM | P2 |
 
 **Priority key:**
-- P1: Must have for v1.1 launch
-- P2: Add in v1.2 after v1.1 validated
+- P1: Must have for v1.2 launch
+- P2: Add after v1.2 validated; candidate for v1.2.x or v1.3
 - P3: v2+ consideration
 
 ---
 
 ## Competitor Feature Analysis
 
-| Feature | Figma AI | v0/Bolt/Lovable | UX Pilot / Uizard | PDE Approach |
-|---------|----------|-----------------|-------------------|--------------|
-| Problem framing / brief | No | No | No | `/pde:brief` — explicit structured stage |
-| User flow mapping | Basic (FigJam) | No | UX Pilot: flow diagrams | Text-native flows with error state coverage |
-| Design system generation | Yes (Figma variables) | Minimal | Partial | Token-first; CSS variables; component inventory |
-| Wireframing | Yes (hi-fi) | Yes (generates UI) | Yes (lo-fi AI) | Text/ASCII; LLM-native; versioned in markdown |
-| Design critique | No (manual) | No | UX Pilot: AI review | Multi-perspective; heuristic + goal + coverage |
-| Critique-driven iteration | No (manual) | No | No | Explicit iterate stage with change log |
-| Design-to-code handoff | Figma Dev Mode | Yes (generates code) | Partial | TypeScript interfaces + ordered task list |
-| File-based state / markdown artifacts | No | No | No | Core PDE differentiator; design lives in .planning/design/ |
-| Integration with dev workflow | Figma plugin ecosystem | Ship directly | No | Tasks feed PDE plan; same planning/ directory |
-| Offline / no-server | No | No | No | Yes — markdown files, no external services |
+| Feature | Figma AI | v0 / Bolt | UX Pilot / Uizard | Notion AI | PDE v1.2 Approach |
+|---------|----------|-----------|-------------------|-----------|-------------------|
+| Multi-phase ideation | No | No | No | No | `/pde:ideate` — diverge/converge with convergence scoring |
+| Competitive analysis | No | No | No | No | `/pde:competitive` — structured matrix + gap identification |
+| RICE opportunity scoring | No | No | No | No | `/pde:opportunity` — full RICE with calibrated rationale |
+| Hi-fi mockup from wireframe | Yes (Figma native) | Yes (generates UI) | Partial | No | `/pde:mockup` — tokens-applied HTML/CSS; file:// compatible |
+| HIG/WCAG audit | No (manual) | No | Partial (contrast only) | No | `/pde:hig` — dual mode, 2.2 AA, severity-rated, platform-aware |
+| Tool/MCP discovery | No | No | No | No | `/pde:recommend` — stack-aware, install commands |
+| File-based state / markdown | No | No | No | No | Core PDE differentiator unchanged |
+| Integrated with dev workflow engine | No | Partial | No | No | Full pipeline ideate → handoff in same `.planning/` dir |
 
-**Key gap PDE fills:** No existing tool runs a complete brief-to-handoff design pipeline in text-native, file-based form that integrates with a development workflow engine. Figma handles hi-fi design but has no brief or flow stage. v0/Bolt skip design entirely and go to code. UX Pilot has wireframing and critique but no handoff or workflow integration.
+**Key differentiation v1.2 adds:** No tool on the market runs a complete ideate → competitive → opportunity → design → quality → handoff pipeline in a text-native, file-based, development-workflow-integrated form. Figma has hi-fi mockup but requires Figma app, has no ideation or RICE scoring, and does not produce developer handoff files. PDE v1.2 closes the gap between research, design, and implementation in a single plugin.
 
 ---
 
 ## Sources
 
-- [BareMinimum — Free AI ASCII Wireframe Generator](https://bareminimum.design) — confirms ASCII wireframe as valid LLM-native format (HIGH confidence)
-- [Mockdown — ASCII Wireframe Editor for AI Coding](https://www.mockdown.design/about) — markdown-based wireframe format patterns (HIGH confidence)
-- [AsciiKit — Wireframe with AI Using ASCII](https://asciikit.com/) — validates Claude/ChatGPT ASCII wireframe capability (HIGH confidence)
-- [Markdown UI DSL — GitHub](https://github.com/MegaByteMark/markdown-ui-dsl) — spec-driven markdown wireframe schema (MEDIUM confidence)
-- [Design Tokens Specification Reaches First Stable Version — W3C Community Group](https://www.w3.org/community/design-tokens/2025/10/28/design-tokens-specification-reaches-first-stable-version/) — canonical token format reference (HIGH confidence)
-- [Design Tokens and AI: Scaling UX with Dynamic Systems — Medium](https://medium.com/@marketingtd64/design-tokens-and-ai-scaling-ux-with-dynamic-systems-316afa240f6f) — AI token generation patterns (MEDIUM confidence)
-- [Synthetic Heuristic Evaluation — arxiv 2507.02306](https://arxiv.org/abs/2507.02306) — AI critique finds 73-77% of usability issues vs 57-63% human baseline (HIGH confidence; peer-reviewed)
-- [Agentic Design Review System — arxiv 2508.10745](https://arxiv.org/pdf/2508.10745) — multi-perspective critique structure for AI design review (HIGH confidence; peer-reviewed)
-- [Rethinking Design Critiques in the Age of AI Prototyping — Designative](https://www.designative.info/2025/11/10/rethinking-design-critiques-in-the-age-of-ai-prototyping/) — critique workflow patterns in AI tools (MEDIUM confidence)
-- [AI Design-to-Code Tools: Complete Guide 2026 — Banani](https://www.banani.co/blog/ai-design-to-code-tools) — handoff format survey (MEDIUM confidence)
-- [10 Best Design-to-Code Tools for Developer Handoff 2026 — Subframe](https://www.subframe.com/tips/best-design-to-code-tools-handoff-export) — TypeScript interface generation as table stakes (MEDIUM confidence)
-- [Top AI Tools for UX Designers 2026 — Figma](https://www.figma.com/resource-library/ai-tools-for-ux-designers/) — competitor feature analysis (HIGH confidence)
-- [AI User Flow Diagram Generator — Eraser.io](https://www.eraser.io/ai/user-flow-diagram-generator) — text-based flow output formats (MEDIUM confidence)
-- [Jobs to Be Done Framework — User Interviews](https://www.userinterviews.com/ux-research-field-guide-chapter/jobs-to-be-done-jtbd-framework) — JTBD statement structure for brief output (HIGH confidence)
-- [What is a Problem Statement in UX — CareerFoundry](https://careerfoundry.com/en/blog/ux-design/problem-statement-ux/) — problem statement format (HIGH confidence)
+- [Progressive Ideation using Agentic AI Framework — arxiv 2601.00475](https://arxiv.org/html/2601.00475v1) — multi-phase ideation framework; concept combination improves novelty (MEDIUM confidence — preprint)
+- [Convergent vs divergent thinking: practical team guide 2026 — Monday.com](https://monday.com/blog/project-management/convergent-vs-divergent-thinking/) — diverge/converge workflow structure (MEDIUM confidence — industry source)
+- [RICE Scoring Model — Intercom (original)](https://www.intercom.com/blog/rice-simple-prioritization-for-product-managers/) — RICE formula and criteria definition; authoritative primary source (HIGH confidence)
+- [RICE Prioritization Framework — ProductPlan glossary](https://www.productplan.com/glossary/rice-scoring-model/) — standard RICE component definitions; score calculation (HIGH confidence)
+- [WCAG 2.2 Checklist 2026 — LevelAccess](https://www.levelaccess.com/blog/wcag-2-2-aa-summary-and-checklist-for-website-owners/) — WCAG 2.2 AA criteria list; automated coverage limits (HIGH confidence)
+- [Accessibility Audit Checklist 50+ WCAG Checks 2026 — web-accessibility-checker.com](https://web-accessibility-checker.com/en/blog/accessibility-audit-checklist) — automated vs manual scope; 30-57% automation coverage stat (MEDIUM confidence)
+- [Apple Human Interface Guidelines — Apple Developer](https://developer.apple.com/design/human-interface-guidelines/) — authoritative HIG reference; Liquid Glass 2025-2026 updates (HIGH confidence)
+- [Apple HIG: Meet the new Human Interface Guidelines — Apple Developer News](https://developer.apple.com/news/?id=v8a3aetj) — HIG 2025 structural updates (HIGH confidence — official source)
+- [Competitive Analysis Framework — Toptal Product Designer Guide](https://www.toptal.com/product-managers/product-consultant/product-designer-guide-to-competitive-analysis) — competitive analysis dimensions for product designers (MEDIUM confidence)
+- [MCP Tool Search — Claude Code Docs](https://code.claude.com/docs/en/mcp) — deferred tool discovery, 85% token reduction; tool search enabled by default (HIGH confidence — official Anthropic docs)
+- [MCP Tool Discovery Feature Request — Claude Code GitHub #27208](https://github.com/anthropics/claude-code/issues/27208) — hierarchical deferred tool discovery context (MEDIUM confidence — issue thread)
+- [High Fidelity Wireframes — Moqups Blog](https://moqups.com/blog/high-fidelity-wireframes/) — hi-fi wireframe vs mockup distinction; design system as bridge (MEDIUM confidence)
+- [A Comprehensive Guide to Wireframing and Prototyping — Smashing Magazine](https://www.smashingmagazine.com/2018/03/guide-wireframing-prototyping/) — fidelity levels and progression; HTML/CSS as final prototyping medium (HIGH confidence — authoritative source)
 
 ---
 
-*Feature research for: v1.1 design pipeline (brief → flows → system → wireframe → critique → iterate → handoff)*
-*Researched: 2026-03-15*
+*Feature research for: v1.2 advanced design skills (ideate, competitive, opportunity, mockup, hig, recommend + build orchestrator expansion)*
+*Researched: 2026-03-16*

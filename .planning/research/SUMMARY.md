@@ -1,227 +1,182 @@
 # Project Research Summary
 
-**Project:** Platform Development Engine (PDE) — v1.1 Design Pipeline
-**Domain:** AI-assisted product design pipeline (brief → flows → system → wireframe → critique → iterate → handoff)
-**Researched:** 2026-03-15 (v1.1 update; v1.0 research dated 2026-03-14)
+**Project:** Platform Development Engine (PDE) — v1.2 Advanced Design Skills
+**Domain:** AI-powered product design pipeline (Claude Code plugin)
+**Researched:** 2026-03-16
 **Confidence:** HIGH
 
 ## Executive Summary
 
-PDE v1.1 adds a 7-stage text-native design pipeline to an existing AI development tool. The core architectural insight from research is that the LLM IS the generator: Claude writes Mermaid diagrams, HTML wireframes, DTCG design tokens, and TypeScript interfaces directly as text output. This eliminates all new npm dependencies — the entire design pipeline extends the existing zero-dependency CommonJS codebase using only Node.js built-ins. The recommended approach is to implement each skill as a self-contained, independently runnable workflow that slots into exactly two layers of PDE's existing architecture: the commands/workflows layer (7 new implementations) and the state layer (a new `.planning/design/` subtree). All templates, DESIGN-STATE schemas, and the `design-manifest.json` schema are already implemented in the codebase — the implementation work is wiring them into workflows.
+PDE v1.2 adds six new AI-driven design skills — ideation, competitive analysis, opportunity scoring, hi-fi mockup generation, HIG/WCAG audit, and tool discovery — to a 7-stage v1.1 design pipeline that is already proven and production-stable. The product is a Claude Code plugin implemented as zero-dependency CommonJS Node.js, and every architectural decision made for v1.1 carries forward unchanged. The critical strategic insight from research is that all six new skills add zero npm dependencies: Claude is the generator, pde-tools.cjs handles orchestration via Node built-ins, and the existing manifest/state architecture absorbs six new artifact codes, six new coverage flags, and two new directory paths without structural change.
 
-The research draws a hard line between what PDE is and what it is not. PDE produces text artifacts that describe design intent; it does not produce visual files, does not replace Figma, and does not implement components. This boundary is not a limitation — it is the product strategy. The entire pipeline runs offline, produces version-controlled Markdown and HTML files that diff cleanly in git, and integrates with the existing `.planning/` state system. No existing tool offers a complete brief-to-handoff pipeline in text-native, file-based form integrated with a development workflow engine: Figma has no brief or flow stage; v0/Bolt skip design entirely; UX Pilot has no handoff or workflow integration.
+The recommended implementation approach is a strict 5-phase build order derived from the dependency graph: schema migration first (the one blocking phase), then independent skills in parallel, then the compound ideation skill that calls recommend internally, then orchestrator expansion. This order isolates risk — each new skill can be validated standalone before being wired into the full `/pde:build` pipeline. The architectural pattern is identical for all six skills: a command stub delegates to a workflow, the workflow follows the established 7-step anatomy, and the final step updates designCoverage via read-before-set. No deviations from this pattern are warranted.
 
-The primary risks are LLM output consistency and scope creep. Without explicit fidelity contracts, token format schemas enforced at schema-definition time, and STACK.md injection into the handoff stage, the pipeline produces artifacts that are internally consistent but globally misaligned. The mitigation is schema-first development: establish the canonical token format, artifact naming convention, and DESIGN-STATE structure before any skill workflow is written. The second risk is that design pipeline work is adjacent to real design tools, creating constant pressure to add image generation, Figma export, and real-time preview. The scope boundary must be stated explicitly in every phase plan — not once in a requirements document that implementors do not re-read.
-
----
+The highest-risk area in v1.2 is not technology — it is integration correctness. Three classes of bugs are "looks done but isn't": coverage flags being silently clobbered by existing skills that haven't been updated to the pass-through-all merge pattern; the `/pde:build` orchestrator reporting pipeline complete at the old 7-stage count while never invoking the 5 new stages; and the ideation skill collapsing its required two-phase diverge/converge structure into a single LLM pass. All three are silent failures. The schema migration phase (Phase 1) must close the coverage clobber risk before any new skill is implemented.
 
 ## Key Findings
 
 ### Recommended Stack
 
-PDE v1.1 adds zero new npm dependencies. All design pipeline capabilities extend `bin/pde-tools.cjs` and a new `bin/lib/design.cjs` using Node.js built-ins only. The constraint is architectural: the existing codebase is CommonJS (`require()`), and all candidate libraries for design tooling (Mermaid 10+, Style Dictionary 4+, Terrazzo 0.7.2, Commander 15) are ESM-only and incompatible. This is fortunate, not limiting — the LLM generates Mermaid syntax text, DTCG token JSON, and TypeScript interfaces directly, making every one of those libraries unnecessary anyway.
+PDE v1.2 is deliberately zero-dependency. The entire new capability surface — six skills, a 12-command pde-tools.cjs expansion, three new reference files, five MCP integrations — is implemented using Node.js built-ins (fs, path, https, child_process) and Claude as the content generator. No npm packages are added in v1.2.
 
-The DTCG 2025.10 specification (W3C first stable release) is the token format. A 15-line recursive `dtcgToCss()` function in `bin/lib/design.cjs` converts DTCG JSON to CSS custom properties — no Style Dictionary or Terrazzo required. Wireframes are self-contained HTML files with inline CSS referencing `../../assets/tokens.css`. The post-v1 evolution (MCP integrations, standalone CLI) uses `@modelcontextprotocol/sdk` v1.x and Commander 14.x when those milestones are reached.
+**Core technologies:**
+- Node.js 20.x LTS + CommonJS (.cjs) — runtime and module format; required for Claude Code plugin compatibility; ESM is incompatible with the plugin invocation pattern
+- Claude (LLM as generator) — writes Mermaid syntax, HTML wireframes/mockups, TypeScript interfaces, DTCG tokens directly as text; no template engine or rendering library needed
+- DTCG 2025.10 JSON + inline dtcgToCss() — design token format (W3C stable spec) and zero-dependency CSS custom property emission in bin/lib/design.cjs
+- MCP servers (user-installed, not bundled) — Sequential Thinking, Axe a11y-mcp, Playwright, Context7, Superpowers; probe/use/degrade pattern; skills function without them
+- MCP Registry API v0/ at registry.modelcontextprotocol.io — public, unauthenticated REST endpoint for tool discovery in /pde:recommend; offline catalog fallback when unreachable
 
-**Core technologies (v1.1):**
-- Node.js 20.x LTS — runtime; already required; no change
-- CommonJS (.cjs) — module format; required for Claude Code plugin compatibility
-- Markdown + YAML frontmatter — skill/workflow definitions; native to existing system
-- DTCG 2025.10 JSON — canonical token format; W3C stable spec; LLM-native; `$value`/`$type` structure
-- CSS custom properties — token output format; generated from DTCG via inline `dtcgToCss()` in `bin/lib/design.cjs`
-- Static HTML — wireframe format; self-contained, browser-viewable, no server required
-- Mermaid syntax (text only) — flow diagrams; written by LLM into `.md` fenced code blocks; no mermaid npm package
-
-**What NOT to use (confirmed incompatible or unnecessary):**
-- `mermaid` npm (ESM-only since v10; PDE only needs text output, not rendering)
-- `style-dictionary` npm (ESM-only since v4; overkill for single-platform CSS output)
-- `@terrazzo/cli` npm (ESM-only v0.7.2; same fit issue as Style Dictionary)
-- `json-schema-to-typescript` (CJS support unconfirmed at v15; LLM writes better TypeScript anyway)
-- Any HTML template engine (LLM writes bespoke HTML directly — no template engine needed)
-- Commander 15 (ESM-only; requires Node 22.12+; incompatible with CJS codebase)
+**Critical version constraints:**
+- Commander 14.x only (not 15) — Commander 15 is ESM-only, requires Node 22.12+
+- @modelcontextprotocol/sdk 1.x only (not 2.x) — v2 not yet stable as of March 2026
+- a11y-mcp@1.0.4 (free, MPL-2.0) — not Deque's paid axe-mcp-server
+- WCAG 2.2 AA as the audit standard — now ISO/IEC 40500:2025; WCAG 3.0 is working draft only
+- Apple HIG Liquid Glass (iOS 26+) — gate Liquid Glass audit criteria on platform target being iOS/iPadOS/macOS 26+
 
 ### Expected Features
 
-The v1.1 MVP is all 7 skills at table-stakes level, both standalone and via `/pde:build` orchestration. Every skill has well-defined output formats (specified in `templates/`), dependency inputs, and anti-features that establish hard scope boundaries.
+The six new skills extend the pipeline in two directions: pre-brief research (ideate, competitive, opportunity, recommend) and post-iterate quality gates (mockup, hig). The v1.1 skills (brief, system, flows, wireframe, critique, iterate, handoff) are stable dependencies that are not rewritten — only brief requires a soft update to accept upstream context injection.
 
-**Must have (table stakes — all P1 for v1.1 launch):**
-- `/pde:brief` — structured brief with problem statement, personas, JTBD, goals, constraints, non-goals; anchors all downstream stages
-- `/pde:flows` — happy path + error states + edge cases per persona; Mermaid diagrams in `.md` files; screen inventory for wireframe stage
-- `/pde:system` — DTCG color/typography/spacing tokens + CSS variables + component inventory extracted from flow labels
-- `/pde:wireframe` — ASCII/Unicode wireframes per screen; fidelity-controlled (`lo-fi` default; `mid-fi` available); state variants + annotations
-- `/pde:critique` — multi-perspective heuristic evaluation (user, visual hierarchy, accessibility, flow logic) + severity ratings (Critical/High/Medium/Low) + fix recommendations
-- `/pde:iterate` — issue-targeted wireframe updates + change log + deferred issue list + convergence signal after 3+ iterations
-- `/pde:handoff` — TypeScript interfaces per component + implementation order (leaf-first) + CSS variables (final) + task list for implementation phase
-- `/pde:build` — thin orchestrator reading DESIGN-STATE.md, running incomplete stages sequentially, human verification gates between each stage
+**Must have (table stakes):**
+- `/pde:ideate` — minimum 5 divergent directions, convergence scoring against stated goal, explicit recommended direction, assumption capture per direction, handoff to brief
+- `/pde:competitive` — 3+ direct competitors, feature matrix, positioning map, explicit gap identification, evidence confidence labels on all claims
+- `/pde:opportunity` — RICE score per opportunity, criteria definition before scoring, ranked output with component scores visible, rationale per score component, MVP recommendation
+- `/pde:mockup` — design token application (tokens.css consumed), real CSS interactive states, all state variants per screen, self-contained HTML (no server), navigation index
+- `/pde:hig` — color contrast check (WCAG 1.4.3), focus visibility (WCAG 2.4.11), touch targets (HIG + WCAG 2.5.8), form labels, heading hierarchy, severity-rated findings with remediation
+- `/pde:recommend` — current MCP availability check, stack-matched tool recommendations, installation instructions per recommendation
 
-**Should have (differentiators — add after v1.1 validation):**
-- Assumption violation detection in critique (needs proven brief format stability)
-- Existing component detection in handoff (needs codebase indexing capability)
-- Implementation task injection into PDE workflow engine (needs handoff-to-plan bridge)
-- Scope-controlled iteration (`--severity=critical,high` filter)
-- Figma MCP export from handoff (requires MCP integration milestone)
-- Responsive wireframe variants (add when users report mobile design as blocker)
+**Should have (competitive differentiators):**
+- Ideation: multi-phase two-round structure with hybrid synthesis, HMW reframes, analogous domain import — prevents anchoring bias inherent in single-pass generation
+- Competitive: WebSearch MCP integration for live competitor verification (training data is 6-18 months stale); competitor weakness typology (hard-to-copy vs won't-fix vs known issue)
+- Opportunity: interactive user input for RICE dimensions (never LLM-fabricated); sensitivity analysis showing which component drives each score
+- Mockup: responsive layout at brief-defined breakpoints; Playwright screenshot validation when MCP available; component annotation comments linking to system.md component names
+- HIG: dual-mode architecture (light in critique, full standalone); platform-aware audit scope; Axe MCP automated contrast/ARIA checks in full mode
+- Recommend: ideation-integration mode with per-idea feasibility annotations (called during ideation diverge→converge checkpoint)
 
 **Defer (v2+):**
-- Competitive analysis integrated into brief stage
-- AI-generated persona research from user interview transcripts
-- Image/screenshot-based design critique (requires reliable vision model integration)
-- High-fidelity mockup generation (requires image generation pipeline)
+- Figma push from mockup (requires Figma MCP; high complexity; out of scope per PROJECT.md)
+- Full JavaScript application logic in mockups (mockup is a design artifact, not a prototype)
+- WCAG 3.0 criterion coverage (working draft only; not normative)
+- Exhaustive 10+ competitor analysis (anti-pattern; cap at 5)
+- Standalone CLI wrapping pde-tools.cjs (post-v1 platform evolution; Commander 14 when needed)
+- MCP server TypeScript implementation for post-v1 platform evolution
 
 ### Architecture Approach
 
-The design pipeline slots into PDE's existing layered architecture at exactly two points — command/workflow layer and state layer — with no changes to the agent layer, tooling layer, or any existing files except the 7 command stubs (which get their `<process>` blocks replaced with workflow references). The architecture follows four established PDE patterns: Skill-as-Self-Contained-Workflow (each skill runs standalone or orchestrated), Artifact Versioning via Filename Suffix (never overwrite; `BRF-brief-v2.md` not `BRF-brief.md`), DESIGN-STATE as Distributed Write-Locked Index (domain DESIGN-STATE files written by each skill; root merged by main context only), and Token Dependency for Staleness Tracking (design system changes cascade stale flags to dependent wireframes).
+The v1.2 architecture is additive to v1.1 without modification of any existing skill workflows. Six command stubs already exist at `commands/` with "Status: Planned" bodies — upgrading them means replacing only the `<process>` block with workflow delegation. The 7-step skill anatomy (init dirs → check prereqs → probe MCPs → generate output → write artifact with lock → update domain DESIGN-STATE → update root state + manifest + coverage flag) is the universal contract all six new skills follow without deviation.
 
-The artifact dependency chain is linear with one parallel opportunity: `PROJECT.md → brief → [flows || system] → wireframe → critique → iterate → handoff`. Flows and system share only the brief dependency and can be implemented in parallel. All design artifacts live under `.planning/design/` in domain subdirectories (`strategy/`, `ux/`, `visual/`, `review/`, `handoff/`, `assets/`). The `design-manifest.json` is the machine-readable bridge between the design pipeline and future engineering phases.
+**Major components and responsibilities:**
+1. `/pde:build` orchestrator (workflows/build.md) — expanded from 7 to 13 stages; reads designCoverage once at Step 2; strictly read-only (never writes manifest); invokes all skills via Skill() not Task(); stage count must be derived from stage list, not hardcoded
+2. pde-tools.cjs + bin/lib/design.cjs — three new commands: manifest-set-coverage, ensure-dirs-extended (adds ux/mockups/), mcp-registry-search; all Node built-ins only
+3. design-manifest.json schema — extended from 7 to 13 designCoverage flags (additive); new flags: hasIdeation, hasCompetitive, hasOpportunity, hasMockup, hasHigAudit, hasRecommendations
+4. .planning/design/ file store — adds strategy/ artifacts (IDT, CMP, OPP, REC), ux/mockups/ subdirectory (MCK), review/ artifacts (HIG)
+5. Five MCP servers — already documented in references/mcp-integration.md; user-installed via /pde:setup; probe/use/degrade pattern; no skill hard-requires any MCP
 
-**Major components (v1.1 delta from existing):**
-1. `commands/*.md` (7 stubs upgraded + 1 new `build.md`) — entry points; reference workflow files; stubs already exist
-2. `workflows/*.md` (8 new files: 7 skills + 1 orchestrator) — implement skill logic: read prerequisites, produce artifacts, update DESIGN-STATE
-3. `bin/lib/design.cjs` (new) — utility module: DTCG-to-CSS conversion, manifest read/write, artifact path resolution; no new npm deps
-4. `.planning/design/` subtree (created at runtime) — per-project artifact store with domain subdirectories
-5. `design-manifest.json` — machine-readable artifact registry; fully designed template already exists
-6. DESIGN-STATE infrastructure (root + per-domain) — write-lock protocol; all templates already exist
-
-What does NOT exist yet and must be created: 8 workflow files, `bin/lib/design.cjs`, `commands/build.md`. What DOES exist and is ready: all 6 design artifact templates, DESIGN-STATE templates (root + domain), `design-manifest.json` template, all 7 command stubs, all references.
+**Key pattern: Read-before-set (upgrade to pass-through-all)**
+Every skill reads the full designCoverage blob before writing its own flag, merges only its specific flag, and writes the full blob back atomically. The existing 7 skills use field-by-field enumeration (v1.1 pattern) which silently clobbers any new flags added to the schema. All 7 existing skills must be updated to pass-through-all (Object.assign with parsed coverage blob) before any v1.2 skill is implemented.
 
 ### Critical Pitfalls
 
-1. **Wireframe fidelity drift** — LLMs default to "impressive output" without a fidelity constraint, producing wildly different fidelity between invocations. Downstream critique and iterate break when fidelity is inconsistent. Prevention: define `skeleton | lo-fi | mid-fi` enum, enforce via agent prompt constraint blocks per level, store fidelity in artifact frontmatter. Must be built in from day one; retrofitting breaks artifact compatibility.
+1. **Coverage flags clobbered by existing skills (Pitfall 10)** — The most insidious risk. Any existing skill (brief, system, flows, etc.) running after a new v1.2 skill writes back the 7-field coverage object, deleting the new flag. Silent failure — no error, flag just disappears. Prevention: migrate all 7 existing skills to pass-through-all merge pattern as the first action of v1.2 implementation, before any new skill writes a flag.
 
-2. **Generic critique from missing context** — Critique agent spawned with only the wireframe produces textbook UX advice applicable to any interface ("consider improving visual hierarchy"). Without brief and flows in context, the LLM evaluates a generic UI rather than this specific product's design decisions. Prevention: critique agent receives `brief.md`, `flows.md`, and the wireframe — in that order. Block critique entirely rather than run a degraded pass when brief or flows are absent.
+2. **Orchestrator stage count mismatch (Pitfall 1)** — build.md hardcodes "7 stages" in prose, display messages, and the completion check. When pipeline expands to 13 stages, the orchestrator reports "7/7 complete" and halts without ever running mockup or HIG. The bug is invisible without counting actual invocations. Prevention: derive stage count from the stage list; audit all numeric literals in build.md before wiring any new stage.
 
-3. **Design token naming inconsistency across pipeline stages** — Without a canonical token format schema established before any agent runs, each context window invents locally consistent but globally inconsistent naming. Wireframe uses `--color-primary`; handoff references `color.primary`; design system uses `$primary`. Prevention: canonical format defined in `templates/design-system.md` before any skill is built; every downstream agent reads the token table from the generated system doc before producing output.
+3. **Ideation single-pass collapse (Pitfall 3)** — If ideation's diverge→converge structure is implemented as one LLM prompt, the LLM produces a shallow list because the pressure to converge inhibits divergent generation. Prevention: implement as a two-pass workflow with an explicit checkpoint; IDT file written with status `diverge-complete` before converge begins; minimum 6 distinct ideas in diverge section with no evaluative language.
 
-4. **Handoff spec targets wrong tech stack** — Handoff agent has no information about the project's actual tech stack, so defaults to training-data-most-common patterns. Prevention: `/pde:handoff` reads `.planning/research/STACK.md` before generating specs; if STACK.md is absent, block and require user to supply it. This is a required input, not optional context.
+4. **RICE scores fabricated by LLM (Pitfall 8)** — Without interactive user input, the opportunity skill invents plausible RICE numbers with false quantitative authority. Prevention: opportunity workflow must prompt user for Reach and Effort values; confidence calibrated via a structured checklist against competitive evidence; never auto-compute all four dimensions from training data.
 
-5. **Pipeline state not persisted — crashes lose all progress** — A 7-stage pipeline with no checkpoint state forces users to restart from the beginning after any interruption. Prevention: add design pipeline state to the existing state system before the first skill is implemented; expose `design-state load` and `design-state update` in `pde-tools.cjs`; every skill writes its status at start AND completion.
-
-6. **Infinite iterate loop with no convergence signal** — LLM critique will always find something to improve. Without a convergence signal, users never know when to proceed to handoff. Prevention: `/pde:iterate` tracks iteration count in design state; after iteration 3+, surfaces explicit convergence checklist and "ready for handoff" recommendation. Build into the first implementation — not added after users report the problem.
-
-7. **Scope creep into real design tooling** — Design pipeline work is adjacent to Figma, creating constant pressure to add image generation, real-time preview, color pickers. Each is individually defensible; collectively they delay the core pipeline 10x with no payoff. Prevention: scope boundary stated explicitly in every phase plan. When a feature sounds like "PDE should do what Figma does," the answer is "future milestone or Figma MCP integration."
-
----
+5. **HIG dual-mode divergence (Pitfall 5)** — If critique embeds inline HIG evaluation logic rather than delegating to hig.md with --light flag, the two code paths diverge over time and produce contradictory severity ratings for the same issue. Prevention: HIG logic lives exclusively in hig.md; critique calls Skill("pde:hig", "--light") — no inline HIG logic in critique.md; hig must be built before critique is updated.
 
 ## Implications for Roadmap
 
-Based on the artifact dependency structure (ARCHITECTURE.md) and pitfall sequencing (PITFALLS.md), the recommended phase structure follows the dependency chain with schema-first infrastructure preceding all skill implementations. The architecture explicitly recommends this 9-build-phase sequence:
+Based on the dependency graph and pitfall severity, the implementation must follow a strict 5-phase build order. Phases 2-4 can be partially parallelized but Phase 1 is a hard blocker for everything.
 
-### Phase 1: Design Pipeline Infrastructure
-**Rationale:** PITFALLS.md is explicit that pipeline state, artifact storage convention, and DESIGN-STATE schema must be established before any skill workflow is written. Retrofitting these after 7 skills exist causes cascading disruption. All templates are ready — this phase wires them into tooling.
-**Delivers:** `bin/lib/design.cjs` (DTCG-to-CSS converter + manifest operations); `pde-tools.cjs design-state` commands (load, update, status, coverage-check, staleness-check); `.planning/design/` directory structure creation logic; write-lock protocol for root DESIGN-STATE.md; `commands/build.md` stub.
-**Avoids:** PITFALLS 6 (pipeline state), 8 (artifacts outside `.planning/`), 3 (token naming — canonical format locked before any agent runs)
+### Phase 1: Schema Migration and Infrastructure
+**Rationale:** The coverage flag clobber bug (Pitfall 10) and the orchestrator stage count mismatch (Pitfall 1) are silent failures that corrupt all downstream work. Both must be fixed before a single new skill is implemented. This is the one phase with no parallelism options — it is a blocking dependency for all subsequent phases.
+**Delivers:** Updated designCoverage schema with 13 flags in templates/design-manifest.json; all 7 existing skills updated to pass-through-all merge pattern; ux/mockups/ directory creation in bin/lib/design.cjs DOMAIN_DIRS; pde-tools.cjs manifest-set-coverage and ensure-dirs-extended commands added
+**Addresses:** Critical Pitfall 10 (coverage clobber), Pitfall 2 (missing coverage flags for new skills)
+**Avoids:** All six new skills destroying existing pipeline state when existing skills run after them
 
-### Phase 2: Problem Framing (`/pde:brief`)
-**Rationale:** Brief is the single anchor document that every downstream skill reads. A weak or inconsistently formatted brief corrupts every downstream stage. Build and validate the brief format first.
-**Delivers:** Full `commands/brief.md` skill + `workflows/brief.md`; `strategy/` domain initialized; `BRF-brief-v{N}.md` production; DESIGN-STATE updated on completion; REQUIREMENTS.md traceability; standalone execution acceptance test passed.
-**Addresses:** FEATURES brief table stakes (problem statement, personas, JTBD, goals, constraints, non-goals)
-**Avoids:** PITFALL 2 (brief must exist before critique can run); PITFALL 10 (standalone execution tested)
+### Phase 2: Independent Pre-Pipeline Skills
+**Rationale:** /pde:recommend and /pde:competitive have no dependencies on each other and no dependencies on any new v1.2 skills. They can be built and validated standalone. Recommend must ship before ideation because ideate calls recommend internally via Skill().
+**Delivers:** /pde:recommend (standalone + ideation-integration interface; MCP Registry API via Node built-in https; offline catalog fallback); /pde:competitive (WebSearch MCP probe; staleness caveat in all output; gap analysis; strategy-frameworks.md integration); reference files references/ideation-techniques.md and references/mcp-registry-catalog.md; workflows/recommend.md and workflows/competitive.md
+**Uses:** MCP Registry API v0/ for recommend; Sequential Thinking MCP + Brave Search for competitive; strategy-frameworks.md (Porter's Five Forces already complete)
+**Implements:** Recommend's per-idea annotation interface that ideation will consume; competitive's confidence-labeled claim format consumed by opportunity
 
-### Phase 3: Design System (`/pde:system`)
-**Rationale:** Can be built immediately after brief (only brief dependency). Must precede wireframe because wireframe consumes `assets/tokens.css`. Building system early locks in the token naming convention that all downstream skills must use — the explicit Pitfall 3 prevention.
-**Delivers:** Full `commands/system.md` + `workflows/system.md`; DTCG token JSON production; `dtcgToCss()` invocation via `pde-tools.cjs design tokens-to-css`; `assets/tokens.css` generation; component inventory from flow labels; CSS variable block; WCAG contrast check at token level.
-**Avoids:** PITFALL 3 (token naming inconsistency — system establishes canonical format before wireframe runs)
+### Phase 3: Dependent Pre-Pipeline and Independent Post-Wireframe Skills
+**Rationale:** /pde:opportunity depends on competitive output for candidate pre-population (soft dependency). /pde:mockup and /pde:hig are independent of pre-pipeline skills and of each other — they can be built in parallel with opportunity. HIG must be complete before critique is updated to delegate its HIG light checks, because critique calls Skill("pde:hig") — not inline logic.
+**Delivers:** /pde:opportunity with interactive RICE input collection, sensitivity analysis, and OPP artifact; /pde:mockup with version-aware max-WFR discovery, token application, CSS interactive states, and MCK artifacts; /pde:hig with dual-mode architecture (--light and full), platform-conditional gating logic, Axe MCP probe/use/degrade, HIG-audit artifact; references/mockup-patterns.md; Liquid Glass section added to references/ios-hig.md
+**Addresses:** Pitfall 6 (mockup using stale wireframe — max-version discovery required), Pitfall 5 (HIG dual-mode — hig.md is the only location for HIG logic), Pitfall 8 (RICE fabrication — interactive input required), Pitfall 9 (HIG blocking non-applicable platforms — platform-conditional gate)
+**Note:** /pde:hig must be production-ready before /pde:critique is updated — critique's HIG section becomes a delegation call to hig.md
 
-### Phase 4: User Flow Mapping (`/pde:flows`)
-**Rationale:** Flows can be implemented in parallel with system (both depend only on brief). Separate phase to allow parallel implementation tracks. Must complete before wireframe (wireframe derives its screen inventory from flow labels).
-**Delivers:** Full `commands/flows.md` + `workflows/flows.md`; Mermaid flow diagrams in `ux/`; happy path + error states + edge cases per persona; flow-to-screen labeling; gap flagging against brief goals; standalone execution tested.
-**Addresses:** FEATURES flows table stakes (happy path, decision branches, error states, entry points, screen inventory)
+### Phase 4: Compound Skill and Brief Soft Update
+**Rationale:** /pde:ideate is the most complex new skill — it calls recommend internally, requires strict two-pass diverge/converge structure with an explicit checkpoint, and reads competitive and opportunity artifacts as optional enrichment context. Brief requires a soft update to check for and inject CMP/OPP context — this is a surgical edit to an existing stable skill and should be isolated.
+**Delivers:** /pde:ideate with two-pass diverge→converge structure, Skill("pde:recommend", "--quick") invocation at diverge→converge checkpoint, IDT artifact; templates/ideation-log.md; updated /pde:brief to soft-inject CMP and OPP context when present (with warning when absent); commands/ideate.md (new, no stub exists)
+**Addresses:** Pitfall 3 (ideation single-pass collapse), Pitfall 4 (competitive output not wired into brief), Pitfall 7 (recommend not integrated into ideation)
+**Avoids:** Task() invocation inside ideate (nested-agent freeze Issue #686 — use Skill() only); brief breaking for users who have not run competitive/opportunity (soft dependency, not hard block)
 
-### Phase 5: Wireframing (`/pde:wireframe`)
-**Rationale:** Depends on both flows (screen inventory) and system (token vocabulary). Cannot begin until Phases 3 and 4 complete. Fidelity contract is the highest-priority implementation requirement per PITFALLS.md — built in from day one, never retrofitted.
-**Delivers:** Full `commands/wireframe.md` + `workflows/wireframe.md`; ASCII/Unicode wireframes per screen; fidelity enum enforced in agent prompt (`lo-fi` default, `mid-fi` available); state variants (default, loading, error); annotation layer; screen index file; token dependency recorded in manifest.
-**Avoids:** PITFALL 1 (fidelity drift — enforced in agent prompt on first implementation)
-
-### Phase 6: Design Critique (`/pde:critique`)
-**Rationale:** Depends on wireframes. Multi-perspective structure requires all upstream artifacts to produce specific critique. Building critique before iterate validates the issue list format before iterate consumes it.
-**Delivers:** Full `commands/critique.md` + `workflows/critique.md`; brief + flows injected into critique context (dependency check blocks run if absent); multi-perspective evaluation; coverage check (wireframes vs flows); severity ratings; fix recommendations; "What Works" preservation section.
-**Addresses:** FEATURES critique table stakes; peer-reviewed research (arxiv 2507.02306) confirms AI critique finds 73-77% of usability issues vs 57-63% human baseline when structured correctly
-**Avoids:** PITFALL 2 (generic critique — brief and flows injected before LLM invocation, blocked if absent)
-
-### Phase 7: Critique-Driven Iteration (`/pde:iterate`)
-**Rationale:** Depends on critique. Convergence signaling must be built into the first implementation — PITFALLS.md is explicit that adding it after users report the infinite loop problem is the failure mode.
-**Delivers:** Full `commands/iterate.md` + `workflows/iterate.md`; issue-targeted wireframe updates; new versioned artifact files (never overwrite); change log per iteration; deferred issue list; convergence checklist + "ready for handoff" recommendation after iteration 3+.
-**Avoids:** PITFALL 9 (infinite iterate loop — convergence signal built in from day one)
-
-### Phase 8: Design-to-Code Handoff (`/pde:handoff`)
-**Rationale:** Terminal skill; depends on all prior artifacts. STACK.md integration is a required input per PITFALLS.md Pitfall 4. Handoff is the bridge between design pipeline and engineering phases via `design-manifest.json`.
-**Delivers:** Full `commands/handoff.md` + `workflows/handoff.md`; STACK.md integration for stack-aware prop naming; TypeScript interfaces per component; implementation order (leaf components first); CSS variables (final); component tree/composition map; behavior specifications; task list for implementation phase; `design-manifest.json` fully populated.
-**Avoids:** PITFALL 4 (stack mismatch — STACK.md is a required input, blocked if absent)
-
-### Phase 9: Pipeline Orchestrator (`/pde:build`)
-**Rationale:** Thin orchestrator built last after all 7 skills are independently validated. PITFALLS.md Pitfall 5 documents the god-orchestrator failure mode precisely — the delegation boundary must be the initial design, not a refactor target.
-**Delivers:** Full `commands/build.md` + `workflows/build.md`; reads DESIGN-STATE.md to determine incomplete stages; sequential stage invocation with human verification gates; crash-resumable from last complete stage; dry-run support; progress reporting.
-**Avoids:** PITFALL 5 (god orchestrator — build workflow stays under ~80 lines; all logic lives in individual skill workflows); PITFALL 6 (pipeline state; resumability verified via crash-recovery acceptance test)
+### Phase 5: Orchestrator Expansion and End-to-End Validation
+**Rationale:** All 6 new skills proven standalone before wiring into the orchestrated pipeline. Orchestrator expansion touches the most-used workflow file. Validate with --dry-run before any live pipeline run; stage count in dry-run must match actual skills being invoked.
+**Delivers:** /pde:build expanded to 13 stages (recommend → competitive → opportunity → ideate → brief → system → flows → wireframe → critique → iterate → mockup → hig → handoff); stage count derived dynamically from stage list (all hardcoded "7" literals removed); --dry-run shows 13-row stage table; end-to-end pipeline run from stage 1 through 13; brief confirmed to inject CMP/OPP context in-pipeline
+**Addresses:** Pitfall 1 (orchestrator stage count mismatch — stage count now derived not hardcoded)
+**Verification gate:** /pde:build --dry-run must show exactly 13 stages before any live run; after full pipeline run, coverage-check must show all 13 flags true with no clobbering
 
 ### Phase Ordering Rationale
 
-- **Schema-first, skills-second:** Infrastructure (Phase 1) before any skill produces artifacts. State management, storage conventions, and token format schema cannot be retrofitted without cascading disruption to all 7 skills.
-- **Brief anchors everything (Phase 2):** A breaking change to brief format cascades to all 6 downstream skills. Validate the brief format first, in isolation.
-- **System before wireframe (Phase 3 before 5):** Design system establishes the token naming contract wireframe and handoff must respect. Building wireframe before system guarantees Pitfall 3 occurs.
-- **Flows and system can parallelize (Phases 3 and 4):** Both depend only on brief. Separate phases to allow parallel tracks; sequential order is safe if resources don't allow parallel.
-- **Orchestrator last (Phase 9):** Requires all 7 skills independently validated. Building earlier forces integration against unvalidated components.
+- Phase 1 is a hard blocker because the coverage clobber bug (silent, no error) makes all five subsequent phases unverifiable — new skill flags are deleted by existing skills running after them, making it impossible to confirm any new skill completed correctly
+- Phases 2 and 3 are largely parallelizable (recommend, competitive, opportunity, mockup, hig are independent of each other) but recommend must precede ideation; hig must precede the critique update
+- Phase 4 is sequenced after Phases 2-3 because ideation calls recommend (must exist) and brief injection is simpler to validate once competitive and opportunity artifacts actually exist
+- Phase 5 is always last — the orchestrator's value is integrating validated standalone skills; building it earlier forces integration against unvalidated components and increases the risk of baking in bugs at the orchestrator layer
 
 ### Research Flags
 
 Phases likely needing deeper research during planning:
-- **Phase 5 (wireframe):** ASCII wireframe generation reliability may vary for complex screens (dashboards, data tables with many rows). Acceptance criteria should include stress-testing with information-heavy screens before marking the phase complete.
-- **Phase 8 (handoff):** TypeScript interface generation quality degrades if wireframe annotations are sparse. Verify annotation completeness requirements are captured in Phase 5 acceptance criteria.
-- **Phase 9 (build):** Orchestrator crash-resume behavior requires test infrastructure to simulate mid-pipeline interruption. Plan for explicit crash-recovery test cases in acceptance criteria.
+- **Phase 3 (/pde:mockup):** Version-aware artifact discovery (selecting max-version WFR file) needs a definitive implementation decision — either centralize in a new pde-tools.cjs `design latest-artifact` command or confirm the sorting pattern in critique.md is directly portable. Read critique.md's version-sort implementation before writing the mockup phase plan.
+- **Phase 3 (/pde:hig platform gate):** Platform-conditional gating in handoff requires the brief to have an enforced platform field. Verify whether brief.md currently requires platform or only recommends it. If not required, a brief template update belongs in Phase 3, not Phase 4.
+- **Phase 4 (brief soft update):** Confirm the exact `<required_reading>` injection pattern in brief.md before writing the CMP/OPP injection. If brief.md does not have a soft-dependency probe pattern, this becomes a more complex surgical edit than a standard stub upgrade.
 
-Phases with standard patterns (skip deeper research):
-- **Phase 1 (infrastructure):** All templates, DESIGN-STATE schemas, and `design-manifest.json` schemas are already implemented. Direct source inspection confirms readiness — no research needed.
-- **Phase 2 (brief):** Problem statement + persona elicitation is a well-documented pattern (HMW + JTBD). Output format is fully specified in `templates/design-brief.md`. Standard.
-- **Phase 3 (system):** DTCG 2025.10 is a stable W3C spec. `dtcgToCss()` implementation is fully specified in STACK.md. CSS custom properties output is straightforward. No research needed.
-- **Phase 6 (critique):** Multi-perspective heuristic evaluation structure is grounded in peer-reviewed literature (arxiv 2507.02306, 2508.10745). Pattern is well-established.
-
----
+Phases with standard patterns (skip research-phase):
+- **Phase 1 (schema migration):** Pure mechanical update — read all 7 existing skill workflows, change manifest-set-top-level calls to Object.assign pass-through-all. No architecture unknowns.
+- **Phase 2 (/pde:recommend):** MCP Registry API is documented, stable (v0.1 freeze since September 2025), no-auth. Node built-in https covers the integration. Standard 7-step skill anatomy.
+- **Phase 2 (/pde:competitive):** Template and reference files already exist. Standard 7-step skill anatomy. WebSearch MCP integration is already documented in mcp-integration.md.
+- **Phase 5 (orchestrator):** Stage table extension is mechanical. The anti-patterns (stage count, read coverage once, Skill() not Task()) are documented in build.md itself.
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | Verified via direct source code inspection of PDE codebase; ESM-only constraints confirmed from GitHub issues and official migration guides; DTCG format verified against W3C 2025.10 stable spec; `dtcgToCss()` implementation fully specified |
-| Features | HIGH | Output formats, dependency structure, and anti-features fully specified in existing templates; competitive positioning is MEDIUM (competitor feature sets evolve rapidly); peer-reviewed research confirms critique effectiveness |
-| Architecture | HIGH | All findings derived from direct inspection of existing PDE source, templates, and schemas; no speculation; forward-looking workflow implementations based on fully-designed existing schemas and established workflow patterns |
-| Pitfalls | HIGH | Grounded in direct codebase inspection, LLM prompt engineering literature, GSD codebase history, and design-tools community post-mortems; pitfall-to-phase mapping is explicit and actionable with verification criteria |
+| Stack | HIGH | All decisions verified from source code direct inspection (bin/pde-tools.cjs, bin/lib/design.cjs, commands/, templates/). Zero-dep philosophy confirmed. ESM incompatibilities confirmed from GitHub issues and migration guides. DTCG spec verified at designtokens.org. MCP Registry API confirmed at registry.modelcontextprotocol.io. |
+| Features | HIGH (WCAG/HIG/RICE), MEDIUM (ideation multi-phase, competitive dimensions) | WCAG 2.2, HIG patterns, RICE formula are authoritative specs. Multi-phase ideation patterns evidenced by research literature (arxiv 2601.00475) but ideation UX involves judgment calls on phase checkpoint design. |
+| Architecture | HIGH | Derived entirely from direct inspection of PDE source. All templates, stubs, existing workflows, manifest schema inspected. Build.md orchestrator anti-patterns documented in-source. No speculation or training-data inference. |
+| Pitfalls | HIGH | Pitfalls grounded in direct codebase inspection — orchestrator's hardcoded counts, the v1.1 read-before-set field enumeration pattern, write-lock protocol all visible in source. Coverage clobber risk confirmed by reading actual manifest-set-top-level calls in existing skill workflows. |
 
 **Overall confidence:** HIGH
 
 ### Gaps to Address
 
-- **Critique context window limits:** Critique agent receiving full design system + all wireframes + full brief may hit context limits for large projects (design system exceeding ~4k tokens, wireframes exceeding ~2k tokens each). Mitigation strategy (inject wireframe subset + brief summary + relevant tokens) is documented in PITFALLS.md but the exact threshold needs empirical testing during Phase 6.
-- **`/pde:build` sub-skill invocation mechanism:** Architecture specifies build invokes each skill "via SlashCommand or inline process embedding." The exact invocation mechanism should be resolved in Phase 1 infrastructure design, not deferred to Phase 9.
-- **Agent type registry entries:** PITFALLS.md flags that new agent types must be registered in `core.cjs` model resolution. Determine which design pipeline skills spawn named subagents vs run inline before implementing each skill phase.
-- **Standalone skill UX for missing-artifact cases:** Each skill must produce user-friendly "run X first" messages when prerequisites are absent. The exact message format and recovery flow should be specified in each phase plan, not improvised during implementation.
-
----
+- **MCP server npm versions:** a11y-mcp@1.0.4, @modelcontextprotocol/server-sequential-thinking@2025.12.18, @upstash/context7-mcp@2.1.4 sourced from WebSearch (MEDIUM confidence — npmjs.com returned 403 during research). Verify at install time; use `@latest` for MCP servers that auto-resolve unless version pinning is required for reproducibility.
+- **Brief platform field enforcement status:** Whether the brief template currently requires or only soft-recommends a platform field is unconfirmed. Phase 3 must verify this before implementing the HIG platform-conditional gate in handoff — if platform is not enforced, a brief template update must be added to Phase 3 scope.
+- **Critique HIG delegation window:** When hig.md ships and critique is updated to delegate HIG light checks, there is a window where both the old inline critique HIG logic and the new delegation exist simultaneously. Sequence strictly — complete hig.md full implementation and --light mode before modifying critique.md; do not ship a half-migrated critique.
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- PDE source code direct inspection (`/Users/greyaltaer/code/projects/Platform Development Engine/`) — command stubs, workflow patterns, existing templates (all 6 design artifact templates), DESIGN-STATE schemas, `design-manifest.json` schema
-- designtokens.org/tr/drafts/format/ — DTCG 2025.10 stable spec, `$value`/`$type` format
-- w3.org/community/design-tokens/2025/10/28/design-tokens-specification-reaches-first-stable-version/ — DTCG first stable version announcement
-- Official Claude Code docs (code.claude.com/docs/en/skills, /plugins, /sub-agents) — skills format, plugin structure, subagent frontmatter
-- modelcontextprotocol.io/docs/sdk — transport options, stdio vs Streamable HTTP
-- github.com/mermaid-js/mermaid issues #3590, #4148 — Mermaid 10+ ESM-only confirmed, CommonJS broken
+- PDE source code direct inspection: bin/pde-tools.cjs, bin/lib/design.cjs, workflows/build.md, workflows/critique.md, workflows/handoff.md, all 5 stub commands (competitive, mockup, hig, opportunity, recommend), all existing templates and references — architecture, anti-patterns, existing patterns
+- designtokens.org/tr/drafts/format/ — DTCG 2025.10 stable spec, $value/$type format
+- Official Claude Code docs (code.claude.com/docs/en/skills, /plugins, /sub-agents) — SKILL.md format, plugin.json, subagent frontmatter
+- WCAG 2.2 (ISO/IEC 40500:2025) — authoritative accessibility standard; October 2025 ISO ratification
+- MCP Registry API (registry.modelcontextprotocol.io) + Nordic APIs guide — /v0/servers endpoint, cursor pagination, v0.1 API freeze since September 2025
+- Apple Liquid Glass announcement (apple.com/newsroom, June 2025) — iOS 26 design language, Liquid Glass material
+- github.com/mermaid-js/mermaid issues #3590, #4148 — Mermaid 10+ ESM-only confirmed
 - styledictionary.com/versions/v4/migration/ — Style Dictionary v4+ ESM-only confirmed
-- arxiv 2507.02306 — AI critique finds 73-77% of usability issues vs 57-63% human baseline (peer-reviewed)
-- arxiv 2508.10745 — multi-perspective critique structure for AI design review (peer-reviewed)
+- a11y-mcp GitHub (github.com/priyankark/a11y-mcp) — free, MPL-2.0, wraps axe-core 4.11.1
+- Playwright MCP GitHub (github.com/microsoft/playwright-mcp) — Microsoft official, accessibility tree audit
 
 ### Secondary (MEDIUM confidence)
-- npm search results (March 2026) — style-dictionary v5.3.3, Terrazzo v0.7.2, mermaid v11.13.x, Commander 14.x/15.x — version confirmation and ESM-only status
-- BareMinimum, Mockdown, AsciiKit — confirm ASCII wireframe as valid LLM-native output format
-- Competitor feature analysis (Figma AI, v0/Bolt/Lovable, UX Pilot/Uizard) — feature gap identification confirming PDE's unique brief-to-handoff positioning
-- LLM prompt engineering literature — output consistency patterns, variability without explicit constraint anchors
-- designtokens.org/tr/drafts/format/ — DTCG `$value`/`$type` structure for token generation patterns
-- Design Tokens and AI: Scaling UX with Dynamic Systems (Medium) — AI token generation patterns
-
-### Tertiary (LOW confidence)
-- github.com/orgs/mermaid-js/discussions/4148 — LLM Mermaid text generation community patterns (consistent with direct testing expectations but not PDE-specific)
-- json-schema-to-typescript v15.0.4 — CommonJS support unconfirmed; decision to exclude is based on reasoning about LLM capability superiority, not confirmed incompatibility test
+- npm WebSearch (2026-03-16): a11y-mcp@1.0.4, @modelcontextprotocol/server-sequential-thinking@2025.12.18, @upstash/context7-mcp@2.1.4 — version numbers (npmjs.com direct fetch returned 403)
+- arxiv 2601.00475 — multi-phase ideation frameworks produce higher-novelty concepts than single-pass; supports two-round diverge structure in /pde:ideate
+- modelcontextprotocol.io/docs/sdk — MCP SDK v1.27.1 transport guidance; stdio for local, Streamable HTTP for remote
 
 ---
-
-*Research completed: 2026-03-15*
+*Research completed: 2026-03-16*
 *Ready for roadmap: yes*
