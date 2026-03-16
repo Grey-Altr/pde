@@ -150,7 +150,7 @@ Use the Glob tool to check for `.planning/design/assets/tokens.css`.
 Dry run mode. No files will be written.
 
 Planned output:
-  Files: .planning/design/ux/wireframes/{slug}.html (one per screen)
+  Files: .planning/design/ux/wireframes/WFR-{slug}.html (one per screen)
   File: .planning/design/ux/wireframes/index.html
   File: .planning/design/ux/DESIGN-STATE.md (updated)
 
@@ -371,7 +371,7 @@ Generate the complete HTML file for this screen:
   <nav aria-label="Main navigation" class="pde-nav">
     <a href="index.html">All Screens</a>
     {Inter-page links to ALL screens in INVENTORY, not just current batch:}
-    {  <a href="{slug}.html">{Screen Label}</a> for each existing screen}
+    {  <a href="WFR-{slug}.html">{Screen Label}</a> for each existing screen}
     {  <!-- Not yet generated — run /pde:wireframe "{slug}" {FIDELITY} to create this file --> for screens not yet generated}
   </nav>
 
@@ -474,9 +474,9 @@ mkdir -p .planning/design/ux/wireframes/
 #### 5b. Write each screen HTML file
 
 For each screen in SCREENS: use the Write tool to write the HTML generated in Step 4 to:
-`.planning/design/ux/wireframes/{slug}.html`
+`.planning/design/ux/wireframes/WFR-{slug}.html`
 
-Display per file: `  -> Created: .planning/design/ux/wireframes/{slug}.html`
+Display per file: `  -> Created: .planning/design/ux/wireframes/WFR-{slug}.html`
 
 #### 5c. Write index.html (ALWAYS — even for single-screen batch)
 
@@ -510,7 +510,7 @@ Write `.planning/design/ux/wireframes/index.html` with the following content:
   <ul>
     {For each screen in INVENTORY.screens:}
     {  If screen was generated in this batch:}
-    {  <li><a href="{slug}.html">{Screen Label}</a> <span class="fidelity-tag">{FIDELITY}</span> <span class="badge">{journeyName} — {persona}</span></li>}
+    {  <li><a href="WFR-{slug}.html">{Screen Label}</a> <span class="fidelity-tag">{FIDELITY}</span> <span class="badge">{journeyName} — {persona}</span></li>}
     {  If screen was NOT generated in this batch:}
     {  <li class="not-generated"><span>{Screen Label}</span> <span class="badge">not yet generated — run /pde:wireframe "{slug}" {FIDELITY}</span></li>}
   </ul>
@@ -696,7 +696,7 @@ NEVER do any of the following:
 </process>
 
 <output>
-- `.planning/design/ux/wireframes/{slug}.html` — one self-contained HTML file per screen at the requested fidelity level; opens in browser at file:// with no server required
+- `.planning/design/ux/wireframes/WFR-{slug}.html` — one self-contained HTML file per screen at the requested fidelity level; opens in browser at file:// with no server required
 - `.planning/design/ux/wireframes/index.html` — navigation index linking all screens (generated and not-yet-generated); always written
 - `.planning/design/ux/DESIGN-STATE.md` — ux domain state file; WFR artifact entry added or updated
 - `.planning/design/DESIGN-STATE.md` — root state updated (Cross-Domain Map, Quick Reference, Decision Log, Iteration History)
