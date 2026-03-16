@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Design Pipeline
 status: completed
-stopped_at: "Phase 15 complete, ready to plan Phase 16 (/pde:wireframe)"
-last_updated: "2026-03-16T01:17:26.481Z"
+stopped_at: Completed 15.1-02-PLAN.md
+last_updated: "2026-03-16T01:51:46.762Z"
 last_activity: "2026-03-16 — Phase 15 Plan 01 complete: workflows/flows.md (537-line /pde:flows workflow), commands/flows.md delegation"
 progress:
-  total_phases: 11
+  total_phases: 12
   completed_phases: 6
-  total_plans: 6
-  completed_plans: 6
+  total_plans: 8
+  completed_plans: 7
   percent: 100
 ---
 
@@ -52,6 +52,7 @@ Progress: [██████████] 100%
 | Phase 13.2-manifest-top-level-nyquist-cleanup P01 | 2min | 2 tasks | 4 files |
 | Phase 14 P01 | 5min | 2 tasks | 2 files |
 | Phase 15 P01 | 4min | 2 tasks | 2 files |
+| Phase 15.1 P02 | 2min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -79,6 +80,8 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 15-01]: FLW-screen-inventory.json is unversioned (fixed path) while FLW-flows-v{N}.md is versioned — wireframe reads a fixed path, no discovery logic needed
 - [Phase 15-01]: Decision nodes ({} shape) excluded from screen inventory; error nodes (fill:#fee) included with type: error
 - [Phase 15-01]: designCoverage always read via coverage-check before setting hasFlows — prevents clobbering flags from other skills
+- [Phase Phase 15.1-02]: generateCssVars invariant codified: must NEVER produce @media or [data-theme] blocks — dark mode requires manual assembly
+- [Phase Phase 15.1-02]: /pde:system integration smoke test classified as manual-only — requires Claude inference, not automatable as unit test
 
 ### Pending Todos
 
@@ -92,6 +95,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-16
-Stopped at: Phase 15 complete, ready to plan Phase 16 (/pde:wireframe)
+Last session: 2026-03-16T01:51:46.759Z
+Stopped at: Completed 15.1-02-PLAN.md
 Resume file: None
