@@ -37,7 +37,7 @@ Full details: .planning/milestones/v1.0-ROADMAP.md
 - [x] **Phase 15.1: Fix Integration Gaps & Tech Debt (Phases 12-15)** — Fix hasBrief contradiction, Domain Files stubs, orphaned CLIs, Phase 14 Nyquist audit (completed 2026-03-16)
 - [x] **Phase 16: Wireframing (/pde:wireframe)** — Fidelity-controlled HTML/CSS wireframes per screen (completed 2026-03-16)
 - [x] **Phase 17: Design Critique (/pde:critique)** — Multi-perspective review with severity ratings and fix recommendations (completed 2026-03-16)
-- [ ] **Phase 18: Critique-Driven Iteration (/pde:iterate)** — Artifact revision loop with convergence signal
+- [x] **Phase 18: Critique-Driven Iteration (/pde:iterate)** — Artifact revision loop with convergence signal (completed 2026-03-16)
 - [ ] **Phase 19: Design-to-Code Handoff (/pde:handoff)** — TypeScript interfaces, component APIs, STACK.md-aligned specs
 - [ ] **Phase 20: Pipeline Orchestrator (/pde:build)** — Thin orchestrator over all 7 skills via DESIGN-STATE
 
@@ -171,7 +171,7 @@ Plans:
   1. `/pde:iterate` produces new versioned wireframe files (`WFR-screen-v2.html`) — original files are never overwritten
   2. Each iteration run produces a change log mapping critique findings to applied changes, and a deferred list for issues not addressed
   3. After three or more iteration cycles, the command surfaces an explicit convergence checklist and a "ready for handoff" recommendation based on remaining open issues
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 Plans:
 - [ ] 18-01-PLAN.md — Iterate workflow and command wiring (versioned wireframe revision, changelog, convergence assessment)
 
@@ -221,6 +221,6 @@ Plans:
 | 15.1 Fix Integration Gaps & Tech Debt | 2/2 | Complete    | 2026-03-16 | - |
 | 16. Wireframing (/pde:wireframe) | 1/1 | Complete    | 2026-03-16 | - |
 | 17. Design Critique (/pde:critique) | 1/1 | Complete    | 2026-03-16 | - |
-| 18. Critique-Driven Iteration (/pde:iterate) | v1.1 | 0/1 | Not started | - |
+| 18. Critique-Driven Iteration (/pde:iterate) | 1/1 | Complete   | 2026-03-16 | - |
 | 19. Design-to-Code Handoff (/pde:handoff) | v1.1 | 0/TBD | Not started | - |
 | 20. Pipeline Orchestrator (/pde:build) | v1.1 | 0/TBD | Not started | - |

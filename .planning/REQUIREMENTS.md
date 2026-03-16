@@ -44,8 +44,8 @@ Requirements for design pipeline release. Each maps to roadmap phases.
 
 ### Iteration
 
-- [ ] **ITR-01**: /pde:iterate applies critique findings to revise design artifacts
-- [ ] **ITR-02**: Iteration includes convergence signal — stops when issues are resolved
+- [x] **ITR-01**: /pde:iterate applies critique findings to revise design artifacts
+- [x] **ITR-02**: Iteration includes convergence signal — stops when issues are resolved
 
 ### Handoff
 
@@ -120,8 +120,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CRT-01 | Phase 17 | Complete |
 | CRT-02 | Phase 17 | Complete |
 | CRT-03 | Phase 17 | Complete |
-| ITR-01 | Phase 18 | Pending |
-| ITR-02 | Phase 18 | Pending |
+| ITR-01 | Phase 18 | Complete |
+| ITR-02 | Phase 18 | Complete |
 | HND-01 | Phase 19 | Pending |
 | HND-02 | Phase 19 | Pending |
 | HND-03 | Phase 19 | Pending |

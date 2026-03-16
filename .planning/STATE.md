@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Design Pipeline
 status: completed
-stopped_at: Completed 17-01-PLAN.md
-last_updated: "2026-03-16T02:55:49.790Z"
+stopped_at: Completed 18-01-PLAN.md
+last_updated: "2026-03-16T03:40:11.911Z"
 last_activity: "2026-03-16 — Phase 15 Plan 01 complete: workflows/flows.md (537-line /pde:flows workflow), commands/flows.md delegation"
 progress:
   total_phases: 12
-  completed_phases: 9
-  total_plans: 10
-  completed_plans: 10
+  completed_phases: 10
+  total_plans: 11
+  completed_plans: 11
   percent: 100
 ---
 
@@ -56,6 +56,7 @@ Progress: [██████████] 100%
 | Phase 15.1-fix-integration-gaps-tech-debt P01 | 6min | 3 tasks | 4 files |
 | Phase 16 P01 | 4min | 2 tasks | 2 files |
 | Phase 17 P01 | 4min | 2 tasks | 2 files |
+| Phase 18 P01 | 4min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -94,6 +95,9 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 17]: Critique hard-blocks when both brief and flows absent (CRT-02); warn-and-continue when only one missing
 - [Phase 17]: What Works section is mandatory in critique output — /pde:iterate reads this to preserve correct decisions
 - [Phase 17]: Fidelity-severity calibration table: lofi color contrast is nit, hifi is major/critical; prevents unfair penalization
+- [Phase 18]: What Works parsed from live CRT file only (not from templates/critique-report.md — template lacks the section)
+- [Phase 18]: hasIterate introduced as seventh field in designCoverage via read-before-set pattern — Phase 19/20 can gate on it
+- [Phase 18]: Effort gate: findings with effort=significant AND structural redesign suggestion deferred — iterate is for surgical corrections, not architecture
 
 ### Pending Todos
 
@@ -107,6 +111,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-16T02:53:01.141Z
-Stopped at: Completed 17-01-PLAN.md
+Last session: 2026-03-16T03:40:11.908Z
+Stopped at: Completed 18-01-PLAN.md
 Resume file: None
