@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Advanced Design Skills
 status: executing
-stopped_at: Completed 26-02-PLAN.md
-last_updated: "2026-03-16T22:04:51.823Z"
+stopped_at: Completed 26-03-PLAN.md
+last_updated: "2026-03-16T22:06:01.099Z"
 last_activity: 2026-03-16 — Phase 26 Plan 01 complete (opportunity skill + skill-registry.md)
 progress:
   total_phases: 5
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 7
-  completed_plans: 6
+  completed_plans: 7
   percent: 71
 ---
 
@@ -50,6 +50,7 @@ Progress: [███████░░░] 5/7 plans (71%)
 | Phase 25-recommend-competitive-skills P02 | 3 | 1 tasks | 2 files |
 | Phase 26-opportunity-mockup-hig-skills P01 | 525608 | 2 tasks | 3 files |
 | Phase 26-opportunity-mockup-hig-skills P02 | 4 | 1 tasks | 2 files |
+| Phase 26-opportunity-mockup-hig-skills P03 | 5 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -73,6 +74,8 @@ Recent decisions affecting current work:
 - [Phase 26-opportunity-mockup-hig-skills]: MCK: Mockup HTML is self-contained per screen with only tokens.css as external dependency -- no shared mockup.js or mockup.css bundle (MOCK-01)
 - [Phase 26-opportunity-mockup-hig-skills]: MCK: All interactive states use CSS pseudo-classes only -- single theme toggle JS is the only permitted script in mockup output (MOCK-02)
 - [Phase 26-opportunity-mockup-hig-skills]: MCK: Wireframes are a soft dependency -- skill warns and continues from brief/flows context when wireframes absent
+- [Phase 26-03]: HIG --light flag is the critique delegation contract — 5 mandatory checks, no artifact written, critique-compatible finding table format
+- [Phase 26-03]: Axe MCP probe removed from critique Step 3 — HIG workflow handles its own Axe probing; --no-axe passes through to HIG
 
 ### Pending Todos
 
@@ -84,6 +87,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-16T22:04:51.820Z
-Stopped at: Completed 26-02-PLAN.md
+Last session: 2026-03-16T22:06:01.096Z
+Stopped at: Completed 26-03-PLAN.md
 Resume file: None

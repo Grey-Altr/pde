@@ -40,9 +40,9 @@ Requirements for v1.2 Advanced Design Skills. Each maps to roadmap phases.
 
 ### HIG Audit
 
-- [ ] **HIG-01**: User can run full WCAG 2.2 AA + HIG compliance audit via `/pde:hig`
-- [ ] **HIG-02**: HIG light mode integrates into critique stage as enhanced accessibility perspective
-- [ ] **HIG-03**: HIG findings are severity-rated and platform-aware
+- [x] **HIG-01**: User can run full WCAG 2.2 AA + HIG compliance audit via `/pde:hig`
+- [x] **HIG-02**: HIG light mode integrates into critique stage as enhanced accessibility perspective
+- [x] **HIG-03**: HIG findings are severity-rated and platform-aware
 
 ### Recommend
 
@@ -102,9 +102,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MOCK-01 | Phase 26 | Complete |
 | MOCK-02 | Phase 26 | Complete |
 | MOCK-03 | Phase 26 | Complete |
-| HIG-01 | Phase 26 | Pending |
-| HIG-02 | Phase 26 | Pending |
-| HIG-03 | Phase 26 | Pending |
+| HIG-01 | Phase 26 | Complete |
+| HIG-02 | Phase 26 | Complete |
+| HIG-03 | Phase 26 | Complete |
 | REC-01 | Phase 25 | Complete |
 | REC-02 | Phase 25 | Complete |
 | REC-03 | Phase 25 | Complete |
