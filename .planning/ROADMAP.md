@@ -117,9 +117,9 @@ Plans:
   1. `/pde:flows` produces at least one Mermaid flowchart diagram in `.planning/design/ux/` covering the happy path and error states for each persona in the brief
   2. Flow diagrams include decision branches and edge cases, not just linear happy paths
   3. A screen inventory is derived from flow node labels and written to a machine-readable format that `/pde:wireframe` reads as its screen list
-**Plans**: 1 plan
+**Plans:** 1 plan
 Plans:
-- [ ] 13.1-01-PLAN.md — Fix INT-02, INT-01, INT-03 code defects + metadata/Nyquist doc gaps
+- [ ] 15-01-PLAN.md — Flows workflow and command wiring (Mermaid diagrams, screen inventory JSON)
 
 ### Phase 16: Wireframing (/pde:wireframe)
 **Goal**: Every screen in the flow inventory has a browser-viewable wireframe at an explicitly controlled fidelity level
@@ -205,7 +205,7 @@ Plans:
 | 13.1 Hotfix — Tech Debt & Integration Fixes | 1/1 | Complete    | 2026-03-15 | - |
 | 13.2 Manifest Top-Level Fields & Nyquist Cleanup | 1/1 | Complete    | 2026-03-15 | - |
 | 14. Design System (/pde:system) | v1.1 | Complete    | 2026-03-16 | 2026-03-16 |
-| 15. User Flow Mapping (/pde:flows) | v1.1 | 0/TBD | Not started | - |
+| 15. User Flow Mapping (/pde:flows) | v1.1 | 0/1 | Planned | - |
 | 16. Wireframing (/pde:wireframe) | v1.1 | 0/TBD | Not started | - |
 | 17. Design Critique (/pde:critique) | v1.1 | 0/TBD | Not started | - |
 | 18. Critique-Driven Iteration (/pde:iterate) | v1.1 | 0/TBD | Not started | - |
