@@ -274,4 +274,4 @@ Plans:
 | 20. Pipeline Orchestrator (/pde:build) | 1/1 | Complete    | 2026-03-16 | - |
 | 21. Fix Pipeline Integration Wiring | 1/1 | Complete    | 2026-03-16 | - |
 | 22. Nyquist Compliance & Tech Debt Cleanup | 1/1 | Complete    | 2026-03-16 | - |
-| 23. Fix Wireframe Filename Convention & Final Tech Debt | 1/1 | Complete   | 2026-03-16 | - |
+| 23. Fix Wireframe Filename Convention & Final Tech Debt | 1/1 | Complete    | 2026-03-16 | - |
