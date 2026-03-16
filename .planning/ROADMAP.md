@@ -34,7 +34,7 @@ Full details: .planning/milestones/v1.0-ROADMAP.md
 - [x] **Phase 13.2: Manifest Top-Level Fields & Nyquist Cleanup** — Add manifest-set-top-level subcommand, populate projectName/productType in /pde:brief, fix 13.1 Nyquist flag (completed 2026-03-15)
 - [x] **Phase 14: Design System (/pde:system)** — DTCG tokens, CSS custom properties, typography/color/spacing scale
 - [x] **Phase 15: User Flow Mapping (/pde:flows)** — Mermaid flow diagrams, screen inventory for wireframe stage (completed 2026-03-16)
-- [ ] **Phase 15.1: Fix Integration Gaps & Tech Debt (Phases 12-15)** — Fix hasBrief contradiction, Domain Files stubs, orphaned CLIs, Phase 14 Nyquist audit
+- [x] **Phase 15.1: Fix Integration Gaps & Tech Debt (Phases 12-15)** — Fix hasBrief contradiction, Domain Files stubs, orphaned CLIs, Phase 14 Nyquist audit (completed 2026-03-16)
 - [ ] **Phase 16: Wireframing (/pde:wireframe)** — Fidelity-controlled HTML/CSS wireframes per screen
 - [ ] **Phase 17: Design Critique (/pde:critique)** — Multi-perspective review with severity ratings and fix recommendations
 - [ ] **Phase 18: Critique-Driven Iteration (/pde:iterate)** — Artifact revision loop with convergence signal
@@ -212,7 +212,7 @@ Plans:
 | 13.2 Manifest Top-Level Fields & Nyquist Cleanup | 1/1 | Complete    | 2026-03-15 | - |
 | 14. Design System (/pde:system) | v1.1 | Complete    | 2026-03-16 | 2026-03-16 |
 | 15. User Flow Mapping (/pde:flows) | 1/1 | Complete    | 2026-03-16 | - |
-| 15.1 Fix Integration Gaps & Tech Debt | 1/2 | In Progress|  | - |
+| 15.1 Fix Integration Gaps & Tech Debt | 2/2 | Complete   | 2026-03-16 | - |
 | 16. Wireframing (/pde:wireframe) | v1.1 | 0/TBD | Not started | - |
 | 17. Design Critique (/pde:critique) | v1.1 | 0/TBD | Not started | - |
 | 18. Critique-Driven Iteration (/pde:iterate) | v1.1 | 0/TBD | Not started | - |
