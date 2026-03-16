@@ -477,18 +477,25 @@ COV=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design coverage-check)
 if [[ "$COV" == @file:* ]]; then COV=$(cat "${COV#@file:}"); fi
 ```
 
-Parse the JSON output to extract current flag values for ALL seven fields:
+Parse the JSON output to extract current flag values for ALL thirteen fields:
 - `hasDesignSystem` — current value from COV output
 - `hasWireframes` — current value from COV output
+- `hasFlows` — (this skill sets to true)
+- `hasHardwareSpec` — current value from COV output
 - `hasCritique` — current value from COV output
 - `hasIterate` — current value from COV output
 - `hasHandoff` — current value from COV output
-- `hasHardwareSpec` — current value from COV output
+- `hasIdeation` — current value from COV output (default false if absent)
+- `hasCompetitive` — current value from COV output (default false if absent)
+- `hasOpportunity` — current value from COV output (default false if absent)
+- `hasMockup` — current value from COV output (default false if absent)
+- `hasHigAudit` — current value from COV output (default false if absent)
+- `hasRecommendations` — current value from COV output (default false if absent)
 
-Merge `hasFlows: true` into the existing values, then write the full object (all flags must be present):
+Merge `hasFlows: true` into the existing values, then write the full thirteen-field object (all flags must be present — default any absent field to `false`):
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":{current},"hasFlows":true,"hasWireframes":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":{current},"hasHardwareSpec":{current}}'
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":{current},"hasWireframes":{current},"hasFlows":true,"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current}}'
 ```
 
 Display: `Step 7/7: Root DESIGN-STATE and manifest updated.`
