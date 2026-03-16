@@ -46,9 +46,9 @@ Requirements for v1.2 Advanced Design Skills. Each maps to roadmap phases.
 
 ### Recommend
 
-- [ ] **REC-01**: User can discover relevant MCP servers and tools via `/pde:recommend`
-- [ ] **REC-02**: Recommend reads project context to tailor suggestions
-- [ ] **REC-03**: Recommend integrates into ideation workflow when called from `/pde:ideate`
+- [x] **REC-01**: User can discover relevant MCP servers and tools via `/pde:recommend`
+- [x] **REC-02**: Recommend reads project context to tailor suggestions
+- [x] **REC-03**: Recommend integrates into ideation workflow when called from `/pde:ideate`
 
 ### Build Orchestrator
 
@@ -105,9 +105,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | HIG-01 | Phase 26 | Pending |
 | HIG-02 | Phase 26 | Pending |
 | HIG-03 | Phase 26 | Pending |
-| REC-01 | Phase 25 | Pending |
-| REC-02 | Phase 25 | Pending |
-| REC-03 | Phase 25 | Pending |
+| REC-01 | Phase 25 | Complete |
+| REC-02 | Phase 25 | Complete |
+| REC-03 | Phase 25 | Complete |
 | BUILD-01 | Phase 28 | Pending |
 | BUILD-02 | Phase 28 | Pending |
 | BUILD-03 | Phase 28 | Pending |
