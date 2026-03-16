@@ -1,9 +1,9 @@
 ---
 phase: 21
 slug: fix-pipeline-integration-wiring
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-15
 ---
 
@@ -38,12 +38,12 @@ created: 2026-03-15
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 21-01-01 | 01 | 1 | ORC-01 | structural | `grep -q 'Skill' commands/build.md` | ✅ | ⬜ pending |
-| 21-01-02 | 01 | 1 | ORC-03 | structural | `grep -c 'hasIterate' skills/system.md` | ✅ | ⬜ pending |
-| 21-01-03 | 01 | 1 | ORC-03 | structural | `grep -c 'hasIterate' skills/flows.md` | ✅ | ⬜ pending |
-| 21-01-04 | 01 | 1 | ORC-03 | structural | `grep -c 'hasIterate' skills/wireframe.md` | ✅ | ⬜ pending |
-| 21-01-05 | 01 | 1 | ORC-03 | structural | `grep -c 'hasIterate' skills/critique.md` | ✅ | ⬜ pending |
-| 21-01-06 | 01 | 1 | ORC-03 | structural | `grep 'hasIterate' templates/design-manifest.json` | ✅ | ⬜ pending |
+| 21-01-01 | 01 | 1 | ORC-01 | structural | `grep -q 'Skill' commands/build.md` | ✅ | ✅ green |
+| 21-01-02 | 01 | 1 | ORC-03 | structural | `grep -c 'hasIterate' workflows/system.md` | ✅ | ✅ green |
+| 21-01-03 | 01 | 1 | ORC-03 | structural | `grep -c 'hasIterate' workflows/flows.md` | ✅ | ✅ green |
+| 21-01-04 | 01 | 1 | ORC-03 | structural | `grep -c 'hasIterate' workflows/wireframe.md` | ✅ | ✅ green |
+| 21-01-05 | 01 | 1 | ORC-03 | structural | `grep -c 'hasIterate' workflows/critique.md` | ✅ | ✅ green |
+| 21-01-06 | 01 | 1 | ORC-03 | structural | `grep 'hasIterate' templates/design-manifest.json` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -65,11 +65,23 @@ created: 2026-03-15
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 5s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 5s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** complete -- 2026-03-15
+
+---
+
+## Validation Audit 2026-03-15
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 4 |
+| Resolved | 4 |
+| Escalated | 0 |
+
+Four test command paths referenced nonexistent `skills/` directory — corrected to `workflows/` (system.md, flows.md, wireframe.md, critique.md). All 6 grep targets confirmed present and passing.

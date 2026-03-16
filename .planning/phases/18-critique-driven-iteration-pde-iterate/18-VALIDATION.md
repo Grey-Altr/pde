@@ -1,9 +1,9 @@
 ---
 phase: 18
 slug: critique-driven-iteration-pde-iterate
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-15
 ---
 
@@ -38,10 +38,10 @@ created: 2026-03-15
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 18-01-01 | 01 | 1 | ITR-01 | structural | `grep -c "WFR-.*-v" workflows/iterate.md` | ❌ W0 | ⬜ pending |
-| 18-01-02 | 01 | 1 | ITR-01 | structural | `grep -c "ITR-changelog" workflows/iterate.md` | ❌ W0 | ⬜ pending |
-| 18-01-03 | 01 | 1 | ITR-02 | structural | `grep -c "convergence" workflows/iterate.md` | ❌ W0 | ⬜ pending |
-| 18-01-04 | 01 | 1 | ITR-02 | structural | `grep -c "handoff" workflows/iterate.md` | ❌ W0 | ⬜ pending |
+| 18-01-01 | 01 | 1 | ITR-01 | structural | `grep -c "WFR-.*-v" workflows/iterate.md` | ✅ | ✅ green |
+| 18-01-02 | 01 | 1 | ITR-01 | structural | `grep -c "ITR-changelog" workflows/iterate.md` | ✅ | ✅ green |
+| 18-01-03 | 01 | 1 | ITR-02 | structural | `grep -c "convergence" workflows/iterate.md` | ✅ | ✅ green |
+| 18-01-04 | 01 | 1 | ITR-02 | structural | `grep -c "handoff" workflows/iterate.md` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -49,8 +49,8 @@ created: 2026-03-15
 
 ## Wave 0 Requirements
 
-- [ ] Skill file structure validated against existing patterns (e.g., critique.md, wireframe.md)
-- [ ] Template file structure validated against templates/ directory conventions
+- [x] Skill file structure validated against existing patterns (e.g., critique.md, wireframe.md)
+- [x] Template file structure validated against templates/ directory conventions
 
 *Existing infrastructure covers framework requirements — skills are markdown-based.*
 
@@ -67,11 +67,23 @@ created: 2026-03-15
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 2s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 2s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** complete -- 2026-03-15
+
+---
+
+## Validation Audit 2026-03-15
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+All 4 automated grep targets confirmed present (WFR-*-v=9, ITR-changelog=12, convergence=4, handoff=3). No path corrections needed. No gaps found.
