@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Design Pipeline
 status: planning
-stopped_at: Completed 22-nyquist-compliance-tech-debt-cleanup 22-01-PLAN.md
-last_updated: "2026-03-16T06:16:58.280Z"
+stopped_at: Completed 23-fix-wireframe-filename-convention-final-tech-debt 23-01-PLAN.md
+last_updated: "2026-03-16T07:14:09.936Z"
 last_activity: 2026-03-16 — Phase 19 complete, transitioned to Phase 20
 progress:
-  total_phases: 14
-  completed_phases: 14
-  total_plans: 15
-  completed_plans: 15
+  total_phases: 15
+  completed_phases: 15
+  total_plans: 16
+  completed_plans: 16
   percent: 100
 ---
 
@@ -61,6 +61,7 @@ Progress: [████████████████████] 12/12 p
 | Phase 20-pipeline-orchestrator-pde-build P01 | 3min | 2 tasks | 3 files |
 | Phase 21-fix-pipeline-integration-wiring P01 | 8min | 2 tasks | 7 files |
 | Phase 22-nyquist-compliance-tech-debt-cleanup P01 | 5min | 2 tasks | 6 files |
+| Phase 23-fix-wireframe-filename-convention-final-tech-debt P01 | 2min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -114,6 +115,9 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 22]: [22-01] Phase 16 validation rows marked pending (manual) — all tests require live /pde:wireframe run; Wave 0 artifacts confirmed existing
 - [Phase 22]: [22-01] Phase 21 skill paths corrected from nonexistent skills/ to workflows/ — project file layout has workflows/ not skills/
 - [Phase 22]: [22-01] handoff.md Step 2b documentation-only gap closed — Step 7c already wrote all 7 fields; only the description list needed hasHandoff added
+- [Phase 23-01]: [23-01] WIRE-01 was a pure documentation bug — wireframe.md and iterate.md both describe file naming but were out of sync; fix is 6 targeted line edits, no code changes needed
+- [Phase 23-01]: [23-01] Phase 14 and 15.1 VALIDATION.md status fields were stuck at 'draft' despite nyquist_compliant: true already correct — only status field needed updating
+- [Phase 23-01]: [23-01] Phase 22 VALIDATION.md required full Nyquist sign-off including checklist, dated approval, and audit appendix — all applied atomically in Task 2 commit
 
 ### Pending Todos
 
@@ -125,6 +129,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-16T06:14:15.947Z
-Stopped at: Completed 22-nyquist-compliance-tech-debt-cleanup 22-01-PLAN.md
+Last session: 2026-03-16T07:14:09.932Z
+Stopped at: Completed 23-fix-wireframe-filename-convention-final-tech-debt 23-01-PLAN.md
 Resume file: None

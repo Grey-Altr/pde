@@ -42,7 +42,7 @@ Full details: .planning/milestones/v1.0-ROADMAP.md
 - [x] **Phase 20: Pipeline Orchestrator (/pde:build)** — Thin orchestrator over all 7 skills via DESIGN-STATE (completed 2026-03-16)
 - [x] **Phase 21: Fix Pipeline Integration Wiring** — Add Skill to build command allowed-tools, fix hasIterate coverage clobbering in 4 workflows (completed 2026-03-16)
 - [x] **Phase 22: Nyquist Compliance & Tech Debt Cleanup** — Fix 4 non-compliant Nyquist phases, metadata gaps, documentation corrections (completed 2026-03-16)
-- [ ] **Phase 23: Fix Wireframe Filename Convention & Final Tech Debt** — Fix WFR- prefix mismatch between wireframe.md and iterate.md, resolve remaining metadata tech debt
+- [x] **Phase 23: Fix Wireframe Filename Convention & Final Tech Debt** — Fix WFR- prefix mismatch between wireframe.md and iterate.md, resolve remaining metadata tech debt (completed 2026-03-16)
 
 ## Phase Details
 
@@ -274,4 +274,4 @@ Plans:
 | 20. Pipeline Orchestrator (/pde:build) | 1/1 | Complete    | 2026-03-16 | - |
 | 21. Fix Pipeline Integration Wiring | 1/1 | Complete    | 2026-03-16 | - |
 | 22. Nyquist Compliance & Tech Debt Cleanup | 1/1 | Complete    | 2026-03-16 | - |
-| 23. Fix Wireframe Filename Convention & Final Tech Debt | 0/1 | Planned | - | - |
+| 23. Fix Wireframe Filename Convention & Final Tech Debt | 1/1 | Complete   | 2026-03-16 | - |
