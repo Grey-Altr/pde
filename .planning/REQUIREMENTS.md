@@ -86,37 +86,37 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INFRA-01 | — | Pending |
-| INFRA-02 | — | Pending |
-| INFRA-03 | — | Pending |
-| IDEAT-01 | — | Pending |
-| IDEAT-02 | — | Pending |
-| IDEAT-03 | — | Pending |
-| IDEAT-04 | — | Pending |
-| COMP-01 | — | Pending |
-| COMP-02 | — | Pending |
-| COMP-03 | — | Pending |
-| OPP-01 | — | Pending |
-| OPP-02 | — | Pending |
-| OPP-03 | — | Pending |
-| MOCK-01 | — | Pending |
-| MOCK-02 | — | Pending |
-| MOCK-03 | — | Pending |
-| HIG-01 | — | Pending |
-| HIG-02 | — | Pending |
-| HIG-03 | — | Pending |
-| REC-01 | — | Pending |
-| REC-02 | — | Pending |
-| REC-03 | — | Pending |
-| BUILD-01 | — | Pending |
-| BUILD-02 | — | Pending |
-| BUILD-03 | — | Pending |
+| INFRA-01 | Phase 24 | Pending |
+| INFRA-02 | Phase 24 | Pending |
+| INFRA-03 | Phase 24 | Pending |
+| IDEAT-01 | Phase 27 | Pending |
+| IDEAT-02 | Phase 27 | Pending |
+| IDEAT-03 | Phase 27 | Pending |
+| IDEAT-04 | Phase 27 | Pending |
+| COMP-01 | Phase 25 | Pending |
+| COMP-02 | Phase 25 | Pending |
+| COMP-03 | Phase 25 | Pending |
+| OPP-01 | Phase 26 | Pending |
+| OPP-02 | Phase 26 | Pending |
+| OPP-03 | Phase 26 | Pending |
+| MOCK-01 | Phase 26 | Pending |
+| MOCK-02 | Phase 26 | Pending |
+| MOCK-03 | Phase 26 | Pending |
+| HIG-01 | Phase 26 | Pending |
+| HIG-02 | Phase 26 | Pending |
+| HIG-03 | Phase 26 | Pending |
+| REC-01 | Phase 25 | Pending |
+| REC-02 | Phase 25 | Pending |
+| REC-03 | Phase 25 | Pending |
+| BUILD-01 | Phase 28 | Pending |
+| BUILD-02 | Phase 28 | Pending |
+| BUILD-03 | Phase 28 | Pending |
 
 **Coverage:**
 - v1.2 requirements: 25 total
-- Mapped to phases: 0
-- Unmapped: 25 ⚠️
+- Mapped to phases: 25
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-16*
-*Last updated: 2026-03-16 after initial definition*
+*Last updated: 2026-03-16 after roadmap creation (v1.2)*
