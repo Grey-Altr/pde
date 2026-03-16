@@ -34,6 +34,7 @@ Full details: .planning/milestones/v1.0-ROADMAP.md
 - [x] **Phase 13.2: Manifest Top-Level Fields & Nyquist Cleanup** — Add manifest-set-top-level subcommand, populate projectName/productType in /pde:brief, fix 13.1 Nyquist flag (completed 2026-03-15)
 - [x] **Phase 14: Design System (/pde:system)** — DTCG tokens, CSS custom properties, typography/color/spacing scale
 - [x] **Phase 15: User Flow Mapping (/pde:flows)** — Mermaid flow diagrams, screen inventory for wireframe stage (completed 2026-03-16)
+- [ ] **Phase 15.1: Fix Integration Gaps & Tech Debt (Phases 12-15)** — Fix hasBrief contradiction, Domain Files stubs, orphaned CLIs, Phase 14 Nyquist audit
 - [ ] **Phase 16: Wireframing (/pde:wireframe)** — Fidelity-controlled HTML/CSS wireframes per screen
 - [ ] **Phase 17: Design Critique (/pde:critique)** — Multi-perspective review with severity ratings and fix recommendations
 - [ ] **Phase 18: Critique-Driven Iteration (/pde:iterate)** — Artifact revision loop with convergence signal
@@ -120,6 +121,18 @@ Plans:
 **Plans:** 1/1 plans complete
 Plans:
 - [ ] 15-01-PLAN.md — Flows workflow and command wiring (Mermaid diagrams, screen inventory JSON)
+
+### Phase 15.1: Fix Integration Gaps & Tech Debt (Phases 12-15)
+**Goal**: All integration contradictions, stale template data, and orphaned CLI paths from Phases 12-15 are resolved before wireframe work begins
+**Depends on**: Phase 15
+**Requirements**: INFRA-01, INFRA-02, INFRA-03, INFRA-04, BRF-01, BRF-02, SYS-01, SYS-02, SYS-03 (integration fixes for already-satisfied requirements)
+**Gap Closure:** Closes INT-01, INT-02, INT-03, FLW-BREAK-01, FLW-BREAK-02 from v1.1 milestone audit
+**Success Criteria** (what must be TRUE):
+  1. `workflows/system.md` and `workflows/flows.md` Step 7 no longer reference `hasBrief` in coverage-merge instructions (INT-01 + FLW-BREAK-01 resolved)
+  2. `templates/design-state-root.md` Domain Files table has no `{count}` placeholders — rows are either removed or show `0` / `--` defaults (INT-02 + FLW-BREAK-02 resolved)
+  3. `workflows/system.md` Step 5 calls `pde-tools.cjs design tokens-to-css` for CSS generation instead of inline Write (INT-03 resolved for tokens-to-css)
+  4. Phase 14 VALIDATION.md has `nyquist_compliant: true` after audit
+**Plans**: 0 plans
 
 ### Phase 16: Wireframing (/pde:wireframe)
 **Goal**: Every screen in the flow inventory has a browser-viewable wireframe at an explicitly controlled fidelity level
