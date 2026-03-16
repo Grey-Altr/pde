@@ -71,7 +71,10 @@ Full details: .planning/milestones/v1.1-ROADMAP.md
   2. design-manifest.json template shows all 13 coverage flags (7 existing + 6 new: hasIdeation, hasCompetitive, hasOpportunity, hasMockup, hasHigAudit, hasRecommendations)
   3. Running `/pde:wireframe` on a project that already has hasIdeation=true leaves hasIdeation unchanged
   4. The ux/mockups/ directory is created when `/pde:setup` or the design pipeline initializes
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 24-01-PLAN.md — Extend manifest template with 13 coverage flags and add ux/mockups to ensureDesignDirs
+- [ ] 24-02-PLAN.md — Migrate 6 workflow files from 7-field to 13-field coverage pattern
 
 ### Phase 25: Recommend & Competitive Skills
 **Goal**: Users can discover relevant MCP tools for their project and run a structured competitive landscape analysis, each as standalone commands
@@ -149,7 +152,7 @@ Full details: .planning/milestones/v1.1-ROADMAP.md
 | 21. Fix Pipeline Integration Wiring | v1.1 | 1/1 | Complete | 2026-03-16 |
 | 22. Nyquist Compliance | v1.1 | 1/1 | Complete | 2026-03-16 |
 | 23. Wireframe Filename Fix | v1.1 | 1/1 | Complete | 2026-03-16 |
-| 24. Schema Migration & Infrastructure | v1.2 | 0/TBD | Not started | - |
+| 24. Schema Migration & Infrastructure | v1.2 | 0/2 | Not started | - |
 | 25. Recommend & Competitive Skills | v1.2 | 0/TBD | Not started | - |
 | 26. Opportunity, Mockup & HIG Skills | v1.2 | 0/TBD | Not started | - |
 | 27. Ideation Skill & Brief Update | v1.2 | 0/TBD | Not started | - |
