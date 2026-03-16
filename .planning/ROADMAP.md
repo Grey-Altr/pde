@@ -54,7 +54,7 @@ Full details: .planning/milestones/v1.1-ROADMAP.md
 
 **Milestone Goal:** Expand the design pipeline with six advanced skills — ideation, competitive analysis, opportunity scoring, hi-fi mockups, HIG audit, and tool discovery — creating a comprehensive pre-brief research layer and post-iterate quality gate, all orchestrable via an expanded `/pde:build`.
 
-- [ ] **Phase 24: Schema Migration & Infrastructure** - Migrate coverage flags to pass-through-all; extend manifest schema with six new flags; add ux/mockups/ directory
+- [x] **Phase 24: Schema Migration & Infrastructure** - Migrate coverage flags to pass-through-all; extend manifest schema with six new flags; add ux/mockups/ directory (completed 2026-03-16)
 - [ ] **Phase 25: Recommend & Competitive Skills** - Build /pde:recommend (MCP/tool discovery) and /pde:competitive (landscape analysis with gap identification)
 - [ ] **Phase 26: Opportunity, Mockup & HIG Skills** - Build /pde:opportunity (RICE scoring), /pde:mockup (hi-fi HTML/CSS), and /pde:hig (WCAG 2.2 AA dual-mode audit)
 - [ ] **Phase 27: Ideation Skill & Brief Update** - Build /pde:ideate with two-pass diverge→converge structure; update /pde:brief to inject competitive/opportunity context
@@ -152,7 +152,7 @@ Plans:
 | 21. Fix Pipeline Integration Wiring | v1.1 | 1/1 | Complete | 2026-03-16 |
 | 22. Nyquist Compliance | v1.1 | 1/1 | Complete | 2026-03-16 |
 | 23. Wireframe Filename Fix | v1.1 | 1/1 | Complete | 2026-03-16 |
-| 24. Schema Migration & Infrastructure | v1.2 | 1/2 | In progress | - |
+| 24. Schema Migration & Infrastructure | 2/2 | Complete   | 2026-03-16 | - |
 | 25. Recommend & Competitive Skills | v1.2 | 0/TBD | Not started | - |
 | 26. Opportunity, Mockup & HIG Skills | v1.2 | 0/TBD | Not started | - |
 | 27. Ideation Skill & Brief Update | v1.2 | 0/TBD | Not started | - |
