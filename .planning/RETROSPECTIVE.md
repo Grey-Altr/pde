@@ -48,6 +48,59 @@
 
 ---
 
+## Milestone: v1.1 — Design Pipeline
+
+**Shipped:** 2026-03-16
+**Phases:** 15 | **Plans:** 16 | **Commits:** 135
+
+### What Was Built
+- 7-stage design pipeline: brief → system → flows → wireframe → critique → iterate → handoff
+- Pipeline orchestrator (/pde:build) with DESIGN-STATE.md tracking and verification gates
+- Design infrastructure: design.cjs with DTCG-to-CSS, write-lock, manifest CRUD (zero npm deps)
+- DTCG 2025.10 tokens with OKLCH color space, dual dark mode, CSS custom properties derivation
+- Mermaid flow diagrams with screen inventory JSON for wireframe stage
+- Fidelity-controlled HTML/CSS wireframes (lo-fi/mid-fi/hi-fi) with state variants and annotations
+- 4-perspective design critique (UX, visual hierarchy, accessibility, business alignment) with severity ratings
+- Versioned wireframe iteration with convergence signal and effort gating
+- TypeScript interface generation and STACK.md-aligned component specs for handoff
+- design-manifest.json artifact registry with 7-field designCoverage tracking
+
+### What Worked
+- **Infrastructure-first approach** — building design.cjs and pde-tools.cjs before any skill meant all 7 skills used the same state management, locking, and manifest patterns
+- **7-step workflow pattern** — every skill follows the same structure (prereqs → lock → read context → generate → manifest → coverage → lock-release), making each new skill faster to implement
+- **Milestone auditing between waves** — catching integration gaps (hasBrief contradiction, coverage clobbering, WFR- prefix mismatch) early prevented them from compounding
+- **Read-before-set coverage pattern** — prevents skills from silently clobbering each other's manifest flags
+- **Strict orchestrator (read-only)** — /pde:build owns zero logic; each skill is fully independent
+
+### What Was Inefficient
+- **5 gap-closure phases (13.1, 13.2, 15.1, 21-23)** — nearly a third of phases were retroactive fixes; suggests integration testing should happen earlier in the pipeline
+- **SUMMARY format lacks one_liner field** — automated accomplishment extraction failed again (same v1.0 issue); tech-tracking format is great for dependency graphs but poor for milestone summaries
+- **STATE.md body still drifts** — the Current Position narrative lagged behind actual progress (showing Phase 20 when all phases were done)
+- **Coverage field count grew mid-milestone** — hasIterate added as 7th field in Phase 18 required backfilling 4 workflows in Phase 21
+
+### Patterns Established
+- DESIGN-STATE.md as pipeline progress tracker (stage completion table + write-lock row)
+- design-manifest.json with designCoverage object (7 boolean fields tracking each stage)
+- Skill-as-Self-Contained-Workflow: command stub delegates to workflow file with all logic
+- Brief as soft dependency (warn + fallback) vs hard dependency (block + recovery message) pattern
+- Versioned artifacts (BRF-brief-v{N}.md, CRT-critique-v{N}.md) vs fixed paths (FLW-screen-inventory.json)
+- ANNOTATION: HTML comments in wireframes parsed by handoff for TypeScript interface generation
+- Fidelity-severity calibration: critique severity adjusts based on wireframe fidelity level
+
+### Key Lessons
+1. **Integration testing should gate, not follow** — 5 retroactive fix phases could have been 0 if each skill was tested against its consumers before moving on
+2. **Coverage schema should be designed upfront** — adding hasIterate mid-milestone caused a 4-file backfill; define all fields in the infrastructure phase
+3. **Orchestrator last is correct** — building /pde:build after all 7 skills validated independently was the right call; no skill logic leaked into the orchestrator
+4. **Annotation conventions must be established with the producer** — wireframe annotations power handoff; defining the convention in Phase 16 (wireframe) instead of Phase 19 (handoff) was critical
+5. **Hard dependencies are better than silent degradation** — STACK.md as hard dep for handoff produces clear errors; brief as soft dep for flows sometimes produces vague output
+
+### Cost Observations
+- Model mix: primarily sonnet for execution, opus for orchestration and planning
+- Timeline: 2 days (2026-03-15 → 2026-03-16)
+- Notable: 135 commits, 15 phases in 2 days — infrastructure-first approach kept each skill to ~4 minutes average
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -55,9 +108,11 @@
 | Milestone | Commits | Phases | Key Change |
 |-----------|---------|--------|------------|
 | v1.0 | 127 | 11 | Initial release — fork-and-rebrand with gap closure |
+| v1.1 | 135 | 15 | Design pipeline — 7 skills + orchestrator with infrastructure-first approach |
 
 ### Cumulative Quality
 
 | Milestone | Requirements | Coverage | Gap Phases |
 |-----------|-------------|----------|------------|
 | v1.0 | 40/40 | 100% | 3 (phases 9-11) |
+| v1.1 | 25/25 | 100% | 5 (phases 13.1, 13.2, 15.1, 21-23) |

@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A full professional product design and development platform delivered as a Claude Code plugin. PDE takes users from raw idea to shipped product through AI-assisted research, design, planning, coding, testing, and deployment. Built as a disciplined fork of GSD (Get Shit Done), rebranded and restructured for public distribution.
+A full professional product design and development platform delivered as a Claude Code plugin. PDE takes users from raw idea to shipped product through AI-assisted research, design, planning, coding, testing, and deployment. Includes a complete 7-stage design pipeline (brief → system → flows → wireframe → critique → iterate → handoff) orchestrable via a single `/pde:build` command.
 
 ## Core Value
 
@@ -19,28 +19,15 @@ Any user can go from idea to shipped product through a single platform that hand
 - ✓ Plugin installable and usable in Claude Code — v1.0
 - ✓ All GSD templates, references, and configuration migrated — v1.0
 - ✓ GSD tooling rebranded and functional — v1.0
-- ✓ Design system generation produces DTCG tokens with CSS derivation — Phase 14
+- ✓ Design system generation produces DTCG tokens with CSS derivation — v1.1
+- ✓ Core design pipeline: brief → flows → system → wireframe → critique → iterate → handoff — v1.1
+- ✓ Each design skill works standalone AND as part of orchestrated /pde:build pipeline — v1.1
+- ✓ Design artifacts stored in .planning/design/ alongside planning state — v1.1
+- ✓ Design-to-implementation handoff produces component APIs and TypeScript interfaces — v1.1
 
 ### Active
 
-- [ ] Core design pipeline: brief → flows → system → wireframe → critique → iterate → handoff
-- [ ] Each design skill works standalone AND as part of orchestrated /pde:build pipeline
-- [ ] Design artifacts stored in .planning/design/ alongside planning state
-- [ ] Design-to-implementation handoff produces component APIs and TypeScript interfaces
-
-## Current Milestone: v1.1 Design Pipeline
-
-**Goal:** Add a complete design stage to PDE so users can go from problem framing through visual wireframes to implementation-ready specs — closing the gap between requirements and code.
-
-**Target features:**
-- Problem framing (/pde:brief)
-- User flow mapping (/pde:flows)
-- Design system generation (/pde:system)
-- Wireframing at controlled fidelity (/pde:wireframe)
-- Multi-perspective design critique (/pde:critique)
-- Critique-driven iteration (/pde:iterate)
-- Design-to-code handoff (/pde:handoff)
-- Orchestrated pipeline (/pde:build)
+(None yet — define with `/gsd:new-milestone`)
 
 ### Out of Scope
 
@@ -56,14 +43,19 @@ Any user can go from idea to shipped product through a single platform that hand
 
 ## Context
 
-- **Shipped v1.0** on 2026-03-15: 303 files, ~60,000 LOC (JavaScript/Markdown), 127 commits
+- **Shipped v1.1** on 2026-03-16: ~89,000 LOC (JavaScript/Markdown), 262 total commits
+- **v1.0** shipped 2026-03-15: 303 files, ~60,000 LOC, 127 commits (GSD → PDE rebrand)
+- **v1.1** shipped 2026-03-16: 172 files changed, 135 commits (design pipeline)
 - **Tech stack:** Node.js (CommonJS), Claude Code plugin API, markdown-based state management
 - **Distribution:** Claude Code plugin via GitHub; marketplace registration pending
 - **Architecture:** skills (slash commands) → workflows → agents → templates → references → bin scripts → config
+- **Design pipeline:** 7 skills (brief, system, flows, wireframe, critique, iterate, handoff) + build orchestrator, DESIGN-STATE.md tracking, design-manifest.json artifact registry
 - **Known tech debt:**
   - PLUG-01 end-to-end `claude plugin install` from GitHub not tested (marketplace registration may be required)
   - TRACKING-PLAN.md referenced in consent panel does not exist
   - Historical commits e067974 and efe3af0 lack Co-Authored-By trailer (pre-fix, cannot change)
+  - iterate.md line 450 says 'six' flag values but command correctly sets all 7 (documentation-only)
+  - lock-release calls use inconsistent trailing arguments across workflows (cosmetic, zero functional impact)
 
 ## Constraints
 
@@ -83,13 +75,16 @@ Any user can go from idea to shipped product through a single platform that hand
 | 0.1.0 → 1.0.0 version bump at Phase 8 | Signal work-in-progress until all phases pass | ✓ Good — version reflects shipped state |
 | Full telemetry implementation over stub | render.cjs consent and track-* need real persistence | ✓ Good — no crashes, UI renders cleanly |
 | 21 command stubs for dangling references | Stubs prevent user confusion; v2 implements full logic | ✓ Good — zero dangling /pde: references |
-
-| Core design pipeline for v1.1 | Closes the biggest gap in "idea to shipped product" promise; design stage missing | — Pending |
-| Standalone skills + orchestrator | Flexibility for ad-hoc use AND guided workflow | — Pending |
-| .planning/design/ for artifacts | Keeps design state with planning state; consistent with existing patterns | — Pending |
-| v1.1 not v2.0 | Incremental addition to existing platform, not a breaking change | — Pending |
-| DTCG 2025.10 + OKLCH + dual dark mode | Industry-standard token format with perceptually uniform color space; dark mode via @media + [data-theme] | ✓ Good — Phase 14 |
+| Core design pipeline for v1.1 | Closes the biggest gap in "idea to shipped product" promise | ✓ Good — 7 skills + orchestrator shipped |
+| Standalone skills + orchestrator | Flexibility for ad-hoc use AND guided workflow | ✓ Good — each skill works both ways |
+| .planning/design/ for artifacts | Keeps design state with planning state; consistent with existing patterns | ✓ Good — clean artifact organization |
+| v1.1 not v2.0 | Incremental addition to existing platform, not a breaking change | ✓ Good — no breaking changes |
+| DTCG 2025.10 + OKLCH + dual dark mode | Industry-standard token format with perceptually uniform color space | ✓ Good — Phase 14 |
 | Inline tokens.css (no @import) | file:// URL compatibility for preview and wireframe consumption | ✓ Good — Phase 14 |
+| STACK.md as hard dependency for /pde:handoff | Framework detection without STACK.md produces unusable component stubs | ✓ Good — Phase 19 |
+| Interface-only TypeScript output (HND-types-v{N}.ts) | No imports or runtime code — direct engineer import without compilation issues | ✓ Good — Phase 19 |
+| Orchestrator is strictly read-only | No coverage writes, no manifest mutations; each skill owns its own flag | ✓ Good — Phase 20 |
+| Skill() over Task() invocation in build | Avoids #686 nested-agent freeze; Skill runs in same context | ✓ Good — Phase 20 |
 
 ---
-*Last updated: 2026-03-16 after Phase 14*
+*Last updated: 2026-03-16 after v1.1 milestone*
