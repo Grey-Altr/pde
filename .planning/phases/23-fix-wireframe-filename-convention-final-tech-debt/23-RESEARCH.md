@@ -1,18 +1,18 @@
 # Phase 23: Fix Wireframe Filename Convention & Final Tech Debt — Research
 
-**Researched:** 2026-03-15
+**Researched:** 2026-03-15 (updated 2026-03-16)
 **Domain:** Markdown workflow files (PDE skills) + planning artifact metadata
-**Confidence:** HIGH — all findings come from direct inspection of the live files in this repository
+**Confidence:** HIGH — all findings from direct inspection of live files; line numbers verified by grep
 
 ---
 
 ## Summary
 
-Phase 23 is a pure fix-and-cleanup phase with no new libraries, no new infrastructure, and no architectural decisions to make. Every change target is fully mapped by the v1.1 milestone audit (`v1.1-MILESTONE-AUDIT.md`). There are two categories of work: (1) one HIGH-severity integration bug in `workflows/wireframe.md` that breaks the full pipeline, and (2) four LOW-severity metadata items in planning artifacts.
+Phase 23 is a pure fix-and-cleanup phase with no new libraries, no new infrastructure, and no architectural decisions to make. Every change target is fully mapped by the v1.1 milestone audit (`v1.1-MILESTONE-AUDIT.md`). There are two categories of work: (1) one HIGH-severity integration bug in `workflows/wireframe.md` that breaks the full pipeline, and (2) three remaining LOW-severity metadata items in planning artifacts.
 
 The integration bug (WIRE-01) is a filename prefix mismatch. `wireframe.md` Step 5b writes screen files as `{slug}.html` (e.g., `login.html`). `iterate.md` Globs exclusively for `WFR-{slug}*.html` (e.g., `WFR-login*.html`). Because the prefix never matches, `/pde:iterate` always halts with a "no wireframe found" error when run after `/pde:wireframe`. The fix is to add the `WFR-` prefix to all filename references in `wireframe.md`. The iterate.md file is already correct — do not touch it.
 
-The four metadata items are documentation-only edits: updating two VALIDATION.md `status` fields from `draft` to `complete`, updating one SUMMARY frontmatter `requirements-completed` array, and updating one VALIDATION.md `nyquist_compliant` field. None of these require code changes.
+The three remaining metadata items are documentation-only edits: updating two VALIDATION.md `status` fields from `draft` to `complete` (Phases 14 and 15.1), and completing the Phase 22 VALIDATION.md full Nyquist sign-off. The fourth item originally listed in the audit — the 13.2-01-SUMMARY.md `requirements-completed` field — is already resolved: the live file at line 23 reads `requirements_completed: [INFRA-04, BRF-02]` (populated, correct). No edit is needed there.
 
 **Primary recommendation:** Fix wireframe.md first (it is the blocking integration gap). Fix metadata items in a single follow-on task. Produce the Phase 23 VALIDATION.md as the final deliverable.
 
@@ -38,7 +38,7 @@ This is a PDE project. There are no npm packages, build tools, or external libra
 |-----------|----------|---------|
 | `workflows/wireframe.md` | `workflows/wireframe.md` | The workflow instruction file Claude follows to run `/pde:wireframe` |
 | `workflows/iterate.md` | `workflows/iterate.md` | The workflow instruction file Claude follows to run `/pde:iterate` |
-| Planning artifact metadata | `.planning/phases/*/` | VALIDATION.md and SUMMARY.md files that track phase compliance |
+| Planning artifact metadata | `.planning/phases/*/` | VALIDATION.md files that track phase compliance |
 
 ### Supporting
 | Component | Location | Purpose |
@@ -56,13 +56,13 @@ This project's "architecture" for workflow files is: markdown instruction docume
 
 ### Pattern 1: Filename Reference Consistency
 
-**What:** All references to a generated artifact use the same filename template string throughout the workflow file. In `wireframe.md`, the filename template `{slug}.html` appears in 7 locations across dry-run output (line 153), in-screen nav links (line 374), the write step (line 477), the display log (line 479), the index.html list items (line 513), the `<output>` section (line 699), and the `<purpose>` section (line 2 implicitly via "one self-contained HTML file per screen"). All must change consistently.
+**What:** All references to a generated artifact use the same filename template string throughout the workflow file. In `wireframe.md`, the filename template `{slug}.html` appears in 6 locations. All must change consistently.
 
 **When to use:** Every time a generated filename is referenced more than once in a workflow, update all instances atomically. Partial updates leave the workflow in a self-contradictory state.
 
-**Exact lines to change in wireframe.md:**
-- Line 153: `{slug}.html` → `WFR-{slug}.html` (dry-run output)
-- Line 374: `<a href="{slug}.html">` → `<a href="WFR-{slug}.html">` (in-screen nav)
+**Exact lines to change in wireframe.md (verified by grep):**
+- Line 153: `{slug}.html` → `WFR-{slug}.html` (dry-run planned output)
+- Line 374: `<a href="{slug}.html">` → `<a href="WFR-{slug}.html">` (in-screen nav links)
 - Line 477: `.planning/design/ux/wireframes/{slug}.html` → `.planning/design/ux/wireframes/WFR-{slug}.html` (write target)
 - Line 479: display log `{slug}.html` → `WFR-{slug}.html`
 - Line 513: `<a href="{slug}.html">` → `<a href="WFR-{slug}.html">` (index.html list item)
@@ -74,34 +74,33 @@ This project's "architecture" for workflow files is: markdown instruction docume
 - Line 624: manifest-update path `.planning/design/ux/wireframes/` — this is a directory path, intentionally not a file path
 - Lines 562, 614: DESIGN-STATE table entries use `WFR-wireframes/` (directory entry code, not a filename) — already correct
 
-**Pattern 2: Metadata-Only Edit Pattern**
+### Pattern 2: Metadata-Only Edit Pattern
 
-**What:** VALIDATION.md and SUMMARY.md files use YAML frontmatter with specific field names. Editing a field value is a one-line change using the Edit tool with exact string match on the field line.
+**What:** VALIDATION.md files use YAML frontmatter with specific field names. Editing a field value is a one-line change using the Edit tool with exact string match on the field line.
 
-**When to use:** All 4 tech debt metadata items.
+**When to use:** All 3 remaining tech debt metadata items.
 
 **Exact changes required:**
 
-1. `.planning/phases/13.2-manifest-top-level-nyquist-cleanup/13.2-01-SUMMARY.md`
-   - Current: `requirements-completed: []`
-   - Target: `requirements-completed: [INFRA-04, BRF-02]`
-   - Evidence: SUMMARY body at line 23 says "Requirements Closed: INFRA-04, BRF-02" — the frontmatter was never synced
-
-2. `.planning/phases/14-design-system-pde-system/14-VALIDATION.md`
+1. `.planning/phases/14-design-system-pde-system/14-VALIDATION.md`
    - Current: `status: draft` (line 3)
    - Target: `status: complete`
    - Evidence: `nyquist_compliant: true` already set; `wave_0_complete: true` already set; "Approval: complete (Phase 15.1-02)" is in the file — only `status` field was not updated
 
-3. `.planning/phases/15.1-fix-integration-gaps-tech-debt/15.1-VALIDATION.md`
+2. `.planning/phases/15.1-fix-integration-gaps-tech-debt/15.1-VALIDATION.md`
    - Current: `status: draft` (line 3)
    - Target: `status: complete`
    - Evidence: same as Phase 14 — `nyquist_compliant: true`, `wave_0_complete: true`, "Approval: complete (Phase 15.1-02)" already present
 
-4. `.planning/phases/22-nyquist-compliance-tech-debt-cleanup/22-VALIDATION.md`
+3. `.planning/phases/22-nyquist-compliance-tech-debt-cleanup/22-VALIDATION.md`
    - Current: `nyquist_compliant: false` (line 5), `status: draft` (line 3), `wave_0_complete: false` (line 6)
    - Target: `nyquist_compliant: true`, `status: complete`, `wave_0_complete: true`
-   - Also required: all checklist items `[ ]` → `[x]`, `**Approval:** pending` → `**Approval:** complete -- 2026-03-15`
-   - Evidence: Phase 22 executed successfully (13/13 compliance achieved, 5 VALIDATION.md files updated, handoff.md corrected) — the VALIDATION.md was simply never self-signed-off
+   - Also required: all checklist items `[ ]` → `[x]` (6 items), `**Approval:** pending` → `**Approval:** complete -- 2026-03-16`
+   - Also required: append Validation Audit appendix section
+   - Evidence: Phase 22 executed successfully (13/13 compliance achieved per 22-01-SUMMARY.md) — the VALIDATION.md was simply never self-signed-off
+
+**Item already resolved — no edit needed:**
+- `.planning/phases/13.2-manifest-top-level-nyquist-cleanup/13.2-01-SUMMARY.md` — the live file already has `requirements_completed: [INFRA-04, BRF-02]` at line 23 (note: field name uses underscore, not hyphen). The audit described this as needing a fix, but it was already corrected before Phase 23. Do NOT edit this file.
 
 ### Recommended Project Structure (no changes)
 
@@ -113,6 +112,7 @@ The directory layout is unchanged — this phase only edits existing files.
 - **Changing the manifest path in wireframe.md Step 7c:** The manifest registers the wireframes directory (`.planning/design/ux/wireframes/`), not individual files. The directory path is already correct.
 - **Changing the Glob in wireframe.md Step 2d:** `*.html` (excluding index.html) is a wildcard that will correctly detect `WFR-login.html` without modification.
 - **Touching the `<output>` section of iterate.md:** The output section already correctly shows `WFR-{screen}-v{N}.html` and `WFR-{screen}.html`. Leave it.
+- **Editing 13.2-01-SUMMARY.md:** This item is already resolved. The live file already has `requirements_completed: [INFRA-04, BRF-02]`. Do not touch it.
 - **Adding a Validation Audit appendix without all checklist items green first:** The Nyquist sign-off pattern requires all sign-off checklist items `[x]` before setting `nyquist_compliant: true`.
 
 ---
@@ -150,18 +150,18 @@ The directory layout is unchanged — this phase only edits existing files.
 **How to avoid:** Apply the full sign-off pattern established in Phase 22:
 1. Frontmatter: `status: complete`, `nyquist_compliant: true`, `wave_0_complete: true`
 2. Checklist: all `[ ]` → `[x]` (6 items)
-3. Approval line: `**Approval:** complete -- 2026-03-15`
+3. Approval line: `**Approval:** complete -- 2026-03-16`
 4. Append Validation Audit appendix section
 
-The Phase 22 tasks that sign-off on phases 16–21 are the canonical examples of this pattern.
+The Phase 22 tasks that sign-off on phases 16–21 are the canonical examples of this pattern (see 22-01-SUMMARY.md).
 
-### Pitfall 3: Wrong File for 13.2 Metadata Fix
+### Pitfall 3: Attempting to Edit 13.2-01-SUMMARY.md
 
-**What goes wrong:** Editing `13.2-VALIDATION.md` instead of `13.2-01-SUMMARY.md`. The tech debt item is in the SUMMARY frontmatter, not the VALIDATION file. The VALIDATION.md for Phase 13.2 is already `status: complete` and `nyquist_compliant: true` — it does not need touching.
+**What goes wrong:** Treating the 13.2 SUMMARY frontmatter fix as still-pending and making an edit to a file that doesn't need it.
 
-**Why it happens:** The audit entry says "Phase 13.2" which has both a VALIDATION.md and a SUMMARY.md. The specific field `requirements-completed` only exists in SUMMARY files.
+**Why it happens:** The v1.1-MILESTONE-AUDIT.md lists this as a tech debt item using the field name `requirements-completed` (hyphen). The actual live field uses `requirements_completed` (underscore) and is already populated with `[INFRA-04, BRF-02]`. The item was resolved before Phase 23 was planned.
 
-**How to avoid:** The target file is specifically `.planning/phases/13.2-manifest-top-level-nyquist-cleanup/13.2-01-SUMMARY.md` (the plan 01 summary, not the validation strategy).
+**How to avoid:** Verify the live file before acting on audit descriptions. The live file at `.planning/phases/13.2-manifest-top-level-nyquist-cleanup/13.2-01-SUMMARY.md` line 23 already reads `requirements_completed: [INFRA-04, BRF-02]`. Skip this item entirely.
 
 ### Pitfall 4: Breaking Existing Wireframe Files
 
@@ -169,7 +169,7 @@ The Phase 22 tasks that sign-off on phases 16–21 are the canonical examples of
 
 **Why it happens:** The fix is prospective. The audit notes the pipeline is broken, not that old files need migration.
 
-**How to avoid:** This phase only edits the workflow markdown file. Do not rename or delete any `.html` files that may exist in `.planning/design/ux/wireframes/`. If the user has existing wireframe artifacts, they will need to re-run `/pde:wireframe --force` after this fix to regenerate with the correct naming. This is expected and acceptable behavior (documented in output summary for the phase).
+**How to avoid:** This phase only edits the workflow markdown file. Do not rename or delete any `.html` files that may exist in `.planning/design/ux/wireframes/`. If the user has existing wireframe artifacts, they will need to re-run `/pde:wireframe --force` after this fix to regenerate with the correct naming. This is expected and acceptable behavior.
 
 ---
 
@@ -213,18 +213,6 @@ Fixed:
 {  <li><a href="WFR-{slug}.html">{Screen Label}</a> <span class="fidelity-tag">{FIDELITY}</span> <span class="badge">{journeyName} — {persona}</span></li>}
 ```
 
-### 13.2-01-SUMMARY.md frontmatter — Current vs Fixed
-
-Current (line 23):
-```yaml
-requirements-completed: []
-```
-
-Fixed:
-```yaml
-requirements-completed: [INFRA-04, BRF-02]
-```
-
 ### Phase 14 VALIDATION.md frontmatter — Current vs Fixed
 
 Current:
@@ -246,7 +234,7 @@ nyquist_compliant: true
 wave_0_complete: true
 ```
 
-Checklist (body):
+Checklist (body) — change all 6 items:
 ```markdown
 - [x] All tasks have `<automated>` verify or Wave 0 dependencies
 - [x] Sampling continuity: no 3 consecutive tasks without automated verify
@@ -258,14 +246,14 @@ Checklist (body):
 
 Approval line:
 ```markdown
-**Approval:** complete -- 2026-03-15
+**Approval:** complete -- 2026-03-16
 ```
 
 Validation Audit appendix (append after approval):
 ```markdown
 ---
 
-## Validation Audit 2026-03-15
+## Validation Audit 2026-03-16
 
 | Metric | Count |
 |--------|-------|
@@ -273,7 +261,7 @@ Validation Audit appendix (append after approval):
 | Resolved | 0 |
 | Escalated | 0 |
 
-All 5 tasks have automated grep verification. Phase executed successfully: 5 VALIDATION.md files updated to Nyquist compliant, handoff.md Step 2b corrected. No gaps to fill.
+All 5 tasks have automated grep verification. Phase executed successfully: 5 VALIDATION.md files updated to Nyquist compliant (phases 16, 17, 18, 20, 21), handoff.md Step 2b corrected to list all 7 designCoverage fields. No gaps to fill.
 ```
 
 ---
@@ -284,19 +272,20 @@ This phase has no evolving technology considerations. All changes are against st
 
 | Item | Current State | Required State |
 |------|---------------|---------------|
-| wireframe.md filename convention | `{slug}.html` (6 locations) | `WFR-{slug}.html` (same 6 locations) |
-| 13.2-01-SUMMARY `requirements-completed` | `[]` | `[INFRA-04, BRF-02]` |
+| wireframe.md filename convention | `{slug}.html` (6 locations, verified by grep) | `WFR-{slug}.html` (same 6 locations) |
+| 13.2-01-SUMMARY `requirements_completed` | `[INFRA-04, BRF-02]` (already correct) | No change needed |
 | Phase 14 VALIDATION `status` | `draft` | `complete` |
 | Phase 15.1 VALIDATION `status` | `draft` | `complete` |
 | Phase 22 VALIDATION `nyquist_compliant` | `false` | `true` |
 | Phase 22 VALIDATION `status` | `draft` | `complete` |
+| Phase 22 VALIDATION `wave_0_complete` | `false` | `true` |
 | Phase 22 VALIDATION sign-off checklist | all `[ ]` | all `[x]` |
 
 ---
 
 ## Open Questions
 
-None. All change targets are fully identified with exact file paths and line numbers. No ambiguity remains.
+None. All change targets are fully identified with exact file paths and line numbers. The 13.2 item was pre-verified as already resolved, leaving exactly 4 file edits across 3 planning artifact files plus wireframe.md.
 
 ---
 
@@ -317,16 +306,15 @@ None. All change targets are fully identified with exact file paths and line num
 |--------|----------|-----------|-------------------|-------------|
 | ITR-01 | iterate finds wireframe files via WFR-{slug}*.html Glob | structural | `grep 'WFR-{slug}' workflows/wireframe.md` (expect 6+ hits) | ✅ existing |
 | ITR-02 | convergence signal unblocked (depends on ITR-01) | structural | same as ITR-01 | ✅ existing |
-| SC-meta-1 | 13.2 SUMMARY requirements-completed populated | structural | `grep 'INFRA-04' .planning/phases/13.2-manifest-top-level-nyquist-cleanup/13.2-01-SUMMARY.md` | ✅ existing |
-| SC-meta-2 | Phase 14 VALIDATION status complete | structural | `grep 'status: complete' .planning/phases/14-design-system-pde-system/14-VALIDATION.md` | ✅ existing |
-| SC-meta-3 | Phase 15.1 VALIDATION status complete | structural | `grep 'status: complete' .planning/phases/15.1-fix-integration-gaps-tech-debt/15.1-VALIDATION.md` | ✅ existing |
-| SC-meta-4 | Phase 22 VALIDATION nyquist_compliant true | structural | `grep 'nyquist_compliant: true' .planning/phases/22-nyquist-compliance-tech-debt-cleanup/22-VALIDATION.md` | ✅ existing |
+| SC-meta-1 | Phase 14 VALIDATION status complete | structural | `grep 'status: complete' .planning/phases/14-design-system-pde-system/14-VALIDATION.md` | ✅ existing |
+| SC-meta-2 | Phase 15.1 VALIDATION status complete | structural | `grep 'status: complete' .planning/phases/15.1-fix-integration-gaps-tech-debt/15.1-VALIDATION.md` | ✅ existing |
+| SC-meta-3 | Phase 22 VALIDATION nyquist_compliant true | structural | `grep 'nyquist_compliant: true' .planning/phases/22-nyquist-compliance-tech-debt-cleanup/22-VALIDATION.md` | ✅ existing |
 
 ### Sampling Rate
 
 - **Per task commit:** Run the task's specific grep verification (< 2 seconds)
-- **Per wave merge:** Run full verification suite: all 6 grep commands above
-- **Phase gate:** All 6 grep commands green before `/gsd:verify-work`
+- **Per wave merge:** Run full verification suite: all 5 grep commands above
+- **Phase gate:** All 5 grep commands green before `/gsd:verify-work`
 
 ### Wave 0 Gaps
 
@@ -340,14 +328,14 @@ None — existing test infrastructure (bash grep assertions on file content) cov
 
 All findings from direct file inspection in this repository:
 
-- `workflows/wireframe.md` — inspected all 8 occurrences of `{slug}.html`; 6 need prefix added, 2 are directory references or wildcards that are already correct
+- `workflows/wireframe.md` — grep confirmed 6 occurrences of `{slug}.html` at lines 153, 374, 477, 479, 513, 699; 0 occurrences of `WFR-{slug}` (fix not yet applied)
 - `workflows/iterate.md` — confirmed WFR- prefix Glob pattern at lines 111, 138, 143, 145, 293; confirmed no changes needed
-- `.planning/v1.1-MILESTONE-AUDIT.md` — authoritative source for all 4 tech debt items and WIRE-01 description
-- `.planning/phases/13.2-manifest-top-level-nyquist-cleanup/13.2-01-SUMMARY.md` — confirmed `requirements-completed: []` in frontmatter; body lists INFRA-04, BRF-02 as closed
-- `.planning/phases/14-design-system-pde-system/14-VALIDATION.md` — confirmed `status: draft`, `nyquist_compliant: true`, approval line present
-- `.planning/phases/15.1-fix-integration-gaps-tech-debt/15.1-VALIDATION.md` — confirmed `status: draft`, `nyquist_compliant: true`, approval line present
-- `.planning/phases/22-nyquist-compliance-tech-debt-cleanup/22-VALIDATION.md` — confirmed `nyquist_compliant: false`, `status: draft`, checklist all `[ ]`
-- `.planning/phases/22-nyquist-compliance-tech-debt-cleanup/22-01-SUMMARY.md` — confirmed Phase 22 executed fully and successfully
+- `.planning/v1.1-MILESTONE-AUDIT.md` — authoritative source for all gaps and tech debt items; lists 4 tech debt items but 1 is already resolved in live files
+- `.planning/phases/13.2-manifest-top-level-nyquist-cleanup/13.2-01-SUMMARY.md` — confirmed `requirements_completed: [INFRA-04, BRF-02]` at line 23 (already resolved; no edit needed)
+- `.planning/phases/14-design-system-pde-system/14-VALIDATION.md` — confirmed `status: draft` at line 3; `nyquist_compliant: true`, approval line present
+- `.planning/phases/15.1-fix-integration-gaps-tech-debt/15.1-VALIDATION.md` — confirmed `status: draft` at line 3; `nyquist_compliant: true`, approval line present
+- `.planning/phases/22-nyquist-compliance-tech-debt-cleanup/22-VALIDATION.md` — confirmed `nyquist_compliant: false`, `status: draft`, `wave_0_complete: false`, checklist all `[ ]`, approval pending
+- `.planning/phases/22-nyquist-compliance-tech-debt-cleanup/22-01-SUMMARY.md` — confirmed Phase 22 executed fully and successfully (13/13 compliance, 5 VALIDATION.md files updated, handoff.md corrected)
 
 ### Secondary (MEDIUM confidence)
 
@@ -362,9 +350,9 @@ None.
 ## Metadata
 
 **Confidence breakdown:**
-- Change targets: HIGH — every file and line is identified from direct inspection
+- Change targets: HIGH — every file and line is identified from direct inspection; line numbers verified by grep
 - Fix correctness: HIGH — iterate.md is the authoritative convention; wireframe.md must match it
-- Scope completeness: HIGH — v1.1-MILESTONE-AUDIT.md is the definitive gap list; all 5 items are accounted for (1 WIRE-01 + 4 tech debt)
+- Scope completeness: HIGH — v1.1-MILESTONE-AUDIT.md is the definitive gap list; the 13.2 item was pre-verified as already resolved before Phase 23 executes
 
-**Research date:** 2026-03-15
+**Research date:** 2026-03-16 (original 2026-03-15, updated after live file verification)
 **Valid until:** Indefinite — static markdown files, no external dependencies
