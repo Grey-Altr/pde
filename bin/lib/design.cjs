@@ -513,6 +513,12 @@ function runSelfTest() {
     assert.ok(css.includes('--color-brand: blue;'), 'Missing token line');
   });
 
+  check('generateCssVars does not produce @media or [data-theme] dark mode blocks', () => {
+    const css = generateCssVars({ color: { bg: { $value: '#fff', $type: 'color' } } });
+    assert.ok(!css.includes('@media'), 'generateCssVars must not produce @media blocks');
+    assert.ok(!css.includes('[data-theme]'), 'generateCssVars must not produce [data-theme] selector');
+  });
+
   // ─── Test group 4: Manifest operations ───────────────────────────────────
 
   console.log('\n[4] readManifest / writeManifest / updateManifestArtifact');
