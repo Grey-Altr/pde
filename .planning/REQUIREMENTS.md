@@ -21,8 +21,8 @@ Requirements for design pipeline release. Each maps to roadmap phases.
 
 ### User Flows
 
-- [ ] **FLW-01**: /pde:flows generates Mermaid flowchart diagrams for happy paths and error states
-- [ ] **FLW-02**: Flow diagrams derive screen inventory used downstream by wireframe stage
+- [x] **FLW-01**: /pde:flows generates Mermaid flowchart diagrams for happy paths and error states
+- [x] **FLW-02**: Flow diagrams derive screen inventory used downstream by wireframe stage
 
 ### Design System
 
@@ -112,8 +112,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SYS-01 | Phase 14 | Complete |
 | SYS-02 | Phase 14 | Complete |
 | SYS-03 | Phase 14 | Complete |
-| FLW-01 | Phase 15 | Pending |
-| FLW-02 | Phase 15 | Pending |
+| FLW-01 | Phase 15 | Complete |
+| FLW-02 | Phase 15 | Complete |
 | WFR-01 | Phase 16 | Pending |
 | WFR-02 | Phase 16 | Pending |
 | WFR-03 | Phase 16 | Pending |

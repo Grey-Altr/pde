@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Design Pipeline
 status: completed
-stopped_at: Phase 14 Plan 01 complete
-last_updated: "2026-03-16T00:38:15.924Z"
-last_activity: "2026-03-16 — Phase 14 Plan 01 complete: workflows/system.md (1388-line /pde:system workflow), commands/system.md delegation"
+stopped_at: Phase 15 Plan 01 complete
+last_updated: "2026-03-16T01:12:12Z"
+last_activity: "2026-03-16 — Phase 15 Plan 01 complete: workflows/flows.md (537-line /pde:flows workflow), commands/flows.md delegation"
 progress:
   total_phases: 11
   completed_phases: 5
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-03-16)
 
 ## Current Position
 
-Phase: 14 of 20 (Design System — /pde:system skill)
+Phase: 15 of 20 (User Flow Mapping — /pde:flows skill)
 Plan: 1 of 1 (complete)
-Status: Phase complete — workflows/system.md and commands/system.md delivered
-Last activity: 2026-03-16 — Phase 14 Plan 01 complete: workflows/system.md (1388-line /pde:system workflow), commands/system.md delegation
+Status: Phase complete — workflows/flows.md and commands/flows.md delivered
+Last activity: 2026-03-16 — Phase 15 Plan 01 complete: workflows/flows.md (537-line /pde:flows workflow), commands/flows.md delegation
 
 Progress: [██████████] 100%
 
@@ -51,6 +51,7 @@ Progress: [██████████] 100%
 | Phase 13.1 P01 | 3min | 2 tasks | 5 files |
 | Phase 13.2-manifest-top-level-nyquist-cleanup P01 | 2min | 2 tasks | 4 files |
 | Phase 14 P01 | 5min | 2 tasks | 2 files |
+| Phase 15 P01 | 4min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -74,6 +75,10 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 14-01]: generateCssVars() must NOT be used for dark mode — it only wraps in :root {}; dark mode requires manual @media + [data-theme] blocks
 - [Phase 14-01]: designCoverage always set as full JSON object after reading coverage-check output, to preserve flags from other skills
 - [Phase 14-01]: assets/tokens.css must be inline (no @import) for file:// URL compatibility in preview and wireframe consumption
+- [Phase 15-01]: Brief is a soft dependency for /pde:flows — warning if absent, PROJECT.md as fallback; never halts
+- [Phase 15-01]: FLW-screen-inventory.json is unversioned (fixed path) while FLW-flows-v{N}.md is versioned — wireframe reads a fixed path, no discovery logic needed
+- [Phase 15-01]: Decision nodes ({} shape) excluded from screen inventory; error nodes (fill:#fee) included with type: error
+- [Phase 15-01]: designCoverage always read via coverage-check before setting hasFlows — prevents clobbering flags from other skills
 
 ### Pending Todos
 
@@ -88,5 +93,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-16
-Stopped at: Phase 14 complete, ready to plan Phase 15
+Stopped at: Phase 15 complete, ready to plan Phase 16 (/pde:wireframe)
 Resume file: None

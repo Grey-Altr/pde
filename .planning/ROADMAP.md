@@ -33,7 +33,7 @@ Full details: .planning/milestones/v1.0-ROADMAP.md
 - [x] **Phase 13.1: Hotfix — Tech Debt & Integration Fixes (Phases 12-13)** — Fix broken table schema, missing metadata, unimplemented subcommand, stale template entry, Nyquist gaps (completed 2026-03-15)
 - [x] **Phase 13.2: Manifest Top-Level Fields & Nyquist Cleanup** — Add manifest-set-top-level subcommand, populate projectName/productType in /pde:brief, fix 13.1 Nyquist flag (completed 2026-03-15)
 - [x] **Phase 14: Design System (/pde:system)** — DTCG tokens, CSS custom properties, typography/color/spacing scale
-- [ ] **Phase 15: User Flow Mapping (/pde:flows)** — Mermaid flow diagrams, screen inventory for wireframe stage
+- [x] **Phase 15: User Flow Mapping (/pde:flows)** — Mermaid flow diagrams, screen inventory for wireframe stage (completed 2026-03-16)
 - [ ] **Phase 16: Wireframing (/pde:wireframe)** — Fidelity-controlled HTML/CSS wireframes per screen
 - [ ] **Phase 17: Design Critique (/pde:critique)** — Multi-perspective review with severity ratings and fix recommendations
 - [ ] **Phase 18: Critique-Driven Iteration (/pde:iterate)** — Artifact revision loop with convergence signal
@@ -117,7 +117,7 @@ Plans:
   1. `/pde:flows` produces at least one Mermaid flowchart diagram in `.planning/design/ux/` covering the happy path and error states for each persona in the brief
   2. Flow diagrams include decision branches and edge cases, not just linear happy paths
   3. A screen inventory is derived from flow node labels and written to a machine-readable format that `/pde:wireframe` reads as its screen list
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 Plans:
 - [ ] 15-01-PLAN.md — Flows workflow and command wiring (Mermaid diagrams, screen inventory JSON)
 
@@ -205,7 +205,7 @@ Plans:
 | 13.1 Hotfix — Tech Debt & Integration Fixes | 1/1 | Complete    | 2026-03-15 | - |
 | 13.2 Manifest Top-Level Fields & Nyquist Cleanup | 1/1 | Complete    | 2026-03-15 | - |
 | 14. Design System (/pde:system) | v1.1 | Complete    | 2026-03-16 | 2026-03-16 |
-| 15. User Flow Mapping (/pde:flows) | v1.1 | 0/1 | Planned | - |
+| 15. User Flow Mapping (/pde:flows) | 1/1 | Complete   | 2026-03-16 | - |
 | 16. Wireframing (/pde:wireframe) | v1.1 | 0/TBD | Not started | - |
 | 17. Design Critique (/pde:critique) | v1.1 | 0/TBD | Not started | - |
 | 18. Critique-Driven Iteration (/pde:iterate) | v1.1 | 0/TBD | Not started | - |
