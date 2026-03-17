@@ -1,16 +1,16 @@
 ---
-pde_state_version: 1.0
+gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Advanced Design Skills
 status: planning
-stopped_at: Phase 28 context gathered
-last_updated: "2026-03-17T10:10:41.463Z"
+stopped_at: Completed 27-01-PLAN.md (ideation skill)
+last_updated: "2026-03-17T12:35:44.611Z"
 last_activity: 2026-03-17 — Phase 27 complete (ideation skill + brief upstream injection)
 progress:
   total_phases: 5
-  completed_phases: 4
+  completed_phases: 3
   total_plans: 9
-  completed_plans: 9
+  completed_plans: 8
   percent: 100
 ---
 
@@ -53,6 +53,7 @@ Progress: [████████████████████] 9/9 pla
 | Phase 26-opportunity-mockup-hig-skills P03 | 5 | 2 tasks | 3 files |
 | Phase 27-ideation-skill-brief-update P01 | 8 | 2 tasks | 3 files |
 | Phase 27-ideation-skill-brief-update P02 | 2 | 1 tasks | 1 files |
+| Phase 27-ideation-skill-brief-update P01 | 5 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -68,6 +69,8 @@ Recent decisions affecting current work (Phase 28: Build Orchestrator Expansion)
 - [Phase 26-03]: HIG --light flag is the critique delegation contract — 5 mandatory checks, critique-compatible format
 - [Phase 27]: IDT uses Skill() not Task() to invoke recommend — same pattern for all sub-skill calls
 - [Phase 27]: Soft upstream probe pattern: Glob + null context variable on miss + graceful degradation
+- [Phase 27-01]: IDT uses Skill() not Task() to invoke recommend at diverge-converge checkpoint — avoids Issue #686 nested-agent freeze
+- [Phase 27-01]: Diverge pass enforces explicit banned word list (best, recommended, superior, etc.) for zero evaluative language constraint
 
 ### Pending Todos
 
@@ -79,6 +82,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-17T10:10:41.460Z
-Stopped at: Phase 28 context gathered
-Resume file: .planning/phases/28-build-orchestrator-expansion/28-CONTEXT.md
+Last session: 2026-03-17T12:35:44.608Z
+Stopped at: Completed 27-01-PLAN.md (ideation skill)
+Resume file: None
