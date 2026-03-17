@@ -35,7 +35,12 @@ Any user can go from idea to shipped product through a single platform that hand
 
 ### Active
 
-(None — planning next milestone)
+- [ ] Audit PDE tooling (CLIs, MCP servers, agent prompts, templates, output quality) against Awwwards-level standards
+- [ ] Build skill-builder capability — PDE can create, update, and improve its own skills and user project skills
+- [ ] Build self-improvement fleet — agents and skills that audit, validate, and elevate PDE's output quality
+- [ ] Optimize tools — ensure MCP integrations, Context7, agent prompts, and templates support professional-grade output
+- [ ] Elevate design quality — upgrade design pipeline output (system, wireframe, mockup, critique, handoff) to Awwwards-level
+- [ ] Pressure test — full end-to-end pipeline on a real project, measured against professional design standards
 
 ### Out of Scope
 
@@ -47,6 +52,18 @@ Any user can go from idea to shipped product through a single platform that hand
 - Real-time collaborative editing — conflicts with file-based state model
 - In-tool web dashboard / UI — markdown files are the dashboard
 - Architecture restructuring — do when pain forces it
+
+## Current Milestone: v1.3 Self-Improvement & Design Excellence
+
+**Goal:** Make PDE self-improving and capable of producing Awwwards-level websites and web apps.
+
+**Target features:**
+- Tool audit framework (MCP, CLIs, agents, templates, output quality)
+- Skill builder (create/update/improve skills for PDE and user projects)
+- Self-improvement agent fleet (audit, validate, elevate PDE capabilities)
+- Tool optimization (Context7, agent prompts, templates aligned to quality bar)
+- Design quality elevation (Awwwards-level typography, color, motion, composition, layout)
+- End-to-end pressure test on real project
 
 ## Context
 
@@ -102,5 +119,9 @@ Any user can go from idea to shipped product through a single platform that hand
 | Data-driven STAGES list in build orchestrator | Future pipeline expansions require no text changes — TOTAL derived from list length | ✓ Good — Phase 28 |
 | --from flag with validation-before-coverage-check | Typos halt immediately with full valid stage list; no silent skip behavior | ✓ Good — Phase 28 |
 
+| Self-improvement before pressure test | Build tools to fix PDE first, then validate with real project | — Pending |
+| Design quality elevation last before pressure test | Use self-improvement fleet to elevate quality, then validate | — Pending |
+| Awwwards-level as quality bar | PDE must produce stunning, professional-grade design output — not functional defaults | — Pending |
+
 ---
-*Last updated: 2026-03-17 after v1.2 milestone*
+*Last updated: 2026-03-17 after v1.3 milestone start*
