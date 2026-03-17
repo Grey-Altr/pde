@@ -1,10 +1,11 @@
 ---
 phase: 28
 slug: build-orchestrator-expansion
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-17
+audited: 2026-03-17
 ---
 
 # Phase 28 — Validation Strategy
@@ -17,10 +18,10 @@ created: 2026-03-17
 
 | Property | Value |
 |----------|-------|
-| **Framework** | grep-based structural verification (prompt-engineering phase, no runtime code) |
+| **Framework** | bash structural tests (grep-based verification of markdown workflow files) |
 | **Config file** | none — no test framework needed |
-| **Quick run command** | `grep -c "STAGES=" workflows/build.md` |
-| **Full suite command** | `grep -c "STAGES=" workflows/build.md && grep -c "recommend\|competitive\|opportunity\|ideate\|brief\|system\|flows\|wireframe\|critique\|iterate\|mockup\|hig\|handoff" workflows/build.md` |
+| **Quick run command** | `bash .planning/phases/28-build-orchestrator-expansion/test_build01_stages_table.sh` |
+| **Full suite command** | `bash .planning/phases/28-build-orchestrator-expansion/test_build01_stages_table.sh && bash .planning/phases/28-build-orchestrator-expansion/test_build02_no_hardcoded_literals.sh && bash .planning/phases/28-build-orchestrator-expansion/test_build03_from_flag.sh` |
 | **Estimated runtime** | ~1 second |
 
 ---
@@ -38,15 +39,17 @@ created: 2026-03-17
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| TBD | TBD | TBD | BUILD-01, BUILD-02, BUILD-03 | structural | `grep` commands per task | ⬜ W0 | ⬜ pending |
+| 28-01-T1 | 28-01 | W0 | BUILD-01 | structural/smoke | `bash .planning/phases/28-build-orchestrator-expansion/test_build01_stages_table.sh` | yes | green |
+| 28-01-T1 | 28-01 | W0 | BUILD-02 | structural/smoke | `bash .planning/phases/28-build-orchestrator-expansion/test_build02_no_hardcoded_literals.sh` | yes | green |
+| 28-01-T2 | 28-01 | W0 | BUILD-03 | structural/smoke | `bash .planning/phases/28-build-orchestrator-expansion/test_build03_from_flag.sh` | yes | green |
 
-*Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
+*Status: pending · green · red · flaky*
 
 ---
 
 ## Wave 0 Requirements
 
-*Existing infrastructure covers all phase requirements. This is a prompt-engineering phase — verification uses grep-based structural checks on markdown workflow files.*
+All phase requirements are covered by bash structural tests. Tests grep `workflows/build.md` and `commands/build.md` for required structural patterns — no runtime code execution needed.
 
 ---
 
@@ -54,19 +57,19 @@ created: 2026-03-17
 
 | Behavior | Requirement | Why Manual | Test Instructions |
 |----------|-------------|------------|-------------------|
-| Full 13-stage pipeline dry-run | BUILD-01 | Requires running `/pde:build --dry-run` in Claude Code | Run command, verify 13 stages listed in order |
-| Mid-pipeline entry | BUILD-02 | Requires running `/pde:build --from wireframe` | Run command, verify preceding stages skipped |
-| Coverage flag completeness | BUILD-03 | Requires full pipeline run + manifest inspection | Run full pipeline, check design-manifest.json |
+| Stage skip behavior at runtime | BUILD-03 | Requires live Skill() invocation trace | Run `/pde:build --from wireframe` in a real Claude session; verify stages 1-7 display as skipped |
+| Dry-run with mixed state | BUILD-01 | Requires actual coverage-check JSON output | With some stages complete, run `/pde:build --dry-run`; verify complete/pending/skipped status mix |
+| Invalid --from error UX | BUILD-03 | Confirms FROM_STAGE validation fires before Step 2 | Run `/pde:build --from bogus`; verify immediate halt with valid stage list before any I/O |
 
 ---
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 1s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have automated verify commands
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 1s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** 2026-03-17 — nyquist-auditor (all 3 gaps resolved, 50 tests passing)
