@@ -4,7 +4,7 @@
 
 - ✅ **v1.0 MVP** — Phases 1-11 (shipped 2026-03-15)
 - ✅ **v1.1 Design Pipeline** — Phases 12-23 (shipped 2026-03-16)
-- 🚧 **v1.2 Advanced Design Skills** — Phases 24-28 (in progress)
+- ✅ **v1.2 Advanced Design Skills** — Phases 24-28 (shipped 2026-03-17)
 
 ## Phases
 
@@ -50,89 +50,18 @@ Full details: .planning/milestones/v1.1-ROADMAP.md
 
 </details>
 
-### v1.2 Advanced Design Skills (In Progress)
+<details>
+<summary>✅ v1.2 Advanced Design Skills (Phases 24-28) — SHIPPED 2026-03-17</summary>
 
-**Milestone Goal:** Expand the design pipeline with six advanced skills — ideation, competitive analysis, opportunity scoring, hi-fi mockups, HIG audit, and tool discovery — creating a comprehensive pre-brief research layer and post-iterate quality gate, all orchestrable via an expanded `/pde:build`.
+- [x] Phase 24: Schema Migration & Infrastructure (2/2 plans) — completed 2026-03-16
+- [x] Phase 25: Recommend & Competitive Skills (2/2 plans) — completed 2026-03-16
+- [x] Phase 26: Opportunity, Mockup & HIG Skills (3/3 plans) — completed 2026-03-16
+- [x] Phase 27: Ideation Skill & Brief Update (2/2 plans) — completed 2026-03-17
+- [x] Phase 28: Build Orchestrator Expansion (1/1 plan) — completed 2026-03-17
 
-- [x] **Phase 24: Schema Migration & Infrastructure** - Migrate coverage flags to pass-through-all; extend manifest schema with six new flags; add ux/mockups/ directory (completed 2026-03-16)
-- [x] **Phase 25: Recommend & Competitive Skills** - Build /pde:recommend (MCP/tool discovery) and /pde:competitive (landscape analysis with gap identification) (completed 2026-03-16)
-- [x] **Phase 26: Opportunity, Mockup & HIG Skills** - Build /pde:opportunity (RICE scoring), /pde:mockup (hi-fi HTML/CSS), and /pde:hig (WCAG 2.2 AA dual-mode audit) (completed 2026-03-16)
-- [x] **Phase 27: Ideation Skill & Brief Update** - Build /pde:ideate with two-pass diverge→converge structure; update /pde:brief to inject competitive/opportunity context (completed 2026-03-17)
-- [x] **Phase 28: Build Orchestrator Expansion** - Expand /pde:build from 7 to 13 stages with dynamic stage count and per-stage skip support (completed 2026-03-17)
+Full details: .planning/milestones/v1.2-ROADMAP.md
 
-## Phase Details
-
-### Phase 24: Schema Migration & Infrastructure
-**Goal**: All existing skills safely preserve new coverage flags; manifest schema and directory structure ready for six new skills to write into
-**Depends on**: Phase 23 (v1.1 complete)
-**Requirements**: INFRA-01, INFRA-02, INFRA-03
-**Success Criteria** (what must be TRUE):
-  1. Any existing skill (brief, system, flows, wireframe, critique, iterate, handoff) can run after a v1.2 skill without deleting the v1.2 coverage flag
-  2. design-manifest.json template shows all 13 coverage flags (7 existing + 6 new: hasIdeation, hasCompetitive, hasOpportunity, hasMockup, hasHigAudit, hasRecommendations)
-  3. Running `/pde:wireframe` on a project that already has hasIdeation=true leaves hasIdeation unchanged
-  4. The ux/mockups/ directory is created when `/pde:setup` or the design pipeline initializes
-**Plans**: 2 plans
-Plans:
-- [x] 24-01-PLAN.md — Extend manifest template with 13 coverage flags and add ux/mockups to ensureDesignDirs (completed 2026-03-16)
-- [x] 24-02-PLAN.md — Migrate 6 workflow files from 7-field to 13-field coverage pattern (completed 2026-03-16)
-
-### Phase 25: Recommend & Competitive Skills
-**Goal**: Users can discover relevant MCP tools for their project and run a structured competitive landscape analysis, each as standalone commands
-**Depends on**: Phase 24
-**Requirements**: REC-01, REC-02, REC-03, COMP-01, COMP-02, COMP-03
-**Success Criteria** (what must be TRUE):
-  1. User can run `/pde:recommend` and receive a ranked list of MCP servers and tools matched to their project stack and goals, with installation instructions
-  2. Recommend output degrades gracefully when the MCP Registry API is unreachable (offline catalog fallback shown, no crash)
-  3. User can run `/pde:competitive` and receive a feature comparison matrix, positioning map, and explicit gap list covering 3+ direct competitors
-  4. Every claim in competitive output carries a confidence label (confirmed / inferred / unverified)
-  5. Competitive gaps are written to a structured artifact that the opportunity skill can read as candidate input
-**Plans**: 2 plans
-Plans:
-- [x] 25-01-PLAN.md — Build /pde:recommend command stub and workflow (MCP/tool discovery with inline catalog) (completed 2026-03-16)
-- [x] 25-02-PLAN.md — Build /pde:competitive command stub and workflow (landscape analysis with confidence labels and structured gaps) (completed 2026-03-16)
-
-### Phase 26: Opportunity, Mockup & HIG Skills
-**Goal**: Users can score feature opportunities with real RICE input, generate hi-fi interactive mockups from refined wireframes, and run WCAG 2.2 AA / HIG audits with severity-rated findings
-**Depends on**: Phase 25
-**Requirements**: OPP-01, OPP-02, OPP-03, MOCK-01, MOCK-02, MOCK-03, HIG-01, HIG-02, HIG-03
-**Success Criteria** (what must be TRUE):
-  1. User can run `/pde:opportunity`, provide Reach and Effort values interactively, and receive a ranked opportunity list with component scores and sensitivity analysis visible
-  2. User can run `/pde:mockup` and receive a self-contained HTML/CSS file that applies design tokens from tokens.css and includes CSS-only interactive states for all screen variants
-  3. Mockup HTML preserves wireframe annotations as HTML comments traceable to the originating wireframe version
-  4. User can run `/pde:hig` standalone and receive severity-rated findings covering color contrast (WCAG 1.4.3), focus visibility (2.4.11), touch targets (2.5.8), form labels, and heading hierarchy
-  5. Running `/pde:critique` now delegates its HIG perspective to `/pde:hig --light` rather than applying inline logic; critique output and standalone HIG output use identical severity ratings for the same issue
-**Plans**: 3 plans
-Plans:
-- [ ] 26-01-PLAN.md — Build /pde:opportunity command and workflow (RICE scoring with interactive input, sensitivity analysis, Now/Next/Later buckets) + create skill-registry.md
-- [ ] 26-02-PLAN.md — Build /pde:mockup command and workflow (hi-fi HTML/CSS from wireframes with tokens, CSS-only interactions, annotation traceability)
-- [ ] 26-03-PLAN.md — Build /pde:hig command and workflow (WCAG 2.2 AA audit with --light mode) + update critique.md Perspective 3 delegation
-
-### Phase 27: Ideation Skill & Brief Update
-**Goal**: Users can run multi-phase diverge→converge ideation that automatically invokes tool discovery, scores concept readiness, and produces a brief seed artifact; existing /pde:brief accepts upstream competitive and opportunity context
-**Depends on**: Phase 25 (recommend must exist), Phase 26 (opportunity artifacts exist for enrichment)
-**Requirements**: IDEAT-01, IDEAT-02, IDEAT-03, IDEAT-04
-**Success Criteria** (what must be TRUE):
-  1. User can run `/pde:ideate` and receive a minimum of 5 distinct divergent directions (with no evaluative language in the diverge output), followed by a scored convergence with an explicit recommended direction
-  2. Recommend runs automatically at the diverge→converge checkpoint; feasibility annotations appear on each idea in the converge output
-  3. Ideation produces an IDT artifact with status `ideation-complete` and a brief-seed section that `/pde:brief` can consume directly
-  4. Running `/pde:brief` after competitive and opportunity runs automatically injects CMP/OPP context into the brief; running it without those artifacts produces the brief normally with a warning (not a failure)
-**Plans**: 2 plans
-Plans:
-- [ ] 27-01-PLAN.md — Build /pde:ideate command stub, workflow (two-pass diverge→converge), and IDT skill registry entry
-- [ ] 27-02-PLAN.md — Update /pde:brief with soft upstream context injection (IDT/CMP/OPP)
-
-### Phase 28: Build Orchestrator Expansion
-**Goal**: Users can run `/pde:build` and execute the full 13-stage pipeline from ideation through handoff, with accurate stage tracking and the ability to enter the pipeline at any stage
-**Depends on**: Phase 27 (all six new skills must be stable standalone before wiring)
-**Requirements**: BUILD-01, BUILD-02, BUILD-03
-**Success Criteria** (what must be TRUE):
-  1. `/pde:build --dry-run` displays exactly 13 stages: recommend → competitive → opportunity → ideate → brief → system → flows → wireframe → critique → iterate → mockup → hig → handoff
-  2. Stage count in all orchestrator messages is derived from the stage list at runtime, not from any hardcoded numeric literal
-  3. User can start the pipeline at any named stage (e.g., `--from wireframe`) and the orchestrator skips preceding stages without error
-  4. After a complete pipeline run, all 13 coverage flags in design-manifest.json are true with none silently clobbered
-**Plans**: 1 plan
-Plans:
-- [ ] 28-01-PLAN.md — Expand build orchestrator to 13-stage data-driven pipeline with --from flag and dynamic stage counting
+</details>
 
 ## Progress
 
@@ -168,4 +97,4 @@ Plans:
 | 25. Recommend & Competitive Skills | v1.2 | 2/2 | Complete | 2026-03-16 |
 | 26. Opportunity, Mockup & HIG Skills | v1.2 | 3/3 | Complete | 2026-03-16 |
 | 27. Ideation Skill & Brief Update | v1.2 | 2/2 | Complete | 2026-03-17 |
-| 28. Build Orchestrator Expansion | 1/1 | Complete    | 2026-03-17 | - |
+| 28. Build Orchestrator Expansion | v1.2 | 1/1 | Complete | 2026-03-17 |

@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A full professional product design and development platform delivered as a Claude Code plugin. PDE takes users from raw idea to shipped product through AI-assisted research, design, planning, coding, testing, and deployment. Includes a complete 7-stage design pipeline (brief → system → flows → wireframe → critique → iterate → handoff) orchestrable via a single `/pde:build` command.
+A full professional product design and development platform delivered as a Claude Code plugin. PDE takes users from raw idea to shipped product through AI-assisted research, design, planning, coding, testing, and deployment. Includes a complete 13-stage design pipeline (recommend → competitive → opportunity → ideate → brief → system → flows → wireframe → critique → iterate → mockup → hig → handoff) orchestrable via a single `/pde:build` command.
 
 ## Core Value
 
@@ -24,19 +24,18 @@ Any user can go from idea to shipped product through a single platform that hand
 - ✓ Each design skill works standalone AND as part of orchestrated /pde:build pipeline — v1.1
 - ✓ Design artifacts stored in .planning/design/ alongside planning state — v1.1
 - ✓ Design-to-implementation handoff produces component APIs and TypeScript interfaces — v1.1
-- ✓ Ideation skill with multi-phase diverge→converge exploration — v1.2 Phase 27
-- ✓ Competitive analysis skill with structured landscape evaluation — v1.2 Phase 25
-- ✓ Opportunity scoring skill with RICE framework — v1.2 Phase 26
-- ✓ Mockup skill for hi-fi interactive HTML/CSS from wireframes — v1.2 Phase 26
-- ✓ HIG audit skill with dual mode (light in critique, full standalone) — v1.2 Phase 26
-- ✓ Recommend skill for MCP/tool discovery (integrated into ideation) — v1.2 Phase 25
-- ✓ Brief accepts upstream IDT/CMP/OPP context with graceful degradation — v1.2 Phase 27
+- ✓ Ideation skill with multi-phase diverge→converge exploration — v1.2
+- ✓ Competitive analysis skill with structured landscape evaluation — v1.2
+- ✓ Opportunity scoring skill with RICE framework — v1.2
+- ✓ Mockup skill for hi-fi interactive HTML/CSS from wireframes — v1.2
+- ✓ HIG audit skill with dual mode (light in critique, full standalone) — v1.2
+- ✓ Recommend skill for MCP/tool discovery (integrated into ideation) — v1.2
+- ✓ Brief accepts upstream IDT/CMP/OPP context with graceful degradation — v1.2
+- ✓ Build orchestrator expanded to 13-stage pipeline with --from entry and dynamic stage counting — v1.2
 
 ### Active
 
-<!-- Current scope: v1.2 Advanced Design Skills -->
-
-- [ ] Build orchestrator expanded to handle full pipeline
+(None — planning next milestone)
 
 ### Out of Scope
 
@@ -48,33 +47,23 @@ Any user can go from idea to shipped product through a single platform that hand
 - Real-time collaborative editing — conflicts with file-based state model
 - In-tool web dashboard / UI — markdown files are the dashboard
 - Architecture restructuring — do when pain forces it
-- Advanced design skills — moved to Active for v1.2
-
-## Current Milestone: v1.2 Advanced Design Skills
-
-**Goal:** Expand the design pipeline with advanced skills — ideation, competitive analysis, opportunity scoring, mockups, HIG audit, and tool discovery — creating a comprehensive design-to-implementation workflow.
-
-**Target features:**
-- Multi-phase ideation with diverge→converge exploration (includes tool discovery via recommend)
-- Competitive landscape analysis and RICE-scored opportunity evaluation as pre-pipeline research
-- Hi-fi mockup generation from refined wireframes (post-iterate, pre-handoff)
-- WCAG 2.2 AA / HIG audit with dual mode: light check during critique, full audit as gate before handoff
-- Expanded `/pde:build` orchestrator covering the full pipeline: ideate → competitive → opportunity → brief → system → flows → wireframe → critique(+HIG) → iterate → mockup → HIG(full) → handoff
 
 ## Context
 
-- **Shipped v1.1** on 2026-03-16: ~89,000 LOC (JavaScript/Markdown), 262 total commits
+- **Shipped v1.2** on 2026-03-17: ~101,700 LOC (JavaScript/Markdown), 329 total commits
 - **v1.0** shipped 2026-03-15: 303 files, ~60,000 LOC, 127 commits (GSD → PDE rebrand)
-- **v1.1** shipped 2026-03-16: 172 files changed, 135 commits (design pipeline)
+- **v1.1** shipped 2026-03-16: 172 files changed, 135 commits (7-stage design pipeline)
+- **v1.2** shipped 2026-03-17: 84 files changed, 67 commits (6 advanced design skills, 13-stage pipeline)
 - **Tech stack:** Node.js (CommonJS), Claude Code plugin API, markdown-based state management
 - **Distribution:** Claude Code plugin via GitHub; marketplace registration pending
 - **Architecture:** skills (slash commands) → workflows → agents → templates → references → bin scripts → config
-- **Design pipeline:** 7 skills (brief, system, flows, wireframe, critique, iterate, handoff) + build orchestrator, DESIGN-STATE.md tracking, design-manifest.json artifact registry (13 coverage flags, pass-through-all pattern)
+- **Design pipeline:** 13 skills (recommend, competitive, opportunity, ideate, brief, system, flows, wireframe, critique, iterate, mockup, hig, handoff) + build orchestrator, DESIGN-STATE.md tracking, design-manifest.json artifact registry (13 coverage flags, pass-through-all pattern)
 - **Known tech debt:**
   - PLUG-01 end-to-end `claude plugin install` from GitHub not tested (marketplace registration may be required)
   - TRACKING-PLAN.md referenced in consent panel does not exist
   - Historical commits e067974 and efe3af0 lack Co-Authored-By trailer (pre-fix, cannot change)
   - lock-release calls use inconsistent trailing arguments across workflows (cosmetic, zero functional impact)
+  - SUMMARY.md files lack one_liner field — automated accomplishment extraction fails (tech-tracking format only)
 
 ## Constraints
 
@@ -109,6 +98,9 @@ Any user can go from idea to shipped product through a single platform that hand
 | Two-pass diverge→converge ideation | Enforces neutral language in diverge to prevent premature convergence; scoring only in converge pass | ✓ Good — Phase 27 |
 | Soft upstream probe pattern for brief | IDT/CMP/OPP artifacts probed via Glob; null-context fallthrough to existing logic unchanged | ✓ Good — Phase 27 |
 | IDT Brief Seed supersedes PROJECT.md | When ideation exists, Brief Seed represents latest thinking; raw PROJECT.md is fallback only | ✓ Good — Phase 27 |
+| HIG --light flag as critique delegation contract | 5 mandatory checks only, critique-compatible format; full audit as separate stage | ✓ Good — Phase 26 |
+| Data-driven STAGES list in build orchestrator | Future pipeline expansions require no text changes — TOTAL derived from list length | ✓ Good — Phase 28 |
+| --from flag with validation-before-coverage-check | Typos halt immediately with full valid stage list; no silent skip behavior | ✓ Good — Phase 28 |
 
 ---
-*Last updated: 2026-03-17 after Phase 27*
+*Last updated: 2026-03-17 after v1.2 milestone*

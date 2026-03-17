@@ -1,5 +1,24 @@
 # Milestones
 
+## v1.2 Advanced Design Skills (Shipped: 2026-03-17)
+
+**Phases completed:** 5 phases, 10 plans
+**Commits:** 67 | **Files:** 84 | **LOC:** ~101,700
+**Timeline:** 2 days (2026-03-16 → 2026-03-17)
+**Git range:** feat(24-01) → feat(28-01)
+
+**Key accomplishments:**
+1. Built 6 new design skills: recommend, competitive, opportunity, mockup, HIG, and ideate
+2. Migrated all existing skills to 13-field pass-through-all coverage pattern (zero flag clobber)
+3. Expanded /pde:build orchestrator from 7 to 13 stages with --from entry point and dynamic stage counting
+4. Created two-pass diverge→converge ideation pipeline with auto tool discovery at checkpoint
+5. Added WCAG 2.2 AA / HIG audit with dual mode (light in critique, full standalone) and severity-rated findings
+6. Wired soft upstream context injection (IDT/CMP/OPP) into /pde:brief with graceful degradation
+
+**Delivered:** Six advanced design skills expanding the pipeline from 7 to 13 stages — ideation, competitive analysis, opportunity scoring, hi-fi mockups, HIG audit, and tool discovery — creating a comprehensive pre-brief research layer and post-iterate quality gate, all orchestrable via `/pde:build`.
+
+---
+
 ## v1.1 Design Pipeline (Shipped: 2026-03-16)
 
 **Phases completed:** 15 phases, 16 plans

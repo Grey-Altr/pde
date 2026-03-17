@@ -101,6 +101,52 @@
 
 ---
 
+## Milestone: v1.2 — Advanced Design Skills
+
+**Shipped:** 2026-03-17
+**Phases:** 5 | **Plans:** 10 | **Commits:** 67
+
+### What Was Built
+- 6 new design skills: recommend (MCP/tool discovery), competitive (landscape analysis), opportunity (RICE scoring), mockup (hi-fi HTML/CSS), HIG (WCAG 2.2 AA audit), ideate (diverge→converge exploration)
+- 13-field pass-through-all coverage pattern across all 12 skill workflows
+- Expanded /pde:build orchestrator from 7 to 13 stages with --from entry point and dynamic stage counting
+- Soft upstream context injection in /pde:brief (IDT/CMP/OPP artifacts with graceful degradation)
+- skill-registry.md with all 13 PDE skill codes for LINT-010 compliance
+- 306 Nyquist structural tests across all 5 phases
+
+### What Worked
+- **Infrastructure-first paid off again** — Phase 24 (schema migration) before any new skills meant zero coverage flag clobber incidents across 6 new skill implementations
+- **Zero gap-closure phases** — learning from v1.1's 5 retroactive fix phases, v1.2 shipped with no unplanned phases; integration was correct from the start
+- **Soft upstream probe pattern** — Glob + null context variable on miss + graceful degradation elegantly handled the optional dependency chain (IDT→CMP→OPP→brief)
+- **Milestone audit before completion** — caught OPP-02 AskUserQuestion gap and HIG requirements SUMMARY gap, both fixed before shipping
+- **Pass-through-all coverage pattern** — designing the 13-field schema upfront (lesson from v1.1) prevented the mid-milestone backfill that plagued v1.1
+
+### What Was Inefficient
+- **SUMMARY.md one_liner extraction still fails** — third consecutive milestone where automated accomplishment extraction returns null; tech-tracking format needs a dedicated one_liner field
+- **Phase 26 packed too much** — 3 unrelated skills (opportunity, mockup, HIG) in one phase made context heavy; could have been 3 phases with cleaner isolation
+- **Phase 28 plan checkboxes not checked in ROADMAP** — the Phase 26-28 plan checkboxes in the ROADMAP.md Phase Details section remained unchecked despite completion (cosmetic but confusing for audit)
+
+### Patterns Established
+- Pass-through-all coverage: every skill reads all 13 flags, writes all 13 with only its own changed
+- Probe/use/degrade MCP pattern: try WebSearch → use if available → degrade to offline catalog
+- Skill() not Task() for sub-skill invocation within workflows (avoids #686 nested-agent freeze)
+- Soft upstream injection: Glob probe → null context variable → Step N enrichment only if context exists
+- Data-driven STAGES list: pipeline stage count derived from list length, not hardcoded literals
+- Banned word list for evaluative language enforcement (diverge pass neutrality)
+
+### Key Lessons
+1. **Design schema upfront, iterate skills after** — Phase 24's 13-field schema meant zero backfills; v1.1's 7th field added mid-milestone caused 4-file backfill. Always define the full schema before implementing consumers.
+2. **One skill per phase for unrelated skills** — Phase 26 packed 3 unrelated skills; harder to debug and review. Group only tightly coupled skills.
+3. **SUMMARY format needs a one_liner field** — this is the third milestone where automated extraction fails. Add a YAML frontmatter `one_liner:` field to the SUMMARY template.
+4. **Milestone audit catches real gaps** — OPP-02 missing AskUserQuestion in allowed-tools would have caused a runtime failure in interactive mode.
+
+### Cost Observations
+- Model mix: primarily sonnet for execution agents, opus for orchestration
+- Timeline: 2 days (2026-03-16 → 2026-03-17)
+- Notable: 67 commits in 2 days; zero unplanned phases — cleanest milestone yet
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -109,10 +155,12 @@
 |-----------|---------|--------|------------|
 | v1.0 | 127 | 11 | Initial release — fork-and-rebrand with gap closure |
 | v1.1 | 135 | 15 | Design pipeline — 7 skills + orchestrator with infrastructure-first approach |
+| v1.2 | 67 | 5 | Advanced design skills — 6 new skills, 13-stage pipeline, zero unplanned phases |
 
 ### Cumulative Quality
 
-| Milestone | Requirements | Coverage | Gap Phases |
-|-----------|-------------|----------|------------|
-| v1.0 | 40/40 | 100% | 3 (phases 9-11) |
-| v1.1 | 25/25 | 100% | 5 (phases 13.1, 13.2, 15.1, 21-23) |
+| Milestone | Requirements | Coverage | Gap Phases | Nyquist Tests |
+|-----------|-------------|----------|------------|---------------|
+| v1.0 | 40/40 | 100% | 3 (phases 9-11) | — |
+| v1.1 | 25/25 | 100% | 5 (phases 13.1, 13.2, 15.1, 21-23) | — |
+| v1.2 | 25/25 | 100% | 0 | 306 |
