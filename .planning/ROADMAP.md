@@ -88,7 +88,12 @@ Full details: .planning/milestones/v1.2-ROADMAP.md
   3. `references/composition-typography.md` exists with named grid systems, visual weight analysis, type pairing contrast rationale, spatial asymmetry principles, and APCA contrast guidance
   4. `protected-files.json` exists and lists quality rubric, core workflow files, and bin/ scripts — with an explicit allowed-write-directories list
   5. All three new agent types (AUD, IMP, PRT) are registered in `bin/lib/model-profiles.cjs` and `skill-registry.md`
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 29-01-PLAN.md — Awwwards quality rubric reference (QUAL-01)
+- [ ] 29-02-PLAN.md — Motion design and composition/typography references (QUAL-02, QUAL-03)
+- [ ] 29-03-PLAN.md — Protected-files mechanism, model profiles, skill registry (QUAL-04, QUAL-05, QUAL-06)
 
 ### Phase 30: Self-Improvement Fleet & Audit Command
 **Goal**: PDE can evaluate its own output quality against the Awwwards rubric and generate grounded improvement proposals
