@@ -57,7 +57,7 @@ Full details: .planning/milestones/v1.1-ROADMAP.md
 - [x] **Phase 24: Schema Migration & Infrastructure** - Migrate coverage flags to pass-through-all; extend manifest schema with six new flags; add ux/mockups/ directory (completed 2026-03-16)
 - [x] **Phase 25: Recommend & Competitive Skills** - Build /pde:recommend (MCP/tool discovery) and /pde:competitive (landscape analysis with gap identification) (completed 2026-03-16)
 - [x] **Phase 26: Opportunity, Mockup & HIG Skills** - Build /pde:opportunity (RICE scoring), /pde:mockup (hi-fi HTML/CSS), and /pde:hig (WCAG 2.2 AA dual-mode audit) (completed 2026-03-16)
-- [ ] **Phase 27: Ideation Skill & Brief Update** - Build /pde:ideate with two-pass diverge→converge structure; update /pde:brief to inject competitive/opportunity context
+- [x] **Phase 27: Ideation Skill & Brief Update** - Build /pde:ideate with two-pass diverge→converge structure; update /pde:brief to inject competitive/opportunity context (completed 2026-03-17)
 - [ ] **Phase 28: Build Orchestrator Expansion** - Expand /pde:build from 7 to 13 stages with dynamic stage count and per-stage skip support
 
 ## Phase Details
@@ -165,5 +165,5 @@ Plans:
 | 24. Schema Migration & Infrastructure | v1.2 | 2/2 | Complete | 2026-03-16 |
 | 25. Recommend & Competitive Skills | v1.2 | 2/2 | Complete | 2026-03-16 |
 | 26. Opportunity, Mockup & HIG Skills | v1.2 | 3/3 | Complete | 2026-03-16 |
-| 27. Ideation Skill & Brief Update | 1/2 | In Progress|  | - |
+| 27. Ideation Skill & Brief Update | 2/2 | Complete   | 2026-03-17 | - |
 | 28. Build Orchestrator Expansion | v1.2 | 0/TBD | Not started | - |
