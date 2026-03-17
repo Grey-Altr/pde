@@ -1,7 +1,7 @@
 ---
 name: pde:build
-description: Run the full design pipeline (brief → system → flows → wireframe → critique → iterate → handoff). Resumes from last complete stage.
-argument-hint: "[--dry-run] [--quick] [--verbose] [--force]"
+description: Run the full design pipeline (recommend -> competitive -> opportunity -> ideate -> brief -> system -> flows -> wireframe -> critique -> iterate -> mockup -> hig -> handoff). Resumes from last complete stage.
+argument-hint: "[--from stage] [--dry-run] [--quick] [--verbose] [--force]"
 allowed-tools:
   - Read
   - Bash
