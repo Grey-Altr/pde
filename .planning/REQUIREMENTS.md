@@ -15,9 +15,9 @@ Requirements for v1.2 Advanced Design Skills. Each maps to roadmap phases.
 
 ### Ideation
 
-- [ ] **IDEAT-01**: User can run multi-phase diverge→converge ideation via `/pde:ideate`
-- [ ] **IDEAT-02**: User can score and assess concept readiness before proceeding to brief
-- [ ] **IDEAT-03**: Tool discovery (recommend) runs automatically during ideation diverge phase
+- [x] **IDEAT-01**: User can run multi-phase diverge→converge ideation via `/pde:ideate`
+- [x] **IDEAT-02**: User can score and assess concept readiness before proceeding to brief
+- [x] **IDEAT-03**: Tool discovery (recommend) runs automatically during ideation diverge phase
 - [ ] **IDEAT-04**: Ideation produces a brief seed artifact consumable by `/pde:brief`
 
 ### Competitive Analysis
@@ -89,9 +89,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | INFRA-01 | Phase 24 | Complete |
 | INFRA-02 | Phase 24 | Complete (24-01) |
 | INFRA-03 | Phase 24 | Complete (24-01) |
-| IDEAT-01 | Phase 27 | Pending |
-| IDEAT-02 | Phase 27 | Pending |
-| IDEAT-03 | Phase 27 | Pending |
+| IDEAT-01 | Phase 27 | Complete |
+| IDEAT-02 | Phase 27 | Complete |
+| IDEAT-03 | Phase 27 | Complete |
 | IDEAT-04 | Phase 27 | Pending |
 | COMP-01 | Phase 25 | Complete |
 | COMP-02 | Phase 25 | Complete |

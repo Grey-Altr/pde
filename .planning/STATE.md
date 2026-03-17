@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Advanced Design Skills
 status: executing
-stopped_at: Completed 26-03-PLAN.md
-last_updated: "2026-03-16T22:11:06.579Z"
+stopped_at: Completed 27-01-PLAN.md
+last_updated: "2026-03-17T00:25:19.537Z"
 last_activity: 2026-03-16 — Phase 26 Plan 01 complete (opportunity skill + skill-registry.md)
 progress:
   total_phases: 5
   completed_phases: 3
-  total_plans: 7
-  completed_plans: 7
+  total_plans: 9
+  completed_plans: 8
   percent: 71
 ---
 
@@ -51,6 +51,7 @@ Progress: [███████░░░] 5/7 plans (71%)
 | Phase 26-opportunity-mockup-hig-skills P01 | 525608 | 2 tasks | 3 files |
 | Phase 26-opportunity-mockup-hig-skills P02 | 4 | 1 tasks | 2 files |
 | Phase 26-opportunity-mockup-hig-skills P03 | 5 | 2 tasks | 3 files |
+| Phase 27-ideation-skill-brief-update P01 | 8 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -76,6 +77,10 @@ Recent decisions affecting current work:
 - [Phase 26-opportunity-mockup-hig-skills]: MCK: Wireframes are a soft dependency -- skill warns and continues from brief/flows context when wireframes absent
 - [Phase 26-03]: HIG --light flag is the critique delegation contract — 5 mandatory checks, no artifact written, critique-compatible finding table format
 - [Phase 26-03]: Axe MCP probe removed from critique Step 3 — HIG workflow handles its own Axe probing; --no-axe passes through to HIG
+- [Phase 27-ideation-skill-brief-update]: IDT uses Skill() not Task() to invoke recommend — Task() causes Issue #686 nested-agent freeze
+- [Phase 27-ideation-skill-brief-update]: Diverge pass enforces ZERO evaluative language with banned word list to prevent premature convergence
+- [Phase 27-ideation-skill-brief-update]: Brief Seed section uses exact templates/brief-seed.md schema for /pde:brief direct downstream consumption
+- [Phase 27-ideation-skill-brief-update]: hasIdeation coverage flag written via 13-field pass-through-all pattern in canonical order
 
 ### Pending Todos
 
@@ -87,6 +92,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-16T22:06:01.096Z
-Stopped at: Completed 26-03-PLAN.md
+Last session: 2026-03-17T00:25:19.535Z
+Stopped at: Completed 27-01-PLAN.md
 Resume file: None
