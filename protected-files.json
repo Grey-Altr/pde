@@ -1,0 +1,34 @@
+{
+  "protected": [
+    "references/quality-standards.md",
+    "references/skill-style-guide.md",
+    "references/tooling-patterns.md",
+    "references/model-profiles.md",
+    "workflows/improve.md",
+    "bin/pde-tools.cjs",
+    "bin/lib/model-profiles.cjs",
+    "bin/lib/core.cjs",
+    "bin/lib/init.cjs",
+    "bin/lib/state.cjs",
+    "bin/lib/phase.cjs",
+    "bin/lib/roadmap.cjs",
+    "protected-files.json",
+    "CLAUDE.md",
+    ".claude/settings.json",
+    "skill-registry.md"
+  ],
+  "protected_directories": [
+    "bin/",
+    ".claude/"
+  ],
+  "allowed_write_directories": [
+    ".planning/improvements/",
+    ".planning/audit-report.md",
+    ".planning/skill-builder-log.md",
+    ".planning/pressure-test-report.md",
+    "commands/",
+    "workflows/"
+  ],
+  "enforcement": "prompt",
+  "note": "Claude Code Write and Edit tools run via fs.writeFileSync and bypass bwrap filesystem sandbox. Enforcement is via explicit agent system prompt instructions only — NOT OS-level protection. All fleet agent prompts (auditor, improver, validator, skill-builder) MUST include: 'Before every Write or Edit tool call, check protected-files.json. You MUST NOT write to any path listed in protected[] or any subdirectory listed in protected_directories[].' This file itself is protected — agents cannot modify it."
+}
