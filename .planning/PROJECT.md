@@ -24,17 +24,18 @@ Any user can go from idea to shipped product through a single platform that hand
 - ✓ Each design skill works standalone AND as part of orchestrated /pde:build pipeline — v1.1
 - ✓ Design artifacts stored in .planning/design/ alongside planning state — v1.1
 - ✓ Design-to-implementation handoff produces component APIs and TypeScript interfaces — v1.1
+- ✓ Ideation skill with multi-phase diverge→converge exploration — v1.2 Phase 27
+- ✓ Competitive analysis skill with structured landscape evaluation — v1.2 Phase 25
+- ✓ Opportunity scoring skill with RICE framework — v1.2 Phase 26
+- ✓ Mockup skill for hi-fi interactive HTML/CSS from wireframes — v1.2 Phase 26
+- ✓ HIG audit skill with dual mode (light in critique, full standalone) — v1.2 Phase 26
+- ✓ Recommend skill for MCP/tool discovery (integrated into ideation) — v1.2 Phase 25
+- ✓ Brief accepts upstream IDT/CMP/OPP context with graceful degradation — v1.2 Phase 27
 
 ### Active
 
 <!-- Current scope: v1.2 Advanced Design Skills -->
 
-- [ ] Ideation skill with multi-phase diverge→converge exploration
-- [ ] Competitive analysis skill with structured landscape evaluation
-- [ ] Opportunity scoring skill with RICE framework
-- [ ] Mockup skill for hi-fi interactive HTML/CSS from wireframes
-- [ ] HIG audit skill with dual mode (light in critique, full standalone)
-- [ ] Recommend skill for MCP/tool discovery (integrated into ideation)
 - [ ] Build orchestrator expanded to handle full pipeline
 
 ### Out of Scope
@@ -105,6 +106,9 @@ Any user can go from idea to shipped product through a single platform that hand
 | Skill() over Task() invocation in build | Avoids #686 nested-agent freeze; Skill runs in same context | ✓ Good — Phase 20 |
 | Pass-through-all coverage pattern | Each skill reads all 13 flags, sets only its own — prevents clobber when mixing v1.1/v1.2 skills | ✓ Good — Phase 24 |
 | hasBrief excluded from designCoverage | Brief completion tracked via artifacts.BRF presence; coverage flags reserved for design output skills | ✓ Good — Phase 24 |
+| Two-pass diverge→converge ideation | Enforces neutral language in diverge to prevent premature convergence; scoring only in converge pass | ✓ Good — Phase 27 |
+| Soft upstream probe pattern for brief | IDT/CMP/OPP artifacts probed via Glob; null-context fallthrough to existing logic unchanged | ✓ Good — Phase 27 |
+| IDT Brief Seed supersedes PROJECT.md | When ideation exists, Brief Seed represents latest thinking; raw PROJECT.md is fallback only | ✓ Good — Phase 27 |
 
 ---
-*Last updated: 2026-03-16 after Phase 24*
+*Last updated: 2026-03-17 after Phase 27*
