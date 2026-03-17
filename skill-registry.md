@@ -17,3 +17,4 @@
 | CMP | /pde:competitive | workflows/competitive.md | strategy | active |
 | OPP | /pde:opportunity | workflows/opportunity.md | strategy | active |
 | REC | /pde:recommend | workflows/recommend.md | strategy | active |
+| IDT | /pde:ideate | workflows/ideate.md | strategy | active |
