@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Self-Improvement & Design Excellence
-status: completed
-stopped_at: Phase 29 Plan 02 complete — motion-design.md and composition-typography.md authored
-last_updated: "2026-03-17T23:52:57.532Z"
-last_activity: 2026-03-17 — Phase 29 Plan 01 complete (references/quality-standards.md created)
+status: in-progress
+stopped_at: Phase 29 Plan 03 complete — protected-files.json, model-profiles, skill-registry wired
+last_updated: "2026-03-17T00:00:00.000Z"
+last_activity: 2026-03-17 — Phase 29 Plan 03 complete (protected-files.json, model-profiles, skill-registry)
 progress:
   total_phases: 9
   completed_phases: 0
@@ -25,12 +25,12 @@ See: .planning/PROJECT.md (updated 2026-03-17)
 ## Current Position
 
 Phase: 29 — Quality Infrastructure (in progress)
-Plan: 02 of 03 (Plan 01 complete)
-Status: Plan 01 complete — Awwwards rubric authored
-Last activity: 2026-03-17 — Phase 29 Plan 01 complete (references/quality-standards.md created)
+Plan: 03 of 03 complete
+Status: All 3 plans complete — infrastructure wiring done (protected-files.json, model-profiles, skill-registry)
+Last activity: 2026-03-17 — Phase 29 Plan 03 complete (protected-files.json, model-profiles, skill-registry)
 
 ```
-v1.3 Progress: [                    ] 2% (1/3 plans in Phase 29)
+v1.3 Progress: [==                  ] 11% (3/3 plans in Phase 29 complete)
 ```
 
 ## Performance Metrics
@@ -43,6 +43,7 @@ v1.3 Progress: [                    ] 2% (1/3 plans in Phase 29)
 | LOC | ~60,000 | ~89,000 | ~101,700 | — |
 | Timeline | 2 days | 2 days | 1 day | — |
 | Phase 29-quality-infrastructure P02 | 3 | 2 tasks | 2 files |
+| Phase 29-quality-infrastructure P03 | ~10 min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -53,6 +54,12 @@ Decisions are logged in PROJECT.md Key Decisions table.
 **v1.3 decisions made (Plan 29-01):**
 - Per-score criteria labeled as inferred from SOTD winner analysis (not published Awwwards) — prevents circular AI self-validation against rubric it authored
 - AI aesthetic flags placed in per-dimension criterion tables (co-located) rather than a separate section
+
+**v1.3 decisions made (Plan 29-03):**
+- protected-files.json enforcement is prompt-level only — bwrap sandbox does not prevent Claude Code Write/Edit tool calls; note field documents this limitation for all fleet agent prompts
+- pde-design-quality-evaluator uses quality: opus because design judgment requires maximum reasoning capability
+- AUD/IMP/PRT registered with status: pending so LINT-010 can enforce uniqueness now without triggering workflow-path-existence validation
+- references/model-profiles.md was missing 3 rows (pde-ui-researcher, pde-ui-checker, pde-ui-auditor) — all 7 missing rows added to bring table fully in sync
 
 **v1.3 pending decisions (from research):**
 - Pressure test quality evaluation tier: human review pass vs. AI-with-rubric judge agent — must be resolved before Phase 37 planning
