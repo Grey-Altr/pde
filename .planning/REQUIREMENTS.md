@@ -140,73 +140,73 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| QUAL-01 | — | Pending |
-| QUAL-02 | — | Pending |
-| QUAL-03 | — | Pending |
-| QUAL-04 | — | Pending |
-| QUAL-05 | — | Pending |
-| QUAL-06 | — | Pending |
-| AUDIT-01 | — | Pending |
-| AUDIT-02 | — | Pending |
-| AUDIT-03 | — | Pending |
-| AUDIT-04 | — | Pending |
-| AUDIT-05 | — | Pending |
-| AUDIT-06 | — | Pending |
-| AUDIT-07 | — | Pending |
-| AUDIT-08 | — | Pending |
-| AUDIT-09 | — | Pending |
-| AUDIT-10 | — | Pending |
-| AUDIT-11 | — | Pending |
-| AUDIT-12 | — | Pending |
-| SKILL-01 | — | Pending |
-| SKILL-02 | — | Pending |
-| SKILL-03 | — | Pending |
-| SKILL-04 | — | Pending |
-| SKILL-05 | — | Pending |
-| SKILL-06 | — | Pending |
-| SYS-01 | — | Pending |
-| SYS-02 | — | Pending |
-| SYS-03 | — | Pending |
-| SYS-04 | — | Pending |
-| SYS-05 | — | Pending |
-| SYS-06 | — | Pending |
-| WIRE-01 | — | Pending |
-| WIRE-02 | — | Pending |
-| WIRE-03 | — | Pending |
-| WIRE-04 | — | Pending |
-| WIRE-05 | — | Pending |
-| MOCK-01 | — | Pending |
-| MOCK-02 | — | Pending |
-| MOCK-03 | — | Pending |
-| MOCK-04 | — | Pending |
-| MOCK-05 | — | Pending |
-| MOCK-06 | — | Pending |
-| MOCK-07 | — | Pending |
-| CRIT-01 | — | Pending |
-| CRIT-02 | — | Pending |
-| CRIT-03 | — | Pending |
-| CRIT-04 | — | Pending |
-| HIG-01 | — | Pending |
-| HIG-02 | — | Pending |
-| HIG-03 | — | Pending |
-| HAND-01 | — | Pending |
-| HAND-02 | — | Pending |
-| FLOW-01 | — | Pending |
-| CROSS-01 | — | Pending |
-| CROSS-02 | — | Pending |
-| ORDER-01 | — | Pending |
-| PRES-01 | — | Pending |
-| PRES-02 | — | Pending |
-| PRES-03 | — | Pending |
-| PRES-04 | — | Pending |
-| PRES-05 | — | Pending |
-| PRES-06 | — | Pending |
+| QUAL-01 | Phase 29 | Pending |
+| QUAL-02 | Phase 29 | Pending |
+| QUAL-03 | Phase 29 | Pending |
+| QUAL-04 | Phase 29 | Pending |
+| QUAL-05 | Phase 29 | Pending |
+| QUAL-06 | Phase 29 | Pending |
+| AUDIT-01 | Phase 30 | Pending |
+| AUDIT-02 | Phase 30 | Pending |
+| AUDIT-03 | Phase 30 | Pending |
+| AUDIT-04 | Phase 30 | Pending |
+| AUDIT-05 | Phase 30 | Pending |
+| AUDIT-06 | Phase 30 | Pending |
+| AUDIT-07 | Phase 30 | Pending |
+| AUDIT-08 | Phase 30 | Pending |
+| AUDIT-09 | Phase 30 | Pending |
+| AUDIT-10 | Phase 30 | Pending |
+| AUDIT-11 | Phase 30 | Pending |
+| AUDIT-12 | Phase 30 | Pending |
+| SKILL-01 | Phase 31 | Pending |
+| SKILL-02 | Phase 31 | Pending |
+| SKILL-03 | Phase 31 | Pending |
+| SKILL-04 | Phase 31 | Pending |
+| SKILL-05 | Phase 31 | Pending |
+| SKILL-06 | Phase 31 | Pending |
+| SYS-01 | Phase 32 | Pending |
+| SYS-02 | Phase 32 | Pending |
+| SYS-03 | Phase 32 | Pending |
+| SYS-04 | Phase 32 | Pending |
+| SYS-05 | Phase 32 | Pending |
+| SYS-06 | Phase 32 | Pending |
+| WIRE-01 | Phase 33 | Pending |
+| WIRE-02 | Phase 33 | Pending |
+| WIRE-03 | Phase 33 | Pending |
+| WIRE-04 | Phase 33 | Pending |
+| WIRE-05 | Phase 33 | Pending |
+| MOCK-01 | Phase 35 | Pending |
+| MOCK-02 | Phase 35 | Pending |
+| MOCK-03 | Phase 35 | Pending |
+| MOCK-04 | Phase 35 | Pending |
+| MOCK-05 | Phase 35 | Pending |
+| MOCK-06 | Phase 35 | Pending |
+| MOCK-07 | Phase 35 | Pending |
+| CRIT-01 | Phase 34 | Pending |
+| CRIT-02 | Phase 34 | Pending |
+| CRIT-03 | Phase 34 | Pending |
+| CRIT-04 | Phase 34 | Pending |
+| HIG-01 | Phase 34 | Pending |
+| HIG-02 | Phase 34 | Pending |
+| HIG-03 | Phase 34 | Pending |
+| ORDER-01 | Phase 36 | Pending |
+| HAND-01 | Phase 36 | Pending |
+| HAND-02 | Phase 36 | Pending |
+| FLOW-01 | Phase 36 | Pending |
+| CROSS-01 | Phase 36 | Pending |
+| CROSS-02 | Phase 36 | Pending |
+| PRES-01 | Phase 37 | Pending |
+| PRES-02 | Phase 37 | Pending |
+| PRES-03 | Phase 37 | Pending |
+| PRES-04 | Phase 37 | Pending |
+| PRES-05 | Phase 37 | Pending |
+| PRES-06 | Phase 37 | Pending |
 
 **Coverage:**
 - v1.3 requirements: 61 total
-- Mapped to phases: 0
-- Unmapped: 61
+- Mapped to phases: 61
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-17*
-*Last updated: 2026-03-17 after granularity expansion*
+*Last updated: 2026-03-17 after roadmap creation — all 61 requirements mapped*
