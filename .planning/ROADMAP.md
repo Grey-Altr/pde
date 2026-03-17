@@ -130,7 +130,9 @@ Plans:
   2. Stage count in all orchestrator messages is derived from the stage list at runtime, not from any hardcoded numeric literal
   3. User can start the pipeline at any named stage (e.g., `--from wireframe`) and the orchestrator skips preceding stages without error
   4. After a complete pipeline run, all 13 coverage flags in design-manifest.json are true with none silently clobbered
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 28-01-PLAN.md — Expand build orchestrator to 13-stage data-driven pipeline with --from flag and dynamic stage counting
 
 ## Progress
 
@@ -165,5 +167,5 @@ Plans:
 | 24. Schema Migration & Infrastructure | v1.2 | 2/2 | Complete | 2026-03-16 |
 | 25. Recommend & Competitive Skills | v1.2 | 2/2 | Complete | 2026-03-16 |
 | 26. Opportunity, Mockup & HIG Skills | v1.2 | 3/3 | Complete | 2026-03-16 |
-| 27. Ideation Skill & Brief Update | 2/2 | Complete    | 2026-03-17 | - |
-| 28. Build Orchestrator Expansion | v1.2 | 0/TBD | Not started | - |
+| 27. Ideation Skill & Brief Update | v1.2 | 2/2 | Complete | 2026-03-17 |
+| 28. Build Orchestrator Expansion | v1.2 | 0/1 | Not started | - |
