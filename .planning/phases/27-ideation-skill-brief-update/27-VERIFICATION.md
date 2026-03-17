@@ -1,17 +1,22 @@
 ---
 phase: 27-ideation-skill-brief-update
-verified: 2026-03-16T22:45:00Z
+verified: 2026-03-17T00:00:00Z
 status: passed
 score: 7/7 must-haves verified
-re_verification: false
+re_verification:
+  previous_status: passed
+  previous_score: 7/7
+  gaps_closed: []
+  gaps_remaining: []
+  regressions: []
 ---
 
 # Phase 27: Ideation Skill + Brief Update Verification Report
 
-**Phase Goal:** Build the /pde:ideate command and update /pde:brief to inject upstream ideation context
-**Verified:** 2026-03-16T22:45:00Z
+**Phase Goal:** Users can run multi-phase diverge->converge ideation that automatically invokes tool discovery, scores concept readiness, and produces a brief seed artifact; existing /pde:brief accepts upstream competitive and opportunity context
+**Verified:** 2026-03-17T00:00:00Z
 **Status:** PASSED
-**Re-verification:** No — initial verification
+**Re-verification:** Yes — re-verification after initial pass (previous status: passed, 7/7)
 
 ---
 
@@ -21,13 +26,13 @@ re_verification: false
 
 | # | Truth | Status | Evidence |
 |---|-------|--------|----------|
-| 1 | User can run /pde:ideate and receive 5+ divergent directions with zero evaluative language in diverge output | VERIFIED | workflows/ideate.md Step 4/7 explicitly states "ZERO evaluative language" with banned word list; "minimum 5 distinct" enforced |
-| 2 | Recommend runs automatically at diverge-converge checkpoint via Skill() invocation | VERIFIED | workflows/ideate.md Step 5/7: `Skill("pde:recommend", "--quick")` with "NEVER Task()" documented; Issue #686 referenced twice |
-| 3 | Converge pass scores all directions and produces explicit recommended direction with rationale | VERIFIED | workflows/ideate.md Step 6/7: 3-dimension 0-3 rubric (Goal Alignment, Feasibility, Distinctiveness) with scoring table and Recommended Direction section |
-| 4 | IDT artifact written with status transitions (diverge-complete then ideation-complete) and ## Brief Seed section | VERIFIED | workflows/ideate.md: Status: diverge-complete written after Step 4, overwritten to ideation-complete after Step 6; ## Brief Seed section with all 9 fields present |
-| 5 | Running /pde:brief after ideation/competitive/opportunity injects IDT/CMP/OPP context automatically | VERIFIED | workflows/brief.md Sub-step 2c: Glob probes for IDT-ideation-v*.md, CMP-competitive-v*.md, OPP-opportunity-v*.md; Step 5/7 enrichment block consumes IDT_CONTEXT, CMP_CONTEXT, OPP_CONTEXT |
-| 6 | Running /pde:brief without upstream artifacts produces the brief normally with a log note (not a failure) | VERIFIED | Sub-step 2c marked "all soft — never halt"; all three context variables set to null on miss; Step 5 falls through to PROJECT.md-only logic |
-| 7 | Brief summary table shows upstream context row listing which artifacts were injected | VERIFIED | workflows/brief.md line 514: `| Upstream context |` row added to Summary table |
+| 1 | User can run /pde:ideate and receive minimum 5 divergent directions with zero evaluative language in the diverge output | VERIFIED | workflows/ideate.md line 201-205: "minimum 5 distinct" enforced; "ZERO evaluative language" with explicit banned word list (best, recommended, superior, most promising, strongest, optimal, ideal, preferred) |
+| 2 | Recommend runs automatically at diverge-converge checkpoint via Skill() invocation (never Task()) | VERIFIED | workflows/ideate.md line 265: `Skill("pde:recommend", "--quick")`; line 268: "CRITICAL: Use Skill() — NEVER Task(). Task() causes Issue #686"; anti-patterns section line 517 repeats guard |
+| 3 | Converge pass scores ALL directions on 0-3 rubric and produces explicit recommended direction with rationale | VERIFIED | workflows/ideate.md lines 286-300: 3-dimension (Goal Alignment, Feasibility, Distinctiveness) 0-3 scoring table with per-dimension descriptions; explicit recommended direction with rationale and feasibility note |
+| 4 | IDT artifact transitions from diverge-complete to ideation-complete status and includes ## Brief Seed section matching templates/brief-seed.md schema | VERIFIED | workflows/ideate.md line 241: Status: diverge-complete written after Step 4; line 366: Status: ideation-complete after Step 6; lines 319-358: ## Brief Seed section with all 9 fields (Problem Statement, Product Type, Platform, Target Users, Scope Boundaries, Constraints, Key Decisions, Risk Register, Next Steps) |
+| 5 | Running /pde:brief after ideation/competitive/opportunity injects IDT/CMP/OPP context automatically | VERIFIED | workflows/brief.md line 87: Sub-step 2c inserted between Step 2/7 (line 83) and Step 3/7 (line 117); Glob probes at lines 92, 100, 108; Step 5/7 enrichment block at line 233 consumes IDT_CONTEXT, CMP_CONTEXT, OPP_CONTEXT |
+| 6 | Running /pde:brief without upstream artifacts produces the brief normally with a log note (not a failure) | VERIFIED | workflows/brief.md line 87: "all soft — never halt"; SET IDT_CONTEXT = null (line 97), SET CMP_CONTEXT = null (line 105), SET OPP_CONTEXT = null (line 113) on miss; Step 5 enrichment is conditional on non-null context |
+| 7 | Brief summary table includes Upstream context row listing which artifacts were injected | VERIFIED | workflows/brief.md line 514: `| Upstream context | {If any of IDT_CONTEXT, CMP_CONTEXT, OPP_CONTEXT were found...}` row present |
 
 **Score:** 7/7 truths verified
 
@@ -37,10 +42,10 @@ re_verification: false
 
 | Artifact | Expected | Status | Details |
 |----------|----------|--------|---------|
-| `commands/ideate.md` | Thin command stub delegating to workflows/ideate.md | VERIFIED | 20 lines; YAML frontmatter with `name: pde:ideate`, all 7 allowed-tools, `@workflows/ideate.md` + `@references/skill-style-guide.md` |
-| `workflows/ideate.md` | Full two-pass diverge-converge ideation workflow with 7-step pipeline | VERIFIED | 534 lines; all 8 v1.2 sections present; substantive implementation throughout |
-| `skill-registry.md` | IDT row for LINT-010 compliance (14th entry) | VERIFIED | Row at line 20: `| IDT | /pde:ideate | workflows/ideate.md | strategy | active |`; 14 data rows total |
-| `workflows/brief.md` | Surgical update adding Sub-step 2c for upstream context injection | VERIFIED | All three edits present: Sub-step 2c block, Step 5/7 enrichment guidance, Summary table row |
+| `commands/ideate.md` | Thin command stub delegating to workflows/ideate.md | VERIFIED | 22 lines; YAML frontmatter with `name: pde:ideate`; 7 allowed-tools (Read, Write, Edit, Bash, Glob, Grep, Task); `@workflows/ideate.md` and `@references/skill-style-guide.md` in process section |
+| `workflows/ideate.md` | Full two-pass diverge-converge ideation pipeline, 400+ lines | VERIFIED | 534 lines; `<skill_code>IDT</skill_code>`, `<skill_domain>strategy</skill_domain>`, `<context_routing>`, `<required_reading>`, `<flags>`, `<process>`, `<output>`, anti-patterns section all present |
+| `skill-registry.md` | IDT row as 14th data entry for LINT-010 compliance | VERIFIED | Line 20: `| IDT | /pde:ideate | workflows/ideate.md | strategy | active |`; 16 total table rows (2 header + 14 data rows) |
+| `workflows/brief.md` | Surgical 3-edit update: Sub-step 2c, Step 5/7 enrichment, Summary table row | VERIFIED | 536 lines; all 3 edits confirmed present; existing step numbering 1-7 unchanged |
 
 ---
 
@@ -49,11 +54,11 @@ re_verification: false
 | From | To | Via | Status | Details |
 |------|----|-----|--------|---------|
 | `commands/ideate.md` | `workflows/ideate.md` | @workflows/ideate.md delegation | VERIFIED | Line 19: `@workflows/ideate.md` present |
-| `workflows/ideate.md` | `workflows/recommend.md` | Skill() invocation at diverge-converge checkpoint | VERIFIED | Line 265: `Skill("pde:recommend", "--quick")` with NEVER Task() guard |
-| `workflows/ideate.md` | `templates/brief-seed.md` | Brief Seed section schema reference | VERIFIED | Referenced at line 316; all 9 schema fields present in ## Brief Seed output |
-| `workflows/brief.md` | `.planning/design/strategy/IDT-ideation-v*.md` | Glob detection in Sub-step 2c | VERIFIED | Line 92: Glob for IDT-ideation-v*.md |
-| `workflows/brief.md` | `.planning/design/strategy/CMP-competitive-v*.md` | Glob detection in Sub-step 2c | VERIFIED | Line 100: Glob for CMP-competitive-v*.md |
-| `workflows/brief.md` | `.planning/design/strategy/OPP-opportunity-v*.md` | Glob detection in Sub-step 2c | VERIFIED | Line 108: Glob for OPP-opportunity-v*.md |
+| `workflows/ideate.md` | `workflows/recommend.md` | Skill() invocation at diverge-converge checkpoint | VERIFIED | Line 265: `Skill("pde:recommend", "--quick")` with NEVER Task() guard at line 268 and line 517 |
+| `workflows/ideate.md` | `templates/brief-seed.md` | Brief Seed section schema reference | VERIFIED | Line 316 references `templates/brief-seed.md`; all 9 schema fields present in ## Brief Seed output at lines 319-358 |
+| `workflows/brief.md` | `.planning/design/strategy/IDT-ideation-v*.md` | Glob detection in Sub-step 2c | VERIFIED | Line 92: Glob probe for IDT-ideation-v*.md |
+| `workflows/brief.md` | `.planning/design/strategy/CMP-competitive-v*.md` | Glob detection in Sub-step 2c | VERIFIED | Line 100: Glob probe for CMP-competitive-v*.md |
+| `workflows/brief.md` | `.planning/design/strategy/OPP-opportunity-v*.md` | Glob detection in Sub-step 2c | VERIFIED | Line 108: Glob probe for OPP-opportunity-v*.md |
 
 ---
 
@@ -61,12 +66,12 @@ re_verification: false
 
 | Requirement | Source Plan | Description | Status | Evidence |
 |-------------|-------------|-------------|--------|----------|
-| IDEAT-01 | 27-01-PLAN.md | User can run multi-phase diverge-converge ideation via /pde:ideate | SATISFIED | commands/ideate.md exists and delegates to workflows/ideate.md; 7-step pipeline with two-pass structure implemented |
-| IDEAT-02 | 27-01-PLAN.md | User can score and assess concept readiness before proceeding to brief | SATISFIED | Step 6/7 Converge: 0-3 rubric on Goal Alignment, Feasibility, Distinctiveness; explicit recommended direction with rationale |
-| IDEAT-03 | 27-01-PLAN.md | Tool discovery (recommend) runs automatically during ideation diverge phase | SATISFIED | Step 5/7: Skill("pde:recommend", "--quick") at diverge-converge checkpoint; feasibility annotations fed into Step 6/7 scoring |
-| IDEAT-04 | 27-02-PLAN.md | Ideation produces a brief seed artifact consumable by /pde:brief | SATISFIED | IDT artifact ## Brief Seed section with 9 fields; workflows/brief.md Sub-step 2c parses it by exact heading; IDT Brief Seed supersedes PROJECT.md problem description when both exist |
+| IDEAT-01 | 27-01-PLAN.md | User can run multi-phase diverge->converge ideation via /pde:ideate | SATISFIED | commands/ideate.md exists and delegates to workflows/ideate.md; 7-step pipeline with two-pass diverge-converge structure implemented in 534-line workflow |
+| IDEAT-02 | 27-01-PLAN.md | User can score and assess concept readiness before proceeding to brief | SATISFIED | Step 6/7: 0-3 rubric on Goal Alignment, Feasibility, Distinctiveness; explicit recommended direction with scoring table, rationale, feasibility note from recommend checkpoint |
+| IDEAT-03 | 27-01-PLAN.md | Tool discovery (recommend) runs automatically during ideation diverge phase | SATISFIED | Step 5/7: Skill("pde:recommend", "--quick") at diverge-converge checkpoint; feasibility annotations from REC artifact fed into Step 6/7 scoring |
+| IDEAT-04 | 27-02-PLAN.md | Ideation produces a brief seed artifact consumable by /pde:brief | SATISFIED | IDT artifact ## Brief Seed section with 9 fields from templates/brief-seed.md schema; workflows/brief.md Sub-step 2c parses IDT-ideation-v*.md by exact heading; IDT Brief Seed supersedes PROJECT.md problem description when both exist (line 237) |
 
-All 4 requirement IDs accounted for. No orphaned requirements.
+All 4 requirement IDs accounted for. No orphaned requirements. REQUIREMENTS.md confirms all 4 mapped to Phase 27 with status Complete.
 
 ---
 
@@ -74,15 +79,15 @@ All 4 requirement IDs accounted for. No orphaned requirements.
 
 | File | Line | Pattern | Severity | Impact |
 |------|------|---------|----------|--------|
-| `workflows/ideate.md` | 488 | "{current} placeholder" in instruction text | Info | Instructional — tells executor to replace placeholders; this is guidance prose, not a stub implementation |
+| `workflows/ideate.md` | 485, 488 | `{current}` tokens in JSON template | Info | Instructional — line 488 explicitly instructs executor to replace `{current}` with actual values read from coverage-check; this is runtime substitution guidance, not a code stub |
 
-No blockers. No warnings. The single info item is an explicit instruction to the executor to substitute runtime values, not a code stub.
+No blockers. No warnings. The single info item is an explicit runtime substitution instruction to the executor, consistent with the pass-through-all pattern used throughout the codebase.
 
 ---
 
 ## Human Verification Required
 
-None. All goal conditions are verifiable from the workflow text itself — these are instruction files, not runtime code. The workflow text is the implementation; its content is the contract.
+None. All goal conditions are verifiable from the workflow text itself. These are instruction files — their content is the implementation. All truths can be confirmed by reading the workflow prose.
 
 ---
 
@@ -90,28 +95,26 @@ None. All goal conditions are verifiable from the workflow text itself — these
 
 | Commit | Plan | Task | Status |
 |--------|------|------|--------|
-| `5f1055c` | 27-01 | Create /pde:ideate command stub + IDT in skill registry | VALID |
-| `c6fa77c` | 27-01 | Create /pde:ideate workflow (two-pass diverge-converge) | VALID |
-| `08c3b47` | 27-02 | Add upstream context injection to brief workflow | VALID |
+| `5f1055c` | 27-01 | Create /pde:ideate command stub and add IDT to skill registry | VALID — confirmed in git log |
+| `c6fa77c` | 27-01 | Create /pde:ideate workflow (two-pass diverge-converge) | VALID — confirmed in git log |
+| `08c3b47` | 27-02 | Add upstream context injection to brief workflow | VALID — confirmed in git log |
 
 ---
 
-## Summary
+## Re-verification Summary
 
-Phase 27 fully achieves its goal. The /pde:ideate command exists, delegates correctly, and its workflow implements the complete two-pass diverge-converge structure with:
+This is a re-verification of Phase 27. The prior verification (2026-03-16T22:45:00Z, status: passed, 7/7) held up against direct codebase inspection. No regressions were found. No gaps were found in the prior run and none exist now.
 
-- Diverge pass: enforced zero evaluative language, banned word list, minimum 5 directions
-- Automatic recommend checkpoint via Skill() (not Task()), with Issue #686 guard documented twice
-- Converge pass: 3-dimension 0-3 scoring rubric, explicit recommended direction
-- IDT artifact: status transitions (diverge-complete to ideation-complete), ## Brief Seed section with all 9 fields from templates/brief-seed.md schema
-- 13-field pass-through-all coverage flag pattern writing hasIdeation=true
-- LINT-010 compliance: IDT row added as 14th entry in skill-registry.md
+All 7 must-have truths confirmed by direct file inspection:
+- workflows/ideate.md (534 lines): full two-pass pipeline with ZERO evaluative language constraint, Skill() recommend invocation, 0-3 converge scoring rubric, diverge-complete/ideation-complete status transitions, ## Brief Seed section with all 9 fields, 13-field pass-through-all coverage flag
+- commands/ideate.md (22 lines): valid command stub delegating to workflow
+- skill-registry.md: IDT row confirmed at line 20 as 14th data entry
+- workflows/brief.md (536 lines): Sub-step 2c between Step 2/7 and Step 3/7, soft Glob probes for IDT/CMP/OPP, null-context graceful degradation, Step 5/7 enrichment block, Upstream context summary row
 
-The /pde:brief update is surgical and additive. All three upstream probes (IDT, CMP, OPP) degrade gracefully — null context on miss, no new failure paths. The original 7-step pipeline, anti-patterns section, and purpose tag are structurally unchanged. The Upstream context summary row provides execution-time auditability.
-
-All 4 requirement IDs (IDEAT-01 through IDEAT-04) are satisfied with no orphaned requirements.
+All 4 requirement IDs (IDEAT-01 through IDEAT-04) satisfied with no orphaned requirements.
 
 ---
 
-_Verified: 2026-03-16T22:45:00Z_
+_Verified: 2026-03-17T00:00:00Z_
 _Verifier: Claude (gsd-verifier)_
+_Re-verification: Yes — previous passed 2026-03-16T22:45:00Z_
