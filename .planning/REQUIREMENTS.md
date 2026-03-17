@@ -52,9 +52,9 @@ Requirements for v1.2 Advanced Design Skills. Each maps to roadmap phases.
 
 ### Build Orchestrator
 
-- [ ] **BUILD-01**: `/pde:build` expanded to handle full pipeline: ideate → competitive → opportunity → brief → system → flows → wireframe → critique(+HIG light) → iterate → mockup → HIG(full) → handoff
-- [ ] **BUILD-02**: All orchestrator stage count magic numbers replaced with dynamic stage detection
-- [ ] **BUILD-03**: New pipeline stages are individually skippable (user can enter pipeline at any stage)
+- [x] **BUILD-01**: `/pde:build` expanded to handle full pipeline: ideate → competitive → opportunity → brief → system → flows → wireframe → critique(+HIG light) → iterate → mockup → HIG(full) → handoff
+- [x] **BUILD-02**: All orchestrator stage count magic numbers replaced with dynamic stage detection
+- [x] **BUILD-03**: New pipeline stages are individually skippable (user can enter pipeline at any stage)
 
 ## Future Requirements
 
@@ -108,9 +108,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | REC-01 | Phase 25 | Complete |
 | REC-02 | Phase 25 | Complete |
 | REC-03 | Phase 25 | Complete |
-| BUILD-01 | Phase 28 | Pending |
-| BUILD-02 | Phase 28 | Pending |
-| BUILD-03 | Phase 28 | Pending |
+| BUILD-01 | Phase 28 | Complete |
+| BUILD-02 | Phase 28 | Complete |
+| BUILD-03 | Phase 28 | Complete |
 
 **Coverage:**
 - v1.2 requirements: 25 total

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Advanced Design Skills
 status: planning
-stopped_at: Completed 27-02-PLAN.md (brief upstream injection)
-last_updated: "2026-03-17T12:42:35.667Z"
+stopped_at: Completed 28-01-PLAN.md (build orchestrator expansion)
+last_updated: "2026-03-17T13:05:31.333Z"
 last_activity: 2026-03-17 — Phase 27 complete (ideation skill + brief upstream injection)
 progress:
   total_phases: 5
-  completed_phases: 4
-  total_plans: 9
-  completed_plans: 9
+  completed_phases: 5
+  total_plans: 10
+  completed_plans: 10
   percent: 100
 ---
 
@@ -55,6 +55,7 @@ Progress: [████████████████████] 9/9 pla
 | Phase 27-ideation-skill-brief-update P02 | 2 | 1 tasks | 1 files |
 | Phase 27-ideation-skill-brief-update P01 | 5 | 2 tasks | 3 files |
 | Phase 27-ideation-skill-brief-update P02 | 2 | 1 tasks | 1 files |
+| Phase 28-build-orchestrator-expansion P01 | 3 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -72,6 +73,9 @@ Recent decisions affecting current work (Phase 28: Build Orchestrator Expansion)
 - [Phase 27]: Soft upstream probe pattern: Glob + null context variable on miss + graceful degradation
 - [Phase 27-01]: IDT uses Skill() not Task() to invoke recommend at diverge-converge checkpoint — avoids Issue #686 nested-agent freeze
 - [Phase 27-01]: Diverge pass enforces explicit banned word list (best, recommended, superior, etc.) for zero evaluative language constraint
+- [Phase 28]: TOTAL derived from STAGES list length — no literal stage count in any display message; future expansions require no text changes
+- [Phase 28]: FROM_STAGE validated before coverage-check — typos halt immediately with the full valid stage list
+- [Phase 28]: Ideate completion requires dual check: hasIdeation==true AND IDT-ideation-v*.md Glob match both required
 
 ### Pending Todos
 
@@ -83,6 +87,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-17T12:38:32.080Z
-Stopped at: Completed 27-02-PLAN.md (brief upstream injection)
+Last session: 2026-03-17T13:05:31.330Z
+Stopped at: Completed 28-01-PLAN.md (build orchestrator expansion)
 Resume file: None
