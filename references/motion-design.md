@@ -1,0 +1,325 @@
+# Motion Design Reference
+
+> Animation timing scales, easing curves, spring physics, and scroll-driven effect patterns.
+> Loaded via `@` reference from mockup.md, system.md, and handoff.md during motion specification.
+>
+> **Scope boundary:** This file covers CSS/GSAP motion implementation patterns only.
+> Accessibility requirements for motion (prefers-reduced-motion, vestibular safety) belong in hig.md skill.
+
+---
+
+**Version:** 1.0
+**Scope:** Animation implementation — timing scales, easing, scroll-driven animations, variable font animation
+**Ownership:** MCK, SYS, HND (Phases 32, 35, 36)
+**Boundary:** Does NOT cover motion accessibility compliance, contrast, or layout/composition
+
+---
+
+## Duration Scale
+
+| Name | Duration | CSS Custom Property | Use Case |
+|------|----------|--------------------|-|
+| micro | 100ms | `--duration-micro` | State changes: button press, checkbox, toggle |
+| fast | 200ms | `--duration-fast` | Hover transitions, small UI feedback |
+| standard | 300ms | `--duration-standard` | Modal open/close, drawer slide, tooltip |
+| slow | 500ms | `--duration-slow` | Page transitions, hero entrance, complex reveals |
+| dramatic | 800ms | `--duration-dramatic` | Cinematic entrance, brand moments, first-load hero |
+
+```css
+/* Source: Material Design motion duration tokens */
+:root {
+  --duration-micro:    100ms;
+  --duration-fast:     200ms;
+  --duration-standard: 300ms;
+  --duration-slow:     500ms;
+  --duration-dramatic: 800ms;
+}
+```
+
+---
+
+## Easing Curves
+
+| Name | CSS Value | Type | Use Case | Notes |
+|------|-----------|------|----------|-------|
+| ease-standard | `cubic-bezier(0.4, 0, 0.2, 1)` | Material standard | General UI transitions | Google Material Design spec curve |
+| ease-enter | `cubic-bezier(0, 0, 0.2, 1)` | Deceleration | Elements entering screen | Starts fast, decelerates to rest |
+| ease-exit | `cubic-bezier(0.4, 0, 1, 1)` | Acceleration | Elements leaving screen | Starts slow, accelerates to exit |
+| ease-spring | `cubic-bezier(0.34, 1.56, 0.64, 1)` | Single-overshoot spring | Interactive element feedback | Works everywhere; single overshoot only |
+| ease-spring-bounce | `linear(...)` | Multi-bounce spring | Playful or physical UI | 88% browser support (Dec 2023+) |
+
+```css
+/* Source: Material Design easing, framer.com/motion/easing */
+:root {
+  --ease-standard:  cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-enter:     cubic-bezier(0, 0, 0.2, 1);
+  --ease-exit:      cubic-bezier(0.4, 0, 1, 1);
+}
+```
+
+---
+
+## Spring Physics — Three Levels of Fidelity
+
+> **DO NOT use only cubic-bezier for "spring physics"** — it produces a single overshoot only. Use `linear()` for multi-bounce spring, or GSAP elastic for full physics simulation.
+
+```css
+/* Spring Easing: Three Levels of Fidelity */
+/* Source: 29-RESEARCH.md Code Examples — CSS Spring Physics */
+
+/* Level 1: Single-overshoot spring — universal browser support */
+--ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+/* Level 2: Multi-bounce spring via linear() — 88% support (Dec 2023+) */
+/* Source: joshwcomeau.com/animation/linear-timing-function/ */
+--ease-spring-bounce: linear(
+  0, 0.006, 0.025 2.8%, 0.101 6.1%, 0.539 15%,
+  0.721 19.4%, 0.877 23.8%, 1.003 27.3%, 1.096 29.8%,
+  1.143 31.7%, 1.175 33.8%, 1.194 36%, 1.199 38.8%,
+  1.185 42.8%, 1.126 49.6%, 1.067 56.3%, 1.027 62.8%,
+  1.005 70.8%, 0.995 79.4%, 0.998 86.6%, 1
+);
+
+/* Level 3: GSAP spring physics — requires GSAP loaded, unlimited fidelity */
+/* gsap.to(el, { ease: 'elastic.out(1, 0.3)', duration: 1 }); */
+```
+
+### When to Use Each Level
+
+| Level | Approach | Browser Support | Best For |
+|-------|----------|-----------------|----------|
+| 1 | `cubic-bezier(0.34, 1.56, 0.64, 1)` | Universal | Buttons, cards, toggles — single overshoot sufficient |
+| 2 | `linear()` multi-point | 88% (Chrome, Firefox, Safari, Edge since Dec 2023) | Playful UI, physical metaphors requiring bounce |
+| 3 | GSAP `elastic.out` | Requires GSAP script | Complex physics, game-like interactions, hero animations |
+
+---
+
+## GSAP 3.14 CDN Patterns
+
+> GSAP 3.14 is the current version as of March 2026. All plugins including ScrollTrigger are fully free after Webflow's 2024 acquisition. No club membership required.
+
+### CDN Setup
+
+```html
+<!-- Source: gsap.com/docs/v3/Plugins/ScrollTrigger/ and jsdelivr.com -->
+<!-- GSAP 3.14 — all plugins free as of May 2025 -->
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14/dist/ScrollTrigger.min.js"></script>
+<script>gsap.registerPlugin(ScrollTrigger);</script>
+```
+
+### Scroll-Triggered Entrance
+
+```javascript
+// Source: gsap.com/docs/v3/Plugins/ScrollTrigger/
+gsap.to('.hero-headline', {
+  opacity: 1,
+  y: 0,
+  duration: 0.8,
+  ease: 'power2.out',
+  scrollTrigger: {
+    trigger: '.hero',
+    start: 'top 80%',
+    end: 'bottom 20%',
+    scrub: false
+  }
+});
+```
+
+### Choreographed Entrance with Stagger
+
+```javascript
+// Narrative stagger: elements appear in reading order, not all-at-once
+gsap.from('.feature-card', {
+  opacity: 0,
+  y: 40,
+  duration: 0.6,
+  ease: 'power2.out',
+  stagger: 0.12,       // 120ms between each card
+  scrollTrigger: {
+    trigger: '.features-section',
+    start: 'top 70%'
+  }
+});
+```
+
+### Timeline Sequencing
+
+```javascript
+// Source: gsap.com/docs/v3/GSAP/Timeline/
+const tl = gsap.timeline({ defaults: { ease: 'power2.out', duration: 0.6 } });
+
+tl.from('.hero-eyebrow', { opacity: 0, y: 20 })
+  .from('.hero-headline', { opacity: 0, y: 30 }, '-=0.3')  // overlap by 300ms
+  .from('.hero-body', { opacity: 0, y: 20 }, '-=0.2')
+  .from('.hero-cta', { opacity: 0, scale: 0.95 }, '-=0.1');
+```
+
+---
+
+## CSS Scroll-Driven Animations
+
+> **BROWSER SUPPORT:** Chrome 115+, Edge 115+, Safari 26+. Firefox does NOT support by default (March 2026). The `@supports` guard below is MANDATORY, not optional.
+
+### MANDATORY @supports Guard Pattern
+
+```css
+/* Source: MDN CSS scroll-driven animations + WebKit.org Safari 26 guide */
+/* MANDATORY: @supports guard prevents invisible content in Firefox */
+
+@supports (animation-timeline: scroll()) {
+  .reveal-on-scroll {
+    animation: fade-in linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 100%;
+  }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Fallback: element always visible without animation (Firefox sees this) */
+.reveal-on-scroll {
+  opacity: 1;
+  transform: none;
+}
+```
+
+> **Why MANDATORY:** Without `@supports`, Firefox users see content permanently hidden (`opacity: 0`) because the `animation-timeline` property is unknown and the animation never plays. Omitting the guard causes content to be invisible — this is a critical accessibility and usability failure.
+
+### Parallax Layer Pattern
+
+```css
+/* Source: MDN scroll() timeline, web.dev/articles/scroll-driven-animations */
+@supports (animation-timeline: scroll()) {
+  .parallax-layer {
+    animation: parallax-move linear both;
+    animation-timeline: scroll(root);
+    animation-range: 0% 100%;
+  }
+}
+
+@keyframes parallax-move {
+  from { transform: translateY(0); }
+  to   { transform: translateY(-80px); }
+}
+
+/* Fallback: no transform */
+.parallax-layer { transform: none; }
+```
+
+### Progress Indicator Pattern
+
+```css
+/* Source: web.dev/articles/scroll-driven-animations */
+@supports (animation-timeline: scroll()) {
+  .reading-progress {
+    animation: grow-width linear both;
+    animation-timeline: scroll(root block);
+    transform-origin: left;
+  }
+}
+
+@keyframes grow-width {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+.reading-progress { transform: scaleX(0); } /* Fallback: collapsed */
+```
+
+---
+
+## Variable Font Axis Animation
+
+| Axis | CSS Property | Typical Range | Animation Parameter | Use Case |
+|------|-------------|---------------|--------------------|-|
+| Weight (wght) | `font-weight` | 100–900 | `transition: font-weight 200ms ease-spring` | Nav link hover, emphasis reveal |
+| Width (wdth) | `font-variation-settings 'wdth'` | 75–125 | `transition: font-variation-settings 400ms ease-out` | Hero headline emphasis |
+| Optical size (opsz) | `font-optical-sizing` or `font-variation-settings 'opsz'` | 6–144 | `transition: font-variation-settings 300ms ease-standard` | Context-responsive text |
+| Slant (slnt) | `font-style` or `font-variation-settings 'slnt'` | −15 to 0 | `transition: font-variation-settings 250ms ease-spring` | Active/selected state |
+
+```css
+/* Source: MDN font-variation-settings, css-irl.info variable font animation */
+
+/* Weight animation on hover — requires font with wght axis */
+.nav-link {
+  font-weight: 400;
+  transition: font-weight 200ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.nav-link:hover { font-weight: 700; }
+
+/* Width axis animation — requires font with wdth axis (e.g. Roboto Flex) */
+.hero-headline {
+  font-variation-settings: 'wdth' 100;
+  transition: font-variation-settings 400ms ease-out;
+}
+.hero-headline:hover { font-variation-settings: 'wdth' 120; }
+
+/* Optical size by context — adjust opsz to match rendered size */
+.body-text    { font-optical-sizing: auto; }         /* browser handles automatically */
+.display-text { font-variation-settings: 'opsz' 48; } /* display size */
+```
+
+> **Variable font prerequisite:** These patterns only work when the loaded font supports the relevant axis. Check `font.axes` at v-fonts.com before specifying axis animation. Common fonts with wght axis: Inter, Roboto Flex, Source Sans 3. Common fonts with wdth axis: Roboto Flex, Barlow.
+
+---
+
+## Animation Performance Rules
+
+| Rule | Correct | Wrong | Why |
+|------|---------|-------|-----|
+| Use GPU-composited properties | `transform`, `opacity` | `width`, `height`, `top`, `left`, `margin` | Non-composited properties trigger layout recalculation |
+| Hint compositor for complex animations | `will-change: transform` on animated element | `will-change: all` | Over-hinting wastes GPU memory; use sparingly |
+| Avoid layout thrashing | Batch DOM reads, then writes | Alternate reads and writes in a loop | Each write invalidates layout, forcing re-read cost |
+| Prefer CSS for simple transitions | CSS `transition`/`animation` | JS `requestAnimationFrame` for a basic fade | CSS runs on compositor thread, JS on main thread |
+| Remove will-change after animation | Remove with JS after animation ends | Permanent `will-change` on static elements | Permanent hints consume GPU memory indefinitely |
+
+---
+
+## DTCG Motion Token Format
+
+```json
+{
+  "motion": {
+    "duration": {
+      "micro":    { "$value": "100ms", "$type": "duration" },
+      "fast":     { "$value": "200ms", "$type": "duration" },
+      "standard": { "$value": "300ms", "$type": "duration" },
+      "slow":     { "$value": "500ms", "$type": "duration" },
+      "dramatic": { "$value": "800ms", "$type": "duration" }
+    },
+    "easing": {
+      "standard": { "$value": "cubic-bezier(0.4, 0, 0.2, 1)", "$type": "cubicBezier" },
+      "enter":    { "$value": "cubic-bezier(0, 0, 0.2, 1)",   "$type": "cubicBezier" },
+      "exit":     { "$value": "cubic-bezier(0.4, 0, 1, 1)",   "$type": "cubicBezier" },
+      "spring":   { "$value": "cubic-bezier(0.34, 1.56, 0.64, 1)", "$type": "cubicBezier" }
+    }
+  }
+}
+```
+
+> **Source:** DTCG Format Module 2025.10 — `$type: duration` and `$type: cubicBezier` are first-class token types.
+
+---
+
+## Citations
+
+| Source | URL | Used In |
+|--------|-----|---------|
+| GSAP 3.14 CDN | cdn.jsdelivr.net/npm/gsap@3.14 | All GSAP patterns |
+| GSAP ScrollTrigger docs | gsap.com/docs/v3/Plugins/ScrollTrigger/ | Scroll animation patterns |
+| CSS scroll-driven animations (MDN) | developer.mozilla.org/en-US/docs/Web/CSS/CSS_scroll-driven_animations | Scroll-driven section |
+| CSS linear() spring technique | joshwcomeau.com/animation/linear-timing-function/ | Spring easing values |
+| Variable font animation | css-irl.info/animating-variable-fonts | Variable font patterns |
+| Web.dev scroll-driven animations guide | web.dev/articles/scroll-driven-animations | Parallax and progress patterns |
+| MDN font-variation-settings | developer.mozilla.org/en-US/docs/Web/CSS/font-variation-settings | Variable font section |
+| DTCG Format Module | designtokens.org/tr/drafts/format/ | DTCG token format |
+
+---
+
+*Version: 1.0*
+*Last updated: 2026-03-17*
+*Loaded by: mockup.md, system.md, handoff.md via `@` reference*
