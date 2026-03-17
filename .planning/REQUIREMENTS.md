@@ -10,8 +10,8 @@ Requirements for Self-Improvement & Design Excellence milestone. Each maps to ro
 ### Quality Infrastructure
 
 - [x] **QUAL-01**: Awwwards rubric reference file with 4-dimension scoring (Design 40%, Usability 30%, Creativity 20%, Content 10%) and concrete measurable criteria per score level (1-10)
-- [ ] **QUAL-02**: Motion design reference file with animation timing scales, easing curves (cubic-bezier + spring physics), scroll-driven effect techniques, GSAP 3.14 CDN patterns, and variable font axis animation
-- [ ] **QUAL-03**: Composition and typography reference file with grid systems (golden ratio, rule of thirds, modular), visual weight analysis, type pairing rationale with contrast documentation, spatial asymmetry principles, and APCA contrast checking
+- [x] **QUAL-02**: Motion design reference file with animation timing scales, easing curves (cubic-bezier + spring physics), scroll-driven effect techniques, GSAP 3.14 CDN patterns, and variable font axis animation
+- [x] **QUAL-03**: Composition and typography reference file with grid systems (golden ratio, rule of thirds, modular), visual weight analysis, type pairing rationale with contrast documentation, spatial asymmetry principles, and APCA contrast checking
 - [ ] **QUAL-04**: Protected files mechanism (protected-files.json) prevents self-improvement agents from modifying quality rubric, core workflow logic, and bin/ scripts — with explicit allowed-write-directories list
 - [ ] **QUAL-05**: Model profile entries registered for all new agent types in bin/lib/model-profiles.cjs
 - [ ] **QUAL-06**: Skill registry entries (AUD, IMP, PRT) added to skill-registry.md
@@ -141,8 +141,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | QUAL-01 | Phase 29 | Complete |
-| QUAL-02 | Phase 29 | Pending |
-| QUAL-03 | Phase 29 | Pending |
+| QUAL-02 | Phase 29 | Complete |
+| QUAL-03 | Phase 29 | Complete |
 | QUAL-04 | Phase 29 | Pending |
 | QUAL-05 | Phase 29 | Pending |
 | QUAL-06 | Phase 29 | Pending |

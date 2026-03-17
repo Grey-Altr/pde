@@ -2,16 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Self-Improvement & Design Excellence
-status: active
-stopped_at: "Phase 29 Plan 01 complete — quality-standards.md authored"
-last_updated: "2026-03-17"
-last_activity: 2026-03-17 — Phase 29 Plan 01 complete (Awwwards rubric reference file created)
+status: completed
+stopped_at: Phase 29 Plan 02 complete — motion-design.md and composition-typography.md authored
+last_updated: "2026-03-17T23:52:57.532Z"
+last_activity: 2026-03-17 — Phase 29 Plan 01 complete (references/quality-standards.md created)
 progress:
   total_phases: 9
   completed_phases: 0
   total_plans: 3
-  completed_plans: 1
-  percent: 2
+  completed_plans: 2
 ---
 
 # Project State
@@ -43,6 +42,7 @@ v1.3 Progress: [                    ] 2% (1/3 plans in Phase 29)
 | Files changed | 303 | 172 | 84 | — |
 | LOC | ~60,000 | ~89,000 | ~101,700 | — |
 | Timeline | 2 days | 2 days | 1 day | — |
+| Phase 29-quality-infrastructure P02 | 3 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -57,6 +57,9 @@ Decisions are logged in PROJECT.md Key Decisions table.
 **v1.3 pending decisions (from research):**
 - Pressure test quality evaluation tier: human review pass vs. AI-with-rubric judge agent — must be resolved before Phase 37 planning
 - protected-files.json complete enumeration — to be defined in Phase 29 before any fleet agent has write access
+- [Phase 29-quality-infrastructure]: CSS scroll-driven @supports guard labeled MANDATORY — omitting causes invisible content in Firefox (content failure, not graceful degradation)
+- [Phase 29-quality-infrastructure]: APCA values use |Lc| absolute value notation throughout to prevent polarity confusion in all reference files
+- [Phase 29-quality-infrastructure]: Spring physics documented at 3 fidelity levels (cubic-bezier/linear()/GSAP elastic) to match browser support and dependency constraints
 
 ### Pending Todos
 
@@ -69,9 +72,9 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-17
-Stopped at: Phase 29 Plan 01 complete — quality-standards.md authored
-Resume file: .planning/phases/29-quality-infrastructure/29-02-PLAN.md — next plan in Phase 29
+Last session: 2026-03-17T23:52:57.530Z
+Stopped at: Phase 29 Plan 02 complete — motion-design.md and composition-typography.md authored
+Resume file: None
 
 ## Phase Sequence
 
