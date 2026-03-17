@@ -84,6 +84,36 @@ Display: `Step 2/7: Prerequisites satisfied. PROJECT.md loaded. Brief version: v
 
 ---
 
+**Sub-step 2c: Upstream context injection (all soft — never halt)**
+
+Probe for upstream strategy artifacts. All probes are optional — if an artifact is missing, log a note and continue. The brief MUST produce identical output for users who have not run ideation, competitive, or opportunity analysis.
+
+**Ideation context (IDT):**
+Use the Glob tool to find `.planning/design/strategy/IDT-ideation-v*.md`.
+- If found: Sort by version descending, read the highest version. Parse the `## Recommended Direction` section (direction name, rationale, key assumptions) and the `## Brief Seed` section (using templates/brief-seed.md field schema: Problem Statement, Product Type, Platform, Target Users, Scope Boundaries, Constraints, Key Decisions, Risk Register, Next Steps). Store parsed content as IDT_CONTEXT for use in Step 5.
+  Log: `"  -> Ideation artifact found: v{N} — enriching brief with recommended direction ({direction_name})"`
+- If not found:
+  Log: `"  -> No ideation artifact — generating brief from PROJECT.md alone"`
+  SET IDT_CONTEXT = null. Continue normally.
+
+**Competitive context (CMP):**
+Use the Glob tool to find `.planning/design/strategy/CMP-competitive-v*.md`.
+- If found: Sort by version descending, read the highest version. Parse the `## Gap Analysis` section (unmet needs and severity) and the `## Opportunity Highlights` section (top opportunities with source, reach, competitive advantage). Store parsed content as CMP_CONTEXT for use in Step 5.
+  Log: `"  -> Competitive artifact found: v{N} — enriching brief competitive context"`
+- If not found:
+  Log: `"  -> No competitive artifact — competitive context from PROJECT.md"`
+  SET CMP_CONTEXT = null. Continue normally.
+
+**Opportunity context (OPP):**
+Use the Glob tool to find `.planning/design/strategy/OPP-opportunity-v*.md`.
+- If found: Sort by version descending, read the highest version. Parse the `## Now / Next / Later Buckets` section — extract the Now candidates (highest priority items). Store parsed content as OPP_CONTEXT for use in Step 5.
+  Log: `"  -> Opportunity artifact found: v{N} — enriching brief scope with high-priority items"`
+- If not found:
+  Log: `"  -> No opportunity artifact — scope boundaries derived from PROJECT.md only"`
+  SET OPP_CONTEXT = null. Continue normally.
+
+---
+
 ### Step 3/7: Probe MCP (Sequential Thinking)
 
 **Check flags first:**
@@ -199,6 +229,17 @@ MCP enhancements: {Sequential Thinking: available/unavailable}
 HALT — do not write files in dry-run mode.
 
 **Fill all sections using `templates/design-brief.md` as the output structure:**
+
+**Upstream context enrichment (if available from Sub-step 2c):**
+
+When generating brief sections, incorporate upstream context as follows. If a context variable is null, use the existing PROJECT.md-only generation logic unchanged.
+
+- **Problem Statement:** If IDT_CONTEXT is available, use the Brief Seed's Problem Statement as the primary source, refined with PROJECT.md's core value. IDT Brief Seed represents the latest ideation thinking and supersedes raw PROJECT.md problem description when both exist.
+- **Target Users:** If IDT_CONTEXT is available, merge Brief Seed's Target Users with PROJECT.md personas. IDT may add or refine user segments discovered during ideation.
+- **Competitive Context:** If CMP_CONTEXT is available, use Gap Analysis findings and Opportunity Highlights to populate the competitor table with grounded research data instead of training-knowledge inference. Preserve confidence labels from the CMP artifact.
+- **Key Assumptions:** If OPP_CONTEXT is available, add high-confidence Now-bucket items as validated assumptions (mark provenance as "opportunity-validated"). If IDT_CONTEXT is available, add Brief Seed's Key Decisions as assumption-adjacent inputs.
+- **Scope Boundaries:** If OPP_CONTEXT is available, use Now-bucket items as in-scope features and Later-bucket items as out-of-scope rationale. If IDT_CONTEXT is available, use Brief Seed's Scope Boundaries as the primary scope source.
+- **Constraints:** If IDT_CONTEXT is available, merge Brief Seed's Constraints table with PROJECT.md constraints.
 
 Write the complete brief to `.planning/design/strategy/BRF-brief-v{N}.md` using the Write tool.
 
@@ -470,6 +511,7 @@ Display the final summary table (always the last output):
 | Elapsed time | {duration} |
 | Estimated tokens | ~{count} |
 | MCP enhancements | {comma-separated list of MCPs actually used, or "none"} |
+| Upstream context | {If any of IDT_CONTEXT, CMP_CONTEXT, OPP_CONTEXT were found: list them as "IDT v{N} (ideation), CMP v{N} (competitive), OPP v{N} (opportunity)" for each found artifact, comma-separated. If none found: "none — using PROJECT.md only"} |
 ```
 
 ---
