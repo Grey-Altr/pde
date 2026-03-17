@@ -165,5 +165,5 @@ Plans:
 | 24. Schema Migration & Infrastructure | v1.2 | 2/2 | Complete | 2026-03-16 |
 | 25. Recommend & Competitive Skills | v1.2 | 2/2 | Complete | 2026-03-16 |
 | 26. Opportunity, Mockup & HIG Skills | v1.2 | 3/3 | Complete | 2026-03-16 |
-| 27. Ideation Skill & Brief Update | 2/2 | Complete   | 2026-03-17 | - |
+| 27. Ideation Skill & Brief Update | 2/2 | Complete    | 2026-03-17 | - |
 | 28. Build Orchestrator Expansion | v1.2 | 0/TBD | Not started | - |
