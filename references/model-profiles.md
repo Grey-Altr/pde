@@ -18,6 +18,13 @@ Model profiles control which Claude model each PDE agent uses. This allows balan
 | pde-plan-checker | sonnet | sonnet | haiku | inherit |
 | pde-integration-checker | sonnet | sonnet | haiku | inherit |
 | pde-nyquist-auditor | sonnet | sonnet | haiku | inherit |
+| pde-ui-researcher | opus | sonnet | haiku | inherit |
+| pde-ui-checker | sonnet | sonnet | haiku | inherit |
+| pde-ui-auditor | sonnet | sonnet | haiku | inherit |
+| pde-output-quality-auditor | sonnet | sonnet | haiku | inherit |
+| pde-skill-linter | sonnet | haiku | haiku | inherit |
+| pde-design-quality-evaluator | opus | sonnet | sonnet | inherit |
+| pde-template-auditor | sonnet | haiku | haiku | inherit |
 
 ## Profile Philosophy
 

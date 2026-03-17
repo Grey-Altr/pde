@@ -22,6 +22,10 @@ const MODEL_PROFILES = {
   'pde-ui-researcher': { quality: 'opus', balanced: 'sonnet', budget: 'haiku' },
   'pde-ui-checker': { quality: 'sonnet', balanced: 'sonnet', budget: 'haiku' },
   'pde-ui-auditor': { quality: 'sonnet', balanced: 'sonnet', budget: 'haiku' },
+  'pde-output-quality-auditor':   { quality: 'sonnet', balanced: 'sonnet', budget: 'haiku' },
+  'pde-skill-linter':             { quality: 'sonnet', balanced: 'haiku',  budget: 'haiku' },
+  'pde-design-quality-evaluator': { quality: 'opus',   balanced: 'sonnet', budget: 'sonnet' },
+  'pde-template-auditor':         { quality: 'sonnet', balanced: 'haiku',  budget: 'haiku' },
 };
 const VALID_PROFILES = Object.keys(MODEL_PROFILES['pde-planner']);
 
