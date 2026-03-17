@@ -227,7 +227,7 @@ Plans:
 | 26. Opportunity, Mockup & HIG Skills | v1.2 | 3/3 | Complete | 2026-03-16 |
 | 27. Ideation Skill & Brief Update | v1.2 | 2/2 | Complete | 2026-03-17 |
 | 28. Build Orchestrator Expansion | v1.2 | 1/1 | Complete | 2026-03-17 |
-| 29. Quality Infrastructure | v1.3 | 0/? | Not started | — |
+| 29. Quality Infrastructure | 1/3 | In Progress|  | — |
 | 30. Self-Improvement Fleet & Audit | v1.3 | 0/? | Not started | — |
 | 31. Skill Builder | v1.3 | 0/? | Not started | — |
 | 32. Design Elevation — System Skill | v1.3 | 0/? | Not started | — |
