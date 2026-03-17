@@ -1,7 +1,7 @@
 # Stack Research
 
 **Domain:** AI-powered product development platform (Claude Code plugin, evolving to standalone CLI)
-**Researched:** 2026-03-15 (updated for v1.1 Design Pipeline); v1.2 section added 2026-03-16
+**Researched:** 2026-03-15 (updated for v1.1 Design Pipeline); v1.2 section added 2026-03-16; v1.3 section added 2026-03-17
 **Confidence:** HIGH (core plugin stack, design pipeline additions), MEDIUM (post-v1 MCP/CLI evolution)
 
 ---
@@ -406,6 +406,200 @@ WCAG 2.2 became ISO/IEC 40500:2025 in October 2025 — it is now an official int
 
 ---
 
+## v1.3 Stack: Self-Improvement and Design Excellence
+
+### The Core Finding: Still No New npm Dependencies (But New Reference Architecture)
+
+All four capability pillars (tool audit framework, skill builder, design quality elevation, pressure testing) follow the same LLM-as-actor, file-as-state, pde-tools-as-CLI pattern. The constraint is explicit: zero npm deps in the plugin itself.
+
+The major stack additions for v1.3 are:
+1. New reference files encoding Awwwards-level design standards
+2. New pde-tools.cjs commands for audit scoring and quality checks
+3. New skill templates for skill generation (meta-programming pattern)
+4. New agent templates for the self-improvement fleet
+5. Evaluation methodology for pressure testing (markdown-based, no test runner)
+
+### Capability 1: Tool Audit Framework
+
+**What it is:** A structured audit of PDE's own tooling (skills, agents, templates, references, CLI commands, MCP integrations) measured against a quality rubric.
+
+**Pattern:** Claude reads the audit rubric reference, evaluates each tool category against it, writes findings to a structured report. No new technology — all existing Read/Write tools plus the quality rubric encoded in a reference file.
+
+**Stack additions:**
+
+| File | Type | Purpose |
+|------|------|---------|
+| `references/audit-rubric.md` | Reference | Quality scoring criteria for PDE tools: skill prompt quality, agent role specificity, template coverage, reference completeness, CLI command ergonomics. 8-dimension rubric adapted from Claude Code setup scoring patterns. |
+| `templates/audit-report.md` | Template | Structured output format for tool audit findings: dimension scores, evidence citations, improvement recommendations, priority ordering |
+| `commands/audit-tools.md` | Skill | /pde:audit-tools skill — runs Claude-as-auditor against the rubric, produces audit-report artifact |
+
+**Quality rubric dimensions (no new technology — pure LLM judgment against reference criteria):**
+
+Adapted from the 8-dimension Claude Code setup scoring framework (0-3 scale per dimension, 24 points max):
+1. Skill prompt quality — specificity, anti-pattern coverage, example completeness
+2. Agent role design — specialization clarity, tool permission minimalism
+3. Template fidelity — structural completeness, field coverage, example inclusion
+4. Reference completeness — domain coverage, depth vs. breadth balance, currency
+5. CLI ergonomics — command naming, error messages, output format consistency
+6. MCP integration — probe/use/degrade pattern compliance, graceful fallback
+7. Pipeline coherence — artifact handoff completeness, coverage flag accuracy
+8. Output quality — design artifacts measured against Awwwards rubric (v1.3 new)
+
+**Confidence: HIGH** -- Pattern directly analogous to claude-code-excellence-audit skill and /refine tool. No novel technology required.
+
+### Capability 2: Skill Builder
+
+**What it is:** A meta-skill that generates, improves, or validates PDE skills and user project skills, using Anthropic's official skill-creator pattern as the model.
+
+**Pattern:** The official Anthropic skill-creator (github.com/anthropics/skills/blob/main/skills/skill-creator/SKILL.md) establishes the canonical approach: interview to capture intent, write SKILL.md draft, create test cases, run with-skill vs. baseline comparison, grade outputs, iterate until quality threshold met, optimize description for triggering accuracy.
+
+PDE's /pde:skill-builder adapts this for PDE's file-based ecosystem: generates commands/*.md files (not SKILL.md — PDE uses the commands/ directory pattern), creates test fixtures in .planning/design/tests/, and evaluates against domain-appropriate quality criteria.
+
+**Stack additions:**
+
+| File | Type | Purpose |
+|------|------|---------|
+| `commands/skill-builder.md` | Skill | /pde:skill-builder — generates/improves PDE skills. Follows Anthropic official skill-creator pattern: interview → draft → test cases → evaluate → iterate |
+| `references/skill-style-guide.md` | Reference | Already exists. Extend with: skill generation patterns, description optimization principles, evaluation criteria for skill quality, common YAML frontmatter mistakes |
+| `templates/skill-test-fixture.md` | Template | Test case format for skill evaluation: input prompt, expected behavior, assertions, baseline comparison notes |
+
+**Key design decision: skill generation is text generation.** The skill builder writes Markdown files with YAML frontmatter — no code generation, no AST manipulation, no templating engine. Claude writes the skill file directly as text output. This is identical to how Claude writes HTML wireframes and TypeScript interfaces.
+
+**Key constraint: Skills can generate other skills but cannot modify themselves.** The meta-programming pattern from community research confirms this: each skill is self-contained, and generation happens by writing new files, not by patching the running skill.
+
+**Evaluation pattern (zero external tools):**
+
+```
+For each skill under evaluation:
+1. Spawn subagent WITH the skill for test prompt N
+2. Spawn subagent WITHOUT the skill for same test prompt N (baseline)
+3. Write outputs to .planning/design/tests/skill-name/with-skill/ and /without-skill/
+4. Grade outputs against assertions in skill-test-fixture.md
+5. Write benchmark.md with scores, timing, evidence
+6. Iterate until benchmark score exceeds threshold
+```
+
+This mirrors Anthropic's official skill-creator workspace pattern. No external eval framework needed.
+
+**Confidence: HIGH** -- Pattern directly derived from Anthropic's official skill-creator SKILL.md (github.com/anthropics/skills). File-based evaluation requires zero new technology.
+
+### Capability 3: Design Quality Elevation (Awwwards Level)
+
+**What it is:** Upgrade the design pipeline's output quality from "functional defaults" to Awwwards-caliber: typography systems that use fluid modular scales, color systems with perceptual uniformity, motion design with purpose and timing, composition with visual hierarchy.
+
+**The core stack insight:** Awwwards-level quality is achieved entirely through improved reference content and prompt engineering — not new tools. The LLM already knows how to produce excellent design. The bottleneck is the quality of the reference files guiding it.
+
+**Awwwards scoring criteria (verified from official judging documentation):**
+- Design (40%): visual hierarchy, typography, color palette intentionality, micro-details, design system consistency
+- Usability (30%): navigation clarity, Core Web Vitals targets (LCP < 1.5s, CLS < 0.05, INP < 100ms)
+- Creativity (20%): custom interaction patterns, signature moments, scroll-as-narrative
+- Content (10%): real content quality, copy-design integration
+
+**Design techniques in winning sites (verified from Awwwards, Codrops, Utsubo sources):**
+- Variable fonts with weight/width axis animation
+- Fluid type scales using CSS `clamp()` with modular ratios (Perfect Fourth 1.333 for marketing, Major Third 1.250 for SaaS)
+- OKLCH color space for perceptually uniform gradients (already in PDE's token system — extend depth)
+- CSS scroll-driven animations via `animation-timeline: scroll()` for Chromium-first sites
+- GSAP 3.14.x + ScrollTrigger + Lenis for cross-browser scroll animation (browser baseline: not yet universal for CSS-only)
+- CSS `@property` typed custom properties for animatable design tokens (Baseline 2024: all modern browsers)
+- `backdrop-filter` glassmorphism effects (already in mockup-patterns.md for Liquid Glass)
+- One "signature moment" per page — a single interaction that creates pause
+
+**Stack additions for design quality elevation:**
+
+| File | Type | Purpose |
+|------|------|---------|
+| `references/awwwards-rubric.md` | Reference (NEW) | Awwwards judging criteria encoded as a scoring rubric PDE uses to evaluate its own design output. Four dimensions (Design 40%, Usability 30%, Creativity 20%, Content 10%), each with observable criteria Claude can check. The 8th dimension in audit-rubric.md points to this file. |
+| `references/motion-design.md` | Reference (NEW) | Motion design standards for web: purpose-driven animation (not decorative), easing curves and duration scales, prefers-reduced-motion handling, scroll-narrative patterns, micro-interaction timing (hover: 150ms, page transitions: 300-500ms), GSAP vs CSS-only decision tree |
+| `references/composition.md` | Reference (NEW) | Visual composition principles: golden ratio grid, rule of thirds, negative space usage, visual weight distribution, contrast-as-hierarchy, z-depth systems. Includes Awwwards-specific patterns: oversized type heroes, full-bleed imagery, asymmetric layouts |
+| `references/typography.md` | Reference (EXTEND) | Already has modular scale algorithms. Add: fluid type with CSS clamp() formulas, variable font axis guidance, line-height/letter-spacing scale for each ratio, Awwwards-caliber type pairing principles, optical sizing |
+| `references/color-systems.md` | Reference (EXTEND) | Already exists. Add: OKLCH gradient techniques for perceptual uniformity, color harmony systems (analogous/split-complementary for modern web), dark mode palette generation from OKLCH, P3 wide-gamut extension tokens |
+| `references/web-modern-css.md` | Reference (EXTEND) | Already covers cascade layers, container queries, CSS nesting. Add: CSS `@property` typed custom property patterns for animatable tokens, `animation-timeline: scroll()` usage with progressive enhancement, `view-transition-name` for SPA-like transitions |
+
+**No new npm packages for design quality elevation.** The technique improvements are conveyed through richer reference content. Claude generates the CSS, the LLM already knows GSAP syntax — what's needed is reference files that instruct PDE to produce Awwwards-caliber output, not tools to generate it mechanically.
+
+**On GSAP inclusion in mockup output:** GSAP 3.14.x is now fully free for commercial use (all plugins included, no Club GSAP required). When /pde:mockup generates hi-fi interactive HTML, it MAY include GSAP via CDN `https://cdn.jsdelivr.net/npm/gsap@3.14/dist/gsap.min.js` for scroll animations. This is a runtime dependency of the generated output artifact (the mockup HTML), NOT of the PDE tooling itself. The zero-dep constraint applies to the plugin — not to the HTML it generates.
+
+**Confidence: HIGH** -- Awwwards criteria verified from Utsubo official guide. GSAP 3.14.x free license confirmed from npm/gsap. CSS @property Baseline 2024 confirmed from web.dev. CSS scroll-driven animations confirmed NOT Baseline (Chromium-only); GSAP+Lenis is the cross-browser recommendation. [Sources: Awwwards, web.dev, gsap.com]
+
+### Capability 4: Pressure Testing Framework
+
+**What it is:** End-to-end validation of the full 13-stage PDE pipeline on a real project, measured against professional design standards. Pressure testing validates that all stages work together, handoff artifacts are correct, and the output quality meets Awwwards-level criteria.
+
+**Pattern:** PDE's existing validation framework (templates/VALIDATION.md, verify-phase.md, verify-work.md) provides the structural model. Pressure testing extends it with: multi-stage sequencing, cross-artifact dependency checking, design quality scoring against the awwwards-rubric.md, and regression detection between pipeline runs.
+
+**Key finding: No external test runner.** LLM behavior is probabilistic — standard assertion-based testing (Jest, Vitest) cannot meaningfully test whether Claude's design output is "good." The right approach is LLM-as-judge: Claude evaluates its own pipeline output against explicit quality rubrics in reference files. This is the same "LLM-as-judge" pattern confirmed by Confident AI, Langfuse, and other evaluation research.
+
+**Stack additions for pressure testing:**
+
+| File | Type | Purpose |
+|------|------|---------|
+| `commands/pressure-test.md` | Skill (NEW) | /pde:pressure-test — runs the full pipeline on a test project seed, captures all artifacts, runs quality evaluation pass on each artifact, produces a structured test report |
+| `templates/pressure-test-report.md` | Template (NEW) | Structured output: pipeline run summary, artifact inventory, per-stage quality score, cross-artifact dependency validation results, Awwwards rubric score for design output, regression notes vs. previous run |
+| `templates/test-project-seed.md` | Template (NEW) | Minimal project definition for pressure testing: product name, one-paragraph description, target platform (web/iOS/Android), user persona sketch. Thin enough to run quickly; rich enough to exercise all pipeline stages |
+| `.planning/design/tests/` | Directory convention | Where skill evaluation workspaces and pressure test artifacts land. Already implied by skill-builder pattern; formalize as convention |
+
+**Pressure test evaluation methodology:**
+
+```
+Stage 1: Run pipeline
+  /pde:build --from ideate on test project seed → capture all 13 artifact outputs
+
+Stage 2: Artifact completeness check
+  For each expected artifact code (IDT, CMP, OPP, BRF, SYS, FLW, WFR, CRT, ITR, MCK, HIG, HND):
+  - Does the artifact file exist?
+  - Does the artifact contain required sections (from template schema)?
+  - Does the coverage flag in design-manifest.json match file existence?
+
+Stage 3: Quality scoring
+  For design artifacts (SYS, WFR, MCK, HND):
+  - Score against awwwards-rubric.md dimensions
+  - Flag token system for: modular scale present, OKLCH color space, motion tokens
+  - Flag wireframes for: hierarchy clarity, spacing system use, accessible contrast
+  - Flag mockups for: signature moment present, animation purposefulness, responsive handling
+
+Stage 4: Cross-artifact coherence check
+  - Do component names in HND match component names introduced in WFR?
+  - Do color tokens in SYS appear in MCK output?
+  - Does IDT concept direction match BRF product vision?
+
+Stage 5: Write pressure-test-report.md
+  - Pass/fail per stage, per artifact, per quality criterion
+  - Evidence (quoted from artifact content)
+  - Regression notes (compare to previous run if exists)
+```
+
+**Confidence: HIGH** -- LLM-as-judge evaluation methodology confirmed from multiple sources (Confident AI, Langfuse, Anthropic skill-creator). File-based evaluation requires zero new technology. Pattern is consistent with existing PDE validation architecture.
+
+### Summary: What v1.3 Actually Adds to the Stack
+
+| Addition | Type | Why |
+|----------|------|-----|
+| `references/awwwards-rubric.md` | New reference file | Encodes Awwwards judging criteria as observable rubric Claude evaluates against |
+| `references/motion-design.md` | New reference file | Motion standards for web: purpose, timing, easing, reduced-motion, GSAP vs CSS guidance |
+| `references/composition.md` | New reference file | Visual composition principles: golden ratio, visual weight, negative space, Awwwards patterns |
+| `references/audit-rubric.md` | New reference file | 8-dimension PDE tool quality rubric (skill prompts, agents, templates, references, CLI, MCP, pipeline, design) |
+| `references/typography.md` | Extend existing | Add fluid type clamp() formulas, variable font axes, optical sizing |
+| `references/color-systems.md` | Extend existing | Add OKLCH gradient techniques, dark mode generation, P3 tokens |
+| `references/web-modern-css.md` | Extend existing | Add @property typed tokens, animation-timeline scroll(), view-transition-name |
+| `references/skill-style-guide.md` | Extend existing | Add generation patterns, evaluation criteria, description optimization |
+| `commands/audit-tools.md` | New skill | /pde:audit-tools — runs the 8-dimension PDE self-audit |
+| `commands/skill-builder.md` | New skill | /pde:skill-builder — generates and evaluates PDE skills |
+| `commands/pressure-test.md` | New skill | /pde:pressure-test — full pipeline E2E validation on test seed |
+| `templates/audit-report.md` | New template | Structured audit findings output |
+| `templates/skill-test-fixture.md` | New template | Test case format for skill evaluation |
+| `templates/pressure-test-report.md` | New template | E2E test results format |
+| `templates/test-project-seed.md` | New template | Minimal project definition for pipeline testing |
+| pde-tools.cjs: `audit score-dimension` | New CLI command | Compute numeric score for an audit dimension, write to report JSON |
+| pde-tools.cjs: `audit compare-runs` | New CLI command | Diff two pressure-test-report.md files for regression detection |
+| pde-tools.cjs: `design contrast-check` | New CLI command | WCAG 2.2 AA contrast ratio calculation for OKLCH color pairs using inline math (no npm dep) |
+
+**npm packages added in v1.3: ZERO.** The zero-dependency constraint holds.
+
+**GSAP in generated mockups: CDN reference only.** When /pde:mockup generates hi-fi HTML artifacts that include scroll animation, it includes `<script src="https://cdn.jsdelivr.net/npm/gsap@3.14/dist/gsap.min.js">` as a runtime CDN reference in the generated HTML. This is not a plugin dependency.
+
+---
+
 ## Installation
 
 ### v1.1 Design Pipeline (No new npm dependencies)
@@ -434,6 +628,15 @@ node --version  # verify >= 20.0.0
 #   claude mcp add playwright -- npx @playwright/mcp@latest
 #   claude mcp add context7 -- npx -y @upstash/context7-mcp@latest
 # These are already in mcp-integration.md. /pde:setup handles the install flow.
+```
+
+### v1.3 Self-Improvement and Design Excellence (No new npm dependencies)
+
+```
+# v1.3 adds zero new npm packages.
+# All additions are reference files, templates, skill files, and pde-tools.cjs extensions.
+# No new MCP servers required — all seven existing MCP servers cover v1.3 capabilities.
+node --version  # verify >= 20.0.0 (unchanged)
 ```
 
 ### Post-v1 MCP server development
@@ -467,6 +670,11 @@ npm install commander@^14.0.0
 | @modelcontextprotocol/sdk v1.x | v2.x | When v2 reaches stable release (anticipated Q1-Q2 2026 but not yet released) |
 | Node.js built-in https for MCP registry | axios or node-fetch | Never — zero-dep philosophy; built-in https handles unauthenticated GET with cursor pagination trivially |
 | a11y-mcp (free, MPL-2.0) | Deque axe-mcp-server (paid) | Only if Deque's paid Axe DevTools subscription is already active — same engine underneath |
+| LLM-as-judge for pressure testing | promptfoo, DeepEval, Langfuse | If PDE grows to need CI/CD integration with external evaluation infrastructure. For now, file-based LLM-as-judge suffices and requires zero external services |
+| Reference file quality rubrics | External scoring APIs (VisualEyes, Applitools) | If PDE integrates browser-based visual regression testing (post-v1.3 scope) |
+| CSS @property for animatable tokens | Houdini Paint API | When procedural background effects (noise, patterns) are needed — @property covers animatable values, Paint API covers procedural draws |
+| GSAP via CDN in generated mockups | CSS scroll-driven animations only | For Chromium-only target sites where CSS scroll-driven animations are acceptable; GSAP+Lenis is still recommended for production cross-browser |
+| Inline OKLCH contrast math in pde-tools.cjs | apca-w3 npm package | If APCA (not WCAG 2.2 WCAG contrast) becomes normative standard — WCAG 3.0 still Working Draft as of March 2026; defer APCA until normative |
 
 ---
 
@@ -480,7 +688,7 @@ npm install commander@^14.0.0
 | json-schema-to-typescript | CommonJS support unconfirmed at v15; LLM-authored TypeScript is more semantically accurate for UI component APIs | Claude writes .ts files directly |
 | Handlebars / Nunjucks / EJS | Template engines solve data-driven template rendering; PDE generates bespoke, contextual content | Claude writes HTML files directly |
 | Any server framework | PDE generates static files; no server needed; PROJECT.md explicitly excludes in-tool web dashboard | Static file generation only |
-| TypeScript for pde-tools.cjs | Out of scope for v1.2; rewriting is a risk | Keep CJS JavaScript; TypeScript appropriate for new MCP server code only |
+| TypeScript for pde-tools.cjs | Out of scope for v1.3; rewriting is a risk; CJS works fine for the 651-line file | Keep CJS JavaScript; TypeScript appropriate for new MCP server code only |
 | npm package dependencies in the plugin | Plugin consumers should not need npm install; zero-dep is a feature | Node.js built-ins only |
 | ESM for the core tools binary | Invoked via node file.cjs; ESM breaks this invocation pattern | CommonJS with .cjs extension |
 | Commander 15+ | ESM-only; requires Node 22.12+; incompatible with CJS codebase | Commander 14.x |
@@ -491,6 +699,11 @@ npm install commander@^14.0.0
 | React/Vue components from /pde:mockup | Mockup outputs are HTML/CSS previews; framework components are /pde:handoff's domain | Plain HTML + CSS with state classes |
 | WCAG 3.0 / APCA contrast targets | WCAG 3.0 is Working Draft only; APCA not yet normative | WCAG 2.2 Level AA (now ISO/IEC 40500:2025) |
 | CSS preprocessors (Sass/Less) in mockup output | No build pipeline in PDE; file:// compatibility requires inline CSS | Native CSS custom properties + CSS nesting (baseline 2023, all modern browsers) |
+| CSS scroll-driven animations as sole cross-browser approach | Not Baseline — not supported in Firefox as of March 2026; progressive enhancement only | CSS scroll-driven with GSAP+Lenis fallback; or GSAP+ScrollTrigger as default for mockups |
+| promptfoo / DeepEval / Langfuse for v1.3 pressure testing | Requires external service setup, cloud accounts, or complex configuration; LLM-as-judge with reference rubrics achieves same result with zero setup | LLM-as-judge via structured rubric reference files, outputs to markdown report |
+| VisualEyes / Applitools for design scoring | Browser-based pixel comparison tools; measure regression, not design quality; require cloud accounts | Awwwards rubric encoded in reference file, scored by Claude against artifact content |
+| Self-recursive skill modification | A skill cannot safely modify itself (circular dependency, no isolation); confirmed by community meta-plugin research | Skills generate OTHER skills via Write tool; each skill is self-contained |
+| External LLM evaluation models (GPT-4 as judge) | PDE uses Claude exclusively; adding OpenAI dependency contradicts single-provider simplicity | Claude self-evaluates using rubric reference files — LLM-as-same-model-judge is sufficient |
 
 ---
 
@@ -549,6 +762,36 @@ npm install commander@^14.0.0
 - Falls back to generic product-type-based recommendations (web/mobile/other)
 - Warns user to run /pde:setup or create STACK.md first
 
+**If /pde:audit-tools is run (v1.3):**
+- Claude loads audit-rubric.md reference
+- Reads all skills in commands/, all agents, all templates, all references, all pde-tools.cjs commands
+- Scores each dimension 0-3 with evidence citations
+- Writes audit-report to .planning/design/review/audit-report-v{N}.md
+- Produces a prioritized improvement backlog
+
+**If /pde:skill-builder is creating a new skill (v1.3):**
+- Interview phase: ask what the skill should do, when it should trigger, what tools it needs
+- Draft phase: write commands/{name}.md with YAML frontmatter and instruction body
+- Test phase: generate 3-5 test fixtures in .planning/design/tests/{name}/
+- Evaluate phase: spawn subagents with and without skill, grade outputs against assertions
+- Optimize phase: refine skill description for triggering accuracy
+- Confirm phase: write final skill file, update skill-registry.md
+
+**If /pde:pressure-test is run on a seed project (v1.3):**
+- Load or create test-project-seed.md
+- Run /pde:build --from ideate in test context
+- Capture all 13 artifact outputs
+- Run completeness check, quality scoring, cross-artifact coherence check
+- Write pressure-test-report.md
+- Compare to previous run if exists (pde-tools.cjs audit compare-runs)
+
+**If a generated mockup needs Awwwards-level animation (v1.3):**
+- Reference motion-design.md for timing and easing standards
+- Include GSAP via CDN in mockup HTML (not a plugin dependency)
+- Use CSS @property for animatable token values where appropriate
+- Apply scroll-driven narrative via GSAP ScrollTrigger + Lenis for cross-browser compatibility
+- Gate CSS-only scroll animations behind @supports (animation-timeline: scroll()) for progressive enhancement
+
 ---
 
 ## Version Compatibility
@@ -571,6 +814,12 @@ npm install commander@^14.0.0
 | @upstash/context7-mcp@2.1.4 | Node.js 18+ | Used via npx; version auto-resolved at install time |
 | MCP Registry API v0/ | Node.js built-in https | API freeze at v0.1 since Sept 2025; stable for integration without auth |
 | Apple HIG Liquid Glass | iOS 26+ / macOS Tahoe+ only | Gate Liquid Glass audit criteria on platform target being iOS/iPadOS/macOS 26+ |
+| GSAP 3.14.x | CDN via jsDelivr | 100% free including all plugins; no Club GSAP required; CDN reference in generated HTML only |
+| CSS @property | Baseline 2024 (all modern browsers) | Chrome, Edge, Firefox, Safari — no progressive enhancement needed for typed tokens |
+| CSS scroll-driven animations (animation-timeline) | NOT Baseline (Chromium-only as of March 2026) | Chrome/Edge only; use GSAP+Lenis as default for cross-browser |
+| CSS view transitions (view-transition-name) | Baseline 2024 (most modern browsers) | Chrome, Edge, Safari — progressively enhance; Firefox partial support |
+| OKLCH color space | Baseline 2023 (all modern browsers) | Already in PDE token system; safe to use as primary color format |
+| CSS container queries | Baseline 2023 (all modern browsers) | Already in web-modern-css.md; safe for responsive component design |
 
 ---
 
@@ -590,8 +839,19 @@ npm install commander@^14.0.0
 - npm registry WebSearch (2026-03-16): a11y-mcp@1.0.4, @modelcontextprotocol/server-sequential-thinking@2025.12.18, @upstash/context7-mcp@2.1.4 [MEDIUM confidence — WebSearch only; direct npmjs.com fetch returned 403]
 - github.com/mermaid-js/mermaid issues #3590, #4148 -- Mermaid 10+ ESM-only confirmed [HIGH confidence]
 - styledictionary.com/versions/v4/migration/ -- Style Dictionary v4+ ESM-only confirmed [HIGH confidence]
+- [Anthropic official skill-creator](https://github.com/anthropics/skills/blob/main/skills/skill-creator/SKILL.md) -- Canonical skill generation pattern: interview → draft → test cases → with/without comparison → grade → iterate → description optimization [HIGH confidence]
+- [Claude Code Skills deep dive](https://leehanchung.github.io/blogs/2025/10/26/claude-skills-deep-dive/) -- SKILL.md architecture, frontmatter fields, context injection, meta-tool system [HIGH confidence]
+- [Nick Winder meta-plugin](https://www.nickwinder.com/blog/claude-code-meta-plugin) -- Meta-programming pattern: skills generate other skills, self-modification constraint, knowledge accumulation loop [MEDIUM confidence — blog post, community pattern]
+- [Awwwards judging criteria](https://www.utsubo.com/blog/award-winning-website-design-guide) -- 4-dimension scoring: Design 40%, Usability 30%, Creativity 20%, Content 10%; Core Web Vitals targets [HIGH confidence]
+- [GSAP 3.14.x license and CDN](https://gsap.com/docs/v3/Installation/) -- All plugins free including SplitText, MorphSVG; CDN via jsDelivr at cdn.jsdelivr.net/npm/gsap@3.14 [HIGH confidence]
+- [CSS @property Baseline 2024](https://web.dev/blog/at-property-baseline) -- Universal browser support since July 2024 [HIGH confidence]
+- [CSS scroll-driven animations MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Scroll-driven_animations) -- Not Baseline; Chromium-only as of March 2026 [HIGH confidence]
+- [GSAP + Lenis cross-browser](https://darkroomengineering.github.io/lenis/) -- Recommended combo for cross-browser smooth scroll animations [MEDIUM confidence — community pattern]
+- [Dave Inside /refine 8-dimension rubric](https://daveinside.com/blog/scoring-and-improving-your-claude-code-setup-across-8-dimensions/) -- 8-dimension Claude Code setup scoring: CLAUDE.md quality, workflow, skills coverage, agent architecture, hooks, tool integration, guard rails, context efficiency [HIGH confidence]
+- [LLM-as-judge evaluation methodology](https://langfuse.com/blog/2025-10-21-testing-llm-applications) -- Confirmed pattern for evaluating probabilistic LLM outputs; golden datasets and structured assertions [HIGH confidence]
+- [Fluid type scale CSS clamp](https://www.fluid-type-scale.com/) -- CSS clamp() fluid typography formula; modular scale ratios for design system use [HIGH confidence]
 
 ---
 
-*Stack research for: AI-powered product development platform (PDE), v1.2 Advanced Design Skills additions*
-*Researched: 2026-03-16*
+*Stack research for: AI-powered product development platform (PDE), v1.3 Self-Improvement and Design Excellence additions*
+*Researched: 2026-03-17*

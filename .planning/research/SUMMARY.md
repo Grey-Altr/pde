@@ -1,182 +1,197 @@
 # Project Research Summary
 
-**Project:** Platform Development Engine (PDE) — v1.2 Advanced Design Skills
-**Domain:** AI-powered product design pipeline (Claude Code plugin)
-**Researched:** 2026-03-16
-**Confidence:** HIGH
+**Project:** Platform Development Engine (PDE) — v1.3 Self-Improvement & Design Excellence
+**Domain:** AI-powered Claude Code plugin with self-improvement capabilities and Awwwards-level design pipeline
+**Researched:** 2026-03-17
+**Confidence:** HIGH (stack and architecture — direct source inspection); MEDIUM (design quality outcomes, self-improvement patterns)
 
 ## Executive Summary
 
-PDE v1.2 adds six new AI-driven design skills — ideation, competitive analysis, opportunity scoring, hi-fi mockup generation, HIG/WCAG audit, and tool discovery — to a 7-stage v1.1 design pipeline that is already proven and production-stable. The product is a Claude Code plugin implemented as zero-dependency CommonJS Node.js, and every architectural decision made for v1.1 carries forward unchanged. The critical strategic insight from research is that all six new skills add zero npm dependencies: Claude is the generator, pde-tools.cjs handles orchestration via Node built-ins, and the existing manifest/state architecture absorbs six new artifact codes, six new coverage flags, and two new directory paths without structural change.
+PDE v1.3 adds self-improvement capabilities, a skill builder, and Awwwards-level design elevation to an already-functioning 13-stage design pipeline. The core insight from combined research is that v1.3 is an augmentation milestone, not a restructuring one: all new capabilities extend the existing plugin architecture via reference injection and new top-level commands — nothing in the stable 13-stage pipeline is restructured. The recommended build order flows from the quality bar outward: define measurable Awwwards criteria first (reference files), build the audit fleet that uses those criteria second, elevate the design pipeline against those criteria third, build the skill builder that creates post-elevation-quality skills fourth, and validate everything with a pressure test fifth.
 
-The recommended implementation approach is a strict 5-phase build order derived from the dependency graph: schema migration first (the one blocking phase), then independent skills in parallel, then the compound ideation skill that calls recommend internally, then orchestrator expansion. This order isolates risk — each new skill can be validated standalone before being wired into the full `/pde:build` pipeline. The architectural pattern is identical for all six skills: a command stub delegates to a workflow, the workflow follows the established 7-step anatomy, and the final step updates designCoverage via read-before-set. No deviations from this pattern are warranted.
+The single biggest technical risk is circular self-evaluation: if the agents that evaluate improved skills were also involved in generating them, they will consistently approve their own output, producing a "self-improvement loop" that improves nothing. Research is unambiguous that the quality rubric must be a human-authored artifact, written before any self-improvement agent exists, protected from modification by those agents, and used as an external fixed standard. A second related risk is generic AI aesthetic: LLMs trained on the modal web produce statistically average design output — technically correct, compositionally timid, immediately recognizable as AI-generated. Countering this requires the design elevation prompts to specify named, measurable Awwwards criteria (typography contrast rationale, choreographed motion, spatial asymmetry, visual hook) rather than asking for "high quality design."
 
-The highest-risk area in v1.2 is not technology — it is integration correctness. Three classes of bugs are "looks done but isn't": coverage flags being silently clobbered by existing skills that haven't been updated to the pass-through-all merge pattern; the `/pde:build` orchestrator reporting pipeline complete at the old 7-stage count while never invoking the 5 new stages; and the ideation skill collapsing its required two-phase diverge/converge structure into a single LLM pass. All three are silent failures. The schema migration phase (Phase 1) must close the coverage clobber risk before any new skill is implemented.
+The stack constraint is a feature: PDE is zero-dependency CommonJS Node.js and must remain so. All v1.3 additions — reference files, workflow modifications, new commands, new agent entries in model-profiles.cjs — follow the established pattern. No new npm dependencies. No architectural divergence. The self-improvement fleet uses the same Task()/resolve-model pattern already proven in `workflows/audit-milestone.md`. The skill builder uses the same read-modify-write pattern used by `/pde:update`. Build on what works.
 
 ## Key Findings
 
 ### Recommended Stack
 
-PDE v1.2 is deliberately zero-dependency. The entire new capability surface — six skills, a 12-command pde-tools.cjs expansion, three new reference files, five MCP integrations — is implemented using Node.js built-ins (fs, path, https, child_process) and Claude as the content generator. No npm packages are added in v1.2.
+PDE's stack is locked by Claude Code plugin constraints: zero-dependency CommonJS Node.js (20.x LTS), Markdown + YAML frontmatter for skill definitions, JSON for config, and LLM-generated content for all design artifacts. v1.3 adds no new npm dependencies. The additions are: three new reference files (loaded via `@` at skill runtime), five modified workflow files (additive `<required_reading>` entries only), three new commands (`audit`, `improve`, `pressure-test`), and four new agent type entries in `bin/lib/model-profiles.cjs`.
+
+For v1.3 specifically, the reference injection pattern is the key architectural mechanism: design quality elevation is achieved by upgrading `<required_reading>` reference files, not by rewriting skill logic. This is additive and lower risk than logic changes.
 
 **Core technologies:**
-- Node.js 20.x LTS + CommonJS (.cjs) — runtime and module format; required for Claude Code plugin compatibility; ESM is incompatible with the plugin invocation pattern
-- Claude (LLM as generator) — writes Mermaid syntax, HTML wireframes/mockups, TypeScript interfaces, DTCG tokens directly as text; no template engine or rendering library needed
-- DTCG 2025.10 JSON + inline dtcgToCss() — design token format (W3C stable spec) and zero-dependency CSS custom property emission in bin/lib/design.cjs
-- MCP servers (user-installed, not bundled) — Sequential Thinking, Axe a11y-mcp, Playwright, Context7, Superpowers; probe/use/degrade pattern; skills function without them
-- MCP Registry API v0/ at registry.modelcontextprotocol.io — public, unauthenticated REST endpoint for tool discovery in /pde:recommend; offline catalog fallback when unreachable
-
-**Critical version constraints:**
-- Commander 14.x only (not 15) — Commander 15 is ESM-only, requires Node 22.12+
-- @modelcontextprotocol/sdk 1.x only (not 2.x) — v2 not yet stable as of March 2026
-- a11y-mcp@1.0.4 (free, MPL-2.0) — not Deque's paid axe-mcp-server
-- WCAG 2.2 AA as the audit standard — now ISO/IEC 40500:2025; WCAG 3.0 is working draft only
-- Apple HIG Liquid Glass (iOS 26+) — gate Liquid Glass audit criteria on platform target being iOS/iPadOS/macOS 26+
+- Node.js 20.x LTS + CommonJS (.cjs): runtime and module format — required for Claude Code plugin compatibility; ESM is incompatible with the plugin invocation pattern
+- Markdown + YAML frontmatter: skill/workflow/agent definitions — Claude Code's native format; all new commands follow this pattern
+- Task() + resolve-model pattern: self-improvement fleet agent spawning — proven in `workflows/audit-milestone.md`; appropriate for analysis agents; distinct from Skill() for named PDE commands
+- DTCG JSON with `transition` token type: motion token format — extends existing color/typography token output; zero new tooling
+- Reference injection via `@`: design quality elevation mechanism — adds new knowledge to skill prompts without changing 7-step anatomy
 
 ### Expected Features
 
-The six new skills extend the pipeline in two directions: pre-brief research (ideate, competitive, opportunity, recommend) and post-iterate quality gates (mockup, hig). The v1.1 skills (brief, system, flows, wireframe, critique, iterate, handoff) are stable dependencies that are not rewritten — only brief requires a soft update to accept upstream context injection.
-
-**Must have (table stakes):**
-- `/pde:ideate` — minimum 5 divergent directions, convergence scoring against stated goal, explicit recommended direction, assumption capture per direction, handoff to brief
-- `/pde:competitive` — 3+ direct competitors, feature matrix, positioning map, explicit gap identification, evidence confidence labels on all claims
-- `/pde:opportunity` — RICE score per opportunity, criteria definition before scoring, ranked output with component scores visible, rationale per score component, MVP recommendation
-- `/pde:mockup` — design token application (tokens.css consumed), real CSS interactive states, all state variants per screen, self-contained HTML (no server), navigation index
-- `/pde:hig` — color contrast check (WCAG 1.4.3), focus visibility (WCAG 2.4.11), touch targets (HIG + WCAG 2.5.8), form labels, heading hierarchy, severity-rated findings with remediation
-- `/pde:recommend` — current MCP availability check, stack-matched tool recommendations, installation instructions per recommendation
+**Must have (table stakes for v1.3 to close):**
+- `/pde:audit` tool audit skill — scans commands, agents, templates, references for quality gaps; produces structured report with severity levels (CRITICAL/HIGH/MEDIUM/LOW); diagnostic foundation for all other features; measures tool effectiveness, not just availability
+- `/pde:improve` skill builder — creates and updates SKILL.md-conforming skill files; reads skill-style-guide.md as constraint; writes to `commands/` and `workflows/`; runs `validate-skill` as mandatory post-generation gate
+- Self-improvement agent fleet — three core types: Auditor (read-only, produces gap list against fixed rubric), Improver (proposes changes to `.planning/improvements/` staging, never live files), Validator (checks proposals against quality rubric); reflection loop pattern (Auditor → Improver → Validator → revise if fail → human queue if pass)
+- `references/quality-standards.md` — Awwwards 4-dimension rubric as shared reference (Design 40%, Usability 30%, Creativity 20%, Content 10%); human-authored before any agent exists; listed in `protected-files.json`; loaded by fleet agents and elevated design skills
+- Design quality elevation — `system.md` (motion tokens, variable font axes, advanced OKLCH palette depth), `wireframe.md` (composition annotations, grid documentation), `mockup.md` (spring physics CSS, scroll-driven animations, micro-interaction states), `critique.md` (Awwwards 4-dimension rubric as evaluation framework), `hig.md` (motion accessibility audit)
+- `/pde:pressure-test` — full 13-stage pipeline run on a real user project (not PDE itself); two-tier evaluation: process compliance (artifact existence, coverage flags) AND quality rubric evaluation (specific findings per artifact); produces `.planning/pressure-test-report.md`
 
 **Should have (competitive differentiators):**
-- Ideation: multi-phase two-round structure with hybrid synthesis, HMW reframes, analogous domain import — prevents anchoring bias inherent in single-pass generation
-- Competitive: WebSearch MCP integration for live competitor verification (training data is 6-18 months stale); competitor weakness typology (hard-to-copy vs won't-fix vs known issue)
-- Opportunity: interactive user input for RICE dimensions (never LLM-fabricated); sensitivity analysis showing which component drives each score
-- Mockup: responsive layout at brief-defined breakpoints; Playwright screenshot validation when MCP available; component annotation comments linking to system.md component names
-- HIG: dual-mode architecture (light in critique, full standalone); platform-aware audit scope; Axe MCP automated contrast/ARIA checks in full mode
-- Recommend: ideation-integration mode with per-idea feasibility annotations (called during ideation diverge→converge checkpoint)
+- Motion tokens in DTCG `transition` format — animation duration scale, easing curves, delay tokens added to system skill output; most design token systems omit animation entirely
+- Per-stage quality gates — hook quality checking into each design pipeline stage; requires audit + improvement agents to be stable first; deferred to v1.3.x
+- Skill discovery scan — audit also identifies missing skills the gap report recommends but do not yet exist
+- Self-auditing pipeline — automated per-stage quality evaluation integrated with critique skill
 
-**Defer (v2+):**
-- Figma push from mockup (requires Figma MCP; high complexity; out of scope per PROJECT.md)
-- Full JavaScript application logic in mockups (mockup is a design artifact, not a prototype)
-- WCAG 3.0 criterion coverage (working draft only; not normative)
-- Exhaustive 10+ competitor analysis (anti-pattern; cap at 5)
-- Standalone CLI wrapping pde-tools.cjs (post-v1 platform evolution; Commander 14 when needed)
-- MCP server TypeScript implementation for post-v1 platform evolution
+**Defer (v1.3.x or v2+):**
+- CI/CD integration for skill quality — requires Git hook infrastructure that does not exist
+- Cross-project skill registry — blocked by PLUG-01 marketplace registration tech debt
+- Sound design guidance — outside current HTML/CSS mockup output format
+- Skill versioning/rollback system — Git history already serves this function; adding a version store is unnecessary complexity
 
 ### Architecture Approach
 
-The v1.2 architecture is additive to v1.1 without modification of any existing skill workflows. Six command stubs already exist at `commands/` with "Status: Planned" bodies — upgrading them means replacing only the `<process>` block with workflow delegation. The 7-step skill anatomy (init dirs → check prereqs → probe MCPs → generate output → write artifact with lock → update domain DESIGN-STATE → update root state + manifest + coverage flag) is the universal contract all six new skills follow without deviation.
+v1.3 adds a self-improvement layer above the existing 13-stage pipeline without touching it. The three new commands (`/pde:audit`, `/pde:improve`, `/pde:pressure-test`) are tooling-domain operations — they produce reports in `.planning/` (not design artifacts in `.planning/design/`), they do not set `designCoverage` flags, and they do not appear in `design-manifest.json`. Five modified workflow files change only by adding new reference files to `<required_reading>` — the 7-step skill anatomy, flag set, artifact paths, and coverage flag handling are all unchanged.
 
-**Major components and responsibilities:**
-1. `/pde:build` orchestrator (workflows/build.md) — expanded from 7 to 13 stages; reads designCoverage once at Step 2; strictly read-only (never writes manifest); invokes all skills via Skill() not Task(); stage count must be derived from stage list, not hardcoded
-2. pde-tools.cjs + bin/lib/design.cjs — three new commands: manifest-set-coverage, ensure-dirs-extended (adds ux/mockups/), mcp-registry-search; all Node built-ins only
-3. design-manifest.json schema — extended from 7 to 13 designCoverage flags (additive); new flags: hasIdeation, hasCompetitive, hasOpportunity, hasMockup, hasHigAudit, hasRecommendations
-4. .planning/design/ file store — adds strategy/ artifacts (IDT, CMP, OPP, REC), ux/mockups/ subdirectory (MCK), review/ artifacts (HIG)
-5. Five MCP servers — already documented in references/mcp-integration.md; user-installed via /pde:setup; probe/use/degrade pattern; no skill hard-requires any MCP
-
-**Key pattern: Read-before-set (upgrade to pass-through-all)**
-Every skill reads the full designCoverage blob before writing its own flag, merges only its specific flag, and writes the full blob back atomically. The existing 7 skills use field-by-field enumeration (v1.1 pattern) which silently clobbers any new flags added to the schema. All 7 existing skills must be updated to pass-through-all (Object.assign with parsed coverage blob) before any v1.2 skill is implemented.
+**Major components:**
+1. `references/quality-standards.md` (NEW) — Awwwards-level criteria; single source of truth for all quality evaluation; loaded by fleet agents and elevated design skills; human-authored; in `protected-files.json`
+2. Self-improvement fleet (NEW) — four Task() subagents in `bin/lib/model-profiles.cjs`: `pde-output-quality-auditor`, `pde-skill-linter`, `pde-design-quality-evaluator`, `pde-template-auditor`; spawned by `/pde:audit`; write scope constrained to their target files only; no writes to manifest or shared state
+3. `/pde:audit` workflow (NEW) — orchestrates fleet in parallel for independent audits; aggregates findings; writes `.planning/audit-report.md`; evaluates tool effectiveness (representative query execution) not just availability
+4. `/pde:improve` workflow (NEW) — two modes: `create` (new skill from description) and `improve` (targeted quality elevation of existing skill); reads skill-style-guide.md + tooling-patterns.md; runs `validate-skill` automatically; writes `.planning/skill-builder-log.md`
+5. Design elevation via reference injection (MODIFIED x5) — `system.md`, `wireframe.md`, `mockup.md`, `critique.md`, `hig.md` load new references; no structural changes to these workflows; elevation is additive
+6. `/pde:pressure-test` (NEW) — observer pattern; invokes `/pde:build` then evaluates artifacts against quality-standards.md; read-only against design state; all writes to `.planning/pressure-test-report.md` only
 
 ### Critical Pitfalls
 
-1. **Coverage flags clobbered by existing skills (Pitfall 10)** — The most insidious risk. Any existing skill (brief, system, flows, etc.) running after a new v1.2 skill writes back the 7-field coverage object, deleting the new flag. Silent failure — no error, flag just disappears. Prevention: migrate all 7 existing skills to pass-through-all merge pattern as the first action of v1.2 implementation, before any new skill writes a flag.
+1. **Circular self-evaluation** — agents rating their own generated output consistently approve it. Prevention: `references/quality-standards.md` human-authored before any agent exists; add to `protected-files.json`; audit agents return structured verdicts against the rubric, never free-text quality ratings; rubric must be written by humans as an input to the system, not as an output of it.
 
-2. **Orchestrator stage count mismatch (Pitfall 1)** — build.md hardcodes "7 stages" in prose, display messages, and the completion check. When pipeline expands to 13 stages, the orchestrator reports "7/7 complete" and halts without ever running mockup or HIG. The bug is invisible without counting actual invocations. Prevention: derive stage count from the stage list; audit all numeric literals in build.md before wiring any new stage.
+2. **Skill builder generates invalid plugin-format skills** — broken skills fail silently at invocation in Claude Code (no error at install time). Prevention: implement `pde-tools.cjs validate-skill {path}` that checks frontmatter YAML validity, allowed-tools list validity, workflow path existence, and skill code uniqueness in skill-registry.md; skill builder must call this automatically and reject invalid output before presenting to user.
 
-3. **Ideation single-pass collapse (Pitfall 3)** — If ideation's diverge→converge structure is implemented as one LLM prompt, the LLM produces a shallow list because the pressure to converge inhibits divergent generation. Prevention: implement as a two-pass workflow with an explicit checkpoint; IDT file written with status `diverge-complete` before converge begins; minimum 6 distinct ideas in diverge section with no evaluative language.
+3. **Generic AI aesthetic — technically correct, distinctively generic** — LLMs produce statistically modal design: Inter/Geist, purple-teal gradients, symmetric grids, decorative motion. Prevention: design elevation prompts must specify named, measurable criteria — typeface contrast with documented rationale (not just size contrast), motion choreographed to content meaning, deliberate asymmetric whitespace in at least one axis, one named visual hook per project; these are pass/fail gates in the critique skill, not suggestions.
 
-4. **RICE scores fabricated by LLM (Pitfall 8)** — Without interactive user input, the opportunity skill invents plausible RICE numbers with false quantitative authority. Prevention: opportunity workflow must prompt user for Reach and Effort values; confidence calibrated via a structured checklist against competitive evidence; never auto-compute all four dimensions from training data.
+4. **Pressure test measures completeness, not quality** — all coverage flags true does not equal quality pipeline. Prevention: pressure test must require both phases: (1) process compliance (artifact existence, flag state) and (2) rubric-based quality evaluation with specific findings; "passed" requires both to pass; no numeric score from tier 1 serves as proxy for tier 2 quality.
 
-5. **HIG dual-mode divergence (Pitfall 5)** — If critique embeds inline HIG evaluation logic rather than delegating to hig.md with --light flag, the two code paths diverge over time and produce contradictory severity ratings for the same issue. Prevention: HIG logic lives exclusively in hig.md; critique calls Skill("pde:hig", "--light") — no inline HIG logic in critique.md; hig must be built before critique is updated.
+5. **Meta-prompt drift via iterative self-modification** — iterative self-modification optimizes away constraints over time without the system detecting degradation. Prevention: `protected-files.json` lists `workflows/improve.md`, `references/quality-standards.md`, `references/skill-style-guide.md`; fleet has an explicit allowed-write-directories list that excludes `bin/`, plugin root config, and shared planning state files; these files are human-only edits.
+
+6. **Design elevation applied to mockup only, missing system and wireframe** — mockup quality ceiling is set by upstream token and layout quality; downstream quality cannot exceed upstream quality. Prevention: design elevation must follow system → wireframe → critique/iterate → mockup order; system skill must produce type pairing with documented rationale before mockup elevation begins; system and wireframe elevation are Phase 3 prerequisites for mockup.
 
 ## Implications for Roadmap
 
-Based on the dependency graph and pitfall severity, the implementation must follow a strict 5-phase build order. Phases 2-4 can be partially parallelized but Phase 1 is a hard blocker for everything.
+Based on combined research, a five-phase structure follows directly from the dependency graph in FEATURES.md and the build order recommendation in ARCHITECTURE.md.
 
-### Phase 1: Schema Migration and Infrastructure
-**Rationale:** The coverage flag clobber bug (Pitfall 10) and the orchestrator stage count mismatch (Pitfall 1) are silent failures that corrupt all downstream work. Both must be fixed before a single new skill is implemented. This is the one phase with no parallelism options — it is a blocking dependency for all subsequent phases.
-**Delivers:** Updated designCoverage schema with 13 flags in templates/design-manifest.json; all 7 existing skills updated to pass-through-all merge pattern; ux/mockups/ directory creation in bin/lib/design.cjs DOMAIN_DIRS; pde-tools.cjs manifest-set-coverage and ensure-dirs-extended commands added
-**Addresses:** Critical Pitfall 10 (coverage clobber), Pitfall 2 (missing coverage flags for new skills)
-**Avoids:** All six new skills destroying existing pipeline state when existing skills run after them
+### Phase 1: Quality Bar Infrastructure
 
-### Phase 2: Independent Pre-Pipeline Skills
-**Rationale:** /pde:recommend and /pde:competitive have no dependencies on each other and no dependencies on any new v1.2 skills. They can be built and validated standalone. Recommend must ship before ideation because ideate calls recommend internally via Skill().
-**Delivers:** /pde:recommend (standalone + ideation-integration interface; MCP Registry API via Node built-in https; offline catalog fallback); /pde:competitive (WebSearch MCP probe; staleness caveat in all output; gap analysis; strategy-frameworks.md integration); reference files references/ideation-techniques.md and references/mcp-registry-catalog.md; workflows/recommend.md and workflows/competitive.md
-**Uses:** MCP Registry API v0/ for recommend; Sequential Thinking MCP + Brave Search for competitive; strategy-frameworks.md (Porter's Five Forces already complete)
-**Implements:** Recommend's per-idea annotation interface that ideation will consume; competitive's confidence-labeled claim format consumed by opportunity
+**Rationale:** Everything in v1.3 depends on having measurable quality criteria. The fleet agents cannot audit against a standard that does not exist. The design elevation workflows cannot load references that have not been written. The pressure test cannot evaluate against a rubric that is not defined. This phase must ship before any other phase can proceed — it is the only hard blocker.
 
-### Phase 3: Dependent Pre-Pipeline and Independent Post-Wireframe Skills
-**Rationale:** /pde:opportunity depends on competitive output for candidate pre-population (soft dependency). /pde:mockup and /pde:hig are independent of pre-pipeline skills and of each other — they can be built in parallel with opportunity. HIG must be complete before critique is updated to delegate its HIG light checks, because critique calls Skill("pde:hig") — not inline logic.
-**Delivers:** /pde:opportunity with interactive RICE input collection, sensitivity analysis, and OPP artifact; /pde:mockup with version-aware max-WFR discovery, token application, CSS interactive states, and MCK artifacts; /pde:hig with dual-mode architecture (--light and full), platform-conditional gating logic, Axe MCP probe/use/degrade, HIG-audit artifact; references/mockup-patterns.md; Liquid Glass section added to references/ios-hig.md
-**Addresses:** Pitfall 6 (mockup using stale wireframe — max-version discovery required), Pitfall 5 (HIG dual-mode — hig.md is the only location for HIG logic), Pitfall 8 (RICE fabrication — interactive input required), Pitfall 9 (HIG blocking non-applicable platforms — platform-conditional gate)
-**Note:** /pde:hig must be production-ready before /pde:critique is updated — critique's HIG section becomes a delegation call to hig.md
+**Delivers:** Three new reference files (`references/quality-standards.md`, `references/awwwards-patterns.md`, `references/motion-design.md`); four new agent type entries in `bin/lib/model-profiles.cjs` and mirrored in `references/model-profiles.md`; three new skill registry entries (AUD, IMP, PRT) in `skill-registry.md`; `protected-files.json` with quality rubric and core workflow files protected.
 
-### Phase 4: Compound Skill and Brief Soft Update
-**Rationale:** /pde:ideate is the most complex new skill — it calls recommend internally, requires strict two-pass diverge/converge structure with an explicit checkpoint, and reads competitive and opportunity artifacts as optional enrichment context. Brief requires a soft update to check for and inject CMP/OPP context — this is a surgical edit to an existing stable skill and should be isolated.
-**Delivers:** /pde:ideate with two-pass diverge→converge structure, Skill("pde:recommend", "--quick") invocation at diverge→converge checkpoint, IDT artifact; templates/ideation-log.md; updated /pde:brief to soft-inject CMP and OPP context when present (with warning when absent); commands/ideate.md (new, no stub exists)
-**Addresses:** Pitfall 3 (ideation single-pass collapse), Pitfall 4 (competitive output not wired into brief), Pitfall 7 (recommend not integrated into ideation)
-**Avoids:** Task() invocation inside ideate (nested-agent freeze Issue #686 — use Skill() only); brief breaking for users who have not run competitive/opportunity (soft dependency, not hard block)
+**Addresses:** Awwwards scoring rubric (P1 feature); prevents Pitfalls 1, 3, 7 (circular evaluation, AI aesthetic, rubric drift) by establishing fixed external standards before any agent or elevation work begins.
 
-### Phase 5: Orchestrator Expansion and End-to-End Validation
-**Rationale:** All 6 new skills proven standalone before wiring into the orchestrated pipeline. Orchestrator expansion touches the most-used workflow file. Validate with --dry-run before any live pipeline run; stage count in dry-run must match actual skills being invoked.
-**Delivers:** /pde:build expanded to 13 stages (recommend → competitive → opportunity → ideate → brief → system → flows → wireframe → critique → iterate → mockup → hig → handoff); stage count derived dynamically from stage list (all hardcoded "7" literals removed); --dry-run shows 13-row stage table; end-to-end pipeline run from stage 1 through 13; brief confirmed to inject CMP/OPP context in-pipeline
-**Addresses:** Pitfall 1 (orchestrator stage count mismatch — stage count now derived not hardcoded)
-**Verification gate:** /pde:build --dry-run must show exactly 13 stages before any live run; after full pipeline run, coverage-check must show all 13 flags true with no clobbering
+**Avoids:** Building the audit fleet before the rubric exists (which would force the rubric to be AI-generated, creating the circular evaluation problem immediately).
+
+### Phase 2: Self-Improvement Fleet and Audit Command
+
+**Rationale:** Build the audit capability before building the skill builder. The audit produces the gap list that the skill builder acts on. Without an audit baseline, the skill builder has no grounded findings and produces arbitrary improvements rather than targeted ones. The baseline audit report also serves as the before-state measurement for Phase 3 — without it, there is no measurable delta from design elevation.
+
+**Delivers:** `commands/audit.md`, `workflows/audit.md`; `templates/skill-audit-report.md`; working `/pde:audit` command that spawns fleet agents and writes `.planning/audit-report.md`; effectiveness criteria for each tool (Context7, agent prompts, templates) — not just availability checks; fleet write scope constrained before any agent runs.
+
+**Addresses:** Tool audit skill (P1); self-improvement agents Auditor type (P1); Pitfall 6 (tool effectiveness vs availability); Pitfall 11 (fleet write scope and race conditions).
+
+**Avoids:** Skipping the audit baseline before design elevation — the before/after comparison is the only way to confirm elevation actually improved output quality.
+
+### Phase 3: Design Quality Elevation
+
+**Rationale:** Reference injection is lower risk than skill restructuring — changes are additive, the 7-step anatomy is unchanged. Run `/pde:audit` at the start of this phase for a baseline. Elevate in dependency order: system → wireframe → critique/iterate → mockup. Elevating mockup without elevating system first produces mockup output constrained by a generic token foundation (Pitfall 10). Re-run `/pde:audit` after this phase to confirm measurable delta against the baseline.
+
+**Delivers:** Modified `workflows/system.md` (motion tokens, variable font axes, advanced OKLCH depth, `@references/awwwards-patterns.md` and `@references/motion-design.md` added to required_reading); `workflows/wireframe.md` (composition annotations, grid system documentation, `@references/awwwards-patterns.md`); `workflows/mockup.md` (spring physics CSS, scroll-driven animations via @scroll-timeline, micro-interaction states, variable font usage, `@references/motion-design.md`); `workflows/critique.md` (Awwwards 4-dimension rubric as evaluation framework, `@references/quality-standards.md`); `workflows/hig.md` (motion accessibility audit, prefers-reduced-motion compliance, `@references/motion-design.md`).
+
+**Addresses:** Design quality elevation features (P1 for mockup + critique; P2 for system); motion tokens in DTCG format (P2); prevents Pitfalls 4, 8, 10 (AI aesthetic, false confidence from automated metrics, mockup-only elevation).
+
+**Avoids:** Any structural changes to existing skills — only `<required_reading>` additions and output instruction text extensions.
+
+### Phase 4: Skill Builder
+
+**Rationale:** The skill builder comes after design elevation for a deliberate quality reason: it creates skills by reading existing skills as pattern examples. Building it after Phase 3 means any skill it creates will be modeled on the elevated versions of system, mockup, and critique — not the pre-elevation versions. The `validate-skill` command is a Phase 4 deliverable (not deferred) because the skill builder without validation is a broken-skills generator.
+
+**Delivers:** `pde-tools.cjs validate-skill` command (frontmatter YAML, allowed-tools validity, workflow path existence, skill code uniqueness checks); `commands/improve.md`, `workflows/improve.md`; working `/pde:improve` in both `create` and `improve` modes; `.planning/skill-builder-log.md` output; skill builder has explicit write scope (commands/, workflows/ only; bin/ and protected files excluded).
+
+**Addresses:** Skill builder capability (P1); Pitfall 2 (invalid skill generation via mandatory validation gate); Pitfall 3 (skill upgrades breaking in-progress projects — improve mode defaults to additive-only changes).
+
+**Avoids:** Skill builder with write access to protected files (protected-files.json from Phase 1 enforces this); generating skills before the quality bar exists (would produce pre-elevation-quality skills as the template).
+
+### Phase 5: Pressure Test and Validation
+
+**Rationale:** The pressure test validates Phases 1-4. It must run after design elevation so quality scores reflect elevated output. Test fixtures (greenfield state, partially-complete state, re-run state) must be built as the first deliverable of this phase — before any test execution. The pressure test is the final gate for the v1.3 milestone; it either confirms the milestone is complete or surfaces gaps requiring another improvement cycle before close.
+
+**Delivers:** `templates/pressure-test-report.md`; `commands/pressure-test.md`, `workflows/pressure-test.md`; test fixtures for three pipeline entry states (greenfield, partially-complete with 5-8 stages done, re-run of a completed stage); two-tier evaluation pass (process compliance + rubric-based quality evaluation with specific findings); `.planning/pressure-test-report.md` from a real user project run.
+
+**Addresses:** End-to-end pressure test (P1); Pitfalls 5 and 9 (completeness-only measurement, greenfield-only testing).
+
+**Avoids:** Running the pressure test on the PDE plugin directory itself (anti-pattern: PDE is a tool, not a product with users; its planning state is development roadmap data, not a product design brief); declaring success on process compliance alone without quality evaluation tier.
 
 ### Phase Ordering Rationale
 
-- Phase 1 is a hard blocker because the coverage clobber bug (silent, no error) makes all five subsequent phases unverifiable — new skill flags are deleted by existing skills running after them, making it impossible to confirm any new skill completed correctly
-- Phases 2 and 3 are largely parallelizable (recommend, competitive, opportunity, mockup, hig are independent of each other) but recommend must precede ideation; hig must precede the critique update
-- Phase 4 is sequenced after Phases 2-3 because ideation calls recommend (must exist) and brief injection is simpler to validate once competitive and opportunity artifacts actually exist
-- Phase 5 is always last — the orchestrator's value is integrating validated standalone skills; building it earlier forces integration against unvalidated components and increases the risk of baking in bugs at the orchestrator layer
+- Phase 1 before everything: quality rubric is a shared dependency for fleet agents, elevated design skills, and the pressure test; building any of them before the rubric exists forces AI-generated rubric criteria (circular evaluation)
+- Phase 2 before Phase 3: audit baseline enables measurable before/after comparison; without it, design elevation produces unmeasurable improvement claims
+- Phase 3 before Phase 4: skill builder models output on existing skills as examples; elevated skills produce better templates for new skill generation
+- Phase 3 elevation order: system → wireframe → critique/iterate → mockup (upstream quality sets downstream ceiling; do not elevate mockup before system)
+- Phase 4 before Phase 5: pressure test validates all previous phases; running it earlier validates a pre-elevation state and provides false milestone confidence
+- Phases 3 and 4 have low coupling — if Phase 3 scope expands, Phase 4 is not blocked; they share only the reference files from Phase 1
 
 ### Research Flags
 
 Phases likely needing deeper research during planning:
-- **Phase 3 (/pde:mockup):** Version-aware artifact discovery (selecting max-version WFR file) needs a definitive implementation decision — either centralize in a new pde-tools.cjs `design latest-artifact` command or confirm the sorting pattern in critique.md is directly portable. Read critique.md's version-sort implementation before writing the mockup phase plan.
-- **Phase 3 (/pde:hig platform gate):** Platform-conditional gating in handoff requires the brief to have an enforced platform field. Verify whether brief.md currently requires platform or only recommends it. If not required, a brief template update belongs in Phase 3, not Phase 4.
-- **Phase 4 (brief soft update):** Confirm the exact `<required_reading>` injection pattern in brief.md before writing the CMP/OPP injection. If brief.md does not have a soft-dependency probe pattern, this becomes a more complex surgical edit than a standard stub upgrade.
+- **Phase 2 (audit fleet — effectiveness criteria):** The research identifies the requirement that tool effectiveness criteria must be defined before the audit runs, but does not enumerate the specific criteria for Context7, Brave Search, agent prompts, and templates. These are domain-specific and require the team to define what "an effective Context7 query" looks like within PDE's agent prompt patterns before the audit workflow can implement the effectiveness check.
+- **Phase 3 (mockup elevation — custom interaction design):** Research explicitly flags that translating "custom interaction design" into AI-generatable instructions is "genuinely hard." The CSS @scroll-timeline spec and spring physics easing patterns need concrete implementation examples authored into `references/motion-design.md` before mockup elevation can produce Awwwards-differentiating output. Plan extra iteration cycles for this skill specifically.
+- **Phase 5 (pressure test — quality evaluation tier):** Research establishes the two-tier requirement but does not resolve whether Tier 2 (qualitative rubric evaluation) is human-executed or AI-with-rubric. The team must decide this before Phase 5 planning. If AI-with-rubric, the quality evaluator agent needs a more prescriptive system prompt than current research specifies; if human-executed, the test plan must define a structured review protocol.
 
 Phases with standard patterns (skip research-phase):
-- **Phase 1 (schema migration):** Pure mechanical update — read all 7 existing skill workflows, change manifest-set-top-level calls to Object.assign pass-through-all. No architecture unknowns.
-- **Phase 2 (/pde:recommend):** MCP Registry API is documented, stable (v0.1 freeze since September 2025), no-auth. Node built-in https covers the integration. Standard 7-step skill anatomy.
-- **Phase 2 (/pde:competitive):** Template and reference files already exist. Standard 7-step skill anatomy. WebSearch MCP integration is already documented in mcp-integration.md.
-- **Phase 5 (orchestrator):** Stage table extension is mechanical. The anti-patterns (stage count, read coverage once, Skill() not Task()) are documented in build.md itself.
+- **Phase 1 (reference files):** Writing reference files is documentation and research synthesis. Awwwards criteria are publicly documented. No implementation unknowns — this is human authoring work.
+- **Phase 4 (skill builder):** The Claude Code SKILL.md format is verified from official docs (HIGH confidence). The skill builder pattern follows the established read-modify-write convention already used by `/pde:update`. Standard 7-step skill anatomy.
+- **Phase 5 (pressure test process compliance tier):** Boolean coverage flag checks are mechanical. The `--from` flag behavior is already implemented and documented. Standard pattern.
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | All decisions verified from source code direct inspection (bin/pde-tools.cjs, bin/lib/design.cjs, commands/, templates/). Zero-dep philosophy confirmed. ESM incompatibilities confirmed from GitHub issues and migration guides. DTCG spec verified at designtokens.org. MCP Registry API confirmed at registry.modelcontextprotocol.io. |
-| Features | HIGH (WCAG/HIG/RICE), MEDIUM (ideation multi-phase, competitive dimensions) | WCAG 2.2, HIG patterns, RICE formula are authoritative specs. Multi-phase ideation patterns evidenced by research literature (arxiv 2601.00475) but ideation UX involves judgment calls on phase checkpoint design. |
-| Architecture | HIGH | Derived entirely from direct inspection of PDE source. All templates, stubs, existing workflows, manifest schema inspected. Build.md orchestrator anti-patterns documented in-source. No speculation or training-data inference. |
-| Pitfalls | HIGH | Pitfalls grounded in direct codebase inspection — orchestrator's hardcoded counts, the v1.1 read-before-set field enumeration pattern, write-lock protocol all visible in source. Coverage clobber risk confirmed by reading actual manifest-set-top-level calls in existing skill workflows. |
+| Stack | HIGH | Direct source inspection of PDE codebase. Zero-dependency Node.js constraint is structural. DTCG format, Mermaid generation approach, v1.1/v1.2 patterns all verified against source. Claude Code SKILL.md format verified from official docs. |
+| Features | HIGH (table stakes), MEDIUM (differentiators) | Table stakes derived directly from PROJECT.md active requirements — these are explicit. Awwwards criteria verified from official rubric (Design 40%/Usability 30%/Creativity 20%/Content 10%). Implementation complexity of "custom interaction design" is genuinely uncertain — this is the high-risk feature. |
+| Architecture | HIGH | All architecture decisions grounded in direct source inspection. Build order is dependency-derived. Task()/resolve-model pattern is proven in existing `workflows/audit-milestone.md`. No speculation or training-data inference in ARCHITECTURE.md. |
+| Pitfalls | HIGH (structural), MEDIUM (design quality) | Structural pitfalls (circular evaluation, skill format compliance, manifest corruption, fleet write scope) are mechanical and grounded in codebase inspection. Design quality pitfalls (AI aesthetic, Awwwards criteria application) rely on industry research with medium confidence — consistent with first-principles LLM behavior but not verified against PDE-specific outputs. |
 
-**Overall confidence:** HIGH
+**Overall confidence:** HIGH for build order, architecture, and stack; MEDIUM for design quality outcomes (whether reference injection achieves Awwwards-level output is probabilistic and requires iteration cycles).
 
 ### Gaps to Address
 
-- **MCP server npm versions:** a11y-mcp@1.0.4, @modelcontextprotocol/server-sequential-thinking@2025.12.18, @upstash/context7-mcp@2.1.4 sourced from WebSearch (MEDIUM confidence — npmjs.com returned 403 during research). Verify at install time; use `@latest` for MCP servers that auto-resolve unless version pinning is required for reproducibility.
-- **Brief platform field enforcement status:** Whether the brief template currently requires or only soft-recommends a platform field is unconfirmed. Phase 3 must verify this before implementing the HIG platform-conditional gate in handoff — if platform is not enforced, a brief template update must be added to Phase 3 scope.
-- **Critique HIG delegation window:** When hig.md ships and critique is updated to delegate HIG light checks, there is a window where both the old inline critique HIG logic and the new delegation exist simultaneously. Sequence strictly — complete hig.md full implementation and --light mode before modifying critique.md; do not ship a half-migrated critique.
+- **"Custom interaction design" in AI-generatable terms:** Research identifies this as the single biggest Awwwards differentiator but does not resolve how to specify it prescriptively enough for reliable LLM output. Recommend authoring `references/awwwards-patterns.md` with concrete named patterns (specific scroll effect types, type animation techniques, spatial tension approaches with examples) rather than general principles. Validate during Phase 3 by running mockup skill against rubric before declaring elevation complete — expect multiple critique/iterate cycles.
+
+- **Pressure test quality evaluation tier design:** Research establishes the two-tier requirement (process compliance + quality evaluation) but does not specify the quality evaluation mechanism. Must be resolved before Phase 5 planning. Options: (a) human review pass against rubric criteria — higher accuracy, requires time; (b) AI judge agent with prescriptive rubric — scalable, needs careful prompt design to avoid circular evaluation. Either way, the quality evaluation must produce specific design findings, not numeric scores.
+
+- **`protected-files.json` complete enumeration:** Research identifies the need for this file and its purpose but does not enumerate the complete protected list. At minimum: `workflows/improve.md`, `references/quality-standards.md`, `references/skill-style-guide.md`, all `bin/lib/*.cjs`, `bin/pde-tools.cjs`, plugin root config files. The complete list should be defined and committed in Phase 1 before any fleet agent has write access to any file.
+
+- **Skill builder "improve" mode depth boundary:** Research does not specify how deeply "improve" mode should modify existing skills — cosmetic compliance fixes vs. substantive output instruction rewrites. This scope decision directly affects backward-compatibility risk (Pitfall 3). Recommend defaulting to additive-only improvements (adding missing required fields, extending output instructions) with full rewrites requiring explicit user confirmation flag (`--rewrite`). Define this boundary in Phase 4 planning before implementation.
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- PDE source code direct inspection: bin/pde-tools.cjs, bin/lib/design.cjs, workflows/build.md, workflows/critique.md, workflows/handoff.md, all 5 stub commands (competitive, mockup, hig, opportunity, recommend), all existing templates and references — architecture, anti-patterns, existing patterns
-- designtokens.org/tr/drafts/format/ — DTCG 2025.10 stable spec, $value/$type format
-- Official Claude Code docs (code.claude.com/docs/en/skills, /plugins, /sub-agents) — SKILL.md format, plugin.json, subagent frontmatter
-- WCAG 2.2 (ISO/IEC 40500:2025) — authoritative accessibility standard; October 2025 ISO ratification
-- MCP Registry API (registry.modelcontextprotocol.io) + Nordic APIs guide — /v0/servers endpoint, cursor pagination, v0.1 API freeze since September 2025
-- Apple Liquid Glass announcement (apple.com/newsroom, June 2025) — iOS 26 design language, Liquid Glass material
-- github.com/mermaid-js/mermaid issues #3590, #4148 — Mermaid 10+ ESM-only confirmed
-- styledictionary.com/versions/v4/migration/ — Style Dictionary v4+ ESM-only confirmed
-- a11y-mcp GitHub (github.com/priyankark/a11y-mcp) — free, MPL-2.0, wraps axe-core 4.11.1
-- Playwright MCP GitHub (github.com/microsoft/playwright-mcp) — Microsoft official, accessibility tree audit
+- PDE codebase direct inspection — `bin/lib/model-profiles.cjs`, `references/tooling-patterns.md`, `references/skill-style-guide.md`, `workflows/audit-milestone.md`, `workflows/critique.md`, `workflows/system.md`, `workflows/mockup.md`, `skill-registry.md`, `templates/design-manifest.json`, `.planning/PROJECT.md`
+- Claude Code official docs (code.claude.com/docs/en/skills) — SKILL.md format, frontmatter fields, supporting files structure, invocation control, subagent patterns
+- designtokens.org DTCG 2025.10 spec — $value/$type token format, `transition` token type for motion
 
 ### Secondary (MEDIUM confidence)
-- npm WebSearch (2026-03-16): a11y-mcp@1.0.4, @modelcontextprotocol/server-sequential-thinking@2025.12.18, @upstash/context7-mcp@2.1.4 — version numbers (npmjs.com direct fetch returned 403)
-- arxiv 2601.00475 — multi-phase ideation frameworks produce higher-novelty concepts than single-pass; supports two-round diverge structure in /pde:ideate
-- modelcontextprotocol.io/docs/sdk — MCP SDK v1.27.1 transport guidance; stdio for local, Streamable HTTP for remote
+- Awwwards official rubric — Design 40%, Usability 30%, Creativity 20%, Content 10%; 8.0+ SOTD threshold; custom interaction as primary differentiator (from utsubo.com/blog analysis + Awwwards annual awards page)
+- Google Cloud agentic AI architecture docs — reflection loop pattern, self-evaluation, auditor-improver patterns
+- Databricks agent system design patterns — loop pattern, critic pattern, self-improvement workflows
+- Anthropic skills public repo (github.com/anthropics/skills) — AgentSkills open standard, plugin skills/ directory structure
+- Awwwards animation techniques analysis — scroll-triggered effects, variable font animation, motion choreography (Medium, Design Bootcamp)
+- Smashing Magazine, "The AI Dilemma in Graphic Design: Typography and Beyond" (2024) — AI-generated design's generic aesthetic problem
+
+### Tertiary (LOW confidence)
+- AI design quality benchmarks (typeface.ai) — limited to brand/image quality, not web design composition; used only to understand the gap in existing evaluation approaches
+- "AI Agent Versioning and Lifecycle Management" (2025) — tool versioning as production failure cause; single source, not verified against official documentation
+- Intuition Labs meta-prompting guide (2025) — circular reasoning risk when same model generates and evaluates; consistent with first-principles analysis but limited to single source
 
 ---
-*Research completed: 2026-03-16*
+*Research completed: 2026-03-17*
 *Ready for roadmap: yes*

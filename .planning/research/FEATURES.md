@@ -1,640 +1,160 @@
 # Feature Research
 
-**Domain:** AI-assisted advanced design skills (ideation, competitive analysis, opportunity scoring, hi-fi mockup, HIG/WCAG audit, tool discovery)
-**Researched:** 2026-03-16
-**Confidence:** HIGH (RICE framework, WCAG 2.2, HIG structure), MEDIUM (ideation diverge/converge patterns, competitive analysis dimensions), MEDIUM (mockup fidelity bridge from lofi wireframes)
+**Domain:** Self-improving AI systems, skill builders, and Awwwards-level design generation for Claude Code plugin (PDE v1.3)
+**Researched:** 2026-03-17
+**Confidence:** HIGH (Claude Code skills API — verified against official docs), MEDIUM (Awwwards criteria — verified with official scoring rubric + multiple sources), MEDIUM (self-improvement agent patterns — verified with Google Cloud, Databricks architecture docs), LOW (design quality metrics for AI-generated output — emerging field, limited official standards)
 
 ---
 
-> **Scope note:** This file covers ONLY the six new v1.2 skills and the expanded `/pde:build` orchestrator. Existing v1.1 skills (brief, flows, system, wireframe, critique, iterate, handoff) are documented in the previous version of this file and are treated here as stable dependencies.
+> **Scope note:** This file covers ONLY the six new v1.3 capability areas. The v1.1 and v1.2 skills (all 13 pipeline stages, build orchestrator, design state tracking) are treated as stable dependencies that already exist.
 
 ---
 
-## Extended Pipeline Context
+## Existing System Baseline
 
-The v1.2 skills extend the pipeline in two directions: upstream (ideation, competitive, opportunity — run before brief) and downstream (mockup, hig — run after iterate, before handoff). Recommend is a utility skill integrated into ideation but also callable standalone.
+Before mapping features, the existing capabilities that v1.3 builds on:
 
 ```
-[NEW] ideate → competitive → opportunity → [EXISTING] brief → system → flows → wireframe → critique(+HIG light) → iterate → [NEW] mockup → [NEW] hig(full) → [EXISTING] handoff
+Skills (commands):          34 /pde: slash commands
+Design pipeline:            13 stages: recommend → competitive → opportunity → ideate →
+                            brief → system → flows → wireframe → critique → iterate →
+                            mockup → hig → handoff
+State tracking:             DESIGN-STATE.md, design-manifest.json (13 coverage flags)
+Agent types:                12 agent types, parallel wave orchestration
+Build orchestrator:         /pde:build --from [stage]
+Plugin format:              Claude Code plugin with commands/ directory
+Node.js runtime:            CommonJS, bin/pde-tools.cjs, bin/lib/*.cjs
+References:                 typography.md, color-systems.md, design-principles.md,
+                            skill-style-guide.md, tooling-patterns.md, etc.
 ```
 
-The `/pde:build` orchestrator must be expanded from 7 stages to 12 stages covering the full pipeline.
+v1.3 adds capabilities ON TOP of this. It does not restructure the existing system.
 
 ---
 
-## Skill A: Multi-Phase Ideation (`/pde:ideate`)
+## Feature Landscape
 
-**What it does:** Runs structured diverge→converge exploration before the brief is written. Produces a ranked set of product directions — each with concept description, key bets, risks, and fit against user need — plus a "recommended direction" for brief generation.
+### Table Stakes (Users Expect These)
 
-**Primary output:** `.planning/design/strategy/IDT-ideation-v{N}.md`
+Features that must exist for the v1.3 milestone to be considered complete. Missing these means the milestone does not meet its stated goals.
 
-**Depends on:** Nothing (entry point); benefits from PROJECT.md for product type context
+| Feature | Why Expected | Complexity | Dependencies on Existing |
+|---------|--------------|------------|--------------------------|
+| Tool audit skill (`/pde:audit`) | "Audit PDE tooling" is explicitly listed as an active requirement in PROJECT.md. Without this, there is no mechanism to detect quality gaps. | MEDIUM | Reads commands/, workflows/, references/, templates/, bin/lib/; produces structured report |
+| Skill builder capability (`/pde:skill-build`) | Explicitly listed as active requirement: "Build skill-builder capability — PDE can create, update, and improve its own skills and user project skills." | HIGH | Claude Code SKILL.md format (verified: name, description, frontmatter, supporting files structure); needs skill-style-guide.md as constraint reference |
+| Self-improvement agents (audit, validate, elevate) | Explicitly listed: "Build self-improvement fleet." Without agent definitions, self-improvement is manual only. | HIGH | Existing 12 agent types serve as template; new agents extend that registry |
+| Design quality elevation (typography, color, motion, composition) | Explicitly listed: "Elevate design quality — upgrade design pipeline output to Awwwards-level." This is the primary design goal of the milestone. | HIGH | All 13 existing design skills are targets; system.md, wireframe.md, mockup.md are highest impact |
+| Awwwards-quality scoring rubric | Without a measurable rubric, "Awwwards-level" is subjective. The pressure test needs criteria to pass/fail. | MEDIUM | References the existing design-principles.md, color-systems.md; new scoring dimensions added |
+| End-to-end pressure test (`/pde:pressure-test` or documented procedure) | Explicitly listed: "Pressure test — full end-to-end pipeline on a real project, measured against professional design standards." | MEDIUM | Runs the full 13-stage pipeline; requires all quality elevations to be in place first |
 
-**Integrates:** `/pde:recommend` (tool/MCP discovery during ideation to surface research tools)
+### Differentiators (Competitive Advantage)
 
-### Table Stakes
-
-| Feature | Why Expected | Complexity | Notes |
-|---------|--------------|------------|-------|
-| Divergent idea generation (minimum 5 distinct directions) | Ideation without breadth is just refinement; users expect exploration | MEDIUM | Each direction: concept name, 2-sentence description, key bets, target user |
-| Convergence scoring/ranking against stated goal | Divergence without selection criteria produces unusable output | MEDIUM | Criteria: goal fit, feasibility, differentiability, scope; weighted sum |
-| Recommended direction output | AI must make a recommendation, not just list options | LOW | Single clear recommendation with rationale; not a committee |
-| Assumption capture per direction | Each direction rests on assumptions; surfaces them early before brief commits | LOW | "This direction assumes [X]" per concept |
-| Handoff to `/pde:brief` | Ideation output feeds brief.md as the chosen direction context | LOW | Recommended direction populates brief's problem statement seed |
-
-### Differentiators
+Features that set PDE apart from other AI-assisted design tools and other Claude Code plugins.
 
 | Feature | Value Proposition | Complexity | Notes |
 |---------|-------------------|------------|-------|
-| Multi-phase structure (diverge round 1 → reflect → diverge round 2 → converge) | Single-pass ideation anchors on first ideas; multi-phase overcomes anchoring bias | HIGH | Research: progressive ideation frameworks produce higher-novelty concepts (arxiv 2601.00475) |
-| HMW (How Might We) reframe per direction | Forces problem-first framing before solution generation | LOW | "How might we [verb] [user] so that [outcome]?" per direction |
-| Analogous domain import | Explicitly looks for parallel solutions from non-adjacent industries | MEDIUM | "How does [banking / healthcare / gaming] solve this?" — expands solution space |
-| Concept combination pass | After round 1, generates hybrid concepts by combining strongest elements of multiple directions | MEDIUM | Hybrid concepts often outperform any single direction |
-| Risk typology per direction | Technical risk, market risk, execution risk scored per direction | LOW | Informs opportunity scoring; directions with all-HIGH risks need evidence |
+| Skill creator that writes conforming SKILL.md files | Most Claude Code users write skills manually. PDE can create correctly-structured, style-guide-conforming skills programmatically. This is unique in the ecosystem. | HIGH | Must produce SKILL.md files matching Claude Code's YAML frontmatter spec (verified: name, description, disable-model-invocation, allowed-tools, context, agent fields). Must also produce supporting files directories. |
+| Self-auditing design pipeline | PDE audits its own output quality after each stage — not just at the end. If a mockup fails Awwwards criteria, it flags before handoff. | HIGH | Requires per-stage quality gate integration into the critique skill and/or a new audit hook |
+| Awwwards-specific design scoring as a skill | No known AI tool outputs structured Awwwards-criteria scoring (Design 40%, Usability 30%, Creativity 20%, Content 10%). PDE can produce this as a machine-readable score on its own output. | MEDIUM | Scoring weights are verified from official Awwwards rubric. Must score 8.0+ average to meet SOTD standard. |
+| Reflection-loop agents for design critique | Self-improvement agents that generate output, then switch into critic mode to assess it, then revise — all within one agent invocation. This is the "reflection pattern" from agentic AI literature. | HIGH | Distinct from existing critique skill (which is human-facing). This is automated quality cycling. |
+| Tool optimization pass (Context7, agent prompts, templates) | Active scanning of all agent prompts and templates against discovered best practices, with automated improvement proposals. | MEDIUM | Requires reading all workflow/*.md and templates/**/*.md files systematically |
+| Motion and animation tokens in DTCG format | Current design system produces DTCG typography + color tokens. Adding motion tokens (duration, easing, delay, transform curves) makes the system Awwwards-competitive. Most design token systems skip animation. | MEDIUM | Extends existing tokens output from system skill; motion reference does not yet exist |
+| Pressure test scorecard with pass/fail criteria | A structured document that lets users validate their full pipeline output against professional standards before shipping. | MEDIUM | Requires defining what "pass" means across all 13 pipeline stages |
 
-### Anti-Features
-
-| Feature | Why Requested | Why Problematic | Alternative |
-|---------|---------------|-----------------|-------------|
-| Immediately picking a winner in round 1 | "Skip to the answer" | Premature convergence produces uncreative output; users learn to game the first prompt | Two explicit phases: diverge (no judgment) then converge (scoring) |
-| Generating 20+ concepts | "More is better" | Cognitive overload; users don't evaluate 20 directions; selection quality drops | Cap at 5-8 divergent directions; quality > quantity |
-| Including implementation details in ideation | "What tech stack would each use?" | Premature technical framing anchors to familiar tech and kills novel directions | Ideation stays at concept level; system stage handles tech; stack is a brief constraint, not an ideation variable |
-| Auto-advancing to brief without user confirmation | "Save the click" | Ideation → brief is a high-value human decision point; AI should not bypass it | Gate: present recommended direction, require user confirmation before brief proceeds |
-
-**Output format:**
-```markdown
-# Ideation: [Project Name]
-**Phase:** Ideation
-**Directions explored:** N
-
-## Divergence Round 1
-
-### Direction A: [Name]
-**Concept:** [2 sentences]
-**HMW:** How might we [verb] [user] so that [outcome]?
-**Key bets:** [What must be true for this to work]
-**Assumptions:** [What we're assuming about user, market, tech]
-**Risks:** Technical: [H/M/L] | Market: [H/M/L] | Execution: [H/M/L]
-**Analogous domain:** [Where this pattern already works]
-
-[... Directions B through E ...]
-
-## Divergence Round 2 (Hybrids + Refinements)
-
-### Direction AB: [Hybrid name]
-...
-
-## Convergence
-
-### Scoring Matrix
-| Direction | Goal Fit | Feasibility | Differentiation | Scope | Total |
-|-----------|----------|-------------|-----------------|-------|-------|
-| A | 4 | 3 | 4 | 3 | 14 |
-
-### Recommended Direction: [Name]
-**Rationale:** [Why this direction wins on the scoring criteria]
-**Key assumption to validate:** [The single most critical assumption before committing]
-
-## Next Step
-Run `/pde:competitive` to validate market positioning, or `/pde:brief` to start the design pipeline with this direction.
-```
-
-**Complexity:** HIGH — multi-phase structure, concept generation, cross-domain analogies, hybrid synthesis, and convergence scoring all require careful prompting and sequential thinking MCP.
-
----
-
-## Skill B: Competitive Analysis (`/pde:competitive`)
-
-**What it does:** Produces a structured landscape evaluation of competing products — identifying their strengths, weaknesses, and positioning gaps — to inform the product's differentiation strategy.
-
-**Primary output:** `.planning/design/strategy/CMP-competitive-v{N}.md`
-
-**Depends on:** Ideation output (IDT-ideation) OR brief.md for problem space context; soft dependency only
-
-**Typical dimensions researched:** Features, UX, pricing model, target user, onboarding, key differentiators, weaknesses, market positioning
-
-### Table Stakes
-
-| Feature | Why Expected | Complexity | Notes |
-|---------|--------------|------------|-------|
-| Competitor identification (minimum 3 direct, 2 indirect) | Analysis with fewer than 3 competitors lacks credibility | LOW | Direct = same problem/user; indirect = same user, different problem |
-| Feature matrix across competitors | Users expect a table: Feature A → which competitors have it | MEDIUM | ~10-15 features evaluated; binary or H/M/L scoring |
-| Positioning map | Two-axis perceptual map showing where competitors cluster and where gaps are | MEDIUM | Axes derived from the most differentiating dimensions, not arbitrary |
-| Explicit gap identification | "Where no competitor plays well" is the actionable output | MEDIUM | 2-4 opportunity gaps with supporting evidence |
-| Evidence basis (not fabricated) | Training data often has stale competitor feature info; must flag confidence level per claim | MEDIUM | Marks claims as [training data — verify] when not confirmed via MCP/web search |
-
-### Differentiators
-
-| Feature | Value Proposition | Complexity | Notes |
-|---------|-------------------|------------|-------|
-| UX pattern analysis (not just features) | Feature lists miss HOW competitors solve problems; UX patterns are harder to copy | HIGH | Navigation model, onboarding approach, error recovery pattern per competitor |
-| Competitor weakness typology | "Hard to copy" vs "won't fix" vs "known issue they're working on" | MEDIUM | Changes strategy: attack won't-fix weaknesses, not known-issue ones |
-| Market segment mapping | Which competitor serves which user segment; identifies underserved segments | MEDIUM | Segment × competitor coverage matrix |
-| Feeds opportunity scoring | Each gap in the competitive matrix becomes an input to RICE scoring | LOW | CMP output consumed directly by `/pde:opportunity` |
-| WebSearch MCP integration | Uses live search to verify current competitor feature state | HIGH | Training data for competitor features can be 6-18 months stale; web search is the right source |
-
-### Anti-Features
+### Anti-Features (Commonly Requested, Often Problematic)
 
 | Feature | Why Requested | Why Problematic | Alternative |
 |---------|---------------|-----------------|-------------|
-| Exhaustive competitor survey (10+ competitors) | "Be thorough" | Analysis paralysis; 10+ competitors obscures the signal; most don't matter for differentiation | Cap at 5 competitors (3 direct + 2 indirect); document why others were excluded |
-| Evaluating competitors on dimensions irrelevant to product | "Include pricing, team size, funding" | These matter for business strategy, not product design decisions | Scope strictly to dimensions that affect design: features, UX, user segment, onboarding |
-| Claiming live competitor features without web verification | Training data may be wrong or 18 months stale | Produces false competitive intelligence that corrupts gap analysis | Every competitor feature claim must be marked with confidence level; web verify top claims |
-
-**Output format:**
-```markdown
-# Competitive Analysis: [Project Name]
-**Date:** [date]
-**Problem space:** [from ideation or brief]
-
-## Competitor Landscape
-
-### Direct Competitors
-| Competitor | Target User | Core Value Prop | Key Features | Notable UX Pattern |
-|------------|-------------|-----------------|--------------|-------------------|
-| [Name] | [who] | [what they do best] | [top 3-5] | [how they do it] |
-
-### Indirect Competitors
-...
-
-## Feature Matrix
-
-| Feature | [Comp A] | [Comp B] | [Comp C] | [Our Direction] |
-|---------|----------|----------|----------|-----------------|
-| [Feature 1] | Yes | Yes | No | Planned |
-| [Feature 2] | Yes | No | No | Planned |
-
-## Positioning Map
-
-**Axes:** [Dimension 1] vs [Dimension 2]
-[Text description of where each competitor falls]
-
-**Clusters:**
-- Cluster 1: [Comp A, Comp B] — [description]
-- Gap: [Where nobody plays well]
-
-## Opportunity Gaps
-
-### Gap 1: [Name]
-**Where:** [Position on the map]
-**Evidence:** [Why this gap exists and is real]
-**Design implication:** [How this shapes what to build]
-**Confidence:** [HIGH/MEDIUM/LOW] — [source: training data/web search/official docs]
-
-## Next Step
-Run `/pde:opportunity` to score these gaps using RICE, or `/pde:brief` to begin the pipeline with this direction.
-```
-
-**Complexity:** MEDIUM — structured evaluation against known dimensions; HIGH if WebSearch MCP integration is used for live competitor verification.
+| Fully autonomous self-modification (PDE rewrites its own commands) | Seems like the ultimate self-improvement | AI systems that rewrite their own core logic without human review create unpredictable behavior and break reproducibility. The file-based state model makes this especially risky — corrupted commands would corrupt all user projects using PDE. | Propose improvements as files in `.planning/improvements/` for human review and merge. Never auto-apply to live commands. |
+| Generic LLM quality metrics (BLEU, ROUGE, perplexity) | Borrowed from NLP evaluation literature | These metrics measure text similarity, not design quality. Awwwards judges care about visual hierarchy, interaction design, and creativity — none of which BLEU captures. | Domain-specific rubric: Awwwards criteria (Design 40%, Usability 30%, Creativity 20%, Content 10%) applied to design artifacts directly. |
+| Continuous background self-improvement loop | Sounds like "always getting better" | Claude Code is session-based. Background loops have no persistent state across sessions. Trying to implement them causes confusion about when improvement happened and which session triggered it. | Explicit skill invocations that users run intentionally: `/pde:audit`, `/pde:skill-build`, `/pde:improve`. |
+| Three.js / WebGL / WebGPU in mockup output | Awwwards winners heavily use 3D and WebGL. Seems like a path to high creativity scores. | PDE mockups are HTML/CSS static files used as handoff references for engineers. Embedding Three.js creates unrunnable artifacts without a dev server, explodes file size, and moves away from the mockup's purpose (communicate design intent, not implement interaction). | Document Three.js/WebGL as implementation recommendations in handoff spec. The HANDOFF artifact is the right place to specify "this animation requires Three.js r171." |
+| Automated Awwwards submission | Completes the pipeline end-to-end | Awwwards judges human-to-human authenticity and concept-driven design. Automated submissions are detectable (judges explicitly train for this) and would damage credibility. The goal is output quality that could win — not automated submission. | Pressure test produces a scorecard. User decides whether to submit. |
+| Skill versioning / rollback system | Sounds like safe self-improvement | Adds significant infrastructure complexity (a version store, diff system, rollback mechanism) to a file-based plugin that has no database. Git serves this role already — skills live in version-controlled files. | Document that git history serves as skill version history. The skill builder writes new versions with `v{N}` suffixes following existing PDE naming patterns. |
 
 ---
 
-## Skill C: Opportunity Scoring (`/pde:opportunity`)
-
-**What it does:** Scores identified feature opportunities using the RICE framework (Reach × Impact × Confidence ÷ Effort) to produce a prioritized opportunity list. Inputs come from ideation direction, competitive gaps, and user-supplied opportunity list.
-
-**Primary output:** `.planning/design/strategy/OPP-opportunity-v{N}.md`
-
-**Depends on:** Ideation (IDT) and/or competitive (CMP) outputs for opportunity list; can also accept user-defined opportunities as input
-
-### Table Stakes
-
-| Feature | Why Expected | Complexity | Notes |
-|---------|--------------|------------|-------|
-| RICE score per opportunity | RICE is the dominant PM prioritization framework; any opportunity scoring tool uses it | LOW | Formula: (Reach × Impact × Confidence) ÷ Effort |
-| Scoring criteria definition before scoring | Criteria must be defined upfront or scores are meaningless | LOW | Document: what counts as "Reach = 5" vs "Reach = 1" for this product |
-| Ranked output with score visibility | Users expect to see the ranked list AND the component scores (not just totals) | LOW | Table: opportunity, Reach, Impact, Confidence, Effort, RICE Score, Rank |
-| Rationale per score component | "Why Reach = 4?" must be answerable; otherwise scores are fabricated | MEDIUM | One sentence of evidence per component |
-| MVP recommendation from top-scored opportunities | "What should we build first?" is the output users need | LOW | Top 3 opportunities by RICE score as MVP candidates |
-
-### Differentiators
-
-| Feature | Value Proposition | Complexity | Notes |
-|---------|-------------------|------------|-------|
-| Confidence calibration against competitive analysis | Confidence score explicitly informed by competitive gap evidence | MEDIUM | "Confidence = 4 because gap confirmed by competitive analysis; no competitor does this well" |
-| Effort normalization across opportunities | Effort scores must be on a shared scale; absolute hours are useless without anchoring | LOW | Anchor: "Effort = 3 = a 2-week sprint for one engineer" |
-| Sensitivity analysis | Shows which score component drives the result; "this opportunity ranks #1 primarily on low effort" | MEDIUM | Prevents false precision; surfaces which estimates need tightest validation |
-| Feeds brief.md and flows.md | Top-ranked opportunities become goals and success criteria in brief stage | LOW | OPP output explicitly references which opportunities brief.md should address |
-| Score update pattern | As validation evidence arrives, scores update; changelog tracks why they changed | LOW | RICE scores should not be locked; they're hypotheses |
-
-### Anti-Features
-
-| Feature | Why Requested | Why Problematic | Alternative |
-|---------|---------------|-----------------|-------------|
-| Pure numerical objectivity ("the RICE score decides") | RICE feels objective | RICE scores are estimates, not measurements; treating them as final decisions suppresses human judgment | Always present RICE as input to decision, not the decision itself; "RICE suggests X but note Y" |
-| Scoring 20+ opportunities at once | Thoroughness | With 20 items, scoring quality degrades and the ranked list is unwieldy; users act on top 5 anyway | Cap at 10 opportunities; if more exist, cluster into themes before scoring |
-| Single scoring session as final | "Score once and ship" | Market conditions change; new evidence arrives | Document scoring date and evidence basis; prompt re-score when brief or competitive analysis updates |
-
-**Output format:**
-```markdown
-# Opportunity Scoring: [Project Name]
-**Date:** [date]
-**Scoring criteria:**
-- Reach: number of users affected per quarter at launch scale
-- Impact: 1=marginal, 2=low, 3=medium, 4=high, 5=massive
-- Confidence: 1=guess, 3=validated pattern, 5=confirmed need
-- Effort: 1=days, 3=2-week sprint, 5=quarter+
-
-## Opportunities Scored
-
-| Opportunity | Reach | Impact | Confidence | Effort | RICE Score | Rank |
-|-------------|-------|--------|------------|--------|------------|------|
-| [Opp A] | 4 | 3 | 4 | 2 | 24 | #1 |
-| [Opp B] | 3 | 4 | 3 | 3 | 12 | #2 |
-
-### Score Rationale
-
-**[Opportunity A]**
-- Reach = 4: [evidence]
-- Impact = 3: [evidence]
-- Confidence = 4: [evidence; cross-references competitive gap if applicable]
-- Effort = 2: [evidence]
-
-## Sensitivity Analysis
-
-**[Opportunity A]** rank is primarily driven by low effort (Effort=2). If effort estimate is wrong (Effort=4), score drops to 12 and falls to #2.
-
-## MVP Candidates (Top 3)
-
-1. [Opp A] — RICE: 24 — [one-line rationale]
-2. [Opp B] — RICE: 12 — [one-line rationale]
-3. [Opp C] — RICE: 10 — [one-line rationale]
-
-## Next Step
-Run `/pde:brief` using these opportunities as goal inputs.
-```
-
-**Complexity:** MEDIUM — RICE math is trivial; the value and complexity is in calibrated rationale and sensitivity analysis.
-
----
-
-## Skill D: Hi-Fi Mockup Generation (`/pde:mockup`)
-
-**What it does:** Upgrades iterated wireframes (WFR lofi/midfi) to high-fidelity browser-viewable HTML/CSS mockups with design system tokens applied, real interactions, and pixel-precise styling. Produces one self-contained HTML file per screen plus a navigation index.
-
-**Primary output:** `.planning/design/visual/MCK-{screen}-v{N}.html` (one per screen) + `MCK-index.html`
-
-**Depends on:** Wireframes (WFR — post-iterate), design system tokens (SYS — tokens.css), brief (for platform context)
-
-**Position in pipeline:** After iterate, before handoff. The current `/pde:wireframe --hifi` produces high-fidelity wireframes but not interactive mockups; this skill is the dedicated hi-fi output stage.
-
-### Table Stakes
-
-| Feature | Why Expected | Complexity | Notes |
-|---------|--------------|------------|-------|
-| Design token application (tokens.css consumed) | Hi-fi must use the project's actual design system tokens, not hardcoded values | LOW | Import tokens.css from assets/; use CSS custom properties throughout |
-| Real interactive states | Button hover, focus ring, disabled, loading spinner — browser-rendered via CSS | MEDIUM | Each interactive element gets :hover, :focus, :disabled states |
-| All state variants per screen | Default, loading, error, empty — each as a distinct section or toggle in the HTML file | MEDIUM | Matches the state variants documented in wireframe annotations |
-| Self-contained HTML (no server required) | File:// URL compatibility is a PDE invariant; devs and stakeholders open files directly | LOW | All CSS inline or in `<style>` block; no external CDN dependencies |
-| Navigation index | MCK-index.html links all screens; opens in browser as a clickable prototype | LOW | Same pattern as WFR-index.html already produced by wireframe skill |
-| Wireframe annotation preservation | Annotations from wireframe HTML files copied into mockup HTML as developer comments | LOW | Ensures handoff stage can still read annotations from mockup files |
-
-### Differentiators
-
-| Feature | Value Proposition | Complexity | Notes |
-|---------|-------------------|------------|-------|
-| CSS-only interactions (no JavaScript required) | Keeps mockup files simple; JS-heavy mockups are hard to inspect and extend | MEDIUM | :hover, :focus, :checked, CSS transitions cover ~80% of interactive states; JS only for modal toggle |
-| Responsive layout at defined breakpoints | Mockup shows desktop AND mobile at breakpoints defined in design system | HIGH | CSS Grid + media queries; breakpoints from SYS tokens or brief --platform flag |
-| Component annotation comments | Each component block in HTML annotated with its system.md component name and props | LOW | `<!-- [LoginForm] props: email, onSubmit | source: WFR-login-v2 -->` |
-| Playwright screenshot validation | If Playwright MCP available, take screenshots of each state for stakeholder review | MEDIUM | Screenshots stored alongside HTML; referenced in MCK-index.html |
-| Figma push (when Figma MCP available) | Upload mockup tokens and layout to Figma for team collaboration | HIGH | Optional enhancement; Figma MCP integration required; degrade gracefully |
-
-### Anti-Features
-
-| Feature | Why Requested | Why Problematic | Alternative |
-|---------|---------------|-----------------|-------------|
-| Full JavaScript application logic | "Make it work like the real app" | Mockup is a design artifact, not a prototype; implementing logic is building, not mocking | Document interactions in annotation comments; use CSS-only state simulation; full logic is the implementation phase |
-| Pixel-perfect image generation (PNG/SVG exports) | "Export screens as images for the deck" | Image generation from HTML is a Playwright/screenshot job, not a design stage output | Superpowers MCP browser preview or Playwright screenshot; don't bundle image generation into mockup skill |
-| Auto-generating mockup without iterate completing | "Skip to hi-fi directly from wireframe" | Skipping critique/iterate means hi-fi embeds unvalidated design decisions that are expensive to change | Hard prerequisite: check for iterate artifact (hasIterate flag); warn if not present |
-| Inline all design decisions (override tokens) | "This screen needs its own color" | One-off inline overrides create divergence from design system; handoff then has contradictions | Always use CSS custom properties from tokens.css; if a token is missing, add it to the system first |
-
-**Output format (single screen HTML structure):**
-```html
-<!DOCTYPE html>
-<!-- MCK-{screen}-v{N}.html -->
-<!-- Generated by /pde:mockup | Source: WFR-{screen}-v{N}.html | Date: {date} -->
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>[Screen Name] — [Project] Mockup</title>
-  <style>
-    /* Inline tokens from assets/tokens.css */
-    :root { --color-primary: ...; }
-    /* Component styles using tokens */
-    .login-form { padding: var(--space-md); }
-  </style>
-</head>
-<body>
-  <!-- [LoginForm] props: email, password, onSubmit | source: WFR-login-v2 annotation line 12 -->
-  <main>
-    <!-- DEFAULT STATE -->
-    <section data-state="default"> ... </section>
-    <!-- LOADING STATE -->
-    <section data-state="loading" hidden> ... </section>
-    <!-- ERROR STATE -->
-    <section data-state="error" hidden> ... </section>
-  </main>
-</body>
-</html>
-```
-
-**Complexity:** HIGH — applying design tokens, CSS interactive states, responsive layout, and annotation preservation across multiple screen files requires significant prompt engineering and validation.
-
----
-
-## Skill E: HIG + WCAG Audit (`/pde:hig`)
-
-**What it does:** Audits design artifacts against Apple Human Interface Guidelines (HIG) and WCAG 2.2 AA standards. Operates in two modes: light (fast check integrated into critique pass) and full (comprehensive gate before handoff).
-
-**Primary output:** `.planning/design/review/HIG-audit-v{N}.md`
-
-**Depends on:** Wireframes (WFR) or mockups (MCK) as subject; design system tokens (SYS) for color contrast; brief (for platform context — iOS vs web vs both)
-
-**Dual mode:**
-- Light mode: Called by `/pde:critique` with `--hig` flag; adds HIG/WCAG findings to the critique report
-- Full mode: Standalone `/pde:hig` invocation; comprehensive gate before `/pde:handoff`
-
-### Table Stakes
-
-| Feature | Why Expected | Complexity | Notes |
-|---------|--------------|------------|-------|
-| Color contrast check (WCAG 1.4.3 AA) | Contrast failure is the #1 most common WCAG violation; any audit tool checks this | LOW | Text on background must be ≥4.5:1 (normal) or ≥3:1 (large); read from tokens.css |
-| Focus visibility check (WCAG 2.4.11) | New in WCAG 2.2; focus indicators must be visible; often missing in custom designs | LOW | Check that :focus styles exist; flag if focus-visible only without :focus fallback |
-| Touch target sizing (HIG + WCAG 2.5.8) | iOS HIG: 44×44pt minimum; WCAG 2.5.8 new in 2.2; critical for mobile | LOW | Check all interactive elements in wireframes/mockups for target size annotations |
-| Form labels (WCAG 1.3.1, 3.3.2) | Every input must have a visible or programmatic label; missing labels are ubiquitous | LOW | Check wireframe annotations for label elements; flag placeholders used as labels |
-| Heading hierarchy (WCAG 1.3.1) | h1 > h2 > h3 — skipping levels is a structural error | LOW | Check each screen wireframe/mockup for heading level notes |
-| Severity-rated findings | Critical (blocks access), Major (significant barrier), Minor (friction), Nit (best practice) | LOW | Same severity typology as /pde:critique for consistency |
-| HIG compliance check (when platform = ios/ipados) | Apple App Review checks HIG compliance; violations cause rejection | MEDIUM | Navigation patterns, safe area respect, system font usage, SF Symbols reference |
-| Remediation suggestion per finding | Finding without fix is noise; remediation is what makes the audit actionable | MEDIUM | "Issue: [what] → Fix: [how]" per finding |
-
-### Differentiators
-
-| Feature | Value Proposition | Complexity | Notes |
-|---------|-------------------|------------|-------|
-| Dual-mode architecture (light in critique, full standalone) | Light check catches critical issues early without cost of full audit; full audit is comprehensive gate | HIGH | Light mode: ~10 highest-impact checks; Full mode: all 87 WCAG 2.2 AA criteria coverage |
-| Platform-aware audit scope | iOS HIG rules differ from web WCAG; platform from DESIGN-STATE.md controls which rules apply | MEDIUM | platform=web → WCAG only; platform=ios → HIG + WCAG; platform=web,ios → both |
-| Axe MCP integration for automated detection | Axe a11y MCP can run programmatic checks on HTML mockups; catches contrast/ARIA issues automatically | HIGH | Baseline mode covers structure/semantic checks; Axe MCP adds automated contrast math and ARIA validation |
-| WCAG criterion cross-reference | Every finding links to the specific WCAG criterion number and success criterion | LOW | "Issue: contrast → WCAG 1.4.3 (Level AA)" — enables engineers to verify |
-| Pre-handoff gate integration | Full HIG audit is a required gate in `/pde:build` before handoff; cannot be skipped without `--force` | MEDIUM | hasHIG coverage flag in design manifest; handoff warns if not set |
-
-### Anti-Features
-
-| Feature | Why Requested | Why Problematic | Alternative |
-|---------|---------------|-----------------|-------------|
-| Claiming "WCAG 2.2 AA compliant" from a text audit | Users want a compliance badge | Text/AI audits catch 30-57% of WCAG violations (automation limit); claiming compliance is false | Output is "audit findings — [N] issues found" not "compliant"; note manual testing requirement |
-| Auditing against WCAG 3.0 | "Use the latest" | WCAG 3.0 is not published; guidelines are WCAG 2.2 AA as of 2026; referencing 3.0 creates confusion | Audit against WCAG 2.2 AA explicitly; flag any WCAG 3.0 candidate criteria as advisory only |
-| Including non-design issues (server-side, backend) | "Check everything for accessibility" | HIG/WCAG audit in design stage covers design decisions only; runtime accessibility (ARIA live regions, focus management on navigation) is implementation scope | Clearly scope: "This audit covers design-stage artifacts; runtime accessibility testing belongs in /pde:test" |
-
-**Output format:**
-```markdown
-# HIG + WCAG Audit: [Project Name]
-**Mode:** Full / Light
-**Platform:** [web / ios / web,ios]
-**Artifacts audited:** [list of WFR or MCK files]
-**Date:** [date]
-
-## Summary
-- Critical: N (blocks access)
-- Major: N (significant barrier)
-- Minor: N (friction)
-- Nit: N (best practice)
-
-## Findings
-
-### [HIG-01] [Critical] Touch Target Too Small
-**Criterion:** HIG: 44×44pt minimum / WCAG 2.5.8 (AA, new in 2.2)
-**Screen:** [screen name]
-**Finding:** [ButtonComponent] has 32×24pt tap target per annotation
-**Fix:** Increase to minimum 44×44pt; use padding to expand hit area without changing visual size
-**Confidence:** HIGH — size annotation explicit in wireframe
-
-### [ACC-01] [Major] Insufficient Color Contrast
-**Criterion:** WCAG 1.4.3 (Level AA)
-**Token:** color-text-secondary on color-surface
-**Finding:** Computed ratio 3.2:1; required 4.5:1 for normal text
-**Fix:** Darken color-text-secondary from #767676 to #595959 (achieves 4.6:1)
-**Confidence:** HIGH — computed from tokens.css values
-
-## Platform Notes (iOS-specific if applicable)
-- Safe area insets respected: [Yes/No — finding if No]
-- System font (SF Pro) or documented custom font: [Yes/No]
-
-## Audit Scope
-- Automated checks (Axe MCP): [available/unavailable]
-- Manual checks performed: color contrast, heading hierarchy, form labels, focus visibility, touch targets
-- Manual checks NOT performed (require live browser + screen reader): keyboard traps, screen reader flow, live region announcements
-```
-
-**Complexity:** MEDIUM — structural checks against known criteria are systematic; HIGH for dual-mode architecture and Axe MCP integration path.
-
----
-
-## Skill F: Tool/MCP Discovery (`/pde:recommend`)
-
-**What it does:** Analyzes project context (STACK.md, PROJECT.md, DESIGN-STATE.md, active milestone) and recommends relevant MCPs and tools that would enhance the development workflow. Also surfaces any MCP tools not yet configured in the project's MCP environment.
-
-**Primary output:** `.planning/design/strategy/REC-recommend-v{N}.md` (when run standalone); inline section appended to IDT-ideation (when called during ideation)
-
-**Depends on:** STACK.md (tech stack detection), PROJECT.md (product type), DESIGN-STATE.md (MCP availability snapshot)
-
-**Integration points:** Called by `/pde:ideate` to discover research MCPs at start of ideation; callable standalone at any time
-
-### Table Stakes
-
-| Feature | Why Expected | Complexity | Notes |
-|---------|--------------|------------|-------|
-| Current MCP availability check | Users expect to know what's active vs what's missing | LOW | Read MCP Availability from DESIGN-STATE.md; compare against known MCP list |
-| Stack-matched tool recommendations | "Given you're using React + TypeScript, here are the relevant MCPs" | MEDIUM | STACK.md detection → recommendation mapping per tech |
-| Installation instructions per recommendation | Recommendation without install path is not actionable | LOW | `claude mcp add [name] [command]` per recommendation |
-| Rationale per recommendation | "Why do I need this?" — each recommendation explains the workflow benefit | LOW | "Playwright MCP: enables screenshot validation in /pde:wireframe and /pde:mockup" |
-| Deduplication against already-installed MCPs | Don't recommend what's already there | LOW | Read DESIGN-STATE.md MCP Availability before recommending |
-
-### Differentiators
-
-| Feature | Value Proposition | Complexity | Notes |
-|---------|-------------------|------------|-------|
-| Context-aware recommendation (milestone + phase aware) | Recommendations differ based on where you are in the pipeline | MEDIUM | Mid-design: prioritize Playwright + Axe; pre-ideation: prioritize web search + Context7; pre-handoff: prioritize Figma |
-| MCP tool search integration | With Claude Code's tool search feature (enabled by default), can discover MCPs via keyword search rather than only from known list | HIGH | Claude Code tool search defers tools; recommend can search for design-relevant MCP tools on demand |
-| Confidence level per recommendation | Some MCP tools are well-documented (Context7, Playwright); others have unstable APIs | LOW | HIGH confidence for official Anthropic MCPs; MEDIUM for community MCPs |
-| Priority ordering | Not all MCPs are equally valuable; rank by impact for this project type | LOW | P1 = universal (Sequential Thinking, Superpowers); P2 = design-specific (Playwright, Axe, Figma); P3 = optional |
-
-### Anti-Features
-
-| Feature | Why Requested | Why Problematic | Alternative |
-|---------|---------------|-----------------|-------------|
-| Auto-installing MCPs without confirmation | "Just set it up" | Installing MCPs modifies the user's Claude Code environment; requires explicit consent | Always present recommendations with install command; never auto-execute `claude mcp add` |
-| Recommending MCPs for every possible use case | "Be comprehensive" | 20 recommendations creates decision paralysis; users install nothing | Top 5 recommendations sorted by impact for current context; full list in appendix |
-| Recommending MCPs that conflict with user's constraints | "Here's the best tool" | Some MCPs require paid APIs, Docker, specific OS; context-blind recommendations create friction | Check STACK.md and .planning/config.json for constraints before recommending |
-
-**Output format (standalone):**
-```markdown
-# Tool Recommendations: [Project Name]
-**Context:** [current pipeline stage + active milestone]
-**Generated:** [date]
-
-## Currently Available MCPs
-[From DESIGN-STATE.md MCP Availability snapshot]
-
-## Recommended Additions
-
-### P1 (High Impact — Universal)
-
-#### Sequential Thinking MCP
-**Why:** Enables multi-step reasoning in ideation, critique, and handoff stages
-**Benefit:** Ideation quality improves significantly; critique finds more issues
-**Install:** `claude mcp add sequential-thinking npx -y @modelcontextprotocol/server-sequential-thinking`
-**Confidence:** HIGH — official Anthropic MCP
-
-### P2 (High Impact — Design Pipeline)
-
-#### Playwright MCP
-**Why:** Screenshot validation in /pde:wireframe and /pde:mockup
-**Benefit:** Catches layout rendering issues before stakeholder review
-**Install:** `claude mcp add playwright npx -y @modelcontextprotocol/server-playwright`
-**Confidence:** HIGH — official Anthropic MCP
-
-[...]
-
-## Full MCP Catalog
-[Table: MCP name, purpose, confidence, install command]
-```
-
-**Complexity:** LOW — primarily reading existing state files and matching against a recommendation catalog; MEDIUM when MCP tool search is used for dynamic discovery.
-
----
-
-## Expanded Orchestrator (`/pde:build` v1.2)
-
-**What it does:** Extends the existing 7-stage build pipeline to a 12-stage pipeline covering the full ideate → competitive → opportunity → brief → system → flows → wireframe → critique(+HIG light) → iterate → mockup → hig(full) → handoff sequence.
-
-**Depends on:** All 12 skill workflows; design manifest coverage flags
-
-### Table Stakes
-
-| Feature | Why Expected | Complexity | Notes |
-|---------|--------------|------------|-------|
-| Resume from last complete stage (all 12 stages) | Existing behavior must be preserved and extended | MEDIUM | Coverage flags: hasIdeation, hasCompetitive, hasOpportunity + existing 7 |
-| New upstream stages optional (enter at brief) | Not every project needs ideation + competitive first; brief remains a valid entry point | LOW | If brief exists and ideation/competitive/opportunity are absent, treat them as skipped |
-| New downstream stages in correct order | mockup → hig(full) → handoff order must be enforced | LOW | mockup requires iterate (hasIterate); hig requires mockup or wireframes; handoff requires hig |
-| `--dry-run` shows all 12 stages with status | Users need visibility into the full pipeline state | LOW | Extend existing stage table from 7 to 12 rows |
-| HIG light mode triggered during critique stage | Critique now includes a fast HIG check; orchestrator passes `--hig` flag to critique | MEDIUM | Adds HIG findings to critique report without a separate stage |
-
-### Differentiators
-
-| Feature | Value Proposition | Complexity | Notes |
-|---------|-------------------|------------|-------|
-| Configurable entry point (`--from=brief`) | Power users can start anywhere without dry-running through all 12 stages | MEDIUM | `--from=[stage]` flag skips pre-stages; records in run log |
-| Stage grouping display | Three groups: Research (ideate/competitive/opportunity), Design (brief/system/flows/wireframe), Quality (critique/iterate/mockup/hig/handoff) | LOW | Cleaner user experience than a flat 12-stage list |
-| Recommend integration pre-ideation | Before running ideate, orchestrator calls recommend to surface relevant research MCPs | MEDIUM | Ensures user has best tools before starting |
-
-### Anti-Features
-
-| Feature | Why Requested | Why Problematic | Alternative |
-|---------|---------------|-----------------|-------------|
-| Auto-running all 12 stages without gates | "One click to design" | Without human verification at stage transitions, errors compound; a bad ideation → bad competitive → bad brief → everything downstream is wrong | Human verification gates remain between each stage group; no skipping gates without --force |
-| Treating research stages as required for existing projects | "Everything must run ideation first" | Projects that already have a brief and flows shouldn't be forced through ideation | Detection: if BRF artifact exists, research stages marked as optional/skipped by default |
-
-**Updated pipeline stage table:**
-```
-Stage | Skill              | Coverage Flag     | Status
-1/12  | /pde:ideate        | hasIdeation       | complete / pending / skipped
-2/12  | /pde:competitive   | hasCompetitive    | complete / pending / skipped
-3/12  | /pde:opportunity   | hasOpportunity    | complete / pending / skipped
-4/12  | /pde:brief         | Glob BRF-brief    | complete / pending
-5/12  | /pde:system        | hasDesignSystem   | complete / pending
-6/12  | /pde:flows         | hasFlows          | complete / pending
-7/12  | /pde:wireframe     | hasWireframes     | complete / pending
-8/12  | /pde:critique+HIG  | hasCritique       | complete / pending
-9/12  | /pde:iterate       | hasIterate        | complete / pending
-10/12 | /pde:mockup        | hasMockup         | complete / pending
-11/12 | /pde:hig (full)    | hasHIG            | complete / pending
-12/12 | /pde:handoff       | hasHandoff        | complete / pending
-```
-
-**Complexity:** MEDIUM — extend existing orchestrator pattern; does not add skill logic, only stage detection and invocation. New coverage flags (hasIdeation, hasCompetitive, hasOpportunity, hasMockup, hasHIG) must be added to design manifest schema.
-
----
-
-## Feature Dependencies
+## Feature Dependency Map
 
 ```
-[/pde:ideate — IDT-ideation]
-    └──feeds──> [/pde:competitive] (problem space context)
-    └──feeds──> [/pde:brief] (recommended direction as seed)
-    └──integrates──> [/pde:recommend] (tool discovery at ideation start)
+[EXISTING: 13-stage design pipeline]
+    └──read-by──> [Tool Audit Skill]
+                      └──produces──> [Audit Report]
+                                         └──inputs──> [Skill Builder]
+                                                          └──produces──> [Improved SKILL.md files]
 
-[/pde:competitive — CMP-competitive]
-    └──feeds──> [/pde:opportunity] (gap list as opportunity inputs)
-    └──feeds──> [/pde:brief] (positioning context)
+[EXISTING: design pipeline output: system, wireframe, mockup]
+    └──evaluated-by──> [Awwwards Scoring Rubric]
+                           └──used-by──> [Self-Improvement Agents]
+                                             └──produces──> [Design Quality Elevation]
 
-[/pde:opportunity — OPP-opportunity]
-    └──feeds──> [/pde:brief] (scored opportunities as goal inputs)
+[Design Quality Elevation]
+    └──depends-on──> [Motion Tokens Reference] (new)
+    └──depends-on──> [Awwwards Scoring Rubric] (new)
+    └──updates──> [EXISTING: system.md skill] (upgraded output)
+    └──updates──> [EXISTING: mockup.md skill] (upgraded output)
+    └──updates──> [EXISTING: critique.md skill] (upgraded criteria)
 
-[/pde:brief → /pde:system → /pde:flows → /pde:wireframe — EXISTING]
-    └──required by──> [/pde:critique]
-    └──required by──> [/pde:mockup] (wireframes as source)
+[Pressure Test Procedure]
+    └──requires──> [Design Quality Elevation] (must be in place first)
+    └──requires──> [Awwwards Scoring Rubric] (scorecard criteria)
+    └──exercises──> [EXISTING: full 13-stage pipeline]
+    └──produces──> [Pass/Fail Scorecard]
 
-[/pde:critique (+ HIG light)]
-    └──required by──> [/pde:iterate]
+[Skill Builder]
+    └──requires──> [Tool Audit] (knows what to build/improve)
+    └──reads──> [EXISTING: skill-style-guide.md] (output format constraints)
+    └──reads──> [Claude Code SKILL.md spec] (verified format: YAML frontmatter + markdown)
+    └──writes──> [new SKILL.md files in commands/ or skills/ directory]
 
-[/pde:iterate — updated wireframes]
-    └──required by──> [/pde:mockup] (hi-fi source)
-    └──strongly recommended by──> [/pde:hig] (full)
-
-[/pde:mockup — MCK artifacts]
-    └──required by (soft)──> [/pde:hig] (full audit on hi-fi; can also audit WFR if no MCK)
-    └──feeds──> [/pde:handoff] (hi-fi annotations for implementation spec)
-
-[/pde:hig (full) — HIG-audit]
-    └──gate before──> [/pde:handoff] (accessibility gate in build orchestrator)
-
-[/pde:recommend]
-    └──enhances──> [/pde:ideate] (called inline)
-    └──standalone——> [any stage] (callable anytime)
-
-[SYS tokens.css]
-    └──required by──> [/pde:mockup] (token application)
-    └──required by──> [/pde:hig] (contrast calculations)
+[Self-Improvement Agents]
+    └──requires──> [EXISTING: agent registry / 12 agent types] (as template pattern)
+    └──uses-pattern──> [Reflection Loop] (generate → critique → revise)
+    └──uses-pattern──> [Orchestrator → Auditor → Improver] (multi-agent audit chain)
 ```
 
 ### Dependency Notes
 
-- **Upstream research stages (ideate, competitive, opportunity) are optional but synergistic:** Each stage's output is consumed by the next and ultimately seeds brief.md. If a project starts at brief without running them, brief quality suffers but the pipeline works.
-- **Mockup requires iterate completion:** Running mockup before critique/iterate means encoding unvalidated design decisions in hi-fi form — expensive to change. This is a soft warning in standalone mode, a hard gate in build mode.
-- **HIG audit can run on wireframes OR mockups:** Full audit is richer against mockup (has actual token values); light audit in critique runs against wireframes. Both modes share the same output format.
-- **Recommend has no hard dependencies:** It reads context but doesn't require any design artifacts. It can run before anything else.
-- **Design manifest schema must be extended:** Five new coverage flags (hasIdeation, hasCompetitive, hasOpportunity, hasMockup, hasHIG) must be added to pde-tools.cjs design coverage-check before any new skill can set them.
+**Tool Audit must run before Skill Builder:** The audit produces the gap list that the builder acts on. Building skills without an audit produces arbitrary improvements rather than targeted ones. These should be sequential in the roadmap.
+
+**Design Quality Elevation must run before Pressure Test:** The pressure test validates the elevated design pipeline. Running it on the unimproved pipeline is a baseline measurement, not a validation.
+
+**Awwwards Scoring Rubric is a shared dependency:** Both the Self-Improvement Agents and the Pressure Test need this rubric. It should be a new reference file (`references/awwwards-criteria.md`) rather than embedded in any single skill.
+
+**Motion Tokens are a sub-dependency of Design Quality Elevation:** The system skill needs motion token generation before the mockup skill can reference them. Motion tokens first, then mockup elevation.
+
+**Skill Builder does not conflict with existing commands:** The Claude Code skills API allows writing new SKILL.md files without touching existing commands/ files. The builder targets the new `.claude/skills/` directory for new skills, or writes proposed edits to a staging area for human review.
 
 ---
 
-## MVP Definition
+## MVP Definition (for v1.3 Milestone)
 
-### Launch With (v1.2)
+### Launch With (v1.3)
 
-All six new skills at table-stakes feature level, standalone AND orchestrated through extended `/pde:build`.
+Minimum viable for the milestone to close. These directly address the active requirements in PROJECT.md.
 
-- [ ] `/pde:ideate` — multi-phase diverge/converge with HMW reframes, assumption capture, ranked output
-- [ ] `/pde:competitive` — 3 direct + 2 indirect competitor evaluation, feature matrix, gap identification
-- [ ] `/pde:opportunity` — RICE scoring with calibrated rationale and MVP candidate output
-- [ ] `/pde:mockup` — hi-fi HTML/CSS from wireframes with token application, interactive states, self-contained
-- [ ] `/pde:hig` — dual mode (light in critique, full standalone), WCAG 2.2 AA + platform HIG, severity-rated
-- [ ] `/pde:recommend` — MCP availability check, stack-matched recommendations, install commands
-- [ ] `/pde:build` expanded to 12 stages with new coverage flags in design manifest
+- [ ] **Tool audit skill** — Scans PDE's own commands, agents, templates, references for quality gaps. Produces structured report. This is the diagnostic foundation everything else builds on.
+- [ ] **Skill builder capability** — Creates and updates SKILL.md files for both PDE internals and user project skills. Writes conforming Claude Code skill format (verified: YAML frontmatter + markdown content + optional supporting files directory).
+- [ ] **Self-improvement agent fleet** — At minimum 3 agent types: Auditor (reads and evaluates), Improver (proposes changes), Validator (checks proposed changes meet quality bar). Pattern: reflection loop (generate → critic mode → revise).
+- [ ] **Awwwards scoring rubric reference file** — New `references/awwwards-criteria.md` with the 4-dimension scoring model (Design 40%, Usability 30%, Creativity 20%, Content 10%) and concrete criteria at each level. This is shared infrastructure for elevation and pressure test.
+- [ ] **Design quality elevation (system + mockup + critique upgrades)** — Specifically: motion token generation in system skill, advanced composition guidance in wireframe/mockup, Awwwards-criteria-based feedback in critique skill. These three skills are the highest-impact targets.
+- [ ] **End-to-end pressure test** — Run the full 13-stage pipeline on a real (not synthetic) product concept. Evaluate output against Awwwards rubric. Produce a scored report.
 
-### Add After Validation (v1.2.x)
+### Add After Validation (v1.3.x)
 
-- [ ] Concept combination (hybrid) pass in ideation — needs proven single-phase output quality first
-- [ ] WebSearch MCP integration in competitive — live competitor data; requires verifiable cite per claim
-- [ ] Axe MCP integration in HIG — automated contrast/ARIA detection; depends on Axe MCP stability
-- [ ] Figma MCP push from mockup — depends on Figma MCP availability; defer until MCP integration milestone
-- [ ] Sensitivity analysis in opportunity scoring — add after user feedback on base RICE output
+Features to add once core self-improvement loop is working.
+
+- [ ] **Motion tokens in DTCG format** — Add animation timing (duration scale, easing curves, delay tokens) as DTCG `transition` type tokens in the system skill. Trigger: when system skill elevation is complete and tested.
+- [ ] **Per-stage quality gates** — Hook quality checking into each design pipeline stage (not just critique). Trigger: when audit + improvement agents are stable.
+- [ ] **Skill discovery scan** — Have the tool audit also scan for missing skills that the audit report recommends but don't yet exist. Trigger: when skill builder and audit are integrated.
+- [ ] **Pressure test scorecard template** — A reusable template that users run on their own projects (not just PDE internal validation). Trigger: after pressure test procedure is documented and validated.
 
 ### Future Consideration (v2+)
 
-- [ ] Interview synthesis in ideation — feeding user research transcripts into ideation context
-- [ ] Competitive monitoring (re-run competitive at intervals) — requires persistent state and scheduling
-- [ ] Full WCAG 3.0 criteria when published — standard not yet finalized as of 2026
+- [ ] **CI/CD integration for skill quality** — Automated skill quality checks on every commit. Deferred because PDE is file-based; requires Git hook infrastructure that doesn't exist yet.
+- [ ] **Cross-project skill registry** — A shared catalog of PDE-built skills that users can install. Deferred because marketplace registration (PLUG-01 tech debt) is not resolved.
+- [ ] **Sound design guidance** — Awwwards winners use sound design for interaction feedback. Deferred because sound is outside the current HTML/CSS mockup output format.
+- [ ] **WebGPU/Three.js integration guidance** — Currently an anti-feature for mockups, but could be a valid handoff recommendation for high-creativity scores. Deferred because it requires handoff format expansion.
 
 ---
 
@@ -642,60 +162,173 @@ All six new skills at table-stakes feature level, standalone AND orchestrated th
 
 | Feature | User Value | Implementation Cost | Priority |
 |---------|------------|---------------------|----------|
-| `/pde:ideate` — multi-phase diverge/converge | HIGH | HIGH | P1 |
-| `/pde:competitive` — landscape evaluation | HIGH | MEDIUM | P1 |
-| `/pde:opportunity` — RICE scoring | HIGH | MEDIUM | P1 |
-| `/pde:mockup` — hi-fi HTML/CSS from wireframes | HIGH | HIGH | P1 |
-| `/pde:hig` — dual-mode audit | HIGH | MEDIUM | P1 |
-| `/pde:recommend` — tool discovery | MEDIUM | LOW | P1 |
-| `/pde:build` extended to 12 stages | HIGH | MEDIUM | P1 |
-| HIG light mode in critique | MEDIUM | LOW | P1 (adds to existing skill) |
-| WebSearch MCP in competitive | MEDIUM | MEDIUM | P2 |
-| Axe MCP in HIG | MEDIUM | MEDIUM | P2 |
-| Figma push from mockup | HIGH | HIGH | P2 (v1.2.x — MCP dependency) |
-| Concept hybrid synthesis in ideation | MEDIUM | MEDIUM | P2 |
+| Tool audit skill | HIGH — baseline for all improvement | LOW-MEDIUM — reads files, produces report | P1 |
+| Awwwards scoring rubric (reference file) | HIGH — shared dependency for 3+ other features | LOW — documentation + research | P1 |
+| Design quality elevation: mockup skill | HIGH — most visible design output | HIGH — requires motion token spec, composition rules, advanced CSS | P1 |
+| Design quality elevation: critique skill | HIGH — critique currently uses generic criteria; Awwwards-specific criteria change what gets flagged | MEDIUM — update criteria scoring model | P1 |
+| Skill builder capability | HIGH — enables PDE to improve itself | HIGH — must produce valid Claude Code SKILL.md format with all frontmatter fields correctly | P1 |
+| Self-improvement agents (Auditor + Improver + Validator) | HIGH — the "self-improvement fleet" requirement | HIGH — 3 new agent types, reflection loop pattern | P1 |
+| End-to-end pressure test | HIGH — validates everything else works | MEDIUM — procedure + scorecard; actual run complexity depends on pipeline stability | P1 |
+| Motion tokens in DTCG format | MEDIUM — needed for Awwwards creativity scores, but system skill already handles the token foundation | MEDIUM — new token type, new reference file section | P2 |
+| Design quality elevation: system skill | MEDIUM — system already produces DTCG tokens + CSS; elevation is additive | MEDIUM — add motion tokens, advanced color harmony | P2 |
+| Per-stage quality gates | MEDIUM — improves pipeline robustness | HIGH — requires hook integration with existing skills | P3 |
+| Skill discovery scan | MEDIUM — nice-to-have for audit completeness | LOW — extends audit output | P3 |
+| Pressure test scorecard template (user-facing) | MEDIUM — helps users validate their projects | LOW — template writing | P3 |
 
 **Priority key:**
-- P1: Must have for v1.2 launch
-- P2: Add after v1.2 validated; candidate for v1.2.x or v1.3
-- P3: v2+ consideration
+- P1: Must have for v1.3 milestone to close
+- P2: Should have, include if time permits
+- P3: Nice to have, defer to v1.3.x
+
+---
+
+## Domain-Specific Feature Detail
+
+### 1. Tool Audit Skill (`/pde:audit`)
+
+**What it audits:**
+- Commands (commands/*.md): skill completeness, flag compliance, help text presence, summary table presence
+- Agent prompts: quality of instructions, specificity, missing tool grants
+- Templates: completeness, placeholder coverage, format validity
+- References: currency of cited sources, coverage gaps
+- Output quality (spot-check against Awwwards rubric): sample the most recent DESIGN-STATE.md outputs
+
+**Output format:** Structured Markdown report in `.planning/audit/` with severity levels (CRITICAL, HIGH, MEDIUM, LOW) and recommended actions.
+
+**Relationship to existing tools:** The `/pde:test` skill runs functional tests. The audit skill assesses quality and completeness — not just pass/fail.
+
+**Confidence:** MEDIUM. The scope of what to audit is well-defined (commands, agents, templates, references). The criteria for what counts as "high quality" for each artifact type requires defining in the Awwwards reference before the audit skill can apply them.
+
+### 2. Skill Builder (`/pde:skill-build`)
+
+**Claude Code SKILL.md format (verified from official docs at code.claude.com):**
+```yaml
+---
+name: skill-name          # lowercase, hyphens, max 64 chars
+description: "What it does and when to invoke"
+disable-model-invocation: true   # optional: prevents auto-invoke
+allowed-tools: Read, Grep, Glob  # optional: tool grants
+context: fork                    # optional: runs in subagent
+agent: Explore                   # optional: subagent type
+---
+
+Skill instructions in markdown...
+
+$ARGUMENTS   # placeholder for user-provided args
+```
+
+**Supporting files structure (verified):**
+```
+my-skill/
+├── SKILL.md           # Required — main instructions
+├── examples.md        # Optional — example outputs
+├── reference.md       # Optional — detailed reference
+└── scripts/
+    └── helper.sh      # Optional — executable scripts
+```
+
+**What the skill builder produces:**
+- New `commands/{skill-name}.md` files for PDE-internal command additions
+- New `.claude/skills/{skill-name}/SKILL.md` for user project skills
+- Conforming to PDE's skill-style-guide.md: flags (--dry-run, --quick, --verbose, --no-mcp), summary table, help text
+
+**Invocation modes:**
+- `create` — build a new skill from description
+- `improve` — evaluate and enhance an existing skill
+- `eval` — run evaluation test cases against a skill's behavior
+
+**Confidence:** HIGH for format correctness (official docs verified). MEDIUM for the "eval" mode — testing a skill's behavior requires running it, which requires a real project context.
+
+### 3. Self-Improvement Agents
+
+**Three core agent types needed (new additions to existing 12-type registry):**
+
+**Auditor agent:** Read-only. Loads all PDE commands, workflows, references. Evaluates against quality rubric. Produces gap list with severity. Pattern: Explore-agent level permissions (Read, Grep, Glob — no writes).
+
+**Improver agent:** Proposes specific changes as diff-like suggestions. Never writes to live commands. Writes proposals to `.planning/improvements/{skill-name}-proposed.md`. Pattern: Plan-agent level (research + write to staging only).
+
+**Validator agent:** Takes an Improver's proposal and checks it for: format correctness, skill-style-guide compliance, no regressions against existing behavior, Awwwards-criteria coverage. Returns PASS/FAIL with reasons.
+
+**Reflection loop pattern (verified from agentic AI architecture docs):**
+```
+Auditor → Improver → Validator → [if FAIL: Improver revises] → [if PASS: human review queue]
+```
+
+The loop runs within a single orchestrated session, not across sessions (session-based constraint of Claude Code).
+
+**Confidence:** MEDIUM. The reflection loop pattern is well-established in agentic AI literature (verified with Google Cloud and Databricks architecture docs). The specific implementation within Claude Code's constraints (no persistent state, session-based) requires validation during implementation.
+
+### 4. Awwwards Design Quality Elevation
+
+**Verified Awwwards scoring weights (from official rubric + multiple sources):**
+| Dimension | Weight | What Judges Evaluate |
+|-----------|--------|----------------------|
+| Design | 40% | Visual hierarchy, typography, color, micro-details (hover states, transitions), consistency |
+| Usability | 30% | Navigation clarity (<3 sec discovery), 60fps animations, no layout shifts, responsive, Core Web Vitals, accessibility |
+| Creativity | 20% | Custom interaction patterns, unconventional navigation, concept-driven approach, motion choreography |
+| Content | 10% | Real finished content, professional copywriting, design-integrated content |
+
+**Gap analysis: what PDE's design pipeline currently lacks vs. Awwwards bar:**
+
+| Gap | Affected Skill | Elevation Action |
+|-----|----------------|-----------------|
+| No motion/animation tokens | system skill | Add DTCG `transition` tokens: duration scale, easing curves, delay scale |
+| Wireframes lack composition principles (golden ratio, rule of thirds, visual weight) | wireframe skill | Add composition analysis step with explicit grid and visual weight guidance |
+| Mockups produce functional HTML/CSS but lack micro-interaction specification | mockup skill | Add interaction choreography section: hover curves, scroll behaviors, state transitions |
+| Critique uses generic design feedback | critique skill | Replace generic checklist with Awwwards 4-dimension rubric as evaluation framework |
+| No variable font animation guidance | system skill | Add variable font axis animation to motion token section |
+| Color system lacks perceptual contrast analysis (APCA) | system skill | Already uses OKLCH — add APCA-aware contrast checking guidance |
+
+**Custom interaction is the single biggest differentiator:** The Awwwards guide states explicitly that "custom interaction design is the single biggest differentiator — template-based and AI-generated sites are immediately recognizable to experienced judges." This means PDE's elevation strategy must prioritize generating custom, concept-specific interaction patterns — not generic hover states.
+
+**Confidence:** MEDIUM-HIGH. Awwwards criteria are public and well-documented. The gap between current PDE mockup output and Awwwards standard is knowable by inspection. The implementation challenge is translating "custom interaction design" into AI-generatable instructions — this is genuinely hard.
+
+### 5. End-to-End Pressure Test
+
+**What it validates:** Run the full 13-stage pipeline (`/pde:build`) on a real product concept. Evaluate every output artifact against the Awwwards rubric and skill-style-guide standards. Produce a pass/fail scorecard.
+
+**Pass criteria (based on Awwwards SOTD threshold — verified as 8.0/10 average):**
+- Design score: 7.5+ (of 10)
+- Usability score: 7.5+ (of 10)
+- Creativity score: 7.0+ (of 10)
+- Content score: 7.5+ (of 10)
+- Overall: 8.0+ weighted average
+
+**What the scorecard captures:**
+- Per-stage output quality (did each skill produce complete, quality output?)
+- Per-dimension Awwwards score (manually evaluated by user or auto-scored by a judge agent)
+- Gaps found (what failed, what needs another improvement iteration)
+- Token and time cost of the full pipeline (operational metrics)
+
+**Confidence:** MEDIUM. The scorecard structure is definable now. The actual scoring of a specific run's output requires the elevated pipeline to be in place first — this is correctly ordered as the last step.
 
 ---
 
 ## Competitor Feature Analysis
 
-| Feature | Figma AI | v0 / Bolt | UX Pilot / Uizard | Notion AI | PDE v1.2 Approach |
-|---------|----------|-----------|-------------------|-----------|-------------------|
-| Multi-phase ideation | No | No | No | No | `/pde:ideate` — diverge/converge with convergence scoring |
-| Competitive analysis | No | No | No | No | `/pde:competitive` — structured matrix + gap identification |
-| RICE opportunity scoring | No | No | No | No | `/pde:opportunity` — full RICE with calibrated rationale |
-| Hi-fi mockup from wireframe | Yes (Figma native) | Yes (generates UI) | Partial | No | `/pde:mockup` — tokens-applied HTML/CSS; file:// compatible |
-| HIG/WCAG audit | No (manual) | No | Partial (contrast only) | No | `/pde:hig` — dual mode, 2.2 AA, severity-rated, platform-aware |
-| Tool/MCP discovery | No | No | No | No | `/pde:recommend` — stack-aware, install commands |
-| File-based state / markdown | No | No | No | No | Core PDE differentiator unchanged |
-| Integrated with dev workflow engine | No | Partial | No | No | Full pipeline ideate → handoff in same `.planning/` dir |
-
-**Key differentiation v1.2 adds:** No tool on the market runs a complete ideate → competitive → opportunity → design → quality → handoff pipeline in a text-native, file-based, development-workflow-integrated form. Figma has hi-fi mockup but requires Figma app, has no ideation or RICE scoring, and does not produce developer handoff files. PDE v1.2 closes the gap between research, design, and implementation in a single plugin.
+| Feature | Other Claude Code plugins | AI design tools (Framer AI, Relume, Webflow AI) | PDE v1.3 approach |
+|---------|--------------------------|--------------------------------------------------|-------------------|
+| Self-improvement / self-audit | Not found in any known Claude Code plugin | Not applicable — design tools don't audit themselves | First-in-class: tool audit + self-improvement agent fleet |
+| Skill creation | Manual (user writes SKILL.md) | N/A | Programmatic: `/pde:skill-build` writes conforming SKILL.md files |
+| Design quality rubric | None — outputs are judged visually | Framer AI: template-based, no explicit quality scoring | Awwwards 4-dimension rubric embedded in critique skill and pressure test |
+| Motion/animation tokens | Not found | Framer has built-in animation but no token export | DTCG `transition` tokens (new v1.3 addition) |
+| End-to-end pipeline validation | None found | Relume: page-level completeness only | 13-stage pipeline pressure test with pass/fail scorecard |
+| Custom interaction guidance | None found | Template patterns only | Concept-driven interaction choreography in mockup skill (highest differentiator) |
 
 ---
 
 ## Sources
 
-- [Progressive Ideation using Agentic AI Framework — arxiv 2601.00475](https://arxiv.org/html/2601.00475v1) — multi-phase ideation framework; concept combination improves novelty (MEDIUM confidence — preprint)
-- [Convergent vs divergent thinking: practical team guide 2026 — Monday.com](https://monday.com/blog/project-management/convergent-vs-divergent-thinking/) — diverge/converge workflow structure (MEDIUM confidence — industry source)
-- [RICE Scoring Model — Intercom (original)](https://www.intercom.com/blog/rice-simple-prioritization-for-product-managers/) — RICE formula and criteria definition; authoritative primary source (HIGH confidence)
-- [RICE Prioritization Framework — ProductPlan glossary](https://www.productplan.com/glossary/rice-scoring-model/) — standard RICE component definitions; score calculation (HIGH confidence)
-- [WCAG 2.2 Checklist 2026 — LevelAccess](https://www.levelaccess.com/blog/wcag-2-2-aa-summary-and-checklist-for-website-owners/) — WCAG 2.2 AA criteria list; automated coverage limits (HIGH confidence)
-- [Accessibility Audit Checklist 50+ WCAG Checks 2026 — web-accessibility-checker.com](https://web-accessibility-checker.com/en/blog/accessibility-audit-checklist) — automated vs manual scope; 30-57% automation coverage stat (MEDIUM confidence)
-- [Apple Human Interface Guidelines — Apple Developer](https://developer.apple.com/design/human-interface-guidelines/) — authoritative HIG reference; Liquid Glass 2025-2026 updates (HIGH confidence)
-- [Apple HIG: Meet the new Human Interface Guidelines — Apple Developer News](https://developer.apple.com/news/?id=v8a3aetj) — HIG 2025 structural updates (HIGH confidence — official source)
-- [Competitive Analysis Framework — Toptal Product Designer Guide](https://www.toptal.com/product-managers/product-consultant/product-designer-guide-to-competitive-analysis) — competitive analysis dimensions for product designers (MEDIUM confidence)
-- [MCP Tool Search — Claude Code Docs](https://code.claude.com/docs/en/mcp) — deferred tool discovery, 85% token reduction; tool search enabled by default (HIGH confidence — official Anthropic docs)
-- [MCP Tool Discovery Feature Request — Claude Code GitHub #27208](https://github.com/anthropics/claude-code/issues/27208) — hierarchical deferred tool discovery context (MEDIUM confidence — issue thread)
-- [High Fidelity Wireframes — Moqups Blog](https://moqups.com/blog/high-fidelity-wireframes/) — hi-fi wireframe vs mockup distinction; design system as bridge (MEDIUM confidence)
-- [A Comprehensive Guide to Wireframing and Prototyping — Smashing Magazine](https://www.smashingmagazine.com/2018/03/guide-wireframing-prototyping/) — fidelity levels and progression; HTML/CSS as final prototyping medium (HIGH confidence — authoritative source)
+- **Claude Code Skills API** (HIGH confidence): https://code.claude.com/docs/en/skills — verified SKILL.md format, frontmatter fields, supporting files structure, invocation control, subagent patterns
+- **Awwwards scoring criteria** (MEDIUM-HIGH confidence): https://www.utsubo.com/blog/award-winning-website-design-guide — Design 40%, Usability 30%, Creativity 20%, Content 10%; 8.0+ threshold for SOTD; custom interaction as primary differentiator
+- **Awwwards official site** (MEDIUM confidence): https://www.awwwards.com/annual-awards/ — confirmed scoring model is active in 2025
+- **Agentic AI design patterns** (MEDIUM confidence): https://docs.cloud.google.com/architecture/choose-design-pattern-agentic-ai-system — reflection loop, self-evaluation, auditor-improver patterns
+- **Agentic AI patterns (Databricks)** (MEDIUM confidence): https://docs.databricks.com/aws/en/generative-ai/guide/agent-system-design-patterns — loop pattern, critic pattern, self-improvement workflows
+- **Anthropic skills public repo** (MEDIUM confidence): https://github.com/anthropics/skills — confirmed AgentSkills open standard, plugin skills/ directory structure
+- **Awwwards animation techniques** (MEDIUM confidence): https://medium.com/design-bootcamp/awwward-winning-animation-techniques-for-websites-cb7c6b5a86ff — scroll-triggered, variable font animation, motion choreography
+- **AI design quality benchmarks** (LOW confidence): https://www.typeface.ai/blog/ai-design-quality-benchmarks-and-best-practices — AI-generated design evaluation criteria (limited to brand/image quality, not web design composition)
 
 ---
 
-*Feature research for: v1.2 advanced design skills (ideate, competitive, opportunity, mockup, hig, recommend + build orchestrator expansion)*
-*Researched: 2026-03-16*
+*Feature research for: PDE v1.3 — Self-Improvement & Design Excellence*
+*Researched: 2026-03-17*
