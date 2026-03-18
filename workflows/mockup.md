@@ -49,6 +49,7 @@ IF --screen flag present:
 @references/mcp-integration.md
 @references/web-modern-css.md
 @references/interaction-patterns.md
+@references/motion-design.md
 </required_reading>
 
 <flags>
@@ -236,10 +237,44 @@ Generate the complete HTML for this screen following this exact structure:
   <title>{Screen Name} -- {PRODUCT_NAME} Mockup</title>
   <!-- WIREFRAME-SOURCE: {wireframe-filename} | Generated: {YYYY-MM-DD} -->
   <link rel="stylesheet" href="../../assets/tokens.css">
+  <!-- Variable font via Google Fonts CSS2 API — axis range in URL -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family={HEADING_FONT}:wght@100..900&display=swap" rel="stylesheet">
+
+  <!-- GSAP core + ScrollTrigger — fully free (Webflow acquisition, May 2025) -->
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14/dist/ScrollTrigger.min.js"></script>
+  <script>gsap.registerPlugin(ScrollTrigger);</script>
   <style>
     /* All custom styles inline -- self-contained per MOCK-01 */
-    /* CSS-only interactive states -- no JavaScript per MOCK-02 */
-    @layer tokens, mockup-layout, components, utilities;
+    /* JavaScript: GSAP CDN + theme toggle only */
+    @layer tokens, mockup-layout, components, states, animations, utilities;
+
+    /* ========================================= */
+    /* Spring Physics Easing — MOCK-01           */
+    /* Source: @references/motion-design.md      */
+    /* ========================================= */
+    /* NOT linear or ease-only — spring physics on all interactive elements */
+
+    :root {
+      /* Level 1: Universal — single overshoot spring */
+      --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+      /* Level 2: Multi-bounce (88% browser support) */
+      --ease-spring-bounce: linear(
+        0, 0.006, 0.025 2.8%, 0.101 6.1%, 0.539 15%,
+        0.721 19.4%, 0.877 23.8%, 1.003 27.3%, 1.096 29.8%,
+        1.143 31.7%, 1.175 33.8%, 1.194 36%, 1.199 38.8%,
+        1.185 42.8%, 1.126 49.6%, 1.067 56.3%, 1.027 62.8%,
+        1.005 70.8%, 0.995 79.4%, 0.998 86.6%, 1
+      );
+      --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+      --duration-micro: 100ms;
+      --duration-fast: 200ms;
+      --duration-standard: 300ms;
+      --duration-slow: 500ms;
+      --duration-dramatic: 800ms;
+    }
 
     @layer mockup-layout {
       /* ------------------------------------------ */
@@ -333,20 +368,29 @@ Generate the complete HTML for this screen following this exact structure:
         font-weight: var(--font-weight-medium, 500);
         cursor: pointer;
         text-decoration: none;
-        transition: background-color 150ms ease-out, transform 100ms ease-out, box-shadow 150ms ease-out;
+        position: relative;
+        overflow: hidden;
+        transition:
+          transform     var(--duration-micro, 100ms) var(--ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1)),
+          background    var(--duration-fast, 200ms)  var(--ease-standard, cubic-bezier(0.4, 0, 0.2, 1)),
+          box-shadow    var(--duration-fast, 200ms)  var(--ease-standard, cubic-bezier(0.4, 0, 0.2, 1)),
+          opacity       var(--duration-fast, 200ms)  var(--ease-standard, cubic-bezier(0.4, 0, 0.2, 1));
+        will-change: transform;
       }
-      .btn-primary:hover {
+      .btn-primary:hover:not([aria-disabled="true"]):not([aria-busy="true"]) {
+        transform: translateY(-2px) scale(1.01);
+        box-shadow: 0 4px 12px rgba(37,99,235,0.3);
         background: var(--color-action-hover, #1d4ed8);
-        box-shadow: var(--shadow-md, 0 4px 6px rgba(0,0,0,0.1));
       }
       .btn-primary:focus-visible {
         outline: 3px solid var(--color-focus-ring, #2563eb);
         outline-offset: 2px;
         background: var(--color-action-hover, #1d4ed8);
       }
-      .btn-primary:active {
-        transform: scale(0.98);
-        background: var(--color-action-active, #1e40af);
+      .btn-primary:active:not([aria-disabled="true"]):not([aria-busy="true"]) {
+        transform: scale(0.97) translateY(0);
+        box-shadow: none;
+        transition-duration: var(--duration-micro, 100ms);
       }
       .btn-primary:disabled,
       .btn-primary[aria-disabled="true"] {
@@ -632,6 +676,101 @@ Generate the complete HTML for this screen following this exact structure:
       {screen-specific layout styles for this screen}
     }
 
+    @layer states {
+      /* ========================================= */
+      /* All 7 Interaction States — MOCK-03        */
+      /* default, hover, focus, active, loading,   */
+      /* disabled, error — all 7 on every element  */
+      /* ========================================= */
+
+      /* LOADING: aria-busy attribute selector (CSS-only hook) */
+      .interactive-el[aria-busy="true"],
+      .btn-primary[aria-busy="true"],
+      .btn-secondary[aria-busy="true"] {
+        opacity: 0.85;
+        cursor: wait;
+        pointer-events: none;
+        overflow: hidden;
+        position: relative;
+      }
+      .interactive-el[aria-busy="true"]::after,
+      .btn-primary[aria-busy="true"]::after,
+      .btn-secondary[aria-busy="true"]::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: linear-gradient(90deg,
+          transparent 0%, rgba(255,255,255,0.25) 50%, transparent 100%);
+        background-size: 200% 100%;
+        animation: loading-shimmer 1.2s ease-in-out infinite;
+      }
+      @keyframes loading-shimmer {
+        from { background-position: -200% 0; }
+        to   { background-position:  200% 0; }
+      }
+
+      /* DISABLED: aria-disabled retains focus, pointer-events blocked by CSS */
+      .interactive-el[aria-disabled="true"],
+      .btn-primary[aria-disabled="true"],
+      .btn-secondary[aria-disabled="true"] {
+        opacity: var(--opacity-disabled, 0.45);
+        cursor: not-allowed;
+        pointer-events: none;
+        transform: none;
+        box-shadow: none;
+      }
+
+      /* ERROR: aria-invalid and data-error patterns */
+      .interactive-el[aria-invalid="true"],
+      .interactive-el.is-error,
+      .btn-primary[data-error],
+      .btn-primary.is-error {
+        border-color: var(--color-error, #dc2626);
+        box-shadow: 0 0 0 3px rgba(220,38,38,0.15);
+      }
+      .btn-primary.is-error,
+      .btn-primary[data-error] {
+        background: var(--color-error, #dc2626);
+        animation: btn-error-shake 0.4s var(--ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1));
+      }
+      @keyframes btn-error-shake {
+        0%, 100% { transform: translateX(0); }
+        25%      { transform: translateX(-4px); }
+        75%      { transform: translateX(4px); }
+      }
+    }
+
+    @layer animations {
+      /* ========================================= */
+      /* Scroll-Driven Animations — MOCK-02        */
+      /* MANDATORY @supports guard — Firefox sees  */
+      /* permanently hidden content without it     */
+      /* ========================================= */
+
+      /* Default: element fully visible (Firefox fallback) */
+      .reveal-on-scroll {
+        opacity: 1;
+        transform: none;
+      }
+
+      /* Enhanced: scroll-driven animation where supported */
+      @supports (animation-timeline: scroll()) {
+        .reveal-on-scroll {
+          opacity: 0;  /* Set to 0 ONLY inside @supports */
+          transform: translateY(24px);
+          animation: scroll-reveal linear both;
+          animation-timeline: view();
+          animation-range: entry 0% entry 60%;
+        }
+      }
+
+      @keyframes scroll-reveal {
+        from { opacity: 0; transform: translateY(24px); }
+        to   { opacity: 1; transform: translateY(0); }
+      }
+    }
+
     /* Responsive breakpoints */
     @media (min-width: 640px) {
       /* sm: {layout adjustments} */
@@ -747,7 +886,7 @@ Generate the complete HTML for this screen following this exact structure:
   </footer>
 
   <script>
-    /* Theme toggle -- user-controlled only. No other JavaScript permitted in mockup output. */
+    /* Theme toggle — user-controlled only */
     function toggleTheme() {
       const html = document.documentElement;
       const current = html.getAttribute('data-theme');
@@ -755,6 +894,39 @@ Generate the complete HTML for this screen following this exact structure:
       const btn = document.querySelector('[aria-label="Toggle dark mode"]');
       if (btn) btn.setAttribute('aria-pressed', current !== 'dark' ? 'true' : 'false');
     }
+
+    /* ========================================= */
+    /* Narrative Entrance Choreography — MOCK-04 */
+    /* Elements appear in reading order, NOT     */
+    /* all-at-once or random stagger             */
+    /* ========================================= */
+    document.addEventListener('DOMContentLoaded', () => {
+      // Hero entrance: eyebrow -> headline -> body -> CTA (reading sequence)
+      // autoAlpha prevents flash of unstyled content (FOUC)
+      const heroTl = gsap.timeline({ defaults: { ease: 'power2.out' } });
+      heroTl
+        .from('.hero-eyebrow',   { autoAlpha: 0, y: 12, duration: 0.5 })
+        .from('.hero-headline',  { autoAlpha: 0, y: 20, duration: 0.7 }, '-=0.3')
+        .from('.hero-body',      { autoAlpha: 0, y: 14, duration: 0.6 }, '-=0.25')
+        .from('.hero-cta-group', { autoAlpha: 0, y: 10, scale: 0.97, duration: 0.5 }, '-=0.2');
+
+      // Scroll-triggered section reveals in narrative/reading order
+      // ANTI-PATTERN: stagger from 'random' or 'center' — always use from: 'start'
+      gsap.utils.toArray('.feature-card, .content-block').forEach((section, i) => {
+        gsap.from(section, {
+          autoAlpha: 0,
+          y: 32,
+          duration: 0.6,
+          ease: 'power2.out',
+          stagger: { each: 0.1, from: 'start' },
+          scrollTrigger: {
+            trigger: section,
+            start: 'top 80%',
+            once: true
+          }
+        });
+      });
+    });
   </script>
 </body>
 </html>
@@ -764,7 +936,7 @@ Generate the complete HTML for this screen following this exact structure:
 
 1. **ONLY external dependency:** `../../assets/tokens.css` -- same relative path as wireframes. NEVER link to other external CSS files.
 2. **ALL custom CSS in `<style>` block** -- no external CSS bundle. mockup.css does NOT exist. Self-contained per MOCK-01.
-3. **NO `<script>` tags except the theme toggle** -- no JavaScript event listeners, no onclick attributes on content elements, no fetch calls. Interactive states are CSS-only per MOCK-02.
+3. **JavaScript: GSAP CDN + theme toggle only** -- GSAP CDN loaded for spring physics (Level 3) and entrance choreography. Theme toggle function retained. No other custom JavaScript, no fetch calls, no onclick attributes on content elements. Interactive states remain CSS-only (`:hover`, `:focus-visible`, etc.) — GSAP handles entrance animations only.
 4. **CSS-only interaction states:** Use `:hover`, `:focus-visible`, `:active`, `:checked`, `:disabled`, `[open]` for details/summary, `:invalid`, `:valid` -- never simulate with classes toggled by JavaScript.
 5. **Body class:** `pde-layout--hifi` (distinguishes from wireframe's `pde-layout--{fidelity}`)
 6. **First comment in `<head>`:** `<!-- WIREFRAME-SOURCE: {wireframe-filename} | Generated: {date} -->` (omit if no source wireframe)
@@ -775,6 +947,10 @@ Generate the complete HTML for this screen following this exact structure:
 11. **Near-real content:** Use actual PRODUCT_NAME, actual feature names, real product messaging from brief. NOT lorem ipsum.
 12. **All 4 state variants:** default (visible) + loading (hidden) + error (hidden) + empty (hidden). No exceptions.
 13. **Dark mode:** `[data-theme="dark"]` token overrides in CSS. `@media (prefers-color-scheme: dark)` respects OS setting.
+14. **Spring physics easing (MOCK-01):** ALL interactive element transitions MUST use `var(--ease-spring)` (cubic-bezier(0.34, 1.56, 0.64, 1)) for transform properties. NOT linear or generic ease-only. Use `var(--ease-standard)` for color/opacity. Reference `@references/motion-design.md` for the spring physics three-level fidelity model. GSAP `elastic.out(1, 0.3)` is the Level 3 option for maximum fidelity.
+15. **All 7 interaction states (MOCK-03):** Every interactive element (buttons, links, cards, form controls) MUST have visually distinct treatment for all seven states: default, hover, focus, active, loading, disabled, error. Use `aria-busy="true"` for loading (not `.loading` class). Use `aria-disabled="true"` for disabled (retains focus). Use `aria-invalid="true"` or `.is-error` for error. All 7 states must be present on every interactive element — no aliasing states together.
+16. **Scroll-driven animations (MOCK-02):** Section reveals MUST use CSS `animation-timeline: view()` with a MANDATORY `@supports (animation-timeline: scroll())` guard. Default state (outside @supports) MUST be fully visible — Firefox users see permanently hidden content without this guard. `animation-timeline` property MUST come AFTER the `animation` shorthand (shorthand resets it). Do NOT set `animation-duration` to a time value for scroll timelines — omit or use `auto`. Apply `.reveal-on-scroll` class to every `<section>` in the mockup. GSAP ScrollTrigger is the fallback for browsers without CSS scroll-driven animation support.
+17. **Narrative entrance choreography (MOCK-04):** Elements MUST animate into view following the narrative reading order — eyebrow, then headline, then body, then CTA. Use `gsap.timeline()` with negative overlap (`'-=0.3'`) for fluid sequence, NOT simultaneous appear. Use `autoAlpha: 0` (not `opacity: 0`) to prevent FOUC. For scroll-triggered sections, use `stagger: { each: 0.1, from: 'start' }` — NEVER `from: 'random'` or `from: 'center'` as these break reading order. GSAP ScrollTrigger with `once: true` for each content section.
 
 #### 4c. Write each screen HTML file
 

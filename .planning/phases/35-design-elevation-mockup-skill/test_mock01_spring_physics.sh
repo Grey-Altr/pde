@@ -34,7 +34,7 @@ check "cdn\.jsdelivr\.net/npm/gsap" "GSAP CDN jsDelivr URL not found in skill"
 check "NOT linear|not.*linear|spring physics|NOT generic|not.*ease-only|spring.*not" "No instruction to avoid generic/linear easing (spring physics directive) found"
 
 # 8. Motion token reference
-check -- "--duration-micro|--duration-fast" "Motion duration tokens (--duration-micro or --duration-fast) not found in skill"
+check "\-\-duration-micro|\-\-duration-fast" "Motion duration tokens (--duration-micro or --duration-fast) not found in skill"
 
 echo "MOCK-01 spring_physics: $PASS passed, $FAIL failed"
 [ "$FAIL" -eq 0 ]
