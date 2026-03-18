@@ -6,7 +6,7 @@
 - ✅ **v0.2 Design Pipeline** — Phases 12-23 (shipped 2026-03-16)
 - ✅ **v0.3 Advanced Design Skills** — Phases 24-28 (shipped 2026-03-17)
 - ✅ **v0.4 Self-Improvement & Design Excellence** — Phases 29-38 (shipped 2026-03-18)
-- 🔄 **v0.5 MCP Integrations** — Phases 39-44 (in progress)
+- 🔄 **v0.5 MCP Integrations** — Phases 39-44 + 40.1 (in progress)
 
 ## Phases
 
@@ -88,6 +88,7 @@ Full details: .planning/milestones/v0.4-ROADMAP.md
 
 - [ ] **Phase 39: MCP Infrastructure Foundation** - Connection manager, config schema, probe/degrade contracts, security policy, adapter layer, /pde:mcp-status
 - [ ] **Phase 40: GitHub Integration** - Issue sync, PR creation from handoff, brief from GitHub issue, CI feedback in pipeline status
+- [ ] **Phase 40.1: GitHub Integration Tech Debt Cleanup** - allowed-tools gaps in sync/pipeline-status commands, try/catch consistency in brief/handoff workflows
 - [ ] **Phase 41: Linear + Jira Integration** - Issue sync for both, milestone/epic mapping, ticket creation from handoff, task_tracker toggle
 - [ ] **Phase 42: Figma Integration** - Token import to DTCG, design context for wireframe, Code Connect for handoff, mockup export to Figma frames
 - [ ] **Phase 43: Pencil Integration** - Token sync to canvas, screenshot capture for critique, graceful VS Code degradation
@@ -126,6 +127,20 @@ Plans:
 - [ ] 40-01-PLAN.md — TOOL_MAP + probeTool population in mcp-bridge.cjs, connect workflow repo capture
 - [ ] 40-02-PLAN.md — /pde:sync --github issue sync and /pde:pipeline-status CI display
 - [ ] 40-03-PLAN.md — /pde:brief --from-github and /pde:handoff --create-prs
+
+### Phase 40.1: GitHub Integration Tech Debt Cleanup
+**Goal**: Close allowed-tools and try/catch consistency gaps identified by v0.5 milestone audit
+**Depends on**: Phase 40 (fixes gaps in Phase 40 deliverables)
+**Requirements**: GH-01, GH-04 (re-validates integration wiring)
+**Gap Closure:** Closes gaps from audit
+**Success Criteria** (what must be TRUE):
+  1. `commands/sync.md` includes `mcp__github__*` in allowed-tools frontmatter (matching brief.md/handoff.md pattern)
+  2. `commands/pipeline-status.md` includes `mcp__github__*` in allowed-tools frontmatter
+  3. `workflows/brief-from-github.md` wraps `b.call()` in try/catch (matching sync-github.md defensive pattern)
+  4. `workflows/handoff-create-prs.md` wraps `b.call()` in try/catch (matching sync-github.md defensive pattern)
+**Plans:** 0/1
+Plans:
+- [ ] 40.1-01-PLAN.md — allowed-tools fixes + try/catch consistency
 
 ### Phase 41: Linear + Jira Integration
 **Goal**: Users can sync project management state with PDE requirements and roadmap regardless of whether they use Linear or Jira
@@ -179,6 +194,7 @@ Plans:
 | 29-38 | v0.4 | 20/20 | Complete | 2026-03-18 |
 | 39 | 2/2 | Complete    | 2026-03-18 | — |
 | 40 | 3/3 | Complete    | 2026-03-18 | — |
+| 40.1 | v0.5 | 0/1 | Not started | — |
 | 41 | v0.5 | 0/? | Not started | — |
 | 42 | v0.5 | 0/? | Not started | — |
 | 43 | v0.5 | 0/? | Not started | — |
