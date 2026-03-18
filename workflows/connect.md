@@ -21,6 +21,7 @@ Parse $ARGUMENTS to extract:
   ```
 - `--confirm` flag: boolean, default false. When present, record the connection as active in mcp-connections.json.
 - `--disconnect` flag: boolean, default false. When present, mark the connection as disconnected.
+- `--repo <owner/repo>` (optional, GitHub only): The GitHub repo to associate with this connection. If not provided and SERVICE_KEY is `github`, the workflow will ask for it during Step 3.5.
 
 Convert SERVICE_KEY to lowercase and trim whitespace.
 
@@ -116,9 +117,52 @@ After completing the steps above, run: /pde:connect <SERVICE_KEY> --confirm
 
 Stop here. Do not proceed to Step 4 without --confirm.
 
+## 3.5. Capture GitHub Repo (GitHub only, --confirm present)
+
+If `--confirm` flag IS present AND `SERVICE_KEY` equals `github`:
+
+Before recording the connection, check if the user provided a repo in $ARGUMENTS (e.g., `--repo owner/repo-name`).
+
+If `--repo` is provided in arguments, use that value directly as GITHUB_REPO.
+
+If `--repo` is NOT provided, ask the user:
+
+```
+Which GitHub repo should PDE sync with? (format: owner/repo)
+```
+
+Wait for the user's response. Store the answer as GITHUB_REPO.
+
+Validate GITHUB_REPO format: it must contain exactly one `/` separating a non-empty owner and non-empty repo name. If invalid, display:
+
+```
+Invalid repo format. Expected: owner/repo (e.g., acme/my-project)
+```
+
+And ask again.
+
+Then proceed to Step 4, passing the repo value as an extraField.
+
 ## 4. Confirm Connection (--confirm present)
 
-Run updateConnectionStatus() to record the connection as active:
+Run updateConnectionStatus() to record the connection as active.
+
+**For GitHub connections** (`SERVICE_KEY` equals `github`), include the `repo` field captured in Step 3.5:
+
+```bash
+node --input-type=module <<'EOF'
+import { createRequire } from 'module';
+const req = createRequire(import.meta.url);
+const b = req(`${process.env.CLAUDE_PLUGIN_ROOT}/bin/lib/mcp-bridge.cjs`);
+const result = b.updateConnectionStatus(process.env.SERVICE_KEY, 'connected', {
+  connected_at: new Date().toISOString(),
+  repo: process.env.GITHUB_REPO
+});
+process.stdout.write(JSON.stringify(result) + '\n');
+EOF
+```
+
+**For all other services** (`SERVICE_KEY` is not `github`), omit the repo field:
 
 ```bash
 node --input-type=module <<'EOF'
