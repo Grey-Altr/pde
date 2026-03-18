@@ -170,10 +170,11 @@ Plans:
   3. `/pde:critique` assesses motion choreography: states whether motion is purposeful and narrative or decorative and random, with specific examples from the artifact
   4. `/pde:hig` motion accessibility audit identifies prefers-reduced-motion violations and names vestibular-safe alternatives for any parallax or scroll effect in the artifact
   5. `/pde:hig` animation performance check identifies any animations causing layout reflow and confirms GPU-composited properties are used where claimed — specific element names are cited, not generic warnings
-**Plans**: 1 plan
+**Plans**: 2 plans
 
 Plans:
-- [ ] 33-01-PLAN.md — Nyquist tests, composition decision block, grid CSS, viewport recomposition (WIRE-01, WIRE-02, WIRE-03, WIRE-04, WIRE-05)
+- [ ] 34-01-PLAN.md — Nyquist tests + critique elevation: Awwwards mapping, AI aesthetic detection, motion choreography, typography pairing (CRIT-01, CRIT-02, CRIT-03, CRIT-04)
+- [ ] 34-02-PLAN.md — Nyquist tests + HIG elevation: motion accessibility audit, animation performance, touch target motion state (HIG-01, HIG-02, HIG-03)
 
 ### Phase 35: Design Elevation — Mockup Skill
 **Goal**: Mockup output produces concept-specific, choreographed interactions and animations that would not be mistaken for generic AI-generated design
@@ -261,7 +262,7 @@ Plans:
 | 31. Skill Builder | v1.3 | 2/2 | Complete | 2026-03-18 |
 | 32. Design Elevation — System Skill | 3/3 | Complete    | 2026-03-18 | — |
 | 33. Design Elevation — Wireframe Skill | 1/1 | Complete    | 2026-03-18 | — |
-| 34. Design Elevation — Critique & HIG | v1.3 | 0/? | Not started | — |
+| 34. Design Elevation — Critique & HIG | v1.3 | 0/2 | Planned | — |
 | 35. Design Elevation — Mockup Skill | v1.3 | 0/? | Not started | — |
 | 36. Design Elevation — Handoff, Flows & Cross-Cutting | v1.3 | 0/? | Not started | — |
 | 37. Pressure Test & Validation | v1.3 | 0/? | Not started | — |
