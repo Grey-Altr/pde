@@ -51,11 +51,11 @@ Requirements for Self-Improvement & Design Excellence milestone. Each maps to ro
 
 ### Design Quality Elevation — Wireframe Skill
 
-- [ ] **WIRE-01**: Wireframe skill applies named grid systems (12-column, modular, golden ratio, asymmetric) with explicit rationale for grid choice per layout
-- [ ] **WIRE-02**: Wireframe skill annotates visual weight distribution across each layout — showing where the eye is drawn and why
-- [ ] **WIRE-03**: Wireframe skill uses spatial asymmetry intentionally: at least one axis breaks symmetry per page with documented purpose
-- [ ] **WIRE-04**: Wireframe skill includes viewport-aware composition: distinct layout strategies for mobile (375), tablet (768), and desktop (1440) — not just fluid scaling
-- [ ] **WIRE-05**: Wireframe skill documents content hierarchy with numbered visual priority (what users see 1st, 2nd, 3rd) per viewport
+- [x] **WIRE-01**: Wireframe skill applies named grid systems (12-column, modular, golden ratio, asymmetric) with explicit rationale for grid choice per layout
+- [x] **WIRE-02**: Wireframe skill annotates visual weight distribution across each layout — showing where the eye is drawn and why
+- [x] **WIRE-03**: Wireframe skill uses spatial asymmetry intentionally: at least one axis breaks symmetry per page with documented purpose
+- [x] **WIRE-04**: Wireframe skill includes viewport-aware composition: distinct layout strategies for mobile (375), tablet (768), and desktop (1440) — not just fluid scaling
+- [x] **WIRE-05**: Wireframe skill documents content hierarchy with numbered visual priority (what users see 1st, 2nd, 3rd) per viewport
 
 ### Design Quality Elevation — Mockup Skill
 
@@ -170,11 +170,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SYS-04 | Phase 32 | Complete |
 | SYS-05 | Phase 32 | Complete |
 | SYS-06 | Phase 32 | Complete |
-| WIRE-01 | Phase 33 | Pending |
-| WIRE-02 | Phase 33 | Pending |
-| WIRE-03 | Phase 33 | Pending |
-| WIRE-04 | Phase 33 | Pending |
-| WIRE-05 | Phase 33 | Pending |
+| WIRE-01 | Phase 33 | Complete |
+| WIRE-02 | Phase 33 | Complete |
+| WIRE-03 | Phase 33 | Complete |
+| WIRE-04 | Phase 33 | Complete |
+| WIRE-05 | Phase 33 | Complete |
 | MOCK-01 | Phase 35 | Pending |
 | MOCK-02 | Phase 35 | Pending |
 | MOCK-03 | Phase 35 | Pending |
