@@ -26,9 +26,9 @@ Requirements for Self-Improvement & Design Excellence milestone. Each maps to ro
 - [x] **AUDIT-06**: Apply mode: validated improvements can be applied directly to PDE files (with protected-files guard preventing writes to protected paths)
 - [x] **AUDIT-07**: Tool effectiveness testing executes representative queries against Context7, evaluates agent prompt quality by sampling output, and tests template completeness — measuring actual output quality, not just availability
 - [x] **AUDIT-08**: `pde-tools validate-skill` CLI command checks SKILL.md frontmatter YAML validity, allowed-tools list correctness, workflow path existence, skill code uniqueness, and required sections presence
-- [ ] **AUDIT-09**: Audit produces before/after baseline measurements so improvement delta is quantifiable across audit runs
-- [ ] **AUDIT-10**: Self-improvement fleet can identify skills that need new reference files and create them through the skill builder
-- [ ] **AUDIT-11**: Fleet produces "PDE Health Report" — single-page summary of overall system health (tool availability, reference currency, skill quality scores) runnable as periodic quick check
+- [x] **AUDIT-09**: Audit produces before/after baseline measurements so improvement delta is quantifiable across audit runs
+- [x] **AUDIT-10**: Self-improvement fleet can identify skills that need new reference files and create them through the skill builder
+- [x] **AUDIT-11**: Fleet produces "PDE Health Report" — single-page summary of overall system health (tool availability, reference currency, skill quality scores) runnable as periodic quick check
 - [x] **AUDIT-12**: Audit evaluates agent system prompts for specificity and quality — flags vague prompts that produce vague output with concrete improvement suggestions
 
 ### Skill Builder
@@ -154,9 +154,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUDIT-06 | Phase 30 | Complete |
 | AUDIT-07 | Phase 30 | Complete |
 | AUDIT-08 | Phase 30 | Complete |
-| AUDIT-09 | Phase 30 | Pending |
-| AUDIT-10 | Phase 30 | Pending |
-| AUDIT-11 | Phase 30 | Pending |
+| AUDIT-09 | Phase 30 | Complete |
+| AUDIT-10 | Phase 30 | Complete |
+| AUDIT-11 | Phase 30 | Complete |
 | AUDIT-12 | Phase 30 | Complete |
 | SKILL-01 | Phase 31 | Pending |
 | SKILL-02 | Phase 31 | Pending |

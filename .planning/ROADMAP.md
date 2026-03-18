@@ -67,7 +67,7 @@ Full details: .planning/milestones/v1.2-ROADMAP.md
 ### v1.3 Self-Improvement & Design Excellence (Phases 29-37)
 
 - [x] **Phase 29: Quality Infrastructure** — Awwwards rubric, motion/composition references, protected-files mechanism, model profiles, skill registry entries (completed 2026-03-17)
-- [ ] **Phase 30: Self-Improvement Fleet & Audit Command** — /pde:audit command, auditor/improver/validator agents, self-improvement loop, baseline measurements
+- [x] **Phase 30: Self-Improvement Fleet & Audit Command** — /pde:audit command, auditor/improver/validator agents, self-improvement loop, baseline measurements (completed 2026-03-18)
 - [ ] **Phase 31: Skill Builder** — /pde:improve command (create + improve + eval modes), validate-skill CLI, style guide enforcement
 - [ ] **Phase 32: Design Elevation — System Skill** — Motion tokens, variable font axes, advanced OKLCH palettes, APCA contrast, spacing scale, type pairing
 - [ ] **Phase 33: Design Elevation — Wireframe Skill** — Named grid systems, visual weight annotation, spatial asymmetry, viewport-aware composition, content hierarchy
@@ -233,7 +233,7 @@ Plans:
 | 27. Ideation Skill & Brief Update | v1.2 | 2/2 | Complete | 2026-03-17 |
 | 28. Build Orchestrator Expansion | v1.2 | 1/1 | Complete | 2026-03-17 |
 | 29. Quality Infrastructure | 3/3 | Complete    | 2026-03-17 | — |
-| 30. Self-Improvement Fleet & Audit | 2/3 | In Progress|  | — |
+| 30. Self-Improvement Fleet & Audit | 3/3 | Complete   | 2026-03-18 | — |
 | 31. Skill Builder | v1.3 | 0/? | Not started | — |
 | 32. Design Elevation — System Skill | v1.3 | 0/? | Not started | — |
 | 33. Design Elevation — Wireframe Skill | v1.3 | 0/? | Not started | — |
