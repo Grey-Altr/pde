@@ -138,7 +138,12 @@ Plans:
   3. `/pde:system` color palette output uses OKLCH with documented perceptual harmony rationale (analogous, complementary, split-complementary, or triadic) — not arbitrary color selection
   4. `/pde:system` output includes APCA-aware contrast guidance with Lc values at each type scale step — not just WCAG ratio compliance
   5. `/pde:system` output includes type pairing recommendations with documented contrast rationale (typeface category contrast, not just size contrast)
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 32-01-PLAN.md — Nyquist tests, motion tokens elevation, variable font axis tokens (SYS-01, SYS-02)
+- [ ] 32-02-PLAN.md — OKLCH harmony palettes, APCA contrast guidance (SYS-03, SYS-04)
+- [ ] 32-03-PLAN.md — Density spacing system, type pairing recommendations (SYS-05, SYS-06)
 
 ### Phase 33: Design Elevation — Wireframe Skill
 **Goal**: Wireframe output demonstrates intentional composition decisions that can be traced to specific design principles — not default symmetrical layouts
@@ -238,8 +243,8 @@ Plans:
 | 28. Build Orchestrator Expansion | v1.2 | 1/1 | Complete | 2026-03-17 |
 | 29. Quality Infrastructure | v1.3 | 3/3 | Complete | 2026-03-17 |
 | 30. Self-Improvement Fleet & Audit | v1.3 | 3/3 | Complete | 2026-03-18 |
-| 31. Skill Builder | 2/2 | Complete    | 2026-03-18 | — |
-| 32. Design Elevation — System Skill | v1.3 | 0/? | Not started | — |
+| 31. Skill Builder | v1.3 | 2/2 | Complete | 2026-03-18 |
+| 32. Design Elevation — System Skill | v1.3 | 0/3 | Not started | — |
 | 33. Design Elevation — Wireframe Skill | v1.3 | 0/? | Not started | — |
 | 34. Design Elevation — Critique & HIG | v1.3 | 0/? | Not started | — |
 | 35. Design Elevation — Mockup Skill | v1.3 | 0/? | Not started | — |
