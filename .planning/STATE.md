@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Self-Improvement & Design Excellence
 status: completed
-stopped_at: Completed 37-02-PLAN.md — workflows/pressure-test.md PRT skill with two-tier evaluation; PRES-01 through PRES-06 6/6 green
-last_updated: "2026-03-18T08:18:37.181Z"
+stopped_at: "Completed 38-01-PLAN.md — 6 tech debt items resolved: pressure-test.md frontmatter, audit-baseline.json, 30-03 requirements-completed, AUD/IMP/PRT active, both VALIDATION.md nyquist_compliant:true"
+last_updated: "2026-03-18T09:38:31.170Z"
 last_activity: 2026-03-18 — Phase 32 Plan 01 complete (motion tokens SYS-01, variable font tokens SYS-02, 6 Nyquist test scripts)
 progress:
-  total_phases: 9
-  completed_phases: 9
-  total_plans: 19
-  completed_plans: 19
+  total_phases: 10
+  completed_phases: 10
+  total_plans: 20
+  completed_plans: 20
 ---
 
 # Project State
@@ -59,6 +59,7 @@ v1.3 Progress: [====                ] 20% (1/3 plans in Phase 32 complete)
 | Phase 36-design-elevation-handoff-flows-cross-cutting P01 | 3min | 3 tasks | 7 files |
 | Phase 37-pressure-test-validation P01 | 7 | 2 tasks | 47 files |
 | Phase 37-pressure-test-validation P02 | 2 | 1 tasks | 1 files |
+| Phase 38-tech-debt-cleanup P01 | 2min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -134,6 +135,7 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 37-pressure-test-validation]: pde-pressure-test-evaluator is a new agent distinct from pde-design-quality-evaluator — evaluates design OUTPUT artifacts not SKILL.md files; wrong-domain findings prevented
 - [Phase 37-pressure-test-validation]: Tide (marine biology field research platform for coastal ecologists) as fixture concept — forces domain-specific non-AI-aesthetic output across all 3 fixture states
 - [Phase 37]: Skill() used for pde:build (not Task()) — Issue #686 freeze risk; Task() used for pde-pressure-test-evaluator — distinct invocation patterns
+- [Phase 38]: frontmatter-get command not in pde-tools; requirements-completed field verified via grep instead
 
 ### Pending Todos
 
@@ -146,8 +148,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-18T08:14:01.625Z
-Stopped at: Completed 37-02-PLAN.md — workflows/pressure-test.md PRT skill with two-tier evaluation; PRES-01 through PRES-06 6/6 green
+Last session: 2026-03-18T09:38:31.166Z
+Stopped at: Completed 38-01-PLAN.md — 6 tech debt items resolved: pressure-test.md frontmatter, audit-baseline.json, 30-03 requirements-completed, AUD/IMP/PRT active, both VALIDATION.md nyquist_compliant:true
 Resume file: None
 
 ## Phase Sequence

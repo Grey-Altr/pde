@@ -75,7 +75,7 @@ Full details: .planning/milestones/v1.2-ROADMAP.md
 - [x] **Phase 35: Design Elevation — Mockup Skill** — Spring physics CSS, scroll-driven animations, micro-interaction states, choreographed entrances, variable fonts, visual hook, GPU performance (completed 2026-03-18)
 - [x] **Phase 36: Design Elevation — Handoff, Flows & Cross-Cutting** — Motion specs in handoff, transition annotations in flows, reference injection pattern, elevation verification (completed 2026-03-18)
 - [x] **Phase 37: Pressure Test & Validation** — /pde:pressure-test command, process compliance tier, quality rubric tier, multi-fixture support, structured report (completed 2026-03-18)
-- [ ] **Phase 38: v1.3 Tech Debt Cleanup** — Fix pressure-test frontmatter, establish audit baseline, fix stale nyquist frontmatter, update summary/registry metadata
+- [x] **Phase 38: v1.3 Tech Debt Cleanup** — Fix pressure-test frontmatter, establish audit baseline, fix stale nyquist frontmatter, update summary/registry metadata (completed 2026-03-18)
 
 ## Phase Details
 
@@ -285,4 +285,4 @@ Plans:
 | 35. Design Elevation — Mockup Skill | 2/2 | Complete    | 2026-03-18 | — |
 | 36. Design Elevation — Handoff, Flows & Cross-Cutting | 1/1 | Complete    | 2026-03-18 | — |
 | 37. Pressure Test & Validation | 2/2 | Complete    | 2026-03-18 | — |
-| 38. v1.3 Tech Debt Cleanup | v1.3 | 0/1 | Planned | — |
+| 38. v1.3 Tech Debt Cleanup | 1/1 | Complete   | 2026-03-18 | — |
