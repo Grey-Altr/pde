@@ -44,8 +44,8 @@ Requirements for Self-Improvement & Design Excellence milestone. Each maps to ro
 
 - [x] **SYS-01**: System skill produces motion tokens in DTCG transition format: duration scale (5+ steps from micro to dramatic), easing curves (ease-in, ease-out, ease-in-out, spring, bounce), delay tokens for choreography sequencing
 - [x] **SYS-02**: System skill generates variable font axis animation tokens: weight range, width range, optical size, and custom axes with recommended animation parameters
-- [ ] **SYS-03**: System skill produces advanced OKLCH color palettes with perceptual harmony (analogous, complementary, split-complementary, triadic) — not random color selection
-- [ ] **SYS-04**: System skill includes APCA-aware contrast checking guidance with Lc values for text readability at each type scale step
+- [x] **SYS-03**: System skill produces advanced OKLCH color palettes with perceptual harmony (analogous, complementary, split-complementary, triadic) — not random color selection
+- [x] **SYS-04**: System skill includes APCA-aware contrast checking guidance with Lc values for text readability at each type scale step
 - [ ] **SYS-05**: System skill generates advanced spacing scale with optical spacing adjustments for different content density contexts (hero, content, dense UI)
 - [ ] **SYS-06**: System skill produces type pairing recommendations with documented contrast rationale (serif + sans, geometric + humanist, etc.) — not just size contrast
 
@@ -166,8 +166,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SKILL-06 | Phase 31 | Complete |
 | SYS-01 | Phase 32 | Complete |
 | SYS-02 | Phase 32 | Complete |
-| SYS-03 | Phase 32 | Pending |
-| SYS-04 | Phase 32 | Pending |
+| SYS-03 | Phase 32 | Complete |
+| SYS-04 | Phase 32 | Complete |
 | SYS-05 | Phase 32 | Pending |
 | SYS-06 | Phase 32 | Pending |
 | WIRE-01 | Phase 33 | Pending |
