@@ -138,7 +138,7 @@ Plans:
   2. `commands/pipeline-status.md` includes `mcp__github__*` in allowed-tools frontmatter
   3. `workflows/brief-from-github.md` wraps `b.call()` in try/catch (matching sync-github.md defensive pattern)
   4. `workflows/handoff-create-prs.md` wraps `b.call()` in try/catch (matching sync-github.md defensive pattern)
-**Plans:** 0/1
+**Plans:** 1/1
 Plans:
 - [ ] 40.1-01-PLAN.md — allowed-tools fixes + try/catch consistency
 
@@ -194,7 +194,7 @@ Plans:
 | 29-38 | v0.4 | 20/20 | Complete | 2026-03-18 |
 | 39 | 2/2 | Complete    | 2026-03-18 | — |
 | 40 | 3/3 | Complete    | 2026-03-18 | — |
-| 40.1 | v0.5 | 0/1 | Not started | — |
+| 40.1 | v0.5 | 1/1 | Planned | — |
 | 41 | v0.5 | 0/? | Not started | — |
 | 42 | v0.5 | 0/? | Not started | — |
 | 43 | v0.5 | 0/? | Not started | — |
