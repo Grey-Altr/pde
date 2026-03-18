@@ -18,10 +18,10 @@ Requirements for MCP Integrations milestone. Each maps to roadmap phases.
 
 ### GitHub Integration
 
-- [ ] **GH-01**: User can sync GitHub issues to REQUIREMENTS.md via `/pde:sync --github`
-- [ ] **GH-02**: User can create GitHub PRs from handoff artifacts via `/pde:handoff --create-prs` with confirmation gate
-- [ ] **GH-03**: User can populate `/pde:brief` from a GitHub issue via `--from-github` flag
-- [ ] **GH-04**: User can view GitHub Actions CI feedback integrated into pipeline status
+- [x] **GH-01**: User can sync GitHub issues to REQUIREMENTS.md via `/pde:sync --github`
+- [x] **GH-02**: User can create GitHub PRs from handoff artifacts via `/pde:handoff --create-prs` with confirmation gate
+- [x] **GH-03**: User can populate `/pde:brief` from a GitHub issue via `--from-github` flag
+- [x] **GH-04**: User can view GitHub Actions CI feedback integrated into pipeline status
 
 ### Linear Integration
 
@@ -97,10 +97,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | INFRA-04 | Phase 39 | Complete |
 | INFRA-05 | Phase 39 | Complete |
 | INFRA-06 | Phase 39 | Complete |
-| GH-01 | Phase 40 | Pending |
-| GH-02 | Phase 40 | Pending |
-| GH-03 | Phase 40 | Pending |
-| GH-04 | Phase 40 | Pending |
+| GH-01 | Phase 40 | Complete |
+| GH-02 | Phase 40 | Complete |
+| GH-03 | Phase 40 | Complete |
+| GH-04 | Phase 40 | Complete |
 | LIN-01 | Phase 41 | Pending |
 | LIN-02 | Phase 41 | Pending |
 | LIN-03 | Phase 41 | Pending |

@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v0.1
 milestone_name: milestone
 status: executing
-stopped_at: Completed 39-02-PLAN.md — Phase 39 complete, next step is Phase 40 (GitHub MCP Integration)
-last_updated: "2026-03-18T21:09:39.465Z"
+stopped_at: Completed 40-01-PLAN.md — GitHub TOOL_MAP populated, connect workflow extended
+last_updated: "2026-03-18T21:54:00.818Z"
 last_activity: "2026-03-18 — Completed 39-02: /pde:mcp-status and /pde:connect commands"
 progress:
   total_phases: 6
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 5
+  completed_plans: 3
 ---
 
 # Project State
@@ -40,12 +40,15 @@ Last activity: 2026-03-18 — Completed 39-02: /pde:mcp-status and /pde:connect 
 | Files changed | 303 | 172 | 84 | 259 |
 | LOC | ~60,000 | ~89,000 | ~101,700 | ~134,000 |
 | Timeline | 2 days | 2 days | 1 day | 4 days |
+| Phase 40-github-integration P01 | 97 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
 ### Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table.
+- [Phase 40-github-integration]: TOOL_MAP uses 8 GitHub entries with github:probe sharing mcp__github__list_issues as the probe target; probeArgs use public github/github-mcp-server repo to avoid needing user repo config before probe
+- [Phase 40-github-integration]: connect.md gets GitHub-specific Step 3.5 (not a separate connect-github.md) to keep dispatch logic centralized; Step 4 preserves original non-GitHub updateConnectionStatus call unchanged
 
 #### Phase 39-01 Decisions (2026-03-18)
 
@@ -84,6 +87,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-18
-Stopped at: Completed 39-02-PLAN.md — Phase 39 complete, next step is Phase 40 (GitHub MCP Integration)
+Last session: 2026-03-18T21:54:00.816Z
+Stopped at: Completed 40-01-PLAN.md — GitHub TOOL_MAP populated, connect workflow extended
 Resume file: None
