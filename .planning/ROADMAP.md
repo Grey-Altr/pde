@@ -264,6 +264,6 @@ Plans:
 | 32. Design Elevation — System Skill | 3/3 | Complete    | 2026-03-18 | — |
 | 33. Design Elevation — Wireframe Skill | 1/1 | Complete    | 2026-03-18 | — |
 | 34. Design Elevation — Critique & HIG | 2/2 | Complete    | 2026-03-18 | — |
-| 35. Design Elevation — Mockup Skill | 2/2 | Complete   | 2026-03-18 | — |
+| 35. Design Elevation — Mockup Skill | 2/2 | Complete    | 2026-03-18 | — |
 | 36. Design Elevation — Handoff, Flows & Cross-Cutting | v1.3 | 0/? | Not started | — |
 | 37. Pressure Test & Validation | v1.3 | 0/? | Not started | — |
