@@ -805,6 +805,63 @@ Generate the complete HTML for this screen following this exact structure:
         --color-border: var(--color-neutral-700, #374151);
       }
     }
+
+    /* ========================================= */
+    /* Variable Font Animation — MOCK-05         */
+    /* Source: @references/motion-design.md      */
+    /* ========================================= */
+    /* Requires variable font loaded with axis   */
+    /* range in Google Fonts CSS2 API URL:       */
+    /* fonts.googleapis.com/css2?family=Inter:   */
+    /*   wght@100..900&display=swap              */
+    /* Document supported axes in comment above  */
+    /* <style> block (wght / wdth / opsz / etc.) */
+
+    /* Weight animation on nav hover — MOCK-05 */
+    .nav-link {
+      font-family: var(--font-family-heading, 'Inter', sans-serif);
+      font-weight: 400;
+      transition: font-weight 200ms var(--ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1));
+    }
+    .nav-link:hover,
+    .nav-link[aria-current="page"] {
+      font-weight: 700;
+    }
+
+    /* Width axis animation — requires font with wdth axis (Roboto Flex, Barlow) */
+    /* If font does NOT have wdth axis, this silently degrades — document axes used */
+    .display-headline {
+      font-variation-settings: 'wdth' 100;
+      transition: font-variation-settings 400ms ease-out;
+    }
+    .display-headline:hover {
+      font-variation-settings: 'wdth' 115;
+    }
+
+    /* Optical size by context — auto lets browser optimize for body; */
+    /* explicit opsz values for display (48) and caption (12) contexts */
+    .body-text    { font-optical-sizing: auto; }
+    .display-text { font-variation-settings: 'opsz' 48; }
+    .caption-text { font-variation-settings: 'opsz' 12; }
+
+    /* ========================================= */
+    /* 60fps Animation Performance — MOCK-07     */
+    /* Source: @references/motion-design.md      */
+    /* ========================================= */
+    /* GPU-composited properties ONLY:            */
+    /*   SAFE: transform, opacity                 */
+    /*   NEVER animate: width, height, top, left, */
+    /*   margin, padding, border-width            */
+    /*   (these cause layout recalculation, jank) */
+    /*                                            */
+    /* will-change: use sparingly — only on       */
+    /* elements that WILL animate. Remove after   */
+    /* animation completes via JS:                */
+    /*   el.style.willChange = 'auto';            */
+    /*                                            */
+    /* Target: 60fps — no layout thrashing, no    */
+    /* layout reflow, no jank.                    */
+    /* GSAP manages will-change internally.       */
   </style>
 </head>
 <body class="pde-layout--hifi" data-screen="{screen-slug}" data-version="{N}">
@@ -836,6 +893,18 @@ Generate the complete HTML for this screen following this exact structure:
   <main role="main" id="main-content">
 
     <!-- WIREFRAME-ANNOTATION: {any wireframe annotation for the main content area} -->
+
+    <!-- ========================================= -->
+    <!-- VISUAL-HOOK: {concept-name} — {description of the unique interaction specific to this product concept} -->
+    <!-- This hook is specific to the {product concept}. NOT a generic pattern.  -->
+    <!-- Each mockup MUST contain at least one named visual hook.                -->
+    <!-- A hover color change is NOT a visual hook. Examples:                   -->
+    <!--   pulse-ring on notification avatar (collaboration app)                -->
+    <!--   data-flow particle trail on dashboard metric (analytics app)         -->
+    <!--   magnetic cursor attraction to CTA (portfolio)                        -->
+    <!-- The critique skill evaluates concept-specificity of visual hooks.      -->
+    <!-- ========================================= -->
+
     <!-- State: default (visible) -->
     <div class="pde-state pde-state--default" aria-live="polite">
       {Primary hi-fi screen content -- evolved from wireframe using design tokens, real content, CSS-only interactions}
@@ -951,6 +1020,9 @@ Generate the complete HTML for this screen following this exact structure:
 15. **All 7 interaction states (MOCK-03):** Every interactive element (buttons, links, cards, form controls) MUST have visually distinct treatment for all seven states: default, hover, focus, active, loading, disabled, error. Use `aria-busy="true"` for loading (not `.loading` class). Use `aria-disabled="true"` for disabled (retains focus). Use `aria-invalid="true"` or `.is-error` for error. All 7 states must be present on every interactive element — no aliasing states together.
 16. **Scroll-driven animations (MOCK-02):** Section reveals MUST use CSS `animation-timeline: view()` with a MANDATORY `@supports (animation-timeline: scroll())` guard. Default state (outside @supports) MUST be fully visible — Firefox users see permanently hidden content without this guard. `animation-timeline` property MUST come AFTER the `animation` shorthand (shorthand resets it). Do NOT set `animation-duration` to a time value for scroll timelines — omit or use `auto`. Apply `.reveal-on-scroll` class to every `<section>` in the mockup. GSAP ScrollTrigger is the fallback for browsers without CSS scroll-driven animation support.
 17. **Narrative entrance choreography (MOCK-04):** Elements MUST animate into view following the narrative reading order — eyebrow, then headline, then body, then CTA. Use `gsap.timeline()` with negative overlap (`'-=0.3'`) for fluid sequence, NOT simultaneous appear. Use `autoAlpha: 0` (not `opacity: 0`) to prevent FOUC. For scroll-triggered sections, use `stagger: { each: 0.1, from: 'start' }` — NEVER `from: 'random'` or `from: 'center'` as these break reading order. GSAP ScrollTrigger with `once: true` for each content section.
+18. **Variable font features (MOCK-05):** Mockup MUST use variable font axis animation. Load a variable font via Google Fonts CSS2 API (`fonts.googleapis.com/css2?family={Font}:wght@100..900`). Apply `font-weight` transition on navigation links (400 -> 700 on hover using `var(--ease-spring)`). If a font with `wdth` axis is loaded (Roboto Flex, Barlow), apply `font-variation-settings: 'wdth'` animation. Use `font-optical-sizing: auto` for body text and explicit `font-variation-settings: 'opsz'` values for display (48) and caption (12) contexts. Document which axes the loaded font supports in an HTML comment at the top of the `<style>` block.
+19. **Concept-specific visual hook (MOCK-06):** Every mockup MUST include at least one named visual hook — a concept-specific interaction or visual element that is unique to the project, NOT a generic pattern. The hook MUST be documented with an HTML comment: `<!-- VISUAL-HOOK: {name} — {description} -->` and a matching CSS comment: `/* VISUAL-HOOK: {name} */`. A hover color change is NOT a visual hook. Examples of visual hooks: pulse-ring on notification avatar (collaboration app), data-flow particle trail on dashboard metric (analytics app), magnetic cursor attraction to CTA (portfolio). The visual hook must be distinctive enough that it would not apply to a different product concept. The critique skill evaluates concept-specificity of visual hooks.
+20. **60fps GPU performance (MOCK-07):** ALL animations MUST use GPU-composited properties only: `transform` and `opacity`. NEVER animate layout-triggering properties: `width`, `height`, `top`, `left`, `right`, `bottom`, `margin`, `padding`, `border-width` — these cause layout recalculation and jank. Use `transform: scaleX()/scaleY()` instead of animating width/height. Apply `will-change: transform, opacity` sparingly — only on elements that WILL animate (hero section, entrance elements). Do NOT use `will-change: all` (excessive GPU memory). GSAP manages will-change internally — no manual will-change needed on GSAP-animated elements. Target: 60fps on all animations.
 
 #### 4c. Write each screen HTML file
 
@@ -1201,6 +1273,19 @@ Display: `Step 7/7: Root DESIGN-STATE and manifest updated. hasMockup: true.`
 - **Always release the write lock** (Step 7 lock-release) even if an error occurs during root DESIGN-STATE.md updates.
 - **Never omit the navigation index.html.** Even for single-screen mockup runs, always write index.html.
 - **Never omit the empty state variant.** All four state variants (default, loading, error, empty) are required in hi-fi mockups.
+
+### Animation Anti-Patterns (MANDATORY — reject mockup output containing any of these)
+
+- **Generic `ease-out` or `linear` on interactive element transform:** Use `var(--ease-spring)` instead
+- **`opacity: 0` outside `@supports (animation-timeline: scroll())`:** Firefox users see permanently hidden content
+- **`animation-duration` set to time value on scroll timeline:** Scroll timelines use position, not time
+- **`stagger: { from: 'random' }` or `stagger: { from: 'center' }`:** Breaks narrative reading order
+- **Loading state via `.loading` class instead of `aria-busy="true"`:** Missing accessibility semantics
+- **`will-change: all`:** Excessive GPU memory consumption
+- **Animating `width`, `height`, `top`, `left`, `margin`, `padding`:** Causes layout recalculation and layout thrashing, jank; use `transform: scaleX()/scaleY()` instead
+- **Generic visual hook (hover color change):** Must be concept-specific, named with `<!-- VISUAL-HOOK: {name} -->`, and distinctive enough that it would NOT apply to a different product concept
+- **Missing variable font axis comment:** Document which axes the loaded font supports in a comment at the top of the `<style>` block
+- **`animation-timeline` BEFORE `animation` shorthand:** Shorthand resets animation-timeline to auto; always declare `animation-timeline` AFTER the `animation` shorthand
 
 </process>
 
