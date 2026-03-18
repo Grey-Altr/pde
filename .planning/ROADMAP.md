@@ -121,7 +121,7 @@ Plans:
   2. User can run `/pde:handoff --create-prs` and receive a confirmation prompt listing the PRs to be created before any GitHub write occurs
   3. User can run `/pde:brief --from-github` referencing a GitHub issue URL or ID and receive a populated brief pre-filled with the issue's context
   4. User can view GitHub Actions CI status for the connected repo within pipeline status output, without leaving PDE
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 Plans:
 - [ ] 40-01-PLAN.md — TOOL_MAP + probeTool population in mcp-bridge.cjs, connect workflow repo capture
 - [ ] 40-02-PLAN.md — /pde:sync --github issue sync and /pde:pipeline-status CI display
@@ -178,7 +178,7 @@ Plans:
 | 24-28 | v0.3 | 10/10 | Complete | 2026-03-17 |
 | 29-38 | v0.4 | 20/20 | Complete | 2026-03-18 |
 | 39 | 2/2 | Complete    | 2026-03-18 | — |
-| 40 | 2/3 | In Progress|  | — |
+| 40 | 3/3 | Complete   | 2026-03-18 | — |
 | 41 | v0.5 | 0/? | Not started | — |
 | 42 | v0.5 | 0/? | Not started | — |
 | 43 | v0.5 | 0/? | Not started | — |
