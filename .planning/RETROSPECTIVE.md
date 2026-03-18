@@ -147,6 +147,55 @@
 
 ---
 
+## Milestone: v1.3 — Self-Improvement & Design Excellence
+
+**Shipped:** 2026-03-18
+**Phases:** 10 | **Plans:** 20 | **Commits:** 131
+
+### What Was Built
+- Quality infrastructure: Awwwards 4-dimension rubric, motion design reference, composition/typography reference with APCA contrast guidance
+- Protected-files mechanism preventing self-improvement agents from modifying quality rubric and core files
+- Self-improvement fleet: 3-agent orchestration (auditor/improver/validator) with `/pde:audit` command
+- Baseline delta tracking and PDE Health Reports for quantifiable improvement measurement
+- Skill builder: `/pde:improve` with create/improve/eval modes, validation gate, style guide enforcement
+- Design elevation of all 7 pipeline skills: DTCG motion tokens, OKLCH harmony palettes, spring physics, scroll-driven animations, variable font axes, APCA contrast
+- Pressure test: `/pde:pressure-test` with two-tier evaluation (process compliance + Awwwards quality rubric)
+- Tech debt cleanup phase closing all audit-identified gaps
+
+### What Worked
+- **Quality references before elevation** — building the Awwwards rubric, motion design, and composition/typography references in Phase 29 gave every subsequent phase a concrete target to elevate toward
+- **Strict dependency chain for elevation** — system → wireframe → critique → mockup → handoff ordering meant each skill inherited upstream quality improvements
+- **Nyquist-first approach** — writing bash test scripts (Wave 0) before implementation ensured every elevation had verifiable criteria; 330+ assertions across 10 phases
+- **Milestone audit with re-audit** — first audit found 4 tech debt items; Phase 38 fixed them; re-audit confirmed 0 remaining. Two-pass verification was valuable.
+- **Pressure test fixture concept (Tide)** — forcing domain-specific output on a marine biology platform prevented AI aesthetic patterns from sneaking through
+
+### What Was Inefficient
+- **SUMMARY.md one_liner field still missing** — fourth consecutive milestone where automated accomplishment extraction fails; gsd-tools `summary-extract --fields one_liner` returns empty
+- **STATE.md accumulated context bloat** — by Phase 38, the decisions section had 60+ lines of per-plan decisions making the file unwieldy; next milestone should start with clean accumulated context
+- **Phase 38 should have been unnecessary** — audit found pressure-test.md missing frontmatter, baseline not saved, summary metadata gaps. These should have been caught during the originating phases.
+
+### Patterns Established
+- Quality reference files as `@` includes in skill `required_reading` — no structural changes to 7-step skill anatomy
+- Protected-files.json with prompt-level enforcement (defense in depth at workflow + agent level)
+- Three-agent fleet pattern: auditor (read-only) → improver (propose) → validator (accept/reject)
+- Baseline delta tracking: JSON snapshot → run audit → compute improvement delta
+- Pressure test two-tier evaluation: process compliance (mechanistic) + quality rubric (judgment)
+- VISUAL-HOOK dual comment convention (HTML + CSS) for concept-specific interaction detection
+- `@supports (animation-timeline: scroll())` as MANDATORY guard for scroll-driven CSS
+
+### Key Lessons
+1. **Frontmatter validation should be automated at commit time** — Phase 38 existed only because frontmatter was incorrect in earlier phases. A pre-commit hook running `validate-skill` would have caught this.
+2. **Baseline snapshots should be part of the audit command's default behavior** — having to run `--save-baseline` separately is error-prone; the first audit should always save a baseline.
+3. **One tech debt cleanup phase per milestone is predictable** — v1.0 had 3 gap phases, v1.1 had 5, v1.2 had 0, v1.3 had 1. Budget for it but minimize via upstream validation.
+4. **Spring physics approximation works** — cubic-bezier approximations of spring easing produce convincing results without JavaScript dependencies; GSAP is an enhancement, not a requirement.
+
+### Cost Observations
+- Model mix: sonnet for execution agents, opus for orchestration and evaluation (pde-design-quality-evaluator, pde-pressure-test-evaluator)
+- Timeline: 4 days (2026-03-14 → 2026-03-18)
+- Notable: Largest milestone (10 phases, 20 plans, 131 commits), heaviest on opus due to quality evaluation agents
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -156,6 +205,7 @@
 | v1.0 | 127 | 11 | Initial release — fork-and-rebrand with gap closure |
 | v1.1 | 135 | 15 | Design pipeline — 7 skills + orchestrator with infrastructure-first approach |
 | v1.2 | 67 | 5 | Advanced design skills — 6 new skills, 13-stage pipeline, zero unplanned phases |
+| v1.3 | 131 | 10 | Self-improvement — audit fleet, skill builder, design elevation, pressure test |
 
 ### Cumulative Quality
 
@@ -164,3 +214,4 @@
 | v1.0 | 40/40 | 100% | 3 (phases 9-11) | — |
 | v1.1 | 25/25 | 100% | 5 (phases 13.1, 13.2, 15.1, 21-23) | — |
 | v1.2 | 25/25 | 100% | 0 | 306 |
+| v1.3 | 62/62 | 100% | 1 (phase 38) | 330+ |

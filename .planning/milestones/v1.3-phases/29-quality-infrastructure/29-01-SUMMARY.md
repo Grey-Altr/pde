@@ -65,7 +65,7 @@ Each task was committed atomically:
 
 1. **Task 1: Author references/quality-standards.md — Awwwards 4-dimension rubric** - `7a063c3` (feat)
 
-**Plan metadata:** (docs commit follows)
+**Plan metadata:** `b5ceea6` (docs: complete quality-standards plan)
 
 ## Files Created/Modified
 

@@ -1,5 +1,24 @@
 # Milestones
 
+## v1.3 Self-Improvement & Design Excellence (Shipped: 2026-03-18)
+
+**Phases completed:** 10 phases, 20 plans
+**Commits:** 131 | **Files:** 259 | **LOC:** ~134,000
+**Timeline:** 4 days (2026-03-14 → 2026-03-18)
+**Git range:** test(phase-24) → docs(v1.3): re-audit
+
+**Key accomplishments:**
+1. Quality infrastructure: Awwwards 4-dimension rubric, motion design reference, composition/typography reference, protected-files mechanism for safe self-modification
+2. Self-improvement fleet: `/pde:audit` with 3-agent orchestration (auditor/improver/validator), baseline delta tracking, PDE Health Reports
+3. Skill builder: `/pde:improve` with create/improve/eval modes, validation gate, style guide enforcement — PDE can create and elevate its own skills
+4. Design elevation: All 7 pipeline skills elevated with DTCG motion tokens, OKLCH harmony palettes, APCA contrast, spring physics, scroll-driven animations, variable font axes (330+ Nyquist assertions)
+5. Pressure test: `/pde:pressure-test` with two-tier evaluation (process compliance + Awwwards quality rubric) and AI aesthetic avoidance detection
+6. Tech debt closure: All audit findings resolved — 62/62 requirements satisfied, 10/10 phases verified, 0 remaining debt
+
+**Delivered:** A self-improving design platform that audits, validates, and elevates its own output quality against professional standards — producing Awwwards-level design artifacts through a 13-stage pipeline with motion choreography, perceptual color harmony, and AI aesthetic avoidance, validated by end-to-end pressure testing.
+
+---
+
 ## v1.2 Advanced Design Skills (Shipped: 2026-03-17)
 
 **Phases completed:** 5 phases, 10 plans

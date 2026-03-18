@@ -575,27 +575,27 @@ Step 7 MUST include the standard output summary table from skill-style-guide.md
 
 ---
 
-## Open Questions
+## Design Decisions (Resolved)
 
-1. **Skill code assignment in create mode**
-   - What we know: skill codes must be unique (LINT-011); skill-registry.md is protected; new skills can't auto-register
-   - What's unclear: should the workflow suggest a code based on the description and require human confirmation, or should the user always provide it as an argument?
-   - Recommendation: require `--code XYZ` as an explicit argument in create mode, warn if not unique against skill-registry.md, output registration reminder. Don't auto-assign — collision risk is too high.
+1. **Skill code assignment in create mode** → **Auto-suggest with confirmation**
+   - Builder proposes a code based on the description, user accepts or overrides
+   - Warns on LINT-011 collision against skill-registry.md
+   - Outputs registration reminder (skill-registry.md is protected, can't auto-register)
 
-2. **User-project vs PDE-internal destination**
-   - What we know: both are valid destinations; paths differ; `.claude/skills/` is in the target project directory
-   - What's unclear: what's the default? Should users always specify with a flag?
-   - Recommendation: default to user-project (`{cwd}/.claude/skills/`), require `--for-pde` flag for PDE-internal creation. Most users are creating skills for their project, not extending PDE itself.
+2. **User-project vs PDE-internal destination** → **User-project default + `--for-pde` flag**
+   - Default: `{cwd}/.claude/skills/` (user-project)
+   - `--for-pde` flag: `commands/` (PDE-internal)
+   - Both are first-class paths; flag acts as safety gate for PDE directory writes
 
-3. **Eval mode rubric adaptation**
-   - What we know: pde-design-quality-evaluator uses Awwwards visual rubric; skills are not visual artifacts
-   - What's unclear: should a separate `references/skill-quality-rubric.md` be created, or should the rubric adaptation live in the agent prompt?
-   - Recommendation: embed the adaptation in the `pde-design-quality-evaluator.md` agent prompt as a second rubric mode (triggered by `<eval_target>skill</eval_target>`). Avoids creating a new reference file for Phase 31 — that can be deferred to Phase 32 if needed.
+3. **Eval mode rubric** → **Dedicated `references/skill-quality-rubric.md` file**
+   - Separates rubric from agent prompt for easier iteration
+   - Adds a Phase 31 deliverable (new reference file)
+   - Agent loads via `<required_reading>` — same pattern as other reference files
 
-4. **Improve mode diff application**
-   - What we know: the additive-only improve mode should use Edit tool (not Write)
-   - What's unclear: if the agent returns a structured additions/replacements JSON, who applies it — the workflow or a second agent call?
-   - Recommendation: the workflow applies it directly using Edit tool, reading the JSON structure from the agent's return. No second agent needed for application — keeps it simple.
+4. **Improve mode diff application** → **Workflow applies directly via Edit tool**
+   - Agent returns structured additions/replacements JSON
+   - Workflow parses JSON and applies via Edit tool — deterministic, no LLM needed
+   - No second agent call — keeps it simple
 
 ---
 

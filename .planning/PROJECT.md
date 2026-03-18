@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A full professional product design and development platform delivered as a Claude Code plugin. PDE takes users from raw idea to shipped product through AI-assisted research, design, planning, coding, testing, and deployment. Includes a complete 13-stage design pipeline (recommend → competitive → opportunity → ideate → brief → system → flows → wireframe → critique → iterate → mockup → hig → handoff) orchestrable via a single `/pde:build` command.
+A full professional product design and development platform delivered as a Claude Code plugin. PDE takes users from raw idea to shipped product through AI-assisted research, design, planning, coding, testing, and deployment. Includes a complete 13-stage design pipeline (recommend → competitive → opportunity → ideate → brief → system → flows → wireframe → critique → iterate → mockup → hig → handoff) orchestrable via a single `/pde:build` command. Features a self-improvement fleet that audits, validates, and elevates its own output quality against Awwwards-level standards.
 
 ## Core Value
 
@@ -32,15 +32,16 @@ Any user can go from idea to shipped product through a single platform that hand
 - ✓ Recommend skill for MCP/tool discovery (integrated into ideation) — v1.2
 - ✓ Brief accepts upstream IDT/CMP/OPP context with graceful degradation — v1.2
 - ✓ Build orchestrator expanded to 13-stage pipeline with --from entry and dynamic stage counting — v1.2
+- ✓ Audit PDE tooling against Awwwards-level standards with 3-agent fleet — v1.3
+- ✓ Skill builder (create/improve/eval) with validation gate and style guide enforcement — v1.3
+- ✓ Self-improvement fleet with baseline delta tracking and health reports — v1.3
+- ✓ Design quality elevation: all 7 pipeline skills with motion tokens, OKLCH palettes, APCA contrast, spring physics — v1.3
+- ✓ Pressure test: end-to-end pipeline validation with process compliance and quality rubric tiers — v1.3
+- ✓ 62/62 v1.3 requirements satisfied with 330+ Nyquist assertions — v1.3
 
 ### Active
 
-- [ ] Audit PDE tooling (CLIs, MCP servers, agent prompts, templates, output quality) against Awwwards-level standards
-- [ ] Build skill-builder capability — PDE can create, update, and improve its own skills and user project skills
-- [ ] Build self-improvement fleet — agents and skills that audit, validate, and elevate PDE's output quality
-- [ ] Optimize tools — ensure MCP integrations, Context7, agent prompts, and templates support professional-grade output
-- [ ] Elevate design quality — upgrade design pipeline output (system, wireframe, mockup, critique, handoff) to Awwwards-level
-- [ ] Pressure test — full end-to-end pipeline on a real project, measured against professional design standards
+(None — planning next milestone)
 
 ### Out of Scope
 
@@ -52,29 +53,22 @@ Any user can go from idea to shipped product through a single platform that hand
 - Real-time collaborative editing — conflicts with file-based state model
 - In-tool web dashboard / UI — markdown files are the dashboard
 - Architecture restructuring — do when pain forces it
-
-## Current Milestone: v1.3 Self-Improvement & Design Excellence
-
-**Goal:** Make PDE self-improving and capable of producing Awwwards-level websites and web apps.
-
-**Target features:**
-- Tool audit framework (MCP, CLIs, agents, templates, output quality)
-- Skill builder (create/update/improve skills for PDE and user projects)
-- Self-improvement agent fleet (audit, validate, elevate PDE capabilities)
-- Tool optimization (Context7, agent prompts, templates aligned to quality bar)
-- Design quality elevation (Awwwards-level typography, color, motion, composition, layout)
-- End-to-end pressure test on real project
+- Fully autonomous self-modification without safeguards — protected-files mechanism provides guardrails
+- Generic LLM quality metrics (BLEU, ROUGE) — Awwwards rubric is domain-specific
+- Continuous background self-improvement loop — Claude Code is session-based; explicit invocations are correct
 
 ## Context
 
-- **Shipped v1.2** on 2026-03-17: ~101,700 LOC (JavaScript/Markdown), 329 total commits
+- **Shipped v1.3** on 2026-03-18: ~134,000 LOC (JavaScript/Markdown/Shell), 460 total commits
 - **v1.0** shipped 2026-03-15: 303 files, ~60,000 LOC, 127 commits (GSD → PDE rebrand)
 - **v1.1** shipped 2026-03-16: 172 files changed, 135 commits (7-stage design pipeline)
 - **v1.2** shipped 2026-03-17: 84 files changed, 67 commits (6 advanced design skills, 13-stage pipeline)
+- **v1.3** shipped 2026-03-18: 259 files changed, 131 commits (self-improvement fleet, design elevation, pressure test)
 - **Tech stack:** Node.js (CommonJS), Claude Code plugin API, markdown-based state management
 - **Distribution:** Claude Code plugin via GitHub; marketplace registration pending
 - **Architecture:** skills (slash commands) → workflows → agents → templates → references → bin scripts → config
 - **Design pipeline:** 13 skills (recommend, competitive, opportunity, ideate, brief, system, flows, wireframe, critique, iterate, mockup, hig, handoff) + build orchestrator, DESIGN-STATE.md tracking, design-manifest.json artifact registry (13 coverage flags, pass-through-all pattern)
+- **Quality infrastructure:** Awwwards 4-dimension rubric, 3 quality reference files (motion-design, composition-typography, quality-standards), protected-files mechanism, 3-agent self-improvement fleet, skill builder with validation gate
 - **Known tech debt:**
   - PLUG-01 end-to-end `claude plugin install` from GitHub not tested (marketplace registration may be required)
   - TRACKING-PLAN.md referenced in consent panel does not exist
@@ -118,10 +112,13 @@ Any user can go from idea to shipped product through a single platform that hand
 | HIG --light flag as critique delegation contract | 5 mandatory checks only, critique-compatible format; full audit as separate stage | ✓ Good — Phase 26 |
 | Data-driven STAGES list in build orchestrator | Future pipeline expansions require no text changes — TOTAL derived from list length | ✓ Good — Phase 28 |
 | --from flag with validation-before-coverage-check | Typos halt immediately with full valid stage list; no silent skip behavior | ✓ Good — Phase 28 |
-
-| Self-improvement before pressure test | Build tools to fix PDE first, then validate with real project | — Pending |
-| Design quality elevation last before pressure test | Use self-improvement fleet to elevate quality, then validate | — Pending |
-| Awwwards-level as quality bar | PDE must produce stunning, professional-grade design output — not functional defaults | — Pending |
+| Self-improvement before pressure test | Build tools to fix PDE first, then validate with real project | ✓ Good — audit baseline enabled elevation delta measurement |
+| Design quality elevation last before pressure test | Use self-improvement fleet to elevate quality, then validate | ✓ Good — strict dependency order produced cumulative improvement |
+| Awwwards-level as quality bar | PDE must produce stunning, professional-grade design output — not functional defaults | ✓ Good — 330+ Nyquist assertions verify rubric compliance |
+| Prompt-only protected-files enforcement | bwrap sandbox can't prevent Claude Code Write/Edit; prompt-level defense-in-depth at workflow + agent level | ✓ Good — zero protected-file violations across all v1.3 phases |
+| DTCG object format for duration tokens | String format "200ms" rejected by Style Dictionary v4+; { value: N, unit: "ms" } is spec-compliant | ✓ Good — all motion tokens upgraded |
+| Spring easing as cubicBezier + $extensions | DTCG has no native spring type; workaround via §9.3 + linear() multi-bounce extension | ✓ Good — three fidelity levels documented |
+| Pressure test evaluator distinct from quality auditor | Evaluates design OUTPUT artifacts not SKILL.md files — prevents wrong-domain findings | ✓ Good — clean separation of concerns |
 
 ---
-*Last updated: 2026-03-17 after v1.3 milestone start*
+*Last updated: 2026-03-18 after v1.3 milestone*
