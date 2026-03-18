@@ -97,21 +97,36 @@ Write `.planning/audit-report.md` with:
 | MEDIUM | {n} |
 | LOW | {n} |
 
-## Health Scores
+## PDE Health Report
 
-| Category | Score | Critical | High |
-|----------|-------|----------|------|
-| Commands | {pct}% | {n} | {n} |
-| Workflows | {pct}% | {n} | {n} |
-| Agents | {pct}% | {n} | {n} |
-| Templates | {pct}% | {n} | {n} |
-| References | {pct}% | {n} | {n} |
-| **Overall** | **{pct}%** | | |
+**Overall Health:** {overall_health_pct}%
+**Trend:** {improved/declined/unchanged} ({delta}% since {baseline_date}) | "N/A (no baseline)"
+
+### Category Breakdown
+
+| Category | Health | Findings | Critical | High | Medium | Low |
+|----------|--------|----------|----------|------|--------|-----|
+| Commands | {pct}% | {n} | {n} | {n} | {n} | {n} |
+| Workflows | {pct}% | {n} | {n} | {n} | {n} | {n} |
+| Agents | {pct}% | {n} | {n} | {n} | {n} | {n} |
+| Templates | {pct}% | {n} | {n} | {n} | {n} | {n} |
+| References | {pct}% | {n} | {n} | {n} | {n} | {n} |
+| **Overall** | **{overall_health_pct}%** | | | | | |
+
+### Quick Health Check
+
+- Tool availability: {N}/{M} referenced tools accessible
+- Reference currency: {N}/{M} reference files exist and have content
+- Skill quality: {average score_pct across categories}%
 
 ## Delta from Baseline
 
 {If .planning/audit-baseline.json exists: compute and show delta}
-{If no baseline: "No baseline exists. Run with --save-baseline to establish one."}
+- `overall_delta = current overall_health_pct - baseline.scores.overall_health_pct`
+- `finding_count_delta = current_finding_count - baseline.finding_count`
+- Display format: `+3.2% from baseline (2026-03-17)` or `-1.5% from baseline (2026-03-17)`
+
+{If no baseline: "Delta: N/A (no baseline — run with --save-baseline to establish one)"}
 
 ## Findings
 
@@ -131,9 +146,17 @@ Write `.planning/audit-report.md` with:
 
 {...}
 
-## Missing References (AUDIT-10)
+## Missing References
 
-{list from missing_references[] — reference files that skills reference but don't exist}
+Skills that reference files which do not exist. These are candidates for creation via /pde:improve create.
+
+{If missing_references[] is non-empty:}
+
+| Skill | Missing Reference | Impact |
+|-------|-------------------|--------|
+| {skill_path} | {missing_ref_path} | {why it matters} |
+
+{If missing_references[] is empty: "All referenced files exist. No missing references detected."}
 
 ## Agent Prompt Quality (AUDIT-12)
 
@@ -148,8 +171,21 @@ If `--save-baseline` flag is set:
 ```json
 {
   "timestamp": "{ISO8601}",
+  "version": 1,
   "finding_count": {n},
   "scores": {scores object from auditor}
+}
+```
+
+The `scores` object from the auditor has this exact structure:
+```json
+{
+  "commands": { "total": {n}, "critical": {n}, "high": {n}, "score_pct": {n} },
+  "workflows": { "total": {n}, "critical": {n}, "high": {n}, "score_pct": {n} },
+  "agents": { "total": {n}, "critical": {n}, "high": {n}, "score_pct": {n} },
+  "templates": { "total": {n}, "critical": {n}, "high": {n}, "score_pct": {n} },
+  "references": { "total": {n}, "critical": {n}, "high": {n}, "score_pct": {n} },
+  "overall_health_pct": {n}
 }
 ```
 
