@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Self-Improvement & Design Excellence
 status: completed
-stopped_at: Completed 35-01-PLAN.md — mockup.md elevated with spring physics, @supports scroll-driven, all 7 interaction states (aria-busy/aria-disabled/aria-invalid), GSAP narrative entrance choreography; MOCK-01 through MOCK-04 Nyquist tests GREEN
-last_updated: "2026-03-18T05:43:41.649Z"
+stopped_at: Completed 35-02-PLAN.md — mockup.md fully elevated with variable fonts, VISUAL-HOOK convention, GPU performance rules; all 7 MOCK Nyquist tests GREEN (47 checks)
+last_updated: "2026-03-18T05:48:56.714Z"
 last_activity: 2026-03-18 — Phase 32 Plan 01 complete (motion tokens SYS-01, variable font tokens SYS-02, 6 Nyquist test scripts)
 progress:
   total_phases: 9
-  completed_phases: 6
+  completed_phases: 7
   total_plans: 16
-  completed_plans: 15
+  completed_plans: 16
 ---
 
 # Project State
@@ -55,6 +55,7 @@ v1.3 Progress: [====                ] 20% (1/3 plans in Phase 32 complete)
 | Phase 34-design-elevation-critique-hig-skills P02 | 2min | 2 tasks | 4 files |
 | Phase 34-design-elevation-critique-hig-skills P01 | 3min | 2 tasks | 5 files |
 | Phase 35-design-elevation-mockup-skill P01 | 4min | 2 tasks | 8 files |
+| Phase 35-design-elevation-mockup-skill P02 | 3 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -121,6 +122,9 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 35]: [Phase 35]: @supports (animation-timeline: scroll()) guard is MANDATORY — Firefox sees opacity:0 outside @supports as permanent invisible style (flag-only support as of March 2026)
 - [Phase 35]: [Phase 35]: GSAP autoAlpha:0 used for entrance animations (not opacity:0) — prevents FOUC when script executes before first paint by combining opacity and visibility:hidden
 - [Phase 35]: [Phase 35]: @layer updated to tokens, mockup-layout, components, states, animations, utilities — states and animations are distinct layers enabling additive override without specificity conflict
+- [Phase 35]: [Phase 35-02]: Variable font section documents which axes the loaded font supports as a comment — prevents silent axis-mismatch failures
+- [Phase 35]: [Phase 35-02]: VISUAL-HOOK dual comment (HTML + CSS co-location) enables both grep validation and critique skill concept-specificity detection
+- [Phase 35]: [Phase 35-02]: Animation Anti-Patterns section added as mandatory reject checklist with 10 rules including layout thrashing, generic visual hooks, will-change:all
 
 ### Pending Todos
 
@@ -133,8 +137,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-18T05:43:41.646Z
-Stopped at: Completed 35-01-PLAN.md — mockup.md elevated with spring physics, @supports scroll-driven, all 7 interaction states (aria-busy/aria-disabled/aria-invalid), GSAP narrative entrance choreography; MOCK-01 through MOCK-04 Nyquist tests GREEN
+Last session: 2026-03-18T05:48:56.710Z
+Stopped at: Completed 35-02-PLAN.md — mockup.md fully elevated with variable fonts, VISUAL-HOOK convention, GPU performance rules; all 7 MOCK Nyquist tests GREEN (47 checks)
 Resume file: None
 
 ## Phase Sequence
