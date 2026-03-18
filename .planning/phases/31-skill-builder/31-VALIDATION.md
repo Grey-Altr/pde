@@ -1,10 +1,11 @@
 ---
 phase: 31
 slug: skill-builder
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-17
+updated: 2026-03-18
 ---
 
 # Phase 31 — Validation Strategy
@@ -38,12 +39,12 @@ created: 2026-03-17
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 31-01-01 | 01 | 1 | SKILL-01 | smoke/integration | `bash .../test_skill01_create_mode.sh` | ❌ W0 | ⬜ pending |
-| 31-01-02 | 01 | 1 | SKILL-02 | smoke/integration | `bash .../test_skill02_improve_mode.sh` | ❌ W0 | ⬜ pending |
-| 31-01-03 | 01 | 1 | SKILL-03 | smoke/integration | `bash .../test_skill03_eval_mode.sh` | ❌ W0 | ⬜ pending |
-| 31-01-04 | 01 | 1 | SKILL-04 | integration | `bash .../test_skill04_validation_gate.sh` | ❌ W0 | ⬜ pending |
-| 31-01-05 | 01 | 1 | SKILL-05 | content | `bash .../test_skill05_reference_loading.sh` | ❌ W0 | ⬜ pending |
-| 31-01-06 | 01 | 1 | SKILL-06 | path-guard | `bash .../test_skill06_path_sandboxing.sh` | ❌ W0 | ⬜ pending |
+| 31-01-01 | 01 | 1 | SKILL-01 | smoke/integration | `bash .../test_skill01_create_mode.sh` | ✅ | ✅ green (9/9) |
+| 31-01-02 | 01 | 1 | SKILL-02 | smoke/integration | `bash .../test_skill02_improve_mode.sh` | ✅ | ✅ green (5/5) |
+| 31-01-03 | 01 | 1 | SKILL-03 | smoke/integration | `bash .../test_skill03_eval_mode.sh` | ✅ | ✅ green (7/7) |
+| 31-01-04 | 01 | 1 | SKILL-04 | integration | `bash .../test_skill04_validation_gate.sh` | ✅ | ✅ green (4/4) |
+| 31-01-05 | 01 | 1 | SKILL-05 | content | `bash .../test_skill05_reference_loading.sh` | ✅ | ✅ green (5/5) |
+| 31-01-06 | 01 | 1 | SKILL-06 | path-guard | `bash .../test_skill06_path_sandboxing.sh` | ✅ | ✅ green (7/7) |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -51,14 +52,14 @@ created: 2026-03-17
 
 ## Wave 0 Requirements
 
-- [ ] `test_skill01_create_mode.sh` — stubs for SKILL-01: command file exists, workflow exists, IMP registered in skill-registry, agents exist
-- [ ] `test_skill02_improve_mode.sh` — stubs for SKILL-02: --rewrite flag documented in workflow, improve mode diff output format
-- [ ] `test_skill03_eval_mode.sh` — stubs for SKILL-03: pde-design-quality-evaluator agent exists, returns JSON with dimension keys
-- [ ] `test_skill04_validation_gate.sh` — stubs for SKILL-04: workflow calls validate-skill, retry loop logic present
-- [ ] `test_skill05_reference_loading.sh` — stubs for SKILL-05: pde-skill-builder agent has required_reading for both references
-- [ ] `test_skill06_path_sandboxing.sh` — stubs for SKILL-06: workflow has protected-files check, bin/ and .claude/ not in allowed paths
+- [x] `test_skill01_create_mode.sh` — SKILL-01: command file exists, workflow exists, IMP registered in skill-registry, agents exist (9/9 pass)
+- [x] `test_skill02_improve_mode.sh` — SKILL-02: --rewrite flag documented in workflow, improve mode diff output format (5/5 pass)
+- [x] `test_skill03_eval_mode.sh` — SKILL-03: pde-design-quality-evaluator agent exists, returns JSON with dimension keys (7/7 pass)
+- [x] `test_skill04_validation_gate.sh` — SKILL-04: workflow calls validate-skill, retry loop logic present (4/4 pass)
+- [x] `test_skill05_reference_loading.sh` — SKILL-05: pde-skill-builder agent has required_reading for both references (5/5 pass)
+- [x] `test_skill06_path_sandboxing.sh` — SKILL-06: workflow has protected-files check, bin/ and .claude/ not in allowed paths (7/7 pass)
 
-*If none: "Existing infrastructure covers all phase requirements."*
+All Wave 0 tests delivered and passing.
 
 ---
 
@@ -74,11 +75,19 @@ created: 2026-03-17
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 5s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 5s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** ✅ validated 2026-03-18
+
+## Validation Audit 2026-03-18
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+| Total tests | 37/37 green |
