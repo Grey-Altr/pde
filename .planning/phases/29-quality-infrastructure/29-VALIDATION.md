@@ -1,10 +1,11 @@
 ---
 phase: 29
 slug: quality-infrastructure
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-17
+updated: 2026-03-17
 ---
 
 # Phase 29 — Validation Strategy
@@ -17,20 +18,21 @@ created: 2026-03-17
 
 | Property | Value |
 |----------|-------|
-| **Framework** | Node.js assert + bash verification scripts |
-| **Config file** | none — Phase 29 is reference file authoring + config registration |
-| **Quick run command** | `node bin/pde-tools.cjs validate-phase 29` |
-| **Full suite command** | `bash .planning/phases/29-quality-infrastructure/verify.sh` |
-| **Estimated runtime** | ~5 seconds |
+| **Framework** | Bash test scripts (test_*.sh pattern) |
+| **Config file** | none — standalone bash scripts with exit codes |
+| **Quick run command** | `bash .planning/phases/29-quality-infrastructure/test_qual01_quality_standards_rubric.sh` |
+| **Full suite command** | `for f in .planning/phases/29-quality-infrastructure/test_qual0*.sh; do bash "$f"; done` |
+| **Estimated runtime** | ~3 seconds |
+| **Total assertions** | 97 |
 
 ---
 
 ## Sampling Rate
 
-- **After every task commit:** Run `node bin/pde-tools.cjs validate-phase 29`
-- **After every plan wave:** Run full verification script
+- **After every task commit:** Run relevant test_qual0N script
+- **After every plan wave:** Run full suite (all 6 scripts)
 - **Before `/gsd:verify-work`:** Full suite must be green
-- **Max feedback latency:** 5 seconds
+- **Max feedback latency:** 3 seconds
 
 ---
 
@@ -38,12 +40,12 @@ created: 2026-03-17
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 29-01-01 | 01 | 1 | QUAL-01 | file-exists + content | `grep "Design.*40%" references/quality-standards.md` | ❌ W0 | ⬜ pending |
-| 29-01-02 | 01 | 1 | QUAL-02 | file-exists + content | `grep "easing" references/motion-design.md` | ❌ W0 | ⬜ pending |
-| 29-01-03 | 01 | 1 | QUAL-03 | file-exists + content | `grep "APCA" references/composition-typography.md` | ❌ W0 | ⬜ pending |
-| 29-02-01 | 02 | 1 | QUAL-04 | file-exists + json-valid | `node -e "JSON.parse(require('fs').readFileSync('protected-files.json'))"` | ❌ W0 | ⬜ pending |
-| 29-02-02 | 02 | 1 | QUAL-05 | grep | `grep "pde-output-quality-auditor" bin/lib/model-profiles.cjs` | ❌ W0 | ⬜ pending |
-| 29-02-03 | 02 | 1 | QUAL-06 | grep | `grep "AUD" skill-registry.md` | ❌ W0 | ⬜ pending |
+| 29-01-01 | 01 | 1 | QUAL-01 | smoke/content (18 assertions) | `bash .planning/phases/29-quality-infrastructure/test_qual01_quality_standards_rubric.sh` | ✅ | ✅ green |
+| 29-01-02 | 01 | 1 | QUAL-02 | smoke/content (16 assertions) | `bash .planning/phases/29-quality-infrastructure/test_qual02_motion_design_reference.sh` | ✅ | ✅ green |
+| 29-01-03 | 01 | 1 | QUAL-03 | smoke/content (20 assertions) | `bash .planning/phases/29-quality-infrastructure/test_qual03_composition_typography_reference.sh` | ✅ | ✅ green |
+| 29-02-01 | 02 | 1 | QUAL-04 | integration (11 assertions) | `bash .planning/phases/29-quality-infrastructure/test_qual04_protected_files.sh` | ✅ | ✅ green |
+| 29-02-02 | 02 | 1 | QUAL-05 | integration (10 assertions) | `bash .planning/phases/29-quality-infrastructure/test_qual05_model_profiles.sh` | ✅ | ✅ green |
+| 29-02-03 | 02 | 1 | QUAL-06 | smoke/content (22 assertions) | `bash .planning/phases/29-quality-infrastructure/test_qual06_skill_registry.sh` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -51,9 +53,9 @@ created: 2026-03-17
 
 ## Wave 0 Requirements
 
-- [ ] `references/quality-standards.md` — Awwwards rubric reference (QUAL-01)
-- [ ] `references/motion-design.md` — Motion design patterns (QUAL-02)
-- [ ] `references/composition-typography.md` — Composition and type guidance (QUAL-03)
+- [x] `references/quality-standards.md` — Awwwards rubric reference (QUAL-01)
+- [x] `references/motion-design.md` — Motion design patterns (QUAL-02)
+- [x] `references/composition-typography.md` — Composition and type guidance (QUAL-03)
 
 *These ARE the deliverables — Phase 29 is primarily reference file creation.*
 
@@ -71,11 +73,23 @@ created: 2026-03-17
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 5s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 5s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** complete
+
+---
+
+## Validation Audit 2026-03-17
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 6 |
+| Resolved | 6 |
+| Escalated | 0 |
+| Total assertions | 97 |
+| Pass rate | 100% |
