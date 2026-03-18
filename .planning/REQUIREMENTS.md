@@ -97,12 +97,12 @@ Requirements for Self-Improvement & Design Excellence milestone. Each maps to ro
 
 ### Pressure Test
 
-- [ ] **PRES-01**: `/pde:pressure-test` command runs full 13-stage pipeline on a real product concept (not synthetic or PDE itself)
-- [ ] **PRES-02**: Process compliance tier validates artifact existence, coverage flags, design-manifest.json completeness, and pipeline completion for all 13 stages
-- [ ] **PRES-03**: Quality rubric tier evaluates each artifact against Awwwards criteria producing specific design findings per artifact — not just numeric scores
-- [ ] **PRES-04**: Pressure test supports multiple entry-state fixtures: greenfield, partially-complete (5-8 stages done), and re-run of completed stage
-- [ ] **PRES-05**: Pressure test produces structured report at .planning/pressure-test-report.md with pass/fail per tier, per-artifact findings, and actionable improvement recommendations
-- [ ] **PRES-06**: Pressure test evaluates whether generated output avoids "AI aesthetic" tells: tests for concept-specific interactions, non-generic color choices, intentional asymmetry, and custom motion choreography
+- [x] **PRES-01**: `/pde:pressure-test` command runs full 13-stage pipeline on a real product concept (not synthetic or PDE itself)
+- [x] **PRES-02**: Process compliance tier validates artifact existence, coverage flags, design-manifest.json completeness, and pipeline completion for all 13 stages
+- [x] **PRES-03**: Quality rubric tier evaluates each artifact against Awwwards criteria producing specific design findings per artifact — not just numeric scores
+- [x] **PRES-04**: Pressure test supports multiple entry-state fixtures: greenfield, partially-complete (5-8 stages done), and re-run of completed stage
+- [x] **PRES-05**: Pressure test produces structured report at .planning/pressure-test-report.md with pass/fail per tier, per-artifact findings, and actionable improvement recommendations
+- [x] **PRES-06**: Pressure test evaluates whether generated output avoids "AI aesthetic" tells: tests for concept-specific interactions, non-generic color choices, intentional asymmetry, and custom motion choreography
 
 ## Future Requirements
 
@@ -195,12 +195,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FLOW-01 | Phase 36 | Complete |
 | CROSS-01 | Phase 36 | Complete |
 | CROSS-02 | Phase 36 | Complete |
-| PRES-01 | Phase 37 | Pending |
-| PRES-02 | Phase 37 | Pending |
-| PRES-03 | Phase 37 | Pending |
-| PRES-04 | Phase 37 | Pending |
-| PRES-05 | Phase 37 | Pending |
-| PRES-06 | Phase 37 | Pending |
+| PRES-01 | Phase 37 | Complete |
+| PRES-02 | Phase 37 | Complete |
+| PRES-03 | Phase 37 | Complete |
+| PRES-04 | Phase 37 | Complete |
+| PRES-05 | Phase 37 | Complete |
+| PRES-06 | Phase 37 | Complete |
 
 **Coverage:**
 - v1.3 requirements: 61 total
