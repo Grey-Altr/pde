@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Self-Improvement & Design Excellence
 status: completed
-stopped_at: Completed 31-01-PLAN.md — skill-quality-rubric, pde-skill-builder agent, pde-design-quality-evaluator agent, model-profiles entry, 6 Nyquist test scripts
-last_updated: "2026-03-18T02:04:12.970Z"
+stopped_at: Completed 31-02-PLAN.md — commands/improve.md and workflows/improve.md
+last_updated: "2026-03-18T02:08:51.509Z"
 last_activity: 2026-03-17 — Phase 29 Plan 03 complete (protected-files.json, model-profiles, skill-registry)
 progress:
   total_phases: 9
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 8
-  completed_plans: 7
+  completed_plans: 8
 ---
 
 # Project State
@@ -48,6 +48,7 @@ v1.3 Progress: [==                  ] 11% (3/3 plans in Phase 29 complete)
 | Phase 30-self-improvement-fleet-audit-command P02 | 2min | 2 tasks | 2 files |
 | Phase 30-self-improvement-fleet-audit-command P03 | 8 minutes | 2 tasks | 4 files |
 | Phase 31 P01 | 4 | 3 tasks | 11 files |
+| Phase 31-skill-builder P02 | 1 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -89,6 +90,8 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 31]: Improve mode diff application handled directly by workflow via Edit tool from structured JSON — no second agent call needed; keeps it simple and deterministic
 - [Phase 31]: pde-skill-builder uses sonnet/sonnet/haiku — matching pde-skill-improver since both do skill content generation
 - [Phase 31]: skill-quality-rubric lives in references/ as a separate file — separates evaluation criteria from agent prompt, easier to iterate
+- [Phase 31-skill-builder]: workflows/improve.md is the skill file with skill_code IMP; commands/improve.md is a thin wrapper — validate-skill only runs against workflows/improve.md
+- [Phase 31-skill-builder]: Validation gate uses || true after pde-tools call per Pitfall 2 guidance — non-zero exit still outputs JSON via --raw
 
 ### Pending Todos
 
@@ -101,8 +104,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-18T02:04:12.967Z
-Stopped at: Completed 31-01-PLAN.md — skill-quality-rubric, pde-skill-builder agent, pde-design-quality-evaluator agent, model-profiles entry, 6 Nyquist test scripts
+Last session: 2026-03-18T02:08:51.506Z
+Stopped at: Completed 31-02-PLAN.md — commands/improve.md and workflows/improve.md
 Resume file: None
 
 ## Phase Sequence
