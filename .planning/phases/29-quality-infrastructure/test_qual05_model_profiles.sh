@@ -2,9 +2,9 @@
 # QUAL-05 — model-profiles.cjs 4 new agent entries test
 #
 # Requirement: bin/lib/model-profiles.cjs contains 4 new agent entries:
-# pde-output-quality-auditor, pde-skill-linter, pde-design-quality-evaluator,
+# pde-quality-auditor, pde-skill-linter, pde-design-quality-evaluator,
 # pde-template-auditor. require() must succeed (no syntax errors). Total agent
-# count must be 19.
+# count must be >= 19 (grows as phases add agents).
 #
 # Test type: integration (file content + Node.js require validation)
 # Run: bash .planning/phases/29-quality-infrastructure/test_qual05_model_profiles.sh
@@ -56,7 +56,7 @@ echo ""
 echo "[4 new quality-fleet agent entries present]"
 
 NEW_AGENTS=(
-  "pde-output-quality-auditor"
+  "pde-quality-auditor"
   "pde-skill-linter"
   "pde-design-quality-evaluator"
   "pde-template-auditor"
@@ -111,11 +111,11 @@ agent_count=$(node -e "
   console.log(Object.keys(m.MODEL_PROFILES).length);
 " 2>&1)
 
-if [[ "$agent_count" -eq 19 ]]; then
-  pass "MODEL_PROFILES contains exactly 19 agents (15 original + 4 new)"
+if [[ "$agent_count" -ge 19 ]]; then
+  pass "MODEL_PROFILES contains >= 19 agents (15 original + 4 Phase 29 + later phases)"
 else
-  fail "MODEL_PROFILES contains exactly 19 agents" \
-    "Found $agent_count agents — expected 19"
+  fail "MODEL_PROFILES contains >= 19 agents" \
+    "Found $agent_count agents — expected at least 19"
 fi
 
 echo ""
