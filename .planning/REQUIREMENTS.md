@@ -18,13 +18,13 @@ Requirements for Self-Improvement & Design Excellence milestone. Each maps to ro
 
 ### Audit & Self-Improvement
 
-- [ ] **AUDIT-01**: `/pde:audit` command scans PDE commands, agents, templates, references, and agent prompts for quality gaps and produces structured report with severity levels (CRITICAL/HIGH/MEDIUM/LOW)
+- [x] **AUDIT-01**: `/pde:audit` command scans PDE commands, agents, templates, references, and agent prompts for quality gaps and produces structured report with severity levels (CRITICAL/HIGH/MEDIUM/LOW)
 - [x] **AUDIT-02**: Auditor agent evaluates PDE artifacts against quality rubric in read-only mode, producing gap list with specific findings per artifact
 - [x] **AUDIT-03**: Improver agent generates targeted fixes for audit findings — writes proposed changes to staging area (.planning/improvements/) with diff-style before/after
 - [x] **AUDIT-04**: Validator agent checks proposed changes for format correctness, style-guide compliance, quality rubric coverage, and no regressions — returns structured PASS/FAIL with reasons
-- [ ] **AUDIT-05**: Self-improvement loop orchestration: Auditor → Improver → Validator → (if FAIL: Improver revises) → (if PASS: apply or queue for human review)
-- [ ] **AUDIT-06**: Apply mode: validated improvements can be applied directly to PDE files (with protected-files guard preventing writes to protected paths)
-- [ ] **AUDIT-07**: Tool effectiveness testing executes representative queries against Context7, evaluates agent prompt quality by sampling output, and tests template completeness — measuring actual output quality, not just availability
+- [x] **AUDIT-05**: Self-improvement loop orchestration: Auditor → Improver → Validator → (if FAIL: Improver revises) → (if PASS: apply or queue for human review)
+- [x] **AUDIT-06**: Apply mode: validated improvements can be applied directly to PDE files (with protected-files guard preventing writes to protected paths)
+- [x] **AUDIT-07**: Tool effectiveness testing executes representative queries against Context7, evaluates agent prompt quality by sampling output, and tests template completeness — measuring actual output quality, not just availability
 - [x] **AUDIT-08**: `pde-tools validate-skill` CLI command checks SKILL.md frontmatter YAML validity, allowed-tools list correctness, workflow path existence, skill code uniqueness, and required sections presence
 - [ ] **AUDIT-09**: Audit produces before/after baseline measurements so improvement delta is quantifiable across audit runs
 - [ ] **AUDIT-10**: Self-improvement fleet can identify skills that need new reference files and create them through the skill builder
@@ -146,13 +146,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 | QUAL-04 | Phase 29 | Complete |
 | QUAL-05 | Phase 29 | Complete |
 | QUAL-06 | Phase 29 | Complete |
-| AUDIT-01 | Phase 30 | Pending |
+| AUDIT-01 | Phase 30 | Complete |
 | AUDIT-02 | Phase 30 | Complete |
 | AUDIT-03 | Phase 30 | Complete |
 | AUDIT-04 | Phase 30 | Complete |
-| AUDIT-05 | Phase 30 | Pending |
-| AUDIT-06 | Phase 30 | Pending |
-| AUDIT-07 | Phase 30 | Pending |
+| AUDIT-05 | Phase 30 | Complete |
+| AUDIT-06 | Phase 30 | Complete |
+| AUDIT-07 | Phase 30 | Complete |
 | AUDIT-08 | Phase 30 | Complete |
 | AUDIT-09 | Phase 30 | Pending |
 | AUDIT-10 | Phase 30 | Pending |
