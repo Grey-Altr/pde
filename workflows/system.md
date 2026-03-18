@@ -284,9 +284,9 @@ Apply same scale table for each.
 --color-bg-default: var(--color-neutral-50)
 --color-bg-surface: var(--color-neutral-100)
 --color-bg-elevated: #ffffff
---color-text-primary: var(--color-neutral-900)
---color-text-secondary: var(--color-neutral-600)
---color-text-muted: var(--color-neutral-400)
+--color-text-primary: var(--color-neutral-900)   /* |Lc| ~95 on white bg — meets APCA preferred for all sizes */
+--color-text-secondary: var(--color-neutral-600) /* |Lc| ~68 on white bg — meets APCA min 60; use 16px+/400 or 14px+/700 */
+--color-text-muted: var(--color-neutral-400)     /* |Lc| ~45 on white bg — decorative/large text only (24px+). Below body text threshold. */
 --color-border: var(--color-neutral-200)
 --color-success: var(--color-success-500)
 --color-warning: var(--color-warning-500)
@@ -1263,6 +1263,33 @@ Structure:
   --letter-spacing-3xl:  -0.02em;
   --letter-spacing-4xl:  -0.025em;
 }
+
+/*
+ * APCA Contrast Guidance — Type Scale
+ * Background: --color-bg-default (oklch(0.97 0.005 {H}) ~ white)
+ * Text: --color-text-primary (oklch(0.23 ... {H}) ~ near-black)
+ *
+ * Scale Step | Computed Size | Min Weight | |Lc| (primary text) | Threshold
+ * text-4xl   | {computed}rem  | 300        | ~95                  | Preferred (min 45)
+ * text-3xl   | {computed}rem  | 300        | ~95                  | Preferred (min 45)
+ * text-2xl   | {computed}rem  | 400        | ~95                  | Preferred (min 75)
+ * text-xl    | {computed}rem  | 400        | ~90                  | Preferred (min 75)
+ * text-lg    | {computed}rem  | 400        | ~90                  | Preferred (min 75)
+ * text-base  | 1rem (16px)    | 400        | ~90                  | Preferred (min 75)
+ * text-sm    | {computed}rem  | 500        | ~85                  | Check weight (min 75)
+ * text-xs    | {computed}rem  | 700        | ~85                  | Needs bold weight (min 75)
+ *
+ * For secondary text (--color-text-secondary, |Lc| ~68):
+ * - Minimum size: 16px at weight 500, or 14px at weight 700
+ * - NOT suitable for body text at weight 400 below 18px
+ *
+ * For muted text (--color-text-muted, |Lc| ~45):
+ * - Minimum size: 24px at any weight (decorative/large text only)
+ * - NOT suitable for informational text at any size
+ *
+ * Calculator: myndex.com/APCA
+ * Algorithm: APCA 0.98G-4g (|Lc| absolute value notation per project convention)
+ */
 ```
 
 ---
