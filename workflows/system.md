@@ -117,7 +117,7 @@ Product type: {type}
 Preset: {PRESET_NAME or "custom"}
 
 Token estimates:
-  Color: ~88 primitives + 12 semantic + 12 dark overrides
+  Color: ~88 primitives + 77 harmony (7 harmonies x 11 steps) + 12 semantic + 12 dark overrides
   Typography: ~8 sizes + 3 families + 4 weights + 8 line-heights + 8 letter-spacings
   Spacing: 15 values
   Shadows: 5 levels
@@ -232,6 +232,38 @@ Round L and C to 3 decimal places in the oklch() value.
 **Generate secondary palette:**
 - Secondary hue: `SECONDARY_H = (SEED_H + 180) % 360` (complementary)
 - Same scale table with secondary hue, same SEED_C.
+
+**Generate harmony palettes:**
+
+Using the seed color (SEED_H, SEED_C, SEED_L), generate 7 harmony colors across 4 harmony types. Apply the hue-rotation formulas from references/color-systems.md:
+
+| Harmony Token | Hue Formula | Example (SEED_H=280) |
+|---------------|-------------|----------------------|
+| analogous-warm | SEED_H + 30 | 310 |
+| analogous-cool | SEED_H - 30 | 250 |
+| complementary  | SEED_H + 180 | 100 |
+| split-warm     | SEED_H + 150 | 70  |
+| split-cool     | SEED_H - 150 | 130 |
+| triadic-a      | SEED_H + 120 | 40  |
+| triadic-b      | SEED_H - 120 | 160 |
+
+**All hue values wrap at 360** (e.g., 280 + 150 = 430 → 70, computed as `(SEED_H + offset) % 360`).
+
+**Perceptual balance rules:**
+- Keep L and C identical to SEED_L and SEED_C for all harmonies. OKLCH perceptual uniformity means equal L/C across hues produces visually balanced palettes by construction.
+- Exception: If two harmony hues land within 15 degrees of each other, increase chroma separation by +/-0.04 on the closer pair.
+- Apply C_safe_max clamps from the scale generation table (same as primary palette). High-chroma out-of-gamut colors render inconsistently on sRGB monitors.
+
+For each harmony color, generate a full 11-step scale (50-950) using the same scale table as the primary palette but with the harmony hue. Store as:
+```
+--color-harmony-analogous-warm-{step}: oklch({L} {C} {H});
+--color-harmony-analogous-cool-{step}: oklch({L} {C} {H});
+--color-harmony-complementary-{step}: oklch({L} {C} {H});
+--color-harmony-split-warm-{step}: oklch({L} {C} {H});
+--color-harmony-split-cool-{step}: oklch({L} {C} {H});
+--color-harmony-triadic-a-{step}: oklch({L} {C} {H});
+--color-harmony-triadic-b-{step}: oklch({L} {C} {H});
+```
 
 **Generate neutral palette:**
 - Same scale table with `C = 0.010` (barely perceptible tint), `H = SEED_H` (brand-tinted gray).
@@ -773,12 +805,81 @@ Example structure:
       "bg": {
         "default": { "$value": "{color.primitive.neutral.50}", "$type": "color" }
       },
+      "text": {
+        "primary": {
+          "$value": "{color.primitive.neutral.900}",
+          "$type": "color",
+          "$description": "Primary text on default bg: |Lc| ~95 (exceeds preferred 90). Meets APCA for all font sizes."
+        },
+        "secondary": {
+          "$value": "{color.primitive.neutral.600}",
+          "$type": "color",
+          "$description": "Secondary text on default bg: |Lc| ~68 (meets minimum 60). Use 16px+/400 or 14px+/700."
+        },
+        "muted": {
+          "$value": "{color.primitive.neutral.400}",
+          "$type": "color",
+          "$description": "Muted/decorative text on default bg: |Lc| ~45. Large text only (24px+)."
+        }
+      },
       "dark": {
         "$extensions": { "com.pde.condition": "dark" },
         "action": { "$value": "{color.primitive.primary.400}", "$type": "color" },
         "bg": {
           "default": { "$value": "{color.primitive.neutral.900}", "$type": "color" }
+        },
+        "text": {
+          "primary": {
+            "$value": "{color.primitive.neutral.50}",
+            "$type": "color",
+            "$description": "Primary text on dark bg: |Lc| ~95 (light on dark — APCA polarity reversed). Meets all sizes."
+          },
+          "secondary": {
+            "$value": "{color.primitive.neutral.300}",
+            "$type": "color",
+            "$description": "Secondary text on dark bg: |Lc| ~65. Use 16px+/400."
+          }
         }
+      }
+    },
+    "harmony": {
+      "analogous-warm": {
+        "$description": "Analogous +30 degrees from primary hue",
+        "50":  { "$value": "oklch({L_50}  {C_50}  {SEED_H+30})", "$type": "color" },
+        "100": { "$value": "oklch({L_100} {C_100} {SEED_H+30})", "$type": "color" },
+        "200": { "$value": "oklch({L_200} {C_200} {SEED_H+30})", "$type": "color" },
+        "300": { "$value": "oklch({L_300} {C_300} {SEED_H+30})", "$type": "color" },
+        "400": { "$value": "oklch({L_400} {C_400} {SEED_H+30})", "$type": "color" },
+        "500": { "$value": "oklch({L_500} {C_500} {SEED_H+30})", "$type": "color" },
+        "600": { "$value": "oklch({L_600} {C_600} {SEED_H+30})", "$type": "color" },
+        "700": { "$value": "oklch({L_700} {C_700} {SEED_H+30})", "$type": "color" },
+        "800": { "$value": "oklch({L_800} {C_800} {SEED_H+30})", "$type": "color" },
+        "900": { "$value": "oklch({L_900} {C_900} {SEED_H+30})", "$type": "color" },
+        "950": { "$value": "oklch({L_950} {C_950} {SEED_H+30})", "$type": "color" }
+      },
+      "analogous-cool": {
+        "$description": "Analogous -30 degrees from primary hue",
+        "500": { "$value": "oklch(0.55 0.18 {SEED_H-30})", "$type": "color" }
+      },
+      "complementary": {
+        "$description": "Complementary +180 degrees from primary hue",
+        "500": { "$value": "oklch(0.55 0.18 {SEED_H+180})", "$type": "color" }
+      },
+      "split-warm": {
+        "$description": "Split-complementary +150 degrees from primary hue",
+        "500": { "$value": "oklch(0.55 0.18 {SEED_H+150})", "$type": "color" }
+      },
+      "split-cool": {
+        "$description": "Split-complementary -150 degrees from primary hue",
+        "500": { "$value": "oklch(0.55 0.18 {SEED_H-150})", "$type": "color" }
+      },
+      "triadic-a": {
+        "$description": "Triadic +120 degrees from primary hue",
+        "500": { "$value": "oklch(0.55 0.18 {SEED_H+120})", "$type": "color" }
+      },
+      "triadic-b": {
+        "$description": "Triadic -120 degrees from primary hue",
+        "500": { "$value": "oklch(0.55 0.18 {SEED_H-120})", "$type": "color" }
       }
     }
   },
@@ -1027,6 +1128,46 @@ Structure:
   /* ... all steps for success, warning, error, info ... */
 }
 
+/* === Harmony Colors === */
+:root {
+  /* Analogous warm (H + 30) */
+  --color-harmony-analogous-warm-50: oklch({L} {C} {H});
+  --color-harmony-analogous-warm-100: oklch({L} {C} {H});
+  --color-harmony-analogous-warm-200: oklch({L} {C} {H});
+  --color-harmony-analogous-warm-300: oklch({L} {C} {H});
+  --color-harmony-analogous-warm-400: oklch({L} {C} {H});
+  --color-harmony-analogous-warm-500: oklch({L} {C} {H});
+  --color-harmony-analogous-warm-600: oklch({L} {C} {H});
+  --color-harmony-analogous-warm-700: oklch({L} {C} {H});
+  --color-harmony-analogous-warm-800: oklch({L} {C} {H});
+  --color-harmony-analogous-warm-900: oklch({L} {C} {H});
+  --color-harmony-analogous-warm-950: oklch({L} {C} {H});
+  /* Analogous cool (H - 30) */
+  --color-harmony-analogous-cool-50: oklch({L} {C} {H});
+  /* ... all 11 steps ... */
+  /* Complementary (H + 180) */
+  --color-harmony-complementary-50: oklch({L} {C} {H});
+  /* ... all 11 steps ... */
+  /* Split-complementary warm (H + 150) */
+  --color-harmony-split-warm-50: oklch({L} {C} {H});
+  /* ... all 11 steps ... */
+  /* Split-complementary cool (H - 150) */
+  --color-harmony-split-cool-50: oklch({L} {C} {H});
+  /* ... all 11 steps ... */
+  /* Triadic A (H + 120) */
+  --color-harmony-triadic-a-50: oklch({L} {C} {H});
+  /* ... all 11 steps ... */
+  /* Triadic B (H - 120) */
+  --color-harmony-triadic-b-50: oklch({L} {C} {H});
+  /* ... all 11 steps ... */
+}
+
+/* Note: Generate full 11-step scale (50-950) for each harmony, identical to primary palette scale generation.
+ * Use computed hue values: analogous-warm = (SEED_H + 30) % 360, analogous-cool = (SEED_H - 30 + 360) % 360,
+ * complementary = (SEED_H + 180) % 360, split-warm = (SEED_H + 150) % 360, split-cool = (SEED_H - 150 + 360) % 360,
+ * triadic-a = (SEED_H + 120) % 360, triadic-b = (SEED_H - 120 + 360) % 360.
+ * Apply C_safe_max clamps from scale table. */
+
 /* === Semantic Colors (Light Mode) === */
 :root {
   --color-action: var(--color-primary-500);
@@ -1034,9 +1175,9 @@ Structure:
   --color-bg-default: var(--color-neutral-50);
   --color-bg-surface: var(--color-neutral-100);
   --color-bg-elevated: #ffffff;
-  --color-text-primary: var(--color-neutral-900);
-  --color-text-secondary: var(--color-neutral-600);
-  --color-text-muted: var(--color-neutral-400);
+  --color-text-primary: var(--color-neutral-900);    /* |Lc| ~95 on white bg — meets APCA preferred for all sizes */
+  --color-text-secondary: var(--color-neutral-600);  /* |Lc| ~68 on white bg — meets APCA min 60; use 16px+/400 or 14px+/700 */
+  --color-text-muted: var(--color-neutral-400);      /* |Lc| ~45 on white bg — decorative/large text only (24px+). Below body text threshold. */
   --color-border: var(--color-neutral-200);
   --color-success: var(--color-success-500);
   --color-warning: var(--color-warning-500);
