@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Self-Improvement & Design Excellence
 status: completed
-stopped_at: Phase 29 Plan 02 complete — motion-design.md and composition-typography.md authored
-last_updated: "2026-03-17T23:59:57.817Z"
+stopped_at: Completed 30-01-PLAN.md — validate-skill CLI, three fleet agents, model profile entries
+last_updated: "2026-03-18T00:46:52.326Z"
 last_activity: 2026-03-17 — Phase 29 Plan 03 complete (protected-files.json, model-profiles, skill-registry)
 progress:
   total_phases: 9
   completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
+  total_plans: 6
+  completed_plans: 4
 ---
 
 # Project State
@@ -44,6 +44,7 @@ v1.3 Progress: [==                  ] 11% (3/3 plans in Phase 29 complete)
 | Timeline | 2 days | 2 days | 1 day | — |
 | Phase 29-quality-infrastructure P02 | 3 | 2 tasks | 2 files |
 | Phase 29-quality-infrastructure P03 | ~10 min | 3 tasks | 4 files |
+| Phase 30 P01 | 4min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -67,6 +68,10 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 29-quality-infrastructure]: CSS scroll-driven @supports guard labeled MANDATORY — omitting causes invisible content in Firefox (content failure, not graceful degradation)
 - [Phase 29-quality-infrastructure]: APCA values use |Lc| absolute value notation throughout to prevent polarity confusion in all reference files
 - [Phase 29-quality-infrastructure]: Spring physics documented at 3 fidelity levels (cubic-bezier/linear()/GSAP elastic) to match browser support and dependency constraints
+- [Phase 30]: validate-skill skips workflow files lacking skill_code using path+content heuristic — prevents false LINT errors on non-skill files
+- [Phase 30]: pde-skill-improver uses sonnet/sonnet/haiku — balanced tier needs solid reasoning for code change proposals
+- [Phase 30]: pde-skill-validator uses sonnet/haiku/haiku — validation is mechanical, haiku sufficient at balanced tier
+- [Phase 30]: pde-quality-auditor skips self-evaluation of pde-quality-auditor.md to prevent circular findings loop
 
 ### Pending Todos
 
@@ -79,8 +84,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-17T23:52:57.530Z
-Stopped at: Phase 29 Plan 02 complete — motion-design.md and composition-typography.md authored
+Last session: 2026-03-18T00:46:52.324Z
+Stopped at: Completed 30-01-PLAN.md — validate-skill CLI, three fleet agents, model profile entries
 Resume file: None
 
 ## Phase Sequence
