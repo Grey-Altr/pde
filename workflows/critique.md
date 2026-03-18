@@ -7,6 +7,8 @@ Multi-perspective design critique of wireframes grounded in the project's brief 
 @references/mcp-integration.md
 @references/design-principles.md
 @references/wcag-baseline.md
+@references/quality-standards.md
+@references/composition-typography.md
 </required_reading>
 
 <flags>
@@ -254,6 +256,22 @@ For each wireframe file in WIREFRAME_FILES:
   - Is the visual flow natural — does the eye move from most to least important?
   - Does information density match the user's context at this journey step?
 
+  #### Typography Pairing Assessment
+
+  Load composition-typography.md Type Pairing Classification section.
+
+  For each typeface combination found in the artifact:
+  1. Identify the classification of each font: serif/sans/slab/display/monospace + Vox-ATypI subtype
+  2. Check if pairing provides CONTRAST (classification contrast, x-height contrast, structural contrast, purpose contrast) OR only SIZE differentiation
+  3. Verdict: "Pairing: [documented-contrast / size-only / single-font / undocumented]"
+
+  If size-only or single-font:
+    Finding with:
+    - Issue: "Typography pairing: only font-size distinguishes heading from body — no classification, weight, or style contrast documented"
+    - Severity: major (at hifi) / minor (at midfi) / nit (at lofi)
+    - Suggestion: Provide specific pairing recommendation using Vox-ATypI framework from composition-typography.md
+    - Awwwards dimension: Design (40%)
+
   #### Perspective 3: Accessibility (weight 1.5x)
 
   IF `workflows/hig.md` exists (check with Glob):
@@ -334,6 +352,25 @@ Every finding produced in Step 4 MUST have ALL of the following:
 
 ---
 
+#### Awwwards Dimension Mapping (apply to EVERY finding)
+
+For each finding identified in any perspective, map it to one Awwwards dimension using quality-standards.md:
+
+| Perspective Finding Type | Primary Awwwards Dimension | Weight |
+|--------------------------|---------------------------|--------|
+| Visual execution (typography, color, spacing, layout) | Design (40%) | Highest impact |
+| Navigation, interaction, feedback, accessibility | Usability (30%) | Second impact |
+| Conceptual originality, pattern repetition, template use | Creativity (20%) | Third impact |
+| Content-design integration, copy quality, information density | Content (10%) | Fourth impact |
+
+For each finding, state explicitly:
+- **Awwwards dimension:** {Design | Usability | Creativity | Content}
+- **Score impact:** {-N.N in [dimension] band} (e.g., "-0.5 in Design band")
+
+Cross-reference the AI Aesthetic Flags column in quality-standards.md. If the finding matches a named flag, cite the flag name in the finding (see Step 4e below).
+
+---
+
 #### "What Works" identification (mandatory — CRT success criterion)
 
 For each perspective evaluated, identify 1-3 specific intentional design decisions that are correct and MUST be preserved during iteration. This section is mandatory. Do not omit it.
@@ -345,6 +382,79 @@ Format as a table:
 | {screen-slug.html > element} | {specific observation about what is correct and why} | {perspective name} | Yes — do not change in iteration |
 
 Purpose: The /pde:iterate workflow reads this table to avoid undoing correct decisions while addressing findings.
+
+---
+
+#### Step 4e: AI Aesthetic Pattern Detection Pass
+
+Load quality-standards.md AI Aesthetic Flags (all four dimensions).
+
+For each wireframe examined, scan the HTML artifact for these named patterns:
+
+**DESIGN flags:**
+- **generic-gradient**: indigo-to-purple (#6366f1 to #8b5cf6), teal-to-blue, any 2-stop diagonal gradient background
+  Remediation: "Replace with single OKLCH color or perceptual harmony palette from system tokens; gradients require documented rationale"
+- **single-neutral-font**: Poppins or Inter used as sole typeface with no second font for display/brand purposes
+  Remediation: "Add display/brand typeface with documented Vox-ATypI classification contrast rationale; Inter may remain for UI/body"
+- **uniform-radius**: border-radius: 8px applied globally across cards, buttons, inputs, modals
+  Remediation: "Vary radius by component role: micro (2-4px) for inputs, standard (8px) for cards, full (9999px) for pills"
+- **tailwind-shadow**: box-shadow values matching Tailwind defaults (e.g., 0 1px 3px rgba(0,0,0,0.1))
+  Remediation: "Design concept-specific shadow system with documented elevation model"
+
+**CREATIVITY flags:**
+- **hero-pattern-1**: hero section with centered heading + subheading + CTA button + gradient/image background
+  Remediation: "Introduce concept-specific visual hook: off-grid headline position, unexpected grid, motion hook"
+- **feature-pattern-2**: feature section with 3 equal columns, each with icon + heading + text paragraph
+  Remediation: "Break equal columns with asymmetric weighting; vary information density per feature importance"
+- **equal-stagger-scroll**: scroll animation applied to every element with identical stagger/entrance behavior
+  Remediation: "Hierarchy-based choreography: primary elements enter first, secondary follow with narrative stagger"
+
+**USABILITY flags:**
+- **missing-focus-styles**: no :focus-visible styles or outline: none without replacement
+  Remediation: "Add focus ring with minimum 3:1 contrast; use outline-offset: 2px for visual separation"
+- **mobile-reflowed-desktop**: mobile layout is the desktop layout with narrowed columns
+  Remediation: "Redesign mobile as distinct composition: stack to single column with reordered content priority"
+
+**CONTENT flags:**
+- **generic-copy**: "Transform your workflow", "Powerful features for your team", lorem ipsum in visible sections
+  Remediation: "Replace with concept-specific copy that could only describe this product"
+- **size-only-hierarchy**: headings differentiated from body only by font-size, not weight/style/classification
+  Remediation: "Add weight contrast (400 body to 700 heading) or classification contrast (sans body to serif heading)"
+
+Each detected AI aesthetic pattern:
+- Named by flag name (e.g., "AI aesthetic: hero-pattern-1")
+- Located specifically (element path in wireframe HTML)
+- Severity: always major (AI aesthetic patterns are design-intent failures)
+- Awwwards dimension cited
+- Specific remediation instruction included (from list above, not generic "be more creative")
+
+---
+
+#### Step 4f: Motion Choreography Assessment
+
+Examine the artifact for any animation/transition indicators (CSS transitions, GSAP patterns, @keyframes, JS animation hooks found in HTML or style blocks).
+
+Four diagnostic criteria for purposeful motion:
+
+| Criterion | Purposeful | Decorative/Random |
+|-----------|-----------|-------------------|
+| Hierarchical sequencing | Primary elements animate first; secondary follow in reading order | All elements animate simultaneously or with identical stagger |
+| Functional trigger | Animation responds to a specific user action or content reveal moment | Animation plays on page load regardless of context |
+| Spatial continuity | Related elements move in consistent directions (shared axis) | Elements move in arbitrary or conflicting directions |
+| Temporal narrative | Timing creates a story arc: setup then content reveal then rest | Timing is arbitrary with no arc |
+
+IF motion patterns present in the artifact:
+  Evaluate against all 4 diagnostic criteria.
+  State verdict: "Motion choreography: [purposeful/decorative/absent]"
+  For each animation found:
+    - Name the element animated
+    - State which criterion it satisfies or fails
+    - If decorative: provide specific remediation referencing motion-design.md choreography patterns
+  Awwwards dimension: Creativity (20%)
+
+IF no motion patterns present (common at lofi/midfi):
+  State: "Motion: not specified at this fidelity. At mockup fidelity, assess: [list 2-3 concept-specific motion opportunities based on the artifact content type]"
+  This proactive suggestion is the deliverable at lower fidelities, not a finding.
 
 ---
 
