@@ -122,7 +122,11 @@ Plans:
   3. Running `/pde:improve eval skill-name` produces a quality score with specific findings mapped to rubric dimensions — not generic qualitative commentary
   4. Skill builder writes to `commands/` and user project `.claude/skills/` — it cannot write to `bin/`, plugin root config, or any protected path
   5. Skill builder reads `references/skill-style-guide.md` and `references/tooling-patterns.md` as constraint references — generated skills match the 7-step anatomy of existing elevated skills
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 31-01-PLAN.md — Agents, rubric reference, model-profiles, Nyquist tests (SKILL-03, SKILL-04, SKILL-05, SKILL-06)
+- [ ] 31-02-PLAN.md — /pde:improve command and three-mode workflow orchestrator (SKILL-01, SKILL-02, SKILL-03, SKILL-04, SKILL-05, SKILL-06)
 
 ### Phase 32: Design Elevation — System Skill
 **Goal**: The system skill produces motion-aware, perceptually harmonious design tokens that set a high ceiling for all downstream design work
@@ -232,9 +236,9 @@ Plans:
 | 26. Opportunity, Mockup & HIG Skills | v1.2 | 3/3 | Complete | 2026-03-16 |
 | 27. Ideation Skill & Brief Update | v1.2 | 2/2 | Complete | 2026-03-17 |
 | 28. Build Orchestrator Expansion | v1.2 | 1/1 | Complete | 2026-03-17 |
-| 29. Quality Infrastructure | 3/3 | Complete    | 2026-03-17 | — |
-| 30. Self-Improvement Fleet & Audit | 3/3 | Complete    | 2026-03-18 | — |
-| 31. Skill Builder | v1.3 | 0/? | Not started | — |
+| 29. Quality Infrastructure | v1.3 | 3/3 | Complete | 2026-03-17 |
+| 30. Self-Improvement Fleet & Audit | v1.3 | 3/3 | Complete | 2026-03-18 |
+| 31. Skill Builder | v1.3 | 0/2 | Not started | — |
 | 32. Design Elevation — System Skill | v1.3 | 0/? | Not started | — |
 | 33. Design Elevation — Wireframe Skill | v1.3 | 0/? | Not started | — |
 | 34. Design Elevation — Critique & HIG | v1.3 | 0/? | Not started | — |
