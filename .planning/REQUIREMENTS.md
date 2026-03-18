@@ -9,9 +9,9 @@ Requirements for MCP Integrations milestone. Each maps to roadmap phases.
 
 ### MCP Infrastructure
 
-- [ ] **INFRA-01**: User can view all MCP integration connection states via `/pde:mcp-status`
-- [ ] **INFRA-02**: User can connect to external MCP servers via guided `/pde:connect` flow with auth instructions
-- [ ] **INFRA-03**: All MCP-dependent commands detect server availability at runtime and degrade gracefully when unavailable
+- [x] **INFRA-01**: User can view all MCP integration connection states via `/pde:mcp-status`
+- [x] **INFRA-02**: User can connect to external MCP servers via guided `/pde:connect` flow with auth instructions
+- [x] **INFRA-03**: All MCP-dependent commands detect server availability at runtime and degrade gracefully when unavailable
 - [x] **INFRA-04**: MCP connection metadata stored in unified `.planning/mcp-connections.json` schema (gitignored, no credentials)
 - [x] **INFRA-05**: Verified-sources-only security policy enforced — only official MCP servers from GitHub, Linear, Figma, Pencil, Atlassian
 - [x] **INFRA-06**: MCP adapter layer normalizes raw tool names into PDE canonical API calls (insulates workflows from server-side renames)
@@ -91,9 +91,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INFRA-01 | Phase 39 | Pending |
-| INFRA-02 | Phase 39 | Pending |
-| INFRA-03 | Phase 39 | Pending |
+| INFRA-01 | Phase 39 | Complete |
+| INFRA-02 | Phase 39 | Complete |
+| INFRA-03 | Phase 39 | Complete |
 | INFRA-04 | Phase 39 | Complete |
 | INFRA-05 | Phase 39 | Complete |
 | INFRA-06 | Phase 39 | Complete |

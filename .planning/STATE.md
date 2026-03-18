@@ -5,12 +5,12 @@ milestone_name: MCP Integrations
 status: active
 stopped_at: ""
 last_updated: "2026-03-18"
-last_activity: 2026-03-18 — Completed 39-01: MCP Infrastructure Foundation (mcp-bridge.cjs + .gitignore)
+last_activity: 2026-03-18 — Completed 39-02: /pde:mcp-status and /pde:connect commands with degraded-mode output
 progress:
   total_phases: 6
   completed_phases: 0
-  total_plans: 1
-  completed_plans: 1
+  total_plans: 2
+  completed_plans: 2
 ---
 
 # Project State
@@ -25,11 +25,11 @@ See: .planning/PROJECT.md (updated 2026-03-18)
 ## Current Position
 
 Phase: 39 — MCP Infrastructure Foundation
-Plan: 1/1 complete (phase plans in progress)
+Plan: 2/2 complete (phase plans complete)
 Status: Active — executing plans
 Progress: ░░░░░░░░░░ 0/6 phases (Phase 39 in progress)
 
-Last activity: 2026-03-18 — Completed 39-01: mcp-bridge.cjs created
+Last activity: 2026-03-18 — Completed 39-02: /pde:mcp-status and /pde:connect commands
 
 ## Performance Metrics
 
@@ -53,6 +53,12 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - probe() returns a deferred result when probeTool is null — actual MCP tool calls happen only at workflow layer, never inside mcp-bridge.cjs
 - mcp-connections.json is gitignored (user-specific project-local metadata, no credentials)
 - assertApproved() sets error.code = 'POLICY_VIOLATION' for programmatic detection by callers
+
+#### Phase 39-02 Decisions (2026-03-18)
+
+- Workflow bash blocks use node --input-type=module with createRequire() rather than inline require() — posttooluse-validate hook rejects require() in workflow files; ESM+createRequire satisfies validator while loading CommonJS mcp-bridge.cjs correctly
+- mcp-status calls probe() for connected servers: probeTool=null → displayed as 'degraded' (Phase 39 state, resolves as phases 40-44 populate probeTool)
+- connect workflow is two-phase: display instructions without --confirm, record status only with --confirm — matches Claude Code's external MCP setup model
 
 ### Key Architecture Constraints for v0.5
 
@@ -79,5 +85,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-18
-Stopped at: Completed 39-01-PLAN.md — next step is remaining Phase 39 plans or Phase 40
+Stopped at: Completed 39-02-PLAN.md — Phase 39 complete, next step is Phase 40 (GitHub MCP Integration)
 Resume file: None
