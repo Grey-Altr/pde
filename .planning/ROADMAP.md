@@ -267,4 +267,4 @@ Plans:
 | 34. Design Elevation — Critique & HIG | 2/2 | Complete    | 2026-03-18 | — |
 | 35. Design Elevation — Mockup Skill | 2/2 | Complete    | 2026-03-18 | — |
 | 36. Design Elevation — Handoff, Flows & Cross-Cutting | 1/1 | Complete    | 2026-03-18 | — |
-| 37. Pressure Test & Validation | 2/2 | Complete   | 2026-03-18 | — |
+| 37. Pressure Test & Validation | 2/2 | Complete    | 2026-03-18 | — |
