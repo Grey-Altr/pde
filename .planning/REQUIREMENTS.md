@@ -59,10 +59,10 @@ Requirements for Self-Improvement & Design Excellence milestone. Each maps to ro
 
 ### Design Quality Elevation — Mockup Skill
 
-- [ ] **MOCK-01**: Mockup skill produces CSS spring physics animations (using cubic-bezier approximations or GSAP CDN) for interactive elements — not linear/ease-only transitions
-- [ ] **MOCK-02**: Mockup skill generates scroll-driven animations using @scroll-timeline with progressive enhancement fallback via @supports
-- [ ] **MOCK-03**: Mockup skill includes micro-interaction states for every interactive element: default, hover, focus, active, loading, disabled, error — with distinct visual and motion treatment per state
-- [ ] **MOCK-04**: Mockup skill choreographs entrance animations tied to content meaning — elements appear in narrative order, not all-at-once or random stagger
+- [x] **MOCK-01**: Mockup skill produces CSS spring physics animations (using cubic-bezier approximations or GSAP CDN) for interactive elements — not linear/ease-only transitions
+- [x] **MOCK-02**: Mockup skill generates scroll-driven animations using @scroll-timeline with progressive enhancement fallback via @supports
+- [x] **MOCK-03**: Mockup skill includes micro-interaction states for every interactive element: default, hover, focus, active, loading, disabled, error — with distinct visual and motion treatment per state
+- [x] **MOCK-04**: Mockup skill choreographs entrance animations tied to content meaning — elements appear in narrative order, not all-at-once or random stagger
 - [ ] **MOCK-05**: Mockup skill uses variable font features: weight animation on hover, optical size adjustment by context, width shifts for emphasis
 - [ ] **MOCK-06**: Mockup skill includes at least one concept-specific "visual hook" — a distinctive interaction or visual element unique to the project concept, not a generic pattern
 - [ ] **MOCK-07**: Mockup skill produces 60fps-capable animations: no layout thrashing, GPU-composited transforms and opacity, will-change hints where appropriate
@@ -175,10 +175,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | WIRE-03 | Phase 33 | Complete |
 | WIRE-04 | Phase 33 | Complete |
 | WIRE-05 | Phase 33 | Complete |
-| MOCK-01 | Phase 35 | Pending |
-| MOCK-02 | Phase 35 | Pending |
-| MOCK-03 | Phase 35 | Pending |
-| MOCK-04 | Phase 35 | Pending |
+| MOCK-01 | Phase 35 | Complete |
+| MOCK-02 | Phase 35 | Complete |
+| MOCK-03 | Phase 35 | Complete |
+| MOCK-04 | Phase 35 | Complete |
 | MOCK-05 | Phase 35 | Pending |
 | MOCK-06 | Phase 35 | Pending |
 | MOCK-07 | Phase 35 | Pending |
