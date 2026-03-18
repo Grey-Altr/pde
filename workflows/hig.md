@@ -51,6 +51,7 @@ Use highest-fidelity artifact found. Log which artifact(s) being audited and the
 @references/mcp-integration.md
 @references/wcag-baseline.md
 @references/interaction-patterns.md
+@references/motion-design.md
 </required_reading>
 
 <flags>
@@ -363,6 +364,106 @@ Finding format:
 | Severity | Effort | Location | Issue | Suggestion | Reference |
 |----------|--------|----------|-------|------------|-----------|
 | {critical|major|minor|nit} | {quick-fix|moderate|significant} | {element/location} | {description} | {actionable fix} | {WCAG criterion} |
+
+**4g. Motion Accessibility Audit**
+
+Load motion-design.md Animation Performance Rules.
+
+WCAG criterion reference:
+- 2.3.3 Animation from Interactions (Level AAA): motion triggered by interaction can be disabled — flag as "advisory best practice" not mandatory AA finding
+- 2.2.2 Pause, Stop, Hide (Level A): auto-playing motion > 5 seconds must be pausable — this IS mandatory
+- 2.5.4 Motion Actuation (Level A): device/user motion functions have UI alternatives — this IS mandatory
+
+**prefers-reduced-motion compliance check:**
+
+Scan artifact HTML/CSS for animation and transition declarations. For each animated element:
+- Check: Is `@media (prefers-reduced-motion: reduce)` applied?
+- Check: Does the reduced-motion version provide a meaningful fallback (fade/opacity) vs blank removal?
+- Correct pattern:
+  ```
+  @media (prefers-reduced-motion: reduce) {
+    .animated-element { animation: none; transition: opacity 0.3s ease; }
+  }
+  ```
+- Wrong: omitting the media query entirely
+- Wrong: `* { animation: none !important; }` — breaks functional animations (loading states)
+
+If prefers-reduced-motion absent:
+- Severity: minor (labeled "[WCAG 2.3.3 AAA — advisory]") at hifi
+- Severity: nit at midfi/lofi
+- NOT major or critical — 2.3.3 is AAA, not AA
+
+If auto-playing animation > 5 seconds with no pause/stop control:
+- Severity: major (labeled "[WCAG 2.2.2 Level A]")
+- This IS a mandatory AA-level finding
+
+**Vestibular trigger catalogue:**
+
+The following motion types are HIGH-RISK for vestibular disorders. Scan artifact for each:
+
+| Pattern | Description | Vestibular-Safe Alternative |
+|---------|-------------|----------------------------|
+| parallax-scroll | background moves at different rate than foreground while scrolling | fade-in on scroll (opacity transition only, no transform) |
+| large-scale-transform | elements scale > 20% during scroll or on-load | opacity reveal without scale |
+| spinning-continuous | rotation animations that loop indefinitely | pause/stop control required (WCAG 2.2.2); reduce to single rotation |
+| viewport-pan | content pans laterally while user scrolls vertically | stationary reveal with content fade |
+
+For any identified HIGH-RISK pattern:
+- State: "Vestibular risk: [pattern name] on [element]"
+- Required: "Vestibular-safe alternative: [substitute from table above]"
+- Severity: major at hifi, minor at midfi, nit at lofi
+
+---
+
+**4h. Animation Performance Audit**
+
+Load motion-design.md Animation Performance Rules.
+
+**GPU-composited safe properties (no layout reflow):**
+  transform, opacity
+  These run on the compositor thread and never cause layout reflow.
+
+**Layout-reflow properties (DO NOT animate):**
+  width, height, top, left, right, bottom, margin, padding, border-width, font-size, line-height
+
+**Repaint properties (cause repaint but not reflow — use sparingly):**
+  color, background-color, visibility, border-radius, box-shadow, filter
+
+For each animation found in the artifact:
+1. Identify which CSS properties are being animated
+2. If any layout-reflow property is animated:
+   - Finding: "Animation on [element] animates [property] — causes layout reflow on every frame"
+   - Severity: major (performance-critical element like hero, nav) / minor (decorative element)
+   - Suggestion: "Replace [property] animation with transform equivalent"
+   - Example: "Animating width: 0 to 100% — use transform: scaleX(0) to scaleX(1) with transform-origin: left"
+   - Cite specific element name in finding (not generic "some animations may cause reflow")
+3. If will-change is used:
+   - Verify it targets a specific property (will-change: transform) not all (will-change: all)
+   - Verify guidance that it should be removed after animation completes (via JS animationend)
+   - Flag will-change: all as minor finding always
+
+Citation: motion-design.md Animation Performance Rules section
+
+---
+
+**4i. Touch Target During Motion State**
+
+Extends existing WCAG 2.5.8 touch target check (24x24 CSS pixels minimum).
+
+During CSS transitions that move or resize interactive elements, check:
+- Does the interactive element remain at minimum 24x24px throughout the transition?
+- Is there a period where the element is too small or off-screen to tap?
+
+Specific risk patterns:
+- **scale(0) entrance animation:** element starts at 0px effective size, untappable during entrance
+  Recommendation: reach 100% size rapidly (< 150ms) or use opacity-only entrance
+- **off-screen slide-in:** element entering from off-viewport is unreachable during animation
+  Recommendation: element should be focusable/tappable before animation completes
+- **opacity: 0** is acceptable — element remains in DOM at full size, still tappable (not a violation)
+
+Severity: minor for scale animations (brief untappable window < 150ms), major if element is permanently inaccessible due to transform positioning or long entrance duration (> 500ms at scale 0)
+
+---
 
 Display: `Step 4/7: Audit complete. {N} findings identified (critical: {c}, major: {m}, minor: {mi}, nit: {n}).`
 
