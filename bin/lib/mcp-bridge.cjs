@@ -26,8 +26,8 @@ const APPROVED_SERVERS = {
     url: 'https://api.githubcopilot.com/mcp/',
     installCmd: 'claude mcp add --transport http github https://api.githubcopilot.com/mcp/',
     probeTimeoutMs: 10000,
-    probeTool: null, // Phase 40 fills
-    probeArgs: {},
+    probeTool: 'mcp__github__list_issues', // Phase 40
+    probeArgs: { owner: 'github', repo: 'github-mcp-server', state: 'OPEN', perPage: 1 },
   },
   linear: {
     displayName: 'Linear',
@@ -73,11 +73,21 @@ const APPROVED_SERVERS = {
  * TOOL_MAP maps PDE canonical tool names to raw MCP tool names.
  * Phases 40-44 populate this map — Phase 39 provides the scaffold only.
  *
- * Example entries (added by later phases):
- *   'github:list-issues': 'mcp__github__listIssues',
- *   'linear:list-issues': 'mcp__linear__listIssues',
+ * Current entries:
+ *   GitHub — Phase 40 (verified against github/github-mcp-server source 2026-03-18)
+ *   Phases 41-44 will add linear, figma, pencil, atlassian entries.
  */
-const TOOL_MAP = {};
+const TOOL_MAP = {
+  // GitHub — Phase 40 (verified against github/github-mcp-server source 2026-03-18)
+  'github:probe':               'mcp__github__list_issues',
+  'github:list-issues':         'mcp__github__list_issues',
+  'github:get-issue':           'mcp__github__issue_read',
+  'github:create-pr':           'mcp__github__create_pull_request',
+  'github:update-pr':           'mcp__github__update_pull_request',
+  'github:list-workflow-runs':  'mcp__github__actions_list',
+  'github:get-workflow-run':    'mcp__github__actions_get',
+  'github:search-issues':       'mcp__github__search_issues',
+};
 
 // ─── Per-server auth instructions ─────────────────────────────────────────────
 
