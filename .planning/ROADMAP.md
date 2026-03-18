@@ -75,6 +75,7 @@ Full details: .planning/milestones/v1.2-ROADMAP.md
 - [x] **Phase 35: Design Elevation — Mockup Skill** — Spring physics CSS, scroll-driven animations, micro-interaction states, choreographed entrances, variable fonts, visual hook, GPU performance (completed 2026-03-18)
 - [x] **Phase 36: Design Elevation — Handoff, Flows & Cross-Cutting** — Motion specs in handoff, transition annotations in flows, reference injection pattern, elevation verification (completed 2026-03-18)
 - [x] **Phase 37: Pressure Test & Validation** — /pde:pressure-test command, process compliance tier, quality rubric tier, multi-fixture support, structured report (completed 2026-03-18)
+- [ ] **Phase 38: v1.3 Tech Debt Cleanup** — Fix pressure-test frontmatter, establish audit baseline, fix stale nyquist frontmatter, update summary/registry metadata
 
 ## Phase Details
 
@@ -224,6 +225,22 @@ Plans:
 - [ ] 37-01-PLAN.md — Wave 0 tests, command, agent, model-profile, fixture directories (PRES-01, PRES-02, PRES-03, PRES-04, PRES-05, PRES-06)
 - [ ] 37-02-PLAN.md — Pressure test workflow with two-tier orchestration (PRES-01, PRES-02, PRES-03, PRES-04, PRES-05, PRES-06)
 
+### Phase 38: v1.3 Tech Debt Cleanup
+**Goal**: Close all integration gaps and tech debt identified by v1.3 milestone audit — clean state for milestone completion
+**Depends on**: Phases 29-37 (all complete)
+**Requirements**: Gap closure for QUAL-06, CROSS-02, AUDIT-09, AUDIT-11
+**Gap Closure:** Closes gaps from v1.3 milestone audit
+**Success Criteria** (what must be TRUE):
+  1. `workflows/pressure-test.md` has valid YAML frontmatter (name, description, allowed-tools) and passes `pde-tools validate-skill`
+  2. `audit-baseline.json` exists with initial baseline measurements from `/pde:audit --save-baseline`
+  3. AUDIT-11 listed in `30-03-SUMMARY.md` `requirements-completed` frontmatter
+  4. AUD skill code updated from `pending` to actual value in `skill-registry.md`
+  5. `30-VALIDATION.md` and `36-VALIDATION.md` have `nyquist_compliant: true` frontmatter (matching their green test results)
+**Plans**: 1 plan
+
+Plans:
+- [ ] 38-01-PLAN.md — Fix all 6 tech debt items: frontmatter, baseline, summary, registry, nyquist metadata
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -268,3 +285,4 @@ Plans:
 | 35. Design Elevation — Mockup Skill | 2/2 | Complete    | 2026-03-18 | — |
 | 36. Design Elevation — Handoff, Flows & Cross-Cutting | 1/1 | Complete    | 2026-03-18 | — |
 | 37. Pressure Test & Validation | 2/2 | Complete    | 2026-03-18 | — |
+| 38. v1.3 Tech Debt Cleanup | v1.3 | 0/1 | Planned | — |
