@@ -1,9 +1,9 @@
 ---
 phase: 35
 slug: design-elevation-mockup-skill
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: approved
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-17
 ---
 
@@ -38,15 +38,15 @@ created: 2026-03-17
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 35-01-01 | 01 | 0 | MOCK-01 | unit/grep | `grep -c 'cubic-bezier(0.34, 1.56' workflows/mockup.md` | ❌ W0 | ⬜ pending |
-| 35-01-02 | 01 | 0 | MOCK-01 | unit/grep | `grep -c 'ease-spring' workflows/mockup.md` | ❌ W0 | ⬜ pending |
-| 35-01-03 | 01 | 0 | MOCK-02 | unit/grep | `grep -c '@supports.*animation-timeline' workflows/mockup.md` | ❌ W0 | ⬜ pending |
-| 35-01-04 | 01 | 0 | MOCK-02 | unit/grep | see test_mock02.sh | ❌ W0 | ⬜ pending |
-| 35-01-05 | 01 | 0 | MOCK-03 | unit/grep | `grep -cE 'aria-busy\|aria-disabled\|aria-invalid' workflows/mockup.md` | ❌ W0 | ⬜ pending |
-| 35-01-06 | 01 | 0 | MOCK-04 | unit/grep | `grep -ci 'narrative\|reading order\|stagger.*start' workflows/mockup.md` | ❌ W0 | ⬜ pending |
-| 35-01-07 | 01 | 0 | MOCK-05 | unit/grep | `grep -c 'font-variation-settings' workflows/mockup.md` | ❌ W0 | ⬜ pending |
-| 35-01-08 | 01 | 0 | MOCK-06 | unit/grep | `grep -c 'VISUAL-HOOK' workflows/mockup.md` | ❌ W0 | ⬜ pending |
-| 35-01-09 | 01 | 0 | MOCK-07 | unit/grep | `grep -ci 'will-change\|GPU\|composited' workflows/mockup.md` | ❌ W0 | ⬜ pending |
+| 35-01-01 | 01 | 0 | MOCK-01 | unit/grep | `grep -c 'cubic-bezier(0.34, 1.56' workflows/mockup.md` | ✅ | ✅ green |
+| 35-01-02 | 01 | 0 | MOCK-01 | unit/grep | `grep -c 'ease-spring' workflows/mockup.md` | ✅ | ✅ green |
+| 35-01-03 | 01 | 0 | MOCK-02 | unit/grep | `grep -c '@supports.*animation-timeline' workflows/mockup.md` | ✅ | ✅ green |
+| 35-01-04 | 01 | 0 | MOCK-02 | unit/grep | see test_mock02.sh | ✅ | ✅ green |
+| 35-01-05 | 01 | 0 | MOCK-03 | unit/grep | `grep -cE 'aria-busy\|aria-disabled\|aria-invalid' workflows/mockup.md` | ✅ | ✅ green |
+| 35-01-06 | 01 | 0 | MOCK-04 | unit/grep | `grep -ci 'narrative\|reading order\|stagger.*start' workflows/mockup.md` | ✅ | ✅ green |
+| 35-01-07 | 02 | 0 | MOCK-05 | unit/grep | `grep -c 'font-variation-settings' workflows/mockup.md` | ✅ | ✅ green |
+| 35-01-08 | 02 | 0 | MOCK-06 | unit/grep | `grep -c 'VISUAL-HOOK' workflows/mockup.md` | ✅ | ✅ green |
+| 35-01-09 | 02 | 0 | MOCK-07 | unit/grep | `grep -ci 'will-change\|GPU\|composited' workflows/mockup.md` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -54,13 +54,13 @@ created: 2026-03-17
 
 ## Wave 0 Requirements
 
-- [ ] `test_mock01_spring_physics.sh` — stubs for MOCK-01
-- [ ] `test_mock02_scroll_driven.sh` — stubs for MOCK-02
-- [ ] `test_mock03_interaction_states.sh` — stubs for MOCK-03
-- [ ] `test_mock04_narrative_entrance.sh` — stubs for MOCK-04
-- [ ] `test_mock05_variable_fonts.sh` — stubs for MOCK-05
-- [ ] `test_mock06_visual_hook.sh` — stubs for MOCK-06
-- [ ] `test_mock07_performance.sh` — stubs for MOCK-07
+- [x] `test_mock01_spring_physics.sh` — MOCK-01: 8 passed, 0 failed
+- [x] `test_mock02_scroll_driven.sh` — MOCK-02: 7 passed, 0 failed
+- [x] `test_mock03_interaction_states.sh` — MOCK-03: 9 passed, 0 failed
+- [x] `test_mock04_narrative_entrance.sh` — MOCK-04: 6 passed, 0 failed
+- [x] `test_mock05_variable_fonts.sh` — MOCK-05: 6 passed, 0 failed
+- [x] `test_mock06_visual_hook.sh` — MOCK-06: 5 passed, 0 failed
+- [x] `test_mock07_performance.sh` — MOCK-07: 6 passed, 0 failed
 
 ---
 
@@ -78,11 +78,11 @@ created: 2026-03-17
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 5s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 5s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved
