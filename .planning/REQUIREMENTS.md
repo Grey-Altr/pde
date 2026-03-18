@@ -73,9 +73,9 @@ Requirements for Self-Improvement & Design Excellence milestone. Each maps to ro
 - [ ] **CRIT-02**: Critique skill flags "AI aesthetic" patterns: generic gradients, symmetric grids, template-like interactions, stock typography — with specific remediation guidance
 - [ ] **CRIT-03**: Critique skill assesses motion choreography quality: is motion purposeful and narrative, or decorative and random?
 - [ ] **CRIT-04**: Critique skill evaluates typography pairing quality: is there documented contrast rationale, or just size differentiation?
-- [ ] **HIG-01**: HIG skill audits motion accessibility: prefers-reduced-motion compliance, vestibular-safe alternatives for parallax/scroll effects
-- [ ] **HIG-02**: HIG skill validates animation performance: identifies animations that cause layout reflow, checks for GPU-composited properties, flags jank risks
-- [ ] **HIG-03**: HIG skill checks touch target sizing against motion state (expanded hit areas during transitions, no tapping during animation)
+- [x] **HIG-01**: HIG skill audits motion accessibility: prefers-reduced-motion compliance, vestibular-safe alternatives for parallax/scroll effects
+- [x] **HIG-02**: HIG skill validates animation performance: identifies animations that cause layout reflow, checks for GPU-composited properties, flags jank risks
+- [x] **HIG-03**: HIG skill checks touch target sizing against motion state (expanded hit areas during transitions, no tapping during animation)
 
 ### Design Quality Elevation — Pipeline Order
 
@@ -186,9 +186,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CRIT-02 | Phase 34 | Pending |
 | CRIT-03 | Phase 34 | Pending |
 | CRIT-04 | Phase 34 | Pending |
-| HIG-01 | Phase 34 | Pending |
-| HIG-02 | Phase 34 | Pending |
-| HIG-03 | Phase 34 | Pending |
+| HIG-01 | Phase 34 | Complete |
+| HIG-02 | Phase 34 | Complete |
+| HIG-03 | Phase 34 | Complete |
 | ORDER-01 | Phase 36 | Pending |
 | HAND-01 | Phase 36 | Pending |
 | HAND-02 | Phase 36 | Pending |

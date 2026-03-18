@@ -71,7 +71,7 @@ Full details: .planning/milestones/v1.2-ROADMAP.md
 - [x] **Phase 31: Skill Builder** — /pde:improve command (create + improve + eval modes), validate-skill CLI, style guide enforcement (completed 2026-03-18)
 - [x] **Phase 32: Design Elevation — System Skill** — Motion tokens, variable font axes, advanced OKLCH palettes, APCA contrast, spacing scale, type pairing (completed 2026-03-18)
 - [x] **Phase 33: Design Elevation — Wireframe Skill** — Named grid systems, visual weight annotation, spatial asymmetry, viewport-aware composition, content hierarchy (completed 2026-03-18)
-- [ ] **Phase 34: Design Elevation — Critique & HIG Skills** — Awwwards 4-dimension rubric evaluation, AI aesthetic detection, motion accessibility audit
+- [x] **Phase 34: Design Elevation — Critique & HIG Skills** — Awwwards 4-dimension rubric evaluation, AI aesthetic detection, motion accessibility audit (completed 2026-03-18)
 - [ ] **Phase 35: Design Elevation — Mockup Skill** — Spring physics CSS, scroll-driven animations, micro-interaction states, choreographed entrances, variable fonts, visual hook, GPU performance
 - [ ] **Phase 36: Design Elevation — Handoff, Flows & Cross-Cutting** — Motion specs in handoff, transition annotations in flows, reference injection pattern, elevation verification
 - [ ] **Phase 37: Pressure Test & Validation** — /pde:pressure-test command, process compliance tier, quality rubric tier, multi-fixture support, structured report
@@ -262,7 +262,7 @@ Plans:
 | 31. Skill Builder | v1.3 | 2/2 | Complete | 2026-03-18 |
 | 32. Design Elevation — System Skill | 3/3 | Complete    | 2026-03-18 | — |
 | 33. Design Elevation — Wireframe Skill | 1/1 | Complete    | 2026-03-18 | — |
-| 34. Design Elevation — Critique & HIG | v1.3 | 0/2 | Planned | — |
+| 34. Design Elevation — Critique & HIG | 2/2 | Complete   | 2026-03-18 | — |
 | 35. Design Elevation — Mockup Skill | v1.3 | 0/? | Not started | — |
 | 36. Design Elevation — Handoff, Flows & Cross-Cutting | v1.3 | 0/? | Not started | — |
 | 37. Pressure Test & Validation | v1.3 | 0/? | Not started | — |
