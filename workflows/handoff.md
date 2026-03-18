@@ -5,6 +5,7 @@ Synthesize all upstream design pipeline artifacts (brief, flows, screen inventor
 <required_reading>
 @references/skill-style-guide.md
 @references/mcp-integration.md
+@references/motion-design.md
 </required_reading>
 
 <flags>
@@ -352,6 +353,56 @@ Using WIREFRAME_CONTENTS[slug], SCREEN_ANNOTATIONS[slug], ROUTE_MAP, and MCP rea
 
 7. **Test specs:** Identify key test scenarios (initial state, interaction, error state, loading state, success state).
 
+#### Motion specification fields in TypeScript interfaces (HAND-01)
+
+For each component in the per-screen spec: check whether the upstream mockup defined motion behavior for this component. A component has upstream motion if either:
+- The `### Motion Specs` table for its screen has an entry for this component, OR
+- A `<!-- VISUAL-HOOK: -->` comment in the upstream mockup references this component.
+
+**If upstream motion exists:** Add the following motion spec block to the `export interface {Component}Props` declaration, separated by a `// --- Motion specification (from mockup motion annotations) ---` comment:
+
+```typescript
+// --- Motion specification (from mockup motion annotations) ---
+/**
+ * Entrance animation trigger for this component.
+ * 'on-load' = plays on DOMContentLoaded (above-fold components)
+ * 'on-scroll' = plays when component enters viewport
+ * 'on-interaction' = plays on user action (hover, click)
+ * @default 'on-load'
+ */
+motionTrigger?: 'on-load' | 'on-scroll' | 'on-interaction';
+
+/**
+ * Entrance animation duration in milliseconds.
+ * Corresponds to design token: --duration-slow (500ms) or --duration-dramatic (800ms)
+ * Reference: @references/motion-design.md — Duration Scale section
+ * @default 700
+ */
+motionDuration?: number;
+
+/**
+ * CSS easing function name (maps to design token).
+ * 'ease-enter' = cubic-bezier(0, 0, 0.2, 1) — recommended for entrances
+ * 'spring' = cubic-bezier(0.34, 1.56, 0.64, 1) — for spring overshoot
+ * @default 'ease-enter'
+ */
+motionEasing?: 'ease-standard' | 'ease-enter' | 'ease-exit' | 'spring';
+
+/**
+ * When true, skips all motion for users with prefers-reduced-motion.
+ * Required for WCAG 2.2.2 compliance (Level A).
+ * @default true
+ */
+respectReducedMotion?: boolean;
+```
+
+**If no upstream motion exists (static/data-display component):** Do NOT add motion fields. Instead, add a single comment at the end of the interface:
+```typescript
+// No motion annotations found in upstream mockup for this component.
+```
+
+**Critical rule:** Never invent motion props for components that have no upstream motion definition (e.g., a DataTable, NavigationLink, or TextBlock). Motion fields are only generated where mockup motion was explicitly defined.
+
 Store per-screen derived specs as SCREEN_SPECS[slug].
 
 #### 4h. Build global sections
@@ -443,6 +494,38 @@ Enhanced By: "{Sequential Thinking MCP or none}"
     - `### Component APIs` — TypeScript interface blocks for each screen-specific component
     - `### Breakpoint Specs` — table with desktop/tablet/mobile behaviors
     - `### Interaction Specs` — table with element/state/appearance/transition
+
+#### Implementation Notes subsection (HAND-02)
+
+After `### Interaction Specs`, check whether this screen has concept-specific interactions identified in the upstream mockup. A screen has concept-specific interactions if:
+- Any `<!-- VISUAL-HOOK: {id} -->` comment was present in the upstream mockup for this screen, OR
+- The critique or iterate phase identified a distinctive, named interaction pattern for this screen.
+
+**If concept-specific interactions exist:** Add a `### Implementation Notes` subsection immediately after `### Interaction Specs`:
+
+```markdown
+### Implementation Notes
+
+**Concept-specific interactions detected in upstream mockup:**
+
+| Interaction | VISUAL-HOOK ID | Description | Recommended Approach | Library |
+|-------------|----------------|-------------|---------------------|---------|
+| {interaction-name} | {visual-hook-id} | {brief description from mockup annotation} | {recommended CSS/JS approach with @supports guard if required} | {CSS only / GSAP ScrollTrigger 3.14 / View Transitions API} |
+
+**Implementation guidance:** {Prose note for any interaction requiring a fallback, browser support caveat, or non-obvious implementation detail. Always include browser support for View Transitions API: Chrome 111+, Firefox 126+, Safari 18+ — ~75-80% coverage. Wrap in document.startViewTransition() feature detect with CSS fallback.}
+```
+
+**Vocabulary for Recommended Approach column** (draw from @references/motion-design.md):
+- Scroll-driven parallax → "CSS `animation-timeline: view()` inside `@supports (animation-timeline: scroll())` guard. Fallback: static layout for Firefox. Or GSAP ScrollTrigger 3.14 (100% coverage)."
+- Spring button feedback → "CSS `transition: transform 150ms cubic-bezier(0.34, 1.56, 0.64, 1)` — no library needed."
+- Variable font animation → "CSS `font-weight` transition (variable font required — confirm `wght` axis available for the loaded font)."
+- Shared element transition → "`document.startViewTransition()` — Chrome 111+, Firefox 126+, Safari 18+. Feature detect required."
+- Page/route transition → "GSAP timeline with `autoAlpha` for FOUC prevention. Or View Transitions API with fallback."
+
+**If no concept-specific interactions exist:** Omit the `### Implementation Notes` subsection entirely. Do not emit an empty subsection.
+
+**Important:** Do NOT duplicate content from `### Interaction Specs`. Interaction Specs documents the 7 states (hover, focus, active, etc.). Implementation Notes is exclusively for concept-specific visual hooks requiring named libraries or non-trivial CSS techniques.
+
     - `### Motion Specs` — table with trigger/duration/easing/property
     - `### Token Mappings` — table with element/property/token/fallback
     - `### Accessibility Requirements` — table with ARIA requirements
