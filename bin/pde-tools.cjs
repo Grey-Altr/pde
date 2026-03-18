@@ -151,6 +151,7 @@ const milestone = require('./lib/milestone.cjs');
 const commands = require('./lib/commands.cjs');
 const init = require('./lib/init.cjs');
 const frontmatter = require('./lib/frontmatter.cjs');
+const validateSkill = require('./lib/validate-skill.cjs');
 
 // ─── CLI Router ───────────────────────────────────────────────────────────────
 
@@ -532,6 +533,13 @@ async function main() {
       } else {
         error('Unknown validate subcommand. Available: consistency, health');
       }
+      break;
+    }
+
+    case 'validate-skill': {
+      const skillPath = args[1];
+      if (!skillPath) error('skill path required: validate-skill <path>');
+      validateSkill.cmdValidateSkill(cwd, skillPath, raw);
       break;
     }
 
