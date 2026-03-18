@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Self-Improvement & Design Excellence
 status: completed
-stopped_at: Completed 34-02-PLAN.md — HIG skill elevated with motion accessibility audit (4g), animation performance audit (4h), touch target motion state (4i), all 3 HIG Nyquist tests GREEN
-last_updated: "2026-03-18T04:58:55.635Z"
+stopped_at: Completed 34-01-PLAN.md — critique.md elevated with Awwwards mapping, AI aesthetic detection (11 flags), motion choreography assessment, typography pairing; all 4 CRIT Nyquist tests GREEN
+last_updated: "2026-03-18T04:59:28.346Z"
 last_activity: 2026-03-18 — Phase 32 Plan 01 complete (motion tokens SYS-01, variable font tokens SYS-02, 6 Nyquist test scripts)
 progress:
   total_phases: 9
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 14
-  completed_plans: 13
+  completed_plans: 14
 ---
 
 # Project State
@@ -53,6 +53,7 @@ v1.3 Progress: [====                ] 20% (1/3 plans in Phase 32 complete)
 | Phase 32-design-elevation-system-skill P03 | 2min | 2 tasks | 1 files |
 | Phase 33-design-elevation-wireframe-skill P01 | 3 minutes | 2 tasks | 6 files |
 | Phase 34-design-elevation-critique-hig-skills P02 | 2min | 2 tasks | 4 files |
+| Phase 34-design-elevation-critique-hig-skills P01 | 3min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -113,6 +114,9 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 34-design-elevation-critique-hig-skills]: [Phase 34]: Vestibular trigger catalogue uses 4 named patterns (parallax-scroll, large-scale-transform, spinning-continuous, viewport-pan) with vestibular-safe alternatives per pattern
 - [Phase 34-design-elevation-critique-hig-skills]: [Phase 34]: Animation performance findings must cite specific element name — generic findings disallowed by hig.md Anti-Patterns section
 - [Phase 34-design-elevation-critique-hig-skills]: [Phase 34]: opacity: 0 is acceptable touch target pattern (element in DOM at full size); scale(0) and off-screen slide-in are the actual risk patterns
+- [Phase 34]: [Phase 34-critique]: Awwwards Dimension Mapping block placed after Finding format section (shared across all 4 perspectives) — single canonical instruction reduces drift
+- [Phase 34]: [Phase 34-critique]: Step 4e (AI Aesthetic) and Step 4f (Motion) inserted before Step 5 after What Works section — detection passes run after all perspective evaluations complete
+- [Phase 34]: [Phase 34-critique]: Typography Pairing Assessment co-located within Perspective 2 (Visual Hierarchy) — typography is a visual hierarchy concern, benefits from proximity to Gestalt/Norman evaluation questions
 
 ### Pending Todos
 
@@ -125,8 +129,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-18T04:58:55.632Z
-Stopped at: Completed 34-02-PLAN.md — HIG skill elevated with motion accessibility audit (4g), animation performance audit (4h), touch target motion state (4i), all 3 HIG Nyquist tests GREEN
+Last session: 2026-03-18T04:59:28.343Z
+Stopped at: Completed 34-01-PLAN.md — critique.md elevated with Awwwards mapping, AI aesthetic detection (11 flags), motion choreography assessment, typography pairing; all 4 CRIT Nyquist tests GREEN
 Resume file: None
 
 ## Phase Sequence

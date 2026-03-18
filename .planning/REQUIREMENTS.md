@@ -69,10 +69,10 @@ Requirements for Self-Improvement & Design Excellence milestone. Each maps to ro
 
 ### Design Quality Elevation — Critique & HIG Skills
 
-- [ ] **CRIT-01**: Critique skill evaluates against Awwwards 4-dimension rubric with specific findings per dimension (Design, Usability, Creativity, Content) — not a generic checklist
-- [ ] **CRIT-02**: Critique skill flags "AI aesthetic" patterns: generic gradients, symmetric grids, template-like interactions, stock typography — with specific remediation guidance
-- [ ] **CRIT-03**: Critique skill assesses motion choreography quality: is motion purposeful and narrative, or decorative and random?
-- [ ] **CRIT-04**: Critique skill evaluates typography pairing quality: is there documented contrast rationale, or just size differentiation?
+- [x] **CRIT-01**: Critique skill evaluates against Awwwards 4-dimension rubric with specific findings per dimension (Design, Usability, Creativity, Content) — not a generic checklist
+- [x] **CRIT-02**: Critique skill flags "AI aesthetic" patterns: generic gradients, symmetric grids, template-like interactions, stock typography — with specific remediation guidance
+- [x] **CRIT-03**: Critique skill assesses motion choreography quality: is motion purposeful and narrative, or decorative and random?
+- [x] **CRIT-04**: Critique skill evaluates typography pairing quality: is there documented contrast rationale, or just size differentiation?
 - [x] **HIG-01**: HIG skill audits motion accessibility: prefers-reduced-motion compliance, vestibular-safe alternatives for parallax/scroll effects
 - [x] **HIG-02**: HIG skill validates animation performance: identifies animations that cause layout reflow, checks for GPU-composited properties, flags jank risks
 - [x] **HIG-03**: HIG skill checks touch target sizing against motion state (expanded hit areas during transitions, no tapping during animation)
@@ -182,10 +182,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MOCK-05 | Phase 35 | Pending |
 | MOCK-06 | Phase 35 | Pending |
 | MOCK-07 | Phase 35 | Pending |
-| CRIT-01 | Phase 34 | Pending |
-| CRIT-02 | Phase 34 | Pending |
-| CRIT-03 | Phase 34 | Pending |
-| CRIT-04 | Phase 34 | Pending |
+| CRIT-01 | Phase 34 | Complete |
+| CRIT-02 | Phase 34 | Complete |
+| CRIT-03 | Phase 34 | Complete |
+| CRIT-04 | Phase 34 | Complete |
 | HIG-01 | Phase 34 | Complete |
 | HIG-02 | Phase 34 | Complete |
 | HIG-03 | Phase 34 | Complete |
