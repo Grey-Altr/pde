@@ -1,3 +1,16 @@
+---
+name: pde:pressure-test
+description: Run full 13-stage design pipeline on a product concept fixture and evaluate output across process compliance and design quality tiers
+argument-hint: '[--fixture greenfield|partial|rerun] [--skip-build] [--verbose] [--dry-run] [--quick] [--no-mcp]'
+allowed-tools:
+  - Read
+  - Write
+  - Edit
+  - Bash
+  - Glob
+  - Grep
+  - Task
+---
 <purpose>
 Run the full 13-stage design pipeline on a product concept fixture and evaluate output across two tiers: process compliance (artifact existence and coverage flag completeness) and design quality (Awwwards rubric evaluation with AI aesthetic avoidance checks). Produces a structured report at .planning/pressure-test-report.md.
 </purpose>
