@@ -187,10 +187,11 @@ Plans:
   4. `/pde:mockup` output contains at least one named "visual hook" — a concept-specific interaction or visual element unique to the project, identified by name in the artifact
   5. `/pde:mockup` entrance animations follow narrative content order — elements appear in the sequence they are meant to be read, not all-at-once or random stagger
   6. `/pde:mockup` uses variable font features: weight animation on hover, optical size adjustment by context, or width shifts for emphasis — documented in the artifact
-**Plans**: 1 plan
+**Plans**: 2 plans
 
 Plans:
-- [ ] 33-01-PLAN.md — Nyquist tests, composition decision block, grid CSS, viewport recomposition (WIRE-01, WIRE-02, WIRE-03, WIRE-04, WIRE-05)
+- [ ] 35-01-PLAN.md — Nyquist tests (Wave 0) + spring physics, scroll-driven, 7 interaction states, narrative entrance (MOCK-01, MOCK-02, MOCK-03, MOCK-04)
+- [ ] 35-02-PLAN.md — Variable fonts, visual hook convention, GPU performance rules (MOCK-05, MOCK-06, MOCK-07)
 
 ### Phase 36: Design Elevation — Handoff, Flows & Cross-Cutting
 **Goal**: All remaining pipeline skills are elevated, the reference injection pattern is applied uniformly, and the elevation delta is verified against the pre-elevation audit baseline
@@ -205,7 +206,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 33-01-PLAN.md — Nyquist tests, composition decision block, grid CSS, viewport recomposition (WIRE-01, WIRE-02, WIRE-03, WIRE-04, WIRE-05)
+- [ ] 36-01-PLAN.md — Handoff motion specs, flows transition annotations, reference injection, elevation verification (HAND-01, HAND-02, FLOW-01, CROSS-01, CROSS-02, ORDER-01)
 
 ### Phase 37: Pressure Test & Validation
 **Goal**: The full 13-stage pipeline runs on a real product concept and passes both process compliance and Awwwards-rubric quality evaluation
@@ -220,7 +221,7 @@ Plans:
 **Plans**: 1 plan
 
 Plans:
-- [ ] 33-01-PLAN.md — Nyquist tests, composition decision block, grid CSS, viewport recomposition (WIRE-01, WIRE-02, WIRE-03, WIRE-04, WIRE-05)
+- [ ] 37-01-PLAN.md — Pressure test command, process compliance, quality rubric, multi-fixture support (PRES-01, PRES-02, PRES-03, PRES-04, PRES-05, PRES-06)
 
 ## Progress
 
@@ -263,6 +264,6 @@ Plans:
 | 32. Design Elevation — System Skill | 3/3 | Complete    | 2026-03-18 | — |
 | 33. Design Elevation — Wireframe Skill | 1/1 | Complete    | 2026-03-18 | — |
 | 34. Design Elevation — Critique & HIG | 2/2 | Complete    | 2026-03-18 | — |
-| 35. Design Elevation — Mockup Skill | v1.3 | 0/? | Not started | — |
+| 35. Design Elevation — Mockup Skill | v1.3 | 0/2 | Not started | — |
 | 36. Design Elevation — Handoff, Flows & Cross-Cutting | v1.3 | 0/? | Not started | — |
 | 37. Pressure Test & Validation | v1.3 | 0/? | Not started | — |
