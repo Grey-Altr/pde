@@ -5,12 +5,12 @@ milestone_name: MCP Integrations
 status: active
 stopped_at: ""
 last_updated: "2026-03-18"
-last_activity: 2026-03-18 — Roadmap created, ready to plan Phase 39
+last_activity: 2026-03-18 — Completed 39-01: MCP Infrastructure Foundation (mcp-bridge.cjs + .gitignore)
 progress:
   total_phases: 6
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 1
+  completed_plans: 1
 ---
 
 # Project State
@@ -25,11 +25,11 @@ See: .planning/PROJECT.md (updated 2026-03-18)
 ## Current Position
 
 Phase: 39 — MCP Infrastructure Foundation
-Plan: Not started
-Status: Ready to plan
-Progress: ░░░░░░░░░░ 0/6 phases
+Plan: 1/1 complete (phase plans in progress)
+Status: Active — executing plans
+Progress: ░░░░░░░░░░ 0/6 phases (Phase 39 in progress)
 
-Last activity: 2026-03-18 — Roadmap created
+Last activity: 2026-03-18 — Completed 39-01: mcp-bridge.cjs created
 
 ## Performance Metrics
 
@@ -46,6 +46,13 @@ Last activity: 2026-03-18 — Roadmap created
 ### Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table.
+
+#### Phase 39-01 Decisions (2026-03-18)
+
+- TOOL_MAP is empty in Phase 39 — phases 40-44 populate canonical→raw MCP tool name mappings as each integration is researched
+- probe() returns a deferred result when probeTool is null — actual MCP tool calls happen only at workflow layer, never inside mcp-bridge.cjs
+- mcp-connections.json is gitignored (user-specific project-local metadata, no credentials)
+- assertApproved() sets error.code = 'POLICY_VIOLATION' for programmatic detection by callers
 
 ### Key Architecture Constraints for v0.5
 
@@ -72,5 +79,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-18
-Stopped at: Roadmap created — next step is `/gsd:plan-phase 39`
+Stopped at: Completed 39-01-PLAN.md — next step is remaining Phase 39 plans or Phase 40
 Resume file: None
