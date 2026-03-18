@@ -105,7 +105,12 @@ Plans:
   3. The improver/validator loop can take an audit finding, propose a fix with before/after diff, and apply it to PDE files with the protected-files guard enforced
   4. `pde-tools validate-skill` CLI command exists and checks frontmatter YAML validity, allowed-tools correctness, workflow path existence, and skill code uniqueness
   5. `/pde:audit` produces a PDE Health Report with before/after baseline measurements — running it twice against the same state yields a quantifiable delta, not a re-statement of findings
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 30-01-PLAN.md — validate-skill CLI, fleet agent definitions, model profiles (AUDIT-02, AUDIT-03, AUDIT-04, AUDIT-08, AUDIT-12)
+- [ ] 30-02-PLAN.md — /pde:audit command and workflow with 3-agent fleet orchestration (AUDIT-01, AUDIT-05, AUDIT-06, AUDIT-07)
+- [ ] 30-03-PLAN.md — Baseline/delta tracking, health report, Nyquist tests (AUDIT-09, AUDIT-10, AUDIT-11)
 
 ### Phase 31: Skill Builder
 **Goal**: PDE can create and improve skills that conform to the plugin format without producing broken or pre-elevation-quality output
@@ -228,7 +233,7 @@ Plans:
 | 27. Ideation Skill & Brief Update | v1.2 | 2/2 | Complete | 2026-03-17 |
 | 28. Build Orchestrator Expansion | v1.2 | 1/1 | Complete | 2026-03-17 |
 | 29. Quality Infrastructure | 3/3 | Complete    | 2026-03-17 | — |
-| 30. Self-Improvement Fleet & Audit | v1.3 | 0/? | Not started | — |
+| 30. Self-Improvement Fleet & Audit | v1.3 | 0/3 | Planned | — |
 | 31. Skill Builder | v1.3 | 0/? | Not started | — |
 | 32. Design Elevation — System Skill | v1.3 | 0/? | Not started | — |
 | 33. Design Elevation — Wireframe Skill | v1.3 | 0/? | Not started | — |
