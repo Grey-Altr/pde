@@ -119,7 +119,7 @@ Preset: {PRESET_NAME or "custom"}
 Token estimates:
   Color: ~88 primitives + 77 harmony (7 harmonies x 11 steps) + 12 semantic + 12 dark overrides
   Typography: ~8 sizes + 3 families + 4 weights + 8 line-heights + 8 letter-spacings
-  Spacing: 15 values
+  Spacing: 15 primitives + 6 semantic + 12 density overrides (compact + cozy)
   Shadows: 5 levels
   Borders: 7 radii + 3 widths + 1 style
   Motion: 5 durations + 5 easings + 5 delays + 3 transitions + 3 font axes
@@ -414,6 +414,54 @@ Standard scale with 4px base unit:
 | --space-24 | 96px |
 
 Note: use underscores for decimal values in CSS custom property names (--space-0_5 not --space-0.5).
+
+**Semantic spacing tokens** (reference the primitive scale above):
+
+These tokens map spacing intent to primitive values. Downstream CSS uses semantic names, not raw scale numbers.
+
+```css
+/* Default density semantic tokens */
+:root {
+  --spacing-component-gap: var(--space-4);    /* 16px — gap between components in a group */
+  --spacing-section-gap:   var(--space-16);   /* 64px — gap between page sections */
+  --spacing-content-gap:   var(--space-8);    /* 32px — gap between content blocks */
+  --spacing-inline:        var(--space-2);    /* 8px  — inline element spacing (icon + label) */
+  --spacing-card-padding:  var(--space-6);    /* 24px — card/panel internal padding */
+  --spacing-page-margin:   var(--space-8);    /* 32px — page-level side margins */
+}
+```
+
+**Density context overrides** (3 contexts — compact, default, cozy — following the IBM Carbon density pattern from references/composition-typography.md):
+
+```css
+/* Compact density — data tables, admin panels, code editors */
+/* Multiplier: ~0.75x — maps semantic tokens to smaller primitive values */
+[data-density="compact"] {
+  --spacing-component-gap: var(--space-2);    /* 8px  (was 16px) */
+  --spacing-section-gap:   var(--space-8);    /* 32px (was 64px) */
+  --spacing-content-gap:   var(--space-4);    /* 16px (was 32px) */
+  --spacing-inline:        var(--space-1);    /* 4px  (was 8px)  */
+  --spacing-card-padding:  var(--space-3);    /* 12px (was 24px) */
+  --spacing-page-margin:   var(--space-4);    /* 16px (was 32px) */
+}
+
+/* Cozy density — hero sections, marketing pages, editorial layouts */
+/* Multiplier: ~1.5x — maps semantic tokens to larger primitive values */
+[data-density="cozy"] {
+  --spacing-component-gap: var(--space-8);    /* 32px (was 16px) */
+  --spacing-section-gap:   var(--space-24);   /* 96px (was 64px) */
+  --spacing-content-gap:   var(--space-12);   /* 48px (was 32px) */
+  --spacing-inline:        var(--space-4);    /* 16px (was 8px)  */
+  --spacing-card-padding:  var(--space-10);   /* 40px (was 24px) */
+  --spacing-page-margin:   var(--space-16);   /* 64px (was 32px) */
+}
+```
+
+**Optical spacing adjustments** (apply after mathematical spacing):
+- First child of section: reduce top padding by 1 scale step (visually flush to header)
+- Icon + label pairs: reduce gap by half (icons read as visually larger than their pixel box)
+- Numeric data columns: use compact density regardless of page density (data readability)
+- Touch targets: maintain 44px minimum regardless of density context (accessibility)
 
 ---
 
@@ -914,7 +962,27 @@ Example structure:
   "spacing": {
     "0":    { "$value": "0px",  "$type": "dimension" },
     "1":    { "$value": "4px",  "$type": "dimension" },
-    "4":    { "$value": "16px", "$type": "dimension" }
+    "4":    { "$value": "16px", "$type": "dimension" },
+    "semantic": {
+      "component-gap": { "$value": "{spacing.4}",  "$type": "dimension", "$description": "Default density — 16px between components" },
+      "section-gap":   { "$value": "{spacing.16}", "$type": "dimension", "$description": "Default density — 64px between sections" },
+      "content-gap":   { "$value": "{spacing.8}",  "$type": "dimension", "$description": "Default density — 32px between content blocks" },
+      "inline":        { "$value": "{spacing.2}",  "$type": "dimension", "$description": "Default density — 8px inline spacing" },
+      "compact": {
+        "$extensions": { "com.pde.condition": "density-compact" },
+        "component-gap": { "$value": "{spacing.2}", "$type": "dimension" },
+        "section-gap":   { "$value": "{spacing.8}", "$type": "dimension" },
+        "content-gap":   { "$value": "{spacing.4}", "$type": "dimension" },
+        "inline":        { "$value": "{spacing.1}", "$type": "dimension" }
+      },
+      "cozy": {
+        "$extensions": { "com.pde.condition": "density-cozy" },
+        "component-gap": { "$value": "{spacing.8}",  "$type": "dimension" },
+        "section-gap":   { "$value": "{spacing.24}", "$type": "dimension" },
+        "content-gap":   { "$value": "{spacing.12}", "$type": "dimension" },
+        "inline":        { "$value": "{spacing.4}",  "$type": "dimension" }
+      }
+    }
   },
   "shadow": {
     "xs": { "$value": "0 1px 2px 0 oklch(0 0 0 / 0.05)", "$type": "shadow" },
@@ -1316,6 +1384,36 @@ Structure:
   --space-16:   64px;
   --space-20:   80px;
   --space-24:   96px;
+}
+
+/* === Semantic Spacing (Default Density) === */
+:root {
+  --spacing-component-gap: var(--space-4);
+  --spacing-section-gap:   var(--space-16);
+  --spacing-content-gap:   var(--space-8);
+  --spacing-inline:        var(--space-2);
+  --spacing-card-padding:  var(--space-6);
+  --spacing-page-margin:   var(--space-8);
+}
+
+/* === Compact Density === */
+[data-density="compact"] {
+  --spacing-component-gap: var(--space-2);
+  --spacing-section-gap:   var(--space-8);
+  --spacing-content-gap:   var(--space-4);
+  --spacing-inline:        var(--space-1);
+  --spacing-card-padding:  var(--space-3);
+  --spacing-page-margin:   var(--space-4);
+}
+
+/* === Cozy Density === */
+[data-density="cozy"] {
+  --spacing-component-gap: var(--space-8);
+  --spacing-section-gap:   var(--space-24);
+  --spacing-content-gap:   var(--space-12);
+  --spacing-inline:        var(--space-4);
+  --spacing-card-padding:  var(--space-10);
+  --spacing-page-margin:   var(--space-16);
 }
 ```
 
