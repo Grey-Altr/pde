@@ -35,10 +35,10 @@ Requirements for Self-Improvement & Design Excellence milestone. Each maps to ro
 
 - [ ] **SKILL-01**: `/pde:improve` create mode builds new skills from description — produces conforming SKILL.md with correct frontmatter, markdown content, and optional supporting files directory
 - [ ] **SKILL-02**: `/pde:improve` improve mode evaluates existing skills against quality rubric, identifies specific deficiencies, and generates targeted enhancements (additive by default, full rewrite via --rewrite flag)
-- [ ] **SKILL-03**: `/pde:improve` eval mode runs evaluation test cases against a skill's behavior, comparing output against rubric expectations and producing quality score with specific findings
-- [ ] **SKILL-04**: Skill builder automatically runs validate-skill on all generated output and rejects invalid skills before presenting to user
-- [ ] **SKILL-05**: Skill builder reads and enforces skill-style-guide.md and tooling-patterns.md as constraint references
-- [ ] **SKILL-06**: Skill builder can create skills for PDE internals (commands/) AND for user projects (.claude/skills/)
+- [x] **SKILL-03**: `/pde:improve` eval mode runs evaluation test cases against a skill's behavior, comparing output against rubric expectations and producing quality score with specific findings
+- [x] **SKILL-04**: Skill builder automatically runs validate-skill on all generated output and rejects invalid skills before presenting to user
+- [x] **SKILL-05**: Skill builder reads and enforces skill-style-guide.md and tooling-patterns.md as constraint references
+- [x] **SKILL-06**: Skill builder can create skills for PDE internals (commands/) AND for user projects (.claude/skills/)
 
 ### Design Quality Elevation — System Skill
 
@@ -160,10 +160,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUDIT-12 | Phase 30 | Complete |
 | SKILL-01 | Phase 31 | Pending |
 | SKILL-02 | Phase 31 | Pending |
-| SKILL-03 | Phase 31 | Pending |
-| SKILL-04 | Phase 31 | Pending |
-| SKILL-05 | Phase 31 | Pending |
-| SKILL-06 | Phase 31 | Pending |
+| SKILL-03 | Phase 31 | Complete |
+| SKILL-04 | Phase 31 | Complete |
+| SKILL-05 | Phase 31 | Complete |
+| SKILL-06 | Phase 31 | Complete |
 | SYS-01 | Phase 32 | Pending |
 | SYS-02 | Phase 32 | Pending |
 | SYS-03 | Phase 32 | Pending |

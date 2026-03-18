@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Self-Improvement & Design Excellence
 status: completed
-stopped_at: Completed 30-03-PLAN.md — baseline/delta tracking, PDE Health Report, Missing References, and 37-assertion Nyquist tests
-last_updated: "2026-03-18T01:04:17.045Z"
+stopped_at: Completed 31-01-PLAN.md — skill-quality-rubric, pde-skill-builder agent, pde-design-quality-evaluator agent, model-profiles entry, 6 Nyquist test scripts
+last_updated: "2026-03-18T02:04:12.970Z"
 last_activity: 2026-03-17 — Phase 29 Plan 03 complete (protected-files.json, model-profiles, skill-registry)
 progress:
   total_phases: 9
   completed_phases: 2
-  total_plans: 6
-  completed_plans: 6
+  total_plans: 8
+  completed_plans: 7
 ---
 
 # Project State
@@ -47,6 +47,7 @@ v1.3 Progress: [==                  ] 11% (3/3 plans in Phase 29 complete)
 | Phase 30 P01 | 4min | 3 tasks | 7 files |
 | Phase 30-self-improvement-fleet-audit-command P02 | 2min | 2 tasks | 2 files |
 | Phase 30-self-improvement-fleet-audit-command P03 | 8 minutes | 2 tasks | 4 files |
+| Phase 31 P01 | 4 | 3 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -81,6 +82,14 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 30]: Baseline JSON includes version: 1 field for future schema migration support
 - [Phase 30]: Missing References section in audit-report.md uses skill/reference/impact table matching auditor return format for AUDIT-10
 
+**v1.3 decisions made (Phase 31 research):**
+- [Phase 31]: Skill code assignment uses auto-suggest from description with user confirmation — builder proposes a code, user accepts or overrides; warns on LINT-011 collision against skill-registry.md
+- [Phase 31]: Default destination is user-project (`.claude/skills/`), with `--for-pde` flag for PDE-internal (`commands/`) — both paths are first-class; flag acts as safety gate for writing into PDE's own directory
+- [Phase 31]: Eval rubric lives in a dedicated `references/skill-quality-rubric.md` file — separates concerns from agent prompt, easier to iterate on; adds a Phase 31 deliverable
+- [Phase 31]: Improve mode diff application handled directly by workflow via Edit tool from structured JSON — no second agent call needed; keeps it simple and deterministic
+- [Phase 31]: pde-skill-builder uses sonnet/sonnet/haiku — matching pde-skill-improver since both do skill content generation
+- [Phase 31]: skill-quality-rubric lives in references/ as a separate file — separates evaluation criteria from agent prompt, easier to iterate
+
 ### Pending Todos
 
 - Plan Phase 29 (Quality Infrastructure) — start here
@@ -92,8 +101,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-18T00:54:48.166Z
-Stopped at: Completed 30-03-PLAN.md — baseline/delta tracking, PDE Health Report, Missing References, and 37-assertion Nyquist tests
+Last session: 2026-03-18T02:04:12.967Z
+Stopped at: Completed 31-01-PLAN.md — skill-quality-rubric, pde-skill-builder agent, pde-design-quality-evaluator agent, model-profiles entry, 6 Nyquist test scripts
 Resume file: None
 
 ## Phase Sequence
