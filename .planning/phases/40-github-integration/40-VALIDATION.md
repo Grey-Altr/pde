@@ -1,10 +1,11 @@
 ---
 phase: 40
 slug: github-integration
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-18
+gaps_filled: 2026-03-18
 ---
 
 # Phase 40 — Validation Strategy
@@ -38,11 +39,12 @@ created: 2026-03-18
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 40-01-01 | 01 | 0 | INFRA | unit | `grep TOOL_MAP bin/lib/mcp-bridge.cjs` | ❌ W0 | ⬜ pending |
-| 40-02-01 | 02 | 1 | GH-01 | integration | `node --test tests/phase-40/sync-github.test.mjs` | ❌ W0 | ⬜ pending |
-| 40-03-01 | 03 | 1 | GH-02 | integration | `node --test tests/phase-40/handoff-prs.test.mjs` | ❌ W0 | ⬜ pending |
-| 40-04-01 | 04 | 1 | GH-03 | integration | `node --test tests/phase-40/brief-github.test.mjs` | ❌ W0 | ⬜ pending |
-| 40-05-01 | 05 | 2 | GH-04 | integration | `node --test tests/phase-40/ci-status.test.mjs` | ❌ W0 | ⬜ pending |
+| 40-01-01 | 01 | 0 | INFRA (TOOL_MAP) | unit | `node --test tests/phase-40/mcp-bridge-toolmap.test.mjs` | ✅ | ✅ green |
+| 40-01-02 | 01 | 0 | INFRA (connect repo) | unit | `node --test tests/phase-40/connect-repo.test.mjs` | ✅ | ✅ green |
+| 40-02-01 | 02 | 1 | GH-01 | integration | `node --test tests/phase-40/sync-github.test.mjs` | ✅ | ✅ green |
+| 40-03-01 | 03 | 1 | GH-02 | integration | `node --test tests/phase-40/handoff-prs.test.mjs` | ✅ | ✅ green |
+| 40-04-01 | 04 | 1 | GH-03 | integration | `node --test tests/phase-40/brief-github.test.mjs` | ✅ | ✅ green |
+| 40-05-01 | 05 | 2 | GH-04 | integration | `node --test tests/phase-40/ci-status.test.mjs` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -50,9 +52,9 @@ created: 2026-03-18
 
 ## Wave 0 Requirements
 
-- [ ] `tests/phase-40/` — test directory for phase 40
-- [ ] TOOL_MAP populated in `bin/lib/mcp-bridge.cjs` with GitHub canonical→raw mappings
-- [ ] `mcp-connections.json` schema extended with `repo` field for GitHub
+- [x] `tests/phase-40/` — test directory for phase 40
+- [x] TOOL_MAP populated in `bin/lib/mcp-bridge.cjs` with GitHub canonical→raw mappings
+- [x] `mcp-connections.json` schema extended with `repo` field for GitHub
 
 *Wave 0 must complete before any GH-* workflow can function.*
 
@@ -69,11 +71,21 @@ created: 2026-03-18
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 5s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 5s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** gaps filled 2026-03-18 — 68/68 tests green
+
+---
+
+## Validation Audit 2026-03-18
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 6 |
+| Resolved | 6 |
+| Escalated | 0 |
