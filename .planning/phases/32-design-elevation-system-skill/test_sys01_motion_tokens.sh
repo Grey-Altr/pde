@@ -2,7 +2,7 @@
 set -euo pipefail
 PASS=0; FAIL=0; SKILL="workflows/system.md"
 
-check() { if grep -q "$1" "$SKILL"; then ((PASS++)); else echo "FAIL: $2"; ((FAIL++)); fi; }
+check() { if grep -q "$1" "$SKILL"; then PASS=$((PASS+1)); else echo "FAIL: $2"; FAIL=$((FAIL+1)); fi; }
 
 check "duration-micro" "Missing micro duration step (100ms)"
 check "duration-fast" "Missing fast duration step (200ms)"

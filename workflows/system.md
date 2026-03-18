@@ -7,6 +7,8 @@ Generate a complete DTCG 2025.10 design token set from product brief context. Pr
 @references/mcp-integration.md
 @references/color-systems.md
 @references/typography.md
+@references/motion-design.md
+@references/composition-typography.md
 </required_reading>
 
 <flags>
@@ -120,7 +122,7 @@ Token estimates:
   Spacing: 15 values
   Shadows: 5 levels
   Borders: 7 radii + 3 widths + 1 style
-  Motion: 3 durations + 3 easings
+  Motion: 5 durations + 5 easings + 5 delays + 3 transitions + 3 font axes
   Components: .pde-btn (5 variants), .pde-card (3 parts), .pde-input (4 parts) + dark variants
   Utilities: spacing (104), flex (10), width (7), gap (6), display (4), text (3)
 
@@ -424,19 +426,78 @@ Note: use underscores for decimal values in CSS custom property names (--space-0
 
 #### Motion tokens
 
-**Duration:**
+**Duration scale** (5 steps from micro to dramatic — aligned with references/motion-design.md):
+
 ```
---duration-fast: 150ms
---duration-normal: 250ms
---duration-slow: 400ms
+--duration-micro:    100ms   /* State changes: button press, checkbox, toggle */
+--duration-fast:     200ms   /* Hover transitions, small UI feedback */
+--duration-standard: 300ms   /* Modal open/close, drawer slide, tooltip */
+--duration-slow:     500ms   /* Page transitions, hero entrance, complex reveals */
+--duration-dramatic: 800ms   /* Cinematic entrance, brand moments, first-load hero */
 ```
 
-**Easing:**
+**Easing curves** (5 named curves including spring and bounce):
+
 ```
---easing-default: cubic-bezier(0.4, 0, 0.2, 1)
---easing-in: cubic-bezier(0.4, 0, 1, 1)
---easing-out: cubic-bezier(0, 0, 0.2, 1)
+--ease-standard: cubic-bezier(0.4, 0, 0.2, 1)    /* Material standard — general UI */
+--ease-enter:    cubic-bezier(0, 0, 0.2, 1)       /* Deceleration — elements entering */
+--ease-exit:     cubic-bezier(0.4, 0, 1, 1)       /* Acceleration — elements leaving */
+--ease-spring:   cubic-bezier(0.34, 1.56, 0.64, 1) /* Single-overshoot spring */
+/* Multi-bounce spring (88% browser support): */
+--ease-spring-bounce: linear(0, 0.006, 0.025 2.8%, 0.101 6.1%, 0.539 15%, 0.721 19.4%, 0.877 23.8%, 1.003 27.3%, 1.096 29.8%, 1.143 31.7%, 1.175 33.8%, 1.194 36%, 1.199 38.8%, 1.185 42.8%, 1.126 49.6%, 1.067 56.3%, 1.027 62.8%, 1.005 70.8%, 0.995 79.4%, 0.998 86.6%, 1)
 ```
+
+**Delay / choreography tokens** (5 delay values for sequencing entrance animations):
+
+```
+--delay-none:       0ms     /* Immediate — no delay */
+--delay-stagger-sm: 60ms    /* Card lists, navigation items (3-5 items) */
+--delay-stagger-md: 120ms   /* Feature grids (5-8 items) */
+--delay-stagger-lg: 200ms   /* Section reveals, hero sequences */
+--delay-page:       300ms   /* Route-change delay — content waits for transition */
+```
+
+**DTCG transition composites** (pre-composed duration+delay+easing for common patterns):
+
+```
+transition.default:         300ms + 0ms delay + ease-standard  /* Modal, drawer, tooltip */
+transition.hover:           200ms + 0ms delay + ease-standard  /* Button/link hover state */
+transition.spring-feedback: 200ms + 0ms delay + ease-spring    /* Press feedback with overshoot */
+```
+
+---
+
+#### Variable font axis animation tokens
+
+Generate variable font axis tokens for the three registered CSS axes. These tokens describe animation parameters for typographic motion effects.
+
+**IMPORTANT:** Not all variable fonts support all axes. The `$description` for each axis must state which common fonts support it. Verify font axis support at v-fonts.com before applying.
+
+**Performance note:** Animate `font-weight` (wght) and `font-stretch` (wdth) via their CSS shorthand properties — these are GPU-composited in modern browsers. Only use `font-variation-settings` directly for custom axes or opsz.
+
+**Weight axis (wght):**
+- Axis tag: `wght`
+- CSS property: `font-weight` (direct mapping, no font-variation-settings needed)
+- Range: `"min": 100` (thin) to `"max": 900` (black)
+- Resting value: 400 (body text default)
+- Animated target: 700 (hover/active — bold snap)
+- Transition: duration-fast (200ms) + ease-spring (cubic-bezier(0.34, 1.56, 0.64, 1))
+- Supported fonts: Inter, Roboto Flex, Source Sans 3, DM Sans
+
+**Width axis (wdth):**
+- Axis tag: `wdth`
+- CSS property: `font-stretch` (preferred) or `font-variation-settings 'wdth'`
+- Range: `"min": 75` (condensed) to `"max": 125` (expanded)
+- Resting value: 100 (normal)
+- Transition: duration-standard (300ms) + ease-enter (deceleration — width feels physical)
+- Supported fonts: Roboto Flex (25-151)
+
+**Optical size axis (opsz):**
+- Axis tag: `opsz`
+- CSS property: `font-optical-sizing: auto` (preferred) or `font-variation-settings 'opsz'`
+- Ranges by context: caption (`"min": 6`, `"max": 12`), body (`"min": 12`, `"max": 24`), display (`"min": 24`, `"max": 144`)
+- Transition: duration-standard (300ms) + ease-standard
+- Supported fonts: Roboto Flex, Literata, Source Serif 4
 
 ---
 
@@ -460,8 +521,8 @@ Define CSS classes using var() references to semantic tokens. Do NOT hardcode ra
   border-radius: var(--radius-md);
   border: var(--border-width-default) var(--border-style-default) transparent;
   cursor: pointer;
-  transition: background-color var(--duration-fast) var(--easing-default),
-              box-shadow var(--duration-fast) var(--easing-default);
+  transition: background-color var(--duration-fast) var(--ease-standard),
+              box-shadow var(--duration-fast) var(--ease-standard);
   text-decoration: none;
 }
 
@@ -557,8 +618,8 @@ Define CSS classes using var() references to semantic tokens. Do NOT hardcode ra
   background-color: var(--color-bg-default);
   border: var(--border-width-default) var(--border-style-default) var(--color-border);
   border-radius: var(--radius-md);
-  transition: border-color var(--duration-fast) var(--easing-default),
-              box-shadow var(--duration-fast) var(--easing-default);
+  transition: border-color var(--duration-fast) var(--ease-standard),
+              box-shadow var(--duration-fast) var(--ease-standard);
   outline: none;
 }
 
@@ -774,15 +835,141 @@ Example structure:
     }
   },
   "motion": {
+    "$description": "Motion token system — duration scale, easing curves, delay choreography, spring physics",
     "duration": {
-      "fast":   { "$value": "150ms", "$type": "duration" },
-      "normal": { "$value": "250ms", "$type": "duration" },
-      "slow":   { "$value": "400ms", "$type": "duration" }
+      "micro":    { "$type": "duration", "$value": { "value": 100, "unit": "ms" }, "$description": "State changes: button press, checkbox, toggle" },
+      "fast":     { "$type": "duration", "$value": { "value": 200, "unit": "ms" }, "$description": "Hover transitions, small UI feedback" },
+      "standard": { "$type": "duration", "$value": { "value": 300, "unit": "ms" }, "$description": "Modal open/close, drawer, tooltip" },
+      "slow":     { "$type": "duration", "$value": { "value": 500, "unit": "ms" }, "$description": "Page transitions, hero entrance, complex reveals" },
+      "dramatic": { "$type": "duration", "$value": { "value": 800, "unit": "ms" }, "$description": "Cinematic entrance, brand moments" }
     },
     "easing": {
-      "default": { "$value": "cubic-bezier(0.4, 0, 0.2, 1)", "$type": "cubicBezier" },
-      "in":      { "$value": "cubic-bezier(0.4, 0, 1, 1)",   "$type": "cubicBezier" },
-      "out":     { "$value": "cubic-bezier(0, 0, 0.2, 1)",   "$type": "cubicBezier" }
+      "standard": { "$type": "cubicBezier", "$value": [0.4, 0, 0.2, 1],   "$description": "Material standard — general UI transitions" },
+      "enter":    { "$type": "cubicBezier", "$value": [0, 0, 0.2, 1],     "$description": "Deceleration — elements entering screen" },
+      "exit":     { "$type": "cubicBezier", "$value": [0.4, 0, 1, 1],     "$description": "Acceleration — elements leaving screen" },
+      "spring": {
+        "$type": "cubicBezier",
+        "$value": [0.34, 1.56, 0.64, 1],
+        "$description": "Single-overshoot spring — universal browser support. Multi-bounce in $extensions.",
+        "$extensions": {
+          "pde.linearSpring": "linear(0, 0.006, 0.025 2.8%, 0.101 6.1%, 0.539 15%, 0.721 19.4%, 0.877 23.8%, 1.003 27.3%, 1.096 29.8%, 1.143 31.7%, 1.175 33.8%, 1.194 36%, 1.199 38.8%, 1.185 42.8%, 1.126 49.6%, 1.067 56.3%, 1.027 62.8%, 1.005 70.8%, 0.995 79.4%, 0.998 86.6%, 1)",
+          "pde.browserSupport": "88% (Chrome, Firefox, Safari, Edge since Dec 2023)"
+        }
+      }
+    },
+    "delay": {
+      "none":       { "$type": "duration", "$value": { "value": 0,   "unit": "ms" }, "$description": "Immediate — no delay" },
+      "stagger-sm": { "$type": "duration", "$value": { "value": 60,  "unit": "ms" }, "$description": "Card lists, nav items (3-5 items)" },
+      "stagger-md": { "$type": "duration", "$value": { "value": 120, "unit": "ms" }, "$description": "Feature grids (5-8 items)" },
+      "stagger-lg": { "$type": "duration", "$value": { "value": 200, "unit": "ms" }, "$description": "Section reveals, hero sequences" },
+      "page":       { "$type": "duration", "$value": { "value": 300, "unit": "ms" }, "$description": "Route-change delay — content waits for transition" }
+    },
+    "transition": {
+      "default": {
+        "$type": "transition",
+        "$value": {
+          "duration": { "value": 300, "unit": "ms" },
+          "delay": { "value": 0, "unit": "ms" },
+          "timingFunction": [0.4, 0, 0.2, 1]
+        },
+        "$description": "Standard UI transition — modal, drawer, tooltip"
+      },
+      "hover": {
+        "$type": "transition",
+        "$value": {
+          "duration": { "value": 200, "unit": "ms" },
+          "delay": { "value": 0, "unit": "ms" },
+          "timingFunction": [0.4, 0, 0.2, 1]
+        },
+        "$description": "Button/link hover state"
+      },
+      "spring-feedback": {
+        "$type": "transition",
+        "$value": {
+          "duration": { "value": 200, "unit": "ms" },
+          "delay": { "value": 0, "unit": "ms" },
+          "timingFunction": [0.34, 1.56, 0.64, 1]
+        },
+        "$description": "Interactive element press feedback — spring overshoot"
+      }
+    }
+  },
+  "font": {
+    "$description": "font.variable — variable font axis animation tokens for wght, wdth, opsz axes",
+    "variable": {
+      "weight": {
+        "axis": {
+          "$value": "wght",
+          "$type": "string",
+          "$description": "CSS: font-weight property. Maps directly — no font-variation-settings needed. Supported fonts: Inter, Roboto Flex, Source Sans 3, DM Sans."
+        },
+        "range": {
+          "$value": { "min": 100, "max": 900 },
+          "$type": "dimension",
+          "$description": "Typical range for variable fonts with wght axis"
+        },
+        "resting": {
+          "$value": 400,
+          "$type": "number",
+          "$description": "Default/resting weight for body text"
+        },
+        "animated": {
+          "$value": 700,
+          "$type": "number",
+          "$description": "Hover/active weight — use with transition.fast + easing.spring"
+        },
+        "transition": {
+          "$type": "transition",
+          "$value": {
+            "duration": { "value": 200, "unit": "ms" },
+            "delay": { "value": 0, "unit": "ms" },
+            "timingFunction": [0.34, 1.56, 0.64, 1]
+          },
+          "$description": "Spring easing for weight snap-to-bold feel"
+        }
+      },
+      "width": {
+        "axis": {
+          "$value": "wdth",
+          "$type": "string",
+          "$description": "CSS: font-variation-settings 'wdth' <value>. Roboto Flex range: 25-151. Verify axis support at v-fonts.com."
+        },
+        "range": {
+          "$value": { "min": 75, "max": 125 },
+          "$type": "dimension",
+          "$description": "Standard registered wdth axis range (CSS Fonts Level 4)"
+        },
+        "transition": {
+          "$type": "transition",
+          "$value": {
+            "duration": { "value": 400, "unit": "ms" },
+            "delay": { "value": 0, "unit": "ms" },
+            "timingFunction": [0, 0, 0.2, 1]
+          },
+          "$description": "Deceleration easing — width feels physical, not snappy"
+        }
+      },
+      "opticalSize": {
+        "axis": {
+          "$value": "opsz",
+          "$type": "string",
+          "$description": "CSS: font-optical-sizing: auto (preferred) or font-variation-settings 'opsz' <value>. Supported: Roboto Flex, Literata, Source Serif 4."
+        },
+        "ranges": {
+          "caption": { "$value": { "min": 6,  "max": 12  }, "$type": "dimension", "$description": "Caption text — small label sizes" },
+          "body":    { "$value": { "min": 12, "max": 24  }, "$type": "dimension", "$description": "Body text — standard reading sizes" },
+          "display": { "$value": { "min": 24, "max": 144 }, "$type": "dimension", "$description": "Display text — headline and hero sizes" }
+        },
+        "transition": {
+          "$type": "transition",
+          "$value": {
+            "duration": { "value": 300, "unit": "ms" },
+            "delay": { "value": 0, "unit": "ms" },
+            "timingFunction": [0.4, 0, 0.2, 1]
+          },
+          "$description": "Standard easing for optical size transitions"
+        }
+      }
     }
   },
   "component": {
@@ -1018,15 +1205,26 @@ Structure:
 /* Generated by /pde:system | {ISO date} */
 
 :root {
-  /* Duration */
-  --duration-fast:   150ms;
-  --duration-normal: 250ms;
-  --duration-slow:   400ms;
+  /* Duration scale (micro → dramatic) */
+  --duration-micro:    100ms;
+  --duration-fast:     200ms;
+  --duration-standard: 300ms;
+  --duration-slow:     500ms;
+  --duration-dramatic: 800ms;
 
-  /* Easing */
-  --easing-default: cubic-bezier(0.4, 0, 0.2, 1);
-  --easing-in:      cubic-bezier(0.4, 0, 1, 1);
-  --easing-out:     cubic-bezier(0, 0, 0.2, 1);
+  /* Easing curves */
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-enter:    cubic-bezier(0, 0, 0.2, 1);
+  --ease-exit:     cubic-bezier(0.4, 0, 1, 1);
+  --ease-spring:   cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-spring-bounce: linear(0, 0.006, 0.025 2.8%, 0.101 6.1%, 0.539 15%, 0.721 19.4%, 0.877 23.8%, 1.003 27.3%, 1.096 29.8%, 1.143 31.7%, 1.175 33.8%, 1.194 36%, 1.199 38.8%, 1.185 42.8%, 1.126 49.6%, 1.067 56.3%, 1.027 62.8%, 1.005 70.8%, 0.995 79.4%, 0.998 86.6%, 1);
+
+  /* Delay / choreography tokens */
+  --delay-none:       0ms;
+  --delay-stagger-sm: 60ms;
+  --delay-stagger-md: 120ms;
+  --delay-stagger-lg: 200ms;
+  --delay-page:       300ms;
 }
 ```
 

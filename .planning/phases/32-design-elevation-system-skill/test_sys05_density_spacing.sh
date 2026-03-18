@@ -2,7 +2,7 @@
 set -euo pipefail
 PASS=0; FAIL=0; SKILL="workflows/system.md"
 
-check() { if grep -q "$1" "$SKILL"; then ((PASS++)); else echo "FAIL: $2"; ((FAIL++)); fi; }
+check() { if grep -q "$1" "$SKILL"; then PASS=$((PASS+1)); else echo "FAIL: $2"; FAIL=$((FAIL+1)); fi; }
 
 check 'data-density="compact"' 'Missing data-density="compact" CSS selector'
 check 'data-density="cozy"' 'Missing data-density="cozy" CSS selector'

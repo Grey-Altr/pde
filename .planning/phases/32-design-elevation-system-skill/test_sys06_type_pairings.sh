@@ -2,7 +2,7 @@
 set -euo pipefail
 PASS=0; FAIL=0; SKILL="workflows/system.md"
 
-check() { if grep -q "$1" "$SKILL"; then ((PASS++)); else echo "FAIL: $2"; ((FAIL++)); fi; }
+check() { if grep -q "$1" "$SKILL"; then PASS=$((PASS+1)); else echo "FAIL: $2"; FAIL=$((FAIL+1)); fi; }
 
 check 'Type Pairing\|Type pairings\|type pairing' "Missing Type Pairing section heading"
 check 'Playfair' "Missing Playfair Display pairing entry"
