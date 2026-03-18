@@ -28,6 +28,7 @@ const MODEL_PROFILES = {
   'pde-template-auditor':         { quality: 'sonnet', balanced: 'haiku',  budget: 'haiku' },
   'pde-skill-improver':           { quality: 'sonnet', balanced: 'sonnet', budget: 'haiku' },
   'pde-skill-validator':          { quality: 'sonnet', balanced: 'haiku',  budget: 'haiku' },
+  'pde-skill-builder':            { quality: 'sonnet', balanced: 'sonnet', budget: 'haiku' },
 };
 const VALID_PROFILES = Object.keys(MODEL_PROFILES['pde-planner']);
 
