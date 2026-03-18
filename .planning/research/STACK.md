@@ -1,8 +1,8 @@
 # Stack Research
 
 **Domain:** AI-powered product development platform (Claude Code plugin, evolving to standalone CLI)
-**Researched:** 2026-03-15 (updated for v1.1 Design Pipeline); v1.2 section added 2026-03-16; v1.3 section added 2026-03-17
-**Confidence:** HIGH (core plugin stack, design pipeline additions), MEDIUM (post-v1 MCP/CLI evolution)
+**Researched:** 2026-03-15 (updated for v1.1 Design Pipeline); v1.2 section added 2026-03-16; v1.3 section added 2026-03-17; v0.5 MCP Integrations added 2026-03-18
+**Confidence:** HIGH (core plugin stack, design pipeline additions), MEDIUM (post-v1 MCP/CLI evolution, v0.5 MCP integrations)
 
 ---
 
@@ -855,3 +855,322 @@ npm install commander@^14.0.0
 
 *Stack research for: AI-powered product development platform (PDE), v1.3 Self-Improvement and Design Excellence additions*
 *Researched: 2026-03-17*
+
+---
+
+## v0.5 Stack: MCP Server Integrations
+
+### The Core Question: How Do MCP Integrations Fit the Plugin?
+
+PDE is a Claude Code plugin with a zero-npm-dependency constraint for its own tooling. v0.5 MCP integrations are NOT adding dependencies to the plugin itself — they are adding two things:
+
+1. **References to external MCP servers** users configure once (GitHub, Linear, Figma, Jira, Pencil) — already the model used for sequential-thinking, Playwright, etc.
+2. **New skills and workflows** that detect available MCP servers and use them when present (probe/use/degrade pattern, already established in v1.2).
+
+The zero-dependency constraint holds. No npm packages added to the PDE plugin itself.
+
+**The one genuine new dependency question:** Should PDE expose its own MCP server (a `pde-as-server` implementation)? This requires `@modelcontextprotocol/sdk` as a plugin dependency. Answer: Implement using `claude mcp serve` (built-in Claude Code feature) first; if custom tools are needed, only then introduce the SDK. See the PDE-as-MCP-server section below.
+
+### External MCP Servers: The Five Integrations
+
+#### GitHub MCP Server
+
+| Attribute | Value |
+|-----------|-------|
+| Provider | GitHub (official) |
+| Transport | Streamable HTTP (remote) |
+| URL | `https://api.githubcopilot.com/mcp/` |
+| Auth | OAuth 2.0 (auto via Claude Code) or PAT via `Authorization: Bearer <token>` header |
+| Claude Code install | `claude mcp add --transport http github https://api.githubcopilot.com/mcp/` |
+| Key toolsets | `repos`, `issues`, `pull_requests`, `actions`, `code_security` |
+| Source | github/github-mcp-server (official GitHub repo) [HIGH confidence] |
+
+**Why GitHub remote HTTP over npm package:** GitHub's remote endpoint is always current, requires no npm install or process management. The npm package `@modelcontextprotocol/server-github` is community-maintained and lags behind the official endpoint.
+
+**PDE integration points:**
+- `/pde:execute-phase` — create GitHub issues for each task, link PRs to phase
+- `/pde:verify-phase` — check CI status, pull review feedback into verification report
+- `/pde:new-milestone` — create milestone on GitHub repo, auto-link phases
+
+#### Linear MCP Server
+
+| Attribute | Value |
+|-----------|-------|
+| Provider | Linear (official, hosted) |
+| Transport | Streamable HTTP |
+| URL | `https://mcp.linear.app/mcp` |
+| Auth | OAuth 2.1 with dynamic client registration (auto via Claude Code `/mcp`) OR Bearer token |
+| Claude Code install | `claude mcp add --transport http linear https://mcp.linear.app/mcp` |
+| Key tools | find/create/update issues, projects, comments, teams |
+| Source | linear.app/docs/mcp (official Linear docs) [HIGH confidence] |
+
+**Why Linear over Jira (default recommendation):** Linear's MCP is official and hosted by Linear itself. Streamable HTTP over OAuth 2.1 — the modern standard. Jira's official server (Atlassian Rovo) exists but requires a paid Atlassian Cloud account; Linear is more common in early-stage projects. **Recommend Linear as primary; Jira as alternative for enterprises.**
+
+**PDE integration points:**
+- `/pde:new-project` — create Linear project, link issues to roadmap phases
+- `/pde:execute-phase` — sync task completion status to Linear issues
+- `/pde:discuss-phase` — pull existing Linear issues for context
+
+#### Jira / Atlassian MCP Server (Enterprise Alternative)
+
+| Attribute | Value |
+|-----------|-------|
+| Provider | Atlassian (official Rovo MCP Server) |
+| Transport | SSE (legacy) |
+| URL | `https://mcp.atlassian.com/v1/sse` |
+| Auth | OAuth 2.1 (browser flow via `/mcp`) |
+| Claude Code install | `claude mcp add --transport sse jira https://mcp.atlassian.com/v1/sse` |
+| Covers | Jira, Confluence, Compass |
+| Source | support.atlassian.com Rovo MCP Server docs [HIGH confidence] |
+
+**Warning:** Atlassian's server uses SSE transport (deprecated in Claude Code). This works but is flagged as legacy. Monitor for an official Streamable HTTP endpoint. Use the community `mcp-atlassian` (Python) as a fallback if SSE causes issues.
+
+**PDE integration points:** Same as Linear — phase-to-issue sync, status tracking, requirements pull.
+
+#### Figma MCP Server
+
+| Attribute | Value |
+|-----------|-------|
+| Provider | Figma (official, hosted) |
+| Transport | Streamable HTTP (remote) |
+| URL | `https://mcp.figma.com/mcp` |
+| Auth | OAuth 2.0 (browser flow via `/mcp`, automatic) |
+| Claude Code install | `claude mcp add --transport http figma https://mcp.figma.com/mcp` |
+| Key tools | Get frame/component data, extract design variables, generate code from selection |
+| Also available | Desktop MCP Server (runs locally via Figma app) |
+| Source | developers.figma.com/docs/figma-mcp-server [HIGH confidence] |
+
+**Why remote over desktop:** The remote server works without Figma Desktop installed, which is essential for CI/cloud contexts. The desktop server requires the Figma app running.
+
+**PDE integration points:**
+- `/pde:system` — pull design tokens from existing Figma file as seed (alternative to generating from scratch)
+- `/pde:wireframe` — reference existing Figma frames for fidelity guidance
+- `/pde:handoff` — extract component specs from Figma to supplement generated handoff doc
+
+#### Pencil MCP Server (Visual Canvas)
+
+| Attribute | Value |
+|-----------|-------|
+| Provider | pencil.dev |
+| Transport | stdio (local, auto-started by Pencil app) |
+| Package | `@anthropic-ai/pencil-mcp` (or auto-started when Pencil app runs) |
+| Auth | None (local process) |
+| Requirements | Pencil app installed (VS Code/Cursor extension); not available standalone |
+| Key tools | `get_editor_state`, `open_document`, `get_guidelines`, `get_style_guide_tags`, `get_style_guide`, `batch_design`, `batch_get`, `get_screenshot`, `snapshot_layout`, `get/set_variables` |
+| File format | `.pen` files (JSON-based, git-diffable) |
+| Source | docs.pencil.dev, project_pencil_mcp.md memory [MEDIUM confidence — tool names from pencil.dev docs, transport via community sources] |
+
+**Critical constraint: Pencil requires VS Code or Cursor.** Claude Code standalone cannot start the Pencil MCP server. Use probe/degrade: detect Pencil MCP availability first; skip Pencil-specific steps if unavailable.
+
+**PDE integration points (Level 1 — validate before Level 2):**
+- `/pde:recommend` — add Pencil to tool catalog for frontend projects
+- `/pde:wireframe` — detect Pencil, optionally output `.pen` files alongside HTML using `batch_design`
+- `/pde:mockup` — use `get_screenshot` for visual verification in critique pass
+- `/pde:system` — sync DTCG tokens with Pencil variables via `get/set_variables`
+
+**Level 2 (defer):** Native `.pen` pipeline stage — only after Level 1 integration is validated.
+
+### MCP Connection Infrastructure
+
+#### Configuration Pattern: Plugin `.mcp.json`
+
+Claude Code plugins can bundle MCP server configurations in `.mcp.json` at the plugin root. When the plugin is enabled, its MCP servers start automatically. This is the correct pattern for PDE: include suggested MCP server configurations users can activate.
+
+**Format (`.mcp.json` at plugin root):**
+```json
+{
+  "mcpServers": {
+    "github": {
+      "type": "http",
+      "url": "https://api.githubcopilot.com/mcp/"
+    },
+    "linear": {
+      "type": "http",
+      "url": "https://mcp.linear.app/mcp"
+    },
+    "figma": {
+      "type": "http",
+      "url": "https://mcp.figma.com/mcp"
+    },
+    "jira": {
+      "type": "sse",
+      "url": "https://mcp.atlassian.com/v1/sse"
+    }
+  }
+}
+```
+
+**Important:** Project-scoped `.mcp.json` (checked into version control) requires user approval before first use. This is a security feature, not a bug. PDE should document this in `/pde:setup` and in GETTING-STARTED.md.
+
+#### Authentication Scope Decision
+
+| Server | Auth Method | Token Storage | Claude Code Flow |
+|--------|-------------|---------------|-----------------|
+| GitHub | OAuth 2.0 | System keychain (macOS) | `claude mcp add` then `/mcp` to authenticate |
+| Linear | OAuth 2.1 | System keychain | `claude mcp add` then `/mcp` to authenticate |
+| Figma | OAuth 2.0 | System keychain | `claude mcp add` then `/mcp` to authenticate |
+| Jira | OAuth 2.1 | System keychain | `claude mcp add` then `/mcp` to authenticate |
+| Pencil | None (local) | N/A | Auto-started by Pencil app |
+
+Tokens are stored in the OS keychain by Claude Code automatically — PDE does not manage auth tokens. This is correct. PDE's role is to document the one-time setup flow, not to store credentials.
+
+#### Probe/Use/Degrade Pattern (Established in v1.2)
+
+All five integrations follow the same pattern already used for Playwright, Sequential Thinking, etc.:
+
+```
+1. PROBE: Check if MCP server is available
+   → Use list of configured MCP tools (Claude knows which tools are available)
+2. USE: If available, call the MCP tool
+   → GitHub: create_issue, get_pull_request, etc.
+   → Linear: create_issue, update_issue, etc.
+3. DEGRADE: If not available, note in output and continue
+   → "GitHub MCP not configured — skipping issue creation. Configure via /pde:setup."
+```
+
+**Do NOT hard-fail if an MCP server is absent.** PDE users without Linear should still get full planning value. The integration is an enhancement, not a dependency.
+
+### PDE-as-MCP-Server
+
+**Question:** Should PDE expose its own MCP server so other tools can read PDE's planning state?
+
+**Answer: Use `claude mcp serve` first (zero implementation cost).**
+
+Claude Code has a built-in `claude mcp serve` command that exposes Claude Code's standard file tools (Read, Write, Edit, LS, Glob, Grep) via the MCP protocol. Any `.planning/` file is already readable by any MCP client connecting to this endpoint.
+
+**What `claude mcp serve` exposes:**
+- Read — reads any `.planning/**` file
+- Write, Edit — writes planning artifacts
+- Bash — runs `node pde-tools.cjs` commands
+- LS, Glob, Grep — file discovery
+
+**This covers 80% of the PDE-as-server use case without any implementation.**
+
+**When custom PDE MCP tools would add value (defer to v0.6+):**
+- `get_project_state` — structured JSON of current project state (phase, milestone, health)
+- `get_phase_plan` — return PLAN.md for a specific phase in structured format
+- `list_artifacts` — return design manifest artifact inventory
+- `get_design_tokens` — return parsed token JSON
+
+**If custom tools are needed, the implementation uses:**
+- `@modelcontextprotocol/sdk@^1.27.1` — official SDK for building MCP servers
+- TypeScript (separate `mcp-server/` directory, compiled to JS before distribution)
+- stdio transport (Claude Code calls it as a local process)
+- Defined in `.mcp.json` using `${CLAUDE_PLUGIN_ROOT}/mcp-server/dist/index.js`
+
+**Do NOT implement custom PDE MCP tools in v0.5.** Validate `claude mcp serve` covers user needs first. If gaps identified during v0.5, add custom tools in v0.6.
+
+### ESM Compatibility Warning for MCP SDK
+
+**Critical finding:** `@modelcontextprotocol/sdk@1.27.1` has a known CommonJS compatibility issue with its `pkce-challenge` peer dependency (ESM-only package). This causes `Error [ERR_REQUIRE_ESM]` in CJS projects.
+
+**Mitigations in order of preference:**
+1. **Node.js 22+** — Node 22 introduced native `require()` of ESM modules, removing this blocker entirely. PDE currently uses Node 20.
+2. **Dynamic import()** — In any CJS file that imports MCP SDK, use async `import()` rather than `require()`. This works on Node 18+.
+3. **TypeScript + tsx** — Compile MCP server code as separate TypeScript module outside the CJS constraint.
+4. **patch-package** — Patch SDK locally to use dynamic imports (fragile, avoid).
+
+**Decision:** MCP server code (if needed) goes in a **separate `mcp-server/` TypeScript module** compiled independently, not in `pde-tools.cjs`. This cleanly separates the zero-dep CJS constraint (applies to the plugin tools) from MCP server code (can use modern TypeScript/ESM).
+
+**Source:** github.com/modelcontextprotocol/typescript-sdk/issues/217 [HIGH confidence — official SDK repo issue]
+
+### New pde-tools.cjs Commands for v0.5
+
+Zero new npm dependencies. These extend the existing CLI using built-in modules.
+
+| Command | Purpose | Implementation |
+|---------|---------|----------------|
+| `mcp probe-server <name>` | Check if an MCP server is configured and available | Read `~/.claude.json` or `.mcp.json` for server entry; return boolean |
+| `mcp list-available` | Return JSON list of configured MCP server names | Parse both `~/.claude.json` and `.mcp.json` |
+| `mcp setup-instructions <server>` | Print Claude Code `mcp add` command for a named server | Lookup table of known servers → install command strings |
+| `config set-integration <name> <enabled>` | Toggle a named integration flag in `.planning/config.json` | JSON parse/mutate/write (same pattern as existing config commands) |
+
+### New Reference Files for v0.5
+
+| File | Purpose |
+|------|---------|
+| `references/mcp-integrations-v05.md` | Replace/extend existing `references/mcp-integration.md` with v0.5 servers: GitHub, Linear, Figma, Jira, Pencil. Per-server: endpoint URL, auth flow, key tools, PDE integration points, probe/degrade behavior. |
+| `references/github-workflow-patterns.md` | GitHub issue/PR lifecycle patterns for PDE workflows: naming conventions for auto-created issues, label taxonomy that maps to PDE phases, PR title format matching phase naming |
+
+### New Skills for v0.5
+
+| Skill | Command | Purpose |
+|-------|---------|---------|
+| MCP Setup Guide | `/pde:setup` (extend existing) | Add v0.5 servers to the setup flow: GitHub, Linear, Figma, Jira instructions with OAuth flow documentation |
+| GitHub Sync | `/pde:sync-github` | Two-way sync: push PDE phase tasks to GitHub issues; pull PR/CI status back into STATE.md |
+| Issue Tracker Sync | `/pde:sync-issues` | Generic issue sync to Linear or Jira (detected by which MCP is configured) |
+| Design Sync | `/pde:sync-design` | Pull Figma frame data or Pencil variables into PDE's design system tokens |
+
+### Installation (v0.5)
+
+```bash
+# No new npm packages for PDE plugin itself.
+
+# Users configure MCP servers once via Claude Code CLI:
+
+# GitHub (remote HTTP, OAuth)
+claude mcp add --transport http github https://api.githubcopilot.com/mcp/
+
+# Linear (remote HTTP, OAuth)
+claude mcp add --transport http linear https://mcp.linear.app/mcp
+
+# Figma (remote HTTP, OAuth)
+claude mcp add --transport http figma https://mcp.figma.com/mcp
+
+# Jira/Atlassian (remote SSE, OAuth — enterprise alternative to Linear)
+claude mcp add --transport sse jira https://mcp.atlassian.com/v1/sse
+
+# Pencil (local stdio — auto-started by Pencil app; no manual install needed)
+# Requires Pencil app from pencil.dev installed in VS Code or Cursor
+
+# Authenticate OAuth servers:
+# /mcp   (run inside Claude Code, triggers browser OAuth flow for each server)
+
+# If/when building custom PDE MCP server tools (v0.6+):
+npm install @modelcontextprotocol/sdk@^1.27.1
+npm install -D typescript@^5.0.0 tsx @types/node
+# Build target: mcp-server/ TypeScript module, separate from pde-tools.cjs
+```
+
+### Alternatives Considered (v0.5)
+
+| Recommended | Alternative | Why Not |
+|-------------|-------------|---------|
+| GitHub remote HTTP endpoint (`api.githubcopilot.com/mcp/`) | `@modelcontextprotocol/server-github` npm package | npm package is community-maintained, lags official; remote endpoint is always current |
+| Linear official MCP (`mcp.linear.app`) | Community `linear-mcp-server` npm package | Official is Streamable HTTP with OAuth 2.1; community packages are stdio and require API key management |
+| Figma remote endpoint (`mcp.figma.com`) | `figma-developer-mcp` npm package | Official remote is OAuth-based, no API key needed; npm package requires FIGMA_API_KEY env var management |
+| Atlassian Rovo MCP (`mcp.atlassian.com/v1/sse`) | `mcp-atlassian` Python package (sooperset) | Python dep in a Node project is unnecessary when official hosted server exists; Python version is for Jira Data Center |
+| `claude mcp serve` for PDE-as-server | Custom `@modelcontextprotocol/sdk` implementation | Built-in covers 80% of use case; defer custom tools until gaps are proven |
+| Separate TypeScript `mcp-server/` module | Embedding MCP SDK in `pde-tools.cjs` | ESM/CJS conflict; SDK code should be isolated; CJS constraint applies to plugin tools only |
+
+### What NOT to Use (v0.5)
+
+| Avoid | Why | Use Instead |
+|-------|-----|-------------|
+| `@modelcontextprotocol/server-github` npm package | Community-maintained, lags behind official; requires stdio process management | GitHub remote HTTP endpoint `https://api.githubcopilot.com/mcp/` |
+| `linear-mcp-server` npm package | stdio requires API key env var; official remote is simpler and OAuth-based | `https://mcp.linear.app/mcp` (official hosted) |
+| `figma-developer-mcp` npm package | Requires `FIGMA_API_KEY` env var management; official remote is OAuth-automated | `https://mcp.figma.com/mcp` (official hosted) |
+| Hard-coding auth tokens in `.mcp.json` | Tokens in version-controlled files are a security risk | Use Claude Code OAuth flow; tokens stored in OS keychain |
+| SSE transport for new integrations | SSE is deprecated in Claude Code; use HTTP | Streamable HTTP transport (`--transport http`) for all new remote integrations |
+| MCP SDK in `pde-tools.cjs` | ESM/CJS conflict with pkce-challenge; pollutes zero-dep constraint | Separate `mcp-server/` TypeScript module if custom tools needed |
+| Implementing MCP auth token refresh in PDE | Claude Code handles OAuth token lifecycle automatically | Let Claude Code manage tokens via its built-in OAuth flow |
+| `mcp-atlassian` Python package | Python dependency in a Node project; requires Python runtime | Atlassian Rovo MCP official endpoint (hosted, no install) |
+
+---
+
+## Sources (v0.5 Additions)
+
+- [github/github-mcp-server](https://github.com/github/github-mcp-server) — Official GitHub MCP Server; HTTP transport at `api.githubcopilot.com/mcp/`; OAuth + PAT auth; toolset architecture [HIGH confidence]
+- [linear.app/docs/mcp](https://linear.app/docs/mcp) — Official Linear MCP documentation; Streamable HTTP; OAuth 2.1; `https://mcp.linear.app/mcp` [HIGH confidence]
+- [developers.figma.com/docs/figma-mcp-server](https://developers.figma.com/docs/figma-mcp-server/remote-server-installation/) — Official Figma MCP docs; remote endpoint `https://mcp.figma.com/mcp`; OAuth 2.0 [HIGH confidence]
+- [support.atlassian.com Rovo MCP](https://support.atlassian.com/atlassian-rovo-mcp-server/docs/getting-started-with-the-atlassian-remote-mcp-server/) — Atlassian official; SSE transport `https://mcp.atlassian.com/v1/sse`; OAuth 2.1; covers Jira + Confluence [HIGH confidence]
+- [docs.pencil.dev](https://docs.pencil.dev/getting-started/installation) — Pencil MCP tools; stdio transport; VS Code/Cursor requirement; `.pen` file format [MEDIUM confidence — tool names from docs, transport from community sources]
+- [code.claude.com/docs/en/mcp](https://code.claude.com/docs/en/mcp) — Claude Code MCP docs; `.mcp.json` format; plugin MCP bundling; auth patterns; scope hierarchy; `claude mcp serve`; SSE deprecation notice [HIGH confidence]
+- [typescript-sdk issue #217](https://github.com/modelcontextprotocol/typescript-sdk/issues/217) — MCP SDK ESM/CJS conflict with pkce-challenge; confirmed workarounds [HIGH confidence]
+- [@modelcontextprotocol/sdk npm releases](https://github.com/modelcontextprotocol/typescript-sdk/releases) — v1.27.1 latest stable, published 2025-02-24 [HIGH confidence]
+- project_pencil_mcp.md (memory) — Pencil Level 1/2 integration strategy, tool list, constraints [HIGH confidence — project memory from previous research]
+
+---
+
+*Stack research for: AI-powered product development platform (PDE), v0.5 MCP Integrations*
+*Researched: 2026-03-18*

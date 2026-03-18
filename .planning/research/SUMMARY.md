@@ -1,197 +1,195 @@
 # Project Research Summary
 
-**Project:** Platform Development Engine (PDE) — v1.3 Self-Improvement & Design Excellence
-**Domain:** AI-powered Claude Code plugin with self-improvement capabilities and Awwwards-level design pipeline
-**Researched:** 2026-03-17
-**Confidence:** HIGH (stack and architecture — direct source inspection); MEDIUM (design quality outcomes, self-improvement patterns)
+**Project:** Platform Development Engine (PDE) — v0.5 MCP Server Integrations
+**Domain:** Claude Code plugin with external MCP server integrations (GitHub, Linear, Jira, Figma, Pencil)
+**Researched:** 2026-03-18
+**Confidence:** HIGH (core architecture, stack, and pitfalls — verified against official docs and direct codebase inspection); MEDIUM (Pencil MCP tool names, PDE-as-MCP-server demand)
 
 ## Executive Summary
 
-PDE v1.3 adds self-improvement capabilities, a skill builder, and Awwwards-level design elevation to an already-functioning 13-stage design pipeline. The core insight from combined research is that v1.3 is an augmentation milestone, not a restructuring one: all new capabilities extend the existing plugin architecture via reference injection and new top-level commands — nothing in the stable 13-stage pipeline is restructured. The recommended build order flows from the quality bar outward: define measurable Awwwards criteria first (reference files), build the audit fleet that uses those criteria second, elevate the design pipeline against those criteria third, build the skill builder that creates post-elevation-quality skills fourth, and validate everything with a pressure test fifth.
+PDE is a mature Claude Code plugin with a complete 13-stage design pipeline, 34+ slash commands, a self-improvement fleet, and a file-based `.planning/` state model. The v0.5 milestone adds MCP server integrations — connecting GitHub, Linear, Jira, Figma, and Pencil to the pipeline without restructuring any existing capability. Research confirms this is a well-understood additive layer: Claude Code's plugin system natively supports bundled MCP servers via `.mcp.json`, and all five target services have official MCP servers with documented tool inventories. The integration pattern is not novel — it extends PDE's existing probe/use/degrade architecture that already handles Playwright, Axe, Sequential Thinking, Context7, and other MCPs.
 
-The single biggest technical risk is circular self-evaluation: if the agents that evaluate improved skills were also involved in generating them, they will consistently approve their own output, producing a "self-improvement loop" that improves nothing. Research is unambiguous that the quality rubric must be a human-authored artifact, written before any self-improvement agent exists, protected from modification by those agents, and used as an external fixed standard. A second related risk is generic AI aesthetic: LLMs trained on the modal web produce statistically average design output — technically correct, compositionally timid, immediately recognizable as AI-generated. Countering this requires the design elevation prompts to specify named, measurable Awwwards criteria (typography contrast rationale, choreographed motion, spatial asymmetry, visual hook) rather than asking for "high quality design."
+The recommended approach is a dependency-ordered build sequence: infrastructure foundation first (connection manager, unified config schema, probe/degrade contracts for all new servers), then GitHub as the pattern-validating integration, then Linear and Jira in parallel, then design tools (Figma and Pencil), and finally the optional PDE-as-MCP-server exposure. This sequencing is non-negotiable — every sync workflow depends on the connection layer, the GitHub integration must establish the adapter pattern and rate-limit handling that all subsequent integrations inherit, and the state server must be last so its API surface reflects actual consumer patterns. The adapter layer is the single most critical architectural decision: workflows must call normalized PDE API methods, not raw MCP tool names, or every server-side tool rename cascades into multi-file edits.
 
-The stack constraint is a feature: PDE is zero-dependency CommonJS Node.js and must remain so. All v1.3 additions — reference files, workflow modifications, new commands, new agent entries in model-profiles.cjs — follow the established pattern. No new npm dependencies. No architectural divergence. The self-improvement fleet uses the same Task()/resolve-model pattern already proven in `workflows/audit-milestone.md`. The skill builder uses the same read-modify-write pattern used by `/pde:update`. Build on what works.
+The primary risk category is not implementation complexity but operational reliability. Two confirmed Claude Code bugs (auth loss on context compaction, SSE disconnect session crashes) and a structural MCP ecosystem problem (date-based version strings with no semantic breaking-change signal) will affect all five integrations unless specifically mitigated in Phase 1. The configuration surface must also be designed once up front — allowing five integrations to each invent their own credential schema produces user-hostile setup friction that cannot be refactored cheaply after launch. These are not theoretical concerns; they are documented failure modes in the live Claude Code issue tracker and official MCP specification.
 
 ## Key Findings
 
 ### Recommended Stack
 
-PDE's stack is locked by Claude Code plugin constraints: zero-dependency CommonJS Node.js (20.x LTS), Markdown + YAML frontmatter for skill definitions, JSON for config, and LLM-generated content for all design artifacts. v1.3 adds no new npm dependencies. The additions are: three new reference files (loaded via `@` at skill runtime), five modified workflow files (additive `<required_reading>` entries only), three new commands (`audit`, `improve`, `pressure-test`), and four new agent type entries in `bin/lib/model-profiles.cjs`.
-
-For v1.3 specifically, the reference injection pattern is the key architectural mechanism: design quality elevation is achieved by upgrading `<required_reading>` reference files, not by rewriting skill logic. This is additive and lower risk than logic changes.
+PDE's zero-npm-dependency constraint at the plugin root is a feature and must be preserved. The stack for v0.5 is an extension of the existing Node.js 20.x LTS / CommonJS pattern with one isolated exception: the PDE state MCP server lives in `bin/mcp-server/` with its own `package.json` carrying `@modelcontextprotocol/sdk` v1.x. This isolates the only new npm dependency from the plugin root entirely.
 
 **Core technologies:**
-- Node.js 20.x LTS + CommonJS (.cjs): runtime and module format — required for Claude Code plugin compatibility; ESM is incompatible with the plugin invocation pattern
-- Markdown + YAML frontmatter: skill/workflow/agent definitions — Claude Code's native format; all new commands follow this pattern
-- Task() + resolve-model pattern: self-improvement fleet agent spawning — proven in `workflows/audit-milestone.md`; appropriate for analysis agents; distinct from Skill() for named PDE commands
-- DTCG JSON with `transition` token type: motion token format — extends existing color/typography token output; zero new tooling
-- Reference injection via `@`: design quality elevation mechanism — adds new knowledge to skill prompts without changing 7-step anatomy
+- Node.js 20.x LTS / CommonJS (.cjs): runtime and module format — required for Claude Code plugin compatibility; zero-install for end users; all new `bin/lib/` modules follow this pattern
+- `@modelcontextprotocol/sdk` v1.x (isolated in `bin/mcp-server/`): Official MCP server SDK for PDE-as-MCP-server; use v1.x only — v2.x is in development as of early 2026 and not production-stable
+- `.mcp.json` at plugin root: Claude Code's native project-scoped MCP declaration format; auto-starts bundled servers on plugin enable; safe to commit (no credentials); uses `${CLAUDE_PLUGIN_ROOT}` for server paths
+- External MCP servers: GitHub at `api.githubcopilot.com/mcp/` (HTTP), Linear via stdio (`npx @linear/mcp-server`), Figma at `mcp.figma.com/mcp` (HTTP), Pencil via local stdio (auto-started by Pencil app), Jira via `mcp.atlassian.com/` (HTTP OAuth 2.1)
+- `${CLAUDE_PLUGIN_ROOT}` / `${CLAUDE_PLUGIN_DATA}`: Plugin environment variables for path and state resolution — required for plugin-bundled MCP servers
+
+No template engine, no schema compiler, no test runner added. MCP Tool Search (auto-enabled at 10% threshold) handles context window pressure from 11+ active MCP servers without any PDE-side changes.
 
 ### Expected Features
 
-**Must have (table stakes for v1.3 to close):**
-- `/pde:audit` tool audit skill — scans commands, agents, templates, references for quality gaps; produces structured report with severity levels (CRITICAL/HIGH/MEDIUM/LOW); diagnostic foundation for all other features; measures tool effectiveness, not just availability
-- `/pde:improve` skill builder — creates and updates SKILL.md-conforming skill files; reads skill-style-guide.md as constraint; writes to `commands/` and `workflows/`; runs `validate-skill` as mandatory post-generation gate
-- Self-improvement agent fleet — three core types: Auditor (read-only, produces gap list against fixed rubric), Improver (proposes changes to `.planning/improvements/` staging, never live files), Validator (checks proposals against quality rubric); reflection loop pattern (Auditor → Improver → Validator → revise if fail → human queue if pass)
-- `references/quality-standards.md` — Awwwards 4-dimension rubric as shared reference (Design 40%, Usability 30%, Creativity 20%, Content 10%); human-authored before any agent exists; listed in `protected-files.json`; loaded by fleet agents and elevated design skills
-- Design quality elevation — `system.md` (motion tokens, variable font axes, advanced OKLCH palette depth), `wireframe.md` (composition annotations, grid documentation), `mockup.md` (spring physics CSS, scroll-driven animations, micro-interaction states), `critique.md` (Awwwards 4-dimension rubric as evaluation framework), `hig.md` (motion accessibility audit)
-- `/pde:pressure-test` — full 13-stage pipeline run on a real user project (not PDE itself); two-tier evaluation: process compliance (artifact existence, coverage flags) AND quality rubric evaluation (specific findings per artifact); produces `.planning/pressure-test-report.md`
+**Must have for v0.5 to close (table stakes):**
+- Plugin-bundled MCP infrastructure — `.mcp.json`, availability probe, `.planning/mcp-connections.json` runtime state, unified config schema in `pde-config.json`
+- `/pde:mcp-status` — shows all integration connection states and degraded-mode implications before any pipeline execution
+- GitHub MCP integration (`/pde:sync --github`) — issues to REQUIREMENTS.md; PR creation from handoff artifacts; `/pde:brief --from-github` flag
+- Linear OR Jira toggle (`/pde:sync --linear`, `--jira`) — config-driven selection via `task_tracker` field; Linear MCP is stdio, Jira Rovo MCP is HTTP OAuth 2.1
+- Figma design import (`/pde:sync --figma`) — `get_variable_defs` to DTCG non-destructive merge; `get_design_context` for wireframe reference; `get_code_connect_map` for handoff
+- Pencil Level 1 — token sync via `set_variables` in `/pde:system`; `get_screenshot` in `/pde:critique`; probe/degrade for VS Code dependency
+- MCP server recommendations in `/pde:recommend` — detect project type and surface relevant MCP servers alongside existing tool recommendations
 
-**Should have (competitive differentiators):**
-- Motion tokens in DTCG `transition` format — animation duration scale, easing curves, delay tokens added to system skill output; most design token systems omit animation entirely
-- Per-stage quality gates — hook quality checking into each design pipeline stage; requires audit + improvement agents to be stable first; deferred to v1.3.x
-- Skill discovery scan — audit also identifies missing skills the gap report recommends but do not yet exist
-- Self-auditing pipeline — automated per-stage quality evaluation integrated with critique skill
+**Should have after core integrations validate (v0.5.x differentiators):**
+- Figma "Code to Canvas" export (`/pde:export-figma` via `generate_figma_design`) — reverse workflow: PDE mockup HTML to editable Figma frame
+- PDE-as-MCP-server — expose `.planning/` state as read-only MCP resources (`pde://plan`, `pde://state`, `pde://design-state`) and tools (`get_current_phase`, `get_requirements`, `get_design_artifacts`)
+- Cross-server pipeline (`/pde:build --sync`) — MCP syncs injected at pre-brief (requirements pull), post-mockup (design push), post-handoff (ticket creation)
 
-**Defer (v1.3.x or v2+):**
-- CI/CD integration for skill quality — requires Git hook infrastructure that does not exist
-- Cross-project skill registry — blocked by PLUG-01 marketplace registration tech debt
-- Sound design guidance — outside current HTML/CSS mockup output format
-- Skill versioning/rollback system — Git history already serves this function; adding a version store is unnecessary complexity
+**Defer to v0.6+:**
+- Jira Data Center support — community `sooperset/mcp-atlassian` has different auth, tools, and stability; doubles QA surface; wait for confirmed demand
+- Slack/Notion requirements import — GitHub/Linear/Jira covers 90% of dev-team requirement sources
+- Sentry/Vercel post-deployment feedback loop — requires deployed user projects first
+- Pencil Level 2 (native `.pen` file output from `/pde:wireframe`) — validate Level 1 before deeper canvas integration
+
+**Anti-features to avoid:**
+- Auto-configure all MCP servers on install — triggers unexpected OAuth flows; always require explicit user consent via `/pde:mcp-setup`
+- Real-time bidirectional Figma sync — architecturally impossible in a session-based plugin; use explicit sync commands with deterministic versioning
+- MCP tool passthrough to all subagents — destroys 85% context savings from Tool Search; scope MCP tools at agent spawn time by role
+- Write tools in PDE-as-MCP-server — creates a second write path bypassing `pde-tools.cjs` validation and locking; state server must be read-only
 
 ### Architecture Approach
 
-v1.3 adds a self-improvement layer above the existing 13-stage pipeline without touching it. The three new commands (`/pde:audit`, `/pde:improve`, `/pde:pressure-test`) are tooling-domain operations — they produce reports in `.planning/` (not design artifacts in `.planning/design/`), they do not set `designCoverage` flags, and they do not appear in `design-manifest.json`. Five modified workflow files change only by adding new reference files to `<required_reading>` — the 7-step skill anatomy, flag set, artifact paths, and coverage flag handling are all unchanged.
+The v0.5 architecture is additive infrastructure layered onto a stable base. The existing 13-stage design pipeline, all commands, agent definitions, and `bin/lib/*.cjs` modules are untouched — zero modifications to the design pipeline are required or acceptable. A new MCP integration layer introduces two lib modules, two new commands, per-service sync workflows, and an isolated PDE state MCP server. The canonical architectural rule: `.planning/` is the single source of truth; external services are read-only input sources; write-back to external systems requires explicit user confirmation with a prompt. The probe/use/degrade pattern from `references/mcp-integration.md` is extended — not replaced — for all five new servers.
 
 **Major components:**
-1. `references/quality-standards.md` (NEW) — Awwwards-level criteria; single source of truth for all quality evaluation; loaded by fleet agents and elevated design skills; human-authored; in `protected-files.json`
-2. Self-improvement fleet (NEW) — four Task() subagents in `bin/lib/model-profiles.cjs`: `pde-output-quality-auditor`, `pde-skill-linter`, `pde-design-quality-evaluator`, `pde-template-auditor`; spawned by `/pde:audit`; write scope constrained to their target files only; no writes to manifest or shared state
-3. `/pde:audit` workflow (NEW) — orchestrates fleet in parallel for independent audits; aggregates findings; writes `.planning/audit-report.md`; evaluates tool effectiveness (representative query execution) not just availability
-4. `/pde:improve` workflow (NEW) — two modes: `create` (new skill from description) and `improve` (targeted quality elevation of existing skill); reads skill-style-guide.md + tooling-patterns.md; runs `validate-skill` automatically; writes `.planning/skill-builder-log.md`
-5. Design elevation via reference injection (MODIFIED x5) — `system.md`, `wireframe.md`, `mockup.md`, `critique.md`, `hig.md` load new references; no structural changes to these workflows; elevation is additive
-6. `/pde:pressure-test` (NEW) — observer pattern; invokes `/pde:build` then evaluates artifacts against quality-standards.md; read-only against design state; all writes to `.planning/pressure-test-report.md` only
+1. `bin/lib/mcp-bridge.cjs` — External MCP connection manager: per-server probe, auth metadata lookup, probe caching; all sync workflows invoke exclusively via `pde-tools.cjs mcp *`; never imported directly from `.md` files
+2. `bin/lib/mcp-config.cjs` — Connection metadata CRUD; reads/writes `.planning/mcp-connections.json` (gitignored); stores `{server, connected, scopes, last_sync}` only — never tokens
+3. `workflows/sync-{github,linear,jira,figma}.md` — Per-service sync logic; each follows probe/use/degrade pattern; write-back branches require explicit user confirmation gate
+4. `bin/mcp-server/state-server.cjs` — Bundled stdio MCP server; isolated npm dep in `bin/mcp-server/package.json`; read-only contract; exposes structured views of `.planning/` files, not raw file contents
+5. `commands/connect.md` + `commands/sync.md` — Two new user-facing commands; `connect` handles guided auth setup; `sync` is the unified entry point for all service syncs with `--github`, `--linear`, `--jira`, `--figma`, `--pencil` flags
 
 ### Critical Pitfalls
 
-1. **Circular self-evaluation** — agents rating their own generated output consistently approve it. Prevention: `references/quality-standards.md` human-authored before any agent exists; add to `protected-files.json`; audit agents return structured verdicts against the rubric, never free-text quality ratings; rubric must be written by humans as an input to the system, not as an output of it.
+1. **Auth state lost on context compaction** — OAuth tokens in conversation context are destroyed during compaction. Prevention: persist credentials to disk or OS keychain; reload on every skill invocation; never assume in-context auth state. Must be in Phase 1 before any integration is built — retrofitting is five times the work.
 
-2. **Skill builder generates invalid plugin-format skills** — broken skills fail silently at invocation in Claude Code (no error at install time). Prevention: implement `pde-tools.cjs validate-skill {path}` that checks frontmatter YAML validity, allowed-tools list validity, workflow path existence, and skill code uniqueness in skill-registry.md; skill builder must call this automatically and reject invalid output before presenting to user.
+2. **SSE transport disconnect crashes session** — Confirmed Claude Code bug (#18557): SSE disconnect terminates the session rather than degrading gracefully. Prevention: all MCP calls must be atomic (probe at start OR publish at end — never interleaved with state writes); every skill with MCP dependencies needs an explicit degraded mode as a first-class path, not an afterthought.
 
-3. **Generic AI aesthetic — technically correct, distinctively generic** — LLMs produce statistically modal design: Inter/Geist, purple-teal gradients, symmetric grids, decorative motion. Prevention: design elevation prompts must specify named, measurable criteria — typeface contrast with documented rationale (not just size contrast), motion choreographed to content meaning, deliberate asymmetric whitespace in at least one axis, one named visual hook per project; these are pass/fail gates in the critique skill, not suggestions.
+3. **Protocol versioning breaks integrations every ~3 months** — MCP uses date-based version strings with no semantic breaking-change signal. Prevention: pin each integration to a tested protocol version in `mcp-connections.json`; maintain contract tests against live services; treat contract test failure as a release blocker. Pattern established in Phase 3 (GitHub); inherited by all subsequent integrations.
 
-4. **Pressure test measures completeness, not quality** — all coverage flags true does not equal quality pipeline. Prevention: pressure test must require both phases: (1) process compliance (artifact existence, flag state) and (2) rubric-based quality evaluation with specific findings; "passed" requires both to pass; no numeric score from tier 1 serves as proxy for tier 2 quality.
+4. **Configuration sprawl from per-integration credential schemas** — Each integration inventing its own credential variable names produces a 10-key `.env` with no central visibility. Prevention: unified MCP config schema designed in Phase 1 before any integration is built; all credentials routed through the connection manager; `/pde:mcp-status` as the single visibility surface for all configured integrations.
 
-5. **Meta-prompt drift via iterative self-modification** — iterative self-modification optimizes away constraints over time without the system detecting degradation. Prevention: `protected-files.json` lists `workflows/improve.md`, `references/quality-standards.md`, `references/skill-style-guide.md`; fleet has an explicit allowed-write-directories list that excludes `bin/`, plugin root config, and shared planning state files; these files are human-only edits.
-
-6. **Design elevation applied to mockup only, missing system and wireframe** — mockup quality ceiling is set by upstream token and layout quality; downstream quality cannot exceed upstream quality. Prevention: design elevation must follow system → wireframe → critique/iterate → mockup order; system skill must produce type pairing with documented rationale before mockup elevation begins; system and wireframe elevation are Phase 3 prerequisites for mockup.
+5. **Tool poisoning via malicious MCP server descriptions** — LLM processes tool schemas as part of reasoning; hidden instructions in descriptions can redirect agent actions. PDE agents have broad `.planning/` write access, amplifying blast radius. Prevention: verified-sources-only policy (official GitHub, Linear, Figma, Atlassian servers only); tool schema review before each integration merges; policy documented and enforced before any integration ships.
 
 ## Implications for Roadmap
 
-Based on combined research, a five-phase structure follows directly from the dependency graph in FEATURES.md and the build order recommendation in ARCHITECTURE.md.
+The architecture's dependency graph directly dictates phase structure. There is no flexibility in the first three phases — each is hard-blocked until its predecessor completes. Phases 4 and 5 are independent of each other and can proceed in parallel if resources allow.
 
-### Phase 1: Quality Bar Infrastructure
+### Phase 1: MCP Infrastructure Foundation
+**Rationale:** Every sync workflow, integration command, and connection UI depends on this layer. Building any integration before the foundation produces throwaway code — retrofitting auth persistence, unified config, and degraded-mode contracts to five integrations is five times the work. The two confirmed Claude Code bugs and the configuration sprawl pitfall make this phase non-deferrable.
+**Delivers:** `bin/lib/mcp-config.cjs`, `bin/lib/mcp-bridge.cjs`, `pde-tools.cjs mcp` subcommand group, unified config schema in `pde-config.json`, `.planning/mcp-connections.json` template (gitignored), probe/degrade contracts defined for all five planned servers, `/pde:mcp-status` command, verified-sources-only policy documented
+**Addresses:** Plugin-bundled MCP infrastructure (table stakes), MCP availability probe (table stakes), `/pde:mcp-status` (table stakes)
+**Avoids:** Auth state loss (Pitfall 1), SSE session crashes (Pitfall 2), configuration sprawl (Pitfall 4), tool poisoning policy gap (Pitfall 5), total UX degradation when services are down (Pitfall 9)
 
-**Rationale:** Everything in v1.3 depends on having measurable quality criteria. The fleet agents cannot audit against a standard that does not exist. The design elevation workflows cannot load references that have not been written. The pressure test cannot evaluate against a rubric that is not defined. This phase must ship before any other phase can proceed — it is the only hard blocker.
+### Phase 2: Connection Management and Reference Documentation
+**Rationale:** Users must be able to connect servers before sync workflows are useful. Reference entries in `mcp-integration.md` for all five new servers must exist before sync workflows can cite the probe/degrade patterns — this is documentation work with no implementation unknowns and can complete quickly.
+**Delivers:** `commands/connect.md` + connection workflow, updated `references/mcp-integration.md` with GitHub, Linear, Jira, Pencil entries (~40 lines each), `skill-registry.md` CON + SYN entries, `bin/lib/config.cjs` `mcp.*` config keys
+**Uses:** `mcp-bridge.cjs` and `mcp-config.cjs` from Phase 1
+**Implements:** Guided connection setup flow: display auth instructions → confirm probe → write connection metadata
 
-**Delivers:** Three new reference files (`references/quality-standards.md`, `references/awwwards-patterns.md`, `references/motion-design.md`); four new agent type entries in `bin/lib/model-profiles.cjs` and mirrored in `references/model-profiles.md`; three new skill registry entries (AUD, IMP, PRT) in `skill-registry.md`; `protected-files.json` with quality rubric and core workflow files protected.
+### Phase 3: GitHub Integration (Pattern Validation)
+**Rationale:** GitHub is the highest-value integration (most users) and the pattern-validation phase. The adapter layer — normalizing raw MCP tool names into PDE canonical API calls — is established here and inherited by all subsequent integrations. Rate-limit handling (human-readable errors on 429, not empty results) is also established here. Do not defer either to a later integration.
+**Delivers:** `workflows/sync-github.md`, `commands/sync.md --github`, adapter layer in `mcp-bridge.cjs`, rate-limit handling, `/pde:brief --from-github`, `/pde:handoff --create-prs` with confirmation gate
+**Avoids:** Over-coupling to specific MCP tool names (Pitfall 6 — adapter layer is the mitigation), rate limit silent failures (Pitfall 7), state sync conflicts between PLAN.md and GitHub (Pitfall 8 — read-first/write-explicit enforced)
 
-**Addresses:** Awwwards scoring rubric (P1 feature); prevents Pitfalls 1, 3, 7 (circular evaluation, AI aesthetic, rubric drift) by establishing fixed external standards before any agent or elevation work begins.
+### Phase 4: Linear + Jira Integration
+**Rationale:** After GitHub validates the sync pattern, Linear and Jira follow the same template via the adapter layer. Both can be built in parallel within this phase — they share no code paths. Linear is higher-priority (richer project/milestone model maps cleanly to PDE's STATE.md; Jira epic-to-REQUIREMENTS.md mapping requires an additional translation layer).
+**Delivers:** `workflows/sync-linear.md`, `workflows/sync-jira.md`, config-driven toggle (`task_tracker: "linear" | "jira" | "none"`), `/pde:sync --linear` and `--jira`, Linear cycles to ROADMAP.md phases, Jira epics to REQUIREMENTS.md
+**Uses:** Adapter pattern from Phase 3 (inherit, not reinvent); protocol version pinning established here per Pitfall 3
 
-**Avoids:** Building the audit fleet before the rubric exists (which would force the rubric to be AI-generated, creating the circular evaluation problem immediately).
+### Phase 5: Design Tool Integration (Figma + Pencil)
+**Rationale:** Design tool sync is more complex than text-based syncs — token format transforms, visual artifact handling, binary concepts vs. Markdown. Both Figma and Pencil can be built in parallel within the phase. Figma has partial coverage in `mcp-integration.md` already. Pencil requires probe/degrade for its VS Code dependency. Both integrations are only useful after a project has run `/pde:system` (DTCG tokens must exist for Pencil `set_variables`).
+**Delivers:** `workflows/sync-figma.md` (import: `get_variable_defs` to DTCG non-destructive merge, `get_design_context` for wireframe reference, `get_code_connect_map` for handoff; export: `generate_figma_design` with confirmation gate), Pencil Level 1 (token sync in `/pde:system`, `get_screenshot` in `/pde:critique`, `snapshot_layout` layout audit — all behind probe/degrade), `/pde:sync --figma` and `--pencil`
+**Avoids:** Loading entire Figma design files into context (request only selected frames/components per gotcha table), treating Figma as source of truth for PDE design state (DESIGN-STATE.md remains authoritative), hardcoded Pencil tool names (adapter layer from Phase 3 applies here too)
 
-### Phase 2: Self-Improvement Fleet and Audit Command
+### Phase 6: PDE-as-MCP-Server (Additive, Non-Blocking)
+**Rationale:** The state server is architecturally clean (read-only, thin view layer) and does not block any sync integration. Deferring to Phase 6 means its API surface reflects validated consumer patterns rather than speculation. The security model (tool-level access control, no raw file exposure, no write tools) must be designed as the first deliverable — do not start implementation without it.
+**Delivers:** `bin/mcp-server/state-server.cjs` (bundled stdio server), `bin/mcp-server/package.json` (`@modelcontextprotocol/sdk` v1.x isolated), `.mcp.json` at plugin root, `plugin.json mcpServers` update, read-only resources (`pde://plan`, `pde://state`, `pde://design-state`, `pde://requirements`, `pde://artifacts`), read-only tools (`get_current_phase`, `get_requirements`, `get_design_artifacts`, `get_pipeline_status`)
+**Avoids:** State server write tools that bypass `pde-tools.cjs` (second write path creates race conditions — hard constraint), planning state exposure without access control (Pitfall 10), competing with sync integration milestone scope (build after all consuming integrations are stable)
 
-**Rationale:** Build the audit capability before building the skill builder. The audit produces the gap list that the skill builder acts on. Without an audit baseline, the skill builder has no grounded findings and produces arbitrary improvements rather than targeted ones. The baseline audit report also serves as the before-state measurement for Phase 3 — without it, there is no measurable delta from design elevation.
-
-**Delivers:** `commands/audit.md`, `workflows/audit.md`; `templates/skill-audit-report.md`; working `/pde:audit` command that spawns fleet agents and writes `.planning/audit-report.md`; effectiveness criteria for each tool (Context7, agent prompts, templates) — not just availability checks; fleet write scope constrained before any agent runs.
-
-**Addresses:** Tool audit skill (P1); self-improvement agents Auditor type (P1); Pitfall 6 (tool effectiveness vs availability); Pitfall 11 (fleet write scope and race conditions).
-
-**Avoids:** Skipping the audit baseline before design elevation — the before/after comparison is the only way to confirm elevation actually improved output quality.
-
-### Phase 3: Design Quality Elevation
-
-**Rationale:** Reference injection is lower risk than skill restructuring — changes are additive, the 7-step anatomy is unchanged. Run `/pde:audit` at the start of this phase for a baseline. Elevate in dependency order: system → wireframe → critique/iterate → mockup. Elevating mockup without elevating system first produces mockup output constrained by a generic token foundation (Pitfall 10). Re-run `/pde:audit` after this phase to confirm measurable delta against the baseline.
-
-**Delivers:** Modified `workflows/system.md` (motion tokens, variable font axes, advanced OKLCH depth, `@references/awwwards-patterns.md` and `@references/motion-design.md` added to required_reading); `workflows/wireframe.md` (composition annotations, grid system documentation, `@references/awwwards-patterns.md`); `workflows/mockup.md` (spring physics CSS, scroll-driven animations via @scroll-timeline, micro-interaction states, variable font usage, `@references/motion-design.md`); `workflows/critique.md` (Awwwards 4-dimension rubric as evaluation framework, `@references/quality-standards.md`); `workflows/hig.md` (motion accessibility audit, prefers-reduced-motion compliance, `@references/motion-design.md`).
-
-**Addresses:** Design quality elevation features (P1 for mockup + critique; P2 for system); motion tokens in DTCG format (P2); prevents Pitfalls 4, 8, 10 (AI aesthetic, false confidence from automated metrics, mockup-only elevation).
-
-**Avoids:** Any structural changes to existing skills — only `<required_reading>` additions and output instruction text extensions.
-
-### Phase 4: Skill Builder
-
-**Rationale:** The skill builder comes after design elevation for a deliberate quality reason: it creates skills by reading existing skills as pattern examples. Building it after Phase 3 means any skill it creates will be modeled on the elevated versions of system, mockup, and critique — not the pre-elevation versions. The `validate-skill` command is a Phase 4 deliverable (not deferred) because the skill builder without validation is a broken-skills generator.
-
-**Delivers:** `pde-tools.cjs validate-skill` command (frontmatter YAML, allowed-tools validity, workflow path existence, skill code uniqueness checks); `commands/improve.md`, `workflows/improve.md`; working `/pde:improve` in both `create` and `improve` modes; `.planning/skill-builder-log.md` output; skill builder has explicit write scope (commands/, workflows/ only; bin/ and protected files excluded).
-
-**Addresses:** Skill builder capability (P1); Pitfall 2 (invalid skill generation via mandatory validation gate); Pitfall 3 (skill upgrades breaking in-progress projects — improve mode defaults to additive-only changes).
-
-**Avoids:** Skill builder with write access to protected files (protected-files.json from Phase 1 enforces this); generating skills before the quality bar exists (would produce pre-elevation-quality skills as the template).
-
-### Phase 5: Pressure Test and Validation
-
-**Rationale:** The pressure test validates Phases 1-4. It must run after design elevation so quality scores reflect elevated output. Test fixtures (greenfield state, partially-complete state, re-run state) must be built as the first deliverable of this phase — before any test execution. The pressure test is the final gate for the v1.3 milestone; it either confirms the milestone is complete or surfaces gaps requiring another improvement cycle before close.
-
-**Delivers:** `templates/pressure-test-report.md`; `commands/pressure-test.md`, `workflows/pressure-test.md`; test fixtures for three pipeline entry states (greenfield, partially-complete with 5-8 stages done, re-run of a completed stage); two-tier evaluation pass (process compliance + rubric-based quality evaluation with specific findings); `.planning/pressure-test-report.md` from a real user project run.
-
-**Addresses:** End-to-end pressure test (P1); Pitfalls 5 and 9 (completeness-only measurement, greenfield-only testing).
-
-**Avoids:** Running the pressure test on the PDE plugin directory itself (anti-pattern: PDE is a tool, not a product with users; its planning state is development roadmap data, not a product design brief); declaring success on process compliance alone without quality evaluation tier.
+### Phase 7: End-to-End Validation
+**Rationale:** Each integration was validated independently; this phase validates them in combination and under failure conditions.
+**Delivers:** Multi-server connect (2+ simultaneously), full sync run with `.planning/` state verification, state server resource requests verified, `--no-mcp` degradation confirmed for every integration, write-back confirmation flows exercised, context compaction auth recovery confirmed, rate-limit error surfacing confirmed (mock 429 test)
 
 ### Phase Ordering Rationale
 
-- Phase 1 before everything: quality rubric is a shared dependency for fleet agents, elevated design skills, and the pressure test; building any of them before the rubric exists forces AI-generated rubric criteria (circular evaluation)
-- Phase 2 before Phase 3: audit baseline enables measurable before/after comparison; without it, design elevation produces unmeasurable improvement claims
-- Phase 3 before Phase 4: skill builder models output on existing skills as examples; elevated skills produce better templates for new skill generation
-- Phase 3 elevation order: system → wireframe → critique/iterate → mockup (upstream quality sets downstream ceiling; do not elevate mockup before system)
-- Phase 4 before Phase 5: pressure test validates all previous phases; running it earlier validates a pre-elevation state and provides false milestone confidence
-- Phases 3 and 4 have low coupling — if Phase 3 scope expands, Phase 4 is not blocked; they share only the reference files from Phase 1
+- Infrastructure before workflows: `mcp-bridge.cjs` must exist before any sync workflow can be written or tested — hard dependency, not a preference
+- GitHub before Linear/Jira: establishes adapter pattern and rate-limit handling that subsequent integrations inherit; most common service gives highest signal for pattern validation
+- Text-based syncs before design syncs: simpler transformation logic validates the probe/use/degrade extension before tackling DTCG token merges and visual artifact handling
+- State server last: additive value; use cases are clearer once all consuming integration patterns are built and validated; security model complexity warrants dedicated attention without competing scope
 
 ### Research Flags
 
-Phases likely needing deeper research during planning:
-- **Phase 2 (audit fleet — effectiveness criteria):** The research identifies the requirement that tool effectiveness criteria must be defined before the audit runs, but does not enumerate the specific criteria for Context7, Brave Search, agent prompts, and templates. These are domain-specific and require the team to define what "an effective Context7 query" looks like within PDE's agent prompt patterns before the audit workflow can implement the effectiveness check.
-- **Phase 3 (mockup elevation — custom interaction design):** Research explicitly flags that translating "custom interaction design" into AI-generatable instructions is "genuinely hard." The CSS @scroll-timeline spec and spring physics easing patterns need concrete implementation examples authored into `references/motion-design.md` before mockup elevation can produce Awwwards-differentiating output. Plan extra iteration cycles for this skill specifically.
-- **Phase 5 (pressure test — quality evaluation tier):** Research establishes the two-tier requirement but does not resolve whether Tier 2 (qualitative rubric evaluation) is human-executed or AI-with-rubric. The team must decide this before Phase 5 planning. If AI-with-rubric, the quality evaluator agent needs a more prescriptive system prompt than current research specifies; if human-executed, the test plan must define a structured review protocol.
+Phases needing deeper research during planning:
+- **Phase 5 (Figma token import — DTCG merge):** The non-destructive merge logic requires a mapping strategy between Figma variable naming conventions and PDE's existing DTCG token names. This mapping is not yet defined. Needs validation against real Figma files before implementation.
+- **Phase 6 (PDE-as-MCP-server — security model):** No prior art in PDE codebase for MCP server access control. Security model (which resources are safe to expose, connection authentication, no raw file contents) must be designed before implementation begins. Treat as a design phase with implementation blocked until the design is complete.
+- **Phase 5 (Pencil Level 1 — tool name validation):** Official Pencil MCP docs are sparse. The 6 tool names sourced from community articles (MEDIUM confidence). Validate tool names in a real Pencil + Claude Code + VS Code environment before committing workflow logic.
+- **Phase 1 (Availability probe — `listTools` access):** FEATURES.md flags MEDIUM confidence on whether MCP tool list is callable programmatically within skill context. Validate in Phase 1 before finalizing the probe implementation approach.
 
-Phases with standard patterns (skip research-phase):
-- **Phase 1 (reference files):** Writing reference files is documentation and research synthesis. Awwwards criteria are publicly documented. No implementation unknowns — this is human authoring work.
-- **Phase 4 (skill builder):** The Claude Code SKILL.md format is verified from official docs (HIGH confidence). The skill builder pattern follows the established read-modify-write convention already used by `/pde:update`. Standard 7-step skill anatomy.
-- **Phase 5 (pressure test process compliance tier):** Boolean coverage flag checks are mechanical. The `--from` flag behavior is already implemented and documented. Standard pattern.
+Phases with well-documented patterns (can skip research-phase):
+- **Phase 1 (infrastructure):** Plugin `.mcp.json` format, `${CLAUDE_PLUGIN_ROOT}`, connection metadata schema — verified against official Claude Code docs (HIGH confidence)
+- **Phase 2 (connection management):** `mcp-integration.md` probe/use/degrade pattern is established and working for 5 existing MCPs; extending it is additive documentation work
+- **Phase 3 (GitHub):** Official server, HTTP transport at `api.githubcopilot.com/mcp/`, toolset names (issues, pull_requests, repos), OAuth/PAT pattern — HIGH confidence across all sources
+- **Phase 4 (Linear):** Official server, HTTP remote, recent changelog confirmed; richer project/milestone model (HIGH confidence); Jira Rovo MCP cloud-only constraint confirmed (MEDIUM confidence for Jira specifically)
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | Direct source inspection of PDE codebase. Zero-dependency Node.js constraint is structural. DTCG format, Mermaid generation approach, v1.1/v1.2 patterns all verified against source. Claude Code SKILL.md format verified from official docs. |
-| Features | HIGH (table stakes), MEDIUM (differentiators) | Table stakes derived directly from PROJECT.md active requirements — these are explicit. Awwwards criteria verified from official rubric (Design 40%/Usability 30%/Creativity 20%/Content 10%). Implementation complexity of "custom interaction design" is genuinely uncertain — this is the high-risk feature. |
-| Architecture | HIGH | All architecture decisions grounded in direct source inspection. Build order is dependency-derived. Task()/resolve-model pattern is proven in existing `workflows/audit-milestone.md`. No speculation or training-data inference in ARCHITECTURE.md. |
-| Pitfalls | HIGH (structural), MEDIUM (design quality) | Structural pitfalls (circular evaluation, skill format compliance, manifest corruption, fleet write scope) are mechanical and grounded in codebase inspection. Design quality pitfalls (AI aesthetic, Awwwards criteria application) rely on industry research with medium confidence — consistent with first-principles LLM behavior but not verified against PDE-specific outputs. |
+| Stack | HIGH | v0.5 stack is additive to verified v1.x stack; `.mcp.json` format and plugin env vars verified from official docs; MCP SDK version from npm search (MEDIUM for version number) |
+| Features | HIGH | Official MCP server tool inventories verified for GitHub and Figma; Linear changelog confirmed 2026 additions; Pencil tool names MEDIUM (sparse official docs) |
+| Architecture | HIGH | Build order is dependency-derived from hard blockers; component design grounded in direct codebase inspection of existing lib modules; anti-patterns all sourced from official MCP docs or confirmed bugs |
+| Pitfalls | HIGH | Two pitfalls from confirmed Claude Code issue tracker bugs; MCP versioning from official specification; security pitfalls from multiple independent security research organizations |
 
-**Overall confidence:** HIGH for build order, architecture, and stack; MEDIUM for design quality outcomes (whether reference injection achieves Awwwards-level output is probabilistic and requires iteration cycles).
+**Overall confidence:** HIGH
 
 ### Gaps to Address
 
-- **"Custom interaction design" in AI-generatable terms:** Research identifies this as the single biggest Awwwards differentiator but does not resolve how to specify it prescriptively enough for reliable LLM output. Recommend authoring `references/awwwards-patterns.md` with concrete named patterns (specific scroll effect types, type animation techniques, spatial tension approaches with examples) rather than general principles. Validate during Phase 3 by running mockup skill against rubric before declaring elevation complete — expect multiple critique/iterate cycles.
-
-- **Pressure test quality evaluation tier design:** Research establishes the two-tier requirement (process compliance + quality evaluation) but does not specify the quality evaluation mechanism. Must be resolved before Phase 5 planning. Options: (a) human review pass against rubric criteria — higher accuracy, requires time; (b) AI judge agent with prescriptive rubric — scalable, needs careful prompt design to avoid circular evaluation. Either way, the quality evaluation must produce specific design findings, not numeric scores.
-
-- **`protected-files.json` complete enumeration:** Research identifies the need for this file and its purpose but does not enumerate the complete protected list. At minimum: `workflows/improve.md`, `references/quality-standards.md`, `references/skill-style-guide.md`, all `bin/lib/*.cjs`, `bin/pde-tools.cjs`, plugin root config files. The complete list should be defined and committed in Phase 1 before any fleet agent has write access to any file.
-
-- **Skill builder "improve" mode depth boundary:** Research does not specify how deeply "improve" mode should modify existing skills — cosmetic compliance fixes vs. substantive output instruction rewrites. This scope decision directly affects backward-compatibility risk (Pitfall 3). Recommend defaulting to additive-only improvements (adding missing required fields, extending output instructions) with full rewrites requiring explicit user confirmation flag (`--rewrite`). Define this boundary in Phase 4 planning before implementation.
+- **Pencil tool name accuracy:** `docs.pencil.dev` is sparse; tool names sourced from community articles and project memory note (MEDIUM confidence). Validate tool names in a real Pencil + Claude Code session before writing workflow logic that depends on them.
+- **`listTools` programmatic access:** Needed for the availability probe mechanism. FEATURES.md flags MEDIUM confidence on whether this is callable within skill context. Validate in Phase 1 before finalizing probe implementation approach.
+- **PDE-as-MCP-server user demand:** Architecturally correct (read-only) but no confirmed user demand exists for consuming PDE planning state from external MCP clients. Treat as experimental; validate concrete use cases before investing in API surface design.
+- **Figma token naming conventions:** The non-destructive merge logic depends on a mapping strategy between Figma variable names and PDE's existing DTCG token names. This mapping is undefined. Address in Phase 5 planning before implementation begins.
+- **Jira Data Center:** Atlassian Rovo MCP is cloud-only. Data Center requires `sooperset/mcp-atlassian` (community, different auth, different tools). Do not scope into v0.5 without explicit user demand confirmation.
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- PDE codebase direct inspection — `bin/lib/model-profiles.cjs`, `references/tooling-patterns.md`, `references/skill-style-guide.md`, `workflows/audit-milestone.md`, `workflows/critique.md`, `workflows/system.md`, `workflows/mockup.md`, `skill-registry.md`, `templates/design-manifest.json`, `.planning/PROJECT.md`
-- Claude Code official docs (code.claude.com/docs/en/skills) — SKILL.md format, frontmatter fields, supporting files structure, invocation control, subagent patterns
-- designtokens.org DTCG 2025.10 spec — $value/$type token format, `transition` token type for motion
+- `https://code.claude.com/docs/en/mcp` — Claude Code MCP plugin API: `.mcp.json` format, `${CLAUDE_PLUGIN_ROOT}` and `${CLAUDE_PLUGIN_DATA}`, scopes, Tool Search auto-enable at 10% threshold, `claude mcp serve`, passthrough limitation, OAuth 2.0 support
+- `https://github.com/github/github-mcp-server` — GitHub MCP toolsets (repos, issues, pull_requests, actions, code_security), HTTP transport URL, auth options
+- `https://developers.figma.com/docs/figma-mcp-server/tools-and-prompts/` — All 13 Figma MCP tools with descriptions
+- `https://linear.app/docs/mcp` — Linear MCP HTTP transport, OAuth, tool scope
+- `https://linear.app/changelog/2026-02-05-linear-mcp-for-product-management` — 2026 additions: initiatives, milestones, project updates, project labels
+- `https://github.com/atlassian/atlassian-mcp-server` — Atlassian Rovo MCP official repo; cloud-only, OAuth 2.1, Jira + Confluence + Compass
+- `https://modelcontextprotocol.io/docs/develop/build-server` — MCP Resources vs Tools vs Prompts primitives
+- `https://www.npmjs.com/package/@modelcontextprotocol/sdk` — MCP SDK Node.js server implementation
+- Claude Code issue tracker #34832 — Auth loss on context compaction (confirmed bug)
+- Claude Code issue tracker #18557 — SSE disconnect session crash (confirmed bug)
+- `https://modelcontextprotocol.io/specification/versioning` — Date-based version schema, breaking change cadence, GitHub SEP-1400 discussion
+- PDE codebase direct inspection: `references/mcp-integration.md`, `bin/pde-tools.cjs`, `bin/lib/design.cjs`, `bin/lib/config.cjs`, `.claude-plugin/plugin.json`, `commands/recommend.md`, `workflows/recommend.md`
 
 ### Secondary (MEDIUM confidence)
-- Awwwards official rubric — Design 40%, Usability 30%, Creativity 20%, Content 10%; 8.0+ SOTD threshold; custom interaction as primary differentiator (from utsubo.com/blog analysis + Awwwards annual awards page)
-- Google Cloud agentic AI architecture docs — reflection loop pattern, self-evaluation, auditor-improver patterns
-- Databricks agent system design patterns — loop pattern, critic pattern, self-improvement workflows
-- Anthropic skills public repo (github.com/anthropics/skills) — AgentSkills open standard, plugin skills/ directory structure
-- Awwwards animation techniques analysis — scroll-triggered effects, variable font animation, motion choreography (Medium, Design Bootcamp)
-- Smashing Magazine, "The AI Dilemma in Graphic Design: Typography and Beyond" (2024) — AI-generated design's generic aesthetic problem
+- `https://www.atlassian.com/platform/remote-mcp-server` — Atlassian Rovo MCP cloud-only constraint, OAuth 2.1, compatible clients
+- `https://github.blog/changelog/2026-01-28-github-mcp-server-new-projects-tools-oauth-scope-filtering-and-new-features/` — 2026 GitHub MCP additions: Projects tools, OAuth scope filtering, HTTP mode for enterprise
+- `https://muz.li/blog/claude-code-to-figma-how-the-new-code-to-canvas-integration-works/` — Figma Code to Canvas (2026-02 feature)
+- `https://modelcontextprotocol.info/docs/best-practices/` — Tool composition, security patterns
+- Invariant Labs, "MCP Security Notification: Tool Poisoning Attacks" — Tool poisoning via description injection
+- Nordic APIs, "The Weak Point in MCP Nobody's Talking About: API Versioning" — Date-based version fragility; consistent with official spec analysis
+- Nudge Security, "MCP Security Risks and Best Practices" — Verified against other security sources
+- `https://atalupadhyay.wordpress.com/2026/02/25/pencil-dev-claude-code-workflow-from-design-to-production-code-in-minutes/` — Pencil MCP tool names (community source; sparse official docs)
+- `https://docs.pencil.dev/getting-started/ai-integration` + project_pencil_mcp.md project memory — Pencil MCP 6 tools, `.pen` file format, VS Code constraint
 
 ### Tertiary (LOW confidence)
-- AI design quality benchmarks (typeface.ai) — limited to brand/image quality, not web design composition; used only to understand the gap in existing evaluation approaches
-- "AI Agent Versioning and Lifecycle Management" (2025) — tool versioning as production failure cause; single source, not verified against official documentation
-- Intuition Labs meta-prompting guide (2025) — circular reasoning risk when same model generates and evaluates; consistent with first-principles analysis but limited to single source
+- ByteBridge Medium, "Managing MCP Servers at Scale: The Case for Gateways, Lazy Loading, and Automation" — Connection pooling and lazy loading patterns; single practitioner source; consistent with observed patterns but unverified
+- PDE-as-MCP-server user demand — No prior art or confirmed use cases; pattern derived from `claude mcp serve` capability only; need real consumer validation before committing to API surface
 
 ---
-*Research completed: 2026-03-17*
+*Research completed: 2026-03-18*
 *Ready for roadmap: yes*
