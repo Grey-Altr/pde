@@ -1,10 +1,11 @@
 ---
 phase: 32
 slug: design-elevation-system-skill
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: validated
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-17
+validated: 2026-03-18
 ---
 
 # Phase 32 — Validation Strategy
@@ -38,12 +39,12 @@ created: 2026-03-17
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 32-01-01 | 01 | 0 | SYS-01 | smoke | `bash .planning/phases/32-design-elevation-system-skill/test_sys01_motion_tokens.sh` | ❌ W0 | ⬜ pending |
-| 32-01-02 | 01 | 0 | SYS-02 | smoke | `bash .planning/phases/32-design-elevation-system-skill/test_sys02_varfont_tokens.sh` | ❌ W0 | ⬜ pending |
-| 32-01-03 | 01 | 0 | SYS-03 | smoke | `bash .planning/phases/32-design-elevation-system-skill/test_sys03_harmony_palettes.sh` | ❌ W0 | ⬜ pending |
-| 32-01-04 | 01 | 0 | SYS-04 | smoke | `bash .planning/phases/32-design-elevation-system-skill/test_sys04_apca_guidance.sh` | ❌ W0 | ⬜ pending |
-| 32-01-05 | 01 | 0 | SYS-05 | smoke | `bash .planning/phases/32-design-elevation-system-skill/test_sys05_density_spacing.sh` | ❌ W0 | ⬜ pending |
-| 32-01-06 | 01 | 0 | SYS-06 | smoke | `bash .planning/phases/32-design-elevation-system-skill/test_sys06_type_pairings.sh` | ❌ W0 | ⬜ pending |
+| 32-01-01 | 01 | 0 | SYS-01 | smoke | `bash .planning/phases/32-design-elevation-system-skill/test_sys01_motion_tokens.sh` | ✅ | ✅ green (13/13) |
+| 32-01-02 | 01 | 0 | SYS-02 | smoke | `bash .planning/phases/32-design-elevation-system-skill/test_sys02_varfont_tokens.sh` | ✅ | ✅ green (15/15) |
+| 32-01-03 | 01 | 0 | SYS-03 | smoke | `bash .planning/phases/32-design-elevation-system-skill/test_sys03_harmony_palettes.sh` | ✅ | ✅ green (12/12) |
+| 32-01-04 | 01 | 0 | SYS-04 | smoke | `bash .planning/phases/32-design-elevation-system-skill/test_sys04_apca_guidance.sh` | ✅ | ✅ green (8/8) |
+| 32-01-05 | 01 | 0 | SYS-05 | smoke | `bash .planning/phases/32-design-elevation-system-skill/test_sys05_density_spacing.sh` | ✅ | ✅ green (8/8) |
+| 32-01-06 | 01 | 0 | SYS-06 | smoke | `bash .planning/phases/32-design-elevation-system-skill/test_sys06_type_pairings.sh` | ✅ | ✅ green (9/9) |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -51,13 +52,13 @@ created: 2026-03-17
 
 ## Wave 0 Requirements
 
-- [ ] `test_sys01_motion_tokens.sh` — covers SYS-01 (duration scale, easing, delay tokens)
-- [ ] `test_sys02_varfont_tokens.sh` — covers SYS-02 (variable font axis tokens)
-- [ ] `test_sys03_harmony_palettes.sh` — covers SYS-03 (OKLCH harmony palettes)
-- [ ] `test_sys04_apca_guidance.sh` — covers SYS-04 (APCA Lc guidance)
-- [ ] `test_sys05_density_spacing.sh` — covers SYS-05 (density spacing)
-- [ ] `test_sys06_type_pairings.sh` — covers SYS-06 (type pairing recommendations)
-- [ ] `fixtures/SYS-tokens-fixture.json` — fixture token file for tests to validate against
+- [x] `test_sys01_motion_tokens.sh` — covers SYS-01 (duration scale, easing, delay tokens)
+- [x] `test_sys02_varfont_tokens.sh` — covers SYS-02 (variable font axis tokens)
+- [x] `test_sys03_harmony_palettes.sh` — covers SYS-03 (OKLCH harmony palettes)
+- [x] `test_sys04_apca_guidance.sh` — covers SYS-04 (APCA Lc guidance)
+- [x] `test_sys05_density_spacing.sh` — covers SYS-05 (density spacing)
+- [x] `test_sys06_type_pairings.sh` — covers SYS-06 (type pairing recommendations)
+- ~~`fixtures/SYS-tokens-fixture.json`~~ — not needed; tests grep `workflows/system.md` directly
 
 ---
 
@@ -69,11 +70,22 @@ created: 2026-03-17
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 5s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 5s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-03-18
+
+---
+
+## Validation Audit 2026-03-18
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+| Total tests | 65/65 green |
