@@ -6,6 +6,7 @@ Generate browser-viewable HTML/CSS wireframes for each screen in the flow invent
 @references/skill-style-guide.md
 @references/mcp-integration.md
 @references/web-modern-css.md
+@references/composition-typography.md
 </required_reading>
 
 <flags>
@@ -321,6 +322,31 @@ Generate the complete HTML file for this screen:
         display: none;
       }
 
+      /* Named grid systems (WIRE-01) — composition-typography.md */
+      .pde-grid--12-column {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        column-gap: clamp(16px, 2vw, 24px);
+        max-width: 1440px;
+        margin: 0 auto;
+        padding: 0 clamp(16px, 5vw, 80px);
+      }
+      .pde-grid--asymmetric {
+        display: grid;
+        grid-template-columns: 7fr 5fr;
+        column-gap: clamp(24px, 3vw, 48px);
+      }
+      .pde-grid--golden-ratio {
+        display: grid;
+        grid-template-columns: 61.8fr 38.2fr;
+        column-gap: clamp(24px, 3vw, 48px);
+      }
+      .pde-grid--modular {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: clamp(16px, 2vw, 24px);
+      }
+
       /* Skip link */
       .skip-link {
         position: absolute;
@@ -340,18 +366,23 @@ Generate the complete HTML file for this screen:
       {screen-specific layout styles following fidelity rules}
     }
 
-    /* Responsive breakpoints */
-    @media (min-width: 640px) {
-      /* sm: {layout adjustments for this screen} */
-    }
+    /* Mobile base: single column (WIRE-04) */
+    .pde-grid--12-column { grid-template-columns: 1fr; }
+    .pde-grid--asymmetric { grid-template-columns: 1fr; }
+    .pde-grid--golden-ratio { grid-template-columns: 1fr; }
+
+    /* Tablet 768px: intermediate recomposition (WIRE-04) */
     @media (min-width: 768px) {
-      /* md: {layout adjustments for this screen} */
+      .pde-grid--12-column { grid-template-columns: repeat(8, 1fr); }
+      .pde-grid--asymmetric { grid-template-columns: 3fr 2fr; }
+      .pde-grid--golden-ratio { grid-template-columns: 1fr; grid-template-rows: 200px 1fr; }
     }
+
+    /* Desktop 1024px+: full grid system applied (WIRE-04) */
     @media (min-width: 1024px) {
-      /* lg: {layout adjustments for this screen} */
-    }
-    @media (min-width: 1280px) {
-      /* xl: {layout adjustments for this screen} */
+      .pde-grid--12-column { grid-template-columns: repeat(12, 1fr); }
+      .pde-grid--asymmetric { grid-template-columns: 7fr 5fr; }
+      .pde-grid--golden-ratio { grid-template-columns: 61.8fr 38.2fr; min-height: 100vh; }
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -375,9 +406,10 @@ Generate the complete HTML file for this screen:
     {  <!-- Not yet generated — run /pde:wireframe "{slug}" {FIDELITY} to create this file --> for screens not yet generated}
   </nav>
 
-  <main role="main" id="main-content">
+  <main role="main" id="main-content" class="pde-grid pde-grid--{GRID_SYSTEM}">
 
     <!-- State: default (visible) -->
+    {Insert COMPOSITION annotation block from Step 4f here}
     <!-- ANNOTATION: {describe what triggers this default state — e.g., initial page load, successful API response}. {describe what the user sees and what primary action is available}. {describe what interaction leads to the next screen in the journey}. -->
     <div class="pde-state pde-state--default" aria-live="polite">
       {Primary screen content following fidelity rules for this specific screen type}
@@ -456,6 +488,100 @@ Every generated HTML file MUST include:
 - All form inputs have `<label for="id">` associations — no placeholder-only inputs
 - All images have `alt` attributes (descriptive or `alt=""` for decorative)
 - Logical tab order following visual layout
+
+#### 4f. Composition decisions (MANDATORY — required for WIRE-01 through WIRE-05)
+
+Execute the following composition decision sequence for each screen BEFORE generating HTML. These decisions produce annotation blocks embedded in the HTML output. All five sub-steps are required for every screen at every fidelity level.
+
+##### i. Grid system selection (WIRE-01)
+
+Read screen type (from INVENTORY) and PRODUCT_TYPE (from brief). Apply the grid selection logic:
+
+| Screen Type | Product Type | Selected Grid | Rationale Template |
+|---|---|---|---|
+| dashboard, data | any | 12-column | Flexible subdivision needed for metric cards, data tables, and sidebar panels |
+| login, auth | any | Golden ratio | Single focal hierarchy — form in 38.2% column draws eye to primary action |
+| landing, marketing | brand-forward | Asymmetric 7:5 | Dominant reading axis toward CTA; symmetric grids produce generic neutrality |
+| product catalog, gallery | any | Modular | Regular repetition of card units requires active vertical and horizontal rhythm |
+| editorial, about | any | Golden ratio or Asymmetric | Strong hierarchy needed; golden ratio for single focal; asymmetric for tension |
+| settings, forms | any | 12-column | Multi-field layout requires flexible column subdivision |
+| default (unrecognized) | any | 12-column | Fallback; explicitly document as fallback in rationale |
+
+- Store as GRID_SYSTEM (one of: "12-column", "golden-ratio", "asymmetric", "modular")
+- Store as GRID_RATIONALE using format from composition-typography.md: "Using [system] because [content type] requires [characteristic]. [Alternative] was rejected because [reason]."
+
+##### ii. Visual weight mapping (WIRE-02)
+
+- Identify the highest-weight element using composition-typography.md Visual Weight Analysis factors: size, contrast, color, density, position, shape, isolation
+- Identify the reading axis: F-pattern (information-dense content) or Z-pattern (marketing/CTA-focused)
+- Number the eye path: 1st = {element} -- {why: weight factor}, 2nd = {element} -- {why}, 3rd = {element} -- {why}, CTA = {element} -- {position}
+- Store as Visual weight distribution block
+
+##### iii. Asymmetry decision (WIRE-03)
+
+- At least one axis MUST break symmetry per page with documented purpose (rule: at least one axis must intentionally break symmetry)
+- Identify which axis: horizontal (unequal column split 7:5, golden ratio, offset element) or vertical (intentional whitespace gap, visual weight imbalance)
+- Store as ASYMMETRY_AXIS ("horizontal" or "vertical") and ASYMMETRY_RATIONALE
+- Accidental asymmetry from content length differences does NOT count -- document the INTENTIONAL choice
+
+##### iv. Viewport composition strategy (WIRE-04)
+
+- Mobile 375px: single-column stack; identify element reorder vs desktop
+- Tablet 768px: 2-column or content-focused recomposition -- DISTINCT from desktop (not same layout narrower)
+- Desktop 1440px: full grid system applied
+- CRITICAL: strategies must be DISTINCT -- "same layout but narrower" is NOT distinct
+- Store as VIEWPORT_STRATEGIES with three strategy descriptions
+
+##### v. Content hierarchy numbering (WIRE-05)
+
+- For each viewport (Desktop 1440px, Tablet 768px, Mobile 375px):
+  - 1st = {element} -- {why}
+  - 2nd = {element} -- {why}
+  - 3rd = {element} -- {why}
+  - CTA = {element} -- {position}
+- Priority may shift between viewports (mobile CTA may be higher priority than desktop)
+- Store as CONTENT_HIERARCHY table
+
+##### Composition annotation block format
+
+After completing the five decision sub-steps, embed the following COMPOSITION annotation block as an HTML comment in every generated wireframe, immediately after `<!-- State: default -->` and before `<div class="pde-state pde-state--default"`:
+
+```html
+<!-- COMPOSITION: {screen slug}
+  Grid system: {GRID_SYSTEM} -- {GRID_RATIONALE}
+
+  Visual weight distribution:
+    1st = {element} -- {why: size/contrast/position/isolation}
+     -> 2nd = {element} -- {why}
+     -> 3rd = {element} -- {why}
+     -> CTA = {element} -- {position relative to reading path}
+  Reading axis: {F-pattern | Z-pattern}
+
+  Asymmetry ({ASYMMETRY_AXIS}): {ASYMMETRY_RATIONALE}
+
+  Viewport strategies:
+    Desktop 1440px: {grid system name}, {columns}, {description}
+    Tablet 768px: {DISTINCT strategy, not shrunk desktop}
+    Mobile 375px: {DISTINCT strategy, full recomposition}
+
+  Content hierarchy:
+    Desktop 1440px:
+      1st = {element} -- {why}
+      2nd = {element} -- {why}
+      3rd = {element} -- {why}
+      CTA = {element} -- {position}
+    Tablet 768px:
+      1st = {element}
+      2nd = {element}
+      CTA = {element}
+    Mobile 375px:
+      1st = {element}
+      2nd = {element}
+      CTA = {element}
+-->
+```
+
+This annotation block MUST be present in every generated wireframe HTML file regardless of fidelity level. It is a structural requirement, not a quality enhancement.
 
 Display per screen: `Step 4/7: Generated wireframe for {Screen Label} ({FIDELITY}).`
 
@@ -692,6 +818,11 @@ NEVER do any of the following:
 - Skip the write-lock for root DESIGN-STATE.md updates — always acquire `design lock-acquire pde-wireframe` before any Edit to root DESIGN-STATE.md
 - Generate wireframes without an index.html — index.html must always be written, even for single-screen batches
 - Use `generateCssVars()` from design.cjs — it only emits `:root{}` blocks and is not applicable to wireframe HTML generation
+- Use unnamed `display: grid` without a corresponding `pde-grid--{type}` class and composition comment block
+- Produce symmetric equal-width `1fr 1fr` columns without explicit grid system selection and rationale
+- Show tablet layout as "same as desktop but narrower" — tablet must have a DISTINCT composition strategy
+- List priority numbering without weight factor explanation (must include " -- " followed by why)
+- Document mobile single-column collapse as the intentional asymmetry — asymmetry must be on the desktop layout's primary axis
 
 </process>
 
