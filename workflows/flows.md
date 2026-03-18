@@ -268,6 +268,44 @@ After the Mermaid block, add a `### Step Descriptions` section with numbered des
 9. **J1_DONE - Dashboard — Journey Complete:** User lands on the main dashboard; onboarding journey is complete.
 ```
 
+#### Transition annotations on screen-to-screen edges (FLOW-01)
+
+For every edge between two screen nodes, annotate the visual transition mechanism using parenthetical notation appended to the edge label:
+
+**Format:**
+```mermaid
+J1_1 -->|"CTA click (slide-up)"| J1_2
+J1_3 -->|"No (fade)"| J1_ERR1
+J1_4 -->|"Verified (morph-expand)"| J1_DONE
+```
+
+**Transition vocabulary — use exactly these terms:**
+
+| Category | Variants | When to Use |
+|----------|----------|-------------|
+| `slide-right` / `slide-left` / `slide-up` / `slide-down` | Directional slide | Navigation with a clear hierarchy (forward/back, deeper/up) |
+| `fade` | Cross-dissolve | Parallel screens with no directional hierarchy; modal/overlay contexts; error states |
+| `morph` / `morph-expand` / `morph-collapse` | Element expands to become next screen | Card-to-detail, button-to-form-reveal, thumbnail-to-full |
+| `shared-element` | Named element visually persists between screens | Product image in cart, avatar in profile, hero expanding to detail |
+
+**RULE — Screen-to-screen edges only:** Annotate ONLY edges between rectangular screen nodes (`["Screen Name"]`). Decision node branches (`{Decision text}` curly brace shape) get their existing semantic label (Yes/No/Success/Error) but do NOT get a transition annotation — logical branches are not visual transitions.
+
+**Annotation placement:**
+- Inline: Append `(transition-type)` to the existing edge label — `-->|"Yes (slide-right)"|`
+- If the edge has no existing label: `-->|"(fade)"|`
+- Decision node edge with semantic label stays semantic only: `-->|"No"|` (no transition)
+
+**Step Descriptions extension:** After the narrative description for each screen node in the `### Step Descriptions` subsection, add a transition rationale line for each outgoing screen-to-screen edge:
+
+```
+4. **J1_4 - Email Verification Screen:** Confirmation with "Check your email" message.
+   → Transition to J1_5: `morph-expand` — verification confirmation expands to fill dashboard layout, communicating "you've arrived."
+```
+
+**Include error state transitions:** Annotate ALL screen-to-screen edges including error state paths. Error transitions are typically `fade` — fast to document and gives engineers the same information. Decision branches that lead directly to error screens should annotate the edge from the error screen outward (if one exists), not the decision branch itself.
+
+**Deprecated vocabulary:** Do NOT use "push" or "pop" (older iOS UIKit convention). Do NOT use `@scroll-timeline` at-rule in any transition recommendation — use `animation-timeline` CSS property. Transition annotations are visual mechanism descriptions, not implementation recommendations — save implementation details for handoff.md `### Implementation Notes`.
+
 #### 4d: Flow summary table
 
 After all journey sections, generate the flow summary table matching the template format:
