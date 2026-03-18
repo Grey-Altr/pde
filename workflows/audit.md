@@ -27,7 +27,7 @@ Set boolean variables from parsed flags:
 Resolve agent models:
 
 ```bash
-AUDITOR_MODEL=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" resolve-model pde-output-quality-auditor --raw)
+AUDITOR_MODEL=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" resolve-model pde-quality-auditor --raw)
 IMPROVER_MODEL=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" resolve-model pde-skill-improver --raw)
 VALIDATOR_MODEL=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" resolve-model pde-skill-validator --raw)
 ```

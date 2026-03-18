@@ -40,6 +40,7 @@ requirements_fulfilled:
   - QUAL-04
   - QUAL-05
   - QUAL-06
+requirements-completed: [QUAL-04, QUAL-05, QUAL-06]
 ---
 
 # Phase 29 Plan 03: Infrastructure Wiring Summary
