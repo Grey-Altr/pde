@@ -1,0 +1,22 @@
+{
+  "projectName": "Tide",
+  "productType": "SaaS Platform",
+  "outputRoot": ".planning/design",
+  "mode": "full",
+  "version": 1,
+  "designCoverage": {
+    "hasDesignSystem": true,
+    "hasWireframes": true,
+    "hasFlows": true,
+    "hasHardwareSpec": true,
+    "hasCritique": true,
+    "hasIterate": true,
+    "hasHandoff": true,
+    "hasIdeation": true,
+    "hasCompetitive": true,
+    "hasOpportunity": true,
+    "hasMockup": true,
+    "hasHigAudit": true,
+    "hasRecommendations": true
+  }
+}
