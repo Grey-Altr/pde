@@ -38,12 +38,12 @@ created: 2026-03-18
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 37-01-01 | 01 | 1 | PRES-01 | integration | `bash tests/test-command-exists.sh` | ❌ W0 | ⬜ pending |
-| 37-01-02 | 01 | 1 | PRES-02 | integration | `bash tests/test-compliance-check.sh` | ❌ W0 | ⬜ pending |
-| 37-01-03 | 01 | 1 | PRES-03 | integration | `bash tests/test-quality-rubric.sh` | ❌ W0 | ⬜ pending |
-| 37-01-04 | 01 | 1 | PRES-04 | integration | `bash tests/test-ai-aesthetic-checks.sh` | ❌ W0 | ⬜ pending |
-| 37-01-05 | 01 | 1 | PRES-05 | integration | `bash tests/test-fixture-greenfield.sh` | ❌ W0 | ⬜ pending |
-| 37-01-06 | 01 | 1 | PRES-06 | integration | `bash tests/test-fixture-partial.sh` | ❌ W0 | ⬜ pending |
+| 37-01-01 | 01 | 1 | PRES-01 | integration | `bash tests/test-pres01-command.sh` | ❌ W0 | ⬜ pending |
+| 37-01-02 | 01 | 1 | PRES-02 | integration | `bash tests/test-pres02-compliance.sh` | ❌ W0 | ⬜ pending |
+| 37-01-03 | 01 | 1 | PRES-03 | integration | `bash tests/test-pres03-rubric.sh` | ❌ W0 | ⬜ pending |
+| 37-01-04 | 01 | 1 | PRES-04 | integration | `bash tests/test-pres04-fixtures.sh` | ❌ W0 | ⬜ pending |
+| 37-01-05 | 01 | 1 | PRES-05 | integration | `bash tests/test-pres05-report.sh` | ❌ W0 | ⬜ pending |
+| 37-01-06 | 01 | 1 | PRES-06 | integration | `bash tests/test-pres06-ai-aesthetic.sh` | ❌ W0 | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -53,12 +53,12 @@ created: 2026-03-18
 
 - [ ] `tests/run-quick.sh` — quick smoke test runner
 - [ ] `tests/run-all.sh` — full suite runner
-- [ ] `tests/test-command-exists.sh` — PRES-01 stub
-- [ ] `tests/test-compliance-check.sh` — PRES-02 stub
-- [ ] `tests/test-quality-rubric.sh` — PRES-03 stub
-- [ ] `tests/test-ai-aesthetic-checks.sh` — PRES-04 stub
-- [ ] `tests/test-fixture-greenfield.sh` — PRES-05 stub
-- [ ] `tests/test-fixture-partial.sh` — PRES-06 stub
+- [ ] `tests/test-pres01-command.sh` — PRES-01 stub
+- [ ] `tests/test-pres02-compliance.sh` — PRES-02 stub
+- [ ] `tests/test-pres03-rubric.sh` — PRES-03 stub
+- [ ] `tests/test-pres04-fixtures.sh` — PRES-04 stub
+- [ ] `tests/test-pres05-report.sh` — PRES-05 stub
+- [ ] `tests/test-pres06-ai-aesthetic.sh` — PRES-06 stub
 
 ---
 
