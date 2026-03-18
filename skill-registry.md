@@ -18,6 +18,6 @@
 | OPP | /pde:opportunity | workflows/opportunity.md | strategy | active |
 | REC | /pde:recommend | workflows/recommend.md | strategy | active |
 | IDT | /pde:ideate | workflows/ideate.md | strategy | active |
-| AUD | /pde:audit | workflows/audit.md | tooling | pending |
-| IMP | /pde:improve | workflows/improve.md | tooling | pending |
-| PRT | /pde:pressure-test | workflows/pressure-test.md | tooling | pending |
+| AUD | /pde:audit | workflows/audit.md | tooling | active |
+| IMP | /pde:improve | workflows/improve.md | tooling | active |
+| PRT | /pde:pressure-test | workflows/pressure-test.md | tooling | active |
