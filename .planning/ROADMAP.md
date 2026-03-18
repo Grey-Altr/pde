@@ -107,7 +107,10 @@ Full details: .planning/milestones/v0.4-ROADMAP.md
   3. Any MCP-dependent command invoked without the server available tells the user what is unavailable and completes in degraded mode rather than crashing
   4. `.planning/mcp-connections.json` exists after first connect, is listed in `.gitignore`, and contains no credential values — only connection metadata
   5. Attempting to add an unofficial MCP server is rejected with an explicit policy message listing only approved servers
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 39-01-PLAN.md — MCP bridge module (mcp-bridge.cjs) + .gitignore entry
+- [ ] 39-02-PLAN.md — /pde:mcp-status and /pde:connect commands and workflows
 
 ### Phase 40: GitHub Integration
 **Goal**: Users can move work items and code context bidirectionally between GitHub and PDE's planning state
@@ -170,7 +173,7 @@ Full details: .planning/milestones/v0.4-ROADMAP.md
 | 12-23 | v0.2 | 16/16 | Complete | 2026-03-16 |
 | 24-28 | v0.3 | 10/10 | Complete | 2026-03-17 |
 | 29-38 | v0.4 | 20/20 | Complete | 2026-03-18 |
-| 39 | v0.5 | 0/? | Not started | — |
+| 39 | v0.5 | 0/2 | Not started | — |
 | 40 | v0.5 | 0/? | Not started | — |
 | 41 | v0.5 | 0/? | Not started | — |
 | 42 | v0.5 | 0/? | Not started | — |
