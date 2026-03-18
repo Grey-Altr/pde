@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# AUDIT-02 + AUDIT-10 + AUDIT-12 — Auditor agent definition
+# AUDIT-02 + AUDIT-07 + AUDIT-10 + AUDIT-12 — Auditor agent definition
 #
 # Requirement: pde-quality-auditor.md exists in agents/ with read-only constraint,
 # quality rubric reference, agent prompt evaluation (AUDIT-12), and missing
@@ -19,7 +19,7 @@ FAILURES=()
 pass() { echo "  PASS  $1"; PASS=$((PASS + 1)); }
 fail() { echo "  FAIL  $1"; echo "        $2"; FAIL=$((FAIL + 1)); FAILURES+=("$1 -- $2"); }
 
-echo "[pde-quality-auditor.md — AUDIT-02, AUDIT-10, AUDIT-12]"
+echo "[pde-quality-auditor.md — AUDIT-02, AUDIT-07, AUDIT-10, AUDIT-12]"
 echo ""
 
 AGENT="$REPO_ROOT/agents/pde-quality-auditor.md"
@@ -91,6 +91,45 @@ else
 fi
 
 echo ""
+echo "[AUDIT-07: Tool effectiveness — structural + live MCP]"
+
+if grep -q "Structural Checks" "$AGENT"; then
+  pass "AUDIT-07 structural checks section present"
+else
+  fail "AUDIT-07 structural checks section present" "Structural Checks section not found"
+fi
+
+if grep -q "Live MCP Execution" "$AGENT"; then
+  pass "AUDIT-07 live MCP execution section present"
+else
+  fail "AUDIT-07 live MCP execution section present" "Live MCP Execution section not found"
+fi
+
+if grep -q "resolve-library-id" "$AGENT"; then
+  pass "AUDIT-07 Context7 resolve-library-id probe documented"
+else
+  fail "AUDIT-07 Context7 resolve-library-id probe documented" "resolve-library-id not found"
+fi
+
+if grep -q "query-docs\|query_docs" "$AGENT"; then
+  pass "AUDIT-07 Context7 query-docs execution documented"
+else
+  fail "AUDIT-07 Context7 query-docs execution documented" "query-docs not found"
+fi
+
+if grep -q "tool_effectiveness" "$AGENT"; then
+  pass "AUDIT-07 tool_effectiveness in return format"
+else
+  fail "AUDIT-07 tool_effectiveness in return format" "tool_effectiveness not found in return JSON"
+fi
+
+if grep -q "live_mcp_checks" "$AGENT"; then
+  pass "AUDIT-07 live_mcp_checks tracking in return format"
+else
+  fail "AUDIT-07 live_mcp_checks tracking in return format" "live_mcp_checks not found"
+fi
+
+echo ""
 echo "[Scan scope]"
 
 for category in "commands" "workflows" "agents" "templates" "references"; do
@@ -104,7 +143,7 @@ done
 echo ""
 echo "------------------------------------------------------------"
 total=$((PASS + FAIL))
-echo "AUDIT-02/10/12 auditor agent: $total tests -- $PASS passed, $FAIL failed"
+echo "AUDIT-02/07/10/12 auditor agent: $total tests -- $PASS passed, $FAIL failed"
 
 if [[ $FAIL -gt 0 ]]; then
   echo ""

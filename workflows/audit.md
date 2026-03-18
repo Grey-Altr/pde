@@ -75,7 +75,7 @@ References: {REFERENCES}
 )
 ```
 
-Parse the auditor's returned JSON. Extract: findings[], summary{}, scores{}, missing_references[].
+Parse the auditor's returned JSON. Extract: findings[], summary{}, scores{}, missing_references[], tool_effectiveness{}.
 
 ## 2. Generate Audit Report
 
@@ -118,6 +118,19 @@ Write `.planning/audit-report.md` with:
 - Tool availability: {N}/{M} referenced tools accessible
 - Reference currency: {N}/{M} reference files exist and have content
 - Skill quality: {average score_pct across categories}%
+
+### Tool Effectiveness (AUDIT-07)
+
+| Check Type | Passed | Failed | Total |
+|------------|--------|--------|-------|
+| Structural | {structural_checks.passed} | {structural_checks.failed} | {structural_checks.total} |
+| Live MCP | {live_mcp_checks.passed} | {live_mcp_checks.failed} | {live_mcp_checks.total} |
+
+**Template completeness:** {template_completeness.sampled} sampled, {template_completeness.flagged} flagged
+
+{If live_mcp_checks.errors is non-empty:}
+**MCP errors:**
+{For each error: `- {error}`}
 
 ## Delta from Baseline
 
