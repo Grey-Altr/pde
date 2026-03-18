@@ -244,7 +244,7 @@ Plans:
 | 29. Quality Infrastructure | v1.3 | 3/3 | Complete | 2026-03-17 |
 | 30. Self-Improvement Fleet & Audit | v1.3 | 3/3 | Complete | 2026-03-18 |
 | 31. Skill Builder | v1.3 | 2/2 | Complete | 2026-03-18 |
-| 32. Design Elevation — System Skill | 3/3 | Complete   | 2026-03-18 | — |
+| 32. Design Elevation — System Skill | 3/3 | Complete    | 2026-03-18 | — |
 | 33. Design Elevation — Wireframe Skill | v1.3 | 0/? | Not started | — |
 | 34. Design Elevation — Critique & HIG | v1.3 | 0/? | Not started | — |
 | 35. Design Elevation — Mockup Skill | v1.3 | 0/? | Not started | — |
