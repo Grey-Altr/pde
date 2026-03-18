@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Self-Improvement & Design Excellence
 status: completed
-stopped_at: Completed 31-02-PLAN.md — commands/improve.md and workflows/improve.md
-last_updated: "2026-03-18T02:12:27.498Z"
-last_activity: 2026-03-17 — Phase 29 Plan 03 complete (protected-files.json, model-profiles, skill-registry)
+stopped_at: Completed 32-01-PLAN.md — motion tokens elevated, variable font axis tokens added, Wave 0 test scripts created
+last_updated: "2026-03-18T02:55:11Z"
+last_activity: 2026-03-18 — Phase 32 Plan 01 complete (motion tokens SYS-01, variable font tokens SYS-02, 6 Nyquist test scripts)
 progress:
   total_phases: 9
   completed_phases: 3
@@ -24,13 +24,13 @@ See: .planning/PROJECT.md (updated 2026-03-17)
 
 ## Current Position
 
-Phase: 29 — Quality Infrastructure (in progress)
-Plan: 03 of 03 complete
-Status: All 3 plans complete — infrastructure wiring done (protected-files.json, model-profiles, skill-registry)
-Last activity: 2026-03-17 — Phase 29 Plan 03 complete (protected-files.json, model-profiles, skill-registry)
+Phase: 32 — Design Elevation — System Skill (in progress)
+Plan: 01 of 03 complete
+Status: Plan 01 complete — SYS-01 motion tokens elevated, SYS-02 variable font axis tokens added, Wave 0 test scripts (6) created
+Last activity: 2026-03-18 — Phase 32 Plan 01 complete (motion tokens SYS-01, variable font tokens SYS-02, 6 Nyquist test scripts)
 
 ```
-v1.3 Progress: [==                  ] 11% (3/3 plans in Phase 29 complete)
+v1.3 Progress: [====                ] 20% (1/3 plans in Phase 32 complete)
 ```
 
 ## Performance Metrics
@@ -83,6 +83,12 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 30]: Baseline JSON includes version: 1 field for future schema migration support
 - [Phase 30]: Missing References section in audit-report.md uses skill/reference/impact table matching auditor return format for AUDIT-10
 
+**v1.3 decisions made (Phase 32 Plan 01):**
+- [Phase 32]: DTCG duration object format `{ value: N, unit: "ms" }` used throughout — string format "200ms" is pre-2025.10 and rejected by Style Dictionary v4+; all existing motion tokens upgraded
+- [Phase 32]: Spring easing stored as cubicBezier + $extensions.pde.linearSpring for multi-bounce linear() — follows DTCG spec §9.3 workaround for non-native easing types
+- [Phase 32]: Variable font axis tokens use composite structure (axis/range/resting/animated/transition) — no native DTCG type exists for font axes
+- [Phase 32]: Bash test scripts use PASS=$((PASS+1)) not ((PASS++)) with set -e — arithmetic expansion returning 0 exits with code 1 under set -e; this is a bash pitfall fixed in all 6 Wave 0 scripts
+
 **v1.3 decisions made (Phase 31 research):**
 - [Phase 31]: Skill code assignment uses auto-suggest from description with user confirmation — builder proposes a code, user accepts or overrides; warns on LINT-011 collision against skill-registry.md
 - [Phase 31]: Default destination is user-project (`.claude/skills/`), with `--for-pde` flag for PDE-internal (`commands/`) — both paths are first-class; flag acts as safety gate for writing into PDE's own directory
@@ -104,8 +110,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-18T02:08:51.506Z
-Stopped at: Completed 31-02-PLAN.md — commands/improve.md and workflows/improve.md
+Last session: 2026-03-18T02:55:11Z
+Stopped at: Completed 32-01-PLAN.md — motion tokens elevated (SYS-01), variable font axis tokens added (SYS-02), Wave 0 test scripts created
 Resume file: None
 
 ## Phase Sequence

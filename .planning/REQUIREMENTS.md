@@ -33,8 +33,8 @@ Requirements for Self-Improvement & Design Excellence milestone. Each maps to ro
 
 ### Skill Builder
 
-- [ ] **SKILL-01**: `/pde:improve` create mode builds new skills from description — produces conforming SKILL.md with correct frontmatter, markdown content, and optional supporting files directory
-- [ ] **SKILL-02**: `/pde:improve` improve mode evaluates existing skills against quality rubric, identifies specific deficiencies, and generates targeted enhancements (additive by default, full rewrite via --rewrite flag)
+- [x] **SKILL-01**: `/pde:improve` create mode builds new skills from description — produces conforming SKILL.md with correct frontmatter, markdown content, and optional supporting files directory
+- [x] **SKILL-02**: `/pde:improve` improve mode evaluates existing skills against quality rubric, identifies specific deficiencies, and generates targeted enhancements (additive by default, full rewrite via --rewrite flag)
 - [x] **SKILL-03**: `/pde:improve` eval mode runs evaluation test cases against a skill's behavior, comparing output against rubric expectations and producing quality score with specific findings
 - [x] **SKILL-04**: Skill builder automatically runs validate-skill on all generated output and rejects invalid skills before presenting to user
 - [x] **SKILL-05**: Skill builder reads and enforces skill-style-guide.md and tooling-patterns.md as constraint references
@@ -42,8 +42,8 @@ Requirements for Self-Improvement & Design Excellence milestone. Each maps to ro
 
 ### Design Quality Elevation — System Skill
 
-- [ ] **SYS-01**: System skill produces motion tokens in DTCG transition format: duration scale (5+ steps from micro to dramatic), easing curves (ease-in, ease-out, ease-in-out, spring, bounce), delay tokens for choreography sequencing
-- [ ] **SYS-02**: System skill generates variable font axis animation tokens: weight range, width range, optical size, and custom axes with recommended animation parameters
+- [x] **SYS-01**: System skill produces motion tokens in DTCG transition format: duration scale (5+ steps from micro to dramatic), easing curves (ease-in, ease-out, ease-in-out, spring, bounce), delay tokens for choreography sequencing
+- [x] **SYS-02**: System skill generates variable font axis animation tokens: weight range, width range, optical size, and custom axes with recommended animation parameters
 - [ ] **SYS-03**: System skill produces advanced OKLCH color palettes with perceptual harmony (analogous, complementary, split-complementary, triadic) — not random color selection
 - [ ] **SYS-04**: System skill includes APCA-aware contrast checking guidance with Lc values for text readability at each type scale step
 - [ ] **SYS-05**: System skill generates advanced spacing scale with optical spacing adjustments for different content density contexts (hero, content, dense UI)
@@ -158,14 +158,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUDIT-10 | Phase 30 | Complete |
 | AUDIT-11 | Phase 30 | Complete |
 | AUDIT-12 | Phase 30 | Complete |
-| SKILL-01 | Phase 31 | Pending |
-| SKILL-02 | Phase 31 | Pending |
+| SKILL-01 | Phase 31 | Complete |
+| SKILL-02 | Phase 31 | Complete |
 | SKILL-03 | Phase 31 | Complete |
 | SKILL-04 | Phase 31 | Complete |
 | SKILL-05 | Phase 31 | Complete |
 | SKILL-06 | Phase 31 | Complete |
-| SYS-01 | Phase 32 | Pending |
-| SYS-02 | Phase 32 | Pending |
+| SYS-01 | Phase 32 | Complete |
+| SYS-02 | Phase 32 | Complete |
 | SYS-03 | Phase 32 | Pending |
 | SYS-04 | Phase 32 | Pending |
 | SYS-05 | Phase 32 | Pending |
