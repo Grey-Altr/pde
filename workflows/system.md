@@ -391,6 +391,73 @@ Default (no brief fonts, no preset): use system font stacks:
 
 ---
 
+#### Type pairing recommendations
+
+Generate type pairing guidance in the usage guide output (SYS-guide.md). This is design recommendation content, not raw token data — pairings are design decisions that require rationale, not measurable values.
+
+**Classification taxonomy** (Vox-ATypI simplified for digital, from references/composition-typography.md):
+
+| Category | Description | Examples | Token value |
+|----------|-------------|---------|-------------|
+| Humanist serif | Variable stroke, bracketed serifs, calligraphic origin | EB Garamond, Libre Baskerville, Playfair Display | `humanist-serif` |
+| Transitional serif | Geometric regularization, vertical stress, high contrast | Georgia, Charter | `transitional-serif` |
+| Geometric sans | Minimal contrast, circular forms, single-storey a/g | Futura, DM Sans, Circular | `geometric-sans` |
+| Humanist sans | Calligraphic influence, variable stroke, two-storey a | Inter, Gill Sans, Fira Sans | `humanist-sans` |
+| Grotesque sans | Realist, minimal contrast, derived from early 19th C. | Helvetica, Arial, Aktiv | `grotesque-sans` |
+| Slab serif | Square brackets, low contrast, sturdy | Roboto Slab, Zilla Slab | `slab-serif` |
+| Display | Expressive, concept-specific, legibility not primary | Clash Display, Fraunces | `display` |
+| Monospace | Fixed-width, code/data contexts | JetBrains Mono, Fira Code | `monospace` |
+
+**Generate at least 5 pairings in the usage guide with this 4-field format:**
+
+```
+### Recommendation {N}: {Display Font} ({classification}) + {Body Font} ({classification})
+**Classification contrast:** {serif vs sans | geometric vs humanist | etc.} — {category contrast | personality contrast | purpose contrast | rhythm contrast}
+**{Display Font}** serves {role: display headings, hero text, etc.} at {size range} where {quality: personality, authority, impact, etc.} matters.
+**{Body Font}** serves {role: body text, UI labels, etc.} at {size range} where {quality: legibility, neutrality, readability} is critical.
+**APCA note:** Pair requires |Lc| >= {threshold} for {Body Font} at body sizes ({size}/{weight}); {Display Font} at {display size}+ needs |Lc| >= {threshold}.
+**Avoid:** {Anti-pattern — e.g., using display font below certain size, mixing two fonts of same classification}
+```
+
+**The 5 recommended pairings to generate:**
+
+**Recommendation 1: Playfair Display (humanist serif) + Inter (humanist sans)**
+- **Classification contrast:** serif vs sans — category contrast in stroke style
+- **Playfair Display** serves display headings (32px+) where personality and authority matter
+- **Inter** serves body text and UI labels where legibility at small sizes is critical
+- **APCA note:** |Lc| >= 75 for Inter at body sizes (16px/400); Playfair Display at 36px+ needs |Lc| >= 45
+- **Avoid:** Using Playfair Display below 24px — serifs at small sizes reduce legibility
+
+**Recommendation 2: EB Garamond (humanist serif) + DM Sans (geometric sans)**
+- **Classification contrast:** humanist serif + geometric sans — personality contrast (calligraphic vs constructed)
+- **EB Garamond** serves editorial headings (24px+) with classical, bookish character
+- **DM Sans** serves body and UI with clean geometric neutrality
+- **APCA note:** |Lc| >= 75 for DM Sans body (16px/400); EB Garamond at 24px+ needs |Lc| >= 45
+- **Avoid:** Mixing EB Garamond with another humanist serif — insufficient contrast
+
+**Recommendation 3: Fraunces (display serif) + Source Sans 3 (humanist sans)**
+- **Classification contrast:** display + humanist sans — expressive vs functional role contrast
+- **Fraunces** serves high-impact hero/brand moments with optical size axis animation
+- **Source Sans 3** serves body text with neutral readability and variable font wght axis
+- **APCA note:** |Lc| >= 75 for Source Sans 3 body; Fraunces display-only at 36px+
+- **Avoid:** Using Fraunces for body text — display fonts sacrifice legibility for personality
+
+**Recommendation 4: JetBrains Mono (monospace) + Inter (humanist sans)**
+- **Classification contrast:** monospace + humanist sans — character rhythm contrast
+- **JetBrains Mono** serves code blocks, data displays, terminal-like contexts
+- **Inter** serves prose, UI, and navigation with proportional readability
+- **APCA note:** |Lc| >= 75 for both at body sizes; monospace at 14px+ needs |Lc| >= 75
+- **Avoid:** Using monospace for body prose — fixed-width reduces reading speed 10-15%
+
+**Recommendation 5: Clash Display (display) + Satoshi (grotesque sans)**
+- **Classification contrast:** display + grotesque — purpose contrast (expressive vs neutral)
+- **Clash Display** serves startup/creative hero headings with geometric personality
+- **Satoshi** serves body text with clean, modern neutrality
+- **APCA note:** |Lc| >= 75 for Satoshi body; Clash Display at 36px+ needs |Lc| >= 45
+- **Avoid:** Using Clash Display below 32px or for body text — display fonts need optical size
+
+---
+
 #### Spacing tokens
 
 Standard scale with 4px base unit:
@@ -933,9 +1000,22 @@ Example structure:
   },
   "typography": {
     "fontFamily": {
-      "display": { "$value": ["system-ui", "-apple-system", "sans-serif"], "$type": "fontFamily" },
-      "body": { "$value": ["system-ui", "-apple-system", "sans-serif"], "$type": "fontFamily" },
+      "display": {
+        "$value": ["system-ui", "-apple-system", "sans-serif"],
+        "$type": "fontFamily",
+        "$description": "Display/heading typeface. Classification: determined at generation time from pairing selection."
+      },
+      "body": {
+        "$value": ["system-ui", "-apple-system", "sans-serif"],
+        "$type": "fontFamily",
+        "$description": "Body/UI typeface. Classification: determined at generation time from pairing selection."
+      },
       "mono": { "$value": ["ui-monospace", "Cascadia Code", "monospace"], "$type": "fontFamily" }
+    },
+    "pairing": {
+      "$type": "string",
+      "$value": "system-default",
+      "$description": "Type pairing rationale — see SYS-guide.md Type Pairings section for full classification contrast documentation."
     },
     "fontSize": {
       "xs":   { "$value": "0.694rem", "$type": "dimension" },
