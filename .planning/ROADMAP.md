@@ -218,10 +218,11 @@ Plans:
   3. The pressure test quality rubric tier produces specific design findings per artifact against the Awwwards 4-dimension rubric — findings cite named elements, not generic observations
   4. The pressure test explicitly evaluates for AI aesthetic avoidance: concept-specific interactions present, non-generic color choices documented, intentional asymmetry visible, custom motion choreography identified — each as a named pass/fail check
   5. The pressure test runs successfully from three fixture states: greenfield (no prior artifacts), partially-complete (5-8 stages done), and re-run of a completed stage — all three produce a complete report without errors
-**Plans**: 1 plan
+**Plans**: 2 plans
 
 Plans:
-- [ ] 37-01-PLAN.md — Pressure test command, process compliance, quality rubric, multi-fixture support (PRES-01, PRES-02, PRES-03, PRES-04, PRES-05, PRES-06)
+- [ ] 37-01-PLAN.md — Wave 0 tests, command, agent, model-profile, fixture directories (PRES-01, PRES-02, PRES-03, PRES-04, PRES-05, PRES-06)
+- [ ] 37-02-PLAN.md — Pressure test workflow with two-tier orchestration (PRES-01, PRES-02, PRES-03, PRES-04, PRES-05, PRES-06)
 
 ## Progress
 
@@ -266,4 +267,4 @@ Plans:
 | 34. Design Elevation — Critique & HIG | 2/2 | Complete    | 2026-03-18 | — |
 | 35. Design Elevation — Mockup Skill | 2/2 | Complete    | 2026-03-18 | — |
 | 36. Design Elevation — Handoff, Flows & Cross-Cutting | 1/1 | Complete    | 2026-03-18 | — |
-| 37. Pressure Test & Validation | v1.3 | 0/? | Not started | — |
+| 37. Pressure Test & Validation | v1.3 | 0/2 | Not started | — |
