@@ -1,6 +1,6 @@
 # Milestones
 
-## v1.3 Self-Improvement & Design Excellence (Shipped: 2026-03-18)
+## v0.4 Self-Improvement & Design Excellence (Shipped: 2026-03-18)
 
 **Phases completed:** 10 phases, 20 plans
 **Commits:** 131 | **Files:** 259 | **LOC:** ~134,000
@@ -19,7 +19,7 @@
 
 ---
 
-## v1.2 Advanced Design Skills (Shipped: 2026-03-17)
+## v0.3 Advanced Design Skills (Shipped: 2026-03-17)
 
 **Phases completed:** 5 phases, 10 plans
 **Commits:** 67 | **Files:** 84 | **LOC:** ~101,700
@@ -38,7 +38,7 @@
 
 ---
 
-## v1.1 Design Pipeline (Shipped: 2026-03-16)
+## v0.2 Design Pipeline (Shipped: 2026-03-16)
 
 **Phases completed:** 15 phases, 16 plans
 **Commits:** 135 | **Files:** 172 | **LOC:** ~89,000
@@ -57,7 +57,7 @@
 
 ---
 
-## v1.0 PDE v1.0 MVP (Shipped: 2026-03-15)
+## v0.1 PDE MVP (Shipped: 2026-03-15)
 
 **Phases completed:** 11 phases, 23 plans
 **Commits:** 127 | **Files:** 303 | **LOC:** ~60,000

@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.3
-milestone_name: Self-Improvement & Design Excellence
-status: completed
-stopped_at: "Milestone v1.3 archived — 62/62 requirements, 10 phases, 20 plans, 131 commits"
+milestone: v0.5
+milestone_name: MCP Integrations
+status: active
+stopped_at: ""
 last_updated: "2026-03-18"
-last_activity: 2026-03-18 — Milestone v1.3 completed and archived
+last_activity: 2026-03-18 — Milestone v0.5 started
 progress:
-  total_phases: 10
-  completed_phases: 10
-  total_plans: 20
-  completed_plans: 20
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
 # Project State
@@ -20,21 +20,18 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-18)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Planning next milestone
+**Current focus:** v0.5 MCP Integrations — defining requirements
 
 ## Current Position
 
-Phase: Milestone v1.3 complete
-Status: Archived — ready for `/gsd:new-milestone`
-Last activity: 2026-03-18 — Milestone v1.3 completed and archived
-
-```
-v1.3 Progress: [====================] 100% (10/10 phases, 20/20 plans)
-```
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-18 — Milestone v0.5 started
 
 ## Performance Metrics
 
-| Metric | v1.0 | v1.1 | v1.2 | v1.3 |
+| Metric | v0.1 | v0.2 | v0.3 | v0.4 |
 |--------|------|------|------|------|
 | Phases | 11 | 12 | 5 | 10 |
 | Commits | 127 | 135 | 67 | 131 |
@@ -59,5 +56,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-18
-Stopped at: Milestone v1.3 archived
+Stopped at: Milestone v0.5 started — defining requirements
 Resume file: None
