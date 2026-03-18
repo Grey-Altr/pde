@@ -155,7 +155,10 @@ Plans:
   3. `/pde:wireframe` output intentionally breaks symmetry on at least one axis per page with a documented purpose — accidental or default symmetry is flagged in the annotation
   4. `/pde:wireframe` output shows distinct layout strategies for mobile (375), tablet (768), and desktop (1440) — not the same layout fluid-scaled across breakpoints
   5. `/pde:wireframe` output numbers content priority (1st, 2nd, 3rd attention) per viewport — users can read the intended reading order from the annotation layer
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 33-01-PLAN.md — Nyquist tests, composition decision block, grid CSS, viewport recomposition (WIRE-01, WIRE-02, WIRE-03, WIRE-04, WIRE-05)
 
 ### Phase 34: Design Elevation — Critique & HIG Skills
 **Goal**: Critique evaluates against the Awwwards rubric specifically and flags AI aesthetic patterns; HIG audits motion accessibility with the same precision
@@ -167,7 +170,10 @@ Plans:
   3. `/pde:critique` assesses motion choreography: states whether motion is purposeful and narrative or decorative and random, with specific examples from the artifact
   4. `/pde:hig` motion accessibility audit identifies prefers-reduced-motion violations and names vestibular-safe alternatives for any parallax or scroll effect in the artifact
   5. `/pde:hig` animation performance check identifies any animations causing layout reflow and confirms GPU-composited properties are used where claimed — specific element names are cited, not generic warnings
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 33-01-PLAN.md — Nyquist tests, composition decision block, grid CSS, viewport recomposition (WIRE-01, WIRE-02, WIRE-03, WIRE-04, WIRE-05)
 
 ### Phase 35: Design Elevation — Mockup Skill
 **Goal**: Mockup output produces concept-specific, choreographed interactions and animations that would not be mistaken for generic AI-generated design
@@ -180,7 +186,10 @@ Plans:
   4. `/pde:mockup` output contains at least one named "visual hook" — a concept-specific interaction or visual element unique to the project, identified by name in the artifact
   5. `/pde:mockup` entrance animations follow narrative content order — elements appear in the sequence they are meant to be read, not all-at-once or random stagger
   6. `/pde:mockup` uses variable font features: weight animation on hover, optical size adjustment by context, or width shifts for emphasis — documented in the artifact
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 33-01-PLAN.md — Nyquist tests, composition decision block, grid CSS, viewport recomposition (WIRE-01, WIRE-02, WIRE-03, WIRE-04, WIRE-05)
 
 ### Phase 36: Design Elevation — Handoff, Flows & Cross-Cutting
 **Goal**: All remaining pipeline skills are elevated, the reference injection pattern is applied uniformly, and the elevation delta is verified against the pre-elevation audit baseline
@@ -192,7 +201,10 @@ Plans:
   3. `/pde:flows` output annotates screen-to-screen transitions with the visual mechanism (slide, fade, morph, shared-element) — not just which screen follows which
   4. All elevated skills (`system.md`, `wireframe.md`, `mockup.md`, `critique.md`, `hig.md`, `handoff.md`, `flows.md`) load new quality references via `@` includes in `required_reading` — no structural changes to the 7-step skill anatomy
   5. Running `/pde:audit` after all elevation phases produces a measurable quality delta against the Phase 30 baseline — audit findings in elevated skill areas are fewer or lower severity than before
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 33-01-PLAN.md — Nyquist tests, composition decision block, grid CSS, viewport recomposition (WIRE-01, WIRE-02, WIRE-03, WIRE-04, WIRE-05)
 
 ### Phase 37: Pressure Test & Validation
 **Goal**: The full 13-stage pipeline runs on a real product concept and passes both process compliance and Awwwards-rubric quality evaluation
@@ -204,7 +216,10 @@ Plans:
   3. The pressure test quality rubric tier produces specific design findings per artifact against the Awwwards 4-dimension rubric — findings cite named elements, not generic observations
   4. The pressure test explicitly evaluates for AI aesthetic avoidance: concept-specific interactions present, non-generic color choices documented, intentional asymmetry visible, custom motion choreography identified — each as a named pass/fail check
   5. The pressure test runs successfully from three fixture states: greenfield (no prior artifacts), partially-complete (5-8 stages done), and re-run of a completed stage — all three produce a complete report without errors
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 33-01-PLAN.md — Nyquist tests, composition decision block, grid CSS, viewport recomposition (WIRE-01, WIRE-02, WIRE-03, WIRE-04, WIRE-05)
 
 ## Progress
 
@@ -245,7 +260,7 @@ Plans:
 | 30. Self-Improvement Fleet & Audit | v1.3 | 3/3 | Complete | 2026-03-18 |
 | 31. Skill Builder | v1.3 | 2/2 | Complete | 2026-03-18 |
 | 32. Design Elevation — System Skill | 3/3 | Complete    | 2026-03-18 | — |
-| 33. Design Elevation — Wireframe Skill | v1.3 | 0/? | Not started | — |
+| 33. Design Elevation — Wireframe Skill | v1.3 | 0/1 | Not started | — |
 | 34. Design Elevation — Critique & HIG | v1.3 | 0/? | Not started | — |
 | 35. Design Elevation — Mockup Skill | v1.3 | 0/? | Not started | — |
 | 36. Design Elevation — Handoff, Flows & Cross-Cutting | v1.3 | 0/? | Not started | — |
