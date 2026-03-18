@@ -79,21 +79,21 @@ Requirements for Self-Improvement & Design Excellence milestone. Each maps to ro
 
 ### Design Quality Elevation — Pipeline Order
 
-- [ ] **ORDER-01**: Design elevation follows strict dependency order: system → wireframe → critique/iterate → mockup (upstream quality sets downstream ceiling)
+- [x] **ORDER-01**: Design elevation follows strict dependency order: system → wireframe → critique/iterate → mockup (upstream quality sets downstream ceiling)
 
 ### Design Quality Elevation — Handoff Skill
 
-- [ ] **HAND-01**: Handoff skill includes motion specifications in component API output — each component's TypeScript interface documents expected animation behavior (duration, easing, trigger), not just static props
-- [ ] **HAND-02**: Handoff skill generates implementation notes for concept-specific interactions (e.g., "this hero uses scroll-driven parallax — recommend GSAP ScrollTrigger or CSS @scroll-timeline")
+- [x] **HAND-01**: Handoff skill includes motion specifications in component API output — each component's TypeScript interface documents expected animation behavior (duration, easing, trigger), not just static props
+- [x] **HAND-02**: Handoff skill generates implementation notes for concept-specific interactions (e.g., "this hero uses scroll-driven parallax — recommend GSAP ScrollTrigger or CSS @scroll-timeline")
 
 ### Design Quality Elevation — Flows Skill
 
-- [ ] **FLOW-01**: Flows skill annotates transition animations between screens/states — not just what the next screen is, but how the user gets there visually (slide, fade, morph, shared-element)
+- [x] **FLOW-01**: Flows skill annotates transition animations between screens/states — not just what the next screen is, but how the user gets there visually (slide, fade, morph, shared-element)
 
 ### Cross-Cutting Elevation
 
-- [ ] **CROSS-01**: All elevated design skills load new quality references via @ includes in required_reading — no structural changes to the 7-step skill anatomy
-- [ ] **CROSS-02**: Elevation changes verified by running /pde:audit before and after each elevation phase to confirm measurable quality delta
+- [x] **CROSS-01**: All elevated design skills load new quality references via @ includes in required_reading — no structural changes to the 7-step skill anatomy
+- [x] **CROSS-02**: Elevation changes verified by running /pde:audit before and after each elevation phase to confirm measurable quality delta
 
 ### Pressure Test
 
@@ -189,12 +189,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | HIG-01 | Phase 34 | Complete |
 | HIG-02 | Phase 34 | Complete |
 | HIG-03 | Phase 34 | Complete |
-| ORDER-01 | Phase 36 | Pending |
-| HAND-01 | Phase 36 | Pending |
-| HAND-02 | Phase 36 | Pending |
-| FLOW-01 | Phase 36 | Pending |
-| CROSS-01 | Phase 36 | Pending |
-| CROSS-02 | Phase 36 | Pending |
+| ORDER-01 | Phase 36 | Complete |
+| HAND-01 | Phase 36 | Complete |
+| HAND-02 | Phase 36 | Complete |
+| FLOW-01 | Phase 36 | Complete |
+| CROSS-01 | Phase 36 | Complete |
+| CROSS-02 | Phase 36 | Complete |
 | PRES-01 | Phase 37 | Pending |
 | PRES-02 | Phase 37 | Pending |
 | PRES-03 | Phase 37 | Pending |

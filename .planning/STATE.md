@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Self-Improvement & Design Excellence
 status: completed
-stopped_at: Completed 35-02-PLAN.md — mockup.md fully elevated with variable fonts, VISUAL-HOOK convention, GPU performance rules; all 7 MOCK Nyquist tests GREEN (47 checks)
-last_updated: "2026-03-18T05:52:12.626Z"
+stopped_at: Completed 36-01-PLAN.md — handoff.md and flows.md fully elevated; all 17 Nyquist checks GREEN (HAND-01/02, FLOW-01, CROSS-01); 36-VERIFICATION.md documents ORDER-01 and CROSS-02
+last_updated: "2026-03-18T07:22:43.802Z"
 last_activity: 2026-03-18 — Phase 32 Plan 01 complete (motion tokens SYS-01, variable font tokens SYS-02, 6 Nyquist test scripts)
 progress:
   total_phases: 9
-  completed_phases: 7
-  total_plans: 16
-  completed_plans: 16
+  completed_phases: 8
+  total_plans: 17
+  completed_plans: 17
 ---
 
 # Project State
@@ -56,6 +56,7 @@ v1.3 Progress: [====                ] 20% (1/3 plans in Phase 32 complete)
 | Phase 34-design-elevation-critique-hig-skills P01 | 3min | 2 tasks | 5 files |
 | Phase 35-design-elevation-mockup-skill P01 | 4min | 2 tasks | 8 files |
 | Phase 35-design-elevation-mockup-skill P02 | 3 | 2 tasks | 2 files |
+| Phase 36-design-elevation-handoff-flows-cross-cutting P01 | 3min | 3 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -125,6 +126,9 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 35]: [Phase 35-02]: Variable font section documents which axes the loaded font supports as a comment — prevents silent axis-mismatch failures
 - [Phase 35]: [Phase 35-02]: VISUAL-HOOK dual comment (HTML + CSS co-location) enables both grep validation and critique skill concept-specificity detection
 - [Phase 35]: [Phase 35-02]: Animation Anti-Patterns section added as mandatory reject checklist with 10 rules including layout thrashing, generic visual hooks, will-change:all
+- [Phase 36]: [Phase 36]: Motion spec fields conditional — only emitted when upstream mockup has motion annotation, preventing phantom TypeScript props on static components
+- [Phase 36]: [Phase 36]: flows.md transition annotations use parenthetical format -->|"CTA click (slide-up)"| — decision node branches excluded (logical, not visual transitions)
+- [Phase 36]: [Phase 36]: Implementation Notes subsection omitted entirely when screen has no VISUAL-HOOK — empty subsections explicitly disallowed
 
 ### Pending Todos
 
@@ -137,8 +141,8 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-18T05:48:56.710Z
-Stopped at: Completed 35-02-PLAN.md — mockup.md fully elevated with variable fonts, VISUAL-HOOK convention, GPU performance rules; all 7 MOCK Nyquist tests GREEN (47 checks)
+Last session: 2026-03-18T07:22:43.799Z
+Stopped at: Completed 36-01-PLAN.md — handoff.md and flows.md fully elevated; all 17 Nyquist checks GREEN (HAND-01/02, FLOW-01, CROSS-01); 36-VERIFICATION.md documents ORDER-01 and CROSS-02
 Resume file: None
 
 ## Phase Sequence
