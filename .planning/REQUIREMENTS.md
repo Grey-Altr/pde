@@ -45,9 +45,9 @@ Requirements for MCP Integrations milestone. Each maps to roadmap phases.
 
 ### Pencil Integration
 
-- [ ] **PEN-01**: User can sync PDE DTCG design tokens to Pencil canvas via `set_variables` in `/pde:system`
-- [ ] **PEN-02**: User can capture Pencil canvas screenshots for `/pde:critique` visual audit
-- [ ] **PEN-03**: Pencil integration degrades gracefully when VS Code/Cursor is not available
+- [x] **PEN-01**: User can sync PDE DTCG design tokens to Pencil canvas via `set_variables` in `/pde:system`
+- [x] **PEN-02**: User can capture Pencil canvas screenshots for `/pde:critique` visual audit
+- [x] **PEN-03**: Pencil integration degrades gracefully when VS Code/Cursor is not available
 
 ### Validation
 
@@ -112,9 +112,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FIG-02 | Phase 42 | Complete |
 | FIG-03 | Phase 42 | Complete |
 | FIG-04 | Phase 42 | Complete |
-| PEN-01 | Phase 43 | Pending |
-| PEN-02 | Phase 43 | Pending |
-| PEN-03 | Phase 43 | Pending |
+| PEN-01 | Phase 43 | Complete |
+| PEN-02 | Phase 43 | Complete |
+| PEN-03 | Phase 43 | Complete |
 | VAL-01 | Phase 44 | Pending |
 | VAL-02 | Phase 44 | Pending |
 | VAL-03 | Phase 44 | Pending |
