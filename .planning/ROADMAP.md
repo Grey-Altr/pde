@@ -196,7 +196,7 @@ Plans:
   1. User can have 2 or more MCP servers connected simultaneously and run sync commands for each without interference or state corruption in `.planning/`
   2. After a context compaction event, user can re-run any MCP-dependent command and have it recover auth state from disk without requiring manual reconnection
   3. Every write-back command (PR creation, ticket creation, Figma export, token sync) presents an explicit confirmation prompt listing the write operations before executing any of them
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 Plans:
 - [ ] 44-01-PLAN.md — Structural validation tests for VAL-01 (concurrency isolation), VAL-02 (auth recovery), VAL-03 (write-back confirmation gates)
 
@@ -214,4 +214,4 @@ Plans:
 | 41 | 4/4 | Complete    | 2026-03-19 | — |
 | 42 | 4/4 | Complete    | 2026-03-19 | — |
 | 43 | 3/3 | Complete    | 2026-03-19 | — |
-| 44 | v0.5 | 0/1 | Not started | — |
+| 44 | 1/1 | Complete   | 2026-03-19 | — |

@@ -51,9 +51,9 @@ Requirements for MCP Integrations milestone. Each maps to roadmap phases.
 
 ### Validation
 
-- [ ] **VAL-01**: User can run all integrations simultaneously (2+ MCP servers connected)
-- [ ] **VAL-02**: All integrations function correctly after context compaction (auth recovery)
-- [ ] **VAL-03**: Write-back operations to external services require explicit user confirmation
+- [x] **VAL-01**: User can run all integrations simultaneously (2+ MCP servers connected)
+- [x] **VAL-02**: All integrations function correctly after context compaction (auth recovery)
+- [x] **VAL-03**: Write-back operations to external services require explicit user confirmation
 
 ## v0.6 Requirements
 
@@ -115,9 +115,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PEN-01 | Phase 43 | Complete |
 | PEN-02 | Phase 43 | Complete |
 | PEN-03 | Phase 43 | Complete |
-| VAL-01 | Phase 44 | Pending |
-| VAL-02 | Phase 44 | Pending |
-| VAL-03 | Phase 44 | Pending |
+| VAL-01 | Phase 44 | Complete |
+| VAL-02 | Phase 44 | Complete |
+| VAL-03 | Phase 44 | Complete |
 
 **Coverage:**
 - v0.5 requirements: 27 total (note: original count of 25 was incorrect; 27 requirements across 7 categories)
