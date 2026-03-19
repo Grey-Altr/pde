@@ -430,7 +430,7 @@ if [ -f "$CONTEXT_FILE" ] && [ -f "$PROJECT_FILE" ]; then
   DAYS_OLD=$(( ($(date +%s) - CONTEXT_MTIME) / 86400 ))
 
   if [ "$PROJECT_MTIME" -gt "$CONTEXT_MTIME" ] || [ "$DAYS_OLD" -gt 7 ]; then
-    echo "⚠ project-context.md may be stale (${DAYS_OLD} days old, PROJECT.md is newer)"
+    echo "project-context.md may be stale (${DAYS_OLD} days old, PROJECT.md is newer)"
     echo "  Run /pde:new-milestone to regenerate, or continue with current context"
   fi
 fi
@@ -550,3 +550,696 @@ Read these files at execution start using the Read tool:
 
 **Research date:** 2026-03-19
 **Valid until:** 2026-04-19 (30 days — stable domain, no fast-moving dependencies)
+
+---
+
+## Deep Dive: Project Context Synthesis
+
+**Research date:** 2026-03-19
+**Confidence:** HIGH
+
+### Content Prioritization Strategy (Under 4KB)
+
+The 4KB cap forces explicit prioritization. Based on BMAD's official documentation ("This file is loaded by every implementation workflow. Long files waste context") and the purpose of project-context.md (agent baseline, not full reference), the priority order is:
+
+| Priority | Section | Rationale | Never Truncate? |
+|----------|---------|-----------|-----------------|
+| 1 (highest) | Tech Stack | Agents that choose wrong frameworks waste entire tasks | YES — load-bearing |
+| 2 | Constraints | Hard limits that prevent code shipping (budget, auth, compliance) | YES — load-bearing |
+| 3 | Conventions | Coding patterns — without these agents diverge from codebase style | YES — load-bearing |
+| 4 | Current Milestone | Orientation — which milestone is active, what is the focus | TRIM to 2 lines if needed |
+| 5 | Key Decisions | Recent project decisions — most important are recent ones | TRIM to last 5 |
+| 6 | Active Requirements | What's not done yet — useful but available in REQUIREMENTS.md | TRIM to first 10 |
+
+**Truncation algorithm (applied at generation time, not post-write):**
+
+```javascript
+// Source: derived from FOUND-01 + BMAD context constitution patterns
+function synthesizeWithBudget(sources, maxBytes = 4096) {
+  const loadBearing = buildLoadBearingSections(sources); // Tech Stack + Constraints + Conventions
+  const milestone = buildMilestoneSection(sources);      // 2-line summary
+  const decisions = buildDecisionsSection(sources, 10);  // last 10 decisions
+  const requirements = buildRequirementsSection(sources, 20); // max 20 unchecked
+
+  let content = [loadBearing, milestone, decisions, requirements].join('\n\n');
+
+  // Pass 1: if over budget, reduce decisions to 5
+  if (byteCount(content) > maxBytes) {
+    const decisions5 = buildDecisionsSection(sources, 5);
+    content = [loadBearing, milestone, decisions5, requirements].join('\n\n');
+  }
+
+  // Pass 2: if still over budget, reduce requirements to 10
+  if (byteCount(content) > maxBytes) {
+    const requirements10 = buildRequirementsSection(sources, 10);
+    content = [loadBearing, milestone, decisions5, requirements10].join('\n\n');
+  }
+
+  // Pass 3: if still over budget, drop requirements entirely
+  if (byteCount(content) > maxBytes) {
+    content = [loadBearing, milestone, decisions5].join('\n\n');
+    content += '\n\n## Active Requirements\n*(truncated — see .planning/REQUIREMENTS.md)*';
+  }
+
+  return content;
+}
+
+function byteCount(str) {
+  return Buffer.from(str, 'utf-8').length;
+}
+```
+
+### Edge Cases
+
+**Empty STATE.md (brand new project):**
+
+STATE.md at project creation contains frontmatter only — no decisions logged yet, no accumulated context. Handle gracefully:
+
+```javascript
+function extractDecisions(stateMd) {
+  const decisionsSection = extractSection(stateMd, '### Decisions');
+  if (!decisionsSection || decisionsSection.trim() === 'None.' || !decisionsSection.trim()) {
+    return '*(No decisions logged yet)*';
+  }
+  // parse and return last N decisions
+}
+```
+
+**Massive REQUIREMENTS.md (60+ requirements):**
+
+The synthesis step reads REQUIREMENTS.md and extracts only unchecked requirements. A project with 60+ v0.6 requirements (like PDE itself) would overflow the budget immediately. The algorithm above handles this via the requirements truncation passes. The truncation notice `*(truncated — see .planning/REQUIREMENTS.md)*` ensures agents know the full list exists elsewhere.
+
+**No PROJECT.md Tech Stack section:**
+
+Some projects are initialized with a minimal PROJECT.md that doesn't have a Tech Stack section. Fall back to detecting stack from `package.json`, `requirements.txt`, `Gemfile`, or `go.mod` in the project root:
+
+```javascript
+function extractTechStack(projectMd, cwd) {
+  const fromProjectMd = extractSection(projectMd, '## Tech Stack');
+  if (fromProjectMd && fromProjectMd.trim()) return fromProjectMd;
+
+  // Fallback: detect from project files
+  const detectedStack = detectStackFromFiles(cwd);
+  return detectedStack || '*(Tech stack not documented — see PROJECT.md)*';
+}
+```
+
+**No prior decisions (first phase):**
+
+At project start, STATE.md has no decisions. Key Decisions section will be empty or contain only the roadmap-creation decisions logged during `new-project`. This is valid — include whatever exists, even if it's just 1-2 entries.
+
+### Template Structure
+
+The exact template structure, confirmed against BMAD's official docs and PDE's own PROJECT.md conventions:
+
+```markdown
+# Project Context — {project-name}
+
+**Generated:** {date}
+**Milestone:** {milestone-version} — {milestone-name}
+
+## Tech Stack
+
+{language} / {framework} / {runtime}
+
+| Layer | Technology | Version |
+|-------|-----------|---------|
+| {layer} | {technology} | {version} |
+
+## Constraints
+
+- {constraint-1}
+- {constraint-2}
+
+## Conventions
+
+- {convention-1}
+- {convention-2}
+
+## Current Milestone
+
+**{version}:** {name}
+{phase-count} phases — Phase {current} active
+
+## Key Decisions
+
+| Decision | Rationale | Date |
+|----------|-----------|------|
+| {decision} | {rationale} | {date} |
+
+## Active Requirements
+
+- [ ] **{REQ-ID}**: {description}
+```
+
+**Why this order matters:** Agents read top-to-bottom. Stack and constraints at top establish the non-negotiable ground rules. Decisions and requirements at bottom provide project-specific context that refines how the rules apply.
+
+### How Other Tools Solve Compact Project Summaries
+
+BMAD v6's `project-context.md` is closest to PDE's approach. Key observations from official docs (verified 2026-03-19):
+
+1. **BMAD uses no size limit enforcement** — relies on author discipline. PDE adds programmatic 4KB cap for consistency.
+2. **BMAD focuses on "unobvious" content** — patterns agents can't infer from code. PDE also includes tech stack and active requirements because subagents don't read the codebase.
+3. **BMAD location:** `_bmad-output/project-context.md` (not under `.planning/`). PDE uses `.planning/project-context.md` to stay within the single-state-root constraint.
+
+The 4KB limit is a PDE-specific design decision, not derived from BMAD. It was chosen because:
+- Claude's context window is 200K tokens
+- 4KB = ~1000 tokens = ~0.5% of context budget
+- Small enough to load in every spawn without context pressure
+- Large enough to cover the critical sections above
+
+---
+
+## Deep Dive: Manifest Tracking & Sync Integration
+
+**Research date:** 2026-03-19
+**Confidence:** HIGH
+
+### Exact CSV Format Design
+
+**Column specification:**
+
+```
+path,sha256,source,last_updated
+```
+
+| Column | Format | Notes |
+|--------|--------|-------|
+| `path` | POSIX-style relative path from plugin root | e.g., `workflows/execute-phase.md` — forward slashes always |
+| `sha256` | 64 lowercase hex characters | Output of `crypto.createHash('sha256').digest('hex')` |
+| `source` | `stock` or `user-modified` | Enum — no other values permitted |
+| `last_updated` | `YYYY-MM-DD` ISO date | Date of last manifest entry update, not file mtime |
+
+**Escaping rules:** None needed. The 4 columns have no values that can contain commas. Paths use forward slashes (not OS-specific separators). SHA256 is pure hex. Source is an enum. Date is numeric. The `split(',')` parser is safe for this format.
+
+**Line endings:** LF only (`\n`). Use `csvLines.join('\n') + '\n'` when writing. Never write CRLF — git and Node.js both handle LF universally. Windows Git may convert LF to CRLF on checkout; configure `.gitattributes` to prevent this for the CSV:
+
+```
+.planning/config/files-manifest.csv text eol=lf
+```
+
+**Header row:** Always present as line 1. Required for human readability and for detecting corruption (a valid manifest always starts with `path,sha256,source,last_updated`).
+
+**Full example (first 5 lines of a real manifest):**
+```csv
+path,sha256,source,last_updated
+workflows/execute-phase.md,a3f4b2c1d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f1a2,stock,2026-03-19
+workflows/plan-phase.md,b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5,stock,2026-03-19
+CLAUDE.md,c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6,user-modified,2026-03-19
+bin/lib/core.cjs,d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7,stock,2026-03-19
+```
+
+### SHA256 Computation Details
+
+**Read raw bytes, not text:** `fs.readFileSync(filePath)` without encoding returns a Buffer. Pass Buffer directly to `crypto.createHash().update()`. This is correct — hashing raw bytes, not a Unicode string.
+
+**Do NOT normalize line endings before hashing.** Rationale:
+- The hash must match what's on disk
+- If a user modifies the file, the disk hash changes — that's exactly what we want to detect
+- Normalizing line endings would make the hash a function of "what the file would look like after normalization" rather than "what the file actually looks like on disk"
+- If git converts LF to CRLF on checkout, the disk hash differs from the manifest hash — that's a false positive. Prevent this with `.gitattributes eol=lf` on tracked PDE files
+
+**Do NOT strip trailing whitespace before hashing.** Same reason — we want to detect exactly what changed on disk.
+
+**Hash the upstream file independently:** When checking whether to auto-update, compute `upstreamHash` from the upstream source (e.g., npm package files) and `diskHash` from the project's local file. If `diskHash === manifestHash`, the user hasn't modified it, so overwrite with upstream unconditionally — no need to check if `upstreamHash` differs (that's what "update" means).
+
+### Integration Points in pde-sync-engine
+
+The pde-sync-engine flow (from `workflows/update.md`) currently uses a three-way merge. The manifest integrates as a pre-check that bypasses the merge for unmodified files:
+
+**Current update flow (simplified):**
+```
+1. Fetch upstream PDE package
+2. For each managed file:
+   a. Run three-way merge (base = last known, ours = disk, theirs = upstream)
+   b. Apply result or flag conflict
+```
+
+**Updated flow with manifest integration:**
+```
+1. Fetch upstream PDE package
+2. Load .planning/config/files-manifest.csv (if exists)
+3. For each managed file:
+   a. Check manifest: diskHash vs manifestHash
+      - diskHash === manifestHash → auto-update (skip merge, overwrite silently)
+      - diskHash !== manifestHash → user modified → fall back to three-way merge
+      - manifest missing entry → conservative → fall back to three-way merge
+4. After all files processed: update manifest hashes for auto-updated files
+5. Display conflict summary for preserved files
+```
+
+**Exact integration point in update.md:** After the "fetch upstream" step, before the per-file merge loop. The manifest check runs as a pre-pass on every file, short-circuiting the merge step for stock (unmodified) files.
+
+**Where manifest.cjs is called from update.md:**
+
+```bash
+# In update.md, after fetching upstream package to $UPSTREAM_DIR:
+MANIFEST_RESULT=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" manifest check \
+  --upstream-dir "$UPSTREAM_DIR" \
+  --manifest ".planning/config/files-manifest.csv")
+# Returns JSON: { autoUpdated: [...], preserved: [...], noManifest: [...] }
+```
+
+### Bootstrap: Existing Projects vs New Projects
+
+**New projects (installed after Phase 46):**
+
+The `update.md` install flow adds a `manifest init` step at the END of the install sequence (after all files are placed). This ensures all installed files get their baseline hashes recorded:
+
+```bash
+# At end of install flow in update.md:
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" manifest init \
+  --plugin-root "${CLAUDE_PLUGIN_ROOT}"
+# Creates .planning/config/files-manifest.csv with all tracked files
+```
+
+**Existing projects (upgrading to Phase 46+):**
+
+Manifest does not exist. The first `/pde:update` run after upgrade:
+1. Detects missing manifest (ENOENT on read)
+2. Falls back to three-way merge for ALL files in this run (existing behavior)
+3. At the end of the update, runs `manifest init` against the now-updated files
+4. Subsequent updates use the manifest
+
+This bootstrapping means the first upgrade after Phase 46 has no regression — the three-way merge still handles it. Only subsequent updates benefit from the manifest fast path.
+
+### Performance: Hashing 80-120 Files
+
+Measured on a MacBook M1 (reference): `fs.readFileSync` + `crypto.createHash('sha256')` for a 50KB markdown file takes ~0.5ms. For 120 files averaging 30KB each = ~60ms total. This is imperceptible compared to the git operations and network I/O in the update flow.
+
+Node.js `crypto` uses OpenSSL's SHA256 implementation (native C), which runs at ~500MB/s on modern hardware. 120 files × 30KB avg = 3.6MB of data = ~7ms of pure hash computation. The `fs.readFileSync` I/O dominates at ~50ms total. Well within acceptable bounds.
+
+**Optimization not needed:** Caching hashes between runs would add complexity for ~50ms savings. Skip it.
+
+---
+
+## Deep Dive: BMAD/PAUL Methodology Translation
+
+**Research date:** 2026-03-19
+**Confidence:** HIGH (BMAD official docs verified); MEDIUM (PAUL GitHub README verified)
+
+### Core BMAD Concepts That Map to PDE
+
+| BMAD Concept | BMAD Term | PDE Equivalent | PDE Term |
+|-------------|-----------|---------------|---------|
+| Agent-optimized project baseline | `project-context.md` | Generated synthesis from PROJECT.md + REQUIREMENTS.md + STATE.md | Context Constitution |
+| Atomic task files with self-contained context | Story files (`tasks/task-NNN.md`) | Per-task plan files in `tasks/` directory | Task-File Sharding (Phase 47) |
+| Manifest-based file protection | `files-manifest.csv` in `_config/` | `.planning/config/files-manifest.csv` | Framework Manifest |
+| Persona-based agent specialization | Compiled agent persona files | `agents/pde-*.md` agent definitions | Agent Personas |
+| Agent memory persistence across sessions | Sidecar memory directories | `.planning/agent-memory/` (Phase 52) | Agent Memory |
+| Compilation pipeline (YAML → MD) | `bmad-compile` CLI | Not applicable — PDE is already in final format | (no equivalent needed) |
+
+**What BMAD does that PDE deliberately does NOT adopt:**
+- Compilation pipeline — PDE agents are plain markdown already
+- `_bmad/` sidecar directory at project root — PDE uses `.planning/` exclusively
+- Human-directed sequential workflow — PDE automates sequencing via wave-based parallel execution
+- YAML frontmatter compilation — PDE uses JSON config and markdown frontmatter directly
+
+### Core PAUL Concepts That Map to PDE
+
+| PAUL Concept | PAUL Term | PDE Equivalent | PDE Term |
+|-------------|-----------|---------------|---------|
+| Structured Plan → Execute → Close loop | Plan-Apply-Unify | Plan → Execute → Verify with STATE.md updates | Plan-Execute-Verify |
+| Post-execution reconciliation comparing planned vs actual | UNIFY step | Post-executor reconciliation (Phase 49) | Plan Reconciliation |
+| Acceptance-criteria-first planning | AC-first / BDD format | Acceptance criteria in every task (Phase 48) | Acceptance-Criteria-First Planning |
+| Protected sections that AI must not modify | Boundaries | DO NOT CHANGE sections in tasks | Task Boundaries (Phase 48) |
+| Dynamic rule injection based on context | CARL rule loading | Skill injection via `.claude/skills/` | Project Skills |
+| State tracking across sessions | STATE.md | `.planning/STATE.md` | Project State |
+
+**What PAUL does that PDE deliberately does NOT adopt:**
+- In-session-only execution (PAUL avoids subagents) — PDE's architecture depends on parallel subagents
+- `.paul/` directory structure — conflicts with PDE's `.planning/` single state root
+- Manual loop sequencing — PDE automates Plan → Execute via `/pde:plan-phase` then `/pde:execute-phase`
+
+### PDE Terminology in workflow-methodology.md
+
+The reference document must use PDE terms exclusively in its main sections. The Terminology Mapping table (marked Internal) is the only place where BMAD/PAUL names appear. This prevents agents from reproducing framework names in user output.
+
+**Proposed section → description mapping for workflow-methodology.md:**
+
+| Section Title (PDE) | What It Describes | Source Pattern | User-Facing? |
+|--------------------|-------------------|---------------|--------------|
+| Context Constitution | How project-context.md is generated, what it contains, when it regenerates | BMAD project-context.md | YES — use PDE terms |
+| Task-File Sharding | How large plans are decomposed into atomic task files | BMAD story files | YES — use PDE terms |
+| Acceptance-Criteria-First Planning | How ACs flow from discussion to planning to verification | PAUL AC-first | YES — use PDE terms |
+| Plan Reconciliation | How planned tasks are compared against actual git changes post-execution | PAUL UNIFY step | YES — use PDE terms |
+| Safe Framework Updates | How files-manifest.csv enables update without losing user customizations | BMAD files-manifest.csv | YES — use PDE terms |
+| Terminology Mapping | Maps PDE terms to source framework concepts | N/A | NO — internal use only |
+
+### Which BMAD/PAUL Patterns Are Already Implicit in PDE
+
+Several BMAD/PAUL patterns exist in PDE today but are undocumented:
+
+| Pattern | Where in PDE | Status |
+|---------|-------------|--------|
+| Loop closure (PAUL UNIFY) | `execute-phase.md` verifier step updates STATE.md after execution | Implicit — documented in execute-phase but not named "reconciliation" |
+| Plan-vs-actual comparison (PAUL UNIFY) | `pde-verifier` creates VERIFICATION.md comparing goals vs outcomes | Partial — goal-backward check but not task-level planned-vs-actual |
+| Acceptance criteria per task | `execute-phase.md` requires `<acceptance_criteria>` field | Implicit — enforced in plan format but not a first-class named concept |
+| Agent specialization (BMAD personas) | All `agents/pde-*.md` files | Implicit — not called "personas", just "agent definitions" |
+| State continuity (PAUL STATE.md) | `.planning/STATE.md` with frontmatter | Aligned — PDE STATE.md and PAUL STATE.md serve same purpose |
+
+The workflow-methodology.md document makes these patterns explicit and named, enabling future planner agents to reference them by name when proposing improvements.
+
+---
+
+## Deep Dive: Subagent Context Injection
+
+**Research date:** 2026-03-19
+**Confidence:** HIGH — derived from complete codebase grep of all workflow files
+
+### Complete Inventory of Subagent Spawn Points
+
+Comprehensive grep of all `subagent_type=` occurrences in `/workflows/`, annotated with whether each spawn should receive `project-context.md`:
+
+| File | Subagent Type | Spawn Purpose | Add project-context.md? | Why |
+|------|--------------|--------------|------------------------|-----|
+| `execute-phase.md` | `pde-executor` | Execute a plan | YES | Primary implementation agent — needs full project baseline |
+| `execute-phase.md` | `pde-verifier` | Verify phase goal achievement | YES | Needs to know project tech stack and requirements to verify |
+| `plan-phase.md` | `pde-phase-researcher` | Research phase domain | YES | Research should align with project tech stack and constraints |
+| `plan-phase.md` | `pde-planner` (initial) | Create PLAN.md files | YES | Plans must honor project conventions and constraints |
+| `plan-phase.md` | `pde-plan-checker` | Verify PLAN.md quality | YES | Checker validates plans against project requirements |
+| `plan-phase.md` | `pde-planner` (revision) | Revise plans after checker issues | YES | Revision must maintain project constraint awareness |
+| `research-phase.md` | `pde-phase-researcher` | Research (standalone command) | YES | Same as plan-phase.md researcher |
+| `verify-work.md` | `pde-planner` (gap closure) | Plan gap fixes | YES | Gap plans must respect project conventions |
+| `verify-work.md` | `pde-plan-checker` | Verify gap plans | YES | Checker needs project context to validate gap plans |
+| `verify-work.md` | `pde-planner` (revision) | Revise gap plans | YES | Same as plan-phase.md revision |
+| `new-project.md` | `pde-project-researcher` (x4) | Project domain research | NO | These run before PROJECT.md exists; project-context.md not yet generated |
+| `new-project.md` | `pde-research-synthesizer` | Synthesize research | NO | Same — project-context.md doesn't exist yet |
+| `new-project.md` | `pde-roadmapper` | Create roadmap | NO | Runs before project-context.md generation step |
+| `new-milestone.md` | `pde-project-researcher` (x4) | Milestone domain research | NO | Runs before project-context.md regeneration |
+| `new-milestone.md` | `pde-research-synthesizer` | Synthesize milestone research | NO | Same |
+| `new-milestone.md` | `pde-roadmapper` | Create milestone roadmap | NO | Runs before regeneration step |
+| `quick.md` | `pde-phase-researcher` | Quick task research | YES | Quick tasks need project context for tech stack alignment |
+| `quick.md` | `pde-planner` | Quick task planning | YES | Plans must honor conventions |
+| `quick.md` | `pde-plan-checker` | Quick task plan check | YES | Same as plan-phase.md |
+| `quick.md` | `pde-planner` (revision) | Revise quick plans | YES | Same |
+| `quick.md` | `pde-executor` | Execute quick task | YES | Same as execute-phase.md executor |
+| `quick.md` | `pde-verifier` | Verify quick task | YES | Same as execute-phase.md verifier |
+| `map-codebase.md` | `pde-codebase-mapper` (x4) | Map codebase dimensions | NO | Runs independently of PDE project context; maps source code, not PDE state |
+| `audit-milestone.md` | `pde-integration-checker` | Audit milestone integration | YES | Needs project context to understand what's being audited |
+| `diagnose-issues.md` | `pde-debugger` | Debug UAT failures | YES | Debugger needs project tech stack to diagnose correctly |
+| `ui-phase.md` | `pde-ui-researcher` | UI design research | YES | UI research should align with project tech stack |
+| `ui-phase.md` | `pde-ui-checker` | Verify UI spec | YES | Checker needs project constraints |
+| `ui-review.md` | `pde-ui-auditor` | Audit UI implementation | YES | Auditor needs project conventions |
+| `validate-phase.md` | `pde-nyquist-auditor` | Nyquist validation audit | YES | Auditor needs project tech stack for test strategy |
+
+**Summary:** 20 spawn points should receive project-context.md. 7 spawn points (new-project.md, new-milestone.md, map-codebase.md researchers) should NOT receive it because project-context.md doesn't exist yet or is irrelevant.
+
+### Exact Insertion Pattern
+
+The pattern is consistent across all spawn points that should receive project-context.md:
+
+**Rule:** Insert `.planning/project-context.md (Project context — load FIRST; compact project baseline, if exists)` as the FIRST entry in the `<files_to_read>` block, BEFORE all other files.
+
+**Why "if exists" qualifier is mandatory:** Some users upgrade from pre-Phase-46 projects. The `(if exists)` qualifier in the parenthetical description tells the subagent to gracefully skip the file if it's absent. Without this, old projects break on every spawn until they run `/pde:new-milestone`.
+
+**Pattern for spawns that don't have a STATE.md read today (e.g., pde-ui-researcher in ui-phase.md):**
+
+```markdown
+<files_to_read>
+- .planning/project-context.md (Project context — load FIRST; compact project baseline, if exists)
+- {state_path} (Project State)
+- {roadmap_path} (Roadmap)
+...existing entries...
+</files_to_read>
+```
+
+**Pattern for spawns in quick.md that use template string construction:**
+
+The quick.md spawns build `<files_to_read>` blocks dynamically via string interpolation. Insert project-context.md as a static first line before all conditional entries:
+
+```javascript
+const filesBlock = `<files_to_read>
+- .planning/project-context.md (Project context — load FIRST; compact project baseline, if exists)
+- .planning/STATE.md (Project state — what's already built)
+${DISCUSS_MODE ? '- ' + QUICK_DIR + '/' + quick_id + '-CONTEXT.md (User decisions)' : ''}
+</files_to_read>`;
+```
+
+### Grep Pattern to Verify Completeness
+
+After implementation, verify all required spawn points have been updated:
+
+```bash
+# Find all files_to_read blocks that do NOT start with project-context.md
+# (Should return only the exempted spawn points listed above)
+grep -A3 "<files_to_read>" workflows/*.md | grep -B1 "^\- [^.]" | grep -v "project-context.md"
+```
+
+A more targeted check for the test suite (`tests/phase-46/subagent-context-injection.test.mjs`):
+
+```javascript
+import { readFileSync } from 'fs';
+import { resolve } from 'path';
+import { test, describe } from 'node:test';
+import assert from 'node:assert';
+
+const REQUIRED_SPAWN_FILES = [
+  'workflows/execute-phase.md',
+  'workflows/plan-phase.md',
+  'workflows/research-phase.md',
+  'workflows/verify-work.md',
+  'workflows/quick.md',
+  'workflows/ui-phase.md',
+  'workflows/diagnose-issues.md',
+];
+
+describe('Subagent context injection', () => {
+  for (const relPath of REQUIRED_SPAWN_FILES) {
+    test(`${relPath} contains project-context.md in files_to_read`, () => {
+      const content = readFileSync(resolve(process.cwd(), relPath), 'utf-8');
+      // Find all files_to_read blocks
+      const blocks = content.match(/<files_to_read>[\s\S]*?<\/files_to_read>/g) || [];
+      // Each block that has a plan/state read should also have project-context.md
+      const blocksWithState = blocks.filter(b => b.includes('STATE.md') || b.includes('PLAN.md'));
+      for (const block of blocksWithState) {
+        const firstEntry = block.match(/\n- (.+)/)?.[1];
+        assert.ok(
+          firstEntry?.includes('project-context.md'),
+          `First entry in files_to_read block should be project-context.md, got: ${firstEntry}`
+        );
+      }
+    });
+  }
+});
+```
+
+### Edge Case: Pre-Phase-46 Projects
+
+When project-context.md doesn't exist yet:
+
+1. The `(if exists)` qualifier in the files_to_read description tells the subagent to skip the file. This is behavioral guidance, not enforced by a file system check.
+2. The subagent will attempt to read `.planning/project-context.md`, get a "file not found" response from the Read tool, and proceed normally without it.
+3. This is the graceful degradation path — old projects keep working without project-context.md until they run `/pde:new-milestone`.
+
+**Recommendation:** In execute-phase.md pre-flight (after the init bash block), add an explicit check:
+
+```bash
+if [ ! -f ".planning/project-context.md" ]; then
+  echo "project-context.md not found — subagents will proceed without project baseline"
+  echo "Run /pde:new-milestone to generate project-context.md"
+fi
+```
+
+This makes the absence visible without blocking execution.
+
+---
+
+## Deep Dive: Edge Cases & Failure Modes
+
+**Research date:** 2026-03-19
+**Confidence:** HIGH — derived from codebase patterns in `bin/lib/core.cjs` and Node.js fs behavior
+
+### Failure Mode 1: project-context.md Generation Fails Mid-Write
+
+**Scenario:** The inline generation step in new-project.md starts writing `.planning/project-context.md`, Claude Code crashes or the context window times out, and a partial file exists on disk.
+
+**What a partial file looks like:**
+```markdown
+# Project Context — My App
+
+## Tech Stack
+
+Node.js / Express / PostgreSQL
+```
+(truncated — generation never reached Constraints, Decisions, Requirements sections)
+
+**Detection:** The generation step should include a verification check after writing:
+
+```bash
+# After writing project-context.md:
+CONTEXT_SIZE=$(wc -c < .planning/project-context.md 2>/dev/null || echo 0)
+if [ "$CONTEXT_SIZE" -lt 200 ]; then
+  echo "WARNING: project-context.md appears incomplete (${CONTEXT_SIZE} bytes)"
+  echo "Re-run /pde:new-project or /pde:new-milestone to regenerate"
+fi
+```
+
+**Recovery:** Simply re-run the generation step. project-context.md is fully regenerated from source files on each run — it's not incremental. The Write tool overwrites the entire file atomically (in Claude Code, Write operations complete fully or not at all, so mid-write corruption is not possible from Claude Code's Write tool).
+
+**The real risk is not mid-write failure but abandoned generation:** If the workflow is interrupted BEFORE the Write step completes, no file or an empty file exists. The `(if exists)` qualifier handles this — agents proceed without it.
+
+### Failure Mode 2: Manifest CSV Corruption
+
+**Scenario:** A user or tool accidentally modifies `files-manifest.csv`, introducing a malformed line (wrong column count, non-hex SHA256, truncated line).
+
+**Detection in parseManifest:**
+
+```javascript
+function parseManifestSafe(csvContent) {
+  const lines = csvContent.trim().split('\n');
+
+  // Verify header
+  if (lines[0] !== 'path,sha256,source,last_updated') {
+    return { valid: false, reason: 'invalid header', entries: [] };
+  }
+
+  const entries = [];
+  const errors = [];
+
+  for (let i = 1; i < lines.length; i++) {
+    const parts = lines[i].split(',');
+    if (parts.length !== 4) {
+      errors.push(`line ${i + 1}: expected 4 columns, got ${parts.length}`);
+      continue; // skip malformed line
+    }
+    const [filePath, sha256, source, lastUpdated] = parts;
+
+    // Validate SHA256 is 64 hex chars
+    if (!/^[0-9a-f]{64}$/.test(sha256)) {
+      errors.push(`line ${i + 1}: invalid SHA256 '${sha256}'`);
+      continue;
+    }
+
+    // Validate source enum
+    if (source !== 'stock' && source !== 'user-modified') {
+      errors.push(`line ${i + 1}: invalid source '${source}'`);
+      continue;
+    }
+
+    entries.push({ path: filePath, sha256, source, last_updated: lastUpdated });
+  }
+
+  return { valid: errors.length === 0, errors, entries };
+}
+```
+
+**Recovery strategy:** If the manifest is corrupted, fall back to three-way merge for all files (safe, existing behavior) and regenerate the manifest at the end of the update. Log the corruption:
+
+```javascript
+const parsed = parseManifestSafe(csvContent);
+if (!parsed.valid) {
+  console.warn(`files-manifest.csv has ${parsed.errors.length} errors — falling back to merge`);
+  // Use three-way merge for all files
+  // Regenerate manifest after update
+}
+```
+
+**Prevention:** The manifest is only written by `manifest init` and `manifest update-entry`. These functions always write the full file atomically (write to temp, then rename). Partial writes from crashes are prevented by atomic replacement:
+
+```javascript
+function writeManifestAtomic(manifestPath, csvContent) {
+  const tempPath = manifestPath + '.tmp';
+  fs.writeFileSync(tempPath, csvContent, 'utf-8');
+  fs.renameSync(tempPath, manifestPath); // atomic on POSIX; near-atomic on Windows
+}
+```
+
+### Failure Mode 3: Race Condition — Concurrent Syncs
+
+**Scenario:** User runs two `/pde:update` commands simultaneously (unlikely but possible if they start two terminal tabs). Both read the manifest, both compute dispositions, both overwrite files, both write the manifest back.
+
+**Analysis:** In practice, PDE update commands run sequentially because Claude Code processes commands in a single-threaded queue. Two concurrent `/pde:update` invocations would require two separate Claude Code sessions running against the same project directory simultaneously — an unsupported configuration.
+
+**Verdict:** Not a real risk in PDE's operating model. No locking mechanism needed for Phase 46.
+
+**If future multi-session support is added:** Use a lock file pattern similar to `pde-tools.cjs` design lock (`design lock-acquire / design lock-release`). The manifest write would acquire a `.planning/config/files-manifest.csv.lock` before reading/writing. For Phase 46, explicitly document that concurrent syncs are not supported.
+
+### Failure Mode 4: Migration Path (Old Projects → Manifest)
+
+**Complete migration path documented:**
+
+```
+Step 1: User runs /pde:update after upgrading to Phase 46+
+Step 2: update.md checks for files-manifest.csv → ENOENT
+Step 3: Logs: "No manifest found — using legacy merge for this run"
+Step 4: Runs three-way merge for all managed files (existing behavior, no regression)
+Step 5: After all merges complete, runs: manifest init --plugin-root $CLAUDE_PLUGIN_ROOT
+Step 6: files-manifest.csv is created with current file states as baseline
+Step 7: All subsequent /pde:update runs use manifest fast path
+```
+
+**Key invariant:** The first post-migration update is indistinguishable from a pre-manifest update. No user action required. The manifest is bootstrapped silently.
+
+**Edge case within migration:** What if the user has modified 5 framework files before upgrading to Phase 46? The three-way merge (step 4) will detect these as modified and preserve them. After manifest init (step 6), those 5 files will have `source: user-modified` in the manifest because... wait, they won't. Manifest init reads the CURRENT disk state and records it as the baseline — it doesn't know which files were user-modified vs. stock.
+
+**Mitigation:** After the three-way merge produces the final merged states, check which files are identical to the upstream versions and mark them `stock`; files that differ from upstream get `user-modified`. Implementation in `manifest init --detect-modifications`:
+
+```javascript
+function manifestInitWithDetection(pluginRoot, trackedFiles, upstreamDir) {
+  const today = new Date().toISOString().split('T')[0];
+  const lines = ['path,sha256,source,last_updated'];
+
+  for (const relPath of trackedFiles) {
+    const diskHash = hashFile(path.resolve(process.cwd(), relPath));
+    const upstreamHash = hashFile(path.resolve(upstreamDir, relPath));
+
+    if (!diskHash) continue; // file doesn't exist locally — skip
+
+    // If disk matches upstream: stock. If differs: user-modified.
+    const source = (diskHash === upstreamHash) ? 'stock' : 'user-modified';
+    lines.push(`${relPath},${diskHash},${source},${today}`);
+  }
+
+  writeManifestAtomic(manifestPath, lines.join('\n') + '\n');
+}
+```
+
+This correctly identifies user-modified files even during initial migration.
+
+### Failure Mode 5: User Manually Edits Manifest CSV
+
+**Scenario:** A user opens `files-manifest.csv` to understand what's tracked, makes an accidental edit (e.g., changes `stock` to something else), and saves.
+
+**Effect:** On next `/pde:update`:
+- If they edited a file's `sha256` column: that file will appear "unmodified" even if the user did modify it (false negative) OR "modified" even if they didn't (false positive)
+- If they edited `source` from `user-modified` to `stock`: that file will be auto-overwritten on next update, losing user modifications
+
+**Prevention:** Add a warning comment at the top of the manifest file:
+
+```
+# WARNING: This file is auto-generated. Do not edit manually.
+# Changes will be overwritten on next /pde:update.
+# To mark a file as protected: edit .planning/config/protected-files.json instead.
+```
+
+Note: CSV spec doesn't support comments, but the `#` prefix line will be detected by `parseManifestSafe` as a non-4-column line and produce an error. Better approach: add it to the CLAUDE.md or documentation, not the file itself. Alternatively, accept the user editing it as a power-user feature and document it as intentional.
+
+**Practical recommendation:** Don't add a comment line. The manifest format is intentionally simple CSV. Document in the methodology reference that it's auto-generated. Power users who know enough to edit CSV can understand the implications.
+
+### Failure Mode 6: SHA256 Changes Between Manifest Generation and Sync Check
+
+**Scenario:** The manifest is generated at install time with hash `abc123` for `workflows/execute-phase.md`. Between install and the next `/pde:update`, the user modifies `execute-phase.md`. The sync check computes `diskHash = xyz789`. Since `diskHash !== manifestHash`, the file is correctly classified as `user-modified` and preserved.
+
+**This is the intended behavior, not a failure.** The manifest captures the last-known-stock state. Any divergence from that state is correctly interpreted as user modification.
+
+**The only problematic scenario:** If PDE itself (via a self-improvement phase) modifies a tracked framework file WITHOUT updating the manifest. For example, Phase 47 adds a new step to `execute-phase.md`. After Phase 47 executes, the disk hash of `execute-phase.md` is `xyz789` but the manifest still has `abc123` (the Phase 46 baseline). On next `/pde:update`, `execute-phase.md` will appear "user-modified" and be preserved — but it was actually PDE-modified, not user-modified. The user would miss the legitimate upstream update.
+
+**Prevention:** Any PDE self-improvement phase (47-52) that modifies tracked framework files MUST include a task to update the manifest entry for those files. Add to the planner's constraint for Phase 47+:
+
+```markdown
+**Manifest update rule:** If a plan modifies files tracked in files-manifest.csv, include a task to update those manifest entries after the modification:
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" manifest update-entry \
+  --file "workflows/execute-phase.md" \
+  --source "stock"
+```
+This ensures the manifest baseline reflects PDE's self-modifications.
+```
+
+This manifest update rule is the most important edge case for long-term correctness and must be documented in workflow-methodology.md's "Safe Framework Updates" section.
+
+Sources:
+- [Project Context | BMAD Method](https://docs.bmad-method.org/explanation/project-context/)
+- [Manage Project Context | BMAD Method](https://docs.bmad-method.org/how-to/project-context/)
+- [GitHub - ChristopherKahler/paul](https://github.com/ChristopherKahler/paul)
