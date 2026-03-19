@@ -26,14 +26,14 @@ Requirements for MCP Integrations milestone. Each maps to roadmap phases.
 ### Linear Integration
 
 - [x] **LIN-01**: User can sync Linear issues to REQUIREMENTS.md via `/pde:sync --linear`
-- [ ] **LIN-02**: User can map Linear cycles/milestones to ROADMAP.md phases
-- [ ] **LIN-03**: User can create Linear issues from handoff artifacts with confirmation gate
+- [x] **LIN-02**: User can map Linear cycles/milestones to ROADMAP.md phases
+- [x] **LIN-03**: User can create Linear issues from handoff artifacts with confirmation gate
 
 ### Jira Integration
 
 - [x] **JIRA-01**: User can sync Jira issues to REQUIREMENTS.md via `/pde:sync --jira`
-- [ ] **JIRA-02**: User can map Jira epics to REQUIREMENTS.md categories
-- [ ] **JIRA-03**: User can create Jira tickets from handoff artifacts with confirmation gate
+- [x] **JIRA-02**: User can map Jira epics to REQUIREMENTS.md categories
+- [x] **JIRA-03**: User can create Jira tickets from handoff artifacts with confirmation gate
 - [x] **JIRA-04**: User can toggle between Linear and Jira via `task_tracker` config setting
 
 ### Figma Integration
@@ -102,11 +102,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | GH-03 | Phase 40 | Complete |
 | GH-04 | Phase 40 | Complete |
 | LIN-01 | Phase 41 | Complete |
-| LIN-02 | Phase 41 | Pending |
-| LIN-03 | Phase 41 | Pending |
+| LIN-02 | Phase 41 | Complete |
+| LIN-03 | Phase 41 | Complete |
 | JIRA-01 | Phase 41 | Complete |
-| JIRA-02 | Phase 41 | Pending |
-| JIRA-03 | Phase 41 | Pending |
+| JIRA-02 | Phase 41 | Complete |
+| JIRA-03 | Phase 41 | Complete |
 | JIRA-04 | Phase 41 | Complete |
 | FIG-01 | Phase 42 | Pending |
 | FIG-02 | Phase 42 | Pending |
