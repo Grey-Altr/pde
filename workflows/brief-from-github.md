@@ -53,8 +53,14 @@ const conn = b.loadConnections();
 const gh = conn.connections && conn.connections.github;
 const repo = gh && gh.repo || '';
 const status = gh && gh.status || 'not_configured';
-const lookup = b.call('github:get-issue', {});
-process.stdout.write(JSON.stringify({ repo, status, toolName: lookup.toolName }) + '\n');
+let toolName = '';
+try {
+  const lookup = b.call('github:get-issue', {});
+  toolName = lookup.toolName;
+} catch (err) {
+  toolName = '';
+}
+process.stdout.write(JSON.stringify({ repo, status, toolName }) + '\n');
 EOF
 ```
 
