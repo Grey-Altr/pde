@@ -1,8 +1,12 @@
 /**
  * Gap 1: INFRA (TOOL_MAP)
  * Verifies TOOL_MAP has 8 GitHub entries and bridge.call() resolves them correctly.
- * Also verifies probe('github') returns probe_deferred (not probe_not_implemented),
- * and that other servers (linear, figma, pencil, atlassian) still have probeTool: null.
+ * Also verifies probe('github') returns probe_deferred (not probe_not_implemented).
+ *
+ * NOTE (Phase 41 update): linear and atlassian probeTool values were populated in
+ * Phase 41. Tests for those (previously asserting null) have been updated to assert
+ * the correct non-null values. figma and pencil remain null (Phases 42-43).
+ * TOOL_MAP total is now 22 (8 GitHub + 7 Linear + 7 Atlassian).
  */
 
 import { describe, it } from 'node:test';
@@ -16,9 +20,14 @@ const req = createRequire(import.meta.url);
 const bridge = req(path.resolve(__dirname, '../../bin/lib/mcp-bridge.cjs'));
 
 describe('TOOL_MAP has 8 GitHub entries (Gap 1 — INFRA)', () => {
-  it('TOOL_MAP contains exactly 8 GitHub canonical entries', () => {
+  it('TOOL_MAP contains exactly 22 total entries (8 GitHub + 7 Linear + 7 Atlassian added in Phase 41)', () => {
     const keys = Object.keys(bridge.TOOL_MAP);
-    assert.equal(keys.length, 8, `Expected 8 TOOL_MAP entries, got ${keys.length}: ${keys.join(', ')}`);
+    assert.equal(keys.length, 22, `Expected 22 TOOL_MAP entries after Phase 41, got ${keys.length}: ${keys.join(', ')}`);
+  });
+
+  it('TOOL_MAP contains exactly 8 GitHub canonical entries', () => {
+    const githubKeys = Object.keys(bridge.TOOL_MAP).filter(k => k.startsWith('github:'));
+    assert.equal(githubKeys.length, 8, `Expected 8 GitHub TOOL_MAP entries, got ${githubKeys.length}: ${githubKeys.join(', ')}`);
   });
 
   it('bridge.call resolves github:list-issues to mcp__github__list_issues', () => {
@@ -74,19 +83,24 @@ describe('TOOL_MAP has 8 GitHub entries (Gap 1 — INFRA)', () => {
     assert.equal(result.status, 'probe_deferred');
   });
 
-  it('linear probeTool is still null (other servers unaffected)', () => {
-    assert.equal(bridge.APPROVED_SERVERS.linear.probeTool, null);
+  it('linear probeTool is mcp__linear__list_issues (populated in Phase 41)', () => {
+    // Phase 41 set linear.probeTool — probe_deferred is now returned, not not_configured
+    assert.equal(bridge.APPROVED_SERVERS.linear.probeTool, 'mcp__linear__list_issues');
   });
 
-  it('figma probeTool is still null (other servers unaffected)', () => {
+  it('figma probeTool is still null (Phase 42 fills)', () => {
     assert.equal(bridge.APPROVED_SERVERS.figma.probeTool, null);
   });
 
-  it('pencil probeTool is still null (other servers unaffected)', () => {
+  it('pencil probeTool is still null (Phase 43 fills)', () => {
     assert.equal(bridge.APPROVED_SERVERS.pencil.probeTool, null);
   });
 
-  it('atlassian probeTool is still null (other servers unaffected)', () => {
-    assert.equal(bridge.APPROVED_SERVERS.atlassian.probeTool, null);
+  it('atlassian probeTool is mcp__atlassian__getVisibleJiraProjectsList (populated in Phase 41)', () => {
+    // Phase 41 set atlassian.probeTool — probe_deferred is now returned, not not_configured
+    assert.equal(
+      bridge.APPROVED_SERVERS.atlassian.probeTool,
+      'mcp__atlassian__getVisibleJiraProjectsList'
+    );
   });
 });
