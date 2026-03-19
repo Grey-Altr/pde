@@ -106,7 +106,7 @@ Full details: .planning/milestones/v0.5-ROADMAP.md
 - [x] **Phase 46: Methodology Foundation** - Project context constitution, file-hash manifest, and methodology reference document (completed 2026-03-19)
 - [x] **Phase 47: Story-File Sharding** - Planner emits per-task task files; executor loads one at a time for 90% context reduction (completed 2026-03-19)
 - [x] **Phase 48: AC-First Planning** - Acceptance criteria section in PLAN.md; task-to-AC links; task boundary enforcement (completed 2026-03-19)
-- [ ] **Phase 49: Reconciliation & HALT Checkpoints** - Post-execution reconciliation against git; RECONCILIATION.md; high-risk task pause gates
+- [x] **Phase 49: Reconciliation & HALT Checkpoints** - Post-execution reconciliation against git; RECONCILIATION.md; high-risk task pause gates (completed 2026-03-19)
 - [ ] **Phase 50: Readiness Gate** - /pde:check-readiness command with PASS/CONCERNS/FAIL; blocks execute-phase on FAIL
 - [ ] **Phase 51: Workflow Tracking** - Per-task status tracking, task-level /pde:progress, session HANDOFF.md
 - [ ] **Phase 52: Agent Enhancements** - Assumptions capture, analyst persona, analyst-to-brief pipeline, per-agent persistent memory
@@ -166,7 +166,7 @@ Plans:
   2. RECONCILIATION.md reports tasks completed vs. planned, AC satisfaction status per task, deviations from the plan, and unplanned changes detected in git
   3. Tasks tagged risk:high in their task-NNN.md cause the executor to display a confirmation prompt before starting the task and again after completing it, waiting for user acknowledgment before proceeding
   4. The verifier reads RECONCILIATION.md as an input and surfaces any deviation summary in its verification report
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 Plans:
 - [ ] 49-01-PLAN.md — Reconciliation workflow: reconcile-phase.md agent workflow + execute-phase.md integration
 - [ ] 49-02-PLAN.md — HALT checkpoints: sharding.cjs risk extraction + execute-plan.md HALT gates + plan-phase.md risk tagging rules
@@ -219,7 +219,7 @@ Plans:
 | 46. Methodology Foundation | 3/3 | Complete    | 2026-03-19 | - |
 | 47. Story-File Sharding | 2/2 | Complete    | 2026-03-19 | - |
 | 48. AC-First Planning | 2/2 | Complete    | 2026-03-19 | - |
-| 49. Reconciliation & HALT Checkpoints | 1/2 | In Progress|  | - |
+| 49. Reconciliation & HALT Checkpoints | 2/2 | Complete   | 2026-03-19 | - |
 | 50. Readiness Gate | v0.6 | 0/TBD | Not started | - |
 | 51. Workflow Tracking | v0.6 | 0/TBD | Not started | - |
 | 52. Agent Enhancements | v0.6 | 0/TBD | Not started | - |

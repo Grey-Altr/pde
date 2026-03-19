@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v0.6
 milestone_name: Advanced Workflow Methodology
 status: planning
-stopped_at: Completed 49-01-PLAN.md
-last_updated: "2026-03-19T21:13:27.120Z"
+stopped_at: Completed 49-02-PLAN.md
+last_updated: "2026-03-19T21:17:18.018Z"
 last_activity: 2026-03-19 — v0.6 roadmap created, 7 phases (46-52), 24/24 requirements mapped
 progress:
   total_phases: 7
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 9
-  completed_plans: 8
+  completed_plans: 9
   percent: 0
 ---
 
@@ -49,6 +49,7 @@ Progress: [░░░░░░░░░░] 0% of v0.6
 | Phase 48-ac-first-planning P01 | 8min | 2 tasks | 2 files |
 | Phase 48-ac-first-planning P02 | 3 min | 2 tasks | 2 files |
 | Phase 49-reconciliation-halt-checkpoints P49-01 | 10min | 2 tasks | 2 files |
+| Phase 49-reconciliation-halt-checkpoints P02 | 15 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -80,6 +81,9 @@ v0.6 roadmap decisions:
 - [Phase 48-02]: Plan-level AC block must appear BEFORE <tasks> in PLAN.md — enforced by planner prompt rule, prerequisite for sharding.cjs extractPlanAcBlock() to avoid matching per-task acceptance_criteria
 - [Phase 49-reconciliation-halt-checkpoints]: reconcile_phase step inserts between close_parent_artifacts and verify_phase_goal to ensure SUMMARY.md exists before reconciliation and RECONCILIATION.md exists before verifier
 - [Phase 49-reconciliation-halt-checkpoints]: Three-tier matching (slug > file overlap > phase-plan prefix) prevents false unplanned classifications for Rule 1-3 deviation commits
+- [Phase 49-02]: risk is an XML attribute on <task> tag — requires regex on fullMatch using /<task[\s>][^>]*>/ to avoid matching <tasks> wrapper element
+- [Phase 49-02]: Post-task HALT fires AFTER commit so user sees actual commit hash and can run git diff to review changes
+- [Phase 49-02]: Mode A (sharded) HALT handled at orchestrator level in execute-phase.md — subagents cannot invoke AskUserQuestion directly with end user
 
 ### Pending Todos
 
@@ -99,6 +103,6 @@ Research flagged two items needing resolution before planning begins:
 
 ## Session Continuity
 
-Last session: 2026-03-19T21:13:27.117Z
-Stopped at: Completed 49-01-PLAN.md
+Last session: 2026-03-19T21:17:18.015Z
+Stopped at: Completed 49-02-PLAN.md
 Resume file: None
