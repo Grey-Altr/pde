@@ -194,7 +194,10 @@ Plans:
   2. Running /pde:progress inside an active phase that has a tasks/ directory shows individual task-level status rather than only phase-level completion percentages
   3. Invoking /pde:pause-work or ending a session generates .planning/HANDOFF.md capturing: current phase and task position, last action taken, next step to resume, active blockers, and key decisions made this session
   4. A developer returning from a break can read HANDOFF.md and immediately know where to resume without re-reading PLAN.md or git log
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 51-01-PLAN.md — TDD: tracking.cjs library (workflow-status + handoff functions), pde-tools CLI dispatch, tests
+- [ ] 51-02-PLAN.md — Workflow integration: execute-phase tracking calls, progress task display, pause-work HANDOFF.md
 
 ### Phase 52: Agent Enhancements
 **Goal**: Users can surface planner assumptions before a plan is written, a dedicated analyst persona interviews users to produce structured product briefs that feed /pde:brief, and each core agent maintains a persistent cross-session memory of project-specific operational patterns
@@ -223,6 +226,6 @@ Plans:
 | 47. Story-File Sharding | 2/2 | Complete    | 2026-03-19 | - |
 | 48. AC-First Planning | 2/2 | Complete    | 2026-03-19 | - |
 | 49. Reconciliation & HALT Checkpoints | 2/2 | Complete    | 2026-03-19 | - |
-| 50. Readiness Gate | 2/2 | Complete   | 2026-03-19 | - |
-| 51. Workflow Tracking | v0.6 | 0/TBD | Not started | - |
+| 50. Readiness Gate | 2/2 | Complete    | 2026-03-19 | - |
+| 51. Workflow Tracking | v0.6 | 0/2 | Not started | - |
 | 52. Agent Enhancements | v0.6 | 0/TBD | Not started | - |
