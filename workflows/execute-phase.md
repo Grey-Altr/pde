@@ -335,6 +335,8 @@ After all waves:
 ### Issues Encountered
 [Aggregate from SUMMARYs, or "None"]
 ```
+
+After aggregate_results: proceed to close_parent_artifacts (decimal phases only), then reconcile_phase, then verify_phase_goal.
 </step>
 
 <step name="close_parent_artifacts">
@@ -387,6 +389,73 @@ node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" commit "docs(phase-${PARENT_PHASE
 ```
 </step>
 
+<step name="reconcile_phase">
+Gather execution evidence and produce RECONCILIATION.md before verification.
+
+1. Find the first commit from the phase execution:
+```bash
+PHASE_FIRST_COMMIT=$(git log --oneline --grep="(${PHASE_NUMBER}-" --reverse --all | head -1 | cut -d' ' -f1)
+```
+
+2. If PHASE_FIRST_COMMIT is empty (no phase commits found), skip reconciliation:
+```bash
+if [ -z "$PHASE_FIRST_COMMIT" ]; then
+  echo "No phase commits found — skipping reconciliation"
+fi
+```
+
+3. Spawn reconciliation agent:
+```
+Task(
+  subagent_type="pde-reconciler",
+  model="{executor_model}",
+  prompt="
+    <objective>
+    Generate RECONCILIATION.md for Phase {phase_number}.
+    </objective>
+
+    <execution_context>
+    @${CLAUDE_PLUGIN_ROOT}/workflows/reconcile-phase.md
+    </execution_context>
+
+    <files_to_read>
+    - {phase_dir}/*-PLAN.md (plans with task definitions and ac_refs)
+    - {phase_dir}/*-SUMMARY.md (executor reports with deviations)
+    - .planning/STATE.md
+    - .planning/project-context.md (if exists)
+    </files_to_read>
+
+    <inputs>
+    Phase dir: {phase_dir}
+    Phase number: {phase_number}
+    Phase name: {phase_name}
+    Phase slug: {phase_slug}
+    Phase first commit: {PHASE_FIRST_COMMIT}
+    </inputs>
+  "
+)
+```
+
+4. Verify RECONCILIATION.md was created:
+```bash
+ls "{phase_dir}"/*-RECONCILIATION.md 2>/dev/null || echo "WARNING: RECONCILIATION.md not found after reconciliation step"
+```
+
+5. Read reconciliation status:
+```bash
+RECON_STATUS=$(grep "^status:" "{phase_dir}"/*-RECONCILIATION.md 2>/dev/null | head -1 | cut -d: -f2 | tr -d ' ')
+```
+
+6. If `RECON_STATUS` is not "clean", surface a brief summary to the user before proceeding to verification:
+```
+## Reconciliation: {RECON_STATUS}
+{Read the ## Verifier Handoff section and display it}
+Proceeding to verification...
+```
+
+If "clean": proceed silently to verify_phase_goal.
+</step>
+
 <step name="verify_phase_goal">
 Verify phase achieved its GOAL, not just completed tasks.
 
@@ -398,9 +467,13 @@ Phase goal: {goal from ROADMAP.md}
 Phase requirement IDs: {phase_req_ids}
 Check must_haves against actual codebase.
 Cross-reference requirement IDs from PLAN frontmatter against REQUIREMENTS.md — every ID MUST be accounted for.
-Create VERIFICATION.md.",
+Create VERIFICATION.md.
+If RECONCILIATION.md exists, include its ## Verifier Handoff content under a new ## Reconciliation Summary section in VERIFICATION.md. If RECONCILIATION.md does not exist, note 'No RECONCILIATION.md found — reconciliation step may not have run' and continue with normal verification.",
   subagent_type="pde-verifier",
-  model="{verifier_model}"
+  model="{verifier_model}",
+  files_to_read=[
+    "{phase_dir}/*-RECONCILIATION.md (Reconciliation report — read ## Verifier Handoff section and include in VERIFICATION.md under a ## Reconciliation Summary heading)"
+  ]
 )
 ```
 
