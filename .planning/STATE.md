@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v0.1
 milestone_name: milestone
 status: executing
-stopped_at: Completed 41-03-PLAN.md — sync-linear.md (LIN-01/LIN-02) and sync-jira.md (JIRA-01/JIRA-02) workflow files
-last_updated: "2026-03-19T04:30:01.893Z"
+stopped_at: Completed 42-01-PLAN.md — Figma TOOL_MAP entries, connect.md Step 3.8, sync/wireframe/handoff command dispatch
+last_updated: "2026-03-19T05:21:24.089Z"
 last_activity: "2026-03-18 — Completed 39-02: /pde:mcp-status and /pde:connect commands"
 progress:
   total_phases: 7
   completed_phases: 4
-  total_plans: 10
-  completed_plans: 10
+  total_plans: 14
+  completed_plans: 11
 ---
 
 # Project State
@@ -48,6 +48,7 @@ Last activity: 2026-03-18 — Completed 39-02: /pde:mcp-status and /pde:connect 
 | Phase 41 P02 | 2 | 2 tasks | 3 files |
 | Phase 41-linear-jira-integration P04 | 125 | 2 tasks | 2 files |
 | Phase 41-linear-jira-integration P03 | 2 | 2 tasks | 2 files |
+| Phase 42-figma-integration P01 | 10 | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -71,6 +72,8 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 41-03]: sync-linear.md LIN-02 cycle annotations use HTML comments immediately after ROADMAP.md phase heading — machine-parseable without disrupting markdown rendering
 - [Phase 41-03]: Jira epics table is replace-not-append on each sync; issue lists are append-only with deduplication — epics change status frequently
 - [Phase 41-03]: Jira pagination uses nextPageToken cursor (NOT startAt) per Atlassian MCP server spec
+- [Phase 42-figma-integration]: figma:probe maps to mcp__figma__get_design_context — lightest read-only Figma MCP tool, consistent with Phase 40/41 probe-as-lightest-call pattern; probeArgs stays {} as get_design_context uses Claude prompt context not explicit args
+- [Phase 42-figma-integration]: Figma file URL capture (connect.md Step 3.8) is optional — skip path sets empty strings; sync-figma.md must handle missing fileUrl gracefully; fileKey extracted from /design/<key>/ or /file/<key>/ URL segment
 
 #### Phase 39-01 Decisions (2026-03-18)
 
@@ -109,6 +112,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-19T04:26:14.046Z
-Stopped at: Completed 41-03-PLAN.md — sync-linear.md (LIN-01/LIN-02) and sync-jira.md (JIRA-01/JIRA-02) workflow files
+Last session: 2026-03-19T05:21:24.086Z
+Stopped at: Completed 42-01-PLAN.md — Figma TOOL_MAP entries, connect.md Step 3.8, sync/wireframe/handoff command dispatch
 Resume file: None

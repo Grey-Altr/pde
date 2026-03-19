@@ -38,10 +38,10 @@ Requirements for MCP Integrations milestone. Each maps to roadmap phases.
 
 ### Figma Integration
 
-- [ ] **FIG-01**: User can import Figma design tokens into PDE's DTCG system via `/pde:sync --figma`
-- [ ] **FIG-02**: User can feed Figma design context into `/pde:wireframe` for reference
-- [ ] **FIG-03**: User can import Figma Code Connect mappings into `/pde:handoff` output
-- [ ] **FIG-04**: User can export PDE mockup HTML to editable Figma frames via Code-to-Canvas
+- [x] **FIG-01**: User can import Figma design tokens into PDE's DTCG system via `/pde:sync --figma`
+- [x] **FIG-02**: User can feed Figma design context into `/pde:wireframe` for reference
+- [x] **FIG-03**: User can import Figma Code Connect mappings into `/pde:handoff` output
+- [x] **FIG-04**: User can export PDE mockup HTML to editable Figma frames via Code-to-Canvas
 
 ### Pencil Integration
 
@@ -108,10 +108,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | JIRA-02 | Phase 41 | Complete |
 | JIRA-03 | Phase 41 | Complete |
 | JIRA-04 | Phase 41 | Complete |
-| FIG-01 | Phase 42 | Pending |
-| FIG-02 | Phase 42 | Pending |
-| FIG-03 | Phase 42 | Pending |
-| FIG-04 | Phase 42 | Pending |
+| FIG-01 | Phase 42 | Complete |
+| FIG-02 | Phase 42 | Complete |
+| FIG-03 | Phase 42 | Complete |
+| FIG-04 | Phase 42 | Complete |
 | PEN-01 | Phase 43 | Pending |
 | PEN-02 | Phase 43 | Pending |
 | PEN-03 | Phase 43 | Pending |
