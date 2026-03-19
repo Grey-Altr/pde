@@ -209,7 +209,12 @@ Plans:
   3. The structured brief from pde-analyst is accepted by /pde:brief as upstream context, and /pde:brief degrades gracefully when no analyst brief is present
   4. .planning/agent-memory/{agent-type}/memories.md exists for each core agent type (executor, planner, debugger, verifier); agents load their memories.md at spawn and append new entries on completion
   5. Each agent's memories.md enforces a 50-entry cap with automatic archival of the oldest entries to an archive file; memory entries include timestamp, phase context, and relevance tags
-**Plans**: TBD
+**Plans:** 4 plans
+Plans:
+- [ ] 52-01-PLAN.md — TDD: memory.cjs library (agent memory CRUD + archival + tests)
+- [ ] 52-02-PLAN.md — Assumptions command + plan-phase gate integration
+- [ ] 52-03-PLAN.md — Analyst agent + brief pipeline integration
+- [ ] 52-04-PLAN.md — Memory workflow integration into agent spawn prompts
 
 ## Progress
 
@@ -228,4 +233,4 @@ Plans:
 | 49. Reconciliation & HALT Checkpoints | 2/2 | Complete    | 2026-03-19 | - |
 | 50. Readiness Gate | 2/2 | Complete    | 2026-03-19 | - |
 | 51. Workflow Tracking | 2/2 | Complete    | 2026-03-19 | - |
-| 52. Agent Enhancements | v0.6 | 0/TBD | Not started | - |
+| 52. Agent Enhancements | v0.6 | 0/4 | Not started | - |
