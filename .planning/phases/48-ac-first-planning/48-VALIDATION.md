@@ -1,10 +1,11 @@
 ---
 phase: 48
 slug: ac-first-planning
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-19
+updated: 2026-03-19
 ---
 
 # Phase 48 — Validation Strategy
@@ -38,15 +39,15 @@ created: 2026-03-19
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 48-01-01 | 01 | 1 | PLAN-03 | unit | `node --test tests/phase-48/sharding-ac.test.mjs` | ❌ W0 | ⬜ pending |
-| 48-01-02 | 01 | 1 | PLAN-03 | unit | `node --test tests/phase-48/sharding-ac.test.mjs` | ❌ W0 | ⬜ pending |
-| 48-01-03 | 01 | 1 | PLAN-03 | unit | `node --test tests/phase-48/sharding-ac.test.mjs` | ❌ W0 | ⬜ pending |
-| 48-01-04 | 01 | 1 | PLAN-04 | unit | `node --test tests/phase-48/sharding-ac.test.mjs` | ❌ W0 | ⬜ pending |
-| 48-01-05 | 01 | 1 | PLAN-04 | unit | `node --test tests/phase-48/sharding-ac.test.mjs` | ❌ W0 | ⬜ pending |
-| 48-01-06 | 01 | 1 | PLAN-04 | unit | `node --test tests/phase-48/sharding-ac.test.mjs` | ❌ W0 | ⬜ pending |
-| 48-01-07 | 01 | 1 | PLAN-05 | unit | `node --test tests/phase-48/sharding-ac.test.mjs` | ❌ W0 | ⬜ pending |
-| 48-01-08 | 01 | 1 | PLAN-05 | unit | `node --test tests/phase-48/sharding-ac.test.mjs` | ❌ W0 | ⬜ pending |
-| 48-REG | 01 | 1 | PLAN-03,04 | regression | `node --test tests/phase-47/*.test.mjs` | ✅ | ⬜ pending |
+| 48-01-01 | 01 | 1 | PLAN-03 | unit | `node --test tests/phase-48/sharding-ac.test.mjs` | ✅ | ✅ green |
+| 48-01-02 | 01 | 1 | PLAN-03 | unit | `node --test tests/phase-48/sharding-ac.test.mjs` | ✅ | ✅ green |
+| 48-01-03 | 01 | 1 | PLAN-03 | unit | `node --test tests/phase-48/sharding-ac.test.mjs` | ✅ | ✅ green |
+| 48-01-04 | 01 | 1 | PLAN-04 | unit | `node --test tests/phase-48/sharding-ac.test.mjs` | ✅ | ✅ green |
+| 48-01-05 | 01 | 1 | PLAN-04 | unit | `node --test tests/phase-48/sharding-ac.test.mjs` | ✅ | ✅ green |
+| 48-01-06 | 01 | 1 | PLAN-04 | unit | `node --test tests/phase-48/sharding-ac.test.mjs` | ✅ | ✅ green |
+| 48-01-07 | 01 | 1 | PLAN-05 | unit | `node --test tests/phase-48/sharding-ac.test.mjs` | ✅ | ✅ green |
+| 48-01-08 | 01 | 1 | PLAN-05 | unit | `node --test tests/phase-48/sharding-ac.test.mjs` | ✅ | ✅ green |
+| 48-REG | 01 | 1 | PLAN-03,04 | regression | `node --test tests/phase-47/*.test.mjs` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -54,10 +55,10 @@ created: 2026-03-19
 
 ## Wave 0 Requirements
 
-- [ ] `tests/phase-48/sharding-ac.test.mjs` — stubs for PLAN-03, PLAN-04, PLAN-05
-  - Synthetic PLAN.md with plan-level AC block + tasks with `<ac_refs>` and `<boundaries>`
-  - Verifies task file content contains AC section, ac_refs header, conditional boundaries section
-  - Verifies plan-level AC block not confused with per-task acceptance_criteria
+- [x] `tests/phase-48/sharding-ac.test.mjs` — 12 tests for PLAN-03, PLAN-04, PLAN-05 ✅
+  - extractPlanAcBlock: 4 tests (plan-level extraction, empty, per-task exclusion, both)
+  - buildTaskFileContent: 6 tests (AC section, ac_refs header, boundaries conditional)
+  - shardPlan integration: 2 tests (Phase-48 plan with AC, pre-Phase-48 graceful degradation)
 
 *Framework install not needed — `node --test` is built-in, same as Phase 46/47*
 
@@ -75,11 +76,25 @@ created: 2026-03-19
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 3s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 3s (measured: ~68ms)
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved
+
+---
+
+## Validation Audit 2026-03-19
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+| Tests passing | 12/12 |
+| Regression tests | 18/18 |
+
+All plan-01 must-have truths covered by automated tests. Plan-02 truths are prompt-content verifications (manual-only — LLM behavior dependent).
