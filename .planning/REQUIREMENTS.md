@@ -31,9 +31,9 @@ Requirements for v0.6 Advanced Workflow Methodology. Each maps to roadmap phases
 
 ### Tracking
 
-- [ ] **TRCK-01**: Executor updates per-task status (TODO/IN_PROGRESS/DONE/SKIPPED) in tasks/workflow-status.md as each task completes
-- [ ] **TRCK-02**: /pde:progress displays task-level granularity when inside an active phase with story files
-- [ ] **TRCK-03**: Auto-generated HANDOFF.md captures current position, last action, next step, blockers, and key decisions when session ends or /pde:pause-work is invoked
+- [x] **TRCK-01**: Executor updates per-task status (TODO/IN_PROGRESS/DONE/SKIPPED) in tasks/workflow-status.md as each task completes
+- [x] **TRCK-02**: /pde:progress displays task-level granularity when inside an active phase with story files
+- [x] **TRCK-03**: Auto-generated HANDOFF.md captures current position, last action, next step, blockers, and key decisions when session ends or /pde:pause-work is invoked
 
 ### Agent Enhancement
 
@@ -92,9 +92,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | VRFY-03 | Phase 50 | Complete |
 | VRFY-04 | Phase 50 | Complete |
 | VRFY-05 | Phase 49 | Complete |
-| TRCK-01 | Phase 51 | Pending |
-| TRCK-02 | Phase 51 | Pending |
-| TRCK-03 | Phase 51 | Pending |
+| TRCK-01 | Phase 51 | Complete |
+| TRCK-02 | Phase 51 | Complete |
+| TRCK-03 | Phase 51 | Complete |
 | AGNT-01 | Phase 52 | Pending |
 | AGNT-02 | Phase 52 | Pending |
 | AGNT-03 | Phase 52 | Pending |

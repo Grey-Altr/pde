@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v0.6
 milestone_name: Advanced Workflow Methodology
 status: planning
-stopped_at: Completed 50-02-PLAN.md
-last_updated: "2026-03-19T22:05:20.838Z"
+stopped_at: Completed 51-01-PLAN.md
+last_updated: "2026-03-19T22:45:58.925Z"
 last_activity: 2026-03-19 — v0.6 roadmap created, 7 phases (46-52), 24/24 requirements mapped
 progress:
   total_phases: 7
   completed_phases: 5
-  total_plans: 11
-  completed_plans: 11
+  total_plans: 13
+  completed_plans: 12
   percent: 0
 ---
 
@@ -52,6 +52,7 @@ Progress: [░░░░░░░░░░] 0% of v0.6
 | Phase 49-reconciliation-halt-checkpoints P02 | 15 | 2 tasks | 4 files |
 | Phase 50 P01 | 8min | 2 tasks | 6 files |
 | Phase 50 P02 | 2min | 2 tasks | 2 files |
+| Phase 51-workflow-tracking P01 | 4min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -91,6 +92,7 @@ v0.6 roadmap decisions:
 - [Phase 50]: Future Requirements section excluded from B1 active-section lookup by slicing at ## Future Requirements header
 - [Phase 50]: Gate reads READINESS.md frontmatter directly (grep + sed) — keeps orchestrator lean, avoids extra CLI call for simple grep
 - [Phase 50]: AskUserQuestion for CONCERNS fires in initialize step directly (not checkpoint) — ensures warning visible in yolo mode per Pitfall 4
+- [Phase 51-workflow-tracking]: parseStatusTable() extracted as shared helper — eliminates regex duplication across initWorkflowStatus, setTaskStatus, and readWorkflowStatus
 
 ### Pending Todos
 
@@ -110,6 +112,6 @@ Research flagged two items needing resolution before planning begins:
 
 ## Session Continuity
 
-Last session: 2026-03-19T22:05:20.835Z
-Stopped at: Completed 50-02-PLAN.md
+Last session: 2026-03-19T22:45:58.923Z
+Stopped at: Completed 51-01-PLAN.md
 Resume file: None
