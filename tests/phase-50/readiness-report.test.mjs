@@ -246,3 +246,57 @@ test('writeReadinessMd: output file named {phaseNumber}-READINESS.md', () => {
     fs.rmSync(tmpDir, { recursive: true, force: true });
   }
 });
+
+// ─── VRFY-04: execute-phase.md readiness gate smoke tests ──────────────────
+
+test('execute-phase.md contains READINESS_RESULT variable', () => {
+  const content = fs.readFileSync(
+    path.join(__dirname, '../../workflows/execute-phase.md'), 'utf-8'
+  );
+  assert.ok(content.includes('READINESS_RESULT'),
+    'execute-phase.md must contain READINESS_RESULT');
+});
+
+test('execute-phase.md contains HALT message for FAIL result', () => {
+  const content = fs.readFileSync(
+    path.join(__dirname, '../../workflows/execute-phase.md'), 'utf-8'
+  );
+  assert.ok(content.includes('Readiness Gate FAIL'),
+    'execute-phase.md must contain Readiness Gate FAIL message');
+});
+
+test('execute-phase.md contains CONCERNS warning message', () => {
+  const content = fs.readFileSync(
+    path.join(__dirname, '../../workflows/execute-phase.md'), 'utf-8'
+  );
+  assert.ok(content.includes('Readiness Gate CONCERNS'),
+    'execute-phase.md must contain Readiness Gate CONCERNS message');
+});
+
+test('execute-phase.md contains staleness warning', () => {
+  const content = fs.readFileSync(
+    path.join(__dirname, '../../workflows/execute-phase.md'), 'utf-8'
+  );
+  assert.ok(content.includes('READINESS.md may be stale'),
+    'execute-phase.md must warn about stale READINESS.md');
+});
+
+test('execute-phase.md contains pde:check-readiness reference in gate', () => {
+  const content = fs.readFileSync(
+    path.join(__dirname, '../../workflows/execute-phase.md'), 'utf-8'
+  );
+  assert.ok(content.includes('pde:check-readiness'),
+    'execute-phase.md HALT message must reference pde:check-readiness command');
+});
+
+test('execute-phase.md readiness gate appears before handle_branching step', () => {
+  const content = fs.readFileSync(
+    path.join(__dirname, '../../workflows/execute-phase.md'), 'utf-8'
+  );
+  const readinessIdx = content.indexOf('READINESS_RESULT');
+  const branchingIdx = content.indexOf('handle_branching');
+  assert.ok(readinessIdx > -1, 'READINESS_RESULT must exist');
+  assert.ok(branchingIdx > -1, 'handle_branching must exist');
+  assert.ok(readinessIdx < branchingIdx,
+    'Readiness gate must appear before handle_branching step');
+});
