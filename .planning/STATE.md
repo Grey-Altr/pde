@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v0.1
 milestone_name: milestone
 status: executing
-stopped_at: Completed 40.1-01-PLAN.md — GitHub tech debt gap closure (mcp__github__* allowed-tools + try/catch on b.call)
-last_updated: "2026-03-19T03:36:37.156Z"
+stopped_at: Completed 41-01-PLAN.md — Linear + Atlassian TOOL_MAP entries, corrected APPROVED_SERVERS transport, task_tracker config key
+last_updated: "2026-03-19T04:20:59.888Z"
 last_activity: "2026-03-18 — Completed 39-02: /pde:mcp-status and /pde:connect commands"
 progress:
   total_phases: 7
   completed_phases: 3
-  total_plans: 6
-  completed_plans: 6
+  total_plans: 10
+  completed_plans: 7
 ---
 
 # Project State
@@ -44,6 +44,7 @@ Last activity: 2026-03-18 — Completed 39-02: /pde:mcp-status and /pde:connect 
 | Phase 40-github-integration P02 | 114s | 2 tasks | 4 files |
 | Phase 40-github-integration P03 | 2 | 2 tasks | 4 files |
 | Phase 40.1-github-tech-debt P01 | 5 | 2 tasks | 4 files |
+| Phase 41-linear-jira-integration P01 | 7 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -57,6 +58,8 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 40-github-integration]: Sub-workflow delegation pattern: brief-from-github.md and handoff-create-prs.md handle flag-specific logic then delegate to main workflows — keeps main workflows as single sources of truth
 - [Phase 40-github-integration]: Confirmation gate for PR creation uses strict y/yes check — any non-yes response produces 'No PRs created.' with zero GitHub writes (VAL-03 compliance)
 - [Phase 40.1-github-tech-debt]: mcp__github__* wildcard added only to sync.md and pipeline-status.md allowed-tools — no other tools added; try/catch wraps only b.call() in workflow bash blocks with toolName='' fallback, process.stdout.write stays outside the block
+- [Phase 41-linear-jira-integration]: Linear MCP uses HTTP transport to mcp.linear.app/mcp; Atlassian uses SSE to mcp.atlassian.com/v1/sse — both are official hosted OAuth servers (not stdio npx)
+- [Phase 41-linear-jira-integration]: task_tracker config key added after brave_search in VALID_CONFIG_KEYS — top-level integration toggle accepting linear|jira|none
 
 #### Phase 39-01 Decisions (2026-03-18)
 
@@ -95,6 +98,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-19T03:33:38.008Z
-Stopped at: Completed 40.1-01-PLAN.md — GitHub tech debt gap closure (mcp__github__* allowed-tools + try/catch on b.call)
+Last session: 2026-03-19T04:20:59.886Z
+Stopped at: Completed 41-01-PLAN.md — Linear + Atlassian TOOL_MAP entries, corrected APPROVED_SERVERS transport, task_tracker config key
 Resume file: None

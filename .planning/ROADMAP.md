@@ -151,7 +151,7 @@ Plans:
   2. User can run `/pde:sync --jira` and see Jira issues reflected in REQUIREMENTS.md, with Jira epics mapped to REQUIREMENTS.md categories
   3. User can create Linear or Jira tickets from handoff artifacts with a confirmation gate before any write-back occurs
   4. User can switch from Linear to Jira (or vice versa) by changing `task_tracker` in config without modifying any workflow files
-**Plans:** 4 plans
+**Plans:** 1/4 plans executed
 Plans:
 - [ ] 41-01-PLAN.md — TOOL_MAP + probeTool + installCmd fixes for Linear + Atlassian, task_tracker config key
 - [ ] 41-02-PLAN.md — Connect workflow metadata capture, sync.md + handoff.md flag dispatch
@@ -200,7 +200,7 @@ Plans:
 | 39 | 2/2 | Complete    | 2026-03-18 | — |
 | 40 | 3/3 | Complete    | 2026-03-18 | — |
 | 40.1 | 1/1 | Complete    | 2026-03-19 | — |
-| 41 | v0.5 | 0/4 | Planned | — |
+| 41 | 1/4 | In Progress|  | — |
 | 42 | v0.5 | 0/? | Not started | — |
 | 43 | v0.5 | 0/? | Not started | — |
 | 44 | v0.5 | 0/? | Not started | — |
