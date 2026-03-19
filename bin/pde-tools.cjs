@@ -712,6 +712,23 @@ async function main() {
       break;
     }
 
+    case 'tracking': {
+      const subcommand = args[1];
+      const tracking = require('./lib/tracking.cjs');
+      if (subcommand === 'init') {
+        tracking.cmdTrackingInit(cwd, args.slice(2), raw);
+      } else if (subcommand === 'set-status') {
+        tracking.cmdTrackingSetStatus(cwd, args.slice(2), raw);
+      } else if (subcommand === 'read') {
+        tracking.cmdTrackingRead(cwd, args.slice(2), raw);
+      } else if (subcommand === 'generate-handoff') {
+        tracking.cmdTrackingGenerateHandoff(cwd, args.slice(2), raw);
+      } else {
+        error('tracking: unknown subcommand. Available: init, set-status, read, generate-handoff');
+      }
+      break;
+    }
+
     default:
       error(`Unknown command: ${command}`);
   }
