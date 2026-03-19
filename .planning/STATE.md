@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v0.1
 milestone_name: milestone
 status: executing
-stopped_at: Completed 41-01-PLAN.md — Linear + Atlassian TOOL_MAP entries, corrected APPROVED_SERVERS transport, task_tracker config key
-last_updated: "2026-03-19T04:20:59.888Z"
+stopped_at: Completed 41-02-PLAN.md — command entry points for Linear and Jira (connect.md, sync.md, handoff.md)
+last_updated: "2026-03-19T04:21:34.115Z"
 last_activity: "2026-03-18 — Completed 39-02: /pde:mcp-status and /pde:connect commands"
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 10
-  completed_plans: 7
+  completed_plans: 8
 ---
 
 # Project State
@@ -45,6 +45,7 @@ Last activity: 2026-03-18 — Completed 39-02: /pde:mcp-status and /pde:connect 
 | Phase 40-github-integration P03 | 2 | 2 tasks | 4 files |
 | Phase 40.1-github-tech-debt P01 | 5 | 2 tasks | 4 files |
 | Phase 41-linear-jira-integration P01 | 7 | 2 tasks | 2 files |
+| Phase 41 P02 | 2 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -60,6 +61,8 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 40.1-github-tech-debt]: mcp__github__* wildcard added only to sync.md and pipeline-status.md allowed-tools — no other tools added; try/catch wraps only b.call() in workflow bash blocks with toolName='' fallback, process.stdout.write stays outside the block
 - [Phase 41-linear-jira-integration]: Linear MCP uses HTTP transport to mcp.linear.app/mcp; Atlassian uses SSE to mcp.atlassian.com/v1/sse — both are official hosted OAuth servers (not stdio npx)
 - [Phase 41-linear-jira-integration]: task_tracker config key added after brave_search in VALID_CONFIG_KEYS — top-level integration toggle accepting linear|jira|none
+- [Phase 41-02]: connect.md gets service-specific steps (3.6, 3.7) rather than separate files — centralized dispatch consistent with Phase 40 GitHub pattern
+- [Phase 41-02]: sync.md reads task_tracker from config.json as default service when no flag — frictionless /pde:sync once tracker is configured
 
 #### Phase 39-01 Decisions (2026-03-18)
 
@@ -98,6 +101,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-19T04:20:59.886Z
-Stopped at: Completed 41-01-PLAN.md — Linear + Atlassian TOOL_MAP entries, corrected APPROVED_SERVERS transport, task_tracker config key
+Last session: 2026-03-19T04:21:34.113Z
+Stopped at: Completed 41-02-PLAN.md — command entry points for Linear and Jira (connect.md, sync.md, handoff.md)
 Resume file: None
