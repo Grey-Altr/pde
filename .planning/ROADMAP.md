@@ -104,7 +104,7 @@ Full details: .planning/milestones/v0.5-ROADMAP.md
 **Milestone Goal:** Import BMAD and PAUL methodology patterns into PDE's existing workflow engine to strengthen context constitution, story-file sharding, acceptance-criteria-first planning, post-execution reconciliation, implementation readiness gating, per-task progress tracking, and agent role specialization.
 
 - [x] **Phase 46: Methodology Foundation** - Project context constitution, file-hash manifest, and methodology reference document (completed 2026-03-19)
-- [ ] **Phase 47: Story-File Sharding** - Planner emits per-task task files; executor loads one at a time for 90% context reduction
+- [x] **Phase 47: Story-File Sharding** - Planner emits per-task task files; executor loads one at a time for 90% context reduction (completed 2026-03-19)
 - [ ] **Phase 48: AC-First Planning** - Acceptance criteria section in PLAN.md; task-to-AC links; task boundary enforcement
 - [ ] **Phase 49: Reconciliation & HALT Checkpoints** - Post-execution reconciliation against git; RECONCILIATION.md; high-risk task pause gates
 - [ ] **Phase 50: Readiness Gate** - /pde:check-readiness command with PASS/CONCERNS/FAIL; blocks execute-phase on FAIL
@@ -138,7 +138,7 @@ Plans:
   2. Each task-NNN.md file is self-contained — it includes the task description, AC references, relevant file paths, and any schema snippets needed to execute without reading PLAN.md
   3. The executor agent loads only the current task-NNN.md file during execution, not the full PLAN.md, reducing per-task context by approximately 90% for large plans
   4. Plans with fewer than 5 tasks continue to execute normally from PLAN.md with no tasks/ directory generated
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 Plans:
 - [ ] 47-01-PLAN.md — Sharding library: shardPlan() engine, shard-plan CLI command, test suites
 - [ ] 47-02-PLAN.md — Workflow integration: plan-phase sharding step, execute-phase per-task spawning
@@ -211,7 +211,7 @@ Plans:
 | 29-38 | v0.4 | 20/20 | Complete | 2026-03-18 |
 | 39-44 | v0.5 | 18/18 | Complete | 2026-03-19 |
 | 46. Methodology Foundation | 3/3 | Complete    | 2026-03-19 | - |
-| 47. Story-File Sharding | 1/2 | In Progress|  | - |
+| 47. Story-File Sharding | 2/2 | Complete   | 2026-03-19 | - |
 | 48. AC-First Planning | v0.6 | 0/TBD | Not started | - |
 | 49. Reconciliation & HALT Checkpoints | v0.6 | 0/TBD | Not started | - |
 | 50. Readiness Gate | v0.6 | 0/TBD | Not started | - |
