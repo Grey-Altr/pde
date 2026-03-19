@@ -79,36 +79,36 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FOUND-01 | — | Pending |
-| FOUND-02 | — | Pending |
-| FOUND-03 | — | Pending |
-| PLAN-01 | — | Pending |
-| PLAN-02 | — | Pending |
-| PLAN-03 | — | Pending |
-| PLAN-04 | — | Pending |
-| PLAN-05 | — | Pending |
-| VRFY-01 | — | Pending |
-| VRFY-02 | — | Pending |
-| VRFY-03 | — | Pending |
-| VRFY-04 | — | Pending |
-| VRFY-05 | — | Pending |
-| TRCK-01 | — | Pending |
-| TRCK-02 | — | Pending |
-| TRCK-03 | — | Pending |
-| AGNT-01 | — | Pending |
-| AGNT-02 | — | Pending |
-| AGNT-03 | — | Pending |
-| AGNT-04 | — | Pending |
-| AGNT-05 | — | Pending |
-| INFR-01 | — | Pending |
-| INFR-02 | — | Pending |
-| INFR-03 | — | Pending |
+| FOUND-01 | Phase 46 | Pending |
+| FOUND-02 | Phase 46 | Pending |
+| FOUND-03 | Phase 46 | Pending |
+| PLAN-01 | Phase 47 | Pending |
+| PLAN-02 | Phase 47 | Pending |
+| PLAN-03 | Phase 48 | Pending |
+| PLAN-04 | Phase 48 | Pending |
+| PLAN-05 | Phase 48 | Pending |
+| VRFY-01 | Phase 49 | Pending |
+| VRFY-02 | Phase 49 | Pending |
+| VRFY-03 | Phase 50 | Pending |
+| VRFY-04 | Phase 50 | Pending |
+| VRFY-05 | Phase 49 | Pending |
+| TRCK-01 | Phase 51 | Pending |
+| TRCK-02 | Phase 51 | Pending |
+| TRCK-03 | Phase 51 | Pending |
+| AGNT-01 | Phase 52 | Pending |
+| AGNT-02 | Phase 52 | Pending |
+| AGNT-03 | Phase 52 | Pending |
+| AGNT-04 | Phase 52 | Pending |
+| AGNT-05 | Phase 52 | Pending |
+| INFR-01 | Phase 46 | Pending |
+| INFR-02 | Phase 46 | Pending |
+| INFR-03 | Phase 46 | Pending |
 
 **Coverage:**
 - v0.6 requirements: 24 total
-- Mapped to phases: 0
-- Unmapped: 24 ⚠️
+- Mapped to phases: 24
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-19*
-*Last updated: 2026-03-19 after initial definition*
+*Last updated: 2026-03-19 after roadmap creation — traceability complete*

@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v0.6
 milestone_name: Advanced Workflow Methodology
-status: defining_requirements
+status: ready_to_plan
 stopped_at: null
 last_updated: "2026-03-19T12:00:00.000Z"
-last_activity: "2026-03-19 — Milestone v0.6 started"
+last_activity: "2026-03-19 — v0.6 roadmap created, 7 phases, 24/24 requirements mapped"
 progress:
-  total_phases: 0
+  total_phases: 7
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -20,14 +20,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Researching BMAD + PAUL methodology for v0.6
+**Current focus:** v0.6 Advanced Workflow Methodology — Phase 46 ready to plan
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 46 of 52 (Methodology Foundation)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-03-19 — Milestone v0.6 started
+Status: Ready to plan
+Last activity: 2026-03-19 — v0.6 roadmap created, 7 phases (46-52), 24/24 requirements mapped
+
+Progress: [░░░░░░░░░░] 0% of v0.6
 
 ## Performance Metrics
 
@@ -46,13 +48,22 @@ Last activity: 2026-03-19 — Milestone v0.6 started
 Decisions are logged in PROJECT.md Key Decisions table.
 v0.5 decisions archived to .planning/milestones/v0.5-ROADMAP.md.
 
+v0.6 roadmap decisions:
+- [Roadmap]: 7 phases (46-52) derived from 6 requirement categories; fine granularity
+- [Roadmap]: INFR (file-hash manifest) co-located with FOUND in Phase 46 — both are foundation infrastructure with no upstream deps
+- [Roadmap]: VRFY split into two phases — reconciliation+HALT (49) vs. readiness gate (50) — different dependency profiles
+- [Roadmap]: Phase 51 (TRCK) depends on Phase 47 (sharding) because per-task tracking needs task files to exist
+- [Roadmap]: Phase 52 (AGNT) depends only on Phase 46 (FOUND-02 for project-context baseline) — can run in parallel with 47-51 conceptually but sequenced last for quality consistency
+
 ### Pending Todos
 
 None.
 
 ### Blockers/Concerns
 
-None.
+Research flagged two items needing resolution before planning begins:
+- [Phase 49]: Reconciliation matching heuristic unspecified — recommend defining in plan-phase: slug matching as primary, file-path overlap as fallback
+- [Phase 50]: PASS/CONCERNS/FAIL checklist items not yet defined — draft as acceptance criteria during Phase 50 planning
 
 ### Quick Tasks Completed
 
@@ -63,5 +74,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-19
-Stopped at: Starting v0.6 milestone
+Stopped at: v0.6 roadmap created — Phase 46 ready to plan
 Resume file: None
