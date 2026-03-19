@@ -1,7 +1,7 @@
 ---
 name: pde:sync
 description: Sync external service data into PDE planning state
-argument-hint: '--github | --linear | --jira | --figma [--dry-run]'
+argument-hint: '--github | --linear | --jira | --figma | --export-figma [--dry-run]'
 allowed-tools:
   - Read
   - Write
@@ -28,6 +28,8 @@ If `--jira` is present in $ARGUMENTS, follow @workflows/sync-jira.md exactly, pa
 
 If `--figma` is present in $ARGUMENTS, follow @workflows/sync-figma.md exactly, passing all of $ARGUMENTS.
 
+If `--export-figma` is present in $ARGUMENTS, follow @workflows/mockup-export-figma.md exactly, passing all of $ARGUMENTS.
+
 If no service flag is provided, check the task_tracker config to determine the default service:
 
 ```bash
@@ -52,16 +54,17 @@ Parse the JSON output. Based on `taskTracker`:
 - If `taskTracker` is `"none"` or any other value, display usage:
 
 ```
-Usage: /pde:sync --github | --linear | --jira | --figma
+Usage: /pde:sync --github | --linear | --jira | --figma | --export-figma
 
 Sync external service data into PDE planning state.
 
 Available flags:
-  --github      Sync GitHub issues to REQUIREMENTS.md
-  --linear      Sync Linear issues to REQUIREMENTS.md and cycles to ROADMAP.md
-  --jira        Sync Jira issues to REQUIREMENTS.md and epics to REQUIREMENTS.md
-  --figma       Sync Figma design tokens to PDE token files
-  --dry-run     Preview changes without writing to disk
+  --github        Sync GitHub issues to REQUIREMENTS.md
+  --linear        Sync Linear issues to REQUIREMENTS.md and cycles to ROADMAP.md
+  --jira          Sync Jira issues to REQUIREMENTS.md and epics to REQUIREMENTS.md
+  --figma         Sync Figma design tokens to PDE token files
+  --export-figma  Export PDE mockup HTML to an editable Figma frame
+  --dry-run       Preview changes without writing to disk
 
 Tip: Set a default task tracker with /pde:settings task_tracker linear (or jira)
      Then just run /pde:sync without flags.
