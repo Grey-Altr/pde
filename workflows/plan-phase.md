@@ -440,9 +440,38 @@ Task(
 
 ## 9. Handle Planner Return
 
-- **`## PLANNING COMPLETE`:** Display plan count. If `--skip-verify` or `plan_checker_enabled` is false (from init): skip to step 13. Otherwise: step 10.
+- **`## PLANNING COMPLETE`:** Display plan count. Proceed to step 9.5 (shard). If `--skip-verify` or `plan_checker_enabled` is false (from init): skip to step 13 after sharding. Otherwise: step 10.
 - **`## CHECKPOINT REACHED`:** Present to user, get response, spawn continuation (step 12)
 - **`## PLANNING INCONCLUSIVE`:** Show attempts, offer: Add context / Retry / Manual
+
+## 9.5. Shard Large Plans
+
+For each new PLAN.md created by the planner, run the sharding step:
+
+```bash
+for PLAN_FILE in "${PHASE_DIR}"/*-PLAN.md; do
+  SHARD_RESULT=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" shard-plan "$PLAN_FILE")
+  SHARDED=$(echo "$SHARD_RESULT" | grep -o '"sharded":true')
+  if [ -n "$SHARDED" ]; then
+    TASK_COUNT=$(echo "$SHARD_RESULT" | grep -o '"task_count":[0-9]*' | cut -d: -f2)
+    echo "Sharded: $(basename "$PLAN_FILE") → ${TASK_COUNT} task files"
+  fi
+done
+```
+
+This runs AFTER the planner returns and BEFORE the plan checker. Task files exist by the time the checker validates plans.
+
+`shard-plan` is idempotent — it overwrites existing task files on each call, so re-running is always safe.
+
+After sharding, commit any task file directories that were created:
+
+```bash
+# Commit task files alongside plans (only if sharding occurred)
+TASK_DIRS=$(ls -d "${PHASE_DIR}"/*-tasks 2>/dev/null)
+if [ -n "$TASK_DIRS" ]; then
+  node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" commit "docs(${PADDED_PHASE}): shard plans into task files" --files ${TASK_DIRS}/*
+fi
+```
 
 ## 10. Spawn pde-plan-checker Agent
 
@@ -534,7 +563,9 @@ Task(
 )
 ```
 
-After planner returns -> spawn checker again (step 10), increment iteration_count.
+After planner returns -> re-run Step 9.5 (Shard Large Plans) before spawning checker again (step 10), increment iteration_count.
+
+**Important:** Re-run Step 9.5 (Shard Large Plans) after each revision iteration. The planner may have changed task count or content, so task files must be regenerated. `shard-plan` is idempotent — it overwrites existing task files.
 
 **If iteration_count >= 3:**
 
