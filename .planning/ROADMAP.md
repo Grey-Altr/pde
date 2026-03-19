@@ -107,7 +107,7 @@ Full details: .planning/milestones/v0.5-ROADMAP.md
 - [x] **Phase 47: Story-File Sharding** - Planner emits per-task task files; executor loads one at a time for 90% context reduction (completed 2026-03-19)
 - [x] **Phase 48: AC-First Planning** - Acceptance criteria section in PLAN.md; task-to-AC links; task boundary enforcement (completed 2026-03-19)
 - [x] **Phase 49: Reconciliation & HALT Checkpoints** - Post-execution reconciliation against git; RECONCILIATION.md; high-risk task pause gates (completed 2026-03-19)
-- [ ] **Phase 50: Readiness Gate** - /pde:check-readiness command with PASS/CONCERNS/FAIL; blocks execute-phase on FAIL
+- [x] **Phase 50: Readiness Gate** - /pde:check-readiness command with PASS/CONCERNS/FAIL; blocks execute-phase on FAIL (completed 2026-03-19)
 - [ ] **Phase 51: Workflow Tracking** - Per-task status tracking, task-level /pde:progress, session HANDOFF.md
 - [ ] **Phase 52: Agent Enhancements** - Assumptions capture, analyst persona, analyst-to-brief pipeline, per-agent persistent memory
 
@@ -180,7 +180,7 @@ Plans:
   2. The readiness report validates consistency across PROJECT.md, REQUIREMENTS.md, and the current PLAN.md — flagging mismatches, missing required sections, and unmapped requirements
   3. Invoking /pde:execute-phase (or equivalent) when the last readiness result is FAIL causes the executor to halt with a clear explanation before any code is changed
   4. A CONCERNS result proceeds with a visible warning surfaced to the user; a PASS result proceeds normally with no friction
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 Plans:
 - [ ] 50-01-PLAN.md — Readiness library, command, workflow, pde-tools dispatch, and tests
 - [ ] 50-02-PLAN.md — Execute-phase readiness gate integration and smoke tests
@@ -223,6 +223,6 @@ Plans:
 | 47. Story-File Sharding | 2/2 | Complete    | 2026-03-19 | - |
 | 48. AC-First Planning | 2/2 | Complete    | 2026-03-19 | - |
 | 49. Reconciliation & HALT Checkpoints | 2/2 | Complete    | 2026-03-19 | - |
-| 50. Readiness Gate | 1/2 | In Progress|  | - |
+| 50. Readiness Gate | 2/2 | Complete   | 2026-03-19 | - |
 | 51. Workflow Tracking | v0.6 | 0/TBD | Not started | - |
 | 52. Agent Enhancements | v0.6 | 0/TBD | Not started | - |
