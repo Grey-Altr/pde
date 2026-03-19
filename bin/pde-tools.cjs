@@ -527,6 +527,22 @@ async function main() {
       break;
     }
 
+    case 'readiness': {
+      const subcommand = args[1];
+      const readiness = require('./lib/readiness.cjs');
+      if (subcommand === 'check') {
+        const phaseArg = args[2];
+        const planFile = args[3];
+        readiness.cmdReadinessCheck(cwd, phaseArg, planFile, raw);
+      } else if (subcommand === 'result') {
+        const phaseArg = args[2];
+        readiness.cmdReadinessResult(cwd, phaseArg, raw);
+      } else {
+        error('Unknown readiness subcommand. Available: check, result');
+      }
+      break;
+    }
+
     case 'validate': {
       const subcommand = args[1];
       if (subcommand === 'consistency') {
