@@ -1004,6 +1004,66 @@ Use AskUserQuestion:
 node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" commit "docs: create roadmap ([N] phases)" --files .planning/ROADMAP.md .planning/STATE.md .planning/REQUIREMENTS.md
 ```
 
+## 8.5. Generate Project Context
+
+Generate `.planning/project-context.md` — a compact agent-optimized project baseline (max 4KB).
+
+**Synthesis steps:**
+
+1. Read `.planning/PROJECT.md` — extract these sections verbatim:
+   - **Tech Stack** block (from `## Context` — the line starting "**Tech stack:**" through the end of that bullet)
+   - **Constraints** section (full `## Constraints` section content)
+   - **Key Decisions** table (last 10 rows from `## Key Decisions` table, include header row)
+
+2. Read `.planning/REQUIREMENTS.md` — extract all unchecked requirement lines (`- [ ] **REQ-ID**:...`), max 20 entries
+
+3. Read `.planning/STATE.md` — extract:
+   - Current milestone name and version (from `## Current Position` or frontmatter)
+   - Decisions subsection content (from `### Decisions`)
+
+4. Assemble into this template:
+
+```markdown
+# Project Context — {project-name}
+
+> Auto-generated baseline for subagent context. Do not edit manually.
+> Regenerate with /pde:new-milestone or /pde:new-project.
+
+## Tech Stack
+{tech stack line from PROJECT.md Context section}
+
+## Conventions
+- CommonJS (.cjs) modules in bin/lib/
+- Markdown-based state in .planning/
+- Zero npm dependencies at plugin root
+{any additional conventions from PROJECT.md Constraints}
+
+## Constraints
+{constraints section from PROJECT.md}
+
+## Current Milestone
+{milestone name} ({version}) — {phase count} phases
+Status: {from STATE.md progress}
+
+## Key Decisions
+{last 10 decisions table rows with header}
+
+## Active Requirements
+{unchecked requirement lines, max 20}
+```
+
+5. **Enforce 4KB limit:** Check `Buffer.from(content, 'utf-8').length`. If over 4096 bytes:
+   - First pass: Trim Key Decisions to last 5 rows
+   - Second pass: Trim Active Requirements to first 10 entries
+   - Never truncate Tech Stack, Conventions, or Constraints
+
+6. Write the file to `.planning/project-context.md`
+
+7. Commit:
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" commit "docs: generate project context" --files .planning/project-context.md
+```
+
 ## 9. Done
 
 Present completion summary:
@@ -1020,6 +1080,7 @@ node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" banner "PROJECT INITIALIZED ✓"
 | Research       | `.planning/research/`       |
 | Requirements   | `.planning/REQUIREMENTS.md` |
 | Roadmap        | `.planning/ROADMAP.md`      |
+| Context        | `.planning/project-context.md` |
 
 **[N] phases** | **[X] requirements** | Ready to build ✓
 
