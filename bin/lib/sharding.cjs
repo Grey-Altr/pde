@@ -96,7 +96,7 @@ function derivePlanPrefix(planFile) {
  * @returns {string}
  */
 function buildTaskFileContent(params) {
-  const { taskNum, totalTasks, fm, objectiveText, planAcBlock, taskName, taskFiles, acRefs, boundaries, readFirst, action, acceptanceCriteria, verify, done, mustHavesText } = params;
+  const { taskNum, totalTasks, fm, objectiveText, planAcBlock, taskName, taskFiles, acRefs, boundaries, readFirst, action, acceptanceCriteria, verify, done, mustHavesText, risk, riskReason } = params;
   const phase = fm.phase || '';
   const plan = fm.plan || '';
 
@@ -113,6 +113,11 @@ function buildTaskFileContent(params) {
     ? '## Task Boundaries (DO NOT CHANGE)\n\nThe following paths/sections must not be modified by this task:\n' + boundaries + '\n\n'
     : '';
 
+  // Conditional: risk level header (omitted when risk is not 'high')
+  const riskSection = risk === 'high'
+    ? '**Risk level:** HIGH \u2014 ' + (riskReason || 'tagged risk:high in plan') + '\n'
+    : '';
+
   return '---\n' +
     'phase: ' + phase + '\n' +
     'plan: ' + plan + '\n' +
@@ -124,7 +129,8 @@ function buildTaskFileContent(params) {
     '**Plan:** ' + plan + ' \u2014 ' + objectiveOneLine + '\n' +
     '**Task:** ' + taskNum + ' of ' + totalTasks + '\n' +
     '**Files this task modifies:** ' + taskFiles + '\n' +
-    '**ACs this task satisfies:** ' + (acRefs || '(none - pre-Phase-48 plan)') + '\n\n' +
+    '**ACs this task satisfies:** ' + (acRefs || '(none - pre-Phase-48 plan)') + '\n' +
+    riskSection + '\n' +
     '## Plan Objective (Context)\n\n' +
     objectiveText + '\n\n' +
     planAcSection +
@@ -255,6 +261,13 @@ function shardPlan(planPath, options) {
     const acRefs = extractField(taskInner, 'ac_refs');
     const boundaries = extractField(taskInner, 'boundaries');
 
+    // Extract risk attribute from task opening tag (XML attribute, not child element)
+    // Use \b to avoid matching <tasks> — must match exactly <task followed by space or >
+    const taskOpenTag = taskBlocks[i].fullMatch.match(/<task[\s>][^>]*>/i);
+    const riskAttrMatch = taskOpenTag ? taskOpenTag[0].match(/risk\s*=\s*["']([^"']+)["']/i) : null;
+    const risk = riskAttrMatch ? riskAttrMatch[1] : '';
+    const riskReason = extractField(taskInner, 'risk_reason');
+
     const mustHavesText = buildMustHavesText(fm, taskFiles);
 
     const fileContent = buildTaskFileContent({
@@ -273,6 +286,8 @@ function shardPlan(planPath, options) {
       verify: verify,
       done: done,
       mustHavesText: mustHavesText,
+      risk: risk,
+      riskReason: riskReason,
     });
 
     const fileName = 'task-' + String(taskNum).padStart(3, '0') + '.md';
