@@ -95,6 +95,8 @@ Report:
 <step name="execute_waves">
 Execute each wave in sequence. Within a wave: parallel if `PARALLELIZATION=true`, sequential if `false`.
 
+**Sharded vs Standard execution:** Plans with a `{plan-prefix}-tasks/` directory use per-task spawning (one executor per task file, ~90% context reduction). Plans without a tasks directory use the standard single-executor-per-plan flow. The orchestrator checks for the tasks directory before spawning — it never reads task file contents to stay lean.
+
 **For each wave:**
 
 1. **Describe what's being built (BEFORE spawning):**
@@ -119,6 +121,75 @@ Execute each wave in sequence. Within a wave: parallel if `PARALLELIZATION=true`
 
    Pass paths only — executors read files themselves with their fresh 200k context.
    This keeps orchestrator context lean (~10-15%).
+
+   **For each plan in the wave, determine execution mode:**
+
+   ```bash
+   PLAN_PREFIX=$(echo "$PLAN_FILE" | sed 's/-PLAN\.md$//')
+   TASKS_DIR="${PHASE_DIR}/${PLAN_PREFIX}-tasks"
+   ```
+
+   **Mode A — Sharded plan (tasks directory exists):**
+
+   When `TASKS_DIR` exists and contains task-NNN.md files, spawn one executor per task file. The orchestrator resolves paths only — it does NOT read task file contents.
+
+   ```bash
+   TASK_FILES=$(ls "${TASKS_DIR}"/task-*.md 2>/dev/null | sort)
+   TASK_TOTAL=$(echo "$TASK_FILES" | wc -l | tr -d ' ')
+   ```
+
+   For each task file in TASK_FILES, spawn sequentially (task 1 before task 2):
+
+   ```
+   Task(
+     subagent_type="pde-executor",
+     model="{executor_model}",
+     prompt="
+       <objective>
+       Execute task {task_num} of {task_total} from plan {plan_number}, phase {phase_number}-{phase_name}.
+       Commit this task atomically. Do NOT create SUMMARY.md — the orchestrator handles that.
+       </objective>
+
+       <execution_context>
+       @${CLAUDE_PLUGIN_ROOT}/workflows/execute-plan.md
+       @${CLAUDE_PLUGIN_ROOT}/templates/summary.md
+       @${CLAUDE_PLUGIN_ROOT}/references/checkpoints.md
+       @${CLAUDE_PLUGIN_ROOT}/references/tdd.md
+       </execution_context>
+
+       <files_to_read>
+       Read these files at execution start using the Read tool:
+       - .planning/project-context.md (Project context — compact project baseline, if exists)
+       - {task_file_path} (Task {task_num} of {task_total} — self-contained task instructions)
+       - .planning/STATE.md (State — position and recent decisions)
+       - .planning/config.json (Config, if exists)
+       - ./CLAUDE.md (Project instructions, if exists — follow project-specific guidelines and coding conventions)
+       - .claude/skills/ or .agents/skills/ (Project skills, if either exists — list skills, read SKILL.md for each, follow relevant rules during implementation)
+       </files_to_read>
+
+       <success_criteria>
+       - [ ] Task {task_num} implementation complete
+       - [ ] Task {task_num} committed atomically
+       - [ ] All acceptance criteria from task file verified
+       - [ ] STATE.md updated with position
+       </success_criteria>
+     "
+   )
+   ```
+
+   Execute task spawns sequentially within a plan (task 1 before task 2), but plans within a wave still run parallel if `PARALLELIZATION=true`.
+
+   **Sharded plan SUMMARY.md aggregation:**
+
+   After the last task executor returns for a sharded plan, create SUMMARY.md in the plan directory. The orchestrator has the plan objective and task file list in context. Write a SUMMARY.md that:
+   - Lists each task by number and name
+   - Records commit hashes from task executor returns
+   - Notes any deviations reported by individual task executors
+   - Updates ROADMAP.md plan progress via `roadmap update-plan-progress`
+
+   **Mode B — Standard plan (no tasks directory):**
+
+   Execute with existing single-agent-per-plan behavior (unchanged):
 
    ```
    Task(
@@ -166,6 +237,8 @@ Execute each wave in sequence. Within a wave: parallel if `PARALLELIZATION=true`
    - Verify first 2 files from `key-files.created` exist on disk
    - Check `git log --oneline --all --grep="{phase}-{plan}"` returns ≥1 commit
    - Check for `## Self-Check: FAILED` marker
+
+   For sharded plans (where orchestrator created SUMMARY.md): spot-check the last task executor's commit exists in git log.
 
    If ANY spot-check fails: report which plan failed, route to failure handler — ask "Retry plan?" or "Continue with remaining waves?"
 
