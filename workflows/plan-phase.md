@@ -198,6 +198,7 @@ Answer: "What do I need to know to PLAN this phase well?"
 </objective>
 
 <files_to_read>
+- .planning/project-context.md (Project context — compact project baseline, if exists)
 - {context_path} (USER DECISIONS from /pde:discuss-phase)
 - {requirements_path} (Project requirements)
 - {state_path} (Project decisions and history)
@@ -361,6 +362,7 @@ Planner prompt:
 **Mode:** {standard | gap_closure}
 
 <files_to_read>
+- .planning/project-context.md (Project context — compact project baseline, if exists)
 - {state_path} (Project State)
 - {roadmap_path} (Roadmap)
 - {requirements_path} (Requirements)
@@ -458,6 +460,7 @@ Checker prompt:
 **Phase Goal:** {goal from ROADMAP}
 
 <files_to_read>
+- .planning/project-context.md (Project context — compact project baseline, if exists)
 - {PHASE_DIR}/*-PLAN.md (Plans to verify)
 - {roadmap_path} (Roadmap)
 - {requirements_path} (Requirements)
@@ -507,6 +510,7 @@ Revision prompt:
 **Mode:** revision
 
 <files_to_read>
+- .planning/project-context.md (Project context — compact project baseline, if exists)
 - {PHASE_DIR}/*-PLAN.md (Existing plans)
 - {context_path} (USER DECISIONS from /pde:discuss-phase)
 </files_to_read>

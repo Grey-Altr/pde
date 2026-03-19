@@ -22,6 +22,18 @@ if [[ "$INIT" == @file:* ]]; then INIT=$(cat "${INIT#@file:}"); fi
 
 Parse JSON for: `executor_model`, `verifier_model`, `commit_docs`, `parallelization`, `branching_strategy`, `branch_name`, `phase_found`, `phase_dir`, `phase_number`, `phase_name`, `phase_slug`, `plans`, `incomplete_plans`, `plan_count`, `incomplete_count`, `state_exists`, `roadmap_exists`, `phase_req_ids`.
 
+**Context staleness check:**
+```bash
+if [ -f ".planning/project-context.md" ] && [ -f ".planning/PROJECT.md" ]; then
+  PC_MTIME=$(stat -f "%m" ".planning/project-context.md" 2>/dev/null || stat -c "%Y" ".planning/project-context.md" 2>/dev/null)
+  PJ_MTIME=$(stat -f "%m" ".planning/PROJECT.md" 2>/dev/null || stat -c "%Y" ".planning/PROJECT.md" 2>/dev/null)
+  if [ "$PJ_MTIME" -gt "$PC_MTIME" ]; then
+    echo "Warning: project-context.md may be stale — PROJECT.md was modified more recently."
+    echo "  Run /pde:new-milestone to regenerate, or continue with current context."
+  fi
+fi
+```
+
 **If `phase_found` is false:** Error — phase directory not found.
 **If `plan_count` is 0:** Error — no plans found in phase.
 **If `state_exists` is false but `.planning/` exists:** Offer reconstruct or continue.
@@ -127,8 +139,9 @@ Execute each wave in sequence. Within a wave: parallel if `PARALLELIZATION=true`
 
        <files_to_read>
        Read these files at execution start using the Read tool:
+       - .planning/project-context.md (Project context — compact project baseline, if exists)
        - {phase_dir}/{plan_file} (Plan)
-       - .planning/STATE.md (State)
+       - .planning/STATE.md (State — position and recent decisions)
        - .planning/config.json (Config, if exists)
        - ./CLAUDE.md (Project instructions, if exists — follow project-specific guidelines and coding conventions)
        - .claude/skills/ or .agents/skills/ (Project skills, if either exists — list skills, read SKILL.md for each, follow relevant rules during implementation)
