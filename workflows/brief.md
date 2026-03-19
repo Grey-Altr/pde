@@ -112,6 +112,14 @@ Use the Glob tool to find `.planning/design/strategy/OPP-opportunity-v*.md`.
   Log: `"  -> No opportunity artifact — scope boundaries derived from PROJECT.md only"`
   SET OPP_CONTEXT = null. Continue normally.
 
+**Analyst context (ANL):**
+Use the Glob tool to find `.planning/design/strategy/ANL-analyst-brief-v*.md`.
+- If found: Sort by version descending, read the highest version. Parse the `## Unstated Requirements` section (requirement items with rationale), the `## Assumption Risks` section (risk items with impact), and the `## Edge Cases` section (edge case items with behavior recommendations). Store parsed content as ANL_CONTEXT for use in Step 5.
+  Log: `"  -> Analyst artifact found: v{N} — enriching brief with analyst findings"`
+- If not found:
+  Log: `"  -> No analyst artifact — continuing without analyst enrichment"`
+  SET ANL_CONTEXT = null. Continue normally.
+
 ---
 
 ### Step 3/7: Probe MCP (Sequential Thinking)
@@ -240,6 +248,8 @@ When generating brief sections, incorporate upstream context as follows. If a co
 - **Key Assumptions:** If OPP_CONTEXT is available, add high-confidence Now-bucket items as validated assumptions (mark provenance as "opportunity-validated"). If IDT_CONTEXT is available, add Brief Seed's Key Decisions as assumption-adjacent inputs.
 - **Scope Boundaries:** If OPP_CONTEXT is available, use Now-bucket items as in-scope features and Later-bucket items as out-of-scope rationale. If IDT_CONTEXT is available, use Brief Seed's Scope Boundaries as the primary scope source.
 - **Constraints:** If IDT_CONTEXT is available, merge Brief Seed's Constraints table with PROJECT.md constraints.
+- **Unstated Requirements:** If ANL_CONTEXT is available, add analyst-surfaced requirements to the brief's requirements section, marked with provenance "[analyst-surfaced]". These supplement, not replace, PROJECT.md requirements.
+- **Assumptions & Risks:** If ANL_CONTEXT is available, add assumption risks to the Key Assumptions section with "[analyst-flagged]" provenance. Add edge cases to the Constraints section as boundary conditions.
 
 Write the complete brief to `.planning/design/strategy/BRF-brief-v{N}.md` using the Write tool.
 
@@ -511,7 +521,7 @@ Display the final summary table (always the last output):
 | Elapsed time | {duration} |
 | Estimated tokens | ~{count} |
 | MCP enhancements | {comma-separated list of MCPs actually used, or "none"} |
-| Upstream context | {If any of IDT_CONTEXT, CMP_CONTEXT, OPP_CONTEXT were found: list them as "IDT v{N} (ideation), CMP v{N} (competitive), OPP v{N} (opportunity)" for each found artifact, comma-separated. If none found: "none — using PROJECT.md only"} |
+| Upstream context | {If any of IDT_CONTEXT, CMP_CONTEXT, OPP_CONTEXT, ANL_CONTEXT were found: list them as "IDT v{N} (ideation), CMP v{N} (competitive), OPP v{N} (opportunity), ANL v{N} (analyst)" for each found artifact, comma-separated. If none found: "none — using PROJECT.md only"} |
 ```
 
 ---

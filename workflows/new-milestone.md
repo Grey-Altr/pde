@@ -31,6 +31,46 @@ Read all files referenced by the invoking prompt's execution_context before star
 - Wait for their response, then use AskUserQuestion to probe specifics
 - If user selects "Other" at any point to provide freeform input, ask follow-up as plain text — not another AskUserQuestion
 
+## 2.5. Analyst Interview (Optional)
+
+Skip if: `--auto` mode.
+
+Use AskUserQuestion:
+- header: "Analysis"
+- question: "Run a structured analysis to surface hidden assumptions for this milestone?"
+- options:
+  - "Yes (Recommended)" — Analyst probes for unstated requirements and edge cases
+  - "Skip" — Proceed with milestone setup
+
+**If "Skip":** Continue to Step 3.
+
+**If "Yes":**
+Spawn analyst interview:
+```
+Task(
+  subagent_type="pde-analyst",
+  model="{researcher_model}",
+  prompt="
+    <execution_context>
+    @${CLAUDE_PLUGIN_ROOT}/agents/pde-analyst.md
+    @${CLAUDE_PLUGIN_ROOT}/workflows/analyst-interview.md
+    </execution_context>
+
+    <interview_context>
+    Milestone goals: {from Step 2 goal gathering}
+    Project context: {from Step 1 loaded PROJECT.md}
+    </interview_context>
+
+    <objective>
+    Conduct a probing MECE interview to surface unstated requirements
+    and edge cases for this milestone. Produce ANL-analyst-brief-v{N}.md.
+    </objective>
+  "
+)
+```
+
+Continue to Step 3.
+
 ## 3. Determine Milestone Version
 
 - Parse last version from MILESTONES.md

@@ -257,6 +257,49 @@ If "Keep exploring" — ask what they want to add, or identify gaps and probe na
 
 Loop until "Create PROJECT.md" selected.
 
+## 3.5. Analyst Interview (Optional)
+
+Skip if: `--auto` mode.
+
+Use AskUserQuestion:
+- header: "Analysis"
+- question: "Would you like to run a structured analysis to surface hidden assumptions and edge cases?"
+- options:
+  - "Yes (Recommended)" — A product analyst will probe for unstated requirements, edge cases, and assumption risks
+  - "Skip" — Proceed with what we have
+
+**If "Skip":** Continue to Step 4.
+
+**If "Yes":**
+Spawn analyst interview:
+```
+Task(
+  subagent_type="pde-analyst",
+  model="{researcher_model}",
+  prompt="
+    <execution_context>
+    @${CLAUDE_PLUGIN_ROOT}/agents/pde-analyst.md
+    @${CLAUDE_PLUGIN_ROOT}/workflows/analyst-interview.md
+    </execution_context>
+
+    <interview_context>
+    Project description: {from Step 3 deep questioning results}
+    Known requirements: {from discussion so far}
+    </interview_context>
+
+    <objective>
+    Conduct a probing MECE interview to surface unstated requirements,
+    hidden assumptions, and edge cases. Produce ANL-analyst-brief-v{N}.md.
+    </objective>
+  "
+)
+```
+
+After analyst returns, log:
+`Analyst brief generated. This will automatically enrich /pde:brief.`
+
+Continue to Step 4.
+
 ## 4. Write PROJECT.md
 
 **If auto mode:** Synthesize from provided document. No "Ready?" gate was shown — proceed directly to commit.
