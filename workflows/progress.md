@@ -109,6 +109,47 @@ Phase [N] of [total]: [phase-name]
 Plan [M] of [phase-total]: [status]
 CONTEXT: [✓ if has_context | - if not]
 
+**Task-level status (sharded plans only):**
+
+Check for active sharded plans in the current phase directory:
+
+```bash
+ACTIVE_STATUS=$(ls "${PHASE_DIR}"/*-tasks/workflow-status.md 2>/dev/null)
+```
+
+For each workflow-status.md found, check that the corresponding plan does NOT have a SUMMARY.md (completed plans skip task display):
+
+```bash
+# Extract plan prefix from tasks dir name: "51-01-tasks" -> "51-01"
+PLAN_PREFIX=$(basename "$(dirname "$STATUS_FILE")" | sed 's/-tasks$//')
+SUMMARY_FILE="${PHASE_DIR}/${PLAN_PREFIX}-SUMMARY.md"
+```
+
+If ACTIVE_STATUS is non-empty AND no SUMMARY.md exists for that plan, read the status file and display:
+
+```bash
+STATUS_JSON=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" tracking read --tasks-dir "$(dirname "$STATUS_FILE")")
+```
+
+Display as:
+
+```
+## Active Task Status
+Phase {N} -- Plan {NN}
+
+| Task | Name | Status |
+|------|------|--------|
+| 1 | [name] | DONE |
+| 2 | [name] | IN_PROGRESS |
+| 3 | [name] | TODO |
+
+Progress: X/Y tasks complete (Z%)
+```
+
+If ACTIVE_STATUS is empty (no tasks directory or no workflow-status.md), skip this section entirely — no regression for non-sharded phases.
+
+If workflow-status.md is absent but a tasks directory exists, display: "Tasks directory found but execution tracking not yet started."
+
 ## Key Decisions Made
 - [extract from $STATE.decisions[]]
 - [e.g. jq -r '.decisions[].decision' from state-snapshot]
@@ -366,7 +407,7 @@ Ready to plan the next milestone.
 - Phase complete but next phase not planned → offer `/pde:plan-phase [next]`
 - All work complete → offer milestone completion
 - Blockers present → highlight before offering to continue
-- Handoff file exists → mention it, offer `/pde:resume-work`
+- Check `.planning/HANDOFF.md` first (Phase 51+), then `.planning/phases/*/.continue-here.md` (legacy). If either exists, mention it and offer `/pde:resume-work`. For HANDOFF.md, check if `last_updated` is older than most recent git commit — if so, add "(may be stale)" warning.
   </step>
 
 </process>

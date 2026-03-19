@@ -1,5 +1,5 @@
 <purpose>
-Create `.continue-here.md` handoff file to preserve complete work state across sessions. Enables seamless resumption with full context restoration.
+Create `.planning/HANDOFF.md` handoff file to preserve complete work state across sessions. Enables seamless resumption with full context restoration.
 </purpose>
 
 <required_reading>
@@ -29,62 +29,72 @@ If no active phase detected, ask user which phase they're pausing work on.
 5. **Blockers/issues**: Anything stuck
 6. **Mental context**: The approach, next steps, "vibe"
 7. **Files modified**: What's changed but not committed
+8. **Task status**: If active sharded plan exists, read workflow-status.md via `node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" tracking read --tasks-dir "${TASKS_DIR}"`
+
+Use pde-tools to gather state context:
+```bash
+STATE_JSON=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" state json)
+timestamp=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" current-timestamp full --raw)
+```
+
+Check for active sharded plan:
+```bash
+TASKS_DIR=$(ls -d .planning/phases/${PHASE_DIR}/*-tasks 2>/dev/null | head -1)
+WORKFLOW_STATUS=""
+if [ -n "$TASKS_DIR" ] && [ -f "${TASKS_DIR}/workflow-status.md" ]; then
+  WORKFLOW_STATUS=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" tracking read --tasks-dir "${TASKS_DIR}")
+fi
+```
 
 Ask user for clarifications if needed via conversational questions.
 </step>
 
 <step name="write">
-**Write handoff to `.planning/phases/XX-name/.continue-here.md`:**
+**Write handoff to `.planning/HANDOFF.md`:**
 
 ```markdown
 ---
-phase: XX-name
-task: 3
-total_tasks: 7
-status: in_progress
-last_updated: [timestamp from current-timestamp]
+phase: {phase-slug}
+plan: {plan-number}
+task: {current-task-number}
+task_of: {total-tasks}
+status: {in_progress|blocked}
+last_updated: {ISO timestamp}
 ---
 
-<current_state>
-[Where exactly are we? Immediate context]
-</current_state>
+# Handoff: Phase {N} -- {Phase Name}
 
-<completed_work>
+## Current Position
 
-- Task 1: [name] - Done
-- Task 2: [name] - Done
-- Task 3: [name] - In progress, [what's done]
-</completed_work>
+- **Phase:** {N} -- {phase-name}
+- **Plan:** {NN} of {total-plans}
+- **Task:** {X} of {Y} -- {task name}
+- **Status:** {IN_PROGRESS|BLOCKED}
 
-<remaining_work>
+## Last Action Taken
 
-- Task 3: [what's left]
-- Task 4: Not started
-- Task 5: Not started
-</remaining_work>
+{Description of what was just completed, including commit hash if available}
 
-<decisions_made>
+## Next Step to Resume
 
-- Decided to use [X] because [reason]
-- Chose [approach] over [alternative] because [reason]
-</decisions_made>
+{Specific instruction: which task to execute next, which file to read first}
 
-<blockers>
-- [Blocker 1]: [status/workaround]
-</blockers>
+## Active Blockers
 
-<context>
-[Mental state, what were you thinking, the plan]
-</context>
+{List blockers or "None."}
 
-<next_action>
-Start with: [specific first action when resuming]
-</next_action>
+## Key Decisions This Session
+
+{List of decisions made during this session}
+
+## Task Status Snapshot
+
+{Include workflow-status table if sharded plan is active; omit section if not}
 ```
 
 Be specific enough for a fresh Claude to understand immediately.
 
-Use `current-timestamp` for last_updated field. You can use init todos (which provides timestamps) or call directly:
+Use `current-timestamp` for last_updated field:
 ```bash
 timestamp=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" current-timestamp full --raw)
 ```
@@ -92,31 +102,32 @@ timestamp=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" current-timestamp ful
 
 <step name="commit">
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" commit "wip: [phase-name] paused at task [X]/[Y]" --files .planning/phases/*/.continue-here.md
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" commit "wip: {phase-name} paused at task {X}/{Y}" --files .planning/HANDOFF.md
 ```
 </step>
 
 <step name="confirm">
 ```
-✓ Handoff created: .planning/phases/[XX-name]/.continue-here.md
+Handoff created: .planning/HANDOFF.md
 
 Current state:
 
-- Phase: [XX-name]
-- Task: [X] of [Y]
-- Status: [in_progress/blocked]
+- Phase: {phase-slug}
+- Plan: {plan-number}
+- Task: {X} of {Y}
+- Status: {in_progress/blocked}
 - Committed as WIP
 
 To resume: /pde:resume-work
-
 ```
 </step>
 
 </process>
 
 <success_criteria>
-- [ ] .continue-here.md created in correct phase directory
-- [ ] All sections filled with specific content
+- [ ] .planning/HANDOFF.md created at project root
+- [ ] All sections filled with specific content (Current Position, Last Action Taken, Next Step to Resume, Active Blockers, Key Decisions This Session)
+- [ ] Task Status Snapshot included if sharded plan is active
 - [ ] Committed as WIP
 - [ ] User knows location and how to resume
 </success_criteria>
