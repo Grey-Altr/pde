@@ -200,7 +200,7 @@ Plans:
 | 39 | 2/2 | Complete    | 2026-03-18 | — |
 | 40 | 3/3 | Complete    | 2026-03-18 | — |
 | 40.1 | 1/1 | Complete    | 2026-03-19 | — |
-| 41 | 4/4 | Complete   | 2026-03-19 | — |
+| 41 | 4/4 | Complete    | 2026-03-19 | — |
 | 42 | v0.5 | 0/? | Not started | — |
 | 43 | v0.5 | 0/? | Not started | — |
 | 44 | v0.5 | 0/? | Not started | — |
