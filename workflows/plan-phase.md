@@ -385,6 +385,7 @@ Output consumed by /pde:execute-phase. Plans need:
 - Tasks in XML format with read_first and acceptance_criteria fields (MANDATORY on every task)
 - Verification criteria
 - must_haves for goal-backward verification
+- Plan-level `<acceptance_criteria>` block with BDD AC-N entries; tasks have `<ac_refs>` and optional `<boundaries>`
 </downstream_consumer>
 
 <deep_work_rules>
@@ -413,6 +414,31 @@ Every task MUST include these fields — they are NOT optional:
    - If CONTEXT.md has a comparison table or expected values, copy them into the action verbatim
    - The executor should be able to complete the task from the action text alone, without needing to read CONTEXT.md or reference files (read_first is for verification, not discovery)
 
+4. **`<acceptance_criteria>` (plan-level, BEFORE `<tasks>`)** — BDD-format behavioral
+   statements that define what success looks like for the plan as a whole. Rules:
+   - Place the block AFTER `<context>` and BEFORE `<tasks>` — this is the definition,
+     not a per-task check
+   - Each entry: `**AC-N:** Given {condition}, when {action}, then {observable outcome}`
+   - Sequential numbering starting at AC-1, unique within the plan
+   - The "then" clause must be observable/verifiable (not subjective)
+   - Typical count: 3-8 ACs per plan (one per significant capability delivered)
+   - If adding new ACs during revision, append with higher numbers (do not renumber
+     existing ACs that tasks already reference)
+
+5. **`<ac_refs>` per task** — lists which plan-level AC-N identifiers this task satisfies.
+   Rules:
+   - Every task MUST reference at least one AC-N
+   - Every AC-N in the plan's <acceptance_criteria> block MUST appear in some task's
+     <ac_refs> (full coverage required — no orphaned ACs)
+   - Format: comma-separated (e.g., `AC-1, AC-3`) — exact match, case-sensitive
+
+6. **`<boundaries>` per task (optional)** — lists paths/sections this task must NOT modify.
+   Rules:
+   - Use when a task is adjacent to fragile/recently-changed code that must not regress
+   - Each entry is a file path or a comment describing a section (e.g.,
+     `# Phase 47 sharding logic in sharding.cjs`)
+   - Executor will warn and require confirmation before modifying listed paths
+
 **Why this matters:** Executor agents work from the plan text. Vague instructions like "update the config to match production" produce shallow one-line changes. Concrete instructions like "add DATABASE_URL=postgresql://... , set POOL_SIZE=20, add REDIS_URL=redis://..." produce complete work. The cost of verbose plans is far less than the cost of re-doing shallow execution.
 </deep_work_rules>
 
@@ -426,6 +452,9 @@ Every task MUST include these fields — they are NOT optional:
 - [ ] Dependencies correctly identified
 - [ ] Waves assigned for parallel execution
 - [ ] must_haves derived from phase goal
+- [ ] Plan-level `<acceptance_criteria>` block exists BEFORE `<tasks>`, with each AC in **AC-N:** Given/When/Then format
+- [ ] Every task has `<ac_refs>` referencing at least one AC-N
+- [ ] Every AC-N in the plan-level block is referenced by at least one task
 </quality_gate>
 ```
 
