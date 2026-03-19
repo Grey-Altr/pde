@@ -123,7 +123,11 @@ Full details: .planning/milestones/v0.5-ROADMAP.md
   3. references/workflow-methodology.md exists and describes BMAD + PAUL patterns using PDE terminology with no raw BMAD/PAUL jargon in user-facing text
   4. .planning/config/files-manifest.csv exists after install with path, SHA256 hash, source (stock/user-modified), and last_updated columns for all PDE framework files
   5. Running pde-sync-engine on a project with user-modified files preserves those modifications and issues a conflict notice, while unmodified files are silently updated
-**Plans**: TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 46-01-PLAN.md — Context constitution: project-context.md generation and subagent injection
+- [ ] 46-02-PLAN.md — File-hash manifest: SHA256 tracking, CLI subcommands, update workflow integration
+- [ ] 46-03-PLAN.md — Methodology reference: workflow-methodology.md in PDE terminology
 
 ### Phase 47: Story-File Sharding
 **Goal**: Plans with 5 or more tasks produce a tasks/ directory of atomic self-contained task files, and the executor loads only the current task file instead of the full PLAN.md
@@ -203,7 +207,7 @@ Full details: .planning/milestones/v0.5-ROADMAP.md
 | 24-28 | v0.3 | 10/10 | Complete | 2026-03-17 |
 | 29-38 | v0.4 | 20/20 | Complete | 2026-03-18 |
 | 39-44 | v0.5 | 18/18 | Complete | 2026-03-19 |
-| 46. Methodology Foundation | v0.6 | 0/TBD | Not started | - |
+| 46. Methodology Foundation | v0.6 | 0/3 | Not started | - |
 | 47. Story-File Sharding | v0.6 | 0/TBD | Not started | - |
 | 48. AC-First Planning | v0.6 | 0/TBD | Not started | - |
 | 49. Reconciliation & HALT Checkpoints | v0.6 | 0/TBD | Not started | - |
