@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v0.6
 milestone_name: Advanced Workflow Methodology
 status: planning
-stopped_at: Completed 49-02-PLAN.md
-last_updated: "2026-03-19T21:21:27.785Z"
+stopped_at: Completed 50-01-PLAN.md
+last_updated: "2026-03-19T22:01:58.698Z"
 last_activity: 2026-03-19 — v0.6 roadmap created, 7 phases (46-52), 24/24 requirements mapped
 progress:
   total_phases: 7
   completed_phases: 4
-  total_plans: 9
-  completed_plans: 9
+  total_plans: 11
+  completed_plans: 10
   percent: 0
 ---
 
@@ -50,6 +50,7 @@ Progress: [░░░░░░░░░░] 0% of v0.6
 | Phase 48-ac-first-planning P02 | 3 min | 2 tasks | 2 files |
 | Phase 49-reconciliation-halt-checkpoints P49-01 | 10min | 2 tasks | 2 files |
 | Phase 49-reconciliation-halt-checkpoints P02 | 15 | 2 tasks | 4 files |
+| Phase 50 P01 | 8min | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -84,6 +85,9 @@ v0.6 roadmap decisions:
 - [Phase 49-02]: risk is an XML attribute on <task> tag — requires regex on fullMatch using /<task[\s>][^>]*>/ to avoid matching <tasks> wrapper element
 - [Phase 49-02]: Post-task HALT fires AFTER commit so user sees actual commit hash and can run git diff to review changes
 - [Phase 49-02]: Mode A (sharded) HALT handled at orchestrator level in execute-phase.md — subagents cannot invoke AskUserQuestion directly with end user
+- [Phase 50]: A6 check uses extractTaskBlocks() count not tasks wrapper presence — consistent with sharding.cjs
+- [Phase 50]: B-checks skipped gracefully when requirementsContent is null — enables unit tests without filesystem
+- [Phase 50]: Future Requirements section excluded from B1 active-section lookup by slicing at ## Future Requirements header
 
 ### Pending Todos
 
@@ -103,6 +107,6 @@ Research flagged two items needing resolution before planning begins:
 
 ## Session Continuity
 
-Last session: 2026-03-19T21:17:18.015Z
-Stopped at: Completed 49-02-PLAN.md
+Last session: 2026-03-19T22:01:58.696Z
+Stopped at: Completed 50-01-PLAN.md
 Resume file: None
