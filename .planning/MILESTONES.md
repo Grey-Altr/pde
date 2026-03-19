@@ -1,5 +1,24 @@
 # Milestones
 
+## v0.5 MCP Integrations (Shipped: 2026-03-19)
+
+**Phases completed:** 7 phases, 18 plans
+**Commits:** 99 | **Files:** 118 | **LOC:** ~145,000
+**Timeline:** 2 days (2026-03-18 → 2026-03-19)
+**Git range:** feat(39-01) → docs(quick-260319-0u1)
+
+**Key accomplishments:**
+1. MCP Infrastructure Foundation: Central adapter module (mcp-bridge.cjs) with security allowlist, probe/degrade contracts, connection persistence, and canonical tool name mapping — all integrations share one bridge
+2. GitHub Integration: Bidirectional sync (issues → REQUIREMENTS.md, handoff → PRs), brief from GitHub issue, CI pipeline status, write-back confirmation gates
+3. Linear + Jira Integration: Issue sync, milestone/epic mapping, ticket creation from handoff, configurable `task_tracker` toggle — unified adapter pattern for both services
+4. Figma Integration: DTCG token import/export, wireframe design context, Code Connect handoff, mockup-to-Figma canvas export with non-destructive merge
+5. Pencil Integration: Design token sync to VS Code canvas, screenshot capture for visual critique audit, detection-based connection with graceful degradation
+6. End-to-End Validation: 315 structural tests verifying multi-server concurrency isolation, post-compaction auth recovery, and write-back confirmation enforcement across all integrations
+
+**Delivered:** A connected development platform with 5 MCP integrations (GitHub, Linear, Jira, Figma, Pencil) — all sharing a central adapter module with security allowlist, probe/degrade contracts, and write-back confirmation gates — enabling bidirectional sync between PDE planning state and external development tools, validated by 315 structural tests.
+
+---
+
 ## v0.4 Self-Improvement & Design Excellence (Shipped: 2026-03-18)
 
 **Phases completed:** 10 phases, 20 plans

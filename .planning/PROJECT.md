@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A full professional product design and development platform delivered as a Claude Code plugin. PDE takes users from raw idea to shipped product through AI-assisted research, design, planning, coding, testing, and deployment. Includes a complete 13-stage design pipeline (recommend → competitive → opportunity → ideate → brief → system → flows → wireframe → critique → iterate → mockup → hig → handoff) orchestrable via a single `/pde:build` command. Features a self-improvement fleet that audits, validates, and elevates its own output quality against Awwwards-level standards.
+A full professional product design and development platform delivered as a Claude Code plugin. PDE takes users from raw idea to shipped product through AI-assisted research, design, planning, coding, testing, and deployment. Includes a complete 13-stage design pipeline (recommend → competitive → opportunity → ideate → brief → system → flows → wireframe → critique → iterate → mockup → hig → handoff) orchestrable via a single `/pde:build` command. Features a self-improvement fleet that audits, validates, and elevates its own output quality against Awwwards-level standards. Integrates with external development tools (GitHub, Linear, Jira, Figma, Pencil) via MCP for bidirectional sync of requirements, design tokens, and work items.
 
 ## Core Value
 
@@ -38,16 +38,19 @@ Any user can go from idea to shipped product through a single platform that hand
 - ✓ Design quality elevation: all 7 pipeline skills with motion tokens, OKLCH palettes, APCA contrast, spring physics — v0.4
 - ✓ Pressure test: end-to-end pipeline validation with process compliance and quality rubric tiers — v0.4
 - ✓ 62/62 v0.4 requirements satisfied with 330+ Nyquist assertions — v0.4
+- ✓ MCP infrastructure with security allowlist, probe/degrade contracts, connection persistence — v0.5
+- ✓ GitHub integration: issue sync, PR creation, brief from issue, CI pipeline status — v0.5
+- ✓ Linear + Jira integration: issue sync, milestone/epic mapping, ticket creation, task_tracker toggle — v0.5
+- ✓ Figma integration: DTCG token import/export, wireframe context, Code Connect handoff, mockup export — v0.5
+- ✓ Pencil integration: token sync to canvas, screenshot capture for critique, graceful degradation — v0.5
+- ✓ End-to-end validation: 315 tests for concurrency isolation, auth recovery, write-back confirmation — v0.5
 
 ### Active
 
-<!-- v0.5 MCP Integrations — scope TBD after research -->
-
-(Defining requirements for v0.5)
+(Defining requirements for next milestone)
 
 ### Out of Scope
 
-- MCP server integrations (GitHub, Linear, Figma, Jira) — candidate for future milestone
 - Multi-AI-provider support (Gemini CLI, OpenCode, Codex) — candidate for future milestone
 - Standalone CLI distribution independent of Claude Code — post-v2
 - Multi-product-type support (hardware, content, non-software) — post-v2
@@ -58,31 +61,41 @@ Any user can go from idea to shipped product through a single platform that hand
 - Fully autonomous self-modification without safeguards — protected-files mechanism provides guardrails
 - Generic LLM quality metrics (BLEU, ROUGE) — Awwwards rubric is domain-specific
 - Continuous background self-improvement loop — Claude Code is session-based; explicit invocations are correct
+- Real-time bidirectional Figma sync — architecturally impossible in session-based plugin; use explicit sync commands
+- Auto-configure all MCP servers on install — triggers unexpected OAuth flows; always require explicit user consent
+- MCP tool passthrough to all subagents — destroys 85% context savings from Tool Search
+- Write tools in PDE-as-MCP-server — creates second write path bypassing pde-tools.cjs validation and locking
 
 ## Context
 
-- **Shipped v0.4** on 2026-03-18: ~134,000 LOC (JavaScript/Markdown/Shell), 460 total commits
+- **Shipped v0.5** on 2026-03-19: ~145,000 LOC (JavaScript/Markdown/Shell), 559 total commits
 - **v0.1** shipped 2026-03-15: 303 files, ~60,000 LOC, 127 commits (GSD → PDE rebrand)
 - **v0.2** shipped 2026-03-16: 172 files changed, 135 commits (7-stage design pipeline)
 - **v0.3** shipped 2026-03-17: 84 files changed, 67 commits (6 advanced design skills, 13-stage pipeline)
 - **v0.4** shipped 2026-03-18: 259 files changed, 131 commits (self-improvement fleet, design elevation, pressure test)
-- **Tech stack:** Node.js (CommonJS), Claude Code plugin API, markdown-based state management
+- **v0.5** shipped 2026-03-19: 118 files changed, 99 commits (5 MCP integrations, 315 validation tests)
+- **Tech stack:** Node.js (CommonJS), Claude Code plugin API, markdown-based state management, MCP protocol (HTTP/SSE/stdio transports)
 - **Distribution:** Claude Code plugin via GitHub; marketplace registration pending
 - **Architecture:** skills (slash commands) → workflows → agents → templates → references → bin scripts → config
 - **Design pipeline:** 13 skills (recommend, competitive, opportunity, ideate, brief, system, flows, wireframe, critique, iterate, mockup, hig, handoff) + build orchestrator, DESIGN-STATE.md tracking, design-manifest.json artifact registry (13 coverage flags, pass-through-all pattern)
 - **Quality infrastructure:** Awwwards 4-dimension rubric, 3 quality reference files (motion-design, composition-typography, quality-standards), protected-files mechanism, 3-agent self-improvement fleet, skill builder with validation gate
+- **MCP integration layer:** mcp-bridge.cjs central adapter with TOOL_MAP (36 entries), APPROVED_SERVERS (5 services), probe/degrade contracts, connection persistence (.planning/mcp-connections.json), write-back confirmation gates
 - **Known tech debt:**
   - PLUG-01 end-to-end `claude plugin install` from GitHub not tested (marketplace registration may be required)
   - TRACKING-PLAN.md referenced in consent panel does not exist
   - Historical commits e067974 and efe3af0 lack Co-Authored-By trailer (pre-fix, cannot change)
   - lock-release calls use inconsistent trailing arguments across workflows (cosmetic, zero functional impact)
   - SUMMARY.md files lack one_liner field — automated accomplishment extraction fails (tech-tracking format only)
+  - 2 pre-registered TOOL_MAP entries (github:update-pr, github:search-issues) have no consumers yet (intentionally pre-registered)
+  - connect.md Step 3.5→4 GITHUB_REPO env var handoff not explicitly specified (low risk)
 
 ## Constraints
 
 - **Base**: Built on GSD codebase — same patterns, renamed
 - **Compatibility**: Must work as a Claude Code plugin
 - **State model**: File-based `.planning/` directory — no database, no server
+- **Zero npm deps at plugin root**: Any new dependencies go in isolated subdirectories
+- **MCP security**: Verified-sources-only policy — only official MCP servers from approved vendors
 
 ## Key Decisions
 
@@ -93,48 +106,23 @@ Any user can go from idea to shipped product through a single platform that hand
 | Fast clone for v0.1 | Get working product quickly, refactor in later milestones | ✓ Good — 100% requirements met |
 | Public distribution | Building for the community, not just personal use | ✓ Good — README, Getting Started, marketplace ready |
 | Order-dependent rename sequence | Plugin identity → binaries → commands → engine → agents → templates → brand verify | ✓ Good — each layer clean before next |
-| 0.1.0 version bump at Phase 8 | Signal work-in-progress until all phases pass | ✓ Good — version reflects shipped state |
-| Full telemetry implementation over stub | render.cjs consent and track-* need real persistence | ✓ Good — no crashes, UI renders cleanly |
-| 21 command stubs for dangling references | Stubs prevent user confusion; v2 implements full logic | ✓ Good — zero dangling /pde: references |
 | Core design pipeline for v0.2 | Closes the biggest gap in "idea to shipped product" promise | ✓ Good — 7 skills + orchestrator shipped |
 | Standalone skills + orchestrator | Flexibility for ad-hoc use AND guided workflow | ✓ Good — each skill works both ways |
-| .planning/design/ for artifacts | Keeps design state with planning state; consistent with existing patterns | ✓ Good — clean artifact organization |
-| v0.2 not v1.0 | Incremental addition to existing platform, not a breaking change | ✓ Good — no breaking changes |
 | DTCG 2025.10 + OKLCH + dual dark mode | Industry-standard token format with perceptually uniform color space | ✓ Good |
-| Inline tokens.css (no @import) | file:// URL compatibility for preview and wireframe consumption | ✓ Good |
-| STACK.md as hard dependency for /pde:handoff | Framework detection without STACK.md produces unusable component stubs | ✓ Good |
-| Interface-only TypeScript output (HND-types-v{N}.ts) | No imports or runtime code — direct engineer import without compilation issues | ✓ Good |
 | Orchestrator is strictly read-only | No coverage writes, no manifest mutations; each skill owns its own flag | ✓ Good |
-| Skill() over Task() invocation in build | Avoids #686 nested-agent freeze; Skill runs in same context | ✓ Good |
-| Pass-through-all coverage pattern | Each skill reads all 13 flags, sets only its own — prevents clobber when mixing skills | ✓ Good |
-| hasBrief excluded from designCoverage | Brief completion tracked via artifacts.BRF presence; coverage flags reserved for design output skills | ✓ Good |
-| Two-pass diverge→converge ideation | Enforces neutral language in diverge to prevent premature convergence; scoring only in converge pass | ✓ Good |
-| Soft upstream probe pattern for brief | IDT/CMP/OPP artifacts probed via Glob; null-context fallthrough to existing logic unchanged | ✓ Good |
-| IDT Brief Seed supersedes PROJECT.md | When ideation exists, Brief Seed represents latest thinking; raw PROJECT.md is fallback only | ✓ Good |
-| HIG --light flag as critique delegation contract | 5 mandatory checks only, critique-compatible format; full audit as separate stage | ✓ Good |
-| Data-driven STAGES list in build orchestrator | Future pipeline expansions require no text changes — TOTAL derived from list length | ✓ Good |
-| --from flag with validation-before-coverage-check | Typos halt immediately with full valid stage list; no silent skip behavior | ✓ Good |
-| Self-improvement before pressure test | Build tools to fix PDE first, then validate with real project | ✓ Good — audit baseline enabled elevation delta measurement |
-| Design quality elevation last before pressure test | Use self-improvement fleet to elevate quality, then validate | ✓ Good — strict dependency order produced cumulative improvement |
-| Awwwards-level as quality bar | PDE must produce stunning, professional-grade design output — not functional defaults | ✓ Good — 330+ Nyquist assertions verify rubric compliance |
-| Prompt-only protected-files enforcement | bwrap sandbox can't prevent Claude Code Write/Edit; prompt-level defense-in-depth at workflow + agent level | ✓ Good — zero protected-file violations across all v1.3 phases |
-| DTCG object format for duration tokens | String format "200ms" rejected by Style Dictionary v4+; { value: N, unit: "ms" } is spec-compliant | ✓ Good — all motion tokens upgraded |
-| Spring easing as cubicBezier + $extensions | DTCG has no native spring type; workaround via §9.3 + linear() multi-bounce extension | ✓ Good — three fidelity levels documented |
-| Pressure test evaluator distinct from quality auditor | Evaluates design OUTPUT artifacts not SKILL.md files — prevents wrong-domain findings | ✓ Good |
-| Version numbering correction v1.x → v0.x | Pre-1.0 product; semver signals maturity accurately | — Pending |
-
-## Current Milestone: v0.5 MCP Integrations
-
-**Goal:** Make PDE a connected development hub by integrating with external MCP servers — GitHub, Linear, Figma, Pencil, Jira, and others surfaced by research.
-
-**Target features:**
-- MCP server discovery, connection, and orchestration infrastructure
-- GitHub integration (issues, PRs, code context)
-- Linear/Jira integration (task tracking, requirements sync)
-- Figma integration (design artifact exchange)
-- Pencil MCP integration (visual canvas for design artifacts)
-- Additional integrations surfaced by research
-- Evaluation of PDE-as-MCP-server (exposing planning state to other tools)
+| Pass-through-all coverage pattern | Each skill reads all 13 flags, sets only its own — prevents clobber | ✓ Good |
+| Self-improvement before pressure test | Build tools to fix PDE first, then validate with real project | ✓ Good |
+| Awwwards-level as quality bar | PDE must produce stunning, professional-grade design output | ✓ Good — 330+ Nyquist assertions |
+| Prompt-only protected-files enforcement | bwrap sandbox can't prevent Claude Code Write/Edit; defense-in-depth | ✓ Good |
+| Version numbering correction v1.x → v0.x | Pre-1.0 product; semver signals maturity accurately | ✓ Good |
+| Central MCP adapter (mcp-bridge.cjs) | Single module for all integrations — consistent security, probe/degrade, tool mapping | ✓ Good — 5 integrations share one bridge |
+| Canonical tool name mapping (TOOL_MAP) | Insulates workflows from raw MCP tool name changes | ✓ Good — 36 entries, zero raw names in workflows |
+| Verified-sources-only security policy | Only official MCP servers — prevents unauthorized tool access | ✓ Good — assertApproved() blocks all unapproved |
+| Write-back confirmation gates | Every external write requires explicit user consent (VAL-03) | ✓ Good — 26 confirmation gate tests GREEN |
+| Detection-based Pencil connection | VS Code extension auto-configures — no manual `claude mcp add` | ✓ Good — zero friction for VS Code users |
+| task_tracker config toggle | Single setting switches Linear↔Jira without workflow changes | ✓ Good — clean service dispatch |
+| Non-destructive Figma token merge | PDE-originated tokens preserved; Figma is source for its exports | ✓ Good — no data loss on sync |
+| Inline conversion functions (zero npm) | figmaColorToCss, dtcgToPencilVariables embedded in workflows | ✓ Good — zero-npm-dependency preserved |
 
 ---
-*Last updated: 2026-03-18 after v0.5 milestone start*
+*Last updated: 2026-03-19 after v0.5 milestone*

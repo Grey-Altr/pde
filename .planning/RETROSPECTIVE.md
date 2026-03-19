@@ -2,7 +2,7 @@
 
 *A living document updated after each milestone. Lessons feed forward into future planning.*
 
-## Milestone: v1.0 — PDE v1.0 MVP
+## Milestone: v0.1 — PDE MVP
 
 **Shipped:** 2026-03-15
 **Phases:** 11 | **Plans:** 23 | **Commits:** 127
@@ -48,7 +48,7 @@
 
 ---
 
-## Milestone: v1.1 — Design Pipeline
+## Milestone: v0.2 — Design Pipeline
 
 **Shipped:** 2026-03-16
 **Phases:** 15 | **Plans:** 16 | **Commits:** 135
@@ -101,7 +101,7 @@
 
 ---
 
-## Milestone: v1.2 — Advanced Design Skills
+## Milestone: v0.3 — Advanced Design Skills
 
 **Shipped:** 2026-03-17
 **Phases:** 5 | **Plans:** 10 | **Commits:** 67
@@ -147,7 +147,7 @@
 
 ---
 
-## Milestone: v1.3 — Self-Improvement & Design Excellence
+## Milestone: v0.4 — Self-Improvement & Design Excellence
 
 **Shipped:** 2026-03-18
 **Phases:** 10 | **Plans:** 20 | **Commits:** 131
@@ -196,22 +196,71 @@
 
 ---
 
+## Milestone: v0.5 — MCP Integrations
+
+**Shipped:** 2026-03-19
+**Phases:** 7 | **Plans:** 18 | **Commits:** 99
+
+### What Was Built
+- MCP infrastructure: central adapter module (mcp-bridge.cjs) with security allowlist, probe/degrade contracts, TOOL_MAP with 36 canonical→raw mappings, connection persistence
+- GitHub integration: issue sync to REQUIREMENTS.md, PR creation from handoff, brief from GitHub issue, CI pipeline status display
+- Linear + Jira integration: issue sync, milestone/epic mapping, ticket creation from handoff, configurable task_tracker toggle
+- Figma integration: DTCG token import/export with non-destructive merge, wireframe design context, Code Connect handoff, mockup-to-Figma canvas export
+- Pencil integration: design token sync to VS Code canvas, screenshot capture for visual critique, detection-based connection with graceful degradation
+- End-to-end validation: 315 structural tests (17 concurrency isolation, 19 auth recovery, 26 write-back confirmation, 62+ cross-integration)
+
+### What Worked
+- **Infrastructure-first (Phase 39) hard-blocked all integrations** — mcp-bridge.cjs established adapter pattern, security allowlist, and probe/degrade contracts that every subsequent phase inherited unchanged
+- **Adapter pattern compounding** — Phase 40 (GitHub) established TOOL_MAP + bridge.call() pattern; Phases 41-43 reused it verbatim, making each integration faster to implement than the last
+- **Write-back confirmation gates from the start** — VAL-03 compliance pattern established in Phase 40 (GitHub PRs) was inherited by all subsequent write-back workflows (Linear issues, Jira tickets, Figma export)
+- **Milestone audit before completion** — caught 2 allowed-tools gaps and 2 try/catch inconsistencies, leading to Phase 40.1 tech debt cleanup before shipping
+- **Phase 44 as structural audit** — tests validated existing code structure rather than filling gaps, going GREEN immediately on first run
+
+### What Was Inefficient
+- **SUMMARY.md one_liner field still missing** — fifth consecutive milestone where automated accomplishment extraction fails; gsd-tools `summary-extract --fields one_liner` returns null
+- **Phase 40.1 should have been unnecessary** — allowed-tools gaps in sync.md and pipeline-status.md could have been caught by a pre-commit validation hook checking frontmatter completeness
+- **STATE.md accumulated context grew to 100+ lines** — v0.5 decisions section became unwieldy; milestone archival is the right time to clean it
+
+### Patterns Established
+- Central MCP adapter (mcp-bridge.cjs) with APPROVED_SERVERS, TOOL_MAP, probe(), call(), assertApproved()
+- Canonical tool name mapping insulating workflows from raw MCP tool name changes
+- Detection-based connection flow for local MCP servers (Pencil via VS Code extension)
+- Non-blocking sub-workflow dispatch for optional integrations (Pencil in system.md and critique.md)
+- Inline conversion functions (figmaColorToCss, dtcgToPencilVariables) preserving zero-npm constraint
+- Confirmation gate pattern: strict y/yes regex before any external write (VAL-03)
+- Structural audit tests: validate existing code patterns rather than implement new behavior
+
+### Key Lessons
+1. **Adapter patterns compound** — investing in the canonical tool name mapping in Phase 39/40 meant Phases 41-43 each took less time. The pattern is proven for any future integration.
+2. **Pre-commit frontmatter validation would eliminate tech debt phases** — Phase 40.1 existed because allowed-tools was missing in 2 files. An automated check would catch this at commit time.
+3. **Structural audit tests are fast and high-value** — Phase 44's 315 tests validated safety properties across all integrations in a single plan, going GREEN immediately because the code was already correct.
+4. **Detection-based connection beats manual setup** — Pencil's auto-detection via VS Code extension is zero-friction compared to `claude mcp add` for hosted services.
+
+### Cost Observations
+- Model mix: sonnet for execution agents, opus for orchestration and planning
+- Timeline: 2 days (2026-03-18 → 2026-03-19)
+- Notable: 99 commits, 7 phases — adapter pattern reuse made later integrations progressively faster
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
 
 | Milestone | Commits | Phases | Key Change |
 |-----------|---------|--------|------------|
-| v1.0 | 127 | 11 | Initial release — fork-and-rebrand with gap closure |
-| v1.1 | 135 | 15 | Design pipeline — 7 skills + orchestrator with infrastructure-first approach |
-| v1.2 | 67 | 5 | Advanced design skills — 6 new skills, 13-stage pipeline, zero unplanned phases |
-| v1.3 | 131 | 10 | Self-improvement — audit fleet, skill builder, design elevation, pressure test |
+| v0.1 | 127 | 11 | Initial release — fork-and-rebrand with gap closure |
+| v0.2 | 135 | 15 | Design pipeline — 7 skills + orchestrator with infrastructure-first approach |
+| v0.3 | 67 | 5 | Advanced design skills — 6 new skills, 13-stage pipeline, zero unplanned phases |
+| v0.4 | 131 | 10 | Self-improvement — audit fleet, skill builder, design elevation, pressure test |
+| v0.5 | 99 | 7 | MCP integrations — 5 external tool integrations via central adapter, 315 validation tests |
 
 ### Cumulative Quality
 
 | Milestone | Requirements | Coverage | Gap Phases | Nyquist Tests |
 |-----------|-------------|----------|------------|---------------|
-| v1.0 | 40/40 | 100% | 3 (phases 9-11) | — |
-| v1.1 | 25/25 | 100% | 5 (phases 13.1, 13.2, 15.1, 21-23) | — |
-| v1.2 | 25/25 | 100% | 0 | 306 |
-| v1.3 | 62/62 | 100% | 1 (phase 38) | 330+ |
+| v0.1 | 40/40 | 100% | 3 (phases 9-11) | — |
+| v0.2 | 25/25 | 100% | 5 (phases 13.1, 13.2, 15.1, 21-23) | — |
+| v0.3 | 25/25 | 100% | 0 | 306 |
+| v0.4 | 62/62 | 100% | 1 (phase 38) | 330+ |
+| v0.5 | 27/27 | 100% | 1 (phase 40.1) | 315 |
