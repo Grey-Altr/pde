@@ -651,6 +651,36 @@ async function main() {
       break;
     }
 
+    case 'manifest': {
+      const manifest = require('./lib/manifest.cjs');
+      const subCmd = args[1]; // 'init' or 'check'
+      if (subCmd === 'init') {
+        const pluginRoot = process.env.CLAUDE_PLUGIN_ROOT || path.resolve(__dirname, '..');
+        const count = manifest.manifestInit(pluginRoot);
+        console.log(JSON.stringify({ success: true, entries: count }));
+      } else if (subCmd === 'check') {
+        const manifestPath = path.join(process.cwd(), '.planning', 'config', 'files-manifest.csv');
+        try {
+          const csv = require('fs').readFileSync(manifestPath, 'utf-8');
+          const entries = manifest.parseManifest(csv);
+          const pluginRoot = process.env.CLAUDE_PLUGIN_ROOT || path.resolve(__dirname, '..');
+          const results = [];
+          for (const entry of entries) {
+            const diskHash = manifest.hashFile(path.resolve(pluginRoot, entry.path));
+            const modified = diskHash !== entry.sha256;
+            results.push({ path: entry.path, source: entry.source, modified, diskHash });
+          }
+          const modifiedCount = results.filter(r => r.modified).length;
+          console.log(JSON.stringify({ success: true, total: entries.length, modified: modifiedCount, files: results }));
+        } catch (err) {
+          console.log(JSON.stringify({ success: false, error: 'Manifest not found. Run: node pde-tools.cjs manifest init' }));
+        }
+      } else {
+        console.log(JSON.stringify({ success: false, error: `Unknown manifest subcommand: ${subCmd}. Use: init, check` }));
+      }
+      break;
+    }
+
     default:
       error(`Unknown command: ${command}`);
   }
