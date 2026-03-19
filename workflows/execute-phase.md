@@ -47,6 +47,65 @@ if [[ ! "$ARGUMENTS" =~ --auto ]]; then
   node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" config-set workflow._auto_chain_active false 2>/dev/null
 fi
 ```
+
+**Readiness gate check:**
+```bash
+READINESS_RESULT="none"
+READINESS_FILE=""
+
+# Check for existing READINESS.md in the phase directory
+READINESS_FILE=$(ls "${phase_dir}"/*-READINESS.md 2>/dev/null | head -1)
+
+if [ -n "$READINESS_FILE" ]; then
+  # Check for staleness: is READINESS.md older than newest PLAN.md?
+  NEWEST_PLAN=$(ls -t "${phase_dir}"/*-PLAN.md 2>/dev/null | head -1)
+  if [ -n "$NEWEST_PLAN" ]; then
+    R_MTIME=$(stat -f "%m" "$READINESS_FILE" 2>/dev/null || stat -c "%Y" "$READINESS_FILE" 2>/dev/null)
+    P_MTIME=$(stat -f "%m" "$NEWEST_PLAN" 2>/dev/null || stat -c "%Y" "$NEWEST_PLAN" 2>/dev/null)
+    if [ "$P_MTIME" -gt "$R_MTIME" ]; then
+      echo "WARNING: READINESS.md may be stale — PLAN.md was modified after the last readiness check."
+      echo "  Run /pde:check-readiness ${PHASE_NUMBER} to refresh."
+    fi
+  fi
+
+  # Read the result from READINESS.md frontmatter
+  READINESS_RESULT=$(grep "^result:" "$READINESS_FILE" 2>/dev/null | head -1 | sed 's/^result:[[:space:]]*//')
+fi
+```
+
+Apply gate logic based on READINESS_RESULT:
+
+**If READINESS_RESULT is "fail":**
+HALT — do not proceed to handle_branching or any subsequent step. Display:
+```
+HALT: Readiness Gate FAIL
+Phase: {phase_number} — {phase_name}
+Readiness report: {READINESS_FILE}
+
+The last readiness check found critical issues that must be fixed before executing.
+Run /pde:check-readiness {phase_number} to see the current status.
+
+To override (not recommended): delete the READINESS.md file and re-run execute-phase.
+```
+Stop execution entirely. Do NOT spawn any executors or create any branches.
+
+**If READINESS_RESULT is "concerns":**
+Use AskUserQuestion to present:
+```
+WARNING: Readiness Gate CONCERNS
+Phase: {phase_number} — {phase_name}
+
+The readiness check found non-blocking concerns. Review them before continuing.
+See: {READINESS_FILE}
+
+Type 'proceed' to execute with these concerns, or 'abort' to fix them first.
+```
+If user responds 'abort' (or equivalent): stop execution.
+If user responds 'proceed' (or equivalent): continue normally, log "Proceeding with readiness concerns acknowledged."
+
+**If READINESS_RESULT is "pass":** Continue silently (no user interaction).
+
+**If READINESS_RESULT is "none"** (no READINESS.md found): Continue normally. The gate is opt-in.
 </step>
 
 <step name="handle_branching">
