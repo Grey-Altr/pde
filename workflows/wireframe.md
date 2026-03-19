@@ -53,6 +53,18 @@ Halt on error. On success, display: `Step 1/7: Design directories initialized.`
 
 ---
 
+### Step 1.5/7: Load Figma design context (if available)
+
+If `--no-mcp` is NOT set and `--quick` is NOT set:
+  Follow @workflows/wireframe-figma-context.md to fetch Figma design context.
+  Store the returned context as FIGMA_DESIGN_CONTEXT for use in wireframe generation steps.
+  If Figma context is available, use it as additional reference for component structure and visual consistency decisions alongside PDE design tokens.
+
+If `--no-mcp` IS set or `--quick` IS set:
+  Skip Figma context. FIGMA_DESIGN_CONTEXT is empty.
+
+---
+
 ### Step 2/7: Check prerequisites and parse arguments
 
 This step has six sub-sections executed in order: screen inventory, fidelity validation, screen selection, force/version gate, design brief, design tokens.

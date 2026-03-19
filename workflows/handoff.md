@@ -48,6 +48,18 @@ Halt on error. On success, display: `Step 1/7: Design directories initialized.`
 
 ---
 
+### Step 1.5/7: Load Figma Code Connect mappings (if available)
+
+If `--no-mcp` is NOT set:
+  Follow @workflows/handoff-figma-codeConnect.md to fetch Code Connect mappings.
+  Store the returned table as FIGMA_CODE_CONNECT_TABLE.
+  If the table is non-empty, append it to the handoff spec output after the main component specifications section.
+
+If `--no-mcp` IS set:
+  Skip Code Connect. FIGMA_CODE_CONNECT_TABLE is empty.
+
+---
+
 ### Step 2/7: Check prerequisites and discover artifacts
 
 This step has eleven sub-sections executed in order.
