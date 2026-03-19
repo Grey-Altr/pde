@@ -1,212 +1,214 @@
 # Pitfalls Research
 
-**Domain:** Adding MCP server integrations to an existing file-based Claude Code plugin (PDE v0.5)
-**Researched:** 2026-03-18
-**Confidence:** HIGH (grounded in direct PDE codebase inspection, verified MCP protocol documentation, confirmed Claude Code issue tracker bugs, and multiple credible ecosystem sources)
+**Domain:** Importing BMAD + PAUL methodology patterns into PDE — an existing agentic workflow platform (v0.6)
+**Researched:** 2026-03-19
+**Confidence:** HIGH (grounded in direct PDE codebase inspection of 145,000+ LOC, verified BMAD official docs, PAUL repository source analysis, and first-principles reasoning about agentic architecture conflicts)
 
 ---
 
 ## Critical Pitfalls
 
-### Pitfall 1: Authentication State Lost on Context Compaction
+### Pitfall 1: Agent Role Namespace Collision
 
 **What goes wrong:**
-When a Claude Code session runs long enough to trigger context compaction, MCP connector authentication state stored in conversation context is destroyed. Every MCP server that was authenticated must be manually re-authenticated before tools can resume. In PDE's case, this means a pipeline that reaches `/pde:handoff` after heavy use may find GitHub, Linear, and Figma connections gone mid-session. Confirmed in the Claude Code issue tracker (issue #34832: "Cowork MCP connectors lose auth after context compaction").
+BMAD defines roles named Analyst, Product Manager, Architect, Scrum Master, Product Owner, Developer, and QA. PDE already has agents named pde-quality-auditor, pde-skill-builder, pde-skill-improver, pde-skill-validator, pde-design-quality-evaluator, and pde-pressure-test-evaluator. When BMAD roles are imported with names like "analyst" or "architect," there is no collision in filenames — but there IS a semantic collision. The BMAD Analyst performs market/competitive research on products. PDE already has `/pde:competitive`, `/pde:opportunity`, and `/pde:recommend` that do the same thing. The BMAD Architect produces architecture documents. PDE already has a planning system (ROADMAP.md, PLAN.md, phase directories) that serves this function. If both live in the same system without a clear boundary, agents — and users — will not know which to invoke.
 
 **Why it happens:**
-OAuth tokens and session handles are passed as transient context rather than persisted outside the conversation. Context compaction rebuilds the context window from scratch — transient state is not preserved. Developers assume MCP connections persist at the process level, but the connection auth is scoped to conversation context when not explicitly externalized.
+BMAD and PAUL are full-stack methodology systems. They were each designed to own the entire workflow from scratch. Importing them into a system that already has workflow coverage means there will be conceptual overlap by design. The temptation is to import everything and rationalize it later. This results in two systems answering the same questions differently.
 
 **How to avoid:**
-Never store authentication state inside conversation context. Persist OAuth tokens and session credentials to disk in a dedicated `.planning/mcp-state/` directory, using OS keychain APIs where available. On each skill invocation, the MCP orchestration layer must load credentials from disk, not assume they are already present. Implement a connection health-check at skill start that re-authenticates from stored credentials if the session handle is stale. For the Claude Code plugin, use environment variables (scoped to the project's `.env` or Claude Code settings) as the canonical credential store.
+Before importing any BMAD/PAUL role, map it against PDE's existing capabilities. For each BMAD/PAUL agent: identify the PDE skill or workflow that already covers that function, define explicitly what gap (if any) the BMAD/PAUL agent fills that PDE does not, and only import the delta — the capability PDE is missing. The BMAD Analyst's market research function is already covered by `/pde:competitive` and `/pde:opportunity`. Import only what those skills genuinely lack (BMAD's structured PRD output format, for instance) as enhancements to existing PDE skills, not as a separate agent.
 
 **Warning signs:**
-- MCP tool calls fail after a long design pipeline session with "unauthorized" or "not connected" errors
-- Re-running a skill that was working earlier in the session suddenly fails to reach the MCP server
-- No credential persistence layer exists — auth only happens on explicit user command
+- Two agents in the system that have overlapping stated purposes (e.g., "analyze requirements" appears in both a BMAD Analyst and a PDE skill)
+- Users are uncertain whether to run `/pde:brief` or invoke the BMAD PM agent for the same task
+- A new BMAD-derived agent file exists alongside a PDE workflow that already covers 80% of the same ground
 
-**Phase to address:** MCP infrastructure phase (Phase 1) — credential persistence architecture must be designed before any individual MCP integration is built. Retrofitting auth persistence to five separate integrations is five times the work.
+**Phase to address:** Phase 1 (Role Mapping and Boundary Definition) — this must be resolved before any agent files are created. A decision table mapping every BMAD/PAUL role to its PDE equivalent (or gap) must exist before implementation begins.
 
 ---
 
-### Pitfall 2: SSE Transport Disconnect Crashes the Session Instead of Degrading Gracefully
+### Pitfall 2: Dual State Management — `.paul/` vs `.planning/`
 
 **What goes wrong:**
-When an SSE-based MCP server (Figma, Pencil, or any remote MCP) drops its connection mid-session, Claude Code exits the session entirely rather than marking the server as unavailable and continuing. Confirmed in Claude Code issue #18557: "SSE MCP server disconnection crashes session instead of graceful degradation." For PDE, a Figma connection dropping during `/pde:build` would kill the entire pipeline — destroying in-progress state.
+PAUL manages state through a `.paul/` directory with its own STATE.md, PROJECT.md, ROADMAP.md, and phases subdirectory. PDE manages state through a `.planning/` directory with STATE.md, PROJECT.md, ROADMAP.md, and phases. These are structurally identical but semantically distinct. If PAUL patterns are imported naively, the system ends up with two state directories with overlapping file names (both have STATE.md and ROADMAP.md) that diverge over time. Worse: PAUL's PLAN-APPLY-UNIFY loop updates PAUL's STATE.md as the authoritative loop tracker. PDE's autonomous workflow reads PDE's STATE.md as the authoritative phase tracker. Neither reads the other's state. Phase completion recorded in `.planning/STATE.md` is invisible to any PAUL-derived workflow, and vice versa.
 
 **Why it happens:**
-The SSE transport client does not wrap network operations in try-catch. A network error propagates as an unhandled exception that terminates the process. This is a known Claude Code bug rather than a developer mistake, but integrations must be designed defensively because the fix may not ship before PDE v0.5.
+PAUL was designed as a standalone system that owns its state. Importing its patterns means importing its state model, which directly conflicts with PDE's existing state model. The path of least resistance is to let PAUL create its `.paul/` directory and let PDE keep its `.planning/` directory — they coexist without merging, but they also diverge without reconciliation.
 
 **How to avoid:**
-Treat every MCP server as potentially unavailable at any moment. Design each PDE skill that uses an MCP server with an explicit "optional dependency" pattern: the skill checks whether the MCP server is reachable at the start of execution, not mid-execution, and decides at that point whether to proceed with full functionality or gracefully degrade to a local-only mode. Never call an MCP tool in the middle of a stateful operation (e.g., mid-artifact-generation). All MCP calls must happen either at the very start (data fetching) or very end (data publishing) of a skill execution — never interleaved with state writes.
+Do not import PAUL's state management structure. PDE's `.planning/` directory IS the canonical state store for PDE, and this must not change. Extract PAUL's workflow discipline (Plan-Apply-Unify loop integrity, acceptance-criteria-first task definition, closure enforcement) as patterns to apply WITHIN PDE's existing state model. PAUL's PLAN.md format maps to PDE's `*-PLAN.md` files in `.planning/phases/`. PAUL's UNIFY discipline maps to PDE's `*-SUMMARY.md` requirement. The loop can be enforced by PDE's tooling without creating a second state directory.
 
 **Warning signs:**
-- A skill calls MCP tools in the middle of a workflow that also writes to `.planning/` files
-- No `try-catch` wrapper exists around any MCP tool call in the orchestration layer
-- There is no local fallback path for a skill that also has an MCP-enhanced path
+- A `.paul/` directory exists alongside `.planning/` in the project root
+- Two files named STATE.md or ROADMAP.md exist in the project (even in different directories)
+- A PAUL-derived workflow reads from `.paul/STATE.md` instead of `.planning/STATE.md`
 
-**Phase to address:** MCP infrastructure phase (Phase 1) — the optional-dependency pattern and graceful degradation contract must be established as the foundation before any individual MCP integration is built.
+**Phase to address:** Phase 1 (Architecture Boundary Definition) — the single-state-store decision must be made first. All subsequent phases inherit from it. Any PAUL pattern that requires its own state directory must be rejected or adapted to PDE's `.planning/` structure.
 
 ---
 
-### Pitfall 3: Protocol Versioning Breaks Integrations Every Three Months
+### Pitfall 3: Document Sharding Conflicts with PDE's Artifact Registry
 
 **What goes wrong:**
-The MCP specification uses date-based versions (2025-03-26, 2025-06-18, etc.) with breaking changes appearing on roughly three-month cycles. A feature added in one version may be removed or changed in the next (batching was added in 2025-03-26 and removed in 2025-06-18). PDE integrations built against a specific MCP server version may silently break after a server-side version upgrade — with no semver signal that a breaking change occurred.
+BMAD's core innovation is "document sharding" — breaking large PRDs and architecture documents into atomic, AI-digestible chunks to prevent context overload. BMAD shards its documents into focused files that each agent loads independently. PDE has its own artifact management: design-manifest.json tracks 13 coverage flags, `.planning/design/` holds structured artifacts by stage, and `*-PLAN.md` files are written with wave-based parallelization in mind. If BMAD sharding is imported without adaptation, there will be two competing artifact formats: BMAD's sharded PRD chunks and PDE's phase-plan files. An agent running PDE's execute-phase workflow will not know to look for BMAD shards. An agent running BMAD's document workflow will not update PDE's design-manifest.json coverage flags.
 
 **Why it happens:**
-Date-based version strings carry no semantic signal. A developer who sees "2025-06-18" vs "2025-09-15" cannot tell whether this is a minor update or a breaking change without reading the full changelog. The MCP ecosystem lacks the SemVer governance required to signal "this upgrade requires integration changes." Additionally, tool descriptions can change between versions in ways that affect agent behavior without triggering hard errors (issue: "Your MCP Server's Tool Descriptions Changed Last Night. Nobody Noticed.").
+BMAD's sharding is a concrete implementation pattern, not just a principle. Importing it means importing its file structure and naming conventions. When these conventions are applied on top of PDE's existing conventions, the output is hybrid artifacts that fit neither system.
 
 **How to avoid:**
-Pin MCP server connections to a specific protocol version in configuration. Document the tested version for each integration in a `mcp-integrations.json` manifest. Implement a version-check step in the MCP orchestration layer: on connection, compare the server's reported protocol version against the pinned version; if they diverge, log a warning and optionally fail rather than silently operating against an untested version. For GitHub, Linear, and Figma specifically: maintain a contract test suite (lightweight tests that verify the specific tools PDE uses still behave as expected) that runs against the live server monthly. Treat a contract test failure as a regression that blocks the next PDE release, not a background noise event.
+Import the sharding PRINCIPLE (keep context chunks focused and below AI-digestible size), not the sharding FILE FORMAT. PDE's existing wave-based parallel plan execution already implements sharding discipline: each `*-PLAN.md` is scoped to a specific, bounded task. Enhance PDE's plan templates to enforce BMAD-level context focus (explicit acceptance criteria, file-level specificity, bounded context references) without introducing BMAD's artifact naming conventions. If any BMAD document format is genuinely superior to PDE's equivalent, replace PDE's format — do not run both in parallel.
 
 **Warning signs:**
-- No protocol version is pinned in the MCP connection configuration
-- Integration tests only test against a mock server, not the live service
-- A previously working integration suddenly fails with "tool not found" or incorrect return shapes
+- BMAD-formatted files (e.g., `prd-shard-01.md`, `architecture-shard-02.md`) appear in `.planning/` alongside PDE-formatted `*-PLAN.md` files
+- PDE's design-manifest.json coverage flags are not updated after a BMAD-methodology phase completes
+- The pde-tools.cjs CLI does not recognize BMAD-generated artifacts when running `roadmap analyze` or `design coverage-check`
 
-**Phase to address:** Each individual MCP integration phase — pinning and contract tests must be built with the integration, not added later. The GitHub integration phase should establish the pattern; subsequent integrations inherit it.
+**Phase to address:** Phase 2 (Artifact Format Integration) — a canonical artifact format decision must be made per artifact type before any phase produces documents. Running BMAD-format and PDE-format artifacts in the same directory will cause the validation infrastructure to break.
 
 ---
 
-### Pitfall 4: Configuration Sprawl as Each Integration Adds Its Own Credential Store
+### Pitfall 4: Methodology Bloat — Importing Everything, Using Nothing
 
 **What goes wrong:**
-GitHub integration adds `GITHUB_TOKEN` to `.env`. Linear integration adds `LINEAR_API_KEY`. Figma adds `FIGMA_ACCESS_TOKEN`. Pencil adds its own auth configuration. Each integration invents its own configuration key naming, storage location, validation logic, and error message. After five integrations, users face a ten-key `.env` file with no documentation about what each key does, which integrations depend on which keys, and which keys are optional vs. required. Setup instructions become a multi-page document users skip, then ask for help.
+BMAD has 12+ agent roles and a multi-phase lifecycle. PAUL has 5 core commands and a loop model. Both have extensive documentation and templates. The temptation when importing methodologies is to be comprehensive — import all the roles, all the templates, all the reference documents, to "have them available if needed." The result is a PDE installation with 12 BMAD agent files, 5 PAUL command files, and 40+ new template files, of which 3-4 are actually used. The unused files bloat the codebase (PDE is already 145,000 LOC), confuse users who see unfamiliar commands, and create a maintenance burden — every time PDE's skill-style-guide changes, all 12 BMAD agent files need updating too.
 
 **Why it happens:**
-Integrations are built one at a time by following whatever pattern the individual MCP server documentation recommends. No cross-integration configuration schema is designed upfront. The first integration sets a bad precedent; subsequent integrations copy it because "that's how we did GitHub."
+"Import everything" feels safer than "import selectively" — if you miss something needed later, you have to do it again. Selective import requires making hard decisions about what PDE actually needs from BMAD/PAUL vs. what it already covers. Those decisions require analytical discipline that is easier to skip.
 
 **How to avoid:**
-Design a unified MCP configuration schema before building the first integration. All credentials live in one place (`.planning/mcp-config.json` or Claude Code's project-level settings). The schema must specify: service name, credential type (oauth/api-key/token), required vs. optional, scopes needed, and a documentation URL. The MCP orchestration layer reads from this single config; individual integration modules never read from environment variables directly — they receive their credentials from the orchestration layer. Build a `/pde:mcp-status` command in the first phase that shows all configured integrations, their auth status, and what features they enable/disable when unavailable.
+Define the specific capability gaps in PDE that BMAD/PAUL closes. PDE already has: competitive analysis, opportunity scoring, ideation, briefing, planning (ROADMAP/phases), execution (execute-phase/execute-plan), verification, and autonomous mode. From BMAD, what is genuinely missing: structured business requirements format (PRD discipline), epic/story decomposition for developer handoff. From PAUL, what is genuinely missing: explicit loop closure enforcement (UNIFY step), acceptance-criteria-first task definition, boundary constraint documentation. Import ONLY those gaps. Every BMAD/PAUL element proposed for import must answer: "What does PDE not do today that this provides?"
 
 **Warning signs:**
-- Each integration has its own credential variable names with no shared naming convention
-- There is no single place to see "which MCP integrations are configured and active"
-- Setup instructions require setting more than 3 environment variables without a setup wizard
+- More than 5 new agent files are being created for the v0.6 milestone
+- New template files are added with no corresponding workflow that uses them
+- BMAD or PAUL documentation files are imported wholesale rather than selectively adapted
+- The number of `/pde:` commands grows by more than 6 in this milestone
 
-**Phase to address:** MCP infrastructure phase (Phase 1) — configuration schema must be designed before the first integration is implemented.
+**Phase to address:** Phase 1 (Capability Gap Analysis) — before any implementation, produce an explicit gap table: PDE capability X covers BMAD/PAUL concept Y, import is not needed; BMAD/PAUL concept Z has no PDE equivalent, import is justified. Reject any import without a clear gap justification.
 
 ---
 
-### Pitfall 5: Tool Poisoning via Malicious MCP Server Descriptions
+### Pitfall 5: PAUL's UNIFY Step Has No File-Based Equivalent in PDE
 
 **What goes wrong:**
-MCP tool poisoning places malicious instructions in a tool's description, parameter names, or schema fields — not just tool outputs. Because the LLM processes the entire tool schema as part of its reasoning loop, hidden instructions in a tool description can redirect the agent to take unauthorized actions. This affects PDE specifically because PDE uses agent-based execution: an agent that loads a compromised MCP tool's schema could be directed to read `.planning/` state, exfiltrate credentials from context, or make destructive writes.
-
-PDE's agents already have broad access to the `.planning/` directory and project files. A compromised MCP tool combined with an agent that has Write access is a high-impact attack vector.
+PAUL's Plan-Apply-Unify loop requires that every plan close with a UNIFY step: reconcile planned vs. actual work, log decisions, update state. In PAUL's model, a plan without UNIFY is an orphan. PDE has SUMMARY.md files that serve a similar purpose, but SUMMARY.md is not enforced as a closure gate — a phase can be marked complete by `pde-tools.cjs` without a SUMMARY.md existing. If PAUL's UNIFY discipline is imported superficially (add a note to write SUMMARY.md), it will be skipped the same way SUMMARY.md is currently skipped. If PAUL's UNIFY is enforced as a hard gate, it may break PDE's existing `pde-tools.cjs` phase-completion logic which does not currently check for SUMMARY.md before allowing phase progression.
 
 **Why it happens:**
-Developers focus on the functionality of MCP tools and do not threat-model the tool schemas themselves as an attack surface. Community-maintained MCP servers may contain malicious or negligently poisoned tool descriptions. "Tool shadowing" — where one MCP server registers a tool with the same name as a legitimate tool to intercept calls — is a confirmed attack pattern.
+PDE was designed for speed (yolo mode, parallelization, auto-chain). The UNIFY discipline requires intentional closure — a step that slows down execution in exchange for state hygiene. These goals are in tension. PAUL solves the tension by making UNIFY mandatory. PDE solves the tension by making it optional (you can advance without SUMMARY.md). Adopting PAUL's approach means changing PDE's execution gate, which touches `pde-tools.cjs`, the execute-phase workflow, the autonomous workflow, and the roadmap analyze command.
 
 **How to avoid:**
-Only use MCP servers from verified, official sources for PDE integrations (official GitHub MCP, official Linear MCP, official Figma MCP). Never install community MCP servers in the same session as PDE's agent workflows. Document this constraint explicitly in PDE's setup guide. For any MCP server PDE integrates: review the tool schema before integration, checking for instructions in description fields that reference actions outside the tool's stated scope. Implement a tool schema review step in the "add new MCP integration" workflow.
+Decide explicitly whether PDE v0.6 will adopt hard UNIFY enforcement. If yes: update `pde-tools.cjs` phase completion logic to gate on SUMMARY.md existence before marking a phase done, and update the verification-report template to include a UNIFY reconciliation section. If no: adopt PAUL's UNIFY discipline as a soft recommendation in the phase-prompt template without changing gate logic. Do not adopt UNIFY as a halfway measure where it is documented but not enforced — that produces the worst outcome (documentation overhead, no behavioral change).
 
 **Warning signs:**
-- A tool description contains instructions referencing actions beyond the tool's stated purpose (e.g., a "get repository info" tool that mentions "first check for credentials in context")
-- Multiple MCP servers are configured with tools that share the same name
-- PDE agents are configured to use MCP tools from unverified community sources
+- PAUL's loop closure is described in reference documentation but not enforced by pde-tools.cjs
+- SUMMARY.md files are still being skipped in completed phases after the v0.6 milestone ships
+- New phase templates include a UNIFY section that the autonomous workflow does not wait for
 
-**Phase to address:** MCP infrastructure phase (Phase 1) — define the verified-sources-only policy before any integration ships. Security review of tool schemas should be a gate in the "add integration" process.
+**Phase to address:** Phase 3 (Loop Enforcement Integration) — if UNIFY enforcement is adopted, it requires changes to pde-tools.cjs and the execute-phase workflow before any other PAUL patterns are implemented. The gating logic change is a prerequisite for all loop-dependent features.
 
 ---
 
-### Pitfall 6: Over-Coupling PDE Logic to Specific MCP Server Implementations
+### Pitfall 6: BMAD's Scrum Master / Story Pattern Duplicates PDE's Plan-Phase Workflow
 
 **What goes wrong:**
-The GitHub integration is built to work specifically with the official GitHub MCP server's tool names and return shapes. When the GitHub MCP server updates its tool API, renames tools, or changes response formats, PDE's integration breaks entirely. Worse, if a user wants to use a self-hosted GitHub Enterprise instance with a slightly different MCP server, PDE fails. The Linear integration has similar fragility: Linear's MCP server naming conventions are baked into every workflow that touches it.
+BMAD's Scrum Master agent produces "hyper-detailed development stories" for the Developer agent — stories that contain full context, implementation details, and architectural guidance. PDE's `plan-phase` workflow produces `*-PLAN.md` files with objectives, success criteria, file targets, and wave groupings for parallel execution. These serve functionally identical purposes. If both exist in the system, the question becomes: do developers use BMAD stories or PDE plans? If both are generated, they can diverge. If BMAD stories are written and PDE plans are not, the execute-phase workflow breaks (it reads `*-PLAN.md` files to discover tasks). If PDE plans are written and BMAD stories are not, the BMAD methodology value is not realized.
 
 **Why it happens:**
-It is faster to build directly against the specific tool names and return shapes of the live MCP server. Abstractions feel like over-engineering when you are integrating the first server. The fragility only becomes visible when the server changes, which takes months.
+Both systems solve the "break large requirements into agent-executable tasks" problem with different file formats and naming conventions. Importing BMAD's Scrum Master pattern without retiring PDE's plan-phase creates duplication. Retiring PDE's plan-phase to use BMAD stories requires rewriting pde-tools.cjs, execute-phase, and autonomous.
 
 **How to avoid:**
-Build a thin adapter layer between PDE's workflows and the MCP server tool calls. The adapter translates between PDE's canonical data model (e.g., `Issue { id, title, status, assignee }`) and whatever the specific MCP server returns. PDE workflows call `mcp.github.getIssue(id)` — not the raw MCP tool name. The adapter normalizes the response into PDE's model. When the GitHub MCP server changes, only the adapter changes — not the 15 workflow files that use GitHub data. This adapter is also what makes it possible to swap GitHub for GitLab without rewriting workflows.
+Do not import the BMAD Scrum Master as a separate agent. Instead, identify the specific improvements BMAD stories offer over PDE plans (richer context embedding, explicit acceptance criteria per story, architectural guidance inline) and incorporate those as enhancements to PDE's `*-PLAN.md` template. The plan-phase workflow produces the output; the template governs the quality of that output. Upgrading the template with BMAD-quality story discipline costs one template change, not a system architecture change.
 
 **Warning signs:**
-- Workflow files contain raw MCP tool names like `github_list_issues` instead of a normalized PDE API call
-- The return shape from an MCP tool is used directly in workflow logic with no normalization step
-- A breaking change in one MCP server would require editing more than three files
+- A BMAD story file exists for the same phase as a PDE `*-PLAN.md` file
+- The execute-phase workflow is modified to read BMAD story files instead of `*-PLAN.md` files
+- The pde:plan-phase command is deprecated in favor of a new BMAD-derived command
 
-**Phase to address:** GitHub integration phase (first MCP integration) — the adapter pattern must be established with the first integration. Every subsequent integration inherits the pattern.
+**Phase to address:** Phase 2 (Plan Template Enhancement) — upgrade `templates/phase-prompt.md` with BMAD story quality disciplines (explicit AC, context embedding, boundary constraints) without changing the file format or the tooling that reads it.
 
 ---
 
-### Pitfall 7: Rate Limiting Creates Silent Failures in Long Pipeline Runs
+### Pitfall 7: Context Window Explosion from Methodology Documentation Loading
 
 **What goes wrong:**
-GitHub's API rate limit is 5,000 requests/hour for authenticated users and 60/hour for unauthenticated. Linear has per-minute rate limits. Figma has per-second rate limits on design file reads. During a long PDE build pipeline that calls MCP tools at multiple stages, rate limits can be exhausted mid-run. The failure mode is not an obvious error — it is a tool call that returns an empty result or a 429 response that the agent interprets as "no issues found" or "no design files available" rather than "rate limited." The pipeline continues with incomplete data.
+BMAD requires agents to load architecture documents, PRD shards, technical preferences, and story context before executing tasks. PAUL requires agents to load STATE.md, PROJECT.md, prior CONTEXT.md files, and the current PLAN.md before beginning work. PDE already loads STATE.md, the phase's CONTEXT.md, ROADMAP.md, and task-specific plans. If BMAD/PAUL methodology imports add additional required reading to every agent invocation, context window consumption increases significantly. PDE's execute-plan subagents are specifically designed to receive only the context they need (load paths from pde-tools.cjs init, not full files). Adding BMAD/PAUL methodology docs to subagent required reading destroys this lean context model.
 
 **Why it happens:**
-Rate limit responses are treated as business logic responses by the LLM. An agent that receives a 429 does not naturally distinguish "the service says try again" from "the service says there is nothing here." Without explicit rate limit handling in the adapter layer, the agent makes incorrect downstream decisions based on empty-due-to-rate-limit results.
+Methodology systems are designed for comprehensive context delivery — their agents work better with more context. PDE is designed for context efficiency — its agents work better with less context (per PROJECT.md: "MCP tool passthrough to all subagents destroys 85% context savings from Tool Search"). Importing methodology agents without adapting their required-reading lists means importing their context-heavy execution model.
 
 **How to avoid:**
-The MCP adapter layer must explicitly handle 429 responses: detect them, log them with the retry-after time, halt the current operation, and surface a human-readable error to the user rather than passing empty results to the workflow. Do not implement automatic retry with exponential backoff inside the workflow — this creates unpredictable execution times. Instead, pause and inform the user: "GitHub rate limit reached. 47 minutes until reset. You can continue the pipeline from `/pde:build --from wireframe` when the limit resets." Track cumulative API call counts per service in the session and warn proactively when 80% of a rate limit is consumed.
+Every agent or workflow imported from BMAD/PAUL must have its required-reading list audited and reduced to PDE's minimum-necessary-context standard. Methodology documents that are needed at planning time (when a human is reviewing) are not needed at execution time (when an agent is implementing). Reference documents belong in the references/ directory with tier annotations (essentials/extended/specialist) — they are loaded on demand, not by default. Never add a methodology reference document to an agent's hardcoded required_reading unless it is needed for every invocation of that agent.
 
 **Warning signs:**
-- The integration handles 429 responses by returning empty results
-- No API call count tracking exists across a pipeline run
-- A pipeline that "ran successfully" produced fewer GitHub issues than are known to exist
+- Imported agent files have more than 5 items in their required_reading section
+- BMAD methodology documents are loaded by default in execute-plan subagents
+- Context usage per phase execution increases by more than 30% after importing BMAD/PAUL patterns
+- The pde-tools.cjs init response grows beyond its current size due to new methodology fields
 
-**Phase to address:** GitHub integration phase (first MCP integration) — rate limit handling must be built into the adapter before any pipeline integration work begins.
+**Phase to address:** Phase 4 (Context Optimization Review) — after importing methodology patterns, run a context audit pass. Measure token consumption before and after for a representative pipeline run and cut anything that increased consumption without measurable quality improvement.
 
 ---
 
-### Pitfall 8: State Synchronization Conflicts Between File-Based .planning/ State and External Service State
+### Pitfall 8: Skill Validation Infrastructure Rejects Imported Agent Files
 
 **What goes wrong:**
-PDE's planning state is file-based: DESIGN-STATE.md, design-manifest.json, artifact files. GitHub, Linear, and Jira each have their own state model: issues have statuses, assignees, labels, comments. When PDE syncs requirements from Linear into a phase plan, the plan and the Linear board can diverge: a task is marked done in Linear but still open in PLAN.md, or vice versa. When this divergence is not detected, agents receive contradictory signals about what is complete. The file-based state is authoritative for PDE's execution engine; the external service is authoritative for the team's planning view. The two sources of truth are never reconciled.
+PDE has a strict lint/validation system for skill files (LINT-001 through LINT-042 in tooling-patterns.md). Every skill file must have `<purpose>`, `<skill_code>`, `<skill_domain>`, `<context_routing>`, and `<process>` sections. Agent files in `agents/` must have a Constraints section and a Return Format section. BMAD and PAUL agent files follow their own format conventions — they will fail PDE's lint rules immediately. If imported agent files are not converted to PDE's format, the pde-quality-auditor will flag them as HIGH severity findings, the pressure-test will fail, and the skill-builder will refuse to improve them (it requires PDE format compliance as a gate).
 
 **Why it happens:**
-The PDE file-based model was designed for single-user autonomous operation — it has no concept of external authoritative state. Integrating services with their own state creates a bidirectional sync problem that the architecture did not anticipate. Developers build the "import from Linear" path and declare integration complete, without building the "detect divergence" or "reconcile conflict" paths.
+BMAD and PAUL agents are designed for their own frameworks. They use different XML/markdown conventions, different section names, and different structural patterns. Converting them to PDE format is not glamorous work, so it tends to be deferred. Deferred conversion means the validation infrastructure reports failures that are not real defects, which trains the team to ignore validation output.
 
 **How to avoid:**
-PDE's external service integrations must be read-first, write-explicit. Reading from GitHub/Linear/Figma is always acceptable. Writing back to these services (closing issues, updating statuses, pushing comments) is only acceptable on explicit user instruction — never as an automatic side effect of pipeline execution. This eliminates the bidirectional sync problem at the cost of requiring manual reconciliation. For the v0.5 milestone, do not attempt bidirectional sync — make PDE a consumer of external service data, not a writer. Document this scope limit explicitly so users understand that closing a PDE task does not close the GitHub issue.
+No BMAD/PAUL agent file may be merged into the PDE repository without passing PDE's lint rules. This is a non-negotiable gate. The conversion from BMAD/PAUL format to PDE format must be part of the import work for each agent, not a separate cleanup task. The pde-skill-builder should be used to validate and improve each imported agent before it is committed. If an imported agent's functionality can be expressed as an enhancement to an existing PDE workflow rather than a new agent file, prefer the enhancement — it avoids the conversion burden entirely.
 
 **Warning signs:**
-- Integration writes to external services as an automatic side effect of pipeline execution
-- PLAN.md and the linked Linear board show different task statuses with no reconciliation view
-- A workflow file writes to both `.planning/` state and calls an MCP "update" or "close" tool in the same execution
+- Imported agent files exist in `agents/` that were not processed through pde-skill-builder validation
+- pde-quality-auditor reports HIGH findings on imported agent files
+- A `// TODO: convert to PDE format` comment exists in any imported file
+- The pressure-test score drops after importing BMAD/PAUL agents
 
-**Phase to address:** Each integration phase — the read-first/write-explicit contract must be established in the first integration and enforced in all subsequent ones.
+**Phase to address:** Every import phase — lint compliance is a gate on each file merge, not a final cleanup step. Do not allow "we'll fix the lint later" to become a pattern.
 
 ---
 
-### Pitfall 9: UX Degrades to "Service Unavailable" Walls When External Services Are Down
+### Pitfall 9: BMAD's Epic/Story Hierarchy Conflicts with PDE's Milestone/Phase Hierarchy
 
 **What goes wrong:**
-A user runs `/pde:build` at 9am. GitHub is experiencing an incident. The build pipeline starts, reaches the GitHub integration step, fails with a connection error, and stops. The user cannot continue their pipeline even for stages that have no GitHub dependency. The entire PDE experience degrades to "unavailable" because one optional external service is unavailable. This is the single most common user complaint about integration-heavy tools.
+BMAD organizes work as: Project → Epic → Story → Task. PDE organizes work as: Milestone → Phase → Plan → Step. These hierarchies are structurally similar but semantically different. A BMAD Epic roughly maps to a PDE Phase. A BMAD Story roughly maps to a PDE Plan. If BMAD terminology is imported alongside PDE terminology, users and agents will use the terms interchangeably and inconsistently. An agent told to "create epics for this milestone" will produce BMAD-format epic files in `.planning/`. An agent told to "create phases for this milestone" will produce PDE-format CONTEXT.md/PLAN.md pairs. Both exist, neither is authoritative. The pde-tools.cjs roadmap analyzer cannot parse BMAD epic files, so the autonomous workflow cannot discover them as work items.
 
 **Why it happens:**
-Integrations are built as blocking dependencies: if the service is unavailable, the skill fails. The "service is unavailable" case is not explicitly designed as a first-class path. It is handled by the underlying error propagation, which means the user sees whatever error the MCP transport emits rather than a human-readable "this is optional, here is how to continue."
+Terminology from both systems gets imported alongside the functionality. When documentation describes the imported feature using BMAD terminology, it implicitly endorses the BMAD hierarchy. Over time, hybrid language creates conceptual debt where no one is sure which hierarchy governs.
 
 **How to avoid:**
-Every MCP integration in PDE must have a documented degraded mode. The degraded mode must be explicitly designed before the integration is built, not added as an afterthought. For GitHub: degraded mode is "no issue context; proceed with user-provided description only." For Linear: degraded mode is "no requirement sync; use REQUIREMENTS.md as sole requirements source." For Figma: degraded mode is "no design import; use local artifacts only." The `/pde:mcp-status` command surfaces which services are available and what degraded mode each unavailable service triggers. Skills must begin with a capabilities check and communicate clearly which features are operating in degraded mode before proceeding.
+Import BMAD/PAUL concepts using PDE's existing terminology. A BMAD Epic is a PDE Phase. A BMAD Story is a PDE Plan. A PAUL PLAN is a PDE PLAN.md. A PAUL UNIFY is a PDE SUMMARY.md. In all PDE documentation, workflow files, and agent prompts, use PDE's terms only. If there is genuinely no PDE equivalent for a BMAD/PAUL concept, coin a new PDE-namespaced term — do not use BMAD/PAUL's term as-is.
 
 **Warning signs:**
-- A skill with MCP dependencies fails entirely when the MCP server is unreachable
-- There is no local fallback path for any MCP-enhanced skill
-- The user cannot tell which pipeline stages require which MCP services
+- PDE documentation uses the words "epic," "story," or "sprint" alongside "phase," "plan," and "milestone"
+- A new file type (e.g., `*-EPIC.md` or `*-STORY.md`) appears in `.planning/phases/`
+- The pde-tools.cjs roadmap analyzer is being modified to parse BMAD epic files
+- Users are asking whether to use `/pde:plan-phase` or the BMAD Scrum Master for the same task
 
-**Phase to address:** MCP infrastructure phase (Phase 1) — degraded mode contracts must be defined for every planned integration before any integration is built.
+**Phase to address:** Phase 1 (Terminology Governance) — establish a canonical PDE-to-BMAD/PAUL glossary mapping before any documentation is written. All milestone documentation for v0.6 must use PDE terms exclusively.
 
 ---
 
-### Pitfall 10: Exposing PDE as an MCP Server Leaks Planning State to External Consumers
+### Pitfall 10: Partial Methodology Import Creates an Inconsistent User Mental Model
 
 **What goes wrong:**
-PDE's PROJECT.md considers exposing PDE as an MCP server — making `.planning/` state available to other tools. If implemented naively, this means any MCP client that connects to PDE's server can read the entire `.planning/` directory: PLAN.md with task details, STATE.md with execution logs, design artifacts, and potentially files that contain sensitive project information. The MCP server exposes tools like `read_planning_state` with no access control, and any MCP client that connects gets full read access to the project's internal state.
+v0.6 imports BMAD's business analysis discipline (structured PRD format, structured architecture documents) and PAUL's loop discipline (Plan-Apply-Unify closure). But it does not import BMAD's full agent team (no separate PM, Architect, or Scrum Master agents) and does not import PAUL's CARL dynamic context injection. Users who read BMAD or PAUL documentation to understand how PDE works will find partial, inconsistent coverage. Users who already use BMAD will expect BMAD's full workflow; finding only parts of it will confuse them. Users who do not know BMAD will encounter unfamiliar discipline names ("PRD," "acceptance criteria") without understanding why they exist.
 
 **Why it happens:**
-PDE's file-based model was designed for local, single-user access. There is no authentication layer on `.planning/` — the operating system user has full access. When this model is exposed over MCP, the implicit "local user trust" assumption is violated: MCP clients may run in contexts with different trust levels, and MCP connections can traverse network boundaries.
+Selective import is inherently partial. The more a user knows about BMAD/PAUL, the more the partial import will feel wrong. The less they know, the more unexplained concepts they will encounter.
 
 **How to avoid:**
-Exposing PDE as an MCP server is explicitly out of scope for v0.5 unless a security model is designed first. If this feature is re-scoped into v0.5, the minimum viable security model is: (1) tool-level access control (define explicitly which planning state is safe to expose: high-level project status is safe; detailed execution logs and design artifacts are not); (2) connection authentication (only accept connections from explicitly whitelisted clients); (3) no tool that exposes raw file contents — only structured data views. Do not ship PDE-as-MCP-server as part of the initial integrations milestone without this security model in place.
+Treat the methodology import as a PDE feature, not a "here's BMAD inside PDE." In all user-facing documentation, describe what PDE now does differently — not what methodology it borrowed from. "PDE now requires explicit acceptance criteria for each plan" is a user-facing behavior statement. "PDE now uses BMAD's story format" is an implementation detail that does not help users. The methodology source is an implementation detail; the user-facing capability is what matters. Internal implementation notes can reference BMAD/PAUL for developer context, but user guides must speak PDE.
 
 **Warning signs:**
-- The MCP server exposes a `read_file` or `list_planning_state` tool with no filtering
-- There is no authentication on the MCP server's incoming connections
-- PDE-as-MCP-server is built alongside the consumer integrations, competing for the same milestone scope
+- The v0.6 GETTING-STARTED.md or README.md requires users to understand BMAD or PAUL to use new features
+- New `/pde:` commands are named after BMAD/PAUL concepts instead of the PDE capability they provide
+- A user asks "do I need to read the BMAD documentation to use PDE?" and the answer is yes
 
-**Phase to address:** If in scope: a dedicated security-design phase must precede any PDE-as-MCP-server implementation phase. If out of scope for v0.5: flag it as a future milestone with a security prerequisite.
+**Phase to address:** Phase 5 (User-Facing Documentation) — all user documentation must describe PDE behavior, not methodology provenance. A final documentation pass reviewing every new user-visible element for BMAD/PAUL terminology leakage should gate the milestone release.
 
 ---
 
@@ -214,13 +216,13 @@ Exposing PDE as an MCP server is explicitly out of scope for v0.5 unless a secur
 
 | Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
 |----------|-------------------|----------------|-----------------|
-| Hardcoding MCP tool names in workflow files | Faster initial integration | Every tool rename or server update requires editing multiple workflow files | Never — use an adapter layer |
-| Storing OAuth tokens in `.env` without a unified config schema | Simple to document | Configuration sprawl; no central visibility into which integrations are active | MVP only, with explicit debt ticket |
-| Building each integration without a degraded mode | Faster to ship | Any service outage degrades entire PDE experience | Never — degraded mode is a required part of integration design |
-| No contract tests against live MCP servers | No test infrastructure needed | Silent breakage when server updates tool schemas | Never for production integrations |
-| Bidirectional sync between PLAN.md and external services | Richer integration | State conflict and data loss; two sources of truth diverge | Never — read-first/write-explicit only |
-| Using community MCP servers without schema review | Access to more tools faster | Tool poisoning attack surface; unverified behavior | Never — verified sources only |
-| Skipping version pinning on MCP server protocol | No version management needed | Breaking changes appear silently every 3 months | Never for integrations that PDE ships as supported |
+| Import BMAD agent files without converting to PDE format | Skip conversion work | Lint failures forever; quality auditor reports false positives; skill-builder refuses to process them | Never — format compliance is a gate |
+| Allow `.paul/` directory alongside `.planning/` | Zero migration work | Two STATE.md files diverge; tooling reads the wrong one; users confused about authoritative state | Never — single state directory is non-negotiable |
+| Import all 12 BMAD agent roles "for completeness" | Nothing missing later | Codebase bloat; maintenance burden multiplies; users confused by 12 new agent choices | Never — selective import only, with gap justification |
+| Use BMAD/PAUL terminology in user-facing docs | Accurate attribution | Users need to read BMAD/PAUL docs to use PDE; external dependency on another system's documentation | Never in user-facing docs; acceptable in internal implementation comments |
+| Import BMAD sharding as a new file format alongside PDE plans | Preserve BMAD format fidelity | pde-tools.cjs cannot parse shards; design-manifest.json coverage flags not updated; autonomous workflow breaks | Never — adapt to PDE format or don't import |
+| Skip UNIFY enforcement because it slows down yolo mode | Keep fast execution speed | PAUL discipline is documentation-only with no behavioral impact; loop hygiene degrades | Acceptable at MVP if explicitly documented as "soft recommendation, not gated"; review in v0.7 |
+| Keep BMAD business analysis as a separate command rather than integrating into existing brief/ideate | Faster to ship; isolated | Users must choose between old and new approach for same task; fragmentation grows | Acceptable for v0.6 only if old command is explicitly deprecated in same milestone |
 
 ---
 
@@ -228,14 +230,13 @@ Exposing PDE as an MCP server is explicitly out of scope for v0.5 unless a secur
 
 | Integration | Common Mistake | Correct Approach |
 |-------------|----------------|------------------|
-| GitHub MCP | Using unauthenticated connection (60 req/hr limit) | Always authenticate; document GITHUB_TOKEN requirement in setup |
-| GitHub MCP | Assuming issue list is complete when result is empty | Check for rate limit 429 before treating empty result as "no issues" |
-| Linear MCP | Writing task status back to Linear automatically after pipeline execution | Read only; user must explicitly push status updates |
-| Figma MCP | Loading entire design file (can be 10MB+) into context | Request only specific frames/components; never load whole file |
-| Figma MCP | Assuming design file is the source of truth for PDE's design state | DESIGN-STATE.md is authoritative; Figma is an import source, not an override |
-| Pencil MCP | Treating visual canvas as a live sync target | Pencil is an output consumer, not a state manager |
-| Any SSE-based MCP | Building stateful operations that depend on connection staying alive | All MCP calls must be atomic; no multi-step operations that require persistent connection |
-| Any OAuth-based MCP | Assuming token is valid after context compaction | Always reload from persistent storage; never assume in-context auth state |
+| BMAD Analyst import | Importing as a new agent that runs alongside `/pde:competitive` and `/pde:opportunity` | Map BMAD Analyst outputs to enhancements of existing competitive/opportunity workflows |
+| BMAD Architect import | Creating a new "architect" agent that conflicts with PDE's planning phase workflow | Extract BMAD architecture document format as an enhancement to PDE's ROADMAP.md template |
+| PAUL STATE.md import | Letting PAUL create `.paul/STATE.md` to track loop position | Extend PDE's `.planning/STATE.md` schema with a `loop_state` field; PAUL-derived logic reads PDE's state |
+| PAUL PLAN.md format | Importing PAUL's `<objective>`, `<acceptance_criteria>`, `<tasks>`, `<boundaries>` XML tags as a new file format | Merge PAUL's structural requirements into PDE's existing `*-PLAN.md` template sections |
+| BMAD document sharding | Creating BMAD-style shard files with numbered suffixes | Apply sharding discipline at PDE plan authoring time; each `*-PLAN.md` IS a shard by design |
+| PAUL CARL integration | Importing CARL as a companion system that injects rules dynamically | PDE's `@` reference loading in required_reading already handles just-in-time context loading |
+| BMAD technical preferences | Importing `technical-preferences.md` as a persistent agent behavior modifier | PDE's `references/` directory already serves this function; merge BMAD preferences into existing references |
 
 ---
 
@@ -243,49 +244,23 @@ Exposing PDE as an MCP server is explicitly out of scope for v0.5 unless a secur
 
 | Trap | Symptoms | Prevention | When It Breaks |
 |------|----------|------------|----------------|
-| Fetching all GitHub issues at pipeline start | Slow startup; may exhaust rate limits on large repos | Fetch only issues relevant to current phase scope; use labels/milestones as filters | Any repo with more than 200 open issues |
-| Loading Figma design file per skill invocation | 5-15 second delays; Figma rate limits triggered | Cache Figma responses in `.planning/mcp-cache/` with TTL; invalidate on user command | Any Figma file larger than 2MB |
-| Calling MCP tools in a loop over a list of items | Rate limits exhausted quickly; O(n) latency added to pipeline | Batch requests where MCP server supports it; otherwise fetch once and process locally | Any loop with more than 20 iterations |
-| MCP server connection handshake on every skill invocation | 200-500ms added to every skill start | Connection pooling or lazy initialization with health check; do not reconnect unless needed | Pipelines with 5+ connected MCP servers |
-
----
-
-## Security Mistakes
-
-| Mistake | Risk | Prevention |
-|---------|------|------------|
-| Storing API tokens in plaintext `.env` committed to git | Credential exposure in repository history | Add `.env` to `.gitignore`; document required variables in `.env.example` only |
-| Using catch-all OAuth scopes (e.g., `repo` instead of `repo:read`) | Blast radius of compromised token includes write access | Request minimum required scopes per integration; document required scopes |
-| Logging MCP request payloads that include token values | Credentials appear in session logs | Redact Authorization headers and token values from all logging |
-| Installing unverified community MCP servers alongside PDE agents | Tool poisoning attack vector | Only use official MCP servers from verified publishers; document this policy |
-| PDE agents having write access to both `.planning/` and external service MCP tools | A compromised tool description could direct an agent to write malicious content | Separate tool permission scopes: planning-write agents do not have MCP write tools; MCP-write tools are only available on explicit user confirmation |
-
----
-
-## UX Pitfalls
-
-| Pitfall | User Impact | Better Approach |
-|---------|-------------|-----------------|
-| Pipeline fails silently when MCP service is unavailable | User cannot tell why pipeline stopped; no recovery path visible | Show explicit "GitHub unavailable — running in offline mode" status before execution begins |
-| Credential setup requires reading multiple documentation pages | High setup friction; users give up before first use | `/pde:mcp-setup` guided wizard that walks through each integration one at a time with inline validation |
-| Rate limit hit produces an error that looks like a data error | User thinks their project has no issues, no tasks, no design files | Rate limit errors must always surface with "rate limited — not a data error" messaging |
-| Ten separate API key variables with no explanation | Setup feels like configuring enterprise software | Single mcp-config.json with inline comments explaining each field; never more than 2 required credentials per integration |
-| No way to see which integrations are active without running a command that fails | User discovers broken auth mid-pipeline | `/pde:mcp-status` available at any time shows each integration's connection state before any pipeline execution |
+| Methodology agents loading full BMAD knowledge base per invocation | Slow subagent start; context budget exhausted before implementation begins | Audit required_reading per agent; cut to minimum-necessary | Any agent with more than 3 reference files in required_reading |
+| BMAD PRD format producing multi-thousand-line documents | Context window exceeds capacity for downstream agents reading the PRD | Enforce 500-line max per artifact; use PDE's phase decomposition to keep scope bounded | Any PRD that covers more than one PDE phase worth of work |
+| PAUL loop enforcement checking all prior CONTEXT.md files before each phase | O(n) context load grows with milestone length | Only load CONTEXT.md files from directly preceding phases (2-3 max); not all phases | Milestones with more than 8 phases (current max is 12) |
+| Importing BMAD story generation as a step that runs before PDE plan-phase | Double the plan generation time per phase | Replace PDE plan-phase with enhanced version; don't run both | Any phase where both BMAD story generation and PDE plan-phase are in the workflow |
 
 ---
 
 ## "Looks Done But Isn't" Checklist
 
-- [ ] **Auth persistence:** OAuth tokens are stored outside conversation context (disk/keychain) and survive context compaction — verify by compacting context and confirming MCP tools still work
-- [ ] **Degraded mode:** Every MCP-enhanced skill has a documented fallback path that activates automatically when the service is unreachable — verify by running the skill with the MCP server disabled
-- [ ] **Rate limit handling:** The adapter layer returns a human-readable "rate limited" error (not empty results) when a 429 is received — verify by mocking a 429 response and checking what the workflow receives
-- [ ] **Version pinning:** Each MCP integration records the tested protocol version in `mcp-integrations.json` — verify by checking the file exists and is populated
-- [ ] **Read-first/write-explicit:** No workflow automatically writes to an external service without explicit user confirmation — verify by tracing every MCP write-capable tool call in workflow files
-- [ ] **Schema review:** Each integrated MCP server's tool schemas were reviewed before integration for unexpected instructions in description fields — verify by checking the integration review checklist
-- [ ] **Unified config:** All MCP credentials are managed through a single config schema — verify by confirming no workflow files read directly from environment variables
-- [ ] **Status command:** `/pde:mcp-status` shows connection state for all configured integrations — verify by running it with one service deliberately disabled
-- [ ] **Adapter layer:** No raw MCP tool names appear in workflow files — verify by grepping for known tool name patterns (github_list_issues, linear_create_issue) in `workflows/`
-- [ ] **Contract tests:** A contract test suite exists for each integration and runs against the live service — verify by running the test suite and confirming at least one tool call per integration is covered
+- [ ] **Role boundary definition:** Every imported BMAD/PAUL role has a documented gap justification explaining what PDE did NOT already cover — verify by checking the gap table in Phase 1 artifacts
+- [ ] **Single state directory:** No `.paul/` directory exists in any PDE project after v0.6 — verify by checking project root for unexpected directories
+- [ ] **Lint compliance:** Every imported or new agent file passes PDE lint rules (LINT-001 through LINT-042) — verify by running pde:test --lint against agents/ directory
+- [ ] **Terminology clean:** User-facing documentation contains no occurrences of "epic," "story," "sprint," "scrum," "BMAD," or "PAUL" as user-visible concepts — verify by grepping GETTING-STARTED.md, README.md, and new skill help text
+- [ ] **Tooling compatibility:** pde-tools.cjs roadmap analyze still produces valid JSON after v0.6 — verify by running a full pde:autonomous dry-run against a test project
+- [ ] **Coverage flag integrity:** design-manifest.json coverage flags are still correctly updated by the 13 design pipeline skills after v0.6 changes — verify by running pde:build --dry-run
+- [ ] **Context budget:** A representative execute-plan subagent invocation uses no more context than pre-v0.6 baseline — verify by comparing token consumption before and after
+- [ ] **Quality auditor score:** pde-quality-auditor overall_health_pct is equal to or higher than the v0.5 baseline after importing BMAD/PAUL agents — verify by running pde:audit-milestone
 
 ---
 
@@ -293,13 +268,13 @@ Exposing PDE as an MCP server is explicitly out of scope for v0.5 unless a secur
 
 | Pitfall | Recovery Cost | Recovery Steps |
 |---------|---------------|----------------|
-| Auth state lost to context compaction | LOW | Re-authenticate from stored credentials; add persistence layer before next run |
-| SSE disconnect crashed session mid-pipeline | MEDIUM | Resume from last completed stage using `--from`; restructure MCP calls to be atomic before next run |
-| Protocol version breaking change broke integration | MEDIUM | Pin to working version; update adapter for new schema; run contract tests before re-enabling |
-| Configuration sprawl with inconsistent credential naming | MEDIUM | Migrate to unified config schema; update all workflow files to use config loader |
-| Rate limit exhausted mid-pipeline with data loss | LOW | Resume from affected stage; add rate limit tracking before next run |
-| Tool poisoning attack via compromised MCP server description | HIGH | Disconnect the affected MCP server immediately; audit all actions taken during the affected session; rotate any credentials that were accessible; replace with verified server source |
-| State divergence between PLAN.md and external service | MEDIUM | Declare PLAN.md authoritative; manually reconcile with external service; establish read-only policy for future |
+| Agent role namespace collision discovered post-merge | MEDIUM | Audit all imports against gap table; remove or merge any agent that duplicates existing PDE capability; update user documentation |
+| Dual state directory (`.paul/` created) | LOW | Delete `.paul/`; migrate any PAUL state fields to `.planning/STATE.md` schema extension; update any PAUL-derived workflows to read from `.planning/` |
+| Methodology bloat — too many unused agents/templates | MEDIUM | Run usage audit (grep all agent file names across workflows/commands); archive any file with zero references; update skill-registry.md |
+| BMAD document format bypassing pde-tools.cjs | HIGH | Rewrite affected documents in PDE format; update pde-tools.cjs if new artifact type is genuinely needed; re-run validation tests |
+| PAUL UNIFY adopted as hard gate, breaking existing workflows | MEDIUM | Rollback the pde-tools.cjs gate change; re-implement as soft recommendation; add SUMMARY.md generation to plan-phase template as a default step instead |
+| Terminology leakage into user docs | LOW | Find-and-replace pass across user-facing documentation; establish a terminology linting step in CI |
+| Lint compliance not enforced on imported agents | MEDIUM | Run pde:test --lint; fix each HIGH finding before next milestone; use pde-skill-builder to validate and improve imported agents |
 
 ---
 
@@ -307,36 +282,32 @@ Exposing PDE as an MCP server is explicitly out of scope for v0.5 unless a secur
 
 | Pitfall | Prevention Phase | Verification |
 |---------|------------------|--------------|
-| Auth state lost to context compaction (Pitfall 1) | Phase 1: MCP infrastructure | Context compaction test: auth still works after compaction |
-| SSE disconnect crashes session (Pitfall 2) | Phase 1: MCP infrastructure | Disable MCP server mid-pipeline: workflow continues in degraded mode |
-| Protocol versioning breaks integrations (Pitfall 3) | Each integration phase | Version pinned in manifest; contract test suite passes against live server |
-| Configuration sprawl (Pitfall 4) | Phase 1: MCP infrastructure | Single config schema; no direct env variable reads in workflow files |
-| Tool poisoning via schema injection (Pitfall 5) | Phase 1: MCP infrastructure | Schema review checklist completed before each integration merges |
-| Over-coupling to specific server implementations (Pitfall 6) | Phase 2: GitHub integration (sets adapter pattern) | No raw MCP tool names in any workflow file |
-| Rate limiting creates silent failures (Pitfall 7) | Phase 2: GitHub integration (sets rate limit handling) | Mock 429: workflow receives human-readable error, not empty result |
-| State sync conflicts between .planning/ and external (Pitfall 8) | Each integration phase | No workflow writes to external service without explicit user action |
-| UX degrades entirely when service is down (Pitfall 9) | Phase 1: MCP infrastructure | Disable all MCP servers: pipeline still runs with degraded mode messaging |
-| PDE-as-MCP-server leaks planning state (Pitfall 10) | Defer unless security model designed first | N/A for v0.5 if deferred |
+| Agent role namespace collision (Pitfall 1) | Phase 1: Role Mapping and Boundary Definition | Gap table exists; every imported agent has documented justification; no duplicate-purpose agents |
+| Dual state management conflict (Pitfall 2) | Phase 1: Architecture Boundary Definition | Only `.planning/` exists; pde-tools.cjs reads all state correctly |
+| Document sharding conflicts with artifact registry (Pitfall 3) | Phase 2: Artifact Format Integration | design-manifest.json coverage flags still update correctly; no BMAD-format files in `.planning/` |
+| Methodology bloat (Pitfall 4) | Phase 1: Capability Gap Analysis | Fewer than 6 new agent/command files added; each has documented gap justification |
+| PAUL UNIFY has no file-based enforcement (Pitfall 5) | Phase 3: Loop Enforcement Integration | Decision is explicit (hard gate or soft recommendation); if hard gate: pde-tools.cjs updated and tested |
+| BMAD Scrum Master duplicates plan-phase (Pitfall 6) | Phase 2: Plan Template Enhancement | No separate Scrum Master agent; plan template upgraded with BMAD story quality |
+| Context window explosion (Pitfall 7) | Phase 4: Context Optimization Review | Token consumption per execute-plan within 10% of pre-v0.6 baseline |
+| Skill validation infrastructure rejects imported files (Pitfall 8) | Every import phase | pde:test --lint passes with zero HIGH findings on imported files |
+| BMAD hierarchy conflicts with PDE hierarchy (Pitfall 9) | Phase 1: Terminology Governance | No epic/story/sprint terminology in PDE docs or workflow files |
+| Partial import creates inconsistent user mental model (Pitfall 10) | Phase 5: User-Facing Documentation | User docs describe PDE behavior only; no methodology attribution required to use new features |
 
 ---
 
 ## Sources
 
-- Claude Code issue tracker, issue #34832: "Cowork MCP connectors lose auth after context compaction" — HIGH confidence (confirmed bug, direct source)
-- Claude Code issue tracker, issue #18557: "SSE MCP server disconnection crashes session instead of graceful degradation" — HIGH confidence (confirmed bug, direct source)
-- modelcontextprotocol.info/docs/best-practices/ — HIGH confidence (official MCP documentation)
-- modelcontextprotocol.io/specification/versioning — HIGH confidence (official MCP specification)
-- Nordic APIs, "The Weak Point in MCP Nobody's Talking About: API Versioning" — MEDIUM confidence (verified pattern; consistent with spec analysis)
-- GitHub issue SEP-1400: "Semantic Versioning for MCP Specification" — HIGH confidence (official MCP repository discussion)
-- Phil Schmid, "MCP is Not the Problem, It's your Server: Best Practices for Building MCP Servers" — MEDIUM confidence (practitioner article; verified against official docs)
-- Invariant Labs, "MCP Security Notification: Tool Poisoning Attacks" — MEDIUM confidence (security research; consistent with MCP architecture)
-- Nudge Security, "MCP Security Risks and Best Practices" — MEDIUM confidence (verified against other security sources)
-- Elastic Security Labs, "MCP Tools: Attack Vectors and Defense Recommendations" — MEDIUM confidence (security research organization)
-- ByteBridge Medium, "Managing MCP Servers at Scale: The Case for Gateways, Lazy Loading, and Automation" — LOW confidence (single practitioner source; consistent with observed patterns)
-- PDE PROJECT.md v0.5 milestone context — HIGH confidence (primary source)
-- PDE v0.4 architecture (file-based state, agent execution model) — HIGH confidence (direct codebase inspection)
+- PDE codebase direct inspection (agents/, workflows/, commands/, references/, templates/, bin/) — HIGH confidence
+- PAUL GitHub repository (ChristopherKahler/paul): STATE.md, PLAN.md structure, loop enforcement model — HIGH confidence
+- BMAD official documentation (docs.bmad-method.org): agent roles, document sharding, YAML workflow structure — HIGH confidence
+- BMAD-AT-CLAUDE repository (24601/BMAD-AT-CLAUDE/docs/core-architecture.md): agent communication patterns, file generation model — HIGH confidence
+- PDE PROJECT.md v0.6 milestone context and constraints — HIGH confidence (primary source)
+- PDE references/tooling-patterns.md LINT rules — HIGH confidence (direct codebase inspection)
+- PDE workflows/autonomous.md, workflows/execute-phase.md, workflows/build.md — HIGH confidence (direct codebase inspection)
+- PDE agents/pde-quality-auditor.md agent definition — HIGH confidence (direct codebase inspection)
+- Memory: project_external_frameworks.md (BMAD + PAUL integration candidates) — HIGH confidence (user-provided context)
 
 ---
 
-*Pitfalls research for: Adding MCP server integrations to an existing file-based Claude Code plugin (PDE v0.5)*
-*Researched: 2026-03-18*
+*Pitfalls research for: Importing BMAD + PAUL methodology patterns into PDE (v0.6 Advanced Workflow Methodology milestone)*
+*Researched: 2026-03-19*

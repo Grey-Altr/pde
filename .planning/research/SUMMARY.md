@@ -1,195 +1,194 @@
 # Project Research Summary
 
-**Project:** Platform Development Engine (PDE) — v0.5 MCP Server Integrations
-**Domain:** Claude Code plugin with external MCP server integrations (GitHub, Linear, Jira, Figma, Pencil)
-**Researched:** 2026-03-18
-**Confidence:** HIGH (core architecture, stack, and pitfalls — verified against official docs and direct codebase inspection); MEDIUM (Pencil MCP tool names, PDE-as-MCP-server demand)
+**Project:** Platform Development Engine — v0.6 Advanced Workflow Methodology
+**Domain:** AI agentic workflow methodology import (BMAD + PAUL patterns into existing Claude Code plugin)
+**Researched:** 2026-03-19
+**Confidence:** HIGH
 
 ## Executive Summary
 
-PDE is a mature Claude Code plugin with a complete 13-stage design pipeline, 34+ slash commands, a self-improvement fleet, and a file-based `.planning/` state model. The v0.5 milestone adds MCP server integrations — connecting GitHub, Linear, Jira, Figma, and Pencil to the pipeline without restructuring any existing capability. Research confirms this is a well-understood additive layer: Claude Code's plugin system natively supports bundled MCP servers via `.mcp.json`, and all five target services have official MCP servers with documented tool inventories. The integration pattern is not novel — it extends PDE's existing probe/use/degrade architecture that already handles Playwright, Axe, Sequential Thinking, Context7, and other MCPs.
+PDE v0.6 is a methodology enhancement milestone, not a new product. The task is selectively importing proven patterns from two established AI development frameworks — BMAD (Breakthrough Method for Agile AI-Driven Development, 41k stars, v6.2.0) and PAUL (Plan-Apply-Unify Loop) — into PDE's existing 34-command, 13-stage design pipeline without introducing dual state management, competing artifact formats, or terminology fragmentation. Both source frameworks were designed as standalone systems that own the entire workflow from scratch; PDE already covers most of that ground. The import surface is therefore intentionally narrow: what PDE is genuinely missing, not what BMAD/PAUL offer in total.
 
-The recommended approach is a dependency-ordered build sequence: infrastructure foundation first (connection manager, unified config schema, probe/degrade contracts for all new servers), then GitHub as the pattern-validating integration, then Linear and Jira in parallel, then design tools (Figma and Pencil), and finally the optional PDE-as-MCP-server exposure. This sequencing is non-negotiable — every sync workflow depends on the connection layer, the GitHub integration must establish the adapter pattern and rate-limit handling that all subsequent integrations inherit, and the state server must be last so its API surface reflects actual consumer patterns. The adapter layer is the single most critical architectural decision: workflows must call normalized PDE API methods, not raw MCP tool names, or every server-side tool rename cascades into multi-file edits.
+The recommended approach is additive and pattern-based. No new npm dependencies. No parallel state directories. No BMAD/PAUL agent files imported verbatim. Instead, five core capabilities are extracted as native PDE enhancements: (1) a project context constitution document (.planning/project-context.md) that gives every subagent a compact, agent-optimized baseline; (2) story-file sharding — pde-planner emits atomic task files for plans with 5+ tasks, reducing context consumption by an estimated 90%; (3) acceptance-criteria-first planning (BDD Given/When/Then format) embedded in the PLAN.md template; (4) a mandatory reconciliation step (PAUL's UNIFY phase) that compares planned tasks against actual git commits after execution; and (5) an implementation readiness gate before execution begins. Everything else from BMAD/PAUL is either already covered by PDE or deliberately deferred.
 
-The primary risk category is not implementation complexity but operational reliability. Two confirmed Claude Code bugs (auth loss on context compaction, SSE disconnect session crashes) and a structural MCP ecosystem problem (date-based version strings with no semantic breaking-change signal) will affect all five integrations unless specifically mitigated in Phase 1. The configuration surface must also be designed once up front — allowing five integrations to each invent their own credential schema produces user-hostile setup friction that cannot be refactored cheaply after launch. These are not theoretical concerns; they are documented failure modes in the live Claude Code issue tracker and official MCP specification.
+The primary risks are architectural rather than technical. The most dangerous failure mode is allowing BMAD/PAUL's state management structures (.paul/ directory, _bmad/ directory) to coexist with PDE's .planning/ canonical state root — this creates two sources of truth that diverge silently. The second risk is importing too broadly and ending up with many new agent files covering functions PDE already performs, inflating the codebase and confusing users. Both risks are avoided by enforcing a single decision rule: every import must answer "what does PDE not do today that this adds?" with a specific, verifiable answer. If the gap is real, import it as a PDE-native pattern. If the gap is already covered, discard the BMAD/PAUL version regardless of how polished it is.
 
 ## Key Findings
 
 ### Recommended Stack
 
-PDE's zero-npm-dependency constraint at the plugin root is a feature and must be preserved. The stack for v0.5 is an extension of the existing Node.js 20.x LTS / CommonJS pattern with one isolated exception: the PDE state MCP server lives in `bin/mcp-server/` with its own `package.json` carrying `@modelcontextprotocol/sdk` v1.x. This isolates the only new npm dependency from the plugin root entirely.
+No new npm dependencies or runtime technologies are introduced in v0.6. PDE's zero-dependency constraint at the plugin root is preserved. The implementation surface is entirely file-based: new markdown agents, modified workflow files, a new CommonJS module (bin/lib/manifest.cjs for SHA256 hash tracking), and new templates and reference documents. BMAD v6.2.0 and PAUL (latest) are sources of methodology patterns, not packages to install. Their patterns are imported as PDE skills and template changes, not via npx installers that would conflict with PDE's Claude Code plugin install mechanism.
 
-**Core technologies:**
-- Node.js 20.x LTS / CommonJS (.cjs): runtime and module format — required for Claude Code plugin compatibility; zero-install for end users; all new `bin/lib/` modules follow this pattern
-- `@modelcontextprotocol/sdk` v1.x (isolated in `bin/mcp-server/`): Official MCP server SDK for PDE-as-MCP-server; use v1.x only — v2.x is in development as of early 2026 and not production-stable
-- `.mcp.json` at plugin root: Claude Code's native project-scoped MCP declaration format; auto-starts bundled servers on plugin enable; safe to commit (no credentials); uses `${CLAUDE_PLUGIN_ROOT}` for server paths
-- External MCP servers: GitHub at `api.githubcopilot.com/mcp/` (HTTP), Linear via stdio (`npx @linear/mcp-server`), Figma at `mcp.figma.com/mcp` (HTTP), Pencil via local stdio (auto-started by Pencil app), Jira via `mcp.atlassian.com/` (HTTP OAuth 2.1)
-- `${CLAUDE_PLUGIN_ROOT}` / `${CLAUDE_PLUGIN_DATA}`: Plugin environment variables for path and state resolution — required for plugin-bundled MCP servers
+**Core technologies (existing, unchanged):**
+- Node.js 20.x LTS / CommonJS — PDE's execution runtime; zero-dependency constraint preserved
+- File-based .planning/ state — canonical state store; all new state artifacts go here; no parallel directories
+- Claude Code Task/Skill agent system — all new and modified agents follow existing PDE format
+- bin/pde-tools.cjs CLI — extended with manifest subcommands only
 
-No template engine, no schema compiler, no test runner added. MCP Tool Search (auto-enabled at 10% threshold) handles context window pressure from 11+ active MCP servers without any PDE-side changes.
+**New infrastructure (minimal additions only):**
+- bin/lib/manifest.cjs — SHA256 hash manifest CRUD; enables safe framework updates without three-way merge conflicts
+- .planning/project-context.md — auto-generated 4KB agent-optimized synthesis; gives every subagent compact baseline context
+- .planning/agent-memory/ — per-agent sidecar memory directories (executor, planner, debugger, verifier); project-scoped
 
 ### Expected Features
 
-**Must have for v0.5 to close (table stakes):**
-- Plugin-bundled MCP infrastructure — `.mcp.json`, availability probe, `.planning/mcp-connections.json` runtime state, unified config schema in `pde-config.json`
-- `/pde:mcp-status` — shows all integration connection states and degraded-mode implications before any pipeline execution
-- GitHub MCP integration (`/pde:sync --github`) — issues to REQUIREMENTS.md; PR creation from handoff artifacts; `/pde:brief --from-github` flag
-- Linear OR Jira toggle (`/pde:sync --linear`, `--jira`) — config-driven selection via `task_tracker` field; Linear MCP is stdio, Jira Rovo MCP is HTTP OAuth 2.1
-- Figma design import (`/pde:sync --figma`) — `get_variable_defs` to DTCG non-destructive merge; `get_design_context` for wireframe reference; `get_code_connect_map` for handoff
-- Pencil Level 1 — token sync via `set_variables` in `/pde:system`; `get_screenshot` in `/pde:critique`; probe/degrade for VS Code dependency
-- MCP server recommendations in `/pde:recommend` — detect project type and surface relevant MCP servers alongside existing tool recommendations
+**Must have (v0.6 core — methodology import is not real without these):**
+- Project context constitution (.planning/project-context.md) — foundation; all sharding features depend on it; LOW complexity
+- Story-file sharding — pde-planner emits tasks/ directory for 5+ task plans; pde-executor loads one task file at a time; MEDIUM complexity
+- Acceptance-criteria-first planning — PLAN.md template adds AC section; tasks reference AC-N identifiers; verifier validates ACs; MEDIUM complexity
+- Unify/reconciliation step — mandatory post-execution comparison of planned tasks vs. actual git changes; produces RECONCILIATION.md; MEDIUM complexity
+- Implementation readiness gate — /pde:check-readiness runs PO-style checklist before execution; blocks on FAIL; MEDIUM complexity
 
-**Should have after core integrations validate (v0.5.x differentiators):**
-- Figma "Code to Canvas" export (`/pde:export-figma` via `generate_figma_design`) — reverse workflow: PDE mockup HTML to editable Figma frame
-- PDE-as-MCP-server — expose `.planning/` state as read-only MCP resources (`pde://plan`, `pde://state`, `pde://design-state`) and tools (`get_current_phase`, `get_requirements`, `get_design_artifacts`)
-- Cross-server pipeline (`/pde:build --sync`) — MCP syncs injected at pre-brief (requirements pull), post-mockup (design push), post-handoff (ticket creation)
+**Should have (v0.6.x — extend once core is validated):**
+- Task boundary enforcement — boundaries field in task schema; executor enforces DO NOT CHANGE sections; LOW complexity
+- HALT checkpoints for high-risk tasks — planner tags risk:high tasks; executor pauses for confirmation; LOW-MEDIUM complexity
+- Workflow status tracking — per-story TODO/IN_PROGRESS/DONE in tasks/workflow-status.md; LOW complexity
+- PAUL session handoff documents — .planning/HANDOFF.md generation on session break; LOW complexity
+- Pre-planning assumptions capture — /pde:assumptions surfaces planner's intended approach before plan generation; LOW complexity
 
-**Defer to v0.6+:**
-- Jira Data Center support — community `sooperset/mcp-atlassian` has different auth, tools, and stability; doubles QA surface; wait for confirmed demand
-- Slack/Notion requirements import — GitHub/Linear/Jira covers 90% of dev-team requirement sources
-- Sentry/Vercel post-deployment feedback loop — requires deployed user projects first
-- Pencil Level 2 (native `.pen` file output from `/pde:wireframe`) — validate Level 1 before deeper canvas integration
+**Defer to v0.7+:**
+- Analyst-persona discovery — multi-round probing interview pattern for product briefs; highest value after core methodology is settled
+- Sidecar agent memory — per-agent cross-session learning; most valuable after 3+ milestones run on a project
+- File-hash manifest for updates — replaces three-way merge in pde:update; pde:update is working; defer until a user hits a conflict
+- Party Mode multi-persona critique — multi-agent discussion during discuss-phase; high complexity; good v0.7 candidate
 
-**Anti-features to avoid:**
-- Auto-configure all MCP servers on install — triggers unexpected OAuth flows; always require explicit user consent via `/pde:mcp-setup`
-- Real-time bidirectional Figma sync — architecturally impossible in a session-based plugin; use explicit sync commands with deterministic versioning
-- MCP tool passthrough to all subagents — destroys 85% context savings from Tool Search; scope MCP tools at agent spawn time by role
-- Write tools in PDE-as-MCP-server — creates a second write path bypassing `pde-tools.cjs` validation and locking; state server must be read-only
+**Anti-features (do not import):**
+- BMAD agent files imported verbatim — BMAD agents expect human-directed sequential workflows; they break PDE's automated pipeline orchestration model
+- .paul/ parallel state directory — creates two STATE.md files that diverge silently; breaks every pde-tools.cjs state read
+- PAUL in-session-over-subagents philosophy — PDE's entire architecture is built on parallel subagent waves; this philosophy would require abandoning parallel execution
+- Sprint ceremonies and story points — PAUL explicitly rejects these; PDE's phase/milestone model is simpler and fits its cadence
 
 ### Architecture Approach
 
-The v0.5 architecture is additive infrastructure layered onto a stable base. The existing 13-stage design pipeline, all commands, agent definitions, and `bin/lib/*.cjs` modules are untouched — zero modifications to the design pipeline are required or acceptable. A new MCP integration layer introduces two lib modules, two new commands, per-service sync workflows, and an isolated PDE state MCP server. The canonical architectural rule: `.planning/` is the single source of truth; external services are read-only input sources; write-back to external systems requires explicit user confirmation with a prompt. The probe/use/degrade pattern from `references/mcp-integration.md` is extended — not replaced — for all five new servers.
+v0.6 is a purely additive methodology layer on top of PDE's stable v0.5 architecture. The 13 design pipeline skills, all MCP sync workflows, the build orchestrator, mcp-bridge.cjs, mcp-config.cjs, design-manifest.json, and protected-files.json require zero modification. The execute-plan flow gains one new step (reconciliation between executor completion and verifier invocation). The plan-phase workflow gains AC formatting instructions and a story-sharding trigger for 5+ task plans. Four existing agent files gain sidecar memory loading. Two workflows gain project-context.md generation steps. One new agent (pde-architect) is created for architecture review. The update workflow gains hash-based merge logic.
 
-**Major components:**
-1. `bin/lib/mcp-bridge.cjs` — External MCP connection manager: per-server probe, auth metadata lookup, probe caching; all sync workflows invoke exclusively via `pde-tools.cjs mcp *`; never imported directly from `.md` files
-2. `bin/lib/mcp-config.cjs` — Connection metadata CRUD; reads/writes `.planning/mcp-connections.json` (gitignored); stores `{server, connected, scopes, last_sync}` only — never tokens
-3. `workflows/sync-{github,linear,jira,figma}.md` — Per-service sync logic; each follows probe/use/degrade pattern; write-back branches require explicit user confirmation gate
-4. `bin/mcp-server/state-server.cjs` — Bundled stdio MCP server; isolated npm dep in `bin/mcp-server/package.json`; read-only contract; exposes structured views of `.planning/` files, not raw file contents
-5. `commands/connect.md` + `commands/sync.md` — Two new user-facing commands; `connect` handles guided auth setup; `sync` is the unified entry point for all service syncs with `--github`, `--linear`, `--jira`, `--figma`, `--pencil` flags
+**Major components and their responsibilities:**
+
+1. bin/lib/manifest.cjs — SHA256 hash manifest CRUD; detects user modifications vs. stock files; enables safe auto-update of unmodified files while preserving user changes; most-depended-upon new module
+2. .planning/project-context.md — auto-generated 4KB synthesis of PROJECT.md + REQUIREMENTS.md + key STATE.md decisions; every subagent receives this as baseline; replaces ad-hoc STATE.md + PROJECT.md loading
+3. Story-file sharding layer — pde-planner emits tasks/ directory for 5+ task plans; each task-NNN-{slug}.md is self-contained with AC references, file paths, schema snippets; pde-executor loads one at a time
+4. Reconciliation step in execute-plan.md — reads PLAN.md task list, runs git log on phase branch, correlates planned tasks against actual commits, writes RECONCILIATION.md before pde-verifier runs
+5. agents/pde-architect.md (new) — architecture review agent; evaluates plans for structural risks, ADR recommendations, component boundary analysis; invoked by /pde:check-readiness
+6. .planning/agent-memory/ — per-agent sidecar memory; four agents (executor, planner, debugger, verifier) read project-specific memory at spawn and append key findings on completion; 50-entry cap with archive
+
+**Key patterns:**
+- AC-First Task Format: every PLAN.md task includes BDD acceptance criteria (Given/When/Then); tasks reference AC-N identifiers; pde-verifier checks ACs before goal-backward analysis
+- Loop enforcement via current_loop field in STATE.md: tracks PLAN/APPLY/UNIFY position; gates phase transitions in interactive mode; auto-completes in yolo mode
+- Hash-based update safety: SHA256 comparison determines which files the user has modified; modified files preserved with notice; unmodified files auto-updated silently
 
 ### Critical Pitfalls
 
-1. **Auth state lost on context compaction** — OAuth tokens in conversation context are destroyed during compaction. Prevention: persist credentials to disk or OS keychain; reload on every skill invocation; never assume in-context auth state. Must be in Phase 1 before any integration is built — retrofitting is five times the work.
+1. **Dual state management (.paul/ alongside .planning/)** — Do not create a .paul/ directory. All PAUL state patterns must be implemented inside PDE's existing .planning/ hierarchy. Two STATE.md files diverge silently and break every pde-tools.cjs state read. Prevention: enforce this as a non-negotiable architectural constraint in Phase 1 before any PAUL patterns are imported.
 
-2. **SSE transport disconnect crashes session** — Confirmed Claude Code bug (#18557): SSE disconnect terminates the session rather than degrading gracefully. Prevention: all MCP calls must be atomic (probe at start OR publish at end — never interleaved with state writes); every skill with MCP dependencies needs an explicit degraded mode as a first-class path, not an afterthought.
+2. **Agent role namespace collision** — BMAD defines 9 agent roles; PDE already covers most of the same ground via existing skills and workflows. Import only the documented gaps: one new agent (pde-architect for architecture review) and AC-first format discipline in the existing planner. If more than 5 new agent files appear in v0.6, the import has drifted into methodology bloat.
 
-3. **Protocol versioning breaks integrations every ~3 months** — MCP uses date-based version strings with no semantic breaking-change signal. Prevention: pin each integration to a tested protocol version in `mcp-connections.json`; maintain contract tests against live services; treat contract test failure as a release blocker. Pattern established in Phase 3 (GitHub); inherited by all subsequent integrations.
+3. **Methodology bloat — importing everything, using nothing** — Hard limit: fewer than 6 new agent/command files for v0.6. Every import requires a gap justification table entry. BMAD has 12 agent roles; PDE needs at most 1 new agent. Unused agents bloat the 145,000 LOC codebase and must be maintained every time PDE's skill-style-guide changes.
 
-4. **Configuration sprawl from per-integration credential schemas** — Each integration inventing its own credential variable names produces a 10-key `.env` with no central visibility. Prevention: unified MCP config schema designed in Phase 1 before any integration is built; all credentials routed through the connection manager; `/pde:mcp-status` as the single visibility surface for all configured integrations.
+4. **Skill validation infrastructure rejection** — PDE has strict lint rules (LINT-001 through LINT-042). No BMAD/PAUL-derived file may merge without passing all lint rules. Format conversion is part of import work, not a cleanup task. Run pde-skill-builder validation on each new or modified agent before committing.
 
-5. **Tool poisoning via malicious MCP server descriptions** — LLM processes tool schemas as part of reasoning; hidden instructions in descriptions can redirect agent actions. PDE agents have broad `.planning/` write access, amplifying blast radius. Prevention: verified-sources-only policy (official GitHub, Linear, Figma, Atlassian servers only); tool schema review before each integration merges; policy documented and enforced before any integration ships.
+5. **BMAD/PAUL terminology leakage into user-facing docs** — All user-facing documentation must describe what PDE does, not which methodology it borrowed from. Users must never need to read BMAD or PAUL documentation to use PDE v0.6. New /pde: commands must be named after PDE capabilities, not BMAD/PAUL concepts.
+
+6. **Context window explosion from methodology documentation loading** — Every imported or modified agent's required_reading list must be audited. Methodology documents needed at planning time are not needed at execution time. Token consumption per execute-plan invocation must stay within 10% of the v0.5 baseline. Run a context audit pass after Phase 3 agent modifications.
 
 ## Implications for Roadmap
 
-The architecture's dependency graph directly dictates phase structure. There is no flexibility in the first three phases — each is hard-blocked until its predecessor completes. Phases 4 and 5 are independent of each other and can proceed in parallel if resources allow.
+Based on combined research, five build phases are suggested. The dependency chain from FEATURES.md is the primary ordering constraint: project-context.md must exist before sharding; sharding must exist before HALT checkpoints and workflow status tracking; AC-first planning and reconciliation are a pair and must be built together. The build order from ARCHITECTURE.md confirms this sequence and identifies manifest.cjs as the load-bearing new module that unblocks multiple downstream phases.
 
-### Phase 1: MCP Infrastructure Foundation
-**Rationale:** Every sync workflow, integration command, and connection UI depends on this layer. Building any integration before the foundation produces throwaway code — retrofitting auth persistence, unified config, and degraded-mode contracts to five integrations is five times the work. The two confirmed Claude Code bugs and the configuration sprawl pitfall make this phase non-deferrable.
-**Delivers:** `bin/lib/mcp-config.cjs`, `bin/lib/mcp-bridge.cjs`, `pde-tools.cjs mcp` subcommand group, unified config schema in `pde-config.json`, `.planning/mcp-connections.json` template (gitignored), probe/degrade contracts defined for all five planned servers, `/pde:mcp-status` command, verified-sources-only policy documented
-**Addresses:** Plugin-bundled MCP infrastructure (table stakes), MCP availability probe (table stakes), `/pde:mcp-status` (table stakes)
-**Avoids:** Auth state loss (Pitfall 1), SSE session crashes (Pitfall 2), configuration sprawl (Pitfall 4), tool poisoning policy gap (Pitfall 5), total UX degradation when services are down (Pitfall 9)
+### Phase 1: Foundation Infrastructure
+**Rationale:** bin/lib/manifest.cjs is the most-depended-upon new module (update.md and new-project.md both depend on it). Templates and references have zero dependencies and unblock all downstream phases. Nothing else can be built until these exist. Build these first so every subsequent phase has a stable, testable base.
+**Delivers:** bin/lib/manifest.cjs (hash manifest CRUD), bin/pde-tools.cjs manifest subcommands (manifest init/check/update/verify-file), updated templates/PLAN.md (+acceptance_criteria section), new templates/RECONCILIATION.md, new references/workflow-methodology.md (BMAD/PAUL patterns in PDE terms)
+**Addresses:** Project context constitution (prerequisite infrastructure), Story-file sharding (prerequisite template), AC-first planning (template change), File-hash manifest for updates (bin/lib/manifest.cjs)
+**Avoids:** Context window explosion (manifest.cjs enables lean context without bloat), BMAD/PAUL terminology leakage (reference doc written in PDE-only terms)
 
-### Phase 2: Connection Management and Reference Documentation
-**Rationale:** Users must be able to connect servers before sync workflows are useful. Reference entries in `mcp-integration.md` for all five new servers must exist before sync workflows can cite the probe/degrade patterns — this is documentation work with no implementation unknowns and can complete quickly.
-**Delivers:** `commands/connect.md` + connection workflow, updated `references/mcp-integration.md` with GitHub, Linear, Jira, Pencil entries (~40 lines each), `skill-registry.md` CON + SYN entries, `bin/lib/config.cjs` `mcp.*` config keys
-**Uses:** `mcp-bridge.cjs` and `mcp-config.cjs` from Phase 1
-**Implements:** Guided connection setup flow: display auth instructions → confirm probe → write connection metadata
+### Phase 2: Context Infrastructure
+**Rationale:** project-context.md and agent-memory directories must exist before any agent can load them. These are blocking prerequisites for all agent modifications in Phase 3. STATE.md schema extension is a low-risk additive field that belongs with context setup.
+**Delivers:** .planning/project-context.md generation added to new-project.md and new-milestone.md workflows, .planning/agent-memory/ directory initialization (executor, planner, debugger, verifier subdirs with empty memories.md), STATE.md schema extension (+current_loop field: null | "plan" | "apply" | "unify")
+**Addresses:** Project context constitution (primary deliverable), Sidecar agent memory (directory structure), PAUL loop tracking (current_loop field)
+**Avoids:** Dual state management (all new state lives inside .planning/), Methodology bloat (project-context.md replaces ad-hoc multi-file loading, not adds to it)
 
-### Phase 3: GitHub Integration (Pattern Validation)
-**Rationale:** GitHub is the highest-value integration (most users) and the pattern-validation phase. The adapter layer — normalizing raw MCP tool names into PDE canonical API calls — is established here and inherited by all subsequent integrations. Rate-limit handling (human-readable errors on 429, not empty results) is also established here. Do not defer either to a later integration.
-**Delivers:** `workflows/sync-github.md`, `commands/sync.md --github`, adapter layer in `mcp-bridge.cjs`, rate-limit handling, `/pde:brief --from-github`, `/pde:handoff --create-prs` with confirmation gate
-**Avoids:** Over-coupling to specific MCP tool names (Pitfall 6 — adapter layer is the mitigation), rate limit silent failures (Pitfall 7), state sync conflicts between PLAN.md and GitHub (Pitfall 8 — read-first/write-explicit enforced)
+### Phase 3: Agent Enhancements
+**Rationale:** Agents read sidecar memory at spawn time — memory directories must pre-exist (Phase 2 prerequisite). pde-architect is a new agent that should be built alongside agent modifications for quality consistency. All four agent modifications are independent of each other and can be built in parallel within this phase.
+**Delivers:** agents/pde-architect.md (new architecture review agent following PDE agent format), pde-executor.md +sidecar memory load/save (+15-20 lines additive), pde-planner.md +sidecar memory +AC format instructions (+20-25 lines additive), pde-debugger.md +sidecar memory load/save (+15-20 lines additive), pde-verifier.md +RECONCILIATION.md input loading (+10-15 lines additive)
+**Addresses:** Implementation readiness gate (pde-architect agent created), AC-first planning (planner agent updated), Story-file sharding (planner agent updated), Sidecar agent memory (all four agents)
+**Avoids:** Agent role namespace collision (only 1 new agent vs. BMAD's 9; 4 modifications to existing agents), Skill validation rejection (each agent processed through pde-skill-builder before merge), Context window explosion (additive context loading audited against v0.5 baseline after this phase)
 
-### Phase 4: Linear + Jira Integration
-**Rationale:** After GitHub validates the sync pattern, Linear and Jira follow the same template via the adapter layer. Both can be built in parallel within this phase — they share no code paths. Linear is higher-priority (richer project/milestone model maps cleanly to PDE's STATE.md; Jira epic-to-REQUIREMENTS.md mapping requires an additional translation layer).
-**Delivers:** `workflows/sync-linear.md`, `workflows/sync-jira.md`, config-driven toggle (`task_tracker: "linear" | "jira" | "none"`), `/pde:sync --linear` and `--jira`, Linear cycles to ROADMAP.md phases, Jira epics to REQUIREMENTS.md
-**Uses:** Adapter pattern from Phase 3 (inherit, not reinvent); protocol version pinning established here per Pitfall 3
+### Phase 4: Workflow Modifications
+**Rationale:** Workflow changes depend on updated agent definitions (Phase 3) and templates (Phase 1). plan-phase.md and execute-plan.md are the highest-risk modifications — changes to the core execution flow — and must be validated after all foundation pieces are stable. The reconciliation step in execute-plan.md is the primary PAUL pattern delivery.
+**Delivers:** workflows/plan-phase.md (+AC format prompt, +story-sharding trigger at 5+ tasks, +risk tagging for high-risk task patterns), workflows/execute-plan.md (+reconciliation step between executor completion and verifier, +RECONCILIATION.md generation), references/skill-style-guide.md (+AC format standard section)
+**Addresses:** Story-file sharding (plan-phase delivery), Unify/reconciliation step (execute-plan delivery), AC-first planning (plan-phase enforcement), Task boundary enforcement (plan-phase boundaries field)
+**Avoids:** BMAD Scrum Master duplication (no separate SM agent; sharding is an output mode of the existing plan-phase workflow), Document sharding format conflicts (PDE *-PLAN.md format preserved; tasks/ is an optional additive output alongside PLAN.md)
 
-### Phase 5: Design Tool Integration (Figma + Pencil)
-**Rationale:** Design tool sync is more complex than text-based syncs — token format transforms, visual artifact handling, binary concepts vs. Markdown. Both Figma and Pencil can be built in parallel within the phase. Figma has partial coverage in `mcp-integration.md` already. Pencil requires probe/degrade for its VS Code dependency. Both integrations are only useful after a project has run `/pde:system` (DTCG tokens must exist for Pencil `set_variables`).
-**Delivers:** `workflows/sync-figma.md` (import: `get_variable_defs` to DTCG non-destructive merge, `get_design_context` for wireframe reference, `get_code_connect_map` for handoff; export: `generate_figma_design` with confirmation gate), Pencil Level 1 (token sync in `/pde:system`, `get_screenshot` in `/pde:critique`, `snapshot_layout` layout audit — all behind probe/degrade), `/pde:sync --figma` and `--pencil`
-**Avoids:** Loading entire Figma design files into context (request only selected frames/components per gotcha table), treating Figma as source of truth for PDE design state (DESIGN-STATE.md remains authoritative), hardcoded Pencil tool names (adapter layer from Phase 3 applies here too)
-
-### Phase 6: PDE-as-MCP-Server (Additive, Non-Blocking)
-**Rationale:** The state server is architecturally clean (read-only, thin view layer) and does not block any sync integration. Deferring to Phase 6 means its API surface reflects validated consumer patterns rather than speculation. The security model (tool-level access control, no raw file exposure, no write tools) must be designed as the first deliverable — do not start implementation without it.
-**Delivers:** `bin/mcp-server/state-server.cjs` (bundled stdio server), `bin/mcp-server/package.json` (`@modelcontextprotocol/sdk` v1.x isolated), `.mcp.json` at plugin root, `plugin.json mcpServers` update, read-only resources (`pde://plan`, `pde://state`, `pde://design-state`, `pde://requirements`, `pde://artifacts`), read-only tools (`get_current_phase`, `get_requirements`, `get_design_artifacts`, `get_pipeline_status`)
-**Avoids:** State server write tools that bypass `pde-tools.cjs` (second write path creates race conditions — hard constraint), planning state exposure without access control (Pitfall 10), competing with sync integration milestone scope (build after all consuming integrations are stable)
-
-### Phase 7: End-to-End Validation
-**Rationale:** Each integration was validated independently; this phase validates them in combination and under failure conditions.
-**Delivers:** Multi-server connect (2+ simultaneously), full sync run with `.planning/` state verification, state server resource requests verified, `--no-mcp` degradation confirmed for every integration, write-back confirmation flows exercised, context compaction auth recovery confirmed, rate-limit error surfacing confirmed (mock 429 test)
+### Phase 5: Update Mechanism and Readiness Gate
+**Rationale:** update.md change is isolated from the execution flow changes in Phase 4 but requires manifest.cjs to be tested and stable across multiple operations first — separating it from Phase 4 reduces blast radius. The implementation readiness gate (/pde:check-readiness) is a new command that gates execute-phase; placing it last ensures it can be validated against the complete Phase 3 + 4 implementation.
+**Delivers:** workflows/update.md (hash-based merge strategy; auto-overwrite unmodified files; preserve user-modified files with notice; fall back to three-way merge if manifest missing), new command /pde:check-readiness (PO-style checklist; validates PROJECT.md + REQUIREMENTS.md + PLAN.md consistency; produces PASS/CONCERNS/FAIL; blocks execute-phase on FAIL)
+**Addresses:** Implementation readiness gate (primary deliverable), File-hash manifest for updates (update.md delivery)
+**Avoids:** Three-way merge conflicts on framework updates (hash manifest enables silent auto-update for unmodified files), Executing incomplete or inconsistent plans (readiness gate blocks on FAIL)
 
 ### Phase Ordering Rationale
 
-- Infrastructure before workflows: `mcp-bridge.cjs` must exist before any sync workflow can be written or tested — hard dependency, not a preference
-- GitHub before Linear/Jira: establishes adapter pattern and rate-limit handling that subsequent integrations inherit; most common service gives highest signal for pattern validation
-- Text-based syncs before design syncs: simpler transformation logic validates the probe/use/degrade extension before tackling DTCG token merges and visual artifact handling
-- State server last: additive value; use cases are clearer once all consuming integration patterns are built and validated; security model complexity warrants dedicated attention without competing scope
+- Foundation before context: manifest.cjs enables hash tracking of new files as they are created; templates must exist before agents reference them in system prompt instructions
+- Context before agents: agents read agent-memory and project-context.md at spawn; both must pre-exist or agents encounter missing file errors on first invocation
+- Agents before workflows: plan-phase.md instructs pde-planner with AC format; if pde-planner.md has not been updated first, the workflow instructions have no corresponding agent behavior to activate
+- Workflow modifications after all foundation: execute-plan.md is the highest-risk change; build and validate it last when all its dependencies are stable and tested
+- Update mechanism last: manifest.cjs must be proven stable across Phases 1-4 before update.md depends on it for irreversible file preservation decisions
 
 ### Research Flags
 
-Phases needing deeper research during planning:
-- **Phase 5 (Figma token import — DTCG merge):** The non-destructive merge logic requires a mapping strategy between Figma variable naming conventions and PDE's existing DTCG token names. This mapping is not yet defined. Needs validation against real Figma files before implementation.
-- **Phase 6 (PDE-as-MCP-server — security model):** No prior art in PDE codebase for MCP server access control. Security model (which resources are safe to expose, connection authentication, no raw file contents) must be designed before implementation begins. Treat as a design phase with implementation blocked until the design is complete.
-- **Phase 5 (Pencil Level 1 — tool name validation):** Official Pencil MCP docs are sparse. The 6 tool names sourced from community articles (MEDIUM confidence). Validate tool names in a real Pencil + Claude Code + VS Code environment before committing workflow logic.
-- **Phase 1 (Availability probe — `listTools` access):** FEATURES.md flags MEDIUM confidence on whether MCP tool list is callable programmatically within skill context. Validate in Phase 1 before finalizing the probe implementation approach.
+Phases needing deeper planning before execution (recommend /pde:discuss before plan-phase):
 
-Phases with well-documented patterns (can skip research-phase):
-- **Phase 1 (infrastructure):** Plugin `.mcp.json` format, `${CLAUDE_PLUGIN_ROOT}`, connection metadata schema — verified against official Claude Code docs (HIGH confidence)
-- **Phase 2 (connection management):** `mcp-integration.md` probe/use/degrade pattern is established and working for 5 existing MCPs; extending it is additive documentation work
-- **Phase 3 (GitHub):** Official server, HTTP transport at `api.githubcopilot.com/mcp/`, toolset names (issues, pull_requests, repos), OAuth/PAT pattern — HIGH confidence across all sources
-- **Phase 4 (Linear):** Official server, HTTP remote, recent changelog confirmed; richer project/milestone model (HIGH confidence); Jira Rovo MCP cloud-only constraint confirmed (MEDIUM confidence for Jira specifically)
+- **Phase 4 (Workflow Modifications — execute-plan.md reconciliation):** The reconciliation step involves correlating git commit messages against PLAN.md task IDs. The matching heuristic is not specified in the research: when commits do not reference task IDs, what fallback logic identifies which task a commit satisfies? This needs a concrete specification (slug matching as primary, file-path overlap as fallback) before implementation begins.
+- **Phase 5 (Readiness Gate — checklist content):** The PASS/CONCERNS/FAIL checklist items for /pde:check-readiness are not defined in the research. What specific conditions constitute an "incomplete or inconsistent plan"? Checklist items should be drafted as acceptance criteria during Phase 5 planning before implementation starts.
+
+Phases with standard patterns (can skip research-phase):
+
+- **Phase 1 (Foundation):** bin/lib/manifest.cjs is standard Node.js crypto.createHash usage. Template modifications are additive markdown changes to existing files. references/workflow-methodology.md is documentation writing. No external dependencies or novel patterns.
+- **Phase 2 (Context Infrastructure):** project-context.md generation is a synthesis prompt added to existing workflow steps. Directory initialization is trivial file system setup. STATE.md schema extension is one additive field.
+- **Phase 3 (Agent Enhancements):** PDE's agent format is well-documented in skill-style-guide.md. Sidecar memory loading is a standard context-prepend pattern. pde-architect follows existing agent format conventions with no novel technical requirements.
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | v0.5 stack is additive to verified v1.x stack; `.mcp.json` format and plugin env vars verified from official docs; MCP SDK version from npm search (MEDIUM for version number) |
-| Features | HIGH | Official MCP server tool inventories verified for GitHub and Figma; Linear changelog confirmed 2026 additions; Pencil tool names MEDIUM (sparse official docs) |
-| Architecture | HIGH | Build order is dependency-derived from hard blockers; component design grounded in direct codebase inspection of existing lib modules; anti-patterns all sourced from official MCP docs or confirmed bugs |
-| Pitfalls | HIGH | Two pitfalls from confirmed Claude Code issue tracker bugs; MCP versioning from official specification; security pitfalls from multiple independent security research organizations |
+| Stack | HIGH | No new dependencies; BMAD v6.2.0 confirmed from GitHub repo, docs.bmad-method.org, and DeepWiki technical reference; PAUL confirmed from official GitHub repo with full command reference; PDE baseline from direct codebase inspection |
+| Features | HIGH | BMAD verified against official docs, DeepWiki, and buildmode.dev implementation guide; PAUL verified from official GitHub repo; integration mapping (HIGH/MEDIUM where noted) — derived analysis of both frameworks against PDE's existing capabilities |
+| Architecture | HIGH | PDE architecture from direct codebase inspection (145,000+ LOC); BMAD v6 sidecar + manifest architecture from DeepWiki; PAUL architecture from official GitHub README and source analysis; build order derived from hard dependency graph with zero speculation |
+| Pitfalls | HIGH | Grounded in direct PDE codebase inspection; pitfalls are first-principles architectural reasoning about system conflicts; all 10 pitfalls have specific warning signs and recovery strategies |
 
 **Overall confidence:** HIGH
 
 ### Gaps to Address
 
-- **Pencil tool name accuracy:** `docs.pencil.dev` is sparse; tool names sourced from community articles and project memory note (MEDIUM confidence). Validate tool names in a real Pencil + Claude Code session before writing workflow logic that depends on them.
-- **`listTools` programmatic access:** Needed for the availability probe mechanism. FEATURES.md flags MEDIUM confidence on whether this is callable within skill context. Validate in Phase 1 before finalizing probe implementation approach.
-- **PDE-as-MCP-server user demand:** Architecturally correct (read-only) but no confirmed user demand exists for consuming PDE planning state from external MCP clients. Treat as experimental; validate concrete use cases before investing in API surface design.
-- **Figma token naming conventions:** The non-destructive merge logic depends on a mapping strategy between Figma variable names and PDE's existing DTCG token names. This mapping is undefined. Address in Phase 5 planning before implementation begins.
-- **Jira Data Center:** Atlassian Rovo MCP is cloud-only. Data Center requires `sooperset/mcp-atlassian` (community, different auth, different tools). Do not scope into v0.5 without explicit user demand confirmation.
+- **Reconciliation matching heuristic (Phase 4):** ARCHITECTURE.md documents the reconciliation data flow (git log vs. PLAN.md task list) but does not specify how to correlate commit messages to task IDs when commits lack task references. Recommendation for Phase 4 planning: use task slug matching as primary heuristic, file-path overlap as fallback. Define as an acceptance criterion before implementation begins.
+
+- **project-context.md staleness detection mechanism (Phase 2):** ARCHITECTURE.md proposes a 7-day staleness warning for project-context.md but the triggering mechanism is not specified. Define during Phase 2 planning: recommend a timestamp comparison in execute-phase pre-flight checking project-context.md mtime against PROJECT.md mtime.
+
+- **UNIFY enforcement level — hard gate vs. soft recommendation (Phase 4):** PITFALLS.md identifies this as a binary decision with significant downstream impact on pde-tools.cjs gate logic. ARCHITECTURE.md and FEATURES.md both document it without specifying enforcement level. Recommended resolution: soft enforcement (reconciliation runs automatically in yolo mode without blocking; interactive mode prompts for review before phase advances). This preserves PDE's autonomous execution contract while implementing the PAUL discipline. Decide explicitly before Phase 4 implementation starts.
+
+- **Sidecar memory entry quality criteria (Phase 3):** The 50-entry cap and archive mechanism are specified but the criteria for what gets written to memories.md are not. Define during Phase 3 planning: agents append only project-specific operational quirks (test configuration, environment constraints, recurring patterns) — not task completion summaries, which belong in SUMMARY.md.
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- `https://code.claude.com/docs/en/mcp` — Claude Code MCP plugin API: `.mcp.json` format, `${CLAUDE_PLUGIN_ROOT}` and `${CLAUDE_PLUGIN_DATA}`, scopes, Tool Search auto-enable at 10% threshold, `claude mcp serve`, passthrough limitation, OAuth 2.0 support
-- `https://github.com/github/github-mcp-server` — GitHub MCP toolsets (repos, issues, pull_requests, actions, code_security), HTTP transport URL, auth options
-- `https://developers.figma.com/docs/figma-mcp-server/tools-and-prompts/` — All 13 Figma MCP tools with descriptions
-- `https://linear.app/docs/mcp` — Linear MCP HTTP transport, OAuth, tool scope
-- `https://linear.app/changelog/2026-02-05-linear-mcp-for-product-management` — 2026 additions: initiatives, milestones, project updates, project labels
-- `https://github.com/atlassian/atlassian-mcp-server` — Atlassian Rovo MCP official repo; cloud-only, OAuth 2.1, Jira + Confluence + Compass
-- `https://modelcontextprotocol.io/docs/develop/build-server` — MCP Resources vs Tools vs Prompts primitives
-- `https://www.npmjs.com/package/@modelcontextprotocol/sdk` — MCP SDK Node.js server implementation
-- Claude Code issue tracker #34832 — Auth loss on context compaction (confirmed bug)
-- Claude Code issue tracker #18557 — SSE disconnect session crash (confirmed bug)
-- `https://modelcontextprotocol.io/specification/versioning` — Date-based version schema, breaking change cadence, GitHub SEP-1400 discussion
-- PDE codebase direct inspection: `references/mcp-integration.md`, `bin/pde-tools.cjs`, `bin/lib/design.cjs`, `bin/lib/config.cjs`, `.claude-plugin/plugin.json`, `commands/recommend.md`, `workflows/recommend.md`
+- BMAD-METHOD GitHub (v6.2.0, 2026-03-15) — https://github.com/bmad-code-org/BMAD-METHOD — directory structure, AGENTS.md, compilation pipeline
+- BMAD Official Docs — https://docs.bmad-method.org/ — version info, module catalog, agent roster, workflow map, party mode
+- BMAD Agent Technical Reference (DeepWiki) — https://deepwiki.com/bmad-code-org/BMAD-METHOD/7-agent-technical-reference — .agent.yaml schema, Zod validation, all 9 agent definitions
+- BMAD Workflow Reference (DeepWiki) — https://deepwiki.com/bmad-code-org/BMAD-METHOD/8-workflow-reference — full workflow catalog, variable resolution, state persistence
+- BMAD Sidecar Architecture (DeepWiki) — https://deepwiki.com/bmad-code-org/BMAD-METHOD/6.5-agent-customization-and-sidecars — hash preservation algorithm, files-manifest.csv details, hasSidecar flag
+- BMAD What's New v6 (DeepWiki) — https://deepwiki.com/bmad-code-org/BMAD-METHOD/1.4-what's-new-in-v6 — sidecar system, path segregation, direct workflow invocation
+- PAUL Framework GitHub — https://github.com/ChristopherKahler/paul — 26 commands, PLAN.md format, STATE.md structure, SPECIAL-FLOWS.md, config.md format
+- CARL GitHub — https://github.com/ChristopherKahler/carl — rule format, activation mechanics, 14 PAUL-specific rules
+- PDE codebase direct inspection (2026-03-19) — agents/, workflows/, commands/, references/, templates/, bin/pde-tools.cjs, bin/lib/*.cjs, .planning/config.json, .planning/PROJECT.md
 
 ### Secondary (MEDIUM confidence)
-- `https://www.atlassian.com/platform/remote-mcp-server` — Atlassian Rovo MCP cloud-only constraint, OAuth 2.1, compatible clients
-- `https://github.blog/changelog/2026-01-28-github-mcp-server-new-projects-tools-oauth-scope-filtering-and-new-features/` — 2026 GitHub MCP additions: Projects tools, OAuth scope filtering, HTTP mode for enterprise
-- `https://muz.li/blog/claude-code-to-figma-how-the-new-code-to-canvas-integration-works/` — Figma Code to Canvas (2026-02 feature)
-- `https://modelcontextprotocol.info/docs/best-practices/` — Tool composition, security patterns
-- Invariant Labs, "MCP Security Notification: Tool Poisoning Attacks" — Tool poisoning via description injection
-- Nordic APIs, "The Weak Point in MCP Nobody's Talking About: API Versioning" — Date-based version fragility; consistent with official spec analysis
-- Nudge Security, "MCP Security Risks and Best Practices" — Verified against other security sources
-- `https://atalupadhyay.wordpress.com/2026/02/25/pencil-dev-claude-code-workflow-from-design-to-production-code-in-minutes/` — Pencil MCP tool names (community source; sparse official docs)
-- `https://docs.pencil.dev/getting-started/ai-integration` + project_pencil_mcp.md project memory — Pencil MCP 6 tools, `.pen` file format, VS Code constraint
+- BMAD Implementation Guide — https://buildmode.dev/blog/mastering-bmad-method-2025/ — four-phase lifecycle, context sharding detail, agent persona interactions
+- BMAD Applied Analysis — https://bennycheung.github.io/bmad-reclaiming-control-in-ai-dev — multi-agent coordination, version control integration, quality gates
+- BMAD Complete Methodology Guide — https://redreamality.com/garden/notes/bmad-method-guide/ — agent corps table, config format, workflow variants
+- BMAD-AT-CLAUDE — https://github.com/24601/BMAD-AT-CLAUDE — Claude Code-specific adaptation, story file pattern, core architecture docs
+- PDE EXTERNAL-FRAMEWORKS.md (.planning/research/EXTERNAL-FRAMEWORKS.md, 2026-03-17) — prior integration candidate research, Tier 1-3 classification
 
-### Tertiary (LOW confidence)
-- ByteBridge Medium, "Managing MCP Servers at Scale: The Case for Gateways, Lazy Loading, and Automation" — Connection pooling and lazy loading patterns; single practitioner source; consistent with observed patterns but unverified
-- PDE-as-MCP-server user demand — No prior art or confirmed use cases; pattern derived from `claude mcp serve` capability only; need real consumer validation before committing to API surface
+### Tertiary (derived analysis)
+- BMAD/PAUL-to-PDE concept mapping — derived from cross-referencing official docs against direct PDE codebase inspection; high internal consistency but inferred rather than externally validated against a running system
 
 ---
-*Research completed: 2026-03-18*
+*Research completed: 2026-03-19*
 *Ready for roadmap: yes*

@@ -1,375 +1,526 @@
-# Architecture Research: MCP Integrations for PDE v0.5
+# Architecture Research: BMAD + PAUL Integration into PDE v0.6
 
-**Domain:** Claude Code plugin with external MCP server integrations
-**Researched:** 2026-03-18
-**Confidence:** HIGH (Claude Code plugin docs verified via official docs, MCP protocol verified, existing PDE architecture inspected directly)
+**Domain:** Agentic workflow methodology integration — Claude Code plugin
+**Researched:** 2026-03-19
+**Confidence:** HIGH (PDE architecture via direct codebase inspection; BMAD v6 via official docs + DeepWiki; PAUL via GitHub repo fetch + official docs)
 
 ---
 
 ## Focus
 
-This document answers the v0.5 architecture question: how do MCP server integrations (GitHub, Linear, Figma, Pencil, Jira) fit into PDE's existing architecture? It maps integration points, identifies new vs modified components, documents data flows, and recommends build order. It does not re-document the base pipeline (see v1.3 research for that baseline). Everything here is about what changes, what stays the same, and in what order to build.
+This document answers the v0.6 architecture question: how do BMAD and PAUL methodology patterns integrate into PDE's existing skills/workflows/agents/templates architecture? It maps every BMAD/PAUL concept to its PDE equivalent, identifies what is new versus modified, documents data flows, and proposes a dependency-ordered build sequence.
+
+The prior ARCHITECTURE.md (v0.5 MCP Integrations) remains the reference for MCP bridge infrastructure — that layer is now stable and unchanged. Everything here is about workflow methodology and context engineering.
 
 ---
 
-## Existing Architecture (Baseline for v0.5)
+## Source Framework Analysis
 
-```
-┌──────────────────────────────────────────────────────────────────────┐
-│                        User (Claude Code session)                     │
-├──────────────────────────────────────────────────────────────────────┤
-│  /pde: skills (commands/*.md)   →   workflows/*.md                    │
-│  agents/*.md (via Task/Skill)   →   bin/pde-tools.cjs subcommands    │
-├──────────────────────────────────────────────────────────────────────┤
-│  .planning/ (file-based state)                                        │
-│   STATE.md  ROADMAP.md  REQUIREMENTS.md  config.json                 │
-│   design/   phases/     milestones/      debug/                       │
-├──────────────────────────────────────────────────────────────────────┤
-│  references/  (mcp-integration.md, skill-style-guide.md, ...)        │
-│  templates/   (design-manifest.json, config.json, ...)               │
-│  bin/lib/     (config.cjs, design.cjs, state.cjs, roadmap.cjs, ...)  │
-└──────────────────────────────────────────────────────────────────────┘
-```
+### BMAD v6 Core Concepts
 
-Key constraints that v0.5 must respect:
+BMAD (Breakthrough Method for Agile AI-Driven Development) is a compile-time persona framework with a runtime story-sharding execution model. Key components:
 
-- Zero new npm dependencies at the plugin root (bin/lib/*.cjs uses Node.js built-ins only).
-  The MCP state server may have its own isolated `package.json` in `bin/mcp-server/`.
-- All MCP integration follows the existing probe/use/degrade pattern in `references/mcp-integration.md`.
-- No MCP is ever a hard requirement — all skills degrade gracefully when MCPs are unavailable.
-- File-based `.planning/` is the canonical project state. External systems are read-only sources of truth for their domain. PDE never auto-writes to external systems.
-- Auth tokens are managed by Claude Code (system keychain). PDE stores only connection metadata.
+| BMAD Concept | BMAD Implementation | What It Does |
+|---|---|---|
+| Agent definitions | Markdown files in `_bmad/agents/` with YAML frontmatter | Persona, constraints, skills, startup instructions per specialist role |
+| Sidecar memory | `_bmad/_memory/{agent-name}-sidecar/memories.md` | Persistent per-agent memory across sessions; hash-preserved on update |
+| Story files | Atomic `story-NNN.md` files with YAML frontmatter + acceptance criteria | Context-bounded task units; each story is self-contained for a dev agent |
+| File-hash manifest | `_config/files-manifest.csv` with SHA256 per managed file | Detects user modifications; safe framework updates; `user-modified` vs `stock` |
+| Workflow orchestration | `workflow-*.md` slash-command files calling agents sequentially | Analyst → PM → Architect → PO → SM → Dev → QA, human-gated hand-offs |
+| Compilation pipeline | `npx bmad-method build` — YAML defs → Zod validation → deep merge → `.md` output | Produces consumable agent files per IDE from source YAML/Markdown |
+| Story sharding | PO executes shard task; decomposes epic → `stories/` directory | Each story: `<objective>`, `<context>`, `<acceptance_criteria>`, `<tasks>` |
+
+BMAD's key distinction from PDE: BMAD trusts the human to sequence agents. PDE automates sequencing. BMAD produces static persona files at compile time; PDE spawns subagents dynamically at runtime.
+
+### PAUL Framework Core Concepts
+
+PAUL (Plan-Apply-Unify Loop) is a session-discipline framework with just-in-time rule injection via CARL:
+
+| PAUL Concept | PAUL Implementation | What It Does |
+|---|---|---|
+| Plan-Apply-Unify cycle | Three mandatory loop phases enforced by CARL rules | Defines → executes → reconciles work; prevents orphaned plans |
+| State directory | `.paul/STATE.md` with loop position markers | Tracks PLAN/APPLY/UNIFY position + session continuity + decisions |
+| Reconciliation (Unify) | `SUMMARY.md` comparing PLAN.md tasks vs actual git changes | Surfaces plan drift; records decisions; closes loops |
+| AC-first planning | Tasks defined by BDD `given/when/then` acceptance criteria | Execution measured against explicit criteria, not vague descriptions |
+| CARL rule injection | 14 domain rules loaded contextually by trigger pattern | Loop enforcement, boundary protection, state consistency, skill blocking |
+| Phase structure | `.paul/phases/NN-name/NN-NN-PLAN.md` + `NN-NN-SUMMARY.md` | Matches PDE's `.planning/phases/` structure almost exactly |
+
+PAUL's key distinction from PDE: PAUL is session-scoped (no cross-session memory). PDE has full cross-session state. PAUL requires human loop closure; PDE automates UNIFY via pde-verifier + SUMMARY.md generation.
 
 ---
 
-## System Overview: v0.5 Additions
+## Existing PDE Architecture (Baseline for v0.6)
 
 ```
-┌──────────────────────────────────────────────────────────────────────┐
-│                        User (Claude Code session)                     │
-├──────────────────────────────────────────────────────────────────────┤
-│  ┌────────────────┐  ┌──────────────────┐  ┌──────────────────────┐  │
-│  │  /pde: skills  │  │  Claude Code     │  │  PDE Reference MCP   │  │
-│  │  (existing)    │  │  Hooks (existing)│  │  (existing, bundled) │  │
-│  └───────┬────────┘  └──────────────────┘  └──────────────────────┘  │
-│          │                                                             │
-│  ┌───────▼────────────────────────────────────────────────────────┐   │
-│  │                  NEW: MCP Integration Layer                     │   │
-│  │                                                                 │   │
-│  │  commands/connect.md   → /pde:connect (NEW)                    │   │
-│  │  commands/sync.md      → /pde:sync    (NEW)                    │   │
-│  │  workflows/sync-*.md   → per-service sync logic (NEW)          │   │
-│  │  bin/lib/mcp-bridge.cjs → connection manager (NEW)             │   │
-│  │  bin/lib/mcp-config.cjs → connection metadata CRUD (NEW)       │   │
-│  │  .planning/mcp-connections.json → runtime state (NEW)          │   │
-│  └───────┬────────────────────────────────────────────────────────┘   │
-│          │                                                             │
-├──────────┼─────────────────────────────────────────────────────────── ┤
-│          │              External MCP Servers                           │
-│  ┌───────▼──┐ ┌──────┐ ┌──────┐ ┌────────┐ ┌──────────────────────┐  │
-│  │  GitHub  │ │Linear│ │Figma │ │Pencil  │ │  Jira (Atlassian)    │  │
-│  │  MCP     │ │  MCP │ │  MCP │ │  MCP   │ │      MCP             │  │
-│  │  (HTTP)  │ │(stdio│ │(HTTP)│ │(stdio) │ │     (HTTP OAuth 2.1) │  │
-│  └──────────┘ └──────┘ └──────┘ └────────┘ └──────────────────────┘  │
-├─────────────────────────────────────────────────────────────────────┤
-│          NEW: PDE-as-MCP-Server (optional, phase 6)                  │
-│  ┌───────────────────────────────────────────────────────────────┐   │
-│  │  bin/mcp-server/state-server.cjs (bundled stdio server)       │   │
-│  │  Exposes .planning/ state as MCP Resources + read-only Tools  │   │
-│  │  Declared in .mcp.json → auto-started by Claude Code          │   │
-│  └───────────────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────────────┐
+│                        User (Claude Code session)                      │
+├───────────────────────────────────────────────────────────────────────┤
+│  /pde: skills (commands/*.md)   →   workflows/*.md                     │
+│  agents/*.md (via Task/Skill)   →   bin/pde-tools.cjs subcommands     │
+├───────────────────────────────────────────────────────────────────────┤
+│  .planning/ (file-based state)                                         │
+│   STATE.md  ROADMAP.md  REQUIREMENTS.md  config.json                  │
+│   design/   phases/     milestones/      mcp-connections.json         │
+├───────────────────────────────────────────────────────────────────────┤
+│  references/  (mcp-integration.md, skill-style-guide.md, ...)         │
+│  templates/   (design-manifest.json, config.json, ...)                │
+│  bin/lib/     (config.cjs, design.cjs, state.cjs, roadmap.cjs, ...)   │
+│  bin/lib/mcp-bridge.cjs  bin/lib/mcp-config.cjs  (from v0.5)         │
+└───────────────────────────────────────────────────────────────────────┘
+```
+
+Key constraints v0.6 must respect:
+- Zero new npm dependencies at plugin root.
+- `.planning/` is the single source of truth. No new state directories parallel to it.
+- All skill commands keep their existing anatomy (7 sections, standard flags).
+- agent/*.md format is stable and enforced by pde-quality-auditor.
+- Protected-files.json is immutable.
+- Architecture restructuring is explicitly out of scope (PROJECT.md constraint).
+
+---
+
+## Concept Mapping: BMAD/PAUL → PDE
+
+This is the central architectural table. Every BMAD/PAUL pattern maps to an existing PDE concept or a new addition.
+
+### Agent Role System
+
+| BMAD/PAUL Role | Description | PDE Equivalent | Mapping Type |
+|---|---|---|---|
+| BMAD Analyst | Research, project briefs, competitive context | Handled by `/pde:recommend`, `/pde:competitive`, `/pde:ideate` skills | Behavior exists in skills, not a dedicated agent |
+| BMAD Product Manager | PRD creation, epic planning | `/pde:brief` + REQUIREMENTS.md workflow | Behavior in skill |
+| BMAD Architect | System design, implementation readiness review | No dedicated PDE agent yet | **NEW: `pde-architect` agent** |
+| BMAD Scrum Master | Story creation, sprint planning, retrospectives | `pde-planner` (plan decomposition) + `pde-verifier` | Planner handles decomposition; verifier handles retrospective |
+| BMAD Developer | Feature implementation | `pde-executor` | Exists |
+| BMAD QA Engineer | Test automation, quality gates | `pde-verifier` + Nyquist validation | Exists (dual-mode: Nyquist on code, goal-backward on spec) |
+| BMAD UX Designer | User experience design | Entire 13-stage design pipeline + all design agents | Exceeds BMAD's UX scope |
+| PAUL Planner | AC-first plan authoring | `pde-planner` | Exists — AC format enhancement needed |
+| PAUL Unifier | Plan-vs-actual reconciliation | Missing from PDE | **NEW: reconciliation step in execute-plan workflow** |
+
+**Key finding:** PDE has more design coverage than BMAD but is missing two things BMAD has: (1) a dedicated architect agent for structured system design review before execution phases, and (2) AC-first formatting discipline in planner output. PAUL's Unify step has no PDE equivalent — PDE's `pde-verifier` does goal-backward analysis, not plan-delta analysis.
+
+### Template Structures
+
+| BMAD/PAUL Template | What It Contains | PDE Equivalent | Mapping Type |
+|---|---|---|---|
+| BMAD story file | YAML frontmatter + `<objective>` + `<context>` + `<acceptance_criteria>` (BDD) + `<tasks>` + `<boundaries>` | PDE PLAN.md (similar structure; lacks explicit AC section) | **MODIFY: add AC frontmatter to PLAN.md template** |
+| BMAD sidecar `memories.md` | Persistent agent memory across sessions | No equivalent — PDE agents are stateless | **NEW: `.planning/agent-memory/` directory** |
+| BMAD sidecar `instructions.md` | Agent-specific operational overrides | Embedded in each agent/*.md file | Not needed — PDE agent files serve this purpose already |
+| BMAD `files-manifest.csv` | SHA256 per file, source classification | No equivalent | **NEW: `bin/lib/manifest.cjs` + `.planning/config/files-manifest.csv`** |
+| PAUL `STATE.md` (loop position) | PLAN/APPLY/UNIFY markers | PDE STATE.md has milestone/phase tracking but not loop-position markers | **MODIFY: add `current_loop` field to STATE.md** |
+| PAUL PLAN.md (AC-first) | BDD acceptance criteria as primary contract | PDE PLAN.md has objective + tasks; no AC section | **MODIFY: PLAN.md template adds `<acceptance_criteria>` section** |
+| PAUL RECONCILIATION.md | Plan-vs-actual delta analysis | No equivalent | **NEW: generated by reconciliation step after pde-executor** |
+| PAUL CARL rules | 14 domain-specific rules | PDE references/*.md (loaded via @ includes) | Pattern matches — CARL rules are just reference files per context |
+| BMAD project context | `project-context.md` agent-optimized constitution | PDE has PROJECT.md + STATE.md but no agent-optimized synthesis | **NEW: `.planning/project-context.md` auto-generated synthesis** |
+
+### Workflow Orchestration
+
+| BMAD/PAUL Pattern | BMAD/PAUL Behavior | PDE Current Behavior | Gap |
+|---|---|---|---|
+| Human-gated hand-offs | Human approves each agent hand-off | PDE mode=interactive approximates this; mode=yolo skips gates | No gap — already configurable |
+| HALT checkpoints for high-risk | Tasks tagged `risk: high` pause for explicit approval | No risk-based task tagging in planner output | **NEW: risk metadata in PLAN.md tasks** |
+| Story sharding | PO decomposes epic into atomic story files in `stories/` | `pde-planner` emits a single PLAN.md per plan | **NEW: story-file sharding in planner output (optional, threshold-gated)** |
+| PAUL unify closure | Mandatory UNIFY after every APPLY | `pde-verifier` runs post-execution but compares to spec, not to plan | **NEW: reconciliation step between executor completion and verifier** |
+| AC-first planning | Every task has BDD ACs as primary contract | Tasks describe what-to-do, not what-done-looks-like | **MODIFY: planner prompted to emit ACs; PLAN.md template updated** |
+| Party mode | Multiple agent personas in parallel (Architect + PM + QA) | `pde:discuss-phase` uses single questioning agent | **DEFERRED** (Large scope; not in v0.6 MVP) |
+| CARL JIT rule unloading | Rules unloaded when no longer relevant | PDE injects skills once per session, never removes | **DEFERRED** (Requires session-aware context lifecycle; large scope) |
+
+### State Management
+
+| BMAD/PAUL State | Location | PDE Equivalent | Mapping Type |
+|---|---|---|---|
+| BMAD sidecar `memories.md` | `_bmad/_memory/{agent}/memories.md` | None — agents are stateless | **NEW: `.planning/agent-memory/{agent-type}/memories.md`** |
+| BMAD `files-manifest.csv` | `_config/files-manifest.csv` with SHA256 + source flag | None | **NEW: `.planning/config/files-manifest.csv`** |
+| PAUL `STATE.md` loop markers | `.paul/STATE.md` PLAN/APPLY/UNIFY position | PDE `.planning/STATE.md` (milestone/phase tracking) | **MODIFY: add `current_loop` field** |
+| BMAD `project-context.md` | Max 4KB agent-optimized constitution | PROJECT.md (not agent-optimized; no length constraint) | **NEW: `.planning/project-context.md`** |
+
+---
+
+## System Overview: v0.6 Additions
+
+```
+┌───────────────────────────────────────────────────────────────────────┐
+│                        User (Claude Code session)                      │
+├───────────────────────────────────────────────────────────────────────┤
+│  /pde: skills (existing)       │  NEW: /pde:context, /pde:reconcile   │
+│  workflows/*.md (existing)     │  NEW: workflows/reconcile.md         │
+├───────────────────────────────────────────────────────────────────────┤
+│  NEW: Methodology Layer                                                │
+│  ┌──────────────────────────────────────────────────────────────┐     │
+│  │  agents/pde-architect.md          (NEW — architecture review) │     │
+│  │  workflows/execute-plan.md        (MODIFIED — +reconciliation) │    │
+│  │  workflows/plan-phase.md          (MODIFIED — +AC format)     │     │
+│  │  templates/PLAN.md                (MODIFIED — +AC section)    │     │
+│  │  bin/lib/manifest.cjs             (NEW — hash manifest CRUD)  │     │
+│  │  bin/pde-tools.cjs manifest cmds  (MODIFIED — +manifest cmds) │     │
+│  └──────────────────────────────────────────────────────────────┘     │
+├───────────────────────────────────────────────────────────────────────┤
+│  .planning/ (extended, not restructured)                               │
+│   STATE.md (+current_loop field)                                       │
+│   project-context.md              (NEW — agent-optimized synthesis)    │
+│   config/files-manifest.csv       (NEW — hash manifest)               │
+│   agent-memory/                   (NEW — per-agent sidecar memory)    │
+│     pde-executor/memories.md                                           │
+│     pde-planner/memories.md                                            │
+│     pde-debugger/memories.md                                           │
+│     pde-verifier/memories.md                                           │
+│   phases/XX-name/                 (extended — story files optional)   │
+│     XX-NN-PLAN.md                 (+acceptance_criteria section)       │
+│     XX-NN-RECONCILIATION.md       (NEW — generated post-execution)     │
+│     tasks/                        (NEW — optional story-file sharding) │
+│       task-001-{slug}.md                                               │
+│       task-002-{slug}.md                                               │
+└───────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
 ## Component Responsibilities
 
-### Existing Components — Unchanged
+### New Components (v0.6 — build these)
 
-These components are complete. v0.5 does not touch them.
+| Component | Responsibility | Location | Blocked On |
+|---|---|---|---|
+| `agents/pde-architect.md` | Architecture review agent: evaluates plans for structural risks, ADR recommendations, component boundary analysis | `agents/pde-architect.md` | Nothing (new file) |
+| `bin/lib/manifest.cjs` | Hash manifest CRUD: SHA256 per tracked file, source classification (stock/user-modified), update-safe preservation logic | `bin/lib/manifest.cjs` | Nothing (new CJS module) |
+| `.planning/project-context.md` | Agent-optimized synthesis of PROJECT.md + REQUIREMENTS.md + key decisions; max 4KB; auto-generated; loaded by every subagent | `.planning/project-context.md` | `manifest.cjs` (for hash tracking) |
+| `.planning/agent-memory/` | Per-agent sidecar memory directories; `memories.md` per agent type; project-scoped; preserved across sessions | `.planning/agent-memory/{agent-type}/` | Nothing (new directory structure) |
+| `.planning/config/files-manifest.csv` | SHA256 per PDE file; source flag (stock/user-modified); enables safe update merging without three-way merge | `.planning/config/files-manifest.csv` | `manifest.cjs` |
+| `templates/PLAN.md` | PLAN.md template with added `<acceptance_criteria>` section | `templates/PLAN.md` | Nothing (template modification) |
+| `templates/RECONCILIATION.md` | RECONCILIATION.md template comparing planned tasks to actual git changes | `templates/RECONCILIATION.md` | Nothing (new template) |
+| `references/workflow-methodology.md` | BMAD/PAUL patterns as PDE reference: AC format guide, story sharding rules, reconciliation step spec, risk tagging criteria | `references/workflow-methodology.md` | Nothing (new reference) |
 
-| Component | Responsibility | Location |
-|-----------|----------------|----------|
-| All /pde: skills | Design pipeline, planning, execution, verification | `commands/*.md` + `workflows/*.md` |
-| `pde-tools.cjs` | CLI for state, design, phase, milestone operations | `bin/pde-tools.cjs` |
-| `bin/lib/*.cjs` | CJS modules: config, design, state, phase, roadmap, etc. | `bin/lib/` |
-| `references/mcp-integration.md` | Probe/use/degrade pattern for all MCPs | `references/mcp-integration.md` |
-| `.planning/` state files | STATE.md, ROADMAP.md, REQUIREMENTS.md, config.json | `.planning/` |
-| `design-manifest.json` | 13-artifact coverage registry | `.planning/design/design-manifest.json` |
-| Plugin hook system | PreToolUse, PostToolUse, SessionStart hooks | `.claude-plugin/plugin.json` |
+### Modified Components (v0.6 — surgical changes)
 
-### New Components (v0.5 — build these)
+| Component | Change | Risk | Lines Affected |
+|---|---|---|---|
+| `workflows/execute-plan.md` | Add reconciliation step between executor completion and verifier invocation; reads PLAN.md task list, diffs against git commits, writes RECONCILIATION.md | MEDIUM — changes execute-plan flow; must not break existing path | +50-70 lines |
+| `workflows/plan-phase.md` | Prompt pde-planner to emit `<acceptance_criteria>` section; add story-file sharding trigger (when plan has 5+ tasks); add risk tagging for high-risk tasks | LOW — additive instructions to planner | +30-40 lines |
+| `bin/pde-tools.cjs` | Add `manifest` subcommand group: `manifest init`, `manifest check`, `manifest update`, `manifest verify-file` | LOW — additive subcommand group | +30-40 lines |
+| `agents/pde-executor.md` | Add sidecar memory loading: read `.planning/agent-memory/pde-executor/memories.md` at start; append findings at completion | LOW — additive context loading | +15-20 lines |
+| `agents/pde-planner.md` | Add sidecar memory loading: read/write `.planning/agent-memory/pde-planner/memories.md`; emit AC-first task format | LOW — additive; no change to core planning logic | +20-25 lines |
+| `agents/pde-debugger.md` | Add sidecar memory loading: read `.planning/agent-memory/pde-debugger/memories.md` at start; append bug patterns at completion | LOW — additive context | +15-20 lines |
+| `agents/pde-verifier.md` | Load RECONCILIATION.md as additional context when available; compare spec to both plan and actual | LOW — additive input, not changed verification logic | +10-15 lines |
+| `workflows/new-project.md` | Add step to generate `.planning/project-context.md` and initialize `files-manifest.csv` | LOW — new step at end of setup | +20 lines |
+| `workflows/new-milestone.md` | Add step to regenerate `project-context.md` from updated REQUIREMENTS.md + STATE.md | LOW — additive | +10 lines |
+| `workflows/update.md` | Use `manifest.cjs` hash comparison instead of three-way merge for unchanged files; preserve user-modified files | MEDIUM — changes update merge strategy; must be regression-tested | +40-60 lines (replaces ~40 existing) |
+| `STATE.md` schema | Add `current_loop` field: `null | "plan" | "apply" | "unify"` | LOW — additive field | 1 field |
+| `references/skill-style-guide.md` | Add section on AC-first task format standard | LOW — documentation addition | +20 lines |
 
-| Component | Responsibility | Location | Type |
-|-----------|----------------|----------|------|
-| `bin/lib/mcp-bridge.cjs` | Connection manager: per-server probe, auth metadata, probe caching | `bin/lib/mcp-bridge.cjs` | NEW |
-| `bin/lib/mcp-config.cjs` | Connection metadata CRUD: read/write `.planning/mcp-connections.json` | `bin/lib/mcp-config.cjs` | NEW |
-| `.planning/mcp-connections.json` | Runtime connection state (gitignored): connected bool, scopes, last_sync | `.planning/mcp-connections.json` | NEW |
-| `commands/connect.md` | `/pde:connect` — guided MCP server setup and auth | `commands/connect.md` | NEW |
-| `commands/sync.md` | `/pde:sync` — trigger on-demand syncs from external MCPs | `commands/sync.md` | NEW |
-| `workflows/sync-github.md` | GitHub sync: issues → REQUIREMENTS.md, PRs → phase tracking | `workflows/sync-github.md` | NEW |
-| `workflows/sync-linear.md` | Linear sync: cycles → ROADMAP.md phases, issues → tasks | `workflows/sync-linear.md` | NEW |
-| `workflows/sync-jira.md` | Jira sync: issues/epics → REQUIREMENTS.md, sprint → phases | `workflows/sync-jira.md` | NEW |
-| `bin/mcp-server/state-server.cjs` | PDE state MCP server: exposes .planning/ as Resources + read-only Tools | `bin/mcp-server/` | NEW |
-| `bin/mcp-server/package.json` | MCP SDK dependency, isolated from plugin root | `bin/mcp-server/` | NEW |
-| `.mcp.json` (project root) | Project-scoped MCP server declarations for auto-start | `.mcp.json` | NEW |
+### Unchanged Components
 
-### Modified Components (v0.5 — surgical changes)
-
-| Component | Change | Risk | Rationale |
-|-----------|--------|------|-----------|
-| `references/mcp-integration.md` | Add probe/use/degrade entries for GitHub, Linear, Jira, Pencil | LOW — additive only | Standard pattern; all new MCPs need entries |
-| `workflows/sync-figma.md` (or extend existing Figma handling in `mcp-integration.md`) | Add bidirectional sync: component export from Figma → design artifacts | LOW | Figma MCP already partially documented; sync workflow is additive |
-| `bin/pde-tools.cjs` | Add `mcp` subcommand router: `mcp connection-set`, `mcp connection-get`, `mcp list` | LOW — additive subcommand | Keeps all state operations going through pde-tools.cjs CLI |
-| `bin/lib/config.cjs` | Add `mcp.*` namespace to `VALID_CONFIG_KEYS` | LOW — additive entries | Enables `/pde:settings mcp.github_sync_labels issues,requirements` |
-| `.claude-plugin/plugin.json` | Add `mcpServers` field declaring the state server bundle | LOW — new JSON field | Required for Claude Code plugin auto-start of bundled MCP server |
-| `skill-registry.md` | Register CON (connect) and SYN (sync) skill codes | LOW — additive rows | Required by LINT-010 skill registry rule |
-
-### Unchanged Components (do not touch)
-
-The 13-stage design pipeline, all design skills, the build orchestrator, agent definitions, DESIGN-STATE.md, design-manifest.json schema, and all existing hook logic require **zero modifications** for v0.5. MCP integration is additive infrastructure.
+Every existing design pipeline skill (recommend, competitive, opportunity, ideate, brief, system, flows, wireframe, critique, iterate, mockup, hig, handoff), the build orchestrator, all MCP sync workflows, mcp-bridge.cjs, mcp-config.cjs, the design-manifest.json schema, protected-files.json, and the plugin hook system require **zero modifications** for v0.6. Methodology is additive infrastructure.
 
 ---
 
-## Recommended Project Structure (Delta from v0.4)
+## Recommended Project Structure (Delta from v0.5)
 
-Only showing what changes for v0.5. Existing structure is unchanged.
+Only showing what changes. Existing structure is unchanged.
 
 ```
 Platform Development Engine/
 │
-├── .mcp.json                           # NEW — project-scoped MCP declarations
-│                                       # Declares state-server bundle; committed to git
+├── agents/
+│   ├── pde-architect.md              # NEW — architecture review agent
+│   ├── pde-executor.md               # MODIFIED — +sidecar memory loading
+│   ├── pde-planner.md                # MODIFIED — +sidecar memory, +AC format
+│   ├── pde-debugger.md               # MODIFIED — +sidecar memory loading
+│   └── pde-verifier.md               # MODIFIED — +RECONCILIATION.md input
 │
 ├── bin/
-│   ├── pde-tools.cjs                   # MODIFIED — adds 'mcp' subcommand group
-│   ├── lib/
-│   │   ├── mcp-bridge.cjs              # NEW — external MCP connection manager
-│   │   ├── mcp-config.cjs              # NEW — connection metadata CRUD
-│   │   └── [existing lib modules unchanged]
-│   └── mcp-server/                     # NEW — isolated PDE state server
-│       ├── state-server.cjs            # MCP server: Resources + Tools over .planning/
-│       └── package.json                # @modelcontextprotocol/sdk dep (isolated)
+│   ├── pde-tools.cjs                 # MODIFIED — +manifest subcommands
+│   └── lib/
+│       ├── manifest.cjs              # NEW — hash manifest CRUD
+│       └── [existing lib unchanged]
 │
-├── commands/
-│   ├── connect.md                      # NEW — /pde:connect
-│   ├── sync.md                         # NEW — /pde:sync
-│   └── [existing commands unchanged]
-│
-├── workflows/
-│   ├── sync-github.md                  # NEW — GitHub issues/PRs → .planning/
-│   ├── sync-linear.md                  # NEW — Linear cycles/issues → .planning/
-│   ├── sync-jira.md                    # NEW — Jira issues/epics → .planning/
-│   └── [existing workflows unchanged]
+├── templates/
+│   ├── PLAN.md                       # MODIFIED — +acceptance_criteria section
+│   ├── RECONCILIATION.md             # NEW — plan-vs-actual reconciliation
+│   └── [existing templates unchanged]
 │
 ├── references/
-│   ├── mcp-integration.md              # MODIFIED — add GitHub/Linear/Jira/Pencil entries
+│   ├── workflow-methodology.md       # NEW — BMAD/PAUL patterns as PDE reference
+│   ├── skill-style-guide.md          # MODIFIED — +AC format standard
 │   └── [existing references unchanged]
 │
-├── .claude-plugin/
-│   └── plugin.json                     # MODIFIED — add mcpServers field
+├── workflows/
+│   ├── execute-plan.md               # MODIFIED — +reconciliation step
+│   ├── plan-phase.md                 # MODIFIED — +AC format, story sharding trigger
+│   ├── new-project.md                # MODIFIED — +project-context.md init
+│   ├── new-milestone.md              # MODIFIED — +project-context.md regen
+│   ├── update.md                     # MODIFIED — hash-based merge strategy
+│   └── [existing workflows unchanged]
 │
 └── .planning/
-    ├── mcp-connections.json            # NEW — gitignored; runtime connection metadata
-    └── [existing .planning/ structure unchanged]
+    ├── STATE.md                       # MODIFIED — +current_loop field
+    ├── project-context.md             # NEW — agent-optimized 4KB synthesis
+    ├── config/
+    │   └── files-manifest.csv         # NEW — SHA256 hash manifest
+    └── agent-memory/                  # NEW — per-agent sidecar directories
+        ├── pde-executor/
+        │   └── memories.md
+        ├── pde-planner/
+        │   └── memories.md
+        ├── pde-debugger/
+        │   └── memories.md
+        └── pde-verifier/
+            └── memories.md
 ```
 
 ### Structure Rationale
 
-- **`.mcp.json` at plugin root:** Claude Code's native project-scoped MCP config format. Checked into git so all team members who install PDE auto-get the state server declared. Uses `${CLAUDE_PLUGIN_ROOT}` for the server path. Carries no auth tokens — safe to commit.
-- **`bin/lib/mcp-bridge.cjs`:** Follows the existing CommonJS module pattern. Mirrors how `design.cjs` centralizes the design pipeline infrastructure. Workflows invoke it via `pde-tools.cjs mcp *` — never importing CJS modules directly from `.md` files.
-- **`bin/mcp-server/`:** Isolated subdirectory. Its own `package.json` adds `@modelcontextprotocol/sdk` without polluting the plugin root's zero-npm-dependency constraint. The state server is a separate process, not part of pde-tools.cjs.
-- **`.planning/mcp-connections.json`:** Gitignored alongside `mcp-debug.log`. Contains only metadata (connected bool, scopes, last_sync timestamp) — never raw tokens. Auth tokens stay in Claude Code's system keychain.
+- **`.planning/agent-memory/` inside `.planning/`:** All PDE state lives under `.planning/`. Creating a parallel `_memory/` at project root (as BMAD does) would split state tracking across two locations. Agent memory is project state; it belongs in `.planning/`.
+- **`.planning/config/files-manifest.csv`:** Config directory already exists for `config.json`. The hash manifest is a configuration artifact. Keeping it in `config/` avoids cluttering `.planning/` root with a new file type.
+- **`templates/RECONCILIATION.md`:** Follows the existing template pattern — every generated artifact has a template. RECONCILIATION.md is generated per plan execution, so it needs a template like PLAN.md and SUMMARY.md.
+- **`references/workflow-methodology.md`:** Following PDE's convention that all patterns loaded via `@` includes are reference files. BMAD/PAUL patterns become a reference, not a new directory.
+- **Agent sidecar scope is project-scoped (not global):** BMAD uses project-level sidecars (`_bmad/_memory/`). PDE follows this — each project's agents learn independently. Global agent memory across all projects would mix unrelated project context.
 
 ---
 
 ## Architectural Patterns
 
-### Pattern 1: Probe/Use/Degrade Extended for New MCPs
+### Pattern 1: AC-First Task Format in PLAN.md
 
-**What:** The existing `references/mcp-integration.md` probe/use/degrade structure applies without modification to GitHub, Linear, Jira, and Pencil. Each new server gets an entry in that reference file following the exact same structure as Figma, Playwright, and Axe entries.
+**What:** Every task in PLAN.md includes an `<acceptance_criteria>` block using BDD format. Execution is measured against criteria, not against vague descriptive tasks.
 
-**When to use:** Every external MCP integration. No exceptions.
+**When to use:** All pde-planner output. Enforced by the updated PLAN.md template and skill-style-guide.md AC format section.
 
-**Trade-offs:** Consistent with existing patterns — zero cognitive overhead for skill authors. Adds ~40 lines per MCP to the reference file. Worth it for predictability and `--no-mcp` compliance.
+**Trade-offs:** Adds ~5-10 lines per plan (minor overhead). Creates a binding contract between planner, executor, and verifier — verifier can check ACs directly rather than inferring success from task descriptions.
 
-**Example new entry structure in `mcp-integration.md`:**
-
-```markdown
-### GitHub MCP
-
-**Purpose:** Read GitHub issues, PRs, code search for planning sync.
-**URL:** https://api.githubcopilot.com/mcp/
-**Transport:** HTTP (streamable-http)
-**Auth:** OAuth via Claude Code /mcp command
-**Stability:** STABLE
-
-#### Probe
-Attempt: mcp__github__list_issues (scoped to current project repo)
-  Timeout: 15 seconds
-  Result:
-    - Returns issue list: GITHUB_MCP_AVAILABLE = true
-    - Not found / auth error / timeout: GITHUB_MCP_AVAILABLE = false
-
-#### Enhancement Recipes
-**Requirements sync** (/pde:sync --github):
-  1. Read open issues labelled "requirements" or "pde-req"
-  2. Map issue title + body to REQUIREMENTS.md format
-  3. Append new requirements, skip duplicates
-  4. Tag: [Synced from GitHub MCP — {N} issues imported]
-
-#### Degradation
-When unavailable:
-  - Display manual entry instructions for REQUIREMENTS.md
-  - Tag: [GitHub sync unavailable -- run /pde:connect github]
+**PLAN.md task structure (new format):**
+```xml
+<task id="01">
+  <name>Implement OAuth token refresh</name>
+  <files>src/auth/refresh.ts, src/auth/refresh.test.ts</files>
+  <action>Create token refresh function with 401-retry logic</action>
+  <acceptance_criteria>
+    Given: an expired access token in request headers
+    When: the auth middleware intercepts the 401 response
+    Then: a new access token is requested, the original request retried,
+          and the refreshed token written to the auth store
+  </acceptance_criteria>
+  <done>refresh.test.ts passes; no 401 errors in auth.log during integration test</done>
+</task>
 ```
 
-### Pattern 2: Unidirectional Pull (Primary Sync Direction)
+### Pattern 2: Story-File Sharding for Large Plans
 
-**What:** Data flows from external systems into `.planning/` files. External systems own their domain data. PDE translates it into file-based state. `.planning/` never auto-writes back to external systems.
+**What:** When pde-planner identifies a plan with 5 or more tasks, it optionally emits a `tasks/` directory alongside PLAN.md. Each `task-NNN-{slug}.md` is self-contained: objective, relevant file paths, schema snippets, dependency pointers, and its own AC block.
 
-**When to use:** All sync operations: GitHub issues → REQUIREMENTS.md, Linear cycles → ROADMAP.md phases, Figma frames → design artifacts, Pencil canvas → design artifacts.
+**When to use:** Plans with 5+ tasks. Skip sharding for small plans — overhead outweighs benefit.
 
-**Trade-offs:** Prevents accidental overwrites of external systems during planning. Keeps `.planning/` as the single source of truth for PDE purposes. Bidirectional live sync adds conflict resolution complexity — defer until a specific need is validated.
+**Trade-offs:** Context savings for executor (loads only current task + project-context.md rather than full PLAN.md). Adds complexity to planner output. File I/O overhead for small phases. Correct threshold is 5 tasks based on BMAD benchmarks (90% token savings claimed).
+
+**Story file structure:**
+```
+.planning/phases/45-architect-integration/
+├── 01-01-PLAN.md               # master plan (always present)
+├── 01-01-SUMMARY.md            # generated post-execution
+├── 01-01-RECONCILIATION.md     # generated post-execution (new)
+└── tasks/                      # only for plans with 5+ tasks
+    ├── task-001-define-agent-interface.md
+    ├── task-002-add-architect-spawn-logic.md
+    └── task-003-update-plan-template.md
+```
+
+**pde-executor behavior with sharding:** Load `task-NNN.md` for current task instead of full PLAN.md. Load `.planning/project-context.md` as base context. On task completion: update `task-NNN.md` frontmatter with `status: complete`.
+
+### Pattern 3: Reconciliation Step (Plan-vs-Actual Analysis)
+
+**What:** After pde-executor finishes all tasks but before pde-verifier runs, a lightweight reconciliation pass compares PLAN.md task list against actual git commits in the phase branch. Generates RECONCILIATION.md.
+
+**When to use:** Every execute-plan invocation where git commits exist. Auto-skip for plans with 0-2 tasks (overhead not justified).
+
+**Trade-offs:** Surfaces plan drift that pde-verifier's goal-backward analysis misses. Adds one git-diff analysis step to execute-plan flow (~10-30 seconds). Worth it for phases with significant divergence risk (architectural changes, external dependency updates).
 
 **Data flow:**
 ```
-GitHub Issues  ──────────────►  .planning/REQUIREMENTS.md
-Linear Cycles  ──────────────►  .planning/ROADMAP.md (new phase entries)
-Figma Frames   ──────────────►  .planning/design/visual/
-Pencil Canvas  ──────────────►  .planning/design/ux/
-                                (existing .planning/ structure, unchanged)
+pde-executor completes all tasks
+    ↓
+Read PLAN.md task list (task IDs + names)
+    ↓
+git log --oneline (phase branch commits since plan started)
+    ↓
+For each planned task: was there a matching commit?
+For each unplanned commit: what changed? (deviation)
+    ↓
+Write RECONCILIATION.md:
+  - Completed as planned: [task IDs]
+  - Completed with deviation: [task ID] — [what changed, why]
+  - Skipped: [task ID] — [reason]
+  - Unplanned changes: [file list] — [rationale]
+    ↓
+pde-verifier loads RECONCILIATION.md as additional context
 ```
 
-### Pattern 3: Explicit Write-Back (Opt-In Only, with Confirmation)
+### Pattern 4: Per-Agent Sidecar Memory
 
-**What:** Writing PDE state back to external systems requires an explicit user command with a confirmation prompt. Never automatic, never triggered by syncing or planning operations.
+**What:** Each key agent type (executor, planner, debugger, verifier) reads a `memories.md` file from `.planning/agent-memory/{agent-type}/` at spawn time and appends key findings at completion. Memory is project-scoped, not global.
 
-**When to use:** Creating a GitHub PR after phase completion, updating a Linear issue status to "completed", pushing design tokens to Figma.
+**When to use:** Four core agents. Not for specialized fleet agents (quality-auditor, skill-builder, etc.) — they operate on PDE's own artifacts, not on user project context.
 
-**Trade-offs:** Less automation than full bidirectional sync. More safety and trust. Correct for a planning tool — silent mutations to external systems break the user contract.
+**Trade-offs:** Cross-session learning for recurring project patterns (e.g., "this codebase has flaky test in auth.test.ts — always run with --testTimeout 10000"). Cap memory at 50 entries (oldest archived when limit reached) to prevent context bloat. Stale entries are a risk — entries older than 10 phases get a `[stale]` tag.
 
-**Implementation:** Every write-back step includes a confirmation gate:
-```
-About to create GitHub PR for phase 3 completion.
-  Title: "feat: phase 3 — auth system"
-  Repo: your-org/your-repo
-  Base: main
-  Proceed? (yes / no)
-```
+**Memory format (per agent):**
+```markdown
+# pde-executor memories — {project-name}
 
-### Pattern 4: PDE State Server (Thin Read-Only Resources)
+## Active Memories
+- [2026-03-15] Auth tests require --testTimeout 10000 (confirmed in phase 3, phase 5)
+- [2026-03-17] `yarn build` before `yarn test:e2e` — CI env constraint
+- [2026-03-18] Prisma migrate fails if Docker not running — check before migration phases
 
-**What:** `bin/mcp-server/state-server.cjs` is a bundled stdio MCP server that exposes `.planning/` state as MCP Resources and a small set of read-only Tools. Other Claude sessions, future agents, or external dashboards can query PDE project state without parsing markdown directly.
-
-**When to use:** When building the state server. When external tooling needs structured project state.
-
-**Trade-offs:** New process to manage. Bundled as a plugin MCP server (auto-started) — no manual lifecycle management. The server must be read-only to prevent a second write path diverging from `pde-tools.cjs`.
-
-**Resources to expose (MVP):**
-```
-pde://project/state         →  STATE.md parsed as JSON: {phase, milestone, status}
-pde://project/roadmap       →  ROADMAP.md phases as [{number, title, status, pct}]
-pde://project/requirements  →  REQUIREMENTS.md as [{id, description, status}]
-pde://project/design/status →  design-manifest.json coverage summary
+## Archived (> 10 phases old)
+[archived entries omitted from active context]
 ```
 
-**Tools to expose (MVP):**
+**Agent loading pattern:**
 ```
-pde_get_phase_status(phase_number)   →  {status, completion_pct, summary_path}
-pde_get_current_milestone()          →  {name, progress, phase_count}
-pde_list_requirements(status?)       →  filtered requirements list
+Agent spawned
+    ↓
+Read .planning/agent-memory/{agent-type}/memories.md
+    ↓
+Include as final section of agent context: "## Project Memory\n{memories}"
+    ↓
+Execute work
+    ↓
+If learned something worth retaining: append to memories.md
+    ↓
+Prune to 50 entries if exceeded
 ```
 
-**Hard constraint:** The state server NEVER writes to `.planning/`. All mutations go through `pde-tools.cjs`. The server is a read-only view layer.
+### Pattern 5: Hash-Based Safe Update Merging
+
+**What:** `files-manifest.csv` tracks SHA256 of every PDE-managed file at install/update time. During `/pde:update`, compare current file hash against manifest hash to detect user modifications. Unchanged files are auto-updated; user-modified files are preserved with a notice.
+
+**When to use:** Every `/pde:update` invocation. Eliminates three-way merge complexity for files the user hasn't touched.
+
+**Trade-offs:** Replaces three-way merge with simpler hash comparison for the majority of files. Requires manifest to be current (regenerated on every update). If manifest is missing (first-time or corrupted), fall back to existing three-way merge.
+
+**Comparison logic:**
+```
+For each managed file:
+  current_hash = SHA256(current file on disk)
+  manifest_hash = SHA256 from files-manifest.csv
+  upstream_hash = SHA256(incoming update file)
+
+  if current_hash == manifest_hash:
+    → overwrite silently (user hasn't modified)
+  else:
+    → preserve user version
+    → display: "Preserved: {file} (user-modified — upstream update available)"
+    → log delta to update report
+```
+
+### Pattern 6: Project Context Constitution
+
+**What:** `.planning/project-context.md` is a max-4KB auto-generated synthesis of PROJECT.md + top-level REQUIREMENTS.md + key decisions from STATE.md. Structured for agent consumption, not human prose. Auto-regenerated when `/pde:new-project` or `/pde:new-milestone` runs.
+
+**When to use:** Loaded by every subagent as baseline context, replacing the ad-hoc combination of STATE.md + PROJECT.md that agents currently load separately.
+
+**Trade-offs:** Centralized agent context — one file to update when project changes, one file each agent loads. 4KB cap must be enforced — uncapped constitutions grow to fill context budgets. Risk of staleness if regeneration fails; mitigated by generating at milestone boundaries.
+
+**Content sections:**
+```markdown
+# Project Context — {project-name}
+
+## Tech Stack
+{extracted from PROJECT.md or auto-detected from package.json}
+
+## Conventions
+{key coding conventions from CLAUDE.md or PROJECT.md}
+
+## Constraints
+{key constraints from PROJECT.md constraints section}
+
+## Key Decisions
+{last 10 decisions from STATE.md key decisions log}
+
+## File Structure
+{top-level directory map, max 20 entries}
+
+## Current Milestone
+{milestone name, version, phase count}
+```
 
 ---
 
 ## Data Flow
 
-### MCP Sync Flow (External → .planning/)
+### Execute-Phase Flow (Modified for v0.6)
 
 ```
-User: /pde:sync --github
+/pde:execute-phase
     ↓
-workflows/sync-github.md
+execute-phase.md: discover plans, group waves
     ↓
-Check --no-mcp flag → if set: display manual instructions, halt
+For each plan: execute-plan.md
     ↓
-Probe: mcp__github__list_issues
-    ↓ success                       ↓ failure
-Parse issues                    Degrade: display manual entry instructions
-Map to REQUIREMENTS.md format   Log: {timestamp} | SYN | github | probe | failure
+Step 1: Load project-context.md + PLAN.md
     ↓
-Acquire write lock (standard pde-tools.cjs pattern)
+Step 2: pde-executor agent spawned
+    Load .planning/agent-memory/pde-executor/memories.md
+    If plan has 5+ tasks: load tasks/ shards instead of full PLAN.md
+    Execute tasks (unchanged core logic)
+    Append learnings to memories.md
     ↓
-Read existing REQUIREMENTS.md to detect duplicates
+Step 3: [NEW] Reconciliation step
+    Read PLAN.md task list
+    git log phase branch commits
+    Compare planned vs actual
+    Write RECONCILIATION.md
     ↓
-Append {N} new requirements, skip existing
+Step 4: pde-verifier agent
+    Load RECONCILIATION.md as additional context
+    Load .planning/agent-memory/pde-verifier/memories.md
+    Run existing goal-backward + Nyquist verification
     ↓
-Release write lock
+Step 5: Commit + update STATE.md current_loop = "unify"
     ↓
-pde-tools.cjs mcp connection-set github last_sync={timestamp}
-    ↓
-Display: "Synced {N} new issues from GitHub → .planning/REQUIREMENTS.md"
+Step 6: pde-planner closes loop: STATE.md current_loop = null
 ```
 
-### MCP Write-Back Flow (.planning/ → External, Explicit)
+### New-Project Flow (Modified for v0.6)
 
 ```
-User: /pde:sync --github --push-pr
+/pde:new-project
     ↓
-workflows/sync-github.md (write-back branch)
+existing new-project.md flow (unchanged)
     ↓
-Read current phase from STATE.md
+[NEW STEP] generate project-context.md
+    Read PROJECT.md + REQUIREMENTS.md (if exists) + STATE.md
+    Synthesize to 4KB max
+    Write .planning/project-context.md
     ↓
-Prompt: "Create GitHub PR for phase {N}? Title: '...' Base: main (yes/no)"
-    ↓ yes
-mcp__github__create_pull_request
+[NEW STEP] initialize files-manifest.csv
+    pde-tools.cjs manifest init
+    SHA256 all tracked PDE files
+    Write .planning/config/files-manifest.csv
     ↓
-Append PR URL to .planning/phases/{N}/VERIFICATION.md
-    ↓
-Display: "PR created: {url}"
+[NEW STEP] initialize agent-memory directories
+    Create .planning/agent-memory/{pde-executor,pde-planner,pde-debugger,pde-verifier}/
+    Create empty memories.md in each
 ```
 
-### PDE State Server Resource Flow
+### Update Flow (Modified for v0.6)
 
 ```
-External client requests: pde://project/roadmap
+/pde:update
     ↓
-state-server.cjs receives resource read request
+Check if files-manifest.csv exists
+    ↓ exists              ↓ missing
+Hash-based comparison     Existing three-way merge (unchanged fallback)
     ↓
-Read .planning/ROADMAP.md (file read, no lock needed — read-only server)
+For each managed file:
+  Compare SHA256(disk) vs SHA256(manifest)
+  If equal: auto-overwrite with upstream
+  If different: preserve, add to "preserved" report
     ↓
-Parse phases using roadmap.cjs parser logic
+Regenerate files-manifest.csv with upstream hashes
     ↓
-Return: [{phase: 1, title: "...", status: "complete", pct: 100}, ...]
+Regenerate .planning/project-context.md from updated PROJECT.md
     ↓
-Client receives structured roadmap JSON
-```
-
-### MCP Connection Setup Flow
-
-```
-User: /pde:connect github
-    ↓
-commands/connect.md → workflows/connect.md
-    ↓
-pde-tools.cjs mcp connection-get github
-    ↓ not connected                   ↓ already connected
-Display connection instructions:      Display current status + last_sync
-"Run in terminal:                      Offer re-auth option
-  claude mcp add --transport http
-  github https://api.githubcopilot.com/mcp/"
-    ↓
-"Then authenticate: /mcp → Authenticate → GitHub"
-    ↓
-pde-tools.cjs mcp connection-set github connected=true
-    ↓
-Probe: mcp__github__list_issues (test call)
-    ↓
-Display: "GitHub MCP connected. {N} repos accessible."
+Display: "Updated {N} files; preserved {M} user-modified files"
 ```
 
 ---
@@ -378,188 +529,188 @@ Display: "GitHub MCP connected. {N} repos accessible."
 
 ### New Files (create from scratch)
 
-| File | Purpose | Blocked on |
-|------|---------|-----------|
-| `bin/lib/mcp-config.cjs` | Connection metadata CRUD | Nothing |
-| `bin/lib/mcp-bridge.cjs` | External MCP connection manager | `mcp-config.cjs` |
-| `.planning/mcp-connections.json` | Runtime connection state (gitignored) | `mcp-config.cjs` init |
-| `commands/connect.md` | `/pde:connect` skill stub | `pde-tools.cjs mcp subcommand` |
-| `commands/sync.md` | `/pde:sync` skill stub | `pde-tools.cjs mcp subcommand` |
-| `workflows/sync-github.md` | GitHub sync workflow | `connect.md`, `mcp-integration.md` GitHub entry |
-| `workflows/sync-linear.md` | Linear sync workflow | `connect.md`, `mcp-integration.md` Linear entry |
-| `workflows/sync-jira.md` | Jira sync workflow | `connect.md`, `mcp-integration.md` Jira entry |
-| `bin/mcp-server/state-server.cjs` | PDE state MCP server | `bin/lib/{roadmap,state}.cjs` (existing) |
-| `bin/mcp-server/package.json` | `@modelcontextprotocol/sdk` dep | `state-server.cjs` |
-| `.mcp.json` | Project-scoped MCP declarations | `state-server.cjs` path confirmed |
+| File | Purpose | Blocked On |
+|---|---|---|
+| `agents/pde-architect.md` | Architecture review agent | Nothing |
+| `bin/lib/manifest.cjs` | Hash manifest CRUD | Nothing |
+| `templates/RECONCILIATION.md` | Reconciliation output template | Nothing |
+| `references/workflow-methodology.md` | BMAD/PAUL patterns as PDE reference | Nothing |
+| `.planning/project-context.md` | Agent-optimized context synthesis | `manifest.cjs` (for hash tracking) |
+| `.planning/config/files-manifest.csv` | SHA256 hash manifest | `manifest.cjs` |
+| `.planning/agent-memory/pde-executor/memories.md` | Executor sidecar memory | Nothing (empty init) |
+| `.planning/agent-memory/pde-planner/memories.md` | Planner sidecar memory | Nothing (empty init) |
+| `.planning/agent-memory/pde-debugger/memories.md` | Debugger sidecar memory | Nothing (empty init) |
+| `.planning/agent-memory/pde-verifier/memories.md` | Verifier sidecar memory | Nothing (empty init) |
 
 ### Modified Files (change existing)
 
-| File | Change | Lines Affected | Risk |
-|------|--------|---------------|------|
-| `bin/pde-tools.cjs` | Add `mcp` subcommand router to command dispatch | ~20 lines | LOW |
-| `bin/lib/config.cjs` | Add `mcp.*` keys to `VALID_CONFIG_KEYS` | ~5 lines | LOW |
-| `references/mcp-integration.md` | Add entries: GitHub, Linear, Jira, Pencil | ~160 lines (4 × ~40 lines) | LOW — additive |
-| `.claude-plugin/plugin.json` | Add `mcpServers` field | ~8 lines | LOW |
-| `skill-registry.md` | Add CON, SYN skill codes | ~2 rows | LOW |
+| File | Change | Risk | Rationale |
+|---|---|---|---|
+| `templates/PLAN.md` | Add `<acceptance_criteria>` section after `<objective>` | LOW — additive | AC-first planning requires template support |
+| `workflows/execute-plan.md` | Add reconciliation step between executor and verifier | MEDIUM | New step changes execute-plan control flow |
+| `workflows/plan-phase.md` | Prompt AC format; add story-sharding trigger for 5+ tasks; risk tagging | LOW | Additive instructions; no structural change |
+| `workflows/new-project.md` | Add project-context.md generation + manifest init + agent-memory init | LOW | Additive steps at workflow end |
+| `workflows/new-milestone.md` | Add project-context.md regeneration step | LOW | Single additive step |
+| `workflows/update.md` | Use hash-based merge for unchanged files; fall back to three-way for modified | MEDIUM | Changes merge strategy; regression risk |
+| `bin/pde-tools.cjs` | Add `manifest` subcommand group | LOW | Additive subcommands |
+| `agents/pde-executor.md` | Add sidecar memory load/save | LOW | Additive context |
+| `agents/pde-planner.md` | Add sidecar memory + AC format instructions | LOW | Additive context |
+| `agents/pde-debugger.md` | Add sidecar memory load/save | LOW | Additive context |
+| `agents/pde-verifier.md` | Load RECONCILIATION.md when present | LOW | Additive input |
+| `references/skill-style-guide.md` | Add AC format standard section | LOW | Documentation |
+| `STATE.md` (schema + template) | Add `current_loop` field | LOW | Additive field |
 
-### Untouched Files (do not modify)
+### Untouched Files
 
-Every existing command, workflow, agent, template, reference, and bin module except those listed above. The design pipeline is complete and stable. Zero regressions are acceptable.
-
----
-
-## External MCP Server Reference
-
-| Service | MCP Package/URL | Transport | Auth Method | Key Operations for PDE |
-|---------|----------------|-----------|-------------|------------------------|
-| GitHub | `https://api.githubcopilot.com/mcp/` | HTTP streamable | OAuth 2.0 via `/mcp` | list_issues, create_pull_request, search_code, list_commits |
-| Linear | `npx -y @linear/mcp-server --env LINEAR_API_KEY=...` | stdio | API key (`--env`) | list_issues, list_projects, update_issue, list_cycles |
-| Figma | `https://mcp.figma.com/mcp` | HTTP | Figma OAuth via `/mcp` | get_variable_defs, get_component_info, read_design_file |
-| Pencil.dev | Local stdio (auto-started by Pencil.dev app) | stdio | None (local process) | read_canvas_frame, get_design_tokens, get_component_tree |
-| Jira (Atlassian) | `https://mcp.atlassian.com/` (remote) | HTTP OAuth 2.1 | OAuth 2.1 via `/mcp` | get_issue, create_issue, update_issue, search_issues |
+All 13 design pipeline skills (recommend through handoff), the build orchestrator, all MCP sync workflows (sync-github, sync-linear, sync-jira, sync-figma), mcp-bridge.cjs, mcp-config.cjs, pde-quality-auditor.md, pde-skill-builder.md, pde-skill-improver.md, pde-skill-validator.md, design-manifest.json schema, protected-files.json, and all existing reference files (except skill-style-guide.md).
 
 ---
 
-## Scaling Considerations
+## Scalability Considerations
 
-| Concern | Current (v0.4) | v0.5 Impact | Mitigation |
-|---------|---------------|-------------|------------|
-| Context window per skill | ~600-800 lines per skill; references loaded via `@` | mcp-integration.md grows by ~160 lines; loaded by sync workflows only | Sync workflows load only the relevant MCP entry, not the full reference |
-| MCP tool count in context | 7 MCPs currently; Tool Search auto-enabled at 10% threshold | 4–6 new MCPs → ~11 total; Tool Search handles this | Claude Code's ENABLE_TOOL_SEARCH=auto handles deferral; no PDE changes needed |
-| Auth token management | N/A | Each external MCP may require separate OAuth flows | Claude Code manages all tokens; PDE only tracks metadata |
-| State server process | N/A | New stdio process auto-started with session | Bundled plugin server — auto lifecycle via Claude Code; CLAUDE_PLUGIN_ROOT path used |
-
-### Scaling Priorities
-
-1. **First bottleneck:** MCP tool context consumption. 11 active MCP servers with full tool lists can consume 40%+ of context window before any work happens. Mitigated by Claude Code's MCP Tool Search (lazy loading) and `--no-mcp` on all skills. No PDE-side changes needed.
-
-2. **Second bottleneck:** `mcp-connections.json` becoming a maintenance liability as more servers are added. Keep it simple — one record per server, no session state. The file is read at sync time, not held in memory.
+| Concern | Current (v0.5) | v0.6 Impact | Mitigation |
+|---|---|---|---|
+| Agent context per spawn | Agents load STATE.md + domain refs | Each agent also loads memories.md (+1-4KB) + project-context.md (~4KB) | Cap memories at 50 entries (~2KB); enforce 4KB project-context limit |
+| PLAN.md size in large phases | Full PLAN.md loaded by executor | Story sharding reduces this for 5+ task plans | Threshold gate: only shard at 5+ tasks |
+| execute-plan flow duration | Executor + verifier | +reconciliation step (+10-30s for git-diff analysis) | Auto-skip for plans with <3 tasks |
+| files-manifest.csv maintenance | N/A | Grows with every managed file; needs regeneration on update | CSV format; Node.js crypto.createHash is O(n) in file count; non-issue at PDE scale |
+| project-context.md staleness | N/A | Regenerated at new-project + new-milestone; may be stale mid-milestone | Add warning to execute-phase when project-context.md is >7 days old |
 
 ---
 
 ## Anti-Patterns
 
-### Anti-Pattern 1: Bidirectional Auto-Sync
+### Anti-Pattern 1: Mirroring BMAD's Compilation Pipeline in PDE
 
-**What people do:** Set up live two-way sync between `.planning/` files and external systems — auto-push every REQUIREMENTS.md edit to GitHub Issues.
+**What people do:** Add a `npx pde build` step that compiles YAML agent definitions to Markdown, following BMAD's compile-time architecture.
 
-**Why it's wrong:** File-based state and remote API state have different clocks, formats, and ownership semantics. Auto-sync creates silent conflicts. Also violates user trust — mutating external systems without explicit action breaks the "I control what gets pushed" contract.
+**Why it's wrong:** PDE agents are already Markdown files loaded at runtime. Adding a compile step adds complexity (build tool, source format change, distribution artifacts) for zero benefit. BMAD needs compilation because it supports 15+ IDEs with different formats. PDE targets one runtime: Claude Code.
 
-**Do this instead:** Unidirectional pull (external → .planning/) on demand via `/pde:sync`. Explicit opt-in write-back with confirmation per Pattern 3.
+**Do this instead:** Keep agents as plain Markdown loaded directly. Adopt BMAD's content patterns (AC-first, sidecar memory) without adopting its toolchain.
 
-### Anti-Pattern 2: MCP as a Required Dependency
+### Anti-Pattern 2: Parallel State Directory
 
-**What people do:** Make `/pde:sync` fail entirely when the MCP server is unavailable, or skip writing `.planning/` files because the probe failed.
+**What people do:** Create `_memory/` or `_bmad/` at the project root to mirror BMAD's structure.
 
-**Why it's wrong:** Breaks the existing probe/use/degrade contract in `mcp-integration.md`. All PDE skills must work with `--no-mcp`. MCP enriches; it never gates.
+**Why it's wrong:** PDE's entire state model is under `.planning/`. Adding a parallel root-level directory splits state tracking, breaks `pde-tools.cjs` path assumptions, and confuses the `.gitignore` strategy (`.planning/agent-memory/` is already under the `.planning/` gitignore rules).
 
-**Do this instead:** When probe fails: display manual instructions for achieving the same result (edit REQUIREMENTS.md directly), log the failure, exit cleanly.
+**Do this instead:** Agent memory lives at `.planning/agent-memory/`. Every PDE state artifact lives under `.planning/`.
 
-### Anti-Pattern 3: Duplicating Connection Logic Across Workflows
+### Anti-Pattern 3: Mandatory Loop-Position Enforcement (PAUL-style)
 
-**What people do:** Each sync workflow independently reads auth metadata and tests connections.
+**What people do:** Enforce PAUL's hard PLAN → APPLY → UNIFY loop in yolo mode, blocking execution if `current_loop` is not `null`.
 
-**Why it's wrong:** Three sync workflows with three copies of connection logic produces three different timeout/retry behaviors. Auth state inconsistency across workflows.
+**Why it's wrong:** PDE's yolo mode is designed for uninterrupted autonomous execution. Hard loop gates in yolo mode defeat the purpose and break the existing user contract.
 
-**Do this instead:** All connection state reads and writes go through `pde-tools.cjs mcp connection-*` commands. `mcp-bridge.cjs` owns the probe logic. Workflows invoke it via CLI.
+**Do this instead:** `current_loop` is a tracking field only in yolo mode. It gates phase transitions in interactive mode. In yolo mode, reconciliation runs automatically without requiring user confirmation.
 
-### Anti-Pattern 4: Storing Auth Tokens in `.planning/`
+### Anti-Pattern 4: Unbounded Sidecar Memory
 
-**What people do:** Write GitHub PATs, Linear API keys, or OAuth access tokens to `mcp-connections.json` or any `.planning/` file.
+**What people do:** Let agents append to memories.md freely, with no size cap or pruning.
 
-**Why it's wrong:** `.planning/` is git-tracked (or at minimum readable by anyone with project access). Tokens in plaintext are a security breach.
+**Why it's wrong:** Unbounded memories.md files grow to fill available context window. After 20 phases, memories.md could be 10KB+ — consuming budget needed for actual work context.
 
-**Do this instead:** Let Claude Code manage token storage (system keychain on macOS). `mcp-connections.json` stores only: `{server: "github", connected: true, scopes: ["repo", "issues"], last_sync: "2026-03-18T14:00:00Z"}`.
+**Do this instead:** Cap at 50 active entries (~2KB). When exceeded, archive oldest 10 entries to `memories-archive.md`. Never load archive in active context.
 
-### Anti-Pattern 5: Fat State Server with Write Operations
+### Anti-Pattern 5: Replacing pde-verifier with AC-Checking Only
 
-**What people do:** Build a full CRUD API into the state server — tools to update STATE.md, write new requirements, modify phases.
+**What people do:** Replace goal-backward verifier logic with a simple "did each AC pass?" check, treating ACs as the complete verification contract.
 
-**Why it's wrong:** Creates a second write path that diverges from `pde-tools.cjs`. State mutations through the MCP server bypass all the validation, lock acquisition, and manifest update logic in `bin/lib/*.cjs`.
+**Why it's wrong:** Acceptance criteria cover planned behavior. Nyquist assertions and goal-backward analysis catch unplanned regressions and quality degradation that ACs cannot anticipate. ACs are an input to verification, not a replacement.
 
-**Do this instead:** State server is read-only. Resources: parsed views of `.planning/` files. Tools: narrow query operations returning structured data. All mutations: `pde-tools.cjs` CLI as always.
+**Do this instead:** ACs extend pde-verifier input. Verifier checks ACs as its first step, then runs existing Nyquist + goal-backward passes. All three must pass.
 
 ---
 
-## Build Order for v0.5
+## Build Order for v0.6
 
-Dependencies determine the order. Each layer must be complete before the next.
+Dependencies determine order. Within each phase, components with no inter-dependencies can be built in parallel.
 
 ```
-Phase 1: Foundation Infrastructure
-  ├── bin/lib/mcp-config.cjs              (no deps — pure CRUD for mcp-connections.json)
-  ├── bin/lib/mcp-bridge.cjs              (deps: mcp-config.cjs)
-  ├── pde-tools.cjs 'mcp' subcommand      (deps: mcp-bridge.cjs, mcp-config.cjs)
-  └── bin/lib/config.cjs: mcp.* keys      (no deps — additive)
+Phase 1: Foundation — Zero-Dependency Components
+  ├── bin/lib/manifest.cjs                    (new CJS module, no deps)
+  ├── bin/pde-tools.cjs manifest subcommands  (deps: manifest.cjs)
+  ├── templates/PLAN.md                       (additive template change, no deps)
+  ├── templates/RECONCILIATION.md             (new template, no deps)
+  └── references/workflow-methodology.md      (new reference, no deps)
 
-  Rationale: Every sync workflow and the connect skill invoke mcp-bridge via pde-tools.cjs.
-  The CLI surface must exist before any workflow can be written or tested.
+  Rationale: manifest.cjs is the most-depended-upon new module (update.md and
+  new-project.md both need it). Build it first so all downstream phases can test
+  against it. Templates and references have no dependencies and unblock Phase 2.
 
-Phase 2: Connection Management + Reference Updates
-  ├── commands/connect.md + workflows/connect.md   (deps: pde-tools.cjs mcp subcommand)
-  ├── skill-registry.md CON + SYN entries           (no deps — documentation)
-  └── references/mcp-integration.md: new entries    (no code deps — documentation)
-      (GitHub, Linear, Jira, Pencil — 4 entries)
+Phase 2: Context Infrastructure
+  ├── .planning/project-context.md generation (deps: manifest.cjs, templates)
+  │   (update new-project.md + new-milestone.md to generate it)
+  ├── .planning/agent-memory/ initialization  (deps: new-project.md update)
+  └── STATE.md schema: +current_loop field    (no code deps — schema change)
 
-  Rationale: Users must be able to connect servers before sync workflows are useful.
-  Reference entries must exist before sync workflows can cite the probe/degrade patterns.
+  Rationale: project-context.md must exist before any agent can load it.
+  Agent-memory directories must be initialized before agents try to read them.
+  These are blocking prerequisites for all agent modifications in Phase 3.
 
-Phase 3: GitHub Integration
-  ├── workflows/sync-github.md            (deps: connect.md, mcp-integration.md GitHub entry)
-  └── commands/sync.md --github           (deps: sync-github.md)
+Phase 3: Agent Enhancements
+  ├── agents/pde-architect.md                 (new agent, deps: workflow-methodology.md)
+  ├── agents/pde-executor.md +sidecar         (deps: agent-memory dirs, memories.md exists)
+  ├── agents/pde-planner.md +sidecar +AC      (deps: agent-memory dirs, PLAN.md template)
+  ├── agents/pde-debugger.md +sidecar         (deps: agent-memory dirs)
+  └── agents/pde-verifier.md +RECONCILIATION  (deps: RECONCILIATION.md template)
 
-  Rationale: GitHub is highest-value (most users have GitHub). Highest signal-to-noise
-  integration to validate the sync pattern on. Build the pattern here, replicate for Linear/Jira.
+  Rationale: Agents load memory at spawn time — memory dirs must pre-exist (Phase 2).
+  pde-architect is a new agent; build it alongside agent modifications.
+  All agents in this phase can be built in parallel (no inter-agent deps in this layer).
 
-Phase 4: Linear + Jira Integration
-  ├── workflows/sync-linear.md            (deps: connect.md, mcp-integration.md Linear entry)
-  ├── workflows/sync-jira.md              (deps: connect.md, mcp-integration.md Jira entry)
-  └── commands/sync.md --linear --jira    (deps: sync-linear.md, sync-jira.md)
+Phase 4: Workflow Modifications
+  ├── workflows/plan-phase.md +AC +sharding   (deps: updated pde-planner.md, PLAN.md template)
+  ├── workflows/execute-plan.md +reconciliation (deps: pde-executor.md, RECONCILIATION.md template)
+  └── references/skill-style-guide.md +AC     (deps: workflow-methodology.md)
 
-  Rationale: After GitHub validates the sync pattern, Linear and Jira follow the same template.
-  Build in parallel within the phase (independent workflows).
+  Rationale: Workflow changes depend on updated agent definitions and templates (Phase 3).
+  plan-phase.md and execute-plan.md are the highest-risk modifications (core execution flow)
+  — build and validate them after all foundation pieces are in place.
 
-Phase 5: Design Tool Integration (Figma + Pencil)
-  ├── mcp-integration.md Figma update      (expand existing Figma patterns for sync)
-  ├── mcp-integration.md Pencil entry      (new entry following GitHub pattern)
-  ├── workflows/sync-figma.md              (deps: updated Figma mcp-integration.md entry)
-  └── commands/sync.md --figma --pencil    (deps: sync-figma.md)
+Phase 5: Update Mechanism
+  └── workflows/update.md hash-based merge    (deps: manifest.cjs, files-manifest.csv exists)
 
-  Rationale: Figma has partial support in mcp-integration.md already. Pencil is new.
-  Design tool sync is more complex (visual artifacts vs text) — do after text-based syncs
-  validate the pattern. Build in parallel within the phase.
+  Rationale: update.md change is isolated but requires manifest.cjs to be tested and stable.
+  Separated from Phase 4 to reduce blast radius — update.md touches file preservation logic
+  and should be validated independently from the execution flow changes.
 
-Phase 6: PDE-as-MCP-Server
-  ├── bin/mcp-server/package.json          (no deps — npm init with @modelcontextprotocol/sdk)
-  ├── bin/mcp-server/state-server.cjs      (deps: existing bin/lib/{roadmap,state}.cjs parsers)
-  ├── .mcp.json                            (deps: state-server.cjs path confirmed)
-  └── .claude-plugin/plugin.json update    (deps: .mcp.json structure confirmed)
-
-  Rationale: State server is additive value — other tools can query PDE state — but not
-  blocking for any of the sync integrations. Build last, validate it doesn't affect existing
-  plugin behavior.
-
-Phase 7: End-to-End Validation
-  └── Pressure test: connect 2+ servers, run full sync, verify .planning/ state, verify
-      state server resources, verify --no-mcp degradation, verify write-back confirmation flow.
+Phase 6: End-to-End Validation
+  └── Full methodology validation:
+      - Create new project → project-context.md generated, manifest initialized, memory dirs created
+      - Plan phase → ACs present in output, story-file sharding for 5+ task plan
+      - Execute phase → reconciliation step runs, RECONCILIATION.md generated, verifier loads it
+      - Debug phase → sidecar memory loaded, finding appended on completion
+      - Update → hash manifest used, user-modified files preserved, unchanged files auto-updated
+      - Architect agent invocation → architecture review produced
 ```
 
-**Why this order:** Infrastructure before workflows (can't test sync without a connection layer). GitHub before Linear/Jira (validates the pattern on the most-used service). Text-based syncs before design syncs (simpler, validates the approach). State server last (additive, not blocking).
+**Why this order:**
+- Foundation before agents: agents load project-context.md and agent-memory at spawn — both must exist
+- Templates before workflows: execute-plan.md reconciliation step generates RECONCILIATION.md — template must exist
+- Agents before workflows: plan-phase.md prompts pde-planner with AC format — planner must be updated first
+- Update last: update.md uses hash manifest — manifest must be validated across multiple operations before update flow depends on it
+- All design pipeline skills unaffected at every phase — no regression risk to v0.5 capabilities
 
 ---
 
 ## Sources
 
-- [Claude Code MCP Documentation](https://code.claude.com/docs/en/mcp) — HIGH confidence; official; fetched 2026-03-18. Key facts: plugin MCP servers via `.mcp.json` + `plugin.json mcpServers`, three scope levels (local/project/user), OAuth 2.0 support, MCP Tool Search auto-enabled at 10% threshold.
-- [MCP Build Server Guide](https://modelcontextprotocol.io/docs/develop/build-server) — HIGH confidence; official MCP protocol docs. Resources vs Tools vs Prompts primitives.
-- [GitHub MCP Server](https://github.com/github/github-mcp-server) — HIGH confidence; official GitHub repo. Toolsets: repos, issues, pull_requests, actions, code_security.
-- [Figma MCP Server Guide](https://help.figma.com/hc/en-us/articles/32132100833559-Guide-to-the-Figma-MCP-server) — HIGH confidence; official Figma docs. Read: design context, variables, components. Write: send live UI to Figma.
-- [Linear MCP Server](https://www.builder.io/blog/linear-mcp-server) — MEDIUM confidence; verified against Linear official install docs. stdio transport, LINEAR_API_KEY env var.
-- [Atlassian MCP Server](https://github.com/atlassian/atlassian-mcp-server) — HIGH confidence; official Atlassian repo. Remote HTTP, OAuth 2.1, Jira + Confluence + Compass.
-- [Pencil.dev MCP](https://atalupadhyay.wordpress.com/2026/02/25/pencil-dev-claude-code-workflow-from-design-to-production-code-in-minutes/) — MEDIUM confidence; community doc, consistent with pencil.dev official feature description. Local stdio, auto-started, read canvas frames.
-- Existing PDE codebase (direct inspection): `references/mcp-integration.md`, `bin/pde-tools.cjs`, `bin/lib/design.cjs`, `bin/lib/config.cjs`, `.claude-plugin/plugin.json`, `commands/recommend.md`, `workflows/recommend.md` — HIGH confidence.
+**HIGH confidence (official documentation + direct codebase inspection):**
+- PDE codebase direct inspection: `agents/*.md`, `workflows/execute-plan.md`, `workflows/plan-phase.md`, `workflows/build.md`, `bin/pde-tools.cjs`, `bin/lib/*.cjs`, `.planning/config.json`, `.planning/PROJECT.md` — 2026-03-19
+- [BMAD Method GitHub](https://github.com/bmad-code-org/BMAD-METHOD) — official repo; architecture overview 2026
+- [BMAD v6 Agent Sidecar Architecture — DeepWiki](https://deepwiki.com/bmad-code-org/BMAD-METHOD/6.5-agent-customization-and-sidecars) — hash preservation algorithm, directory structure, `hasSidecar` flag, SHA256 + files-manifest.csv details
+- [BMAD v6 What's New — DeepWiki](https://deepwiki.com/bmad-code-org/BMAD-METHOD/1.4-what's-new-in-v6) — sidecar system, path segregation, direct workflow invocation
+- [PAUL Framework GitHub](https://github.com/ChristopherKahler/paul) — official repo; STATE.md structure, 26 slash commands, PLAN.md format, CARL rule injection
+- [BMAD-AT-CLAUDE core architecture](https://github.com/24601/BMAD-AT-CLAUDE/blob/main/docs/core-architecture.md) — template architecture, story sharding, compilation pipeline details
+- `.planning/research/EXTERNAL-FRAMEWORKS.md` — prior research (2026-03-17) on BMAD/PAUL integration candidates, Tier 1-3 classification
+
+**MEDIUM confidence (WebSearch + multiple sources agree):**
+- BMAD agent roles (Analyst, PM, Architect, SM, Dev, QA) — confirmed from official docs page + multiple articles
+- BMAD story file YAML frontmatter structure — confirmed from DeepWiki + v6 issue tracker discussion
+- PAUL CARL rule injection mechanism — confirmed from official PAUL GitHub README + Level Up Coding article (2026-03)
 
 ---
 
-*Architecture research for: PDE v0.5 — MCP server integrations*
-*Researched: 2026-03-18*
+*Architecture research for: PDE v0.6 — BMAD + PAUL methodology integration*
+*Researched: 2026-03-19*
