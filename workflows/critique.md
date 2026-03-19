@@ -106,12 +106,13 @@ IF both available:
 #### 2d. Discover wireframes to critique
 
 - If a screen argument is provided in $ARGUMENTS (comma-separated list of slugs): filter to those slugs only from `.planning/design/ux/wireframes/`
-- If no screen argument: use the Glob tool to find all `.html` files in `.planning/design/ux/wireframes/` excluding `index.html`
+- If no screen argument: use the Glob tool to find all `.html` files in `.planning/design/ux/wireframes/` excluding `index.html`. Also check if `.planning/design/ux/wireframes/pencil-canvas.png` exists (Pencil screenshot from a prior run) and append it to the file list if present.
 - If no wireframes found: HALT with error:
   ```
   Error: No wireframes found in .planning/design/ux/wireframes/. Run /pde:wireframe first.
   ```
 - Store list as WIREFRAME_FILES
+- Note: `pencil-canvas.png` (if captured in Step 3.5 during the current run) will be appended to WIREFRAME_FILES at that step, not here
 
 #### 2e. Read fidelity level from each wireframe
 
@@ -187,6 +188,38 @@ Accessibility: delegated to /pde:hig --light (Axe MCP handled by HIG skill)
 ```
 
 Display: `Step 3/7: MCP probes complete. Sequential Thinking: {yes|no}.`
+
+---
+
+### Step 3.5: Capture Pencil canvas screenshot (conditional — PEN-02)
+
+Check if Pencil is connected and capture a canvas screenshot for inclusion in the visual evaluation.
+
+```bash
+node --input-type=module <<'EOF'
+import { createRequire } from 'module';
+const req = createRequire(import.meta.url);
+const b = req(`${process.env.CLAUDE_PLUGIN_ROOT}/bin/lib/mcp-bridge.cjs`);
+const conn = b.loadConnections();
+const pen = conn.connections && conn.connections.pencil;
+const status = pen && pen.status || 'not_configured';
+process.stdout.write(JSON.stringify({ pencilConnected: status === 'connected' }));
+EOF
+```
+
+Parse the JSON output. If `pencilConnected` is `true`:
+
+Display: `Pencil is connected. Capturing canvas screenshot for visual evaluation...`
+
+Follow @workflows/critique-pencil-screenshot.md exactly. The screenshot workflow handles its own error recovery and degraded mode — if it fails, /pde:critique continues to Step 4 normally. The screenshot file (if written) will be discovered by Step 2d's wireframe glob on subsequent runs. For the current run, if a screenshot was captured and written to `.planning/design/ux/wireframes/pencil-canvas.png`, append it to WIREFRAME_FILES so it is included in Step 4 evaluation immediately.
+
+If `pencilConnected` is `false`:
+
+Display: `Pencil not connected — skipping canvas screenshot. Run /pde:connect pencil to enable.`
+
+Continue to Step 4/7.
+
+**Important:** This dispatch is non-blocking. If critique-pencil-screenshot.md encounters any error, /pde:critique must still proceed to Step 4 evaluation. The Pencil screenshot is an enhancement to the critique, not a hard dependency.
 
 ---
 
