@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v0.1
 milestone_name: milestone
 status: executing
-stopped_at: Completed 42-01-PLAN.md — Figma TOOL_MAP entries, connect.md Step 3.8, sync/wireframe/handoff command dispatch
-last_updated: "2026-03-19T05:21:24.089Z"
+stopped_at: Completed 42-04-PLAN.md — mockup-export-figma.md workflow with VAL-03 confirmation gate and --export-figma dispatch in sync.md
+last_updated: "2026-03-19T05:26:22.718Z"
 last_activity: "2026-03-18 — Completed 39-02: /pde:mcp-status and /pde:connect commands"
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 14
-  completed_plans: 11
+  completed_plans: 13
 ---
 
 # Project State
@@ -49,6 +49,8 @@ Last activity: 2026-03-18 — Completed 39-02: /pde:mcp-status and /pde:connect 
 | Phase 41-linear-jira-integration P04 | 125 | 2 tasks | 2 files |
 | Phase 41-linear-jira-integration P03 | 2 | 2 tasks | 2 files |
 | Phase 42-figma-integration P01 | 10 | 2 tasks | 7 files |
+| Phase 42-figma-integration P04 | 2 | 2 tasks | 3 files |
+| Phase 42-figma-integration P03 | 2 | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -74,6 +76,9 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 41-03]: Jira pagination uses nextPageToken cursor (NOT startAt) per Atlassian MCP server spec
 - [Phase 42-figma-integration]: figma:probe maps to mcp__figma__get_design_context — lightest read-only Figma MCP tool, consistent with Phase 40/41 probe-as-lightest-call pattern; probeArgs stays {} as get_design_context uses Claude prompt context not explicit args
 - [Phase 42-figma-integration]: Figma file URL capture (connect.md Step 3.8) is optional — skip path sets empty strings; sync-figma.md must handle missing fileUrl gracefully; fileKey extracted from /design/<key>/ or /file/<key>/ URL segment
+- [Phase 42-figma-integration]: Strict y/yes-only check (^y(es)?$ regex) applied to export confirmation gate — consistent with handoff-create-prs.md VAL-03 pattern
+- [Phase 42-figma-integration]: Tool availability probe (Step 2) placed before confirmation gate (Step 3) — prevents gate showing for unavailable generate_figma_design tool (claude-code#28718)
+- [Phase 42-figma-integration]: FIG-02/FIG-03 sub-workflows use bridge.call() adapter pattern — wireframe and handoff Figma hooks are non-blocking, degrade gracefully when Figma not connected or Code Connect map is empty
 
 #### Phase 39-01 Decisions (2026-03-18)
 
@@ -112,6 +117,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-19T05:21:24.086Z
-Stopped at: Completed 42-01-PLAN.md — Figma TOOL_MAP entries, connect.md Step 3.8, sync/wireframe/handoff command dispatch
+Last session: 2026-03-19T05:26:09.050Z
+Stopped at: Completed 42-04-PLAN.md — mockup-export-figma.md workflow with VAL-03 confirmation gate and --export-figma dispatch in sync.md
 Resume file: None
