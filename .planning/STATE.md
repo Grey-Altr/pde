@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v0.1
 milestone_name: milestone
 status: executing
-stopped_at: Completed 41-02-PLAN.md — command entry points for Linear and Jira (connect.md, sync.md, handoff.md)
-last_updated: "2026-03-19T04:21:34.115Z"
+stopped_at: Completed 41-03-PLAN.md — sync-linear.md (LIN-01/LIN-02) and sync-jira.md (JIRA-01/JIRA-02) workflow files
+last_updated: "2026-03-19T04:26:14.049Z"
 last_activity: "2026-03-18 — Completed 39-02: /pde:mcp-status and /pde:connect commands"
 progress:
   total_phases: 7
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 10
-  completed_plans: 8
+  completed_plans: 10
 ---
 
 # Project State
@@ -46,6 +46,8 @@ Last activity: 2026-03-18 — Completed 39-02: /pde:mcp-status and /pde:connect 
 | Phase 40.1-github-tech-debt P01 | 5 | 2 tasks | 4 files |
 | Phase 41-linear-jira-integration P01 | 7 | 2 tasks | 2 files |
 | Phase 41 P02 | 2 | 2 tasks | 3 files |
+| Phase 41-linear-jira-integration P04 | 125 | 2 tasks | 2 files |
+| Phase 41-linear-jira-integration P03 | 2 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -63,6 +65,12 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 41-linear-jira-integration]: task_tracker config key added after brave_search in VALID_CONFIG_KEYS — top-level integration toggle accepting linear|jira|none
 - [Phase 41-02]: connect.md gets service-specific steps (3.6, 3.7) rather than separate files — centralized dispatch consistent with Phase 40 GitHub pattern
 - [Phase 41-02]: sync.md reads task_tracker from config.json as default service when no flag — frictionless /pde:sync once tracker is configured
+- [Phase 41-04]: Linear workflow requires no additional user input beyond y/n — teamId+title sufficient for issue creation (no branch name needed unlike PR workflow)
+- [Phase 41-04]: Jira pre-flight type check (Step 2) is read-only before confirmation gate; Story>Task>first-available priority order for maximum project compatibility
+- [Phase 41-04]: ADF description format for Jira handoff tickets — plain markdown rejected by Jira Cloud; type:doc version:1 wrapper required
+- [Phase 41-03]: sync-linear.md LIN-02 cycle annotations use HTML comments immediately after ROADMAP.md phase heading — machine-parseable without disrupting markdown rendering
+- [Phase 41-03]: Jira epics table is replace-not-append on each sync; issue lists are append-only with deduplication — epics change status frequently
+- [Phase 41-03]: Jira pagination uses nextPageToken cursor (NOT startAt) per Atlassian MCP server spec
 
 #### Phase 39-01 Decisions (2026-03-18)
 
@@ -101,6 +109,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-19T04:21:34.113Z
-Stopped at: Completed 41-02-PLAN.md — command entry points for Linear and Jira (connect.md, sync.md, handoff.md)
+Last session: 2026-03-19T04:26:14.046Z
+Stopped at: Completed 41-03-PLAN.md — sync-linear.md (LIN-01/LIN-02) and sync-jira.md (JIRA-01/JIRA-02) workflow files
 Resume file: None
