@@ -108,7 +108,7 @@ Full details: .planning/milestones/v0.5-ROADMAP.md
 - [x] **Phase 48: AC-First Planning** - Acceptance criteria section in PLAN.md; task-to-AC links; task boundary enforcement (completed 2026-03-19)
 - [x] **Phase 49: Reconciliation & HALT Checkpoints** - Post-execution reconciliation against git; RECONCILIATION.md; high-risk task pause gates (completed 2026-03-19)
 - [x] **Phase 50: Readiness Gate** - /pde:check-readiness command with PASS/CONCERNS/FAIL; blocks execute-phase on FAIL (completed 2026-03-19)
-- [ ] **Phase 51: Workflow Tracking** - Per-task status tracking, task-level /pde:progress, session HANDOFF.md
+- [x] **Phase 51: Workflow Tracking** - Per-task status tracking, task-level /pde:progress, session HANDOFF.md (completed 2026-03-19)
 - [ ] **Phase 52: Agent Enhancements** - Assumptions capture, analyst persona, analyst-to-brief pipeline, per-agent persistent memory
 
 ## Phase Details
@@ -194,7 +194,7 @@ Plans:
   2. Running /pde:progress inside an active phase that has a tasks/ directory shows individual task-level status rather than only phase-level completion percentages
   3. Invoking /pde:pause-work or ending a session generates .planning/HANDOFF.md capturing: current phase and task position, last action taken, next step to resume, active blockers, and key decisions made this session
   4. A developer returning from a break can read HANDOFF.md and immediately know where to resume without re-reading PLAN.md or git log
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 Plans:
 - [ ] 51-01-PLAN.md — TDD: tracking.cjs library (workflow-status + handoff functions), pde-tools CLI dispatch, tests
 - [ ] 51-02-PLAN.md — Workflow integration: execute-phase tracking calls, progress task display, pause-work HANDOFF.md
@@ -227,5 +227,5 @@ Plans:
 | 48. AC-First Planning | 2/2 | Complete    | 2026-03-19 | - |
 | 49. Reconciliation & HALT Checkpoints | 2/2 | Complete    | 2026-03-19 | - |
 | 50. Readiness Gate | 2/2 | Complete    | 2026-03-19 | - |
-| 51. Workflow Tracking | 1/2 | In Progress|  | - |
+| 51. Workflow Tracking | 2/2 | Complete   | 2026-03-19 | - |
 | 52. Agent Enhancements | v0.6 | 0/TBD | Not started | - |
