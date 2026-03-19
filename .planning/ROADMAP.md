@@ -152,7 +152,10 @@ Plans:
   2. Each task entry in PLAN.md and in its corresponding task-NNN.md explicitly lists which AC-N identifiers it satisfies
   3. The verifier refuses to mark a task DONE unless the AC identifiers it references have been verified as satisfied
   4. Task files with a boundaries field cause the executor to treat listed paths/sections as DO NOT CHANGE, logging a warning if those paths are touched during execution
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 48-01-PLAN.md — TDD: sharding.cjs AC extraction, buildTaskFileContent extension, shardPlan ac_refs/boundaries
+- [ ] 48-02-PLAN.md — Workflow prompts: plan-phase.md AC rules + execute-plan.md AC-N verification and boundaries enforcement
 
 ### Phase 49: Reconciliation & HALT Checkpoints
 **Goal**: After every plan execution, a mandatory reconciliation step compares planned tasks against actual git commits and produces a RECONCILIATION.md before the verifier runs; high-risk tasks pause for user confirmation before and after execution
@@ -212,7 +215,7 @@ Plans:
 | 39-44 | v0.5 | 18/18 | Complete | 2026-03-19 |
 | 46. Methodology Foundation | 3/3 | Complete    | 2026-03-19 | - |
 | 47. Story-File Sharding | 2/2 | Complete    | 2026-03-19 | - |
-| 48. AC-First Planning | v0.6 | 0/TBD | Not started | - |
+| 48. AC-First Planning | v0.6 | 0/2 | Not started | - |
 | 49. Reconciliation & HALT Checkpoints | v0.6 | 0/TBD | Not started | - |
 | 50. Readiness Gate | v0.6 | 0/TBD | Not started | - |
 | 51. Workflow Tracking | v0.6 | 0/TBD | Not started | - |
