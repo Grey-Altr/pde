@@ -167,7 +167,12 @@ Plans:
   2. User can invoke `/pde:wireframe` with Figma design context available, and see that context reflected in component reference or visual consistency decisions in the wireframe output
   3. User can run `/pde:handoff` with Figma Code Connect mappings incorporated, producing component specs that reference Figma component IDs
   4. User can export a PDE mockup to Figma and receive a confirmation prompt before any Figma write occurs, resulting in an editable frame in the target Figma file
-**Plans**: TBD
+**Plans:** 4 plans
+Plans:
+- [ ] 42-01-PLAN.md — Figma TOOL_MAP + probeTool + connect Step 3.8 + command dispatch updates
+- [ ] 42-02-PLAN.md — sync-figma.md workflow with DTCG token import and non-destructive merge
+- [ ] 42-03-PLAN.md — wireframe-figma-context.md and handoff-figma-codeConnect.md sub-workflows
+- [ ] 42-04-PLAN.md — mockup-export-figma.md workflow with confirmation gate
 
 ### Phase 43: Pencil Integration
 **Goal**: Users can synchronize PDE design tokens to Pencil canvas and use Pencil screenshots as visual audit input
@@ -201,6 +206,6 @@ Plans:
 | 40 | 3/3 | Complete    | 2026-03-18 | — |
 | 40.1 | 1/1 | Complete    | 2026-03-19 | — |
 | 41 | 4/4 | Complete    | 2026-03-19 | — |
-| 42 | v0.5 | 0/? | Not started | — |
+| 42 | v0.5 | 0/4 | Not started | — |
 | 43 | v0.5 | 0/? | Not started | — |
 | 44 | v0.5 | 0/? | Not started | — |
