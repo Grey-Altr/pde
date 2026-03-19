@@ -143,6 +143,81 @@ And ask again.
 
 Then proceed to Step 4, passing the repo value as an extraField.
 
+## 3.6. Capture Linear Team (Linear only, --confirm present)
+
+If `--confirm` flag IS present AND `SERVICE_KEY` equals `linear`:
+
+Before recording the connection, the workflow needs the user's Linear team ID. Linear requires teamId for issue listing and creation.
+
+Call the MCP tool `mcp__linear__list_teams` (looked up via bridge.call('linear:list-teams')) to fetch available teams. This call happens in Claude Code's execution context as a normal tool use.
+
+If the MCP call succeeds and returns one or more teams:
+- Display the team list:
+  ```
+  Available Linear teams:
+
+    1. <team.name> (ID: <team.id>)
+    2. <team.name> (ID: <team.id>)
+    ...
+
+  Select a team (enter number):
+  ```
+- Wait for user selection. Store the selected team's `id` as LINEAR_TEAM_ID and `name` as LINEAR_TEAM_NAME.
+
+If the MCP call fails or returns no teams:
+- Ask manually:
+  ```
+  Could not fetch teams automatically.
+  What is your Linear team ID? (Found at linear.app/settings -> API -> Team ID, or visible in issue URLs as the prefix before the number)
+  ```
+- Wait for user input. Store as LINEAR_TEAM_ID. Set LINEAR_TEAM_NAME to empty string.
+
+Then proceed to Step 4, passing teamId and teamName as extraFields.
+
+## 3.7. Capture Jira Project (Atlassian only, --confirm present)
+
+If `--confirm` flag IS present AND `SERVICE_KEY` equals `atlassian`:
+
+Before recording the connection, the workflow needs the user's Jira project key and site URL.
+
+Display:
+```
+PDE connects to Atlassian Cloud (*.atlassian.net). Jira Data Center is not supported in v0.5.
+
+What is your Jira site URL? (e.g., https://myorg.atlassian.net)
+```
+
+Wait for user input. Store as JIRA_SITE_URL. Validate it contains `atlassian.net` — if not, display:
+```
+Warning: URL does not appear to be an Atlassian Cloud site. Jira Data Center is not supported in v0.5. Continue anyway? (y/n)
+```
+If user says no, stop.
+
+Then call the MCP tool `mcp__atlassian__getVisibleJiraProjectsList` (looked up via bridge.call('jira:list-projects')) to fetch accessible projects. This call happens in Claude Code's execution context.
+
+If the MCP call succeeds and returns one or more projects:
+- Display the project list:
+  ```
+  Available Jira projects:
+
+    1. <project.name> (<project.key>)
+    2. <project.name> (<project.key>)
+    ...
+
+  Select a project (enter number):
+  ```
+- Wait for user selection. Store the selected project's `key` as JIRA_PROJECT_KEY and `name` as JIRA_PROJECT_NAME.
+
+If the MCP call fails or returns no projects:
+- Ask manually:
+  ```
+  Could not fetch projects automatically.
+  What is your Jira project key? (e.g., PROJ, ENG, TEAM)
+  ```
+- Wait for user input. Store as JIRA_PROJECT_KEY. Set JIRA_PROJECT_NAME to empty string.
+
+Then proceed to Step 4, passing JIRA_PROJECT_KEY as projectKey, JIRA_PROJECT_NAME as projectName, and JIRA_SITE_URL as siteUrl as extraFields.
+
 ## 4. Confirm Connection (--confirm present)
 
 Run updateConnectionStatus() to record the connection as active.
@@ -162,7 +237,40 @@ process.stdout.write(JSON.stringify(result) + '\n');
 EOF
 ```
 
-**For all other services** (`SERVICE_KEY` is not `github`), omit the repo field:
+**For Linear connections** (`SERVICE_KEY` equals `linear`), include the `teamId` and `teamName` fields captured in Step 3.6:
+
+```bash
+node --input-type=module <<'EOF'
+import { createRequire } from 'module';
+const req = createRequire(import.meta.url);
+const b = req(`${process.env.CLAUDE_PLUGIN_ROOT}/bin/lib/mcp-bridge.cjs`);
+const result = b.updateConnectionStatus(process.env.SERVICE_KEY, 'connected', {
+  connected_at: new Date().toISOString(),
+  teamId: process.env.LINEAR_TEAM_ID,
+  teamName: process.env.LINEAR_TEAM_NAME || ''
+});
+process.stdout.write(JSON.stringify(result) + '\n');
+EOF
+```
+
+**For Atlassian connections** (`SERVICE_KEY` equals `atlassian`), include the `projectKey`, `projectName`, and `siteUrl` fields captured in Step 3.7:
+
+```bash
+node --input-type=module <<'EOF'
+import { createRequire } from 'module';
+const req = createRequire(import.meta.url);
+const b = req(`${process.env.CLAUDE_PLUGIN_ROOT}/bin/lib/mcp-bridge.cjs`);
+const result = b.updateConnectionStatus(process.env.SERVICE_KEY, 'connected', {
+  connected_at: new Date().toISOString(),
+  projectKey: process.env.JIRA_PROJECT_KEY,
+  projectName: process.env.JIRA_PROJECT_NAME || '',
+  siteUrl: process.env.JIRA_SITE_URL
+});
+process.stdout.write(JSON.stringify(result) + '\n');
+EOF
+```
+
+**For all other services** (`SERVICE_KEY` is not `github`, `linear`, or `atlassian`), omit service-specific fields:
 
 ```bash
 node --input-type=module <<'EOF'
