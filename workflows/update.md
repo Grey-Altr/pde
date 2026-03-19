@@ -243,6 +243,61 @@ Use AskUserQuestion:
 **If user cancels:** Exit.
 </step>
 
+<step name="hash_based_safe_update">
+
+## Hash-Based Safe File Update
+
+Before overwriting installed files with the new version, consult the manifest to preserve user modifications.
+
+1. Check if `.planning/config/files-manifest.csv` exists:
+```bash
+MANIFEST_PATH=".planning/config/files-manifest.csv"
+if [ ! -f "$MANIFEST_PATH" ]; then
+  echo "No manifest found — will generate after update (first run with manifest support)"
+  MANIFEST_EXISTS=false
+else
+  MANIFEST_EXISTS=true
+fi
+```
+
+2. If manifest exists, for each file being updated:
+```bash
+# For each file in the update set:
+# Use pde-tools.cjs to classify each file
+RESULT=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" manifest check)
+```
+
+Parse the JSON result. For each file in the `files` array:
+- If `modified: false` (hash matches manifest) → **auto-update**: overwrite silently with the new version, then update the manifest entry with the new hash
+- If `modified: true` (hash differs from manifest) → **preserve**: skip overwriting, add to conflict list
+
+3. After all files processed, display conflict summary if any files were preserved:
+```
+## User-Modified Files Preserved
+
+The following files were modified by you and NOT overwritten during this update:
+
+| File | Action |
+|------|--------|
+| workflows/execute-phase.md | Preserved (user-modified) |
+| references/quality-standards.md | Preserved (user-modified) |
+
+To manually merge upstream changes into your modified files:
+  1. Check the changelog for what changed
+  2. Compare your version with the new stock version
+  3. Apply relevant changes manually
+```
+
+4. After the update completes (whether manifest existed or not), regenerate the manifest:
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" manifest init
+```
+
+This ensures:
+- First update with manifest support: all files updated normally (no manifest to check), manifest created for next time
+- Subsequent updates: hash comparison protects user modifications
+</step>
+
 <step name="run_update">
 Run the update using the install type detected in step 1:
 
