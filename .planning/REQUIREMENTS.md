@@ -23,8 +23,8 @@ Requirements for v0.6 Advanced Workflow Methodology. Each maps to roadmap phases
 
 ### Verification
 
-- [ ] **VRFY-01**: Mandatory reconciliation step runs after executor completion and before verifier; compares planned tasks vs actual git commits; produces RECONCILIATION.md
-- [ ] **VRFY-02**: RECONCILIATION.md reports: tasks completed vs planned, AC satisfaction status, deviations found, and unplanned changes detected
+- [x] **VRFY-01**: Mandatory reconciliation step runs after executor completion and before verifier; compares planned tasks vs actual git commits; produces RECONCILIATION.md
+- [x] **VRFY-02**: RECONCILIATION.md reports: tasks completed vs planned, AC satisfaction status, deviations found, and unplanned changes detected
 - [ ] **VRFY-03**: /pde:check-readiness command (or execute-phase pre-flight) runs PO-style checklist validating PROJECT.md + REQUIREMENTS.md + PLAN.md consistency; produces PASS/CONCERNS/FAIL
 - [ ] **VRFY-04**: Execute-phase blocks on readiness gate FAIL result; CONCERNS proceeds with warning; PASS proceeds normally
 - [ ] **VRFY-05**: Planner tags tasks with risk:high based on file patterns (migrations, auth, CI/CD, destructive refactors); executor pauses for user confirmation before and after high-risk tasks
@@ -87,8 +87,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PLAN-03 | Phase 48 | Complete |
 | PLAN-04 | Phase 48 | Complete |
 | PLAN-05 | Phase 48 | Complete |
-| VRFY-01 | Phase 49 | Pending |
-| VRFY-02 | Phase 49 | Pending |
+| VRFY-01 | Phase 49 | Complete |
+| VRFY-02 | Phase 49 | Complete |
 | VRFY-03 | Phase 50 | Pending |
 | VRFY-04 | Phase 50 | Pending |
 | VRFY-05 | Phase 49 | Pending |
