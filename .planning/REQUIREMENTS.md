@@ -15,7 +15,7 @@ Requirements for v0.6 Advanced Workflow Methodology. Each maps to roadmap phases
 
 ### Planning
 
-- [ ] **PLAN-01**: Planner emits tasks/ directory alongside PLAN.md with one self-contained task-NNN.md file per task, each including AC references, file paths, and relevant schema snippets
+- [x] **PLAN-01**: Planner emits tasks/ directory alongside PLAN.md with one self-contained task-NNN.md file per task, each including AC references, file paths, and relevant schema snippets
 - [ ] **PLAN-02**: Executor loads only the current task file (not full PLAN.md), reducing context consumption by ~90% for phases with 5+ tasks
 - [ ] **PLAN-03**: Planner output schema includes acceptance criteria section before task list; each AC has a unique identifier (AC-N)
 - [ ] **PLAN-04**: Each task references specific AC-N identifiers it satisfies; tasks cannot be marked done without AC verification
@@ -82,7 +82,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FOUND-01 | Phase 46 | Complete |
 | FOUND-02 | Phase 46 | Complete |
 | FOUND-03 | Phase 46 | Complete |
-| PLAN-01 | Phase 47 | Pending |
+| PLAN-01 | Phase 47 | Complete |
 | PLAN-02 | Phase 47 | Pending |
 | PLAN-03 | Phase 48 | Pending |
 | PLAN-04 | Phase 48 | Pending |
