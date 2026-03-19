@@ -51,9 +51,9 @@ const APPROVED_SERVERS = {
     displayName: 'Pencil',
     transport: 'stdio',
     url: null,
-    installCmd: null, // Phase 43 fills
-    probeTimeoutMs: 10000,
-    probeTool: null, // Phase 43 fills
+    installCmd: null, // Auto-configured by VS Code extension — no manual claude mcp add needed
+    probeTimeoutMs: 8000, // Short timeout — stdio hang prevention when VS Code not running
+    probeTool: 'mcp__pencil__get_variables', // Lightest read-only tool (MEDIUM confidence on raw name)
     probeArgs: {},
   },
   atlassian: {
@@ -78,7 +78,8 @@ const APPROVED_SERVERS = {
  *   Linear — Phase 41 (verified from official mcp.linear.app server)
  *   Atlassian — Phase 41 (verified from Atlassian Rovo MCP supported-tools docs)
  *   Figma — Phase 42 (verified from developers.figma.com/docs/figma-mcp-server/tools-and-prompts/)
- *   Phases 43-44 will add pencil entries.
+ *   Pencil — Phase 43 (tool names from docs.pencil.dev/getting-started/ai-integration; raw mcp__pencil__* names MEDIUM confidence)
+ *   Phase 44 will complete validation.
  */
 const TOOL_MAP = {
   // GitHub — Phase 40 (verified against github/github-mcp-server source 2026-03-18)
@@ -117,6 +118,15 @@ const TOOL_MAP = {
   'figma:get-screenshot':         'mcp__figma__get_screenshot',
   'figma:generate-design':        'mcp__figma__generate_figma_design',
   'figma:get-metadata':           'mcp__figma__get_metadata',
+
+  // Pencil — Phase 43 (tool names from docs.pencil.dev/getting-started/ai-integration; raw mcp__pencil__* names MEDIUM confidence)
+  'pencil:probe':             'mcp__pencil__get_variables',
+  'pencil:get-variables':     'mcp__pencil__get_variables',
+  'pencil:set-variables':     'mcp__pencil__set_variables',
+  'pencil:get-screenshot':    'mcp__pencil__get_screenshot',
+  'pencil:batch-get':         'mcp__pencil__batch_get',
+  'pencil:batch-design':      'mcp__pencil__batch_design',
+  'pencil:get-editor-state':  'mcp__pencil__get_editor_state',
 };
 
 // ─── Per-server auth instructions ─────────────────────────────────────────────
@@ -139,8 +149,12 @@ const AUTH_INSTRUCTIONS = {
     '3. Run /pde:connect figma --confirm',
   ],
   pencil: [
-    '1. Pencil MCP setup instructions will be available in Phase 43',
-    '2. Pencil requires VS Code or Cursor with the Pencil extension installed',
+    '1. Install the Pencil extension: code --install-extension highagency.pencildev',
+    '   (or search "Pencil" in VS Code Extensions marketplace)',
+    '2. Open VS Code and open or create a .pen file to start the Pencil MCP server',
+    '3. The Pencil extension auto-configures Claude Code — no claude mcp add command needed',
+    '4. Verify Pencil appears in Claude Code MCP list: run /mcp in Claude Code',
+    '5. Return here and run /pde:connect pencil --confirm',
   ],
   atlassian: [
     '1. Run: claude mcp add --transport sse atlassian https://mcp.atlassian.com/v1/sse',
