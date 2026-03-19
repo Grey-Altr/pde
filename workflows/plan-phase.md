@@ -439,6 +439,28 @@ Every task MUST include these fields — they are NOT optional:
      `# Phase 47 sharding logic in sharding.cjs`)
    - Executor will warn and require confirmation before modifying listed paths
 
+7. **`risk` attribute on high-risk tasks** — Tag tasks `risk="high"` when any of these
+   apply to the task's `<files>` list or action description:
+
+   Auto-tag criteria:
+   - Files matching: `*/migrations/*`, `*migration*.sql`, `*migration*.ts`, `*migration*.js`
+   - Files matching: `*/auth/*`, `*authentication*`, `*oauth*`, `*jwt*`, `*session*`, `*password*`
+   - Files matching: `.github/workflows/*`, `.circleci/*`, `Jenkinsfile`, `*ci*.yml`
+   - Files matching: `*seed*.sql`, `*seed*.ts`, `*seed*.js`, `*data-loss*`, `*drop-table*`
+   - Actions containing: "delete all", "truncate", "drop table", "destroy", "irrecoverable"
+   - Files matching: `*/scripts/deploy*`, `*deploy.sh*`, `*release.sh*`
+   - Files modifying external integrations with live production data
+
+   Format: `<task type="auto" risk="high">`
+
+   When tagging `risk="high"`, add a `<risk_reason>` child element explaining why:
+   `<risk_reason>Database migration — potentially irreversible schema change</risk_reason>`
+
+   Tasks that are NOT `risk="high"` even if they touch adjacent files:
+   - Test files only (`*.test.ts`, `*.spec.ts`, `*.test.mjs`)
+   - Documentation only (`*.md`)
+   - Configuration comment updates (no logic changes)
+
 **Why this matters:** Executor agents work from the plan text. Vague instructions like "update the config to match production" produce shallow one-line changes. Concrete instructions like "add DATABASE_URL=postgresql://... , set POOL_SIZE=20, add REDIS_URL=redis://..." produce complete work. The cost of verbose plans is far less than the cost of re-doing shallow execution.
 </deep_work_rules>
 

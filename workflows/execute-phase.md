@@ -140,6 +140,27 @@ Execute each wave in sequence. Within a wave: parallel if `PARALLELIZATION=true`
 
    For each task file in TASK_FILES, spawn sequentially (task 1 before task 2):
 
+   **Risk:high HALT for sharded plans (before spawn):**
+   Before spawning each task executor, check the task file header for risk:
+   ```bash
+   TASK_RISK=$(grep "^\*\*Risk level:\*\*" "{task_file_path}" 2>/dev/null || echo "")
+   ```
+
+   If TASK_RISK is non-empty (contains "Risk level: HIGH"):
+   - Extract the risk reason from the line: `RISK_REASON=$(echo "$TASK_RISK" | sed 's/.*HIGH — //')`
+   - Present pre-execution HALT to user:
+     ```
+     HALT: High-Risk Task (Sharded Plan)
+     Task file: {task_file_path}
+     Task: {task name from filename or first heading}
+     Why high-risk: {RISK_REASON}
+
+     Type 'proceed' to execute this task or 'skip' to skip it.
+     ```
+   - Wait for user response via AskUserQuestion.
+   - If 'skip': do not spawn task executor, record as SKIPPED, continue to next task file.
+   - If 'proceed': spawn task executor as normal.
+
    ```
    Task(
      subagent_type="pde-executor",
@@ -176,6 +197,21 @@ Execute each wave in sequence. Within a wave: parallel if `PARALLELIZATION=true`
      "
    )
    ```
+
+   **Post-execution HALT for sharded risk:high tasks:**
+   After the task executor returns (and IF the task file was risk:high, i.e. TASK_RISK was non-empty):
+   - Check the executor return for commit hash
+   - Present post-execution HALT via AskUserQuestion:
+     ```
+     HALT: High-Risk Task Completed (Sharded Plan)
+     Task: {task name}
+     Changes committed: {commit hash from executor return}
+     Review: git diff {hash}^ {hash}
+
+     Type 'approved' to continue to the next task, or describe any issues found.
+     ```
+   - Wait for user response before proceeding to next task file spawn.
+   - If user describes issues: note them in the SUMMARY.md deviations section; do not re-spawn the task executor unless the issue is blocking.
 
    Execute task spawns sequentially within a plan (task 1 before task 2), but plans within a wave still run parallel if `PARALLELIZATION=true`.
 

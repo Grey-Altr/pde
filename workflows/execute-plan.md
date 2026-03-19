@@ -142,6 +142,37 @@ Deviations are normal — handle via rules below.
    - `type="checkpoint:*"`: STOP → checkpoint_protocol → wait for user → continue only after confirmation.
    - **MANDATORY acceptance_criteria check:** After completing each task, if it has `<acceptance_criteria>`, verify EVERY criterion before moving to the next task. Use grep, file reads, or CLI commands to confirm each criterion. If any criterion fails, fix the implementation before proceeding. Do not skip criteria or mark them as "will verify later".
    - **MANDATORY AC-N verification:** After completing each task, if it has `<ac_refs>` (or an "**ACs this task satisfies:**" line in a task file), retrieve the corresponding AC-N entries from the plan's `<acceptance_criteria>` block (in the task file under "## Plan Acceptance Criteria (Reference)" or in PLAN.md directly if not sharded). For each referenced AC-N, verify that the "then" clause is true — the behavioral outcome must be observable. If any referenced AC is not satisfied, the task is NOT done — fix the implementation first. Do not move to the next task with an unsatisfied AC.
+   - **MANDATORY HALT check (risk:high):** Before executing a task, check if it has `risk="high"` in the `<task>` opening tag (for non-sharded plans) or `**Risk level:** HIGH` in the task file header (for sharded task files). If risk:high is detected:
+
+     **Pre-execution HALT:**
+     STOP. Display to the user:
+     ```
+     HALT: High-Risk Task
+     Task: {task name}
+     Why high-risk: {risk_reason if present, or 'tagged risk:high in plan'}
+     Files to be modified: {task files list}
+
+     Type 'proceed' to continue or 'skip' to skip this task.
+     ```
+     Wait for user response via AskUserQuestion. Do not proceed until user responds.
+     If user responds 'skip': mark task as SKIPPED in tracking, do NOT execute, continue to next task.
+     If user responds 'proceed': execute the task normally.
+
+     **Post-execution HALT (after task commit):**
+     After a risk:high task has been executed, acceptance criteria verified, AND committed (commit hash available), STOP again. Display:
+     ```
+     HALT: High-Risk Task Completed
+     Task: {task name}
+     Changes committed: {commit hash}
+     Review: git diff {hash}^ {hash}
+
+     Type 'approved' to continue to the next task, or describe any issues found.
+     ```
+     Wait for user response. If user describes issues: treat as Rule 1 (Bug) deviation — fix before final acknowledgment. Do not move to next task without approval.
+
+     Note: Post-execution HALT fires AFTER the commit (not before) so the user sees the actual commit hash and can review changes. The sequence is: execute → acceptance_criteria → AC-N verification → commit → HALT (post-task) → next task.
+
+     **Checkpoint return for orchestrator (sharded Mode A):** If executing as a sharded task subagent (task file loaded, no full PLAN.md), the executor cannot directly invoke AskUserQuestion with the end user. In this case, return a structured checkpoint to the orchestrator following the existing checkpoint_return_for_orchestrator pattern. Include `halt_type: "pre-execution" | "post-execution"`, `risk_reason`, `task_name`, `task_files`, and `commit_hash` (post-execution only). The orchestrator handles presenting the HALT.
 3. Run `<verification>` checks
 4. Confirm `<success_criteria>` met
 5. Document deviations in Summary
