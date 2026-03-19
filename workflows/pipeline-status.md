@@ -1,5 +1,5 @@
 <purpose>
-Display recent GitHub Actions CI workflow run statuses for the connected GitHub repo. Shows the last 5 runs with event, branch, workflow name, status, conclusion, and relative time. Implements GH-04.
+Display recent GitHub Actions CI workflow run statuses for the connected GitHub repo. Shows the last 5 runs with event, branch, workflow name, status, conclusion, and relative time. Implements GH-03.
 </purpose>
 
 <process>

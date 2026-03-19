@@ -66,7 +66,7 @@ EOF
 ```
 
 Interpret probe results:
-- If probe returns `available: false` with `status: 'not_configured'` (probeTool is null): mark the server as `degraded` — it is recorded as connected but has no probe capability yet (Phase 39 state; phases 40-44 populate probeTool).
+- If probe returns `available: false` with `status: 'not_configured'` (probeTool is null): mark the server as `degraded` — it is recorded as connected but has no probe capability yet (no probe tool configured for this server).
 - If probe returns `available: true`: the server is fully operational (will occur after phases 40-44).
 - If probe returns `available: false` with another status: note the reason for display.
 
@@ -96,7 +96,7 @@ For each server key in order (github, linear, figma, pencil, atlassian), display
   GitHub           connected      Last probe: <relative time from last_updated if available>
 ```
 
-**Status: `connected` but probe returned `not_configured` (degraded — Phase 39 state)**
+**Status: `connected` but probe returned `not_configured` (degraded — no probe tool configured)**
 ```
   GitHub           degraded       Server connected but probe unavailable -- features may be limited
 ```

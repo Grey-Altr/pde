@@ -1,5 +1,5 @@
 <purpose>
-Fetch a GitHub issue by URL or number, extract its title, body, and labels, and use them to pre-populate the /pde:brief pipeline. The GitHub issue data provides context for the brief generation — it does not replace the full pipeline. Pre-filled sections are marked with [from GitHub #<number>] suffix. Implements GH-03.
+Fetch a GitHub issue by URL or number, extract its title, body, and labels, and use them to pre-populate the /pde:brief pipeline. The GitHub issue data provides context for the brief generation — it does not replace the full pipeline. Pre-filled sections are marked with [from GitHub #<number>] suffix. Implements GH-04.
 </purpose>
 
 <process>
