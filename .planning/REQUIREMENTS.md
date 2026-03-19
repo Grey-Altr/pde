@@ -45,9 +45,9 @@ Requirements for v0.6 Advanced Workflow Methodology. Each maps to roadmap phases
 
 ### Infrastructure
 
-- [ ] **INFR-01**: .planning/config/files-manifest.csv tracks path, SHA256 hash, source (stock/user-modified), and last_updated for all PDE framework files
-- [ ] **INFR-02**: Manifest generated on install and updated on each PDE update
-- [ ] **INFR-03**: pde-sync-engine consults manifest before overwriting: stock files get silent updates; user-modified files get preserved with conflict notice
+- [x] **INFR-01**: .planning/config/files-manifest.csv tracks path, SHA256 hash, source (stock/user-modified), and last_updated for all PDE framework files
+- [x] **INFR-02**: Manifest generated on install and updated on each PDE update
+- [x] **INFR-03**: pde-sync-engine consults manifest before overwriting: stock files get silent updates; user-modified files get preserved with conflict notice
 
 ## Future Requirements
 
@@ -100,9 +100,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AGNT-03 | Phase 52 | Pending |
 | AGNT-04 | Phase 52 | Pending |
 | AGNT-05 | Phase 52 | Pending |
-| INFR-01 | Phase 46 | Pending |
-| INFR-02 | Phase 46 | Pending |
-| INFR-03 | Phase 46 | Pending |
+| INFR-01 | Phase 46 | Complete |
+| INFR-02 | Phase 46 | Complete |
+| INFR-03 | Phase 46 | Complete |
 
 **Coverage:**
 - v0.6 requirements: 24 total
