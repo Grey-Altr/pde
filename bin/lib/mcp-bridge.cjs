@@ -31,12 +31,12 @@ const APPROVED_SERVERS = {
   },
   linear: {
     displayName: 'Linear',
-    transport: 'stdio',
-    url: null,
-    installCmd: 'claude mcp add --transport stdio --env LINEAR_API_KEY=<your-key> linear -- npx -y @linear/mcp-server',
+    transport: 'http',
+    url: 'https://mcp.linear.app/mcp',
+    installCmd: 'claude mcp add --transport http linear https://mcp.linear.app/mcp',
     probeTimeoutMs: 10000,
-    probeTool: null, // Phase 41 fills
-    probeArgs: {},
+    probeTool: 'mcp__linear__list_issues', // Phase 41
+    probeArgs: { limit: 1 },
   },
   figma: {
     displayName: 'Figma',
@@ -58,11 +58,11 @@ const APPROVED_SERVERS = {
   },
   atlassian: {
     displayName: 'Atlassian (Jira)',
-    transport: 'stdio',
-    url: null,
-    installCmd: 'claude mcp add --transport stdio --env ATLASSIAN_EMAIL=<email> --env ATLASSIAN_TOKEN=<token> jira -- npx -y @atlassian/jira-mcp',
+    transport: 'sse',
+    url: 'https://mcp.atlassian.com/v1/sse',
+    installCmd: 'claude mcp add --transport sse atlassian https://mcp.atlassian.com/v1/sse',
     probeTimeoutMs: 10000,
-    probeTool: null, // Phase 41 fills
+    probeTool: 'mcp__atlassian__getVisibleJiraProjectsList', // Phase 41
     probeArgs: {},
   },
 };
@@ -75,7 +75,9 @@ const APPROVED_SERVERS = {
  *
  * Current entries:
  *   GitHub — Phase 40 (verified against github/github-mcp-server source 2026-03-18)
- *   Phases 41-44 will add linear, figma, pencil, atlassian entries.
+ *   Linear — Phase 41 (verified from official mcp.linear.app server)
+ *   Atlassian — Phase 41 (verified from Atlassian Rovo MCP supported-tools docs)
+ *   Phases 42-44 will add figma, pencil entries.
  */
 const TOOL_MAP = {
   // GitHub — Phase 40 (verified against github/github-mcp-server source 2026-03-18)
@@ -87,6 +89,24 @@ const TOOL_MAP = {
   'github:list-workflow-runs':  'mcp__github__actions_list',
   'github:get-workflow-run':    'mcp__github__actions_get',
   'github:search-issues':       'mcp__github__search_issues',
+
+  // Linear — Phase 41 (verified from official mcp.linear.app server)
+  'linear:probe':           'mcp__linear__list_issues',
+  'linear:list-issues':     'mcp__linear__list_issues',
+  'linear:get-issue':       'mcp__linear__get_issue',
+  'linear:list-cycles':     'mcp__linear__list_cycles',
+  'linear:list-teams':      'mcp__linear__list_teams',
+  'linear:create-issue':    'mcp__linear__create_issue',
+  'linear:list-statuses':   'mcp__linear__list_issue_statuses',
+
+  // Atlassian — Phase 41 (verified from Atlassian Rovo MCP supported-tools docs)
+  'jira:probe':                     'mcp__atlassian__getVisibleJiraProjectsList',
+  'jira:search-issues':             'mcp__atlassian__searchJiraIssuesUsingJql',
+  'jira:get-issue':                 'mcp__atlassian__getJiraIssue',
+  'jira:create-issue':              'mcp__atlassian__createJiraIssue',
+  'jira:get-project-types':         'mcp__atlassian__getJiraProjectIssueTypesMetadata',
+  'jira:get-issue-type-fields':     'mcp__atlassian__getJiraIssueTypeMetaWithFields',
+  'jira:list-projects':             'mcp__atlassian__getVisibleJiraProjectsList',
 };
 
 // ─── Per-server auth instructions ─────────────────────────────────────────────
@@ -99,8 +119,8 @@ const AUTH_INSTRUCTIONS = {
     '4. Return here and run /pde:connect github --confirm',
   ],
   linear: [
-    '1. Get your Linear API key: linear.app/settings/api',
-    '2. Run: claude mcp add --transport stdio --env LINEAR_API_KEY=<your-key> linear -- npx -y @linear/mcp-server',
+    '1. Run: claude mcp add --transport http linear https://mcp.linear.app/mcp',
+    '2. In Claude Code: /mcp -> select "linear" -> "Authenticate" -> follow browser OAuth flow',
     '3. Run /pde:connect linear --confirm',
   ],
   figma: [
@@ -113,8 +133,8 @@ const AUTH_INSTRUCTIONS = {
     '2. Pencil requires VS Code or Cursor with the Pencil extension installed',
   ],
   atlassian: [
-    '1. Get your Atlassian API token: id.atlassian.com/manage-profile/security',
-    '2. Run: claude mcp add --transport stdio --env ATLASSIAN_EMAIL=<email> --env ATLASSIAN_TOKEN=<token> jira -- npx -y @atlassian/jira-mcp',
+    '1. Run: claude mcp add --transport sse atlassian https://mcp.atlassian.com/v1/sse',
+    '2. In Claude Code: /mcp -> select "atlassian" -> "Authenticate" -> follow browser OAuth flow',
     '3. Run /pde:connect atlassian --confirm',
   ],
 };
