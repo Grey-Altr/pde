@@ -40,8 +40,8 @@ Requirements for v0.6 Advanced Workflow Methodology. Each maps to roadmap phases
 - [ ] **AGNT-01**: /pde:assumptions command surfaces planner's key assumptions about a phase approach before plan generation; user confirms or corrects before full plan is written
 - [ ] **AGNT-02**: Analyst persona agent (pde-analyst) performs multi-round probing interviews during new-project and new-milestone to surface unspoken assumptions and produce structured product briefs
 - [ ] **AGNT-03**: Analyst output feeds into /pde:brief as upstream context with graceful degradation when absent
-- [ ] **AGNT-04**: Per-agent-type persistent memory in .planning/agent-memory/{agent-type}/memories.md; loaded on agent spawn, appended after completion
-- [ ] **AGNT-05**: Agent memory has 50-entry cap with automatic archival of oldest entries; memory entries include timestamp, phase context, and relevance tags
+- [x] **AGNT-04**: Per-agent-type persistent memory in .planning/agent-memory/{agent-type}/memories.md; loaded on agent spawn, appended after completion
+- [x] **AGNT-05**: Agent memory has 50-entry cap with automatic archival of oldest entries; memory entries include timestamp, phase context, and relevance tags
 
 ### Infrastructure
 
@@ -98,8 +98,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AGNT-01 | Phase 52 | Pending |
 | AGNT-02 | Phase 52 | Pending |
 | AGNT-03 | Phase 52 | Pending |
-| AGNT-04 | Phase 52 | Pending |
-| AGNT-05 | Phase 52 | Pending |
+| AGNT-04 | Phase 52 | Complete |
+| AGNT-05 | Phase 52 | Complete |
 | INFR-01 | Phase 46 | Complete |
 | INFR-02 | Phase 46 | Complete |
 | INFR-03 | Phase 46 | Complete |

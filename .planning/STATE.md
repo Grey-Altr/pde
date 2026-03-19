@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v0.6
 milestone_name: Advanced Workflow Methodology
 status: planning
-stopped_at: Completed 51-02-PLAN.md
-last_updated: "2026-03-19T22:55:18.710Z"
+stopped_at: Completed 52-01-PLAN.md
+last_updated: "2026-03-19T23:31:49.799Z"
 last_activity: 2026-03-19 — v0.6 roadmap created, 7 phases (46-52), 24/24 requirements mapped
 progress:
   total_phases: 7
   completed_phases: 6
-  total_plans: 13
-  completed_plans: 13
+  total_plans: 17
+  completed_plans: 15
   percent: 0
 ---
 
@@ -54,6 +54,7 @@ Progress: [░░░░░░░░░░] 0% of v0.6
 | Phase 50 P02 | 2min | 2 tasks | 2 files |
 | Phase 51-workflow-tracking P01 | 4min | 2 tasks | 4 files |
 | Phase 51-workflow-tracking P02 | 3 | 2 tasks | 3 files |
+| Phase 52-agent-enhancements P01 | 12min | 1 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -96,6 +97,8 @@ v0.6 roadmap decisions:
 - [Phase 51-workflow-tracking]: parseStatusTable() extracted as shared helper — eliminates regex duplication across initWorkflowStatus, setTaskStatus, and readWorkflowStatus
 - [Phase 51-workflow-tracking]: workflow-status.md committed once in plan completion commit — keeps git history clean
 - [Phase 51-workflow-tracking]: SUMMARY.md guard in progress.md prevents stale task-level display for completed plans
+- [Phase 52-01]: splitEntries filters to only ### heading parts so preamble/header text is never returned as an entry
+- [Phase 52-01]: appendMemory re-filters entries to ### headings before cap check to skip file header block correctly
 
 ### Pending Todos
 
@@ -115,6 +118,6 @@ Research flagged two items needing resolution before planning begins:
 
 ## Session Continuity
 
-Last session: 2026-03-19T22:50:33.664Z
-Stopped at: Completed 51-02-PLAN.md
+Last session: 2026-03-19T23:31:32.504Z
+Stopped at: Completed 52-01-PLAN.md
 Resume file: None
