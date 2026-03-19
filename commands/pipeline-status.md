@@ -5,6 +5,7 @@ argument-hint: '[--no-mcp]'
 allowed-tools:
   - Read
   - Bash
+  - mcp__github__*
 ---
 <objective>
 Execute the /pde:pipeline-status command.

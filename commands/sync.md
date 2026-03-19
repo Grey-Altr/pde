@@ -8,6 +8,7 @@ allowed-tools:
   - Bash
   - Glob
   - Grep
+  - mcp__github__*
 ---
 <objective>
 Execute the /pde:sync command.
