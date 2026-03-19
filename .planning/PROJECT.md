@@ -47,7 +47,14 @@ Any user can go from idea to shipped product through a single platform that hand
 
 ### Active
 
-(Defining requirements for next milestone)
+## Current Milestone: v0.6 Advanced Workflow Methodology
+
+**Goal:** Import BMAD and PAUL methodology patterns into PDE's existing workflow engine to strengthen business analysis, architecture planning, and agent role specialization.
+
+**Target features:**
+- BMAD methodology patterns (business analysis, multi-agent orchestration)
+- PAUL methodology patterns (architecture planning, structured verification)
+- Integration with PDE's existing 13-stage design pipeline and planning workflow
 
 ### Out of Scope
 
@@ -125,4 +132,4 @@ Any user can go from idea to shipped product through a single platform that hand
 | Inline conversion functions (zero npm) | figmaColorToCss, dtcgToPencilVariables embedded in workflows | ✓ Good — zero-npm-dependency preserved |
 
 ---
-*Last updated: 2026-03-19 after v0.5 milestone*
+*Last updated: 2026-03-19 after v0.6 milestone start*

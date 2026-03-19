@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.5
-milestone_name: MCP Integrations
-status: milestone_complete
-stopped_at: v0.5 milestone archived
-last_updated: "2026-03-19T10:06:00.000Z"
-last_activity: "2026-03-19 — Completed v0.5 MCP Integrations milestone"
+milestone: v0.6
+milestone_name: Advanced Workflow Methodology
+status: defining_requirements
+stopped_at: null
+last_updated: "2026-03-19T12:00:00.000Z"
+last_activity: "2026-03-19 — Milestone v0.6 started"
 progress:
-  total_phases: 7
-  completed_phases: 7
-  total_plans: 18
-  completed_plans: 18
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
 # Project State
@@ -20,14 +20,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Planning next milestone
+**Current focus:** Researching BMAD + PAUL methodology for v0.6
 
 ## Current Position
 
-Milestone: v0.5 MCP Integrations — SHIPPED 2026-03-19
-Status: Complete — all 7 phases, 18 plans, 27 requirements satisfied, 315 tests GREEN
-
-Next step: `/gsd:new-milestone` to define v0.6
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-19 — Milestone v0.6 started
 
 ## Performance Metrics
 
@@ -63,5 +63,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-19
-Stopped at: v0.5 milestone complete
+Stopped at: Starting v0.6 milestone
 Resume file: None
