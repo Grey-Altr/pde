@@ -9,8 +9,8 @@ Requirements for v0.6 Advanced Workflow Methodology. Each maps to roadmap phases
 
 ### Foundation
 
-- [ ] **FOUND-01**: System generates agent-optimized project-context.md (max 4KB) from PROJECT.md + REQUIREMENTS.md + key STATE.md decisions, auto-updated when source files change
-- [ ] **FOUND-02**: Every subagent spawn includes project-context.md as baseline context alongside task-specific files
+- [x] **FOUND-01**: System generates agent-optimized project-context.md (max 4KB) from PROJECT.md + REQUIREMENTS.md + key STATE.md decisions, auto-updated when source files change
+- [x] **FOUND-02**: Every subagent spawn includes project-context.md as baseline context alongside task-specific files
 - [x] **FOUND-03**: Methodology reference document (workflow-methodology.md) exists in references/ documenting imported BMAD + PAUL patterns, terminology mapping, and PDE conventions
 
 ### Planning
@@ -79,8 +79,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FOUND-01 | Phase 46 | Pending |
-| FOUND-02 | Phase 46 | Pending |
+| FOUND-01 | Phase 46 | Complete |
+| FOUND-02 | Phase 46 | Complete |
 | FOUND-03 | Phase 46 | Complete |
 | PLAN-01 | Phase 47 | Pending |
 | PLAN-02 | Phase 47 | Pending |
