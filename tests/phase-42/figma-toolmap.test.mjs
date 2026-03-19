@@ -6,7 +6,7 @@
  * Also verifies bridge.probe('figma') returns probe_deferred (not not_configured).
  * Also verifies APPROVED_SERVERS.figma properties match Phase 42 research.
  *
- * Total TOOL_MAP entries: 29 (8 GitHub + 7 Linear + 7 Atlassian + 7 Figma)
+ * Total TOOL_MAP entries: 36 (8 GitHub + 7 Linear + 7 Atlassian + 7 Figma + 7 Pencil)
  */
 
 import { describe, it } from 'node:test';
@@ -20,12 +20,12 @@ const req = createRequire(import.meta.url);
 const bridge = req(path.resolve(__dirname, '../../bin/lib/mcp-bridge.cjs'));
 
 describe('FIG-01 — Figma TOOL_MAP entries resolve via bridge.call()', () => {
-  it('TOOL_MAP contains exactly 29 total entries (8 GitHub + 7 Linear + 7 Atlassian + 7 Figma)', () => {
+  it('TOOL_MAP contains exactly 36 total entries (8 GitHub + 7 Linear + 7 Atlassian + 7 Figma + 7 Pencil)', () => {
     const keys = Object.keys(bridge.TOOL_MAP);
     assert.equal(
       keys.length,
-      29,
-      `Expected 29 TOOL_MAP entries, got ${keys.length}: ${keys.join(', ')}`
+      36,
+      `Expected 36 TOOL_MAP entries, got ${keys.length}: ${keys.join(', ')}`
     );
   });
 
@@ -92,5 +92,12 @@ describe('FIG-01 — Figma TOOL_MAP entries resolve via bridge.call()', () => {
 
   it('APPROVED_SERVERS.figma.url points to https://mcp.figma.com/mcp', () => {
     assert.equal(bridge.APPROVED_SERVERS.figma.url, 'https://mcp.figma.com/mcp');
+  });
+
+  it('APPROVED_SERVERS.pencil.probeTool is mcp__pencil__get_variables (Phase 43)', () => {
+    assert.equal(
+      bridge.APPROVED_SERVERS.pencil.probeTool,
+      'mcp__pencil__get_variables'
+    );
   });
 });

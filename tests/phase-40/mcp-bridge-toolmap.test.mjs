@@ -8,7 +8,8 @@
  * the correct non-null values.
  * NOTE (Phase 42 update): figma probeTool and TOOL_MAP entries were populated in
  * Phase 42. TOOL_MAP total is now 29 (8 GitHub + 7 Linear + 7 Atlassian + 7 Figma).
- * pencil remains null (Phase 43).
+ * NOTE (Phase 43 update): Pencil entries and probeTool were populated in Phase 43.
+ * TOOL_MAP total is now 36 (8 GitHub + 7 Linear + 7 Atlassian + 7 Figma + 7 Pencil).
  */
 
 import { describe, it } from 'node:test';
@@ -22,9 +23,9 @@ const req = createRequire(import.meta.url);
 const bridge = req(path.resolve(__dirname, '../../bin/lib/mcp-bridge.cjs'));
 
 describe('TOOL_MAP has 8 GitHub entries (Gap 1 — INFRA)', () => {
-  it('TOOL_MAP contains exactly 29 total entries (8 GitHub + 7 Linear + 7 Atlassian + 7 Figma added in Phase 42)', () => {
+  it('TOOL_MAP contains exactly 36 total entries (8 GitHub + 7 Linear + 7 Atlassian + 7 Figma + 7 Pencil)', () => {
     const keys = Object.keys(bridge.TOOL_MAP);
-    assert.equal(keys.length, 29, `Expected 29 TOOL_MAP entries after Phase 42, got ${keys.length}: ${keys.join(', ')}`);
+    assert.equal(keys.length, 36, `Expected 36 TOOL_MAP entries after Phase 43, got ${keys.length}: ${keys.join(', ')}`);
   });
 
   it('TOOL_MAP contains exactly 8 GitHub canonical entries', () => {
@@ -94,8 +95,8 @@ describe('TOOL_MAP has 8 GitHub entries (Gap 1 — INFRA)', () => {
     assert.equal(bridge.APPROVED_SERVERS.figma.probeTool, 'mcp__figma__get_design_context');
   });
 
-  it('pencil probeTool is still null (Phase 43 fills)', () => {
-    assert.equal(bridge.APPROVED_SERVERS.pencil.probeTool, null);
+  it('pencil probeTool is mcp__pencil__get_variables (populated in Phase 43)', () => {
+    assert.equal(bridge.APPROVED_SERVERS.pencil.probeTool, 'mcp__pencil__get_variables');
   });
 
   it('atlassian probeTool is mcp__atlassian__getVisibleJiraProjectsList (populated in Phase 41)', () => {

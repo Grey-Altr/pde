@@ -10,6 +10,7 @@ allowed-tools:
   - Glob
   - Grep
   - Task
+  - mcp__pencil__*
 ---
 <objective>
 Execute the /pde:system command.

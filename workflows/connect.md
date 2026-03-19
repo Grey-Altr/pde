@@ -246,6 +246,33 @@ If the user says "skip" or provides empty input:
 
 Then proceed to Step 4, passing the file URL and key as extraFields.
 
+## 3.9. Detect Pencil Connection (Pencil only, --confirm present)
+
+If `--confirm` flag IS present AND `SERVICE_KEY` equals `pencil`:
+
+Before recording the connection, verify the Pencil extension is installed and the MCP server is responding.
+
+**Important:** Unlike other integrations, Pencil auto-configures its MCP server in `~/.claude.json` when the VS Code extension is installed. There is NO manual `claude mcp add` command. The connect workflow for Pencil is detection-based, not setup-based.
+
+Display:
+```
+Verifying Pencil MCP server availability...
+```
+
+The verification is performed by Claude Code's MCP runtime when the probe runs. At this point in the connect flow, simply record the connection. The actual probe will be performed by the sync-pencil or critique-pencil-screenshot workflows at runtime.
+
+Display:
+```
+Pencil connection recorded. The Pencil MCP server will be probed at sync/critique time.
+
+If Pencil is not responding, ensure:
+  1. VS Code (or Cursor) is running
+  2. The Pencil extension (highagency.pencildev) is installed and active
+  3. A .pen file is open in the editor
+```
+
+Then proceed to Step 4 (which uses the "all other services" branch — no extra fields needed for Pencil).
+
 ## 4. Confirm Connection (--confirm present)
 
 Run updateConnectionStatus() to record the connection as active.
