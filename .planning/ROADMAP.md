@@ -182,7 +182,11 @@ Plans:
   1. User can run `/pde:system` with Pencil connected and have PDE's DTCG tokens applied to the Pencil canvas via `set_variables` without manual copy-paste
   2. User can invoke `/pde:critique` with Pencil connected and have a Pencil canvas screenshot automatically captured and incorporated into the visual audit
   3. When Pencil is not available (VS Code/Cursor not running), all Pencil-dependent features produce a clear degraded-mode message and the command completes successfully using non-Pencil inputs
-**Plans**: TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 43-01-PLAN.md — Pencil TOOL_MAP + probeTool + connect Step 3.9 + command dispatch updates
+- [ ] 43-02-PLAN.md — Wave 0 tests and sync-pencil.md workflow with DTCG token push
+- [ ] 43-03-PLAN.md — critique-pencil-screenshot.md sub-workflow with graceful degradation
 
 ### Phase 44: End-to-End Validation
 **Goal**: All integrations function correctly in combination, under failure conditions, and with consistent write-back safety
@@ -207,5 +211,5 @@ Plans:
 | 40.1 | 1/1 | Complete    | 2026-03-19 | — |
 | 41 | 4/4 | Complete    | 2026-03-19 | — |
 | 42 | 4/4 | Complete    | 2026-03-19 | — |
-| 43 | v0.5 | 0/? | Not started | — |
+| 43 | v0.5 | 0/3 | Not started | — |
 | 44 | v0.5 | 0/? | Not started | — |
