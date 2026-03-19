@@ -1,9 +1,9 @@
 ---
 phase: 43
 slug: pencil-integration
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: validated
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-18
 ---
 
@@ -38,14 +38,14 @@ created: 2026-03-18
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 43-01-01 | 01 | 1 | PEN-01, PEN-02, PEN-03 | unit | `node -e "const b=require('./bin/lib/mcp-bridge.cjs'); console.log(Object.keys(b.TOOL_MAP).length)"` | N/A (modifies existing) | ⬜ pending |
-| 43-01-02 | 01 | 1 | PEN-01, PEN-02 | unit+grep | `grep -c 'mcp__pencil__' commands/system.md && grep -c 'mcp__pencil__' commands/critique.md && node --test tests/phase-40/mcp-bridge-toolmap.test.mjs tests/phase-41/linear-toolmap.test.mjs tests/phase-42/figma-toolmap.test.mjs 2>&1 \| tail -5` | N/A (modifies existing) | ⬜ pending |
-| 43-02-01 | 02 | 2 | PEN-01 | unit (TDD) | `node --test tests/phase-43/pencil-toolmap.test.mjs tests/phase-43/token-to-pencil.test.mjs` | ❌ W0 | ⬜ pending |
-| 43-02-02 | 02 | 2 | PEN-01, PEN-03 | structural | `node --test tests/phase-43/pencil-toolmap.test.mjs tests/phase-43/token-to-pencil.test.mjs tests/phase-43/sync-pencil-workflow.test.mjs` | ❌ W0 | ⬜ pending |
-| 43-02-03 | 02 | 2 | PEN-01 | grep | `grep -c 'sync-pencil.md' workflows/system.md && grep -c 'pencilConnected' workflows/system.md` | N/A (modifies existing) | ⬜ pending |
-| 43-03-01 | 03 | 2 | PEN-02 | structural (TDD) | `node --test tests/phase-43/pencil-toolmap.test.mjs tests/phase-43/token-to-pencil.test.mjs` | ❌ W0 | ⬜ pending |
-| 43-03-02 | 03 | 2 | PEN-02, PEN-03 | structural | `node --test tests/phase-43/critique-pencil-screenshot.test.mjs` | ❌ W0 | ⬜ pending |
-| 43-03-03 | 03 | 2 | PEN-02 | grep | `grep -c 'critique-pencil-screenshot.md' workflows/critique.md && grep -c 'pencilConnected' workflows/critique.md` | N/A (modifies existing) | ⬜ pending |
+| 43-01-01 | 01 | 1 | PEN-01, PEN-02, PEN-03 | unit | `node -e "const b=require('./bin/lib/mcp-bridge.cjs'); console.log(Object.keys(b.TOOL_MAP).length)"` | N/A (modifies existing) | ✅ green |
+| 43-01-02 | 01 | 1 | PEN-01, PEN-02 | unit+grep | `grep -c 'mcp__pencil__' commands/system.md && grep -c 'mcp__pencil__' commands/critique.md && node --test tests/phase-40/mcp-bridge-toolmap.test.mjs tests/phase-41/linear-toolmap.test.mjs tests/phase-42/figma-toolmap.test.mjs 2>&1 \| tail -5` | N/A (modifies existing) | ✅ green |
+| 43-02-01 | 02 | 2 | PEN-01 | unit (TDD) | `node --test tests/phase-43/pencil-toolmap.test.mjs tests/phase-43/token-to-pencil.test.mjs` | ✅ | ✅ green |
+| 43-02-02 | 02 | 2 | PEN-01, PEN-03 | structural | `node --test tests/phase-43/pencil-toolmap.test.mjs tests/phase-43/token-to-pencil.test.mjs tests/phase-43/sync-pencil-workflow.test.mjs` | ✅ | ✅ green |
+| 43-02-03 | 02 | 2 | PEN-01 | grep | `grep -c 'sync-pencil.md' workflows/system.md && grep -c 'pencilConnected' workflows/system.md` | N/A (modifies existing) | ✅ green |
+| 43-03-01 | 03 | 2 | PEN-02 | structural (TDD) | `node --test tests/phase-43/pencil-toolmap.test.mjs tests/phase-43/token-to-pencil.test.mjs` | ✅ | ✅ green |
+| 43-03-02 | 03 | 2 | PEN-02, PEN-03 | structural | `node --test tests/phase-43/critique-pencil-screenshot.test.mjs` | ✅ | ✅ green |
+| 43-03-03 | 03 | 2 | PEN-02 | grep | `grep -c 'critique-pencil-screenshot.md' workflows/critique.md && grep -c 'pencilConnected' workflows/critique.md` | N/A (modifies existing) | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -53,13 +53,13 @@ created: 2026-03-18
 
 ## Wave 0 Requirements
 
-- [ ] `tests/phase-43/pencil-toolmap.test.mjs` — validates 7 Pencil TOOL_MAP entries, APPROVED_SERVERS.pencil (Plan 02 Task 1)
-- [ ] `tests/phase-43/token-to-pencil.test.mjs` — validates dtcgToPencilVariables and mergePencilVariables (Plan 02 Task 1)
-- [ ] `tests/phase-43/sync-pencil-workflow.test.mjs` — structural tests for sync-pencil.md (Plan 02 Task 1)
-- [ ] `tests/phase-43/critique-pencil-screenshot.test.mjs` — structural tests for critique-pencil-screenshot.md (Plan 03 Task 1)
-- [ ] `tests/phase-40/mcp-bridge-toolmap.test.mjs` — UPDATE TOOL_MAP count 29 → 36 (Plan 01 Task 2)
-- [ ] `tests/phase-41/linear-toolmap.test.mjs` — UPDATE TOOL_MAP count 29 → 36 (Plan 01 Task 2)
-- [ ] `tests/phase-42/figma-toolmap.test.mjs` — UPDATE TOOL_MAP count 29 → 36 + pencil probeTool test (Plan 01 Task 2)
+- [x] `tests/phase-43/pencil-toolmap.test.mjs` — validates 7 Pencil TOOL_MAP entries, APPROVED_SERVERS.pencil (13 tests GREEN)
+- [x] `tests/phase-43/token-to-pencil.test.mjs` — validates dtcgToPencilVariables and mergePencilVariables (10 tests GREEN)
+- [x] `tests/phase-43/sync-pencil-workflow.test.mjs` — structural tests for sync-pencil.md (8 tests GREEN)
+- [x] `tests/phase-43/critique-pencil-screenshot.test.mjs` — structural tests for critique-pencil-screenshot.md (8 tests GREEN)
+- [x] `tests/phase-40/mcp-bridge-toolmap.test.mjs` — TOOL_MAP count updated to 36 (GREEN)
+- [x] `tests/phase-41/linear-toolmap.test.mjs` — TOOL_MAP count updated to 36 (GREEN)
+- [x] `tests/phase-42/figma-toolmap.test.mjs` — TOOL_MAP count updated to 36 + pencil probeTool test (GREEN)
 
 ---
 
@@ -77,11 +77,24 @@ created: 2026-03-18
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 5s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 5s (measured: ~50ms)
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-03-19
+
+---
+
+## Validation Audit 2026-03-19
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+| Tests total | 39 |
+| Tests passing | 39 |
+| Full suite (40-43) | 253 |
