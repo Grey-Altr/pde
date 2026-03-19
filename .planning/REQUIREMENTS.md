@@ -17,9 +17,9 @@ Requirements for v0.6 Advanced Workflow Methodology. Each maps to roadmap phases
 
 - [x] **PLAN-01**: Planner emits tasks/ directory alongside PLAN.md with one self-contained task-NNN.md file per task, each including AC references, file paths, and relevant schema snippets
 - [x] **PLAN-02**: Executor loads only the current task file (not full PLAN.md), reducing context consumption by ~90% for phases with 5+ tasks
-- [ ] **PLAN-03**: Planner output schema includes acceptance criteria section before task list; each AC has a unique identifier (AC-N)
-- [ ] **PLAN-04**: Each task references specific AC-N identifiers it satisfies; tasks cannot be marked done without AC verification
-- [ ] **PLAN-05**: Task schema supports optional boundaries field listing protected paths/sections; executor respects DO NOT CHANGE sections during execution
+- [x] **PLAN-03**: Planner output schema includes acceptance criteria section before task list; each AC has a unique identifier (AC-N)
+- [x] **PLAN-04**: Each task references specific AC-N identifiers it satisfies; tasks cannot be marked done without AC verification
+- [x] **PLAN-05**: Task schema supports optional boundaries field listing protected paths/sections; executor respects DO NOT CHANGE sections during execution
 
 ### Verification
 
@@ -84,9 +84,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FOUND-03 | Phase 46 | Complete |
 | PLAN-01 | Phase 47 | Complete |
 | PLAN-02 | Phase 47 | Complete |
-| PLAN-03 | Phase 48 | Pending |
-| PLAN-04 | Phase 48 | Pending |
-| PLAN-05 | Phase 48 | Pending |
+| PLAN-03 | Phase 48 | Complete |
+| PLAN-04 | Phase 48 | Complete |
+| PLAN-05 | Phase 48 | Complete |
 | VRFY-01 | Phase 49 | Pending |
 | VRFY-02 | Phase 49 | Pending |
 | VRFY-03 | Phase 50 | Pending |
