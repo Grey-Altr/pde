@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v0.6
 milestone_name: Advanced Workflow Methodology
 status: planning
-stopped_at: Completed 48-01-PLAN.md
-last_updated: "2026-03-19T20:41:15.929Z"
+stopped_at: Completed 48-02-PLAN.md
+last_updated: "2026-03-19T20:42:42.354Z"
 last_activity: 2026-03-19 — v0.6 roadmap created, 7 phases (46-52), 24/24 requirements mapped
 progress:
   total_phases: 7
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 7
-  completed_plans: 6
+  completed_plans: 7
   percent: 0
 ---
 
@@ -47,6 +47,7 @@ Progress: [░░░░░░░░░░] 0% of v0.6
 | Phase 47 P01 | 4min | 2 tasks | 5 files |
 | Phase 47-story-file-sharding P02 | 2min | 2 tasks | 2 files |
 | Phase 48-ac-first-planning P01 | 8min | 2 tasks | 2 files |
+| Phase 48-ac-first-planning P02 | 3 min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -73,6 +74,9 @@ v0.6 roadmap decisions:
 - [Phase 47-story-file-sharding]: Orchestrator path resolution uses ls tasks-dir | sort — never reads task file contents to prevent orchestrator context growth
 - [Phase 48-ac-first-planning]: extractPlanAcBlock slices content at <tasks> index — avoids per-task false positives without lookaheads
 - [Phase 48-ac-first-planning]: acRefs fallback is '(none - pre-Phase-48 plan)' — makes backwards-compatibility explicit in task files
+- [Phase 48-02]: AC-N verification is additive to existing per-task acceptance_criteria checks — both must pass before a task is done
+- [Phase 48-02]: Boundaries check fires before task execution so executor can stop before making any modifications to listed paths
+- [Phase 48-02]: Plan-level AC block must appear BEFORE <tasks> in PLAN.md — enforced by planner prompt rule, prerequisite for sharding.cjs extractPlanAcBlock() to avoid matching per-task acceptance_criteria
 
 ### Pending Todos
 
@@ -92,6 +96,6 @@ Research flagged two items needing resolution before planning begins:
 
 ## Session Continuity
 
-Last session: 2026-03-19T20:41:15.926Z
-Stopped at: Completed 48-01-PLAN.md
+Last session: 2026-03-19T20:42:30.826Z
+Stopped at: Completed 48-02-PLAN.md
 Resume file: None
