@@ -10,6 +10,7 @@ allowed-tools:
   - Glob
   - Grep
   - Task
+  - mcp__figma__*
 ---
 <objective>
 Execute the /pde:wireframe command.

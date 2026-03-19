@@ -4,6 +4,9 @@
  * Verifies that all 7 Linear canonical names are registered in TOOL_MAP and
  * that bridge.call() returns the correct raw MCP tool name for each.
  * Also verifies bridge.probe('linear') returns probe_deferred (not not_configured).
+ *
+ * NOTE (Phase 42 update): Figma entries were added to TOOL_MAP in Phase 42.
+ * TOOL_MAP total is now 29 (8 GitHub + 7 Linear + 7 Atlassian + 7 Figma).
  */
 
 import { describe, it } from 'node:test';
@@ -17,12 +20,12 @@ const req = createRequire(import.meta.url);
 const bridge = req(path.resolve(__dirname, '../../bin/lib/mcp-bridge.cjs'));
 
 describe('LIN-01 — Linear TOOL_MAP entries resolve via bridge.call()', () => {
-  it('TOOL_MAP contains exactly 22 total entries (8 GitHub + 7 Linear + 7 Atlassian)', () => {
+  it('TOOL_MAP contains exactly 29 total entries (8 GitHub + 7 Linear + 7 Atlassian + 7 Figma added in Phase 42)', () => {
     const keys = Object.keys(bridge.TOOL_MAP);
     assert.equal(
       keys.length,
-      22,
-      `Expected 22 TOOL_MAP entries, got ${keys.length}: ${keys.join(', ')}`
+      29,
+      `Expected 29 TOOL_MAP entries, got ${keys.length}: ${keys.join(', ')}`
     );
   });
 

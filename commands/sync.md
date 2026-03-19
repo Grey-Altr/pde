@@ -1,7 +1,7 @@
 ---
 name: pde:sync
 description: Sync external service data into PDE planning state
-argument-hint: '--github | --linear | --jira [--dry-run]'
+argument-hint: '--github | --linear | --jira | --figma [--dry-run]'
 allowed-tools:
   - Read
   - Write
@@ -11,6 +11,7 @@ allowed-tools:
   - mcp__github__*
   - mcp__linear__*
   - mcp__atlassian__*
+  - mcp__figma__*
 ---
 <objective>
 Execute the /pde:sync command.
@@ -24,6 +25,8 @@ If `--github` is present in $ARGUMENTS, follow @workflows/sync-github.md exactly
 If `--linear` is present in $ARGUMENTS, follow @workflows/sync-linear.md exactly, passing all of $ARGUMENTS.
 
 If `--jira` is present in $ARGUMENTS, follow @workflows/sync-jira.md exactly, passing all of $ARGUMENTS.
+
+If `--figma` is present in $ARGUMENTS, follow @workflows/sync-figma.md exactly, passing all of $ARGUMENTS.
 
 If no service flag is provided, check the task_tracker config to determine the default service:
 
@@ -49,7 +52,7 @@ Parse the JSON output. Based on `taskTracker`:
 - If `taskTracker` is `"none"` or any other value, display usage:
 
 ```
-Usage: /pde:sync --github | --linear | --jira
+Usage: /pde:sync --github | --linear | --jira | --figma
 
 Sync external service data into PDE planning state.
 
@@ -57,6 +60,7 @@ Available flags:
   --github      Sync GitHub issues to REQUIREMENTS.md
   --linear      Sync Linear issues to REQUIREMENTS.md and cycles to ROADMAP.md
   --jira        Sync Jira issues to REQUIREMENTS.md and epics to REQUIREMENTS.md
+  --figma       Sync Figma design tokens to PDE token files
   --dry-run     Preview changes without writing to disk
 
 Tip: Set a default task tracker with /pde:settings task_tracker linear (or jira)

@@ -14,6 +14,7 @@ allowed-tools:
   - mcp__github__*
   - mcp__linear__*
   - mcp__atlassian__*
+  - mcp__figma__*
 ---
 <objective>
 Execute the /pde:handoff command.

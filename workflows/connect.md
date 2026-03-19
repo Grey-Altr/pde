@@ -218,6 +218,34 @@ If the MCP call fails or returns no projects:
 
 Then proceed to Step 4, passing JIRA_PROJECT_KEY as projectKey, JIRA_PROJECT_NAME as projectName, and JIRA_SITE_URL as siteUrl as extraFields.
 
+## 3.8. Capture Figma File URL (Figma only, --confirm present)
+
+If `--confirm` flag IS present AND `SERVICE_KEY` equals `figma`:
+
+Before recording the connection, ask the user for their Figma file URL. This is optional but recommended for token import (FIG-01) and design context (FIG-02).
+
+Ask:
+```
+Which Figma file should PDE sync with? Paste the Figma file URL (e.g. https://www.figma.com/design/ABC123/MyDesign). This is optional but recommended for token import.
+
+Enter URL or type "skip" to continue without one:
+```
+
+Wait for user response.
+
+If the user provides a URL:
+- Validate it contains `figma.com` (soft check). If it does not, re-prompt:
+  ```
+  That URL does not appear to be a Figma URL (expected figma.com). Please try again, or type "skip" to continue without one:
+  ```
+- Extract `FIGMA_FILE_KEY` from the URL using the following pattern: match the alphanumeric segment after `/design/` or `/file/` and before the next `/` or `?`. For example, from `https://www.figma.com/design/ABC123/MyDesign?node-id=1-2`, the file key is `ABC123`.
+- Store the full URL as `FIGMA_FILE_URL` and the extracted key as `FIGMA_FILE_KEY`.
+
+If the user says "skip" or provides empty input:
+- Set `FIGMA_FILE_URL = ''` and `FIGMA_FILE_KEY = ''`.
+
+Then proceed to Step 4, passing the file URL and key as extraFields.
+
 ## 4. Confirm Connection (--confirm present)
 
 Run updateConnectionStatus() to record the connection as active.
@@ -270,7 +298,23 @@ process.stdout.write(JSON.stringify(result) + '\n');
 EOF
 ```
 
-**For all other services** (`SERVICE_KEY` is not `github`, `linear`, or `atlassian`), omit service-specific fields:
+**For Figma connections** (`SERVICE_KEY` equals `figma`), include the `fileUrl` and `fileKey` fields captured in Step 3.8:
+
+```bash
+node --input-type=module <<'EOF'
+import { createRequire } from 'module';
+const req = createRequire(import.meta.url);
+const b = req(`${process.env.CLAUDE_PLUGIN_ROOT}/bin/lib/mcp-bridge.cjs`);
+const result = b.updateConnectionStatus(process.env.SERVICE_KEY, 'connected', {
+  connected_at: new Date().toISOString(),
+  fileUrl: process.env.FIGMA_FILE_URL || '',
+  fileKey: process.env.FIGMA_FILE_KEY || ''
+});
+process.stdout.write(JSON.stringify(result) + '\n');
+EOF
+```
+
+**For all other services** (`SERVICE_KEY` is not `github`, `linear`, `atlassian`, or `figma`), omit service-specific fields:
 
 ```bash
 node --input-type=module <<'EOF'
