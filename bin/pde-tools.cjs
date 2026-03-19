@@ -63,6 +63,10 @@
  *   design lock-status                  Check root DESIGN-STATE.md write lock state
  *   design manifest-set-top-level <field> <value>  Set root-level manifest field (e.g. projectName, productType)
  *
+ * Sharding:
+ *   shard-plan <plan-path>             Shard PLAN.md into per-task files
+ *     [--threshold N]                  Min task count to shard (default: 5)
+ *
  * Validation:
  *   validate consistency               Check phase numbering, disk/roadmap sync
  *   validate health [--repair]         Check .planning/ integrity, optionally repair
@@ -678,6 +682,17 @@ async function main() {
       } else {
         console.log(JSON.stringify({ success: false, error: `Unknown manifest subcommand: ${subCmd}. Use: init, check` }));
       }
+      break;
+    }
+
+    case 'shard-plan': {
+      const sharding = require('./lib/sharding.cjs');
+      const planPath = path.resolve(cwd, args[1]);
+      const thresholdIdx = args.indexOf('--threshold');
+      const threshold = thresholdIdx !== -1 ? parseInt(args[thresholdIdx + 1], 10) : 5;
+      const result = sharding.shardPlan(planPath, { threshold });
+      const out = typeof result === 'string' ? result : JSON.stringify(result);
+      if (raw) { process.stdout.write(out); } else { console.log(out); }
       break;
     }
 
