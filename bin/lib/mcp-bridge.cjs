@@ -44,7 +44,7 @@ const APPROVED_SERVERS = {
     url: 'https://mcp.figma.com/mcp',
     installCmd: 'claude mcp add --transport http figma https://mcp.figma.com/mcp',
     probeTimeoutMs: 15000,
-    probeTool: null, // Phase 42 fills
+    probeTool: 'mcp__figma__get_design_context', // Phase 42
     probeArgs: {},
   },
   pencil: {
@@ -77,7 +77,8 @@ const APPROVED_SERVERS = {
  *   GitHub — Phase 40 (verified against github/github-mcp-server source 2026-03-18)
  *   Linear — Phase 41 (verified from official mcp.linear.app server)
  *   Atlassian — Phase 41 (verified from Atlassian Rovo MCP supported-tools docs)
- *   Phases 42-44 will add figma, pencil entries.
+ *   Figma — Phase 42 (verified from developers.figma.com/docs/figma-mcp-server/tools-and-prompts/)
+ *   Phases 43-44 will add pencil entries.
  */
 const TOOL_MAP = {
   // GitHub — Phase 40 (verified against github/github-mcp-server source 2026-03-18)
@@ -107,6 +108,15 @@ const TOOL_MAP = {
   'jira:get-project-types':         'mcp__atlassian__getJiraProjectIssueTypesMetadata',
   'jira:get-issue-type-fields':     'mcp__atlassian__getJiraIssueTypeMetaWithFields',
   'jira:list-projects':             'mcp__atlassian__getVisibleJiraProjectsList',
+
+  // Figma — Phase 42 (verified from developers.figma.com/docs/figma-mcp-server/tools-and-prompts/)
+  'figma:probe':                  'mcp__figma__get_design_context',
+  'figma:get-design-context':     'mcp__figma__get_design_context',
+  'figma:get-variable-defs':      'mcp__figma__get_variable_defs',
+  'figma:get-code-connect-map':   'mcp__figma__get_code_connect_map',
+  'figma:get-screenshot':         'mcp__figma__get_screenshot',
+  'figma:generate-design':        'mcp__figma__generate_figma_design',
+  'figma:get-metadata':           'mcp__figma__get_metadata',
 };
 
 // ─── Per-server auth instructions ─────────────────────────────────────────────
