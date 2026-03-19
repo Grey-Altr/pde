@@ -227,5 +227,5 @@ Plans:
 | 48. AC-First Planning | 2/2 | Complete    | 2026-03-19 | - |
 | 49. Reconciliation & HALT Checkpoints | 2/2 | Complete    | 2026-03-19 | - |
 | 50. Readiness Gate | 2/2 | Complete    | 2026-03-19 | - |
-| 51. Workflow Tracking | 2/2 | Complete   | 2026-03-19 | - |
+| 51. Workflow Tracking | 2/2 | Complete    | 2026-03-19 | - |
 | 52. Agent Enhancements | v0.6 | 0/TBD | Not started | - |
