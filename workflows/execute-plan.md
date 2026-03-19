@@ -137,9 +137,11 @@ Deviations are normal — handle via rules below.
 1. Read @context files from prompt
 2. Per task:
    - **MANDATORY read_first gate:** If the task has a `<read_first>` field, you MUST read every listed file BEFORE making any edits. This is not optional. Do not skip files because you "already know" what's in them — read them. The read_first files establish ground truth for the task.
+   - **MANDATORY boundaries check:** Before executing a task, if it has a `<boundaries>` field (or "## Task Boundaries (DO NOT CHANGE)" section in a task file), check whether your planned changes would touch any listed path. If yes: STOP. Log: "BOUNDARY WARNING: Task {N} boundaries field lists {path} as DO NOT CHANGE. This task would modify that path. Confirm to proceed or adjust scope." Wait for user confirmation before modifying a listed path. If no conflict: proceed normally — boundaries are informational, not restrictive when no overlap exists.
    - `type="auto"`: if `tdd="true"` → TDD execution. Implement with deviation rules + auth gates. Verify done criteria. Commit (see task_commit). Track hash for Summary.
    - `type="checkpoint:*"`: STOP → checkpoint_protocol → wait for user → continue only after confirmation.
    - **MANDATORY acceptance_criteria check:** After completing each task, if it has `<acceptance_criteria>`, verify EVERY criterion before moving to the next task. Use grep, file reads, or CLI commands to confirm each criterion. If any criterion fails, fix the implementation before proceeding. Do not skip criteria or mark them as "will verify later".
+   - **MANDATORY AC-N verification:** After completing each task, if it has `<ac_refs>` (or an "**ACs this task satisfies:**" line in a task file), retrieve the corresponding AC-N entries from the plan's `<acceptance_criteria>` block (in the task file under "## Plan Acceptance Criteria (Reference)" or in PLAN.md directly if not sharded). For each referenced AC-N, verify that the "then" clause is true — the behavioral outcome must be observable. If any referenced AC is not satisfied, the task is NOT done — fix the implementation first. Do not move to the next task with an unsatisfied AC.
 3. Run `<verification>` checks
 4. Confirm `<success_criteria>` met
 5. Document deviations in Summary
