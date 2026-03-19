@@ -1,10 +1,11 @@
 ---
 phase: 41
 slug: linear-jira-integration
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: approved
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-18
+updated: 2026-03-19
 ---
 
 # Phase 41 — Validation Strategy
@@ -17,20 +18,20 @@ created: 2026-03-18
 
 | Property | Value |
 |----------|-------|
-| **Framework** | None — PDE uses behavioral smoke tests (same as Phase 40) |
+| **Framework** | node:test (built-in Node.js test runner) |
 | **Config file** | None |
-| **Quick run command** | `/pde:health` |
-| **Full suite command** | `/pde:health` + manual smoke tests for each LIN-*/JIRA-* requirement |
-| **Estimated runtime** | ~10 seconds |
+| **Quick run command** | `node --test tests/phase-41/*.test.mjs` |
+| **Full suite command** | `node --test tests/phase-41/*.test.mjs && node --test tests/phase-40/mcp-bridge-toolmap.test.mjs` |
+| **Estimated runtime** | ~3 seconds |
 
 ---
 
 ## Sampling Rate
 
-- **After every task commit:** Run `/pde:health`
-- **After every plan wave:** Run `/pde:health` + smoke test each completed requirement
+- **After every task commit:** Run `node --test tests/phase-41/*.test.mjs`
+- **After every plan wave:** Run full suite command
 - **Before `/gsd:verify-work`:** Full suite must be green
-- **Max feedback latency:** 10 seconds
+- **Max feedback latency:** 3 seconds
 
 ---
 
@@ -38,15 +39,15 @@ created: 2026-03-18
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 41-01-01 | 01 | 0 | JIRA-04 | smoke | `node bin/lib/config.cjs` — verify task_tracker in VALID_CONFIG_KEYS | ❌ W0 | ⬜ pending |
-| 41-01-02 | 01 | 0 | LIN-01, JIRA-01 | smoke | `grep -c "TOOL_MAP" bin/lib/mcp-bridge.cjs` — verify Linear + Atlassian entries | ❌ W0 | ⬜ pending |
-| 41-02-01 | 02 | 1 | LIN-01 | smoke | `/pde:sync --linear` — verify REQUIREMENTS.md contains `### Linear Issues` with `LIN-` entries | ❌ W0 | ⬜ pending |
-| 41-02-02 | 02 | 1 | LIN-02 | smoke | `/pde:sync --linear` — verify ROADMAP.md contains `<!-- Linear Active Cycle:` comments | ❌ W0 | ⬜ pending |
-| 41-03-01 | 03 | 1 | JIRA-01 | smoke | `/pde:sync --jira` — verify REQUIREMENTS.md contains `### Jira Issues` with `JIRA-` entries | ❌ W0 | ⬜ pending |
-| 41-03-02 | 03 | 1 | JIRA-02 | smoke | `/pde:sync --jira` — verify REQUIREMENTS.md contains `## Jira Epics` table | ❌ W0 | ⬜ pending |
-| 41-04-01 | 04 | 2 | LIN-03 | smoke | `/pde:handoff --create-linear-issues` — verify confirmation prompt before write | ❌ W0 | ⬜ pending |
-| 41-04-02 | 04 | 2 | JIRA-03 | smoke | `/pde:handoff --create-jira-tickets` — verify confirmation prompt before write | ❌ W0 | ⬜ pending |
-| 41-05-01 | 05 | 2 | JIRA-04 | smoke | Set task_tracker → run `/pde:sync` → verify correct service dispatched | ❌ W0 | ⬜ pending |
+| 41-01-01 | 01 | 1 | JIRA-04 | unit | `node --test tests/phase-41/config-task-tracker.test.mjs` | ✅ | ✅ green |
+| 41-01-02 | 01 | 1 | LIN-01, JIRA-01 | unit | `node --test tests/phase-41/linear-toolmap.test.mjs && node --test tests/phase-41/atlassian-toolmap.test.mjs` | ✅ | ✅ green |
+| 41-02-01 | 02 | 1 | LIN-01 | integration | `node --test tests/phase-41/sync-linear-workflow.test.mjs` | ✅ | ✅ green |
+| 41-02-02 | 02 | 1 | LIN-02 | integration | `node --test tests/phase-41/sync-linear-workflow.test.mjs` | ✅ | ✅ green |
+| 41-03-01 | 03 | 2 | JIRA-01 | integration | `node --test tests/phase-41/sync-jira-workflow.test.mjs` | ✅ | ✅ green |
+| 41-03-02 | 03 | 2 | JIRA-02 | integration | `node --test tests/phase-41/sync-jira-workflow.test.mjs` | ✅ | ✅ green |
+| 41-04-01 | 04 | 2 | LIN-03 | integration | `node --test tests/phase-41/handoff-linear-workflow.test.mjs` | ✅ | ✅ green |
+| 41-04-02 | 04 | 2 | JIRA-03 | integration | `node --test tests/phase-41/handoff-jira-workflow.test.mjs` | ✅ | ✅ green |
+| 41-05-01 | — | — | JIRA-04 | unit | `node --test tests/phase-41/config-task-tracker.test.mjs` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -54,8 +55,8 @@ created: 2026-03-18
 
 ## Wave 0 Requirements
 
-- [ ] `bin/lib/mcp-bridge.cjs` — TOOL_MAP entries for linear + atlassian, fix installCmd + AUTH_INSTRUCTIONS, set probeTool
-- [ ] `bin/lib/config.cjs` — add `task_tracker` to VALID_CONFIG_KEYS
+- [x] `bin/lib/mcp-bridge.cjs` — TOOL_MAP entries for linear + atlassian, fix installCmd + AUTH_INSTRUCTIONS, set probeTool
+- [x] `bin/lib/config.cjs` — add `task_tracker` to VALID_CONFIG_KEYS
 
 *Existing infrastructure covers test framework needs.*
 
@@ -73,11 +74,24 @@ created: 2026-03-18
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 10s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 3s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-03-19
+
+---
+
+## Validation Audit 2026-03-19
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 8 |
+| Resolved | 8 |
+| Escalated | 0 |
+
+**Tests created:** 7 new files in `tests/phase-41/` (84 tests total)
+**Regression fixed:** `tests/phase-40/mcp-bridge-toolmap.test.mjs` updated for 22-entry TOOL_MAP and non-null Linear/Atlassian probeTools (16 tests)
