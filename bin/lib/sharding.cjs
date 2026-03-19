@@ -67,6 +67,19 @@ function extractObjective(content) {
 }
 
 /**
+ * Extract the plan-level acceptance criteria block (before <tasks>).
+ * Does NOT match per-task <acceptance_criteria> inside <task> blocks.
+ * @param {string} content - full PLAN.md content
+ * @returns {string} trimmed inner content, or '' if not found
+ */
+function extractPlanAcBlock(content) {
+  const tasksIdx = content.search(/<tasks[\s>]/i);
+  const bodyBefore = tasksIdx > -1 ? content.slice(0, tasksIdx) : content;
+  const match = bodyBefore.match(/<acceptance_criteria>([\s\S]*?)<\/acceptance_criteria>/i);
+  return match ? match[1].trim() : '';
+}
+
+/**
  * Derive plan prefix from a plan filename (e.g., '47-01-PLAN.md' -> '47-01').
  * @param {string} planFile - basename of plan file
  * @returns {string}
@@ -83,12 +96,22 @@ function derivePlanPrefix(planFile) {
  * @returns {string}
  */
 function buildTaskFileContent(params) {
-  const { taskNum, totalTasks, fm, objectiveText, taskName, taskFiles, readFirst, action, acceptanceCriteria, verify, done, mustHavesText } = params;
+  const { taskNum, totalTasks, fm, objectiveText, planAcBlock, taskName, taskFiles, acRefs, boundaries, readFirst, action, acceptanceCriteria, verify, done, mustHavesText } = params;
   const phase = fm.phase || '';
   const plan = fm.plan || '';
 
   // Derive a one-line version of the objective (first sentence)
   const objectiveOneLine = objectiveText.split(/\.\s+/)[0].replace(/\n/g, ' ').trim();
+
+  // Conditional: plan-level AC section (omitted for pre-Phase-48 plans)
+  const planAcSection = planAcBlock
+    ? '## Plan Acceptance Criteria (Reference)\n\nACs this task must help satisfy (see ac_refs above for which apply):\n\n' + planAcBlock + '\n\n'
+    : '';
+
+  // Conditional: boundaries section (omitted when absent)
+  const boundariesSection = boundaries
+    ? '## Task Boundaries (DO NOT CHANGE)\n\nThe following paths/sections must not be modified by this task:\n' + boundaries + '\n\n'
+    : '';
 
   return '---\n' +
     'phase: ' + phase + '\n' +
@@ -100,12 +123,15 @@ function buildTaskFileContent(params) {
     '**Phase:** ' + phase + '\n' +
     '**Plan:** ' + plan + ' \u2014 ' + objectiveOneLine + '\n' +
     '**Task:** ' + taskNum + ' of ' + totalTasks + '\n' +
-    '**Files this task modifies:** ' + taskFiles + '\n\n' +
+    '**Files this task modifies:** ' + taskFiles + '\n' +
+    '**ACs this task satisfies:** ' + (acRefs || '(none - pre-Phase-48 plan)') + '\n\n' +
     '## Plan Objective (Context)\n\n' +
     objectiveText + '\n\n' +
+    planAcSection +
     '## Read First\n\n' +
     'Before making any changes, read these files:\n' +
     readFirst + '\n\n' +
+    boundariesSection +
     '## Task Action\n\n' +
     action + '\n\n' +
     '## Acceptance Criteria\n\n' +
@@ -202,6 +228,9 @@ function shardPlan(planPath, options) {
   // Extract objective
   const objectiveText = extractObjective(content);
 
+  // Extract plan-level AC block (before <tasks>)
+  const planAcBlock = extractPlanAcBlock(content);
+
   // Extract all task blocks
   const taskBlocks = extractTaskBlocks(content);
 
@@ -223,6 +252,8 @@ function shardPlan(planPath, options) {
     const acceptanceCriteria = extractField(taskInner, 'acceptance_criteria');
     const verify = extractField(taskInner, 'verify');
     const done = extractField(taskInner, 'done');
+    const acRefs = extractField(taskInner, 'ac_refs');
+    const boundaries = extractField(taskInner, 'boundaries');
 
     const mustHavesText = buildMustHavesText(fm, taskFiles);
 
@@ -231,8 +262,11 @@ function shardPlan(planPath, options) {
       totalTasks: taskBlocks.length,
       fm: fm,
       objectiveText: objectiveText,
+      planAcBlock: planAcBlock,
       taskName: taskName,
       taskFiles: taskFiles,
+      acRefs: acRefs,
+      boundaries: boundaries,
       readFirst: readFirst,
       action: action,
       acceptanceCriteria: acceptanceCriteria,
@@ -280,5 +314,6 @@ module.exports = {
   extractField: extractField,
   hasTddTasks: hasTddTasks,
   extractObjective: extractObjective,
+  extractPlanAcBlock: extractPlanAcBlock,
   derivePlanPrefix: derivePlanPrefix,
 };
