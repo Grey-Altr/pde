@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v0.1
 milestone_name: milestone
 status: executing
-stopped_at: Completed 42-03-PLAN.md — wireframe-figma-context.md and handoff-figma-codeConnect.md sub-workflows, Figma hooks in wireframe.md and handoff.md
-last_updated: "2026-03-19T05:26:26.912Z"
+stopped_at: Completed 42-02-PLAN.md — FIG-01 Wave 0 tests and sync-figma.md workflow
+last_updated: "2026-03-19T05:26:55.613Z"
 last_activity: "2026-03-18 — Completed 39-02: /pde:mcp-status and /pde:connect commands"
 progress:
   total_phases: 7
@@ -51,6 +51,7 @@ Last activity: 2026-03-18 — Completed 39-02: /pde:mcp-status and /pde:connect 
 | Phase 42-figma-integration P01 | 10 | 2 tasks | 7 files |
 | Phase 42-figma-integration P04 | 2 | 2 tasks | 3 files |
 | Phase 42-figma-integration P03 | 2 | 2 tasks | 6 files |
+| Phase 42-figma-integration P02 | 2 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -79,6 +80,8 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 42-figma-integration]: Strict y/yes-only check (^y(es)?$ regex) applied to export confirmation gate — consistent with handoff-create-prs.md VAL-03 pattern
 - [Phase 42-figma-integration]: Tool availability probe (Step 2) placed before confirmation gate (Step 3) — prevents gate showing for unavailable generate_figma_design tool (claude-code#28718)
 - [Phase 42-figma-integration]: FIG-02/FIG-03 sub-workflows use bridge.call() adapter pattern — wireframe and handoff Figma hooks are non-blocking, degrade gracefully when Figma not connected or Code Connect map is empty
+- [Phase 42-figma-integration]: figmaColorToCss and mergeTokens are embedded inline in sync-figma.md (not shared modules) — preserves zero npm constraint, self-contained workflow pattern from Phase 40/41
+- [Phase 42-figma-integration]: sync-figma.md non-destructive merge: Figma is source of truth for  of tokens it exports; PDE-originated tokens are always preserved;  preserved from existing when incoming has none
 
 #### Phase 39-01 Decisions (2026-03-18)
 
@@ -117,6 +120,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-19T05:26:26.909Z
-Stopped at: Completed 42-03-PLAN.md — wireframe-figma-context.md and handoff-figma-codeConnect.md sub-workflows, Figma hooks in wireframe.md and handoff.md
+Last session: 2026-03-19T05:26:55.610Z
+Stopped at: Completed 42-02-PLAN.md — FIG-01 Wave 0 tests and sync-figma.md workflow
 Resume file: None
