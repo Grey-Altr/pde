@@ -197,7 +197,29 @@ Execute each wave in sequence. Within a wave: parallel if `PARALLELIZATION=true`
    TASK_TOTAL=$(echo "$TASK_FILES" | wc -l | tr -d ' ')
    ```
 
+   **Tracking initialization for sharded plans:**
+
+   ```bash
+   node "$CLAUDE_PLUGIN_ROOT/bin/pde-tools.cjs" tracking init \
+     --tasks-dir "$TASKS_DIR" \
+     --plan "$PLAN_PREFIX" \
+     --phase "$PHASE_SLUG" \
+     --total "$TASK_TOTAL"
+   ```
+
+   This creates workflow-status.md with all tasks set to TODO. If workflow-status.md already exists (resume after interruption), existing DONE/SKIPPED rows are preserved.
+
    For each task file in TASK_FILES, spawn sequentially (task 1 before task 2):
+
+   **Track task start:**
+
+   ```bash
+   TASK_NUM=$(echo "$TASK_FILE" | grep -oP '\d+' | sed 's/^0*//' | head -1)
+   node "$CLAUDE_PLUGIN_ROOT/bin/pde-tools.cjs" tracking set-status \
+     --tasks-dir "$TASKS_DIR" \
+     --task "$TASK_NUM" \
+     --status "IN_PROGRESS"
+   ```
 
    **Risk:high HALT for sharded plans (before spawn):**
    Before spawning each task executor, check the task file header for risk:
@@ -272,6 +294,20 @@ Execute each wave in sequence. Within a wave: parallel if `PARALLELIZATION=true`
    - Wait for user response before proceeding to next task file spawn.
    - If user describes issues: note them in the SUMMARY.md deviations section; do not re-spawn the task executor unless the issue is blocking.
 
+   **Track task completion:**
+
+   ```bash
+   TASK_FINAL_STATUS="DONE"
+   # If task was skipped (user chose to skip during HALT), set TASK_FINAL_STATUS="SKIPPED"
+   node "$CLAUDE_PLUGIN_ROOT/bin/pde-tools.cjs" tracking set-status \
+     --tasks-dir "$TASKS_DIR" \
+     --task "$TASK_NUM" \
+     --status "$TASK_FINAL_STATUS" \
+     --commit "$TASK_COMMIT_HASH"
+   ```
+
+   Where TASK_COMMIT_HASH comes from the executor return (already available in the existing flow from the commit step).
+
    Execute task spawns sequentially within a plan (task 1 before task 2), but plans within a wave still run parallel if `PARALLELIZATION=true`.
 
    **Sharded plan SUMMARY.md aggregation:**
@@ -281,6 +317,8 @@ Execute each wave in sequence. Within a wave: parallel if `PARALLELIZATION=true`
    - Records commit hashes from task executor returns
    - Notes any deviations reported by individual task executors
    - Updates ROADMAP.md plan progress via `roadmap update-plan-progress`
+
+   Include `$TASKS_DIR/workflow-status.md` in the plan completion commit alongside SUMMARY.md.
 
    **Mode B — Standard plan (no tasks directory):**
 
