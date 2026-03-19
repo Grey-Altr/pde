@@ -211,7 +211,7 @@ Plans:
 | 29-38 | v0.4 | 20/20 | Complete | 2026-03-18 |
 | 39-44 | v0.5 | 18/18 | Complete | 2026-03-19 |
 | 46. Methodology Foundation | 3/3 | Complete    | 2026-03-19 | - |
-| 47. Story-File Sharding | 2/2 | Complete   | 2026-03-19 | - |
+| 47. Story-File Sharding | 2/2 | Complete    | 2026-03-19 | - |
 | 48. AC-First Planning | v0.6 | 0/TBD | Not started | - |
 | 49. Reconciliation & HALT Checkpoints | v0.6 | 0/TBD | Not started | - |
 | 50. Readiness Gate | v0.6 | 0/TBD | Not started | - |
