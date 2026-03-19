@@ -99,7 +99,7 @@ Full details: .planning/milestones/v0.5-ROADMAP.md
 
 </details>
 
-### 🚧 v0.6 Advanced Workflow Methodology (In Progress)
+### v0.6 Advanced Workflow Methodology (In Progress)
 
 **Milestone Goal:** Import BMAD and PAUL methodology patterns into PDE's existing workflow engine to strengthen context constitution, story-file sharding, acceptance-criteria-first planning, post-execution reconciliation, implementation readiness gating, per-task progress tracking, and agent role specialization.
 
@@ -180,7 +180,10 @@ Plans:
   2. The readiness report validates consistency across PROJECT.md, REQUIREMENTS.md, and the current PLAN.md — flagging mismatches, missing required sections, and unmapped requirements
   3. Invoking /pde:execute-phase (or equivalent) when the last readiness result is FAIL causes the executor to halt with a clear explanation before any code is changed
   4. A CONCERNS result proceeds with a visible warning surfaced to the user; a PASS result proceeds normally with no friction
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 50-01-PLAN.md — Readiness library, command, workflow, pde-tools dispatch, and tests
+- [ ] 50-02-PLAN.md — Execute-phase readiness gate integration and smoke tests
 
 ### Phase 51: Workflow Tracking
 **Goal**: Task-level status is tracked in real time as execution proceeds, /pde:progress shows individual task status when inside an active phase with story files, and session breaks produce a HANDOFF.md capturing exact resume position
@@ -220,6 +223,6 @@ Plans:
 | 47. Story-File Sharding | 2/2 | Complete    | 2026-03-19 | - |
 | 48. AC-First Planning | 2/2 | Complete    | 2026-03-19 | - |
 | 49. Reconciliation & HALT Checkpoints | 2/2 | Complete    | 2026-03-19 | - |
-| 50. Readiness Gate | v0.6 | 0/TBD | Not started | - |
+| 50. Readiness Gate | v0.6 | 0/2 | Not started | - |
 | 51. Workflow Tracking | v0.6 | 0/TBD | Not started | - |
 | 52. Agent Enhancements | v0.6 | 0/TBD | Not started | - |
