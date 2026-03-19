@@ -1852,6 +1852,39 @@ Display: `Step 7/7: Root DESIGN-STATE and manifest updated.`
 
 ---
 
+### Pencil Token Sync (conditional — PEN-01)
+
+After generating the design system, check if Pencil is connected and automatically push tokens to the Pencil canvas.
+
+```bash
+PENCIL_CHECK=$(node --input-type=module <<'EOF'
+import { createRequire } from 'module';
+const req = createRequire(import.meta.url);
+const b = req(`${process.env.CLAUDE_PLUGIN_ROOT}/bin/lib/mcp-bridge.cjs`);
+const conn = b.loadConnections();
+const pen = conn.connections && conn.connections.pencil;
+const status = pen && pen.status || 'not_configured';
+process.stdout.write(JSON.stringify({ pencilConnected: status === 'connected' }));
+EOF
+)
+```
+
+Parse the JSON output. If `pencilConnected` is `true`:
+
+Display: `Pencil is connected. Pushing design tokens to Pencil canvas...`
+
+Follow @workflows/sync-pencil.md exactly. The sync-pencil workflow handles its own error recovery and degraded mode — if it fails, /pde:system continues to the Summary step normally.
+
+If `pencilConnected` is `false`:
+
+Display: `Pencil not connected — skipping token push. Run /pde:connect pencil to enable automatic Pencil sync.`
+
+Continue to Summary step.
+
+**Important:** This dispatch is non-blocking. If sync-pencil.md encounters any error, /pde:system must still display its Summary and complete normally. The Pencil sync is an enhancement, not a hard dependency.
+
+---
+
 ## Summary
 
 Display the final summary table (always the last output):
