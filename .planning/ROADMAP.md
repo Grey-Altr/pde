@@ -195,7 +195,10 @@ Plans:
   1. The token/cost meter pane shows a running estimate labeled "~est." that updates as events flow — never displays a bare number without the approximation label
   2. The cost estimate uses per-model pricing that differs visibly between models (e.g., Sonnet vs Haiku show different dollar amounts for the same estimated token count)
   3. The context window pane displays utilization as a percentage labeled "Orchestrator context (~estimated)" — never implies it covers subagent contexts
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 61-01-PLAN.md — Validation script + live token/cost meter (TOKN-01, TOKN-02)
+- [ ] 61-02-PLAN.md — Live context window pane + dashboard wiring (TOKN-03)
 
 ### Phase 62: Workflow Instrumentation
 **Goal**: The event stream includes semantic workflow events — phase start/complete, wave start/complete, plan start/complete, and commit events — emitted from exactly two workflow files via surgical manual calls, enriching the dashboard and session summaries without risking regressions in existing workflows.
@@ -205,7 +208,10 @@ Plans:
   1. Starting a phase execution produces a `phase_started` event in the NDJSON stream; completing it produces a `phase_complete` event — both visible in the session summary
   2. Each wave within a phase execution produces `wave_started` and `wave_complete` events with wave number, enabling the pipeline progress pane to display wave-aware progress
   3. All existing PDE workflow commands execute without error after instrumentation is added — regression confirmed by running at least one end-to-end workflow operation
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 61-01-PLAN.md — Validation script + live token/cost meter (TOKN-01, TOKN-02)
+- [ ] 61-02-PLAN.md — Live context window pane + dashboard wiring (TOKN-03)
 
 ## Progress
 
@@ -221,5 +227,5 @@ Plans:
 | 58. Event Infrastructure Core | 3/3 | Complete    | 2026-03-20 | - |
 | 59. tmux Dashboard & Dependency Detection | 3/3 | Complete    | 2026-03-20 | - |
 | 60. Session Archival | 2/2 | Complete    | 2026-03-20 | - |
-| 61. Token & Context Metering | v0.8 | 0/TBD | Not started | - |
+| 61. Token & Context Metering | v0.8 | 0/2 | Planned | - |
 | 62. Workflow Instrumentation | v0.8 | 0/TBD | Not started | - |
