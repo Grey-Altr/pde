@@ -38,12 +38,12 @@ Requirements for Pipeline Reliability & Validation milestone. Each maps to roadm
 
 ### Integration Verification
 
-- [ ] **INTG-01**: Declaration-time verification (Mode A) in plan-checker detects orphan exports, name mismatches, and @-reference file existence in plan declarations
+- [x] **INTG-01**: Declaration-time verification (Mode A) in plan-checker detects orphan exports, name mismatches, and @-reference file existence in plan declarations
 - [ ] **INTG-02**: Codebase-time verification (Mode B) in readiness gate verifies function signatures, module exports, and pde-tools.cjs command availability for files named in plan @-references
-- [ ] **INTG-03**: TOOL_MAP pre-registration allowlist (`# TOOL_MAP_PREREGISTERED` annotation) prevents false positives on intentionally pre-registered entries
+- [x] **INTG-03**: TOOL_MAP pre-registration allowlist (`# TOOL_MAP_PREREGISTERED` annotation) prevents false positives on intentionally pre-registered entries
 - [ ] **INTG-04**: Readiness gate gains B4 (file existence) and B5 (orphan export) check IDs — additive to existing A1-A11, B1-B3
-- [ ] **INTG-05**: Integration check scope is strictly bounded to files named in plan `<context>` @-references — never a full codebase scan
-- [ ] **INTG-06**: INTEGRATION-CHECK.md produced with check table (task, reference, check type, result)
+- [x] **INTG-05**: Integration check scope is strictly bounded to files named in plan `<context>` @-references — never a full codebase scan
+- [x] **INTG-06**: INTEGRATION-CHECK.md produced with check table (task, reference, check type, result)
 
 ### Tech Debt Closure
 
@@ -117,12 +117,12 @@ Requirements for Pipeline Reliability & Validation milestone. Each maps to roadm
 | EDGE-04 | Phase 56 | Complete |
 | EDGE-05 | Phase 56 | Complete |
 | EDGE-06 | Phase 56 | Complete |
-| INTG-01 | Phase 56 | Pending |
+| INTG-01 | Phase 56 | Complete |
 | INTG-02 | Phase 57 | Pending |
-| INTG-03 | Phase 56 | Pending |
+| INTG-03 | Phase 56 | Complete |
 | INTG-04 | Phase 57 | Pending |
-| INTG-05 | Phase 56 | Pending |
-| INTG-06 | Phase 56 | Pending |
+| INTG-05 | Phase 56 | Complete |
+| INTG-06 | Phase 56 | Complete |
 | WIRE-01 | Phase 57 | Pending |
 | WIRE-02 | Phase 57 | Pending |
 | WIRE-03 | Phase 57 | Pending |

@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.7
 milestone_name: Pipeline Reliability & Validation
 status: unknown
-stopped_at: Completed 56-02-PLAN.md (Edge Cases dimension + EDGE-06 AC approval gate)
-last_updated: "2026-03-20T04:33:30.009Z"
+stopped_at: Completed 56-03-PLAN.md (Integration Mode A dimension — Dimension 11)
+last_updated: "2026-03-20T04:36:42Z"
 progress:
   total_phases: 4
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 8
-  completed_plans: 7
+  completed_plans: 8
 ---
 
 # Project State
@@ -23,8 +23,8 @@ See: .planning/PROJECT.md (updated 2026-03-19)
 
 ## Current Position
 
-Phase: 56 (plan-checker-enhancement) — EXECUTING
-Plan: 1 of 3
+Phase: 56 (plan-checker-enhancement) — COMPLETE
+Plan: 3 of 3
 
 ## Performance Metrics
 
@@ -42,6 +42,7 @@ Plan: 1 of 3
 | Phase 55-research-validation-agent P02 | 3 | 1 tasks | 1 files |
 | Phase 56-plan-checker-enhancement P01 | 3 | 1 tasks | 1 files |
 | Phase 56 P02 | 3 minutes | 2 tasks | 4 files |
+| Phase 56 P03 | 2 minutes | 1 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -69,6 +70,8 @@ Key v0.7 architectural decisions (pre-execution):
 - [Phase 56]: DEPENDENCY-GAPS.md written on every Dimension 9 run (even PASS with gap_count: 0) for audit trail
 - [Phase 56]: EDGE-04 absolute: severity in issue_structure is always 'concerns' for edge case findings; HIGH/MEDIUM/LOW risk lives in finding.severity_level only — prevents revision loop deadlock
 - [Phase 56]: Pitfall 4 prevention: Step 11.5 placed OUTSIDE the revision loop — checker is never re-invoked after AC append, AC append is additive-only
+- [Phase 56-03]: TOOL_MAP_PREREGISTERED exclusion set is dynamically built from mcp-bridge.cjs annotation — never hardcoded — to prevent drift as new pre-registered entries are added
+- [Phase 56-03]: INTG-05 scope is strictly the @-reference allowlist: no codebase scan, no glob, no file outside the allowlist is touched
 
 ### Pending Todos
 
