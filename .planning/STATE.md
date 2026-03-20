@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.8
 milestone_name: Observability & Event Infrastructure
 status: unknown
-stopped_at: Completed 61-01-PLAN.md — validate-metering.sh 8-check Nyquist suite, live pane-token-meter.sh with per-model pricing, 8/8 PASS
-last_updated: "2026-03-20T19:20:38.730Z"
+stopped_at: Completed 62-01-PLAN.md
+last_updated: "2026-03-20T19:51:07.566Z"
 progress:
   total_phases: 5
   completed_phases: 4
-  total_plans: 10
-  completed_plans: 10
+  total_plans: 12
+  completed_plans: 11
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 61 — token-context-metering
+**Current focus:** Phase 62 — workflow-instrumentation
 
 ## Current Position
 
-Phase: 61 (token-context-metering) — COMPLETE
-Plan: 2 of 2
+Phase: 62 (workflow-instrumentation) — EXECUTING
+Plan: 1 of 2
 
 ## Performance Metrics
 
@@ -49,6 +49,7 @@ Plan: 2 of 2
 | Phase 60 P02 | 3min | 2 tasks | 2 files |
 | Phase 61 P02 | 3min | 2 tasks | 2 files |
 | Phase 61 P01 | 2min | 2 tasks | 2 files |
+| Phase 62 P01 | 5min | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -96,6 +97,8 @@ Key v0.8 architectural decisions (pre-execution):
 - [Phase 61-02]: pane-context-window.sh backward-compatible: no-arg invocation falls back to static display + sleep 60 (Phase 59 compat)
 - [Phase 61]: chars/4 heuristic proxy labeled ~est. per TOKN-01 — tokenx 1.3.0 vendoring deferred pending empirical validation
 - [Phase 61]: Inline PRICING table in pane-token-meter.sh — stable constants, avoids extra read; Node cost subprocess spawned every 5 events to avoid per-event overhead
+- [Phase 62]: Single-line event-emit in workflow markdown (not multi-line backslash) satisfies EVNT04-H grep static analysis check
+- [Phase 62]: Project root IS the GSD plugin directory; execute-phase.md and execute-plan.md live at PROJECT_ROOT/workflows/, not in ~/.claude/get-shit-done/workflows/
 
 ### Pending Todos
 
@@ -108,6 +111,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-20T19:17:39.456Z
-Stopped at: Completed 61-01-PLAN.md — validate-metering.sh 8-check Nyquist suite, live pane-token-meter.sh with per-model pricing, 8/8 PASS
+Last session: 2026-03-20T19:50:49.505Z
+Stopped at: Completed 62-01-PLAN.md
 Resume file: None
