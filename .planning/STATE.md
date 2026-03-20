@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.7
 milestone_name: Pipeline Reliability & Validation
 status: unknown
-stopped_at: Completed 57-02-PLAN.md (B4 and B5 structural checks in readiness.cjs)
-last_updated: "2026-03-20T05:28:14.384Z"
+stopped_at: Completed 57-03-PLAN.md (run_integration_checks in check-readiness.md)
+last_updated: "2026-03-20T05:33:10.080Z"
 progress:
   total_phases: 4
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 11
-  completed_plans: 10
+  completed_plans: 11
 ---
 
 # Project State
@@ -45,6 +45,7 @@ Plan: 3 of 3
 | Phase 56 P03 | 2 minutes | 1 tasks | 2 files |
 | Phase 57 P01 | 2 minutes | 2 tasks | 2 files |
 | Phase 57 P02 | 2 | 1 tasks | 1 files |
+| Phase 57 P03 | 3 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -79,6 +80,9 @@ Key v0.7 architectural decisions (pre-execution):
 - [Phase 57-01]: Stale RESEARCH-VALIDATION.md deleted before Step 5.7 detection when --research flag forces fresh RESEARCH.md — prevents skipping validation on stale artifact
 - [Phase 57]: B4 and B5 placed outside requirementsContent guard — only need planContent and cwd
 - [Phase 57]: B4/B5 severity is concerns not fail — missing files and orphan exports are non-blocking warnings
+- [Phase 57-03]: commands/check-readiness.md is pure delegation (Case 1) — no inline changes needed, step inherited automatically from workflow
+- [Phase 57-03]: All three copies of workflows/check-readiness.md synchronized (project + plugin cache + marketplace) to avoid Pitfall 1 (system copy used for /pde:check-readiness)
+- [Phase 57-03]: run_integration_checks severity mapping: only RESEARCH-VALIDATION FAIL maps to overall FAIL; DEPENDENCY-GAPS, EDGE-CASES, INTEGRATION-CHECK all map to CONCERNS at most; never-downgrade rule protects existing fail result
 
 ### Pending Todos
 
@@ -97,6 +101,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-20T05:28:14.381Z
-Stopped at: Completed 57-02-PLAN.md (B4 and B5 structural checks in readiness.cjs)
+Last session: 2026-03-20T05:33:10.077Z
+Stopped at: Completed 57-03-PLAN.md (run_integration_checks in check-readiness.md)
 Resume file: None
