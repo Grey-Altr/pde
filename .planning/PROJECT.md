@@ -56,6 +56,8 @@ Any user can go from idea to shipped product through a single platform that hand
 
 ### Active
 
+- Research validation agent with LLM claim extraction, three-tier classification, and three-state codebase verification — v0.7 (Phase 55)
+
 ## Current Milestone: v0.7 Pipeline Reliability & Validation
 
 **Goal:** Make PDE's research → plan → execute pipeline trustworthy by adding automated verification at every stage — validating research claims against the codebase, catching cross-phase dependency gaps, surfacing edge cases in plans, and closing accumulated tech debt.
@@ -154,4 +156,4 @@ Any user can go from idea to shipped product through a single platform that hand
 | Analyst persona interviews in new-project/new-milestone | Surfaces unspoken assumptions before planning begins | ✓ Good — structured briefs improve plan quality |
 
 ---
-*Last updated: 2026-03-19 after v0.7 milestone start*
+*Last updated: 2026-03-20 after Phase 55 (research-validation-agent) complete*
