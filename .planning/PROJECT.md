@@ -65,6 +65,7 @@ Any user can go from idea to shipped product through a single platform that hand
 - [ ] Auto-install check for tmux (detect missing, offer homebrew/apt install)
 - [ ] Persistent dashboard (stays open after operation finishes)
 - [x] Reviewable session history: structured summaries in `.planning/logs/`, raw event streams in `/tmp` — Phase 60
+- [x] Token/cost metering with chars/4 heuristic, per-model pricing, and context window utilization — all labeled as approximations — Phase 61
 - [ ] Future-proof event schema designed for extensibility beyond monitoring
 
 ### Out of Scope
