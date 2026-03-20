@@ -138,6 +138,7 @@ Full details: .planning/milestones/v0.7-ROADMAP.md
 - [x] **Phase 60: Session Archival** - Structured markdown session summaries in `.planning/logs/` at every session end (completed 2026-03-20)
 - [x] **Phase 61: Token & Context Metering** - Chars/4 estimation with per-model cost display and context utilization indicator (completed 2026-03-20)
 - [x] **Phase 62: Workflow Instrumentation** - Semantic phase/wave/plan events via surgical manual emits in 2 workflow files (completed 2026-03-20)
+- [ ] **Phase 63: Session Summary Plan Event Aggregation** - Add plan_started/plan_complete to archive-session.cjs PHASE_EVENT_TYPES and renderPhaseProgress()
 
 ## Phase Details
 
@@ -213,6 +214,19 @@ Plans:
 - [ ] 62-01-PLAN.md — Validation script + workflow instrumentation (execute-phase.md, execute-plan.md)
 - [ ] 62-02-PLAN.md — archive-session.cjs phase/wave event aggregation + session summary rendering
 
+### Phase 63: Session Summary Plan Event Aggregation
+**Goal**: Session summaries include plan_started/plan_complete events in the phase progress section, closing the last integration gap from the v0.8 audit.
+**Depends on**: Phase 62
+**Requirements**: EVNT-04 (gap closure)
+**Gap Closure**: Closes MISS-01 from v0.8 audit
+**Success Criteria** (what must be TRUE):
+  1. Running a PDE session that executes plans produces a session summary where plan_started/plan_complete events appear in the phase progress section
+  2. The PHASE_EVENT_TYPES Set in archive-session.cjs includes plan_started and plan_complete
+  3. The renderPhaseProgress() switch in archive-session.cjs handles plan_started and plan_complete cases
+**Plans**: 1 plan
+Plans:
+- [ ] 63-01-PLAN.md — Add plan event types to archive-session.cjs aggregation
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -228,4 +242,5 @@ Plans:
 | 59. tmux Dashboard & Dependency Detection | 3/3 | Complete    | 2026-03-20 | - |
 | 60. Session Archival | 2/2 | Complete    | 2026-03-20 | - |
 | 61. Token & Context Metering | 2/2 | Complete    | 2026-03-20 | - |
-| 62. Workflow Instrumentation | 2/2 | Complete   | 2026-03-20 | - |
+| 62. Workflow Instrumentation | 2/2 | Complete    | 2026-03-20 | - |
+| 63. Session Summary Plan Event Aggregation | 0/1 | Pending | - | - |
