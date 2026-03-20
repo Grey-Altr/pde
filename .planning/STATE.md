@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.8
 milestone_name: Observability & Event Infrastructure
 status: unknown
-stopped_at: Completed 60-02-PLAN.md — archive-session.cjs, hooks.json SessionEnd registration, validate-archival.sh 8/8 PASS
-last_updated: "2026-03-20T18:53:41.257Z"
+stopped_at: Completed 61-02-PLAN.md — pane-context-window.sh live implementation, monitor-dashboard.sh NDJSON patch
+last_updated: "2026-03-20T19:17:22.051Z"
 progress:
   total_phases: 5
-  completed_phases: 3
-  total_plans: 8
-  completed_plans: 8
+  completed_phases: 4
+  total_plans: 10
+  completed_plans: 10
 ---
 
 # Project State
@@ -19,11 +19,11 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 60 — session-archival
+**Current focus:** Phase 61 — token-context-metering
 
 ## Current Position
 
-Phase: 60 (session-archival) — EXECUTING
+Phase: 61 (token-context-metering) — COMPLETE
 Plan: 2 of 2
 
 ## Performance Metrics
@@ -47,6 +47,7 @@ Plan: 2 of 2
 | Phase 59 P03 | 4min | 2 tasks | 3 files |
 | Phase 60 P01 | 4min | 2 tasks | 4 files |
 | Phase 60 P02 | 3min | 2 tasks | 2 files |
+| Phase 61 P02 | 3min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -90,6 +91,8 @@ Key v0.8 architectural decisions (pre-execution):
 - [Phase 60]: cleanup-old-sessions.cjs runs after emit-event.cjs in SessionStart — ensures current session NDJSON file exists before age check runs
 - [Phase 60]: aggregateNdjson as named function — validate-archival.sh greps for this token to verify correct archive-session.cjs structure
 - [Phase 60]: SessionEnd hook chain: emit-event.cjs first (writes session_end to NDJSON), archive-session.cjs second (reads complete NDJSON) — order is critical for accurate event count
+- [Phase 61-02]: Context window size resolved once at pane startup via node -e (not per-event) — avoids subprocess overhead in tail loop
+- [Phase 61-02]: pane-context-window.sh backward-compatible: no-arg invocation falls back to static display + sleep 60 (Phase 59 compat)
 
 ### Pending Todos
 
@@ -102,6 +105,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-20T18:50:50.973Z
-Stopped at: Completed 60-02-PLAN.md — archive-session.cjs, hooks.json SessionEnd registration, validate-archival.sh 8/8 PASS
+Last session: 2026-03-20T19:17:06.389Z
+Stopped at: Completed 61-02-PLAN.md — pane-context-window.sh live implementation, monitor-dashboard.sh NDJSON patch
 Resume file: None
