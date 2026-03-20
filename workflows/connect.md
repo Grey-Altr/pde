@@ -15,7 +15,7 @@ Parse $ARGUMENTS to extract:
   ```
   Usage: /pde:connect <service>
 
-  Approved services: github, linear, figma, pencil, atlassian
+  Approved services: github, linear, figma, pencil, atlassian, stitch
 
   Run /pde:connect <service> to see auth instructions for that service.
   ```
@@ -272,6 +272,98 @@ If Pencil is not responding, ensure:
 ```
 
 Then proceed to Step 4 (which uses the "all other services" branch — no extra fields needed for Pencil).
+
+## 3.10. Verify Stitch API Key and Live Tool Names (Stitch only, --confirm present)
+
+If `--confirm` flag IS present AND `SERVICE_KEY` equals `stitch`:
+
+Before recording the connection, verify STITCH_API_KEY is set in the environment.
+
+Display:
+```
+Verifying Stitch API key...
+```
+
+Check for the STITCH_API_KEY environment variable. If `process.env.STITCH_API_KEY` is set and non-empty: display:
+```
+STITCH_API_KEY detected.
+```
+
+Then proceed to the **MCP-05 live tool name verification gate** below.
+
+If `STITCH_API_KEY` is NOT set or is empty: display the AUTH_INSTRUCTIONS for stitch (from mcp-bridge.cjs), followed by:
+```
+STITCH_API_KEY is not set in the current environment.
+
+Complete the setup steps above, then run: /pde:connect stitch --confirm
+
+Important: Add STITCH_API_KEY to your shell profile (~/.zshrc or ~/.bashrc) so it persists across sessions.
+Alternatively, add it to the "env" field in ~/.claude.json under mcpServers.stitch for GUI app compatibility.
+```
+
+Stop here. Do NOT proceed to Step 4.
+
+### MCP-05: Live Tool Name Verification Gate
+
+After STITCH_API_KEY is confirmed, run the live tool name verification before recording the connection.
+
+**Step A: Test the Stitch MCP server.**
+
+Run:
+```bash
+claude mcp test stitch
+```
+
+If the test fails or times out (15 seconds), display:
+```
+WARNING: Stitch MCP server did not respond to test. Tool names could not be verified.
+TOOL_MAP entries remain marked TOOL_MAP_VERIFY_REQUIRED.
+Proceeding with connection — live verification can be retried with /pde:connect stitch --confirm.
+```
+
+Then proceed to Step 4 (connection is recorded but tool names are unverified).
+
+**Step B: Compare live tool names against TOOL_MAP.**
+
+If `claude mcp test stitch` succeeds and returns a tool list, compare the returned tool names against all `stitch:*` entries in TOOL_MAP from mcp-bridge.cjs.
+
+For each stitch:* TOOL_MAP entry marked with `TOOL_MAP_VERIFY_REQUIRED`:
+1. Extract the raw MCP tool name (the value, e.g., `mcp__stitch__list_projects`)
+2. Strip the `mcp__stitch__` prefix to get the base tool name (e.g., `list_projects`)
+3. Check if that base tool name appears in the live server's tool list
+
+Display a comparison table:
+```
+MCP-05 Live Tool Name Verification:
+
+| Canonical Name              | Expected Raw Name                        | Live | Status   |
+|-----------------------------|------------------------------------------|------|----------|
+| stitch:probe                | mcp__stitch__list_projects               | YES  | VERIFIED |
+| stitch:generate-screen      | mcp__stitch__generate_screen_from_text   | YES  | VERIFIED |
+| stitch:fetch-screen-code    | mcp__stitch__fetch_screen_code           | NO   | WARNING  |
+...
+```
+
+For each discrepancy (tool not found in live server), display an explicit warning:
+```
+WARNING: TOOL_MAP entry 'stitch:fetch-screen-code' expects 'mcp__stitch__fetch_screen_code'
+but this tool was NOT found on the live server. Check if the tool name has changed.
+Possible alternative: [list any similar tool names from live server, e.g., 'get_screen_code']
+```
+
+**Step C: Update TOOL_MAP markers in source.**
+
+If ALL stitch:* entries are verified against the live server:
+- Update each `// TOOL_MAP_VERIFY_REQUIRED` comment to `// TOOL_MAP_VERIFIED` in bin/lib/mcp-bridge.cjs
+- Display: "All 10 stitch:* TOOL_MAP entries verified against live server. Markers updated to TOOL_MAP_VERIFIED."
+
+If ANY entries have discrepancies:
+- Leave ALL markers as `TOOL_MAP_VERIFY_REQUIRED` (do not partially update)
+- Display: "N of 10 entries have discrepancies. All markers remain TOOL_MAP_VERIFY_REQUIRED. Resolve discrepancies and re-run /pde:connect stitch --confirm."
+
+Regardless of verification outcome, proceed to Step 4 to record the connection.
+
+Then proceed to Step 4 (which uses the "all other services" branch — no extra fields needed for Stitch).
 
 ## 4. Confirm Connection (--confirm present)
 
