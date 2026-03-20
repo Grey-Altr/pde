@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.8
 milestone_name: Observability & Event Infrastructure
 status: unknown
-stopped_at: Completed 62-02-PLAN.md
-last_updated: "2026-03-20T19:54:22.777Z"
+stopped_at: Completed 63-01-PLAN.md
+last_updated: "2026-03-20T20:32:08.958Z"
 progress:
-  total_phases: 5
-  completed_phases: 5
-  total_plans: 12
-  completed_plans: 12
+  total_phases: 6
+  completed_phases: 6
+  total_plans: 13
+  completed_plans: 13
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 62 — workflow-instrumentation
+**Current focus:** Phase 63 — session-summary-plan-events
 
 ## Current Position
 
-Phase: 62 (workflow-instrumentation) — EXECUTING
-Plan: 1 of 2
+Phase: 63 (session-summary-plan-events) — EXECUTING
+Plan: 1 of 1
 
 ## Performance Metrics
 
@@ -51,6 +51,7 @@ Plan: 1 of 2
 | Phase 61 P01 | 2min | 2 tasks | 2 files |
 | Phase 62 P01 | 5min | 3 tasks | 3 files |
 | Phase 62 P02 | 2min | 1 tasks | 1 files |
+| Phase 63 P01 | 1min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -102,6 +103,8 @@ Key v0.8 architectural decisions (pre-execution):
 - [Phase 62]: Project root IS the GSD plugin directory; execute-phase.md and execute-plan.md live at PROJECT_ROOT/workflows/, not in ~/.claude/get-shit-done/workflows/
 - [Phase 62]: renderPhaseProgress returns static fallback string when phaseEvents empty — backward compat preserved for sessions without workflow activity
 - [Phase 62]: PHASE_EVENT_TYPES defined as Set inside aggregateNdjson — scoped to function, no module-level state
+- [Phase 63]: 4-space markdown indent for plan entries encodes phase > wave > plan hierarchy visually
+- [Phase 63]: ev.plan_id accessor (not plan_name/plan_number) matches plan event schema from execute-plan.md
 
 ### Pending Todos
 
@@ -114,6 +117,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-20T19:54:22.774Z
-Stopped at: Completed 62-02-PLAN.md
+Last session: 2026-03-20T20:32:08.955Z
+Stopped at: Completed 63-01-PLAN.md
 Resume file: None

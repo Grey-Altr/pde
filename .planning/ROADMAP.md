@@ -138,7 +138,7 @@ Full details: .planning/milestones/v0.7-ROADMAP.md
 - [x] **Phase 60: Session Archival** - Structured markdown session summaries in `.planning/logs/` at every session end (completed 2026-03-20)
 - [x] **Phase 61: Token & Context Metering** - Chars/4 estimation with per-model cost display and context utilization indicator (completed 2026-03-20)
 - [x] **Phase 62: Workflow Instrumentation** - Semantic phase/wave/plan events via surgical manual emits in 2 workflow files (completed 2026-03-20)
-- [ ] **Phase 63: Session Summary Plan Event Aggregation** - Add plan_started/plan_complete to archive-session.cjs PHASE_EVENT_TYPES and renderPhaseProgress()
+- [x] **Phase 63: Session Summary Plan Event Aggregation** - Add plan_started/plan_complete to archive-session.cjs PHASE_EVENT_TYPES and renderPhaseProgress() (completed 2026-03-20)
 
 ## Phase Details
 
@@ -243,4 +243,4 @@ Plans:
 | 60. Session Archival | 2/2 | Complete    | 2026-03-20 | - |
 | 61. Token & Context Metering | 2/2 | Complete    | 2026-03-20 | - |
 | 62. Workflow Instrumentation | 2/2 | Complete    | 2026-03-20 | - |
-| 63. Session Summary Plan Event Aggregation | 0/1 | Pending | - | - |
+| 63. Session Summary Plan Event Aggregation | 1/1 | Complete   | 2026-03-20 | - |

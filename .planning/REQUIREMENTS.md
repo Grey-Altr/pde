@@ -83,7 +83,7 @@ Requirements for v0.8 Observability & Event Infrastructure. Each maps to roadmap
 | EVNT-01 | Phase 58 | Complete |
 | EVNT-02 | Phase 58 | Complete |
 | EVNT-03 | Phase 58 | Complete |
-| EVNT-04 | Phase 63 (gap closure) | Pending |
+| EVNT-04 | Phase 63 (gap closure) | Complete |
 | EVNT-05 | Phase 58 | Complete |
 | EVNT-06 | Phase 58 | Complete |
 | TMUX-01 | Phase 59 | Complete |
