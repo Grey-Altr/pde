@@ -25,6 +25,7 @@ function aggregateNdjson(ndjsonPath) {
       eventCount: 0,
       agentCount: 0,
       changedFiles: 0,
+      phaseEvents: [],
       ndjsonMissing: true,
     };
   }
@@ -32,12 +33,14 @@ function aggregateNdjson(ndjsonPath) {
   let eventCount = 0;
   let agentCount = 0;
   const changedFiles = new Set();
+  const PHASE_EVENT_TYPES = new Set(['phase_started', 'phase_complete', 'wave_started', 'wave_complete']);
+  const phaseEvents = [];
 
   let content;
   try {
     content = fs.readFileSync(ndjsonPath, 'utf-8');
   } catch {
-    return { eventCount: 0, agentCount: 0, changedFiles: 0, ndjsonMissing: true };
+    return { eventCount: 0, agentCount: 0, changedFiles: 0, phaseEvents: [], ndjsonMissing: true };
   }
 
   const lines = content.trim().split('\n').filter(Boolean);
@@ -50,9 +53,10 @@ function aggregateNdjson(ndjsonPath) {
 
     if (ev.event_type === 'subagent_start') agentCount++;
     if (ev.event_type === 'file_changed' && ev.file_path) changedFiles.add(ev.file_path);
+    if (PHASE_EVENT_TYPES.has(ev.event_type)) phaseEvents.push(ev);
   }
 
-  return { eventCount, agentCount, changedFiles: changedFiles.size, ndjsonMissing: false };
+  return { eventCount, agentCount, changedFiles: changedFiles.size, phaseEvents, ndjsonMissing: false };
 }
 
 // ─── Git commit count ─────────────────────────────────────────────────────────
@@ -83,6 +87,24 @@ function computeDuration(startTs, endTs) {
   const minutes = Math.floor(ms / 60000);
   const seconds = Math.floor((ms % 60000) / 1000);
   return minutes > 0 ? `${minutes}m ${seconds}s` : `${seconds}s`;
+}
+
+// ─── Phase/Plan progress rendering ───────────────────────────────────────────
+
+function renderPhaseProgress(phaseEvents) {
+  if (!phaseEvents || phaseEvents.length === 0) {
+    return 'No phase/plan events recorded this session.';
+  }
+  return phaseEvents.map(ev => {
+    const ts = ev.ts ? ev.ts.slice(11, 19) : '??:??:??';
+    switch (ev.event_type) {
+      case 'phase_started':  return `- [${ts}] Phase started: ${ev.phase_name || ev.phase_number || '?'}`;
+      case 'phase_complete': return `- [${ts}] Phase complete: ${ev.phase_name || ev.phase_number || '?'}`;
+      case 'wave_started':   return `  - [${ts}] Wave ${ev.wave_number || '?'} started`;
+      case 'wave_complete':  return `  - [${ts}] Wave ${ev.wave_number || '?'} complete`;
+      default: return null;
+    }
+  }).filter(Boolean).join('\n');
 }
 
 // ─── Markdown generation ──────────────────────────────────────────────────────
@@ -121,7 +143,7 @@ function writeSummary(projectRoot, sessionId, sessionEndTs, duration, metrics, c
 
 ## Phase / Plan Progress
 
-No phase/plan events recorded this session.
+${renderPhaseProgress(metrics.phaseEvents)}
 
 ## Notes
 
