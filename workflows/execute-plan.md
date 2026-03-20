@@ -52,6 +52,10 @@ Present plan identification, wait for confirmation.
 PLAN_START_TIME=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 PLAN_START_EPOCH=$(date +%s)
 ```
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" event-emit plan_started '{"plan_id":"'"${PHASE_NUMBER}-${PLAN_NUMBER}"'"}' 2>/dev/null || true
+```
 </step>
 
 <step name="parse_segments">
@@ -395,6 +399,10 @@ One-liner SUBSTANTIVE: "JWT auth with refresh rotation using jose library" not "
 Include: duration, start/end times, task count, file count.
 
 Next: more plans → "Ready for {next-plan}" | last → "Phase complete, ready for transition".
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" event-emit plan_complete '{"plan_id":"'"${PHASE_NUMBER}-${PLAN_NUMBER}"'"}' 2>/dev/null || true
+```
 </step>
 
 <step name="update_current_position">
