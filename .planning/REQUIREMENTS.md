@@ -19,10 +19,10 @@ Requirements for v0.8 Observability & Event Infrastructure. Each maps to roadmap
 ### tmux Dashboard
 
 - [x] **TMUX-01**: `/pde:monitor` command launches a persistent tmux session with 6-pane layout
-- [ ] **TMUX-02**: Agent activity pane shows real-time agent spawn/complete events with agent type and status
-- [ ] **TMUX-03**: Pipeline progress pane shows phase/plan/task completion with wave-aware progress indicators
-- [ ] **TMUX-04**: File changes pane shows files created/modified in real-time from event stream
-- [ ] **TMUX-05**: Log stream pane shows structured event log with severity filtering
+- [x] **TMUX-02**: Agent activity pane shows real-time agent spawn/complete events with agent type and status
+- [x] **TMUX-03**: Pipeline progress pane shows phase/plan/task completion with wave-aware progress indicators
+- [x] **TMUX-04**: File changes pane shows files created/modified in real-time from event stream
+- [x] **TMUX-05**: Log stream pane shows structured event log with severity filtering
 - [ ] **TMUX-06**: Token/cost meter pane shows running token estimate (~est.) and approximate cost per model
 - [ ] **TMUX-07**: Context window pane shows orchestrator context utilization indicator labeled as estimate
 - [x] **TMUX-08**: Dashboard persists after PDE operation completes (user closes manually)
@@ -87,10 +87,10 @@ Requirements for v0.8 Observability & Event Infrastructure. Each maps to roadmap
 | EVNT-05 | Phase 58 | Complete |
 | EVNT-06 | Phase 58 | Complete |
 | TMUX-01 | Phase 59 | Complete |
-| TMUX-02 | Phase 59 | Pending |
-| TMUX-03 | Phase 59 | Pending |
-| TMUX-04 | Phase 59 | Pending |
-| TMUX-05 | Phase 59 | Pending |
+| TMUX-02 | Phase 59 | Complete |
+| TMUX-03 | Phase 59 | Complete |
+| TMUX-04 | Phase 59 | Complete |
+| TMUX-05 | Phase 59 | Complete |
 | TMUX-06 | Phase 59 | Pending |
 | TMUX-07 | Phase 59 | Pending |
 | TMUX-08 | Phase 59 | Complete |
