@@ -169,7 +169,7 @@ Full details: .planning/milestones/v0.8-ROADMAP.md
   4. A grep of all 13 skill workflows confirms each has the hasStitchWireframes pass-through in its designCoverage write block
 **Plans**: 1 plan
 Plans:
-- [ ] 64-01-PLAN.md — Extend designCoverage to 14-field schema across all workflows, templates, and fixtures
+- [x] 64-01-PLAN.md — Extend designCoverage to 14-field schema across all workflows, templates, and fixtures
 
 ### Phase 65: MCP Bridge + Quota Infrastructure
 **Goal**: Users can connect Stitch to PDE with an API key, the bridge recognizes Stitch as the 6th approved server, and quota usage is tracked and surfaced in progress/health commands
@@ -181,9 +181,10 @@ Plans:
   3. MCP-05 live tool name verification gate runs at bridge registration time — TOOL_MAP entries are finalized only after confirmed against the live server, and any discrepancy causes an explicit warning before commit
   4. `/pde:progress` and `/pde:health` display current Standard and Experimental generation counts against the monthly limits, with a warning when either counter exceeds 80% of its limit
   5. When Stitch quota is exhausted, any Stitch-dependent command falls back to Claude HTML/CSS generation automatically with a clear user-facing message (not a hard error)
-**Plans**: 1 plan
+**Plans**: 2 plans
 Plans:
-- [ ] 64-01-PLAN.md — Extend designCoverage to 14-field schema across all workflows, templates, and fixtures
+- [ ] 65-01-PLAN.md — Register Stitch in APPROVED_SERVERS, TOOL_MAP, AUTH_INSTRUCTIONS, and connect.md Step 3.10
+- [ ] 65-02-PLAN.md — Implement quota tracking functions and surface in progress/health workflows
 
 ### Phase 66: Wireframe + Mockup Stitch Integration
 **Goal**: Users can run /pde:wireframe --use-stitch and /pde:mockup --use-stitch to generate screens through Stitch, with data persisted locally, annotations injected, consent obtained before every data transmission, and cached artifacts reused by downstream stages
@@ -196,9 +197,7 @@ Plans:
   4. Running `/pde:mockup --use-stitch` follows the same generate-fetch-persist-annotate pipeline and produces STH-{slug}-hifi.html with the same annotation and manifest pattern
   5. When Stitch MCP is unavailable or returns a failure within 10 seconds, the command falls back to Claude HTML/CSS generation with a user-visible message — no retry loops, no hard failure
   6. Running `/pde:critique` or `/pde:handoff` after a Stitch wireframe run reads the locally-cached STH artifacts rather than re-fetching from Stitch
-**Plans**: 1 plan
-Plans:
-- [ ] 64-01-PLAN.md — Extend designCoverage to 14-field schema across all workflows, templates, and fixtures
+**Plans**: [To be planned]
 
 ### Phase 67: Ideation Visual Divergence
 **Goal**: Users running /pde:ideate --diverge receive Stitch-generated visual variant images alongside text concept descriptions, with quota checked before the batch starts and independent variants that are visually distinct from each other
@@ -210,9 +209,7 @@ Plans:
   3. Each visual variant is generated from its text prompt alone with no shared design DNA between variants — running a color extraction on 3 variant images shows meaningfully different palettes
   4. When fewer Experimental generations remain than the batch requires, the command warns the user, falls back to text-only diverge for the remaining concepts, and does not abort the entire ideation run
   5. Variant images are surfaced in the convergence/scoring phase output so users can compare visuals when selecting a direction
-**Plans**: 1 plan
-Plans:
-- [ ] 64-01-PLAN.md — Extend designCoverage to 14-field schema across all workflows, templates, and fixtures
+**Plans**: [To be planned]
 
 ### Phase 68: Critique Stitch Comparison
 **Goal**: /pde:critique detects Stitch-sourced artifacts and applies a Stitch-aware evaluation mode that produces meaningful design feedback rather than structural false positives from DTCG token incompatibility
@@ -223,9 +220,7 @@ Plans:
   2. The CRT report for a Stitch-sourced artifact contains zero DTCG token-format consistency findings (hardcoded hex values from Stitch are not flagged as token violations)
   3. The Stitch Comparison section shows a per-screen delta report listing: token compliance percentage, properties that deviate from the design system, novel patterns found in Stitch output, and patterns present in the design system but absent in Stitch output
   4. Claude reads the STH-{slug}.png screenshot file using multimodal image analysis as part of the critique, and the report references visual observations that could only be derived from the image (not just HTML source)
-**Plans**: 1 plan
-Plans:
-- [ ] 64-01-PLAN.md — Extend designCoverage to 14-field schema across all workflows, templates, and fixtures
+**Plans**: [To be planned]
 
 ### Phase 69: Handoff Pattern Extraction
 **Goal**: /pde:handoff detects Stitch-sourced artifacts, extracts component patterns from annotated HTML, converts hex colors to OKLCH, and produces TypeScript interfaces that integrate with the existing handoff spec
@@ -236,9 +231,7 @@ Plans:
   2. When stitch_annotated is absent or false, `/pde:handoff` refuses to extract Stitch patterns and prints a clear message telling the user to run wireframe with --use-stitch first (annotation injection is a hard prerequisite)
   3. Color values extracted from Stitch HTML are converted to OKLCH format in the TypeScript interfaces using an inline hex-to-OKLCH function (no npm dependency added)
   4. Stitch-only components not found in WFR annotations are included in HND-types.ts with a "verify before implementation" label and a human decision prompt, rather than being silently omitted or accepted as authoritative
-**Plans**: 1 plan
-Plans:
-- [ ] 64-01-PLAN.md — Extend designCoverage to 14-field schema across all workflows, templates, and fixtures
+**Plans**: [To be planned]
 
 ## Progress
 
@@ -253,7 +246,7 @@ Plans:
 | 54-57 | v0.7 | 11/11 | Complete | 2026-03-20 |
 | 58-63 | v0.8 | 13/13 | Complete | 2026-03-20 |
 | 64 | v0.9 | Complete    | 2026-03-20 | 2026-03-20 |
-| 65 | v0.9 | 0/TBD | Not started | - |
+| 65 | v0.9 | 0/2 | Not started | - |
 | 66 | v0.9 | 0/TBD | Not started | - |
 | 67 | v0.9 | 0/TBD | Not started | - |
 | 68 | v0.9 | 0/TBD | Not started | - |
