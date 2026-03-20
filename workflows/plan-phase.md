@@ -409,6 +409,7 @@ Planner prompt:
 
 <files_to_read>
 - .planning/project-context.md (Project context — compact project baseline, if exists)
+- references/workflow-methodology.md (Methodology patterns — BMAD/PAUL-derived conventions, if exists)
 - {state_path} (Project State)
 - {roadmap_path} (Roadmap)
 - {requirements_path} (Requirements)

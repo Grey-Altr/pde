@@ -48,11 +48,11 @@ function parseStatusTable(content) {
  * New/unset tasks default to TODO.
  *
  * @param {string} tasksDir - directory where workflow-status.md will be written
- * @param {{ phase: string, plan: string, total: number }} opts
+ * @param {{ phase: string, plan: string, total: number, taskNames?: string[] }} opts
  * @returns {{ initialized: boolean, total: number, preserved: number }}
  */
 function initWorkflowStatus(tasksDir, opts) {
-  const { phase, plan, total } = opts;
+  const { phase, plan, total, taskNames } = opts;
   const statusPath = path.join(tasksDir, 'workflow-status.md');
   const now = new Date().toISOString();
 
@@ -78,7 +78,8 @@ function initWorkflowStatus(tasksDir, opts) {
       const t = preservedMap.get(i);
       rows.push(`| ${t.num} | ${t.name} | ${t.status} | ${t.commit} | ${t.updated} |`);
     } else {
-      rows.push(`| ${i} | Task ${i} | TODO | — | — |`);
+      const name = taskNames && taskNames[i - 1] ? taskNames[i - 1].replace(/\|/g, '-').slice(0, 40) : `Task ${i}`;
+      rows.push(`| ${i} | ${name} | TODO | — | — |`);
     }
   }
 
@@ -288,7 +289,7 @@ function parseFlags(args) {
 /**
  * CLI: tracking init
  *
- * Args: --tasks-dir <path> --plan <plan> --phase <phase> --total <n>
+ * Args: --tasks-dir <path> --plan <plan> --phase <phase> --total <n> [--names <pipe-separated-names>]
  */
 function cmdTrackingInit(cwd, args, raw) {
   const flags = parseFlags(args);
@@ -298,10 +299,11 @@ function cmdTrackingInit(cwd, args, raw) {
   const phase = flags['phase'] || '';
   const plan = flags['plan'] || '';
   const total = parseInt(flags['total'] || '0', 10);
+  const taskNames = flags['names'] ? flags['names'].split('|') : undefined;
 
   if (!total) { error('tracking init: --total is required'); }
 
-  const result = initWorkflowStatus(tasksDir, { phase, plan, total });
+  const result = initWorkflowStatus(tasksDir, { phase, plan, total, taskNames });
   output(result, raw);
 }
 

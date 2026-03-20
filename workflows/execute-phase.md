@@ -194,17 +194,27 @@ Execute each wave in sequence. Within a wave: parallel if `PARALLELIZATION=true`
 
    ```bash
    TASK_FILES=$(ls "${TASKS_DIR}"/task-*.md 2>/dev/null | sort)
-   TASK_TOTAL=$(echo "$TASK_FILES" | wc -l | tr -d ' ')
+   if [ -z "$TASK_FILES" ]; then TASK_TOTAL=0; else TASK_TOTAL=$(echo "$TASK_FILES" | wc -l | tr -d ' '); fi
    ```
 
    **Tracking initialization for sharded plans:**
 
    ```bash
-   node "$CLAUDE_PLUGIN_ROOT/bin/pde-tools.cjs" tracking init \
+   # Extract task names from task file H1 headings
+   TASK_NAME_LIST=""
+   if [ "$TASK_TOTAL" -gt 0 ]; then
+     for TASK_FILE in $TASK_FILES; do
+       TNAME=$(grep "^# Task [0-9]*:" "$TASK_FILE" | sed 's/^# Task [0-9]*: //' | head -1)
+       if [ -n "$TASK_NAME_LIST" ]; then TASK_NAME_LIST="${TASK_NAME_LIST}|${TNAME}"; else TASK_NAME_LIST="$TNAME"; fi
+     done
+   fi
+
+   [ "$TASK_TOTAL" -gt 0 ] && node "$CLAUDE_PLUGIN_ROOT/bin/pde-tools.cjs" tracking init \
      --tasks-dir "$TASKS_DIR" \
      --plan "$PLAN_PREFIX" \
      --phase "$PHASE_SLUG" \
-     --total "$TASK_TOTAL"
+     --total "$TASK_TOTAL" \
+     --names "$TASK_NAME_LIST"
    ```
 
    This creates workflow-status.md with all tasks set to TODO. If workflow-status.md already exists (resume after interruption), existing DONE/SKIPPED rows are preserved.
