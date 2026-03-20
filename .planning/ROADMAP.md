@@ -182,7 +182,10 @@ Plans:
   2. Each summary file includes: session duration, event count, agents spawned, commits made, and phase/plan progress achieved during the session
   3. Starting a new PDE session when NDJSON files older than 7 days exist in `/tmp` removes those files before the session begins
   4. Raw NDJSON event stream files in `/tmp` are accessible immediately after a session for manual debugging with standard tools (`cat`, `jq`, `grep`)
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 60-01-PLAN.md — Validation script, session_start_ts persistence, cleanup-old-sessions.cjs, hooks.json SessionStart
+- [ ] 60-02-PLAN.md — archive-session.cjs NDJSON aggregation + markdown summary, hooks.json SessionEnd
 
 ### Phase 61: Token & Context Metering
 **Goal**: The dashboard token/cost meter and context window panes display running estimates clearly labeled as approximations, using the chars/4 heuristic against the live event stream and per-model pricing from the existing model-profiles configuration.
@@ -217,6 +220,6 @@ Plans:
 | 54-57 | v0.7 | 11/11 | Complete | 2026-03-20 |
 | 58. Event Infrastructure Core | 3/3 | Complete    | 2026-03-20 | - |
 | 59. tmux Dashboard & Dependency Detection | 3/3 | Complete    | 2026-03-20 | - |
-| 60. Session Archival | v0.8 | 0/TBD | Not started | - |
+| 60. Session Archival | v0.8 | 0/2 | Not started | - |
 | 61. Token & Context Metering | v0.8 | 0/TBD | Not started | - |
 | 62. Workflow Instrumentation | v0.8 | 0/TBD | Not started | - |
