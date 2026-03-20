@@ -548,3 +548,514 @@ Stitch Experimental quota exhausted. Ideation visual divergence will use text-on
 
 **Research date:** 2026-03-20
 **Valid until:** 2026-04-20 (30 days — stable infrastructure, but Stitch is actively developed; quota limits could change with paid tiers)
+
+---
+
+## Deep Dive Findings
+
+*Added 2026-03-20 — Deep investigation of all 5 areas requested in checkpoint response.*
+
+---
+
+### Area 1: Stitch MCP Tool Surface — Complete Verified Inventory
+
+#### The Two-Layer Architecture
+
+The `@_davideast/stitch-mcp` proxy exposes a **two-layer tool surface**:
+
+1. **Virtual/custom tools** (proxy-defined, higher-level wrappers combining multiple upstream API calls)
+2. **Upstream Stitch MCP tools** (forwarded directly from the official Stitch MCP backend)
+
+This explains the `get_screen_code` vs `fetch_screen_code` discrepancy: `get_screen_code` is a **virtual tool** in the davideast proxy; `fetch_screen_code` is the **upstream official tool name**.
+
+#### Virtual Tools (davideast proxy only)
+
+These 3 tools are defined by the proxy and do NOT exist in the official Stitch MCP API:
+
+| Tool Name | Parameters | Purpose |
+|---|---|---|
+| `build_site` | `projectId` (string, required), `routes` (array of `{screenId, route}` objects) | Builds a multi-page site by mapping screens to routes; returns HTML for each page |
+| `get_screen_code` | project/screen identifiers | Wrapper around `fetch_screen_code` — retrieves screen HTML |
+| `get_screen_image` | project/screen identifiers | Wrapper around `fetch_screen_image` — retrieves screenshot as base64 |
+
+**Confidence: HIGH** — Source: github.com/davideast/stitch-mcp README (fetched directly)
+
+#### Upstream Official Tool Names (Kargatharaakash / official Stitch API)
+
+These 9 tools represent the official Stitch MCP API surface. The Kargatharaakash implementation forwards them without wrapping:
+
+| Tool Name | Purpose | Confidence |
+|---|---|---|
+| `list_projects` | Lists all Stitch projects | HIGH (both Kargatharaakash and davideast proxy expose this as probe tool) |
+| `get_project` | Gets details of a specific project | MEDIUM (Kargatharaakash repo) |
+| `create_project` | Creates a new project | MEDIUM (Kargatharaakash repo) |
+| `list_screens` | Lists screens in a project (has state-sync bug) | HIGH (confirmed by bug reports) |
+| `get_screen` | Gets metadata for a specific screen | MEDIUM (Kargatharaakash repo) |
+| `generate_screen_from_text` | Generates a new screen from a text prompt | HIGH (multiple sources, takes 2-10 min) |
+| `fetch_screen_code` | Downloads the raw HTML/frontend code of a screen | MEDIUM (Kargatharaakash repo; `get_screen_code` is proxy alias) |
+| `fetch_screen_image` | Downloads high-res screenshot of a screen | MEDIUM (Kargatharaakash; `get_screen_image` is proxy alias) |
+| `extract_design_context` | Scans a screen to extract Design DNA (fonts, colors, layouts) | MEDIUM (Kargatharaakash repo) |
+
+**Confidence: MEDIUM** — Source: github.com/Kargatharaakash/stitch-mcp README (fetched directly)
+
+#### `get_screen_code` vs `fetch_screen_code` — Resolution
+
+**Evidence summary:**
+
+| Source | Tool Name Used | Type |
+|---|---|---|
+| davideast proxy (README) | `get_screen_code` | Virtual wrapper in proxy |
+| Kargatharaakash/stitch-mcp | `fetch_screen_code` | Official upstream name |
+| gemini-cli-extensions/stitch | `fetch_screen_code` | Official upstream name |
+| google-labs-code/stitch-sdk | `get_html` (SDK method, not MCP tool name) | SDK abstraction |
+
+**Verdict (MEDIUM confidence):** `fetch_screen_code` is the official Stitch MCP tool name. `get_screen_code` is a proxy wrapper added by davideast. The PDE TOOL_MAP should use `mcp__stitch__fetch_screen_code` as the raw name for `stitch:fetch-screen-code`. However, when the proxy is used (which PDE does), **both names may be available simultaneously** since the proxy forwards upstream tools AND adds its virtual tools. MCP-05 live gate must confirm which name Claude Code sees at runtime.
+
+#### `generate_screen_from_text` — modelId Parameter
+
+The `generate_screen_from_text` tool accepts a `modelId` parameter that determines whether it counts as Standard or Experimental quota:
+
+| modelId Value | Quota Type | Monthly Limit |
+|---|---|---|
+| `"GEMINI_3_FLASH"` (default) | Standard | 350 |
+| `"GEMINI_3_PRO"` | Experimental | 50 |
+
+**Confidence: MEDIUM** — Source: google-labs-code/stitch-sdk README + search results confirming these two model values
+
+**Implementation note:** The `modelId` parameter is how PDE should distinguish quota types. When calling `stitch:generate-screen`, pass `modelId: "GEMINI_3_FLASH"` for wireframe/mockup (Standard) and `modelId: "GEMINI_3_PRO"` for ideation divergence (Experimental). The quota counter type is determined by the modelId used.
+
+#### Tool Discovery via CLI
+
+The davideast proxy supports tool discovery without a live Claude Code connection:
+
+```bash
+npx @_davideast/stitch-mcp tool           # Lists all available tools
+npx @_davideast/stitch-mcp tool -s <name> # Shows schema for a specific tool
+```
+
+This can be used to enumerate the EXACT tool names at implementation time, providing an alternative to the MCP `tools/list` protocol method.
+
+---
+
+### Area 2: stdio Transport Details
+
+#### How `npx @_davideast/stitch-mcp proxy` Works Under the Hood
+
+The command starts a Node.js process that:
+1. Reads `STITCH_API_KEY` from the environment
+2. Opens stdin/stdout as an MCP JSON-RPC transport
+3. Acts as a bidirectional proxy: forwards tool calls to the Stitch API, returns responses
+4. Exposes its 3 virtual tools alongside the upstream Stitch MCP tools
+
+Claude Code manages this as a child process — it is spawned when the MCP server is first needed and kept alive across the session.
+
+#### Startup Time
+
+| Scenario | Expected Time | Notes |
+|---|---|---|
+| npx with warm cache | ~1.2 seconds | Node.js module resolution from ~/.npm cache |
+| npx with cold cache | 5-15+ seconds | Downloads package from npm registry |
+| Process already running | ~0 seconds | Claude Code reuses existing subprocess |
+
+**Source: MEDIUM** — github.com/anthropics/claude-code/issues/29033 and SFEIR Institute MCP docs confirm "average 1.2s startup" for stdio servers; cold cache estimate based on npm download latency.
+
+**Implication for probeTimeoutMs:** The existing `15000` ms value in the APPROVED_SERVERS entry is correct for cold cache scenarios. Do not reduce below 10000ms.
+
+#### Connection Lifecycle
+
+- **Session start:** Claude Code spawns the stdio subprocess when MCP tools are first needed (lazy initialization, not at session start unless the server is pre-warmed)
+- **Between calls:** The subprocess stays alive; no reconnection overhead per tool call
+- **Session end:** Claude Code does NOT reliably terminate MCP subprocess on exit — this is a known issue (github.com/anthropics/claude-code/issues/1935). Orphaned npx processes accumulate across sessions. Not a correctness issue for PDE (quota tracking is file-based), but worth knowing.
+- **Timeout behavior:** Claude Code has a hard cap of ~60 seconds regardless of `MCP_TIMEOUT` env var setting (github.com/anthropics/claude-code/issues/16837). For Stitch generation (2-10 minutes), the MCP tool call itself does not time out at the transport level — only the stdio subprocess startup times out at 60s. The generation tool call has its own response timeout.
+
+**Confidence: MEDIUM** — Sources: Claude Code GitHub issues #35287, #16837, #1935
+
+#### Error Modes When the Proxy Crashes
+
+| Scenario | What Claude Code Does | User Experience |
+|---|---|---|
+| Startup failure (bad STITCH_API_KEY) | Waits indefinitely for initialization handshake | Session appears to hang; must cancel manually |
+| Crash during tool call | Tool call returns error; MCP server shows as disconnected | Error propagated to workflow; probe returns `available: false` |
+| Reconnect attempt | `/mcp reconnect` attempts restart; often fails silently | User sees "Failed to reconnect to stitch" with no detail |
+| Orphaned process | Process continues consuming resources | No user-facing impact; accumulates across sessions |
+
+**Implication:** The connect workflow Step 3.10 MUST verify STITCH_API_KEY is set before recording the connection. A missing API key causes an indefinite hang at startup, not a clean error message.
+
+#### The `claude mcp add` Command — Exact Syntax
+
+```bash
+# Correct syntax for stdio MCP server with npx
+claude mcp add stitch --transport stdio -- npx @_davideast/stitch-mcp proxy
+```
+
+**Important:** The `--` separator is required to prevent Claude Code from interpreting `npx` arguments as `claude mcp add` options.
+
+**Note:** The `claude mcp add` command does NOT support passing env vars at registration time. STITCH_API_KEY must be set in the environment where Claude Code is launched (shell profile), NOT in the `claude mcp add` command.
+
+#### Claude Code MCP Configuration Format (~/.claude.json)
+
+The `claude mcp add` command writes to `~/.claude.json`. The resulting entry looks like:
+
+```json
+{
+  "mcpServers": {
+    "stitch": {
+      "command": "npx",
+      "args": ["@_davideast/stitch-mcp", "proxy"],
+      "type": "stdio"
+    }
+  }
+}
+```
+
+To include an env var explicitly in the config file (if shell profile approach is unreliable):
+
+```json
+{
+  "mcpServers": {
+    "stitch": {
+      "command": "npx",
+      "args": ["@_davideast/stitch-mcp", "proxy"],
+      "type": "stdio",
+      "env": {
+        "STITCH_API_KEY": "your-api-key-here"
+      }
+    }
+  }
+}
+```
+
+**The `env` field in .mcp.json / ~/.claude.json is the recommended approach for persistent env var configuration.** The shell profile approach is simpler to document in AUTH_INSTRUCTIONS but more fragile (doesn't work if user launches Claude Code from a GUI app that doesn't source the shell profile).
+
+**Confidence: HIGH** — MCP JSON configuration format verified from MCP official docs and fastmcp.com documentation; `env` field is a standard MCP client configuration feature.
+
+**Updated AUTH_INSTRUCTIONS recommendation:** AUTH_INSTRUCTIONS Step 3 should offer both approaches:
+- Shell profile (simpler for most users)
+- Direct ~/.claude.json env field (more reliable for GUI app launches)
+
+#### `claude mcp test` Command (v1.0.33+)
+
+Claude Code v1.0.33 (February 2026) added `claude mcp test <server-name>` which pings the server and verifies tools list is accessible. Use this in the MCP-05 verification step:
+
+```bash
+claude mcp test stitch
+```
+
+Expected output when working: server responds with tool list within ~150ms. This is the preferred way to run MCP-05 live verification rather than manually constructing JSON-RPC calls.
+
+**Confidence: MEDIUM** — Source: SFEIR Institute MCP docs referencing v1.0.33 changelog
+
+---
+
+### Area 3: Quota Mechanics — Deep Investigation
+
+#### Standard vs Experimental Determination
+
+Generation type is determined by the `modelId` parameter passed to `generate_screen_from_text`:
+
+- `modelId: "GEMINI_3_FLASH"` (or omitted — Flash is the default) → counts against **Standard** quota (350/month)
+- `modelId: "GEMINI_3_PRO"` → counts against **Experimental** quota (50/month)
+
+This is a **caller-controlled parameter**, not server-determined. The PDE quota tracking logic must read the `modelId` from the generation call to know which counter to increment.
+
+**Confidence: MEDIUM** — Source: google-labs-code/stitch-sdk README showing two model IDs; search results confirming Flash=Standard, Pro=Experimental
+
+#### Quota Exceeded — Error Response
+
+When a Stitch generation call hits the quota limit, the API returns an HTTP 429 with a Google Cloud standard error body:
+
+```json
+{
+  "error": {
+    "code": 429,
+    "message": "You exceeded your current quota, please check your plan and billing details.",
+    "status": "RESOURCE_EXHAUSTED"
+  }
+}
+```
+
+The MCP layer wraps this: the `generate_screen_from_text` tool call will return an error object rather than a screen result. The workflow must detect this condition and trigger fallback.
+
+**Confidence: MEDIUM** — Source: Google Cloud Quota docs (standard error format); Stitch likely follows this pattern as it's built on Google Cloud infrastructure. Not directly verified for Stitch-specific responses — LOW confidence on the exact message text, MEDIUM on the HTTP 429 / RESOURCE_EXHAUSTED pattern.
+
+**Detection in workflow:** Check if the tool call result contains an `error.status === "RESOURCE_EXHAUSTED"` field, OR if the HTTP status was 429. If detected, set quota counter to limit (force exhaustion), trigger fallback.
+
+#### Checking Quota Usage
+
+There is **no API to check current Stitch quota usage**. The Stitch dashboard shows quota at `stitch.withgoogle.com` (Settings → API Keys section reportedly shows remaining generations) but there is no programmatic endpoint to query current usage.
+
+**Implication:** PDE's local counter in config.json is the only quota tracking mechanism. If a user makes calls outside PDE (directly in the Stitch UI or via another tool), the local counter will undercount actual usage. This is an acceptable limitation — document it in the Stitch quota display.
+
+**Confidence: LOW** — Unable to find official API for quota query. Based on absence of documented endpoint plus community reports showing no programmatic quota check.
+
+#### Monthly Reset — Calendar Month vs Rolling 30 Days
+
+Stitch quota resets on a **calendar month basis** (first of the month), not a rolling 30-day window. This is consistent with all community sources citing "monthly" limits and the standard Google Cloud billing cycle.
+
+**Reset implementation:**
+```javascript
+// Correct: first day of next calendar month at midnight UTC
+const nextReset = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1, 0, 0, 0, 0));
+```
+
+**Timezone edge case:** Store `reset_at` as UTC ISO string. Compare using UTC dates. A user in UTC-8 at 11pm on March 31 should see their quota reset at midnight UTC April 1 (4pm local time March 31), not midnight local time. Using `Date.UTC()` for reset calculation avoids this edge case.
+
+**Confidence: MEDIUM** — Calendar month reset confirmed by general Google quota patterns; UTC recommendation is best practice for timezone-safe code.
+
+#### Rate Limits Within Quota
+
+No evidence of within-quota rate limits (e.g., max concurrent, requests per minute) was found in official sources. Screen generation takes 2-10 minutes per call due to the generative AI backend, which serves as a natural rate limiter. Community reports do not mention per-minute rate limiting.
+
+**Confidence: LOW** — Absence of evidence is not evidence of absence. Phase 67 batch generation should implement sequential (not parallel) generation as a safe default, regardless.
+
+---
+
+### Area 4: Existing mcp-bridge.cjs Architecture — Complete Documentation
+
+#### APPROVED_SERVERS Structure (from source)
+
+Each entry in `APPROVED_SERVERS` has exactly these fields:
+
+```javascript
+{
+  displayName: string,       // Human-readable name shown in /pde:connect output
+  transport: string,         // 'http' | 'stdio' | 'sse'
+  url: string | null,        // Base URL for HTTP/SSE transports; null for stdio
+  installCmd: string | null, // claude mcp add command string; null when multi-step (Pencil, Stitch)
+  probeTimeoutMs: number,    // Timeout for probe operations (varies by transport speed)
+  probeTool: string | null,  // Raw MCP tool name for liveness probe; null if no probe
+  probeArgs: object,         // Arguments to pass to probeTool (empty {} for no-arg probes)
+}
+```
+
+Confirmed from reading the actual source: all 5 existing servers follow this schema exactly.
+
+#### AUTH_INSTRUCTIONS Structure
+
+`AUTH_INSTRUCTIONS` is a plain object keyed by server key, value is an array of instruction strings:
+
+```javascript
+const AUTH_INSTRUCTIONS = {
+  github: ['1. Run in terminal: ...', '2. In Claude Code session: ...', ...],
+  linear: [...],
+  figma: [...],
+  pencil: [...],
+  atlassian: [...],
+};
+```
+
+The connect.md workflow reads `AUTH_INSTRUCTIONS[SERVICE_KEY]` and displays each string on its own line. Adding `stitch` as a key with a 7-element array follows this exact pattern.
+
+#### probe() Function Contract
+
+The `probe()` function in mcp-bridge.cjs does NOT actually call MCP tools. It is a coordination point only:
+
+```javascript
+function probe(serverKey) {
+  assertApproved(serverKey);
+  const server = APPROVED_SERVERS[serverKey];
+  if (server.probeTool === null) {
+    return { available: false, status: 'not_configured', reason: 'probe_not_implemented' };
+  }
+  return {
+    available: false,
+    status: 'probe_deferred',
+    reason: 'Probe tool calls require Claude Code MCP runtime — use within workflow context',
+  };
+}
+```
+
+**The actual probe MCP call happens in workflow files (like sync-pencil.md), not in mcp-bridge.cjs.** The workflow calls the probeTool directly via Claude Code's MCP runtime. mcp-bridge.cjs only provides the tool name and timeout value.
+
+**Implication for MCP-05 implementation:** The live verification gate must be implemented in connect.md Step 3.10 (workflow context), not in mcp-bridge.cjs.
+
+#### TOOL_MAP Pattern
+
+TOOL_MAP maps `'service:canonical-name'` → `'mcp__service__raw_name'` format:
+
+```javascript
+const TOOL_MAP = {
+  'github:list-issues': 'mcp__github__list_issues',  // kebab-case canonical → snake_case raw
+  ...
+};
+```
+
+The `call()` function does a hasOwnProperty lookup and returns `{ toolName, args }`. The workflow layer uses the returned `toolName` to make the actual MCP call.
+
+#### How /pde:connect Works for Existing Servers (from workflows/connect.md)
+
+The connect workflow follows this sequence:
+
+1. **Step 0:** Parse arguments (SERVICE_KEY, --confirm, --disconnect flags)
+2. **Step 1:** `assertApproved()` — security policy enforcement
+3. **Step 2:** Handle --disconnect if present
+4. **Step 3:** If no --confirm: display AUTH_INSTRUCTIONS and stop
+5. **Steps 3.5-3.9:** Service-specific capture (repo for GitHub, teamId for Linear, etc.)
+6. **Step 4:** `updateConnectionStatus()` — write to mcp-connections.json with status='connected'
+7. **Step 5:** Error handling
+
+**Key observations for Stitch Step 3.10:**
+- Steps 3.5-3.9 are service-specific sub-steps between Step 3 and Step 4
+- Each sub-step captures service-specific metadata and passes it as `extraFields` to `updateConnectionStatus()`
+- Pencil's Step 3.9 is the closest analog — detection-based, no `claude mcp add` command
+- Stitch Step 3.10 should check for STITCH_API_KEY env var (like Pencil checks for extension detection) before recording as 'connected'
+- Step 4 for Stitch uses the "all other services" branch (no special extraFields needed beyond `connected_at`)
+
+**The approved services list in Step 0 help text also needs updating:** Line 20 of connect.md reads `Approved services: github, linear, figma, pencil, atlassian`. This must become `github, linear, figma, pencil, atlassian, stitch`.
+
+#### Connection Persistence Schema (mcp-connections.json)
+
+The `updateConnectionStatus()` function writes connection metadata with this structure:
+
+```json
+{
+  "schema_version": "1.0",
+  "connections": {
+    "stitch": {
+      "server_key": "stitch",
+      "display_name": "Google Stitch",
+      "transport": "stdio",
+      "url": null,
+      "status": "connected",
+      "connected_at": "2026-03-20T22:00:00.000Z",
+      "last_updated": "2026-03-20T22:00:00.000Z"
+    }
+  }
+}
+```
+
+Note: `url` is `null` for stdio servers (copied from APPROVED_SERVERS). The `extraFields` spread adds any service-specific metadata. For Stitch, no extra fields are needed (unlike GitHub which adds `repo`, Linear which adds `teamId`/`teamName`).
+
+---
+
+### Area 5: Graceful Degradation Patterns
+
+#### What "Fallback to Claude HTML/CSS Generation" Means Concretely
+
+The existing wireframe workflow (`workflows/wireframe.md`) generates HTML/CSS entirely via Claude — no external service calls. This is the baseline that Phase 66 extends with `--use-stitch`.
+
+The fallback means: **when Stitch MCP is unavailable or quota is exhausted, skip the Stitch generation step and proceed with the standard `workflows/wireframe.md` generation path**. The output is identical in structure (WFR-*.html files in .planning/design/ux/wireframes/) but generated by Claude instead of Stitch.
+
+For Stitch-specific artifacts (`STH-*.html` files) that only exist when Stitch is used, the fallback produces standard `WFR-*.html` files instead. The `hasStitchWireframes` flag in `designCoverage` remains `false`.
+
+#### How Existing PDE Wireframe/Mockup Skills Generate Without Stitch
+
+The existing wireframe.md workflow:
+1. Reads design tokens from `assets/tokens.css`
+2. Reads screen inventory from FLW-screen-inventory.json
+3. Generates complete self-contained HTML/CSS per screen using Claude's code generation
+4. Applies fidelity rules (lofi/midfi/hifi) to determine content type and styling
+5. Writes WFR-{slug}.html files to .planning/design/ux/wireframes/
+6. Updates design manifest and DESIGN-STATE.md
+
+This is entirely Claude-generated — no MCP tools needed (except optional Sequential Thinking MCP for composition reasoning, which is also degradable).
+
+**The Claude HTML/CSS fallback IS the current production wireframe path.** Phase 66 adds Stitch as an optional enhancement via `--use-stitch`. Degradation = not using that flag.
+
+#### User Messaging Pattern for Degradation (from sync-pencil.md)
+
+The Pencil sync workflow shows the exact degradation messaging pattern:
+
+```
+Pencil is not connected. Run /pde:connect pencil to set up the Pencil VS Code extension,
+then run /pde:connect pencil --confirm to record the connection.
+Token push skipped — no changes made to Pencil canvas.
+```
+
+For Stitch quota exhaustion, the equivalent pattern should be:
+
+```
+Stitch Standard quota exhausted (350/350 used). Generating wireframes with Claude HTML/CSS instead.
+Run /pde:progress to see quota status and reset date.
+```
+
+For Stitch unavailable (MCP probe failed):
+
+```
+Stitch MCP server is not responding (probe timed out). Generating wireframes with Claude HTML/CSS instead.
+To reconnect: run /pde:connect stitch and verify the STITCH_API_KEY environment variable is set.
+```
+
+**Key principle from existing patterns:** The message must be (1) informative about what happened, (2) tell the user what they'll get instead, and (3) tell them how to fix it. The workflow does NOT halt — it continues with the fallback.
+
+#### Fallback — Transparent vs Explicit
+
+Based on existing PDE patterns (Pencil, Figma):
+- **Be explicit to the user** when falling back — display a WARNING message before continuing
+- **Be transparent in artifacts** — the design manifest `source` field distinguishes Stitch (`"source": "stitch"`) from Claude (`"source": "claude"`) artifacts; downstream skills (critique, handoff) use this to apply different evaluation modes
+- **Never silently degrade** — silent fallback hides information the user needs to understand why artifacts look different
+
+#### State Preservation During Fallback
+
+For quota exhaustion fallback:
+- Quota counter state in config.json is preserved as-is (counter at limit)
+- No cleanup needed — the generation simply did not happen
+- The wireframe output directory still gets written (with Claude-generated files, not Stitch files)
+- `hasStitchWireframes` stays `false`; `hasWireframes` is set to `true` by the Claude path
+
+For MCP probe failure fallback:
+- mcp-connections.json `status` remains `connected` (probe failure ≠ disconnection; user should re-run /pde:connect to explicitly disconnect)
+- No state changes needed
+
+#### How Pencil Handles Degradation Today (Reference Implementation)
+
+From `workflows/sync-pencil.md` Step 0 and Step 1:
+
+```
+Step 0: Load connection status
+  - If status !== 'connected': display message + stop. Do NOT crash.
+
+Step 1: Probe Pencil MCP Availability
+  - call mcp-bridge.probe('pencil')
+  - if probe returns status: 'not_configured': display "degraded mode" message + stop
+  - if probe returns status: 'probe_deferred': continue (normal path — probe deferred to Claude Code runtime)
+```
+
+The actual probe happens at the workflow level: the workflow calls `mcp__pencil__get_variables` (the probeTool). If that fails, the workflow reports degraded mode and does not proceed.
+
+**Pattern for Stitch:** Phase 66 wireframe-stitch workflow will:
+1. Check quota via `checkStitchQuota('standard')` — if `quota_exhausted`, fallback immediately
+2. Call `mcp__stitch__list_projects` as a liveness probe with `probeTimeoutMs: 15000`
+3. If probe fails: fallback with user message
+4. If probe succeeds: proceed with Stitch generation
+5. If generation returns `RESOURCE_EXHAUSTED` error: set counter to limit, fallback with message
+
+This is a **quota check → probe check → generation → error check** pipeline, consistent with the defense-in-depth pattern PDE uses for all external service calls.
+
+---
+
+## Deep Dive Confidence Updates
+
+The deep dive changes these confidence levels from the original research:
+
+| Area | Was | Now | Reason |
+|------|-----|-----|--------|
+| Tool names (Kargatharaakash 9 tools) | MEDIUM | MEDIUM (unchanged) | Two implementations confirmed; discrepancy persists; MCP-05 gate still required |
+| `fetch_screen_code` as official name | MEDIUM | MEDIUM-HIGH | Three sources agree (Kargatharaakash, gemini-cli-extensions, stitch-sdk); davideast `get_screen_code` is confirmed wrapper |
+| modelId parameter for Standard/Experimental | LOW (inferred) | MEDIUM | stitch-sdk README shows GEMINI_3_FLASH and GEMINI_3_PRO as explicit model IDs |
+| Quota error response format | LOW | MEDIUM | Google Cloud RESOURCE_EXHAUSTED pattern is confirmed standard; specific Stitch message text not verified |
+| stdio startup time | LOW | MEDIUM | Claude Code MCP docs confirm ~1.2s average for warm cache; 60s timeout cap confirmed |
+| stdio process lifecycle | LOW | HIGH | Multiple Claude Code GitHub issues document exact behavior (orphaned processes, reconnect failures, indefinite hang on missing API key) |
+| mcp-bridge.cjs architecture | INFERRED | HIGH | File read directly; all schemas, functions, and patterns documented from source |
+| connect.md workflow | INFERRED | HIGH | File read directly; step numbering, extraFields pattern, service dispatch pattern all documented from source |
+| Fallback pattern | INFERRED | HIGH | sync-pencil.md read directly; exact degradation messaging and state preservation pattern documented from source |
+| `env` field in ~/.claude.json | NOT KNOWN | HIGH | Standard MCP client configuration format confirmed by MCP official docs and multiple integration guides |
+| `claude mcp test` command | NOT KNOWN | MEDIUM | SFEIR Institute docs reference v1.0.33 changelog; independently useful for MCP-05 verification |
+
+## Deep Dive Sources Added
+
+### Primary (HIGH confidence)
+- `/Users/greyaltaer/code/projects/Platform Development Engine/workflows/connect.md` — Complete connect workflow step-by-step; Step 3.5-3.9 patterns for service-specific auth capture; Step 4 updateConnectionStatus call patterns
+- `/Users/greyaltaer/code/projects/Platform Development Engine/workflows/sync-pencil.md` — Pencil stdio degradation pattern; Step 0 connection check; Step 1 probe pattern; fallback messaging format
+- `/Users/greyaltaer/code/projects/Platform Development Engine/workflows/wireframe.md` — Full Claude HTML/CSS wireframe generation path; proves fallback = existing production path
+- `github.com/anthropics/claude-code/issues/35287` — stdio servers hang indefinitely when child process fails to initialize (confirmed)
+- `github.com/anthropics/claude-code/issues/16837` — MCP_TIMEOUT hard cap at 60s (confirmed)
+- `github.com/anthropics/claude-code/issues/1935` — Orphaned MCP processes on Claude Code exit (confirmed)
+- `gofastmcp.com/integrations/mcp-json-configuration` — env field in MCP server config format (confirmed)
+
+### Secondary (MEDIUM confidence)
+- `github.com/davideast/stitch-mcp` README (fetched) — 3 virtual tools with schemas (build_site, get_screen_code, get_screen_image) confirmed; upstream tool forwarding confirmed; `npx @_davideast/stitch-mcp tool` discovery command confirmed
+- `github.com/Kargatharaakash/stitch-mcp` README (fetched) — 9 official upstream tool names confirmed; uses GOOGLE_CLOUD_PROJECT (ADC), not STITCH_API_KEY
+- `github.com/google-labs-code/stitch-sdk` README (fetched) — GEMINI_3_PRO and GEMINI_3_FLASH model IDs confirmed
+- `docs.cloud.google.com/docs/quotas/troubleshoot` — RESOURCE_EXHAUSTED / HTTP 429 error format for Google Cloud quota errors
+- `institute.sfeir.com/en/claude-code/claude-code-mcp-model-context-protocol/` — stdio average startup 1.2s; `claude mcp test` command in v1.0.33
