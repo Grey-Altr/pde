@@ -17,10 +17,10 @@ Requirements for Google Stitch Integration milestone. Each maps to roadmap phase
 
 ### Quota Management
 
-- [ ] **QUOTA-01**: Generation counter tracks Standard (350/mo) and Experimental (50/mo) Stitch usage with persistent storage in .planning/config.json
-- [ ] **QUOTA-02**: Pre-generation quota check warns user when approaching limits (80% threshold)
-- [ ] **QUOTA-03**: Automatic fallback to Claude HTML/CSS generation when Stitch quota is exhausted
-- [ ] **QUOTA-04**: Quota status visible via /pde:progress and /pde:health commands
+- [x] **QUOTA-01**: Generation counter tracks Standard (350/mo) and Experimental (50/mo) Stitch usage with persistent storage in .planning/config.json
+- [x] **QUOTA-02**: Pre-generation quota check warns user when approaching limits (80% threshold)
+- [x] **QUOTA-03**: Automatic fallback to Claude HTML/CSS generation when Stitch quota is exhausted
+- [x] **QUOTA-04**: Quota status visible via /pde:progress and /pde:health commands
 
 ### User Consent
 
@@ -96,10 +96,10 @@ Requirements for Google Stitch Integration milestone. Each maps to roadmap phase
 | MCP-03 | Phase 65 | Complete |
 | MCP-04 | Phase 64 | Complete |
 | MCP-05 | Phase 65 | Complete |
-| QUOTA-01 | Phase 65 | Pending |
-| QUOTA-02 | Phase 65 | Pending |
-| QUOTA-03 | Phase 65 | Pending |
-| QUOTA-04 | Phase 65 | Pending |
+| QUOTA-01 | Phase 65 | Complete |
+| QUOTA-02 | Phase 65 | Complete |
+| QUOTA-03 | Phase 65 | Complete |
+| QUOTA-04 | Phase 65 | Complete |
 | CONSENT-01 | Phase 66 | Pending |
 | CONSENT-02 | Phase 66 | Pending |
 | CONSENT-03 | Phase 66 | Pending |

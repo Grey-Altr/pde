@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.1
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 65-01-PLAN.md
-last_updated: "2026-03-20T23:45:00.000Z"
+stopped_at: Completed 65-02-PLAN.md
+last_updated: "2026-03-20T23:41:07.470Z"
 progress:
   total_phases: 6
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 3
-  completed_plans: 2
+  completed_plans: 3
 ---
 
 # Project State
@@ -68,6 +68,10 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - Quota infrastructure (QUOTA-01–04) combined with MCP bridge in Phase 65 — both are foundational infrastructure with no user-visible features beyond setup
 - Phase 66 and Phase 67 can be developed in parallel after Phase 65 completes (ideation has no dependency on wireframe STH artifacts)
 - Phase 68 and Phase 69 can be developed in parallel after Phase 66 completes (both consume STH artifacts from wireframe)
+- [Phase 65]: configPath injection pattern used for quota function test isolation — avoids process.cwd() monkey-patching
+- [Phase 65]: UTC-based reset dates (Date.UTC) for quota monthly reset — prevents timezone edge cases at month boundaries
+- [Phase 65]: readStitchQuota returns null when quota unconfigured — lets callers distinguish unconfigured from zero usage
+- [Phase 65]: checkStitchQuota never writes to disk — only incrementStitchQuota writes; clean read/write separation
 
 ### Pending Todos
 
@@ -82,8 +86,8 @@ Decisions are logged in PROJECT.md Key Decisions table.
 
 ## Session Continuity
 
-Last session: 2026-03-20
-Stopped at: Completed 65-01-PLAN.md
+Last session: 2026-03-20T23:41:07.467Z
+Stopped at: Completed 65-02-PLAN.md
 Resume file: None
 
 Next action: Execute Phase 65 Plan 02 (quota counter infrastructure)
