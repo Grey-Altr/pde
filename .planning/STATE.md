@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.8
 milestone_name: Observability & Event Infrastructure
-status: unknown
-stopped_at: "Completed 58-01-PLAN.md — NDJSON event bus foundation (event-bus.cjs, monitoring config keys)"
-last_updated: "2026-03-20T07:07:00Z"
+status: executing
+stopped_at: "Completed 58-02-PLAN.md — event-emit and session-start subcommands in pde-tools.cjs"
+last_updated: "2026-03-20T07:12:27Z"
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 3
-  completed_plans: 1
+  completed_plans: 2
 ---
 
 # Project State
@@ -24,21 +24,21 @@ See: .planning/PROJECT.md (updated 2026-03-19)
 ## Current Position
 
 Phase: 58 (event-infrastructure-core) — EXECUTING
-Plan: 2 of 3
+Plan: 3 of 3
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed (v0.8): 1
-- Average duration: 4min
-- Total execution time: 4min
+- Total plans completed (v0.8): 2
+- Average duration: 3min
+- Total execution time: 6min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 58 | 1 | 4min | 4min |
+| 58 | 2 | 6min | 3min |
 
 *Updated after each plan completion*
 
@@ -54,6 +54,12 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - setImmediate (not process.nextTick) for dispatch deferral: fires after I/O phase, correctly non-blocking for caller
 - Empty catch in safeAppendEvent: event log failure must never propagate — fail-silent by design
 - No top-level require of event-bus.cjs in pde-tools.cjs: lazy-require in event-emit case block only to prevent 40+ command breakage on module load failure
+
+**58-02 execution decisions:**
+
+- configPath uses path.join(cwd, '.planning', 'config.json') in both case blocks — respects --cwd flag for sandboxed subagents running outside project root
+- Lazy require('./lib/event-bus.cjs') inside event-emit case only — event-bus.cjs load failure breaks only event-emit, not 40+ other commands
+- session-start outer try/catch swallows all write errors — config.json unavailability must not crash hook handlers
 
 Key v0.8 architectural decisions (pre-execution):
 
@@ -77,5 +83,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-20
-Stopped at: "Completed 58-01-PLAN.md — NDJSON event bus foundation (event-bus.cjs, monitoring config keys)"
+Stopped at: "Completed 58-02-PLAN.md — event-emit and session-start subcommands in pde-tools.cjs"
 Resume file: None
