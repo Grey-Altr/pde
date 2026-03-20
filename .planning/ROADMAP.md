@@ -210,8 +210,8 @@ Plans:
   3. All existing PDE workflow commands execute without error after instrumentation is added — regression confirmed by running at least one end-to-end workflow operation
 **Plans**: 2 plans
 Plans:
-- [ ] 61-01-PLAN.md — Validation script + live token/cost meter (TOKN-01, TOKN-02)
-- [ ] 61-02-PLAN.md — Live context window pane + dashboard wiring (TOKN-03)
+- [ ] 62-01-PLAN.md — Validation script + workflow instrumentation (execute-phase.md, execute-plan.md)
+- [ ] 62-02-PLAN.md — archive-session.cjs phase/wave event aggregation + session summary rendering
 
 ## Progress
 
@@ -228,4 +228,4 @@ Plans:
 | 59. tmux Dashboard & Dependency Detection | 3/3 | Complete    | 2026-03-20 | - |
 | 60. Session Archival | 2/2 | Complete    | 2026-03-20 | - |
 | 61. Token & Context Metering | 2/2 | Complete    | 2026-03-20 | - |
-| 62. Workflow Instrumentation | v0.8 | 0/TBD | Not started | - |
+| 62. Workflow Instrumentation | v0.8 | 0/2 | Not started | - |
