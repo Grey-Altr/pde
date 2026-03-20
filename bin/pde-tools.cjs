@@ -741,6 +741,65 @@ async function main() {
       break;
     }
 
+    case 'session-start': {
+      // Generate new PDE session UUID and persist to .planning/config.json monitoring.session_id
+      // Called by emit-event.cjs SessionStart hook handler (async: false — must complete before hook exits)
+      const { randomUUID } = require('crypto');
+      const newSessionId = randomUUID();
+      const configPath = path.join(cwd, '.planning', 'config.json');
+      try {
+        let cfg = {};
+        try { cfg = JSON.parse(fs.readFileSync(configPath, 'utf-8')); } catch { /* config may not exist */ }
+        if (!cfg.monitoring) cfg.monitoring = {};
+        cfg.monitoring.session_id = newSessionId;
+        fs.writeFileSync(configPath, JSON.stringify(cfg, null, 2), 'utf-8');
+      } catch { /* swallow — session ID persistence failure must not crash anything */ }
+      if (raw) { process.stdout.write(JSON.stringify({ session_id: newSessionId })); }
+      else { console.log(`Session started: ${newSessionId}`); }
+      break;
+    }
+
+    case 'event-emit': {
+      // External write path: called from emit-event.cjs hook handler and workflow markdown manual emits
+      // CRITICAL: lazy require — if event-bus.cjs fails, only event-emit breaks; all other commands unaffected
+      const { safeAppendEvent } = require('./lib/event-bus.cjs');
+      const eventType = args[1];
+      if (!eventType) {
+        // Silent fail — missing event type is not a fatal error for PDE workflows
+        if (raw) { process.stdout.write(JSON.stringify({ ok: false, error: 'missing event_type' })); }
+        break;
+      }
+
+      let payload = {};
+      if (args[2]) {
+        try { payload = JSON.parse(args[2]); } catch { /* malformed JSON payload — emit with empty payload */ }
+      }
+
+      // Read session ID from config.json (written by session-start subcommand at SessionStart)
+      const configPath = path.join(cwd, '.planning', 'config.json');
+      let sessionId = 'unknown';
+      try {
+        const cfg = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+        if (cfg.monitoring && cfg.monitoring.session_id) {
+          sessionId = cfg.monitoring.session_id;
+        }
+      } catch { /* config not found or unreadable — use 'unknown' session ID */ }
+
+      const envelope = {
+        schema_version: '1.0',
+        ts: new Date().toISOString(),
+        event_type: eventType,
+        session_id: sessionId,
+        ...payload,
+        extensions: payload.extensions || {},
+      };
+
+      safeAppendEvent(sessionId, envelope);
+
+      if (raw) { process.stdout.write(JSON.stringify({ ok: true, event_type: eventType })); }
+      break;
+    }
+
     default:
       error(`Unknown command: ${command}`);
   }
