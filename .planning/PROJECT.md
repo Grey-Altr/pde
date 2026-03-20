@@ -57,6 +57,7 @@ Any user can go from idea to shipped product through a single platform that hand
 ### Active
 
 - Research validation agent with LLM claim extraction, three-tier classification, and three-state codebase verification — v0.7 (Phase 55)
+- Plan checker enhanced with three new dimensions: cross-phase dependency detection, edge case surfacing with BDD AC generation, and declaration-time integration verification — v0.7 (Phase 56)
 
 ## Current Milestone: v0.7 Pipeline Reliability & Validation
 
@@ -156,4 +157,4 @@ Any user can go from idea to shipped product through a single platform that hand
 | Analyst persona interviews in new-project/new-milestone | Surfaces unspoken assumptions before planning begins | ✓ Good — structured briefs improve plan quality |
 
 ---
-*Last updated: 2026-03-20 after Phase 55 (research-validation-agent) complete*
+*Last updated: 2026-03-20 after Phase 56 (plan-checker-enhancement) complete*
