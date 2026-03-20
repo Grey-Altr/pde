@@ -180,7 +180,7 @@ Plans:
   2. Running `/pde:connect stitch` with a valid STITCH_API_KEY succeeds, probes the live server, and writes a stitch entry to mcp-connections.json
   3. MCP-05 live tool name verification gate runs at bridge registration time — TOOL_MAP entries are finalized only after confirmed against the live server, and any discrepancy causes an explicit warning before commit
   4. `/pde:progress` and `/pde:health` display current Standard and Experimental generation counts against the monthly limits, with a warning when either counter exceeds 80% of its limit
-  5. When Stitch quota is exhausted, any Stitch-dependent command falls back to Claude HTML/CSS generation automatically with a clear user-facing message (not a hard error)
+  5. checkStitchQuota returns allowed:false with reason quota_exhausted when limit reached, enabling Phase 66 automatic fallback routing (WFR-06)
 **Plans**: 2 plans
 Plans:
 - [ ] 65-01-PLAN.md — Register Stitch in APPROVED_SERVERS, TOOL_MAP, AUTH_INSTRUCTIONS, and connect.md Step 3.10
