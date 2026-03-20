@@ -177,7 +177,11 @@ Plans:
   2. If research validation finds `contradicted_count > 0`, plan-phase blocks and presents the user with a choice prompt; `unverifiable_count > 0` surfaces as a non-blocking CONCERN in READINESS.md
   3. `check-readiness.md` includes a `run_integration_checks` step after semantic checks that verifies function signatures and module exports for files explicitly named in plan @-references (Mode B codebase-time verification)
   4. The readiness gate's unified READINESS.md output reflects findings from all four new verification artifacts (RESEARCH-VALIDATION.md, DEPENDENCY-GAPS.md, EDGE-CASES.md, INTEGRATION-CHECK.md)
-**Plans**: [To be planned]
+**Plans**: 3 plans
+Plans:
+- [ ] 57-01-PLAN.md — Wire research validation gate (Step 5.7) into plan-phase.md
+- [ ] 57-02-PLAN.md — Add B4/B5 structural checks to readiness.cjs
+- [ ] 57-03-PLAN.md — Add run_integration_checks step to check-readiness.md
 
 ## Progress
 
@@ -192,4 +196,4 @@ Plans:
 | 54. Tech Debt Closure | v0.7 | 3/3 | Complete | 2026-03-20 |
 | 55. Research Validation Agent | 2/2 | Complete    | 2026-03-20 | - |
 | 56. Plan Checker Enhancement | 3/3 | Complete    | 2026-03-20 | - |
-| 57. Workflow Integration | v0.7 | 0/TBD | Not started | - |
+| 57. Workflow Integration | v0.7 | 0/3 | Not started | - |
