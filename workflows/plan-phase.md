@@ -629,8 +629,64 @@ Task(
 
 ## 11. Handle Checker Return
 
-- **`## VERIFICATION PASSED`:** Display confirmation, proceed to step 13.
-- **`## ISSUES FOUND`:** Display issues, check iteration count, proceed to step 12.
+- **`## VERIFICATION PASSED`:** Display confirmation, proceed to step 11.5 then step 13.
+- **`## ISSUES FOUND`:** Display issues, check iteration count, proceed to step 11.5 then step 12.
+
+After parsing checker return, extract edge case ACs for Step 11.5:
+```
+# Extract edge case ACs for Step 11.5
+HIGH_ACS={extract high_severity_acs from checker return if present}
+```
+
+## 11.5. Edge Case AC Approval Gate
+
+**Skip if:** Checker return does not contain `high_severity_acs` field, or `high_severity_acs` array is empty.
+
+**If `high_severity_acs` present and non-empty:**
+
+1. Display banner:
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" banner "EDGE CASE REVIEW"
+```
+
+2. For each entry in `high_severity_acs`, display:
+
+```
+**Edge Case:** {plan_element}
+**Plan:** {plan}
+**Task:** {task_name}
+
+Suggested acceptance criteria:
+
+{For each bdd_candidate:}
+  {N}. Given {precondition}
+     When {action}
+     Then {expected behavior}
+
+```
+
+3. Prompt user for approval:
+
+Use AskUserQuestion:
+- header: "Edge Case ACs"
+- question: "Which acceptance criteria would you like to add to the plan? (Enter numbers like '1,3' or 'all' or 'none')"
+- options: free-form input
+
+4. Parse user response:
+   - "none" or empty → skip, proceed to Step 12
+   - "all" → approve all candidates
+   - Comma-separated numbers → approve only those candidates
+
+5. For each approved AC, append to the relevant PLAN.md task's `<acceptance_criteria>` block using the Edit tool:
+   - Find the task by matching `task_name` in the plan file
+   - Append the BDD AC as a new bullet: `- Given {precondition} When {action} Then {expected behavior}`
+
+6. If any ACs were appended, commit:
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/bin/gsd-tools.cjs" commit "docs(${padded_phase}): append approved edge case ACs" --files ${PHASE_DIR}/*-PLAN.md
+```
+
+**CRITICAL:** This step does NOT re-invoke the checker. The AC append is additive-only. After this step, proceed directly to Step 12 (or Step 13 if checker already passed).
 
 ## 12. Revision Loop (Max 3 Iterations)
 
