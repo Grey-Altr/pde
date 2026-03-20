@@ -343,32 +343,6 @@ function cmdTrackingRead(cwd, args, raw) {
   output(result, raw);
 }
 
-/**
- * CLI: tracking generate-handoff
- *
- * Args: --phase <phase> --plan <plan> --task <n> --task-of <n>
- *       --status <STATUS> --last-action <text> --next-step <text>
- *       [--blockers <text>] [--decisions <text>] [--status-content <text>]
- */
-function cmdTrackingGenerateHandoff(cwd, args, raw) {
-  const flags = parseFlags(args);
-
-  const result = generateHandoff({
-    phase: flags['phase'] || '',
-    plan: flags['plan'] || '',
-    task: parseInt(flags['task'] || '0', 10),
-    taskOf: parseInt(flags['task-of'] || '0', 10),
-    status: flags['status'] || 'IN_PROGRESS',
-    lastAction: flags['last-action'] || '',
-    nextStep: flags['next-step'] || '',
-    blockers: flags['blockers'] || 'None',
-    decisions: flags['decisions'] || 'None',
-    taskStatusContent: flags['status-content'] || null,
-  });
-
-  output({ handoff: result }, raw);
-}
-
 // ─── Exports ──────────────────────────────────────────────────────────────────
 
 module.exports = {
@@ -379,5 +353,4 @@ module.exports = {
   cmdTrackingInit,
   cmdTrackingSetStatus,
   cmdTrackingRead,
-  cmdTrackingGenerateHandoff,
 };

@@ -721,10 +721,8 @@ async function main() {
         tracking.cmdTrackingSetStatus(cwd, args.slice(2), raw);
       } else if (subcommand === 'read') {
         tracking.cmdTrackingRead(cwd, args.slice(2), raw);
-      } else if (subcommand === 'generate-handoff') {
-        tracking.cmdTrackingGenerateHandoff(cwd, args.slice(2), raw);
       } else {
-        error('tracking: unknown subcommand. Available: init, set-status, read, generate-handoff');
+        error('tracking: unknown subcommand. Available: init, set-status, read');
       }
       break;
     }
