@@ -608,7 +608,7 @@ Display: `Step 5/7 (5c): HND-types-v{HND_VERSION}.ts written.`
 **ALWAYS release, even if an error occurred:**
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design lock-release pde-handoff
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design lock-release
 ```
 
 Display: `Step 5/7: Handoff spec and TypeScript interfaces written. Lock released.`

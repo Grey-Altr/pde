@@ -611,7 +611,7 @@ Use the Write tool to write to `.planning/design/review/CRT-critique-v{VERSION}.
 **ALWAYS release, even if an error occurred:**
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design lock-release critique
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design lock-release
 ```
 
 Display: `Step 5/7: Critique report written to .planning/design/review/CRT-critique-v{VERSION}.md`

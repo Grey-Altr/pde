@@ -352,7 +352,7 @@ For the `## Resolved Findings (Cumulative)` section:
 **ALWAYS release, even if an error occurred:**
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design lock-release iterate
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design lock-release
 ```
 
 Display: `Step 5/7: {screen_count} wireframe(s) written, changelog v{ITR_VERSION} written, critique report updated.`
