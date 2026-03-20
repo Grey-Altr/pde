@@ -129,7 +129,7 @@ Full details: .planning/milestones/v0.7-ROADMAP.md
 
 </details>
 
-### 🚧 v0.8 Observability & Event Infrastructure (In Progress)
+### v0.8 Observability & Event Infrastructure (In Progress)
 
 **Milestone Goal:** Give users real-time visibility into PDE operations through a structured event stream, a tmux monitoring dashboard, persistent session history, and token/cost estimation — all built without new npm dependencies.
 
@@ -167,7 +167,11 @@ Plans:
   3. Running `/pde:monitor` from inside an existing tmux session (where `$TMUX` is set) switches to the dashboard rather than spawning a nested session
   4. Running `/pde:monitor` on a terminal narrower than 120 columns or shorter than 30 rows degrades to a 2-pane essential layout (agent activity + pipeline progress) rather than crashing
   5. After a PDE operation completes, the dashboard panes remain visible and readable until the user manually closes the session
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 59-01-PLAN.md — /pde:monitor command, workflow, and bin/monitor-dashboard.sh (deps detection, session management, adaptive layout)
+- [ ] 59-02-PLAN.md — Pane scripts: agent activity, pipeline progress, file changes, log stream
+- [ ] 59-03-PLAN.md — Pane scripts: token/cost meter, context window + validate-dashboard.sh
 
 ### Phase 60: Session Archival
 **Goal**: Every PDE session produces a structured markdown summary in `.planning/logs/` automatically at session end, regardless of whether the dashboard was ever opened, with raw NDJSON preserved in /tmp for live debugging and automatic cleanup.
@@ -212,7 +216,7 @@ Plans:
 | 46-53 | v0.6 | 19/19 | Complete | 2026-03-20 |
 | 54-57 | v0.7 | 11/11 | Complete | 2026-03-20 |
 | 58. Event Infrastructure Core | 3/3 | Complete    | 2026-03-20 | - |
-| 59. tmux Dashboard & Dependency Detection | v0.8 | 0/TBD | Not started | - |
+| 59. tmux Dashboard & Dependency Detection | v0.8 | 0/3 | Not started | - |
 | 60. Session Archival | v0.8 | 0/TBD | Not started | - |
 | 61. Token & Context Metering | v0.8 | 0/TBD | Not started | - |
 | 62. Workflow Instrumentation | v0.8 | 0/TBD | Not started | - |
