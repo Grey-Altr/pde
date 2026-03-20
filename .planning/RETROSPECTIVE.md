@@ -295,6 +295,47 @@
 
 ---
 
+## Milestone: v0.7 — Pipeline Reliability & Validation
+
+**Shipped:** 2026-03-20
+**Phases:** 4 | **Plans:** 11 | **Commits:** ~47
+
+### What Was Built
+- Research validation agent (pde-research-validator) with LLM claim extraction, three-tier classification (T1 structural / T2 content / T3 behavioral), and three-state codebase verification (VERIFIED / UNVERIFIABLE / CONTRADICTED)
+- Plan checker Dimensions 9-11: cross-phase dependency detection via roadmap analyze, edge case surfacing with BDD AC generation and 5-8 cap, declaration-time integration verification (Mode A) with TOOL_MAP_PREREGISTERED exclusion
+- Workflow integration: Step 5.7 Research Validation Gate auto-spawns validator in plan-phase.md, B4/B5 structural readiness checks in readiness.cjs, run_integration_checks step consuming all 4 verification artifacts in check-readiness.md
+- Tech debt closure: all 7 v0.6 items resolved (TRACKING-PLAN.md, lock-release normalization, one-liner backfill, pde-tools help text, TOOL_MAP annotations, plugin install docs)
+
+### What Worked
+- **Tech debt first** — resolving all 7 items in Phase 54 before adding new verification surface area gave a clean baseline; no interference between old debt and new features
+- **Wave-based dependency ordering** — Phases 55+56 ran independently (both depend only on 54), Phase 57 wired their outputs together; clean separation of concerns
+- **Read-only agent constraint (RVAL-05)** — forcing the research validator to return artifact_content for orchestrator-side writing prevented accidental mutations and made the agent reusable
+- **Concerns-never-FAIL for edge cases (EDGE-04)** — avoiding false-positive execution blocks on informational findings kept the pipeline flowing
+- **All verification is grep-based** — no test runner needed; Nyquist validation runs in ~2 seconds using grep against modified files
+
+### What Was Inefficient
+- **SUMMARY one-liner backfill scope** — DEBT-05 backfill targeted v0.6 phases only; v0.7 plans written during/after Phase 54 didn't get the field, creating a small data quality gap
+- **Plan checkbox drift** — ROADMAP.md plan checkboxes for Phases 55-57 remained unchecked (`[ ]`) despite completion; the executor updates STATE.md and SUMMARY.md but not ROADMAP.md plan-level checkboxes consistently
+
+### Patterns Established
+- **Verification artifact pipeline:** RESEARCH-VALIDATION.md → DEPENDENCY-GAPS.md → EDGE-CASES.md → INTEGRATION-CHECK.md → unified READINESS.md
+- **Two verification modes:** Mode A (declaration-time in plan checker) and Mode B (codebase-time in readiness gate) — complementary, not redundant
+- **Blocking vs non-blocking gates:** contradicted_count > 0 blocks; unverifiable_count > 0 warns; edge cases always warn
+- **Severity escalation hierarchy:** only RESEARCH-VALIDATION FAIL routes to overall FAIL; everything else routes to CONCERNS; never-downgrade rule
+
+### Key Lessons
+1. **Pipeline gates should match confidence levels** — research contradictions are high-confidence problems (blocking), while edge cases are low-confidence suggestions (informational). Mapping gate severity to confidence prevents both false blocks and silent failures.
+2. **Agent artifacts should be orchestrator-written** — the read-only validator pattern (agent returns content, orchestrator writes file) is cleaner than giving agents write access. Adopt for future agents.
+3. **Grep-based Nyquist is sufficient for workflow artifacts** — when the "codebase" is markdown workflow files and JS modules, grep against known strings is as reliable as a test runner and 100x faster.
+4. **All 37 requirements satisfied on first pass** — zero gap closure phases needed. AC-first planning + readiness gating (from v0.6) likely prevented the gaps that required fix phases in earlier milestones.
+
+### Cost Observations
+- Model mix: sonnet for all execution/verification agents, opus for orchestration
+- Timeline: 2 days (2026-03-19 → 2026-03-20)
+- Notable: 4 phases, 11 plans, ~47 commits — zero unplanned phases, zero gap closure phases; cleanest milestone yet
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -307,6 +348,7 @@
 | v0.4 | 131 | 10 | Self-improvement — audit fleet, skill builder, design elevation, pressure test |
 | v0.5 | 99 | 7 | MCP integrations — 5 external tool integrations via central adapter, 315 validation tests |
 | v0.6 | ~91 | 8 | Workflow methodology — sharding, AC-first, reconciliation, readiness, tracking, agent memory |
+| v0.7 | ~47 | 4 | Pipeline verification — research validation, plan checker Dims 9-11, workflow integration |
 
 ### Cumulative Quality
 
@@ -318,3 +360,4 @@
 | v0.4 | 62/62 | 100% | 1 (phase 38) | 330+ |
 | v0.5 | 27/27 | 100% | 1 (phase 40.1) | 315 |
 | v0.6 | 24/24 | 100% | 0 (phase 53 planned) | 80 must-haves |
+| v0.7 | 37/37 | 100% | 0 | 5 tasks, all green |
