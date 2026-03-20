@@ -56,7 +56,16 @@ Any user can go from idea to shipped product through a single platform that hand
 
 ### Active
 
-(None — next milestone requirements defined via `/gsd:new-milestone`)
+## Current Milestone: v0.7 Pipeline Reliability & Validation
+
+**Goal:** Make PDE's research → plan → execute pipeline trustworthy by adding automated verification at every stage — validating research claims against the codebase, catching cross-phase dependency gaps, surfacing edge cases in plans, and closing accumulated tech debt.
+
+**Target features:**
+- Automated research validation agent with claim extraction and codebase verification
+- Cross-phase dependency verification (pre-execution, not just post)
+- Plan edge case analysis (error handling, empty states, boundary conditions)
+- Integration point verification (matching interfaces, data flows, no orphan exports)
+- Tech debt closure (all 7 known items from v0.6)
 
 ### Out of Scope
 
@@ -145,4 +154,4 @@ Any user can go from idea to shipped product through a single platform that hand
 | Analyst persona interviews in new-project/new-milestone | Surfaces unspoken assumptions before planning begins | ✓ Good — structured briefs improve plan quality |
 
 ---
-*Last updated: 2026-03-20 after v0.6 milestone completion*
+*Last updated: 2026-03-19 after v0.7 milestone start*

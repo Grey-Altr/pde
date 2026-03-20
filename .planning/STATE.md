@@ -1,11 +1,11 @@
 ---
 gsd_state_version: 1.0
-milestone: null
-milestone_name: null
-status: between_milestones
-stopped_at: v0.6 milestone completed and archived
-last_updated: "2026-03-20"
-last_activity: 2026-03-20 — v0.6 Advanced Workflow Methodology shipped
+milestone: v0.7
+milestone_name: Pipeline Reliability & Validation
+status: defining_requirements
+stopped_at: null
+last_updated: "2026-03-19"
+last_activity: 2026-03-19 — Milestone v0.7 started
 progress:
   total_phases: 0
   completed_phases: 0
@@ -18,19 +18,17 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-20)
+See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Planning next milestone
+**Current focus:** Defining requirements for v0.7
 
 ## Current Position
 
-Phase: —
+Phase: Not started (defining requirements)
 Plan: —
-Status: Between milestones (v0.6 shipped, v0.7 not yet started)
-Last activity: 2026-03-20 — v0.6 Advanced Workflow Methodology shipped (8 phases, 19 plans, 24/24 requirements)
-
-Progress: v0.6 complete. Next: /gsd:new-milestone
+Status: Defining requirements
+Last activity: 2026-03-19 — Milestone v0.7 started
 
 ## Performance Metrics
 
