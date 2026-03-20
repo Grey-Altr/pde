@@ -181,7 +181,7 @@ build_full_layout() {
   tmux send-keys -t "${P0}" "bash '${PLUGIN_ROOT}/bin/pane-agent-activity.sh' '${ndjson}'" C-m
   tmux send-keys -t "${P1}" "bash '${PLUGIN_ROOT}/bin/pane-pipeline-progress.sh' '${ndjson}'" C-m
   tmux send-keys -t "${P2}" "bash '${PLUGIN_ROOT}/bin/pane-file-changes.sh' '${ndjson}'" C-m
-  tmux send-keys -t "${P3}" "bash '${PLUGIN_ROOT}/bin/pane-context-window.sh'" C-m
+  tmux send-keys -t "${P3}" "bash '${PLUGIN_ROOT}/bin/pane-context-window.sh' '${ndjson}'" C-m
   tmux send-keys -t "${P4}" "bash '${PLUGIN_ROOT}/bin/pane-log-stream.sh' '${ndjson}'" C-m
   tmux send-keys -t "${P5}" "bash '${PLUGIN_ROOT}/bin/pane-token-meter.sh' '${ndjson}'" C-m
 }
