@@ -229,8 +229,10 @@ Plans:
   4. cmdTrackingGenerateHandoff dead code is resolved (removed or wired)
   5. Reconciler cross-references workflow-status.md alongside git commit evidence
   6. Phases 46 and 52 pass Nyquist validation
-**Plans:** 0/0 plans complete
+**Plans:** 2 plans
 Plans:
+- [ ] 53-01-PLAN.md — Code fixes: planner context injection, tracking task names, TASK_TOTAL guard, dead code removal
+- [ ] 53-02-PLAN.md — Reconciler workflow-status.md awareness and Nyquist compliance for phases 46 and 52
 
 ## Progress
 
@@ -250,4 +252,4 @@ Plans:
 | 50. Readiness Gate | 2/2 | Complete    | 2026-03-19 | - |
 | 51. Workflow Tracking | 2/2 | Complete    | 2026-03-19 | - |
 | 52. Agent Enhancements | 4/4 | Complete    | 2026-03-20 | - |
-| 53. Milestone Polish | 0/0 | Pending     | -          | - |
+| 53. Milestone Polish | 0/2 | Planned     | -          | - |
