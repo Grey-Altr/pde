@@ -67,6 +67,20 @@
  *   shard-plan <plan-path>             Shard PLAN.md into per-task files
  *     [--threshold N]                  Min task count to shard (default: 5)
  *
+ * File Manifest:
+ *   manifest init                      Build files-manifest.csv from plugin root
+ *   manifest check                     Check manifest entries against disk hashes
+ *
+ * Readiness:
+ *   readiness check <phase> [plan]     Run readiness checks against a plan
+ *   readiness result <phase>           Read last readiness result
+ *
+ * Task Tracking:
+ *   tracking init <phase> <plan>       Initialize workflow-status.md for a plan
+ *     [--names 'Task A|Task B']
+ *   tracking set-status <phase> <plan> Update task status in workflow-status.md
+ *   tracking read <phase> <plan>       Read current workflow status
+ *
  * Validation:
  *   validate consistency               Check phase numbering, disk/roadmap sync
  *   validate health [--repair]         Check .planning/ integrity, optionally repair
