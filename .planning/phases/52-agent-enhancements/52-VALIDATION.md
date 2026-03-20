@@ -1,9 +1,9 @@
 ---
 phase: 52
 slug: agent-enhancements
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: compliant
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-19
 ---
 
@@ -38,11 +38,11 @@ created: 2026-03-19
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| TBD | 01 | 1 | AGNT-01 | grep | `grep -q "assumptions" .claude/skills/pde-list-phase-assumptions/SKILL.md` | TBD | pending |
-| TBD | 01 | 1 | AGNT-02 | file | `test -f .claude/agents/pde-analyst.md` | TBD | pending |
-| TBD | 01 | 1 | AGNT-03 | grep | `grep -q "analyst" .claude/skills/pde-brief/SKILL.md` | TBD | pending |
-| TBD | 02 | 2 | AGNT-04 | file | `test -d .planning/agent-memory/executor` | TBD | pending |
-| TBD | 02 | 2 | AGNT-05 | grep | `grep -q "50" .claude/get-shit-done/bin/memory.cjs 2>/dev/null || grep -q "MEMORY_CAP\|MAX_ENTRIES\|50" .claude/get-shit-done/bin/*.cjs` | TBD | pending |
+| 52-02-01 | 02 | 1 | AGNT-01 | grep | `grep -q "assumptions" .claude/skills/pde-list-phase-assumptions/SKILL.md` | yes | green |
+| 52-03-01 | 03 | 1 | AGNT-02 | file | `test -f .claude/agents/pde-analyst.md` | yes | green |
+| 52-03-02 | 03 | 1 | AGNT-03 | grep | `grep -q "analyst" .claude/skills/pde-brief/SKILL.md` | yes | green |
+| 52-04-01 | 04 | 2 | AGNT-04 | file | `test -d .planning/agent-memory/executor` | yes | green |
+| 52-01-01 | 01 | 2 | AGNT-05 | grep | `grep -q "50" .claude/get-shit-done/bin/memory.cjs 2>/dev/null || grep -q "MEMORY_CAP\|MAX_ENTRIES\|50" .claude/get-shit-done/bin/*.cjs` | yes | green |
 
 *Status: pending · green · red · flaky*
 
@@ -68,11 +68,11 @@ created: 2026-03-19
 
 ## Validation Sign-Off
 
-- [ ] All tasks have automated verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 2s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have automated verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 2s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** Phase 53 polish
