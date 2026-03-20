@@ -1,9 +1,9 @@
 ---
 phase: 60
 slug: session-archival
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: approved
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-20
 ---
 
@@ -38,10 +38,10 @@ created: 2026-03-20
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 60-01-01 | 01 | 1 | HIST-01 | integration | `validate-archival.sh` | W0 | pending |
-| 60-01-02 | 01 | 1 | HIST-04 | integration | `validate-archival.sh` | W0 | pending |
-| 60-02-01 | 02 | 1 | HIST-02 | integration | `validate-archival.sh` | W0 | pending |
-| 60-03-01 | 03 | 1 | HIST-03 | integration | `validate-archival.sh` | W0 | pending |
+| 60-01-T1 | 01 | 1 | HIST-03, HIST-04 | integration | `validate-archival.sh` (FILE-01, PDE-01, HIST-03, HIST-04) | yes | green |
+| 60-01-T2 | 01 | 1 | HIST-03, HIST-04 | integration | `validate-archival.sh` (HOOKS-01) | yes | green |
+| 60-02-T1 | 02 | 2 | HIST-01, HIST-02, HIST-04 | integration | `validate-archival.sh` (FILE-02, HIST-01/02, HIST-04) | yes | green |
+| 60-02-T2 | 02 | 2 | HIST-01, HIST-02, HIST-04 | integration | `validate-archival.sh` (HOOKS-02) | yes | green |
 
 *Status: pending · green · red · flaky*
 
@@ -49,12 +49,12 @@ created: 2026-03-20
 
 ## Wave 0 Requirements
 
-- [ ] `validate-archival.sh` — validation script for all HIST requirements
-- [ ] Verify archive-session.cjs exists and is syntactically valid
-- [ ] Verify hooks.json includes SessionEnd archival hook entry
-- [ ] Verify .planning/logs/ directory creation logic exists
+- [x] `validate-archival.sh` — validation script for all HIST requirements
+- [x] Verify archive-session.cjs exists and is syntactically valid
+- [x] Verify hooks.json includes SessionEnd archival hook entry
+- [x] Verify .planning/logs/ directory creation logic exists
 
-*Wave 0 creates the validation script; subsequent tasks verify against it.*
+*Wave 0 complete — all validation infrastructure in place.*
 
 ---
 
@@ -69,11 +69,20 @@ created: 2026-03-20
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 5s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 5s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-03-20
+
+## Validation Audit 2026-03-20
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+| Tests total | 8 |
+| Tests passing | 8 |
