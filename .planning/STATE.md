@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.8
-milestone_name: Observability & Event Infrastructure
-status: completed
-stopped_at: Milestone v0.8 archived
-last_updated: "2026-03-20T22:00:00.000Z"
+milestone: v0.9
+milestone_name: Google Stitch Integration
+status: defining_requirements
+stopped_at: Milestone v0.9 started — defining requirements
+last_updated: "2026-03-20T23:00:00.000Z"
 progress:
-  total_phases: 6
-  completed_phases: 6
-  total_plans: 13
-  completed_plans: 13
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
 # Project State
@@ -19,19 +19,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-20)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Planning next milestone
+**Current focus:** v0.9 Google Stitch Integration — defining requirements
 
 ## Current Position
 
-Milestone v0.8 completed and archived. Ready for `/gsd:new-milestone`.
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-20 — Milestone v0.9 started
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed (v0.8): 13
-- Phases: 6 (58-63)
-- Timeline: ~15 hours
+- Total plans completed (v0.9): 0
+- Phases: 0
+- Timeline: Starting
 
 ## Accumulated Context
 
@@ -50,5 +53,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-20
-Stopped at: Milestone v0.8 archived
+Stopped at: Milestone v0.9 started — defining requirements
 Resume file: None

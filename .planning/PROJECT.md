@@ -66,7 +66,16 @@ Any user can go from idea to shipped product through a single platform that hand
 
 ### Active
 
-(None — next milestone requirements to be defined via `/gsd:new-milestone`)
+## Current Milestone: v0.9 Google Stitch Integration
+
+**Goal:** Integrate Google Stitch AI UI design tool into PDE's design pipeline as an alternative rendering engine, visual exploration tool, critique comparator, and pattern extraction source.
+
+**Target features:**
+- Stitch MCP server integration via mcp-bridge.cjs (6th approved server)
+- `--use-stitch` flag on `/pde:wireframe` and `/pde:mockup` for alternative rendering
+- Visual divergence during `/pde:ideate --diverge` via Stitch-generated variants
+- Stitch output comparison against design system tokens in `/pde:critique`
+- Pattern extraction from Stitch visuals feeding into `/pde:handoff`
 
 ### Out of Scope
 
@@ -169,4 +178,4 @@ Any user can go from idea to shipped product through a single platform that hand
 | Surgical manual event emits (8 calls in 2 files) | Minimizes workflow file changes; concentrated risk surface | ✓ Good — zero regressions across all workflows |
 
 ---
-*Last updated: 2026-03-20 after v0.8 milestone*
+*Last updated: 2026-03-20 after v0.9 milestone started*
