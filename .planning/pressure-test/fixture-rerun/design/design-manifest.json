@@ -17,6 +17,7 @@
     "hasOpportunity": true,
     "hasMockup": true,
     "hasHigAudit": true,
-    "hasRecommendations": true
+    "hasRecommendations": true,
+    "hasStitchWireframes": false
   }
 }

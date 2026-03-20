@@ -15,6 +15,13 @@
     "hasHardwareSpec": false,
     "hasCritique": false,
     "hasIterate": false,
-    "hasHandoff": false
+    "hasHandoff": false,
+    "hasIdeation": false,
+    "hasCompetitive": false,
+    "hasOpportunity": false,
+    "hasMockup": false,
+    "hasHigAudit": false,
+    "hasRecommendations": false,
+    "hasStitchWireframes": false
   }
 }
