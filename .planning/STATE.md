@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.8
 milestone_name: Observability & Event Infrastructure
 status: unknown
-stopped_at: Completed 60-01-PLAN.md — validate-archival.sh, hooks/cleanup-old-sessions.cjs, bin/pde-tools.cjs session_start_ts, hooks/hooks.json
-last_updated: "2026-03-20T18:46:45.857Z"
+stopped_at: Completed 60-02-PLAN.md — archive-session.cjs, hooks.json SessionEnd registration, validate-archival.sh 8/8 PASS
+last_updated: "2026-03-20T18:50:50.975Z"
 progress:
   total_phases: 5
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 8
-  completed_plans: 7
+  completed_plans: 8
 ---
 
 # Project State
@@ -46,6 +46,7 @@ Plan: 2 of 2
 | Phase 59-tmux-dashboard-dependency-detection P02 | 2min | 2 tasks | 4 files |
 | Phase 59 P03 | 4min | 2 tasks | 3 files |
 | Phase 60 P01 | 4min | 2 tasks | 4 files |
+| Phase 60 P02 | 3min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -87,6 +88,8 @@ Key v0.8 architectural decisions (pre-execution):
 - [Phase 59]: pane-context-window.sh is static display (no NDJSON arg) with sleep 60 loop — Phase 61 will replace with live context computation
 - [Phase 60]: session_start_ts stored in config.json (not NDJSON) for reliable duration computation at SessionEnd
 - [Phase 60]: cleanup-old-sessions.cjs runs after emit-event.cjs in SessionStart — ensures current session NDJSON file exists before age check runs
+- [Phase 60]: aggregateNdjson as named function — validate-archival.sh greps for this token to verify correct archive-session.cjs structure
+- [Phase 60]: SessionEnd hook chain: emit-event.cjs first (writes session_end to NDJSON), archive-session.cjs second (reads complete NDJSON) — order is critical for accurate event count
 
 ### Pending Todos
 
@@ -99,6 +102,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-20T18:46:45.854Z
-Stopped at: Completed 60-01-PLAN.md — validate-archival.sh, hooks/cleanup-old-sessions.cjs, bin/pde-tools.cjs session_start_ts, hooks/hooks.json
+Last session: 2026-03-20T18:50:50.973Z
+Stopped at: Completed 60-02-PLAN.md — archive-session.cjs, hooks.json SessionEnd registration, validate-archival.sh 8/8 PASS
 Resume file: None

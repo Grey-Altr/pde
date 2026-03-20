@@ -37,8 +37,8 @@ Requirements for v0.8 Observability & Event Infrastructure. Each maps to roadmap
 
 ### Session History
 
-- [ ] **HIST-01**: SessionEnd triggers generation of structured markdown summary in `.planning/logs/`
-- [ ] **HIST-02**: Session summaries include duration, event count, agents spawned, commits made, and phase/plan progress
+- [x] **HIST-01**: SessionEnd triggers generation of structured markdown summary in `.planning/logs/`
+- [x] **HIST-02**: Session summaries include duration, event count, agents spawned, commits made, and phase/plan progress
 - [x] **HIST-03**: Raw NDJSON event streams stored in /tmp for live debugging with automatic cleanup of files older than 7 days at SessionStart
 - [x] **HIST-04**: Session log files are named with ISO timestamp and session ID for uniqueness
 
@@ -99,8 +99,8 @@ Requirements for v0.8 Observability & Event Infrastructure. Each maps to roadmap
 | DEPS-01 | Phase 59 | Complete |
 | DEPS-02 | Phase 59 | Complete |
 | DEPS-03 | Phase 59 | Complete |
-| HIST-01 | Phase 60 | Pending |
-| HIST-02 | Phase 60 | Pending |
+| HIST-01 | Phase 60 | Complete |
+| HIST-02 | Phase 60 | Complete |
 | HIST-03 | Phase 60 | Complete |
 | HIST-04 | Phase 60 | Complete |
 | TOKN-01 | Phase 61 | Pending |
