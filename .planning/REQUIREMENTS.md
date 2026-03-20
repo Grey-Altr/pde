@@ -44,8 +44,8 @@ Requirements for v0.8 Observability & Event Infrastructure. Each maps to roadmap
 
 ### Token & Context Metering
 
-- [ ] **TOKN-01**: Token estimation uses chars/4 heuristic for all text content, clearly labeled as "~est."
-- [ ] **TOKN-02**: Cost estimation uses per-model pricing from existing model-profiles configuration
+- [x] **TOKN-01**: Token estimation uses chars/4 heuristic for all text content, clearly labeled as "~est."
+- [x] **TOKN-02**: Cost estimation uses per-model pricing from existing model-profiles configuration
 - [x] **TOKN-03**: Context window utilization displayed as percentage with orchestrator scope label
 
 ## Future Requirements
@@ -103,8 +103,8 @@ Requirements for v0.8 Observability & Event Infrastructure. Each maps to roadmap
 | HIST-02 | Phase 60 | Complete |
 | HIST-03 | Phase 60 | Complete |
 | HIST-04 | Phase 60 | Complete |
-| TOKN-01 | Phase 61 | Pending |
-| TOKN-02 | Phase 61 | Pending |
+| TOKN-01 | Phase 61 | Complete |
+| TOKN-02 | Phase 61 | Complete |
 | TOKN-03 | Phase 61 | Complete |
 
 **Coverage:**

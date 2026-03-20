@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v0.8
 milestone_name: Observability & Event Infrastructure
 status: unknown
-stopped_at: Completed 61-02-PLAN.md — pane-context-window.sh live implementation, monitor-dashboard.sh NDJSON patch
-last_updated: "2026-03-20T19:17:22.051Z"
+stopped_at: Completed 61-01-PLAN.md — validate-metering.sh 8-check Nyquist suite, live pane-token-meter.sh with per-model pricing, 8/8 PASS
+last_updated: "2026-03-20T19:17:39.459Z"
 progress:
   total_phases: 5
   completed_phases: 4
@@ -48,6 +48,7 @@ Plan: 2 of 2
 | Phase 60 P01 | 4min | 2 tasks | 4 files |
 | Phase 60 P02 | 3min | 2 tasks | 2 files |
 | Phase 61 P02 | 3min | 2 tasks | 2 files |
+| Phase 61 P01 | 2min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -93,6 +94,8 @@ Key v0.8 architectural decisions (pre-execution):
 - [Phase 60]: SessionEnd hook chain: emit-event.cjs first (writes session_end to NDJSON), archive-session.cjs second (reads complete NDJSON) — order is critical for accurate event count
 - [Phase 61-02]: Context window size resolved once at pane startup via node -e (not per-event) — avoids subprocess overhead in tail loop
 - [Phase 61-02]: pane-context-window.sh backward-compatible: no-arg invocation falls back to static display + sleep 60 (Phase 59 compat)
+- [Phase 61]: chars/4 heuristic proxy labeled ~est. per TOKN-01 — tokenx 1.3.0 vendoring deferred pending empirical validation
+- [Phase 61]: Inline PRICING table in pane-token-meter.sh — stable constants, avoids extra read; Node cost subprocess spawned every 5 events to avoid per-event overhead
 
 ### Pending Todos
 
@@ -105,6 +108,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-20T19:17:06.389Z
-Stopped at: Completed 61-02-PLAN.md — pane-context-window.sh live implementation, monitor-dashboard.sh NDJSON patch
+Last session: 2026-03-20T19:17:39.456Z
+Stopped at: Completed 61-01-PLAN.md — validate-metering.sh 8-check Nyquist suite, live pane-token-meter.sh with per-model pricing, 8/8 PASS
 Resume file: None
