@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.8
 milestone_name: Observability & Event Infrastructure
 status: unknown
-stopped_at: Completed 59-02-PLAN.md — bin/pane-agent-activity.sh, bin/pane-pipeline-progress.sh, bin/pane-file-changes.sh, bin/pane-log-stream.sh
-last_updated: "2026-03-20T18:16:10.190Z"
+stopped_at: Completed 59-03-PLAN.md — bin/pane-token-meter.sh, bin/pane-context-window.sh, validate-dashboard.sh
+last_updated: "2026-03-20T18:16:57.960Z"
 progress:
   total_phases: 5
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 6
-  completed_plans: 5
+  completed_plans: 6
 ---
 
 # Project State
@@ -44,6 +44,7 @@ Plan: 1 of 3
 | Phase 58 P03 | 5min | 2 tasks | 3 files |
 | Phase 59-tmux-dashboard-dependency-detection P01 | 2 | 2 tasks | 3 files |
 | Phase 59-tmux-dashboard-dependency-detection P02 | 2min | 2 tasks | 4 files |
+| Phase 59 P03 | 4min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -81,6 +82,8 @@ Key v0.8 architectural decisions (pre-execution):
 - [Phase 59-01]: NDJSON path resolved at launch via node -e reading monitoring.session_id from config.json — tail -F self-heals if file does not exist yet
 - [Phase 59-02]: file_changed not tool_use: emit-event.cjs maps Write/Edit hooks to file_changed; pane scripts handle both for current compatibility and forward-compat
 - [Phase 59-02]: Pipeline progress pane is intentionally idle: phase/wave/plan events are Phase 62 deferred; waiting banner is correct idle state
+- [Phase 59]: Node.js used for unit test fixture processing in validate-dashboard.sh — timeout command not available on macOS, Node reads fixture synchronously
+- [Phase 59]: pane-context-window.sh is static display (no NDJSON arg) with sleep 60 loop — Phase 61 will replace with live context computation
 
 ### Pending Todos
 
@@ -93,6 +96,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-20T18:16:10.187Z
-Stopped at: Completed 59-02-PLAN.md — bin/pane-agent-activity.sh, bin/pane-pipeline-progress.sh, bin/pane-file-changes.sh, bin/pane-log-stream.sh
+Last session: 2026-03-20T18:16:52.761Z
+Stopped at: Completed 59-03-PLAN.md — bin/pane-token-meter.sh, bin/pane-context-window.sh, validate-dashboard.sh
 Resume file: None

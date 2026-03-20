@@ -23,8 +23,8 @@ Requirements for v0.8 Observability & Event Infrastructure. Each maps to roadmap
 - [x] **TMUX-03**: Pipeline progress pane shows phase/plan/task completion with wave-aware progress indicators
 - [x] **TMUX-04**: File changes pane shows files created/modified in real-time from event stream
 - [x] **TMUX-05**: Log stream pane shows structured event log with severity filtering
-- [ ] **TMUX-06**: Token/cost meter pane shows running token estimate (~est.) and approximate cost per model
-- [ ] **TMUX-07**: Context window pane shows orchestrator context utilization indicator labeled as estimate
+- [x] **TMUX-06**: Token/cost meter pane shows running token estimate (~est.) and approximate cost per model
+- [x] **TMUX-07**: Context window pane shows orchestrator context utilization indicator labeled as estimate
 - [x] **TMUX-08**: Dashboard persists after PDE operation completes (user closes manually)
 - [x] **TMUX-09**: Adaptive layout degrades gracefully for terminals below 120x30 (fewer panes, priority ordering)
 - [x] **TMUX-10**: Nested tmux detection checks $TMUX and uses switch-client fallback for users already in tmux
@@ -91,8 +91,8 @@ Requirements for v0.8 Observability & Event Infrastructure. Each maps to roadmap
 | TMUX-03 | Phase 59 | Complete |
 | TMUX-04 | Phase 59 | Complete |
 | TMUX-05 | Phase 59 | Complete |
-| TMUX-06 | Phase 59 | Pending |
-| TMUX-07 | Phase 59 | Pending |
+| TMUX-06 | Phase 59 | Complete |
+| TMUX-07 | Phase 59 | Complete |
 | TMUX-08 | Phase 59 | Complete |
 | TMUX-09 | Phase 59 | Complete |
 | TMUX-10 | Phase 59 | Complete |
