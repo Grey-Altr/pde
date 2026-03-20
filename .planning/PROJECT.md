@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A full professional product design and development platform delivered as a Claude Code plugin. PDE takes users from raw idea to shipped product through AI-assisted research, design, planning, coding, testing, and deployment. Includes a complete 13-stage design pipeline (recommend → competitive → opportunity → ideate → brief → system → flows → wireframe → critique → iterate → mockup → hig → handoff) orchestrable via a single `/pde:build` command. Features a self-improvement fleet that audits, validates, and elevates its own output quality against Awwwards-level standards. Integrates with external development tools (GitHub, Linear, Jira, Figma, Pencil) via MCP for bidirectional sync of requirements, design tokens, and work items. Implements advanced workflow methodology with story-file sharding, acceptance-criteria-first planning, post-execution reconciliation, readiness gating, per-task tracking, and persistent agent memory.
+A full professional product design and development platform delivered as a Claude Code plugin. PDE takes users from raw idea to shipped product through AI-assisted research, design, planning, coding, testing, and deployment. Includes a complete 13-stage design pipeline (recommend → competitive → opportunity → ideate → brief → system → flows → wireframe → critique → iterate → mockup → hig → handoff) orchestrable via a single `/pde:build` command. Features a self-improvement fleet that audits, validates, and elevates its own output quality against Awwwards-level standards. Integrates with external development tools (GitHub, Linear, Jira, Figma, Pencil) via MCP for bidirectional sync of requirements, design tokens, and work items. Implements advanced workflow methodology with story-file sharding, acceptance-criteria-first planning, post-execution reconciliation, readiness gating, per-task tracking, and persistent agent memory. Automated pipeline verification validates research claims against the codebase, detects cross-phase dependencies, surfaces edge cases with BDD AC generation, and verifies integration points — all wired as automatic gates in the planning and readiness workflows.
 
 ## Core Value
 
@@ -59,18 +59,7 @@ Any user can go from idea to shipped product through a single platform that hand
 
 ### Active
 
-(No active requirements — all v0.7 phases complete)
-
-## Current Milestone: v0.7 Pipeline Reliability & Validation
-
-**Goal:** Make PDE's research → plan → execute pipeline trustworthy by adding automated verification at every stage — validating research claims against the codebase, catching cross-phase dependency gaps, surfacing edge cases in plans, and closing accumulated tech debt.
-
-**Target features:**
-- Automated research validation agent with claim extraction and codebase verification
-- Cross-phase dependency verification (pre-execution, not just post)
-- Plan edge case analysis (error handling, empty states, boundary conditions)
-- Integration point verification (matching interfaces, data flows, no orphan exports)
-- Tech debt closure (all 7 known items from v0.6)
+(No active requirements — next milestone not yet started)
 
 ### Out of Scope
 
@@ -94,13 +83,14 @@ Any user can go from idea to shipped product through a single platform that hand
 
 ## Context
 
-- **Shipped v0.6** on 2026-03-20: ~166,000 LOC (JavaScript/Markdown/Shell), ~650 total commits
+- **Shipped v0.7** on 2026-03-20: ~82,000 LOC (JavaScript/Markdown/Shell), ~700 total commits
 - **v0.1** shipped 2026-03-15: 303 files, ~60,000 LOC, 127 commits (GSD → PDE rebrand)
 - **v0.2** shipped 2026-03-16: 172 files changed, 135 commits (7-stage design pipeline)
 - **v0.3** shipped 2026-03-17: 84 files changed, 67 commits (6 advanced design skills, 13-stage pipeline)
 - **v0.4** shipped 2026-03-18: 259 files changed, 131 commits (self-improvement fleet, design elevation, pressure test)
 - **v0.5** shipped 2026-03-19: 118 files changed, 99 commits (5 MCP integrations, 315 validation tests)
 - **v0.6** shipped 2026-03-20: 108 files changed, ~91 commits (workflow methodology: sharding, AC-first, reconciliation, readiness, tracking, agent memory)
+- **v0.7** shipped 2026-03-20: 67 files changed, ~47 commits (pipeline verification: research validation agent, plan checker Dimensions 9-11, workflow integration)
 - **Tech stack:** Node.js (CommonJS), Claude Code plugin API, markdown-based state management, MCP protocol (HTTP/SSE/stdio transports)
 - **Distribution:** Claude Code plugin via GitHub; marketplace registration pending
 - **Architecture:** skills (slash commands) → workflows → agents → templates → references → bin scripts → config
@@ -108,14 +98,11 @@ Any user can go from idea to shipped product through a single platform that hand
 - **Quality infrastructure:** Awwwards 4-dimension rubric, 3 quality reference files (motion-design, composition-typography, quality-standards), protected-files mechanism, 3-agent self-improvement fleet, skill builder with validation gate
 - **MCP integration layer:** mcp-bridge.cjs central adapter with TOOL_MAP (36 entries), APPROVED_SERVERS (5 services), probe/degrade contracts, connection persistence (.planning/mcp-connections.json), write-back confirmation gates
 - **Workflow methodology:** story-file sharding (task-NNN.md), AC-first planning (AC-N verification gates), post-execution reconciliation (RECONCILIATION.md), readiness gate (PASS/CONCERNS/FAIL), per-task tracking (workflow-status.md), persistent agent memory (50-entry cap with archival), analyst persona interviews
+- **Pipeline verification:** Research validation agent (3-tier claim classification, codebase verification), plan checker Dimensions 9-11 (dependencies, edge cases, integration Mode A), readiness B4/B5 checks, run_integration_checks consuming all 4 artifact types
 - **Known tech debt:**
-  - PLUG-01 end-to-end `claude plugin install` from GitHub not tested (marketplace registration may be required)
-  - TRACKING-PLAN.md referenced in consent panel does not exist
   - Historical commits e067974 and efe3af0 lack Co-Authored-By trailer (pre-fix, cannot change)
-  - lock-release calls use inconsistent trailing arguments across workflows (cosmetic, zero functional impact)
-  - SUMMARY.md files lack one_liner field — automated accomplishment extraction fails (tech-tracking format only)
-  - 2 pre-registered TOOL_MAP entries (github:update-pr, github:search-issues) have no consumers yet (intentionally pre-registered)
-  - pde-tools.cjs usage help text missing v0.6 CLI commands (manifest, shard-plan, readiness, tracking) — cosmetic
+  - 5 v0.7 SUMMARY files missing one-liner frontmatter field (non-breaking, graceful null)
+  - 3 human verification items for Phase 56 deferred (live dependency detection, edge case quality, AC approval gate)
 
 ## Constraints
 
@@ -157,6 +144,12 @@ Any user can go from idea to shipped product through a single platform that hand
 | Readiness gate blocks on FAIL | Prevents executing plans with known structural issues | ✓ Good — clean separation of plan validation vs execution |
 | Per-agent persistent memory with 50-entry cap | Agents learn project-specific patterns across sessions without unbounded growth | ✓ Good — archival prevents context bloat |
 | Analyst persona interviews in new-project/new-milestone | Surfaces unspoken assumptions before planning begins | ✓ Good — structured briefs improve plan quality |
+| Read-only research validator agent | Agent cannot write files; orchestrator writes artifact_content to disk | ✓ Good — clean separation of concerns, no accidental mutations |
+| Three-tier claim classification (T1/T2/T3) | Match verification method to claim complexity (structural→content→behavioral) | ✓ Good — reduces false positives from wrong-tool verification |
+| Edge cases always CONCERNS, never FAIL | Edge cases are informational, not blocking — users decide what to act on | ✓ Good — prevents false-positive execution blocks |
+| BDD AC approval gate outside revision loop | Additive-only AC append; checker not re-invoked after approval | ✓ Good — prevents infinite loop between checker and approval |
+| B4/B5 as concerns-severity structural checks | File existence and orphan export checks inform but don't block execution | ✓ Good — right severity for declarative-only checks |
+| Tech debt closure as first v0.7 phase | Clean baseline before adding new verification surface area | ✓ Good — all 7 items resolved, no interference with new features |
 
 ---
-*Last updated: 2026-03-20 after Phase 57 (workflow-integration) complete — all v0.7 phases done*
+*Last updated: 2026-03-20 after v0.7 milestone complete*

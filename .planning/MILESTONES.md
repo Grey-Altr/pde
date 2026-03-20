@@ -1,10 +1,25 @@
 # Milestones
 
+## v0.7 Pipeline Reliability & Validation (Shipped: 2026-03-20)
+
+**Phases completed:** 4 phases, 11 plans, 3 tasks
+
+**Key accomplishments:**
+
+- TRACKING-PLAN.md created to fix broken consent panel reference, one-liner field added to SUMMARY template, and all 20 v0.6 SUMMARY files backfilled for automated extraction
+- Smoke-tested pde-research-validator against Phase 54 research: 9 claims extracted, verified against codebase, RESEARCH-VALIDATION.md produced with validated_at_phase: 55 — proves RVAL-03 and RVAL-06
+- Dimension 9 (Cross-Phase Dependencies) added to pde-plan-checker using roadmap analyze --raw for gap detection with DEPENDENCY-GAPS.md artifact and three resolution option types
+- Dimension 10 (Edge Cases) added to pde-plan-checker with LLM reasoning pass, severity classification, 5-8 cap, BDD candidates for HIGH findings, and EDGE-06 AC approval gate added to plan-phase.md as Step 11.5 outside the revision loop
+- Dimension 11 (Integration Mode A) added to pde-plan-checker: @-reference extraction from <context> blocks, file existence checks, TOOL_MAP_PREREGISTERED exclusion-set for orphan detection, INTG-05 scope bound via allowlist, and INTEGRATION-CHECK.md artifact specification
+
+---
+
 ## v0.6 Advanced Workflow Methodology (Shipped: 2026-03-20)
 
 **Phases completed:** 8 phases, 19 plans, 2 tasks
 
 **Key accomplishments:**
+
 - (none recorded)
 
 ### Plugin Install Status (PLUG-01)
@@ -35,6 +50,7 @@ Both commands completed without error when tested programmatically via the `clau
 **Git range:** feat(39-01) → docs(quick-260319-0u1)
 
 **Key accomplishments:**
+
 1. MCP Infrastructure Foundation: Central adapter module (mcp-bridge.cjs) with security allowlist, probe/degrade contracts, connection persistence, and canonical tool name mapping — all integrations share one bridge
 2. GitHub Integration: Bidirectional sync (issues → REQUIREMENTS.md, handoff → PRs), brief from GitHub issue, CI pipeline status, write-back confirmation gates
 3. Linear + Jira Integration: Issue sync, milestone/epic mapping, ticket creation from handoff, configurable `task_tracker` toggle — unified adapter pattern for both services
@@ -54,6 +70,7 @@ Both commands completed without error when tested programmatically via the `clau
 **Git range:** test(phase-24) → docs(v1.3): re-audit
 
 **Key accomplishments:**
+
 1. Quality infrastructure: Awwwards 4-dimension rubric, motion design reference, composition/typography reference, protected-files mechanism for safe self-modification
 2. Self-improvement fleet: `/pde:audit` with 3-agent orchestration (auditor/improver/validator), baseline delta tracking, PDE Health Reports
 3. Skill builder: `/pde:improve` with create/improve/eval modes, validation gate, style guide enforcement — PDE can create and elevate its own skills
@@ -73,6 +90,7 @@ Both commands completed without error when tested programmatically via the `clau
 **Git range:** feat(24-01) → feat(28-01)
 
 **Key accomplishments:**
+
 1. Built 6 new design skills: recommend, competitive, opportunity, mockup, HIG, and ideate
 2. Migrated all existing skills to 13-field pass-through-all coverage pattern (zero flag clobber)
 3. Expanded /pde:build orchestrator from 7 to 13 stages with --from entry point and dynamic stage counting
@@ -92,6 +110,7 @@ Both commands completed without error when tested programmatically via the `clau
 **Git range:** docs(12) → docs(v1.1)
 
 **Key accomplishments:**
+
 1. Design pipeline infrastructure: state management, DTCG-to-CSS conversion, write-lock protocol, artifact manifest (design.cjs + pde-tools.cjs)
 2. Problem framing (/pde:brief): structured brief generation with product-type detection (software/hardware/hybrid)
 3. Design system (/pde:system): DTCG 2025.10 JSON tokens with CSS custom properties, OKLCH color space, dual dark mode
@@ -111,6 +130,7 @@ Both commands completed without error when tested programmatically via the `clau
 **Git range:** feat(01-01) → feat(11-01)
 
 **Key accomplishments:**
+
 1. Complete GSD → PDE rebrand: zero GSD strings in any source file (grep-clean verified)
 2. 34 `/pde:` slash commands operational with full command palette integration
 3. Workflow engine with persistent `.planning/` state across context resets
@@ -121,4 +141,3 @@ Both commands completed without error when tested programmatically via the `clau
 **Delivered:** A fully rebranded, publicly distributable Claude Code plugin that provides AI-assisted end-to-end product development lifecycle management.
 
 ---
-
