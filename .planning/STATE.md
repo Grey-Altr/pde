@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v0.7
 milestone_name: Pipeline Reliability & Validation
 status: planning
-stopped_at: Completed 54-01-PLAN.md
-last_updated: "2026-03-20T02:45:40.875Z"
+stopped_at: Completed 54-02-PLAN.md (TRACKING-PLAN.md + one-liner backfill)
+last_updated: "2026-03-20T02:48:53.024Z"
 last_activity: 2026-03-19 — v0.7 roadmap created (4 phases, 37 requirements mapped)
 progress:
   total_phases: 4
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
-  completed_plans: 2
+  completed_plans: 3
   percent: 0
 ---
 
@@ -43,6 +43,7 @@ Progress: [░░░░░░░░░░] 0%
 | Timeline | 2 days | 2 days | 1 day | 4 days | 2 days | 2 days |
 | Phase 54 P03 | 5 | 1 tasks | 1 files |
 | Phase 54 P01 | 5 | 3 tasks | 5 files |
+| Phase 54-tech-debt-closure P02 | 4 | 2 tasks | 22 files |
 
 ## Accumulated Context
 
@@ -59,6 +60,7 @@ Key v0.7 architectural decisions (pre-execution):
 - [Phase 54]: Commits e067974 and efe3af0 documented as known exceptions; history not amended
 - [Phase 54]: lock-release bash code blocks normalized to no trailing args; prose references in guidelines intentionally left unchanged
 - [Phase 54]: TOOL_MAP_PREREGISTERED inline annotation marks pre-registered entries to prevent false orphan detection in future checks
+- [Phase 54-tech-debt-closure]: one-liner field uses hyphenated form (one-liner:) to match fm['one-liner'] key in commands.cjs — underscored form would silently fail extraction
 
 ### Pending Todos
 
@@ -77,6 +79,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-20T02:45:40.872Z
-Stopped at: Completed 54-01-PLAN.md
+Last session: 2026-03-20T02:48:53.022Z
+Stopped at: Completed 54-02-PLAN.md (TRACKING-PLAN.md + one-liner backfill)
 Resume file: None
