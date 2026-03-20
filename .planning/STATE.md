@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.8
 milestone_name: Observability & Event Infrastructure
 status: unknown
-stopped_at: Completed 59-03-PLAN.md — bin/pane-token-meter.sh, bin/pane-context-window.sh, validate-dashboard.sh
-last_updated: "2026-03-20T18:20:21.992Z"
+stopped_at: Completed 60-01-PLAN.md — validate-archival.sh, hooks/cleanup-old-sessions.cjs, bin/pde-tools.cjs session_start_ts, hooks/hooks.json
+last_updated: "2026-03-20T18:46:45.857Z"
 progress:
   total_phases: 5
   completed_phases: 2
-  total_plans: 6
-  completed_plans: 6
+  total_plans: 8
+  completed_plans: 7
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 59 — tmux-dashboard-dependency-detection
+**Current focus:** Phase 60 — session-archival
 
 ## Current Position
 
-Phase: 59 (tmux-dashboard-dependency-detection) — EXECUTING
-Plan: 1 of 3
+Phase: 60 (session-archival) — EXECUTING
+Plan: 2 of 2
 
 ## Performance Metrics
 
@@ -45,6 +45,7 @@ Plan: 1 of 3
 | Phase 59-tmux-dashboard-dependency-detection P01 | 2 | 2 tasks | 3 files |
 | Phase 59-tmux-dashboard-dependency-detection P02 | 2min | 2 tasks | 4 files |
 | Phase 59 P03 | 4min | 2 tasks | 3 files |
+| Phase 60 P01 | 4min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -84,6 +85,8 @@ Key v0.8 architectural decisions (pre-execution):
 - [Phase 59-02]: Pipeline progress pane is intentionally idle: phase/wave/plan events are Phase 62 deferred; waiting banner is correct idle state
 - [Phase 59]: Node.js used for unit test fixture processing in validate-dashboard.sh — timeout command not available on macOS, Node reads fixture synchronously
 - [Phase 59]: pane-context-window.sh is static display (no NDJSON arg) with sleep 60 loop — Phase 61 will replace with live context computation
+- [Phase 60]: session_start_ts stored in config.json (not NDJSON) for reliable duration computation at SessionEnd
+- [Phase 60]: cleanup-old-sessions.cjs runs after emit-event.cjs in SessionStart — ensures current session NDJSON file exists before age check runs
 
 ### Pending Todos
 
@@ -96,6 +99,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-20T18:16:52.761Z
-Stopped at: Completed 59-03-PLAN.md — bin/pane-token-meter.sh, bin/pane-context-window.sh, validate-dashboard.sh
+Last session: 2026-03-20T18:46:45.854Z
+Stopped at: Completed 60-01-PLAN.md — validate-archival.sh, hooks/cleanup-old-sessions.cjs, bin/pde-tools.cjs session_start_ts, hooks/hooks.json
 Resume file: None
