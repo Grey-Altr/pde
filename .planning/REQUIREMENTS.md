@@ -90,49 +90,49 @@ Requirements for Pipeline Reliability & Validation milestone. Each maps to roadm
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DEBT-01 | — | Pending |
-| DEBT-02 | — | Pending |
-| DEBT-03 | — | Pending |
-| DEBT-04 | — | Pending |
-| DEBT-05 | — | Pending |
-| DEBT-06 | — | Pending |
-| DEBT-07 | — | Pending |
-| RVAL-01 | — | Pending |
-| RVAL-02 | — | Pending |
-| RVAL-03 | — | Pending |
-| RVAL-04 | — | Pending |
-| RVAL-05 | — | Pending |
-| RVAL-06 | — | Pending |
-| RVAL-07 | — | Pending |
-| RVAL-08 | — | Pending |
-| DEPS-01 | — | Pending |
-| DEPS-02 | — | Pending |
-| DEPS-03 | — | Pending |
-| DEPS-04 | — | Pending |
-| DEPS-05 | — | Pending |
-| DEPS-06 | — | Pending |
-| EDGE-01 | — | Pending |
-| EDGE-02 | — | Pending |
-| EDGE-03 | — | Pending |
-| EDGE-04 | — | Pending |
-| EDGE-05 | — | Pending |
-| EDGE-06 | — | Pending |
-| INTG-01 | — | Pending |
-| INTG-02 | — | Pending |
-| INTG-03 | — | Pending |
-| INTG-04 | — | Pending |
-| INTG-05 | — | Pending |
-| INTG-06 | — | Pending |
-| WIRE-01 | — | Pending |
-| WIRE-02 | — | Pending |
-| WIRE-03 | — | Pending |
-| WIRE-04 | — | Pending |
+| DEBT-01 | Phase 54 | Pending |
+| DEBT-02 | Phase 54 | Pending |
+| DEBT-03 | Phase 54 | Pending |
+| DEBT-04 | Phase 54 | Pending |
+| DEBT-05 | Phase 54 | Pending |
+| DEBT-06 | Phase 54 | Pending |
+| DEBT-07 | Phase 54 | Pending |
+| RVAL-01 | Phase 55 | Pending |
+| RVAL-02 | Phase 55 | Pending |
+| RVAL-03 | Phase 55 | Pending |
+| RVAL-04 | Phase 55 | Pending |
+| RVAL-05 | Phase 55 | Pending |
+| RVAL-06 | Phase 55 | Pending |
+| RVAL-07 | Phase 57 | Pending |
+| RVAL-08 | Phase 57 | Pending |
+| DEPS-01 | Phase 56 | Pending |
+| DEPS-02 | Phase 56 | Pending |
+| DEPS-03 | Phase 56 | Pending |
+| DEPS-04 | Phase 56 | Pending |
+| DEPS-05 | Phase 56 | Pending |
+| DEPS-06 | Phase 56 | Pending |
+| EDGE-01 | Phase 56 | Pending |
+| EDGE-02 | Phase 56 | Pending |
+| EDGE-03 | Phase 56 | Pending |
+| EDGE-04 | Phase 56 | Pending |
+| EDGE-05 | Phase 56 | Pending |
+| EDGE-06 | Phase 56 | Pending |
+| INTG-01 | Phase 56 | Pending |
+| INTG-02 | Phase 57 | Pending |
+| INTG-03 | Phase 56 | Pending |
+| INTG-04 | Phase 57 | Pending |
+| INTG-05 | Phase 56 | Pending |
+| INTG-06 | Phase 56 | Pending |
+| WIRE-01 | Phase 57 | Pending |
+| WIRE-02 | Phase 57 | Pending |
+| WIRE-03 | Phase 57 | Pending |
+| WIRE-04 | Phase 57 | Pending |
 
 **Coverage:**
 - v0.7 requirements: 37 total
-- Mapped to phases: 0
-- Unmapped: 37
+- Mapped to phases: 37
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-19*
-*Last updated: 2026-03-19 after initial definition*
+*Last updated: 2026-03-19 after roadmap creation — all 37 requirements mapped to phases 54-57*

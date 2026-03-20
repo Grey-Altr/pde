@@ -8,6 +8,7 @@
 - ✅ **v0.4 Self-Improvement & Design Excellence** — Phases 29-38 (shipped 2026-03-18)
 - ✅ **v0.5 MCP Integrations** — Phases 39-44 + 40.1 (shipped 2026-03-19)
 - ✅ **v0.6 Advanced Workflow Methodology** — Phases 46-53 (shipped 2026-03-20)
+- 🚧 **v0.7 Pipeline Reliability & Validation** — Phases 54-57 (in progress)
 
 ## Phases
 
@@ -115,6 +116,58 @@ Full details: .planning/milestones/v0.6-ROADMAP.md
 
 </details>
 
+### 🚧 v0.7 Pipeline Reliability & Validation (In Progress)
+
+**Milestone Goal:** Make PDE's research → plan → execute pipeline trustworthy by adding automated verification at every stage — validating research claims against the codebase, catching cross-phase dependency gaps, surfacing edge cases in plans, and closing accumulated tech debt.
+
+## Phase Details
+
+### Phase 54: Tech Debt Closure
+**Goal**: All 7 known v0.6 tech debt items are resolved, giving the pipeline a clean baseline before adding new validation surface area
+**Depends on**: Nothing (first phase of v0.7, fully independent)
+**Requirements**: DEBT-01, DEBT-02, DEBT-03, DEBT-04, DEBT-05, DEBT-06, DEBT-07
+**Success Criteria** (what must be TRUE):
+  1. Running `claude plugin install` from GitHub is either confirmed working or blocked with a documented path in MILESTONES.md
+  2. The consent panel no longer references a non-existent TRACKING-PLAN.md — either the file exists or the broken link is removed
+  3. All workflow files call lock-release with consistent trailing arguments (cosmetic normalization, zero functional change)
+  4. SUMMARY.md template includes a `one_liner` field and recent phase summaries are backfilled with it
+  5. pde-tools.cjs help text lists v0.6 commands (manifest, shard-plan, readiness, tracking)
+**Plans**: TBD
+
+### Phase 55: Research Validation Agent
+**Goal**: A new read-only `pde-research-validator` agent exists that extracts verifiable claims from RESEARCH.md and checks each against the codebase, producing a three-state RESEARCH-VALIDATION.md artifact
+**Depends on**: Phase 54
+**Requirements**: RVAL-01, RVAL-02, RVAL-03, RVAL-04, RVAL-05, RVAL-06
+**Success Criteria** (what must be TRUE):
+  1. Running `pde-research-validator` against a research file produces RESEARCH-VALIDATION.md with every extracted claim labeled VERIFIED, UNVERIFIABLE, or CONTRADICTED
+  2. Each claim entry shows the tier classification (Tier 1 structural / Tier 2 content / Tier 3 behavioral) and the codebase evidence used to verify it
+  3. RESEARCH-VALIDATION.md includes a `validated_at_phase` field that identifies which phase the validation was run against
+  4. The agent's allowed_tools contain no Write or Edit calls — it is strictly read-only and cannot mutate any file
+**Plans**: TBD
+
+### Phase 56: Plan Checker Enhancement
+**Goal**: `pde-plan-checker` gains three new analysis passes — cross-phase dependency detection, edge case surfacing, and declaration-time integration verification — all reading the same PLAN.md context the checker already loads
+**Depends on**: Phase 54
+**Requirements**: DEPS-01, DEPS-02, DEPS-03, DEPS-04, DEPS-05, DEPS-06, EDGE-01, EDGE-02, EDGE-03, EDGE-04, EDGE-05, EDGE-06, INTG-01, INTG-03, INTG-05, INTG-06
+**Success Criteria** (what must be TRUE):
+  1. After plan-checker runs, DEPENDENCY-GAPS.md exists listing any plan tasks that depend on work not yet built, each with structured resolution options (reorder, add stub, add prerequisite)
+  2. Edge case findings appear in the readiness revision loop as CONCERNS only — none are ever FAIL — and each finding references a specific plan element (file, function, or state field) rather than a generic category
+  3. The plan-checker completes its dependency analysis in under 10 seconds regardless of milestone size
+  4. INTEGRATION-CHECK.md exists with a check table showing orphan exports and name mismatches detected at declaration time (Mode A), and intentionally pre-registered TOOL_MAP entries are not flagged
+  5. For any HIGH severity edge case, the user is shown generated BDD acceptance criteria candidates and explicitly approves which ones to append to PLAN.md before they are added
+**Plans**: TBD
+
+### Phase 57: Workflow Integration
+**Goal**: Wave 1 artifacts (research validator, plan-checker enhancements) are wired into `plan-phase.md` and `check-readiness.md` so validation runs automatically at the correct pipeline transition points, not optionally
+**Depends on**: Phase 55, Phase 56
+**Requirements**: RVAL-07, RVAL-08, WIRE-01, WIRE-02, WIRE-03, WIRE-04, INTG-02, INTG-04
+**Success Criteria** (what must be TRUE):
+  1. When `plan-phase.md` detects an existing RESEARCH.md but no RESEARCH-VALIDATION.md, it automatically spawns `pde-research-validator` before the planner runs — no manual invocation required
+  2. If research validation finds `contradicted_count > 0`, plan-phase blocks and presents the user with a choice prompt; `unverifiable_count > 0` surfaces as a non-blocking CONCERN in READINESS.md
+  3. `check-readiness.md` includes a `run_integration_checks` step after semantic checks that verifies function signatures and module exports for files explicitly named in plan @-references (Mode B codebase-time verification)
+  4. The readiness gate's unified READINESS.md output reflects findings from all four new verification artifacts (RESEARCH-VALIDATION.md, DEPENDENCY-GAPS.md, EDGE-CASES.md, INTEGRATION-CHECK.md)
+**Plans**: TBD
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -125,3 +178,7 @@ Full details: .planning/milestones/v0.6-ROADMAP.md
 | 29-38 | v0.4 | 20/20 | Complete | 2026-03-18 |
 | 39-44 | v0.5 | 18/18 | Complete | 2026-03-19 |
 | 46-53 | v0.6 | 19/19 | Complete | 2026-03-20 |
+| 54. Tech Debt Closure | v0.7 | 0/TBD | Not started | - |
+| 55. Research Validation Agent | v0.7 | 0/TBD | Not started | - |
+| 56. Plan Checker Enhancement | v0.7 | 0/TBD | Not started | - |
+| 57. Workflow Integration | v0.7 | 0/TBD | Not started | - |

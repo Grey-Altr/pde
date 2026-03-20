@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v0.7
 milestone_name: Pipeline Reliability & Validation
-status: defining_requirements
+status: ready_to_plan
 stopped_at: null
 last_updated: "2026-03-19"
-last_activity: 2026-03-19 — Milestone v0.7 started
+last_activity: 2026-03-19 — Roadmap created, ready to plan Phase 54
 progress:
-  total_phases: 0
+  total_phases: 4
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,14 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Defining requirements for v0.7
+**Current focus:** Phase 54 — Tech Debt Closure (v0.7 start)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-03-19 — Milestone v0.7 started
+Phase: 54 of 57 (Tech Debt Closure)
+Plan: — (not yet planned)
+Status: Ready to plan
+Last activity: 2026-03-19 — v0.7 roadmap created (4 phases, 37 requirements mapped)
+
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
@@ -47,13 +49,19 @@ Last activity: 2026-03-19 — Milestone v0.7 started
 Decisions are logged in PROJECT.md Key Decisions table.
 v0.6 decisions archived to .planning/milestones/v0.6-ROADMAP.md.
 
+Key v0.7 architectural decisions (pre-execution):
+- Three-state validation output (VERIFIED / UNVERIFIABLE / CONTRADICTED) maps to readiness gate severity (PASS / CONCERNS / FAIL) — only CONTRADICTED is FAIL
+- Three new plan-checker analysis passes (dependency, edge case, integration Mode A) share one agent spawn because all read PLAN.md; only research validation earns a new agent
+- Integration check scope is strictly bounded to plan @-reference files — never a full codebase scan
+
 ### Pending Todos
 
 None.
 
 ### Blockers/Concerns
 
-None.
+- Phase 55 planning: verify acorn vendoring approach does not conflict with gitignore or plugin manifest before writing PLAN.md
+- Phase 55 planning: confirm `validated_at_phase` staleness threshold (N=2 inferred, not measured) against v0.5/v0.6 milestone history
 
 ### Quick Tasks Completed
 
@@ -63,6 +71,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-20
-Stopped at: v0.6 milestone completed and archived
+Last session: 2026-03-19
+Stopped at: v0.7 roadmap created — 4 phases (54-57), 37 requirements mapped, ready to plan Phase 54
 Resume file: None
