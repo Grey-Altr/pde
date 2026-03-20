@@ -11,10 +11,10 @@ Requirements for Pipeline Reliability & Validation milestone. Each maps to roadm
 
 - [x] **RVAL-01**: Research validator agent extracts verifiable claims from RESEARCH.md using LLM pass
 - [x] **RVAL-02**: Research validator verifies each extracted claim against actual codebase using tool calls (Read, Grep, Glob)
-- [ ] **RVAL-03**: Research validator produces RESEARCH-VALIDATION.md with three-state output per claim (VERIFIED / UNVERIFIABLE / CONTRADICTED)
+- [x] **RVAL-03**: Research validator produces RESEARCH-VALIDATION.md with three-state output per claim (VERIFIED / UNVERIFIABLE / CONTRADICTED)
 - [x] **RVAL-04**: Claims are classified by tier — Tier 1 (structural: file exists), Tier 2 (content: function exported, parameter shape), Tier 3 (behavioral: logic claim) — and verification method matches tier
 - [x] **RVAL-05**: Research validator agent is strictly read-only (no Write, no Edit in allowed_tools)
-- [ ] **RVAL-06**: RESEARCH-VALIDATION.md includes `validated_at_phase` field for staleness tracking across phases
+- [x] **RVAL-06**: RESEARCH-VALIDATION.md includes `validated_at_phase` field for staleness tracking across phases
 - [ ] **RVAL-07**: Research validation is wired into plan-phase.md as automatic step — runs when research exists and no validation artifact is present
 - [ ] **RVAL-08**: Plan-phase blocks on `contradicted_count > 0` with user choice prompt; surfaces `unverifiable_count > 0` as non-blocking CONCERNS
 
@@ -99,10 +99,10 @@ Requirements for Pipeline Reliability & Validation milestone. Each maps to roadm
 | DEBT-07 | Phase 54 | Complete |
 | RVAL-01 | Phase 55 | Complete |
 | RVAL-02 | Phase 55 | Complete |
-| RVAL-03 | Phase 55 | Pending |
+| RVAL-03 | Phase 55 | Complete |
 | RVAL-04 | Phase 55 | Complete |
 | RVAL-05 | Phase 55 | Complete |
-| RVAL-06 | Phase 55 | Pending |
+| RVAL-06 | Phase 55 | Complete |
 | RVAL-07 | Phase 57 | Pending |
 | RVAL-08 | Phase 57 | Pending |
 | DEPS-01 | Phase 56 | Pending |
