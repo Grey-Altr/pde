@@ -1,667 +1,748 @@
 # Architecture Research
 
-**Domain:** PDE v0.8 — Observability & Event Infrastructure (event bus, tmux dashboard, IPC, token tracking)
-**Researched:** 2026-03-19
-**Confidence:** HIGH (grounded in direct codebase inspection + official Claude Code plugin/hooks documentation + tmux scripting documentation; no speculation on core architectural decisions)
+**Domain:** Google Stitch integration into PDE's existing MCP bridge and 13-stage design pipeline
+**Researched:** 2026-03-20
+**Confidence:** MEDIUM — Stitch MCP tool names confirmed via community repos and mcpservers.org; official parameter schemas not publicly documented; raw MCP tool names should be treated as MEDIUM confidence until verified against live server
 
 ---
 
-> **Scope:** This file answers one question — how do event infrastructure and tmux monitoring integrate with PDE's existing architecture? What is new vs. what is modified, and in what build order?
->
-> All existing systems (skills, workflows, agents, pde-tools.cjs, .planning/ state, mcp-bridge.cjs, tracking.cjs, execute-phase.md) are stable dependencies, not targets for restructuring.
-
----
-
-## Existing Architecture Baseline (v0.7)
-
-```
-+--------------------------------------------------------------------------+
-|                     Skill Layer  (/pde: slash commands)                   |
-|   new-milestone  plan-phase  execute-phase  verify-work  check-readiness  |
-+-----------------------------+--------------------------------------------+
-                               | invokes
-+-----------------------------v--------------------------------------------+
-|                         Workflow Layer (orchestrators)                     |
-|   execute-phase.md  plan-phase.md  check-readiness.md  verify-work.md    |
-+----+-----------------------------------+----------------------------------+
-     | spawns subagents                   | calls CLI
-+----v------------------+    +-----------v------------------------------------+
-|  Agent Layer          |    |  pde-tools.cjs  (bin/)                          |
-|  (9 agent files)      |    |  bin/lib/: core, state, tracking, readiness,   |
-|                       |    |  sharding, mcp-bridge, memory, reconciliation, |
-+-----------------------+    |  manifest, phase, roadmap, milestone, design   |
-                             +---------------------------+--------------------+
-                                                         | reads/writes
-                             +---------------------------v--------------------+
-                             |              State Layer  (.planning/)          |
-                             |  PROJECT.md  STATE.md  ROADMAP.md  config.json |
-                             |  phases/NN-name/  agent-memory/  project-context|
-                             +--------------------------------------------------+
-```
-
-**What v0.7 does NOT have:**
-- No event bus of any kind (tool calls are fire-and-forget with no observation surface)
-- No hooks/ directory (PDE does not yet use the Claude Code hooks system)
-- No tmux session management
-- No log storage beyond .planning/ markdown artifacts
-- No token/cost tracking at the plugin level
-- No IPC between Claude Code process and external processes
-
-**Key constraint from codebase inspection:**
-Zero npm dependencies at plugin root. New Node.js modules must use pure Node.js built-ins only (fs, path, os, child_process, events, readline, crypto). Any library requiring npm install must go in an isolated subdirectory with its own package.json and must not be required from the plugin root.
-
----
-
-## Standard Architecture for v0.8
+## Standard Architecture
 
 ### System Overview
 
+The Stitch integration adds a 6th approved server to PDE's existing MCP bridge without changing the bridge's contract model. The architecture follows the same pattern established for Figma and Pencil: a new APPROVED_SERVERS entry, new TOOL_MAP canonical names, and per-skill workflow adaptations at each of the 4 touchpoints.
+
 ```
-+-----------------------------------------------------------------------------+
-|                    CLAUDE CODE PROCESS  (existing, unchanged)                |
-|                                                                               |
-|  +-----------------------------------------------------------------------+   |
-|  |              Claude Code Hooks System  [NEW USE -- hooks/]             |   |
-|  |                                                                         |   |
-|  |  hooks/hooks.json (NEW) -- event capture declarations                  |   |
-|  |  hooks/emit-event.cjs (NEW) -- hook handler -> event serializer        |   |
-|  |                                                                         |   |
-|  |  Events captured:  SubagentStart, SubagentStop, PostToolUse,           |   |
-|  |  PreToolUse (Bash only), SessionStart, SessionEnd, Stop                 |   |
-|  +----------------------------------+------------------------------------- +   |
-|                                     | appends NDJSON to event log             |
-+-------------------------------------+---------------------------------------+
-                                      |
-                    +-----------------v-----------------+
-                    |   Event Log  [NEW -- /tmp/]       |
-                    |   pde-session-{id}.ndjson         |
-                    |   (raw events, session-scoped;    |
-                    |    OS cleanup after session end)  |
-                    +-----------------+-----------------+
-                                      | tail -F (by tmux panes)
-               +-----------------------+---------------------------+
-               |                       |                           |
-+--------------v---------+  +----------v----------+  +------------v-----------+
-|  tmux Session          |  |  Structured Log     |  |  Session Summary       |
-|  [NEW -- bin/lib/      |  |  .planning/logs/    |  |  .planning/logs/       |
-|   tmux-manager.cjs]    |  |  session-{id}.md    |  |  {date}-summary.md     |
-|                        |  |  [NEW artifact]     |  |  [NEW artifact]        |
-|  6 panes (below)       |  +---------------------+  +------------------------+
-+------------------------+
+┌─────────────────────────────────────────────────────────────────────────┐
+│                         Skill Layer (commands/*.md)                      │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌─────────────┐  │
+│  │ wireframe.md │  │  ideate.md   │  │  critique.md │  │  handoff.md │  │
+│  │ (touchpoint  │  │ (touchpoint  │  │ (touchpoint  │  │ (touchpoint │  │
+│  │    1: WFR)   │  │   2: IDT)    │  │    3: CRT)   │  │    4: HND)  │  │
+│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘  └──────┬──────┘  │
+│         │                │                  │                 │          │
+├─────────┴────────────────┴──────────────────┴─────────────────┴──────────┤
+│                    Workflow Layer (workflows/*.md)                         │
+│  wireframe.md   │  wireframe-stitch.md  │  critique-stitch-compare.md     │
+│  ideate.md      │  (new: primary path)  │  (new: Stitch delta section)    │
+│  mockup.md      │  ideate-stitch.md     │  handoff.md (enhanced)          │
+│                 │  (new: diverge patch) │                                 │
+├─────────────────────────────────────────────────────────────────────────┤
+│                 mcp-bridge.cjs (central adapter)                          │
+│                                                                           │
+│  APPROVED_SERVERS           TOOL_MAP                                      │
+│  ┌────────────┐             ┌──────────────────────────────────────────┐  │
+│  │ github     │             │ stitch:probe → mcp__stitch__list_projects│  │
+│  │ linear     │             │ stitch:list-projects → ...               │  │
+│  │ figma      │    +        │ stitch:list-screens → ...                │  │
+│  │ pencil     │  stitch     │ stitch:get-screen → ...                  │  │
+│  │ atlassian  │  (new)      │ stitch:generate-screen → ...             │  │
+│  └────────────┘             │ stitch:fetch-code → ...                  │  │
+│                             │ stitch:fetch-image → ...                 │  │
+│                             │ stitch:extract-context → ...             │  │
+│                             │ stitch:create-project → ...              │  │
+│                             │ stitch:get-project → ...                 │  │
+│                             └──────────────────────────────────────────┘  │
+├─────────────────────────────────────────────────────────────────────────┤
+│                    Artifact Storage Layer                                  │
+│                                                                           │
+│  .planning/design/                                                        │
+│  ├── ux/wireframes/      WFR-{slug}.html  ← primary output (unchanged)   │
+│  ├── ux/wireframes/      STH-{slug}.html  ← new: Stitch HTML variant      │
+│  ├── ux/wireframes/      STH-{slug}.png   ← new: Stitch screenshot        │
+│  ├── strategy/           STH-design-dna.json ← new: extracted Design DNA  │
+│  └── review/             CRT-critique-v{N}.md (enhanced with Stitch delta)│
+│                                                                           │
+│  .planning/mcp-connections.json  ← stitch entry added on connect          │
+└─────────────────────────────────────────────────────────────────────────┘
 ```
 
-### The Hooks System is the Primary Instrumentation Point
+### Component Responsibilities
 
-**Key architectural finding (HIGH confidence -- verified against official Claude Code plugin docs):**
-
-Claude Code's plugin system provides a built-in hooks mechanism. PDE can declare hooks in `hooks/hooks.json` at the plugin root. These hooks fire automatically for:
-- `SubagentStart` -- every time execute-phase spawns a Task/subagent
-- `SubagentStop` -- every subagent completion (includes transcript path)
-- `PostToolUse` -- every file write, bash command, edit (filtered by matcher)
-- `SessionStart` / `SessionEnd` -- session lifecycle
-- `Stop` -- Claude finishes responding (natural checkpoint for summaries)
-- `PreCompact` / `PostCompact` -- context compaction events
-
-**Hook payload fields available (HIGH confidence -- from official SDK docs):**
-- `session_id` -- correlates all events in a session
-- `tool_name` -- which tool fired (Bash, Write, Edit, Read, Agent)
-- `tool_input` -- full input arguments (e.g., file_path for Write, command for Bash)
-- `agent_id` -- present on subagent hook events
-- `agent_type` -- present on subagent hook events
-- `agent_transcript_path` -- present on SubagentStop (path to subagent transcript)
-- `hook_event_name` -- which event type fired
-- `cwd` -- working directory at hook fire time
-
-**What hooks cannot provide (gap -- requires estimation):**
-- Token counts per tool call -- not in hook payload
-- Running context window percentage -- not directly available; must be estimated
-- Per-subagent cost -- not in hook payload
-
-Token and cost data must be estimated from event patterns, not read directly. The estimation approach is documented in the Token/Cost Estimation section below.
-
-### Token/Cost Estimation Approach
-
-**MEDIUM confidence** -- based on official Claude Code cost docs and token counting patterns.
-
-Direct programmatic access to token counts per hook event is not available in the hook payload. The estimation module uses proxy measurements:
-
-1. **Per-event estimation** -- approximate input token size from tool_input JSON byte length (rough proxy: 1 token ~= 4 bytes of UTF-8)
-2. **Context window gauge** -- approximate from session event count and known model context limits (claude-sonnet-4-6: 200K tokens context window)
-3. **Model context awareness** -- model per-subagent is known from model-profiles.cjs, so per-model pricing applies to subagent cost estimation
-4. **Session-level cost** -- available via ccusage or /cost command but not via hook payload programmatically
-
-The token/cost pane in the dashboard displays: estimated session running cost (proxy measurements), model pricing (from model-profiles.cjs), and a context window fill bar (estimated). Accuracy is intentionally approximate; all estimates labeled "~est." in the UI.
+| Component | Responsibility | Modification Type |
+|-----------|----------------|-------------------|
+| `bin/lib/mcp-bridge.cjs` | Add stitch to APPROVED_SERVERS and 10 entries to TOOL_MAP | MODIFIED |
+| `workflows/wireframe.md` | Add Step 1.6: Stitch rendering path alongside Figma context | MODIFIED |
+| `workflows/wireframe-stitch.md` | Stitch generation sub-workflow — prompt construction, result storage, STH artifact registration | NEW |
+| `workflows/ideate.md` | Add Stitch diverge variant invocation in Pass 1 | MODIFIED |
+| `workflows/ideate-stitch.md` | Stitch diverge sub-workflow — generate N visual variants, save as STH images | NEW |
+| `workflows/critique.md` | Add Step 3.6: Stitch comparison section alongside Pencil screenshot | MODIFIED |
+| `workflows/critique-stitch-compare.md` | Compare Stitch output against design system tokens — Design DNA delta report | NEW |
+| `workflows/handoff.md` | Add Step 1.6: Stitch pattern extraction alongside Figma Code Connect | MODIFIED |
+| `workflows/handoff-stitch-extract.md` | Pattern extraction — Design DNA to implementation patterns, Stitch HTML to component APIs | NEW |
+| `commands/wireframe.md` | Add `mcp__stitch__*` to allowed-tools | MODIFIED |
+| `commands/ideate.md` | Add `mcp__stitch__*` to allowed-tools | MODIFIED |
+| `commands/critique.md` | Add `mcp__stitch__*` to allowed-tools | MODIFIED |
+| `commands/handoff.md` | Add `mcp__stitch__*` to allowed-tools | MODIFIED |
+| `commands/connect.md` | Add `stitch` to approved services list in help text | MODIFIED |
+| `workflows/connect.md` | Add Stitch auth instructions case | MODIFIED |
 
 ---
 
-## Recommended Architecture: Component Breakdown
-
-### New Components
+## Recommended Project Structure
 
 ```
-hooks/
-  hooks.json                 -- Hook declarations (plugin root)
-  emit-event.cjs             -- Hook handler: serialize event -> NDJSON append
-
 bin/lib/
-  event-bus.cjs              -- EventEmitter wrapper + session ID generation
-  tmux-manager.cjs           -- tmux session/pane lifecycle management
-  token-estimator.cjs        -- Token/cost estimation from event stream
-  session-archiver.cjs       -- NDJSON -> .planning/logs/ summary writer
-  event-renderer.cjs         -- NDJSON -> human-readable pane output
+└── mcp-bridge.cjs          ← MODIFIED: +1 APPROVED_SERVERS entry, +10 TOOL_MAP entries
 
 commands/
-  monitor.md                 -- /pde:monitor skill
+├── wireframe.md            ← MODIFIED: add mcp__stitch__* to allowed-tools
+├── mockup.md               ← MODIFIED: add mcp__stitch__* to allowed-tools
+├── ideate.md               ← MODIFIED: add mcp__stitch__* to allowed-tools
+├── critique.md             ← MODIFIED: add mcp__stitch__* to allowed-tools
+├── handoff.md              ← MODIFIED: add mcp__stitch__* to allowed-tools
+└── connect.md              ← MODIFIED: add stitch to help text
 
-.planning/logs/              -- Structured session log storage (new directory)
+workflows/
+├── wireframe.md            ← MODIFIED: Step 1.6 Stitch path
+├── wireframe-stitch.md     ← NEW
+├── mockup.md               ← MODIFIED: Step 1.5 reuse wireframe-stitch.md
+├── ideate.md               ← MODIFIED: Stitch diverge in Pass 1
+├── ideate-stitch.md        ← NEW
+├── critique.md             ← MODIFIED: Step 3.6 Stitch compare
+├── critique-stitch-compare.md ← NEW
+├── handoff.md              ← MODIFIED: Step 1.6 Stitch extract
+├── handoff-stitch-extract.md  ← NEW
+└── connect.md              ← MODIFIED: stitch auth case
+
+.planning/design/
+├── ux/wireframes/
+│   ├── WFR-{slug}.html     ← existing HTML output (unchanged)
+│   ├── STH-{slug}.html     ← new: Stitch HTML variant
+│   ├── STH-{slug}.png      ← new: Stitch screenshot (base64-decoded to file)
+│   └── index.html          ← MODIFIED: include STH entries in navigation
+├── strategy/
+│   ├── IDT-ideation-v{N}.md  ← enhanced: image links to STH-ideate-direction-*.png
+│   └── STH-ideate-direction-{1..3}.png  ← new: ideation visual variants
+│   └── STH-design-dna.json ← new: Stitch Design DNA (fonts/colors/layouts)
+└── review/
+    └── CRT-critique-v{N}.md ← enhanced with ## Stitch Comparison section
 ```
-
-### Modified Components
-
-```
-bin/pde-tools.cjs              -- Add event-emit subcommand (MODIFIED)
-workflows/execute-phase.md     -- Add phase/wave event emits (MODIFIED)
-workflows/plan-phase.md        -- Add planning event emits (MODIFIED)
-.planning/config.json schema   -- Add monitoring.enabled, monitoring.session_id (MODIFIED)
-```
-
-### Untouched Components
-
-All 9 agents, all 13 design pipeline skills, mcp-bridge.cjs, tracking.cjs, readiness.cjs, reconciliation.cjs, sharding.cjs, memory.cjs, manifest.cjs, all templates, references, and config files.
 
 ---
 
 ## Architectural Patterns
 
-### Pattern 1: Hooks as the Instrumentation Layer (not manual emit calls)
+### Pattern 1: Engine Hierarchy with Probe/Degrade
 
-**What:** Use the Claude Code hooks system (`hooks/hooks.json`) as the primary event capture mechanism rather than injecting emit calls throughout workflow markdown files.
+**What:** Stitch is the primary rendering engine; PDE's HTML wireframe generator is the fallback. The hierarchy is enforced at the workflow level, not in mcp-bridge.cjs. The bridge's role remains limited to tool lookup and approval — routing logic lives in the workflow.
 
-**Why this is correct:**
-- Hook events fire automatically for every tool call -- no manual instrumentation needed in 70+ workflow files
-- SubagentStart and SubagentStop provide exact agent lifecycle boundaries without any workflow changes
-- PostToolUse fires for every Write/Edit/Bash -- file change tracking is automatic
-- Decoupled from workflows: hooks fire even if a workflow is added or modified later
+**When to use:** Every call site that currently generates HTML wireframes or mockups.
 
-**When to supplement with manual emit:**
-Workflow-level semantic events (phase started, wave 2 of 3 beginning, planning complete) carry business meaning that hook events cannot express. These are emitted via `node ${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs event-emit <type> <payload>` calls added to specific workflow steps. Total additional calls: approximately 8 across execute-phase.md and plan-phase.md.
+**Trade-offs:** Keeps mcp-bridge.cjs as a pure policy layer (existing contract preserved). Routing complexity moves to individual workflows — each workflow independently checks Stitch connection status and applies the hierarchy.
 
-**Example hook declaration (hooks/hooks.json):**
+**Primary/Fallback routing logic in wireframe.md Step 1.6:**
+
+```
+IF stitch connection status == 'connected' AND --no-mcp NOT set AND --quick NOT set:
+  Follow @workflows/wireframe-stitch.md
+  SET STITCH_RENDERER_AVAILABLE = true
+  SET RENDERING_ENGINE = "stitch"
+  Store STH artifacts alongside existing WFR artifacts
+  IF wireframe-stitch.md fails or returns error:
+    Log: "  -> Stitch rendering failed — falling back to PDE HTML generator"
+    SET STITCH_RENDERER_AVAILABLE = false
+    SET RENDERING_ENGINE = "pde-html"
+    Continue with standard wireframe generation (Step 4 onward)
+ELSE:
+  SET STITCH_RENDERER_AVAILABLE = false
+  SET RENDERING_ENGINE = "pde-html"
+  Continue with standard wireframe generation (Step 4 onward)
+```
+
+**Flag semantics:**
+
+| Flag | Behavior |
+|------|----------|
+| (no flag) | Stitch primary if connected, PDE HTML fallback |
+| `--use-stitch` | Assert Stitch as primary; HALT if not connected (no silent fallback) |
+| `--no-stitch` | Skip Stitch entirely; PDE HTML only |
+| `--quick` | Skip Stitch (same as --no-mcp for Stitch path) |
+| `--no-mcp` | Skip all MCP including Stitch |
+
+**Figma relationship:** Figma is demoted from its Step 1.5 "design context provider" role in wireframe.md. The Stitch Design DNA (colors/fonts/layout) replaces Figma design context as the wireframe enrichment source when Stitch is connected. Figma retains its `mockup-export-figma.md` and `handoff-figma-codeConnect.md` sub-workflows for export and Code Connect — it is not removed. The priority order for design context:
+
+```
+1. Stitch Design DNA (from STH-design-dna.json if present)
+2. Figma design context (wireframe-figma-context.md)
+3. PDE design tokens (assets/tokens.css)
+4. Inline fallback palette (hardcoded by product type)
+```
+
+---
+
+### Pattern 2: Image-to-Text Bridge for Critique and Handoff
+
+**What:** Stitch's primary output for critique and handoff is a screenshot image (PNG via `stitch:fetch-image`). The existing critique and handoff workflows are text-based (they read HTML files and annotation comments). A bridging step converts Stitch image output to structured text by (a) reading the companion HTML code via `stitch:fetch-code`, (b) using Claude's native multimodal vision to describe the visual design from the PNG, and (c) cross-referencing the Design DNA JSON for extracted token values.
+
+**When to use:** Any skill that receives Stitch output and needs to reason about it textually.
+
+**Trade-offs:** Adds a vision analysis step. The PNG is Claude's lens — it can describe color usage, spatial hierarchy, typography, and component patterns from the image, then compare against design tokens from `STH-design-dna.json`. This is more accurate than parsing HTML alone because Stitch may use inline styles or framework-specific class names that do not map directly to DTCG tokens. Claude Code's multimodal capability to read images is a native feature requiring no additional tooling.
+
+**Bridge sequence for critique:**
+
+```
+1. stitch:fetch-image → STH-{slug}.png (base64 → Buffer.from(b64,'base64') → fs.writeFileSync)
+2. stitch:fetch-code  → STH-{slug}.html (raw HTML/CSS from Stitch)
+3. stitch:extract-context → STH-design-dna.json (Design DNA: colors, fonts, layout)
+4. Claude reads STH-{slug}.png visually → produces STITCH_VISUAL_DESCRIPTION
+5. Compare STITCH_VISUAL_DESCRIPTION against:
+   - .planning/design/assets/tokens.css (PDE design system tokens)
+   - STH-design-dna.json (Stitch's own extracted context)
+6. Output delta: token compliance percentage, deviating properties, specific values
+```
+
+**Bridge sequence for handoff:**
+
+```
+1. STH-{slug}.html exists → parse for component structure (sections, forms, nav)
+2. STH-design-dna.json exists → extract typography, color, spacing decisions
+3. Claude reads STH-{slug}.png visually → identify component boundaries and interaction patterns
+4. Cross-reference against WFR annotation comments (<!-- ANNOTATION: ... -->) in WFR-{slug}.html
+5. Produce STITCH_COMPONENT_PATTERNS: components with visual descriptions and interface shapes
+6. Merge into handoff spec alongside WFR-derived patterns
+```
+
+---
+
+### Pattern 3: Stitch Connection via API Key (not OAuth)
+
+**What:** Stitch authentication uses an API key (`STITCH_API_KEY` environment variable or Stitch account settings), NOT the browser OAuth flow used by GitHub, Linear, Figma, and Atlassian. This is structurally different from all 5 existing approved servers.
+
+**When to use:** The `stitch` APPROVED_SERVERS entry must reflect this difference in `installCmd` and `AUTH_INSTRUCTIONS`.
+
+**Trade-offs:** API key auth is simpler than OAuth (no `/mcp → Authenticate → browser flow`), but the user must manually obtain the key from stitch.withgoogle.com settings and pass it during `claude mcp add`. The connect workflow needs a different instruction set for Stitch compared to OAuth servers.
+
+**APPROVED_SERVERS entry shape:**
+
+```javascript
+stitch: {
+  displayName: 'Google Stitch',
+  transport: 'http',
+  url: null,             // LOW confidence — official MCP URL not yet confirmed
+  installCmd: null,      // Requires API key; user must set STITCH_API_KEY before add
+  probeTimeoutMs: 15000, // Generative calls can be slow; probe is read-only list_projects
+  probeTool: 'mcp__stitch__list_projects', // Lightest read-only probe
+  probeArgs: {},
+},
+```
+
+**Confidence note:** The official Stitch MCP server URL is LOW confidence. Two community implementations exist (`davideast/stitch-mcp` and `Kargatharaakash/stitch-mcp`). The official `stitch.withgoogle.com/docs/mcp/setup` page appears to exist but returned minified JavaScript on fetch. PDE's verified-sources-only security policy means the URL must be confirmed before shipping. One option: ship with the official server URL from Google's documentation once it becomes parseable; another: document both options and default to the official server.
+
+---
+
+### Pattern 4: Stitch Project Persistence via mcp-connections.json
+
+**What:** Stitch organizes output into projects and screens. PDE needs a stable project-per-PDE-project mapping so Stitch screens accumulate across sessions rather than generating orphans. The mapping is stored in `.planning/mcp-connections.json` as extra fields on the stitch connection entry.
+
+**Data stored in mcp-connections.json under `stitch`:**
+
 ```json
 {
-  "hooks": {
-    "SubagentStart": [
-      { "hooks": [{ "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/emit-event.cjs" }] }
-    ],
-    "SubagentStop": [
-      { "hooks": [{ "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/emit-event.cjs" }] }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Write|Edit",
-        "hooks": [{ "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/emit-event.cjs" }]
-      }
-    ],
-    "SessionEnd": [
-      { "hooks": [{ "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/emit-event.cjs" }] }
-    ]
-  }
+  "server_key": "stitch",
+  "display_name": "Google Stitch",
+  "status": "connected",
+  "stitch_project_id": "<uuid from stitch:create-project or stitch:list-projects>",
+  "stitch_project_name": "<project name matching .planning/PROJECT.md project name>",
+  "last_updated": "<ISO timestamp>"
 }
 ```
 
-**Trade-offs:**
-- Pro: Zero workflow file changes for core event capture
-- Pro: Events fire even for tool calls not explicitly in PDE workflows
-- Con: Hook payload does not include token counts (estimation required)
-- Con: Hook handlers must be fast (blocking hook pauses the agent)
-
-### Pattern 2: NDJSON Event Log as the Single Event Store
-
-**What:** `emit-event.cjs` appends one JSON object per line to a session-specific file at `/tmp/pde-session-{id}.ndjson`. All downstream consumers (tmux panes, log archiver) read from this single file.
-
-**Why NDJSON (Newline Delimited JSON):**
-- Append-only, no parse-before-write: single fs.appendFileSync call, sub-millisecond
-- `tail -F` in tmux panes follows it in real time without needing a server or IPC
-- `readline` (built-in Node.js module) streams it without npm dependencies
-- Survives Claude Code crashes: partial writes are line-delimited; partial lines skipped on read
-
-**Event schema (all events share base fields):**
-```json
-{
-  "ts": "2026-03-19T14:23:01.123Z",
-  "type": "subagent_start",
-  "session_id": "abc123",
-  "agent_id": "optional-string",
-  "agent_type": "optional-string",
-  "tool_name": "optional-string",
-  "file_path": "optional-string",
-  "payload": {}
-}
-```
-
-**Event type taxonomy:**
-
-| type | Source | What it signals |
-|------|--------|-----------------|
-| session_start | SessionStart hook | New PDE session begins |
-| session_end | SessionEnd hook | Session terminates; triggers archival |
-| subagent_start | SubagentStart hook | Task/subagent spawned |
-| subagent_stop | SubagentStop hook | Task/subagent completed |
-| file_changed | PostToolUse (Write/Edit) | File written or edited |
-| bash_called | PostToolUse (Bash) | Bash command executed |
-| phase_started | execute-phase.md manual emit | Phase execution begins |
-| wave_started | execute-phase.md manual emit | Wave N of M begins |
-| wave_complete | execute-phase.md manual emit | Wave N of M finished |
-| planning_started | plan-phase.md manual emit | Plan generation begins |
-| planning_complete | plan-phase.md manual emit | Plan files written |
-| context_compact | PreCompact hook | Context compaction triggered |
-
-**Location decision:**
-- `/tmp/` for raw event stream (session-scoped, OS-managed cleanup after reboot)
-- `.planning/logs/` for structured summaries (persisted, part of project record)
-
-### Pattern 3: tmux Dashboard via Shell Commands (not Node.js IPC)
-
-**What:** `tmux-manager.cjs` launches and configures a tmux session by spawning the `tmux` CLI via `child_process.spawnSync` (using spawnSync with argument arrays to avoid shell injection). Panes are populated by running shell commands that `tail -F` the event log or display rendered output.
-
-**Why shell commands over named pipes or IPC:**
-- `tail -F` + tmux send-keys is the canonical tmux monitoring pattern (verified in tmux docs)
-- No persistent Node.js process required: the tmux session is self-sustaining once launched
-- Named pipe IPC requires both ends alive simultaneously; `tail -F` works even when no events are flowing
-- Zero npm dependencies: `child_process.spawnSync('tmux', ['new-session', ...])` needs only Node.js built-ins
-
-**6-pane layout:**
+**Project init sequence (first Stitch run for a PDE project):**
 
 ```
-+-----------------------------+--------------------+-----------------------------+
-|  PANE 1                     |  PANE 2            |  PANE 3                     |
-|  Agent Activity             |  Pipeline Progress |  File Changes               |
-|  tail -F events filtered    |  rendered from     |  tail -F file_changed       |
-|  to subagent_start/stop     |  wave_started +    |  events, path display       |
-|                             |  wave_complete     |                             |
-+-----------------------------+--------------------+-----------------------------+
-|  PANE 4                     |  PANE 5            |  PANE 6                     |
-|  Log Stream                 |  Token/Cost Meter  |  Context Window             |
-|  tail -F all events raw     |  ~estimated from   |  ~estimated fill %          |
-|                             |  event count +     |  from event count +         |
-|                             |  model pricing     |  known model limit          |
-+-----------------------------+--------------------+-----------------------------+
+IF stitch_project_id absent from mcp-connections.json:
+  1. stitch:list-projects → search for project matching PROJECT.md project name
+  2. IF found: use existing project_id → updateConnectionStatus('stitch', 'connected', {stitch_project_id})
+  3. IF not found: stitch:create-project → capture new project_id → updateConnectionStatus(...)
 ```
 
-**Pane rendering approach:**
-- Panes 1, 3, 4: `tail -F /tmp/pde-session-{id}.ndjson | node ${CLAUDE_PLUGIN_ROOT}/bin/lib/event-renderer.cjs --pane=agent`
-- Pane 2: `watch -n 1 node ${CLAUDE_PLUGIN_ROOT}/bin/lib/event-renderer.cjs --pane=pipeline`
-- Panes 5, 6: `watch -n 2 node ${CLAUDE_PLUGIN_ROOT}/bin/lib/token-estimator.cjs --session={id}`
-
-**tmux session naming:** `pde-monitor-{project-slug}` -- allows multiple PDE projects to have separate dashboards. Idempotent: if session already exists, attach to it.
-
-**tmux availability check:** `tmux-manager.cjs` checks for tmux using `spawnSync('which', ['tmux'])` before proceeding. If missing: print install instructions (macOS: `brew install tmux`, Debian/Ubuntu: `apt install tmux`) and exit cleanly with a non-zero exit code.
-
-### Pattern 4: event-emit as a pde-tools.cjs Subcommand
-
-**What:** Add `event-emit <type> <json-payload>` as a subcommand to `pde-tools.cjs`. This is the single write path for manual emit calls in workflows.
-
-**Why this fits PDE's existing patterns:**
-- All workflow bash calls already route through `pde-tools.cjs` subcommands -- adding `event-emit` follows the established pattern
-- pde-tools.cjs is CommonJS, zero-npm, already handles all state writes -- event file writes belong here
-- Central write point means session log path resolution happens once (session ID lookup from config.json, /tmp path construction) rather than in each hook script
-
-**Interface (called from workflow bash steps):**
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" event-emit phase_started \
-  '{"phase":"52","name":"Event Infrastructure"}'
-```
-
-**emit-event.cjs hook handler** -- thin adapter:
-```
-reads stdin (Claude Code passes hook JSON via stdin to hook scripts)
-extracts: session_id, hook_event_name, tool_name, tool_input fields
-maps hook event names to PDE event types
-calls: node pde-tools.cjs event-emit <type> <payload>
-returns {} (allow operation, no block)
-```
-
-This keeps event serialization logic in pde-tools.cjs where state logic already lives, and keeps emit-event.cjs as a thin adapter that does no direct file I/O.
-
-### Pattern 5: Persistent Dashboard (stays open after operation finishes)
-
-**What:** The tmux session launched by `/pde:monitor` persists independently of the Claude Code process.
-
-**How:** tmux sessions are server-managed, not process-managed. Once `tmux new-session -d -s pde-monitor-{slug}` returns, the session lives in the tmux server process. Claude Code exiting does not kill it.
-
-**Session end behavior:** When `SessionEnd` hook fires, `emit-event.cjs` appends a `session_end` event, then spawns `session-archiver.cjs` as a background process. The archiver reads the full NDJSON log, generates `.planning/logs/{date}-{session_id}-summary.md`, then exits. The tmux panes continue showing the final state. The dashboard remains open for post-session review.
-
-The hook returns `{ "async": true, "asyncTimeout": 30000 }` for the archiver spawn -- this tells Claude Code the hook fired successfully and to proceed without waiting for the archiver to complete.
+This follows the same pattern as how Pencil stores editor state — extra fields on the connection entry, written via the existing `updateConnectionStatus` function with no changes to mcp-bridge.cjs's core API.
 
 ---
 
-## Data Flow
+## Data Flow for Each Touchpoint
 
-### Event Capture Flow (hooks path)
-
-```
-Claude Code invokes tool (Write, Bash, Agent, etc.)
-    |
-    v  Claude Code Hooks System
-    hooks/hooks.json matcher fires
-    hooks/emit-event.cjs receives hook JSON on stdin
-        |
-        +-- extracts: session_id, hook_event_name, tool_name, tool_input
-        +-- constructs typed event object
-        +-- calls: node pde-tools.cjs event-emit <type> <payload>
-                |
-                v  pde-tools.cjs event-emit handler
-                resolves log path: /tmp/pde-session-{session_id}.ndjson
-                appends: JSON.stringify(event) + '\n'
-                exits 0  (fast -- must not block Claude Code)
-```
-
-### Event Capture Flow (manual workflow emit path)
+### Touchpoint 1: Wireframe/Mockup — Stitch as Primary Renderer
 
 ```
-execute-phase.md: wave N of M begins
-    |
-    v  bash step in workflow markdown
-    node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" event-emit wave_started \
-      '{"wave":2,"total":3,"phase":"52"}'
-    |
-    v  pde-tools.cjs event-emit handler
-    appends to same /tmp/pde-session-{session_id}.ndjson
+User runs: /pde:wireframe "login, dashboard" hifi
+
+wireframe.md Step 1.6: Stitch path check
+    │
+    ├─ node script: loadConnections() → stitch.status == 'connected'?
+    │       YES → @workflows/wireframe-stitch.md
+    │
+    wireframe-stitch.md:
+      1. Read stitch_project_id from mcp-connections.json
+         IF absent: init project (list-projects → create-project)
+      2. Load STH-design-dna.json (if exists) → DESIGN_DNA
+      3. Determine MAX_STITCH_SCREENS from config.json (default: 3)
+      4. For each screen (up to MAX_STITCH_SCREENS):
+         a. Construct prompt:
+            "[screen label] screen for [PRODUCT_NAME].
+             Persona: [persona from INVENTORY]. Journey: [step].
+             Design style: [DESIGN_DNA summary if available].
+             Include states: default, loading, error."
+         b. stitch:generate-screen (stitch_project_id, prompt) → {screen_id}
+         c. stitch:fetch-code(screen_id)  → raw HTML/CSS
+            → Write: .planning/design/ux/wireframes/STH-{slug}.html
+         d. stitch:fetch-image(screen_id) → base64 PNG
+            → Decode: Buffer.from(b64, 'base64')
+            → Write: .planning/design/ux/wireframes/STH-{slug}.png
+         e. stitch:extract-context(screen_id) → Design DNA
+            → Merge into: .planning/design/strategy/STH-design-dna.json
+      5. Register STH artifacts in design-manifest.json:
+         pde-tools.cjs design manifest-update STH code STH
+         pde-tools.cjs design manifest-update STH name "Stitch Wireframes"
+         pde-tools.cjs design manifest-update STH type stitch-wireframes
+         pde-tools.cjs design manifest-update STH domain ux
+         pde-tools.cjs design manifest-update STH path ".planning/design/ux/wireframes/"
+      6. Set hasStitchWireframes: true in designCoverage (14th flag, pass-through-all)
+      7. Return STITCH_FILES=[list of STH-*.html and STH-*.png paths]
+
+wireframe.md Steps 4-7 continue (PDE HTML generator still runs):
+    - WFR HTML files generated as normal (annotations preserved)
+    - index.html updated: both WFR-{slug}.html and STH-{slug}.html per screen
+    - DESIGN-STATE.md: new STH row alongside WFR row in Artifact Index
+    - Manifest: WFR entry unchanged; STH entry added
+
+Output artifacts:
+  .planning/design/ux/wireframes/WFR-{slug}.html     (PDE HTML — annotation-rich)
+  .planning/design/ux/wireframes/STH-{slug}.html     (Stitch HTML — visual primary)
+  .planning/design/ux/wireframes/STH-{slug}.png      (Stitch screenshot)
+  .planning/design/strategy/STH-design-dna.json      (Design DNA)
 ```
 
-### tmux Dashboard Launch Flow
+**Mockup touchpoint reuse:** `mockup.md` Step 1.5 adds a Stitch path using the same `wireframe-stitch.md` sub-workflow with a `--mockup` context flag that adjusts prompt language to "interactive, high-fidelity" and disables lofi content rules. No separate `mockup-stitch.md` needed.
+
+---
+
+### Touchpoint 2: Ideation — Visual Divergence During Diverge Phase
 
 ```
-/pde:monitor invoked
-    |
-    v  monitor.md
-    reads session_id from .planning/config.json monitoring.session_id
-    calls: node "${CLAUDE_PLUGIN_ROOT}/bin/lib/tmux-manager.cjs" --session-id {id}
-        |
-        v  tmux-manager.cjs
-        checks: spawnSync('which', ['tmux']) -> if missing, print install instructions, exit
-        checks: has-session pde-monitor-{slug} -> if exists, attach
-        creates: new-session -d -s pde-monitor-{slug}
-        splits window into 6 panes via split-window calls
-        for each pane: send-keys "<tail/watch command>" Enter
-        attaches: attach-session -t pde-monitor-{slug}
+User runs: /pde:ideate
+
+ideate.md Pass 1 (Diverge) currently: generates 5+ text-only directions
+
+NEW: After generating text directions, check Stitch connection:
+  node script: loadConnections() → stitch.status == 'connected'?
+    YES → @workflows/ideate-stitch.md
+
+ideate-stitch.md:
+  1. Read MAX_STITCH_SCREENS from config.json (default: 3)
+  2. Select first N text directions (N = min(3, total_directions))
+  3. Ensure Stitch project exists (same init sequence as touchpoint 1)
+  4. For each selected direction (index 1..N):
+     a. Extract concept summary: visual style, interaction model, density
+     b. Construct prompt:
+        "Landing page for [PRODUCT_NAME] in [direction.title] direction.
+         [direction.concept_desc]. Visual aesthetic: [direction.visual_style].
+         Color mood: [direction.color_mood]. Interaction: [direction.interaction_model]."
+     c. stitch:generate-screen(stitch_project_id, prompt) → {screen_id}
+     d. stitch:fetch-image(screen_id) → base64 PNG
+        → Decode and write: .planning/design/strategy/STH-ideate-direction-{N}.png
+  5. Return: STITCH_IDEATE_IMAGES=[path list]
+
+ideate.md Pass 1 continues:
+  IDT artifact ## Diverge section enhanced:
+    Each direction entry gets image reference if Stitch generated one:
+    "[Direction N]: [title]
+     Visual variant: [STH-ideate-direction-N.png]"
+  File link enables Claude to read the PNG in Pass 2
+
+ideate.md Pass 2 (Converge):
+  Scoring criteria adds: "Visual distinctiveness (Stitch variant shows unique aesthetic)"
+  Recommended direction can cite visual alignment: "Direction 2 chosen; Stitch variant
+  confirms visual coherence with design DNA"
+
+Output artifacts:
+  .planning/design/strategy/IDT-ideation-v{N}.md   (enhanced with image links)
+  .planning/design/strategy/STH-ideate-direction-1.png
+  .planning/design/strategy/STH-ideate-direction-2.png
+  .planning/design/strategy/STH-ideate-direction-3.png
 ```
 
-### Session End / Log Archival Flow
+**Budget constraint:** 3 Stitch generations per ideation run maximum. The free tier provides 350 generations per month; bulk ideation generation would exhaust the budget quickly. Subsequent text directions (4+) remain text-only. MAX_STITCH_SCREENS in config.json controls this.
+
+---
+
+### Touchpoint 3: Critique — Compare Stitch Output Against Design System Tokens
 
 ```
-Claude Code session terminates
-    |
-    v  SessionEnd hook fires
-    emit-event.cjs appends session_end event
-    emit-event.cjs spawns background: node session-archiver.cjs --session-id {id}
-    returns { "async": true } -- Claude Code proceeds immediately
-        |
-        v  session-archiver.cjs (background process)
-        opens /tmp/pde-session-{id}.ndjson via readline stream
-        computes summary:
-          - subagents spawned (count subagent_start events)
-          - files changed (count file_changed events)
-          - phases/waves completed
-          - estimated token/cost totals
-        writes .planning/logs/{YYYY-MM-DD}-{id}-summary.md
-        exits  (raw NDJSON remains in /tmp/ until OS reboot cleanup)
+User runs: /pde:critique
+
+critique.md Step 3.5: Pencil screenshot capture (existing — unchanged)
+
+NEW Step 3.6: Stitch comparison:
+  node script: loadConnections() → stitch.status == 'connected'?
+    YES → check if STH artifacts exist:
+      Glob: .planning/design/ux/wireframes/STH-*.{html,png}
+      IF found → @workflows/critique-stitch-compare.md
+      IF not found → log "No Stitch artifacts found — skipping Stitch comparison"
+
+critique-stitch-compare.md:
+  1. Load STH-design-dna.json → STITCH_DNA (colors, fonts, layout from Stitch)
+  2. Load .planning/design/assets/tokens.css → PDE_TOKENS
+  3. Load BRF-brief-v*.md → BRIEF_CONTEXT
+  4. For each STH-{slug}.png found:
+     a. Read PNG using Read tool (Claude multimodal vision) →
+        Prompt: "Describe the visual design properties in this UI screenshot:
+                 (1) Background and surface colors (hex values if visible)
+                 (2) Text colors and typography (font families if detectable)
+                 (3) Button and interactive element styling
+                 (4) Spacing density (tight/comfortable/spacious)
+                 (5) Border radius and shadow treatment
+                 (6) Overall layout structure (sidebar, top nav, content area)"
+        Store as VISUAL_DESC
+     b. Read STH-{slug}.html → extract inline CSS values and class patterns
+     c. Compare against PDE_TOKENS (CSS custom properties in tokens.css):
+        For each token category (color, spacing, typography, radius, shadow):
+          - Count: how many Stitch values match PDE token values?
+          - Flag: deviating values with "Stitch: X | Token: Y" pairs
+     d. Compare against STITCH_DNA:
+        - Design DNA should agree with PNG visual desc (internal consistency check)
+        - Flag discrepancies between DNA json and visual output
+     e. Produce per-screen delta:
+        {
+          screen: slug,
+          token_compliance_pct: N,
+          deviating_properties: [{property, stitch_value, token_value}],
+          novel_patterns: [description of Stitch patterns absent from WFR-{slug}.html],
+          missing_patterns: [WFR patterns absent from Stitch output]
+        }
+  5. Aggregate across all screens:
+     - Overall token compliance: weighted average
+     - Top 3 deviating properties (most common across screens)
+     - Recommended token updates (if Stitch choices are consistently better)
+     - Recommended Stitch prompt refinements (if compliance is below 70%)
+
+critique.md Step 5: Write report — CRT-critique-v{N}.md includes new section:
+
+  ## Stitch Comparison
+  **Overall Token Compliance:** {N}% across {M} screens
+  **Design Engine:** Google Stitch (primary) vs. PDE Design System tokens
+
+  | Screen | Compliance | Top Deviation | Novel Patterns |
+  |--------|------------|---------------|----------------|
+  | {slug} | {N}%       | {property}    | {count}        |
+
+  **Top Deviating Properties:**
+  | Property | Stitch Value | PDE Token | Recommendation |
+  |----------|-------------|-----------|----------------|
+
+  **Recommendations:**
+  - Token updates: [if Stitch consistently uses better values]
+  - Prompt refinements: [to improve compliance on next generation]
+
+Output:
+  .planning/design/review/CRT-critique-v{N}.md (Stitch section appended)
+  No new artifact files — all output in existing CRT report
 ```
 
-### Token/Cost Estimation Flow
+**Key constraint:** The Stitch comparison is additive — it does not replace the 4-perspective critique or change the composite score. The CRT scorecard, findings table, and action list are unchanged. The Stitch section is supplementary analysis below the existing report content.
+
+---
+
+### Touchpoint 4: Handoff — Extract Patterns From Stitch Visuals
 
 ```
-token-estimator.cjs --session={id}  (called by watch in tmux panes 5 and 6)
-    |
-    reads /tmp/pde-session-{id}.ndjson (current events so far)
-    |
-    for each subagent_start event:
-        looks up model from agent_type via MODEL_PROFILES in model-profiles.cjs
-        applies per-model pricing rate
-    for each file_changed / bash_called event:
-        estimates input token cost from tool_input JSON byte length / 4
-    |
-    outputs: formatted cost estimate (~est.) + context window fill bar
+User runs: /pde:handoff
+
+handoff.md Step 1.5: Figma Code Connect (existing — unchanged)
+
+NEW Step 1.6: Stitch pattern extraction:
+  node script: loadConnections() → stitch.status == 'connected'?
+    YES → check if STH artifacts exist:
+      Glob: .planning/design/ux/wireframes/STH-*.{html,png}
+      IF found → @workflows/handoff-stitch-extract.md
+      IF not found → log "No Stitch artifacts — skipping Stitch pattern extraction"
+
+handoff-stitch-extract.md:
+  1. Load STH-design-dna.json → STITCH_DNA
+  2. Load STACK.md → FRAMEWORK, TYPESCRIPT, COMPONENT_IMPORT_PATTERN
+  3. For each STH-{slug}.html + STH-{slug}.png pair:
+     a. Parse HTML for structural component indicators:
+        - <nav>, <header>, <footer> → layout shell components
+        - <form>, <input>, <button> → interaction components
+        - <table>, <ul>, <dl> used for data → data display components
+        - Modal, drawer, tooltip patterns (z-index, fixed positioning) → overlay components
+     b. Read STH-{slug}.png using Read tool (Claude multimodal):
+        Prompt: "Identify the distinct UI components in this screenshot.
+                 For each component:
+                 (1) Component name (e.g. 'NavigationBar', 'LoginForm', 'DataTable')
+                 (2) Visual description (layout, states shown, interactive elements)
+                 (3) Props inferred from visual (e.g. isLoading: boolean, title: string)
+                 (4) Any state variations visible"
+        Store as STITCH_VISUAL_COMPONENTS
+     c. Read WFR-{slug}.html for <!-- ANNOTATION: --> and <!-- COMPOSITION: --> comments
+        Store as WFR_ANNOTATIONS
+     d. Cross-reference STITCH_VISUAL_COMPONENTS against WFR_ANNOTATIONS:
+        - Match: same component found in both → "confirmed by Stitch"
+        - Stitch-only: in Stitch but not WFR annotation → "Stitch-only pattern"
+        - WFR-only: in WFR annotation but not Stitch → "WFR-only pattern"
+  4. Produce STITCH_COMPONENT_PATTERNS:
+     [{
+       name: "ComponentName",
+       source: "WFR+Stitch" | "Stitch-only" | "WFR-only",
+       visual_desc: "...",
+       props: [{name, type, required, description}],
+       states: ["default", "loading", "error"],
+       screen: slug
+     }]
+  5. For Stitch-only components (not in WFR annotations):
+     IF TYPESCRIPT == true: generate interface:
+     ```typescript
+     // Stitch-extracted: {screen_slug} — verify before implementation
+     export interface {ComponentName}Props {
+       {props derived from visual analysis}
+     }
+     ```
+  6. Return STITCH_COMPONENT_PATTERNS for handoff.md to merge
+
+handoff.md Step 6: Assemble spec
+  HND-handoff-spec-v{N}.md new section:
+
+  ## Stitch-Extracted Patterns
+
+  | Component | Source | WFR Confirmed | TypeScript Interface |
+  |-----------|--------|---------------|----------------------|
+  | {name}    | WFR+Stitch / Stitch-only | Yes/No | HND-types-v{N}.ts#L{line} |
+
+  Human decision required for source="Stitch-only" components:
+  "The following components appear in Stitch output but have no WFR annotation equivalent.
+   Verify intent before implementing: {list}"
+
+  HND-types-v{N}.ts enhanced:
+  // ─── Stitch-extracted interfaces ──────────────────────────────
+  // Source: Stitch visual analysis — verify against wireframe intent
+  export interface {ComponentName}Props { ... }
+
+Output:
+  .planning/design/handoff/HND-handoff-spec-v{N}.md (Stitch section added)
+  .planning/design/handoff/HND-types-v{N}.ts (Stitch-only interfaces appended)
 ```
 
 ---
 
-## Component Boundaries
+## TOOL_MAP Entries for Stitch
 
-| Component | Responsibility | v0.8 Status |
-|-----------|---------------|-------------|
-| hooks/hooks.json | Declare which Claude Code events trigger PDE event capture | NEW |
-| hooks/emit-event.cjs | Thin hook handler: parse stdin hook JSON, call pde-tools.cjs event-emit | NEW |
-| pde-tools.cjs event-emit | Resolve session log path, append typed event to NDJSON file | MODIFIED |
-| bin/lib/event-bus.cjs | EventEmitter wrapper, session ID generation (crypto.randomUUID) | NEW |
-| bin/lib/tmux-manager.cjs | Launch/attach/check tmux session, configure 6-pane layout | NEW |
-| bin/lib/token-estimator.cjs | Read NDJSON stream, estimate cost and context window fill | NEW |
-| bin/lib/session-archiver.cjs | Read NDJSON log, generate .planning/logs/ summary on session end | NEW |
-| bin/lib/event-renderer.cjs | Format NDJSON events as human-readable output per dashboard pane | NEW |
-| commands/monitor.md | /pde:monitor skill -- check tmux, resolve session, launch dashboard | NEW |
-| .planning/logs/ | Persistent structured session summaries (markdown) | NEW directory |
-| /tmp/pde-session-{id}.ndjson | Raw event stream (session-scoped, OS-managed cleanup) | NEW runtime artifact |
+**Canonical name format:** `stitch:{action}` matching the existing pattern (`github:list-issues`, `figma:get-screenshot`, `pencil:get-screenshot`).
+
+**Proposed entries** (raw MCP names are MEDIUM confidence — confirmed via community repo documentation at `Kargatharaakash/stitch-mcp` and `davideast/stitch-mcp`, not from official Google source):
+
+```javascript
+// Stitch — Phase XX
+// Raw tool names MEDIUM confidence — verify against live server before shipping
+// Verification: claude code /mcp → select stitch → list tools
+'stitch:probe':                   'mcp__stitch__list_projects',
+'stitch:list-projects':           'mcp__stitch__list_projects',
+'stitch:get-project':             'mcp__stitch__get_project',
+'stitch:create-project':          'mcp__stitch__create_project',
+'stitch:list-screens':            'mcp__stitch__list_screens',
+'stitch:get-screen':              'mcp__stitch__get_screen',
+'stitch:generate-screen':         'mcp__stitch__generate_screen_from_text',
+'stitch:fetch-code':              'mcp__stitch__fetch_screen_code',
+'stitch:fetch-image':             'mcp__stitch__fetch_screen_image',
+'stitch:extract-context':         'mcp__stitch__extract_design_context',
+```
+
+**AUTH_INSTRUCTIONS entry for connect.md:**
+
+```javascript
+stitch: [
+  '1. Visit https://stitch.withgoogle.com → Profile → Stitch settings → API Keys → Create key',
+  '2. Copy the generated API key',
+  '3. Run: claude mcp add --transport http stitch <stitch-mcp-url> --env STITCH_API_KEY=<key>',
+  '   Note: Confirm the official Stitch MCP URL at https://stitch.withgoogle.com/docs/mcp/setup',
+  '4. Run /pde:connect stitch --confirm',
+],
+```
 
 ---
 
-## New vs. Modified: Explicit Inventory
+## designCoverage Extension
 
-### New Files (create from scratch)
+The 13-field designCoverage object in design-manifest.json must be extended to a 14-field object. All 13 existing skills follow the pass-through-all pattern — adding a 14th field requires updating all 13 existing skill workflows to pass through `hasStitchWireframes` in their coverage write.
 
-| File | Purpose |
-|------|---------|
-| hooks/hooks.json | Event hook declarations (plugin root) |
-| hooks/emit-event.cjs | Hook handler -- thin stdin adapter calling pde-tools.cjs |
-| bin/lib/event-bus.cjs | EventEmitter wrapper + session ID generation |
-| bin/lib/tmux-manager.cjs | tmux lifecycle (create, configure, attach, detect) |
-| bin/lib/token-estimator.cjs | Token/cost estimation from NDJSON stream |
-| bin/lib/session-archiver.cjs | Session end -> .planning/logs/ summary writer |
-| bin/lib/event-renderer.cjs | NDJSON -> human-readable pane output |
-| commands/monitor.md | /pde:monitor skill |
-| .planning/logs/.gitkeep | Create persistent log storage directory |
+**New field:** `hasStitchWireframes: boolean` — set to `true` by `wireframe-stitch.md` when at least one STH artifact is written successfully.
 
-### Modified Files (surgical additions to existing)
-
-| File | Change | Risk |
-|------|--------|------|
-| bin/pde-tools.cjs | Add event-emit subcommand + session ID management + help text | LOW -- additive subcommand |
-| workflows/execute-phase.md | Add ~6 event-emit calls at phase/wave lifecycle points | LOW -- additive bash steps |
-| workflows/plan-phase.md | Add 2 event-emit calls at planning-start and planning-complete | LOW -- additive bash steps |
-| .planning/config.json schema | Add monitoring.enabled and monitoring.session_id fields | LOW -- additive config fields |
-
-### Untouched Files
-
-All 9 agents, all 13 design pipeline skills, all other workflows (verify-work, check-readiness, reconcile-phase, new-milestone, all MCP sync workflows), mcp-bridge.cjs, tracking.cjs, readiness.cjs, reconciliation.cjs, sharding.cjs, memory.cjs, manifest.cjs, all templates, references, and existing config files.
-
----
-
-## Suggested Build Order
-
-Dependency graph determines wave structure:
+**All 13 workflows that need pass-through update:**
 
 ```
-[Wave 1 -- parallel, foundational, no inter-dependencies]
-
-  Plan A -- Event infrastructure core
-    - pde-tools.cjs: add event-emit subcommand + session ID management
-    - bin/lib/event-bus.cjs: EventEmitter wrapper + session ID generation
-    - hooks/hooks.json + hooks/emit-event.cjs: hook declarations + thin handler
-    - .planning/config.json: add monitoring config fields
-    - Rationale: Everything downstream depends on events flowing to /tmp/.
-      A hook that calls a non-existent pde-tools.cjs subcommand fails at
-      hook fire time, blocking the Claude Code agent on every tool call.
-      Build this first.
-
-  Plan B -- tmux dashboard layer
-    - bin/lib/tmux-manager.cjs: session/pane lifecycle
-    - bin/lib/event-renderer.cjs: NDJSON -> pane-specific display
-    - commands/monitor.md: /pde:monitor skill
-    - Rationale: No dependency on token estimator or archiver.
-      Dashboard works with raw event display before estimation is ready.
-      Independent of Plan C (archival).
-
-  Plan C -- Session archival layer
-    - bin/lib/session-archiver.cjs: NDJSON -> .planning/logs/ summary
-    - .planning/logs/ directory creation
-    - Rationale: Independent of tmux. Archival works even without dashboard.
-      SessionEnd hook in emit-event.cjs spawns archiver; archiver only needs
-      event-emit from Plan A to be complete first.
-
-[Wave 2 -- depends on Wave 1 Plan A completing]
-
-  Plan D -- Token/cost estimation
-    - bin/lib/token-estimator.cjs: estimation from event patterns + model-profiles.cjs
-    - Wire into tmux panes 5 and 6 (token meter, context window)
-    - Rationale: Requires event stream to be flowing (Plan A) before estimation
-      has data to work with. model-profiles.cjs already exists (no new dependency).
-      This is enhancement to an already-functional dashboard, not a prerequisite.
-
-  Plan E -- Workflow instrumentation
-    - workflows/execute-phase.md: add phase/wave event emits (~6 calls)
-    - workflows/plan-phase.md: add planning event emits (~2 calls)
-    - Rationale: Requires event-emit subcommand in pde-tools.cjs (Plan A).
-      Building workflow instrumentation after Plan A means emit calls can be
-      tested against a real event log during development. Semantic events
-      (phase started, wave N of M) enrich an already-flowing event stream;
-      they do not need to be present before the dashboard works.
+workflows/wireframe.md    ← also sets hasStitchWireframes: true
+workflows/mockup.md
+workflows/system.md
+workflows/flows.md
+workflows/critique.md
+workflows/iterate.md
+workflows/handoff.md
+workflows/ideate.md
+workflows/competitive.md
+workflows/opportunity.md
+workflows/hig.md
+workflows/recommend.md
+workflows/brief.md
 ```
 
-**Wave structure for execute-phase:**
-```
-Wave 1 (parallel):
-  Plan A -- Event infrastructure core
-  Plan B -- tmux dashboard layer
-  Plan C -- Session archival layer
-
-Wave 2 (sequential after Wave 1):
-  Plan D -- Token/cost estimation
-  Plan E -- Workflow instrumentation
-```
-
-**Rationale summary:**
-Build the write path (event-emit) before any consumer. Build consumers (dashboard, archiver) in parallel with each other. Build semantic enrichments (estimation, workflow instrumentation) only after the core stream flows, so they have real data to work against during development.
+This is 13 file modifications for one new coverage flag — a known cost of the pass-through-all pattern. A dedicated migration phase as the FIRST phase of the milestone addresses this before any Stitch-specific logic is shipped.
 
 ---
 
 ## Anti-Patterns
 
-### Anti-Pattern 1: Manual Emit Calls in Every Workflow File
+### Anti-Pattern 1: Generating Stitch Output Without Connection Check
 
-**What people do:** Add event-emit bash calls to all 70+ workflow markdown files to ensure comprehensive coverage.
+**What people do:** Directly call `mcp__stitch__generate_screen_from_text` in a workflow without checking connection status first.
 
-**Why it's wrong:** The hooks system automatically captures every tool call (Write, Edit, Bash, Agent/Task) without touching workflow files. Manual calls in every workflow would create dual instrumentation, duplicate events in the log, and impose a maintenance burden where every future workflow file must remember to include emit calls.
+**Why it's wrong:** Fails opaquely when Stitch is not configured. The probe/degrade contract must be respected — check `mcp-connections.json` first, degrade to PDE HTML on missing connection.
 
-**Do this instead:** Rely on hooks for tool-level events. Add manual emits only for semantic workflow events (phase started, wave began) that the hooks system cannot express -- approximately 8 calls in 2 workflow files, not 70+ files.
-
-### Anti-Pattern 2: Node.js Long-Running Process as Event Bus
-
-**What people do:** Build a persistent Node.js broker daemon that hooks connect to via named pipe, and tmux panes subscribe to via IPC.
-
-**Why it's wrong:** PDE has no daemon infrastructure. A persistent process must survive Claude Code session restarts, be started before any hook fires (ordering problem), and be killed cleanly on session end. Named pipe IPC requires both ends alive simultaneously -- a tmux pane that launched before the daemon has no data until the daemon starts. This conflicts with PDE's stateless, file-based state model.
-
-**Do this instead:** Use an append-only NDJSON file as the event store. `tail -F` in tmux panes is self-healing -- it waits for the file to appear and follows appends automatically. No daemon needed. No IPC complexity. OS handles file cleanup.
-
-### Anti-Pattern 3: Storing Raw Event Stream in .planning/
-
-**What people do:** Write event logs to `.planning/logs/events/` to keep all state in one place.
-
-**Why it's wrong:** Raw event streams are session-scoped, high-volume (potentially hundreds of events per session), and not human-readable. Storing them in `.planning/` would bloat the project directory, conflict with the manifest tracking system, and accumulate across sessions without a cleanup mechanism.
-
-**Do this instead:** Raw NDJSON event stream -> `/tmp/pde-session-{id}.ndjson` (OS-managed cleanup). Structured human-readable summaries -> `.planning/logs/{date}-summary.md` (permanent project record, generated at session end).
-
-### Anti-Pattern 4: Installing npm Packages for tmux Management
-
-**What people do:** Add `node-tmux` or similar npm packages to bin/ and require them in tmux-manager.cjs.
-
-**Why it's wrong:** PDE's zero-npm-at-plugin-root constraint is an explicit architectural decision (PROJECT.md). Every tmux operation needed (new-session, split-window, send-keys, attach-session, has-session) is available as a simple `tmux <subcommand>` CLI call. `child_process.spawnSync('tmux', ['new-session', '-d', '-s', sessionName])` needs no installation and has identical capability to an npm abstraction.
-
-**Do this instead:** `child_process.spawnSync` with explicit argument arrays (not exec/shell strings) for all tmux calls. spawnSync returns `{ status, stdout, stderr }` for clean error handling. If tmux exits non-zero, surface the stderr message to the user.
-
-### Anti-Pattern 5: Blocking Hook Handlers
-
-**What people do:** Put slow operations (file reads, summary generation, HTTP calls) directly in emit-event.cjs.
-
-**Why it's wrong:** Claude Code waits for hook handlers to complete before the agent proceeds. A slow hook that reads the full event log or generates a summary will visibly pause the agent at every tool call -- unacceptable UX for a monitoring system.
-
-**Do this instead:** emit-event.cjs does only: parse stdin, call `pde-tools.cjs event-emit` (single synchronous file append, sub-millisecond). Session archival (the slow operation) happens in a background child_process spawned from the SessionEnd hook. The hook returns `{ "async": true, "asyncTimeout": 30000 }` so the agent proceeds immediately.
+**Do this instead:** Always check `stitch.status == 'connected'` via `loadConnections()` before any Stitch tool call. Pattern is identical to the Pencil check in critique.md Step 3.5.
 
 ---
 
-## Integration Points: Connections to Existing Code
+### Anti-Pattern 2: Replacing WFR Artifacts With STH Artifacts
 
-### hooks/emit-event.cjs -> pde-tools.cjs
+**What people do:** Write `STH-{slug}.html` to the same path as `WFR-{slug}.html`, overwriting PDE wireframes.
 
-`emit-event.cjs` calls `pde-tools.cjs event-emit` via `child_process.spawnSync`. This keeps the hook handler thin and event serialization logic in pde-tools.cjs where state logic already lives.
+**Why it's wrong:** Destroys the `<!-- ANNOTATION: -->` and `<!-- COMPOSITION: -->` comments that critique and handoff depend on. Stitch HTML has no PDE annotations — it is raw generated code. Overwriting WFR files would break both downstream skills.
 
-### pde-tools.cjs event-emit -> event-bus.cjs
-
-`event-bus.cjs` owns session ID generation (using `crypto.randomUUID()` from Node.js built-ins) and the canonical session log path formula: `/tmp/pde-session-${sessionId}.ndjson`. The `event-emit` subcommand imports event-bus.cjs for these utilities. Session ID is persisted to `.planning/config.json` (monitoring.session_id) at SessionStart.
-
-### token-estimator.cjs -> model-profiles.cjs (existing)
-
-`token-estimator.cjs` imports `bin/lib/model-profiles.cjs` (already exists, no modification required) to look up the model assigned to each agent type appearing in `subagent_start` events. This provides per-agent cost estimation without duplicating the model-to-agent mapping.
-
-### session-archiver.cjs -> tracking.cjs pattern (reference, not import)
-
-`session-archiver.cjs` follows the same table-writing markdown pattern as `tracking.cjs` when generating `.planning/logs/` summaries. It does not import tracking.cjs (different file format and purpose), but mirrors its output structure for visual consistency with the existing .planning/ file family.
-
-### commands/monitor.md -> tmux-manager.cjs
-
-`/pde:monitor` is a command file that calls `node "${CLAUDE_PLUGIN_ROOT}/bin/lib/tmux-manager.cjs"` via bash, following the established pattern (e.g., /pde:sync-github calls sync-github.md which calls mcp-bridge.cjs via bash).
-
-### execute-phase.md -> event-emit (new bash calls)
-
-Approximately 6 new bash lines in execute-phase.md:
-1. After phase_found confirmation -- emit phase_started
-2. Before each wave spawn loop iteration -- emit wave_started with wave number and total
-3. After all agents in a wave return results -- emit wave_complete
-4. After reconciler completes -- emit phase_complete
-
-Each call uses the same `node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" <subcommand>` pattern already used 20+ times in execute-phase.md.
+**Do this instead:** STH artifacts always use the `STH-` prefix and live alongside WFR artifacts. WFR is the authoritative PDE artifact with annotation structure; STH is the Stitch variant for comparison and enrichment. The two namespaces are independent.
 
 ---
 
-## Scaling Considerations
+### Anti-Pattern 3: Adding hasStitchWireframes Without Pass-Through Migration
 
-PDE is a Claude Code plugin. "Scale" means event volume per session and tmux pane rendering performance -- not concurrent users.
+**What people do:** Add `hasStitchWireframes` to the wireframe coverage write without updating all 12 other skills that write designCoverage.
 
-| Concern | With v0.8 | Mitigation |
-|---------|-----------|------------|
-| Event volume (large phase) | 5 parallel subagents x 20 tool calls x 5 waves = ~500 events/session | NDJSON append is O(1); 500 events ~50KB -- negligible |
-| tmux pane render lag | tail -F pipes each new line through event-renderer.cjs | event-renderer.cjs must be fast (no file I/O per event); target under 5ms |
-| Log accumulation in .planning/logs/ | Multiple sessions per day = multiple summary files | Summary files are small (~5KB each); no cleanup needed for months of daily use |
-| Hook handler latency | Every tool call blocked while emit-event.cjs runs | emit-event.cjs does single file append only; target under 10ms per hook fire |
-| Token estimator accuracy | Byte-length proxies are rough order-of-magnitude | Label all estimates as "~est."; accuracy sufficient for awareness, not billing |
+**Why it's wrong:** Any skill that writes designCoverage without the new field will overwrite it to `undefined` (treated as absent). The pass-through-all pattern's anti-pattern in wireframe.md states: "Set designCoverage without reading coverage-check first resets flags set by other skills." This applies to new fields too.
 
-**First bottleneck if v0.8 expands:** event-renderer.cjs processing latency at high event velocity. Prevention: keep renderer purely transformational (stdin read + string formatting + stdout write; no additional I/O).
+**Do this instead:** Add a dedicated Phase 1 migration before shipping any Stitch-specific logic. Update all 13 skills' coverage writes to include `hasStitchWireframes` in their pass-through before any Stitch workflow is live.
+
+---
+
+### Anti-Pattern 4: Blocking on Stitch Generation Timeout
+
+**What people do:** Call `stitch:generate-screen` inline in a multi-screen batch with no cap, blocking the workflow for many minutes.
+
+**Why it's wrong:** Stitch generates one screen at a time and may take 10-60 seconds per generation at hifi fidelity. A 10-screen batch could block for 10+ minutes. Claude Code sessions have context limits and user patience limits.
+
+**Do this instead:** Cap at MAX_STITCH_SCREENS from config.json (default: 3). For larger screen sets, generate Stitch variants only for the primary screen per journey (most important screen per flow). Log skipped screens with instructions to generate them individually.
+
+---
+
+### Anti-Pattern 5: Treating Stitch HTML as Spec-Quality Handoff Source
+
+**What people do:** Parse `STH-{slug}.html` as the primary handoff spec source, ignoring WFR annotation comments.
+
+**Why it's wrong:** Stitch generates idiomatic frontend code for its own rendering pipeline — not annotation-rich handoff specs. The HTML may use Stitch-specific class names, inline styles without token references, and no `<!-- ANNOTATION: -->` comments documenting state triggers.
+
+**Do this instead:** Stitch HTML is one signal among many in handoff extraction. WFR annotation comments remain the authoritative semantic source. Stitch HTML provides visual structure confirmation and component boundary evidence. Both are used; neither replaces the other.
+
+---
+
+### Anti-Pattern 6: Using a Community Stitch MCP Server Without Security Audit
+
+**What people do:** Configure `Kargatharaakash/stitch-mcp` or `davideast/stitch-mcp` as the approved server URL without verifying against PDE's verified-sources-only security policy.
+
+**Why it's wrong:** PDE's security policy (`assertApproved`) requires official MCP servers from approved vendors. Community implementations have not been audited. Using them would violate the verified-sources-only policy that protects against unauthorized tool access.
+
+**Do this instead:** The APPROVED_SERVERS `url` field for stitch should point to the official Google Stitch MCP endpoint, confirmed from `stitch.withgoogle.com/docs/mcp/setup`. If the official URL is not yet resolvable at milestone start, ship the Stitch entry with `url: null` and `status: 'pending-official-url'` until confirmed. Do not use community servers as the approved endpoint.
+
+---
+
+## Integration Points
+
+### External Services
+
+| Service | Integration Pattern | Confidence | Notes |
+|---------|---------------------|------------|-------|
+| Google Stitch (stitch.withgoogle.com) | HTTP MCP server + API key auth | MEDIUM | Official MCP URL not yet confirmed; verify before Phase 2 |
+| Google Cloud (gcloud) | Not required for API key path | HIGH | Only needed for OAuth/service account variant; API key is simpler |
+
+### Internal Boundaries
+
+| Boundary | Communication | Notes |
+|----------|---------------|-------|
+| wireframe.md ↔ wireframe-stitch.md | Sub-workflow include (`@workflows/wireframe-stitch.md`) | Same pattern as wireframe-figma-context.md |
+| mockup.md ↔ wireframe-stitch.md | Sub-workflow include with `--mockup` flag | Reuse, no new sub-workflow needed |
+| critique.md ↔ critique-stitch-compare.md | Sub-workflow include after Step 3.5 | Same pattern as critique-pencil-screenshot.md |
+| handoff.md ↔ handoff-stitch-extract.md | Sub-workflow include after Step 1.5 | Same pattern as handoff-figma-codeConnect.md |
+| ideate.md ↔ ideate-stitch.md | Sub-workflow include inside Pass 1 | New pattern — ideate has no prior sub-workflow |
+| any stitch workflow ↔ mcp-bridge.cjs | `loadConnections()` via Node.js inline script | Same pattern as critique-pencil-screenshot.md |
+| wireframe-stitch.md ↔ design-manifest.json | Via `pde-tools.cjs design manifest-update STH ...` | STH is new artifact code |
+| commands/*.md ↔ Stitch MCP tools | `allowed-tools: mcp__stitch__*` wildcard | Same wildcard pattern as mcp__figma__* |
+
+---
+
+## Build Order and Phase Dependencies
+
+```
+Phase 1: Coverage migration (prerequisite for all Stitch phases)
+  Files: all 13 coverage-writing workflows + design-manifest.json template
+  → Add hasStitchWireframes to all 13 skills' coverage pass-through
+  → No behavioral change; pure schema extension
+
+Phase 2: mcp-bridge.cjs extension + connect workflow
+  Files: bin/lib/mcp-bridge.cjs, commands/connect.md, workflows/connect.md
+  → Add stitch APPROVED_SERVERS entry
+  → Add 10 TOOL_MAP entries (raw names MEDIUM confidence — verify live)
+  → Add stitch AUTH_INSTRUCTIONS
+  → Add stitch to connect.md help text
+  Verification gate: /pde:connect stitch confirms probe tool works
+
+Phase 3: Touchpoint 1 — Wireframe/Mockup (stitch as primary renderer)
+  Files: workflows/wireframe-stitch.md (NEW), workflows/wireframe.md,
+         workflows/mockup.md, commands/wireframe.md, commands/mockup.md
+  Depends on: Phase 1, Phase 2
+
+Phase 4: Touchpoint 2 — Ideation (visual divergence)
+  Files: workflows/ideate-stitch.md (NEW), workflows/ideate.md, commands/ideate.md
+  Depends on: Phase 2
+  Parallel with: Phase 3
+
+Phase 5: Touchpoint 3 — Critique (token compliance comparison)
+  Files: workflows/critique-stitch-compare.md (NEW), workflows/critique.md,
+         commands/critique.md
+  Depends on: Phase 3 (needs STH artifacts to compare against)
+
+Phase 6: Touchpoint 4 — Handoff (pattern extraction)
+  Files: workflows/handoff-stitch-extract.md (NEW), workflows/handoff.md,
+         commands/handoff.md
+  Depends on: Phase 3 (needs STH artifacts)
+  Parallel with: Phase 5
+```
+
+**Minimum viable delivery:** Phases 1-3 deliver the primary value (Stitch as wireframe renderer). Phases 4-6 are enhancements. If timeline is tight, Phases 4-6 can move to a point release.
+
+---
+
+## Zero-NPM Constraint Compliance
+
+The zero-npm-dependency constraint at the plugin root is preserved:
+
+- All Stitch tool calls go through Claude Code's MCP runtime — no npm client library
+- `mcp-bridge.cjs` uses only `node:fs` and `node:path` (unchanged)
+- Base64-to-PNG conversion: `Buffer.from(b64string, 'base64')` + `fs.writeFileSync` — both Node.js built-ins, no `sharp` or image processing library needed
+- Claude's native multimodal vision (reading PNG files via the Read tool) requires no additional tooling
+- The Stitch MCP server package (e.g., official Google package) is installed globally by the user via `claude mcp add` — it is NOT a PDE dependency and does not appear in any PDE package.json
+
+The only new binary the user installs is the Stitch MCP server itself, as a precondition of `/pde:connect stitch`, exactly as GitHub/Linear/Figma MCP servers are user-installed preconditions.
 
 ---
 
 ## Sources
 
-- PDE codebase direct inspection (2026-03-19):
-  - `bin/pde-tools.cjs` -- subcommand registration pattern, CLI interface, zero-npm constraint
-  - `bin/lib/core.cjs` -- output helpers, file write patterns
-  - `bin/lib/tracking.cjs` -- markdown file write pattern (reference for session-archiver)
-  - `bin/lib/model-profiles.cjs` -- model-to-agent mapping (consumed by token estimator)
-  - `bin/lib/mcp-bridge.cjs` -- zero-npm pattern for lib modules
-  - `workflows/execute-phase.md` -- existing bash call patterns for instrumentation injection points
-  - `.planning/PROJECT.md` -- v0.8 requirements, zero-npm constraint, architectural constraints
-
-- Official Claude Code documentation (2026-03-19, HIGH confidence):
-  - Plugins reference: https://code.claude.com/docs/en/plugins-reference -- hooks.json format, hook event types, plugin root vs data dir, CLAUDE_PLUGIN_ROOT variable
-  - Agent SDK hooks reference: https://platform.claude.com/docs/en/agent-sdk/hooks -- hook payload fields (session_id, agent_id, agent_type, agent_transcript_path, tool_name, tool_input), SubagentStart/SubagentStop details, async hook return format
-  - Cost management docs: https://code.claude.com/docs/en/costs -- /cost command behavior, token tracking approach, no per-event token data in hook payload (gap confirmed)
-
-- tmux documentation (2026-03-19, HIGH confidence):
-  - tmux man page: https://man7.org/linux/man-pages/man1/tmux.1.html -- pipe-pane, send-keys, new-session, split-window syntax
-  - tmux Advanced Use wiki: https://github.com/tmux/tmux/wiki/Advanced-Use -- pipe-pane with -I/-O flags
-  - tail -F + NDJSON file following pattern confirmed in community practice
-
-- Community reference (MEDIUM confidence -- architecture reference only, no code reuse):
-  - claude-code-hooks-multi-agent-observability (github.com/disler) -- confirmed hooks-based event capture is viable; that project uses WebSocket/SQLite server (PDE uses simpler NDJSON-file approach instead)
+- [GitHub: davideast/stitch-mcp — CLI for Stitch integration](https://github.com/davideast/stitch-mcp) — MEDIUM confidence (community, not official)
+- [GitHub: Kargatharaakash/stitch-mcp — Universal MCP Server](https://github.com/Kargatharaakash/stitch-mcp) — MEDIUM confidence (community)
+- [MCP Servers registry: stitch-mcp tool list](https://mcpservers.org/servers/kargatharaakash/stitch-mcp) — MEDIUM confidence (community registry)
+- [Google Labs: Stitch announcement](https://blog.google/innovation-and-ai/models-and-research/google-labs/stitch-ai-ui-design/) — HIGH confidence (official)
+- [Google Codelabs: Design-to-Code with Antigravity and Stitch MCP](https://codelabs.developers.google.com/design-to-code-with-antigravity-stitch) — MEDIUM confidence (documents Antigravity IDE integration, not Claude Code directly)
+- [NxCode: Google Stitch Complete Guide Vibe Design 2026](https://www.nxcode.io/resources/news/google-stitch-complete-guide-vibe-design-2026) — LOW confidence (third-party)
+- [Winbuzzer: Google Redesigns Stitch AI, Voice Canvas, Developer Integrations](https://winbuzzer.com/2026/03/20/google-redesigns-stitch-ai-voice-canvas-developer-integrations-xcxwbn/) — MEDIUM confidence (news, March 2026)
+- [Google Stitch MCP Setup Docs](https://stitch.withgoogle.com/docs/mcp/setup) — HIGH confidence source; page returned minified JS on fetch, content not parseable
 
 ---
 
-*Architecture research for: PDE v0.8 -- Observability & Event Infrastructure*
-*Researched: 2026-03-19*
+*Architecture research for: Google Stitch integration into PDE v0.9*
+*Researched: 2026-03-20*

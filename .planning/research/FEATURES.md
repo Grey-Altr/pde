@@ -1,193 +1,249 @@
 # Feature Research
 
-**Domain:** Developer tool observability — tmux monitoring dashboard and structured event infrastructure (v0.8)
-**Researched:** 2026-03-19
-**Confidence:** HIGH (Claude Code hooks API verified via official docs, PDE codebase verified directly), MEDIUM (tmux dashboard patterns from multiple community sources and adjacent tools), LOW (specific behavioral expectations from single sources, flagged inline)
+**Domain:** AI visual design generation — Google Stitch as PDE's primary design engine (v0.9)
+**Researched:** 2026-03-20
+**Confidence:** MEDIUM (Stitch capabilities verified across multiple independent sources including official Google blog, official docs attempts, GitHub MCP repos, and several independent reviews; some claims from single sources flagged inline)
 
 ---
 
-> **Scope note:** This file covers ONLY the v0.8 observability milestone. PDE's existing capabilities (34 slash commands, multi-agent parallel wave orchestration, file-based state management in `.planning/`, workflow-status.md tracking, pde-tools.cjs instrumentation points, session stats via `/pde:stats`) are stable dependencies — not re-built here. Every feature described is additive to the v0.7 baseline.
+> **Scope note:** This file covers ONLY what Google Stitch adds to PDE's v0.9 milestone. Existing PDE design capabilities (13-stage pipeline, Claude HTML/CSS generation, Figma DTCG token sync, Pencil canvas, OKLCH design tokens) are stable dependencies — not rebuilt here. Every feature described is either additive or a replacement for Claude's HTML/CSS generation path within existing pipeline stages.
 
 ---
 
-## Baseline: What v0.7 Provides (Stable Dependency)
+## Baseline: What Claude HTML/CSS Generation Provides (Stable Dependency)
 
 ```
-Event sources (existing):
-  pde-tools.cjs          — CLI commits, phase ops, tracking updates, readiness checks
-  workflows/             — Orchestrators that spawn agents and coordinate pipeline
-  agents/                — 9 named agents (analyst, plan-checker, researcher, etc.)
-  bin/lib/tracking.cjs   — Per-task status tracking, workflow-status.md, HANDOFF.md
+Existing design generation (pre-v0.9):
+  /pde:wireframe       — lofi/midfi/hifi HTML/CSS wireframes via Claude code generation
+  /pde:mockup          — full visual polish, interactions, state transitions via Claude
+  /pde:ideate          — multi-phase diverge→converge (text-based concept descriptions)
+  /pde:critique        — multi-perspective critique with severity-rated findings
+  /pde:handoff         — synthesizes design artifacts into component APIs + TypeScript interfaces
+  /pde:iterate         — applies critique/HIG feedback to revise design artifacts
+  Figma MCP            — DTCG token import/export, wireframe context, Code Connect handoff
+  Design tokens        — DTCG 2025.10 + OKLCH + dual dark mode
 
-Observability today (pre-v0.8):
-  /pde:stats             — Project-level aggregated stats (phases, plans, git metrics)
-  workflow-status.md     — Per-task status table (TODO/IN_PROGRESS/DONE/SKIPPED)
-  HANDOFF.md             — Session-break continuity doc
-  .planning/STATE.md     — Top-level project state
-  RECONCILIATION.md      — Planned vs. actual git commits (post-execution)
+Strengths of Claude-generated HTML/CSS:
+  - Full design system token compliance (DTCG, OKLCH, custom properties)
+  - Motion tokens, spring physics, APCA contrast enforcement
+  - Interactions and state transitions (hover, focus, active states)
+  - Arbitrary fidelity: lofi placeholder blocks → hifi pixel-perfect layouts
+  - Component API generation alongside visual output
+  - Zero external API dependency or generation limits
+  - HIG audit integration (reads its own output)
+  - Awwwards-level quality bar with self-improvement fleet
 
-What is missing:
-  - No real-time visibility during agent execution
-  - No structured event stream from agent spawning, tool calls, or task transitions
-  - No persistent session history beyond per-phase SUMMARY.md files
-  - No tmux-based live monitoring surface
-  - No token/cost tracking during a live session
-  - No way to observe parallel agent waves as they execute
+What Claude-generated HTML/CSS lacks vs Stitch:
+  - Multi-direction visual exploration (Claude generates one direction, not 5 variants)
+  - Image-grounded generation from sketch/screenshot inputs
+  - Non-designer accessibility: requires detailed prompts for good output
+  - Visual fidelity from initial generation (requires iteration to reach hifi)
+  - "Vibe" generation from emotional/feeling descriptions vs functional specs
 ```
+
+---
+
+## Google Stitch Capability Matrix (Confirmed Capabilities)
+
+> Sources: official Google Developers Blog, GitHub davideast/stitch-mcp (official-affiliated), Kargatharaakash/stitch-mcp, Google Codelabs design-to-code codelab, index.dev review, nxcode.io guide, almcorp.com guide.
+
+### What Stitch Actually Generates
+
+| Output Type | Confirmed | Quality Assessment | Notes |
+|-------------|-----------|-------------------|-------|
+| HTML + Tailwind CSS screens | YES | Reasonable for prototyping; needs refinement for production | Not semantic HTML or component-structured by default |
+| Multiple layout variants per prompt | YES | 3-5 variants typical; visual divergence is the primary value | Allows broad exploration before committing |
+| Multi-screen flows (mobile + web) | YES | Cinema app example: registration, profile, listings, booking, payment | Full-app screen sets from single project |
+| Figma export with Auto Layout | YES | Named, grouped layers with Auto Layout structure | Official Figma plugin; primary handoff path |
+| Screen screenshots (base64) | YES (via MCP) | `get_screen_image` tool returns base64 PNG | Used for critique comparator workflows |
+| React component scaffolding | PARTIAL | Via Antigravity IDE workflow; not native Stitch output | Downstream from Stitch HTML via coding agent |
+| Figma-format token exports | NO | Stitch does not output DTCG tokens or design system artifacts | Critical gap for PDE's DTCG pipeline |
+| Animations / micro-interactions | NO | Static screens only; no motion support | Confirmed in multiple reviews |
+| ARIA / accessibility attributes | NO | No accessibility output; no contrast checking | Must be added downstream |
+| Backend code / state management | NO | Frontend scaffolding only; no click handlers that function | Confirmed: "form submit had no effect" |
+
+### What Stitch Accepts as Input
+
+| Input Type | Confirmed | Caveats |
+|------------|-----------|---------|
+| Natural language text prompts | YES — primary input | Quality of output depends heavily on prompt specificity |
+| Image upload (screenshot, mockup) | YES — Experimental Mode only | Requires Gemini 2.5 Pro; uses more generation credits |
+| Hand-drawn sketch upload | CLAIMED but DISPUTED | One review: "Stitch simply asks you to describe the content in text instead — the image input is effectively useless for generating UI layouts" (LOW confidence this works reliably) |
+| Voice descriptions (Voice Canvas) | YES — March 2026 update | Speaks directly to canvas; agent asks clarifying questions, makes live updates |
+| Design reference for redesign | YES | Upload existing screenshot; Stitch rebuilds as structured design |
+| DESIGN.md / brand guidelines document | YES (workaround) | Not native token import; users paste brand context as text to get closer to brand consistency |
+
+### MCP Server Tools (Confirmed — from GitHub repos)
+
+The `@_davideast/stitch-mcp` package (official-affiliated, maintained by davideast) exposes these tools via MCP:
+
+| Tool | What It Does | Input | Output |
+|------|-------------|-------|--------|
+| `list_projects` | Lists Stitch projects in account | none | Project list with IDs |
+| `list_screens` | Lists screens within a project | `projectId` | Screen list with IDs |
+| `get_project` | Gets project metadata | `projectId` | Project metadata |
+| `get_screen` | Gets screen metadata | `screenId` | Screen info |
+| `get_screen_code` | Retrieves screen HTML/CSS | `screenId` | Raw HTML string |
+| `get_screen_image` | Gets screen screenshot | `screenId` | Base64 PNG |
+| `build_site` | Maps screens to routes, returns all HTML | `projectId`, `routes[]` | `{ route: html }` per route |
+| `generate_screen_from_text` | Creates new screen from prompt | text prompt | New screen in project |
+| `extract_design_context` | "Design DNA" — fonts, colors, layouts | `screenId` | Design tokens as markdown |
+| `create_project` | Creates new Stitch project | project name | Project ID |
+
+Authentication: API Key (`STITCH_API_KEY` env var) or Google Cloud ADC. API Key is simpler. Requires Google Cloud project with billing enabled and Stitch API enabled.
+
+**Note:** `davideast/stitch-mcp` is labeled "NOT affiliated with, endorsed by, or sponsored by Google LLC — provided AS-IS." A separate `Kargatharaakash/stitch-mcp` also exists and duplicates most tools. The `davideast` package is more widely referenced and has npm publication.
 
 ---
 
 ## Feature Landscape
 
-### Table Stakes (Users Expect These)
+### Table Stakes (Users Expect These from Stitch-as-Primary-Engine)
 
-Features that are baseline requirements for a "developer tool observability" milestone. Without these, PDE's multi-agent orchestration remains a black box during execution.
+These are required for "Stitch as primary engine" to be a credible claim. Missing any of these means PDE's existing Claude-generated pipeline is still doing the real work and Stitch is cosmetic.
 
-| Feature | Why Expected | Complexity | Dependencies on Existing PDE Infrastructure |
-|---------|--------------|------------|---------------------------------------------|
-| **Structured event bus (in-process, file-backed)** | Every developer observability tool that works with AI agents captures a structured event stream. Without events, the dashboard has nothing to display and session history has nothing to store. This is the foundational layer everything else reads. Missing = no observable data at all. | MEDIUM | Uses Node.js `EventEmitter` (zero-dependency); event schema designed as append-only JSONL per session in `/tmp/pde-events-{sessionId}.jsonl`; reads nothing from existing infra, but existing infra emits into it |
-| **Deep instrumentation at existing PDE lifecycle points** | The instrumentation points already exist conceptually: agent spawn/stop, task status transitions, pde-tools.cjs commits, workflow phase transitions. Without emitting structured events at these points, the event bus carries no signal. Users expect the tool they already use to be observable, not just a new tool layered on top. | MEDIUM | Hooks into: workflows spawning agents (SubagentStart/Stop via Claude Code hooks), pde-tools.cjs tracking set-status calls, pde-tools.cjs commit command, check-readiness results, wave-start/end markers in orchestrators |
-| **`/pde:monitor` command to launch tmux dashboard** | A named, explicit command to start the monitoring surface is the expected UX pattern for developer tools with optional monitoring (k9s, lazygit, htop all work this way — invoked explicitly). Without an explicit launch command, users have no discoverable entry point. | LOW | New slash command following existing command pattern (frontmatter + workflow delegation); launches a shell script that creates the tmux session |
-| **6-pane tmux dashboard layout** | The PROJECT.md specification calls out 6 specific panes. These map to the six most commonly expected information categories in developer tool monitoring: who is working, what is progressing, what is changing, what is logged, what does it cost, and how much context remains. Any subset would leave a gap that users hit in practice. | MEDIUM | Reads: workflow-status.md (task progress), event JSONL (agent activity + log stream), git log --oneline (file changes), pde-tools.cjs state-snapshot (context window), token/cost from Claude Code hooks |
-| **Auto-install check for tmux dependency** | PDE targets Claude Code plugin users who may not have tmux installed. Silently failing or producing a cryptic error when `/pde:monitor` is invoked without tmux breaks user trust immediately. The expected behavior in any developer CLI that depends on an external tool is: detect → inform → offer install command. | LOW | Shell `command -v tmux` check in the launch script; platform detection (uname for macOS/Linux); offers `brew install tmux` on macOS, `sudo apt install tmux` on Debian/Ubuntu |
-| **Persistent dashboard (survives operation completion)** | If the dashboard exits when the PDE command finishes, users get a flash of activity they cannot review. The standard pattern for tmux-based monitoring tools is to keep the session alive, showing the final state until the user explicitly closes it. | LOW | `tmux new-session -d` (detached creation); dashboard process polls event file independently of PDE session; user exits with `q` or `Ctrl+C` in the dashboard pane |
-| **Structured session summaries in `.planning/logs/`** | Users reviewing what happened in a previous session expect a human-readable summary stored alongside other `.planning/` artifacts. SUMMARY.md files exist per phase, but a session-level summary (what commands ran, which agents were spawned, how long each took, final status) is missing. Session summaries are table stakes for any tool that claims to support reviewable history. | MEDIUM | Written at session end (SessionEnd hook); reads from event JSONL to produce structured markdown; stored as `.planning/logs/session-{date}-{sessionId}.md`; format mirrors existing SUMMARY.md conventions |
-| **Raw event stream in `/tmp`** | Raw event JSONL files in `/tmp` provide the machine-readable history that powers session summaries and future analytics. Using `/tmp` (volatile, auto-cleaned) is correct for raw event streams — they are ephemeral observations, not planning artifacts. The `.planning/logs/` summaries are the durable record. | LOW | Append-only JSONL file per session; written by event bus emitter hook scripts; each line is a valid JSON event object with schema version, timestamp, session_id, agent_id, event_type, payload |
+| Feature | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| **`--use-stitch` flag on `/pde:wireframe`** | Users need an explicit opt-in to Stitch rendering path; no flag = no choice between Claude and Stitch | LOW | Flag routes to Stitch MCP `generate_screen_from_text`; returns HTML for downstream pipeline stages |
+| **`--use-stitch` flag on `/pde:mockup`** | Mockup is the hifi generation stage; Stitch's strong suit is visual polish from prompts | LOW | Same flag pattern; calls Stitch with brief + wireframe context as prompt |
+| **Stitch MCP server integration** | Without MCP registration in mcp-bridge.cjs, no tool calls possible | MEDIUM | 6th approved server; needs `assertApproved()` entry, TOOL_MAP entries for all Stitch tools, probe/degrade contract |
+| **Screen HTML retrieval for pipeline stages** | PDE's critique, iterate, handoff stages need to read Stitch's output | LOW | `get_screen_code` MCP tool; HTML stored in `.planning/design/` alongside existing artifacts |
+| **Screen image retrieval for critique** | `/pde:critique` visual comparison requires image, not just HTML | LOW | `get_screen_image` returns base64 PNG; critique skill reads it for visual analysis |
+| **Design DNA extraction into handoff** | `/pde:handoff` needs Stitch's color/font/layout data to produce implementation specs | MEDIUM | `extract_design_context` output → handoff skill → component token mapping |
+| **Graceful degradation when Stitch unavailable** | MCP probe/degrade contract pattern already established for all 5 existing integrations | LOW | Same `probeConnection()` pattern as Figma, Pencil integrations |
+| **Write-back confirmation gates** | PDE policy: every external write requires explicit user consent | LOW | Stitch `generate_screen_from_text` and `create_project` are writes; need confirmation gates (VAL-03 pattern) |
+| **Authentication path via API Key** | API Key (`STITCH_API_KEY`) is simpler than ADC; must be the documented path | LOW | Env var; document in Getting Started alongside existing MCP credential patterns |
 
-### Differentiators (Competitive Advantage)
+### Differentiators (What Stitch Enables That Claude HTML/CSS Cannot)
 
-Features that go beyond basic monitoring visibility and give PDE a qualitatively better observability story aligned with its multi-agent architecture.
+These are the reasons to integrate Stitch. Each maps to a capability gap in the existing pipeline.
 
-| Feature | Value Proposition | Complexity | Notes |
-|---------|-------------------|------------|-------|
-| **Agent activity pane with wave awareness** | PDE's parallel wave orchestration spawns agents in coordinated waves. A simple "agent list" pane misses the wave structure. Showing wave N of M, which agents are in the current wave, and per-agent status within the wave gives users meaningful signal about parallel progress — not just a flat process list. Most AI agent monitors show flat agent lists; wave-aware display is specific to PDE's orchestration model. | MEDIUM | Wave markers emitted as events by orchestrator workflows (`wave-start`, `wave-end` event types with wave_number and agent_count); dashboard aggregates per-wave |
-| **Token/cost meter with per-agent breakdown** | Claude Code's `/cost` command shows session total. A per-agent, per-wave breakdown during live execution tells users which agents are expensive and which complete quickly. For multi-agent pipelines that can spawn 4-6 agents per wave, this is the data needed to decide whether to run a full pipeline or a targeted single-skill invocation. | MEDIUM-HIGH | Requires Claude Code hooks on SubagentStop events that include token usage from transcript; token count parsing from JSONL transcript; display as running total per agent with session grand total |
-| **Future-proof event schema with extensibility fields** | PDE's memory file (`project_stakeholder_presentations.md`, `project_idle_time_productivity.md`) describes future milestones that would consume event data — stakeholder presentations generated from session events, idle-time productivity triggered by agent wait states. Building the event schema with `extensions: {}` and `schema_version` from the start means future milestones add consumers without modifying producers. This is the difference between infrastructure and a one-off script. | LOW-MEDIUM | Event schema includes: `event_id`, `schema_version`, `session_id`, `agent_id` (nullable), `event_type`, `timestamp_iso`, `duration_ms` (nullable), `payload`, `extensions` (free-form object). Schema version bumps are additive only. |
-| **Context window utilization pane** | Claude Code sessions have a fixed context window. As agent memory loads, PLAN.md shards are read, and RESEARCH.md is injected, the effective context fills. A live "context window utilization" pane (showing estimated token usage as a fraction of the model's context limit) lets users see when context is approaching capacity — a leading indicator for the PreCompact hook firing, which disrupts agent continuity. | HIGH | Context window estimation is not exposed directly by Claude Code API; requires inference from transcript token counts + known model context limits; display as percentage bar; mark as LOW confidence on accuracy — this is an estimate, not a measurement |
-| **File change pane scoped to `.planning/`** | Generic file watchers show all project changes. For PDE, the meaningful changes during a pipeline run are `.planning/` state mutations — PLAN.md being written, task-NNN.md shards appearing, workflow-status.md updating, READINESS.md being generated. Scoping the file change pane to `.planning/` surfaces the signal a PDE user cares about without the noise of source code changes happening in parallel. | LOW | `fswatch -r .planning/` on macOS, `inotifywait -r .planning/` on Linux (fallback: polling every 2s); tail the output into the dashboard pane |
+| Feature | Value Proposition | Complexity | Pipeline Stage | Notes |
+|---------|-------------------|------------|----------------|-------|
+| **Multi-direction visual exploration during ideation** | Stitch generates 3-5 visually distinct layout variants from a single prompt; Claude generates one direction. For `/pde:ideate --diverge`, showing 5 visual directions vs 5 text descriptions is qualitatively different. | MEDIUM | `/pde:ideate` | Calls `generate_screen_from_text` N times with divergent prompt variants; stores all screens in one Stitch project; retrieves all screen images for display |
+| **"Vibe Design" mode — emotional/feeling-based generation** | Stitch's Vibe Design accepts business objectives or desired user feelings ("calming", "energetic startup", "enterprise trust") and generates matching directions. Claude requires functional specs. This opens PDE to non-designer users who struggle with component-level prompting. | MEDIUM | `/pde:ideate`, `/pde:wireframe` | Prompt engineering: translate PDE brief emotional sections into Stitch vibe prompts; requires brief to have "desired user feeling" field populated |
+| **Image-grounded generation from screenshots** | Upload a competitor's screenshot or an existing design; Stitch rebuilds it as an editable structured design. Enables competitive redesign workflows that Claude cannot do reliably. | MEDIUM | `/pde:wireframe` with `--from-image` | Experimental Mode only (50/month vs 350/month credits); image upload path through MCP (if supported — MEDIUM confidence the `generate_screen_from_text` tool also accepts image context) |
+| **Voice-described design variants** | Voice Canvas allows speaking design intent; Stitch agents clarify and update live. For PDE's analyst persona interview workflow, voice input lowers the barrier for brief creation. | HIGH | `/pde:ideate`, analyst persona | Requires voice input path through MCP or Stitch web UI; MCP tools are text-only as of research date — voice may only be available through Stitch's browser canvas (LOW confidence MCP exposes voice) |
+| **Design DNA extraction for token seeding** | `extract_design_context` returns structured color palette, typography, and layout rules from any Stitch screen. For PDE's design system stage, this provides a starting point for DTCG token generation from visual output rather than from scratch. | MEDIUM | `/pde:system` | Design DNA output → seed OKLCH palette from Stitch colors → DTCG token generation; creates visual-first design system path |
+| **Stitch output comparison in critique** | `/pde:critique` can compare Claude-generated vs Stitch-generated versions of the same screen. Side-by-side critique with different rendering engines surfaces visual tradeoffs before committing to one direction. | MEDIUM | `/pde:critique` | `get_screen_image` for Stitch version; existing critique skill receives both images + design brief; multi-perspective critique applied to both |
+| **Pattern extraction from Stitch visuals for handoff** | `extract_design_context` Design DNA feeds into `/pde:handoff` alongside existing brief + token data. Stitch-sourced patterns (confirmed visual colors, confirmed typefaces) reduce ambiguity in component specs. | MEDIUM | `/pde:handoff` | Design DNA markdown → handoff skill context; maps Stitch colors to DTCG OKLCH equivalents |
+| **Figma-format export path from Stitch** | Stitch exports directly to Figma with Auto Layout and grouped layers. For PDE's Figma integration, this provides a higher-fidelity starting point than the existing wireframe → Figma token export path. | LOW | Figma MCP | Stitch → Figma export is user-initiated in Stitch web UI; MCP does not expose this directly (LOW confidence). The value is in the recommended workflow documentation, not PDE automation. |
 
-### Anti-Features (Commonly Requested, Often Problematic)
+### Anti-Features (Avoid These in v0.9)
+
+These seem like natural extensions but create problems for PDE's architecture or constraints.
 
 | Feature | Why Requested | Why Problematic | Alternative |
 |---------|---------------|-----------------|-------------|
-| **Web-based dashboard (browser UI)** | A browser dashboard can show graphs, filters, and rich visualizations. Much more polished than tmux. | PROJECT.md explicitly rules this out: "In-tool web dashboard / UI — markdown files are the dashboard." Web dashboards require a persistent server process, which conflicts with PDE's session-based plugin model. They also require a port, browser access, and introduce a separate runtime dependency. The tmux terminal approach is available wherever PDE runs. | tmux panes with tail/watch patterns. Terminal rendering is sufficient for the data types PDE needs to display (lists, progress bars, log streams). |
-| **Persistent background monitoring process** | "Always-on" monitoring that starts when Claude Code loads and runs indefinitely, even when PDE commands aren't active. | PDE is a Claude Code plugin invoked per session. There is no persistent background process model in Claude Code. Attempting to spawn a daemon from a plugin creates processes that outlive the session with no managed lifecycle, and can accumulate across sessions creating resource leaks. | `/pde:monitor` as an explicit on-demand launch. The tmux session persists until the user closes it. This is the correct model: monitoring is active when users want it. |
-| **Streaming events to external observability platforms (Datadog, etc.)** | Enterprise teams want to aggregate PDE events alongside their application telemetry. Datadog has native Claude Code monitoring support as of 2026. | PDE's zero-npm-deps-at-plugin-root constraint prevents adding an OpenTelemetry SDK or Datadog agent to the plugin root. HTTP hooks could forward events, but this creates external service dependencies, requires credentials management, and adds network latency to agent lifecycle events. | The JSONL event stream format is compatible with OpenTelemetry's log data model. A future milestone could add an opt-in exporter as a separate optional module. For v0.8, file-based JSONL is sufficient and privacy-preserving. |
-| **Intercepting/blocking tool calls for approval via dashboard** | tmux-based dashboards for AI agents sometimes offer interactive approval — seeing a tool call and clicking approve/deny in the dashboard. | Claude Code's hooks system (PreToolUse) already provides blocking capability via command hooks. Adding a second approval path through the dashboard creates two competing control surfaces with unclear priority. PDE's existing protected-files mechanism uses the hooks system correctly. | Use Claude Code PreToolUse hooks for blocking decisions. The dashboard is read-only observability. Approval decisions remain in the hooks system where they have defined semantics. |
-| **Historical event replay (scrub through past sessions)** | Developers who debug by replaying event timelines expect to scrub backward through a session. | PDE's JSONL event files in `/tmp` are ephemeral by design. Building replay infrastructure requires either persisting raw events to `.planning/` (bloats planning state) or adding a separate event store. The session summary in `.planning/logs/` provides the durable, human-readable history that satisfies the same need. | `.planning/logs/session-{date}.md` structured summaries are the durable record. If a user needs to investigate a specific session, they read the summary. Raw events in `/tmp` are available until the system cleans `/tmp`, which is typically sufficient for same-session debugging. |
-| **Real-time token counting via API calls** | Accurate token counting could be achieved by calling Claude's tokenizer API for each piece of content as it is processed. | This would add API calls (with latency and cost) to every agent action for the purpose of display-only information. The context window pane is a convenience feature, not a safety critical one. Estimation from transcript token counts is sufficient signal for users to notice when context is getting full. | Estimate from JSONL transcript token counts and model context limit constants. Display as approximate percentage with a visual indicator. Clearly labeled as estimate in the UI. |
+| **Replacing Claude HTML/CSS generation entirely** | "Stitch is the primary engine now" implies Claude generation is deprecated | Stitch produces HTML + Tailwind CSS with no motion tokens, no OKLCH custom properties, no APCA contrast, no ARIA, no state transitions. The Awwwards-quality bar requires all of these. Stitch output is a starting point, not a finished artifact. | Keep Claude generation as the quality path; Stitch is the ideation/exploration path. `--use-stitch` flag makes Stitch an alternative, not a replacement. |
+| **Automatic Stitch screen sync on every pipeline run** | Convenience: always have latest Stitch designs synced without explicit command | Stitch has 350 free monthly generations. Automatic generation on every pipeline run would exhaust limits rapidly. Each Stitch API call creates a generation credit deduction. | Explicit `--use-stitch` flag or explicit sync command. Users control when Stitch credits are consumed. |
+| **Stitch as design system source of truth** | Design DNA output contains colors and typography; seems like it could replace DTCG tokens | Stitch cannot enforce brand guidelines across projects. Each generation starts fresh. Design DNA is a point-in-time extraction, not a maintained token system. DTCG 2025.10 is PDE's established token standard; Stitch colors must be translated to OKLCH DTCG format, not the other way around. | Use Design DNA to seed DTCG tokens, not replace them. Extract → convert to OKLCH → merge into existing token file. |
+| **Storing Stitch HTML in `.planning/` long-term** | Stitch HTML is an artifact, should live with other design artifacts | Stitch HTML uses Tailwind CDN classes, not PDE's DTCG custom properties. Stored raw, it diverges from the design system immediately. Using it as-is in implementation creates a parallel styling system. | Treat Stitch HTML as ephemeral reference. Extract Design DNA. Use Claude's implementation path for production-quality component generation with DTCG tokens. |
+| **Exposing all 9 Stitch MCP tools to all PDE subagents** | More tools = more capability for agents | PROJECT.md explicitly rules out "MCP tool passthrough to all subagents — destroys 85% context savings from Tool Search." PDE's TOOL_MAP pattern insulates agents from raw MCP tools. | Route Stitch calls through mcp-bridge.cjs TOOL_MAP with canonical names. Agents call PDE canonical names; bridge calls Stitch. Same pattern as all other integrations. |
+| **Voice Canvas integration via MCP** | Voice input is a differentiator; PDE's analyst persona could use it | MCP tools for Stitch are text-only as of March 2026. Voice Canvas is a Stitch browser UI feature. Attempting to route voice through MCP would require screen-scraping or unofficial APIs — contrary to PDE's verified-sources-only security policy. | Document Voice Canvas as a user workflow that precedes PDE: user explores in Stitch voice canvas → exports project → PDE retrieves via MCP. Separation of concerns. |
+| **Real-time Stitch canvas watching** | "Observe as users iterate in Stitch canvas" for live critique | No webhook or streaming API exists for Stitch canvas events. Polling would require repeated `list_screens` calls. Same architectural impossibility as real-time Figma sync, which is already ruled out in PROJECT.md. | Explicit sync: user triggers `/pde:critique --from-stitch {projectId}` when they want PDE to fetch current state. |
 
 ---
 
 ## Feature Dependencies
 
 ```
-[Structured Event Bus (in-process, file-backed)]
-    └──required-by──> ALL dashboard panes (no events = no dashboard data)
-    └──required-by──> [Session Summaries in .planning/logs/]
-    └──required-by──> [Raw Event Stream in /tmp]
-    └──required-by──> [Token/Cost Meter with Per-Agent Breakdown]
-    └──required-by──> [Future: Stakeholder Presentations] (consumes events)
-    └──required-by──> [Future: Idle-Time Productivity] (triggered by agent wait events)
+[Stitch MCP Server Registration in mcp-bridge.cjs]
+    └──required-by──> ALL Stitch features (no MCP = no tool calls)
+    └──follows-pattern-of──> [EXISTING: Figma MCP integration]
+    └──requires──> assertApproved() entry for stitch.withgoogle.com
+    └──requires──> TOOL_MAP entries: list_projects, list_screens, get_screen, get_screen_code,
+                   get_screen_image, build_site, generate_screen_from_text,
+                   extract_design_context, create_project
+    └──requires──> probeConnection() / degradeGracefully() contract
+    └──requires──> STITCH_API_KEY in user environment
 
-[Deep Instrumentation at Existing PDE Lifecycle Points]
-    └──depends-on──> [Structured Event Bus]
-    └──hooks-into──> [EXISTING: workflows/ agent spawn patterns]
-    └──hooks-into──> [EXISTING: pde-tools.cjs tracking set-status]
-    └──hooks-into──> [EXISTING: pde-tools.cjs commit]
-    └──hooks-into──> Claude Code hooks (SubagentStart, SubagentStop, PreToolUse, PostToolUse)
-    └──required-by──> [Agent Activity Pane with Wave Awareness]
-    └──required-by──> [Pipeline Progress Pane] (reads workflow-status.md + task events)
+[--use-stitch flag on /pde:wireframe]
+    └──depends-on──> [Stitch MCP Server Registration]
+    └──calls──> generate_screen_from_text (write — needs confirmation gate)
+    └──calls──> get_screen_code (read)
+    └──stores-output-in──> .planning/design/wireframe/ (same as existing path)
+    └──conflicts-with──> Claude HTML/CSS generation (mutual exclusion; one path per invocation)
 
-[/pde:monitor Command]
-    └──depends-on──> [Auto-Install Check for tmux]
-    └──launches──> [6-Pane tmux Dashboard Layout]
-    └──requires──> tmux available on PATH
+[--use-stitch flag on /pde:mockup]
+    └──depends-on──> [Stitch MCP Server Registration]
+    └──depends-on──> [--use-stitch flag on /pde:wireframe] (wireframe context feeds mockup prompt)
+    └──calls──> generate_screen_from_text with hifi brief
+    └──calls──> get_screen_code
+    └──stores-output-in──> .planning/design/mockup/
 
-[Auto-Install Check for tmux]
-    └──standalone (shell detection only, no PDE infra dependency)
-    └──required-by──> [/pde:monitor Command]
+[Visual Divergence during /pde:ideate --diverge via Stitch]
+    └──depends-on──> [Stitch MCP Server Registration]
+    └──calls──> generate_screen_from_text N times (N = diverge count, default 3)
+    └──calls──> get_screen_image for each screen (for display/critique)
+    └──requires──> create_project (write — confirmation gate)
+    └──enhances──> [EXISTING: /pde:ideate diverge phase] (adds visual artifacts to text concepts)
 
-[6-Pane tmux Dashboard Layout]
-    └──depends-on──> [Structured Event Bus] (agent activity, log stream panes)
-    └──reads──> [EXISTING: workflow-status.md] (pipeline progress pane)
-    └──reads──> .planning/ filesystem (file changes pane via fswatch/inotifywait)
-    └──reads──> Claude Code session transcript (token/cost pane, context window pane)
-    └──required-by──> [Persistent Dashboard]
+[Stitch Output Comparison in /pde:critique]
+    └──depends-on──> [--use-stitch flag on /pde:wireframe OR /pde:mockup]
+    └──calls──> get_screen_image (read — no confirmation gate needed)
+    └──feeds-into──> [EXISTING: multi-perspective critique workflow]
+    └──enhances──> [EXISTING: /pde:critique] (adds visual comparison capability)
 
-[Persistent Dashboard]
-    └──depends-on──> [6-Pane tmux Dashboard Layout]
-    └──polls──> event JSONL file independently of PDE session lifecycle
+[Design DNA Extraction feeding /pde:handoff]
+    └──depends-on──> [Stitch MCP Server Registration]
+    └──calls──> extract_design_context (read)
+    └──output-feeds-into──> [EXISTING: /pde:handoff component spec generation]
+    └──enhances──> [EXISTING: /pde:handoff] (visual-sourced token seeds)
+    └──NOTE──> Design DNA colors must be converted to OKLCH DTCG format — raw Stitch hex values
+               are not compatible with PDE's DTCG 2025.10 pipeline
 
-[Session Summaries in .planning/logs/]
-    └──depends-on──> [Structured Event Bus]
-    └──written-by──> SessionEnd hook
-    └──reads-from──> event JSONL in /tmp
-    └──writes-to──> .planning/logs/session-{date}-{sessionId}.md
+[Design DNA Token Seeding for /pde:system]
+    └──depends-on──> [Design DNA Extraction]
+    └──converts──> hex palette → OKLCH equivalents
+    └──merges-into──> [EXISTING: DTCG token file] (additive, non-destructive)
+    └──enhances──> [EXISTING: /pde:system] (visual-first design system path)
 
-[Raw Event Stream in /tmp]
-    └──depends-on──> [Structured Event Bus]
-    └──written-by──> hook scripts on each lifecycle event
-    └──read-by──> dashboard panes, session summary generator
+[Graceful Degradation when Stitch unavailable]
+    └──depends-on──> [Stitch MCP Server Registration]
+    └──follows-pattern-of──> [EXISTING: Pencil, Figma degradation contracts]
+    └──fallback-to──> Claude HTML/CSS generation (existing path)
+    └──required-by──> ALL Stitch features (no degradation = hard failure on auth/network issues)
 
-[Future-Proof Event Schema]
-    └──shapes──> [Structured Event Bus] (schema is the contract, not the implementation)
-    └──enables──> [Future: Stakeholder Presentations]
-    └──enables──> [Future: Idle-Time Productivity]
-    └──enables──> [Future: Analytics/Reporting milestones]
-
-[Token/Cost Meter with Per-Agent Breakdown]
-    └──depends-on──> [Structured Event Bus] (reads SubagentStop events with token counts)
-    └──displayed-in──> [6-Pane tmux Dashboard Layout]
-
-[Agent Activity Pane with Wave Awareness]
-    └──depends-on──> [Deep Instrumentation] (wave-start/wave-end events required)
-    └──displayed-in──> [6-Pane tmux Dashboard Layout]
-
-[Context Window Utilization Pane]
-    └──depends-on──> [Structured Event Bus] (reads transcript token accumulation)
-    └──displayed-in──> [6-Pane tmux Dashboard Layout]
-    └──NOTE──> accuracy is estimated, not measured (LOW confidence on precision)
+[Write-Back Confirmation Gates for Stitch]
+    └──required-by──> generate_screen_from_text (creates Stitch content)
+    └──required-by──> create_project (creates Stitch project)
+    └──follows-pattern-of──> [EXISTING: VAL-03 confirmation gate pattern]
+    └──NOT required by──> read-only tools: get_screen_code, get_screen_image,
+                           extract_design_context, list_projects, list_screens
 ```
 
 ### Dependency Notes
 
-- **Event bus is the critical path:** All dashboard panes, session history, and future-proof extensibility depend on the event bus. It must be built first and be stable before any display or storage feature is layered on.
-
-- **Claude Code hooks are the primary instrumentation mechanism:** The platform provides 26 hook events (SessionStart, SessionEnd, SubagentStart, SubagentStop, PreToolUse, PostToolUse, TaskCompleted, Stop, etc.) via `.claude/settings.json` hook configuration. These are the authoritative, Anthropic-supported way to observe agent lifecycle in Claude Code plugins. PDE-specific events (wave boundaries, task transitions) supplement these with additional in-process emissions.
-
-- **tmux dependency check must be first in the `/pde:monitor` flow:** If tmux is not available and the script attempts to create a session before checking, users get a confusing error. Detection-before-use is mandatory.
-
-- **Session summaries depend on event bus but are independent of the dashboard:** A user who never opens `/pde:monitor` should still get session summaries in `.planning/logs/`. The summary writer hooks into SessionEnd regardless of whether the dashboard is running.
-
-- **Wave awareness is a PDE-specific differentiator:** Generic Claude Code monitoring tools (disler's multi-agent observability, NTM) show flat agent lists. Wave-aware display requires PDE's orchestrators to emit wave_start/wave_end events, which no external tool provides.
+- **MCP registration is the critical path:** Every Stitch feature is blocked until `mcp-bridge.cjs` registers Stitch as the 6th approved server. This must be Phase 1 of the milestone.
+- **Design DNA requires OKLCH conversion:** Stitch outputs hex colors. PDE's design token pipeline uses OKLCH. A conversion function (similar to `figmaColorToCss` in the existing Figma integration) must be embedded inline — no npm dependencies.
+- **Write operations require confirmation gates:** `generate_screen_from_text` and `create_project` modify external state in Google's Stitch platform. These are writes that follow PDE's VAL-03 pattern. Read operations (get, list, extract) do not need confirmation.
+- **Stitch HTML is Tailwind CSS, not DTCG custom properties:** PDE must not treat Stitch HTML as a design system artifact. It is reference material for visual pattern extraction, not implementation source.
+- **Generation credit budget awareness:** 350 Standard Mode / 50 Experimental Mode per month. PDE workflows that loop (e.g., critique-iterate loops) must not automatically call `generate_screen_from_text` without user confirmation.
 
 ---
 
-## MVP Definition (for v0.8 Milestone)
+## MVP Definition (for v0.9 Milestone)
 
-### Launch With (v0.8 core — minimum to satisfy "observability" claim)
+### Launch With (v0.9 core — minimum to satisfy "Stitch as primary engine" claim)
 
-- [ ] **Structured event bus** — in-process EventEmitter + hook scripts writing append-only JSONL per session to `/tmp/pde-events-{sessionId}.jsonl`. Schema includes: `event_id`, `schema_version`, `session_id`, `agent_id`, `event_type`, `timestamp_iso`, `payload`, `extensions`.
-- [ ] **Deep instrumentation** — hook scripts wired to SubagentStart, SubagentStop, PreToolUse, PostToolUse, TaskCompleted, Stop, SessionStart, SessionEnd. In-process events from pde-tools.cjs at: tracking set-status, commit, check-readiness result.
-- [ ] **`/pde:monitor` command** — slash command that runs tmux dependency check, then launches the 6-pane dashboard in a detached tmux session named `pde-monitor`.
-- [ ] **Auto-install check for tmux** — `command -v tmux` check; platform detection via `uname`; offers `brew install tmux` (macOS) or `sudo apt install tmux` (Linux); exits gracefully if user declines.
-- [ ] **6-pane tmux dashboard** — agent activity, pipeline progress, file changes (`.planning/` scoped), log stream (event tail), token/cost meter, context window. Each pane is a shell process reading from the event JSONL or existing PDE files.
-- [ ] **Persistent dashboard** — tmux session stays open after PDE command completes; dashboard processes poll event file; user closes with session-level kill command.
-- [ ] **Session summaries in `.planning/logs/`** — structured markdown summary written at SessionEnd; reads from event JSONL; stored as `session-{YYYY-MM-DD}-{sessionId}.md`; format: command invoked, agents spawned (count + names), tasks completed, duration, token totals, final status.
-- [ ] **Raw event stream in `/tmp`** — JSONL file per session; automatically cleaned by OS `/tmp` lifecycle; no PDE-managed cleanup required.
-- [ ] **Future-proof event schema** — `schema_version: "1.0"`, `extensions: {}` field in every event; documented in a schema reference file.
+- [ ] **Stitch MCP server registration** — 6th entry in mcp-bridge.cjs APPROVED_SERVERS and TOOL_MAP; `assertApproved()` enforcement; probe/degrade contract; STITCH_API_KEY authentication — *required before any other Stitch feature*
+- [ ] **`--use-stitch` on `/pde:wireframe`** — calls `generate_screen_from_text` (with confirmation gate), retrieves HTML via `get_screen_code`, stores in `.planning/design/wireframe/stitch-{screenId}.html`
+- [ ] **`--use-stitch` on `/pde:mockup`** — same pattern; richer prompt incorporating brief visual targets and fidelity level; hifi variant
+- [ ] **Stitch screen image retrieval for `/pde:critique`** — `get_screen_image` returns base64 PNG; critique skill receives Stitch visual alongside existing HTML artifact for comparison critique
+- [ ] **Design DNA extraction for `/pde:handoff`** — `extract_design_context` output fed into handoff skill context; hex-to-OKLCH conversion embedded inline; additive merge into DTCG token file
+- [ ] **Graceful degradation on Stitch unavailable** — auth failure or network error falls back to Claude HTML/CSS generation with clear user message; no hard failure
 
-### Add After Validation (v0.8.x — extend once core is working)
+### Add After Validation (v0.9.x — extend once core is working)
 
-- [ ] **Wave-aware agent activity pane** — once orchestrators emit wave_start/wave_end events, upgrade the agent pane to show wave N of M grouping. Add when users report the flat agent list is insufficient for understanding parallel wave progress.
-- [ ] **Per-agent token breakdown in cost meter** — once SubagentStop events reliably include token counts from transcript parsing, add per-agent rows to the cost meter pane. Add when users report session-total cost is too coarse.
+- [ ] **Visual divergence during `/pde:ideate --diverge`** — Stitch generates visual variants for each text concept; `get_screen_image` for each; images stored in `.planning/design/ideate/`; add when core `--use-stitch` flag is stable and credit budget behavior is confirmed
+- [ ] **Design DNA token seeding for `/pde:system`** — feed Design DNA into design system generation as a starting palette; add once handoff integration confirms the OKLCH conversion function is correct
+- [ ] **Wave-aware Stitch generation** — if `/pde:ideate --diverge` runs multiple parallel Stitch calls via agent waves, add wave tracking for Stitch API calls in the event bus
 
-### Future Consideration (v0.9+)
+### Future Consideration (v1.0+)
 
-- [ ] **Stakeholder presentation generator** — consumes `.planning/logs/` session summaries + phase SUMMARY.md files to produce polished presentations. Event schema `extensions` field carries the metadata this consumer will need. Tracked in memory as `project_stakeholder_presentations.md`.
-- [ ] **Idle-time productivity system** — triggered by TeammateIdle or agent wait events from the event bus. Dashboard shows guided productivity prompts during processing wait times. Tracked in memory as `project_idle_time_productivity.md`. Pairs with tmux integration (memory `project_tmux_monitoring.md`).
-- [ ] **Context window pane accuracy improvements** — currently estimated; future improvement requires either a tokenizer library or Claude Code API surface that exposes exact token counts. Defer until accurate data is available.
+- [ ] **Vibe Design mode** — explicit "vibe" prompt path in wireframe/ideate that translates PDE brief emotional sections into Stitch vibe prompts; defer until core generation paths are validated
+- [ ] **Stitch project as persistent design workspace** — maintain one Stitch project per PDE project across sessions; track project ID in DESIGN-STATE.md; adds complexity but enables iterative refinement sessions
 
 ---
 
@@ -195,190 +251,102 @@ Features that go beyond basic monitoring visibility and give PDE a qualitatively
 
 | Feature | User Value | Implementation Cost | Priority |
 |---------|------------|---------------------|----------|
-| Structured event bus | HIGH — foundational; all other features blocked without it | MEDIUM | P1 |
-| Deep instrumentation at lifecycle points | HIGH — no signal without emitters at meaningful points | MEDIUM | P1 |
-| Auto-install check for tmux | HIGH — first UX failure point; immediate trust damage if absent | LOW | P1 |
-| `/pde:monitor` command | HIGH — discoverable entry point for all monitoring UX | LOW | P1 |
-| 6-pane tmux dashboard | HIGH — the primary visible output of the milestone | MEDIUM | P1 |
-| Persistent dashboard | MEDIUM — without persistence, dashboard is decoration | LOW | P1 |
-| Session summaries in `.planning/logs/` | HIGH — durable history; works even without dashboard | MEDIUM | P1 |
-| Raw event stream in `/tmp` | MEDIUM — powers summaries; useful for debugging | LOW | P1 |
-| Future-proof event schema | HIGH — low cost to do right from the start; very high cost to retrofit | LOW-MEDIUM | P1 |
-| Wave-aware agent activity pane | MEDIUM — differentiator; not blocking for v0.8 | MEDIUM | P2 |
-| Per-agent token breakdown | MEDIUM — useful when running expensive pipelines | MEDIUM-HIGH | P2 |
-| Context window utilization pane | MEDIUM — useful signal; low accuracy acceptable for display purposes | HIGH | P2 |
-| Stakeholder presentations | HIGH (future) — depends on durable session history being in place | HIGH | P3 |
-| Idle-time productivity | MEDIUM (future) — depends on agent wait events being emitted | MEDIUM | P3 |
+| Stitch MCP server registration | HIGH — foundational blocker for all Stitch features | MEDIUM | P1 |
+| `--use-stitch` on `/pde:wireframe` | HIGH — core claim of milestone; validates Stitch as rendering engine | MEDIUM | P1 |
+| `--use-stitch` on `/pde:mockup` | HIGH — hifi generation is Stitch's strongest capability | MEDIUM | P1 |
+| Graceful degradation | HIGH — without fallback, any auth/network issue breaks pipeline | LOW | P1 |
+| Write-back confirmation gates | HIGH — PDE policy; confirmed by 315 tests in v0.5 | LOW | P1 |
+| Screen image retrieval for critique | MEDIUM — enables visual comparison; straightforward tool call | LOW | P1 |
+| Design DNA extraction for handoff | MEDIUM — high value for token seeding; needs OKLCH conversion | MEDIUM | P1 |
+| Visual divergence in ideation | HIGH — strongest Stitch differentiator; transforms ideation output | MEDIUM | P2 |
+| Design DNA seeding for system stage | MEDIUM — visual-first design system path; add after handoff validated | MEDIUM | P2 |
+| Vibe Design prompt mode | MEDIUM — opens tool to non-designers; requires brief field additions | MEDIUM | P3 |
+| Persistent Stitch project per PDE project | LOW — adds state management complexity; marginal user value vs fresh project per run | HIGH | P3 |
 
 **Priority key:**
-- P1: Must have for v0.8 milestone to close ("observability" claim requires these)
-- P2: Include if implementation time permits; strong v0.8.x candidates
-- P3: Future milestone (v0.9+) — event schema must be designed with these consumers in mind
+- P1: Must have for v0.9 milestone to close
+- P2: Include if implementation permits; strong v0.9.x candidates
+- P3: Future milestone consideration
 
 ---
 
-## Behavioral Expectations by Feature
+## Capability Gap Analysis: Stitch vs Claude HTML/CSS
 
-### Structured Event Bus
+This is the key question for the downstream roadmap: where does Stitch win, where does Claude win, and where does neither win alone?
 
-**Core event types (minimum required):**
-- `session_start` — fired by SessionStart hook; payload: `{ invoked_command, cwd }`
-- `session_end` — fired by SessionEnd hook; payload: `{ duration_ms, commands_run, agents_spawned, tasks_completed }`
-- `agent_start` — fired by SubagentStart hook; payload: `{ agent_type, agent_id, parent_session }`
-- `agent_stop` — fired by SubagentStop hook; payload: `{ agent_type, agent_id, duration_ms, exit_status }`
-- `task_status_change` — fired by pde-tools.cjs tracking set-status; payload: `{ task_num, task_name, from_status, to_status, phase, plan }`
-- `tool_use` — fired by PostToolUse hook; payload: `{ tool_name, duration_ms, success }`
-- `commit` — fired by pde-tools.cjs commit; payload: `{ message, files_changed }`
-- `readiness_result` — fired by pde-tools.cjs readiness check; payload: `{ phase, result: "PASS"|"CONCERNS"|"FAIL", item_counts }`
+| Dimension | Stitch | Claude HTML/CSS | Winner | PDE Strategy |
+|-----------|--------|----------------|--------|---------------|
+| **Visual exploration breadth** | 3-5 layout variants per prompt | 1 direction per prompt | Stitch | Use Stitch for ideation/diverge phases |
+| **Design quality (initial generation)** | HIGH — Gemini 3 trained on vast visual corpus | MEDIUM — requires iteration to reach hifi | Stitch | Use Stitch for initial visual direction |
+| **Design system token compliance** | NONE — no DTCG, no OKLCH, no custom properties | HIGH — DTCG 2025.10 + OKLCH + dual dark mode | Claude | Always run Claude refinement after Stitch for production |
+| **Motion and interactions** | NONE — static screens only | HIGH — motion tokens, spring physics, state transitions | Claude | Stitch screens are always static; Claude adds motion layer |
+| **Accessibility** | NONE — no ARIA, no contrast checking | MEDIUM — APCA contrast enforced; ARIA in templates | Claude | Stitch output always needs accessibility pass |
+| **Component API generation** | NONE | HIGH — TypeScript interfaces, component specs | Claude | Handoff always uses Claude; Stitch feeds context only |
+| **Non-designer usability** | HIGH — "describe a feeling" works | LOW — requires component-level prompt detail | Stitch | Stitch is the entry point for non-designer users |
+| **Image-based generation** | YES (Experimental Mode) | PARTIAL — can describe layouts from images | Stitch | Use Stitch for sketch-to-UI; confirm sketch upload actually works (LOW confidence) |
+| **Generation limits** | 350/month Standard, 50/month Experimental | Unlimited (Claude API) | Claude | Stitch is premium; Claude is baseline |
+| **Figma export quality** | HIGH — Auto Layout, grouped named layers | MEDIUM — token export only, no screen export | Stitch | Use Stitch Figma path for screen handoff; keep Claude for token sync |
+| **Iteration speed** | HIGH — regenerate in seconds | MEDIUM — full HTML regeneration per iteration | Stitch | Stitch for visual iteration; Claude for code refinement |
+| **Design token extraction** | PARTIAL — hex colors, fonts, layouts | N/A (generates tokens, doesn't extract) | Neither | Design DNA → OKLCH conversion is the bridge |
+| **Voice interaction** | YES (browser only) | NO | Stitch (browser) | Document as pre-PDE workflow; MCP cannot expose this |
 
-**Extension event types (v0.8.x, when orchestrators emit them):**
-- `wave_start` — payload: `{ wave_number, wave_total, agent_count, wave_type }`
-- `wave_end` — payload: `{ wave_number, duration_ms, agents_completed, agents_failed }`
-
-**Schema contract (every event):**
-```json
-{
-  "event_id": "uuid-v4",
-  "schema_version": "1.0",
-  "session_id": "string",
-  "agent_id": "string|null",
-  "event_type": "string",
-  "timestamp_iso": "2026-03-19T14:22:00.000Z",
-  "duration_ms": "number|null",
-  "payload": {},
-  "extensions": {}
-}
-```
-
-### 6-Pane tmux Dashboard
-
-**Pane 1 — Agent Activity:**
-- Source: event JSONL tail filtered to `agent_start`, `agent_stop`, `wave_start`, `wave_end`
-- Display: scrolling list; most recent agent at bottom; format: `[HH:MM:SS] STARTED pde-plan-checker (wave 2/3)`
-- Refresh: event-driven (tail -f)
-
-**Pane 2 — Pipeline Progress:**
-- Source: `.planning/phases/{phase}/workflow-status.md` for active phase; pde-tools.cjs tracking read
-- Display: task table with status badges (TODO/IN_PROGRESS/DONE/SKIPPED); phase and plan header
-- Refresh: file watch on workflow-status.md (inotifywait/fswatch/poll every 2s fallback)
-
-**Pane 3 — File Changes:**
-- Source: fswatch/inotifywait on `.planning/` directory tree
-- Display: tail of recent file write events; format: `[HH:MM:SS] MODIFIED .planning/phases/58/PLAN.md`
-- Refresh: event-driven (fswatch output pipe)
-
-**Pane 4 — Log Stream:**
-- Source: event JSONL tail (all event types)
-- Display: raw event stream, human-readable format (not raw JSON); format: `[HH:MM:SS] [tool_use] Bash — 1240ms`
-- Refresh: event-driven (tail -f)
-
-**Pane 5 — Token/Cost Meter:**
-- Source: event JSONL filtered to `agent_stop` events with token_count in payload; Claude Code `/cost` command output if available
-- Display: running session total (tokens + estimated cost); per-agent breakdown when v0.8.x wave-aware data is available
-- Refresh: poll every 5s
-
-**Pane 6 — Context Window:**
-- Source: session JSONL transcript token count estimation (cumulative tokens from transcript)
-- Display: percentage bar (approximate); model name and limit; "~X% used" label with "(estimated)" caveat
-- Refresh: poll every 10s
-- Confidence: LOW — this is an estimate, not a measurement from the API
-
-### Auto-Install Check for tmux
-
-**Detection flow:**
-```
-command -v tmux → exists → proceed with dashboard launch
-command -v tmux → not found → detect platform
-    uname → Darwin → offer: "Install with: brew install tmux"
-    uname → Linux → check apt: offer: "Install with: sudo apt install tmux"
-    uname → other → "Install tmux manually: https://github.com/tmux/tmux/wiki/Installing"
-→ offer to run install command automatically (yes/no prompt)
-→ on decline: exit with clear message "Run /pde:monitor after installing tmux"
-```
-
-### Session Summaries in `.planning/logs/`
-
-**File format:** `.planning/logs/session-{YYYY-MM-DD}-{short-id}.md`
-
-**Content structure:**
-```markdown
----
-session_id: abc123
-date: 2026-03-19
-command: /pde:execute-phase
-duration_seconds: 847
-agents_spawned: 6
-tasks_completed: 5
-tasks_total: 5
-token_estimate: 142000
-schema_version: "1.0"
----
-
-# Session Summary: /pde:execute-phase
-
-**Date:** 2026-03-19 14:22 – 14:36
-**Duration:** 14m 7s
-**Status:** COMPLETE
-
-## Agents
-
-| Agent | Duration | Status |
-|-------|----------|--------|
-| pde-plan-checker | 2m 14s | DONE |
-| pde-executor (wave 1) | 4m 03s | DONE |
-...
-
-## Tasks Completed
-
-Phase 58, Plan 1: 5/5 tasks DONE
-
-## Token Estimate
-
-~142,000 tokens (session estimate)
-
-## Key Events
-
-- 14:22:01 Session started
-- 14:22:03 Agent pde-plan-checker spawned
-- 14:24:17 Readiness check: PASS
-- 14:24:19 Executor wave 1 started (3 agents)
-...
-```
+**Synthesis:** Stitch is strongest at visual ideation and initial direction-setting. Claude is strongest at quality, compliance, interactivity, and code production. The right architecture is sequential: Stitch generates options → user selects direction → Claude refines to production quality. Neither replaces the other.
 
 ---
 
-## Competitor Feature Analysis
+## Confirmed Limitations (Not Speculation)
 
-| Feature | disler/claude-code-hooks-multi-agent-observability | NTM (Named Tmux Manager) | PDE v0.8 Approach |
-|---------|---------------------------------------------------|--------------------------|--------------------|
-| Event capture | Claude Code hooks → HTTP POST → SQLite | tmux pane management only | Hooks → JSONL file; no HTTP server required |
-| Dashboard | Vue 3 browser dashboard on localhost:5173 | tmux pane layout with AI agents | tmux panes with shell tail processes; no server |
-| Persistence | SQLite database (durable) | Session-level only | JSONL in /tmp (ephemeral) + summaries in .planning/logs/ (durable) |
-| Wave awareness | None — flat agent list | None | PDE-specific: wave_start/wave_end events from orchestrators |
-| Install complexity | Bun server + Vue client + Python hooks | Go binary | Shell scripts + tmux + existing Node.js pde-tools.cjs |
-| npm dependencies | Multiple (Bun, Vue, SQLite) | None (binary) | Zero (consistent with PDE zero-npm-deps constraint) |
-| Session history | Database query | None | Markdown summaries in .planning/logs/ |
-| PDE integration | None — generic Claude Code | None — generic | Deep: reads workflow-status.md, pde-tools.cjs, .planning/ state |
+These limitations are confirmed across multiple independent sources and affect how PDE can use Stitch:
+
+1. **No design system enforcement** — Stitch cannot maintain consistent brand guidelines across projects or generations. Every generation starts fresh. PDE's DTCG tokens cannot be imported into Stitch to constrain output. (MEDIUM-HIGH confidence; confirmed in multiple reviews)
+
+2. **Static screens only** — No animations, no micro-interactions, no state transitions in generated output. (HIGH confidence; confirmed across all reviews)
+
+3. **No semantic HTML structure** — Generated HTML does not follow component naming conventions, semantic element choices, or accessibility patterns. (HIGH confidence; multiple sources)
+
+4. **Tailwind CDN classes, not DTCG custom properties** — Stitch uses Tailwind's utility classes. PDE's design system uses DTCG OKLCH custom properties. These are architecturally incompatible as drop-in replacements. (HIGH confidence; confirmed from output samples)
+
+5. **350/month generation limit** — Standard Mode caps at 350 generations. Experimental Mode (image input) caps at 50. Iterative pipeline runs will exhaust credits. (HIGH confidence; official pricing page)
+
+6. **Single-user tool** — No real-time multiplayer. No team collaboration. For PDE's single-user Claude Code plugin model, this is fine — but relevant for team workflows. (HIGH confidence)
+
+7. **Sketch upload reliability questionable** — Documented capability; one credible review found it falls back to text prompts when sketch is uploaded. (LOW confidence on the capability actually working; MEDIUM confidence on the limitation existing)
+
+8. **Voice Canvas is browser-only** — Voice Canvas is a Stitch web UI feature. MCP tools as of March 2026 do not expose voice input. Confirmed by inspecting `@_davideast/stitch-mcp` tool definitions, which are all text-based. (MEDIUM confidence)
+
+9. **Google Cloud project required** — Authentication requires either a STITCH_API_KEY (simpler) or Google Cloud ADC with billing enabled. The API Key path is straightforward but adds a setup step for PDE users. (HIGH confidence)
+
+10. **`davideast/stitch-mcp` is community-maintained, not official Google** — The npm package is labeled "NOT affiliated with, endorsed by, or sponsored by Google LLC." API compatibility or availability could change without notice. (HIGH confidence on the disclaimer; implications for PDE's verified-sources-only policy need architectural decision)
+
+---
+
+## Critical Architecture Decision: Official vs Community MCP
+
+PDE's `mcp-bridge.cjs` enforces a verified-sources-only security policy: "Only official MCP servers from approved vendors." This creates a conflict:
+
+- **Official Stitch MCP server** (`stitch.withgoogle.com/docs/mcp/setup`): Exists and is documented by Google. The docs page requires authentication to read, but the MCP setup URL is official. However, the npm package `@_davideast/stitch-mcp` explicitly disclaims Google affiliation.
+- **Community packages**: `davideast/stitch-mcp` and `Kargatharaakash/stitch-mcp` are community implementations.
+
+**Resolution needed in milestone planning:** Confirm whether Google's official Stitch MCP server (if it exists at stitch.withgoogle.com) satisfies PDE's verified-sources-only policy. If the official docs page at `stitch.withgoogle.com/docs/mcp/setup` describes an official server configuration (not the davideast community package), that is the approved path. If Google's "MCP server" is actually the davideast community package, a policy exception or policy clarification is needed.
 
 ---
 
 ## Sources
 
-- **PDE PROJECT.md** (HIGH confidence): `/Users/greyaltaer/code/projects/Platform Development Engine/.planning/PROJECT.md` — active requirements, constraints, existing capabilities
-- **Claude Code Hooks Reference** (HIGH confidence): `https://code.claude.com/docs/en/hooks` — 26 hook events, configuration structure, common fields, hook types (command/http/prompt/agent)
-- **disler/claude-code-hooks-multi-agent-observability** (HIGH confidence): `https://github.com/disler/claude-code-hooks-multi-agent-observability` — real-world Claude Code hook observability architecture; Vue+Bun+SQLite pattern; 12 captured event types
-- **PDE bin/lib/tracking.cjs** (HIGH confidence): verified directly — per-task workflow-status.md structure, existing instrumentation surface
-- **agent-teams-tmux** (MEDIUM confidence): `https://lobehub.com/skills/smartassets-io-skills-agent-teams-tmux` — tmux dashboard for parallel agent teams; 5s refresh interval pattern; fswatch/inotifywait/polling fallback pattern
-- **NTM (Named Tmux Manager)** (MEDIUM confidence): `https://github.com/Dicklesworthstone/ntm` — AI agent tmux coordination; tiled pane layouts for multi-agent systems
-- **Nebulacentre Server Dashboard in tmux** (MEDIUM confidence): `https://www.nebulacentre.net/articles/server_dash/server_dash.html` — tmux 6-pane server monitoring pattern; persistent session design
-- **Event Bus Architecture for Coordinating Distributed Agents** (MEDIUM confidence): `https://www.auxiliobits.com/blog/event-bus-architectures-for-coordinating-distributed-agents/` — correlation_id, schema versioning, consumer/producer separation
-- **How to Build Event Schema Design** (MEDIUM confidence): `https://oneuptime.com/blog/post/2026-01-30-event-schema-design/view` — event_id, schema_version, timestamp, source as minimum metadata; forward/backward compatibility patterns
-- **The Complete Guide to LLM Observability** (MEDIUM confidence): `https://portkey.ai/blog/the-complete-guide-to-llm-observability/` — per-agent token tracking; session duration; tool call tracing
-- **Claude Code session history (ccusage)** (MEDIUM confidence): `https://ccusage.com/guide/session-reports` — JSONL session transcript format; session-level aggregation patterns; how existing tools parse Claude Code session data
-- **Bash command existence check patterns** (MEDIUM confidence): `https://raymii.org/s/snippets/Bash_Bits_Check_if_command_is_available.html` — `command -v` idiom; platform detection via uname; package manager detection
-- **Datadog Claude Code Monitoring** (LOW confidence — enterprise context, not directly applicable): `https://www.datadoghq.com/blog/claude-code-monitoring/` — confirms market direction for Claude Code observability; OpenTelemetry as downstream compatibility target
+- **Google Developers Blog — "From idea to app: Introducing Stitch, a new way to design UIs"** (HIGH confidence): `https://developers.googleblog.com/stitch-a-new-way-to-design-uis/` — official announcement; input formats, output formats, Figma integration, Gemini 2.5 Pro foundation
+- **Google blog — "Design UI using AI with Stitch from Google Labs"** (HIGH confidence): `https://blog.google/innovation-and-ai/models-and-research/google-labs/stitch-ai-ui-design/` — official; March 2026 Voice Canvas, Vibe Design, canvas, SDK, MCP server announcement
+- **Stitch official docs — MCP setup** (MEDIUM confidence — page rendered JS, content not extractable): `https://stitch.withgoogle.com/docs/mcp/setup` — official MCP setup page; confirmed exists; content gated behind auth
+- **davideast/stitch-mcp on GitHub** (HIGH confidence for tool definitions): `https://github.com/davideast/stitch-mcp` — 9 tool definitions confirmed; `build_site`, `get_screen_code`, `get_screen_image` higher-level tools; authentication methods; known limitations documented inline
+- **Kargatharaakash/stitch-mcp on GitHub** (MEDIUM confidence — cross-validation): `https://github.com/Kargatharaakash/stitch-mcp` — Design DNA extraction feature; 9 overlapping tool definitions; confirms MCP tool landscape
+- **Google Codelabs — "Design-to-Code with Antigravity and Stitch MCP"** (HIGH confidence — official Google codelab): `https://codelabs.developers.google.com/design-to-code-with-antigravity-stitch?hl=en` — confirmed 4-phase workflow; Design DNA extraction → React/Tailwind scaffolding; input/output chain
+- **index.dev — "Google Stitch Review 2026"** (MEDIUM confidence — independent review): `https://www.index.dev/blog/google-stitch-ai-review-for-ui-designers` — cinema app walkthrough; confirmed no animations; form submit non-functional; lacks component naming by default
+- **nxcode.io — "Google Stitch Complete Guide: Vibe Design, Voice Canvas & Free AI UI Tool (2026)"** (MEDIUM confidence): `https://www.nxcode.io/resources/news/google-stitch-complete-guide-vibe-design-2026` — Vibe Design details; Voice Canvas; infinite canvas; Design Agent; 350/50 generation limits; output format details
+- **nxcode.io — "Google Stitch vs Figma 2026"** (MEDIUM confidence): `https://www.nxcode.io/resources/news/google-stitch-vs-figma-ai-design-comparison-2026` — Figma advantages (design systems, multiplayer, dev mode); Stitch advantages (speed, code output, voice); recommended hybrid workflow
+- **nxcode.io — "Google Stitch vs v0 vs Lovable 2026"** (MEDIUM confidence): `https://www.nxcode.io/resources/news/google-stitch-vs-v0-vs-lovable-ai-app-builder-2026` — confirmed "no interactivity, no state management, no click handlers"; "Stitch gives best design, v0 gives best code, Lovable gives most complete product"
+- **winbuzzer.com — "Google Revamps Stitch AI with Voice, Canvas, Dev Tools"** (MEDIUM confidence — news coverage): `https://winbuzzer.com/2026/03/20/google-redesigns-stitch-ai-voice-canvas-developer-integrations-xcxwbn/` — March 2026 update; SDK; MCP server; Figma stock drop context
+- **PDE PROJECT.md** (HIGH confidence — authoritative): existing architecture, constraints, zero-npm policy, verified-sources-only, mcp-bridge.cjs patterns, MCP integration model
 
 ---
 
-*Feature research for: PDE v0.8 — Observability & Event Infrastructure (tmux monitoring dashboard, structured event bus, session history)*
-*Researched: 2026-03-19*
+*Feature research for: PDE v0.9 — Google Stitch Integration as Primary Visual Design Engine*
+*Researched: 2026-03-20*
