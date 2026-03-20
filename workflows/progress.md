@@ -171,6 +171,53 @@ If workflow-status.md is absent but a tasks directory exists, display: "Tasks di
 
 </step>
 
+<step name="display_stitch_quota">
+**Display Stitch Quota (if configured):**
+
+Read quota state using mcp-bridge.cjs:
+
+```bash
+node --input-type=module <<'EOF'
+import { createRequire } from 'module';
+const req = createRequire(import.meta.url);
+const b = req(`${process.env.CLAUDE_PLUGIN_ROOT}/bin/lib/mcp-bridge.cjs`);
+const std = b.readStitchQuota('standard');
+const exp = b.readStitchQuota('experimental');
+process.stdout.write(JSON.stringify({ standard: std, experimental: exp }) + '\n');
+EOF
+```
+
+If both values are null (no quota configured), skip this section entirely.
+
+If quota data exists, display:
+
+```
+## Stitch Quota
+
+| Type | Used | Limit | Remaining | Resets |
+|------|------|-------|-----------|--------|
+| Standard (Gemini Flash) | {std.used} | 350 | {350-std.used} | {std.reset_at date} |
+| Experimental (Gemini Pro) | {exp.used} | 50 | {50-exp.used} | {exp.reset_at date} |
+```
+
+If standard.used >= 280 or experimental.used >= 40, append:
+```
+WARNING: Approaching Stitch quota limit (80% threshold). Generation may fall back to Claude HTML/CSS.
+```
+
+If standard.used >= 350, append:
+```
+Stitch Standard quota exhausted (350/350). Wireframe/mockup generation will use Claude HTML/CSS.
+```
+
+If experimental.used >= 50, append:
+```
+Stitch Experimental quota exhausted (50/50). Ideation visual divergence will use text-only.
+```
+
+Note: Quota counters track PDE-initiated generations only. Generations made directly in the Stitch UI are not reflected here.
+</step>
+
 <step name="route">
 **Determine next action based on verified counts.**
 

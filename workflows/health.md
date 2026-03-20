@@ -98,6 +98,46 @@ N issues can be auto-repaired. Run: /pde:health --repair
 ```
 </step>
 
+<step name="display_stitch_quota_health">
+**Stitch quota health:**
+
+If `.planning/config.json` contains a `quota.stitch` block, include in the health report:
+
+```
+Stitch quota: Standard {used}/{limit} | Experimental {used}/{limit}
+```
+
+If either counter exceeds 80% of its limit, flag as:
+```
+WARNING: Stitch {type} quota at {pct}% — approaching limit
+```
+
+If either counter equals its limit, flag as:
+```
+WARNING: Stitch {type} quota exhausted ({used}/{limit}) — generation will fall back to Claude HTML/CSS
+```
+
+To read quota state:
+```bash
+node --input-type=module <<'EOF'
+import { createRequire } from 'module';
+const req = createRequire(import.meta.url);
+const b = req(`${process.env.CLAUDE_PLUGIN_ROOT}/bin/lib/mcp-bridge.cjs`);
+const std = b.readStitchQuota('standard');
+const exp = b.readStitchQuota('experimental');
+if (std || exp) {
+  const stdUsed = std ? std.used : 0;
+  const stdLimit = std ? std.limit : 350;
+  const expUsed = exp ? exp.used : 0;
+  const expLimit = exp ? exp.limit : 50;
+  process.stdout.write(`Stitch quota: Standard ${stdUsed}/${stdLimit} | Experimental ${expUsed}/${expLimit}\n`);
+}
+EOF
+```
+
+If neither `quota.stitch.standard` nor `quota.stitch.experimental` exists in config.json, skip this section (stitch quota not yet initialized — normal state before first Stitch generation).
+</step>
+
 <step name="offer_repair">
 **If repairable issues exist and --repair was NOT used:**
 
