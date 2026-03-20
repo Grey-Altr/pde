@@ -23,6 +23,13 @@ function cmdInitExecutePhase(cwd, phase, raw) {
     : null;
   const phase_req_ids = (reqExtracted && reqExtracted !== 'TBD') ? reqExtracted : null;
 
+  // Ensure agent memory directories exist before agents try to read memories.md
+  const memoryTypes = ['executor', 'planner', 'debugger', 'verifier'];
+  for (const type of memoryTypes) {
+    const dir = path.join(cwd, '.planning', 'agent-memory', type);
+    fs.mkdirSync(dir, { recursive: true });
+  }
+
   const result = {
     executor_model: resolveModelInternal(cwd, 'pde-executor'),
     verifier_model: resolveModelInternal(cwd, 'pde-verifier'),
@@ -61,6 +68,7 @@ function cmdInitExecutePhase(cwd, phase, raw) {
     state_path: '.planning/STATE.md',
     roadmap_path: '.planning/ROADMAP.md',
     config_path: '.planning/config.json',
+    memory_dir: '.planning/agent-memory',
   };
 
   output(result, raw);

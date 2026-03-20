@@ -417,6 +417,7 @@ Planner prompt:
 - {verification_path} (Verification Gaps - if --gaps)
 - {uat_path} (UAT Gaps - if --gaps)
 - {UI_SPEC_PATH} (UI Design Contract — visual/interaction specs, if exists)
+- .planning/agent-memory/planner/memories.md (Agent memory — planning patterns from prior phases, if exists)
 </files_to_read>
 
 **Phase requirement IDs (every ID MUST appear in a plan's `requirements` field):** {phase_req_ids}
@@ -527,6 +528,13 @@ Every task MUST include these fields — they are NOT optional:
 - [ ] Every task has `<ac_refs>` referencing at least one AC-N
 - [ ] Every AC-N in the plan-level block is referenced by at least one task
 </quality_gate>
+
+<memory_instructions>
+After completing the plan, append a memory entry to .planning/agent-memory/planner/memories.md (create file if missing, with header: "# planner Agent Memory\n\n> Loaded at agent spawn. Append-only. Max 50 entries.\n> Oldest entries archived automatically.\n\n").
+Entry format:
+### {ISO timestamp} | Phase {phase_number} | tags: {2-4 relevance tags}
+{1-3 sentences on planning patterns: task sizing insights, dependency patterns, scope decisions, what worked/didn't.}
+</memory_instructions>
 ```
 
 ```

@@ -79,7 +79,7 @@ For each gap, fill the debug-subagent-prompt template and spawn:
 
 ```
 Task(
-  prompt=filled_debug_subagent_prompt + "\n\n<files_to_read>\n- {phase_dir}/{phase_num}-UAT.md\n- .planning/STATE.md\n</files_to_read>",
+  prompt=filled_debug_subagent_prompt + "\n\n<files_to_read>\n- {phase_dir}/{phase_num}-UAT.md\n- .planning/STATE.md\n- .planning/agent-memory/debugger/memories.md (Agent memory — debugging patterns, if exists)\n</files_to_read>\n\n<memory_instructions>\nAfter completing diagnosis, append a memory entry to .planning/agent-memory/debugger/memories.md (create file if missing, with header: \"# debugger Agent Memory\\n\\n> Loaded at agent spawn. Append-only. Max 50 entries.\\n> Oldest entries archived automatically.\\n\\n\").\nEntry format: ### {ISO timestamp} | Phase {phase_number} | tags: {2-4 comma-separated relevance tags}\n{1-3 sentences on debugging patterns: common root causes, diagnostic approaches that worked, project-specific failure modes.}\n</memory_instructions>",
   subagent_type="pde-debugger",
   description="Debug: {truth_short}"
 )

@@ -34,6 +34,9 @@ if [[ "$INIT" == @file:* ]]; then INIT=$(cat "${INIT#@file:}"); fi
 
 Extract from init JSON: `phase_dir`, `phase_number`, `phase_name`, `has_plans`, `plan_count`.
 
+**Agent memory (if available):**
+If `.planning/agent-memory/verifier/memories.md` was provided in files_to_read at spawn, it is already loaded. Use any relevant patterns from prior verification sessions to inform this verification. Do NOT re-read the file — it was loaded at spawn.
+
 Then load phase details and list plans/summaries:
 ```bash
 node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" roadmap get-phase "${phase_number}"
