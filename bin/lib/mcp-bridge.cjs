@@ -368,6 +368,114 @@ function updateConnectionStatus(serverKey, status, extraFields) {
   return updated;
 }
 
+// ─── Stitch quota management ──────────────────────────────────────────────────
+
+/**
+ * Reads Stitch quota state from config.json. Performs lazy monthly reset.
+ * Returns null if no quota block is configured.
+ *
+ * @param {'standard'|'experimental'} generationType
+ * @param {string} [configPath] — override for testing; defaults to .planning/config.json
+ * @returns {null|{used:number, limit:number, reset_at:string, wasReset:boolean}}
+ */
+function readStitchQuota(generationType, configPath) {
+  const cfgPath = configPath || path.join(process.cwd(), '.planning', 'config.json');
+  let config = {};
+  try { config = JSON.parse(fs.readFileSync(cfgPath, 'utf-8')); } catch { /* missing or invalid */ }
+
+  const quota = config?.quota?.stitch?.[generationType];
+  if (!quota) return null;
+
+  const now = new Date();
+  const resetAt = quota.reset_at ? new Date(quota.reset_at) : new Date(0);
+
+  if (now >= resetAt) {
+    // Lazy reset: zero the counter, advance reset_at to first of next calendar month (UTC)
+    const nextReset = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1, 0, 0, 0, 0));
+    return { used: 0, limit: quota.limit, reset_at: nextReset.toISOString(), wasReset: true };
+  }
+
+  return { used: quota.used, limit: quota.limit, reset_at: quota.reset_at, wasReset: false };
+}
+
+/**
+ * Increments Stitch quota counter. Auto-initializes if missing. Persists to config.json.
+ *
+ * @param {'standard'|'experimental'} generationType
+ * @param {string} [configPath] — override for testing; defaults to .planning/config.json
+ * @returns {{used:number, limit:number, reset_at:string}}
+ */
+function incrementStitchQuota(generationType, configPath) {
+  const cfgPath = configPath || path.join(process.cwd(), '.planning', 'config.json');
+  let config = {};
+  try { config = JSON.parse(fs.readFileSync(cfgPath, 'utf-8')); } catch { /* missing or invalid */ }
+
+  if (!config.quota) config.quota = {};
+  if (!config.quota.stitch) config.quota.stitch = {};
+
+  const limits = { standard: 350, experimental: 50 };
+
+  if (!config.quota.stitch[generationType]) {
+    const now = new Date();
+    const nextReset = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1, 0, 0, 0, 0));
+    config.quota.stitch[generationType] = {
+      limit: limits[generationType],
+      used: 0,
+      reset_at: nextReset.toISOString(),
+    };
+  }
+
+  // Lazy reset check before incrementing
+  const now = new Date();
+  const resetAt = new Date(config.quota.stitch[generationType].reset_at);
+  if (now >= resetAt) {
+    const nextReset = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 1, 0, 0, 0, 0));
+    config.quota.stitch[generationType].used = 0;
+    config.quota.stitch[generationType].reset_at = nextReset.toISOString();
+  }
+
+  config.quota.stitch[generationType].used++;
+  fs.writeFileSync(cfgPath, JSON.stringify(config, null, 2), 'utf-8');
+  return config.quota.stitch[generationType];
+}
+
+/**
+ * Pre-generation quota check with threshold warning and exhaustion detection.
+ * Does NOT modify config.json — use incrementStitchQuota after a successful generation.
+ *
+ * Reasons returned:
+ *   'ok'                — quota available, below 80% threshold
+ *   'quota_warning'     — quota available but >= 80% used; includes pct field
+ *   'quota_exhausted'   — quota at or over limit; allowed: false
+ *   'quota_reset'       — reset_at passed; counter will be zeroed on next increment; needsWrite: true
+ *   'no_quota_configured' — no quota block in config.json; allowed: true (open access)
+ *
+ * @param {'standard'|'experimental'} generationType
+ * @param {string} [configPath] — override for testing; defaults to .planning/config.json
+ * @returns {{allowed:boolean, remaining:number|null, reason:string, pct?:number, needsWrite?:boolean}}
+ */
+function checkStitchQuota(generationType, configPath) {
+  const quota = readStitchQuota(generationType, configPath);
+
+  if (!quota) return { allowed: true, remaining: null, reason: 'no_quota_configured' };
+
+  if (quota.wasReset) {
+    return { allowed: true, remaining: quota.limit, reason: 'quota_reset', needsWrite: true };
+  }
+
+  const remaining = quota.limit - quota.used;
+  if (remaining <= 0) {
+    return { allowed: false, remaining: 0, reason: 'quota_exhausted' };
+  }
+
+  const pct = (quota.used / quota.limit) * 100;
+  if (pct >= 80) {
+    return { allowed: true, remaining, reason: 'quota_warning', pct: Math.round(pct) };
+  }
+
+  return { allowed: true, remaining, reason: 'ok' };
+}
+
 // ─── Exports ──────────────────────────────────────────────────────────────────
 
 module.exports = {
@@ -383,4 +491,7 @@ module.exports = {
   probe,
   call,
   updateConnectionStatus,
+  readStitchQuota,
+  incrementStitchQuota,
+  checkStitchQuota,
 };
