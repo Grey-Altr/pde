@@ -3,6 +3,7 @@ phase: 48-ac-first-planning
 plan: 01
 subsystem: testing
 tags: [sharding, tdd, acceptance-criteria, task-files, workflow]
+one-liner: "extractPlanAcBlock() helper + extended buildTaskFileContent() and shardPlan() make task files self-contained for AC verification without reading PLAN.md"
 
 # Dependency graph
 requires:

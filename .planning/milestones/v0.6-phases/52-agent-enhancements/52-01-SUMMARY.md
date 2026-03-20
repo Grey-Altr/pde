@@ -3,6 +3,7 @@ phase: 52-agent-enhancements
 plan: 01
 subsystem: infra
 tags: [agent-memory, markdown, file-io, archival, cjs]
+one-liner: "Markdown-based agent memory CRUD library with 50-entry cap enforcement and date-named archival, following tracking.cjs patterns"
 
 # Dependency graph
 requires:

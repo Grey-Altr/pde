@@ -3,6 +3,7 @@ phase: 46-methodology-foundation
 plan: 01
 subsystem: infra
 tags: [workflow, subagent, context, project-context]
+one-liner: "project-context.md generation added to new-project/new-milestone workflows and injected as first-loaded file in all 5 subagent spawn sites across execute-phase.md and plan-phase.md"
 
 requires: []
 provides:

@@ -3,6 +3,7 @@ phase: 52-agent-enhancements
 plan: 02
 subsystem: workflow
 tags: [assumptions, planning-gate, plan-phase, workflow, commands]
+one-liner: "/pde:assumptions command and Step 7.6 gate that surfaces confidence-marked planner assumptions before planning begins, with user corrections injected into the planner prompt via <assumptions_context>"
 
 # Dependency graph
 requires:

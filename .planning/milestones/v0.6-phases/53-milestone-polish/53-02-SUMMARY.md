@@ -3,6 +3,7 @@ phase: 53-milestone-polish
 plan: 02
 subsystem: testing
 tags: [nyquist, validation, reconciler, workflow-status, test-infrastructure]
+one-liner: "Reconciler gains Tier 0 workflow-status.md hash lookup, and phases 46 and 52 reach nyquist_compliant: true with two new test files and real task IDs"
 
 # Dependency graph
 requires:

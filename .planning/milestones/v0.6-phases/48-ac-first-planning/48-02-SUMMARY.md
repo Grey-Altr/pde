@@ -3,6 +3,7 @@ phase: 48-ac-first-planning
 plan: "02"
 subsystem: workflow
 tags: [acceptance-criteria, bdd, planner-prompt, executor-protocol, ac-first]
+one-liner: "BDD plan-level acceptance criteria (AC-N format) and per-task ac_refs/boundaries fields added to planner prompt and executor protocol"
 
 # Dependency graph
 requires:

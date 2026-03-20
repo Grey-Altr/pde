@@ -3,6 +3,7 @@ phase: 51-workflow-tracking
 plan: 01
 subsystem: tracking
 tags: [tracking, tdd, workflow-status, handoff, cli]
+one-liner: "Regex-based workflow-status.md tracking library with idempotent init, per-task status updates, structured read, and HANDOFF.md generation — plus pde-tools CLI dispatch registration"
 dependency_graph:
   requires: []
   provides: [bin/lib/tracking.cjs, tracking-cli-subcommand]

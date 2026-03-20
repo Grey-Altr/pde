@@ -3,6 +3,7 @@ phase: 47-story-file-sharding
 plan: 01
 subsystem: infra
 tags: [sharding, pde-tools, task-files, context-reduction, tdd, node-test]
+one-liner: "shardPlan() library that converts PLAN.md into zero-padded per-task files with verbatim content, registered as pde-tools shard-plan subcommand, with TDD exemption and threshold logic"
 
 requires:
   - phase: 46-methodology-foundation

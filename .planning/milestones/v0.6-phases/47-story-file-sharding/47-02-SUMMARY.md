@@ -3,6 +3,7 @@ phase: 47-story-file-sharding
 plan: 02
 subsystem: workflow
 tags: [sharding, plan-phase, execute-phase, context-reduction, orchestrator, task-files]
+one-liner: "Integrated sharding into plan-phase.md (Step 9.5 post-planner shard step) and execute-phase.md (Mode A per-task spawning vs Mode B standard), completing the ~90% context reduction pipeline"
 
 requires:
   - phase: 47-story-file-sharding

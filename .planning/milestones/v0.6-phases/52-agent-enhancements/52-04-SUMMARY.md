@@ -3,6 +3,7 @@ phase: 52-agent-enhancements
 plan: "04"
 subsystem: agent-memory-wiring
 tags: [agent-memory, executor, planner, debugger, verifier, init, spawn-injection]
+one-liner: "Agent memory load/save wired into all four core agent spawn points — executor (both sharded and standard modes), planner, debugger, and verifier — plus init.cjs auto-creates memory directories on every execute-phase init call"
 dependency_graph:
   requires: [52-01, 52-02]
   provides: [agent-memory-load-save-all-agents]

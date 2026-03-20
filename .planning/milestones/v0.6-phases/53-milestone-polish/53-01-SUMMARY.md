@@ -3,6 +3,7 @@ phase: 53-milestone-polish
 plan: 01
 subsystem: workflow
 tags: [tracking, workflow-status, execute-phase, plan-phase, task-names]
+one-liner: "Four v0.6 audit tech debt items closed: planner gets methodology context, workflow-status shows real task names, empty task dirs produce TASK_TOTAL=0, and dead cmdTrackingGenerateHandoff CLI wrapper removed"
 
 # Dependency graph
 requires:

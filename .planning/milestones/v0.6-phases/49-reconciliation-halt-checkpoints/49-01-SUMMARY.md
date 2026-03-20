@@ -3,6 +3,7 @@ phase: 49-reconciliation-halt-checkpoints
 plan: "01"
 subsystem: workflow
 tags: [reconciliation, verification, git-evidence, execute-phase]
+one-liner: "Git-grounded reconciliation agent workflow with three-tier task-to-commit slug matching, RECONCILIATION.md schema, and Verifier Handoff section integrated into execute-phase.md before verification"
 dependency_graph:
   requires:
     - workflows/execute-phase.md (aggregate_results and verify_phase_goal step context)

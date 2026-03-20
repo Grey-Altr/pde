@@ -3,6 +3,7 @@ phase: 46-methodology-foundation
 plan: 02
 subsystem: infra
 tags: [sha256, manifest, file-hashing, csv, update-workflow, nodejs]
+one-liner: "SHA256 file-hash manifest system (bin/lib/manifest.cjs) with CLI subcommands and update.md integration that preserves user-modified PDE framework files during updates"
 
 requires: []
 provides:

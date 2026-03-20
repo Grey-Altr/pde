@@ -3,6 +3,7 @@ phase: 50-readiness-gate
 plan: "01"
 subsystem: verification
 tags: [readiness, validation, pre-execution, VRFY-03]
+one-liner: "Pre-execution readiness gate with 12-check A/B hierarchy (A1-A9 presence + B1-B3 consistency), severity-first PASS/CONCERNS/FAIL classification, READINESS.md output, and /pde:check-readiness command routing through pde-tools.cjs"
 dependency_graph:
   requires: [bin/lib/sharding.cjs, bin/lib/frontmatter.cjs, bin/lib/core.cjs]
   provides: [bin/lib/readiness.cjs, commands/check-readiness.md, workflows/check-readiness.md]

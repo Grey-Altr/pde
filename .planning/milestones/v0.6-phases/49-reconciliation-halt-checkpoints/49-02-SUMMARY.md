@@ -3,6 +3,7 @@ phase: 49-reconciliation-halt-checkpoints
 plan: 02
 subsystem: testing
 tags: [risk-tagging, halt-confirmation, sharding, executor, planner, workflow]
+one-liner: "risk:high task tagging propagated through planner rules → sharding.cjs risk extraction → executor HALT gates (pre/post commit) for both sharded (Mode A) and non-sharded (Mode B) plans"
 
 # Dependency graph
 requires:

@@ -3,6 +3,7 @@ phase: 52-agent-enhancements
 plan: "03"
 subsystem: agent-enhancements
 tags: [analyst, mece, interview, brief, upstream-context]
+one-liner: "MECE product analyst agent with multi-round interview workflow producing ANL-analyst-brief artifacts that auto-enrich /pde:brief via Sub-step 2c upstream context injection"
 dependency_graph:
   requires: []
   provides: [pde-analyst-agent, analyst-interview-workflow, anl-context-injection]

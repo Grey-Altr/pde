@@ -3,6 +3,7 @@ phase: 51-workflow-tracking
 plan: 02
 subsystem: tracking
 tags: [tracking, workflow-status, handoff, progress, execute-phase, pause-work]
+one-liner: "Tracking library wired into execute-phase.md Mode A loop, progress.md updated with conditional task-level status display, and pause-work.md rewritten to produce .planning/HANDOFF.md with full YAML frontmatter and five required body sections"
 dependency_graph:
   requires: [51-01]
   provides: [workflow-tracking-integration, handoff-md-generation, task-status-display]

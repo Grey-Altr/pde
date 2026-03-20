@@ -3,6 +3,7 @@ phase: 46-methodology-foundation
 plan: 03
 subsystem: infra
 tags: [methodology, bmad, paul, workflow, documentation, reference]
+one-liner: "Methodology reference document mapping 8 BMAD/PAUL framework patterns to PDE-native terminology, with source jargon confined to an internal-only Terminology Mapping table"
 
 # Dependency graph
 requires:

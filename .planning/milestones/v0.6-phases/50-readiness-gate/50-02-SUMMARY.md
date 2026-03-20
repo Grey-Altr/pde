@@ -3,6 +3,7 @@ phase: 50-readiness-gate
 plan: "02"
 subsystem: verification
 tags: [readiness, execute-phase, gate, VRFY-04]
+one-liner: "Readiness gate in execute-phase.md initialize step blocks on FAIL, warns via AskUserQuestion on CONCERNS, passes silently on PASS or absent READINESS.md, with cross-platform staleness check comparing READINESS.md mtime against newest PLAN.md"
 dependency_graph:
   requires: [bin/lib/readiness.cjs, commands/check-readiness.md, workflows/check-readiness.md]
   provides: [readiness gate in workflows/execute-phase.md]
