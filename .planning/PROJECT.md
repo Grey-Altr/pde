@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A full professional product design and development platform delivered as a Claude Code plugin. PDE takes users from raw idea to shipped product through AI-assisted research, design, planning, coding, testing, and deployment. Includes a complete 13-stage design pipeline (recommend → competitive → opportunity → ideate → brief → system → flows → wireframe → critique → iterate → mockup → hig → handoff) orchestrable via a single `/pde:build` command. Features a self-improvement fleet that audits, validates, and elevates its own output quality against Awwwards-level standards. Integrates with external development tools (GitHub, Linear, Jira, Figma, Pencil) via MCP for bidirectional sync of requirements, design tokens, and work items. Implements advanced workflow methodology with story-file sharding, acceptance-criteria-first planning, post-execution reconciliation, readiness gating, per-task tracking, and persistent agent memory. Automated pipeline verification validates research claims against the codebase, detects cross-phase dependencies, surfaces edge cases with BDD AC generation, and verifies integration points — all wired as automatic gates in the planning and readiness workflows.
+A full professional product design and development platform delivered as a Claude Code plugin. PDE takes users from raw idea to shipped product through AI-assisted research, design, planning, coding, testing, and deployment. Includes a complete 13-stage design pipeline (recommend → competitive → opportunity → ideate → brief → system → flows → wireframe → critique → iterate → mockup → hig → handoff) orchestrable via a single `/pde:build` command. Features a self-improvement fleet that audits, validates, and elevates its own output quality against Awwwards-level standards. Integrates with external development tools (GitHub, Linear, Jira, Figma, Pencil) via MCP for bidirectional sync of requirements, design tokens, and work items. Implements advanced workflow methodology with story-file sharding, acceptance-criteria-first planning, post-execution reconciliation, readiness gating, per-task tracking, and persistent agent memory. Automated pipeline verification validates research claims against the codebase, detects cross-phase dependencies, surfaces edge cases with BDD AC generation, and verifies integration points — all wired as automatic gates in the planning and readiness workflows. Real-time observability via structured event infrastructure with NDJSON event bus, persistent tmux monitoring dashboard (`/pde:monitor`), automatic session history summaries, and token/cost estimation — zero npm dependencies.
 
 ## Core Value
 
@@ -56,19 +56,17 @@ Any user can go from idea to shipped product through a single platform that hand
 - ✓ Research validation agent with LLM claim extraction, three-tier classification, and three-state codebase verification — v0.7
 - ✓ Plan checker enhanced with three new dimensions: cross-phase dependency detection, edge case surfacing with BDD AC generation, and declaration-time integration verification — v0.7
 - ✓ Workflow integration: research validation gates plan-phase, B4/B5 structural readiness checks, integration checks consuming all verification artifacts — v0.7
+- ✓ Event infrastructure with structured event bus, NDJSON session-scoped files, Claude Code hooks for automatic capture — v0.8
+- ✓ tmux monitoring dashboard with 6 panes, adaptive layout, nested tmux detection, dependency auto-install — v0.8
+- ✓ `/pde:monitor` command to launch persistent dashboard — v0.8
+- ✓ Session archival with structured markdown summaries and NDJSON cleanup — v0.8
+- ✓ Token/cost metering with chars/4 heuristic, per-model pricing, context window utilization (~est. labels) — v0.8
+- ✓ Workflow instrumentation: semantic phase/wave/plan events enriching dashboard and session summaries — v0.8
+- ✓ Future-proof event schema with extensions field for downstream consumers — v0.8
 
 ### Active
 
-- [ ] Event infrastructure with structured event bus and deep instrumentation across agents, executor, and tools
-- [ ] tmux-based monitoring dashboard with 6 panes: agent activity, pipeline progress, file changes, log stream, token/cost meter, context window
-- [ ] Explicit `/pde:monitor` command to launch dashboard
-- [ ] Auto-install check for tmux (detect missing, offer homebrew/apt install)
-- [ ] Persistent dashboard (stays open after operation finishes)
-- [x] Reviewable session history: structured summaries in `.planning/logs/`, raw event streams in `/tmp` — Phase 60
-- [x] Token/cost metering with chars/4 heuristic, per-model pricing, and context window utilization — all labeled as approximations — Phase 61
-- [x] Workflow instrumentation: semantic phase/wave/plan events emitted from execute-phase.md and execute-plan.md, aggregated in session summaries — Phase 62
-- [x] Session summary plan event aggregation: plan_started/plan_complete events included in phase progress section, closing MISS-01 gap — Phase 63
-- [ ] Future-proof event schema designed for extensibility beyond monitoring
+(None — next milestone requirements to be defined via `/gsd:new-milestone`)
 
 ### Out of Scope
 
@@ -92,7 +90,7 @@ Any user can go from idea to shipped product through a single platform that hand
 
 ## Context
 
-- **Shipped v0.7** on 2026-03-20: ~82,000 LOC (JavaScript/Markdown/Shell), ~700 total commits
+- **Shipped v0.8** on 2026-03-20: ~192,000 LOC (JavaScript/Markdown/Shell), ~780 total commits
 - **v0.1** shipped 2026-03-15: 303 files, ~60,000 LOC, 127 commits (GSD → PDE rebrand)
 - **v0.2** shipped 2026-03-16: 172 files changed, 135 commits (7-stage design pipeline)
 - **v0.3** shipped 2026-03-17: 84 files changed, 67 commits (6 advanced design skills, 13-stage pipeline)
@@ -100,10 +98,12 @@ Any user can go from idea to shipped product through a single platform that hand
 - **v0.5** shipped 2026-03-19: 118 files changed, 99 commits (5 MCP integrations, 315 validation tests)
 - **v0.6** shipped 2026-03-20: 108 files changed, ~91 commits (workflow methodology: sharding, AC-first, reconciliation, readiness, tracking, agent memory)
 - **v0.7** shipped 2026-03-20: 67 files changed, ~47 commits (pipeline verification: research validation agent, plan checker Dimensions 9-11, workflow integration)
+- **v0.8** shipped 2026-03-20: 81 files changed, 80 commits (observability: event bus, tmux dashboard, session archival, token metering, workflow instrumentation)
 - **Tech stack:** Node.js (CommonJS), Claude Code plugin API, markdown-based state management, MCP protocol (HTTP/SSE/stdio transports)
 - **Distribution:** Claude Code plugin via GitHub; marketplace registration pending
-- **Architecture:** skills (slash commands) → workflows → agents → templates → references → bin scripts → config
+- **Architecture:** skills (slash commands) → workflows → agents → templates → references → bin scripts → config; event infrastructure (hooks → event-bus → NDJSON → dashboard/archiver)
 - **Design pipeline:** 13 skills (recommend, competitive, opportunity, ideate, brief, system, flows, wireframe, critique, iterate, mockup, hig, handoff) + build orchestrator, DESIGN-STATE.md tracking, design-manifest.json artifact registry (13 coverage flags, pass-through-all pattern)
+- **Observability:** PdeEventBus (EventEmitter + setImmediate dispatch), session-scoped NDJSON in /tmp, Claude Code hooks (SubagentStart/Stop, PostToolUse, SessionStart/End), semantic workflow events (phase/wave/plan), tmux 6-pane dashboard, archive-session.cjs summaries in .planning/logs/
 - **Quality infrastructure:** Awwwards 4-dimension rubric, 3 quality reference files (motion-design, composition-typography, quality-standards), protected-files mechanism, 3-agent self-improvement fleet, skill builder with validation gate
 - **MCP integration layer:** mcp-bridge.cjs central adapter with TOOL_MAP (36 entries), APPROVED_SERVERS (5 services), probe/degrade contracts, connection persistence (.planning/mcp-connections.json), write-back confirmation gates
 - **Workflow methodology:** story-file sharding (task-NNN.md), AC-first planning (AC-N verification gates), post-execution reconciliation (RECONCILIATION.md), readiness gate (PASS/CONCERNS/FAIL), per-task tracking (workflow-status.md), persistent agent memory (50-entry cap with archival), analyst persona interviews
@@ -112,6 +112,7 @@ Any user can go from idea to shipped product through a single platform that hand
   - Historical commits e067974 and efe3af0 lack Co-Authored-By trailer (pre-fix, cannot change)
   - 5 v0.7 SUMMARY files missing one-liner frontmatter field (non-breaking, graceful null)
   - 3 human verification items for Phase 56 deferred (live dependency detection, edge case quality, AC approval gate)
+  - 10 human verification items across Phases 58/59/61 (live hook auto-fire, dashboard E2E, real-time token display) — requires active tmux session to verify
 
 ## Constraints
 
@@ -159,6 +160,13 @@ Any user can go from idea to shipped product through a single platform that hand
 | BDD AC approval gate outside revision loop | Additive-only AC append; checker not re-invoked after approval | ✓ Good — prevents infinite loop between checker and approval |
 | B4/B5 as concerns-severity structural checks | File existence and orphan export checks inform but don't block execution | ✓ Good — right severity for declarative-only checks |
 | Tech debt closure as first v0.7 phase | Clean baseline before adding new verification surface area | ✓ Good — all 7 items resolved, no interference with new features |
+| Session-scoped NDJSON files in /tmp | Concurrent sessions write to separate files; /tmp auto-cleans on reboot | ✓ Good — no interleaving, no disk bloat |
+| appendFileSync in event write path | pde-tools.cjs is short-lived; async write could be lost on fast exit | ✓ Good — reliable writes for hook handlers |
+| setImmediate for dispatch deferral | Fires after I/O phase, correctly non-blocking for calling operation | ✓ Good — zero measurable overhead |
+| chars/4 heuristic with ~est. labels | Honest approximation; no local Claude 3+ tokenizer exists | ✓ Good — users informed, no false precision |
+| Hooks-first instrumentation | Claude Code hooks cover tool/agent lifecycle automatically; manual workflow events deferred to Phase 62 | ✓ Good — minimal regression surface |
+| tmux adaptive layout with priority ordering | Degrades from 6-pane to 2-pane on small terminals instead of crashing | ✓ Good — works on all terminal sizes |
+| Surgical manual event emits (8 calls in 2 files) | Minimizes workflow file changes; concentrated risk surface | ✓ Good — zero regressions across all workflows |
 
 ---
-*Last updated: 2026-03-20 — Phase 63 (session-summary-plan-events) complete: plan_started/plan_complete added to PHASE_EVENT_TYPES and renderPhaseProgress() in archive-session.cjs, closing MISS-01 from v0.8 audit, 6/6 Nyquist PASS*
+*Last updated: 2026-03-20 after v0.8 milestone*

@@ -9,11 +9,12 @@
     "plan_check": true,
     "verifier": true,
     "nyquist_validation": true,
-    "_auto_chain_active": false
+    "_auto_chain_active": true
   },
   "task_tracker": "linear",
   "monitoring": {
     "enabled": true,
-    "session_id": "170d5f22-5afd-44ed-ab9d-870594588b11"
+    "session_id": "ae4d3cf7-83bb-4f3d-906e-749f39fc2f47",
+    "session_start_ts": "2026-03-20T20:32:48.515Z"
   }
 }

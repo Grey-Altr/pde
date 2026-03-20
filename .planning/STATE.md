@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v0.8
 milestone_name: Observability & Event Infrastructure
-status: unknown
-stopped_at: Completed 63-01-PLAN.md
-last_updated: "2026-03-20T20:34:59.566Z"
+status: completed
+stopped_at: Milestone v0.8 archived
+last_updated: "2026-03-20T22:00:00.000Z"
 progress:
   total_phases: 6
   completed_phases: 6
@@ -16,42 +16,22 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-19)
+See: .planning/PROJECT.md (updated 2026-03-20)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 63 — session-summary-plan-events
+**Current focus:** Planning next milestone
 
 ## Current Position
 
-Phase: 63 (session-summary-plan-events) — EXECUTING
-Plan: 1 of 1
+Milestone v0.8 completed and archived. Ready for `/gsd:new-milestone`.
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed (v0.8): 2
-- Average duration: 3min
-- Total execution time: 6min
-
-**By Phase:**
-
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| 58 | 2 | 6min | 3min |
-
-*Updated after each plan completion*
-| Phase 58 P03 | 5min | 2 tasks | 3 files |
-| Phase 59-tmux-dashboard-dependency-detection P01 | 2 | 2 tasks | 3 files |
-| Phase 59-tmux-dashboard-dependency-detection P02 | 2min | 2 tasks | 4 files |
-| Phase 59 P03 | 4min | 2 tasks | 3 files |
-| Phase 60 P01 | 4min | 2 tasks | 4 files |
-| Phase 60 P02 | 3min | 2 tasks | 2 files |
-| Phase 61 P02 | 3min | 2 tasks | 2 files |
-| Phase 61 P01 | 2min | 2 tasks | 2 files |
-| Phase 62 P01 | 5min | 3 tasks | 3 files |
-| Phase 62 P02 | 2min | 1 tasks | 1 files |
-| Phase 63 P01 | 1min | 2 tasks | 2 files |
+- Total plans completed (v0.8): 13
+- Phases: 6 (58-63)
+- Timeline: ~15 hours
 
 ## Accumulated Context
 
@@ -59,64 +39,16 @@ Plan: 1 of 1
 
 Decisions are logged in PROJECT.md Key Decisions table.
 
-**58-01 execution decisions:**
-
-- appendFileSync (not async appendFile) in safeAppendEvent: pde-tools.cjs is short-lived, write must complete before process exits
-- setImmediate (not process.nextTick) for dispatch deferral: fires after I/O phase, correctly non-blocking for caller
-- Empty catch in safeAppendEvent: event log failure must never propagate — fail-silent by design
-- No top-level require of event-bus.cjs in pde-tools.cjs: lazy-require in event-emit case block only to prevent 40+ command breakage on module load failure
-
-**58-02 execution decisions:**
-
-- configPath uses path.join(cwd, '.planning', 'config.json') in both case blocks — respects --cwd flag for sandboxed subagents running outside project root
-- Lazy require('./lib/event-bus.cjs') inside event-emit case only — event-bus.cjs load failure breaks only event-emit, not 40+ other commands
-- session-start outer try/catch swallows all write errors — config.json unavailability must not crash hook handlers
-
-Key v0.8 architectural decisions (pre-execution):
-
-- Event write path (pde-tools.cjs event-emit + hooks/emit-event.cjs) must be stable before any consumer (dashboard, archiver, estimator) is built
-- Session-scoped NDJSON filenames (`/tmp/pde-session-{uuid}.ndjson`) prevent concurrent write corruption from parallel agent waves
-- Hooks-first instrumentation: Claude Code hooks cover all tool/agent lifecycle events automatically; semantic workflow events (EVNT-04) require ~8 manual calls in 2 files — deferred to Phase 62 to minimize regression surface
-- DEPS requirements co-located with TMUX phase (59) — tmux detection is inseparable from dashboard launch
-- Token estimation uses chars/4 heuristic labeled "~est."; tokenx 1.3.0 vendoring deferred pending empirical validation in Phase 61
-- Context window pane is orchestrator-only scope, always labeled "(~estimated)" — never implies subagent coverage
-- Dashboard must handle nested tmux ($TMUX detection + switch-client), small terminals (120x30 adaptive fallback), and remain-on-exit persistence from first ship — not deferred
-- [Phase 58]: SessionStart and SessionEnd are async: false in hooks.json — ensures PDE session UUID persists before tool events fire and final event flushes before session exits
-- [Phase 58]: PostToolUse matcher limited to 'Write|Edit|Bash' — captures only file operations and shell calls to minimize hook overhead per tool call
-- [Phase 58]: validate-events.sh uses Node.js os.tmpdir() not /tmp directly — macOS returns /var/folders/..., portability required for macOS and Linux
-- [Phase 59-01]: build_full_layout/build_minimal_layout functions defined before layout selection block — bash requires function definition before invocation
-- [Phase 59-01]: jq check is soft warning not blocking — dashboard can launch with degraded pane output if jq absent
-- [Phase 59-01]: NDJSON path resolved at launch via node -e reading monitoring.session_id from config.json — tail -F self-heals if file does not exist yet
-- [Phase 59-02]: file_changed not tool_use: emit-event.cjs maps Write/Edit hooks to file_changed; pane scripts handle both for current compatibility and forward-compat
-- [Phase 59-02]: Pipeline progress pane is intentionally idle: phase/wave/plan events are Phase 62 deferred; waiting banner is correct idle state
-- [Phase 59]: Node.js used for unit test fixture processing in validate-dashboard.sh — timeout command not available on macOS, Node reads fixture synchronously
-- [Phase 59]: pane-context-window.sh is static display (no NDJSON arg) with sleep 60 loop — Phase 61 will replace with live context computation
-- [Phase 60]: session_start_ts stored in config.json (not NDJSON) for reliable duration computation at SessionEnd
-- [Phase 60]: cleanup-old-sessions.cjs runs after emit-event.cjs in SessionStart — ensures current session NDJSON file exists before age check runs
-- [Phase 60]: aggregateNdjson as named function — validate-archival.sh greps for this token to verify correct archive-session.cjs structure
-- [Phase 60]: SessionEnd hook chain: emit-event.cjs first (writes session_end to NDJSON), archive-session.cjs second (reads complete NDJSON) — order is critical for accurate event count
-- [Phase 61-02]: Context window size resolved once at pane startup via node -e (not per-event) — avoids subprocess overhead in tail loop
-- [Phase 61-02]: pane-context-window.sh backward-compatible: no-arg invocation falls back to static display + sleep 60 (Phase 59 compat)
-- [Phase 61]: chars/4 heuristic proxy labeled ~est. per TOKN-01 — tokenx 1.3.0 vendoring deferred pending empirical validation
-- [Phase 61]: Inline PRICING table in pane-token-meter.sh — stable constants, avoids extra read; Node cost subprocess spawned every 5 events to avoid per-event overhead
-- [Phase 62]: Single-line event-emit in workflow markdown (not multi-line backslash) satisfies EVNT04-H grep static analysis check
-- [Phase 62]: Project root IS the GSD plugin directory; execute-phase.md and execute-plan.md live at PROJECT_ROOT/workflows/, not in ~/.claude/get-shit-done/workflows/
-- [Phase 62]: renderPhaseProgress returns static fallback string when phaseEvents empty — backward compat preserved for sessions without workflow activity
-- [Phase 62]: PHASE_EVENT_TYPES defined as Set inside aggregateNdjson — scoped to function, no module-level state
-- [Phase 63]: 4-space markdown indent for plan entries encodes phase > wave > plan hierarchy visually
-- [Phase 63]: ev.plan_id accessor (not plan_name/plan_number) matches plan event schema from execute-plan.md
-
 ### Pending Todos
 
 None.
 
 ### Blockers/Concerns
 
-- Phase 59 planning: Claude Code sandbox (bwrap/seatbelt) compatibility with tmux commands must be verified through the actual Claude Code Bash tool before implementation — fallback is log-only dashboard
-- Phase 61 planning: chars/4 proxy measurement needs empirical validation against real session NDJSON; if tokenx 1.3.0 is vendored, confirm CJS build is current at implementation time
+None.
 
 ## Session Continuity
 
-Last session: 2026-03-20T20:32:08.955Z
-Stopped at: Completed 63-01-PLAN.md
+Last session: 2026-03-20
+Stopped at: Milestone v0.8 archived
 Resume file: None

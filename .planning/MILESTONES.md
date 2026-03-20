@@ -1,5 +1,25 @@
 # Milestones
 
+## v0.8 Observability & Event Infrastructure (Shipped: 2026-03-20)
+
+**Phases completed:** 6 phases, 13 plans
+**Commits:** 80 | **Files:** 81 | **LOC:** ~192,000
+**Timeline:** ~15 hours (2026-03-19 → 2026-03-20)
+**Git range:** docs: start milestone v0.8 → docs(v0.8): milestone audit
+
+**Key accomplishments:**
+
+1. Event infrastructure: PdeEventBus class with setImmediate-deferred dispatch, session-scoped NDJSON files in /tmp, Claude Code hooks for automatic tool/agent event capture, future-proof schema with extensions field
+2. tmux dashboard: `/pde:monitor` command with 6-pane layout (agent activity, pipeline progress, file changes, log stream, token/cost meter, context window), adaptive layout for small terminals, nested tmux detection, platform-aware auto-install
+3. Session archival: Structured markdown summaries in `.planning/logs/` at every SessionEnd, NDJSON cleanup of files >7 days, ISO-timestamped session log filenames
+4. Token & context metering: chars/4 heuristic with ~est. labels, per-model cost estimation from model-profiles config, orchestrator context utilization percentage
+5. Workflow instrumentation: Semantic phase/wave/plan events emitted from execute-phase.md and execute-plan.md via surgical manual calls, enriching dashboard and session summaries
+6. Gap closure: plan_started/plan_complete events added to session summary aggregation (MISS-01 from audit), 26/26 requirements satisfied, 6/6 phases Nyquist compliant
+
+**Delivered:** A complete observability layer for PDE — structured event infrastructure with NDJSON event bus, persistent tmux monitoring dashboard with 6 live panes, automatic session history with structured summaries, and token/cost estimation — all built with zero npm dependencies using only Node.js built-ins and shell scripts.
+
+---
+
 ## v0.7 Pipeline Reliability & Validation (Shipped: 2026-03-20)
 
 **Phases completed:** 4 phases, 11 plans, 3 tasks
