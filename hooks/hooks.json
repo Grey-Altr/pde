@@ -41,6 +41,11 @@
             "type": "command",
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/emit-event.cjs",
             "async": false
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/cleanup-old-sessions.cjs",
+            "async": false
           }
         ]
       }
