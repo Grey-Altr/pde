@@ -82,36 +82,50 @@ What does Claude assume exists or needs to be in place?
 - "External dependencies: Y, Z"
 - "This will be consumed by..."
 
-Be honest about uncertainty. Mark assumptions with confidence levels:
-- "Fairly confident: ..." (clear from roadmap)
-- "Assuming: ..." (reasonable inference)
-- "Unclear: ..." (could go multiple ways)
+Be honest about uncertainty. Prefix each assumption with a confidence marker:
+- `[confident]` — clear from roadmap and project context
+- `[assuming]` — reasonable inference, not explicitly stated
+- `[unclear]` — could go multiple ways, needs clarification
 </step>
 
 <step name="present_assumptions">
 Present assumptions in a clear, scannable format:
 
 ```
-## My Assumptions for Phase ${PHASE}: ${PHASE_NAME}
+## Assumptions for Phase ${PHASE}: ${PHASE_NAME}
 
 ### Technical Approach
-[List assumptions about how to implement]
+- [confident] [assumption about library/pattern/tool]
+- [assuming] [assumption about approach]
+- [unclear] [area of uncertainty]
 
 ### Implementation Order
-[List assumptions about sequencing]
+- [confident] [what gets built first and why]
+- [assuming] [sequencing inference]
 
 ### Scope Boundaries
-**In scope:** [what's included]
-**Out of scope:** [what's excluded]
-**Ambiguous:** [what could go either way]
+**In scope:**
+- [confident] [what's included]
+
+**Out of scope:**
+- [confident] [what's excluded]
+
+**Ambiguous:**
+- [unclear] [what could go either way]
 
 ### Risk Areas
-[List anticipated challenges]
+- [assuming] [anticipated challenge]
+- [unclear] [potential issue]
 
 ### Dependencies
-**From prior phases:** [what's needed]
-**External:** [third-party needs]
-**Feeds into:** [what future phases need from this]
+**From prior phases:**
+- [confident] [what's needed]
+
+**External:**
+- [assuming] [third-party needs]
+
+**Feeds into:**
+- [confident] [what future phases need from this]
 
 ---
 
@@ -133,8 +147,8 @@ Acknowledge the corrections:
 
 ```
 Key corrections:
-- [correction 1]
-- [correction 2]
+- [area]: [correction text]
+- [area]: [correction text]
 
 This changes my understanding significantly. [Summarize new understanding]
 ```
@@ -143,6 +157,28 @@ This changes my understanding significantly. [Summarize new understanding]
 
 ```
 Assumptions validated.
+```
+
+**If called with `--structured` flag (for plan-phase integration):**
+
+After acknowledging corrections or confirmation, emit a machine-readable summary block:
+
+```
+<assumptions_result>
+status: confirmed|corrected
+corrections:
+  - area: [Technical Approach|Implementation Order|Scope Boundaries|Risk Areas|Dependencies]
+    original: [assumption text]
+    correction: [user correction text]
+</assumptions_result>
+```
+
+If no corrections, emit:
+```
+<assumptions_result>
+status: confirmed
+corrections: []
+</assumptions_result>
 ```
 
 Continue to offer_next.
@@ -155,7 +191,7 @@ Present next steps:
 What's next?
 1. Discuss context (/pde:discuss-phase ${PHASE}) - Let me ask you questions to build comprehensive context
 2. Plan this phase (/pde:plan-phase ${PHASE}) - Create detailed execution plans
-3. Re-examine assumptions - I'll analyze again with your corrections
+3. Re-examine assumptions (/pde:assumptions ${PHASE}) - I'll analyze again with your corrections
 4. Done for now
 ```
 
