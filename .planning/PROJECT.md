@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A full professional product design and development platform delivered as a Claude Code plugin. PDE takes users from raw idea to shipped product through AI-assisted research, design, planning, coding, testing, and deployment. Includes a complete 13-stage design pipeline (recommend → competitive → opportunity → ideate → brief → system → flows → wireframe → critique → iterate → mockup → hig → handoff) orchestrable via a single `/pde:build` command. Features a self-improvement fleet that audits, validates, and elevates its own output quality against Awwwards-level standards. Integrates with external development tools (GitHub, Linear, Jira, Figma, Pencil) via MCP for bidirectional sync of requirements, design tokens, and work items.
+A full professional product design and development platform delivered as a Claude Code plugin. PDE takes users from raw idea to shipped product through AI-assisted research, design, planning, coding, testing, and deployment. Includes a complete 13-stage design pipeline (recommend → competitive → opportunity → ideate → brief → system → flows → wireframe → critique → iterate → mockup → hig → handoff) orchestrable via a single `/pde:build` command. Features a self-improvement fleet that audits, validates, and elevates its own output quality against Awwwards-level standards. Integrates with external development tools (GitHub, Linear, Jira, Figma, Pencil) via MCP for bidirectional sync of requirements, design tokens, and work items. Implements advanced workflow methodology with story-file sharding, acceptance-criteria-first planning, post-execution reconciliation, readiness gating, per-task tracking, and persistent agent memory.
 
 ## Core Value
 
@@ -44,17 +44,19 @@ Any user can go from idea to shipped product through a single platform that hand
 - ✓ Figma integration: DTCG token import/export, wireframe context, Code Connect handoff, mockup export — v0.5
 - ✓ Pencil integration: token sync to canvas, screenshot capture for critique, graceful degradation — v0.5
 - ✓ End-to-end validation: 315 tests for concurrency isolation, auth recovery, write-back confirmation — v0.5
+- ✓ Project context constitution with auto-generated compact context document for all subagents — v0.6
+- ✓ Story-file sharding: plans with 5+ tasks produce atomic task files, executor loads one at a time — v0.6
+- ✓ AC-first planning: acceptance criteria before task list, task-to-AC verification gates, boundary enforcement — v0.6
+- ✓ Post-execution reconciliation: mandatory RECONCILIATION.md comparing planned vs actual git commits — v0.6
+- ✓ Readiness gate: /pde:check-readiness with PASS/CONCERNS/FAIL blocking execute-phase on FAIL — v0.6
+- ✓ Per-task workflow tracking with real-time status updates and HANDOFF.md for session breaks — v0.6
+- ✓ Agent enhancements: assumptions capture, analyst persona, analyst-to-brief pipeline, persistent agent memory — v0.6
+- ✓ File-hash manifest for safe framework updates preserving user modifications — v0.6
+- ✓ BMAD/PAUL methodology patterns documented in PDE terms — v0.6
 
 ### Active
 
-## Current Milestone: v0.6 Advanced Workflow Methodology
-
-**Goal:** Import BMAD and PAUL methodology patterns into PDE's existing workflow engine to strengthen business analysis, architecture planning, and agent role specialization.
-
-**Target features:**
-- BMAD methodology patterns (business analysis, multi-agent orchestration)
-- PAUL methodology patterns (architecture planning, structured verification)
-- Integration with PDE's existing 13-stage design pipeline and planning workflow
+(None — next milestone requirements defined via `/gsd:new-milestone`)
 
 ### Out of Scope
 
@@ -72,21 +74,26 @@ Any user can go from idea to shipped product through a single platform that hand
 - Auto-configure all MCP servers on install — triggers unexpected OAuth flows; always require explicit user consent
 - MCP tool passthrough to all subagents — destroys 85% context savings from Tool Search
 - Write tools in PDE-as-MCP-server — creates second write path bypassing pde-tools.cjs validation and locking
+- Direct BMAD agent file import — BMAD agents written for human-directed sequential workflows; PDE agents are autonomous parallel
+- PAUL .paul/ directory structure — PDE uses .planning/; parallel state tree creates two sources of truth
+- Story points and sprint ceremonies — PDE's phase/milestone model is simpler for AI-assisted development
 
 ## Context
 
-- **Shipped v0.5** on 2026-03-19: ~145,000 LOC (JavaScript/Markdown/Shell), 559 total commits
+- **Shipped v0.6** on 2026-03-20: ~166,000 LOC (JavaScript/Markdown/Shell), ~650 total commits
 - **v0.1** shipped 2026-03-15: 303 files, ~60,000 LOC, 127 commits (GSD → PDE rebrand)
 - **v0.2** shipped 2026-03-16: 172 files changed, 135 commits (7-stage design pipeline)
 - **v0.3** shipped 2026-03-17: 84 files changed, 67 commits (6 advanced design skills, 13-stage pipeline)
 - **v0.4** shipped 2026-03-18: 259 files changed, 131 commits (self-improvement fleet, design elevation, pressure test)
 - **v0.5** shipped 2026-03-19: 118 files changed, 99 commits (5 MCP integrations, 315 validation tests)
+- **v0.6** shipped 2026-03-20: 108 files changed, ~91 commits (workflow methodology: sharding, AC-first, reconciliation, readiness, tracking, agent memory)
 - **Tech stack:** Node.js (CommonJS), Claude Code plugin API, markdown-based state management, MCP protocol (HTTP/SSE/stdio transports)
 - **Distribution:** Claude Code plugin via GitHub; marketplace registration pending
 - **Architecture:** skills (slash commands) → workflows → agents → templates → references → bin scripts → config
 - **Design pipeline:** 13 skills (recommend, competitive, opportunity, ideate, brief, system, flows, wireframe, critique, iterate, mockup, hig, handoff) + build orchestrator, DESIGN-STATE.md tracking, design-manifest.json artifact registry (13 coverage flags, pass-through-all pattern)
 - **Quality infrastructure:** Awwwards 4-dimension rubric, 3 quality reference files (motion-design, composition-typography, quality-standards), protected-files mechanism, 3-agent self-improvement fleet, skill builder with validation gate
 - **MCP integration layer:** mcp-bridge.cjs central adapter with TOOL_MAP (36 entries), APPROVED_SERVERS (5 services), probe/degrade contracts, connection persistence (.planning/mcp-connections.json), write-back confirmation gates
+- **Workflow methodology:** story-file sharding (task-NNN.md), AC-first planning (AC-N verification gates), post-execution reconciliation (RECONCILIATION.md), readiness gate (PASS/CONCERNS/FAIL), per-task tracking (workflow-status.md), persistent agent memory (50-entry cap with archival), analyst persona interviews
 - **Known tech debt:**
   - PLUG-01 end-to-end `claude plugin install` from GitHub not tested (marketplace registration may be required)
   - TRACKING-PLAN.md referenced in consent panel does not exist
@@ -94,7 +101,7 @@ Any user can go from idea to shipped product through a single platform that hand
   - lock-release calls use inconsistent trailing arguments across workflows (cosmetic, zero functional impact)
   - SUMMARY.md files lack one_liner field — automated accomplishment extraction fails (tech-tracking format only)
   - 2 pre-registered TOOL_MAP entries (github:update-pr, github:search-issues) have no consumers yet (intentionally pre-registered)
-  - connect.md Step 3.5→4 GITHUB_REPO env var handoff not explicitly specified (low risk)
+  - pde-tools.cjs usage help text missing v0.6 CLI commands (manifest, shard-plan, readiness, tracking) — cosmetic
 
 ## Constraints
 
@@ -130,6 +137,12 @@ Any user can go from idea to shipped product through a single platform that hand
 | task_tracker config toggle | Single setting switches Linear↔Jira without workflow changes | ✓ Good — clean service dispatch |
 | Non-destructive Figma token merge | PDE-originated tokens preserved; Figma is source for its exports | ✓ Good — no data loss on sync |
 | Inline conversion functions (zero npm) | figmaColorToCss, dtcgToPencilVariables embedded in workflows | ✓ Good — zero-npm-dependency preserved |
+| Story-file sharding with task-count threshold | Plans ≥5 tasks get sharded; <5 stay monolithic — balances context savings vs overhead | ✓ Good — ~90% context reduction |
+| AC-first planning with AC-N identifiers | Tasks verified against acceptance criteria before marked done — prevents shallow execution | ✓ Good — every phase shipped clean |
+| Post-execution reconciliation as mandatory step | Compares planned vs actual git commits — catches drift before verification | ✓ Good — reconciler finds deviations reliably |
+| Readiness gate blocks on FAIL | Prevents executing plans with known structural issues | ✓ Good — clean separation of plan validation vs execution |
+| Per-agent persistent memory with 50-entry cap | Agents learn project-specific patterns across sessions without unbounded growth | ✓ Good — archival prevents context bloat |
+| Analyst persona interviews in new-project/new-milestone | Surfaces unspoken assumptions before planning begins | ✓ Good — structured briefs improve plan quality |
 
 ---
-*Last updated: 2026-03-19 after v0.6 milestone start*
+*Last updated: 2026-03-20 after v0.6 milestone completion*

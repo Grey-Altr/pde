@@ -1,5 +1,14 @@
 # Milestones
 
+## v0.6 Advanced Workflow Methodology (Shipped: 2026-03-20)
+
+**Phases completed:** 8 phases, 19 plans, 2 tasks
+
+**Key accomplishments:**
+- (none recorded)
+
+---
+
 ## v0.5 MCP Integrations (Shipped: 2026-03-19)
 
 **Phases completed:** 7 phases, 18 plans
