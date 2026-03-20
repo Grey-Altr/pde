@@ -18,22 +18,22 @@ Requirements for v0.8 Observability & Event Infrastructure. Each maps to roadmap
 
 ### tmux Dashboard
 
-- [ ] **TMUX-01**: `/pde:monitor` command launches a persistent tmux session with 6-pane layout
+- [x] **TMUX-01**: `/pde:monitor` command launches a persistent tmux session with 6-pane layout
 - [ ] **TMUX-02**: Agent activity pane shows real-time agent spawn/complete events with agent type and status
 - [ ] **TMUX-03**: Pipeline progress pane shows phase/plan/task completion with wave-aware progress indicators
 - [ ] **TMUX-04**: File changes pane shows files created/modified in real-time from event stream
 - [ ] **TMUX-05**: Log stream pane shows structured event log with severity filtering
 - [ ] **TMUX-06**: Token/cost meter pane shows running token estimate (~est.) and approximate cost per model
 - [ ] **TMUX-07**: Context window pane shows orchestrator context utilization indicator labeled as estimate
-- [ ] **TMUX-08**: Dashboard persists after PDE operation completes (user closes manually)
-- [ ] **TMUX-09**: Adaptive layout degrades gracefully for terminals below 120x30 (fewer panes, priority ordering)
-- [ ] **TMUX-10**: Nested tmux detection checks $TMUX and uses switch-client fallback for users already in tmux
+- [x] **TMUX-08**: Dashboard persists after PDE operation completes (user closes manually)
+- [x] **TMUX-09**: Adaptive layout degrades gracefully for terminals below 120x30 (fewer panes, priority ordering)
+- [x] **TMUX-10**: Nested tmux detection checks $TMUX and uses switch-client fallback for users already in tmux
 
 ### Dependency Management
 
-- [ ] **DEPS-01**: tmux availability detected via `which tmux` before dashboard launch
-- [ ] **DEPS-02**: Platform-aware install instructions offered when tmux is missing (homebrew for macOS, apt/yum for Linux)
-- [ ] **DEPS-03**: Auto-install offer with explicit user consent before running package manager commands
+- [x] **DEPS-01**: tmux availability detected via `which tmux` before dashboard launch
+- [x] **DEPS-02**: Platform-aware install instructions offered when tmux is missing (homebrew for macOS, apt/yum for Linux)
+- [x] **DEPS-03**: Auto-install offer with explicit user consent before running package manager commands
 
 ### Session History
 
@@ -86,19 +86,19 @@ Requirements for v0.8 Observability & Event Infrastructure. Each maps to roadmap
 | EVNT-04 | Phase 62 | Pending |
 | EVNT-05 | Phase 58 | Complete |
 | EVNT-06 | Phase 58 | Complete |
-| TMUX-01 | Phase 59 | Pending |
+| TMUX-01 | Phase 59 | Complete |
 | TMUX-02 | Phase 59 | Pending |
 | TMUX-03 | Phase 59 | Pending |
 | TMUX-04 | Phase 59 | Pending |
 | TMUX-05 | Phase 59 | Pending |
 | TMUX-06 | Phase 59 | Pending |
 | TMUX-07 | Phase 59 | Pending |
-| TMUX-08 | Phase 59 | Pending |
-| TMUX-09 | Phase 59 | Pending |
-| TMUX-10 | Phase 59 | Pending |
-| DEPS-01 | Phase 59 | Pending |
-| DEPS-02 | Phase 59 | Pending |
-| DEPS-03 | Phase 59 | Pending |
+| TMUX-08 | Phase 59 | Complete |
+| TMUX-09 | Phase 59 | Complete |
+| TMUX-10 | Phase 59 | Complete |
+| DEPS-01 | Phase 59 | Complete |
+| DEPS-02 | Phase 59 | Complete |
+| DEPS-03 | Phase 59 | Complete |
 | HIST-01 | Phase 60 | Pending |
 | HIST-02 | Phase 60 | Pending |
 | HIST-03 | Phase 60 | Pending |

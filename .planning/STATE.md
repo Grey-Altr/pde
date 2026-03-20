@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.8
 milestone_name: Observability & Event Infrastructure
 status: unknown
-stopped_at: Completed 58-03-PLAN.md — hooks/hooks.json, hooks/emit-event.cjs, and validate-events.sh (6/6 EVNT PASS)
-last_updated: "2026-03-20T07:26:46.117Z"
+stopped_at: Completed 59-01-PLAN.md — commands/monitor.md, workflows/monitor.md, bin/monitor-dashboard.sh
+last_updated: "2026-03-20T18:10:28.168Z"
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
+  total_plans: 6
+  completed_plans: 4
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 58 — event-infrastructure-core
+**Current focus:** Phase 59 — tmux-dashboard-dependency-detection
 
 ## Current Position
 
-Phase: 58 (event-infrastructure-core) — EXECUTING
-Plan: 3 of 3
+Phase: 59 (tmux-dashboard-dependency-detection) — EXECUTING
+Plan: 1 of 3
 
 ## Performance Metrics
 
@@ -42,6 +42,7 @@ Plan: 3 of 3
 
 *Updated after each plan completion*
 | Phase 58 P03 | 5min | 2 tasks | 3 files |
+| Phase 59-tmux-dashboard-dependency-detection P01 | 2 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -74,6 +75,9 @@ Key v0.8 architectural decisions (pre-execution):
 - [Phase 58]: SessionStart and SessionEnd are async: false in hooks.json — ensures PDE session UUID persists before tool events fire and final event flushes before session exits
 - [Phase 58]: PostToolUse matcher limited to 'Write|Edit|Bash' — captures only file operations and shell calls to minimize hook overhead per tool call
 - [Phase 58]: validate-events.sh uses Node.js os.tmpdir() not /tmp directly — macOS returns /var/folders/..., portability required for macOS and Linux
+- [Phase 59-01]: build_full_layout/build_minimal_layout functions defined before layout selection block — bash requires function definition before invocation
+- [Phase 59-01]: jq check is soft warning not blocking — dashboard can launch with degraded pane output if jq absent
+- [Phase 59-01]: NDJSON path resolved at launch via node -e reading monitoring.session_id from config.json — tail -F self-heals if file does not exist yet
 
 ### Pending Todos
 
@@ -86,6 +90,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-20T07:21:16.191Z
-Stopped at: Completed 58-03-PLAN.md — hooks/hooks.json, hooks/emit-event.cjs, and validate-events.sh (6/6 EVNT PASS)
+Last session: 2026-03-20T18:10:28.166Z
+Stopped at: Completed 59-01-PLAN.md — commands/monitor.md, workflows/monitor.md, bin/monitor-dashboard.sh
 Resume file: None
