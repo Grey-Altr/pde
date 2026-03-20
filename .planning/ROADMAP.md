@@ -110,6 +110,7 @@ Full details: .planning/milestones/v0.5-ROADMAP.md
 - [x] **Phase 50: Readiness Gate** - /pde:check-readiness command with PASS/CONCERNS/FAIL; blocks execute-phase on FAIL (completed 2026-03-19)
 - [x] **Phase 51: Workflow Tracking** - Per-task status tracking, task-level /pde:progress, session HANDOFF.md (completed 2026-03-19)
 - [x] **Phase 52: Agent Enhancements** - Assumptions capture, analyst persona, analyst-to-brief pipeline, per-agent persistent memory (completed 2026-03-20)
+- [ ] **Phase 53: Milestone Polish** - Fix integration gaps, tracking quality, dead code, reconciler awareness, Nyquist compliance
 
 ## Phase Details
 
@@ -216,9 +217,24 @@ Plans:
 - [ ] 52-03-PLAN.md — Analyst agent + brief pipeline integration
 - [ ] 52-04-PLAN.md — Memory workflow integration into agent spawn prompts
 
+### Phase 53: Milestone Polish
+**Goal**: Close all tech debt and integration gaps from v0.6 audit — fix context injection, tracking quality, dead code, reconciler awareness, and Nyquist validation gaps
+**Depends on**: Phase 52
+**Requirements**: FOUND-03, TRCK-01, TRCK-03
+**Gap Closure**: Closes gaps from v0.6 milestone audit
+**Success Criteria** (what must be TRUE):
+  1. workflow-methodology.md is injected into planner spawn files_to_read in plan-phase.md
+  2. initWorkflowStatus populates actual task names from task file <name> fields, not generic "Task N"
+  3. TASK_TOTAL is guarded against empty $TASK_FILES (returns 0 instead of 1)
+  4. cmdTrackingGenerateHandoff dead code is resolved (removed or wired)
+  5. Reconciler cross-references workflow-status.md alongside git commit evidence
+  6. Phases 46 and 52 pass Nyquist validation
+**Plans:** 0/0 plans complete
+Plans:
+
 ## Progress
 
-**Execution Order:** 46 → 47 → 48 → 49 → 50 → 51 → 52
+**Execution Order:** 46 → 47 → 48 → 49 → 50 → 51 → 52 → 53
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -234,3 +250,4 @@ Plans:
 | 50. Readiness Gate | 2/2 | Complete    | 2026-03-19 | - |
 | 51. Workflow Tracking | 2/2 | Complete    | 2026-03-19 | - |
 | 52. Agent Enhancements | 4/4 | Complete    | 2026-03-20 | - |
+| 53. Milestone Polish | 0/0 | Pending     | -          | - |

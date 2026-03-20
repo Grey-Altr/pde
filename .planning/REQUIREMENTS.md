@@ -81,7 +81,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 |-------------|-------|--------|
 | FOUND-01 | Phase 46 | Complete |
 | FOUND-02 | Phase 46 | Complete |
-| FOUND-03 | Phase 46 | Complete |
+| FOUND-03 | Phase 46, 53 | Complete (polish in 53) |
 | PLAN-01 | Phase 47 | Complete |
 | PLAN-02 | Phase 47 | Complete |
 | PLAN-03 | Phase 48 | Complete |
@@ -92,9 +92,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | VRFY-03 | Phase 50 | Complete |
 | VRFY-04 | Phase 50 | Complete |
 | VRFY-05 | Phase 49 | Complete |
-| TRCK-01 | Phase 51 | Complete |
+| TRCK-01 | Phase 51, 53 | Complete (polish in 53) |
 | TRCK-02 | Phase 51 | Complete |
-| TRCK-03 | Phase 51 | Complete |
+| TRCK-03 | Phase 51, 53 | Complete (polish in 53) |
 | AGNT-01 | Phase 52 | Complete |
 | AGNT-02 | Phase 52 | Complete |
 | AGNT-03 | Phase 52 | Complete |
