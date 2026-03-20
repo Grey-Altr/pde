@@ -267,6 +267,7 @@ Execute each wave in sequence. Within a wave: parallel if `PARALLELIZATION=true`
        - .planning/config.json (Config, if exists)
        - ./CLAUDE.md (Project instructions, if exists — follow project-specific guidelines and coding conventions)
        - .claude/skills/ or .agents/skills/ (Project skills, if either exists — list skills, read SKILL.md for each, follow relevant rules during implementation)
+       - .planning/agent-memory/executor/memories.md (Agent memory — operational patterns learned in prior sessions, if exists)
        </files_to_read>
 
        <success_criteria>
@@ -275,6 +276,15 @@ Execute each wave in sequence. Within a wave: parallel if `PARALLELIZATION=true`
        - [ ] All acceptance criteria from task file verified
        - [ ] STATE.md updated with position
        </success_criteria>
+
+       <memory_instructions>
+       After completing your task, append a memory entry to .planning/agent-memory/executor/memories.md (create file if missing, with header: "# executor Agent Memory\n\n> Loaded at agent spawn. Append-only. Max 50 entries.\n> Oldest entries archived automatically.\n\n").
+       Entry format — one entry per task, append at end of file:
+       ### {ISO timestamp} | Phase {phase_number} | tags: {2-4 comma-separated relevance tags}
+       {1-3 sentences capturing an operational pattern learned during this task.}
+       Good entries: project conventions, file patterns, gotchas encountered, tool behaviors.
+       Bad entries: "task completed successfully", status updates, full context dumps.
+       </memory_instructions>
      "
    )
    ```
@@ -349,6 +359,7 @@ Execute each wave in sequence. Within a wave: parallel if `PARALLELIZATION=true`
        - .planning/config.json (Config, if exists)
        - ./CLAUDE.md (Project instructions, if exists — follow project-specific guidelines and coding conventions)
        - .claude/skills/ or .agents/skills/ (Project skills, if either exists — list skills, read SKILL.md for each, follow relevant rules during implementation)
+       - .planning/agent-memory/executor/memories.md (Agent memory — operational patterns learned in prior sessions, if exists)
        </files_to_read>
 
        <success_criteria>
@@ -358,6 +369,15 @@ Execute each wave in sequence. Within a wave: parallel if `PARALLELIZATION=true`
        - [ ] STATE.md updated with position and decisions
        - [ ] ROADMAP.md updated with plan progress (via `roadmap update-plan-progress`)
        </success_criteria>
+
+       <memory_instructions>
+       After completing your task, append a memory entry to .planning/agent-memory/executor/memories.md (create file if missing, with header: "# executor Agent Memory\n\n> Loaded at agent spawn. Append-only. Max 50 entries.\n> Oldest entries archived automatically.\n\n").
+       Entry format — one entry per task, append at end of file:
+       ### {ISO timestamp} | Phase {phase_number} | tags: {2-4 comma-separated relevance tags}
+       {1-3 sentences capturing an operational pattern learned during this task.}
+       Good entries: project conventions, file patterns, gotchas encountered, tool behaviors.
+       Bad entries: "task completed successfully", status updates, full context dumps.
+       </memory_instructions>
      "
    )
    ```
@@ -400,6 +420,16 @@ Execute each wave in sequence. Within a wave: parallel if `PARALLELIZATION=true`
 6. **Execute checkpoint plans between waves** — see `<checkpoint_handling>`.
 
 7. **Proceed to next wave.**
+
+<!-- Memory write serialization: Agent memory writes happen within each subagent's
+     own execution context. Since waves run plans sequentially within a wave
+     (parallelization=false default) or in parallel, and each agent type writes to
+     its own memories.md file (executor/memories.md, verifier/memories.md),
+     there is no write conflict. If future changes allow multiple executors to run
+     in parallel within the same wave, orchestrator should collect memory entries
+     and serialize writes post-wave using:
+     node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" memory append {agentType} {entry}
+-->
 </step>
 
 <step name="checkpoint_handling">
@@ -601,11 +631,18 @@ Phase requirement IDs: {phase_req_ids}
 Check must_haves against actual codebase.
 Cross-reference requirement IDs from PLAN frontmatter against REQUIREMENTS.md — every ID MUST be accounted for.
 Create VERIFICATION.md.
-If RECONCILIATION.md exists, include its ## Verifier Handoff content under a new ## Reconciliation Summary section in VERIFICATION.md. If RECONCILIATION.md does not exist, note 'No RECONCILIATION.md found — reconciliation step may not have run' and continue with normal verification.",
+If RECONCILIATION.md exists, include its ## Verifier Handoff content under a new ## Reconciliation Summary section in VERIFICATION.md. If RECONCILIATION.md does not exist, note 'No RECONCILIATION.md found — reconciliation step may not have run' and continue with normal verification.
+
+<memory_instructions>
+After completing verification, append a memory entry to .planning/agent-memory/verifier/memories.md (create file if missing, with header: \"# verifier Agent Memory\n\n> Loaded at agent spawn. Append-only. Max 50 entries.\n> Oldest entries archived automatically.\n\n\").
+Entry format: ### {ISO timestamp} | Phase {phase_number} | tags: {2-4 comma-separated relevance tags}
+{1-3 sentences on verification patterns, common gaps found, project-specific quality signals.}
+</memory_instructions>",
   subagent_type="pde-verifier",
   model="{verifier_model}",
   files_to_read=[
-    "{phase_dir}/*-RECONCILIATION.md (Reconciliation report — read ## Verifier Handoff section and include in VERIFICATION.md under a ## Reconciliation Summary heading)"
+    "{phase_dir}/*-RECONCILIATION.md (Reconciliation report — read ## Verifier Handoff section and include in VERIFICATION.md under a ## Reconciliation Summary heading)",
+    ".planning/agent-memory/verifier/memories.md (Agent memory, if exists)"
   ]
 )
 ```
