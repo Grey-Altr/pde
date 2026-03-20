@@ -33,7 +33,7 @@ function aggregateNdjson(ndjsonPath) {
   let eventCount = 0;
   let agentCount = 0;
   const changedFiles = new Set();
-  const PHASE_EVENT_TYPES = new Set(['phase_started', 'phase_complete', 'wave_started', 'wave_complete']);
+  const PHASE_EVENT_TYPES = new Set(['phase_started', 'phase_complete', 'wave_started', 'wave_complete', 'plan_started', 'plan_complete']);
   const phaseEvents = [];
 
   let content;
@@ -102,6 +102,8 @@ function renderPhaseProgress(phaseEvents) {
       case 'phase_complete': return `- [${ts}] Phase complete: ${ev.phase_name || ev.phase_number || '?'}`;
       case 'wave_started':   return `  - [${ts}] Wave ${ev.wave_number || '?'} started`;
       case 'wave_complete':  return `  - [${ts}] Wave ${ev.wave_number || '?'} complete`;
+      case 'plan_started':   return `    - [${ts}] Plan started: ${ev.plan_id || '?'}`;
+      case 'plan_complete':  return `    - [${ts}] Plan complete: ${ev.plan_id || '?'}`;
       default: return null;
     }
   }).filter(Boolean).join('\n');
