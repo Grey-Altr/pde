@@ -65,6 +65,15 @@ const APPROVED_SERVERS = {
     probeTool: 'mcp__atlassian__getVisibleJiraProjectsList', // Phase 41
     probeArgs: {},
   },
+  stitch: {
+    displayName: 'Google Stitch',
+    transport: 'stdio',
+    url: null,
+    installCmd: null, // Multi-step: env var + npx — see AUTH_INSTRUCTIONS
+    probeTimeoutMs: 15000,
+    probeTool: 'mcp__stitch__list_projects', // TOOL_MAP_VERIFY_REQUIRED — lightest read-only tool
+    probeArgs: {},
+  },
 };
 
 // ─── Canonical tool name map ──────────────────────────────────────────────────
@@ -127,6 +136,18 @@ const TOOL_MAP = {
   'pencil:batch-get':         'mcp__pencil__batch_get',
   'pencil:batch-design':      'mcp__pencil__batch_design',
   'pencil:get-editor-state':  'mcp__pencil__get_editor_state',
+
+  // Stitch — Phase 65 (MEDIUM confidence — community sources; MCP-05 live verification required before finalizing)
+  'stitch:probe':                   'mcp__stitch__list_projects',          // TOOL_MAP_VERIFY_REQUIRED
+  'stitch:generate-screen':         'mcp__stitch__generate_screen_from_text', // TOOL_MAP_VERIFY_REQUIRED
+  'stitch:get-screen':              'mcp__stitch__get_screen',             // TOOL_MAP_VERIFY_REQUIRED
+  'stitch:list-screens':            'mcp__stitch__list_screens',           // TOOL_MAP_VERIFY_REQUIRED
+  'stitch:fetch-screen-code':       'mcp__stitch__fetch_screen_code',      // TOOL_MAP_VERIFY_REQUIRED
+  'stitch:fetch-screen-image':      'mcp__stitch__fetch_screen_image',     // TOOL_MAP_VERIFY_REQUIRED
+  'stitch:extract-design-context':  'mcp__stitch__extract_design_context', // TOOL_MAP_VERIFY_REQUIRED
+  'stitch:create-project':          'mcp__stitch__create_project',         // TOOL_MAP_VERIFY_REQUIRED
+  'stitch:list-projects':           'mcp__stitch__list_projects',          // TOOL_MAP_VERIFY_REQUIRED
+  'stitch:get-project':             'mcp__stitch__get_project',            // TOOL_MAP_VERIFY_REQUIRED
 };
 
 // ─── Per-server auth instructions ─────────────────────────────────────────────
@@ -160,6 +181,15 @@ const AUTH_INSTRUCTIONS = {
     '1. Run: claude mcp add --transport sse atlassian https://mcp.atlassian.com/v1/sse',
     '2. In Claude Code: /mcp -> select "atlassian" -> "Authenticate" -> follow browser OAuth flow',
     '3. Run /pde:connect atlassian --confirm',
+  ],
+  stitch: [
+    '1. Go to stitch.withgoogle.com -> click your profile icon -> Settings -> API Key section',
+    '2. Generate and copy your Stitch API key',
+    '3. Add export STITCH_API_KEY="your-api-key-here" to your shell profile (~/.zshrc or ~/.bashrc)',
+    '4. Verify your API key is valid at stitch.withgoogle.com -> Settings -> API Keys',
+    '5. Restart your terminal or run: source ~/.zshrc',
+    '6. Register Stitch MCP server: claude mcp add stitch --transport stdio -- npx @_davideast/stitch-mcp proxy',
+    '7. Return here and run /pde:connect stitch --confirm',
   ],
 };
 
