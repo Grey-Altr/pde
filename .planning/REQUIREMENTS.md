@@ -47,9 +47,9 @@ Requirements for Pipeline Reliability & Validation milestone. Each maps to roadm
 
 ### Tech Debt Closure
 
-- [ ] **DEBT-01**: PLUG-01 — test `claude plugin install` from GitHub and document results (working path or blocked-by-marketplace note)
+- [x] **DEBT-01**: PLUG-01 — test `claude plugin install` from GitHub and document results (working path or blocked-by-marketplace note)
 - [ ] **DEBT-02**: TRACKING-PLAN.md — create file or remove broken reference from consent panel
-- [ ] **DEBT-03**: Historical commits (e067974, efe3af0) — document as known exception in MILESTONES.md (cannot retroactively fix)
+- [x] **DEBT-03**: Historical commits (e067974, efe3af0) — document as known exception in MILESTONES.md (cannot retroactively fix)
 - [ ] **DEBT-04**: lock-release trailing arguments — normalize call sites across all workflow files
 - [ ] **DEBT-05**: SUMMARY.md `one_liner` field — add field to template and backfill recent phase SUMMARY.md files
 - [ ] **DEBT-06**: TOOL_MAP pre-registered entries (github:update-pr, github:search-issues) — add `# TOOL_MAP_PREREGISTERED` annotation or add consumers
@@ -90,9 +90,9 @@ Requirements for Pipeline Reliability & Validation milestone. Each maps to roadm
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DEBT-01 | Phase 54 | Pending |
+| DEBT-01 | Phase 54 | Complete |
 | DEBT-02 | Phase 54 | Pending |
-| DEBT-03 | Phase 54 | Pending |
+| DEBT-03 | Phase 54 | Complete |
 | DEBT-04 | Phase 54 | Pending |
 | DEBT-05 | Phase 54 | Pending |
 | DEBT-06 | Phase 54 | Pending |
