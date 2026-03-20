@@ -29,12 +29,12 @@ Requirements for Pipeline Reliability & Validation milestone. Each maps to roadm
 
 ### Plan Edge Cases
 
-- [ ] **EDGE-01**: Edge case analyzer reads PLAN.md and task shards to surface uncovered error paths, empty states, and boundary conditions
-- [ ] **EDGE-02**: Edge cases are categorized by severity (HIGH / MEDIUM / LOW) with each referencing a specific plan element (file, function, state field)
-- [ ] **EDGE-03**: Output is capped at 5-8 high-relevance findings per plan — no generic noise
-- [ ] **EDGE-04**: Edge case findings are always CONCERNS in readiness gate, never FAIL
-- [ ] **EDGE-05**: For HIGH severity edge cases, analyzer generates BDD-format acceptance criteria candidates
-- [ ] **EDGE-06**: User approves which generated ACs to append to PLAN.md before they are added
+- [x] **EDGE-01**: Edge case analyzer reads PLAN.md and task shards to surface uncovered error paths, empty states, and boundary conditions
+- [x] **EDGE-02**: Edge cases are categorized by severity (HIGH / MEDIUM / LOW) with each referencing a specific plan element (file, function, state field)
+- [x] **EDGE-03**: Output is capped at 5-8 high-relevance findings per plan — no generic noise
+- [x] **EDGE-04**: Edge case findings are always CONCERNS in readiness gate, never FAIL
+- [x] **EDGE-05**: For HIGH severity edge cases, analyzer generates BDD-format acceptance criteria candidates
+- [x] **EDGE-06**: User approves which generated ACs to append to PLAN.md before they are added
 
 ### Integration Verification
 
@@ -111,12 +111,12 @@ Requirements for Pipeline Reliability & Validation milestone. Each maps to roadm
 | DEPS-04 | Phase 56 | Complete |
 | DEPS-05 | Phase 56 | Complete |
 | DEPS-06 | Phase 56 | Complete |
-| EDGE-01 | Phase 56 | Pending |
-| EDGE-02 | Phase 56 | Pending |
-| EDGE-03 | Phase 56 | Pending |
-| EDGE-04 | Phase 56 | Pending |
-| EDGE-05 | Phase 56 | Pending |
-| EDGE-06 | Phase 56 | Pending |
+| EDGE-01 | Phase 56 | Complete |
+| EDGE-02 | Phase 56 | Complete |
+| EDGE-03 | Phase 56 | Complete |
+| EDGE-04 | Phase 56 | Complete |
+| EDGE-05 | Phase 56 | Complete |
+| EDGE-06 | Phase 56 | Complete |
 | INTG-01 | Phase 56 | Pending |
 | INTG-02 | Phase 57 | Pending |
 | INTG-03 | Phase 56 | Pending |
