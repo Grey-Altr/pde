@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.1
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 64-01-PLAN.md
-last_updated: "2026-03-20T22:26:45.171Z"
+stopped_at: Completed 65-01-PLAN.md
+last_updated: "2026-03-20T23:45:00.000Z"
 progress:
   total_phases: 6
   completed_phases: 1
-  total_plans: 1
-  completed_plans: 1
+  total_plans: 3
+  completed_plans: 2
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-20)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 64 — coverage-schema-migration
+**Current focus:** Phase 65 — mcp-bridge-quota-infrastructure
 
 ## Current Position
 
-Phase: 64 (coverage-schema-migration) — COMPLETE
-Plan: 1 of 1 (complete)
+Phase: 65 (mcp-bridge-quota-infrastructure) — EXECUTING
+Plan: 2 of 2
 
 ## Performance Metrics
 
@@ -43,6 +43,14 @@ Plan: 1 of 1 (complete)
 ### Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table.
+
+**v0.9 Phase 65 decisions (post-implementation):**
+
+- Stitch registered as 6th approved server with stdio transport — HTTP transport avoided (Claude Code bugs #7290, #17069 confirm headers are silently dropped)
+- AUTH_INSTRUCTIONS stitch[4]=source, [5]=register, [6]=confirm — logical order preserved with 7-element array matching test index assertions
+- TOOL_MAP uses fetch_screen_code (official upstream name, MEDIUM-HIGH confidence) not get_screen_code (davideast proxy wrapper)
+- Step 3.10 stops execution (does not proceed to Step 4) when STITCH_API_KEY is missing — prevents indefinite MCP startup hang
+- MCP-05 live gate in connect.md Step 3.10 updates TOOL_MAP markers to TOOL_MAP_VERIFIED only when ALL 10 entries confirmed
 
 **v0.9 Phase 64 decisions (post-implementation):**
 
@@ -63,8 +71,8 @@ Decisions are logged in PROJECT.md Key Decisions table.
 
 ### Pending Todos
 
-- Verify Stitch MCP tool names against live official server at Phase 65 implementation time (MEDIUM confidence from research — `get_screen_code` vs `fetch_screen_code` discrepancy between community implementations must be resolved)
-- Confirm exact `claude mcp add` command parameters for HTTP transport with X-Goog-Api-Key header format at Phase 65
+- Run /pde:connect stitch --confirm with valid STITCH_API_KEY to execute MCP-05 live tool name gate and update TOOL_MAP markers to TOOL_MAP_VERIFIED
+- Execute Phase 65 Plan 02 (quota counter infrastructure: QUOTA-01/02/03/04)
 
 ### Blockers/Concerns
 
@@ -75,7 +83,7 @@ Decisions are logged in PROJECT.md Key Decisions table.
 ## Session Continuity
 
 Last session: 2026-03-20
-Stopped at: Completed 64-01-PLAN.md
+Stopped at: Completed 65-01-PLAN.md
 Resume file: None
 
-Next action: `/gsd:plan-phase 65`
+Next action: Execute Phase 65 Plan 02 (quota counter infrastructure)
