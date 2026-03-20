@@ -1,716 +1,568 @@
-# Architecture Research: BMAD + PAUL Integration into PDE v0.6
+# Architecture Research
 
-**Domain:** Agentic workflow methodology integration — Claude Code plugin
+**Domain:** PDE v0.7 — Pipeline Reliability & Validation (research validator, cross-phase dependency checker, edge case analyzer, integration point verifier + tech debt closure)
 **Researched:** 2026-03-19
-**Confidence:** HIGH (PDE architecture via direct codebase inspection; BMAD v6 via official docs + DeepWiki; PAUL via GitHub repo fetch + official docs)
+**Confidence:** HIGH (entire analysis grounded in direct codebase inspection of existing PDE architecture; no external frameworks involved — all decisions derive from reading actual workflow, agent, and library files)
 
 ---
 
-## Focus
-
-This document answers the v0.6 architecture question: how do BMAD and PAUL methodology patterns integrate into PDE's existing skills/workflows/agents/templates architecture? It maps every BMAD/PAUL concept to its PDE equivalent, identifies what is new versus modified, documents data flows, and proposes a dependency-ordered build sequence.
-
-The prior ARCHITECTURE.md (v0.5 MCP Integrations) remains the reference for MCP bridge infrastructure — that layer is now stable and unchanged. Everything here is about workflow methodology and context engineering.
+> **Scope:** This file answers one question — how do v0.7's four validation features integrate with PDE's existing agent/workflow architecture? What is new vs. what is enhanced? In what order should they be built?
+>
+> All existing systems (34+ slash commands, workflows, agents, pde-tools.cjs, .planning/ state, mcp-bridge.cjs, readiness.cjs, reconciliation.cjs, sharding.cjs) are stable dependencies, not targets for restructuring.
 
 ---
 
-## Source Framework Analysis
+## Existing Architecture Baseline (v0.6)
 
-### BMAD v6 Core Concepts
-
-BMAD (Breakthrough Method for Agile AI-Driven Development) is a compile-time persona framework with a runtime story-sharding execution model. Key components:
-
-| BMAD Concept | BMAD Implementation | What It Does |
-|---|---|---|
-| Agent definitions | Markdown files in `_bmad/agents/` with YAML frontmatter | Persona, constraints, skills, startup instructions per specialist role |
-| Sidecar memory | `_bmad/_memory/{agent-name}-sidecar/memories.md` | Persistent per-agent memory across sessions; hash-preserved on update |
-| Story files | Atomic `story-NNN.md` files with YAML frontmatter + acceptance criteria | Context-bounded task units; each story is self-contained for a dev agent |
-| File-hash manifest | `_config/files-manifest.csv` with SHA256 per managed file | Detects user modifications; safe framework updates; `user-modified` vs `stock` |
-| Workflow orchestration | `workflow-*.md` slash-command files calling agents sequentially | Analyst → PM → Architect → PO → SM → Dev → QA, human-gated hand-offs |
-| Compilation pipeline | `npx bmad-method build` — YAML defs → Zod validation → deep merge → `.md` output | Produces consumable agent files per IDE from source YAML/Markdown |
-| Story sharding | PO executes shard task; decomposes epic → `stories/` directory | Each story: `<objective>`, `<context>`, `<acceptance_criteria>`, `<tasks>` |
-
-BMAD's key distinction from PDE: BMAD trusts the human to sequence agents. PDE automates sequencing. BMAD produces static persona files at compile time; PDE spawns subagents dynamically at runtime.
-
-### PAUL Framework Core Concepts
-
-PAUL (Plan-Apply-Unify Loop) is a session-discipline framework with just-in-time rule injection via CARL:
-
-| PAUL Concept | PAUL Implementation | What It Does |
-|---|---|---|
-| Plan-Apply-Unify cycle | Three mandatory loop phases enforced by CARL rules | Defines → executes → reconciles work; prevents orphaned plans |
-| State directory | `.paul/STATE.md` with loop position markers | Tracks PLAN/APPLY/UNIFY position + session continuity + decisions |
-| Reconciliation (Unify) | `SUMMARY.md` comparing PLAN.md tasks vs actual git changes | Surfaces plan drift; records decisions; closes loops |
-| AC-first planning | Tasks defined by BDD `given/when/then` acceptance criteria | Execution measured against explicit criteria, not vague descriptions |
-| CARL rule injection | 14 domain rules loaded contextually by trigger pattern | Loop enforcement, boundary protection, state consistency, skill blocking |
-| Phase structure | `.paul/phases/NN-name/NN-NN-PLAN.md` + `NN-NN-SUMMARY.md` | Matches PDE's `.planning/phases/` structure almost exactly |
-
-PAUL's key distinction from PDE: PAUL is session-scoped (no cross-session memory). PDE has full cross-session state. PAUL requires human loop closure; PDE automates UNIFY via pde-verifier + SUMMARY.md generation.
-
----
-
-## Existing PDE Architecture (Baseline for v0.6)
+The pipeline v0.7 extends:
 
 ```
-┌───────────────────────────────────────────────────────────────────────┐
-│                        User (Claude Code session)                      │
-├───────────────────────────────────────────────────────────────────────┤
-│  /pde: skills (commands/*.md)   →   workflows/*.md                     │
-│  agents/*.md (via Task/Skill)   →   bin/pde-tools.cjs subcommands     │
-├───────────────────────────────────────────────────────────────────────┤
-│  .planning/ (file-based state)                                         │
-│   STATE.md  ROADMAP.md  REQUIREMENTS.md  config.json                  │
-│   design/   phases/     milestones/      mcp-connections.json         │
-├───────────────────────────────────────────────────────────────────────┤
-│  references/  (mcp-integration.md, skill-style-guide.md, ...)         │
-│  templates/   (design-manifest.json, config.json, ...)                │
-│  bin/lib/     (config.cjs, design.cjs, state.cjs, roadmap.cjs, ...)   │
-│  bin/lib/mcp-bridge.cjs  bin/lib/mcp-config.cjs  (from v0.5)         │
-└───────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────┐
+│                     Skill Layer  (/pde: slash commands)                   │
+│   new-milestone  plan-phase  check-readiness  execute-phase  verify-work  │
+└─────────────────────────────┬────────────────────────────────────────────┘
+                               │ invokes
+┌─────────────────────────────▼────────────────────────────────────────────┐
+│                         Workflow Layer (orchestrators)                     │
+│   new-milestone.md  plan-phase.md  check-readiness.md  execute-phase.md  │
+│   verify-work.md  reconcile-phase.md  diagnose-issues.md                  │
+└────┬───────────────────────────────┬──────────────────────────────────────┘
+     │ spawns subagents               │ calls CLI
+┌────▼──────────────┐    ┌────────────▼────────────────────────────────────┐
+│  Agent Layer       │    │  pde-tools.cjs  (bin/)                           │
+│                    │    │  Subcommands: init, phase, roadmap, readiness,   │
+│  pde-researcher    │    │  reconciliation, tracking, sharding, manifest,   │
+│  pde-planner       │    │  memory, state, config-get, config-set           │
+│  pde-plan-checker  │    └─────────────────────┬───────────────────────────┘
+│  pde-executor      │                           │ reads/writes
+│  pde-reconciler    │    ┌─────────────────────▼───────────────────────────┐
+│  pde-verifier      │    │              State Layer  (.planning/)            │
+│  pde-analyst       │    │  PROJECT.md  STATE.md  ROADMAP.md  REQUIREMENTS  │
+│  pde-debugger      │    │  phases/NN-name/  config.json  agent-memory/     │
+└────────────────────┘    │  project-context.md  mcp-connections.json        │
+                           └──────────────────────────────────────────────────┘
 ```
 
-Key constraints v0.6 must respect:
-- Zero new npm dependencies at plugin root.
-- `.planning/` is the single source of truth. No new state directories parallel to it.
-- All skill commands keep their existing anatomy (7 sections, standard flags).
-- agent/*.md format is stable and enforced by pde-quality-auditor.
-- Protected-files.json is immutable.
-- Architecture restructuring is explicitly out of scope (PROJECT.md constraint).
+**Current pipeline sequence (after v0.6):**
+
+```
+/pde:new-milestone
+  └── analyst interview → researcher agents (parallel) → roadmapper
+  └── produces: PROJECT.md + ROADMAP.md + REQUIREMENTS.md
+
+/pde:plan-phase N
+  └── phase researcher (optional, if --research flag)
+  └── pde-planner → PLAN.md files + task shards
+  └── pde-plan-checker revision loop (max 3 iterations)
+
+/pde:check-readiness N
+  └── pde-tools.cjs readiness check: structural A1-A11, consistency B1-B3
+  └── semantic checks C1-C3 (orchestrator, LLM pass)
+  └── writes READINESS.md (PASS / CONCERNS / FAIL)
+
+/pde:execute-phase N
+  └── readiness gate (blocks on FAIL)
+  └── wave-based executor spawning (sharded or standard)
+  └── pde-reconciler → RECONCILIATION.md
+  └── pde-verifier → VERIFICATION.md
+  └── phase complete → update ROADMAP.md + STATE.md
+```
+
+**Key observation for v0.7 placement:**
+
+The pipeline has two quality gates: `check-readiness` (before execution) and `reconcile + verify` (after execution). V0.7 adds validation at two earlier positions — during research review (before planning) and during plan-phase verification (before the readiness gate) — plus closes 7 known tech debt items that are independent of those validation features.
 
 ---
 
-## Concept Mapping: BMAD/PAUL → PDE
+## Standard Architecture for v0.7
 
-This is the central architectural table. Every BMAD/PAUL pattern maps to an existing PDE concept or a new addition.
-
-### Agent Role System
-
-| BMAD/PAUL Role | Description | PDE Equivalent | Mapping Type |
-|---|---|---|---|
-| BMAD Analyst | Research, project briefs, competitive context | Handled by `/pde:recommend`, `/pde:competitive`, `/pde:ideate` skills | Behavior exists in skills, not a dedicated agent |
-| BMAD Product Manager | PRD creation, epic planning | `/pde:brief` + REQUIREMENTS.md workflow | Behavior in skill |
-| BMAD Architect | System design, implementation readiness review | No dedicated PDE agent yet | **NEW: `pde-architect` agent** |
-| BMAD Scrum Master | Story creation, sprint planning, retrospectives | `pde-planner` (plan decomposition) + `pde-verifier` | Planner handles decomposition; verifier handles retrospective |
-| BMAD Developer | Feature implementation | `pde-executor` | Exists |
-| BMAD QA Engineer | Test automation, quality gates | `pde-verifier` + Nyquist validation | Exists (dual-mode: Nyquist on code, goal-backward on spec) |
-| BMAD UX Designer | User experience design | Entire 13-stage design pipeline + all design agents | Exceeds BMAD's UX scope |
-| PAUL Planner | AC-first plan authoring | `pde-planner` | Exists — AC format enhancement needed |
-| PAUL Unifier | Plan-vs-actual reconciliation | Missing from PDE | **NEW: reconciliation step in execute-plan workflow** |
-
-**Key finding:** PDE has more design coverage than BMAD but is missing two things BMAD has: (1) a dedicated architect agent for structured system design review before execution phases, and (2) AC-first formatting discipline in planner output. PAUL's Unify step has no PDE equivalent — PDE's `pde-verifier` does goal-backward analysis, not plan-delta analysis.
-
-### Template Structures
-
-| BMAD/PAUL Template | What It Contains | PDE Equivalent | Mapping Type |
-|---|---|---|---|
-| BMAD story file | YAML frontmatter + `<objective>` + `<context>` + `<acceptance_criteria>` (BDD) + `<tasks>` + `<boundaries>` | PDE PLAN.md (similar structure; lacks explicit AC section) | **MODIFY: add AC frontmatter to PLAN.md template** |
-| BMAD sidecar `memories.md` | Persistent agent memory across sessions | No equivalent — PDE agents are stateless | **NEW: `.planning/agent-memory/` directory** |
-| BMAD sidecar `instructions.md` | Agent-specific operational overrides | Embedded in each agent/*.md file | Not needed — PDE agent files serve this purpose already |
-| BMAD `files-manifest.csv` | SHA256 per file, source classification | No equivalent | **NEW: `bin/lib/manifest.cjs` + `.planning/config/files-manifest.csv`** |
-| PAUL `STATE.md` (loop position) | PLAN/APPLY/UNIFY markers | PDE STATE.md has milestone/phase tracking but not loop-position markers | **MODIFY: add `current_loop` field to STATE.md** |
-| PAUL PLAN.md (AC-first) | BDD acceptance criteria as primary contract | PDE PLAN.md has objective + tasks; no AC section | **MODIFY: PLAN.md template adds `<acceptance_criteria>` section** |
-| PAUL RECONCILIATION.md | Plan-vs-actual delta analysis | No equivalent | **NEW: generated by reconciliation step after pde-executor** |
-| PAUL CARL rules | 14 domain-specific rules | PDE references/*.md (loaded via @ includes) | Pattern matches — CARL rules are just reference files per context |
-| BMAD project context | `project-context.md` agent-optimized constitution | PDE has PROJECT.md + STATE.md but no agent-optimized synthesis | **NEW: `.planning/project-context.md` auto-generated synthesis** |
-
-### Workflow Orchestration
-
-| BMAD/PAUL Pattern | BMAD/PAUL Behavior | PDE Current Behavior | Gap |
-|---|---|---|---|
-| Human-gated hand-offs | Human approves each agent hand-off | PDE mode=interactive approximates this; mode=yolo skips gates | No gap — already configurable |
-| HALT checkpoints for high-risk | Tasks tagged `risk: high` pause for explicit approval | No risk-based task tagging in planner output | **NEW: risk metadata in PLAN.md tasks** |
-| Story sharding | PO decomposes epic into atomic story files in `stories/` | `pde-planner` emits a single PLAN.md per plan | **NEW: story-file sharding in planner output (optional, threshold-gated)** |
-| PAUL unify closure | Mandatory UNIFY after every APPLY | `pde-verifier` runs post-execution but compares to spec, not to plan | **NEW: reconciliation step between executor completion and verifier** |
-| AC-first planning | Every task has BDD ACs as primary contract | Tasks describe what-to-do, not what-done-looks-like | **MODIFY: planner prompted to emit ACs; PLAN.md template updated** |
-| Party mode | Multiple agent personas in parallel (Architect + PM + QA) | `pde:discuss-phase` uses single questioning agent | **DEFERRED** (Large scope; not in v0.6 MVP) |
-| CARL JIT rule unloading | Rules unloaded when no longer relevant | PDE injects skills once per session, never removes | **DEFERRED** (Requires session-aware context lifecycle; large scope) |
-
-### State Management
-
-| BMAD/PAUL State | Location | PDE Equivalent | Mapping Type |
-|---|---|---|---|
-| BMAD sidecar `memories.md` | `_bmad/_memory/{agent}/memories.md` | None — agents are stateless | **NEW: `.planning/agent-memory/{agent-type}/memories.md`** |
-| BMAD `files-manifest.csv` | `_config/files-manifest.csv` with SHA256 + source flag | None | **NEW: `.planning/config/files-manifest.csv`** |
-| PAUL `STATE.md` loop markers | `.paul/STATE.md` PLAN/APPLY/UNIFY position | PDE `.planning/STATE.md` (milestone/phase tracking) | **MODIFY: add `current_loop` field** |
-| BMAD `project-context.md` | Max 4KB agent-optimized constitution | PROJECT.md (not agent-optimized; no length constraint) | **NEW: `.planning/project-context.md`** |
-
----
-
-## System Overview: v0.6 Additions
+### System Overview — v0.7 Additions in Context
 
 ```
-┌───────────────────────────────────────────────────────────────────────┐
-│                        User (Claude Code session)                      │
-├───────────────────────────────────────────────────────────────────────┤
-│  /pde: skills (existing)       │  NEW: /pde:context, /pde:reconcile   │
-│  workflows/*.md (existing)     │  NEW: workflows/reconcile.md         │
-├───────────────────────────────────────────────────────────────────────┤
-│  NEW: Methodology Layer                                                │
-│  ┌──────────────────────────────────────────────────────────────┐     │
-│  │  agents/pde-architect.md          (NEW — architecture review) │     │
-│  │  workflows/execute-plan.md        (MODIFIED — +reconciliation) │    │
-│  │  workflows/plan-phase.md          (MODIFIED — +AC format)     │     │
-│  │  templates/PLAN.md                (MODIFIED — +AC section)    │     │
-│  │  bin/lib/manifest.cjs             (NEW — hash manifest CRUD)  │     │
-│  │  bin/pde-tools.cjs manifest cmds  (MODIFIED — +manifest cmds) │     │
-│  └──────────────────────────────────────────────────────────────┘     │
-├───────────────────────────────────────────────────────────────────────┤
-│  .planning/ (extended, not restructured)                               │
-│   STATE.md (+current_loop field)                                       │
-│   project-context.md              (NEW — agent-optimized synthesis)    │
-│   config/files-manifest.csv       (NEW — hash manifest)               │
-│   agent-memory/                   (NEW — per-agent sidecar memory)    │
-│     pde-executor/memories.md                                           │
-│     pde-planner/memories.md                                            │
-│     pde-debugger/memories.md                                           │
-│     pde-verifier/memories.md                                           │
-│   phases/XX-name/                 (extended — story files optional)   │
-│     XX-NN-PLAN.md                 (+acceptance_criteria section)       │
-│     XX-NN-RECONCILIATION.md       (NEW — generated post-execution)     │
-│     tasks/                        (NEW — optional story-file sharding) │
-│       task-001-{slug}.md                                               │
-│       task-002-{slug}.md                                               │
-└───────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────┐
+│  /pde:new-milestone                                                        │
+│  └── researcher agents run                                                 │
+│  └── research files written to .planning/phases/NN-name/research/         │
+└──────────────────────────────────────────────┬───────────────────────────┘
+                                                │
+                                   [POSITION 1 — NEW]
+                                                │
+┌──────────────────────────────────────────────▼───────────────────────────┐
+│  Research Validator  (new agent: pde-research-validator)                   │
+│  Triggered by plan-phase.md when research files exist                      │
+│  Reads:  .planning/phases/NN/research/*.md  +  codebase (targeted reads)  │
+│  Checks: claim-by-claim codebase verification                              │
+│  Writes: NN-RESEARCH-VALIDATION.md in phase directory                     │
+│  Returns: { contradicted_count, unverified_count }                         │
+└──────────────────────────────────────────────┬───────────────────────────┘
+                                                │
+                                    plan-phase.md (existing)
+                                    spawns pde-planner → PLAN.md files
+                                                │
+                                   [POSITION 2 — ENHANCED]
+                                                │
+┌──────────────────────────────────────────────▼───────────────────────────┐
+│  Plan Validation Suite  (enhanced agent: pde-plan-checker)                 │
+│  Already exists — runs in plan-phase.md revision loop                      │
+│                                                                            │
+│  Existing checks (unchanged):   structural plan validity                  │
+│  New check A — Dep Checker:     inter-plan dependency graph analysis       │
+│  New check B — Edge Case:       missing error paths, empty states          │
+│  New check C — Integration:     orphan exports, interface name mismatches  │
+│                                                                            │
+│  All new checks return structured issues in existing return schema.        │
+│  Orchestrator feeds issues back to pde-planner (existing revision loop).   │
+└──────────────────────────────────────────────┬───────────────────────────┘
+                                                │
+                                   [POSITION 3 — ENHANCED]
+                                                │
+┌──────────────────────────────────────────────▼───────────────────────────┐
+│  check-readiness.md  (enhanced workflow)                                   │
+│  /pde:check-readiness N                                                    │
+│                                                                            │
+│  Existing: A1-A11 structural + B1-B3 consistency + C1-C3 semantic         │
+│  New: B4/B5 checks in readiness.cjs (declaration-time integration)        │
+│  New: run_integration_checks step (codebase-time Mode B verification)     │
+│                                                                            │
+│  READINESS.md gains new sections; PASS/CONCERNS/FAIL semantics unchanged  │
+└──────────────────────────────────────────────┬───────────────────────────┘
+                                                │
+                               execute-phase.md (existing, unchanged for v0.7)
 ```
 
 ---
 
-## Component Responsibilities
-
-### New Components (v0.6 — build these)
-
-| Component | Responsibility | Location | Blocked On |
-|---|---|---|---|
-| `agents/pde-architect.md` | Architecture review agent: evaluates plans for structural risks, ADR recommendations, component boundary analysis | `agents/pde-architect.md` | Nothing (new file) |
-| `bin/lib/manifest.cjs` | Hash manifest CRUD: SHA256 per tracked file, source classification (stock/user-modified), update-safe preservation logic | `bin/lib/manifest.cjs` | Nothing (new CJS module) |
-| `.planning/project-context.md` | Agent-optimized synthesis of PROJECT.md + REQUIREMENTS.md + key decisions; max 4KB; auto-generated; loaded by every subagent | `.planning/project-context.md` | `manifest.cjs` (for hash tracking) |
-| `.planning/agent-memory/` | Per-agent sidecar memory directories; `memories.md` per agent type; project-scoped; preserved across sessions | `.planning/agent-memory/{agent-type}/` | Nothing (new directory structure) |
-| `.planning/config/files-manifest.csv` | SHA256 per PDE file; source flag (stock/user-modified); enables safe update merging without three-way merge | `.planning/config/files-manifest.csv` | `manifest.cjs` |
-| `templates/PLAN.md` | PLAN.md template with added `<acceptance_criteria>` section | `templates/PLAN.md` | Nothing (template modification) |
-| `templates/RECONCILIATION.md` | RECONCILIATION.md template comparing planned tasks to actual git changes | `templates/RECONCILIATION.md` | Nothing (new template) |
-| `references/workflow-methodology.md` | BMAD/PAUL patterns as PDE reference: AC format guide, story sharding rules, reconciliation step spec, risk tagging criteria | `references/workflow-methodology.md` | Nothing (new reference) |
-
-### Modified Components (v0.6 — surgical changes)
-
-| Component | Change | Risk | Lines Affected |
-|---|---|---|---|
-| `workflows/execute-plan.md` | Add reconciliation step between executor completion and verifier invocation; reads PLAN.md task list, diffs against git commits, writes RECONCILIATION.md | MEDIUM — changes execute-plan flow; must not break existing path | +50-70 lines |
-| `workflows/plan-phase.md` | Prompt pde-planner to emit `<acceptance_criteria>` section; add story-file sharding trigger (when plan has 5+ tasks); add risk tagging for high-risk tasks | LOW — additive instructions to planner | +30-40 lines |
-| `bin/pde-tools.cjs` | Add `manifest` subcommand group: `manifest init`, `manifest check`, `manifest update`, `manifest verify-file` | LOW — additive subcommand group | +30-40 lines |
-| `agents/pde-executor.md` | Add sidecar memory loading: read `.planning/agent-memory/pde-executor/memories.md` at start; append findings at completion | LOW — additive context loading | +15-20 lines |
-| `agents/pde-planner.md` | Add sidecar memory loading: read/write `.planning/agent-memory/pde-planner/memories.md`; emit AC-first task format | LOW — additive; no change to core planning logic | +20-25 lines |
-| `agents/pde-debugger.md` | Add sidecar memory loading: read `.planning/agent-memory/pde-debugger/memories.md` at start; append bug patterns at completion | LOW — additive context | +15-20 lines |
-| `agents/pde-verifier.md` | Load RECONCILIATION.md as additional context when available; compare spec to both plan and actual | LOW — additive input, not changed verification logic | +10-15 lines |
-| `workflows/new-project.md` | Add step to generate `.planning/project-context.md` and initialize `files-manifest.csv` | LOW — new step at end of setup | +20 lines |
-| `workflows/new-milestone.md` | Add step to regenerate `project-context.md` from updated REQUIREMENTS.md + STATE.md | LOW — additive | +10 lines |
-| `workflows/update.md` | Use `manifest.cjs` hash comparison instead of three-way merge for unchanged files; preserve user-modified files | MEDIUM — changes update merge strategy; must be regression-tested | +40-60 lines (replaces ~40 existing) |
-| `STATE.md` schema | Add `current_loop` field: `null | "plan" | "apply" | "unify"` | LOW — additive field | 1 field |
-| `references/skill-style-guide.md` | Add section on AC-first task format standard | LOW — documentation addition | +20 lines |
-
-### Unchanged Components
-
-Every existing design pipeline skill (recommend, competitive, opportunity, ideate, brief, system, flows, wireframe, critique, iterate, mockup, hig, handoff), the build orchestrator, all MCP sync workflows, mcp-bridge.cjs, mcp-config.cjs, the design-manifest.json schema, protected-files.json, and the plugin hook system require **zero modifications** for v0.6. Methodology is additive infrastructure.
-
----
-
-## Recommended Project Structure (Delta from v0.5)
-
-Only showing what changes. Existing structure is unchanged.
+## Recommended Project Structure Changes
 
 ```
-Platform Development Engine/
-│
-├── agents/
-│   ├── pde-architect.md              # NEW — architecture review agent
-│   ├── pde-executor.md               # MODIFIED — +sidecar memory loading
-│   ├── pde-planner.md                # MODIFIED — +sidecar memory, +AC format
-│   ├── pde-debugger.md               # MODIFIED — +sidecar memory loading
-│   └── pde-verifier.md               # MODIFIED — +RECONCILIATION.md input
-│
-├── bin/
-│   ├── pde-tools.cjs                 # MODIFIED — +manifest subcommands
-│   └── lib/
-│       ├── manifest.cjs              # NEW — hash manifest CRUD
-│       └── [existing lib unchanged]
-│
-├── templates/
-│   ├── PLAN.md                       # MODIFIED — +acceptance_criteria section
-│   ├── RECONCILIATION.md             # NEW — plan-vs-actual reconciliation
-│   └── [existing templates unchanged]
-│
-├── references/
-│   ├── workflow-methodology.md       # NEW — BMAD/PAUL patterns as PDE reference
-│   ├── skill-style-guide.md          # MODIFIED — +AC format standard
-│   └── [existing references unchanged]
-│
-├── workflows/
-│   ├── execute-plan.md               # MODIFIED — +reconciliation step
-│   ├── plan-phase.md                 # MODIFIED — +AC format, story sharding trigger
-│   ├── new-project.md                # MODIFIED — +project-context.md init
-│   ├── new-milestone.md              # MODIFIED — +project-context.md regen
-│   ├── update.md                     # MODIFIED — hash-based merge strategy
-│   └── [existing workflows unchanged]
-│
-└── .planning/
-    ├── STATE.md                       # MODIFIED — +current_loop field
-    ├── project-context.md             # NEW — agent-optimized 4KB synthesis
-    ├── config/
-    │   └── files-manifest.csv         # NEW — SHA256 hash manifest
-    └── agent-memory/                  # NEW — per-agent sidecar directories
-        ├── pde-executor/
-        │   └── memories.md
-        ├── pde-planner/
-        │   └── memories.md
-        ├── pde-debugger/
-        │   └── memories.md
-        └── pde-verifier/
-            └── memories.md
+agents/
+├── pde-plan-checker.md        # ENHANCED: + dep graph, edge case, integration checks
+├── pde-research-validator.md  # NEW: claim extraction + codebase verification
+└── [all other agents: unchanged]
+
+bin/lib/
+├── readiness.cjs              # ENHANCED: + B4 (@-ref file existence), B5 (orphan export)
+└── [all other lib modules: unchanged]
+
+workflows/
+├── plan-phase.md              # ENHANCED: + research validation step before planner spawn
+├── check-readiness.md         # ENHANCED: + run_integration_checks step (Mode B)
+└── [all other workflows: unchanged]
+
+.planning/phases/NN-name/
+├── NN-PLAN.md                 # existing
+├── NN-READINESS.md            # existing structure; new sections appended
+└── NN-RESEARCH-VALIDATION.md  # NEW artifact (generated when research exists)
+
+bin/pde-tools.cjs              # ENHANCED: minor — help text + v0.6 commands
+[7 tech debt files]            # FIXED: see tech debt section below
 ```
 
 ### Structure Rationale
 
-- **`.planning/agent-memory/` inside `.planning/`:** All PDE state lives under `.planning/`. Creating a parallel `_memory/` at project root (as BMAD does) would split state tracking across two locations. Agent memory is project state; it belongs in `.planning/`.
-- **`.planning/config/files-manifest.csv`:** Config directory already exists for `config.json`. The hash manifest is a configuration artifact. Keeping it in `config/` avoids cluttering `.planning/` root with a new file type.
-- **`templates/RECONCILIATION.md`:** Follows the existing template pattern — every generated artifact has a template. RECONCILIATION.md is generated per plan execution, so it needs a template like PLAN.md and SUMMARY.md.
-- **`references/workflow-methodology.md`:** Following PDE's convention that all patterns loaded via `@` includes are reference files. BMAD/PAUL patterns become a reference, not a new directory.
-- **Agent sidecar scope is project-scoped (not global):** BMAD uses project-level sidecars (`_bmad/_memory/`). PDE follows this — each project's agents learn independently. Global agent memory across all projects would mix unrelated project context.
+**No new workflow files.** Research validation and plan-time dep/edge/integration checks both have natural integration points in existing workflows (`plan-phase.md` and `check-readiness.md`). Creating new top-level workflows would require new `/pde:` commands and user education, but the validation behavior is only useful at those specific pipeline positions — it does not stand alone.
+
+**One new agent, one enhanced agent.** `pde-research-validator` is genuinely new behavior (claim extraction from markdown research files + codebase verification via targeted file reads). This requires a different context load than `pde-plan-checker` (which reads PLAN.md files). However, the three plan-time validation checks (dep graph, edge case, integration) all read the same PLAN.md files that `pde-plan-checker` already loads — they are new analysis passes on the same inputs, not new context requirements. Single spawn, same file set, existing revision loop.
+
+**No new pde-tools.cjs lib modules.** Dependency graph analysis and integration point declaration checks are rule-based checks on PLAN.md content. They belong in `readiness.cjs` alongside existing A/B category checks. Adding a separate `.cjs` module per check would fragment the check surface and require the READINESS.md output contract to be assembled from multiple sources.
 
 ---
 
 ## Architectural Patterns
 
-### Pattern 1: AC-First Task Format in PLAN.md
+### Pattern 1: Agent Enhancement vs. New Agent Decision Rule
 
-**What:** Every task in PLAN.md includes an `<acceptance_criteria>` block using BDD format. Execution is measured against criteria, not against vague descriptive tasks.
+New agent when: new _context inputs_ required that the existing agent does not load.
+Enhancement when: same inputs already loaded, new analysis pass only.
 
-**When to use:** All pde-planner output. Enforced by the updated PLAN.md template and skill-style-guide.md AC format section.
+| Feature | Decision | Rationale |
+|---------|----------|-----------|
+| Research validator | New agent (`pde-research-validator`) | Reads research markdown files + targeted codebase files. Different context from `pde-plan-checker` which reads PLAN.md files only. |
+| Cross-phase dep checker | Enhance `pde-plan-checker` | Already loads all PLAN.md files for the phase. Dep checking is a new analysis pass on the same inputs. |
+| Edge case analyzer | Enhance `pde-plan-checker` | Same inputs (PLAN.md task list + AC section). New analysis pass only. |
+| Integration point verifier (declaration-time) | Enhance `pde-plan-checker` | Declaration-time: works from plan declarations already in scope. |
+| Integration point verifier (codebase-time) | Enhance `check-readiness.md` + `readiness.cjs` | Codebase-time: requires live file reads. Belongs in the readiness gate step that already owns codebase access. |
 
-**Trade-offs:** Adds ~5-10 lines per plan (minor overhead). Creates a binding contract between planner, executor, and verifier — verifier can check ACs directly rather than inferring success from task descriptions.
+### Pattern 2: Research Claim Extraction + Verification (Two-Pass)
 
-**PLAN.md task structure (new format):**
-```xml
-<task id="01">
-  <name>Implement OAuth token refresh</name>
-  <files>src/auth/refresh.ts, src/auth/refresh.test.ts</files>
-  <action>Create token refresh function with 401-retry logic</action>
-  <acceptance_criteria>
-    Given: an expired access token in request headers
-    When: the auth middleware intercepts the 401 response
-    Then: a new access token is requested, the original request retried,
-          and the refreshed token written to the auth store
-  </acceptance_criteria>
-  <done>refresh.test.ts passes; no 401 errors in auth.log during integration test</done>
-</task>
-```
+**Pass 1 — Claim extraction (LLM pass, in pde-research-validator):**
 
-### Pattern 2: Story-File Sharding for Large Plans
+Read all research files. Extract every claim that makes a testable assertion about the codebase:
+- Technology versions ("PDE uses Node.js 20.x")
+- File existence ("mcp-bridge.cjs is the central adapter at bin/lib/")
+- Module presence ("TOOL_MAP has 36 entries")
+- Command availability ("pde-tools.cjs supports `manifest init`")
+- Architecture facts ("all MCP integrations share one bridge")
 
-**What:** When pde-planner identifies a plan with 5 or more tasks, it optionally emits a `tasks/` directory alongside PLAN.md. Each `task-NNN-{slug}.md` is self-contained: objective, relevant file paths, schema snippets, dependency pointers, and its own AC block.
+Write structured claim list as intermediate section in RESEARCH-VALIDATION.md.
 
-**When to use:** Plans with 5+ tasks. Skip sharding for small plans — overhead outweighs benefit.
+**Pass 2 — Codebase verification (tool-call pass):**
 
-**Trade-offs:** Context savings for executor (loads only current task + project-context.md rather than full PLAN.md). Adds complexity to planner output. File I/O overhead for small phases. Correct threshold is 5 tasks based on BMAD benchmarks (90% token savings claimed).
+For each claim: map to a verification strategy:
 
-**Story file structure:**
-```
-.planning/phases/45-architect-integration/
-├── 01-01-PLAN.md               # master plan (always present)
-├── 01-01-SUMMARY.md            # generated post-execution
-├── 01-01-RECONCILIATION.md     # generated post-execution (new)
-└── tasks/                      # only for plans with 5+ tasks
-    ├── task-001-define-agent-interface.md
-    ├── task-002-add-architect-spawn-logic.md
-    └── task-003-update-plan-template.md
-```
+| Claim type | Verification strategy |
+|------------|----------------------|
+| File path claim | `ls` / Glob check |
+| Version claim | Read package.json or VERSION file |
+| Module existence | Grep for export in claimed file |
+| Command availability | Grep pde-tools.cjs for subcommand registration |
+| Count claim | Count lines/entries in claimed file |
 
-**pde-executor behavior with sharding:** Load `task-NNN.md` for current task instead of full PLAN.md. Load `.planning/project-context.md` as base context. On task completion: update `task-NNN.md` frontmatter with `status: complete`.
+Record per claim: text, strategy, result (verified / unverified / contradicted), evidence quote.
 
-### Pattern 3: Reconciliation Step (Plan-vs-Actual Analysis)
+**Output contract:** RESEARCH-VALIDATION.md with:
+- Per-claim verdict table (claim | strategy | result | evidence)
+- `contradicted_count` in frontmatter
+- `unverified_count` in frontmatter
+- Contradicted claims flagged as FAIL-class (surfaced to user before planning proceeds)
+- Unverified claims flagged as CONCERNS (surfaced, non-blocking)
 
-**What:** After pde-executor finishes all tasks but before pde-verifier runs, a lightweight reconciliation pass compares PLAN.md task list against actual git commits in the phase branch. Generates RECONCILIATION.md.
+**Integration hook:** `plan-phase.md` step between research and planner spawn. Orchestrator reads `contradicted_count` from RESEARCH-VALIDATION.md frontmatter. If `contradicted_count > 0`: present findings, offer "Update research first" or "Proceed with caveats." If 0: proceed silently.
 
-**When to use:** Every execute-plan invocation where git commits exist. Auto-skip for plans with 0-2 tasks (overhead not justified).
+### Pattern 3: Dependency Graph Check (Cross-Phase Dep Checker)
 
-**Trade-offs:** Surfaces plan drift that pde-verifier's goal-backward analysis misses. Adds one git-diff analysis step to execute-plan flow (~10-30 seconds). Worth it for phases with significant divergence risk (architectural changes, external dependency updates).
+**Algorithm (runs inside enhanced pde-plan-checker):**
 
-**Data flow:**
-```
-pde-executor completes all tasks
-    ↓
-Read PLAN.md task list (task IDs + names)
-    ↓
-git log --oneline (phase branch commits since plan started)
-    ↓
-For each planned task: was there a matching commit?
-For each unplanned commit: what changed? (deviation)
-    ↓
-Write RECONCILIATION.md:
-  - Completed as planned: [task IDs]
-  - Completed with deviation: [task ID] — [what changed, why]
-  - Skipped: [task ID] — [reason]
-  - Unplanned changes: [file list] — [rationale]
-    ↓
-pde-verifier loads RECONCILIATION.md as additional context
-```
+1. Read all PLAN.md files for the current phase (already loaded).
+2. Extract: each plan's declared file outputs (from `<files>` tags in tasks), each plan's declared file inputs (from `@`-references in `<context>` blocks and `<files>` tags).
+3. Optionally read PLAN.md files for preceding phases (from ROADMAP.md plan index) to map cross-phase outputs.
+4. Build directed dependency graph: plan A produces file F → plan B consumes file F = B depends on A.
+5. Check: is every consumed file either (a) produced by an earlier plan in the phase, (b) produced by a plan in a preceding phase, or (c) an existing file on disk?
+6. Flag: consumed files with no source = missing dependency.
 
-### Pattern 4: Per-Agent Sidecar Memory
+**Severity:**
+- Consumed file does not exist on disk AND no plan produces it → FAIL (plan cannot execute)
+- Consumed file does not exist on disk BUT a plan produces it in the correct wave → PASS (expected — file will be created)
+- Consumed file exists on disk but no plan declares producing it → informational (likely stable dependency, not a gap)
 
-**What:** Each key agent type (executor, planner, debugger, verifier) reads a `memories.md` file from `.planning/agent-memory/{agent-type}/` at spawn time and appends key findings at completion. Memory is project-scoped, not global.
+**Output:** Structured findings returned by pde-plan-checker in new `dep_issues` field. Orchestrator folds into planner revision prompt.
 
-**When to use:** Four core agents. Not for specialized fleet agents (quality-auditor, skill-builder, etc.) — they operate on PDE's own artifacts, not on user project context.
+### Pattern 4: Edge Case Analysis
 
-**Trade-offs:** Cross-session learning for recurring project patterns (e.g., "this codebase has flaky test in auth.test.ts — always run with --testTimeout 10000"). Cap memory at 50 entries (oldest archived when limit reached) to prevent context bloat. Stale entries are a risk — entries older than 10 phases get a `[stale]` tag.
+**Algorithm (runs inside enhanced pde-plan-checker):**
 
-**Memory format (per agent):**
-```markdown
-# pde-executor memories — {project-name}
+For each task in each PLAN.md, scan `<action>` and `<verify>` blocks for:
 
-## Active Memories
-- [2026-03-15] Auth tests require --testTimeout 10000 (confirmed in phase 3, phase 5)
-- [2026-03-17] `yarn build` before `yarn test:e2e` — CI env constraint
-- [2026-03-18] Prisma migrate fails if Docker not running — check before migration phases
+| Pattern | Gap type | Example |
+|---------|----------|---------|
+| Task creates/reads a collection without empty-state handling | Empty state | "Build user list" — no "if no users" path |
+| Task calls an external service/API without failure branch | Error path | "Fetch GitHub issues" — no failure handling |
+| Task modifies data without rollback/undo path | Boundary | "Run migration" — no rollback if fails |
+| AC covers only happy path | Incomplete AC | Given/When/Then has no failure scenario |
+| Task touches auth, migration, CI/CD files | High-risk boundary | No explicit guard or confirmation noted |
 
-## Archived (> 10 phases old)
-[archived entries omitted from active context]
-```
+**Severity:** All edge case findings are CONCERNS only (never FAIL). Edge cases are judgment calls — a task may intentionally omit empty-state handling because `[]` is a valid response. Surfacing findings for planner review without blocking execution is the correct default.
 
-**Agent loading pattern:**
-```
-Agent spawned
-    ↓
-Read .planning/agent-memory/{agent-type}/memories.md
-    ↓
-Include as final section of agent context: "## Project Memory\n{memories}"
-    ↓
-Execute work
-    ↓
-If learned something worth retaining: append to memories.md
-    ↓
-Prune to 50 entries if exceeded
-```
+**Output:** Per-task gap findings in new `edge_case_issues` field of pde-plan-checker return. Each finding includes: task reference, gap type, suggested AC addition.
 
-### Pattern 5: Hash-Based Safe Update Merging
+### Pattern 5: Integration Point Verification (Two-Mode)
 
-**What:** `files-manifest.csv` tracks SHA256 of every PDE-managed file at install/update time. During `/pde:update`, compare current file hash against manifest hash to detect user modifications. Unchanged files are auto-updated; user-modified files are preserved with a notice.
+**Mode A — Declaration-time (runs in enhanced pde-plan-checker):**
 
-**When to use:** Every `/pde:update` invocation. Eliminates three-way merge complexity for files the user hasn't touched.
+From PLAN.md task `<files>` and `<action>` blocks:
+- Extract: function/class/interface names that one task declares as created, another task declares as used
+- Check: declared export name in task A matches import name in task B (exact string match)
+- Check: data shape described as output by task A matches data shape described as input by task B
+- Flag: orphan exports (declared in a task's output, never referenced as input by any other task)
+- Flag: name mismatches (task B references `FooService`, task A creates `FooManager`)
 
-**Trade-offs:** Replaces three-way merge with simpler hash comparison for the majority of files. Requires manifest to be current (regenerated on every update). If manifest is missing (first-time or corrupted), fall back to existing three-way merge.
+**Mode B — Codebase-time (runs in enhanced check-readiness.md + readiness.cjs):**
 
-**Comparison logic:**
-```
-For each managed file:
-  current_hash = SHA256(current file on disk)
-  manifest_hash = SHA256 from files-manifest.csv
-  upstream_hash = SHA256(incoming update file)
+For integration points between the NEW plans and the EXISTING codebase:
+- Read actual source files at paths declared in plan `<context>` @-references
+- Check: function signatures at those paths match what the plan's tasks expect to call
+- Check: module exports exist at the file paths plans reference
 
-  if current_hash == manifest_hash:
-    → overwrite silently (user hasn't modified)
-  else:
-    → preserve user version
-    → display: "Preserved: {file} (user-modified — upstream update available)"
-    → log delta to update report
-```
+New check IDs added to `readiness.cjs`:
 
-### Pattern 6: Project Context Constitution
+| Check ID | Description | Severity | Category |
+|----------|-------------|----------|----------|
+| B4 | All `@`-referenced files in plan `<context>` blocks exist on disk or are declared as created by an earlier plan | fail | B: Consistency |
+| B5 | No task declares creating an interface/export name that is never referenced by any other task in the phase (orphan export — declaration-time check) | concerns | B: Consistency |
 
-**What:** `.planning/project-context.md` is a max-4KB auto-generated synthesis of PROJECT.md + top-level REQUIREMENTS.md + key decisions from STATE.md. Structured for agent consumption, not human prose. Auto-regenerated when `/pde:new-project` or `/pde:new-milestone` runs.
-
-**When to use:** Loaded by every subagent as baseline context, replacing the ad-hoc combination of STATE.md + PROJECT.md that agents currently load separately.
-
-**Trade-offs:** Centralized agent context — one file to update when project changes, one file each agent loads. 4KB cap must be enforced — uncapped constitutions grow to fill context budgets. Risk of staleness if regeneration fails; mitigated by generating at milestone boundaries.
-
-**Content sections:**
-```markdown
-# Project Context — {project-name}
-
-## Tech Stack
-{extracted from PROJECT.md or auto-detected from package.json}
-
-## Conventions
-{key coding conventions from CLAUDE.md or PROJECT.md}
-
-## Constraints
-{key constraints from PROJECT.md constraints section}
-
-## Key Decisions
-{last 10 decisions from STATE.md key decisions log}
-
-## File Structure
-{top-level directory map, max 20 entries}
-
-## Current Milestone
-{milestone name, version, phase count}
-```
+**Output:**
+- Mode A: `integration_issues` field in pde-plan-checker return
+- Mode B: appended to READINESS.md as `## Integration Checks` section
 
 ---
 
 ## Data Flow
 
-### Execute-Phase Flow (Modified for v0.6)
+### Research Validation Flow
 
 ```
-/pde:execute-phase
-    ↓
-execute-phase.md: discover plans, group waves
-    ↓
-For each plan: execute-plan.md
-    ↓
-Step 1: Load project-context.md + PLAN.md
-    ↓
-Step 2: pde-executor agent spawned
-    Load .planning/agent-memory/pde-executor/memories.md
-    If plan has 5+ tasks: load tasks/ shards instead of full PLAN.md
-    Execute tasks (unchanged core logic)
-    Append learnings to memories.md
-    ↓
-Step 3: [NEW] Reconciliation step
-    Read PLAN.md task list
-    git log phase branch commits
-    Compare planned vs actual
-    Write RECONCILIATION.md
-    ↓
-Step 4: pde-verifier agent
-    Load RECONCILIATION.md as additional context
-    Load .planning/agent-memory/pde-verifier/memories.md
-    Run existing goal-backward + Nyquist verification
-    ↓
-Step 5: Commit + update STATE.md current_loop = "unify"
-    ↓
-Step 6: pde-planner closes loop: STATE.md current_loop = null
+/pde:plan-phase N
+    │
+    ▼ plan-phase.md initialize step
+    Read init JSON: has_research = true/false
+    Check for RESEARCH-VALIDATION.md in phase dir: has_validation = true/false
+    │
+    ├── [has_research: false] → skip validation, proceed to planner
+    │
+    ├── [has_research: true, has_validation: true] → show validation status, proceed
+    │
+    └── [has_research: true, has_validation: false] →
+        Task(pde-research-validator)
+            reads: .planning/phases/NN/research/*.md
+            reads: targeted codebase files via glob/grep
+            writes: .planning/phases/NN/NN-RESEARCH-VALIDATION.md
+            returns: { contradicted_count, unverified_count, summary }
+            │
+            ├── contradicted_count > 0 →
+            │   display findings to user
+            │   AskUserQuestion: "Update research and re-run, or proceed with caveats?"
+            │   if "proceed": continue with planner (log caveats)
+            │   if "update": stop, user reruns /pde:plan-phase after research update
+            │
+            └── contradicted_count == 0, unverified_count > 0 →
+                display unverified claims as CONCERNS
+                proceed to planner (non-blocking)
+                │
+    ▼ existing plan-phase.md planner spawn (unchanged)
 ```
 
-### New-Project Flow (Modified for v0.6)
+### Plan Validation Flow (Enhanced pde-plan-checker)
 
 ```
-/pde:new-project
-    ↓
-existing new-project.md flow (unchanged)
-    ↓
-[NEW STEP] generate project-context.md
-    Read PROJECT.md + REQUIREMENTS.md (if exists) + STATE.md
-    Synthesize to 4KB max
-    Write .planning/project-context.md
-    ↓
-[NEW STEP] initialize files-manifest.csv
-    pde-tools.cjs manifest init
-    SHA256 all tracked PDE files
-    Write .planning/config/files-manifest.csv
-    ↓
-[NEW STEP] initialize agent-memory directories
-    Create .planning/agent-memory/{pde-executor,pde-planner,pde-debugger,pde-verifier}/
-    Create empty memories.md in each
+plan-phase.md revision loop (existing, max 3 iterations):
+    Task(pde-plan-checker)
+        │
+        reads: .planning/phases/NN/*-PLAN.md (existing)
+        reads: .planning/ROADMAP.md (for cross-phase dep context)
+        │
+        runs: existing structural checks → structural_issues[]
+        runs: dep graph check [NEW] → dep_issues[]
+        runs: edge case scan [NEW] → edge_case_issues[]
+        runs: integration Mode A check [NEW] → integration_issues[]
+        │
+        returns: {
+          verdict: "PASSED" | "ISSUES FOUND",
+          structural_issues: [...],   ← existing field
+          dep_issues: [...],          ← new field (additive)
+          edge_case_issues: [...],    ← new field (additive)
+          integration_issues: [...]   ← new field (additive)
+        }
+        │
+        orchestrator formats all issues into planner revision prompt
+        pde-planner revises plans
+        pde-plan-checker re-runs
+        (max 3 iterations — existing behavior unchanged)
 ```
 
-### Update Flow (Modified for v0.6)
+### Readiness Gate Enrichment Flow
 
 ```
-/pde:update
-    ↓
-Check if files-manifest.csv exists
-    ↓ exists              ↓ missing
-Hash-based comparison     Existing three-way merge (unchanged fallback)
-    ↓
-For each managed file:
-  Compare SHA256(disk) vs SHA256(manifest)
-  If equal: auto-overwrite with upstream
-  If different: preserve, add to "preserved" report
-    ↓
-Regenerate files-manifest.csv with upstream hashes
-    ↓
-Regenerate .planning/project-context.md from updated PROJECT.md
-    ↓
-Display: "Updated {N} files; preserved {M} user-modified files"
+/pde:check-readiness N
+    │
+    ▼ check-readiness.md step: load_context (existing)
+    ▼ check-readiness.md step: run_structural_checks (existing)
+        pde-tools.cjs readiness check A1-A11 + B1-B3 [+ NEW: B4, B5]
+        writes READINESS.md
+    │
+    ▼ check-readiness.md step: run_semantic_checks (existing, C1-C3)
+        appends ## Semantic Checks to READINESS.md if issues
+    │
+    ▼ check-readiness.md step: run_integration_checks [NEW — Mode B]
+        reads codebase files at paths declared in plan @-references
+        checks function signatures + module exports exist
+        appends ## Integration Checks to READINESS.md
+        if integration FAIL → update frontmatter result: to fail (if was pass/concerns)
+    │
+    ▼ check-readiness.md step: report_result (existing)
+        reads enriched READINESS.md
+        displays PASS / CONCERNS / FAIL with all sections
 ```
+
+### Key State Artifacts
+
+| Artifact | Location | Created By | Consumed By |
+|----------|----------|------------|-------------|
+| NN-RESEARCH-VALIDATION.md | `.planning/phases/NN-name/` | pde-research-validator | plan-phase.md (status check); user review |
+| READINESS.md (enriched) | `.planning/phases/NN-name/` | check-readiness.md + readiness.cjs | execute-phase.md readiness gate |
+| pde-plan-checker return | In-memory (orchestrator context) | pde-plan-checker | plan-phase.md revision loop |
+
+All three are backward compatible. RESEARCH-VALIDATION.md is a new artifact type that existing workflows ignore if absent. READINESS.md gains new sections but preserves existing frontmatter contract. pde-plan-checker return schema adds fields but removes none.
 
 ---
 
-## Integration Points: New vs Modified — Explicit Inventory
+## Component Boundaries
 
-### New Files (create from scratch)
-
-| File | Purpose | Blocked On |
-|---|---|---|
-| `agents/pde-architect.md` | Architecture review agent | Nothing |
-| `bin/lib/manifest.cjs` | Hash manifest CRUD | Nothing |
-| `templates/RECONCILIATION.md` | Reconciliation output template | Nothing |
-| `references/workflow-methodology.md` | BMAD/PAUL patterns as PDE reference | Nothing |
-| `.planning/project-context.md` | Agent-optimized context synthesis | `manifest.cjs` (for hash tracking) |
-| `.planning/config/files-manifest.csv` | SHA256 hash manifest | `manifest.cjs` |
-| `.planning/agent-memory/pde-executor/memories.md` | Executor sidecar memory | Nothing (empty init) |
-| `.planning/agent-memory/pde-planner/memories.md` | Planner sidecar memory | Nothing (empty init) |
-| `.planning/agent-memory/pde-debugger/memories.md` | Debugger sidecar memory | Nothing (empty init) |
-| `.planning/agent-memory/pde-verifier/memories.md` | Verifier sidecar memory | Nothing (empty init) |
-
-### Modified Files (change existing)
-
-| File | Change | Risk | Rationale |
-|---|---|---|---|
-| `templates/PLAN.md` | Add `<acceptance_criteria>` section after `<objective>` | LOW — additive | AC-first planning requires template support |
-| `workflows/execute-plan.md` | Add reconciliation step between executor and verifier | MEDIUM | New step changes execute-plan control flow |
-| `workflows/plan-phase.md` | Prompt AC format; add story-sharding trigger for 5+ tasks; risk tagging | LOW | Additive instructions; no structural change |
-| `workflows/new-project.md` | Add project-context.md generation + manifest init + agent-memory init | LOW | Additive steps at workflow end |
-| `workflows/new-milestone.md` | Add project-context.md regeneration step | LOW | Single additive step |
-| `workflows/update.md` | Use hash-based merge for unchanged files; fall back to three-way for modified | MEDIUM | Changes merge strategy; regression risk |
-| `bin/pde-tools.cjs` | Add `manifest` subcommand group | LOW | Additive subcommands |
-| `agents/pde-executor.md` | Add sidecar memory load/save | LOW | Additive context |
-| `agents/pde-planner.md` | Add sidecar memory + AC format instructions | LOW | Additive context |
-| `agents/pde-debugger.md` | Add sidecar memory load/save | LOW | Additive context |
-| `agents/pde-verifier.md` | Load RECONCILIATION.md when present | LOW | Additive input |
-| `references/skill-style-guide.md` | Add AC format standard section | LOW | Documentation |
-| `STATE.md` (schema + template) | Add `current_loop` field | LOW | Additive field |
-
-### Untouched Files
-
-All 13 design pipeline skills (recommend through handoff), the build orchestrator, all MCP sync workflows (sync-github, sync-linear, sync-jira, sync-figma), mcp-bridge.cjs, mcp-config.cjs, pde-quality-auditor.md, pde-skill-builder.md, pde-skill-improver.md, pde-skill-validator.md, design-manifest.json schema, protected-files.json, and all existing reference files (except skill-style-guide.md).
-
----
-
-## Scalability Considerations
-
-| Concern | Current (v0.5) | v0.6 Impact | Mitigation |
-|---|---|---|---|
-| Agent context per spawn | Agents load STATE.md + domain refs | Each agent also loads memories.md (+1-4KB) + project-context.md (~4KB) | Cap memories at 50 entries (~2KB); enforce 4KB project-context limit |
-| PLAN.md size in large phases | Full PLAN.md loaded by executor | Story sharding reduces this for 5+ task plans | Threshold gate: only shard at 5+ tasks |
-| execute-plan flow duration | Executor + verifier | +reconciliation step (+10-30s for git-diff analysis) | Auto-skip for plans with <3 tasks |
-| files-manifest.csv maintenance | N/A | Grows with every managed file; needs regeneration on update | CSV format; Node.js crypto.createHash is O(n) in file count; non-issue at PDE scale |
-| project-context.md staleness | N/A | Regenerated at new-project + new-milestone; may be stale mid-milestone | Add warning to execute-phase when project-context.md is >7 days old |
+| Component | Responsibility | v0.7 Change |
+|-----------|---------------|-------------|
+| `pde-research-validator` | Extract claims from research files, verify each against codebase, produce RESEARCH-VALIDATION.md | New agent |
+| `pde-plan-checker` | Structural plan validation + dep graph + edge case + integration Mode A | Enhanced: 3 new check categories in return schema |
+| `check-readiness.md` | Orchestrate structural + semantic + Mode B integration checks | Enhanced: new `run_integration_checks` step |
+| `readiness.cjs` | Node.js check implementation (A1-A11, B1-B3) | Enhanced: adds B4 (@-ref file existence) and B5 (orphan export) |
+| `plan-phase.md` | Orchestrate research validation + planning + plan-checker revision loop | Enhanced: new step between research and planner spawn |
+| `pde-tools.cjs` | CLI entry point | Minor fix: add v0.6 commands to help text (tech debt TD-07) |
 
 ---
 
 ## Anti-Patterns
 
-### Anti-Pattern 1: Mirroring BMAD's Compilation Pipeline in PDE
+### Anti-Pattern 1: Four Separate Agents for Four Checks
 
-**What people do:** Add a `npx pde build` step that compiles YAML agent definitions to Markdown, following BMAD's compile-time architecture.
+**What people do:** Create `pde-dep-checker.md`, `pde-edge-case-analyzer.md`, `pde-integration-verifier.md` alongside `pde-research-validator.md`.
 
-**Why it's wrong:** PDE agents are already Markdown files loaded at runtime. Adding a compile step adds complexity (build tool, source format change, distribution artifacts) for zero benefit. BMAD needs compilation because it supports 15+ IDEs with different formats. PDE targets one runtime: Claude Code.
+**Why it's wrong:** Dep checker, edge case analyzer, and integration Mode A checker all read PLAN.md files — the same inputs `pde-plan-checker` already loads. Four spawns inflate context overhead by 3x: each agent initializes (~2-3K tokens), loads the same files, returns output the orchestrator must merge. The plan-phase.md revision loop already calls `pde-plan-checker` — adding three parallel checker spawns per iteration multiplies the already-bounded loop by 4x.
 
-**Do this instead:** Keep agents as plain Markdown loaded directly. Adopt BMAD's content patterns (AC-first, sidecar memory) without adopting its toolchain.
+**Do this instead:** Enhance `pde-plan-checker` with three new check categories. Single spawn, single return, existing revision loop structure unchanged.
 
-### Anti-Pattern 2: Parallel State Directory
+### Anti-Pattern 2: Standalone Validation Commands
 
-**What people do:** Create `_memory/` or `_bmad/` at the project root to mirror BMAD's structure.
+**What people do:** Create `/pde:validate-research`, `/pde:check-deps`, `/pde:analyze-edge-cases` as separate slash commands users must invoke manually.
 
-**Why it's wrong:** PDE's entire state model is under `.planning/`. Adding a parallel root-level directory splits state tracking, breaks `pde-tools.cjs` path assumptions, and confuses the `.gitignore` strategy (`.planning/agent-memory/` is already under the `.planning/` gitignore rules).
+**Why it's wrong:** Optional commands are skipped. The v0.6 readiness gate works because it is wired into `execute-phase.md`'s startup — users encounter it automatically. Standalone validation commands that require explicit invocation provide zero pipeline reliability improvement over the current state.
 
-**Do this instead:** Agent memory lives at `.planning/agent-memory/`. Every PDE state artifact lives under `.planning/`.
+**Do this instead:** Embed at the pipeline positions that already own the relevant data:
+- Research validation → inside `plan-phase.md` (automatic when research exists)
+- Plan checks → inside `pde-plan-checker` (automatic in revision loop)
+- Integration checks → inside `check-readiness.md` (automatic on every readiness check)
 
-### Anti-Pattern 3: Mandatory Loop-Position Enforcement (PAUL-style)
+### Anti-Pattern 3: Storing RESEARCH-VALIDATION.md Outside .planning/
 
-**What people do:** Enforce PAUL's hard PLAN → APPLY → UNIFY loop in yolo mode, blocking execution if `current_loop` is not `null`.
+**What people do:** Cache validation results in `/tmp/` or create a new root-level `validation/` directory to avoid re-running the LLM extraction pass.
 
-**Why it's wrong:** PDE's yolo mode is designed for uninterrupted autonomous execution. Hard loop gates in yolo mode defeat the purpose and break the existing user contract.
+**Why it's wrong:** PDE's state model is `.planning/`. All 34+ commands read/write `.planning/`. Cache in `/tmp/` is lost on session end. A new root-level directory bypasses the manifest tracking and agent-memory systems.
 
-**Do this instead:** `current_loop` is a tracking field only in yolo mode. It gates phase transitions in interactive mode. In yolo mode, reconciliation runs automatically without requiring user confirmation.
+**Do this instead:** Write RESEARCH-VALIDATION.md to `.planning/phases/NN-name/`. Use frontmatter `status: validated | not-validated` for the has_validation check in `plan-phase.md`.
 
-### Anti-Pattern 4: Unbounded Sidecar Memory
+### Anti-Pattern 4: Blocking Execution on Edge Case Findings
 
-**What people do:** Let agents append to memories.md freely, with no size cap or pruning.
+**What people do:** Set edge case findings to FAIL severity, blocking execute-phase until every missing error branch is addressed.
 
-**Why it's wrong:** Unbounded memories.md files grow to fill available context window. After 20 phases, memories.md could be 10KB+ — consuming budget needed for actual work context.
+**Why it's wrong:** Edge cases are subjective. A task that creates a list may intentionally return `[]` for the empty case — that is valid behavior, not a gap. Blocking on every edge case flag forces the planner to add defensive code for failure modes that may never occur, bloating plans with noise.
 
-**Do this instead:** Cap at 50 active entries (~2KB). When exceeded, archive oldest 10 entries to `memories-archive.md`. Never load archive in active context.
+**Do this instead:** Edge case findings are always CONCERNS. They appear in the planner revision prompt and in READINESS.md for review, but never block execution. Only missing dependencies (FAIL) and broken integration declarations (FAIL) block.
 
-### Anti-Pattern 5: Replacing pde-verifier with AC-Checking Only
+### Anti-Pattern 5: Checking the Entire Codebase in Mode B Integration Verification
 
-**What people do:** Replace goal-backward verifier logic with a simple "did each AC pass?" check, treating ACs as the complete verification contract.
+**What people do:** In Mode B (codebase-time), glob the entire source tree looking for interface mismatches.
 
-**Why it's wrong:** Acceptance criteria cover planned behavior. Nyquist assertions and goal-backward analysis catch unplanned regressions and quality degradation that ACs cannot anticipate. ACs are an input to verification, not a replacement.
+**Why it's wrong:** A large codebase (500+ files) makes Mode B prohibitively slow. The check becomes a codebase-wide analysis that is unfocused and produces false positives for unrelated code.
 
-**Do this instead:** ACs extend pde-verifier input. Verifier checks ACs as its first step, then runs existing Nyquist + goal-backward passes. All three must pass.
+**Do this instead:** Scope Mode B strictly to files explicitly named in the plan's `<context>` @-references. If a plan's context block does not reference a file, that file is out of scope for integration verification.
 
 ---
 
-## Build Order for v0.6
+## Suggested Build Order
 
-Dependencies determine order. Within each phase, components with no inter-dependencies can be built in parallel.
+Dependency graph determines order:
 
 ```
-Phase 1: Foundation — Zero-Dependency Components
-  ├── bin/lib/manifest.cjs                    (new CJS module, no deps)
-  ├── bin/pde-tools.cjs manifest subcommands  (deps: manifest.cjs)
-  ├── templates/PLAN.md                       (additive template change, no deps)
-  ├── templates/RECONCILIATION.md             (new template, no deps)
-  └── references/workflow-methodology.md      (new reference, no deps)
+[Wave 1 — parallel, no inter-dependencies]
 
-  Rationale: manifest.cjs is the most-depended-upon new module (update.md and
-  new-project.md both need it). Build it first so all downstream phases can test
-  against it. Templates and references have no dependencies and unblock Phase 2.
+  A. pde-research-validator (new agent)
+     - No dependencies on other new features
+     - Standalone: reads research files, writes RESEARCH-VALIDATION.md
+     - Build first so plan-phase.md hook has an agent to spawn
 
-Phase 2: Context Infrastructure
-  ├── .planning/project-context.md generation (deps: manifest.cjs, templates)
-  │   (update new-project.md + new-milestone.md to generate it)
-  ├── .planning/agent-memory/ initialization  (deps: new-project.md update)
-  └── STATE.md schema: +current_loop field    (no code deps — schema change)
+  B. pde-plan-checker enhancements (dep + edge case + integration Mode A)
+     - No dependencies on other new features
+     - Enhancement to existing agent: three new check categories, additive return fields
+     - Build first so plan-phase.md revision loop has enriched feedback
 
-  Rationale: project-context.md must exist before any agent can load it.
-  Agent-memory directories must be initialized before agents try to read them.
-  These are blocking prerequisites for all agent modifications in Phase 3.
+  C. Tech debt closure (7 items — independent of all validation features)
+     - PLUG-01: test claude plugin install from GitHub
+     - TRACKING-PLAN.md: create missing file referenced in consent panel
+     - SUMMARY.md one_liner field: add field so automated extraction works
+     - lock-release trailing args: normalize across workflows
+     - pde-tools.cjs help text: add v0.6 commands (manifest, shard-plan, readiness, tracking)
+     - github:update-pr / github:search-issues pre-registered entries: add first consumers
+     - Historical commits note: document in RETROSPECTIVE.md (no code change possible)
+     - Build in parallel with A and B
 
-Phase 3: Agent Enhancements
-  ├── agents/pde-architect.md                 (new agent, deps: workflow-methodology.md)
-  ├── agents/pde-executor.md +sidecar         (deps: agent-memory dirs, memories.md exists)
-  ├── agents/pde-planner.md +sidecar +AC      (deps: agent-memory dirs, PLAN.md template)
-  ├── agents/pde-debugger.md +sidecar         (deps: agent-memory dirs)
-  └── agents/pde-verifier.md +RECONCILIATION  (deps: RECONCILIATION.md template)
+[Wave 2 — sequential, depends on Wave 1]
 
-  Rationale: Agents load memory at spawn time — memory dirs must pre-exist (Phase 2).
-  pde-architect is a new agent; build it alongside agent modifications.
-  All agents in this phase can be built in parallel (no inter-agent deps in this layer).
+  D. plan-phase.md research validation step
+     - Depends on: [A] pde-research-validator exists
+     - Enhancement: add one step between research and planner spawn
+     - Wire the has_research + has_validation check logic
 
-Phase 4: Workflow Modifications
-  ├── workflows/plan-phase.md +AC +sharding   (deps: updated pde-planner.md, PLAN.md template)
-  ├── workflows/execute-plan.md +reconciliation (deps: pde-executor.md, RECONCILIATION.md template)
-  └── references/skill-style-guide.md +AC     (deps: workflow-methodology.md)
-
-  Rationale: Workflow changes depend on updated agent definitions and templates (Phase 3).
-  plan-phase.md and execute-plan.md are the highest-risk modifications (core execution flow)
-  — build and validate them after all foundation pieces are in place.
-
-Phase 5: Update Mechanism
-  └── workflows/update.md hash-based merge    (deps: manifest.cjs, files-manifest.csv exists)
-
-  Rationale: update.md change is isolated but requires manifest.cjs to be tested and stable.
-  Separated from Phase 4 to reduce blast radius — update.md touches file preservation logic
-  and should be validated independently from the execution flow changes.
-
-Phase 6: End-to-End Validation
-  └── Full methodology validation:
-      - Create new project → project-context.md generated, manifest initialized, memory dirs created
-      - Plan phase → ACs present in output, story-file sharding for 5+ task plan
-      - Execute phase → reconciliation step runs, RECONCILIATION.md generated, verifier loads it
-      - Debug phase → sidecar memory loaded, finding appended on completion
-      - Update → hash manifest used, user-modified files preserved, unchanged files auto-updated
-      - Architect agent invocation → architecture review produced
+  E. readiness.cjs B4/B5 extensions
+     - Depends on: [B] pde-plan-checker enhancement (Mode A validates at plan-time
+       before Mode B at the readiness gate; both must be consistent in their findings)
+     - Enhancement: add B4 (@-ref file existence) and B5 (orphan export) to readiness.cjs
+     - Wire into check-readiness.md as run_integration_checks step
 ```
 
-**Why this order:**
-- Foundation before agents: agents load project-context.md and agent-memory at spawn — both must exist
-- Templates before workflows: execute-plan.md reconciliation step generates RECONCILIATION.md — template must exist
-- Agents before workflows: plan-phase.md prompts pde-planner with AC format — planner must be updated first
-- Update last: update.md uses hash manifest — manifest must be validated across multiple operations before update flow depends on it
-- All design pipeline skills unaffected at every phase — no regression risk to v0.5 capabilities
+**Rationale:**
+
+- Build agents first ([A], [B]) before wiring their workflow hooks ([D], [E]). A workflow step that spawns a non-existent agent fails at runtime.
+- Research validator ([A]) and plan-checker enhancement ([B]) are fully independent — wave them in parallel to avoid a sequential Phase 1 + Phase 2 for features that have no dependency between them.
+- Tech debt ([C]) is fully independent of validation features. Placing it in the same wave as [A] and [B] avoids a standalone "cleanup" phase that has no delivery narrative — tech debt items become first-class work alongside the new validation features.
+- The readiness.cjs extension ([E]) comes after plan-checker enhancement ([B]) because the two modes (declaration-time in checker, codebase-time in readiness) must be consistent. If plan-checker's Mode A finds that interface "FooService" is orphaned, Mode B should not contradict that finding by claiming "FooService" is actually consumed somewhere. Both checks must agree on the same semantic model before Mode B is released.
+
+**Wave structure for execute-phase:**
+
+```
+Wave 1 (parallel):
+  Plan A — pde-research-validator (new agent)
+  Plan B — pde-plan-checker enhancements (dep + edge case + integration Mode A)
+  Plan C — tech debt closure (7 items)
+
+Wave 2 (sequential after Wave 1 completes):
+  Plan D — plan-phase.md research validation step (depends on Plan A)
+  Plan E — readiness.cjs B4/B5 + check-readiness.md Mode B step (depends on Plan B)
+```
+
+---
+
+## Scaling Considerations
+
+PDE is a Claude Code plugin. "Scale" means cognitive load and session context consumption as validation surface grows, not concurrent user throughput.
+
+| Concern | With v0.7 | Mitigation |
+|---------|-----------|------------|
+| pde-research-validator context | Unbounded LLM call over research files | Cap: if any research file exceeds 20KB, flag as CONCERNS and skip claim extraction for that file |
+| pde-plan-checker context growth | Three new analysis passes on already-loaded PLAN.md content | No new file reads required; passes run on already-loaded text |
+| Mode B integration check breadth | Could scan large source trees | Strict scope: only files in plan @-references; never full codebase scan |
+| READINESS.md size | New sections appended | All new sections use summary tables; no inline code blocks; document stays under 5KB |
+| Plan-phase.md revision loop speed | Plan-checker now does more work per iteration | No new file reads; analysis is prompt-space analysis; negligible latency impact |
+
+**First bottleneck if v0.7 expands:** Research validator claim count — if research files are large and densely factual, Pass 1 extraction could surface 50+ claims, making Pass 2 verification verbose. Prevention: cap verification at 25 highest-risk claims (technology versions, file paths, module exports) — skip count claims and narrative claims.
+
+---
+
+## Integration Points: New vs. Modified — Explicit Inventory
+
+### New Files (create from scratch)
+
+| File | Purpose |
+|------|---------|
+| `agents/pde-research-validator.md` | Research claim extractor and codebase verifier agent |
+| `.planning/phases/NN-name/NN-RESEARCH-VALIDATION.md` | Per-phase research validation artifact (generated by agent) |
+
+### Modified Files (surgical changes to existing)
+
+| File | Change | Risk |
+|------|--------|------|
+| `agents/pde-plan-checker.md` | Add three check categories (dep, edge case, integration Mode A); extend return schema with three optional fields | LOW — additive; existing check behavior unchanged |
+| `bin/lib/readiness.cjs` | Add B4 (@-ref file existence) and B5 (orphan export detection) check IDs | LOW — additive; existing A/B check IDs unchanged |
+| `workflows/plan-phase.md` | Add research validation step between research and planner spawn | LOW — additive step; planner spawn logic unchanged |
+| `workflows/check-readiness.md` | Add `run_integration_checks` step after semantic checks | LOW — additive step; structural/semantic check steps unchanged |
+| `bin/pde-tools.cjs` | Add v0.6 commands to help text (manifest, shard-plan, readiness, tracking) | LOW — cosmetic help text only |
+| Tech debt files (TRACKING-PLAN.md, etc.) | See tech debt list in PROJECT.md | LOW — isolated fixes |
+
+### Untouched Files
+
+All 13 design pipeline skills, the build orchestrator, all MCP sync workflows, mcp-bridge.cjs, pde-executor.md, pde-planner.md, pde-verifier.md, pde-reconciler.md, pde-analyst.md, pde-quality-auditor.md, pde-skill-builder.md, pde-skill-improver.md, pde-skill-validator.md, pde-design-quality-evaluator.md, pde-pressure-test-evaluator.md, execute-phase.md, verify-work.md, reconcile-phase.md, diagnose-issues.md, and all templates, references, and config files.
 
 ---
 
 ## Sources
 
-**HIGH confidence (official documentation + direct codebase inspection):**
-- PDE codebase direct inspection: `agents/*.md`, `workflows/execute-plan.md`, `workflows/plan-phase.md`, `workflows/build.md`, `bin/pde-tools.cjs`, `bin/lib/*.cjs`, `.planning/config.json`, `.planning/PROJECT.md` — 2026-03-19
-- [BMAD Method GitHub](https://github.com/bmad-code-org/BMAD-METHOD) — official repo; architecture overview 2026
-- [BMAD v6 Agent Sidecar Architecture — DeepWiki](https://deepwiki.com/bmad-code-org/BMAD-METHOD/6.5-agent-customization-and-sidecars) — hash preservation algorithm, directory structure, `hasSidecar` flag, SHA256 + files-manifest.csv details
-- [BMAD v6 What's New — DeepWiki](https://deepwiki.com/bmad-code-org/BMAD-METHOD/1.4-what's-new-in-v6) — sidecar system, path segregation, direct workflow invocation
-- [PAUL Framework GitHub](https://github.com/ChristopherKahler/paul) — official repo; STATE.md structure, 26 slash commands, PLAN.md format, CARL rule injection
-- [BMAD-AT-CLAUDE core architecture](https://github.com/24601/BMAD-AT-CLAUDE/blob/main/docs/core-architecture.md) — template architecture, story sharding, compilation pipeline details
-- `.planning/research/EXTERNAL-FRAMEWORKS.md` — prior research (2026-03-17) on BMAD/PAUL integration candidates, Tier 1-3 classification
-
-**MEDIUM confidence (WebSearch + multiple sources agree):**
-- BMAD agent roles (Analyst, PM, Architect, SM, Dev, QA) — confirmed from official docs page + multiple articles
-- BMAD story file YAML frontmatter structure — confirmed from DeepWiki + v6 issue tracker discussion
-- PAUL CARL rule injection mechanism — confirmed from official PAUL GitHub README + Level Up Coding article (2026-03)
+- PDE codebase direct inspection (2026-03-19):
+  - `workflows/execute-phase.md` — readiness gate integration, wave execution, reconciliation step
+  - `workflows/plan-phase.md` — revision loop structure, planner spawn contract, init JSON fields
+  - `workflows/check-readiness.md` — structural + semantic check orchestration, READINESS.md output contract
+  - `workflows/verify-work.md` — UAT flow, gap closure cycle
+  - `bin/lib/readiness.cjs` — A1-A11, B1-B3 check implementation; READINESS.md format contract
+  - `bin/lib/reconciliation.cjs` — three-tier matching algorithm (slug → file overlap → prefix); template for dep graph matching heuristic
+  - `agents/` directory — existing agent roster and file count
+  - `.planning/PROJECT.md` — v0.7 target features, known tech debt 7 items, architectural constraints
 
 ---
 
-*Architecture research for: PDE v0.6 — BMAD + PAUL methodology integration*
+*Architecture research for: PDE v0.7 — Pipeline Reliability & Validation*
 *Researched: 2026-03-19*

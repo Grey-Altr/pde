@@ -1,113 +1,31 @@
 # Feature Research
 
-**Domain:** BMAD + PAUL methodology import into PDE (v0.6 Advanced Workflow Methodology)
+**Domain:** AI-assisted development pipeline — reliability, validation, and automated verification (v0.7)
 **Researched:** 2026-03-19
-**Confidence:** HIGH (BMAD — verified against official docs at docs.bmad-method.org, GitHub repo v6.2.0, and buildmode.dev implementation guide), HIGH (PAUL — verified against GitHub repo ChristopherKahler/paul with full command reference and architecture docs), MEDIUM (integration mapping — derived from analysis of both frameworks against PDE's existing capabilities)
+**Confidence:** HIGH (existing PDE codebase verified directly), MEDIUM (industry patterns from multiple web sources and analysis of adjacent tools), LOW (specific behavioral expectations from single sources, flagged inline)
 
 ---
 
-> **Scope note:** This file covers ONLY the v0.6 methodology import milestone. PDE's existing capabilities (34 slash commands, 13-stage design pipeline, self-improvement fleet, 5 MCP integrations, planning engine, file-based `.planning/` state) are stable dependencies. Every feature described here is additive to that base — no restructuring of existing systems.
+> **Scope note:** This file covers ONLY the v0.7 Pipeline Reliability & Validation milestone. PDE's existing capabilities (story-file sharding, AC-first planning, readiness gate, reconciliation, per-task tracking, agent memory, 5 MCP integrations, 13-stage design pipeline) are stable dependencies — not re-built here. Every feature described is additive to the v0.6 baseline.
 
 ---
 
-## Source Methodology Reference
-
-### BMAD Method (Breakthrough Method for Agile AI-Driven Development)
-
-- **Repo:** github.com/bmad-code-org/BMAD-METHOD (MIT, ~41k stars)
-- **Version:** v6.2.0 (2026-03-15), 95k monthly npm downloads
-- **Core thesis:** Multi-agent orchestration with specialized personas (Analyst, PM, Architect, PO, SM, Dev, QA) producing versioned artifacts at each phase, with token-efficient sharding for implementation
-- **Architecture:** YAML agent definitions compiled to IDE-specific markdown files; step-file architecture for workflows; Party Mode for multi-persona discussion
-
-### PAUL (Plan-Apply-Unify Loop)
-
-- **Repo:** github.com/ChristopherKahler/paul
-- **Companion:** CARL (Context Augmentation & Reinforcement Layer) — github.com/ChristopherKahler/carl
-- **Core thesis:** Mandatory Plan → Apply → Unify cycle; acceptance-criteria-first tasks; loop integrity enforcement; dynamic rule loading to prevent context bloat
-- **Architecture:** 26 slash commands + 14 CARL rules for Claude Code; `.paul/` directory for state; XML task structure with four required fields (files, action, verify, done)
-
----
-
-## What BMAD and PAUL Provide
-
-### BMAD Agent Personas
-
-| Persona | Role | Key Outputs |
-|---------|------|-------------|
-| **Analyst** | Discovery — probing questions about users, pain points, success criteria | `product-brief.md` (10-15 pages); market analysis; user personas; competitive insights |
-| **Product Manager (PM)** | Requirements — transforms brief into structured spec with MoSCoW prioritization | `PRD.md` (15-25 pages); user stories; acceptance criteria; epic breakdown |
-| **Architect** | Technical design — database schema, API specs, component hierarchy, tech stack | `ARCHITECTURE.md`; `db-schema.sql`; `api_spec.json`; `tech-stack.md` |
-| **Product Owner (PO)** | Validation — runs master checklists to ensure document alignment across all artifacts | Gap analysis report; document alignment confirmation |
-| **Scrum Master (SM)** | Sharding — breaks PRD/architecture into atomic story files; maintains workflow status | `stories/story-NNN.md` files (each self-contained); `workflow-status.md` |
-| **Developer** | Implementation — executes single story file at a time; maintains architectural alignment | Source code; unit tests; SUMMARY.md per story |
-| **QA** | Verification — code review focused on security, completeness, test coverage | QA report; E2E test configurations |
-| **UX Designer** | User journey — wireframes and UX specification | `UX_Design.md`; user flow diagrams |
-| **BMad Master (orchestrator)** | Party Mode — routes messages to relevant personas; facilitates multi-agent discussion | Multi-perspective analysis; consensus artifacts |
-
-### BMAD Workflow Phases
-
-1. **Analysis & Discovery** (Analyst agent): Multi-round interviews probing business assumptions → `product-brief.md`
-2. **Planning** (PM agent): Brief → PRD with functional/non-functional requirements, MVP boundaries, MoSCoW, epic breakdown
-3. **Solution Design** (Architect agent): PRD → `ARCHITECTURE.md`, `db-schema.sql`, `api_spec.json`, `tech-stack.md`
-4. **Validation Gate** (PO agent): Run master checklists across all documents; identify gaps; PASS required to proceed
-5. **Sharding** (SM agent): PRD + Architecture → KB-sized `story-NNN.md` files; each story is self-contained with full context
-6. **Iterative Implementation** (Dev agent): One story at a time; TDD optional; SM marks complete to unlock dependents
-7. **QA Review** (QA agent): Per-story verification; enterprise flow adds security audit gate
-
-### BMAD Quality Gates
-
-- **Implementation readiness check** (`bmad-check-implementation-readiness`): PASS/CONCERNS/FAIL gate between solution design and implementation. Blocks development until architecture is complete.
-- **PO master checklist**: Document alignment check — all planning artifacts must be internally consistent
-- **Pre-commit checks**: Linting, formatting, unit test execution, coverage thresholds
-- **Story acceptance criteria**: BDD format in each story file; Dev marks as met before SM unlocks next story
-
-### PAUL Workflow Stages
-
-1. **PLAN**: Define objective, acceptance criteria (BDD format), tasks with XML structure, boundaries ("DO NOT CHANGE" sections), file references via @-notation
-2. **APPLY**: Execute tasks sequentially; implementation blocked until PLAN is approved; boundaries enforced
-3. **UNIFY**: Mandatory reconciliation — planned vs. actual comparison; log decisions; update state; archive phase
-
-### PAUL Quality Mechanism
-
-- **Loop integrity**: UNIFY is non-negotiable. No plan closes without reconciliation. "No orphan plans."
-- **Task structure (four required fields)**: Every task must specify `<files>`, `<action>`, `<verify>`, `<done>`. "If you can't specify all four, the task is too vague."
-- **Acceptance-criteria-first**: ACs defined before tasks are written. Tasks reference specific AC numbers (AC-1, AC-2). Tasks cannot be marked done without AC verification.
-- **CARL dynamic rule loading**: 14 rules that load just-in-time when in `.paul/` context; disappear when not needed. Prevents context bloat from static prompt injection.
-- **Boundary enforcement**: "DO NOT CHANGE" sections in PLAN.md are immutable during APPLY. Prevents scope creep mid-execution.
-
-### PAUL Artifact Types
-
-| Artifact | Purpose |
-|----------|---------|
-| `.paul/PROJECT.md` | Project context and requirements |
-| `.paul/ROADMAP.md` | Phase breakdown |
-| `.paul/STATE.md` | Current loop position, decisions log, blockers |
-| `.paul/SPECIAL-FLOWS.md` | Required skill declarations; blocks APPLY until confirmed loaded |
-| `phases/NN-name/NN-NN-PLAN.md` | Executable plan with AC, tasks, boundaries, objectives |
-| `phases/NN-name/NN-NN-SUMMARY.md` | Post-UNIFY: what was built, plan vs. actual, deferred issues |
-
----
-
-## PDE Existing Capabilities (What to Avoid Rebuilding)
-
-Before mapping features, the PDE baseline that v0.6 builds on:
+## Baseline: What v0.6 Provides (Stable Dependency)
 
 ```
-Planning engine:     gsd:new-project → research → requirements → roadmap →
-                     plan-phase → execute-phase → verify
-Agent system:        12+ agent types with parallel wave orchestration
-Design pipeline:     13-stage: recommend → competitive → opportunity → ideate →
-                     brief → system → flows → wireframe → critique → iterate →
-                     mockup → hig → handoff
-State tracking:      .planning/STATE.md, PLAN.md, DESIGN-STATE.md
-Verification:        pde-verifier (goal-backward + Nyquist assertions)
-Self-improvement:    3-agent fleet (auditor + improver + validator)
-MCP integrations:    GitHub, Linear, Jira, Figma, Pencil (5 servers)
-Slash commands:      34 /pde: commands
-Session continuity:  File-based .planning/ — survives session breaks
+Research:           pde-phase-researcher → RESEARCH.md
+Planning:           pde-planner → PLAN.md + task-NNN.md shards
+Pre-execution:      check-readiness → READINESS.md (PASS/CONCERNS/FAIL)
+Execution:          pde-executor → per-task SUMMARY.md + HANDOFF.md
+Reconciliation:     pde-reconciler → RECONCILIATION.md (planned vs. actual git)
+Verification:       pde-verifier → VERIFICATION.md (goal-backward, AC-N gates)
+Post-verification:  pde-integration-checker → integration gaps (post-execution)
+                    pde-plan-checker → plan quality (pre-execution)
+Memory:             .planning/agent-memory/{type}/memories.md (50-entry cap)
+Tracking:           workflow-status.md + HANDOFF.md
 ```
 
-PDE already has: planning → execution → verification loop (PAUL's core loop exists), file-based state (`.planning/`), agent orchestration, session continuity, quality checks via verifier. The gaps are in HOW these work, not whether they exist.
+The v0.7 gap: research claims go unvalidated against the actual codebase; cross-phase dependencies are checked after execution but not before; plans are reviewed for quality but not for edge cases and error paths; and 7 known tech debt items from v0.6 remain open.
 
 ---
 
@@ -115,144 +33,131 @@ PDE already has: planning → execution → verification loop (PAUL's core loop 
 
 ### Table Stakes (Users Expect These)
 
-Features that are baseline requirements for a "methodology import" milestone. Missing these means the methodology patterns were not actually imported.
+Features that are baseline requirements for a "pipeline reliability" milestone. Without these, the milestone's stated goal — making the research → plan → execute pipeline *trustworthy* — is not met.
 
-| Feature | Why Expected | Complexity | PDE Integration Point |
-|---------|--------------|------------|----------------------|
-| **Story-file sharding for executor** | BMAD's core token-efficiency pattern. PDE executor currently receives full PLAN.md — in phases with 10+ tasks, context degrades. Sharding is the primary BMAD mechanism. Without it, BMAD methodology is not imported, just referenced. | MEDIUM | `pde-planner` emits `tasks/` directory alongside PLAN.md; each `task-NNN.md` is self-contained with AC, file refs, schema snippets; `pde-executor` loads only current task file |
-| **Unify/reconciliation step after execution** | PAUL's defining feature. Without mandatory post-execution reconciliation, the PAUL loop (Plan → Apply → Unify) is truncated. The "unify" step compares planned tasks vs. actual git changes and logs deviations. PDE's `pde-verifier` checks goal achievement but does not reconcile planned tasks against actual changes. | MEDIUM | New step between `pde-executor` completion and `pde-verifier`; produces `RECONCILIATION.md`; feeds deviations into verifier as additional context |
-| **Acceptance-criteria-first planning** | PAUL's "AC defined before tasks" pattern. Current PDE planner tasks describe *what to do*, not *what done looks like*. For methodology import, ACs must flow as first-class objects from planning through execution through verification — not as afterthoughts. | MEDIUM | `pde-planner` output schema adds AC section before task list; tasks reference AC-N identifiers; `pde-verifier` validates ACs directly, not just goal statements |
-| **Project context constitution** | BMAD's `project-context.md` / `tech-stack.md` pattern. A single 4KB agent-optimized context document that every subagent loads as baseline. PDE has PROJECT.md (human-oriented) and CLAUDE.md (user instructions) but no agent-optimized constitutional document. Without this, story-file sharding fails — sharded tasks need a compact shared context to replace the full PLAN.md they're replacing. | LOW–MEDIUM | `.planning/project-context.md` generated from PROJECT.md + REQUIREMENTS.md + key STATE.md decisions; max 4KB enforced; every subagent spawn includes it |
-| **Implementation readiness gate (pre-execution check)** | BMAD's PO validation step — explicitly checks that all planning artifacts are complete and internally consistent before execution begins. PDE has no formal gate at the plan→execute transition. Currently execution starts when a PLAN.md exists; it could start with an incomplete or inconsistent plan. | MEDIUM | New `/pde:check-readiness` command (or `pde:execute-phase` pre-flight check); runs BMAD-style checklist validating PROJECT.md + REQUIREMENTS.md + PLAN.md consistency; produces PASS/CONCERNS/FAIL |
-| **Task boundary enforcement** | PAUL's "DO NOT CHANGE" sections. When a task specifies protected file sections, the executor must not modify them. Currently no mechanism prevents the executor from touching files outside a task's scope. | LOW | PLAN.md task schema adds optional `<boundaries>` field listing protected paths/sections; `pde-executor` reads and enforces in prompt |
+| Feature | Why Expected | Complexity | Dependencies on Existing |
+|---------|--------------|------------|--------------------------|
+| **Research claim extraction and codebase verification** | If a RESEARCH.md states "pde-tools.cjs exposes a `shard-plan` command" but that command doesn't exist, the plan built on it will fail at execution. Every AI-assisted pipeline that produces research needs a mechanism to catch this class of error before it propagates downstream. Missing = research phase produces ungrounded plans. | MEDIUM | Reads existing RESEARCH.md output; uses pde-tools.cjs and filesystem grep to verify; writes RESEARCH-VALIDATION.md; feeds into existing readiness gate |
+| **Cross-phase dependency pre-verification** | PDE's existing integration checker runs *after* execution (post-mortem). Pre-execution dependency verification asks: "Does phase N depend on something from phase M that hasn't been built yet?" If not, the executor gets partway through and hits a missing interface. Users expect this gate *before* they commit to execution. | MEDIUM | Reads ROADMAP.md phase graph; reads PLAN.md task list; checks actual codebase state; produces DEPENDENCY-GAPS.md; integrates into check-readiness output |
+| **Plan edge case analysis** | Plans produced by pde-planner describe the happy path. A plan that builds a file-based locking mechanism without specifying behavior on stale locks, concurrent writes, or lock-file corruption is incomplete. Users of AI-assisted development tools have learned (from painful experience) that agents optimize for happy path. An edge case analysis pass surfaces what the plan silently assumes won't happen. | MEDIUM | Reads existing PLAN.md + task-NNN.md shards; reads AC-N definitions; writes EDGE-CASES.md; surfaces as CONCERNS-level findings in READINESS.md |
+| **Integration point verification (pre-execution)** | PDE currently detects orphan exports and mismatched interfaces *after* execution. Pre-execution verification asks: "Are the function signatures this plan will call actually present in the codebase with the expected types?" A plan that calls `pde-tools.cjs readiness check 53` but the readiness command only accepts a phase name — not a number — will fail mid-execution. Detecting this before execution prevents mid-run crashes. | MEDIUM | Reads task `<files>` and `<action>` fields; greps codebase for named imports/exports; verifies parameter shapes; writes INTEGRATION-CHECK.md |
+| **Tech debt closure (7 known items from v0.6)** | These are documented in PROJECT.md and represent unresolved issues that create confusion or silent failures in the current platform. "TRACKING-PLAN.md referenced in consent panel does not exist" is a broken reference users will encounter. Leaving known debt open while adding new features signals low platform quality. | LOW–MEDIUM (per item) | Each item targets a specific file/behavior; no new infrastructure needed |
 
 ### Differentiators (Competitive Advantage)
 
-Features that go beyond the minimum methodology import and give PDE a genuine advantage. These are where BMAD + PAUL patterns combine with PDE's unique architecture.
+Features that go beyond minimum verification and give PDE a qualitatively better "trustworthy pipeline" story than a simple pre-flight checklist.
 
 | Feature | Value Proposition | Complexity | Notes |
 |---------|-------------------|------------|-------|
-| **Analyst-persona-informed discovery** | BMAD's Analyst is the only persona PDE genuinely lacks in its planning engine. PDE's `gsd:new-project` does research and requirements — but not the multi-round probing interview pattern that surfaces unspoken assumptions. Adding an Analyst agent to the pre-planning phase produces better product briefs with validated business assumptions, not just feature lists. | MEDIUM | New `/pde:discover` command (or enhance `pde:discuss-phase`); Analyst persona spawned during `gsd:new-project` research phase; produces `product-brief.md` alongside existing `PROJECT.md`; feeds into brief skill |
-| **Sidecar agent memory (cross-session learning)** | BMAD's sidecar pattern enables per-agent-type persistent memory across sessions. PDE agents are fully ephemeral — the executor forgets what worked last phase, the debugger forgets recurring patterns. Project-scoped sidecars let agents accumulate knowledge specific to the project being built. This is a meaningful quality improvement over multiple milestones. | MEDIUM | `.planning/agent-memory/{agent-type}/memories.md`; included in agent spawn context; appended after completion; 50-entry cap with archive |
-| **Party Mode: multi-persona design critique** | BMAD's Party Mode — multiple agent personas in one session for structured discussion. PDE's `/pde:discuss-phase` uses a single questioning agent. Multi-persona critique (Architect + PM + QA simultaneously) during complex phase scoping surfaces conflicts earlier and prevents the most common planning rework: "we built the right thing wrong." | MEDIUM-HIGH | Orchestrator-driven; `pde:discuss-phase` gains a `--party` flag; BMad Master pattern selects 2-3 relevant personas per message; produces multi-perspective analysis artifact |
-| **HALT checkpoints for high-risk tasks** | BMAD's mandatory human-approval gate for high-risk execution steps. PDE's executor has advisory checkpoints but no mandatory pause. For tasks touching authentication, database migrations, destructive refactors, or CI/CD — explicit approval prevents irreversible changes. This is a safety differentiator for production use. | LOW–MEDIUM | `pde-planner` tags tasks with `risk: high` based on file patterns (`**/migrations/**`, `**/auth/**`, `**/.github/**`); executor pauses before/after, presents summary, waits for confirmation |
-| **File-hash manifest for safe updates** | BMAD's hash-based update safety mechanism. PDE's `pde:update` uses three-way merge which occasionally produces conflicts requiring manual resolution. SHA256 manifest tracks which files the user has modified — framework files users haven't touched get silent updates; modified files get preserved with a conflict notice. Strictly better than the current merge approach. | LOW–MEDIUM | `.planning/config/files-manifest.csv` with `path, sha256, source (stock\|user-modified), last_updated`; generated on install/update; `pde-sync-engine` consults manifest before overwriting |
-| **Workflow status tracking with story-level granularity** | BMAD's `workflow-status.md` — per-story TODO/IN_PROGRESS/DONE tracking. PDE's `STATE.md` tracks phase-level status. Story-level granularity is meaningful for longer phases (10+ tasks), giving users visibility into mid-phase progress without waiting for full phase verification. | LOW | `pde-executor` updates story status in `tasks/workflow-status.md` as each task completes; surface in `/pde:status` output |
-| **PAUL-style session handoff documents** | PAUL's `/paul:handoff` command — comprehensive context document for resuming work after breaks. PDE's session continuity relies on the user re-reading STATE.md and PLAN.md, which requires orientation effort. An auto-generated handoff document is particularly valuable for PDE's design pipeline where sessions can span days. | LOW | `/pde:handoff-session` command (or add `--handoff` flag to `pde:execute-phase`); generates `.planning/HANDOFF.md` with current position, last action, next step, blockers |
-| **Pre-planning assumptions capture** | PAUL's `/paul:assumptions` — Claude states its intended approach before planning begins, allowing users to correct direction-setting assumptions. Currently PDE planning begins execution without surfacing its implicit assumptions. Catching a wrong assumption before a PLAN.md is written saves a full planning iteration. | LOW | `/pde:assumptions` command run before `pde:plan-phase`; planner agent lists its key assumptions about the task; user confirms or corrects before full plan is generated |
+| **Claim confidence scoring** | Not all research claims are equally risky. "The project uses Node.js CJS" is low-risk (verifiable from package.json). "The MCP bridge handles connection persistence natively" is high-risk (behavioral claim that requires reading mcp-bridge.cjs logic). A verification agent that assigns confidence scores (HIGH/MEDIUM/LOW) to extracted claims, rather than binary PASS/FAIL, gives the planner and user meaningful signal about where to focus. | MEDIUM | Research validation agent extracts claims, classifies them by verifiability type (file presence, API shape, behavioral, conceptual), verifies each, assigns confidence level. Produces a graded report rather than pass/fail. |
+| **Dependency gap fix proposals** | When pre-execution dependency verification finds a gap (phase N requires something phase M hasn't built), simply reporting it forces the user to reason about how to resolve it. A differentiating behavior is generating a concrete fix proposal: "Phase N task 3 calls `createShardManifest()` from phase M, which hasn't been executed. Options: (a) add a task to phase M to build it first, (b) stub it in phase N with a TODO gate, (c) re-order phase execution." | MEDIUM | Dependency verification agent generates structured fix proposals for each gap it finds, categorized by fix strategy (order change, stub, add task). |
+| **Edge case AC generation** | Beyond surfacing edge cases as warnings, automatically generate acceptance criteria for the most critical uncovered edge cases and offer to append them to the relevant PLAN.md. This transforms edge case analysis from a passive report into an active plan improvement step. | MEDIUM | Edge case analyzer classifies cases by severity; for HIGH severity cases, generates BDD format AC candidates; user approves which to add; appended to PLAN.md AC section. |
+| **Integration verification with type awareness** | JavaScript is dynamically typed, but PDE's codebase uses consistent calling conventions (JSON from pde-tools.cjs, markdown templates). Integration verification can go beyond "function exists" to check that callers pass arguments in the shape the callee expects — e.g., a phase number vs. a phase slug vs. a phase directory path. | MEDIUM-HIGH | Parses pde-tools.cjs command definitions; checks that PLAN.md tasks calling those commands pass arguments in the expected format; flags type mismatches as integration issues. |
+| **Research validation as standing gate** | Rather than running validation as a one-off command, make it a standing gate in the plan-phase workflow: every time a plan is generated from research, validation runs automatically. The planner receives the validation report alongside the RESEARCH.md before generating its PLAN.md. This creates a feedback loop where poor research quality is caught before bad plans are written. | LOW–MEDIUM | Wire RESEARCH-VALIDATION.md generation into plan-phase.md workflow; planner receives validation report in its context; low-confidence claims flagged explicitly to planner. |
 
 ### Anti-Features (Commonly Requested, Often Problematic)
 
-Features from BMAD/PAUL that seem like obvious imports but conflict with PDE's architecture or philosophy.
+Features that seem like natural extensions of a reliability milestone but create problems in PDE's architecture.
 
-| Feature | Why Requested | Why It Conflicts With PDE | Alternative |
-|---------|---------------|--------------------------|-------------|
-| **Direct BMAD persona installation (import BMAD agents as PDE agents)** | BMAD v6 has a compilation pipeline that produces IDE-specific agent files. Importing them directly means getting 12+ battle-tested agent personas "for free." | BMAD agents are written for human-directed sequential workflows. PDE agents are written for autonomous parallel orchestration. BMAD's PM agent expects a human to decide when to invoke it; PDE's equivalent must be invoked programmatically by an orchestrator. Importing BMAD agents verbatim produces agents that pause for human input at wrong points in PDE's automated pipeline, breaking the orchestration model. | Extract BMAD's *patterns* (persona specialization, artifact definitions, AC structure) and implement them natively in PDE's agent format. Do not import BMAD agent files. |
-| **PAUL's in-session-over-subagents philosophy** | PAUL explicitly prefers in-session implementation over spawning subagents ("subagents cost 2,000–3,000 tokens to spawn, start without context, need result integration"). This is coherent advice for PAUL's lightweight use case. | PDE's entire architecture is built on parallel subagent waves. The self-improvement fleet, design pipeline, and planning engine all depend on specialized subagents. Adopting PAUL's "keep it in-session" philosophy would require abandoning parallel execution and the context isolation that prevents cross-task contamination. PDE's tool search + scoped context loading already solves the cost problem PAUL is trying to solve with in-session work. | Keep parallel subagent architecture. Adopt PAUL's story-file sharding to give each subagent a focused context package. This is a better fit for PDE than PAUL's workaround. |
-| **PAUL's .paul/ directory as separate state tree** | PAUL manages its own `.paul/` directory parallel to `.planning/`. Importing PAUL could mean adopting this structure. | PDE's entire platform is organized around `.planning/`. CLAUDE.md references `.planning/`. All 34 slash commands read/write `.planning/`. All MCP integrations sync to/from `.planning/`. A parallel `.paul/` directory creates two sources of truth for project state. State synchronization between them would require a bridge layer that adds complexity without value. | Implement PAUL's state patterns (ROADMAP.md, STATE.md, phase directories, PLAN.md, SUMMARY.md) inside PDE's existing `.planning/` structure, which already uses most of these patterns. |
-| **CARL just-in-time rule unloading** | CARL not only loads domain rules when relevant but also *unloads* them when not applicable, keeping active context lean. This is a genuine optimization for context window management. | PDE's skill injection system deduplicates (inject once per session) and uses Tool Search for MCP tool lazy-loading. Implementing true rule *unloading* requires session-aware context lifecycle management — tracking which rules were injected and removing them when the context shifts. This is a large scope change to the hook system with uncertain payoff in Claude Code's session model. | Improve deduplication in the existing skill injection system. Ensure skills inject only once and don't re-inject on every subagent spawn. Full CARL-style unloading deferred to future milestone. |
-| **BMAD web bundle compilation** | BMAD compiles agents for multiple IDEs (Cursor, Windsurf, VS Code, ChatGPT) via a YAML → Markdown build pipeline. Importing this could modernize PDE's agent definition format. | PDE agents are plain markdown files that work directly in Claude Code. The build pipeline BMAD uses exists to compile YAML to IDE-specific formats — PDE already has its target format. Adopting BMAD's compilation pipeline adds a build step, a YAML authoring format, and a compilation dependency for a problem PDE doesn't have. | Keep PDE's direct markdown agent format. Borrow BMAD's YAML-defined *structure* for agents (persona, dependencies, workflows, startup instructions) as a documentation convention, not a build system. |
-| **Story-points and sprint ceremonies** | PAUL explicitly rejects these: "No sprint ceremonies. No story points. No enterprise theater." But BMAD includes SM sprint planning and retrospective workflows. Importing both could create a hybrid with formal sprint structure. | PDE's milestone model (phase-based, not sprint-based) already has a simpler cadence that works well for solo and small-team AI-assisted development. Sprint ceremonies add overhead that doesn't map to PDE's execution model (phases complete when done, not on a two-week cadence). | Keep PDE's phase/milestone model. Import BMAD's retrospective *pattern* as a lightweight post-milestone review (already exists as `.planning/RETROSPECTIVE.md`). |
+| Feature | Why Requested | Why Problematic | Alternative |
+|---------|---------------|-----------------|-------------|
+| **Automatic plan rewriting on edge case detection** | If the edge case analyzer finds a gap, why not just fix the plan automatically instead of reporting it? | Automatic plan mutation without user review creates a worse trust problem than the one it solves. Users need to see what changed and why. Automated rewrites without visibility produce plans that don't match what the user intended — the plan was "fixed" in a direction the user didn't choose. | Report edge cases with fix proposals; let user approve which changes to make; execute approved changes with a targeted edit. |
+| **Full AST parsing for type verification** | Proper static analysis of Node.js CJS code requires an AST parser (e.g., Babel, Acorn). Why not just parse the code properly? | PDE has a zero-npm-deps-at-plugin-root constraint. Adding Babel or Acorn as a plugin-level dependency violates this. Building a full AST parser from scratch is out of scope for a reliability milestone. The false negative rate of AST-less pattern matching is acceptable for PDE's use case — the goal is catching obvious mismatches, not proving type safety. | Use regex-based pattern matching on command definitions and call sites. Catch obvious cases (wrong argument count, wrong argument type for known commands). Accept that subtle type mismatches require human review. |
+| **Continuous background validation** | Run research validation and dependency verification continuously as files change, like a language server. | PDE is a Claude Code plugin that runs in session-based invocations. There is no persistent background process. "Continuous" means "on each session start," which is expensive and disruptive. More fundamentally, the reliability guarantees users need are at specific pipeline transition points (research → plan, plan → execute), not continuously. | Trigger validation at well-defined pipeline gates (after research, before planning, before execution). This is when the validation is actionable. |
+| **Validation of external library claims** | RESEARCH.md may claim "Context7 reports that library X supports feature Y." Verifying this claim means re-running Context7 queries. | Re-running research during plan validation doubles research cost and introduces the same uncertainty (Context7 results can change). The validation agent should verify claims against the *actual codebase*, not against re-queried external sources. External library claims are the responsibility of the research agent, not the validation agent. | Scope validation to codebase-verifiable claims only. Mark external library claims as UNVERIFIABLE and flag for human review rather than attempting re-validation. |
+| **Git history-based dependency inference** | Some dependency tools infer cross-phase dependencies from git commit history — "phase M files changed, phase N files that import from M were updated N commits later." | Git history-based inference is brittle for PDE's use case. PDE phases are not 1:1 with commits. Commit messages in PDE don't encode cross-phase dependency data in a parseable format. The inference would produce too many false positives (unrelated changes attributed to dependencies) to be actionable. | Use explicit dependency declarations: task `<files>` tags, PLAN.md objective statements, and ROADMAP.md phase descriptions as the authoritative source for dependency analysis. |
 
 ---
 
 ## Feature Dependencies
 
 ```
-[Project Context Constitution]
-    └──required-by──> [Story-File Sharding] (sharded tasks need compact shared context)
-    └──required-by──> [Acceptance-Criteria-First Planning] (AC reference needs project constraints)
-    └──required-by──> [Implementation Readiness Gate] (checklist needs authoritative project facts)
+[Research Claim Extraction & Verification]
+    └──produces──> RESEARCH-VALIDATION.md
+    └──feeds-into──> [EXISTING: check-readiness] (validation report included in readiness gate)
+    └──feeds-into──> [Research Validation as Standing Gate] (differentiator)
+    └──required-by──> [Claim Confidence Scoring] (scoring requires extracted claims)
 
-[Story-File Sharding]
-    └──required-by──> [HALT Checkpoints] (risk tagging lives in task files, not PLAN.md)
-    └──required-by──> [Workflow Status Tracking] (per-story tracking needs story files to exist)
-    └──enhances──> [Sidecar Agent Memory] (smaller context per task = sidecar content is proportionally more valuable)
+[Claim Confidence Scoring]
+    └──depends-on──> [Research Claim Extraction & Verification]
+    └──enhances──> RESEARCH-VALIDATION.md (adds confidence level per claim)
 
-[Acceptance-Criteria-First Planning]
-    └──required-by──> [Unify/Reconciliation Step] (reconciliation compares ACs against actual changes)
-    └──enhances──> [Implementation Readiness Gate] (gate validates ACs are well-formed before execution)
+[Cross-Phase Dependency Pre-Verification]
+    └──reads──> [EXISTING: ROADMAP.md] (phase graph)
+    └──reads──> [EXISTING: PLAN.md + task-NNN.md shards] (task-level dependencies)
+    └──produces──> DEPENDENCY-GAPS.md
+    └──feeds-into──> [EXISTING: check-readiness] (gaps become CONCERNS or FAIL items)
+    └──required-by──> [Dependency Gap Fix Proposals] (fix proposals require gap analysis)
 
-[Implementation Readiness Gate]
-    └──depends-on──> [Acceptance-Criteria-First Planning] (gate checks AC quality)
-    └──depends-on──> [Project Context Constitution] (gate validates consistency against project facts)
-    └──gates──> [Story-File Sharding] (don't shard until plan passes readiness check)
+[Dependency Gap Fix Proposals]
+    └──depends-on──> [Cross-Phase Dependency Pre-Verification]
+    └──enhances──> DEPENDENCY-GAPS.md (adds fix proposals to each gap)
 
-[Unify/Reconciliation Step]
-    └──depends-on──> [Story-File Sharding] (reconciliation compares task files vs. actual changes)
-    └──depends-on──> [Acceptance-Criteria-First Planning] (reconciliation reports AC satisfaction)
-    └──enhances──> [EXISTING: pde-verifier] (feeds deviation report into existing goal-backward check)
+[Plan Edge Case Analysis]
+    └──reads──> [EXISTING: PLAN.md + AC-N definitions]
+    └──reads──> [EXISTING: task-NNN.md shards]
+    └──produces──> EDGE-CASES.md
+    └──feeds-into──> [EXISTING: check-readiness] (edge cases surface as CONCERNS)
+    └──required-by──> [Edge Case AC Generation] (generation requires classified cases)
 
-[Analyst-Persona Discovery]
-    └──enhances──> [EXISTING: gsd:new-project] (deeper brief generation)
-    └──enhances──> [EXISTING: /pde:brief] (brief seeded with analyst output)
-    └──enhances──> [Project Context Constitution] (analyst output informs project-context.md generation)
+[Edge Case AC Generation]
+    └──depends-on──> [Plan Edge Case Analysis]
+    └──writes-to──> [EXISTING: PLAN.md] (appends new AC-N entries with user approval)
 
-[Sidecar Agent Memory]
-    └──depends-on──> [Story-File Sharding] (most valuable when tasks are granular)
-    └──enhances──> [EXISTING: pde-executor] (executor remembers project-specific quirks)
-    └──enhances──> [EXISTING: pde-debugger] (debugger remembers past bug patterns)
-    └──enhances──> [EXISTING: pde-verifier] (verifier remembers what verification strategies work)
+[Integration Point Verification (pre-execution)]
+    └──reads──> [EXISTING: task-NNN.md] (<files> and <action> fields)
+    └──reads──> [EXISTING: pde-tools.cjs] (command definitions)
+    └──produces──> INTEGRATION-CHECK.md
+    └──feeds-into──> [EXISTING: check-readiness] (integration failures as FAIL items)
+    └──required-by──> [Integration Verification with Type Awareness] (type awareness is an enhancement)
 
-[PAUL Session Handoff]
-    └──enhances──> [EXISTING: STATE.md session continuity]
-    └──standalone (no dependencies on other new features)
+[Integration Verification with Type Awareness]
+    └──depends-on──> [Integration Point Verification (pre-execution)]
+    └──enhances──> INTEGRATION-CHECK.md (adds type mismatch detection)
 
-[HALT Checkpoints]
-    └──depends-on──> [Story-File Sharding] (risk tags live in task files)
-    └──standalone otherwise
+[Tech Debt Closure (7 items)]
+    └──standalone (each item targets a specific file/behavior)
+    └──no-dependencies-on-other-new-features
 
-[File-Hash Manifest]
-    └──enhances──> [EXISTING: pde:update / pde-sync-engine]
-    └──standalone (no dependencies on other new features)
-
-[Party Mode]
-    └──enhances──> [EXISTING: pde:discuss-phase]
-    └──standalone (no dependencies on other new features)
-    └──conflicts-with──> [PAUL in-session philosophy] (multi-agent IS the pattern; don't adopt PAUL's anti-subagent bias here)
+[Research Validation as Standing Gate]
+    └──depends-on──> [Research Claim Extraction & Verification]
+    └──modifies──> [EXISTING: plan-phase.md workflow] (wires validation into plan-phase)
 ```
 
 ### Dependency Notes
 
-- **Project Context Constitution must come first:** Story-file sharding fails without a compact shared context to replace the full PLAN.md that sharded tasks are replacing. If executors get only a task file and nothing else, they lack architectural context. The project-context.md is the bridge.
+- **Check-readiness is the integration hub:** All four main validation features (research validation, dependency verification, edge case analysis, integration point verification) produce artifact files that are consumed by the existing readiness gate. Building the readiness gate integration into each new feature is required — otherwise the features produce reports that nobody reads.
 
-- **Story-file sharding is the load-bearing change:** Five other features depend on tasks being in individual files. Build this before HALT checkpoints, workflow status tracking, and sidecar memory — all of which add metadata or behavior to individual task files.
+- **Research validation feeds the planner:** The highest-leverage integration is making the planner aware of low-confidence research claims before it writes the plan. This requires research validation to run *during* plan-phase, not just as a standalone command.
 
-- **Acceptance-criteria-first planning and unify are a pair:** Reconciliation only works if there are formal ACs to check against. Implementing unify without AC-first planning produces a reconciliation step that compares "vague task descriptions" against actual changes — low signal. Implement them together.
+- **Tech debt closure is independent:** None of the 7 tech debt items depend on the new validation features. They can be built in any order and in parallel with validation work. Good candidates for an early phase in the milestone to close known issues before adding new surface area.
 
-- **Analyst persona is additive, not blocking:** No other feature depends on the Analyst persona. It enhances quality of inputs to planning but doesn't change the architecture of any other feature. Safe to defer.
-
-- **Sidecar memory and file-hash manifest are both standalone:** Neither depends on story-file sharding or AC-first planning. They can be built in any order and don't require the other new features to work. Good candidates for later phases in the milestone if scope is tight.
+- **Differentiators depend on table stakes:** All differentiators are enhancements to table stakes features. Build the table stakes features first, then layer on the differentiators in subsequent phases.
 
 ---
 
-## MVP Definition (for v0.6 Milestone)
+## MVP Definition (for v0.7 Milestone)
 
-### Launch With (v0.6 core — minimum to satisfy "methodology import")
+### Launch With (v0.7 core — minimum to satisfy "pipeline reliability")
 
-These features are what makes this a methodology import rather than a documentation update.
+These features are what makes this milestone a genuine reliability improvement rather than just additional reports.
 
-- [ ] **Project context constitution** — generates `.planning/project-context.md`; auto-updated from PROJECT.md + REQUIREMENTS.md; max 4KB; every subagent receives it. Foundation all other features depend on.
-- [ ] **Story-file sharding** — `pde-planner` emits `tasks/` directory; `pde-executor` loads one task file at a time; each task file is self-contained with AC references, file paths, relevant schema. The single highest-impact BMAD pattern.
-- [ ] **Acceptance-criteria-first planning** — planner output schema adds AC section; tasks reference AC-N; verifier validates ACs directly. Enables reconciliation. Cannot defer if unify is in scope.
-- [ ] **Unify/reconciliation step** — mandatory post-execution step comparing planned tasks vs. actual git changes; produces `RECONCILIATION.md`; feeds into pde-verifier. The single highest-impact PAUL pattern.
-- [ ] **Implementation readiness gate** — `/pde:check-readiness` runs PO-style checklist before execution begins; produces PASS/CONCERNS/FAIL; blocks `pde:execute-phase` on FAIL.
+- [ ] **Research claim extraction and codebase verification** — new agent reads RESEARCH.md, extracts verifiable claims, checks each against the codebase, writes RESEARCH-VALIDATION.md. This is the feature the user's memory file `project_research_validation.md` describes as the core requirement.
+- [ ] **Cross-phase dependency pre-verification** — new check in readiness gate (or separate command) that reads ROADMAP.md + PLAN.md and flags dependencies on work not yet built; produces DEPENDENCY-GAPS.md.
+- [ ] **Plan edge case analysis** — new agent or readiness gate extension that reads plan + ACs and surfaces uncovered error paths, empty states, and boundary conditions as CONCERNS in READINESS.md.
+- [ ] **Integration point verification (pre-execution)** — checks that task-level calls to pde-tools.cjs, external files, and module exports are valid before execution begins; adds INTEGRATION-CHECK.md.
+- [ ] **Tech debt closure (all 7 items)** — resolves TRACKING-PLAN.md reference, lock-release trailing arguments, SUMMARY.md one_liner field, pde-tools.cjs usage help text gaps, and remaining items from PROJECT.md.
 
-### Add After Validation (v0.6.x — extend once core is stable)
+### Add After Validation (v0.7.x — extend once core is working)
 
-- [ ] **Task boundary enforcement** — adds `<boundaries>` field to task schema; executor enforces DO NOT CHANGE sections. Add when story-file sharding is working and users report scope drift.
-- [ ] **HALT checkpoints for high-risk tasks** — planner tags `risk: high` tasks; executor pauses for confirmation. Add when users report irreversible execution mistakes.
-- [ ] **Workflow status tracking** — per-story TODO/IN_PROGRESS/DONE in `tasks/workflow-status.md`. Add when users report difficulty tracking mid-phase progress.
-- [ ] **PAUL session handoff documents** — `/pde:handoff-session` generates `.planning/HANDOFF.md`. Add when users report friction resuming work after breaks.
-- [ ] **Pre-planning assumptions capture** — `/pde:assumptions` surfaces planner's intended approach before plan generation. Add when planning rework is reported due to wrong assumptions.
+- [ ] **Claim confidence scoring** — graduated confidence levels (HIGH/MEDIUM/LOW/UNVERIFIABLE) per extracted claim; add when users report that validation reports are too binary to act on.
+- [ ] **Dependency gap fix proposals** — structured fix proposals for each dependency gap; add when users report that DEPENDENCY-GAPS.md is useful but they don't know how to resolve the gaps.
+- [ ] **Research validation as standing gate** — auto-wire validation into plan-phase.md so every plan gets a validation pass; add after standalone validation is stable.
 
-### Future Consideration (v0.7+)
+### Future Consideration (v0.8+)
 
-- [ ] **Analyst-persona discovery** — `/pde:discover` command with multi-round probing interview pattern. High value but no dependency blocking it; defer until core methodology is settled.
-- [ ] **Sidecar agent memory** — per-agent-type persistent memory across sessions. Moderate complexity; most valuable after users have run 3+ milestones on a project (when memory pays off).
-- [ ] **File-hash manifest for updates** — replaces three-way merge in `pde:update`. Valuable but pde:update has been working; defer until a user reports a conflict that hash manifest would have prevented.
-- [ ] **Party Mode for phase discussions** — multi-persona critique during `/pde:discuss-phase`. High complexity; exploratory; good v0.7 candidate after methodology stabilizes.
-- [ ] **CARL-style rule unloading** — context lifecycle management for skill injections. Large scope change; uncertain payoff in Claude Code's session model; deep future.
+- [ ] **Edge case AC generation** — auto-generate BDD ACs for uncovered edge cases; high value but requires careful UX to avoid polluting plans with machine-generated ACs users didn't ask for.
+- [ ] **Integration verification with type awareness** — argument shape checking for pde-tools.cjs callers; useful but requires significant pattern-matching work for marginal gain over basic integration checks.
 
 ---
 
@@ -260,59 +165,125 @@ These features are what makes this a methodology import rather than a documentat
 
 | Feature | User Value | Implementation Cost | Priority |
 |---------|------------|---------------------|----------|
-| Project context constitution | HIGH — unlocks all sharding features | LOW | P1 |
-| Story-file sharding | HIGH — primary BMAD pattern; 90% token savings | MEDIUM | P1 |
-| Acceptance-criteria-first planning | HIGH — required for reconciliation; improves plan quality | MEDIUM | P1 |
-| Unify/reconciliation step | HIGH — primary PAUL pattern; catches plan-vs-actual drift | MEDIUM | P1 |
-| Implementation readiness gate | HIGH — prevents executing incomplete/inconsistent plans | MEDIUM | P1 |
-| Task boundary enforcement | MEDIUM — prevents scope creep during execution | LOW | P2 |
-| HALT checkpoints | MEDIUM — safety for high-risk tasks | LOW–MEDIUM | P2 |
-| Workflow status tracking | MEDIUM — mid-phase visibility | LOW | P2 |
-| PAUL session handoff | MEDIUM — reduces friction on session resume | LOW | P2 |
-| Pre-planning assumptions capture | MEDIUM — prevents planning rework | LOW | P2 |
-| Analyst-persona discovery | HIGH — better project briefs | MEDIUM | P3 |
-| Sidecar agent memory | MEDIUM — cross-session learning | MEDIUM | P3 |
-| File-hash manifest | MEDIUM — cleaner updates | LOW–MEDIUM | P3 |
-| Party Mode | MEDIUM — multi-perspective critique | MEDIUM-HIGH | P3 |
+| Research claim extraction & verification | HIGH — prevents plans built on hallucinated codebase facts | MEDIUM | P1 |
+| Cross-phase dependency pre-verification | HIGH — prevents mid-execution failures from missing work | MEDIUM | P1 |
+| Plan edge case analysis | HIGH — surfaces what plans silently assume away | MEDIUM | P1 |
+| Integration point verification (pre-execution) | HIGH — catches calling convention mismatches before execution | MEDIUM | P1 |
+| Tech debt closure (7 items) | MEDIUM-HIGH — cleans up broken references and cosmetic issues | LOW–MEDIUM | P1 |
+| Claim confidence scoring | MEDIUM — makes validation reports more actionable | MEDIUM | P2 |
+| Dependency gap fix proposals | MEDIUM — transforms gap reports into actionable fixes | MEDIUM | P2 |
+| Research validation as standing gate | HIGH — closes the feedback loop automatically | LOW–MEDIUM | P2 |
+| Edge case AC generation | MEDIUM — turns analysis into plan improvements | MEDIUM | P3 |
+| Integration verification with type awareness | LOW-MEDIUM — marginal gain over basic integration checks | MEDIUM-HIGH | P3 |
 
 **Priority key:**
-- P1: Must have for v0.6 milestone to close ("methodology import" claim requires these)
-- P2: Include if implementation time permits; strong v0.6.x candidates
-- P3: Future milestone (v0.7+)
+- P1: Must have for v0.7 milestone to close ("pipeline reliability" claim requires these)
+- P2: Include if implementation time permits; strong v0.7.x candidates
+- P3: Future milestone (v0.8+)
 
 ---
 
-## Methodology Comparison Matrix
+## Phase Ordering Recommendation
 
-| Capability | PDE Current (v0.5) | BMAD Pattern | PAUL Pattern | v0.6 Recommendation |
-|-----------|---------------------|--------------|--------------|---------------------|
-| Planning granularity | Phase → PLAN.md → Tasks (prose list) | Phase → Stories (atomic self-contained files) | Phase → PLAN.md with XML task structure + ACs | Adopt story-file sharding; add AC-first schema |
-| Agent specialization | Generic executor/planner/verifier | 9 specialized personas (Analyst → QA) | None (single "AI-assisted developer") | Add Analyst persona for discovery; keep generic executor (PDE strength) |
-| Execution model | Autonomous parallel subagents | Human-sequential with HALT gates | Human-sequential; in-session preferred | Keep autonomous; add HALT for high-risk only |
-| Verification | Goal-backward Nyquist assertions | QA agent per story + PO master checklist | UNIFY plan-vs-actual reconciliation | Keep Nyquist; add reconciliation step before existing verifier |
-| State persistence | STATE.md + git (phase-level) | Sidecar + frontmatter + hash manifest | STATE.md (loop position, decisions log) | Add story-level workflow-status.md; add project-context.md |
-| Context management | Skill injection + dedup | Story sharding + JIT loading | CARL rule loading | Adopt sharding; defer rule unloading |
-| Cross-session memory | File-based auto-memory | Agent sidecars (per agent type) | Session-scoped only | Add agent sidecars in v0.6.x |
-| Multi-perspective design | Single questioning agent | Party Mode (BMad Master orchestrates) | Not applicable | Add Party Mode in v0.7 |
-| Update safety | Three-way merge | Hash manifest | Not applicable | Add hash manifest in v0.6.x |
-| Pre-execution validation | None (plan → execute immediately) | Implementation readiness gate (PASS/FAIL) | Assumptions capture before planning | Add readiness gate (BMAD pattern); add assumptions capture (PAUL pattern) |
+Based on dependencies and risk:
+
+**Phase 1: Tech debt closure** — independent of new features; builds confidence that the platform is clean before adding new surface area. Low risk, high clarity.
+
+**Phase 2: Research claim verification** — first new agent; standalone with clear I/O (RESEARCH.md in, RESEARCH-VALIDATION.md out). Establishes the pattern for subsequent verification agents.
+
+**Phase 3: Integration point verification** — reads task files (already sharded by v0.6); checks pde-tools.cjs which is stable and well-defined. Lower uncertainty than dependency verification.
+
+**Phase 4: Cross-phase dependency pre-verification** — more complex (requires reading ROADMAP.md phase graph and reasoning about build order); builds on patterns from phase 2 and 3.
+
+**Phase 5: Plan edge case analysis + readiness gate integration** — last because it requires the other three verification artifacts to be in place; the readiness gate becomes the unified surface for all verification outputs.
+
+---
+
+## Behavioral Expectations by Feature
+
+### Research Claim Extraction and Verification
+
+**What a claim looks like:** "pde-tools.cjs exposes a `shard-plan` subcommand" (high verifiability — grep the file), "The MCP bridge handles reconnection automatically" (medium verifiability — requires reading logic, not just existence), "Node.js CJS is the correct module format for this project" (low verifiability — convention claim, not codebase fact).
+
+**Expected verifiable claim types:**
+- File existence: "file X exists at path Y"
+- Command/function availability: "pde-tools.cjs exposes command X"
+- Interface shape: "function X accepts arguments (a, b, c)"
+- Configuration value: "config setting X defaults to Y"
+- Agent/workflow name: "workflow X is at path Y"
+
+**Expected unverifiable claim types (mark, don't attempt to verify):**
+- Library capability claims ("Context7 says library X supports Y")
+- Performance claims ("this approach is faster than X")
+- Future behavior claims ("this will work when...")
+
+**Output:** RESEARCH-VALIDATION.md with claim table (claim, type, verification method, result, confidence), summary counts, overall validation status.
+
+### Cross-Phase Dependency Pre-Verification
+
+**What a dependency looks like:** Task in phase N has `<action>` that calls a function exported from a file that phase M was supposed to create, but phase M status in ROADMAP.md is PLANNED (not COMPLETE).
+
+**Expected gap types:**
+- Missing file: task calls path that doesn't exist and no prior phase created it
+- Unbuilt function: task calls named export that doesn't exist in the codebase
+- Phase ordering: task in phase N depends on output of phase M where M > N in execution order
+
+**Output:** DEPENDENCY-GAPS.md with gap table (phase, task, dependency, type, resolution options), feeds into READINESS.md.
+
+### Plan Edge Case Analysis
+
+**Standard edge case categories to always check:**
+- Empty/null inputs: does the plan handle empty arrays, missing files, null config values?
+- Concurrent access: file-based state can have race conditions; does the plan address locking?
+- Partial completion: if the task is interrupted mid-execution, what state is the system left in?
+- Error propagation: if a tool call fails, does the plan specify error handling?
+- Boundary conditions: off-by-one in phase numbers, max-length strings, missing config keys
+
+**Severity classification:**
+- HIGH: missing error handling for a code path that will be exercised in normal use
+- MEDIUM: uncovered edge case that requires unusual conditions to trigger
+- LOW: boundary condition that only appears in adversarial or misconfigured use
+
+**Output:** EDGE-CASES.md with categorized case table; HIGH severity cases surface as CONCERNS in READINESS.md.
+
+### Integration Point Verification
+
+**What to check:**
+- For each `pde-tools.cjs` call in a task: does the subcommand exist? Are arguments in the expected format (number vs. string, positional vs. flag)?
+- For each file import in a task: does the file exist? Is the named export present?
+- For each template reference (`@{CLAUDE_PLUGIN_ROOT}/templates/X`): does the template file exist?
+- For each PLAN.md `<files>` path: does the file exist, or is it being created in this task?
+
+**Output:** INTEGRATION-CHECK.md with check table (task, reference, check type, result); failures surface as FAIL in READINESS.md.
+
+### Tech Debt Closure (7 Items from v0.6)
+
+| Item | File(s) Affected | Fix Type |
+|------|-----------------|----------|
+| PLUG-01: `claude plugin install` from GitHub not tested | README, GETTING-STARTED.md | Documentation + manual test |
+| TRACKING-PLAN.md referenced but doesn't exist | consent panel reference | Create stub or remove reference |
+| Historical commits missing Co-Authored-By | git history | Cannot retroactively fix — document as known exception |
+| lock-release inconsistent trailing args | workflow files using lock-release | Normalize call sites |
+| SUMMARY.md missing `one_liner` field | All SUMMARY.md template files and existing examples | Add field to template + backfill recent files |
+| 2 pre-registered TOOL_MAP entries without consumers | mcp-bridge.cjs | Add consumers or remove entries |
+| pde-tools.cjs help text missing v0.6 commands | bin/pde-tools.cjs | Update help text for manifest, shard-plan, readiness, tracking |
 
 ---
 
 ## Sources
 
-- **BMAD Method GitHub** (HIGH confidence): https://github.com/bmad-code-org/BMAD-METHOD — architecture, compilation pipeline, agent list
-- **BMAD Official Docs** (HIGH confidence): https://docs.bmad-method.org/ — workflow map, party mode
-- **BMAD Workflow Map** (HIGH confidence): https://docs.bmad-method.org/reference/workflow-map/ — complete workflow sequence with commands, agents, artifacts
-- **BMAD Implementation Guide** (HIGH confidence): https://buildmode.dev/blog/mastering-bmad-method-2025/ — agent persona details, workflow phases, artifact specs, quality gates
-- **BMAD Applied Analysis** (HIGH confidence): https://bennycheung.github.io/bmad-reclaiming-control-in-ai-dev — multi-agent coordination, version control integration, quality gates
-- **BMAD Method Guide** (HIGH confidence): https://redreamality.com/garden/notes/bmad-method-guide/ — complete 4-phase workflow, artifact table by phase, quality gate details
-- **BMAD Party Mode** (HIGH confidence): https://docs.bmad-method.org/explanation/party-mode/ — BMad Master orchestration, agent collaboration, use cases
-- **PAUL Framework GitHub** (HIGH confidence): https://github.com/ChristopherKahler/paul — full command reference (26 commands), task XML structure, STATE.md format, CARL system, philosophy
-- **CARL GitHub** (HIGH confidence): https://github.com/ChristopherKahler/carl — 14 rules, just-in-time loading mechanism
-- **PDE EXTERNAL-FRAMEWORKS.md** (HIGH confidence): `.planning/research/EXTERNAL-FRAMEWORKS.md` — prior PDE research from 2026-03-17 with integration candidates and comparison matrix
+- **PDE PROJECT.md** (HIGH confidence): `/Users/greyaltaer/code/projects/Platform Development Engine/.planning/PROJECT.md` — v0.6 baseline capabilities, known tech debt items, v0.7 target features
+- **PDE workflows/verify-phase.md** (HIGH confidence): existing verification agent — goal-backward pattern, artifact verification, wiring checks
+- **PDE workflows/check-readiness.md** (HIGH confidence): existing readiness gate — PASS/CONCERNS/FAIL structure, structural + semantic checks
+- **PDE .planning/research/FEATURES.md v0.6** (HIGH confidence): prior milestone feature research — confirmed v0.6 features as stable baseline
+- **InfoQ AI-Assisted Development 2025** (MEDIUM confidence): https://www.infoq.com/minibooks/ai-assisted-development-2025/ — cross-phase dependency patterns, verification gate patterns
+- **Augment Code Spec-Driven Workflows** (MEDIUM confidence): https://www.augmentcode.com/guides/ai-spec-driven-development-workflows — research-to-plan pipeline patterns
+- **Panto AI Cross-File Dependency Analysis** (MEDIUM confidence): https://www.getpanto.ai/blog/how-panto-ais-cross-file-dependency-analysis-is-transforming-tech-teams-development-workflows — dependency detection in AI-assisted workflows; 40% reduction in integration defects with pre-execution checks
+- **Edge Cases and Error Handling: Where AI Code Falls Short** (MEDIUM confidence): https://codefix.dev/2026/02/02/ai-coding-edge-case-fix/ — AI optimization for happy path; edge case categories; why empty arrays / null values / boundary conditions are under-covered
+- **AI Code Review Automation Guide 2025** (MEDIUM confidence): https://www.digitalapplied.com/blog/ai-code-review-automation-guide-2025 — 42-48% bug detection rates for AI reviewers; categories of issues caught vs. missed
+- **Infomineo AI Hallucination Verification Guide 2025** (MEDIUM confidence): https://infomineo.com/artificial-intelligence/stop-ai-hallucinations-detection-prevention-verification-guide-2025/ — research claim grounding patterns; confidence scoring approaches; types of verifiable vs. unverifiable claims
 
 ---
 
-*Feature research for: PDE v0.6 — BMAD + PAUL Methodology Import*
+*Feature research for: PDE v0.7 — Pipeline Reliability & Validation*
 *Researched: 2026-03-19*

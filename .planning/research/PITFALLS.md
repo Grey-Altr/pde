@@ -1,214 +1,240 @@
 # Pitfalls Research
 
-**Domain:** Importing BMAD + PAUL methodology patterns into PDE — an existing agentic workflow platform (v0.6)
+**Domain:** Adding automated validation, dependency verification, and quality gates to an existing AI-assisted development pipeline (PDE v0.7)
 **Researched:** 2026-03-19
-**Confidence:** HIGH (grounded in direct PDE codebase inspection of 145,000+ LOC, verified BMAD official docs, PAUL repository source analysis, and first-principles reasoning about agentic architecture conflicts)
+**Confidence:** HIGH (grounded in PDE codebase history across 6 milestones, PDE RETROSPECTIVE.md lessons, first-principles analysis of AI pipeline validation failure modes, and verified patterns from current research)
 
 ---
 
 ## Critical Pitfalls
 
-### Pitfall 1: Agent Role Namespace Collision
+### Pitfall 1: Validation That Claims Too Much — Treating "File Exists" as "Claim Verified"
 
 **What goes wrong:**
-BMAD defines roles named Analyst, Product Manager, Architect, Scrum Master, Product Owner, Developer, and QA. PDE already has agents named pde-quality-auditor, pde-skill-builder, pde-skill-improver, pde-skill-validator, pde-design-quality-evaluator, and pde-pressure-test-evaluator. When BMAD roles are imported with names like "analyst" or "architect," there is no collision in filenames — but there IS a semantic collision. The BMAD Analyst performs market/competitive research on products. PDE already has `/pde:competitive`, `/pde:opportunity`, and `/pde:recommend` that do the same thing. The BMAD Architect produces architecture documents. PDE already has a planning system (ROADMAP.md, PLAN.md, phase directories) that serves this function. If both live in the same system without a clear boundary, agents — and users — will not know which to invoke.
+The research validation agent extracts claims from research files (e.g., "mcp-bridge.cjs has 36 TOOL_MAP entries") and verifies them by checking whether a file named `mcp-bridge.cjs` exists. The file exists. The claim is marked VERIFIED. But the actual TOOL_MAP count is 34 because two entries were removed in a patch. The validator reported confidence it did not earn.
+
+This failure is insidious because it produces a green status that downstream phases trust. Plans built on "verified research" then execute against a codebase state the research never actually confirmed.
 
 **Why it happens:**
-BMAD and PAUL are full-stack methodology systems. They were each designed to own the entire workflow from scratch. Importing them into a system that already has workflow coverage means there will be conceptual overlap by design. The temptation is to import everything and rationalize it later. This results in two systems answering the same questions differently.
+Claim verification is easier to implement at the file-existence level than at the content-inspection level. A validator that opens files, parses content, and checks specific values requires more engineering. Cutting to "file exists + keyword present" feels like 80% of the value for 20% of the effort. In practice, it is 5% of the value for 20% of the effort — because the claims that cause planning failures are always the specific-count, specific-interface, specific-behavior claims, not the "does this file exist" claims.
 
 **How to avoid:**
-Before importing any BMAD/PAUL role, map it against PDE's existing capabilities. For each BMAD/PAUL agent: identify the PDE skill or workflow that already covers that function, define explicitly what gap (if any) the BMAD/PAUL agent fills that PDE does not, and only import the delta — the capability PDE is missing. The BMAD Analyst's market research function is already covered by `/pde:competitive` and `/pde:opportunity`. Import only what those skills genuinely lack (BMAD's structured PRD output format, for instance) as enhancements to existing PDE skills, not as a separate agent.
+Define claim tiers upfront before implementing the validator. Tier 1: structural claims (file exists, directory exists, command is registered) — verify with Glob/file check. Tier 2: content claims (function X has N parameters, TOOL_MAP has N entries, APPROVED_SERVERS contains Y) — verify with Grep/Read. Tier 3: behavioral claims (command X produces output Y) — mark as UNVERIFIABLE by static analysis, flag for manual verification. Never upgrade a Tier 1 check to satisfy a Tier 2 claim.
 
 **Warning signs:**
-- Two agents in the system that have overlapping stated purposes (e.g., "analyze requirements" appears in both a BMAD Analyst and a PDE skill)
-- Users are uncertain whether to run `/pde:brief` or invoke the BMAD PM agent for the same task
-- A new BMAD-derived agent file exists alongside a PDE workflow that already covers 80% of the same ground
+- Validator code uses only `Glob` or `ls` without any `Grep` or `Read` calls
+- Research claims with specific numbers (counts, versions, parameter names) all show as VERIFIED with zero content inspection
+- Validation runs complete in under 2 seconds (not enough time to read files)
+- The validator's confidence score is uniformly HIGH across claims of wildly different specificity
 
-**Phase to address:** Phase 1 (Role Mapping and Boundary Definition) — this must be resolved before any agent files are created. A decision table mapping every BMAD/PAUL role to its PDE equivalent (or gap) must exist before implementation begins.
+**Phase to address:** Research Validation Agent design phase — the claim tier taxonomy must be defined before the validator is implemented. An acceptance criterion should require at least one Tier 2 (content-inspection) verification to be demonstrated before the phase is marked done.
 
 ---
 
-### Pitfall 2: Dual State Management — `.paul/` vs `.planning/`
+### Pitfall 2: Validation That Claims Too Little — Blocking Plans on Unverifiable Assertions
 
 **What goes wrong:**
-PAUL manages state through a `.paul/` directory with its own STATE.md, PROJECT.md, ROADMAP.md, and phases subdirectory. PDE manages state through a `.planning/` directory with STATE.md, PROJECT.md, ROADMAP.md, and phases. These are structurally identical but semantically distinct. If PAUL patterns are imported naively, the system ends up with two state directories with overlapping file names (both have STATE.md and ROADMAP.md) that diverge over time. Worse: PAUL's PLAN-APPLY-UNIFY loop updates PAUL's STATE.md as the authoritative loop tracker. PDE's autonomous workflow reads PDE's STATE.md as the authoritative phase tracker. Neither reads the other's state. Phase completion recorded in `.planning/STATE.md` is invisible to any PAUL-derived workflow, and vice versa.
+The research validation agent is calibrated conservatively: any claim it cannot definitively verify in the codebase is flagged as UNVERIFIED and blocks plan execution. Research file says "PDE supports graceful degradation for missing MCP connections." The validator cannot find a function named `graceful_degradation` — it flags the claim as unverified. The readiness gate sees an UNVERIFIED claim and blocks the execute phase. The claim was correct — it was describing a behavioral pattern visible across five workflow files, not a single function. Development stops. The developer must manually override the gate to proceed.
+
+This failure mode destroys trust faster than a missing validation entirely. Developers learn that the validation system produces false alarms and start bypassing it. Once bypassed, the gate offers no protection.
 
 **Why it happens:**
-PAUL was designed as a standalone system that owns its state. Importing its patterns means importing its state model, which directly conflicts with PDE's existing state model. The path of least resistance is to let PAUL create its `.paul/` directory and let PDE keep its `.planning/` directory — they coexist without merging, but they also diverge without reconciliation.
+Conservative validation feels like good engineering. The reasoning goes: "Better to block on an unverifiable claim than to let a wrong plan execute." This logic is sound for security-critical systems, but wrong for an AI development pipeline where most research claims are directionally correct even if not byte-perfectly verifiable. A system that blocks 30% of valid plans trains developers to ignore it.
 
 **How to avoid:**
-Do not import PAUL's state management structure. PDE's `.planning/` directory IS the canonical state store for PDE, and this must not change. Extract PAUL's workflow discipline (Plan-Apply-Unify loop integrity, acceptance-criteria-first task definition, closure enforcement) as patterns to apply WITHIN PDE's existing state model. PAUL's PLAN.md format maps to PDE's `*-PLAN.md` files in `.planning/phases/`. PAUL's UNIFY discipline maps to PDE's `*-SUMMARY.md` requirement. The loop can be enforced by PDE's tooling without creating a second state directory.
+Design the validator with an explicit UNVERIFIABLE status that is not a blocker. Claims marked UNVERIFIABLE are surfaced as advisory notes — the readiness gate shows them as CONCERNS (not FAIL) and proceeds. Only claims marked CONTRADICTED (where the validator found evidence that directly opposes the claim) should produce a FAIL status. The three-status model (VERIFIED / UNVERIFIABLE / CONTRADICTED) is far more useful than binary (VERIFIED / UNVERIFIED). PDE's existing readiness gate already uses PASS/CONCERNS/FAIL — map to that model, not a stricter one.
 
 **Warning signs:**
-- A `.paul/` directory exists alongside `.planning/` in the project root
-- Two files named STATE.md or ROADMAP.md exist in the project (even in different directories)
-- A PAUL-derived workflow reads from `.paul/STATE.md` instead of `.planning/STATE.md`
+- Validator uses a binary VERIFIED/UNVERIFIED output with no UNVERIFIABLE middle state
+- The readiness gate treats UNVERIFIABLE the same as CONTRADICTED
+- Developers are manually overriding the readiness gate more than once per milestone
+- Research files that were accurate in prior milestones start being flagged as invalid
 
-**Phase to address:** Phase 1 (Architecture Boundary Definition) — the single-state-store decision must be made first. All subsequent phases inherit from it. Any PAUL pattern that requires its own state directory must be rejected or adapted to PDE's `.planning/` structure.
+**Phase to address:** Research Validation Agent design phase — the three-status model (VERIFIED/UNVERIFIABLE/CONTRADICTED) must be defined in the agent's return format specification, not added as a patch after implementation.
 
 ---
 
-### Pitfall 3: Document Sharding Conflicts with PDE's Artifact Registry
+### Pitfall 3: Dependency Verification That Checks Static Declarations, Not Runtime Paths
 
 **What goes wrong:**
-BMAD's core innovation is "document sharding" — breaking large PRDs and architecture documents into atomic, AI-digestible chunks to prevent context overload. BMAD shards its documents into focused files that each agent loads independently. PDE has its own artifact management: design-manifest.json tracks 13 coverage flags, `.planning/design/` holds structured artifacts by stage, and `*-PLAN.md` files are written with wave-based parallelization in mind. If BMAD sharding is imported without adaptation, there will be two competing artifact formats: BMAD's sharded PRD chunks and PDE's phase-plan files. An agent running PDE's execute-phase workflow will not know to look for BMAD shards. An agent running BMAD's document workflow will not update PDE's design-manifest.json coverage flags.
+The cross-phase dependency checker reads `CONTEXT.md` files looking for declared dependencies (e.g., "Phase 3 depends on Phase 2 completing"). It finds the declaration, checks that Phase 2 is marked complete in the roadmap, and reports the dependency as satisfied. But the actual runtime dependency is that Phase 2's `pde-tools.cjs` enhancement must export a new `readiness()` function that Phase 3's workflow calls. Phase 2 was completed but the `readiness()` function was scoped out and not implemented. The dependency checker sees COMPLETE status — it does not read Phase 2's actual deliverables against Phase 3's actual consumption.
+
+Plans execute with a missing function. The failure surfaces three phases later with an obscure runtime error.
 
 **Why it happens:**
-BMAD's sharding is a concrete implementation pattern, not just a principle. Importing it means importing its file structure and naming conventions. When these conventions are applied on top of PDE's existing conventions, the output is hybrid artifacts that fit neither system.
+Phase completion status is easy to check (it's a field in CONTEXT.md or STATE.md). Interface-level dependencies require reading what each phase produces and what each phase consumes — a cross-reference problem that requires understanding the codebase's actual data flow. Teams default to the easy check and call it dependency verification.
 
 **How to avoid:**
-Import the sharding PRINCIPLE (keep context chunks focused and below AI-digestible size), not the sharding FILE FORMAT. PDE's existing wave-based parallel plan execution already implements sharding discipline: each `*-PLAN.md` is scoped to a specific, bounded task. Enhance PDE's plan templates to enforce BMAD-level context focus (explicit acceptance criteria, file-level specificity, bounded context references) without introducing BMAD's artifact naming conventions. If any BMAD document format is genuinely superior to PDE's equivalent, replace PDE's format — do not run both in parallel.
+Define dependency checks at two levels and implement both. Level 1 (structural): Is the upstream phase marked complete? Does the expected output file exist? Level 2 (interface): Does the upstream phase's output contain the specific function/field/export that the downstream phase requires? Level 2 checks require the dependency specification to include interface contracts, not just "depends on Phase N." For PDE, this means plan templates should include an `interface_required` field listing specific exports or file shapes each plan needs from its upstreams.
 
 **Warning signs:**
-- BMAD-formatted files (e.g., `prd-shard-01.md`, `architecture-shard-02.md`) appear in `.planning/` alongside PDE-formatted `*-PLAN.md` files
-- PDE's design-manifest.json coverage flags are not updated after a BMAD-methodology phase completes
-- The pde-tools.cjs CLI does not recognize BMAD-generated artifacts when running `roadmap analyze` or `design coverage-check`
+- Dependency check reports only pass/fail with no interface-level detail
+- The check passes for a phase whose upstream deliverable file exists but is a stub
+- No plan template includes an explicit interface contract section
+- Runtime failures in execute phases are caused by missing function signatures that dependency checking should have caught
 
-**Phase to address:** Phase 2 (Artifact Format Integration) — a canonical artifact format decision must be made per artifact type before any phase produces documents. Running BMAD-format and PDE-format artifacts in the same directory will cause the validation infrastructure to break.
+**Phase to address:** Cross-phase dependency verification design phase — the interface contract schema must be defined before the checker is built. Without contracts to check against, the checker can only verify status fields, which is insufficient.
 
 ---
 
-### Pitfall 4: Methodology Bloat — Importing Everything, Using Nothing
+### Pitfall 4: Edge Case Analysis That Generates Noise Instead of Signal
 
 **What goes wrong:**
-BMAD has 12+ agent roles and a multi-phase lifecycle. PAUL has 5 core commands and a loop model. Both have extensive documentation and templates. The temptation when importing methodologies is to be comprehensive — import all the roles, all the templates, all the reference documents, to "have them available if needed." The result is a PDE installation with 12 BMAD agent files, 5 PAUL command files, and 40+ new template files, of which 3-4 are actually used. The unused files bloat the codebase (PDE is already 145,000 LOC), confuse users who see unfamiliar commands, and create a maintenance burden — every time PDE's skill-style-guide changes, all 12 BMAD agent files need updating too.
+The plan edge case analysis agent reads a plan and generates a list of edge cases to consider. It produces 23 items: "What if the file is empty?", "What if the user cancels mid-execution?", "What if the network is unavailable?", "What if there are special characters in the filename?", etc. These are generically valid edge cases for any software system. The developer reviews the list, finds 18 of 23 are inapplicable to this specific plan (it reads a manifest file that PDE writes — it will never be empty; it runs offline — network unavailability is irrelevant), and dismisses the entire list including the 5 that were genuinely important.
+
+Alert fatigue from low-signal noise causes real issues to be missed at the same rate as no analysis at all.
 
 **Why it happens:**
-"Import everything" feels safer than "import selectively" — if you miss something needed later, you have to do it again. Selective import requires making hard decisions about what PDE actually needs from BMAD/PAUL vs. what it already covers. Those decisions require analytical discipline that is easier to skip.
+Edge case generation via LLM is easy to make comprehensive (broad, generic coverage) and hard to make precise (high-relevance, context-specific coverage). Generic edge cases feel thorough. Without a filtering mechanism tied to the plan's actual domain and constraints, the output is a long list of generically true statements rather than a curated list of plan-specific risks.
 
 **How to avoid:**
-Define the specific capability gaps in PDE that BMAD/PAUL closes. PDE already has: competitive analysis, opportunity scoring, ideation, briefing, planning (ROADMAP/phases), execution (execute-phase/execute-plan), verification, and autonomous mode. From BMAD, what is genuinely missing: structured business requirements format (PRD discipline), epic/story decomposition for developer handoff. From PAUL, what is genuinely missing: explicit loop closure enforcement (UNIFY step), acceptance-criteria-first task definition, boundary constraint documentation. Import ONLY those gaps. Every BMAD/PAUL element proposed for import must answer: "What does PDE not do today that this provides?"
+Edge case analysis must be scoped to the plan's domain before generation. The agent should first extract: (1) what external systems does this plan touch, (2) what state does this plan read and write, (3) what are the defined error cases in the codebase for similar operations. Only then generate edge cases. Additionally, implement a relevance filter: any edge case that is not connected to one of the plan's explicit file targets, function calls, or state transitions should be excluded. Target 5-8 high-relevance edge cases, not 20+ generic ones. Quality over quantity is the design principle.
 
 **Warning signs:**
-- More than 5 new agent files are being created for the v0.6 milestone
-- New template files are added with no corresponding workflow that uses them
-- BMAD or PAUL documentation files are imported wholesale rather than selectively adapted
-- The number of `/pde:` commands grows by more than 6 in this milestone
+- Edge case lists contain more than 10 items per plan
+- Items on the list are not referenced to specific parts of the plan (no file path, no function name, no state field)
+- The same edge cases appear verbatim across multiple unrelated plans
+- Developer inspection rate of edge case lists drops below 50% after the first two uses
 
-**Phase to address:** Phase 1 (Capability Gap Analysis) — before any implementation, produce an explicit gap table: PDE capability X covers BMAD/PAUL concept Y, import is not needed; BMAD/PAUL concept Z has no PDE equivalent, import is justified. Reject any import without a clear gap justification.
+**Phase to address:** Plan edge case analysis design phase — the relevance filtering criteria must be part of the agent's process steps, not an afterthought. The acceptance criterion should require that each generated edge case references a specific element of the analyzed plan.
 
 ---
 
-### Pitfall 5: PAUL's UNIFY Step Has No File-Based Equivalent in PDE
+### Pitfall 5: Integration Verification That Can't Keep Up With Codebase Evolution
 
 **What goes wrong:**
-PAUL's Plan-Apply-Unify loop requires that every plan close with a UNIFY step: reconcile planned vs. actual work, log decisions, update state. In PAUL's model, a plan without UNIFY is an orphan. PDE has SUMMARY.md files that serve a similar purpose, but SUMMARY.md is not enforced as a closure gate — a phase can be marked complete by `pde-tools.cjs` without a SUMMARY.md existing. If PAUL's UNIFY discipline is imported superficially (add a note to write SUMMARY.md), it will be skipped the same way SUMMARY.md is currently skipped. If PAUL's UNIFY is enforced as a hard gate, it may break PDE's existing `pde-tools.cjs` phase-completion logic which does not currently check for SUMMARY.md before allowing phase progression.
+The integration point verifier is built to check that all exports in `mcp-bridge.cjs` are consumed by at least one workflow file. It passes on Day 1. By Day 30, six new workflow files have been added and two have been modified. The integration verifier has a hardcoded list of workflow files to check against (the 12 that existed when it was built). The two new orphan exports from last week's features do not appear in its scan because the new workflow files are not in its scope list. It reports clean. Nobody notices until a user's workflow silently calls a function that was removed.
+
+Static verification tools that cannot self-update their scope become actively misleading over time.
 
 **Why it happens:**
-PDE was designed for speed (yolo mode, parallelization, auto-chain). The UNIFY discipline requires intentional closure — a step that slows down execution in exchange for state hygiene. These goals are in tension. PAUL solves the tension by making UNIFY mandatory. PDE solves the tension by making it optional (you can advance without SUMMARY.md). Adopting PAUL's approach means changing PDE's execution gate, which touches `pde-tools.cjs`, the execute-phase workflow, the autonomous workflow, and the roadmap analyze command.
+The first pass of integration verification is written against the known codebase at time of implementation. Scope enumeration (which files to check) is hardcoded because it is the easiest approach. As the codebase grows, the hardcoded scope silently drifts from reality. Nobody remembers to update the verifier's scope list because it keeps reporting green.
 
 **How to avoid:**
-Decide explicitly whether PDE v0.6 will adopt hard UNIFY enforcement. If yes: update `pde-tools.cjs` phase completion logic to gate on SUMMARY.md existence before marking a phase done, and update the verification-report template to include a UNIFY reconciliation section. If no: adopt PAUL's UNIFY discipline as a soft recommendation in the phase-prompt template without changing gate logic. Do not adopt UNIFY as a halfway measure where it is documented but not enforced — that produces the worst outcome (documentation overhead, no behavioral change).
+Integration verification must use dynamic scope discovery, not hardcoded file lists. For PDE, this means the verifier discovers workflow files by globbing `workflows/**/*.md`, discovers command stubs by globbing `commands/**/*.md`, and discovers exports by reading actual module export statements — not by checking a list written at implementation time. The glob pattern is the scope definition. Any file added to the codebase is automatically included in subsequent verification runs. Additionally, the verifier should report its scope (N files checked) as part of its output — a sudden drop in scope count is an early warning of misconfiguration.
 
 **Warning signs:**
-- PAUL's loop closure is described in reference documentation but not enforced by pde-tools.cjs
-- SUMMARY.md files are still being skipped in completed phases after the v0.6 milestone ships
-- New phase templates include a UNIFY section that the autonomous workflow does not wait for
+- Verifier code contains hardcoded file path arrays instead of glob patterns
+- The verifier's scope count never changes between runs despite codebase growth
+- New workflow files were added without updating any verification configuration
+- Integration check output does not report how many files were inspected
 
-**Phase to address:** Phase 3 (Loop Enforcement Integration) — if UNIFY enforcement is adopted, it requires changes to pde-tools.cjs and the execute-phase workflow before any other PAUL patterns are implemented. The gating logic change is a prerequisite for all loop-dependent features.
+**Phase to address:** Integration point verification design phase — dynamic scope discovery via glob patterns must be a non-negotiable requirement. Any implementation using hardcoded paths should be rejected in code review.
 
 ---
 
-### Pitfall 6: BMAD's Scrum Master / Story Pattern Duplicates PDE's Plan-Phase Workflow
+### Pitfall 6: Tech Debt Closure That Accidentally Breaks Working Features
 
 **What goes wrong:**
-BMAD's Scrum Master agent produces "hyper-detailed development stories" for the Developer agent — stories that contain full context, implementation details, and architectural guidance. PDE's `plan-phase` workflow produces `*-PLAN.md` files with objectives, success criteria, file targets, and wave groupings for parallel execution. These serve functionally identical purposes. If both exist in the system, the question becomes: do developers use BMAD stories or PDE plans? If both are generated, they can diverge. If BMAD stories are written and PDE plans are not, the execute-phase workflow breaks (it reads `*-PLAN.md` files to discover tasks). If PDE plans are written and BMAD stories are not, the BMAD methodology value is not realized.
+Tech debt item PLUG-01 says "end-to-end `claude plugin install` from GitHub not tested." The fix involves updating the plugin manifest, bumping dependency versions, and adding an install-test script. During the update, the engineer also "cleans up" the manifest format — removing fields that appear redundant. Three of the removed fields were being silently consumed by PDE's design pipeline coverage checks. The coverage checks fail. The pipeline is broken. The tech debt closure introduced a regression in a working feature because the impact of the "cleanup" was not verified before shipping.
+
+Tech debt items are often in structural files (manifests, configuration, core utilities) that have more consumers than their authors realize.
 
 **Why it happens:**
-Both systems solve the "break large requirements into agent-executable tasks" problem with different file formats and naming conventions. Importing BMAD's Scrum Master pattern without retiring PDE's plan-phase creates duplication. Retiring PDE's plan-phase to use BMAD stories requires rewriting pde-tools.cjs, execute-phase, and autonomous.
+Tech debt closure has a psychological permission dynamic: "this was broken before, so I can change things freely." Developers treat tech debt items as invitations for broader cleanup, not surgical fixes. The broader the change, the higher the regression risk. Additionally, structural files like manifests and configuration objects are rarely covered by test assertions — the working features that depend on them are tested, but the specific fields they read are not.
 
 **How to avoid:**
-Do not import the BMAD Scrum Master as a separate agent. Instead, identify the specific improvements BMAD stories offer over PDE plans (richer context embedding, explicit acceptance criteria per story, architectural guidance inline) and incorporate those as enhancements to PDE's `*-PLAN.md` template. The plan-phase workflow produces the output; the template governs the quality of that output. Upgrading the template with BMAD-quality story discipline costs one template change, not a system architecture change.
+Treat each tech debt item as a surgical fix with a defined blast radius. Before touching any file, run grep to discover all consumers of that file. For configuration/manifest files, read every field and verify each field has a known consumer before removing it. The rule: "Only remove what you can prove has no consumer." For PLUG-01 specifically, the fix is adding an install test — nothing else in the manifest should change unless the install test proves it must. Scope the fix to the minimum change that closes the debt item.
 
 **Warning signs:**
-- A BMAD story file exists for the same phase as a PDE `*-PLAN.md` file
-- The execute-phase workflow is modified to read BMAD story files instead of `*-PLAN.md` files
-- The pde:plan-phase command is deprecated in favor of a new BMAD-derived command
+- Tech debt fix commits include changes to files not mentioned in the debt item description
+- A tech debt closure is followed within 24 hours by a regression fix commit
+- The "cleanup" description in a commit message covering a debt item
+- No grep-based consumer audit was performed before modifying a shared configuration file
 
-**Phase to address:** Phase 2 (Plan Template Enhancement) — upgrade `templates/phase-prompt.md` with BMAD story quality disciplines (explicit AC, context embedding, boundary constraints) without changing the file format or the tooling that reads it.
+**Phase to address:** Tech debt closure phase (last planned phase) — each debt item should have a written blast-radius assessment before implementation begins. The assessment lists every file that reads or imports the file being changed.
 
 ---
 
-### Pitfall 7: Context Window Explosion from Methodology Documentation Loading
+### Pitfall 7: Research Validation Agent Develops Stale Codebase View
 
 **What goes wrong:**
-BMAD requires agents to load architecture documents, PRD shards, technical preferences, and story context before executing tasks. PAUL requires agents to load STATE.md, PROJECT.md, prior CONTEXT.md files, and the current PLAN.md before beginning work. PDE already loads STATE.md, the phase's CONTEXT.md, ROADMAP.md, and task-specific plans. If BMAD/PAUL methodology imports add additional required reading to every agent invocation, context window consumption increases significantly. PDE's execute-plan subagents are specifically designed to receive only the context they need (load paths from pde-tools.cjs init, not full files). Adding BMAD/PAUL methodology docs to subagent required reading destroys this lean context model.
+The research validation agent is spawned to verify claims and reads the codebase at spawn time. During a multi-phase milestone, it is invoked again in Phase 4 to re-validate updated research. But Phase 2 and Phase 3 have added new files and modified existing ones. The agent's Glob patterns cache their results during a session. The re-validation still sees the Phase 0 codebase state. It correctly verifies claims about new files added in Phase 2 if the session was started after Phase 2 completed — but if the session spans multiple phases (common in PDE's execution model), the cached file system state may lag.
+
+More dangerously: a claim that was CONTRADICTED in Phase 0 (because a feature did not exist yet) may become valid in Phase 3, but if re-validation is not explicitly triggered, the CONTRADICTED status persists.
 
 **Why it happens:**
-Methodology systems are designed for comprehensive context delivery — their agents work better with more context. PDE is designed for context efficiency — its agents work better with less context (per PROJECT.md: "MCP tool passthrough to all subagents destroys 85% context savings from Tool Search"). Importing methodology agents without adapting their required-reading lists means importing their context-heavy execution model.
+Codebase verification assumes a point-in-time snapshot. Multi-phase development is a time-extended process. The gap between "when research was written" and "when the plan executes" is real, and the research validation agent must be designed with explicit re-validation points, not assumed to remain valid indefinitely.
 
 **How to avoid:**
-Every agent or workflow imported from BMAD/PAUL must have its required-reading list audited and reduced to PDE's minimum-necessary-context standard. Methodology documents that are needed at planning time (when a human is reviewing) are not needed at execution time (when an agent is implementing). Reference documents belong in the references/ directory with tier annotations (essentials/extended/specialist) — they are loaded on demand, not by default. Never add a methodology reference document to an agent's hardcoded required_reading unless it is needed for every invocation of that agent.
+Research validation results must carry a `validated_at_phase` timestamp. Any plan that proceeds on research validated more than N phases earlier (suggest: 2) should re-trigger validation for claims that directly inform that plan's approach. The research validation agent's codebase snapshot is only valid for the phase in which it ran. Implement this as a staleness check: if `validated_at_phase` + 2 < current_phase, mark the research as STALE and require re-validation before the readiness gate will PASS.
 
 **Warning signs:**
-- Imported agent files have more than 5 items in their required_reading section
-- BMAD methodology documents are loaded by default in execute-plan subagents
-- Context usage per phase execution increases by more than 30% after importing BMAD/PAUL patterns
-- The pde-tools.cjs init response grows beyond its current size due to new methodology fields
+- Research validation results have no timestamp or phase reference
+- The same validation output is cited across plans in different phases without re-running
+- A plan executes against a claim about a file's content that was modified two phases earlier
+- The readiness gate accepts validation results from a different milestone's research phase
 
-**Phase to address:** Phase 4 (Context Optimization Review) — after importing methodology patterns, run a context audit pass. Measure token consumption before and after for a representative pipeline run and cut anything that increased consumption without measurable quality improvement.
+**Phase to address:** Research validation agent design — the `validated_at_phase` field must be part of the agent's output schema from the start. Adding it retroactively requires updating all downstream consumers of validation output.
 
 ---
 
-### Pitfall 8: Skill Validation Infrastructure Rejects Imported Agent Files
+### Pitfall 8: Dependency Verification Causes Pipeline Slowdown That Gets Disabled
 
 **What goes wrong:**
-PDE has a strict lint/validation system for skill files (LINT-001 through LINT-042 in tooling-patterns.md). Every skill file must have `<purpose>`, `<skill_code>`, `<skill_domain>`, `<context_routing>`, and `<process>` sections. Agent files in `agents/` must have a Constraints section and a Return Format section. BMAD and PAUL agent files follow their own format conventions — they will fail PDE's lint rules immediately. If imported agent files are not converted to PDE's format, the pde-quality-auditor will flag them as HIGH severity findings, the pressure-test will fail, and the skill-builder will refuse to improve them (it requires PDE format compliance as a gate).
+The cross-phase dependency checker is correct but slow. It reads every plan file in the milestone, extracts interface contracts, and performs cross-reference checks. On a milestone with 20 plans across 8 phases, this takes 45 seconds. Developers in yolo mode start skipping it. By the third milestone, the check is commented out of the readiness gate because "it always passes anyway and takes too long." The verification that was correct and useful is now disabled — and it was disabled precisely because it was too slow, not because it was wrong.
+
+Slow gates get disabled. Disabled gates provide no protection.
 
 **Why it happens:**
-BMAD and PAUL agents are designed for their own frameworks. They use different XML/markdown conventions, different section names, and different structural patterns. Converting them to PDE format is not glamorous work, so it tends to be deferred. Deferred conversion means the validation infrastructure reports failures that are not real defects, which trains the team to ignore validation output.
+Correctness is optimized before performance. The check is implemented to be thorough (reads all plans) rather than fast (reads only the current phase's dependency surface). As milestones grow, the all-plans approach scales linearly. At 20 plans it is annoying; at 50 plans it is intolerable. By the time the performance problem is obvious, the check has already been disabled.
 
 **How to avoid:**
-No BMAD/PAUL agent file may be merged into the PDE repository without passing PDE's lint rules. This is a non-negotiable gate. The conversion from BMAD/PAUL format to PDE format must be part of the import work for each agent, not a separate cleanup task. The pde-skill-builder should be used to validate and improve each imported agent before it is committed. If an imported agent's functionality can be expressed as an enhancement to an existing PDE workflow rather than a new agent file, prefer the enhancement — it avoids the conversion burden entirely.
+Design dependency checks to be incremental from the first implementation. The check should scope to: (1) plans in the current phase being verified, (2) plans in the direct upstream phase. It does not need to re-verify all prior phases every time — those were verified when they ran. PDE's existing readiness gate model (`/pde:check-readiness`) already runs just before execute — scope the dependency check to that moment's relevant surface, not the full milestone history.
 
 **Warning signs:**
-- Imported agent files exist in `agents/` that were not processed through pde-skill-builder validation
-- pde-quality-auditor reports HIGH findings on imported agent files
-- A `// TODO: convert to PDE format` comment exists in any imported file
-- The pressure-test score drops after importing BMAD/PAUL agents
+- Dependency check runtime grows with milestone phase count (not constant or near-constant)
+- Developers are skipping `/pde:check-readiness` in more than 20% of phases
+- The check reads files from phases that were completed more than 3 phases earlier
+- A comment like "# TODO: make this faster" exists in the dependency checker within a week of implementation
 
-**Phase to address:** Every import phase — lint compliance is a gate on each file merge, not a final cleanup step. Do not allow "we'll fix the lint later" to become a pattern.
+**Phase to address:** Cross-phase dependency verification design phase — performance requirements must be an acceptance criterion alongside correctness requirements. Maximum check runtime: 10 seconds regardless of milestone size.
 
 ---
 
-### Pitfall 9: BMAD's Epic/Story Hierarchy Conflicts with PDE's Milestone/Phase Hierarchy
+### Pitfall 9: Integration Verifier Reports Orphan Exports That Are Intentionally Pre-Registered
 
 **What goes wrong:**
-BMAD organizes work as: Project → Epic → Story → Task. PDE organizes work as: Milestone → Phase → Plan → Step. These hierarchies are structurally similar but semantically different. A BMAD Epic roughly maps to a PDE Phase. A BMAD Story roughly maps to a PDE Plan. If BMAD terminology is imported alongside PDE terminology, users and agents will use the terms interchangeably and inconsistently. An agent told to "create epics for this milestone" will produce BMAD-format epic files in `.planning/`. An agent told to "create phases for this milestone" will produce PDE-format CONTEXT.md/PLAN.md pairs. Both exist, neither is authoritative. The pde-tools.cjs roadmap analyzer cannot parse BMAD epic files, so the autonomous workflow cannot discover them as work items.
+PDE's `mcp-bridge.cjs` TOOL_MAP contains two entries that have no current consumers: `github:update-pr` and `github:search-issues`. These are intentionally pre-registered for future use (noted in PROJECT.md). The integration verifier correctly identifies them as "exported but unconsumed" and flags them as integration gaps. The developer sees two FAIL items in the verification report and spends 30 minutes investigating whether they are real problems before realizing they are known intentional pre-registrations. Next time, the developer ignores all integration verifier output to avoid the false alarm.
+
+Pre-registered / intentional orphans are not bugs — treating them as bugs trains developers to ignore the verifier.
 
 **Why it happens:**
-Terminology from both systems gets imported alongside the functionality. When documentation describes the imported feature using BMAD terminology, it implicitly endorses the BMAD hierarchy. Over time, hybrid language creates conceptual debt where no one is sure which hierarchy governs.
+Integration verification tools have no concept of "intentional orphan." A function that is exported but not currently consumed either (a) is dead code that should be removed, or (b) is a pre-registration for known future use. Without a way to express (b), the verifier cannot distinguish the two cases and flags everything in category (a).
 
 **How to avoid:**
-Import BMAD/PAUL concepts using PDE's existing terminology. A BMAD Epic is a PDE Phase. A BMAD Story is a PDE Plan. A PAUL PLAN is a PDE PLAN.md. A PAUL UNIFY is a PDE SUMMARY.md. In all PDE documentation, workflow files, and agent prompts, use PDE's terms only. If there is genuinely no PDE equivalent for a BMAD/PAUL concept, coin a new PDE-namespaced term — do not use BMAD/PAUL's term as-is.
+Implement an allowlist mechanism for intentional orphans. In PDE's case, a `# TOOL_MAP_PREREGISTERED` comment above a TOOL_MAP entry signals that the entry is intentional and should not be flagged. The integration verifier reads these annotations and excludes them from its orphan report. Any pre-registered entry that has been in the allowlist for more than one milestone without gaining a consumer triggers a review prompt — not a failure, but a "this has been orphaned for two milestones, confirm it is still intentional."
 
 **Warning signs:**
-- PDE documentation uses the words "epic," "story," or "sprint" alongside "phase," "plan," and "milestone"
-- A new file type (e.g., `*-EPIC.md` or `*-STORY.md`) appears in `.planning/phases/`
-- The pde-tools.cjs roadmap analyzer is being modified to parse BMAD epic files
-- Users are asking whether to use `/pde:plan-phase` or the BMAD Scrum Master for the same task
+- Integration verifier reports orphans that are listed in PROJECT.md or RETROSPECTIVE.md as known intentional pre-registrations
+- The same orphan entries appear in every integration report without ever being resolved
+- Developers are running `grep` to determine which entries were pre-registered versus accidentally orphaned
+- False positive rate in integration reports exceeds 15%
 
-**Phase to address:** Phase 1 (Terminology Governance) — establish a canonical PDE-to-BMAD/PAUL glossary mapping before any documentation is written. All milestone documentation for v0.6 must use PDE terms exclusively.
+**Phase to address:** Integration point verification design phase — the allowlist annotation format must be defined before the verifier is built. Retrofitting annotations after the verifier is built requires updating all pre-existing intentional orphans.
 
 ---
 
-### Pitfall 10: Partial Methodology Import Creates an Inconsistent User Mental Model
+### Pitfall 10: Validation Agents That Modify State While Verifying It
 
 **What goes wrong:**
-v0.6 imports BMAD's business analysis discipline (structured PRD format, structured architecture documents) and PAUL's loop discipline (Plan-Apply-Unify closure). But it does not import BMAD's full agent team (no separate PM, Architect, or Scrum Master agents) and does not import PAUL's CARL dynamic context injection. Users who read BMAD or PAUL documentation to understand how PDE works will find partial, inconsistent coverage. Users who already use BMAD will expect BMAD's full workflow; finding only parts of it will confuse them. Users who do not know BMAD will encounter unfamiliar discipline names ("PRD," "acceptance criteria") without understanding why they exist.
+The research validation agent is designed to be read-only — it reads research files and codebase files to verify claims. During implementation, a convenience shortcut is added: if the agent detects that a research file is outdated, it "helpfully" updates the file with corrected information. This seems beneficial — the research files stay accurate. But: the updated research files are now being modified by a subagent that was spawned by the readiness gate. The readiness gate's purpose is verification, not modification. If the validation agent modifies files, it has side effects on the state that the main workflow did not plan for. Subsequent agents read the modified files and behave differently. The source of the behavior change is invisible because the modification happened silently during what was labeled a "read-only" verification pass.
+
+Verification agents with write side effects undermine the integrity of the verification process itself.
 
 **Why it happens:**
-Selective import is inherently partial. The more a user knows about BMAD/PAUL, the more the partial import will feel wrong. The less they know, the more unexplained concepts they will encounter.
+The desire to "fix things while you're looking at them" is a natural engineering impulse. When a validation agent finds a stale claim, writing the correction in the same pass feels efficient. The hidden cost is that the line between verification and modification disappears. Verification loses its role as an independent check. Future debugging becomes harder because the "before" state is gone.
 
 **How to avoid:**
-Treat the methodology import as a PDE feature, not a "here's BMAD inside PDE." In all user-facing documentation, describe what PDE now does differently — not what methodology it borrowed from. "PDE now requires explicit acceptance criteria for each plan" is a user-facing behavior statement. "PDE now uses BMAD's story format" is an implementation detail that does not help users. The methodology source is an implementation detail; the user-facing capability is what matters. Internal implementation notes can reference BMAD/PAUL for developer context, but user guides must speak PDE.
+Research validation agents must be strictly read-only. They may produce a report containing corrections, but they must never write corrections to files directly. If corrections are needed, the report should include a `corrections_needed` section that a human or a separate update pass can apply explicitly. This preserves the separation between "observe" and "change" that makes verification meaningful. In PDE's architecture, this aligns with the existing three-agent fleet pattern (auditor reads → improver proposes → validator accepts) — the validation agent is the auditor, and its role is read-only by design.
 
 **Warning signs:**
-- The v0.6 GETTING-STARTED.md or README.md requires users to understand BMAD or PAUL to use new features
-- New `/pde:` commands are named after BMAD/PAUL concepts instead of the PDE capability they provide
-- A user asks "do I need to read the BMAD documentation to use PDE?" and the answer is yes
+- Validation agent code contains any `Write` or `Edit` tool calls
+- Research files are being modified during a readiness gate run
+- The git diff after a `/pde:check-readiness` run includes changes to `.planning/research/` files
+- A validation report says "automatically corrected" rather than "correction needed"
 
-**Phase to address:** Phase 5 (User-Facing Documentation) — all user documentation must describe PDE behavior, not methodology provenance. A final documentation pass reviewing every new user-visible element for BMAD/PAUL terminology leakage should gate the milestone release.
+**Phase to address:** Research validation agent implementation — enforce read-only as an architectural constraint, not a convention. The agent's `allowed_tools` should not include Write or Edit. This cannot be patched in after write behavior is established.
 
 ---
 
@@ -216,13 +242,12 @@ Treat the methodology import as a PDE feature, not a "here's BMAD inside PDE." I
 
 | Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
 |----------|-------------------|----------------|-----------------|
-| Import BMAD agent files without converting to PDE format | Skip conversion work | Lint failures forever; quality auditor reports false positives; skill-builder refuses to process them | Never — format compliance is a gate |
-| Allow `.paul/` directory alongside `.planning/` | Zero migration work | Two STATE.md files diverge; tooling reads the wrong one; users confused about authoritative state | Never — single state directory is non-negotiable |
-| Import all 12 BMAD agent roles "for completeness" | Nothing missing later | Codebase bloat; maintenance burden multiplies; users confused by 12 new agent choices | Never — selective import only, with gap justification |
-| Use BMAD/PAUL terminology in user-facing docs | Accurate attribution | Users need to read BMAD/PAUL docs to use PDE; external dependency on another system's documentation | Never in user-facing docs; acceptable in internal implementation comments |
-| Import BMAD sharding as a new file format alongside PDE plans | Preserve BMAD format fidelity | pde-tools.cjs cannot parse shards; design-manifest.json coverage flags not updated; autonomous workflow breaks | Never — adapt to PDE format or don't import |
-| Skip UNIFY enforcement because it slows down yolo mode | Keep fast execution speed | PAUL discipline is documentation-only with no behavioral impact; loop hygiene degrades | Acceptable at MVP if explicitly documented as "soft recommendation, not gated"; review in v0.7 |
-| Keep BMAD business analysis as a separate command rather than integrating into existing brief/ideate | Faster to ship; isolated | Users must choose between old and new approach for same task; fragmentation grows | Acceptable for v0.6 only if old command is explicitly deprecated in same milestone |
+| Verify claims at file-existence level only (Tier 1) | Faster to implement | Fails for content-level claims (counts, interfaces, signatures); validation confidence is overstated | Only for structural claims explicitly labeled as such |
+| Hardcode file scope in integration verifier | Avoids glob implementation | Silently misses new files; reports green while orphans accumulate | Never — use glob patterns from day one |
+| Binary VERIFIED/UNVERIFIED output (no UNVERIFIABLE state) | Simpler output schema | Blocks plans on unverifiable-but-correct claims; trains developers to bypass | Never — three-state model (VERIFIED/UNVERIFIABLE/CONTRADICTED) is the minimum viable design |
+| Allow validation agents to self-correct files they find stale | Efficient — fix and verify in one pass | Destroys the independence of verification; introduces silent state mutations during read-only passes | Never — validation is always read-only; corrections require a separate explicit pass |
+| Skip incremental scoping in dependency checker | Simpler first implementation | Scales poorly; gets disabled when slow; no protection after disabling | Acceptable only for a single-phase milestone prototype that will be refactored before shipping |
+| Use CONTRADICTED status for pre-registered intentional orphans | No allowlist implementation needed | Trains developers to ignore all verifier output; false positives destroy trust | Never — allowlist annotations are required from the first implementation |
 
 ---
 
@@ -230,13 +255,13 @@ Treat the methodology import as a PDE feature, not a "here's BMAD inside PDE." I
 
 | Integration | Common Mistake | Correct Approach |
 |-------------|----------------|------------------|
-| BMAD Analyst import | Importing as a new agent that runs alongside `/pde:competitive` and `/pde:opportunity` | Map BMAD Analyst outputs to enhancements of existing competitive/opportunity workflows |
-| BMAD Architect import | Creating a new "architect" agent that conflicts with PDE's planning phase workflow | Extract BMAD architecture document format as an enhancement to PDE's ROADMAP.md template |
-| PAUL STATE.md import | Letting PAUL create `.paul/STATE.md` to track loop position | Extend PDE's `.planning/STATE.md` schema with a `loop_state` field; PAUL-derived logic reads PDE's state |
-| PAUL PLAN.md format | Importing PAUL's `<objective>`, `<acceptance_criteria>`, `<tasks>`, `<boundaries>` XML tags as a new file format | Merge PAUL's structural requirements into PDE's existing `*-PLAN.md` template sections |
-| BMAD document sharding | Creating BMAD-style shard files with numbered suffixes | Apply sharding discipline at PDE plan authoring time; each `*-PLAN.md` IS a shard by design |
-| PAUL CARL integration | Importing CARL as a companion system that injects rules dynamically | PDE's `@` reference loading in required_reading already handles just-in-time context loading |
-| BMAD technical preferences | Importing `technical-preferences.md` as a persistent agent behavior modifier | PDE's `references/` directory already serves this function; merge BMAD preferences into existing references |
+| Research validation + readiness gate | Plugging validation output directly into FAIL status for all non-VERIFIED claims | Map VERIFIED→PASS, UNVERIFIABLE→CONCERNS, CONTRADICTED→FAIL; let the existing readiness gate handle severity |
+| Dependency verification + story-file sharding | Checking dependencies only against monolithic PLAN.md; missing task-NNN.md shards | Dependency checker must glob both `*-PLAN.md` and `task-NNN.md` files; sharding is transparent to the checker |
+| Integration verifier + TOOL_MAP pre-registrations | Flagging all unconsumed TOOL_MAP entries as orphan bugs | Read `# TOOL_MAP_PREREGISTERED` annotations before generating orphan report |
+| Edge case analysis + AC-first planning | Generating edge cases before acceptance criteria are finalized | Edge case analysis runs after AC-N identifiers are assigned; references specific AC items |
+| Tech debt closure + protected-files mechanism | Modifying core files without checking protected-files.json | Read protected-files.json before touching any file in references/, bin/, or core config |
+| Validation agents + session-based execution model | Assuming validation results persist across Claude Code sessions | Each session spawns fresh agents with no memory of prior validation results; persist results to `.planning/research/` explicitly |
+| Dependency checker + mcp-bridge.cjs TOOL_MAP | Checking workflow files for raw MCP tool names that TOOL_MAP is designed to abstract | Dependency checker must understand the TOOL_MAP indirection; check for canonical names (e.g., `github:create-pr`), not raw MCP tool names |
 
 ---
 
@@ -244,23 +269,23 @@ Treat the methodology import as a PDE feature, not a "here's BMAD inside PDE." I
 
 | Trap | Symptoms | Prevention | When It Breaks |
 |------|----------|------------|----------------|
-| Methodology agents loading full BMAD knowledge base per invocation | Slow subagent start; context budget exhausted before implementation begins | Audit required_reading per agent; cut to minimum-necessary | Any agent with more than 3 reference files in required_reading |
-| BMAD PRD format producing multi-thousand-line documents | Context window exceeds capacity for downstream agents reading the PRD | Enforce 500-line max per artifact; use PDE's phase decomposition to keep scope bounded | Any PRD that covers more than one PDE phase worth of work |
-| PAUL loop enforcement checking all prior CONTEXT.md files before each phase | O(n) context load grows with milestone length | Only load CONTEXT.md files from directly preceding phases (2-3 max); not all phases | Milestones with more than 8 phases (current max is 12) |
-| Importing BMAD story generation as a step that runs before PDE plan-phase | Double the plan generation time per phase | Replace PDE plan-phase with enhanced version; don't run both | Any phase where both BMAD story generation and PDE plan-phase are in the workflow |
+| All-phases dependency scan on every readiness check | Readiness gate takes 30+ seconds on mature milestones; developers skip it | Scope to current phase + 1 upstream phase; prior phases were already verified at their execution time | Any milestone with more than 5 phases |
+| Edge case agent reading full PLAN.md + all referenced files per plan | Edge case analysis consumes 40%+ of context budget before generating output | Summarize plan to key elements (file targets, state transitions, external calls) before passing to edge case agent | Plans with more than 8 task steps or 3 external integrations |
+| Research validation re-reading unchanged files | Validation takes longer than the work it validates | Cache file modification timestamps; skip unchanged files on re-validation runs | Any research re-validation run more than 1 phase after the initial run |
+| Integration verifier scanning all 650+ files in the codebase | Verifier exceeds 60-second timeout; killed mid-scan; reports partial results | Scope to integration surface files only: mcp-bridge.cjs, TOOL_MAP entries, workflow files that call bridge.call() | Immediately — the full codebase is never the right scope |
 
 ---
 
 ## "Looks Done But Isn't" Checklist
 
-- [ ] **Role boundary definition:** Every imported BMAD/PAUL role has a documented gap justification explaining what PDE did NOT already cover — verify by checking the gap table in Phase 1 artifacts
-- [ ] **Single state directory:** No `.paul/` directory exists in any PDE project after v0.6 — verify by checking project root for unexpected directories
-- [ ] **Lint compliance:** Every imported or new agent file passes PDE lint rules (LINT-001 through LINT-042) — verify by running pde:test --lint against agents/ directory
-- [ ] **Terminology clean:** User-facing documentation contains no occurrences of "epic," "story," "sprint," "scrum," "BMAD," or "PAUL" as user-visible concepts — verify by grepping GETTING-STARTED.md, README.md, and new skill help text
-- [ ] **Tooling compatibility:** pde-tools.cjs roadmap analyze still produces valid JSON after v0.6 — verify by running a full pde:autonomous dry-run against a test project
-- [ ] **Coverage flag integrity:** design-manifest.json coverage flags are still correctly updated by the 13 design pipeline skills after v0.6 changes — verify by running pde:build --dry-run
-- [ ] **Context budget:** A representative execute-plan subagent invocation uses no more context than pre-v0.6 baseline — verify by comparing token consumption before and after
-- [ ] **Quality auditor score:** pde-quality-auditor overall_health_pct is equal to or higher than the v0.5 baseline after importing BMAD/PAUL agents — verify by running pde:audit-milestone
+- [ ] **Research validator claim tiers:** Validator distinguishes Tier 1 (structural), Tier 2 (content), and Tier 3 (behavioral) claims with different verification strategies — verify by reviewing claim processing logic for grep/read calls on Tier 2 claims
+- [ ] **Three-state output model:** Validator returns VERIFIED, UNVERIFIABLE, or CONTRADICTED (never binary VERIFIED/UNVERIFIED) — verify by checking the output schema in the agent's return format section
+- [ ] **Dependency checker interface contracts:** Plans include an `interface_required` field and dependency checker reads it — verify by checking a sample plan file for the field and the checker's parsing logic
+- [ ] **Dynamic scope discovery:** Integration verifier uses glob patterns not hardcoded file lists — verify by adding a dummy workflow file and confirming it appears in the next verification scope count
+- [ ] **Intentional orphan allowlist:** TOOL_MAP pre-registered entries are annotated and excluded from orphan reports — verify that `github:update-pr` and `github:search-issues` do not appear as orphan findings
+- [ ] **Validation agents are read-only:** Research validation agent's `allowed_tools` list does not include Write or Edit — verify by reviewing the agent definition's allowed_tools before shipping
+- [ ] **Staleness tracking:** Validation results include `validated_at_phase` and the readiness gate checks for staleness before accepting them — verify by simulating a 3-phase gap between validation and use
+- [ ] **Tech debt blast radius documented:** Each of the 7 known debt items has a written consumer audit before its fix is implemented — verify by requiring a consumer-audit artifact as part of the debt closure task's acceptance criteria
 
 ---
 
@@ -268,13 +293,13 @@ Treat the methodology import as a PDE feature, not a "here's BMAD inside PDE." I
 
 | Pitfall | Recovery Cost | Recovery Steps |
 |---------|---------------|----------------|
-| Agent role namespace collision discovered post-merge | MEDIUM | Audit all imports against gap table; remove or merge any agent that duplicates existing PDE capability; update user documentation |
-| Dual state directory (`.paul/` created) | LOW | Delete `.paul/`; migrate any PAUL state fields to `.planning/STATE.md` schema extension; update any PAUL-derived workflows to read from `.planning/` |
-| Methodology bloat — too many unused agents/templates | MEDIUM | Run usage audit (grep all agent file names across workflows/commands); archive any file with zero references; update skill-registry.md |
-| BMAD document format bypassing pde-tools.cjs | HIGH | Rewrite affected documents in PDE format; update pde-tools.cjs if new artifact type is genuinely needed; re-run validation tests |
-| PAUL UNIFY adopted as hard gate, breaking existing workflows | MEDIUM | Rollback the pde-tools.cjs gate change; re-implement as soft recommendation; add SUMMARY.md generation to plan-phase template as a default step instead |
-| Terminology leakage into user docs | LOW | Find-and-replace pass across user-facing documentation; establish a terminology linting step in CI |
-| Lint compliance not enforced on imported agents | MEDIUM | Run pde:test --lint; fix each HIGH finding before next milestone; use pde-skill-builder to validate and improve imported agents |
+| Validation over-claims (Tier 1 checks masquerading as Tier 2) | MEDIUM | Audit all claims in validation report against their verification method; re-implement Tier 2 checks as content-inspection; re-run full validation |
+| Validation over-blocks (binary UNVERIFIED = FAIL) | LOW | Add UNVERIFIABLE state to output schema; update readiness gate mapping to treat UNVERIFIABLE as CONCERNS; re-run blocked plans |
+| Dependency checker too slow, already disabled | HIGH | Rewrite with incremental scoping; re-enable as CONCERNS-level advisory before re-enabling as blocking gate; recover trust before recovering enforcement |
+| Integration verifier missing new files (hardcoded scope) | MEDIUM | Replace hardcoded arrays with glob patterns; identify any orphans that were missed in the gap period; fix uncovered orphans |
+| Validation agent wrote to research files silently | MEDIUM | Review git diff for unexpected modifications to `.planning/research/`; revert unintended mutations; restrict agent's allowed_tools to read-only; re-run validation |
+| Tech debt closure broke a working feature | MEDIUM | Revert the closure commit; perform consumer audit; re-implement with surgical scope; run full validation suite before re-shipping |
+| Edge case analysis noise causing review abandonment | LOW | Reduce edge case list to 5-8 items; add relevance filter requiring plan-element reference; re-demo to the team to rebuild confidence |
 
 ---
 
@@ -282,32 +307,33 @@ Treat the methodology import as a PDE feature, not a "here's BMAD inside PDE." I
 
 | Pitfall | Prevention Phase | Verification |
 |---------|------------------|--------------|
-| Agent role namespace collision (Pitfall 1) | Phase 1: Role Mapping and Boundary Definition | Gap table exists; every imported agent has documented justification; no duplicate-purpose agents |
-| Dual state management conflict (Pitfall 2) | Phase 1: Architecture Boundary Definition | Only `.planning/` exists; pde-tools.cjs reads all state correctly |
-| Document sharding conflicts with artifact registry (Pitfall 3) | Phase 2: Artifact Format Integration | design-manifest.json coverage flags still update correctly; no BMAD-format files in `.planning/` |
-| Methodology bloat (Pitfall 4) | Phase 1: Capability Gap Analysis | Fewer than 6 new agent/command files added; each has documented gap justification |
-| PAUL UNIFY has no file-based enforcement (Pitfall 5) | Phase 3: Loop Enforcement Integration | Decision is explicit (hard gate or soft recommendation); if hard gate: pde-tools.cjs updated and tested |
-| BMAD Scrum Master duplicates plan-phase (Pitfall 6) | Phase 2: Plan Template Enhancement | No separate Scrum Master agent; plan template upgraded with BMAD story quality |
-| Context window explosion (Pitfall 7) | Phase 4: Context Optimization Review | Token consumption per execute-plan within 10% of pre-v0.6 baseline |
-| Skill validation infrastructure rejects imported files (Pitfall 8) | Every import phase | pde:test --lint passes with zero HIGH findings on imported files |
-| BMAD hierarchy conflicts with PDE hierarchy (Pitfall 9) | Phase 1: Terminology Governance | No epic/story/sprint terminology in PDE docs or workflow files |
-| Partial import creates inconsistent user mental model (Pitfall 10) | Phase 5: User-Facing Documentation | User docs describe PDE behavior only; no methodology attribution required to use new features |
+| Validation claims too much (Pitfall 1) | Research Validation Agent design | Acceptance criterion: at least one Tier 2 content-inspection verification demonstrated |
+| Validation claims too little — blocks on unverifiable (Pitfall 2) | Research Validation Agent design | Output schema includes UNVERIFIABLE state; readiness gate maps it to CONCERNS not FAIL |
+| Dependency checks static declarations not runtime paths (Pitfall 3) | Cross-phase dependency verification design | Plan template includes `interface_required` field; checker reads and cross-references it |
+| Edge case analysis generates noise (Pitfall 4) | Plan edge case analysis design | Each generated edge case references a specific plan element (file path, function, state field) |
+| Integration verifier can't keep up with codebase (Pitfall 5) | Integration point verification design | Verifier uses glob patterns; scope count increases when a new workflow file is added |
+| Tech debt closure breaks working features (Pitfall 6) | Tech debt closure phase | Consumer audit artifact required per debt item before implementation begins |
+| Research validation develops stale codebase view (Pitfall 7) | Research Validation Agent design | Output includes `validated_at_phase`; readiness gate enforces staleness threshold |
+| Dependency verification causes slowdown that gets disabled (Pitfall 8) | Cross-phase dependency verification design | Acceptance criterion: maximum 10-second runtime regardless of milestone size |
+| Integration verifier flags intentional pre-registrations (Pitfall 9) | Integration point verification design | `github:update-pr` and `github:search-issues` do not appear in orphan report |
+| Validation agents modify state while verifying (Pitfall 10) | Research validation agent implementation | Agent's `allowed_tools` excludes Write and Edit; no file modifications in validation git diff |
 
 ---
 
 ## Sources
 
-- PDE codebase direct inspection (agents/, workflows/, commands/, references/, templates/, bin/) — HIGH confidence
-- PAUL GitHub repository (ChristopherKahler/paul): STATE.md, PLAN.md structure, loop enforcement model — HIGH confidence
-- BMAD official documentation (docs.bmad-method.org): agent roles, document sharding, YAML workflow structure — HIGH confidence
-- BMAD-AT-CLAUDE repository (24601/BMAD-AT-CLAUDE/docs/core-architecture.md): agent communication patterns, file generation model — HIGH confidence
-- PDE PROJECT.md v0.6 milestone context and constraints — HIGH confidence (primary source)
-- PDE references/tooling-patterns.md LINT rules — HIGH confidence (direct codebase inspection)
-- PDE workflows/autonomous.md, workflows/execute-phase.md, workflows/build.md — HIGH confidence (direct codebase inspection)
-- PDE agents/pde-quality-auditor.md agent definition — HIGH confidence (direct codebase inspection)
-- Memory: project_external_frameworks.md (BMAD + PAUL integration candidates) — HIGH confidence (user-provided context)
+- PDE RETROSPECTIVE.md (v0.1 through v0.6 lessons) — HIGH confidence (direct project history)
+- PDE PROJECT.md v0.7 milestone definition and known tech debt items — HIGH confidence (primary source)
+- "Agentic Engineering, Part 7: Dual Quality Gates" (sagarmandal.com, 2026-03-15) — HIGH confidence: independent validation/testing separation, mocked vs. real-world failure gap
+- IBM: "Alert Fatigue Reduction with AI Agents" — MEDIUM confidence: noise-vs-signal ratio patterns in automated alert systems
+- Anthropic: "Demystifying evals for AI agents" — HIGH confidence: signal-to-noise ratio in agent evaluation, ambiguity-as-noise principle
+- "How we prevent AI agent's drift and code slop generation" (dev.to/singhdevhub) — MEDIUM confidence: stale context failure mode in codebase-aware agents
+- "CI/CD for Context in Agentic Coding" (tessl.io) — MEDIUM confidence: specification staleness as a primary failure mode
+- vFunction: "How to Reduce Technical Debt" — MEDIUM confidence: blast radius analysis for tech debt closure
+- Edana.ch: "Refactoring Technical Debt and Eliminating Anti-Patterns" — MEDIUM confidence: surgical refactoring principles
+- PDE codebase direct inspection: mcp-bridge.cjs TOOL_MAP, protected-files.json, pde-tools.cjs readiness gate, agents/ directory — HIGH confidence
 
 ---
 
-*Pitfalls research for: Importing BMAD + PAUL methodology patterns into PDE (v0.6 Advanced Workflow Methodology milestone)*
+*Pitfalls research for: Adding automated validation, dependency verification, and quality gates to PDE (v0.7 Pipeline Reliability & Validation milestone)*
 *Researched: 2026-03-19*
