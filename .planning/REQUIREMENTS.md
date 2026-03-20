@@ -9,12 +9,12 @@ Requirements for v0.8 Observability & Event Infrastructure. Each maps to roadmap
 
 ### Event Infrastructure
 
-- [ ] **EVNT-01**: Event bus emits structured NDJSON events with schema_version, timestamp, event_type, session_id, and extensions fields
-- [ ] **EVNT-02**: Events are appended to session-scoped NDJSON files in /tmp via async dispatch (setImmediate) to avoid blocking workflows
+- [x] **EVNT-01**: Event bus emits structured NDJSON events with schema_version, timestamp, event_type, session_id, and extensions fields
+- [x] **EVNT-02**: Events are appended to session-scoped NDJSON files in /tmp via async dispatch (setImmediate) to avoid blocking workflows
 - [ ] **EVNT-03**: Claude Code hooks (SubagentStart, SubagentStop, PostToolUse, SessionStart, SessionEnd) automatically capture tool-level events
 - [ ] **EVNT-04**: Semantic workflow events emitted for phase start/complete, wave start/complete, plan start/complete, and commit events
-- [ ] **EVNT-05**: Event schema includes extensions field for future consumers (presentations, idle-time productivity)
-- [ ] **EVNT-06**: Concurrent PDE sessions write to separate session-scoped event files without interleaving
+- [x] **EVNT-05**: Event schema includes extensions field for future consumers (presentations, idle-time productivity)
+- [x] **EVNT-06**: Concurrent PDE sessions write to separate session-scoped event files without interleaving
 
 ### tmux Dashboard
 
@@ -80,12 +80,12 @@ Requirements for v0.8 Observability & Event Infrastructure. Each maps to roadmap
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| EVNT-01 | Phase 58 | Pending |
-| EVNT-02 | Phase 58 | Pending |
+| EVNT-01 | Phase 58 | Complete |
+| EVNT-02 | Phase 58 | Complete |
 | EVNT-03 | Phase 58 | Pending |
 | EVNT-04 | Phase 62 | Pending |
-| EVNT-05 | Phase 58 | Pending |
-| EVNT-06 | Phase 58 | Pending |
+| EVNT-05 | Phase 58 | Complete |
+| EVNT-06 | Phase 58 | Complete |
 | TMUX-01 | Phase 59 | Pending |
 | TMUX-02 | Phase 59 | Pending |
 | TMUX-03 | Phase 59 | Pending |

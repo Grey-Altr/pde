@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.8
 milestone_name: Observability & Event Infrastructure
-status: active
-stopped_at: —
-last_updated: "2026-03-19"
+status: unknown
+stopped_at: "Completed 58-01-PLAN.md — NDJSON event bus foundation (event-bus.cjs, monitoring config keys)"
+last_updated: "2026-03-20T07:07:00Z"
 progress:
   total_phases: 5
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 3
+  completed_plans: 1
 ---
 
 # Project State
@@ -19,29 +19,26 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 58 — Event Infrastructure Core
+**Current focus:** Phase 58 — event-infrastructure-core
 
 ## Current Position
 
-Phase: 58 of 62 (Event Infrastructure Core)
-Plan: —
-Status: Ready to plan
-Last activity: 2026-03-19 — v0.8 roadmap created (5 phases, 26 requirements mapped)
-
-Progress: [░░░░░░░░░░] 0%
+Phase: 58 (event-infrastructure-core) — EXECUTING
+Plan: 2 of 3
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed (v0.8): 0
-- Average duration: —
-- Total execution time: —
+
+- Total plans completed (v0.8): 1
+- Average duration: 4min
+- Total execution time: 4min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
+| 58 | 1 | 4min | 4min |
 
 *Updated after each plan completion*
 
@@ -50,6 +47,13 @@ Progress: [░░░░░░░░░░] 0%
 ### Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table.
+
+**58-01 execution decisions:**
+
+- appendFileSync (not async appendFile) in safeAppendEvent: pde-tools.cjs is short-lived, write must complete before process exits
+- setImmediate (not process.nextTick) for dispatch deferral: fires after I/O phase, correctly non-blocking for caller
+- Empty catch in safeAppendEvent: event log failure must never propagate — fail-silent by design
+- No top-level require of event-bus.cjs in pde-tools.cjs: lazy-require in event-emit case block only to prevent 40+ command breakage on module load failure
 
 Key v0.8 architectural decisions (pre-execution):
 
@@ -72,6 +76,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-19
-Stopped at: Roadmap created for v0.8 — 5 phases (58-62), 26/26 requirements mapped
+Last session: 2026-03-20
+Stopped at: "Completed 58-01-PLAN.md — NDJSON event bus foundation (event-bus.cjs, monitoring config keys)"
 Resume file: None
