@@ -41,7 +41,7 @@ Requirements for Pipeline Reliability & Validation milestone. Each maps to roadm
 - [x] **INTG-01**: Declaration-time verification (Mode A) in plan-checker detects orphan exports, name mismatches, and @-reference file existence in plan declarations
 - [ ] **INTG-02**: Codebase-time verification (Mode B) in readiness gate verifies function signatures, module exports, and pde-tools.cjs command availability for files named in plan @-references
 - [x] **INTG-03**: TOOL_MAP pre-registration allowlist (`# TOOL_MAP_PREREGISTERED` annotation) prevents false positives on intentionally pre-registered entries
-- [ ] **INTG-04**: Readiness gate gains B4 (file existence) and B5 (orphan export) check IDs — additive to existing A1-A11, B1-B3
+- [x] **INTG-04**: Readiness gate gains B4 (file existence) and B5 (orphan export) check IDs — additive to existing A1-A11, B1-B3
 - [x] **INTG-05**: Integration check scope is strictly bounded to files named in plan `<context>` @-references — never a full codebase scan
 - [x] **INTG-06**: INTEGRATION-CHECK.md produced with check table (task, reference, check type, result)
 
@@ -59,7 +59,7 @@ Requirements for Pipeline Reliability & Validation milestone. Each maps to roadm
 
 - [x] **WIRE-01**: plan-phase.md enhanced with research validation step between research detection and planner spawn
 - [ ] **WIRE-02**: check-readiness.md enhanced with `run_integration_checks` step after semantic checks (Mode B codebase-time verification)
-- [ ] **WIRE-03**: readiness.cjs enhanced with B4 and B5 check IDs — additive to existing check system
+- [x] **WIRE-03**: readiness.cjs enhanced with B4 and B5 check IDs — additive to existing check system
 - [ ] **WIRE-04**: All new verification artifacts (RESEARCH-VALIDATION.md, DEPENDENCY-GAPS.md, EDGE-CASES.md, INTEGRATION-CHECK.md) consumed by readiness gate in unified READINESS.md output
 
 ## Future Requirements
@@ -120,12 +120,12 @@ Requirements for Pipeline Reliability & Validation milestone. Each maps to roadm
 | INTG-01 | Phase 56 | Complete |
 | INTG-02 | Phase 57 | Pending |
 | INTG-03 | Phase 56 | Complete |
-| INTG-04 | Phase 57 | Pending |
+| INTG-04 | Phase 57 | Complete |
 | INTG-05 | Phase 56 | Complete |
 | INTG-06 | Phase 56 | Complete |
 | WIRE-01 | Phase 57 | Complete |
 | WIRE-02 | Phase 57 | Pending |
-| WIRE-03 | Phase 57 | Pending |
+| WIRE-03 | Phase 57 | Complete |
 | WIRE-04 | Phase 57 | Pending |
 
 **Coverage:**
