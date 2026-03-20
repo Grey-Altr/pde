@@ -132,7 +132,11 @@ Full details: .planning/milestones/v0.6-ROADMAP.md
   3. All workflow files call lock-release with consistent trailing arguments (cosmetic normalization, zero functional change)
   4. SUMMARY.md template includes a `one_liner` field and recent phase summaries are backfilled with it
   5. pde-tools.cjs help text lists v0.6 commands (manifest, shard-plan, readiness, tracking)
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 54-01-PLAN.md — Code normalizations (lock-release, TOOL_MAP annotations, pde-tools help text)
+- [ ] 54-02-PLAN.md — Create TRACKING-PLAN.md and backfill one-liner field to SUMMARY files
+- [ ] 54-03-PLAN.md — Test plugin install and document historical commit exceptions
 
 ### Phase 55: Research Validation Agent
 **Goal**: A new read-only `pde-research-validator` agent exists that extracts verifiable claims from RESEARCH.md and checks each against the codebase, producing a three-state RESEARCH-VALIDATION.md artifact
@@ -143,7 +147,11 @@ Full details: .planning/milestones/v0.6-ROADMAP.md
   2. Each claim entry shows the tier classification (Tier 1 structural / Tier 2 content / Tier 3 behavioral) and the codebase evidence used to verify it
   3. RESEARCH-VALIDATION.md includes a `validated_at_phase` field that identifies which phase the validation was run against
   4. The agent's allowed_tools contain no Write or Edit calls — it is strictly read-only and cannot mutate any file
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 54-01-PLAN.md — Code normalizations (lock-release, TOOL_MAP annotations, pde-tools help text)
+- [ ] 54-02-PLAN.md — Create TRACKING-PLAN.md and backfill one-liner field to SUMMARY files
+- [ ] 54-03-PLAN.md — Test plugin install and document historical commit exceptions
 
 ### Phase 56: Plan Checker Enhancement
 **Goal**: `pde-plan-checker` gains three new analysis passes — cross-phase dependency detection, edge case surfacing, and declaration-time integration verification — all reading the same PLAN.md context the checker already loads
@@ -155,7 +163,11 @@ Full details: .planning/milestones/v0.6-ROADMAP.md
   3. The plan-checker completes its dependency analysis in under 10 seconds regardless of milestone size
   4. INTEGRATION-CHECK.md exists with a check table showing orphan exports and name mismatches detected at declaration time (Mode A), and intentionally pre-registered TOOL_MAP entries are not flagged
   5. For any HIGH severity edge case, the user is shown generated BDD acceptance criteria candidates and explicitly approves which ones to append to PLAN.md before they are added
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 54-01-PLAN.md — Code normalizations (lock-release, TOOL_MAP annotations, pde-tools help text)
+- [ ] 54-02-PLAN.md — Create TRACKING-PLAN.md and backfill one-liner field to SUMMARY files
+- [ ] 54-03-PLAN.md — Test plugin install and document historical commit exceptions
 
 ### Phase 57: Workflow Integration
 **Goal**: Wave 1 artifacts (research validator, plan-checker enhancements) are wired into `plan-phase.md` and `check-readiness.md` so validation runs automatically at the correct pipeline transition points, not optionally
@@ -166,7 +178,11 @@ Full details: .planning/milestones/v0.6-ROADMAP.md
   2. If research validation finds `contradicted_count > 0`, plan-phase blocks and presents the user with a choice prompt; `unverifiable_count > 0` surfaces as a non-blocking CONCERN in READINESS.md
   3. `check-readiness.md` includes a `run_integration_checks` step after semantic checks that verifies function signatures and module exports for files explicitly named in plan @-references (Mode B codebase-time verification)
   4. The readiness gate's unified READINESS.md output reflects findings from all four new verification artifacts (RESEARCH-VALIDATION.md, DEPENDENCY-GAPS.md, EDGE-CASES.md, INTEGRATION-CHECK.md)
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 54-01-PLAN.md — Code normalizations (lock-release, TOOL_MAP annotations, pde-tools help text)
+- [ ] 54-02-PLAN.md — Create TRACKING-PLAN.md and backfill one-liner field to SUMMARY files
+- [ ] 54-03-PLAN.md — Test plugin install and document historical commit exceptions
 
 ## Progress
 
@@ -178,7 +194,7 @@ Full details: .planning/milestones/v0.6-ROADMAP.md
 | 29-38 | v0.4 | 20/20 | Complete | 2026-03-18 |
 | 39-44 | v0.5 | 18/18 | Complete | 2026-03-19 |
 | 46-53 | v0.6 | 19/19 | Complete | 2026-03-20 |
-| 54. Tech Debt Closure | v0.7 | 0/TBD | Not started | - |
+| 54. Tech Debt Closure | v0.7 | 0/3 | Planned | - |
 | 55. Research Validation Agent | v0.7 | 0/TBD | Not started | - |
 | 56. Plan Checker Enhancement | v0.7 | 0/TBD | Not started | - |
 | 57. Workflow Integration | v0.7 | 0/TBD | Not started | - |
