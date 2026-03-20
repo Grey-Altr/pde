@@ -133,7 +133,7 @@ Full details: .planning/milestones/v0.7-ROADMAP.md
 
 **Milestone Goal:** Give users real-time visibility into PDE operations through a structured event stream, a tmux monitoring dashboard, persistent session history, and token/cost estimation — all built without new npm dependencies.
 
-- [ ] **Phase 58: Event Infrastructure Core** - Establish the write path: hooks, event-bus, NDJSON log files
+- [x] **Phase 58: Event Infrastructure Core** - Establish the write path: hooks, event-bus, NDJSON log files (completed 2026-03-20)
 - [ ] **Phase 59: tmux Dashboard & Dependency Detection** - `/pde:monitor` command with 6-pane layout, tmux lifecycle safety
 - [ ] **Phase 60: Session Archival** - Structured markdown session summaries in `.planning/logs/` at every session end
 - [ ] **Phase 61: Token & Context Metering** - Chars/4 estimation with per-model cost display and context utilization indicator
@@ -211,7 +211,7 @@ Plans:
 | 39-44 | v0.5 | 18/18 | Complete | 2026-03-19 |
 | 46-53 | v0.6 | 19/19 | Complete | 2026-03-20 |
 | 54-57 | v0.7 | 11/11 | Complete | 2026-03-20 |
-| 58. Event Infrastructure Core | 2/3 | In Progress|  | - |
+| 58. Event Infrastructure Core | 3/3 | Complete   | 2026-03-20 | - |
 | 59. tmux Dashboard & Dependency Detection | v0.8 | 0/TBD | Not started | - |
 | 60. Session Archival | v0.8 | 0/TBD | Not started | - |
 | 61. Token & Context Metering | v0.8 | 0/TBD | Not started | - |

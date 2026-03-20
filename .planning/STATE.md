@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.8
 milestone_name: Observability & Event Infrastructure
-status: executing
-stopped_at: "Completed 58-02-PLAN.md — event-emit and session-start subcommands in pde-tools.cjs"
-last_updated: "2026-03-20T07:12:27Z"
+status: unknown
+stopped_at: Completed 58-03-PLAN.md — hooks/hooks.json, hooks/emit-event.cjs, and validate-events.sh (6/6 EVNT PASS)
+last_updated: "2026-03-20T07:21:16.193Z"
 progress:
   total_phases: 5
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
-  completed_plans: 2
+  completed_plans: 3
 ---
 
 # Project State
@@ -41,6 +41,7 @@ Plan: 3 of 3
 | 58 | 2 | 6min | 3min |
 
 *Updated after each plan completion*
+| Phase 58 P03 | 5min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -70,6 +71,9 @@ Key v0.8 architectural decisions (pre-execution):
 - Token estimation uses chars/4 heuristic labeled "~est."; tokenx 1.3.0 vendoring deferred pending empirical validation in Phase 61
 - Context window pane is orchestrator-only scope, always labeled "(~estimated)" — never implies subagent coverage
 - Dashboard must handle nested tmux ($TMUX detection + switch-client), small terminals (120x30 adaptive fallback), and remain-on-exit persistence from first ship — not deferred
+- [Phase 58]: SessionStart and SessionEnd are async: false in hooks.json — ensures PDE session UUID persists before tool events fire and final event flushes before session exits
+- [Phase 58]: PostToolUse matcher limited to 'Write|Edit|Bash' — captures only file operations and shell calls to minimize hook overhead per tool call
+- [Phase 58]: validate-events.sh uses Node.js os.tmpdir() not /tmp directly — macOS returns /var/folders/..., portability required for macOS and Linux
 
 ### Pending Todos
 
@@ -82,6 +86,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-20
-Stopped at: "Completed 58-02-PLAN.md — event-emit and session-start subcommands in pde-tools.cjs"
+Last session: 2026-03-20T07:21:16.191Z
+Stopped at: Completed 58-03-PLAN.md — hooks/hooks.json, hooks/emit-event.cjs, and validate-events.sh (6/6 EVNT PASS)
 Resume file: None
