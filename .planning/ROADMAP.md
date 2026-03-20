@@ -110,7 +110,7 @@ Full details: .planning/milestones/v0.5-ROADMAP.md
 - [x] **Phase 50: Readiness Gate** - /pde:check-readiness command with PASS/CONCERNS/FAIL; blocks execute-phase on FAIL (completed 2026-03-19)
 - [x] **Phase 51: Workflow Tracking** - Per-task status tracking, task-level /pde:progress, session HANDOFF.md (completed 2026-03-19)
 - [x] **Phase 52: Agent Enhancements** - Assumptions capture, analyst persona, analyst-to-brief pipeline, per-agent persistent memory (completed 2026-03-20)
-- [ ] **Phase 53: Milestone Polish** - Fix integration gaps, tracking quality, dead code, reconciler awareness, Nyquist compliance
+- [x] **Phase 53: Milestone Polish** - Fix integration gaps, tracking quality, dead code, reconciler awareness, Nyquist compliance (completed 2026-03-20)
 
 ## Phase Details
 
@@ -229,7 +229,7 @@ Plans:
   4. cmdTrackingGenerateHandoff dead code is resolved (removed or wired)
   5. Reconciler cross-references workflow-status.md alongside git commit evidence
   6. Phases 46 and 52 pass Nyquist validation
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 Plans:
 - [ ] 53-01-PLAN.md — Code fixes: planner context injection, tracking task names, TASK_TOTAL guard, dead code removal
 - [ ] 53-02-PLAN.md — Reconciler workflow-status.md awareness and Nyquist compliance for phases 46 and 52
@@ -252,4 +252,4 @@ Plans:
 | 50. Readiness Gate | 2/2 | Complete    | 2026-03-19 | - |
 | 51. Workflow Tracking | 2/2 | Complete    | 2026-03-19 | - |
 | 52. Agent Enhancements | 4/4 | Complete    | 2026-03-20 | - |
-| 53. Milestone Polish | 1/2 | In Progress|  | - |
+| 53. Milestone Polish | 2/2 | Complete   | 2026-03-20 | - |
