@@ -137,7 +137,7 @@ Full details: .planning/milestones/v0.7-ROADMAP.md
 - [x] **Phase 59: tmux Dashboard & Dependency Detection** - `/pde:monitor` command with 6-pane layout, tmux lifecycle safety (completed 2026-03-20)
 - [x] **Phase 60: Session Archival** - Structured markdown session summaries in `.planning/logs/` at every session end (completed 2026-03-20)
 - [x] **Phase 61: Token & Context Metering** - Chars/4 estimation with per-model cost display and context utilization indicator (completed 2026-03-20)
-- [ ] **Phase 62: Workflow Instrumentation** - Semantic phase/wave/plan events via surgical manual emits in 2 workflow files
+- [x] **Phase 62: Workflow Instrumentation** - Semantic phase/wave/plan events via surgical manual emits in 2 workflow files (completed 2026-03-20)
 
 ## Phase Details
 
@@ -228,4 +228,4 @@ Plans:
 | 59. tmux Dashboard & Dependency Detection | 3/3 | Complete    | 2026-03-20 | - |
 | 60. Session Archival | 2/2 | Complete    | 2026-03-20 | - |
 | 61. Token & Context Metering | 2/2 | Complete    | 2026-03-20 | - |
-| 62. Workflow Instrumentation | 1/2 | In Progress|  | - |
+| 62. Workflow Instrumentation | 2/2 | Complete   | 2026-03-20 | - |
