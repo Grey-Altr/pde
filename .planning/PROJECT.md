@@ -67,6 +67,7 @@ Any user can go from idea to shipped product through a single platform that hand
 - [x] Reviewable session history: structured summaries in `.planning/logs/`, raw event streams in `/tmp` — Phase 60
 - [x] Token/cost metering with chars/4 heuristic, per-model pricing, and context window utilization — all labeled as approximations — Phase 61
 - [x] Workflow instrumentation: semantic phase/wave/plan events emitted from execute-phase.md and execute-plan.md, aggregated in session summaries — Phase 62
+- [x] Session summary plan event aggregation: plan_started/plan_complete events included in phase progress section, closing MISS-01 gap — Phase 63
 - [ ] Future-proof event schema designed for extensibility beyond monitoring
 
 ### Out of Scope
@@ -160,4 +161,4 @@ Any user can go from idea to shipped product through a single platform that hand
 | Tech debt closure as first v0.7 phase | Clean baseline before adding new verification surface area | ✓ Good — all 7 items resolved, no interference with new features |
 
 ---
-*Last updated: 2026-03-20 — Phase 62 (workflow-instrumentation) complete: 6 semantic event-emit calls across 2 workflow files, session summary aggregation in archive-session.cjs, 8/8 Nyquist PASS*
+*Last updated: 2026-03-20 — Phase 63 (session-summary-plan-events) complete: plan_started/plan_complete added to PHASE_EVENT_TYPES and renderPhaseProgress() in archive-session.cjs, closing MISS-01 from v0.8 audit, 6/6 Nyquist PASS*
