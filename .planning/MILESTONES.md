@@ -7,6 +7,24 @@
 **Key accomplishments:**
 - (none recorded)
 
+### Plugin Install Status (PLUG-01)
+
+**Status: Working** — Plugin installs successfully via the two-step sequence:
+
+```
+/plugin marketplace add Grey-Altr/pde
+```
+
+```
+/plugin install platform-development-engine@pde
+```
+
+Both commands completed without error when tested programmatically via the `claude` CLI (v2.1.79). The first command clones the GitHub repository via HTTPS and registers it as a marketplace source. The second command installs the plugin into user scope. Verify by typing `/pde:` in Claude Code and confirming the command palette appears.
+
+### Known Exceptions
+
+- Commits `e067974` and `efe3af0` lack `Co-Authored-By` trailers. These commits predate the convention and cannot be retroactively amended without rewriting published history. Documented here as known exceptions — not a defect.
+
 ---
 
 ## v0.5 MCP Integrations (Shipped: 2026-03-19)
