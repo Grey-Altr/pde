@@ -20,12 +20,12 @@ Requirements for Pipeline Reliability & Validation milestone. Each maps to roadm
 
 ### Cross-Phase Dependencies
 
-- [ ] **DEPS-01**: Pre-execution dependency checker reads ROADMAP.md phase graph and PLAN.md task declarations to detect dependencies on unbuilt work
-- [ ] **DEPS-02**: Dependency checker produces DEPENDENCY-GAPS.md with gap table (phase, task, dependency type, resolution options)
-- [ ] **DEPS-03**: Each detected gap includes structured fix proposals (reorder phases, add stub task, add prerequisite task)
-- [ ] **DEPS-04**: Dependency checker completes in under 10 seconds regardless of milestone size
-- [ ] **DEPS-05**: Dependency findings integrate into readiness gate as CONCERNS (missing but non-critical) or FAIL (missing and blocking)
-- [ ] **DEPS-06**: Scope is bounded to current phase + 1 upstream phase to prevent scope explosion
+- [x] **DEPS-01**: Pre-execution dependency checker reads ROADMAP.md phase graph and PLAN.md task declarations to detect dependencies on unbuilt work
+- [x] **DEPS-02**: Dependency checker produces DEPENDENCY-GAPS.md with gap table (phase, task, dependency type, resolution options)
+- [x] **DEPS-03**: Each detected gap includes structured fix proposals (reorder phases, add stub task, add prerequisite task)
+- [x] **DEPS-04**: Dependency checker completes in under 10 seconds regardless of milestone size
+- [x] **DEPS-05**: Dependency findings integrate into readiness gate as CONCERNS (missing but non-critical) or FAIL (missing and blocking)
+- [x] **DEPS-06**: Scope is bounded to current phase + 1 upstream phase to prevent scope explosion
 
 ### Plan Edge Cases
 
@@ -105,12 +105,12 @@ Requirements for Pipeline Reliability & Validation milestone. Each maps to roadm
 | RVAL-06 | Phase 55 | Complete |
 | RVAL-07 | Phase 57 | Pending |
 | RVAL-08 | Phase 57 | Pending |
-| DEPS-01 | Phase 56 | Pending |
-| DEPS-02 | Phase 56 | Pending |
-| DEPS-03 | Phase 56 | Pending |
-| DEPS-04 | Phase 56 | Pending |
-| DEPS-05 | Phase 56 | Pending |
-| DEPS-06 | Phase 56 | Pending |
+| DEPS-01 | Phase 56 | Complete |
+| DEPS-02 | Phase 56 | Complete |
+| DEPS-03 | Phase 56 | Complete |
+| DEPS-04 | Phase 56 | Complete |
+| DEPS-05 | Phase 56 | Complete |
+| DEPS-06 | Phase 56 | Complete |
 | EDGE-01 | Phase 56 | Pending |
 | EDGE-02 | Phase 56 | Pending |
 | EDGE-03 | Phase 56 | Pending |
