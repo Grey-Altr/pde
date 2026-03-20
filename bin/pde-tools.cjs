@@ -752,6 +752,7 @@ async function main() {
         try { cfg = JSON.parse(fs.readFileSync(configPath, 'utf-8')); } catch { /* config may not exist */ }
         if (!cfg.monitoring) cfg.monitoring = {};
         cfg.monitoring.session_id = newSessionId;
+        cfg.monitoring.session_start_ts = new Date().toISOString();
         fs.writeFileSync(configPath, JSON.stringify(cfg, null, 2), 'utf-8');
       } catch { /* swallow — session ID persistence failure must not crash anything */ }
       if (raw) { process.stdout.write(JSON.stringify({ session_id: newSessionId })); }
