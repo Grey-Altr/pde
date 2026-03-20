@@ -158,4 +158,4 @@ Any user can go from idea to shipped product through a single platform that hand
 | Tech debt closure as first v0.7 phase | Clean baseline before adding new verification surface area | ✓ Good — all 7 items resolved, no interference with new features |
 
 ---
-*Last updated: 2026-03-19 after v0.8 milestone started*
+*Last updated: 2026-03-20 — Phase 58 (event-infrastructure-core) complete: NDJSON event bus, session ID management, CLI subcommands, Claude Code hook wiring*
