@@ -66,6 +66,7 @@ Any user can go from idea to shipped product through a single platform that hand
 - [ ] Persistent dashboard (stays open after operation finishes)
 - [x] Reviewable session history: structured summaries in `.planning/logs/`, raw event streams in `/tmp` — Phase 60
 - [x] Token/cost metering with chars/4 heuristic, per-model pricing, and context window utilization — all labeled as approximations — Phase 61
+- [x] Workflow instrumentation: semantic phase/wave/plan events emitted from execute-phase.md and execute-plan.md, aggregated in session summaries — Phase 62
 - [ ] Future-proof event schema designed for extensibility beyond monitoring
 
 ### Out of Scope
@@ -159,4 +160,4 @@ Any user can go from idea to shipped product through a single platform that hand
 | Tech debt closure as first v0.7 phase | Clean baseline before adding new verification surface area | ✓ Good — all 7 items resolved, no interference with new features |
 
 ---
-*Last updated: 2026-03-20 — Phase 60 (session-archival) complete: SessionEnd markdown summaries in .planning/logs/, NDJSON cleanup on SessionStart, session_start_ts persistence, 8/8 validation PASS*
+*Last updated: 2026-03-20 — Phase 62 (workflow-instrumentation) complete: 6 semantic event-emit calls across 2 workflow files, session summary aggregation in archive-session.cjs, 8/8 Nyquist PASS*
