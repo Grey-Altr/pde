@@ -91,13 +91,48 @@ Requirements for Google Stitch Integration milestone. Each maps to roadmap phase
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (To be populated by roadmapper) | | |
+| MCP-01 | Phase 65 | Pending |
+| MCP-02 | Phase 65 | Pending |
+| MCP-03 | Phase 65 | Pending |
+| MCP-04 | Phase 64 | Pending |
+| MCP-05 | Phase 65 | Pending |
+| QUOTA-01 | Phase 65 | Pending |
+| QUOTA-02 | Phase 65 | Pending |
+| QUOTA-03 | Phase 65 | Pending |
+| QUOTA-04 | Phase 65 | Pending |
+| CONSENT-01 | Phase 66 | Pending |
+| CONSENT-02 | Phase 66 | Pending |
+| CONSENT-03 | Phase 66 | Pending |
+| CONSENT-04 | Phase 66 | Pending |
+| EFF-01 | Phase 66 | Pending |
+| EFF-02 | Phase 66 | Pending |
+| EFF-03 | Phase 67 | Pending |
+| EFF-04 | Phase 66 | Pending |
+| EFF-05 | Phase 66 | Pending |
+| WFR-01 | Phase 66 | Pending |
+| WFR-02 | Phase 66 | Pending |
+| WFR-03 | Phase 66 | Pending |
+| WFR-04 | Phase 66 | Pending |
+| WFR-05 | Phase 66 | Pending |
+| WFR-06 | Phase 66 | Pending |
+| IDT-01 | Phase 67 | Pending |
+| IDT-02 | Phase 67 | Pending |
+| IDT-03 | Phase 67 | Pending |
+| IDT-04 | Phase 67 | Pending |
+| CRT-01 | Phase 68 | Pending |
+| CRT-02 | Phase 68 | Pending |
+| CRT-03 | Phase 68 | Pending |
+| CRT-04 | Phase 68 | Pending |
+| HND-01 | Phase 69 | Pending |
+| HND-02 | Phase 69 | Pending |
+| HND-03 | Phase 69 | Pending |
+| HND-04 | Phase 69 | Pending |
 
 **Coverage:**
-- v0.9 requirements: 30 total
-- Mapped to phases: 0
-- Unmapped: 30
+- v0.9 requirements: 36 total
+- Mapped to phases: 36
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-20*
-*Last updated: 2026-03-20 after initial definition*
+*Last updated: 2026-03-20 after roadmap creation*
