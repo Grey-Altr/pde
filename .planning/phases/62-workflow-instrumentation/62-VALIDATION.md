@@ -1,9 +1,9 @@
 ---
 phase: 62
 slug: workflow-instrumentation
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-20
 ---
 
@@ -19,16 +19,16 @@ created: 2026-03-20
 |----------|-------|
 | **Framework** | bash + bats-like manual assertions |
 | **Config file** | none — inline validation scripts |
-| **Quick run command** | `bash bin/validate-workflow-events.sh quick` |
-| **Full suite command** | `bash bin/validate-workflow-events.sh` |
+| **Quick run command** | `bash .planning/phases/62-workflow-instrumentation/validate-instrumentation.sh --quick` |
+| **Full suite command** | `bash .planning/phases/62-workflow-instrumentation/validate-instrumentation.sh` |
 | **Estimated runtime** | ~5 seconds |
 
 ---
 
 ## Sampling Rate
 
-- **After every task commit:** Run `bash bin/validate-workflow-events.sh quick`
-- **After every plan wave:** Run `bash bin/validate-workflow-events.sh`
+- **After every task commit:** Run `bash .planning/phases/62-workflow-instrumentation/validate-instrumentation.sh --quick`
+- **After every plan wave:** Run `bash .planning/phases/62-workflow-instrumentation/validate-instrumentation.sh`
 - **Before `/gsd:verify-work`:** Full suite must be green
 - **Max feedback latency:** 5 seconds
 
@@ -38,11 +38,10 @@ created: 2026-03-20
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 62-01-01 | 01 | 1 | EVNT-04 | integration | `bash bin/validate-workflow-events.sh phase_events` | ❌ W0 | ⬜ pending |
-| 62-01-02 | 01 | 1 | EVNT-04 | integration | `bash bin/validate-workflow-events.sh wave_events` | ❌ W0 | ⬜ pending |
-| 62-01-03 | 01 | 1 | EVNT-04 | integration | `bash bin/validate-workflow-events.sh plan_events` | ❌ W0 | ⬜ pending |
-| 62-02-01 | 02 | 2 | EVNT-04 | integration | `bash bin/validate-workflow-events.sh session_summary` | ❌ W0 | ⬜ pending |
-| 62-02-02 | 02 | 2 | EVNT-04 | regression | `bash bin/validate-workflow-events.sh regression` | ❌ W0 | ⬜ pending |
+| 62-01-T1 | 01 | 1 | EVNT-04 | unit | `validate-instrumentation.sh --quick` (EVNT04-A..E) | Yes | PASS |
+| 62-01-T2 | 01 | 1 | EVNT-04 | static | `validate-instrumentation.sh --quick \| grep EVNT04-[A-D]` | Yes | PASS |
+| 62-01-T3 | 01 | 1 | EVNT-04 | static | `validate-instrumentation.sh --quick \| grep EVNT04-E` | Yes | PASS |
+| 62-02-T1 | 02 | 2 | EVNT-04 | integration | `validate-instrumentation.sh \| tail -12` (EVNT04-F..H) | Yes | PASS |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -50,10 +49,9 @@ created: 2026-03-20
 
 ## Wave 0 Requirements
 
-- [ ] `bin/validate-workflow-events.sh` — validation script covering all event types and regression checks
-- [ ] Test fixtures: sample NDJSON event files for phase/wave/plan events
+- [x] `.planning/phases/62-workflow-instrumentation/validate-instrumentation.sh` — 8-check validation suite (EVNT04-A..H)
 
-*Wave 0 creates the validation script; no external framework install needed.*
+*Existing infrastructure covers all phase requirements. No external framework install needed.*
 
 ---
 
@@ -68,11 +66,22 @@ created: 2026-03-20
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 5s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 5s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-03-20
+
+---
+
+## Validation Audit 2026-03-20
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+| Checks | 8/8 PASS |
