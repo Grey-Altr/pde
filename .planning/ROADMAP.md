@@ -162,7 +162,11 @@ Plans:
   3. The plan-checker completes its dependency analysis in under 10 seconds regardless of milestone size
   4. INTEGRATION-CHECK.md exists with a check table showing orphan exports and name mismatches detected at declaration time (Mode A), and intentionally pre-registered TOOL_MAP entries are not flagged
   5. For any HIGH severity edge case, the user is shown generated BDD acceptance criteria candidates and explicitly approves which ones to append to PLAN.md before they are added
-**Plans**: [To be planned]
+**Plans**: 3 plans
+Plans:
+- [ ] 56-01-PLAN.md — Add Dimension 9 (Cross-Phase Dependencies) to plan checker
+- [ ] 56-02-PLAN.md — Add Dimension 10 (Edge Cases) to plan checker + AC approval gate in plan-phase.md
+- [ ] 56-03-PLAN.md — Add Dimension 11 (Integration Mode A) to plan checker
 
 ### Phase 57: Workflow Integration
 **Goal**: Wave 1 artifacts (research validator, plan-checker enhancements) are wired into `plan-phase.md` and `check-readiness.md` so validation runs automatically at the correct pipeline transition points, not optionally
@@ -187,5 +191,5 @@ Plans:
 | 46-53 | v0.6 | 19/19 | Complete | 2026-03-20 |
 | 54. Tech Debt Closure | v0.7 | 3/3 | Complete | 2026-03-20 |
 | 55. Research Validation Agent | 2/2 | Complete    | 2026-03-20 | - |
-| 56. Plan Checker Enhancement | v0.7 | 0/TBD | Not started | - |
+| 56. Plan Checker Enhancement | v0.7 | 0/3 | Not started | - |
 | 57. Workflow Integration | v0.7 | 0/TBD | Not started | - |
