@@ -220,6 +220,6 @@ Plans:
 | 54-57 | v0.7 | 11/11 | Complete | 2026-03-20 |
 | 58. Event Infrastructure Core | 3/3 | Complete    | 2026-03-20 | - |
 | 59. tmux Dashboard & Dependency Detection | 3/3 | Complete    | 2026-03-20 | - |
-| 60. Session Archival | 2/2 | Complete   | 2026-03-20 | - |
+| 60. Session Archival | 2/2 | Complete    | 2026-03-20 | - |
 | 61. Token & Context Metering | v0.8 | 0/TBD | Not started | - |
 | 62. Workflow Instrumentation | v0.8 | 0/TBD | Not started | - |

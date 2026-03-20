@@ -4,7 +4,7 @@ milestone: v0.8
 milestone_name: Observability & Event Infrastructure
 status: unknown
 stopped_at: Completed 60-02-PLAN.md — archive-session.cjs, hooks.json SessionEnd registration, validate-archival.sh 8/8 PASS
-last_updated: "2026-03-20T18:50:50.975Z"
+last_updated: "2026-03-20T18:53:41.257Z"
 progress:
   total_phases: 5
   completed_phases: 3
