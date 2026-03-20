@@ -231,6 +231,84 @@ Task(
 - **`## RESEARCH COMPLETE`:** Display confirmation, continue to step 6
 - **`## RESEARCH BLOCKED`:** Display blocker, offer: 1) Provide context, 2) Skip research, 3) Abort
 
+## 5.7. Research Validation Gate
+
+**Skip if:** `--gaps` flag, `--skip-research` flag, `research_enabled` is false, `has_research` is false, or RESEARCH-VALIDATION.md already present.
+
+**If `--research` flag was active AND Step 5 just wrote a new RESEARCH.md:**
+Delete stale RESEARCH-VALIDATION.md before detection:
+```bash
+rm -f "${PHASE_DIR}"/*-RESEARCH-VALIDATION.md
+```
+
+**Detect existing validation artifact:**
+```bash
+RV_ARTIFACT=$(ls "${PHASE_DIR}"/*-RESEARCH-VALIDATION.md 2>/dev/null | head -1)
+```
+
+If `RV_ARTIFACT` is non-empty, skip — validation already exists.
+
+**Display banner:**
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" banner "VALIDATING RESEARCH"
+```
+
+### Spawn pde-research-validator
+
+Research validation prompt:
+
+```markdown
+<objective>
+Validate the research claims in {research_path} against the current codebase.
+</objective>
+
+<files_to_read>
+- {research_path}
+</files_to_read>
+
+<additional_context>
+**validated_at_phase:** {phase_number}
+</additional_context>
+```
+
+```
+Task(
+  prompt=validation_prompt,
+  subagent_type="pde-research-validator",
+  model="{researcher_model}",
+  description="Validate research for Phase {phase}"
+)
+```
+
+### Handle Validator Return
+
+**Post-spawn orchestrator responsibilities:**
+
+1. Parse JSON return from agent — extract `summary` and `artifact_content`
+2. Write `artifact_content` to `${PHASE_DIR}/${PADDED_PHASE}-RESEARCH-VALIDATION.md` using the Write tool (agent is read-only per RVAL-05 — orchestrator MUST write)
+3. If `commit_docs`: `node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" commit "docs(phase-${PHASE}): add research validation" --files ${PHASE_DIR}/${PADDED_PHASE}-RESEARCH-VALIDATION.md`
+4. Parse `summary.contradicted_count` and `summary.unverifiable_count`
+
+**Blocking gate (RVAL-08):**
+
+```markdown
+IF summary.contradicted_count > 0:
+  Use AskUserQuestion:
+  - header: "Research Validation: FAIL"
+  - question: "Research validation found {contradicted_count} contradicted claims. Plans built on contradicted claims risk incorrect implementation."
+  - options:
+    - "View contradictions and fix research" -> Display RESEARCH-VALIDATION.md contents. Exit workflow.
+    - "Proceed anyway" -> Continue to Step 5.5.
+
+ELIF summary.unverifiable_count > 0:
+  Display non-blocking warning: "{unverifiable_count} unverifiable claims will appear as CONCERNS in READINESS.md."
+  Continue to Step 5.5.
+
+ELSE:
+  Display: "Research validation: PASS — all claims verified."
+  Continue to Step 5.5.
+```
+
 ## 5.5. Create Validation Strategy
 
 Skip if `nyquist_validation_enabled` is false OR `research_enabled` is false.
