@@ -87,10 +87,10 @@ const TOOL_MAP = {
   'github:list-issues':         'mcp__github__list_issues',
   'github:get-issue':           'mcp__github__issue_read',
   'github:create-pr':           'mcp__github__create_pull_request',
-  'github:update-pr':           'mcp__github__update_pull_request',
+  'github:update-pr':           'mcp__github__update_pull_request',  // TOOL_MAP_PREREGISTERED
   'github:list-workflow-runs':  'mcp__github__actions_list',
   'github:get-workflow-run':    'mcp__github__actions_get',
-  'github:search-issues':       'mcp__github__search_issues',
+  'github:search-issues':       'mcp__github__search_issues',         // TOOL_MAP_PREREGISTERED
 
   // Linear — Phase 41 (verified from official mcp.linear.app server)
   'linear:probe':           'mcp__linear__list_issues',
