@@ -619,6 +619,154 @@ EDGE-CASES.md: written to {phase_dir}
 Overall: CONCERNS (findings present) / PASS (no findings)
 ```
 
+## Dimension 11: Integration Mode A
+
+**Question:** "Do plan @-references point to existing files, and are declared exports consumed by plan tasks?"
+
+Skip if: Phase has no PLAN.md files or no `<context>` blocks with @-references.
+
+**INTG-05 scope constraint (absolute):** The allowlist built from @-references in Step 2 is the ONLY set of files inspected. No file outside this allowlist is ever read, grepped, or checked. Never glob the full codebase.
+
+**Process:**
+
+**Step 1: Build TOOL_MAP_PREREGISTERED exclusion set**
+
+1. Read `bin/lib/mcp-bridge.cjs` (relative to project root, which is the working directory):
+```bash
+grep "TOOL_MAP_PREREGISTERED" bin/lib/mcp-bridge.cjs
+```
+2. Find all lines containing the `TOOL_MAP_PREREGISTERED` annotation
+3. Extract the tool name from each line (pattern: `'tool-name': '...',  // TOOL_MAP_PREREGISTERED`)
+4. Build an exclusion set of these tool names (currently: `github:update-pr`, `github:search-issues`)
+5. Entries in the exclusion set are NEVER flagged as orphan exports
+
+**Step 2: Extract @-references from all plan `<context>` blocks**
+
+1. For each PLAN.md in the phase directory, extract content between `<context>` and `</context>` tags:
+```bash
+REFS=$(awk '/<context>/,/<\/context>/' "${PLAN_FILE}" | grep -E "^@" | sed 's/^@//')
+```
+2. From that content, find all lines starting with `@` (pattern: `grep -E "^@"`)
+3. Strip the leading `@` to get the file path
+4. Normalize paths: if path starts with `/`, it is absolute; otherwise it is relative to project root
+5. Build a deduplicated allowlist of all referenced file paths across all plans
+6. INTG-05 scope constraint: this allowlist is the ONLY set of files inspected. No other files are touched.
+
+**Step 3: Check file existence for each @-reference**
+
+1. For each path in the allowlist, check if the file exists on disk:
+```bash
+test -f "${PROJECT_ROOT}/${ref}" && echo "EXISTS: $ref" || echo "MISSING: $ref"
+```
+2. Record result: EXISTS or MISSING
+3. MISSING files are flagged as issues with severity "concerns"
+
+**Step 4: Check for orphan exports in @-referenced .cjs and .ts files**
+
+1. For each @-referenced file that exists AND is a code file (.cjs, .ts, .js, .mjs):
+   - Extract exported names from the file (grep for `exports.`, `module.exports`, `export function`, `export const`)
+   - For each exported name, check if it appears in any task `<files>` or `<action>` block in the phase plans
+   - If an export is not referenced by any task AND not in the TOOL_MAP_PREREGISTERED exclusion set → flag as orphan export with severity "concerns"
+2. Skip orphan detection for non-code files (.md, .json, .yaml, etc.)
+
+**Step 5: Check for name mismatches**
+
+1. For each task `<files>` entry, check if the filename matches a file in the @-reference allowlist
+2. If a task references a function name (in `<action>`) that appears in a different file than declared in `<files>`, flag as name mismatch with severity "concerns"
+
+**Step 6: Write INTEGRATION-CHECK.md to phase directory**
+
+```bash
+cat > "$PHASE_DIR/${PHASE}-INTEGRATION-CHECK.md" << 'INTG_EOF'
+{artifact content — see format below}
+INTG_EOF
+```
+
+**INTEGRATION-CHECK.md artifact format:**
+```markdown
+---
+phase: {phase-slug}
+generated: "{ISO timestamp}"
+mode: A
+result: {pass | concerns | fail}
+checks_run: {N}
+issues_found: {N}
+---
+
+# Phase {N}: Integration Check (Mode A)
+
+**Generated:** {timestamp}
+**Mode:** A -- Declaration-time
+**Result:** {PASS | CONCERNS | FAIL}
+**Checks run:** {N}
+**Issues found:** {N}
+
+## Check Table
+
+| Task | Reference | Check Type | Result | Details |
+|------|-----------|------------|--------|---------|
+| Task 1 | @.planning/STATE.md | file_exists | PASS | --- |
+| Task 1 | @bin/lib/mcp-bridge.cjs | file_exists | PASS | --- |
+| Task 1 | github:update-pr | tool_map_orphan | SKIPPED | TOOL_MAP_PREREGISTERED |
+| Task 2 | @bin/lib/readiness.cjs | orphan_export | PASS | All declared exports consumed |
+| Task 2 | @src/missing-file.ts | file_exists | CONCERNS | File not found on disk |
+
+## Issues
+
+{Only present when issues_found > 0}
+
+### {N}. {check_type}: {reference}
+
+**Severity:** CONCERNS
+**Details:** {description}
+```
+
+**Issue output format:**
+```yaml
+# File existence check
+issue:
+  plan: "{phase}-{plan_number}"
+  dimension: "integration_mode_a"
+  severity: "concerns"
+  description: "File referenced in @-context does not exist: {path}"
+  reference: "@{path}"
+  check_type: "file_exists"
+
+# Orphan export check
+issue:
+  plan: "{phase}-{plan_number}"
+  dimension: "integration_mode_a"
+  severity: "concerns"
+  description: "Export '{name}' declared in {file} but no consumer found in task declarations"
+  reference: "@{file}"
+  check_type: "orphan_export"
+  declared_name: "{name}"
+
+# TOOL_MAP_PREREGISTERED skip
+# No issue emitted — logged as SKIPPED in check table only
+```
+
+**Severity rules:**
+- Missing @-referenced file → severity: "concerns"
+- Orphan export (not pre-registered) → severity: "concerns"
+- TOOL_MAP_PREREGISTERED entry → SKIPPED (no issue emitted)
+- Name mismatch → severity: "concerns"
+
+**Output:**
+```
+## Dimension 11: Integration Mode A
+
+INTG-05 scope: @-referenced files allowlist only (no full codebase scan)
+TOOL_MAP_PREREGISTERED exclusion set: {N} entries
+
+| Task | Reference | Check Type | Result | Details |
+|------|-----------|------------|--------|---------|
+| Task 1 | @.planning/STATE.md | file_exists | PASS | --- |
+
+INTEGRATION-CHECK.md: written to {phase_dir}
+Overall: PASS / CONCERNS (issues present) / FAIL
+```
+
 </verification_dimensions>
 
 <verification_process>
