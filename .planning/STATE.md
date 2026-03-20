@@ -4,7 +4,7 @@ milestone: v0.8
 milestone_name: Observability & Event Infrastructure
 status: unknown
 stopped_at: Completed 61-01-PLAN.md — validate-metering.sh 8-check Nyquist suite, live pane-token-meter.sh with per-model pricing, 8/8 PASS
-last_updated: "2026-03-20T19:17:39.459Z"
+last_updated: "2026-03-20T19:20:38.730Z"
 progress:
   total_phases: 5
   completed_phases: 4
