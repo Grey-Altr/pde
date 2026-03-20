@@ -147,7 +147,7 @@ Full details: .planning/milestones/v0.8-ROADMAP.md
 <details open>
 <summary>🔄 v0.9 Google Stitch Integration (Phases 64-69) — IN PROGRESS</summary>
 
-- [ ] **Phase 64: Coverage Schema Migration** - Extend designCoverage with hasStitchWireframes across all 13 pipeline skills
+- [x] **Phase 64: Coverage Schema Migration** - Extend designCoverage with hasStitchWireframes across all 13 pipeline skills (completed 2026-03-20)
 - [ ] **Phase 65: MCP Bridge + Quota Infrastructure** - Register Stitch as 6th approved server with auth, tool map, and quota tracking
 - [ ] **Phase 66: Wireframe + Mockup Stitch Integration** - --use-stitch flag on wireframe and mockup with full generate-fetch-persist-annotate pipeline, consent gates, and efficiency contracts
 - [ ] **Phase 67: Ideation Visual Divergence** - --diverge generates Stitch visual variants per concept with batch consent and quota awareness
@@ -252,7 +252,7 @@ Plans:
 | 46-53 | v0.6 | 19/19 | Complete | 2026-03-20 |
 | 54-57 | v0.7 | 11/11 | Complete | 2026-03-20 |
 | 58-63 | v0.8 | 13/13 | Complete | 2026-03-20 |
-| 64 | v0.9 | 0/TBD | Not started | - |
+| 64 | v0.9 | 1/1 | Complete | 2026-03-20 |
 | 65 | v0.9 | 0/TBD | Not started | - |
 | 66 | v0.9 | 0/TBD | Not started | - |
 | 67 | v0.9 | 0/TBD | Not started | - |

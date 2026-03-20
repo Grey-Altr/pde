@@ -1,14 +1,14 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.9
-milestone_name: Google Stitch Integration
-status: roadmap_created
-stopped_at: Roadmap created — ready to plan Phase 64
-last_updated: "2026-03-20T23:00:00.000Z"
+milestone: v0.1
+milestone_name: milestone
+status: unknown
+stopped_at: Completed 64-01-PLAN.md
+last_updated: "2026-03-20T22:15:34.186Z"
 progress:
   total_phases: 6
   completed_phases: 0
-  total_plans: 0
+  total_plans: 1
   completed_plans: 0
 ---
 
@@ -19,28 +19,23 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-20)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** v0.9 Google Stitch Integration — Phase 64: Coverage Schema Migration
+**Current focus:** Phase 64 — coverage-schema-migration
 
 ## Current Position
 
-Phase: 64 — Coverage Schema Migration (not started)
-Plan: —
-Status: Roadmap created, ready to plan
-Last activity: 2026-03-20 — Roadmap finalized for v0.9
-
-```
-Progress: [░░░░░░░░░░░░░░░░░░░░] 0/6 phases
-```
+Phase: 64 (coverage-schema-migration) — COMPLETE
+Plan: 1 of 1 (complete)
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed (v0.9): 0
-- Phases: 0/6
+- Total plans completed (v0.9): 1
+- Phases: 1/6
 - Timeline: Starting
 
 **Prior milestone reference:**
+
 - v0.8: 6 phases, 13 plans, 81 files, 80 commits (1 day)
 
 ## Accumulated Context
@@ -48,6 +43,13 @@ Progress: [░░░░░░░░░░░░░░░░░░░░] 0/6 pha
 ### Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table.
+
+**v0.9 Phase 64 decisions (post-implementation):**
+
+- hasStitchWireframes defaults to false in Phase 64 schema migration — wireframe.md sets it to true only in Phase 66
+- recommend.md uses named placeholder convention ({current_hasStitchWireframes}) matching its existing pattern; all other 11 skills use {current}
+- brief.md confirmed untouched — no manifest-set-top-level designCoverage call exists in that file
+- Live manifest (.planning/design/design-manifest.json) migrated from 7-field to 14-field directly in this phase
 
 **v0.9 Key architectural decisions (pre-implementation):**
 
@@ -73,7 +75,7 @@ Decisions are logged in PROJECT.md Key Decisions table.
 ## Session Continuity
 
 Last session: 2026-03-20
-Stopped at: Roadmap created — ready to plan Phase 64
+Stopped at: Completed 64-01-PLAN.md
 Resume file: None
 
-Next action: `/gsd:plan-phase 64`
+Next action: `/gsd:plan-phase 65`

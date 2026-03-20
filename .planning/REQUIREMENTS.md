@@ -12,7 +12,7 @@ Requirements for Google Stitch Integration milestone. Each maps to roadmap phase
 - [ ] **MCP-01**: Stitch registered as 6th approved server in mcp-bridge.cjs APPROVED_SERVERS with probe/degrade contract
 - [ ] **MCP-02**: TOOL_MAP populated with verified Stitch MCP tool names (generate, list, get, fetch-image, fetch-html, extract-design-context, create-project, list-projects, get-project, build-site)
 - [ ] **MCP-03**: API key authentication via STITCH_API_KEY env var with AUTH_INSTRUCTIONS for /pde:connect stitch
-- [ ] **MCP-04**: designCoverage schema extended with hasStitchWireframes field across all 13 existing pipeline skills (pass-through-all pattern preserved)
+- [x] **MCP-04**: designCoverage schema extended with hasStitchWireframes field across all 13 existing pipeline skills (pass-through-all pattern preserved)
 - [ ] **MCP-05**: Live MCP tool name verification gate before TOOL_MAP entries are finalized (official docs returned minified JS — names must be confirmed against live server)
 
 ### Quota Management
@@ -94,7 +94,7 @@ Requirements for Google Stitch Integration milestone. Each maps to roadmap phase
 | MCP-01 | Phase 65 | Pending |
 | MCP-02 | Phase 65 | Pending |
 | MCP-03 | Phase 65 | Pending |
-| MCP-04 | Phase 64 | Pending |
+| MCP-04 | Phase 64 | Complete |
 | MCP-05 | Phase 65 | Pending |
 | QUOTA-01 | Phase 65 | Pending |
 | QUOTA-02 | Phase 65 | Pending |
