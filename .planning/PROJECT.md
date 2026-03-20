@@ -64,7 +64,7 @@ Any user can go from idea to shipped product through a single platform that hand
 - [ ] Explicit `/pde:monitor` command to launch dashboard
 - [ ] Auto-install check for tmux (detect missing, offer homebrew/apt install)
 - [ ] Persistent dashboard (stays open after operation finishes)
-- [ ] Reviewable session history: structured summaries in `.planning/logs/`, raw event streams in `/tmp`
+- [x] Reviewable session history: structured summaries in `.planning/logs/`, raw event streams in `/tmp` — Phase 60
 - [ ] Future-proof event schema designed for extensibility beyond monitoring
 
 ### Out of Scope
@@ -158,4 +158,4 @@ Any user can go from idea to shipped product through a single platform that hand
 | Tech debt closure as first v0.7 phase | Clean baseline before adding new verification surface area | ✓ Good — all 7 items resolved, no interference with new features |
 
 ---
-*Last updated: 2026-03-20 — Phase 59 (tmux-dashboard-dependency-detection) complete: /pde:monitor command, 6-pane adaptive tmux dashboard, dependency detection with consent-gated install, nested session handling*
+*Last updated: 2026-03-20 — Phase 60 (session-archival) complete: SessionEnd markdown summaries in .planning/logs/, NDJSON cleanup on SessionStart, session_start_ts persistence, 8/8 validation PASS*
