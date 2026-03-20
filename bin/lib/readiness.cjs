@@ -3,7 +3,7 @@
 /**
  * readiness.cjs — Pre-execution readiness gate validation
  *
- * Implements structural (A1-A11) and consistency (B1-B3) checks on PLAN.md files.
+ * Implements structural (A1-A11) and consistency (B1-B5) checks on PLAN.md files.
  * Classifies results as PASS/CONCERNS/FAIL and writes READINESS.md to phase directory.
  *
  * Supports VRFY-03: /pde:check-readiness command.
@@ -23,10 +23,11 @@ const { safeReadFile, findPhaseInternal, output, error } = require('./core.cjs')
  * @param {string|null} planContent - full PLAN.md content string
  * @param {string|null} requirementsContent - full REQUIREMENTS.md content string
  * @param {string} planFileName - plan filename for error messages
+ * @param {string} [cwd=process.cwd()] - working directory for resolving @-reference paths
  * @returns {{ checks: CheckResult[] }}
  *   where CheckResult = {id, description, passed, severity, details?}
  */
-function runStructuralChecks(planContent, requirementsContent, planFileName) {
+function runStructuralChecks(planContent, requirementsContent, planFileName, cwd = process.cwd()) {
   const checks = [];
 
   // ─── Category A: Presence checks ─────────────────────────────────────────
@@ -245,6 +246,98 @@ function runStructuralChecks(planContent, requirementsContent, planFileName) {
     });
   }
 
+  // ─── Category B (continued): File-system checks (no requirementsContent needed) ─
+
+  // B4: All @-referenced files in <context> block exist on disk
+  {
+    const contextMatch = planContent.match(/<context>([\s\S]*?)<\/context>/i);
+    const contextBlock = contextMatch ? contextMatch[1] : '';
+    const missingRefs = [];
+
+    if (contextBlock) {
+      const lines = contextBlock.split('\n');
+      for (const line of lines) {
+        const trimmed = line.trim();
+        // Only relative @-references (skip absolute paths starting with @/, @{, @$)
+        if (trimmed.startsWith('@') && !trimmed.startsWith('@/') && !trimmed.startsWith('@{') && !trimmed.startsWith('@$')) {
+          const refPath = trimmed.slice(1).trim();
+          if (refPath && !fs.existsSync(path.join(cwd, refPath))) {
+            missingRefs.push(refPath);
+          }
+        }
+      }
+    }
+
+    const b4Passed = missingRefs.length === 0;
+    checks.push({
+      id: 'B4',
+      description: 'All @-referenced files in <context> block exist on disk',
+      passed: b4Passed,
+      severity: 'concerns',
+      details: b4Passed ? '' : `${planFileName}: @-referenced files not found on disk: ${missingRefs.join(', ')}`,
+    });
+  }
+
+  // B5: Code files in @-references have at least one export consumed by tasks
+  {
+    const contextMatch = planContent.match(/<context>([\s\S]*?)<\/context>/i);
+    const contextBlock = contextMatch ? contextMatch[1] : '';
+    const tasksMatch = planContent.match(/<tasks>([\s\S]*?)<\/tasks>/i);
+    const tasksBlock = tasksMatch ? tasksMatch[1] : '';
+    const orphanRefs = [];
+
+    const codeExtensions = ['.cjs', '.js', '.mjs', '.ts', '.tsx', '.jsx'];
+
+    if (contextBlock) {
+      const lines = contextBlock.split('\n');
+      for (const line of lines) {
+        const trimmed = line.trim();
+        if (trimmed.startsWith('@') && !trimmed.startsWith('@/') && !trimmed.startsWith('@{') && !trimmed.startsWith('@$')) {
+          const refPath = trimmed.slice(1).trim();
+          if (!refPath) continue;
+
+          const ext = path.extname(refPath).toLowerCase();
+          if (!codeExtensions.includes(ext)) continue;
+
+          const fullPath = path.join(cwd, refPath);
+          if (!fs.existsSync(fullPath)) continue;
+
+          const fileContent = safeReadFile(fullPath);
+          if (!fileContent) continue;
+
+          // Extract exported names via CommonJS and ESM patterns
+          const exportNames = new Set();
+          const cjsPattern = /(?:module\.)?exports\.(\w+)/g;
+          const esmPattern = /export\s+(?:function|const|class|let|var)\s+(\w+)/g;
+          let m;
+          while ((m = cjsPattern.exec(fileContent)) !== null) {
+            exportNames.add(m[1]);
+          }
+          while ((m = esmPattern.exec(fileContent)) !== null) {
+            exportNames.add(m[1]);
+          }
+
+          if (exportNames.size === 0) continue;
+
+          // Check if any export name appears in the tasks block
+          const anyConsumed = [...exportNames].some(name => tasksBlock.includes(name));
+          if (!anyConsumed) {
+            orphanRefs.push(refPath);
+          }
+        }
+      }
+    }
+
+    const b5Passed = orphanRefs.length === 0;
+    checks.push({
+      id: 'B5',
+      description: 'Code files in @-references have at least one export consumed by tasks',
+      passed: b5Passed,
+      severity: 'concerns',
+      details: b5Passed ? '' : `${planFileName}: @-referenced code files with no export consumed by tasks: ${orphanRefs.join(', ')}`,
+    });
+  }
+
   return { checks };
 }
 
@@ -441,7 +534,7 @@ function cmdReadinessCheck(cwd, phaseArg, planFile, raw) {
   for (const pf of planFiles) {
     const content = safeReadFile(pf);
     const fileName = path.basename(pf);
-    const { checks } = runStructuralChecks(content, requirementsContent, fileName);
+    const { checks } = runStructuralChecks(content, requirementsContent, fileName, cwd);
     allContentChecks = allContentChecks.concat(checks);
   }
 
