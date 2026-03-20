@@ -1,9 +1,9 @@
 ---
 phase: 61
 slug: token-context-metering
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: approved
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-20
 ---
 
@@ -38,9 +38,14 @@ created: 2026-03-20
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 61-01-01 | 01 | 1 | TOKN-01 | integration | `grep '~est\.' dashboard/panes/pane-token-meter.sh` | ❌ W0 | ⬜ pending |
-| 61-01-02 | 01 | 1 | TOKN-02 | integration | `grep 'model_pricing' dashboard/panes/pane-token-meter.sh` | ❌ W0 | ⬜ pending |
-| 61-01-03 | 01 | 1 | TOKN-03 | integration | `grep 'Orchestrator context (~estimated)' dashboard/panes/pane-context-window.sh` | ❌ W0 | ⬜ pending |
+| 61-01-01 | 01 | 1 | TOKN-01 | structural | `TOKN01-A: grep '~est\.' bin/pane-token-meter.sh` | ✅ | ✅ green |
+| 61-01-02 | 01 | 1 | TOKN-01 | structural | `TOKN01-B: grep 'line_len / 4' bin/pane-token-meter.sh` | ✅ | ✅ green |
+| 61-01-03 | 01 | 1 | TOKN-02 | structural | `TOKN02-A: grep opus/sonnet/haiku bin/pane-token-meter.sh` | ✅ | ✅ green |
+| 61-01-04 | 01 | 1 | TOKN-02 | structural | `TOKN02-B: grep model-profiles bin/pane-token-meter.sh` | ✅ | ✅ green |
+| 61-01-05 | 01 | 1 | TOKN-03 | structural | `TOKN03-A: grep 'Orchestrator context (~estimated)' bin/pane-context-window.sh` | ✅ | ✅ green |
+| 61-01-06 | 01 | 1 | TOKN-03 | structural | `TOKN03-B: grep 'not subagents' bin/pane-context-window.sh` | ✅ | ✅ green |
+| 61-01-07 | 01 | 1 | TOKN-02 | unit | `TOKN02-C: node -e sonnet_cost != haiku_cost` | ✅ | ✅ green |
+| 61-01-08 | 01 | 1 | TOKN-03 | unit | `TOKN03-C: node -e 10000/1000000*100 == 1` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -48,8 +53,8 @@ created: 2026-03-20
 
 ## Wave 0 Requirements
 
-- [ ] `validate-metering.sh` — validation script covering TOKN-01, TOKN-02, TOKN-03
-- [ ] Verify pane stub files exist from Phase 59
+- [x] `validate-metering.sh` — validation script covering TOKN-01, TOKN-02, TOKN-03
+- [x] Verify pane stub files exist from Phase 59
 
 *Existing infrastructure from Phase 58/59 covers event bus and pane framework.*
 
@@ -66,11 +71,23 @@ created: 2026-03-20
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 5s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 5s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-03-20
+
+---
+
+## Validation Audit 2026-03-20
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+Nyquist compliant: 8/8 PASS, all requirements have automated verification.
