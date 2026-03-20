@@ -20,6 +20,8 @@ const VALID_CONFIG_KEYS = new Set([
   'workflow._auto_chain_active',
   'git.branching_strategy', 'git.phase_branch_template', 'git.milestone_branch_template',
   'planning.commit_docs', 'planning.search_gitignored',
+  'monitoring.enabled', // Phase 58: event infrastructure — enable/disable NDJSON event log
+  'monitoring.session_id', // Phase 58: current session UUID for scoped log file naming
 ]);
 
 const CONFIG_KEY_SUGGESTIONS = {
