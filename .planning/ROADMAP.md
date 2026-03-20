@@ -109,7 +109,7 @@ Full details: .planning/milestones/v0.5-ROADMAP.md
 - [x] **Phase 49: Reconciliation & HALT Checkpoints** - Post-execution reconciliation against git; RECONCILIATION.md; high-risk task pause gates (completed 2026-03-19)
 - [x] **Phase 50: Readiness Gate** - /pde:check-readiness command with PASS/CONCERNS/FAIL; blocks execute-phase on FAIL (completed 2026-03-19)
 - [x] **Phase 51: Workflow Tracking** - Per-task status tracking, task-level /pde:progress, session HANDOFF.md (completed 2026-03-19)
-- [ ] **Phase 52: Agent Enhancements** - Assumptions capture, analyst persona, analyst-to-brief pipeline, per-agent persistent memory
+- [x] **Phase 52: Agent Enhancements** - Assumptions capture, analyst persona, analyst-to-brief pipeline, per-agent persistent memory (completed 2026-03-20)
 
 ## Phase Details
 
@@ -209,7 +209,7 @@ Plans:
   3. The structured brief from pde-analyst is accepted by /pde:brief as upstream context, and /pde:brief degrades gracefully when no analyst brief is present
   4. .planning/agent-memory/{agent-type}/memories.md exists for each core agent type (executor, planner, debugger, verifier); agents load their memories.md at spawn and append new entries on completion
   5. Each agent's memories.md enforces a 50-entry cap with automatic archival of the oldest entries to an archive file; memory entries include timestamp, phase context, and relevance tags
-**Plans:** 3/4 plans executed
+**Plans:** 4/4 plans complete
 Plans:
 - [ ] 52-01-PLAN.md — TDD: memory.cjs library (agent memory CRUD + archival + tests)
 - [ ] 52-02-PLAN.md — Assumptions command + plan-phase gate integration
@@ -233,4 +233,4 @@ Plans:
 | 49. Reconciliation & HALT Checkpoints | 2/2 | Complete    | 2026-03-19 | - |
 | 50. Readiness Gate | 2/2 | Complete    | 2026-03-19 | - |
 | 51. Workflow Tracking | 2/2 | Complete    | 2026-03-19 | - |
-| 52. Agent Enhancements | 3/4 | In Progress|  | - |
+| 52. Agent Enhancements | 4/4 | Complete   | 2026-03-20 | - |
