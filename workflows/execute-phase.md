@@ -125,6 +125,10 @@ All subsequent commits go to this branch. User handles merging.
 From init JSON: `phase_dir`, `plan_count`, `incomplete_count`.
 
 Report: "Found {plan_count} plans in {phase_dir} ({incomplete_count} incomplete)"
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" event-emit phase_started '{"phase_number":"'"${PHASE_NUMBER}"'","phase_name":"'"${PHASE_NAME}"'"}' 2>/dev/null || true
+```
 </step>
 
 <step name="discover_and_group_plans">
@@ -157,6 +161,10 @@ Execute each wave in sequence. Within a wave: parallel if `PARALLELIZATION=true`
 **Sharded vs Standard execution:** Plans with a `{plan-prefix}-tasks/` directory use per-task spawning (one executor per task file, ~90% context reduction). Plans without a tasks directory use the standard single-executor-per-plan flow. The orchestrator checks for the tasks directory before spawning — it never reads task file contents to stay lean.
 
 **For each wave:**
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" event-emit wave_started '{"phase_number":"'"${PHASE_NUMBER}"'","wave_number":"'"${WAVE_NUM}"'"}' 2>/dev/null || true
+```
 
 1. **Describe what's being built (BEFORE spawning):**
 
@@ -420,6 +428,10 @@ Execute each wave in sequence. Within a wave: parallel if `PARALLELIZATION=true`
 
    - Bad: "Wave 2 complete. Proceeding to Wave 3."
    - Good: "Terrain system complete — 3 biome types, height-based texturing, physics collision meshes. Vehicle physics (Wave 3) can now reference ground surfaces."
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" event-emit wave_complete '{"phase_number":"'"${PHASE_NUMBER}"'","wave_number":"'"${WAVE_NUM}"'"}' 2>/dev/null || true
+```
 
 5. **Handle failures:**
 
@@ -718,6 +730,10 @@ The CLI handles:
 - Updating REQUIREMENTS.md traceability
 
 Extract from result: `next_phase`, `next_phase_name`, `is_last_phase`.
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" event-emit phase_complete '{"phase_number":"'"${PHASE_NUMBER}"'","phase_name":"'"${PHASE_NAME}"'"}' 2>/dev/null || true
+```
 
 ```bash
 node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" commit "docs(phase-{X}): complete phase execution" --files .planning/ROADMAP.md .planning/STATE.md .planning/REQUIREMENTS.md {phase_dir}/*-VERIFICATION.md
