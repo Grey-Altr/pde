@@ -53,11 +53,13 @@ Any user can go from idea to shipped product through a single platform that hand
 - ✓ Agent enhancements: assumptions capture, analyst persona, analyst-to-brief pipeline, persistent agent memory — v0.6
 - ✓ File-hash manifest for safe framework updates preserving user modifications — v0.6
 - ✓ BMAD/PAUL methodology patterns documented in PDE terms — v0.6
+- ✓ Research validation agent with LLM claim extraction, three-tier classification, and three-state codebase verification — v0.7
+- ✓ Plan checker enhanced with three new dimensions: cross-phase dependency detection, edge case surfacing with BDD AC generation, and declaration-time integration verification — v0.7
+- ✓ Workflow integration: research validation gates plan-phase, B4/B5 structural readiness checks, integration checks consuming all verification artifacts — v0.7
 
 ### Active
 
-- Research validation agent with LLM claim extraction, three-tier classification, and three-state codebase verification — v0.7 (Phase 55)
-- Plan checker enhanced with three new dimensions: cross-phase dependency detection, edge case surfacing with BDD AC generation, and declaration-time integration verification — v0.7 (Phase 56)
+(No active requirements — all v0.7 phases complete)
 
 ## Current Milestone: v0.7 Pipeline Reliability & Validation
 
@@ -157,4 +159,4 @@ Any user can go from idea to shipped product through a single platform that hand
 | Analyst persona interviews in new-project/new-milestone | Surfaces unspoken assumptions before planning begins | ✓ Good — structured briefs improve plan quality |
 
 ---
-*Last updated: 2026-03-20 after Phase 56 (plan-checker-enhancement) complete*
+*Last updated: 2026-03-20 after Phase 57 (workflow-integration) complete — all v0.7 phases done*
