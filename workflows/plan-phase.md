@@ -27,7 +27,7 @@ Parse JSON for: `researcher_model`, `planner_model`, `checker_model`, `research_
 
 ## 2. Parse and Normalize Arguments
 
-Extract from $ARGUMENTS: phase number (integer or decimal like `2.1`), flags (`--research`, `--skip-research`, `--gaps`, `--skip-verify`, `--prd <filepath>`).
+Extract from $ARGUMENTS: phase number (integer or decimal like `2.1`), flags (`--research`, `--skip-research`, `--gaps`, `--skip-verify`, `--skip-assumptions`, `--prd <filepath>`).
 
 Extract `--prd <filepath>` from $ARGUMENTS. If present, set PRD_FILE to the filepath.
 
@@ -346,6 +346,52 @@ If missing and Nyquist is still enabled/applicable — ask user:
 
 Proceed to Step 8 only if user selects 2 or 3.
 
+## 7.6. Assumptions Gate
+
+Skip if: `--skip-assumptions` flag OR `--auto` mode OR `--gaps` mode OR `--prd` mode.
+
+Display banner:
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" banner "SURFACING ASSUMPTIONS"
+```
+
+Run the assumptions analysis inline (same session, not as a subagent):
+
+1. Read ROADMAP.md phase section for phase goal, requirements, success criteria
+2. Read REQUIREMENTS.md for the phase requirement IDs ({phase_req_ids})
+3. Read CONTEXT.md if it exists ({context_path})
+4. Read RESEARCH.md if it exists ({research_path})
+
+Generate structured assumptions across 5 areas following the same analysis as list-phase-assumptions.md:
+- **Technical Approach** — libraries, patterns, tools
+- **Implementation Order** — what gets built first/second/third
+- **Scope Boundaries** — in scope, out of scope, ambiguous
+- **Risk Areas** — complexity, challenges, gotchas
+- **Dependencies** — what must exist, external needs
+
+Each assumption prefixed with confidence marker: [confident], [assuming], or [unclear].
+
+Present via AskUserQuestion:
+- header: "Phase {phase_number} Assumptions"
+- question: "Review these assumptions. Confirm if accurate, or describe corrections."
+- options:
+  - "Confirmed — proceed to planning" — Assumptions accepted as-is
+  - "Corrections below" — User will type corrections in next message
+
+**If confirmed:** Set ASSUMPTIONS_CONTEXT = null. Proceed to Step 8.
+
+**If corrections:** Capture the user's corrections. Build an assumptions context block:
+```
+<assumptions_context>
+The user reviewed planner assumptions and provided these corrections:
+{user corrections text}
+
+Honor these corrections when creating the plan. They override any assumptions
+the planner would otherwise make.
+</assumptions_context>
+```
+Set ASSUMPTIONS_CONTEXT = the block above. Proceed to Step 8.
+
 ## 8. Spawn pde-planner Agent
 
 Display banner:
@@ -378,6 +424,9 @@ Planner prompt:
 **Project instructions:** Read ./CLAUDE.md if exists — follow project-specific guidelines
 **Project skills:** Check .claude/skills/ or .agents/skills/ directory (if either exists) — read SKILL.md files, plans should account for project skill rules
 </planning_context>
+
+{If ASSUMPTIONS_CONTEXT is not null:}
+{ASSUMPTIONS_CONTEXT}
 
 <downstream_consumer>
 Output consumed by /pde:execute-phase. Plans need:
