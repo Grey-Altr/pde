@@ -59,6 +59,88 @@ Semantic checks are always CONCERNS severity (never FAIL). If any semantic check
 4. Re-write the file using the Edit or Write tool
 </step>
 
+<step name="run_integration_checks">
+Read the phase directory and consume all four verification artifacts (if present), then run Mode B codebase-time verification on @-referenced code files. Append findings to READINESS.md.
+
+**1. Artifact detection:**
+
+```bash
+RV_FILE=$(ls "${PHASE_DIR}"/*-RESEARCH-VALIDATION.md 2>/dev/null | head -1)
+DG_FILE=$(ls "${PHASE_DIR}"/*-DEPENDENCY-GAPS.md 2>/dev/null | head -1)
+EC_FILE=$(ls "${PHASE_DIR}"/*-EDGE-CASES.md 2>/dev/null | head -1)
+IC_FILE=$(ls "${PHASE_DIR}"/*-INTEGRATION-CHECK.md 2>/dev/null | head -1)
+```
+
+For each file that exists, read it and extract its frontmatter fields. If a file is absent, record "not present" — absent artifacts are normal (e.g., when pde-plan-checker has not run), not errors.
+
+**Extract fields by artifact:**
+
+- RESEARCH-VALIDATION.md (if present): `result`, `contradicted_count`, `unverifiable_count`
+- DEPENDENCY-GAPS.md (if present): `result`, `gap_count`
+- EDGE-CASES.md (if present): `finding_count`, `high_count`, `has_bdd_candidates`
+- INTEGRATION-CHECK.md (if present): `result`, `issues_found`
+
+**2. Read-modify-write to append Verification Artifacts table:**
+
+1. Read the current READINESS.md (written/updated by prior steps)
+2. Append the following section:
+
+```markdown
+## Verification Artifacts
+
+| Artifact | Result | Key Metric | Notes |
+|----------|--------|------------|-------|
+| RESEARCH-VALIDATION.md | {result or n/a} | {contradicted_count}/{unverifiable_count} claims | {present or not present} |
+| DEPENDENCY-GAPS.md | {result or n/a} | {gap_count} gaps | {present or not present} |
+| EDGE-CASES.md | CONCERNS | {finding_count} findings ({high_count} HIGH) | {present or not present} |
+| INTEGRATION-CHECK.md | {result or n/a} | {issues_found} issues | {present or not present} |
+```
+
+Fill in actual values from frontmatter for present artifacts. For absent artifacts, use `n/a` for result and `0` for counts.
+
+**3. Mode B codebase-time verification:**
+
+Read each PLAN.md in the phase directory. For each plan:
+- Extract the `<context>...</context>` block
+- Find @-references to code files (.cjs, .js, .mjs, .ts, .tsx, .jsx) that are relative paths
+- For each existing code file:
+  - Read the file
+  - Extract function signatures: grep for `function\s+(\w+)` and `exports\.(\w+)\s*=\s*function`
+  - Extract module exports: grep for `exports\.(\w+)` and `export\s+(?:function|const|class)\s+(\w+)`
+  - Verify these names appear in the plan tasks (check `<action>` and `<files>` content)
+  - Record as PASS if at least one export/function is referenced, CONCERNS if none are
+
+Append to READINESS.md:
+
+```markdown
+## Mode B: Codebase-Time Verification
+
+| File | Check | Status | Notes |
+|------|-------|--------|-------|
+| @{path} | function_signature | PASS/CONCERNS | {function} found/not found |
+| @{path} | module_export | PASS/CONCERNS | {export} verified/missing |
+```
+
+If no code files in @-references, append: "No code file @-references found — Mode B checks skipped."
+
+**4. Severity mapping and READINESS.md frontmatter update:**
+
+Apply severity mapping to determine if the overall result needs updating:
+- RESEARCH-VALIDATION.md with `result=FAIL` (contradicted_count > 0) → update READINESS.md frontmatter `result:` to `fail`
+- DEPENDENCY-GAPS.md with `result=fail` → update to `concerns` (not fail — dependency gaps are actionable, not blocking)
+- EDGE-CASES.md present → always CONCERNS (per EDGE-04 decision)
+- INTEGRATION-CHECK.md with `issues_found > 0` → update to `concerns`
+- Mode B findings with any CONCERNS → update to `concerns`
+- **Never downgrade:** if current result is already `fail`, do not change it to `concerns`
+
+Read-modify-write pattern (same as run_semantic_checks):
+1. Read current READINESS.md
+2. Append the two new sections (Verification Artifacts + Mode B)
+3. If overall result needs updating, edit the frontmatter `result:` field
+4. Update `checks_failed` count in frontmatter if new failures found
+5. Re-write the file using the Edit or Write tool
+</step>
+
 <step name="report_result">
 Display the result to the user based on the final result in READINESS.md:
 
