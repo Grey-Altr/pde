@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v0.6
 milestone_name: Advanced Workflow Methodology
 status: planning
-stopped_at: Completed 52-04-PLAN.md
-last_updated: "2026-03-20T00:20:45.577Z"
+stopped_at: Completed 53-01-PLAN.md
+last_updated: "2026-03-20T00:56:58.803Z"
 last_activity: 2026-03-19 — v0.6 roadmap created, 7 phases (46-52), 24/24 requirements mapped
 progress:
-  total_phases: 7
+  total_phases: 8
   completed_phases: 7
-  total_plans: 17
-  completed_plans: 17
+  total_plans: 19
+  completed_plans: 18
   percent: 0
 ---
 
@@ -58,6 +58,7 @@ Progress: [░░░░░░░░░░] 0% of v0.6
 | Phase 52-agent-enhancements P03 | 3 | 2 tasks | 5 files |
 | Phase 52-agent-enhancements P02 | 39min | 2 tasks | 3 files |
 | Phase 52-agent-enhancements P04 | 4min | 2 tasks | 5 files |
+| Phase 53-milestone-polish P01 | 2 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -110,6 +111,8 @@ v0.6 roadmap decisions:
 - [Phase 52-agent-enhancements]: Assumptions gate skippable via --skip-assumptions, --auto, --gaps, --prd — fast paths for automated workflows unaffected; interactive is the default
 - [Phase 52-04]: Verifier memory_instructions placed inline in execute-phase.md verifier spawn prompt — verifier is spawned there, not from verify-phase.md
 - [Phase 52-04]: init execute-phase creates all 4 memory dirs eagerly on every call — idempotent, no conditional check needed
+- [Phase 53-01]: SC1: workflow-methodology.md injected into main planner spawn only (not researcher, not revision loop planner)
+- [Phase 53-01]: SC4: Option B chosen — delete cmdTrackingGenerateHandoff entirely; generateHandoff preserved for direct export use
 
 ### Pending Todos
 
@@ -129,6 +132,6 @@ Research flagged two items needing resolution before planning begins:
 
 ## Session Continuity
 
-Last session: 2026-03-20T00:14:59.392Z
-Stopped at: Completed 52-04-PLAN.md
+Last session: 2026-03-20T00:56:58.800Z
+Stopped at: Completed 53-01-PLAN.md
 Resume file: None
