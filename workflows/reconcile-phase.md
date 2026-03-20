@@ -36,6 +36,26 @@ Example:
 If no PLAN.md files found: note "No plan files found in phase directory" and proceed to git evidence collection. Reconciliation will report incomplete status.
 </step>
 
+<step name="collect_workflow_status">
+Check for workflow-status.md in plan tasks directories:
+
+```bash
+for STATUS_FILE in $(ls "{phase_dir}"/*-tasks/workflow-status.md 2>/dev/null); do
+  echo "=== $STATUS_FILE ==="
+  cat "$STATUS_FILE"
+done
+```
+
+Parse each file using the standard table pattern:
+`| num | name | status | commit | updated |`
+
+Build status_map keyed by `{plan_prefix}:{task_num}`:
+- status: DONE/SKIPPED/IN_PROGRESS/TODO
+- commit: the hash in the commit column (may be "---" if not set)
+
+If no workflow-status.md files found: note "No workflow-status.md found --- task tracking not used for this phase" and proceed normally. This step is advisory; its absence does not change reconciliation status.
+</step>
+
 <step name="collect_git_evidence">
 Gather all commits associated with this phase using the parenthesis-anchored grep pattern (per Pitfall 5 — avoids cross-phase matches like phase 4 matching phase 40, 41, 42):
 
@@ -78,9 +98,17 @@ If zero phase commits found: immediately write RECONCILIATION.md with `status: i
 </step>
 
 <step name="match_tasks_to_commits">
-Match each planned task to its corresponding commit(s) using a three-tier algorithm. For each planned task, attempt each tier in order until a match is found.
+Match each planned task to its corresponding commit(s) using a four-tier algorithm. For each planned task, attempt each tier in order until a match is found.
 
 ```
+Tier 0: workflow-status hash lookup
+- If status_map exists and has an entry for this task with status DONE or SKIPPED and a non-empty commit hash (not "---"):
+  - Look up that commit hash in the git evidence
+  - If found: MATCH --- assign commit to this task with match_method "workflow_status"
+  - If not found in git evidence: flag as "status_claimed_done_no_git_evidence" (do NOT mark as matched)
+- If status_map shows TODO or IN_PROGRESS: skip Tier 0, fall through to slug matching
+- If no status_map exists: skip Tier 0 entirely
+
 Primary: slug matching
 - Normalize task name to slug:
   - Take the text AFTER "Task N: " prefix if present
@@ -125,6 +153,7 @@ Status values per task:
 - `matched` — has at least one commit via slug or file overlap
 - `plan_prefix_only` — matched via phase-plan prefix only
 - `unmatched` — no commit found by any method
+- `status_claimed_done_no_git_evidence` --- workflow-status.md says DONE but no corresponding commit found in git
 </step>
 
 <step name="derive_ac_status">
