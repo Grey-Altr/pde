@@ -1,5 +1,5 @@
 <purpose>
-Synthesize all upstream design pipeline artifacts (brief, flows, screen inventory, wireframes with annotations, design system tokens, critique reports, iteration changelogs) into two implementation-ready outputs: a versioned HND-handoff-spec-v{N}.md document and a HND-types-v{N}.ts TypeScript interface declarations file. Reads STACK.md as a hard dependency for framework and TypeScript alignment. Checks annotation completeness before TypeScript interface generation. Registered in the design manifest under artifact code HND with hasHandoff coverage flag set via read-before-set pattern preserving all 7 designCoverage fields.
+Synthesize all upstream design pipeline artifacts (brief, flows, screen inventory, wireframes with annotations, design system tokens, critique reports, iteration changelogs) into two implementation-ready outputs: a versioned HND-handoff-spec-v{N}.md document and a HND-types-v{N}.ts TypeScript interface declarations file. Reads STACK.md as a hard dependency for framework and TypeScript alignment. Checks annotation completeness before TypeScript interface generation. Registered in the design manifest under artifact code HND with hasHandoff coverage flag set via read-before-set pattern preserving all 14 designCoverage fields.
 </purpose>
 
 <required_reading>
@@ -714,10 +714,10 @@ COV=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design coverage-check)
 if [[ "$COV" == @file:* ]]; then COV=$(cat "${COV#@file:}"); fi
 ```
 
-Parse the JSON output from coverage-check. Extract ALL thirteen current flag values: `hasDesignSystem`, `hasWireframes`, `hasFlows`, `hasHardwareSpec`, `hasCritique`, `hasIterate`, `hasHandoff`, `hasIdeation`, `hasCompetitive`, `hasOpportunity`, `hasMockup`, `hasHigAudit`, `hasRecommendations`. Default any absent field to `false`. Merge `hasHandoff: true` while preserving all other twelve values. Then write the full merged thirteen-field object:
+Parse the JSON output from coverage-check. Extract ALL fourteen current flag values: `hasDesignSystem`, `hasWireframes`, `hasFlows`, `hasHardwareSpec`, `hasCritique`, `hasIterate`, `hasHandoff`, `hasIdeation`, `hasCompetitive`, `hasOpportunity`, `hasMockup`, `hasHigAudit`, `hasRecommendations`, `hasStitchWireframes`. Default any absent field to `false`. Merge `hasHandoff: true` while preserving all other thirteen values. Then write the full merged fourteen-field object:
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":{current},"hasWireframes":{current},"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":true,"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current}}'
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":{current},"hasWireframes":{current},"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":true,"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":{current}}'
 ```
 
 Replace each `{current}` with the actual value read from coverage-check output (true or false).

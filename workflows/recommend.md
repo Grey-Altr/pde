@@ -552,7 +552,7 @@ node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update REC status
 node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update REC version {N}
 ```
 
-**Update designCoverage flag — 13-field pass-through-all pattern:**
+**Update designCoverage flag — 14-field pass-through-all pattern:**
 
 First, read all existing coverage flags:
 
@@ -561,7 +561,7 @@ COV=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design coverage-check)
 if [[ "$COV" == @file:* ]]; then COV=$(cat "${COV#@file:}"); fi
 ```
 
-Parse the JSON result. Extract all 13 fields, defaulting any absent field to `false`:
+Parse the JSON result. Extract all 14 fields, defaulting any absent field to `false`:
 
 | Field (in canonical order) | Default |
 |----------------------------|---------|
@@ -578,17 +578,18 @@ Parse the JSON result. Extract all 13 fields, defaulting any absent field to `fa
 | hasMockup | false |
 | hasHigAudit | false |
 | hasRecommendations | **true** (this skill sets this flag) |
+| hasStitchWireframes | false |
 
-Then write the full 13-field JSON in canonical order (preserving all existing flag values, setting hasRecommendations to true):
+Then write the full 14-field JSON in canonical order (preserving all existing flag values, setting hasRecommendations to true):
 
 ```bash
 node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage \
-  '{"hasDesignSystem":{current_hasDesignSystem},"hasWireframes":{current_hasWireframes},"hasFlows":{current_hasFlows},"hasHardwareSpec":{current_hasHardwareSpec},"hasCritique":{current_hasCritique},"hasIterate":{current_hasIterate},"hasHandoff":{current_hasHandoff},"hasIdeation":{current_hasIdeation},"hasCompetitive":{current_hasCompetitive},"hasOpportunity":{current_hasOpportunity},"hasMockup":{current_hasMockup},"hasHigAudit":{current_hasHigAudit},"hasRecommendations":true}'
+  '{"hasDesignSystem":{current_hasDesignSystem},"hasWireframes":{current_hasWireframes},"hasFlows":{current_hasFlows},"hasHardwareSpec":{current_hasHardwareSpec},"hasCritique":{current_hasCritique},"hasIterate":{current_hasIterate},"hasHandoff":{current_hasHandoff},"hasIdeation":{current_hasIdeation},"hasCompetitive":{current_hasCompetitive},"hasOpportunity":{current_hasOpportunity},"hasMockup":{current_hasMockup},"hasHigAudit":{current_hasHigAudit},"hasRecommendations":true,"hasStitchWireframes":{current_hasStitchWireframes}}'
 ```
 
 Replace each `{current_*}` placeholder with the actual value read from `coverage-check` (or `false` if the field was absent).
 
-IMPORTANT: Never use dot-notation (e.g., `designCoverage.hasRecommendations`) with `manifest-set-top-level`. Always pass the complete 13-field JSON object.
+IMPORTANT: Never use dot-notation (e.g., `designCoverage.hasRecommendations`) with `manifest-set-top-level`. Always pass the complete 14-field JSON object.
 
 Display: `Step 7/7: Root DESIGN-STATE and manifest updated. Coverage flag hasRecommendations set to true.`
 

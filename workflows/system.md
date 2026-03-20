@@ -1839,14 +1839,14 @@ First read current coverage state:
 node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design coverage-check
 ```
 
-Parse the JSON output from coverage-check. Extract ALL thirteen current flag values: `hasDesignSystem`, `hasWireframes`, `hasFlows`, `hasHardwareSpec`, `hasCritique`, `hasIterate`, `hasHandoff`, `hasIdeation`, `hasCompetitive`, `hasOpportunity`, `hasMockup`, `hasHigAudit`, `hasRecommendations`. Default any absent field to `false`. Merge `hasDesignSystem: true` while preserving all other twelve values. Then write the full merged thirteen-field object:
+Parse the JSON output from coverage-check. Extract ALL fourteen current flag values: `hasDesignSystem`, `hasWireframes`, `hasFlows`, `hasHardwareSpec`, `hasCritique`, `hasIterate`, `hasHandoff`, `hasIdeation`, `hasCompetitive`, `hasOpportunity`, `hasMockup`, `hasHigAudit`, `hasRecommendations`, `hasStitchWireframes`. Default any absent field to `false`. Merge `hasDesignSystem: true` while preserving all other thirteen values. Then write the full merged fourteen-field object:
 
 Then write the full merged object back:
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":true,"hasWireframes":{current},"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current}}'
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":true,"hasWireframes":{current},"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":{current}}'
 ```
 
-Use the actual values read from coverage-check — do not hardcode false for fields that may have been set by other skills. The key invariant: `manifest-set-top-level` performs FLAT key assignment, so `designCoverage` must be set as the FULL thirteen-field JSON object every time. All 13 fields: hasDesignSystem, hasWireframes, hasFlows, hasHardwareSpec, hasCritique, hasIterate, hasHandoff, hasIdeation, hasCompetitive, hasOpportunity, hasMockup, hasHigAudit, hasRecommendations.
+Use the actual values read from coverage-check — do not hardcode false for fields that may have been set by other skills. The key invariant: `manifest-set-top-level` performs FLAT key assignment, so `designCoverage` must be set as the FULL fourteen-field JSON object every time. All 14 fields: hasDesignSystem, hasWireframes, hasFlows, hasHardwareSpec, hasCritique, hasIterate, hasHandoff, hasIdeation, hasCompetitive, hasOpportunity, hasMockup, hasHigAudit, hasRecommendations, hasStitchWireframes.
 
 Display: `Step 7/7: Root DESIGN-STATE and manifest updated.`
 

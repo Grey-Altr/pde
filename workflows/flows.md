@@ -515,7 +515,7 @@ COV=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design coverage-check)
 if [[ "$COV" == @file:* ]]; then COV=$(cat "${COV#@file:}"); fi
 ```
 
-Parse the JSON output to extract current flag values for ALL thirteen fields:
+Parse the JSON output to extract current flag values for ALL fourteen fields:
 - `hasDesignSystem` — current value from COV output
 - `hasWireframes` — current value from COV output
 - `hasFlows` — (this skill sets to true)
@@ -529,11 +529,12 @@ Parse the JSON output to extract current flag values for ALL thirteen fields:
 - `hasMockup` — current value from COV output (default false if absent)
 - `hasHigAudit` — current value from COV output (default false if absent)
 - `hasRecommendations` — current value from COV output (default false if absent)
+- `hasStitchWireframes` — current value from COV output (default false if absent)
 
-Merge `hasFlows: true` into the existing values, then write the full thirteen-field object (all flags must be present — default any absent field to `false`):
+Merge `hasFlows: true` into the existing values, then write the full fourteen-field object (all flags must be present — default any absent field to `false`):
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":{current},"hasWireframes":{current},"hasFlows":true,"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current}}'
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":{current},"hasWireframes":{current},"hasFlows":true,"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":{current}}'
 ```
 
 Display: `Step 7/7: Root DESIGN-STATE and manifest updated.`
