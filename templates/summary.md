@@ -12,6 +12,7 @@ phase: XX-name
 plan: YY
 subsystem: [primary category: auth, payments, ui, api, database, infra, testing, etc.]
 tags: [searchable tech: jwt, stripe, react, postgres, prisma]
+one-liner: ""
 
 # Dependency graph
 requires:
