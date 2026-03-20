@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v0.6
 milestone_name: Advanced Workflow Methodology
 status: planning
-stopped_at: Completed 52-03-PLAN.md
-last_updated: "2026-03-19T23:32:09.452Z"
+stopped_at: Completed 52-02-PLAN.md
+last_updated: "2026-03-20T00:09:21.100Z"
 last_activity: 2026-03-19 — v0.6 roadmap created, 7 phases (46-52), 24/24 requirements mapped
 progress:
   total_phases: 7
   completed_phases: 6
   total_plans: 17
-  completed_plans: 15
+  completed_plans: 16
   percent: 0
 ---
 
@@ -56,6 +56,7 @@ Progress: [░░░░░░░░░░] 0% of v0.6
 | Phase 51-workflow-tracking P02 | 3 | 2 tasks | 3 files |
 | Phase 52-agent-enhancements P01 | 12min | 1 tasks | 2 files |
 | Phase 52-agent-enhancements P03 | 3 | 2 tasks | 5 files |
+| Phase 52-agent-enhancements P02 | 39min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -103,6 +104,9 @@ v0.6 roadmap decisions:
 - [Phase 52-03]: ANL context probe positioned after OPP in Sub-step 2c, following the established IDT/CMP/OPP pattern exactly
 - [Phase 52-03]: Analyst interview skipped in --auto mode in both new-project and new-milestone to preserve full automation path
 - [Phase 52-03]: ANL_CONTEXT injects into Step 5 enrichment as analyst-surfaced requirements and analyst-flagged risks, not overrides
+- [Phase 52-agent-enhancements]: Step 7.6 runs inline (same session) before planner spawn — keeps assumption corrections immediately available for prompt injection without file-based handoff
+- [Phase 52-agent-enhancements]: /pde:assumptions is a pure alias to list-phase-assumptions workflow — single implementation, no duplication, offer_next updated to reference both commands
+- [Phase 52-agent-enhancements]: Assumptions gate skippable via --skip-assumptions, --auto, --gaps, --prd — fast paths for automated workflows unaffected; interactive is the default
 
 ### Pending Todos
 
@@ -122,6 +126,6 @@ Research flagged two items needing resolution before planning begins:
 
 ## Session Continuity
 
-Last session: 2026-03-19T23:32:09.450Z
-Stopped at: Completed 52-03-PLAN.md
+Last session: 2026-03-20T00:09:21.097Z
+Stopped at: Completed 52-02-PLAN.md
 Resume file: None
