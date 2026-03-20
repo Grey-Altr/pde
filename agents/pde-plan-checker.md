@@ -488,6 +488,137 @@ DEPENDENCY-GAPS.md: written to {phase_dir}
 Overall: PASS / CONCERNS / FAIL
 ```
 
+## Dimension 10: Edge Cases
+
+**Question:** Are there uncovered error paths, empty states, or boundary conditions in the plan tasks?
+
+Skip if: Phase has no PLAN.md files.
+
+**EDGE-04 constraint (absolute):** ALL edge case findings MUST use `severity: "concerns"` in the checker issue_structure — NEVER "blocker" or "fail". The HIGH/MEDIUM/LOW classification describes edge case risk and is stored in `finding.severity_level` only. This prevents edge cases from triggering mandatory revision loops.
+
+**Process:**
+
+1. For each plan in the phase, read all `<task>` elements.
+
+2. Extract the `<action>`, `<acceptance_criteria>`, `<files>`, and `<done>` content from each task.
+
+3. Apply LLM reasoning to identify edge cases in these categories:
+   - **Error paths:** State transitions that can visibly fail, write operations without rollback, file operations without error handling
+   - **Empty states:** Missing handling for zero-item lists, null/undefined inputs, first-run scenarios
+   - **Boundary conditions:** Input validation gaps, size/length limits not specified, concurrent access patterns
+
+4. For each candidate finding, verify it references a SPECIFIC plan element — one of:
+   - A file path from `<files>` (e.g., `bin/lib/readiness.cjs`)
+   - A function name mentioned in `<action>` (e.g., `writeReadinessMd()`)
+   - A state field referenced in `<action>` or `<done>` (e.g., `disk_status`)
+   - **If the finding can only reference "the plan in general" or a generic category, DROP IT (EDGE-02 compliance)**
+
+5. Classify each valid finding by severity:
+   - **HIGH:** Missing error handling for a state transition that can visibly fail; missing validation for an input that could corrupt state; missing rollback for a multi-step write operation
+   - **MEDIUM:** Missing empty-state handling; missing rate limit / retry logic; missing auth check on a write path
+   - **LOW:** Missing logging; missing optional validation (advisory only); performance edge case with no correctness impact
+
+6. Apply cap: rank by severity (HIGH > MEDIUM > LOW), take top 5-8 findings (EDGE-03 hard cap: maximum 8 findings). If more than 8 found, drop lowest-severity items first.
+
+7. For each HIGH severity finding, generate BDD acceptance criteria candidates inline (same reasoning pass, no second agent call):
+   ```
+   Given [precondition from task context]
+   When [action from task or adjacent task]
+   Then [expected behavior that is currently unspecified]
+   ```
+
+8. Write EDGE-CASES.md to the phase directory:
+```bash
+cat > "$PHASE_DIR/${PHASE}-EDGE-CASES.md" << 'EDGE_EOF'
+{artifact content — see format below}
+EDGE_EOF
+```
+
+**EDGE-CASES.md artifact format:**
+```markdown
+---
+phase: {phase-slug}
+generated: "{ISO timestamp}"
+finding_count: {N}
+high_count: {N}
+has_bdd_candidates: {true | false}
+---
+
+# Phase {N}: Edge Cases
+
+**Generated:** {timestamp}
+**Findings:** {N} (cap: 8)
+**HIGH severity:** {N}
+**BDD candidates:** {yes | no}
+
+## Findings
+
+### {N}. [{severity_level}] {description}
+
+**Plan element:** `{file_path | function_name() | state.field_name}`
+**Category:** {error_path | empty_state | boundary_condition}
+
+{description of the uncovered edge case}
+
+{If HIGH severity:}
+**BDD Acceptance Criteria Candidate:**
+```
+Given {precondition}
+When {action}
+Then {expected behavior}
+```
+
+{Repeat for each finding}
+```
+
+**Issue output format (for each finding):**
+```yaml
+issue:
+  plan: "{phase}-{plan_number}"
+  dimension: "edge_cases"
+  severity: "concerns"          # ALWAYS "concerns" — NEVER "blocker" (EDGE-04)
+  description: "{description of uncovered edge case}"
+  finding:
+    severity_level: "{HIGH | MEDIUM | LOW}"   # Edge case risk, NOT checker issue severity
+    plan_element: "{specific file/function/state reference}"
+    category: "{error_path | empty_state | boundary_condition}"
+    bdd_candidates:             # Only present for HIGH severity_level
+      - "Given {precondition} When {action} Then {expected behavior}"
+```
+
+**Return structure addition:** When HIGH severity findings exist, include a `high_severity_acs` field in the checker's structured return:
+```json
+{
+  "high_severity_acs": [
+    {
+      "plan": "{phase}-{plan_number}",
+      "task_name": "{task name from plan}",
+      "plan_element": "{file/function/state}",
+      "bdd_candidates": [
+        "Given ... When ... Then ..."
+      ]
+    }
+  ]
+}
+```
+This field is consumed by plan-phase.md orchestrator for the EDGE-06 approval gate.
+
+**Output:**
+```
+## Dimension 10: Edge Cases
+
+Findings: {N} (cap: 5-8)
+HIGH severity: {N}
+BDD candidates: {yes | no}
+
+| # | Severity | Category | Plan Element | Description |
+|---|----------|----------|-------------|-------------|
+| 1 | HIGH | error_path | `{element}` | {description} |
+
+EDGE-CASES.md: written to {phase_dir}
+Overall: CONCERNS (findings present) / PASS (no findings)
+```
+
 </verification_dimensions>
 
 <verification_process>
