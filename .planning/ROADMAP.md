@@ -151,7 +151,11 @@ Full details: .planning/milestones/v0.7-ROADMAP.md
   3. Hook events fire for SubagentStart, SubagentStop, PostToolUse, SessionStart, and SessionEnd without measurably delaying PDE command execution (within 5% of baseline timing)
   4. Every event envelope includes an extensions field (even if empty `{}`) confirming the schema is designed for future consumers
   5. Calling `pde-tools.cjs event-emit` with a malformed payload or when no session file exists fails silently — existing PDE commands continue executing normally
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 58-01-PLAN.md — Event bus foundation: bin/lib/event-bus.cjs + config monitoring keys
+- [ ] 58-02-PLAN.md — pde-tools.cjs event-emit and session-start subcommands
+- [ ] 58-03-PLAN.md — hooks/hooks.json, hooks/emit-event.cjs, validate-events.sh
 
 ### Phase 59: tmux Dashboard & Dependency Detection
 **Goal**: Users can launch `/pde:monitor` to open a persistent 6-pane tmux dashboard that shows live agent activity, pipeline progress, file changes, log stream, token estimate, and context utilization — with safe handling of missing tmux, nested sessions, and small terminals.
@@ -207,7 +211,7 @@ Full details: .planning/milestones/v0.7-ROADMAP.md
 | 39-44 | v0.5 | 18/18 | Complete | 2026-03-19 |
 | 46-53 | v0.6 | 19/19 | Complete | 2026-03-20 |
 | 54-57 | v0.7 | 11/11 | Complete | 2026-03-20 |
-| 58. Event Infrastructure Core | v0.8 | 0/TBD | Not started | - |
+| 58. Event Infrastructure Core | v0.8 | 0/3 | Not started | - |
 | 59. tmux Dashboard & Dependency Detection | v0.8 | 0/TBD | Not started | - |
 | 60. Session Archival | v0.8 | 0/TBD | Not started | - |
 | 61. Token & Context Metering | v0.8 | 0/TBD | Not started | - |
