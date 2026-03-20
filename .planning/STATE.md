@@ -6,7 +6,7 @@ status: active
 stopped_at: —
 last_updated: "2026-03-19"
 progress:
-  total_phases: 0
+  total_phases: 5
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -19,72 +19,47 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Defining requirements for v0.8
+**Current focus:** Phase 58 — Event Infrastructure Core
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 58 of 62 (Event Infrastructure Core)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-03-19 — Milestone v0.8 started
+Status: Ready to plan
+Last activity: 2026-03-19 — v0.8 roadmap created (5 phases, 26 requirements mapped)
+
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
-| Metric | v0.1 | v0.2 | v0.3 | v0.4 | v0.5 | v0.6 |
-|--------|------|------|------|------|------|------|
-| Phases | 11 | 12 | 5 | 10 | 7 | 8 |
-| Commits | 127 | 135 | 67 | 131 | 99 | ~91 |
-| Files changed | 303 | 172 | 84 | 259 | 118 | 108 |
-| LOC | ~60,000 | ~89,000 | ~101,700 | ~134,000 | ~145,000 | ~166,000 |
-| Timeline | 2 days | 2 days | 1 day | 4 days | 2 days | 2 days |
-| Phase 54 P03 | 5 | 1 tasks | 1 files |
-| Phase 54 P01 | 5 | 3 tasks | 5 files |
-| Phase 54-tech-debt-closure P02 | 4 | 2 tasks | 22 files |
-| Phase 55-research-validation-agent P01 | 2 | 2 tasks | 2 files |
-| Phase 55-research-validation-agent P02 | 3 | 1 tasks | 1 files |
-| Phase 56-plan-checker-enhancement P01 | 3 | 1 tasks | 1 files |
-| Phase 56 P02 | 3 minutes | 2 tasks | 4 files |
-| Phase 56 P03 | 2 minutes | 1 tasks | 2 files |
-| Phase 57 P01 | 2 minutes | 2 tasks | 2 files |
-| Phase 57 P02 | 2 | 1 tasks | 1 files |
-| Phase 57 P03 | 3 | 2 tasks | 3 files |
+**Velocity:**
+- Total plans completed (v0.8): 0
+- Average duration: —
+- Total execution time: —
+
+**By Phase:**
+
+| Phase | Plans | Total | Avg/Plan |
+|-------|-------|-------|----------|
+| - | - | - | - |
+
+*Updated after each plan completion*
 
 ## Accumulated Context
 
 ### Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table.
-v0.6 decisions archived to .planning/milestones/v0.6-ROADMAP.md.
 
-Key v0.7 architectural decisions (pre-execution):
+Key v0.8 architectural decisions (pre-execution):
 
-- Three-state validation output (VERIFIED / UNVERIFIABLE / CONTRADICTED) maps to readiness gate severity (PASS / CONCERNS / FAIL) — only CONTRADICTED is FAIL
-- Three new plan-checker analysis passes (dependency, edge case, integration Mode A) share one agent spawn because all read PLAN.md; only research validation earns a new agent
-- Integration check scope is strictly bounded to plan @-reference files — never a full codebase scan
-- [Phase 54]: Plugin install path is working — both CLI steps succeed via claude v2.1.79
-- [Phase 54]: Commits e067974 and efe3af0 documented as known exceptions; history not amended
-- [Phase 54]: lock-release bash code blocks normalized to no trailing args; prose references in guidelines intentionally left unchanged
-- [Phase 54]: TOOL_MAP_PREREGISTERED inline annotation marks pre-registered entries to prevent false orphan detection in future checks
-- [Phase 54-tech-debt-closure]: one-liner field uses hyphenated form (one-liner:) to match fm['one-liner'] key in commands.cjs — underscored form would silently fail extraction
-- [Phase 55-01]: artifact_content return field pattern: agent returns full RESEARCH-VALIDATION.md markdown as string in JSON; orchestrator writes — resolves RVAL-03 vs RVAL-05 write-constraint conflict
-- [Phase 55-01]: CONTRADICTED requires positive evidence of conflict; absence of evidence is UNVERIFIABLE — prevents false FAIL on external-system claims
-- [Phase 55-02]: FAIL result on 54-RESEARCH-VALIDATION.md is expected and correct — all 5 CONTRADICTED claims correspond to Phase 54 debt items resolved before validation ran; validation confirms completion not failure
-- [Phase 55-02]: retroactive-validation pattern: research written for pre-fix state will produce FAIL after fixes applied; consumers should contextualize FAIL results against phase completion history
-- [Phase 56]: DEPS-06: direct depends_on only, no transitive recursion — prevents O(n) scan on large milestones
-- [Phase 56]: partial disk_status = CONCERNS (not FAIL) — upstream phase may have needed output; planned/empty/no_directory = blocker
-- [Phase 56]: DEPENDENCY-GAPS.md written on every Dimension 9 run (even PASS with gap_count: 0) for audit trail
-- [Phase 56]: EDGE-04 absolute: severity in issue_structure is always 'concerns' for edge case findings; HIGH/MEDIUM/LOW risk lives in finding.severity_level only — prevents revision loop deadlock
-- [Phase 56]: Pitfall 4 prevention: Step 11.5 placed OUTSIDE the revision loop — checker is never re-invoked after AC append, AC append is additive-only
-- [Phase 56-03]: TOOL_MAP_PREREGISTERED exclusion set is dynamically built from mcp-bridge.cjs annotation — never hardcoded — to prevent drift as new pre-registered entries are added
-- [Phase 56-03]: INTG-05 scope is strictly the @-reference allowlist: no codebase scan, no glob, no file outside the allowlist is touched
-- [Phase 57-01]: Step 5.7 Research Validation Gate placed before Step 5.5 — validates before VALIDATION.md is created from potentially bad research; if contradicted, user exits before VALIDATION.md is written
-- [Phase 57-01]: RESEARCH-VALIDATION.md detection uses shell glob (ls *-RESEARCH-VALIDATION.md) not init.cjs field — init.cjs confirmed to not emit has_research_validation (Pitfall 2 prevention)
-- [Phase 57-01]: Stale RESEARCH-VALIDATION.md deleted before Step 5.7 detection when --research flag forces fresh RESEARCH.md — prevents skipping validation on stale artifact
-- [Phase 57]: B4 and B5 placed outside requirementsContent guard — only need planContent and cwd
-- [Phase 57]: B4/B5 severity is concerns not fail — missing files and orphan exports are non-blocking warnings
-- [Phase 57-03]: commands/check-readiness.md is pure delegation (Case 1) — no inline changes needed, step inherited automatically from workflow
-- [Phase 57-03]: All three copies of workflows/check-readiness.md synchronized (project + plugin cache + marketplace) to avoid Pitfall 1 (system copy used for /pde:check-readiness)
-- [Phase 57-03]: run_integration_checks severity mapping: only RESEARCH-VALIDATION FAIL maps to overall FAIL; DEPENDENCY-GAPS, EDGE-CASES, INTEGRATION-CHECK all map to CONCERNS at most; never-downgrade rule protects existing fail result
+- Event write path (pde-tools.cjs event-emit + hooks/emit-event.cjs) must be stable before any consumer (dashboard, archiver, estimator) is built
+- Session-scoped NDJSON filenames (`/tmp/pde-session-{uuid}.ndjson`) prevent concurrent write corruption from parallel agent waves
+- Hooks-first instrumentation: Claude Code hooks cover all tool/agent lifecycle events automatically; semantic workflow events (EVNT-04) require ~8 manual calls in 2 files — deferred to Phase 62 to minimize regression surface
+- DEPS requirements co-located with TMUX phase (59) — tmux detection is inseparable from dashboard launch
+- Token estimation uses chars/4 heuristic labeled "~est."; tokenx 1.3.0 vendoring deferred pending empirical validation in Phase 61
+- Context window pane is orchestrator-only scope, always labeled "(~estimated)" — never implies subagent coverage
+- Dashboard must handle nested tmux ($TMUX detection + switch-client), small terminals (120x30 adaptive fallback), and remain-on-exit persistence from first ship — not deferred
 
 ### Pending Todos
 
@@ -92,17 +67,11 @@ None.
 
 ### Blockers/Concerns
 
-- Phase 55 planning: verify acorn vendoring approach does not conflict with gitignore or plugin manifest before writing PLAN.md
-- Phase 55 planning: confirm `validated_at_phase` staleness threshold (N=2 inferred, not measured) against v0.5/v0.6 milestone history
-
-### Quick Tasks Completed
-
-| # | Description | Date | Commit | Directory |
-|---|-------------|------|--------|-----------|
-| 260319-0u1 | Fix v0.5 milestone audit tech debt | 2026-03-19 | 56a88d8 | [260319-0u1-fix-v0-5-milestone-audit-tech-debt](./quick/260319-0u1-fix-v0-5-milestone-audit-tech-debt/) |
+- Phase 59 planning: Claude Code sandbox (bwrap/seatbelt) compatibility with tmux commands must be verified through the actual Claude Code Bash tool before implementation — fallback is log-only dashboard
+- Phase 61 planning: chars/4 proxy measurement needs empirical validation against real session NDJSON; if tokenx 1.3.0 is vendored, confirm CJS build is current at implementation time
 
 ## Session Continuity
 
-Last session: 2026-03-20T05:33:10.077Z
-Stopped at: Completed 57-03-PLAN.md (run_integration_checks in check-readiness.md)
+Last session: 2026-03-19
+Stopped at: Roadmap created for v0.8 — 5 phases (58-62), 26/26 requirements mapped
 Resume file: None

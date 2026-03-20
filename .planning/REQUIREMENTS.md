@@ -80,38 +80,38 @@ Requirements for v0.8 Observability & Event Infrastructure. Each maps to roadmap
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| EVNT-01 | — | Pending |
-| EVNT-02 | — | Pending |
-| EVNT-03 | — | Pending |
-| EVNT-04 | — | Pending |
-| EVNT-05 | — | Pending |
-| EVNT-06 | — | Pending |
-| TMUX-01 | — | Pending |
-| TMUX-02 | — | Pending |
-| TMUX-03 | — | Pending |
-| TMUX-04 | — | Pending |
-| TMUX-05 | — | Pending |
-| TMUX-06 | — | Pending |
-| TMUX-07 | — | Pending |
-| TMUX-08 | — | Pending |
-| TMUX-09 | — | Pending |
-| TMUX-10 | — | Pending |
-| DEPS-01 | — | Pending |
-| DEPS-02 | — | Pending |
-| DEPS-03 | — | Pending |
-| HIST-01 | — | Pending |
-| HIST-02 | — | Pending |
-| HIST-03 | — | Pending |
-| HIST-04 | — | Pending |
-| TOKN-01 | — | Pending |
-| TOKN-02 | — | Pending |
-| TOKN-03 | — | Pending |
+| EVNT-01 | Phase 58 | Pending |
+| EVNT-02 | Phase 58 | Pending |
+| EVNT-03 | Phase 58 | Pending |
+| EVNT-04 | Phase 62 | Pending |
+| EVNT-05 | Phase 58 | Pending |
+| EVNT-06 | Phase 58 | Pending |
+| TMUX-01 | Phase 59 | Pending |
+| TMUX-02 | Phase 59 | Pending |
+| TMUX-03 | Phase 59 | Pending |
+| TMUX-04 | Phase 59 | Pending |
+| TMUX-05 | Phase 59 | Pending |
+| TMUX-06 | Phase 59 | Pending |
+| TMUX-07 | Phase 59 | Pending |
+| TMUX-08 | Phase 59 | Pending |
+| TMUX-09 | Phase 59 | Pending |
+| TMUX-10 | Phase 59 | Pending |
+| DEPS-01 | Phase 59 | Pending |
+| DEPS-02 | Phase 59 | Pending |
+| DEPS-03 | Phase 59 | Pending |
+| HIST-01 | Phase 60 | Pending |
+| HIST-02 | Phase 60 | Pending |
+| HIST-03 | Phase 60 | Pending |
+| HIST-04 | Phase 60 | Pending |
+| TOKN-01 | Phase 61 | Pending |
+| TOKN-02 | Phase 61 | Pending |
+| TOKN-03 | Phase 61 | Pending |
 
 **Coverage:**
 - v0.8 requirements: 26 total
-- Mapped to phases: 0
-- Unmapped: 26 ⚠️
+- Mapped to phases: 26
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-19*
-*Last updated: 2026-03-19 after initial definition*
+*Last updated: 2026-03-19 after roadmap creation — all 26 requirements mapped to phases 58-62*
