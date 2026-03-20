@@ -1,31 +1,39 @@
 # Feature Research
 
-**Domain:** AI-assisted development pipeline — reliability, validation, and automated verification (v0.7)
+**Domain:** Developer tool observability — tmux monitoring dashboard and structured event infrastructure (v0.8)
 **Researched:** 2026-03-19
-**Confidence:** HIGH (existing PDE codebase verified directly), MEDIUM (industry patterns from multiple web sources and analysis of adjacent tools), LOW (specific behavioral expectations from single sources, flagged inline)
+**Confidence:** HIGH (Claude Code hooks API verified via official docs, PDE codebase verified directly), MEDIUM (tmux dashboard patterns from multiple community sources and adjacent tools), LOW (specific behavioral expectations from single sources, flagged inline)
 
 ---
 
-> **Scope note:** This file covers ONLY the v0.7 Pipeline Reliability & Validation milestone. PDE's existing capabilities (story-file sharding, AC-first planning, readiness gate, reconciliation, per-task tracking, agent memory, 5 MCP integrations, 13-stage design pipeline) are stable dependencies — not re-built here. Every feature described is additive to the v0.6 baseline.
+> **Scope note:** This file covers ONLY the v0.8 observability milestone. PDE's existing capabilities (34 slash commands, multi-agent parallel wave orchestration, file-based state management in `.planning/`, workflow-status.md tracking, pde-tools.cjs instrumentation points, session stats via `/pde:stats`) are stable dependencies — not re-built here. Every feature described is additive to the v0.7 baseline.
 
 ---
 
-## Baseline: What v0.6 Provides (Stable Dependency)
+## Baseline: What v0.7 Provides (Stable Dependency)
 
 ```
-Research:           pde-phase-researcher → RESEARCH.md
-Planning:           pde-planner → PLAN.md + task-NNN.md shards
-Pre-execution:      check-readiness → READINESS.md (PASS/CONCERNS/FAIL)
-Execution:          pde-executor → per-task SUMMARY.md + HANDOFF.md
-Reconciliation:     pde-reconciler → RECONCILIATION.md (planned vs. actual git)
-Verification:       pde-verifier → VERIFICATION.md (goal-backward, AC-N gates)
-Post-verification:  pde-integration-checker → integration gaps (post-execution)
-                    pde-plan-checker → plan quality (pre-execution)
-Memory:             .planning/agent-memory/{type}/memories.md (50-entry cap)
-Tracking:           workflow-status.md + HANDOFF.md
-```
+Event sources (existing):
+  pde-tools.cjs          — CLI commits, phase ops, tracking updates, readiness checks
+  workflows/             — Orchestrators that spawn agents and coordinate pipeline
+  agents/                — 9 named agents (analyst, plan-checker, researcher, etc.)
+  bin/lib/tracking.cjs   — Per-task status tracking, workflow-status.md, HANDOFF.md
 
-The v0.7 gap: research claims go unvalidated against the actual codebase; cross-phase dependencies are checked after execution but not before; plans are reviewed for quality but not for edge cases and error paths; and 7 known tech debt items from v0.6 remain open.
+Observability today (pre-v0.8):
+  /pde:stats             — Project-level aggregated stats (phases, plans, git metrics)
+  workflow-status.md     — Per-task status table (TODO/IN_PROGRESS/DONE/SKIPPED)
+  HANDOFF.md             — Session-break continuity doc
+  .planning/STATE.md     — Top-level project state
+  RECONCILIATION.md      — Planned vs. actual git commits (post-execution)
+
+What is missing:
+  - No real-time visibility during agent execution
+  - No structured event stream from agent spawning, tool calls, or task transitions
+  - No persistent session history beyond per-phase SUMMARY.md files
+  - No tmux-based live monitoring surface
+  - No token/cost tracking during a live session
+  - No way to observe parallel agent waves as they execute
+```
 
 ---
 
@@ -33,131 +41,153 @@ The v0.7 gap: research claims go unvalidated against the actual codebase; cross-
 
 ### Table Stakes (Users Expect These)
 
-Features that are baseline requirements for a "pipeline reliability" milestone. Without these, the milestone's stated goal — making the research → plan → execute pipeline *trustworthy* — is not met.
+Features that are baseline requirements for a "developer tool observability" milestone. Without these, PDE's multi-agent orchestration remains a black box during execution.
 
-| Feature | Why Expected | Complexity | Dependencies on Existing |
-|---------|--------------|------------|--------------------------|
-| **Research claim extraction and codebase verification** | If a RESEARCH.md states "pde-tools.cjs exposes a `shard-plan` command" but that command doesn't exist, the plan built on it will fail at execution. Every AI-assisted pipeline that produces research needs a mechanism to catch this class of error before it propagates downstream. Missing = research phase produces ungrounded plans. | MEDIUM | Reads existing RESEARCH.md output; uses pde-tools.cjs and filesystem grep to verify; writes RESEARCH-VALIDATION.md; feeds into existing readiness gate |
-| **Cross-phase dependency pre-verification** | PDE's existing integration checker runs *after* execution (post-mortem). Pre-execution dependency verification asks: "Does phase N depend on something from phase M that hasn't been built yet?" If not, the executor gets partway through and hits a missing interface. Users expect this gate *before* they commit to execution. | MEDIUM | Reads ROADMAP.md phase graph; reads PLAN.md task list; checks actual codebase state; produces DEPENDENCY-GAPS.md; integrates into check-readiness output |
-| **Plan edge case analysis** | Plans produced by pde-planner describe the happy path. A plan that builds a file-based locking mechanism without specifying behavior on stale locks, concurrent writes, or lock-file corruption is incomplete. Users of AI-assisted development tools have learned (from painful experience) that agents optimize for happy path. An edge case analysis pass surfaces what the plan silently assumes won't happen. | MEDIUM | Reads existing PLAN.md + task-NNN.md shards; reads AC-N definitions; writes EDGE-CASES.md; surfaces as CONCERNS-level findings in READINESS.md |
-| **Integration point verification (pre-execution)** | PDE currently detects orphan exports and mismatched interfaces *after* execution. Pre-execution verification asks: "Are the function signatures this plan will call actually present in the codebase with the expected types?" A plan that calls `pde-tools.cjs readiness check 53` but the readiness command only accepts a phase name — not a number — will fail mid-execution. Detecting this before execution prevents mid-run crashes. | MEDIUM | Reads task `<files>` and `<action>` fields; greps codebase for named imports/exports; verifies parameter shapes; writes INTEGRATION-CHECK.md |
-| **Tech debt closure (7 known items from v0.6)** | These are documented in PROJECT.md and represent unresolved issues that create confusion or silent failures in the current platform. "TRACKING-PLAN.md referenced in consent panel does not exist" is a broken reference users will encounter. Leaving known debt open while adding new features signals low platform quality. | LOW–MEDIUM (per item) | Each item targets a specific file/behavior; no new infrastructure needed |
+| Feature | Why Expected | Complexity | Dependencies on Existing PDE Infrastructure |
+|---------|--------------|------------|---------------------------------------------|
+| **Structured event bus (in-process, file-backed)** | Every developer observability tool that works with AI agents captures a structured event stream. Without events, the dashboard has nothing to display and session history has nothing to store. This is the foundational layer everything else reads. Missing = no observable data at all. | MEDIUM | Uses Node.js `EventEmitter` (zero-dependency); event schema designed as append-only JSONL per session in `/tmp/pde-events-{sessionId}.jsonl`; reads nothing from existing infra, but existing infra emits into it |
+| **Deep instrumentation at existing PDE lifecycle points** | The instrumentation points already exist conceptually: agent spawn/stop, task status transitions, pde-tools.cjs commits, workflow phase transitions. Without emitting structured events at these points, the event bus carries no signal. Users expect the tool they already use to be observable, not just a new tool layered on top. | MEDIUM | Hooks into: workflows spawning agents (SubagentStart/Stop via Claude Code hooks), pde-tools.cjs tracking set-status calls, pde-tools.cjs commit command, check-readiness results, wave-start/end markers in orchestrators |
+| **`/pde:monitor` command to launch tmux dashboard** | A named, explicit command to start the monitoring surface is the expected UX pattern for developer tools with optional monitoring (k9s, lazygit, htop all work this way — invoked explicitly). Without an explicit launch command, users have no discoverable entry point. | LOW | New slash command following existing command pattern (frontmatter + workflow delegation); launches a shell script that creates the tmux session |
+| **6-pane tmux dashboard layout** | The PROJECT.md specification calls out 6 specific panes. These map to the six most commonly expected information categories in developer tool monitoring: who is working, what is progressing, what is changing, what is logged, what does it cost, and how much context remains. Any subset would leave a gap that users hit in practice. | MEDIUM | Reads: workflow-status.md (task progress), event JSONL (agent activity + log stream), git log --oneline (file changes), pde-tools.cjs state-snapshot (context window), token/cost from Claude Code hooks |
+| **Auto-install check for tmux dependency** | PDE targets Claude Code plugin users who may not have tmux installed. Silently failing or producing a cryptic error when `/pde:monitor` is invoked without tmux breaks user trust immediately. The expected behavior in any developer CLI that depends on an external tool is: detect → inform → offer install command. | LOW | Shell `command -v tmux` check in the launch script; platform detection (uname for macOS/Linux); offers `brew install tmux` on macOS, `sudo apt install tmux` on Debian/Ubuntu |
+| **Persistent dashboard (survives operation completion)** | If the dashboard exits when the PDE command finishes, users get a flash of activity they cannot review. The standard pattern for tmux-based monitoring tools is to keep the session alive, showing the final state until the user explicitly closes it. | LOW | `tmux new-session -d` (detached creation); dashboard process polls event file independently of PDE session; user exits with `q` or `Ctrl+C` in the dashboard pane |
+| **Structured session summaries in `.planning/logs/`** | Users reviewing what happened in a previous session expect a human-readable summary stored alongside other `.planning/` artifacts. SUMMARY.md files exist per phase, but a session-level summary (what commands ran, which agents were spawned, how long each took, final status) is missing. Session summaries are table stakes for any tool that claims to support reviewable history. | MEDIUM | Written at session end (SessionEnd hook); reads from event JSONL to produce structured markdown; stored as `.planning/logs/session-{date}-{sessionId}.md`; format mirrors existing SUMMARY.md conventions |
+| **Raw event stream in `/tmp`** | Raw event JSONL files in `/tmp` provide the machine-readable history that powers session summaries and future analytics. Using `/tmp` (volatile, auto-cleaned) is correct for raw event streams — they are ephemeral observations, not planning artifacts. The `.planning/logs/` summaries are the durable record. | LOW | Append-only JSONL file per session; written by event bus emitter hook scripts; each line is a valid JSON event object with schema version, timestamp, session_id, agent_id, event_type, payload |
 
 ### Differentiators (Competitive Advantage)
 
-Features that go beyond minimum verification and give PDE a qualitatively better "trustworthy pipeline" story than a simple pre-flight checklist.
+Features that go beyond basic monitoring visibility and give PDE a qualitatively better observability story aligned with its multi-agent architecture.
 
 | Feature | Value Proposition | Complexity | Notes |
 |---------|-------------------|------------|-------|
-| **Claim confidence scoring** | Not all research claims are equally risky. "The project uses Node.js CJS" is low-risk (verifiable from package.json). "The MCP bridge handles connection persistence natively" is high-risk (behavioral claim that requires reading mcp-bridge.cjs logic). A verification agent that assigns confidence scores (HIGH/MEDIUM/LOW) to extracted claims, rather than binary PASS/FAIL, gives the planner and user meaningful signal about where to focus. | MEDIUM | Research validation agent extracts claims, classifies them by verifiability type (file presence, API shape, behavioral, conceptual), verifies each, assigns confidence level. Produces a graded report rather than pass/fail. |
-| **Dependency gap fix proposals** | When pre-execution dependency verification finds a gap (phase N requires something phase M hasn't built), simply reporting it forces the user to reason about how to resolve it. A differentiating behavior is generating a concrete fix proposal: "Phase N task 3 calls `createShardManifest()` from phase M, which hasn't been executed. Options: (a) add a task to phase M to build it first, (b) stub it in phase N with a TODO gate, (c) re-order phase execution." | MEDIUM | Dependency verification agent generates structured fix proposals for each gap it finds, categorized by fix strategy (order change, stub, add task). |
-| **Edge case AC generation** | Beyond surfacing edge cases as warnings, automatically generate acceptance criteria for the most critical uncovered edge cases and offer to append them to the relevant PLAN.md. This transforms edge case analysis from a passive report into an active plan improvement step. | MEDIUM | Edge case analyzer classifies cases by severity; for HIGH severity cases, generates BDD format AC candidates; user approves which to add; appended to PLAN.md AC section. |
-| **Integration verification with type awareness** | JavaScript is dynamically typed, but PDE's codebase uses consistent calling conventions (JSON from pde-tools.cjs, markdown templates). Integration verification can go beyond "function exists" to check that callers pass arguments in the shape the callee expects — e.g., a phase number vs. a phase slug vs. a phase directory path. | MEDIUM-HIGH | Parses pde-tools.cjs command definitions; checks that PLAN.md tasks calling those commands pass arguments in the expected format; flags type mismatches as integration issues. |
-| **Research validation as standing gate** | Rather than running validation as a one-off command, make it a standing gate in the plan-phase workflow: every time a plan is generated from research, validation runs automatically. The planner receives the validation report alongside the RESEARCH.md before generating its PLAN.md. This creates a feedback loop where poor research quality is caught before bad plans are written. | LOW–MEDIUM | Wire RESEARCH-VALIDATION.md generation into plan-phase.md workflow; planner receives validation report in its context; low-confidence claims flagged explicitly to planner. |
+| **Agent activity pane with wave awareness** | PDE's parallel wave orchestration spawns agents in coordinated waves. A simple "agent list" pane misses the wave structure. Showing wave N of M, which agents are in the current wave, and per-agent status within the wave gives users meaningful signal about parallel progress — not just a flat process list. Most AI agent monitors show flat agent lists; wave-aware display is specific to PDE's orchestration model. | MEDIUM | Wave markers emitted as events by orchestrator workflows (`wave-start`, `wave-end` event types with wave_number and agent_count); dashboard aggregates per-wave |
+| **Token/cost meter with per-agent breakdown** | Claude Code's `/cost` command shows session total. A per-agent, per-wave breakdown during live execution tells users which agents are expensive and which complete quickly. For multi-agent pipelines that can spawn 4-6 agents per wave, this is the data needed to decide whether to run a full pipeline or a targeted single-skill invocation. | MEDIUM-HIGH | Requires Claude Code hooks on SubagentStop events that include token usage from transcript; token count parsing from JSONL transcript; display as running total per agent with session grand total |
+| **Future-proof event schema with extensibility fields** | PDE's memory file (`project_stakeholder_presentations.md`, `project_idle_time_productivity.md`) describes future milestones that would consume event data — stakeholder presentations generated from session events, idle-time productivity triggered by agent wait states. Building the event schema with `extensions: {}` and `schema_version` from the start means future milestones add consumers without modifying producers. This is the difference between infrastructure and a one-off script. | LOW-MEDIUM | Event schema includes: `event_id`, `schema_version`, `session_id`, `agent_id` (nullable), `event_type`, `timestamp_iso`, `duration_ms` (nullable), `payload`, `extensions` (free-form object). Schema version bumps are additive only. |
+| **Context window utilization pane** | Claude Code sessions have a fixed context window. As agent memory loads, PLAN.md shards are read, and RESEARCH.md is injected, the effective context fills. A live "context window utilization" pane (showing estimated token usage as a fraction of the model's context limit) lets users see when context is approaching capacity — a leading indicator for the PreCompact hook firing, which disrupts agent continuity. | HIGH | Context window estimation is not exposed directly by Claude Code API; requires inference from transcript token counts + known model context limits; display as percentage bar; mark as LOW confidence on accuracy — this is an estimate, not a measurement |
+| **File change pane scoped to `.planning/`** | Generic file watchers show all project changes. For PDE, the meaningful changes during a pipeline run are `.planning/` state mutations — PLAN.md being written, task-NNN.md shards appearing, workflow-status.md updating, READINESS.md being generated. Scoping the file change pane to `.planning/` surfaces the signal a PDE user cares about without the noise of source code changes happening in parallel. | LOW | `fswatch -r .planning/` on macOS, `inotifywait -r .planning/` on Linux (fallback: polling every 2s); tail the output into the dashboard pane |
 
 ### Anti-Features (Commonly Requested, Often Problematic)
 
-Features that seem like natural extensions of a reliability milestone but create problems in PDE's architecture.
-
 | Feature | Why Requested | Why Problematic | Alternative |
 |---------|---------------|-----------------|-------------|
-| **Automatic plan rewriting on edge case detection** | If the edge case analyzer finds a gap, why not just fix the plan automatically instead of reporting it? | Automatic plan mutation without user review creates a worse trust problem than the one it solves. Users need to see what changed and why. Automated rewrites without visibility produce plans that don't match what the user intended — the plan was "fixed" in a direction the user didn't choose. | Report edge cases with fix proposals; let user approve which changes to make; execute approved changes with a targeted edit. |
-| **Full AST parsing for type verification** | Proper static analysis of Node.js CJS code requires an AST parser (e.g., Babel, Acorn). Why not just parse the code properly? | PDE has a zero-npm-deps-at-plugin-root constraint. Adding Babel or Acorn as a plugin-level dependency violates this. Building a full AST parser from scratch is out of scope for a reliability milestone. The false negative rate of AST-less pattern matching is acceptable for PDE's use case — the goal is catching obvious mismatches, not proving type safety. | Use regex-based pattern matching on command definitions and call sites. Catch obvious cases (wrong argument count, wrong argument type for known commands). Accept that subtle type mismatches require human review. |
-| **Continuous background validation** | Run research validation and dependency verification continuously as files change, like a language server. | PDE is a Claude Code plugin that runs in session-based invocations. There is no persistent background process. "Continuous" means "on each session start," which is expensive and disruptive. More fundamentally, the reliability guarantees users need are at specific pipeline transition points (research → plan, plan → execute), not continuously. | Trigger validation at well-defined pipeline gates (after research, before planning, before execution). This is when the validation is actionable. |
-| **Validation of external library claims** | RESEARCH.md may claim "Context7 reports that library X supports feature Y." Verifying this claim means re-running Context7 queries. | Re-running research during plan validation doubles research cost and introduces the same uncertainty (Context7 results can change). The validation agent should verify claims against the *actual codebase*, not against re-queried external sources. External library claims are the responsibility of the research agent, not the validation agent. | Scope validation to codebase-verifiable claims only. Mark external library claims as UNVERIFIABLE and flag for human review rather than attempting re-validation. |
-| **Git history-based dependency inference** | Some dependency tools infer cross-phase dependencies from git commit history — "phase M files changed, phase N files that import from M were updated N commits later." | Git history-based inference is brittle for PDE's use case. PDE phases are not 1:1 with commits. Commit messages in PDE don't encode cross-phase dependency data in a parseable format. The inference would produce too many false positives (unrelated changes attributed to dependencies) to be actionable. | Use explicit dependency declarations: task `<files>` tags, PLAN.md objective statements, and ROADMAP.md phase descriptions as the authoritative source for dependency analysis. |
+| **Web-based dashboard (browser UI)** | A browser dashboard can show graphs, filters, and rich visualizations. Much more polished than tmux. | PROJECT.md explicitly rules this out: "In-tool web dashboard / UI — markdown files are the dashboard." Web dashboards require a persistent server process, which conflicts with PDE's session-based plugin model. They also require a port, browser access, and introduce a separate runtime dependency. The tmux terminal approach is available wherever PDE runs. | tmux panes with tail/watch patterns. Terminal rendering is sufficient for the data types PDE needs to display (lists, progress bars, log streams). |
+| **Persistent background monitoring process** | "Always-on" monitoring that starts when Claude Code loads and runs indefinitely, even when PDE commands aren't active. | PDE is a Claude Code plugin invoked per session. There is no persistent background process model in Claude Code. Attempting to spawn a daemon from a plugin creates processes that outlive the session with no managed lifecycle, and can accumulate across sessions creating resource leaks. | `/pde:monitor` as an explicit on-demand launch. The tmux session persists until the user closes it. This is the correct model: monitoring is active when users want it. |
+| **Streaming events to external observability platforms (Datadog, etc.)** | Enterprise teams want to aggregate PDE events alongside their application telemetry. Datadog has native Claude Code monitoring support as of 2026. | PDE's zero-npm-deps-at-plugin-root constraint prevents adding an OpenTelemetry SDK or Datadog agent to the plugin root. HTTP hooks could forward events, but this creates external service dependencies, requires credentials management, and adds network latency to agent lifecycle events. | The JSONL event stream format is compatible with OpenTelemetry's log data model. A future milestone could add an opt-in exporter as a separate optional module. For v0.8, file-based JSONL is sufficient and privacy-preserving. |
+| **Intercepting/blocking tool calls for approval via dashboard** | tmux-based dashboards for AI agents sometimes offer interactive approval — seeing a tool call and clicking approve/deny in the dashboard. | Claude Code's hooks system (PreToolUse) already provides blocking capability via command hooks. Adding a second approval path through the dashboard creates two competing control surfaces with unclear priority. PDE's existing protected-files mechanism uses the hooks system correctly. | Use Claude Code PreToolUse hooks for blocking decisions. The dashboard is read-only observability. Approval decisions remain in the hooks system where they have defined semantics. |
+| **Historical event replay (scrub through past sessions)** | Developers who debug by replaying event timelines expect to scrub backward through a session. | PDE's JSONL event files in `/tmp` are ephemeral by design. Building replay infrastructure requires either persisting raw events to `.planning/` (bloats planning state) or adding a separate event store. The session summary in `.planning/logs/` provides the durable, human-readable history that satisfies the same need. | `.planning/logs/session-{date}.md` structured summaries are the durable record. If a user needs to investigate a specific session, they read the summary. Raw events in `/tmp` are available until the system cleans `/tmp`, which is typically sufficient for same-session debugging. |
+| **Real-time token counting via API calls** | Accurate token counting could be achieved by calling Claude's tokenizer API for each piece of content as it is processed. | This would add API calls (with latency and cost) to every agent action for the purpose of display-only information. The context window pane is a convenience feature, not a safety critical one. Estimation from transcript token counts is sufficient signal for users to notice when context is getting full. | Estimate from JSONL transcript token counts and model context limit constants. Display as approximate percentage with a visual indicator. Clearly labeled as estimate in the UI. |
 
 ---
 
 ## Feature Dependencies
 
 ```
-[Research Claim Extraction & Verification]
-    └──produces──> RESEARCH-VALIDATION.md
-    └──feeds-into──> [EXISTING: check-readiness] (validation report included in readiness gate)
-    └──feeds-into──> [Research Validation as Standing Gate] (differentiator)
-    └──required-by──> [Claim Confidence Scoring] (scoring requires extracted claims)
+[Structured Event Bus (in-process, file-backed)]
+    └──required-by──> ALL dashboard panes (no events = no dashboard data)
+    └──required-by──> [Session Summaries in .planning/logs/]
+    └──required-by──> [Raw Event Stream in /tmp]
+    └──required-by──> [Token/Cost Meter with Per-Agent Breakdown]
+    └──required-by──> [Future: Stakeholder Presentations] (consumes events)
+    └──required-by──> [Future: Idle-Time Productivity] (triggered by agent wait events)
 
-[Claim Confidence Scoring]
-    └──depends-on──> [Research Claim Extraction & Verification]
-    └──enhances──> RESEARCH-VALIDATION.md (adds confidence level per claim)
+[Deep Instrumentation at Existing PDE Lifecycle Points]
+    └──depends-on──> [Structured Event Bus]
+    └──hooks-into──> [EXISTING: workflows/ agent spawn patterns]
+    └──hooks-into──> [EXISTING: pde-tools.cjs tracking set-status]
+    └──hooks-into──> [EXISTING: pde-tools.cjs commit]
+    └──hooks-into──> Claude Code hooks (SubagentStart, SubagentStop, PreToolUse, PostToolUse)
+    └──required-by──> [Agent Activity Pane with Wave Awareness]
+    └──required-by──> [Pipeline Progress Pane] (reads workflow-status.md + task events)
 
-[Cross-Phase Dependency Pre-Verification]
-    └──reads──> [EXISTING: ROADMAP.md] (phase graph)
-    └──reads──> [EXISTING: PLAN.md + task-NNN.md shards] (task-level dependencies)
-    └──produces──> DEPENDENCY-GAPS.md
-    └──feeds-into──> [EXISTING: check-readiness] (gaps become CONCERNS or FAIL items)
-    └──required-by──> [Dependency Gap Fix Proposals] (fix proposals require gap analysis)
+[/pde:monitor Command]
+    └──depends-on──> [Auto-Install Check for tmux]
+    └──launches──> [6-Pane tmux Dashboard Layout]
+    └──requires──> tmux available on PATH
 
-[Dependency Gap Fix Proposals]
-    └──depends-on──> [Cross-Phase Dependency Pre-Verification]
-    └──enhances──> DEPENDENCY-GAPS.md (adds fix proposals to each gap)
+[Auto-Install Check for tmux]
+    └──standalone (shell detection only, no PDE infra dependency)
+    └──required-by──> [/pde:monitor Command]
 
-[Plan Edge Case Analysis]
-    └──reads──> [EXISTING: PLAN.md + AC-N definitions]
-    └──reads──> [EXISTING: task-NNN.md shards]
-    └──produces──> EDGE-CASES.md
-    └──feeds-into──> [EXISTING: check-readiness] (edge cases surface as CONCERNS)
-    └──required-by──> [Edge Case AC Generation] (generation requires classified cases)
+[6-Pane tmux Dashboard Layout]
+    └──depends-on──> [Structured Event Bus] (agent activity, log stream panes)
+    └──reads──> [EXISTING: workflow-status.md] (pipeline progress pane)
+    └──reads──> .planning/ filesystem (file changes pane via fswatch/inotifywait)
+    └──reads──> Claude Code session transcript (token/cost pane, context window pane)
+    └──required-by──> [Persistent Dashboard]
 
-[Edge Case AC Generation]
-    └──depends-on──> [Plan Edge Case Analysis]
-    └──writes-to──> [EXISTING: PLAN.md] (appends new AC-N entries with user approval)
+[Persistent Dashboard]
+    └──depends-on──> [6-Pane tmux Dashboard Layout]
+    └──polls──> event JSONL file independently of PDE session lifecycle
 
-[Integration Point Verification (pre-execution)]
-    └──reads──> [EXISTING: task-NNN.md] (<files> and <action> fields)
-    └──reads──> [EXISTING: pde-tools.cjs] (command definitions)
-    └──produces──> INTEGRATION-CHECK.md
-    └──feeds-into──> [EXISTING: check-readiness] (integration failures as FAIL items)
-    └──required-by──> [Integration Verification with Type Awareness] (type awareness is an enhancement)
+[Session Summaries in .planning/logs/]
+    └──depends-on──> [Structured Event Bus]
+    └──written-by──> SessionEnd hook
+    └──reads-from──> event JSONL in /tmp
+    └──writes-to──> .planning/logs/session-{date}-{sessionId}.md
 
-[Integration Verification with Type Awareness]
-    └──depends-on──> [Integration Point Verification (pre-execution)]
-    └──enhances──> INTEGRATION-CHECK.md (adds type mismatch detection)
+[Raw Event Stream in /tmp]
+    └──depends-on──> [Structured Event Bus]
+    └──written-by──> hook scripts on each lifecycle event
+    └──read-by──> dashboard panes, session summary generator
 
-[Tech Debt Closure (7 items)]
-    └──standalone (each item targets a specific file/behavior)
-    └──no-dependencies-on-other-new-features
+[Future-Proof Event Schema]
+    └──shapes──> [Structured Event Bus] (schema is the contract, not the implementation)
+    └──enables──> [Future: Stakeholder Presentations]
+    └──enables──> [Future: Idle-Time Productivity]
+    └──enables──> [Future: Analytics/Reporting milestones]
 
-[Research Validation as Standing Gate]
-    └──depends-on──> [Research Claim Extraction & Verification]
-    └──modifies──> [EXISTING: plan-phase.md workflow] (wires validation into plan-phase)
+[Token/Cost Meter with Per-Agent Breakdown]
+    └──depends-on──> [Structured Event Bus] (reads SubagentStop events with token counts)
+    └──displayed-in──> [6-Pane tmux Dashboard Layout]
+
+[Agent Activity Pane with Wave Awareness]
+    └──depends-on──> [Deep Instrumentation] (wave-start/wave-end events required)
+    └──displayed-in──> [6-Pane tmux Dashboard Layout]
+
+[Context Window Utilization Pane]
+    └──depends-on──> [Structured Event Bus] (reads transcript token accumulation)
+    └──displayed-in──> [6-Pane tmux Dashboard Layout]
+    └──NOTE──> accuracy is estimated, not measured (LOW confidence on precision)
 ```
 
 ### Dependency Notes
 
-- **Check-readiness is the integration hub:** All four main validation features (research validation, dependency verification, edge case analysis, integration point verification) produce artifact files that are consumed by the existing readiness gate. Building the readiness gate integration into each new feature is required — otherwise the features produce reports that nobody reads.
+- **Event bus is the critical path:** All dashboard panes, session history, and future-proof extensibility depend on the event bus. It must be built first and be stable before any display or storage feature is layered on.
 
-- **Research validation feeds the planner:** The highest-leverage integration is making the planner aware of low-confidence research claims before it writes the plan. This requires research validation to run *during* plan-phase, not just as a standalone command.
+- **Claude Code hooks are the primary instrumentation mechanism:** The platform provides 26 hook events (SessionStart, SessionEnd, SubagentStart, SubagentStop, PreToolUse, PostToolUse, TaskCompleted, Stop, etc.) via `.claude/settings.json` hook configuration. These are the authoritative, Anthropic-supported way to observe agent lifecycle in Claude Code plugins. PDE-specific events (wave boundaries, task transitions) supplement these with additional in-process emissions.
 
-- **Tech debt closure is independent:** None of the 7 tech debt items depend on the new validation features. They can be built in any order and in parallel with validation work. Good candidates for an early phase in the milestone to close known issues before adding new surface area.
+- **tmux dependency check must be first in the `/pde:monitor` flow:** If tmux is not available and the script attempts to create a session before checking, users get a confusing error. Detection-before-use is mandatory.
 
-- **Differentiators depend on table stakes:** All differentiators are enhancements to table stakes features. Build the table stakes features first, then layer on the differentiators in subsequent phases.
+- **Session summaries depend on event bus but are independent of the dashboard:** A user who never opens `/pde:monitor` should still get session summaries in `.planning/logs/`. The summary writer hooks into SessionEnd regardless of whether the dashboard is running.
+
+- **Wave awareness is a PDE-specific differentiator:** Generic Claude Code monitoring tools (disler's multi-agent observability, NTM) show flat agent lists. Wave-aware display requires PDE's orchestrators to emit wave_start/wave_end events, which no external tool provides.
 
 ---
 
-## MVP Definition (for v0.7 Milestone)
+## MVP Definition (for v0.8 Milestone)
 
-### Launch With (v0.7 core — minimum to satisfy "pipeline reliability")
+### Launch With (v0.8 core — minimum to satisfy "observability" claim)
 
-These features are what makes this milestone a genuine reliability improvement rather than just additional reports.
+- [ ] **Structured event bus** — in-process EventEmitter + hook scripts writing append-only JSONL per session to `/tmp/pde-events-{sessionId}.jsonl`. Schema includes: `event_id`, `schema_version`, `session_id`, `agent_id`, `event_type`, `timestamp_iso`, `payload`, `extensions`.
+- [ ] **Deep instrumentation** — hook scripts wired to SubagentStart, SubagentStop, PreToolUse, PostToolUse, TaskCompleted, Stop, SessionStart, SessionEnd. In-process events from pde-tools.cjs at: tracking set-status, commit, check-readiness result.
+- [ ] **`/pde:monitor` command** — slash command that runs tmux dependency check, then launches the 6-pane dashboard in a detached tmux session named `pde-monitor`.
+- [ ] **Auto-install check for tmux** — `command -v tmux` check; platform detection via `uname`; offers `brew install tmux` (macOS) or `sudo apt install tmux` (Linux); exits gracefully if user declines.
+- [ ] **6-pane tmux dashboard** — agent activity, pipeline progress, file changes (`.planning/` scoped), log stream (event tail), token/cost meter, context window. Each pane is a shell process reading from the event JSONL or existing PDE files.
+- [ ] **Persistent dashboard** — tmux session stays open after PDE command completes; dashboard processes poll event file; user closes with session-level kill command.
+- [ ] **Session summaries in `.planning/logs/`** — structured markdown summary written at SessionEnd; reads from event JSONL; stored as `session-{YYYY-MM-DD}-{sessionId}.md`; format: command invoked, agents spawned (count + names), tasks completed, duration, token totals, final status.
+- [ ] **Raw event stream in `/tmp`** — JSONL file per session; automatically cleaned by OS `/tmp` lifecycle; no PDE-managed cleanup required.
+- [ ] **Future-proof event schema** — `schema_version: "1.0"`, `extensions: {}` field in every event; documented in a schema reference file.
 
-- [ ] **Research claim extraction and codebase verification** — new agent reads RESEARCH.md, extracts verifiable claims, checks each against the codebase, writes RESEARCH-VALIDATION.md. This is the feature the user's memory file `project_research_validation.md` describes as the core requirement.
-- [ ] **Cross-phase dependency pre-verification** — new check in readiness gate (or separate command) that reads ROADMAP.md + PLAN.md and flags dependencies on work not yet built; produces DEPENDENCY-GAPS.md.
-- [ ] **Plan edge case analysis** — new agent or readiness gate extension that reads plan + ACs and surfaces uncovered error paths, empty states, and boundary conditions as CONCERNS in READINESS.md.
-- [ ] **Integration point verification (pre-execution)** — checks that task-level calls to pde-tools.cjs, external files, and module exports are valid before execution begins; adds INTEGRATION-CHECK.md.
-- [ ] **Tech debt closure (all 7 items)** — resolves TRACKING-PLAN.md reference, lock-release trailing arguments, SUMMARY.md one_liner field, pde-tools.cjs usage help text gaps, and remaining items from PROJECT.md.
+### Add After Validation (v0.8.x — extend once core is working)
 
-### Add After Validation (v0.7.x — extend once core is working)
+- [ ] **Wave-aware agent activity pane** — once orchestrators emit wave_start/wave_end events, upgrade the agent pane to show wave N of M grouping. Add when users report the flat agent list is insufficient for understanding parallel wave progress.
+- [ ] **Per-agent token breakdown in cost meter** — once SubagentStop events reliably include token counts from transcript parsing, add per-agent rows to the cost meter pane. Add when users report session-total cost is too coarse.
 
-- [ ] **Claim confidence scoring** — graduated confidence levels (HIGH/MEDIUM/LOW/UNVERIFIABLE) per extracted claim; add when users report that validation reports are too binary to act on.
-- [ ] **Dependency gap fix proposals** — structured fix proposals for each dependency gap; add when users report that DEPENDENCY-GAPS.md is useful but they don't know how to resolve the gaps.
-- [ ] **Research validation as standing gate** — auto-wire validation into plan-phase.md so every plan gets a validation pass; add after standalone validation is stable.
+### Future Consideration (v0.9+)
 
-### Future Consideration (v0.8+)
-
-- [ ] **Edge case AC generation** — auto-generate BDD ACs for uncovered edge cases; high value but requires careful UX to avoid polluting plans with machine-generated ACs users didn't ask for.
-- [ ] **Integration verification with type awareness** — argument shape checking for pde-tools.cjs callers; useful but requires significant pattern-matching work for marginal gain over basic integration checks.
+- [ ] **Stakeholder presentation generator** — consumes `.planning/logs/` session summaries + phase SUMMARY.md files to produce polished presentations. Event schema `extensions` field carries the metadata this consumer will need. Tracked in memory as `project_stakeholder_presentations.md`.
+- [ ] **Idle-time productivity system** — triggered by TeammateIdle or agent wait events from the event bus. Dashboard shows guided productivity prompts during processing wait times. Tracked in memory as `project_idle_time_productivity.md`. Pairs with tmux integration (memory `project_tmux_monitoring.md`).
+- [ ] **Context window pane accuracy improvements** — currently estimated; future improvement requires either a tokenizer library or Claude Code API surface that exposes exact token counts. Defer until accurate data is available.
 
 ---
 
@@ -165,125 +195,190 @@ These features are what makes this milestone a genuine reliability improvement r
 
 | Feature | User Value | Implementation Cost | Priority |
 |---------|------------|---------------------|----------|
-| Research claim extraction & verification | HIGH — prevents plans built on hallucinated codebase facts | MEDIUM | P1 |
-| Cross-phase dependency pre-verification | HIGH — prevents mid-execution failures from missing work | MEDIUM | P1 |
-| Plan edge case analysis | HIGH — surfaces what plans silently assume away | MEDIUM | P1 |
-| Integration point verification (pre-execution) | HIGH — catches calling convention mismatches before execution | MEDIUM | P1 |
-| Tech debt closure (7 items) | MEDIUM-HIGH — cleans up broken references and cosmetic issues | LOW–MEDIUM | P1 |
-| Claim confidence scoring | MEDIUM — makes validation reports more actionable | MEDIUM | P2 |
-| Dependency gap fix proposals | MEDIUM — transforms gap reports into actionable fixes | MEDIUM | P2 |
-| Research validation as standing gate | HIGH — closes the feedback loop automatically | LOW–MEDIUM | P2 |
-| Edge case AC generation | MEDIUM — turns analysis into plan improvements | MEDIUM | P3 |
-| Integration verification with type awareness | LOW-MEDIUM — marginal gain over basic integration checks | MEDIUM-HIGH | P3 |
+| Structured event bus | HIGH — foundational; all other features blocked without it | MEDIUM | P1 |
+| Deep instrumentation at lifecycle points | HIGH — no signal without emitters at meaningful points | MEDIUM | P1 |
+| Auto-install check for tmux | HIGH — first UX failure point; immediate trust damage if absent | LOW | P1 |
+| `/pde:monitor` command | HIGH — discoverable entry point for all monitoring UX | LOW | P1 |
+| 6-pane tmux dashboard | HIGH — the primary visible output of the milestone | MEDIUM | P1 |
+| Persistent dashboard | MEDIUM — without persistence, dashboard is decoration | LOW | P1 |
+| Session summaries in `.planning/logs/` | HIGH — durable history; works even without dashboard | MEDIUM | P1 |
+| Raw event stream in `/tmp` | MEDIUM — powers summaries; useful for debugging | LOW | P1 |
+| Future-proof event schema | HIGH — low cost to do right from the start; very high cost to retrofit | LOW-MEDIUM | P1 |
+| Wave-aware agent activity pane | MEDIUM — differentiator; not blocking for v0.8 | MEDIUM | P2 |
+| Per-agent token breakdown | MEDIUM — useful when running expensive pipelines | MEDIUM-HIGH | P2 |
+| Context window utilization pane | MEDIUM — useful signal; low accuracy acceptable for display purposes | HIGH | P2 |
+| Stakeholder presentations | HIGH (future) — depends on durable session history being in place | HIGH | P3 |
+| Idle-time productivity | MEDIUM (future) — depends on agent wait events being emitted | MEDIUM | P3 |
 
 **Priority key:**
-- P1: Must have for v0.7 milestone to close ("pipeline reliability" claim requires these)
-- P2: Include if implementation time permits; strong v0.7.x candidates
-- P3: Future milestone (v0.8+)
-
----
-
-## Phase Ordering Recommendation
-
-Based on dependencies and risk:
-
-**Phase 1: Tech debt closure** — independent of new features; builds confidence that the platform is clean before adding new surface area. Low risk, high clarity.
-
-**Phase 2: Research claim verification** — first new agent; standalone with clear I/O (RESEARCH.md in, RESEARCH-VALIDATION.md out). Establishes the pattern for subsequent verification agents.
-
-**Phase 3: Integration point verification** — reads task files (already sharded by v0.6); checks pde-tools.cjs which is stable and well-defined. Lower uncertainty than dependency verification.
-
-**Phase 4: Cross-phase dependency pre-verification** — more complex (requires reading ROADMAP.md phase graph and reasoning about build order); builds on patterns from phase 2 and 3.
-
-**Phase 5: Plan edge case analysis + readiness gate integration** — last because it requires the other three verification artifacts to be in place; the readiness gate becomes the unified surface for all verification outputs.
+- P1: Must have for v0.8 milestone to close ("observability" claim requires these)
+- P2: Include if implementation time permits; strong v0.8.x candidates
+- P3: Future milestone (v0.9+) — event schema must be designed with these consumers in mind
 
 ---
 
 ## Behavioral Expectations by Feature
 
-### Research Claim Extraction and Verification
+### Structured Event Bus
 
-**What a claim looks like:** "pde-tools.cjs exposes a `shard-plan` subcommand" (high verifiability — grep the file), "The MCP bridge handles reconnection automatically" (medium verifiability — requires reading logic, not just existence), "Node.js CJS is the correct module format for this project" (low verifiability — convention claim, not codebase fact).
+**Core event types (minimum required):**
+- `session_start` — fired by SessionStart hook; payload: `{ invoked_command, cwd }`
+- `session_end` — fired by SessionEnd hook; payload: `{ duration_ms, commands_run, agents_spawned, tasks_completed }`
+- `agent_start` — fired by SubagentStart hook; payload: `{ agent_type, agent_id, parent_session }`
+- `agent_stop` — fired by SubagentStop hook; payload: `{ agent_type, agent_id, duration_ms, exit_status }`
+- `task_status_change` — fired by pde-tools.cjs tracking set-status; payload: `{ task_num, task_name, from_status, to_status, phase, plan }`
+- `tool_use` — fired by PostToolUse hook; payload: `{ tool_name, duration_ms, success }`
+- `commit` — fired by pde-tools.cjs commit; payload: `{ message, files_changed }`
+- `readiness_result` — fired by pde-tools.cjs readiness check; payload: `{ phase, result: "PASS"|"CONCERNS"|"FAIL", item_counts }`
 
-**Expected verifiable claim types:**
-- File existence: "file X exists at path Y"
-- Command/function availability: "pde-tools.cjs exposes command X"
-- Interface shape: "function X accepts arguments (a, b, c)"
-- Configuration value: "config setting X defaults to Y"
-- Agent/workflow name: "workflow X is at path Y"
+**Extension event types (v0.8.x, when orchestrators emit them):**
+- `wave_start` — payload: `{ wave_number, wave_total, agent_count, wave_type }`
+- `wave_end` — payload: `{ wave_number, duration_ms, agents_completed, agents_failed }`
 
-**Expected unverifiable claim types (mark, don't attempt to verify):**
-- Library capability claims ("Context7 says library X supports Y")
-- Performance claims ("this approach is faster than X")
-- Future behavior claims ("this will work when...")
+**Schema contract (every event):**
+```json
+{
+  "event_id": "uuid-v4",
+  "schema_version": "1.0",
+  "session_id": "string",
+  "agent_id": "string|null",
+  "event_type": "string",
+  "timestamp_iso": "2026-03-19T14:22:00.000Z",
+  "duration_ms": "number|null",
+  "payload": {},
+  "extensions": {}
+}
+```
 
-**Output:** RESEARCH-VALIDATION.md with claim table (claim, type, verification method, result, confidence), summary counts, overall validation status.
+### 6-Pane tmux Dashboard
 
-### Cross-Phase Dependency Pre-Verification
+**Pane 1 — Agent Activity:**
+- Source: event JSONL tail filtered to `agent_start`, `agent_stop`, `wave_start`, `wave_end`
+- Display: scrolling list; most recent agent at bottom; format: `[HH:MM:SS] STARTED pde-plan-checker (wave 2/3)`
+- Refresh: event-driven (tail -f)
 
-**What a dependency looks like:** Task in phase N has `<action>` that calls a function exported from a file that phase M was supposed to create, but phase M status in ROADMAP.md is PLANNED (not COMPLETE).
+**Pane 2 — Pipeline Progress:**
+- Source: `.planning/phases/{phase}/workflow-status.md` for active phase; pde-tools.cjs tracking read
+- Display: task table with status badges (TODO/IN_PROGRESS/DONE/SKIPPED); phase and plan header
+- Refresh: file watch on workflow-status.md (inotifywait/fswatch/poll every 2s fallback)
 
-**Expected gap types:**
-- Missing file: task calls path that doesn't exist and no prior phase created it
-- Unbuilt function: task calls named export that doesn't exist in the codebase
-- Phase ordering: task in phase N depends on output of phase M where M > N in execution order
+**Pane 3 — File Changes:**
+- Source: fswatch/inotifywait on `.planning/` directory tree
+- Display: tail of recent file write events; format: `[HH:MM:SS] MODIFIED .planning/phases/58/PLAN.md`
+- Refresh: event-driven (fswatch output pipe)
 
-**Output:** DEPENDENCY-GAPS.md with gap table (phase, task, dependency, type, resolution options), feeds into READINESS.md.
+**Pane 4 — Log Stream:**
+- Source: event JSONL tail (all event types)
+- Display: raw event stream, human-readable format (not raw JSON); format: `[HH:MM:SS] [tool_use] Bash — 1240ms`
+- Refresh: event-driven (tail -f)
 
-### Plan Edge Case Analysis
+**Pane 5 — Token/Cost Meter:**
+- Source: event JSONL filtered to `agent_stop` events with token_count in payload; Claude Code `/cost` command output if available
+- Display: running session total (tokens + estimated cost); per-agent breakdown when v0.8.x wave-aware data is available
+- Refresh: poll every 5s
 
-**Standard edge case categories to always check:**
-- Empty/null inputs: does the plan handle empty arrays, missing files, null config values?
-- Concurrent access: file-based state can have race conditions; does the plan address locking?
-- Partial completion: if the task is interrupted mid-execution, what state is the system left in?
-- Error propagation: if a tool call fails, does the plan specify error handling?
-- Boundary conditions: off-by-one in phase numbers, max-length strings, missing config keys
+**Pane 6 — Context Window:**
+- Source: session JSONL transcript token count estimation (cumulative tokens from transcript)
+- Display: percentage bar (approximate); model name and limit; "~X% used" label with "(estimated)" caveat
+- Refresh: poll every 10s
+- Confidence: LOW — this is an estimate, not a measurement from the API
 
-**Severity classification:**
-- HIGH: missing error handling for a code path that will be exercised in normal use
-- MEDIUM: uncovered edge case that requires unusual conditions to trigger
-- LOW: boundary condition that only appears in adversarial or misconfigured use
+### Auto-Install Check for tmux
 
-**Output:** EDGE-CASES.md with categorized case table; HIGH severity cases surface as CONCERNS in READINESS.md.
+**Detection flow:**
+```
+command -v tmux → exists → proceed with dashboard launch
+command -v tmux → not found → detect platform
+    uname → Darwin → offer: "Install with: brew install tmux"
+    uname → Linux → check apt: offer: "Install with: sudo apt install tmux"
+    uname → other → "Install tmux manually: https://github.com/tmux/tmux/wiki/Installing"
+→ offer to run install command automatically (yes/no prompt)
+→ on decline: exit with clear message "Run /pde:monitor after installing tmux"
+```
 
-### Integration Point Verification
+### Session Summaries in `.planning/logs/`
 
-**What to check:**
-- For each `pde-tools.cjs` call in a task: does the subcommand exist? Are arguments in the expected format (number vs. string, positional vs. flag)?
-- For each file import in a task: does the file exist? Is the named export present?
-- For each template reference (`@{CLAUDE_PLUGIN_ROOT}/templates/X`): does the template file exist?
-- For each PLAN.md `<files>` path: does the file exist, or is it being created in this task?
+**File format:** `.planning/logs/session-{YYYY-MM-DD}-{short-id}.md`
 
-**Output:** INTEGRATION-CHECK.md with check table (task, reference, check type, result); failures surface as FAIL in READINESS.md.
+**Content structure:**
+```markdown
+---
+session_id: abc123
+date: 2026-03-19
+command: /pde:execute-phase
+duration_seconds: 847
+agents_spawned: 6
+tasks_completed: 5
+tasks_total: 5
+token_estimate: 142000
+schema_version: "1.0"
+---
 
-### Tech Debt Closure (7 Items from v0.6)
+# Session Summary: /pde:execute-phase
 
-| Item | File(s) Affected | Fix Type |
-|------|-----------------|----------|
-| PLUG-01: `claude plugin install` from GitHub not tested | README, GETTING-STARTED.md | Documentation + manual test |
-| TRACKING-PLAN.md referenced but doesn't exist | consent panel reference | Create stub or remove reference |
-| Historical commits missing Co-Authored-By | git history | Cannot retroactively fix — document as known exception |
-| lock-release inconsistent trailing args | workflow files using lock-release | Normalize call sites |
-| SUMMARY.md missing `one_liner` field | All SUMMARY.md template files and existing examples | Add field to template + backfill recent files |
-| 2 pre-registered TOOL_MAP entries without consumers | mcp-bridge.cjs | Add consumers or remove entries |
-| pde-tools.cjs help text missing v0.6 commands | bin/pde-tools.cjs | Update help text for manifest, shard-plan, readiness, tracking |
+**Date:** 2026-03-19 14:22 – 14:36
+**Duration:** 14m 7s
+**Status:** COMPLETE
+
+## Agents
+
+| Agent | Duration | Status |
+|-------|----------|--------|
+| pde-plan-checker | 2m 14s | DONE |
+| pde-executor (wave 1) | 4m 03s | DONE |
+...
+
+## Tasks Completed
+
+Phase 58, Plan 1: 5/5 tasks DONE
+
+## Token Estimate
+
+~142,000 tokens (session estimate)
+
+## Key Events
+
+- 14:22:01 Session started
+- 14:22:03 Agent pde-plan-checker spawned
+- 14:24:17 Readiness check: PASS
+- 14:24:19 Executor wave 1 started (3 agents)
+...
+```
+
+---
+
+## Competitor Feature Analysis
+
+| Feature | disler/claude-code-hooks-multi-agent-observability | NTM (Named Tmux Manager) | PDE v0.8 Approach |
+|---------|---------------------------------------------------|--------------------------|--------------------|
+| Event capture | Claude Code hooks → HTTP POST → SQLite | tmux pane management only | Hooks → JSONL file; no HTTP server required |
+| Dashboard | Vue 3 browser dashboard on localhost:5173 | tmux pane layout with AI agents | tmux panes with shell tail processes; no server |
+| Persistence | SQLite database (durable) | Session-level only | JSONL in /tmp (ephemeral) + summaries in .planning/logs/ (durable) |
+| Wave awareness | None — flat agent list | None | PDE-specific: wave_start/wave_end events from orchestrators |
+| Install complexity | Bun server + Vue client + Python hooks | Go binary | Shell scripts + tmux + existing Node.js pde-tools.cjs |
+| npm dependencies | Multiple (Bun, Vue, SQLite) | None (binary) | Zero (consistent with PDE zero-npm-deps constraint) |
+| Session history | Database query | None | Markdown summaries in .planning/logs/ |
+| PDE integration | None — generic Claude Code | None — generic | Deep: reads workflow-status.md, pde-tools.cjs, .planning/ state |
 
 ---
 
 ## Sources
 
-- **PDE PROJECT.md** (HIGH confidence): `/Users/greyaltaer/code/projects/Platform Development Engine/.planning/PROJECT.md` — v0.6 baseline capabilities, known tech debt items, v0.7 target features
-- **PDE workflows/verify-phase.md** (HIGH confidence): existing verification agent — goal-backward pattern, artifact verification, wiring checks
-- **PDE workflows/check-readiness.md** (HIGH confidence): existing readiness gate — PASS/CONCERNS/FAIL structure, structural + semantic checks
-- **PDE .planning/research/FEATURES.md v0.6** (HIGH confidence): prior milestone feature research — confirmed v0.6 features as stable baseline
-- **InfoQ AI-Assisted Development 2025** (MEDIUM confidence): https://www.infoq.com/minibooks/ai-assisted-development-2025/ — cross-phase dependency patterns, verification gate patterns
-- **Augment Code Spec-Driven Workflows** (MEDIUM confidence): https://www.augmentcode.com/guides/ai-spec-driven-development-workflows — research-to-plan pipeline patterns
-- **Panto AI Cross-File Dependency Analysis** (MEDIUM confidence): https://www.getpanto.ai/blog/how-panto-ais-cross-file-dependency-analysis-is-transforming-tech-teams-development-workflows — dependency detection in AI-assisted workflows; 40% reduction in integration defects with pre-execution checks
-- **Edge Cases and Error Handling: Where AI Code Falls Short** (MEDIUM confidence): https://codefix.dev/2026/02/02/ai-coding-edge-case-fix/ — AI optimization for happy path; edge case categories; why empty arrays / null values / boundary conditions are under-covered
-- **AI Code Review Automation Guide 2025** (MEDIUM confidence): https://www.digitalapplied.com/blog/ai-code-review-automation-guide-2025 — 42-48% bug detection rates for AI reviewers; categories of issues caught vs. missed
-- **Infomineo AI Hallucination Verification Guide 2025** (MEDIUM confidence): https://infomineo.com/artificial-intelligence/stop-ai-hallucinations-detection-prevention-verification-guide-2025/ — research claim grounding patterns; confidence scoring approaches; types of verifiable vs. unverifiable claims
+- **PDE PROJECT.md** (HIGH confidence): `/Users/greyaltaer/code/projects/Platform Development Engine/.planning/PROJECT.md` — active requirements, constraints, existing capabilities
+- **Claude Code Hooks Reference** (HIGH confidence): `https://code.claude.com/docs/en/hooks` — 26 hook events, configuration structure, common fields, hook types (command/http/prompt/agent)
+- **disler/claude-code-hooks-multi-agent-observability** (HIGH confidence): `https://github.com/disler/claude-code-hooks-multi-agent-observability` — real-world Claude Code hook observability architecture; Vue+Bun+SQLite pattern; 12 captured event types
+- **PDE bin/lib/tracking.cjs** (HIGH confidence): verified directly — per-task workflow-status.md structure, existing instrumentation surface
+- **agent-teams-tmux** (MEDIUM confidence): `https://lobehub.com/skills/smartassets-io-skills-agent-teams-tmux` — tmux dashboard for parallel agent teams; 5s refresh interval pattern; fswatch/inotifywait/polling fallback pattern
+- **NTM (Named Tmux Manager)** (MEDIUM confidence): `https://github.com/Dicklesworthstone/ntm` — AI agent tmux coordination; tiled pane layouts for multi-agent systems
+- **Nebulacentre Server Dashboard in tmux** (MEDIUM confidence): `https://www.nebulacentre.net/articles/server_dash/server_dash.html` — tmux 6-pane server monitoring pattern; persistent session design
+- **Event Bus Architecture for Coordinating Distributed Agents** (MEDIUM confidence): `https://www.auxiliobits.com/blog/event-bus-architectures-for-coordinating-distributed-agents/` — correlation_id, schema versioning, consumer/producer separation
+- **How to Build Event Schema Design** (MEDIUM confidence): `https://oneuptime.com/blog/post/2026-01-30-event-schema-design/view` — event_id, schema_version, timestamp, source as minimum metadata; forward/backward compatibility patterns
+- **The Complete Guide to LLM Observability** (MEDIUM confidence): `https://portkey.ai/blog/the-complete-guide-to-llm-observability/` — per-agent token tracking; session duration; tool call tracing
+- **Claude Code session history (ccusage)** (MEDIUM confidence): `https://ccusage.com/guide/session-reports` — JSONL session transcript format; session-level aggregation patterns; how existing tools parse Claude Code session data
+- **Bash command existence check patterns** (MEDIUM confidence): `https://raymii.org/s/snippets/Bash_Bits_Check_if_command_is_available.html` — `command -v` idiom; platform detection via uname; package manager detection
+- **Datadog Claude Code Monitoring** (LOW confidence — enterprise context, not directly applicable): `https://www.datadoghq.com/blog/claude-code-monitoring/` — confirms market direction for Claude Code observability; OpenTelemetry as downstream compatibility target
 
 ---
 
-*Feature research for: PDE v0.7 — Pipeline Reliability & Validation*
+*Feature research for: PDE v0.8 — Observability & Event Infrastructure (tmux monitoring dashboard, structured event bus, session history)*
 *Researched: 2026-03-19*

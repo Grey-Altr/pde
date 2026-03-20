@@ -1,19 +1,20 @@
 # Stack Research
 
-**Domain:** Pipeline reliability and validation — automated research claim verification,
-cross-phase dependency checking, plan edge case analysis, integration point verification
-for an existing Node.js CommonJS Claude Code plugin (PDE v0.7)
+**Domain:** tmux-based monitoring dashboard and event infrastructure — adding structured event
+bus, IPC, terminal rendering, and token/cost estimation to an existing Node.js CommonJS
+Claude Code plugin (PDE v0.8)
 **Researched:** 2026-03-19
-**Confidence:** HIGH (Node.js built-in capabilities verified against official docs),
-HIGH (acorn 8.16.0 confirmed via changelog), MEDIUM (dependency-graph 1.0.0 confirmed
-stable but 2-year-old release), HIGH (zero-npm constraint verified by absent package.json)
+**Confidence:** HIGH (Node.js built-ins verified via official docs), HIGH (tmux shell
+scripting is the correct approach — node-tmux confirmed too limited via GitHub), MEDIUM
+(token estimation approach verified via Anthropic docs), HIGH (zero-npm constraint
+confirmed, no package.json anywhere in repo)
 
 ---
 
-> **Scope note:** This file covers ONLY what is new for v0.7. The existing PDE stack —
+> **Scope note:** This file covers ONLY what is new for v0.8. The immovable baseline is:
 > Node.js v20 CommonJS, Claude Code plugin API, markdown-based `.planning/` state,
-> pde-tools.cjs CLI with 20+ lib modules, zero npm dependencies at plugin root — is
-> the immovable baseline. Every recommendation here must fit within that baseline.
+> pde-tools.cjs CLI with 20+ lib modules, zero npm dependencies at plugin root,
+> no package.json anywhere in the repo. All new capabilities must fit within this baseline.
 
 ---
 
@@ -21,11 +22,35 @@ stable but 2-year-old release), HIGH (zero-npm constraint verified by absent pac
 
 | Constraint | Source | Implication |
 |------------|--------|-------------|
-| Node.js v20 (active LTS) | env, no package.json | `fs.promises.glob` not available (added in v22.2.0); use `fs.readdirSync` or manual recursion |
-| Zero npm dependencies at plugin root | No package.json found anywhere in repo | All new capabilities must use Node.js builtins OR be bundled inline as lib/*.cjs modules |
-| CommonJS only | Every existing module uses `require()` | No ESM, no `import`, no top-level `await` |
-| No external processes | Plugin runs inside Claude Code session | No spawning background daemons, no persistent watchers |
-| File-based state only | `.planning/` directory, no database | All analysis outputs written to markdown files |
+| Node.js v20 (active LTS) | env, no package.json | Use `node:events`, `node:child_process`, `node:fs`, `node:net`, `node:https` |
+| Zero npm dependencies at plugin root | No package.json found anywhere in repo | No `blessed`, `ink`, `pino`, `winston`, `node-tmux` as npm installs |
+| CommonJS only | Every existing module uses `require()` | No ESM; vendored libs must ship CJS builds |
+| No persistent background daemons | Plugin runs inside Claude Code session | Event bus must be in-process; log files are the persistence layer |
+| File-based state only | `.planning/` directory, no database | Event streams persist as NDJSON files; no SQLite, no Redis |
+| tmux is an external binary | Installed separately by user | All tmux interaction via `spawnSync('tmux', [...args])` — uses execFile semantics, not shell injection |
+
+---
+
+## Architecture Decision: tmux Integration Approach
+
+**The right approach is direct shell invocation via spawnSync, not a Node.js tmux library.**
+
+`node-tmux` (npm) provides only 6 methods: newSession, listSessions, hasSession, killSession,
+renameSession, writeInput. It has no support for pane addressing, split-window, new-window,
+or send-keys with pane targeting. Building the 6-pane dashboard requires all of these.
+
+`stmux` emulates tmux using blessed internally — it creates a fake multiplexer in a single
+terminal rather than a real tmux session. This is the wrong model for PDE's persistent,
+inspectable dashboard requirement.
+
+The correct approach: wrap `tmux` CLI commands in a thin `bin/lib/tmux-driver.cjs` module
+using `child_process.spawnSync('tmux', [...args])`. All arguments are passed as an array
+(execFile semantics — no shell injection risk). This is:
+- Zero-dependency
+- Full-featured (all tmux subcommands available)
+- The same approach used by tmuxinator, tmuxp, and other tmux automation tools
+- Cross-platform (macOS homebrew, Linux apt both provide the same tmux CLI)
+- Safe: arguments passed as array, not interpolated into shell string
 
 ---
 
@@ -36,121 +61,306 @@ stable but 2-year-old release), HIGH (zero-npm constraint verified by absent pac
 | Technology | Version | Purpose | Why Kept |
 |------------|---------|---------|----------|
 | Node.js | 20 LTS | Runtime for all bin/ scripts | Already pinned; v20 is the Claude Code runtime |
-| CommonJS (`require`) | N/A | Module system | All 20+ lib modules use it; no migration path |
-| `node:fs` | Built-in | File I/O, directory traversal | Replaces glob — v20 has `readdirSync` with `recursive: true` option (added v18.17) |
-| `node:path` | Built-in | Path resolution | Already used universally |
+| CommonJS (`require`) | N/A | Module system | All 20+ lib modules use it |
+| `node:events` | Built-in | EventEmitter base class | Native, zero-dependency, synchronous delivery, works in CJS |
+| `node:child_process` | Built-in | tmux subprocess execution via spawnSync | spawnSync with array args = execFile semantics, no shell injection |
+| `node:fs` | Built-in | Log file writes, NDJSON append, rotation | Already universally used in PDE |
+| `node:net` | Built-in | Unix domain socket for IPC (optional path) | Available since Node.js v0.1; no deps |
+| `node:os` | Built-in | tmpdir() for socket paths, platform detection | Already used in core.cjs |
 
-### New Capability: AST Parsing for Code Verification
+### New Capability 1: Structured Event Bus
 
-**Problem:** The automated research validation agent needs to verify claims like "function X exists in file Y" or "module exports Z" against the actual codebase.
+**Problem:** Agents, executor, and tools produce events (agent.start, phase.complete,
+file.written, token.counted) that need to be delivered to multiple consumers: the tmux
+dashboard panes, the NDJSON event log, and the cost meter — without tight coupling between
+producers and consumers.
 
-**Recommendation: `acorn` + `acorn-walk` as inline-bundled lib modules.**
+**Recommendation: Extend Node.js `EventEmitter` directly in a new `bin/lib/event-bus.cjs`
+module. Zero additional dependencies.**
 
-| Library | Version | Purpose | Why |
-|---------|---------|---------|-----|
-| acorn | 8.16.0 | JavaScript AST parser | Produces ESTree-compliant AST from .cjs source; supports `sourceType: "commonjs"` (added 8.16.0); pure JS, no native bindings — bundleable as single file |
-| acorn-walk | 8.3.5 | AST traversal | `simple()` visitor pattern for finding function declarations, exports, require() calls; part of acorn project; same license |
-
-**Why acorn over alternatives:**
-- acorn is Node.js's own bundled JS parser (used internally by Node.js since v0.10) — proven stable
-- `sourceType: "commonjs"` treats top-level as function scope, matching PDE's .cjs files exactly
-- Ships as a single CJS-compatible module with no transitive dependencies
-- 8.16.0 released February 2026 — actively maintained
-- Alternative (babel parser): 15x larger, requires 4+ packages, ESM-first design; overkill for structural analysis
-- Alternative (esprima): unmaintained since 2020 (last release 4.0.1 in 2019)
-- Alternative (typescript compiler API): TypeScript only; PDE is plain JavaScript
-
-**Bundling approach:** Copy `acorn/dist/acorn.cjs` and `acorn-walk/dist/walk.cjs` into `bin/lib/vendor/` as committed files (two files, ~150KB total). No `npm install`. No package.json. This matches the pattern of inline conversion functions already used for figmaColorToCss and dtcgToPencilVariables.
-
-**What AST parsing enables:**
-- Verify export declarations: `module.exports.X = ...` and `module.exports = { X, ... }`
-- Verify `require()` call targets
-- Detect orphan exports (exported but never required anywhere)
-- Verify function name existence before claims like "function parsePhase exists"
-
-**What AST parsing is NOT needed for:**
-- Markdown file analysis (regex is sufficient for structured `.planning/` files)
-- Claim extraction from research files (regex pattern matching on text)
-- Cross-phase dependency checking (markdown parsing + dependency graph)
-
-### New Capability: Cross-Phase Dependency Graph
-
-**Problem:** Plans reference other phases' outputs (e.g., "phase 47 produces X, phase 48 consumes X"). Pre-execution verification needs to detect when a consumer phase references a dependency that the producer phase hasn't been defined to produce.
-
-**Recommendation: Build a lightweight graph in-process using a Map/Set structure, OR vendor `dependency-graph` 1.0.0.**
-
-| Approach | Complexity | When to Use |
-|----------|-----------|-------------|
-| Hand-built Map-based graph | ~40 lines of code | If only cycle detection and topological sort are needed |
-| `dependency-graph` 1.0.0 | Vendor as single file (~400 lines) | If full DepGraph API (dependenciesOf, dependantsOf, overallOrder, circular detection) is needed |
-
-**Recommendation: Hand-built Map in a new `bin/lib/dep-graph.cjs` module.** The dependency-graph package is 1.0.0 released December 2023 and has been stable-but-unmaintained since — it's a simple data structure that doesn't need external maintenance. But the full API is more than PDE needs. PDE's phase dependency graph is:
-1. Nodes = phases (strings like "47", "48")
-2. Edges = "phase A produces artifact consumed by phase B"
-3. Operations needed: add nodes, add edges, detect cycles, topological sort
-
-That is ~40 lines of Map/Set code with no external dependency, matching PDE's inline-function philosophy.
-
-**If the graph grows complex** (more than simple topological sort), vendor dependency-graph 1.0.0 from its `lib/dep_graph.js` as `bin/lib/vendor/dep-graph.cjs`.
-
-### New Capability: Claim Extraction from Markdown
-
-**Problem:** Research files (SUMMARY.md, STACK.md, FEATURES.md) contain claims like "uses Node.js v20" or "exports parsePhase function". The validation agent needs to extract these claims programmatically.
-
-**Recommendation: Regex pattern matching — no new library.**
-
-| Pattern | What It Extracts |
-|---------|-----------------|
-| `/\*\*([^*]+)\*\*/g` | Bold claims |
-| `/`([^`]+)`/g` | Inline code references (function names, file paths) |
-| `/- ([^\n]+)/g` | Bullet point assertions |
-| `/\| ([^\|]+) \|/g` | Table cell values |
-
-The existing `sharding.cjs` and `readiness.cjs` already demonstrate that XML-tag regex (`/<task[^>]*>([\s\S]*?)<\/task>/gi`) is sufficient for structured extraction in PDE's markdown documents. The same approach extends to claim extraction.
-
-**Why not a markdown parser library (marked, markdown-it):**
-- PDE research files are author-controlled structured documents, not arbitrary user markdown
-- The claim vocabulary is narrow and consistent (bold text, backtick code, bullets, tables)
-- Adding a parser introduces ESM compatibility issues (marked v17 is ESM-first) and 150KB+ size
-- Regex on known structure is faster, simpler, and zero-dependency
-
-### New Capability: Integration Point Verification
-
-**Problem:** Verify that when skill A exports a function, skill B actually calls it with matching arguments — detecting interface drift across the pipeline.
-
-**Recommendation: acorn AST parsing (same library as code verification above) + regex for markdown interface definitions.**
-
-The integration point verifier needs two operations:
-1. Parse `module.exports` from producer files to build an export map
-2. Parse `require(...)` calls from consumer files to build an import map
-3. Cross-reference: exports that no consumer requires = orphan exports
-
-This is pure AST walking over the existing `bin/lib/*.cjs` files — entirely covered by acorn + acorn-walk.
-
-### Directory Traversal (no new library needed)
-
-Node.js v18.17 added `fs.readdirSync(path, { recursive: true })` — available in PDE's Node.js v20 runtime. This replaces any need for a `glob` npm package for file discovery.
-
+Example usage pattern:
 ```javascript
-// Replaces glob('**/*.cjs') — works in Node.js v18.17+
-const files = fs.readdirSync(rootDir, { recursive: true })
-  .filter(f => f.endsWith('.cjs'));
+// bin/lib/event-bus.cjs
+const { EventEmitter } = require('events');
+
+class PdeEventBus extends EventEmitter {
+  constructor() {
+    super();
+    this.setMaxListeners(20); // 6 panes + log + cost + context = well under 20
+  }
+  emit(eventType, payload) {
+    const envelope = { type: eventType, ts: Date.now(), ...payload };
+    super.emit(eventType, envelope);
+    super.emit('*', envelope); // wildcard subscriber for log writer
+  }
+}
+
+module.exports = { PdeEventBus, bus: new PdeEventBus() };
 ```
 
-**Why not fast-glob or glob npm package:** Zero-npm constraint. Node.js v20's native recursive `readdirSync` is sufficient for PDE's file discovery needs (finding `.cjs` files in `bin/lib/`, finding PLAN.md files in `.planning/phases/`).
+**Why EventEmitter over alternatives:**
+- Native Node.js — zero cost, zero risk, zero maintenance
+- Synchronous delivery matches PDE's single-process execution model (no async race conditions)
+- `setMaxListeners` prevents the default warning at 10+ listeners for 6-pane dashboard
+- The wildcard `'*'` pattern is the standard Node.js event bus pattern
+- Alternative (EventEmitter3 npm): 3x faster than Node.js EventEmitter — irrelevant for
+  PDE's ~10 events/second monitoring use case; not worth an npm dependency
+- Alternative (mitt npm): ESM-first, no CJS build; requires vendoring; same functionality
+  as plain EventEmitter for this use case
+
+**Event schema (all events follow this envelope):**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `type` | string | Dot-separated namespace: `agent.start`, `phase.complete`, `file.written`, `token.counted`, `error.thrown` |
+| `ts` | number | Unix timestamp ms (`Date.now()`) |
+| `source` | string | Producer identity: `executor`, `agent:researcher`, `tool:mcp-bridge` |
+| `data` | object | Event-specific payload |
+
+**Why this schema is future-proof:** The envelope structure (type + ts + source + data) is
+the CloudEvents specification's minimal event format. PDE can adopt CloudEvents serialization
+later without changing the schema.
+
+### New Capability 2: tmux Session and Pane Management
+
+**Problem:** `/pde:monitor` needs to create a named tmux session with 6 panes in a specific
+layout, write content to specific panes, and detect whether tmux is installed.
+
+**Recommendation: `bin/lib/tmux-driver.cjs` — thin wrapper over `spawnSync('tmux', args)`
+where args is always an array (never shell-interpolated strings).**
+
+| Operation | tmux Subcommand | spawnSync Args Array |
+|-----------|----------------|----------------------|
+| Detect tmux | `which tmux` | `spawnSync('which', ['tmux'])` |
+| Create session | `new-session -d -s pde-monitor` | `spawnSync('tmux', ['new-session', '-d', '-s', 'pde-monitor'])` |
+| Split horizontal | `split-window -h -t pde-monitor` | `spawnSync('tmux', ['split-window', '-h', '-t', 'pde-monitor'])` |
+| Split vertical | `split-window -v -t TARGET` | `spawnSync('tmux', ['split-window', '-v', '-t', target])` |
+| Apply layout | `select-layout -t pde-monitor tiled` | `spawnSync('tmux', ['select-layout', '-t', 'pde-monitor', 'tiled'])` |
+| Write to pane | `send-keys -t TARGET "text" Enter` | `spawnSync('tmux', ['send-keys', '-t', target, text, 'Enter'])` |
+| Check session exists | `has-session -t pde-monitor` | `spawnSync('tmux', ['has-session', '-t', 'pde-monitor'])` |
+| Kill session | `kill-session -t pde-monitor` | `spawnSync('tmux', ['kill-session', '-t', 'pde-monitor'])` |
+
+**6-pane layout for PDE Monitor:**
+```
+Pane 0: Agent Activity    | Pane 1: Pipeline Progress
+Pane 2: File Changes      | Pane 3: Log Stream
+Pane 4: Token/Cost Meter  | Pane 5: Context Window
+```
+
+Built via: new-session + 5x split-window calls + `select-layout even-vertical`.
+
+**Auto-install detection pattern:**
+```javascript
+function detectTmux() {
+  const result = spawnSync('which', ['tmux'], { encoding: 'utf-8' });
+  if (result.status === 0) return { installed: true };
+  const isMac = process.platform === 'darwin';
+  const isLinux = process.platform === 'linux';
+  return {
+    installed: false,
+    installCommand: isMac ? 'brew install tmux' : isLinux ? 'sudo apt install tmux' : null
+  };
+}
+```
+
+**Why not node-tmux npm:** Confirmed via GitHub — node-tmux only has 6 session-level
+methods with no pane addressing, no split-window, no send-keys with pane targeting.
+
+**Why not stmux npm:** stmux creates a pseudo-multiplexer using blessed inside a single
+terminal process. It does not create real tmux sessions that persist after the command exits.
+PDE requires a persistent dashboard that stays open after operations finish.
+
+### New Capability 3: IPC Between pde-tools Processes and Dashboard
+
+**Problem:** pde-tools.cjs is spawned as a child process by Claude Code's Bash tool calls.
+Each invocation is a separate process. The tmux dashboard panes need to receive events from
+these separate pde-tools invocations without requiring them to share memory.
+
+**Recommendation: NDJSON event log file as the IPC mechanism. Dashboard panes tail the log.**
+
+The cleanest IPC pattern for PDE's use case is not Unix sockets but a shared append-only
+NDJSON file that dashboard panes watch via `tail -f`. This aligns with:
+1. PDE's file-based state philosophy — events are just another state artifact
+2. Zero additional infrastructure — no socket server, no daemon, no port management
+3. Dashboard panes read with standard shell: `tail -f /tmp/pde-events.ndjson | jq '.'`
+4. Log file survives session breaks — events are reviewable history
+
+**Event file locations:**
+
+| File | Location | Retention |
+|------|----------|-----------|
+| Live event stream | `/tmp/pde-events-{session}.ndjson` | Session-scoped; cleared on `pde:monitor` exit |
+| Structured session summary | `.planning/logs/session-{ts}.ndjson` | Permanent; committed with project |
+| Raw event archive | `/tmp/pde-events-{session}-raw.ndjson` | Temporary; used for crash analysis |
+
+**NDJSON write pattern (no library needed):**
+```javascript
+// Append one event — each line is a complete JSON object
+function logEvent(filePath, envelope) {
+  const line = JSON.stringify(envelope) + '\n';
+  fs.appendFileSync(filePath, line, 'utf-8');
+}
+```
+
+`fs.appendFileSync` is atomic per write on POSIX systems. For PDE's single-process-per-
+invocation model, this is sufficient without locking.
+
+**Why not Unix domain sockets + node:net:**
+Unix domain sockets are optimal when multiple long-lived processes need bidirectional
+real-time communication. pde-tools invocations are short-lived (milliseconds to seconds).
+Standing up a socket server and connecting clients per invocation adds complexity with no
+benefit over an append-only file that all processes can write to independently.
+
+**Why not node-ipc npm:** node-ipc is a full network IPC library. PDE's needs are: write
+a line to a file. That is `fs.appendFileSync`.
+
+### New Capability 4: Log File Management and Rotation
+
+**Problem:** Event streams in `/tmp` can grow unboundedly during long PDE operations.
+
+**Recommendation: Manual rotation logic in `bin/lib/event-logger.cjs`. No pino, no
+winston — they solve problems PDE does not have.**
+
+| Concern | Pino/Winston Approach | PDE Approach |
+|---------|----------------------|--------------|
+| High-throughput logging | Async I/O, worker threads | Not needed — PDE logs ~10 events/second |
+| Multiple transports | Console + file + remote | Only file (NDJSON append) |
+| Log levels | 7 levels with filtering | 3: DEBUG, INFO, ERROR |
+| Log rotation | pino-roll, winston-daily-rotate-file | Custom: rotate at 10MB or session end |
+| JSON serialization | Custom serializers | `JSON.stringify` is sufficient |
+| Dependencies | pino: 1 dep; winston: 4 deps | Zero additional dependencies |
+
+**Rotation logic (inline, ~20 lines):**
+```javascript
+function rotateIfNeeded(filePath, maxBytes) {
+  try {
+    const stat = fs.statSync(filePath);
+    if (stat.size > maxBytes) {
+      const rotated = filePath.replace('.ndjson', '-' + Date.now() + '.ndjson');
+      fs.renameSync(filePath, rotated);
+    }
+  } catch { /* file does not exist yet */ }
+}
+```
+
+**Why not pino:** pino is the best Node.js logger for high-throughput APIs. PDE is not an
+API. pino's async transport model (worker threads) is complexity with no benefit for ~10
+events/second. The logging requirement for PDE is: append a JSON line to a file.
+
+**Why not winston:** Same reasoning. 4+ transitive dependencies for complex multi-destination
+logging. Not needed here.
+
+### New Capability 5: Token and Cost Estimation
+
+**Problem:** The token/cost pane needs to display approximate token usage and cost per
+agent invocation without making API calls (agents run inside Claude Code, not as standalone
+API callers).
+
+**Recommendation: Character-based heuristic approximation inline in `bin/lib/token-meter.cjs`.
+No library required for estimation. Anthropic's `/v1/messages/count_tokens` endpoint is
+available for exact counts if ANTHROPIC_API_KEY is set.**
+
+**Two-tier approach:**
+
+| Tier | Method | Accuracy | When to Use |
+|------|--------|----------|-------------|
+| Fast estimate | Character count / 4 (chars-per-token heuristic) | ~75-80% | Always available; shown in dashboard in real-time |
+| Exact count | `POST /v1/messages/count_tokens` via `node:https` | Exact | On-demand when ANTHROPIC_API_KEY is available |
+
+**Why chars/4 heuristic is sufficient for a monitoring dashboard:**
+- Claude's tokenizer averages approximately 3.5-4 characters per token for English text
+- The dashboard is informational (decision support), not billing-grade
+- For the context window pane (showing % full), this accuracy is adequate
+- `tokenx` 1.3.0 (2kB, zero deps, 96% accuracy) is a candidate for vendoring if the
+  heuristic proves too coarse during implementation
+
+**tokenx as optional vendor (if heuristic is insufficient):**
+
+| Library | Version | Size | Accuracy | Vendoring |
+|---------|---------|------|----------|-----------|
+| tokenx | 1.3.0 | 2kB | ~96% | Copy `tokenx/dist/index.cjs` to `bin/lib/vendor/tokenx.cjs`; zero transitive deps |
+
+tokenx provides `estimateTokens(text)` returning a number, with configurable language rules.
+It ships a CJS build and has zero transitive dependencies. If the chars/4 heuristic proves
+too coarse, vendor tokenx 1.3.0 exactly as acorn was vendored for v0.7.
+
+**Claude model context window constants (for the context pane):**
+
+| Model | Context Window Tokens |
+|-------|-----------------------|
+| claude-sonnet-4-6 | 200,000 (1M with beta header) |
+| claude-opus-4-6 | 200,000 (1M with beta header) |
+| All active models | 200,000 baseline |
+
+These are hard constants verified against Anthropic's official model docs — no API call
+needed to display context window capacity.
+
+### New Capability 6: Terminal Content Rendering for Pane Updates
+
+**Problem:** pde-tools needs to write formatted content to specific tmux panes — progress
+bars, status indicators, structured log lines — without a full TUI framework.
+
+**Recommendation: ANSI escape codes inline in `bin/lib/pane-renderer.cjs`. No blessed,
+no ink, no terminal-kit.**
+
+PDE's pane content is written via `tmux send-keys -t pane "text" Enter`. The content is
+plain text with optional ANSI color codes. This does not require a TUI widget system.
+
+**What panes actually need:**
+
+| Pane | Content Type | Rendering Needed |
+|------|-------------|-----------------|
+| Agent Activity | Scrolling log lines with status indicators | ANSI color codes (green/yellow/red dots) |
+| Pipeline Progress | Phase list with checkmarks | Unicode box chars + ANSI colors |
+| File Changes | Scrolling diff summary | Plain text |
+| Log Stream | Raw NDJSON (or formatted) | `tail -f` piped through `jq` or plain `cat` |
+| Token/Cost Meter | Progress bar + numbers | Simple ASCII bar: `[####----] 45%` |
+| Context Window | Progress bar + percentage | Same ASCII bar pattern |
+
+**ANSI codes needed (inline constants, no library):**
+```javascript
+// bin/lib/pane-renderer.cjs — all ANSI constants inline, zero deps
+const ANSI = {
+  reset: '\x1b[0m',
+  green: '\x1b[32m',
+  yellow: '\x1b[33m',
+  red: '\x1b[31m',
+  cyan: '\x1b[36m',
+  bold: '\x1b[1m',
+  dim: '\x1b[2m',
+};
+
+function progressBar(filled, total, width) {
+  const w = width || 20;
+  const pct = Math.min(Math.round((filled / total) * w), w);
+  return '[' + '#'.repeat(pct) + '-'.repeat(w - pct) + ']';
+}
+```
+
+**Why not blessed:** blessed is largely unmaintained (last commit 2022 on the original
+repo). It requires terminal size detection, event loops, and screen ownership — it wants
+to own the entire terminal. PDE's dashboard panes are owned by tmux, not by Node.js.
+blessed is the wrong model for content written to tmux panes via send-keys.
+
+**Why not ink:** ink is React-based and ESM-first. It requires a persistent process that
+renders to stdout. PDE's pane updates are sent from short-lived pde-tools processes.
+ink's model (React render loop) is fundamentally incompatible with tmux send-keys.
+
+**Why not terminal-kit:** terminal-kit is 180KB with 6 transitive dependencies. For
+progress bars and ANSI colors, inline constants are the right call.
 
 ---
 
-## Recommended New lib Modules (no npm, no vendors for most)
+## Recommended New lib Modules
 
 | Module | Path | Purpose | Dependencies |
 |--------|------|---------|--------------|
-| `claim-extractor.cjs` | `bin/lib/claim-extractor.cjs` | Extract verifiable claims from markdown research files | Node.js builtins only |
-| `code-verifier.cjs` | `bin/lib/code-verifier.cjs` | Verify claims against codebase via AST | acorn + acorn-walk (vendored) |
-| `dep-graph.cjs` | `bin/lib/dep-graph.cjs` | Phase dependency graph, cycle detection, topological sort | Node.js builtins only (~40 lines) |
-| `phase-dependency-checker.cjs` | `bin/lib/phase-dependency-checker.cjs` | Cross-phase dependency verification, reads PLAN.md files | dep-graph.cjs, frontmatter.cjs, core.cjs |
-| `edge-case-analyzer.cjs` | `bin/lib/edge-case-analyzer.cjs` | Analyze PLAN.md tasks for missing error handling, empty states, boundary conditions | sharding.cjs (already exists), Node.js builtins |
-| `integration-verifier.cjs` | `bin/lib/integration-verifier.cjs` | Verify export/import alignment across lib modules | code-verifier.cjs |
+| `event-bus.cjs` | `bin/lib/event-bus.cjs` | PdeEventBus singleton; typed event emission with wildcard | `node:events` only |
+| `event-logger.cjs` | `bin/lib/event-logger.cjs` | NDJSON append to `/tmp` + `.planning/logs/`; rotation at 10MB | `node:fs`, `node:path`, `node:os` |
+| `tmux-driver.cjs` | `bin/lib/tmux-driver.cjs` | tmux session/pane creation via spawnSync array args; detect/install hint | `node:child_process` |
+| `pane-renderer.cjs` | `bin/lib/pane-renderer.cjs` | ANSI codes, progress bars, status line formatters | None (pure string ops) |
+| `token-meter.cjs` | `bin/lib/token-meter.cjs` | Chars/4 heuristic; optional tokenx vendor; context window % | `node:fs`, `node:https` (optional API call) |
+| `monitor-layout.cjs` | `bin/lib/monitor-layout.cjs` | 6-pane layout builder; pane IDs; refresh cycle | `tmux-driver.cjs`, `pane-renderer.cjs` |
 
 ---
 
@@ -158,16 +368,20 @@ const files = fs.readdirSync(rootDir, { recursive: true })
 
 No `npm install` required. No `package.json` needed.
 
-For acorn + acorn-walk:
+All six new modules use only Node.js built-ins. If tokenx is needed for improved token
+estimation accuracy:
 
 ```bash
-# One-time: download and commit vendored files
-# acorn 8.16.0 — download acorn/dist/acorn.cjs from npm registry tarball
-# acorn-walk 8.3.5 — download acorn-walk/dist/walk.cjs from npm registry tarball
-# Place in bin/lib/vendor/ and require() directly
+# One-time: vendor tokenx 1.3.0 — copy CJS dist, zero transitive deps
+# Download: https://registry.npmjs.org/tokenx/-/tokenx-1.3.0.tgz
+# Extract: tokenx/dist/index.cjs -> bin/lib/vendor/tokenx.cjs
 ```
 
-All other new capabilities use only Node.js v20 built-in modules.
+For tmux availability (user's machine, one-time setup):
+```bash
+brew install tmux          # macOS
+sudo apt install tmux      # Ubuntu/Debian
+```
 
 ---
 
@@ -175,13 +389,19 @@ All other new capabilities use only Node.js v20 built-in modules.
 
 | Recommended | Alternative | Why Not |
 |-------------|-------------|---------|
-| acorn 8.16.0 (vendored) | @babel/parser | 15x larger bundle, ESM-first, requires 4+ packages; no advantage for structural analysis of plain CJS files |
-| acorn 8.16.0 (vendored) | esprima | Unmaintained since 2020 (last release 4.0.1, 2019); misses modern JS syntax |
-| acorn 8.16.0 (vendored) | typescript compiler API | TypeScript-only; PDE files are plain .cjs; heavy dependency |
-| Hand-built dep-graph (Map/Set) | dependency-graph npm 1.0.0 | dependency-graph is stable but adds an npm dependency for 40 lines of code; PDE's needs are simple enough to implement inline |
-| Regex claim extraction | marked npm v17 | marked v17 is ESM-first (requires conversion); overkill for structured author-controlled documents; 150KB+ |
-| `fs.readdirSync` recursive | glob, fast-glob, globby | npm dependencies violate zero-npm constraint; Node.js v20 built-in recursive readdirSync is sufficient |
-| `fs.readdirSync` recursive | `fs.promises.glob` (Node.js built-in) | `fs.promises.glob` requires Node.js v22.2.0+; PDE runs on v20 |
+| spawnSync with array args | node-tmux npm | node-tmux has 6 session-level methods only; no pane addressing, no split-window, no send-keys with pane targeting — confirmed via GitHub |
+| spawnSync with array args | stmux npm | stmux creates a pseudo-multiplexer using blessed in-process; does not create persistent real tmux sessions |
+| `node:events` EventEmitter | EventEmitter3 npm | 3x faster than built-in; irrelevant for 10 events/second; adds npm dep for zero practical benefit |
+| `node:events` EventEmitter | mitt npm | ESM-first, no CJS build; requires vendoring; identical functionality for this use case |
+| NDJSON file + `tail -f` | Unix domain socket + `node:net` | pde-tools processes are short-lived; socket server per invocation is complexity without benefit |
+| NDJSON file + `tail -f` | node-ipc npm | Overkill IPC library for "append a line to a file" |
+| `fs.appendFileSync` + manual rotation | pino npm | Designed for high-throughput APIs; async worker threads are overhead for 10 events/second; pino-roll adds another dep |
+| `fs.appendFileSync` + manual rotation | winston npm | Same reasoning; 4+ transitive deps for features PDE does not need |
+| ANSI constants inline | blessed npm | Unmaintained; wants terminal ownership; incompatible with tmux send-keys model |
+| ANSI constants inline | ink npm | React-based, ESM-first, persistent render process — wrong model for tmux pane content |
+| ANSI constants inline | terminal-kit npm | 180KB, 6 deps, for progress bars and colors |
+| chars/4 heuristic | tokenx 1.3.0 (vendored) | Heuristic is sufficient for a monitoring dashboard; vendor tokenx if higher accuracy is needed |
+| chars/4 heuristic | gpt-tokenizer npm | Designed for GPT tokenizers; approximate for Claude; npm install required |
 
 ---
 
@@ -189,31 +409,49 @@ All other new capabilities use only Node.js v20 built-in modules.
 
 | Avoid | Why | Use Instead |
 |-------|-----|-------------|
-| Any `package.json` at plugin root | Creates npm install requirement for plugin users; breaks zero-dep distribution model | Vendor 2 small files (acorn, acorn-walk) in bin/lib/vendor/ as committed source |
-| ESLint / typescript-eslint | Sophisticated linting infrastructure is overkill for structural verification of 20 lib modules | acorn AST walking provides the specific checks needed (exports, requires, function declarations) |
-| CodeQL / Semgrep | External binary dependencies; require OS-level install; not distributable as a plugin | acorn-based custom analysis within the plugin boundary |
-| madge / dependency-cruiser | Heavy dependencies with visualization output; designed for developer tooling, not programmatic verification | Hand-built dep-graph.cjs with exactly the operations needed |
-| deepmerge / lodash | Not needed; all state manipulation is string/regex based | Native JSON.parse, string methods |
+| `package.json` at plugin root | Creates npm install requirement for plugin users; breaks zero-dep distribution model | Vendor tiny CJS files in `bin/lib/vendor/` as committed source (tokenx if needed) |
+| blessed, neo-blessed, unblessed | All want terminal ownership via a render loop; incompatible with tmux pane model where content is injected via send-keys | ANSI escape codes inline in pane-renderer.cjs |
+| ink | ESM-first, React-based, requires persistent render process; fundamentally wrong model | ANSI codes + tmux send-keys |
+| pino, winston | Designed for high-throughput multi-destination logging; all their features exceed PDE's needs; deps chain | `fs.appendFileSync` + manual rotation in event-logger.cjs |
+| node-ipc | Full IPC framework for TCP/UDP/Unix sockets; PDE only needs file-based message passing | NDJSON append file + `tail -f` |
 | Any ESM-only package | Claude Code plugin runtime requires CJS compatibility | Verify CJS export before vendoring any package |
+| `@anthropic-ai/sdk` for token counting | SDK requires npm install; PDE avoids it | Use `node:https` for `POST /v1/messages/count_tokens` if needed, or chars/4 heuristic |
 
 ---
 
 ## Stack Patterns by Variant
 
-**If claim verification only (no AST, no dep graph):**
-- Use regex pattern matching in claim-extractor.cjs
-- No vendored libraries needed
-- Covers: claim extraction from markdown, cross-checking claims against file existence
+**If tmux is not installed (user's machine):**
+- `tmux-driver.cjs` returns `{ installed: false, installCommand: '...' }`
+- `/pde:monitor` skill prints install instructions and exits cleanly
+- All other PDE functionality continues unaffected (event bus + logging work without tmux)
 
-**If code structure verification (AST required):**
-- Vendor acorn 8.16.0 + acorn-walk 8.3.5 into bin/lib/vendor/
-- Wire into code-verifier.cjs and integration-verifier.cjs
-- Covers: export existence, require() targets, function name verification, orphan export detection
+**If ANTHROPIC_API_KEY is not set (common for Claude Code users):**
+- `token-meter.cjs` falls back to chars/4 heuristic
+- Cost pane shows values marked `~estimated`
+- No external API calls are made
 
-**If dependency graph analysis:**
-- Build dep-graph.cjs inline (~40 lines) — no vendor needed
-- Wire into phase-dependency-checker.cjs
-- Covers: cross-phase dependency gaps, cycle detection, execution order validation
+**If tokenx heuristic is needed:**
+- Vendor `tokenx/dist/index.cjs` as `bin/lib/vendor/tokenx.cjs` (2kB, no transitive deps)
+- Change token-meter.cjs to require the vendor file instead of inline heuristic
+- No other changes needed
+
+---
+
+## Integration with Existing PDE Architecture
+
+| Existing Component | Integration Point | How |
+|-------------------|------------------|-----|
+| `pde-tools.cjs` | Emit events from existing commands | Add `bus.emit('phase.complete', {...})` calls in `phase.cjs` and `verify.cjs` |
+| `bin/lib/mcp-bridge.cjs` | Emit tool call events | `bus.emit('tool.called', { tool, args })` on each tool invocation |
+| `bin/lib/tracking.cjs` | Emit task status events | `bus.emit('task.updated', { task, status })` |
+| Agent spawning (workflows) | Emit agent lifecycle events | Add event emission at agent start/complete in orchestrator workflows |
+| `.planning/logs/` | Session summaries | `event-logger.cjs` writes structured NDJSON summaries here; same directory as existing logs |
+
+**Key constraint:** The event bus (`event-bus.cjs`) is in-process. pde-tools invocations
+are separate processes. The bus fans out to multiple consumers within a single invocation
+(log writer, pane updater). Cross-invocation communication uses the NDJSON file (written
+by event-logger.cjs, read by tmux panes via `tail -f`).
 
 ---
 
@@ -221,24 +459,29 @@ All other new capabilities use only Node.js v20 built-in modules.
 
 | Package | Compatible With | Notes |
 |---------|-----------------|-------|
-| acorn 8.16.0 | Node.js v20+ | Pure JavaScript, no native bindings; CJS dist available as `acorn/dist/acorn.cjs`; `sourceType: "commonjs"` was the key feature, added 8.16.0 (Feb 2026) |
-| acorn-walk 8.3.5 | acorn 8.x | Same project; must match major version with acorn; CJS dist at `acorn-walk/dist/walk.cjs` |
-| dep-graph.cjs (inline) | Node.js v20+ | Uses Map/Set; available since Node.js v4 |
-| `fs.readdirSync` recursive | Node.js v18.17+ | `{ recursive: true }` option added v18.17; PDE's v20 is well above this floor |
+| `node:events` EventEmitter | Node.js v20+ | `setMaxListeners(n)` since v0.11.2; `eventNames()` since v6 |
+| `child_process.spawnSync` | Node.js v20+ | Available since v0.12; array args = no shell injection |
+| `fs.appendFileSync` | Node.js v20+ | POSIX atomic per-call for single process; available since v0.6.7 |
+| ANSI escape codes | All terminal emulators | tmux passes ANSI through to panes; universal support |
+| tmux send-keys pane addressing | tmux 1.6+ | `session:window.pane` format since tmux 1.6; macOS homebrew ships tmux 3.3a+ |
+| tokenx 1.3.0 (if vendored) | Node.js v18+ | Pure JavaScript, no native bindings; CJS build confirmed; zero transitive deps |
 
 ---
 
 ## Sources
 
-- **Node.js v20 fs docs** (HIGH confidence): https://nodejs.org/api/fs.html — `readdirSync` recursive option confirmed in v18.17+
-- **acorn CHANGELOG** (HIGH confidence): https://github.com/acornjs/acorn/blob/master/acorn/CHANGELOG.md — v8.16.0 released February 19, 2026; `sourceType: "commonjs"` confirmed
-- **acorn-walk npm** (HIGH confidence): https://www.npmjs.com/package/acorn-walk — v8.3.5, last published recently; `simple()`, `full()`, `ancestor()` API confirmed
-- **dependency-graph GitHub** (MEDIUM confidence): https://github.com/jriecken/dependency-graph — v1.0.0 released December 2023; stable-but-unmaintained; DepGraph API with cycle detection confirmed
-- **fs.promises.glob Node.js availability** (HIGH confidence): https://www.npmjs.com/package/glob and Node.js blog — confirmed available only from v22.2.0, NOT v20
-- **acorn Node.js bundling history** (HIGH confidence): https://github.com/nodejs/node/commit/38aa9d6ea9 — Node.js itself bundles acorn; validates stability
-- **marked v17 ESM-first status** (MEDIUM confidence): https://www.npmjs.com/package/marked — v17.0.0 confirmed latest; ESM-first design noted in changelog
+- **Node.js EventEmitter official docs** (HIGH confidence): https://nodejs.org/api/events.html
+- **node-tmux GitHub** (HIGH confidence): https://github.com/StarlaneStudios/node-tmux — confirmed only 6 session-level methods; no pane addressing, no split-window
+- **tmux man page** (HIGH confidence): https://man7.org/linux/man-pages/man1/tmux.1.html — `send-keys`, `split-window`, `select-layout`, pane addressing all confirmed
+- **Anthropic token counting docs** (HIGH confidence): https://docs.claude.com/en/docs/build-with-claude/token-counting — free endpoint, RPM-limited
+- **tokenx npm** (MEDIUM confidence): https://www.npmjs.com/package/tokenx — v1.3.0, 2kB, zero deps, ~96% accuracy
+- **tokenx GitHub** (MEDIUM confidence): https://github.com/johannschopplich/tokenx — CJS build confirmed; zero transitive deps confirmed
+- **stmux GitHub** (HIGH confidence): https://github.com/rse/stmux — confirmed blessed-based pseudo-multiplexer; does not create real tmux sessions
+- **NDJSON Node.js patterns** (HIGH confidence): https://www.bennadel.com/blog/3233-parsing-and-serializing-large-datasets-using-newline-delimited-json-in-node-js.htm
+- **Pino vs Winston comparison** (MEDIUM confidence): https://betterstack.com/community/guides/scaling-nodejs/pino-vs-winston/ — both designed for high-throughput; neither matches PDE's simple append-only requirement
+- **Claude Code context estimation heuristic** (MEDIUM confidence): https://codelynx.dev/posts/calculate-claude-code-context — chars/4 confirmed as common approximation
 
 ---
 
-*Stack research for: PDE v0.7 — Pipeline Reliability & Validation*
+*Stack research for: PDE v0.8 — tmux monitoring dashboard and event infrastructure*
 *Researched: 2026-03-19*

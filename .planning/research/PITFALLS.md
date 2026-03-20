@@ -1,240 +1,231 @@
 # Pitfalls Research
 
-**Domain:** Adding automated validation, dependency verification, and quality gates to an existing AI-assisted development pipeline (PDE v0.7)
+**Domain:** Adding event infrastructure and tmux monitoring dashboard to an existing Claude Code plugin (PDE v0.8)
 **Researched:** 2026-03-19
-**Confidence:** HIGH (grounded in PDE codebase history across 6 milestones, PDE RETROSPECTIVE.md lessons, first-principles analysis of AI pipeline validation failure modes, and verified patterns from current research)
+**Confidence:** HIGH (grounded in PDE v0.1-v0.7 codebase patterns, first-principles analysis of the specific integration challenges, and verified patterns from Node.js/tmux ecosystem research)
 
 ---
 
 ## Critical Pitfalls
 
-### Pitfall 1: Validation That Claims Too Much — Treating "File Exists" as "Claim Verified"
+### Pitfall 1: Event Emission on the Synchronous Critical Path Blocks Workflow Execution
 
 **What goes wrong:**
-The research validation agent extracts claims from research files (e.g., "mcp-bridge.cjs has 36 TOOL_MAP entries") and verifies them by checking whether a file named `mcp-bridge.cjs` exists. The file exists. The claim is marked VERIFIED. But the actual TOOL_MAP count is 34 because two entries were removed in a patch. The validator reported confidence it did not earn.
+Every pde-tools.cjs command, every workflow bash block, and every agent spawn runs synchronously. When you add `emitEvent('phase:started', {...})` calls inline into these paths, Node.js EventEmitter fires all listeners synchronously before the original operation completes. If any listener does file I/O (writing to a log file, updating a structured summary), the synchronous write happens before the next line of the workflow can execute. A workflow that previously ran 50 bash commands in 3 seconds now runs in 8 seconds because each command emits an event that flushes a JSON log entry.
 
-This failure is insidious because it produces a green status that downstream phases trust. Plans built on "verified research" then execute against a codebase state the research never actually confirmed.
+This slowdown is invisible at first because each individual emission adds only 5-20ms. Multiplied across 50 operations per phase, it accumulates to seconds. The developer does not connect the performance regression to the event infrastructure.
 
 **Why it happens:**
-Claim verification is easier to implement at the file-existence level than at the content-inspection level. A validator that opens files, parses content, and checks specific values requires more engineering. Cutting to "file exists + keyword present" feels like 80% of the value for 20% of the effort. In practice, it is 5% of the value for 20% of the effort — because the claims that cause planning failures are always the specific-count, specific-interface, specific-behavior claims, not the "does this file exist" claims.
+Event infrastructure is instrumented inline with the operations it observes. The natural instinct is to write `emitEvent(...)` immediately before or after the operation it describes. No thought is given to whether the listener is synchronous or asynchronous. Node.js EventEmitter is synchronous by default — all listeners block the emitter before returning control.
 
 **How to avoid:**
-Define claim tiers upfront before implementing the validator. Tier 1: structural claims (file exists, directory exists, command is registered) — verify with Glob/file check. Tier 2: content claims (function X has N parameters, TOOL_MAP has N entries, APPROVED_SERVERS contains Y) — verify with Grep/Read. Tier 3: behavioral claims (command X produces output Y) — mark as UNVERIFIABLE by static analysis, flag for manual verification. Never upgrade a Tier 1 check to satisfy a Tier 2 claim.
+Fire-and-forget event emission. Use `setImmediate(() => emitEvent(...))` or `process.nextTick(() => emitEvent(...))` to push emission off the synchronous path. The event bus in PDE should be designed as write-only from the caller's perspective — callers emit and move on immediately. Log writers are asynchronous listeners that process the event queue independently. This is the difference between "inline telemetry" and "background telemetry." For PDE's use case, background telemetry is always correct.
 
 **Warning signs:**
-- Validator code uses only `Glob` or `ls` without any `Grep` or `Read` calls
-- Research claims with specific numbers (counts, versions, parameter names) all show as VERIFIED with zero content inspection
-- Validation runs complete in under 2 seconds (not enough time to read files)
-- The validator's confidence score is uniformly HIGH across claims of wildly different specificity
+- Phase execution time increases more than 15% after adding event infrastructure
+- pde-tools.cjs commands take longer when the dashboard is open versus when it is closed
+- Profiling shows that `emitEvent` calls appear on the call stack during what should be pure computation
+- Any event listener calls `fs.writeFileSync` (synchronous) instead of `fs.writeFile` (asynchronous)
 
-**Phase to address:** Research Validation Agent design phase — the claim tier taxonomy must be defined before the validator is implemented. An acceptance criterion should require at least one Tier 2 (content-inspection) verification to be demonstrated before the phase is marked done.
+**Phase to address:** Event bus design phase — the asynchronous-emit contract must be defined in the bus architecture before any instrumentation is added to existing files. Retrofitting async emission after synchronous listeners are established requires touching every listener.
 
 ---
 
-### Pitfall 2: Validation That Claims Too Little — Blocking Plans on Unverifiable Assertions
+### Pitfall 2: The tmux Dashboard Dies Silently When the PDE Operation Finishes
 
 **What goes wrong:**
-The research validation agent is calibrated conservatively: any claim it cannot definitively verify in the codebase is flagged as UNVERIFIED and blocks plan execution. Research file says "PDE supports graceful degradation for missing MCP connections." The validator cannot find a function named `graceful_degradation` — it flags the claim as unverified. The readiness gate sees an UNVERIFIED claim and blocks the execute phase. The claim was correct — it was describing a behavioral pattern visible across five workflow files, not a single function. Development stops. The developer must manually override the gate to proceed.
+The `/pde:monitor` command launches a tmux session with 6 panes and starts tailing log files. When the PDE operation finishes, the agent session ends, the log file being tailed stops receiving new writes, and one or more panes enter an idle state. In the worst case, the tmux session itself exits if any pane process terminates and the `remain-on-exit` option is not set. The user is left with either a dead terminal or a tmux session that shows stale data with no indication that the operation completed.
 
-This failure mode destroys trust faster than a missing validation entirely. Developers learn that the validation system produces false alarms and start bypassing it. Once bypassed, the gate offers no protection.
+The requirement says "persistent dashboard (stays open after operation finishes)" — but this requires deliberate lifecycle management that is easy to get wrong.
 
 **Why it happens:**
-Conservative validation feels like good engineering. The reasoning goes: "Better to block on an unverifiable claim than to let a wrong plan execute." This logic is sound for security-critical systems, but wrong for an AI development pipeline where most research claims are directionally correct even if not byte-perfectly verifiable. A system that blocks 30% of valid plans trains developers to ignore it.
+tmux panes that tail files (`tail -f`) exit when the file descriptor is closed or when the tail process is killed. If the dashboard was launched from within the same shell session as the PDE operation (via a subshell), that subshell's exit may send SIGHUP to child processes including the tail processes. Shell scripting for process lifecycle management is subtle — the default behavior does not match the requirement.
 
 **How to avoid:**
-Design the validator with an explicit UNVERIFIABLE status that is not a blocker. Claims marked UNVERIFIABLE are surfaced as advisory notes — the readiness gate shows them as CONCERNS (not FAIL) and proceeds. Only claims marked CONTRADICTED (where the validator found evidence that directly opposes the claim) should produce a FAIL status. The three-status model (VERIFIED / UNVERIFIABLE / CONTRADICTED) is far more useful than binary (VERIFIED / UNVERIFIED). PDE's existing readiness gate already uses PASS/CONCERNS/FAIL — map to that model, not a stricter one.
+Set `remain-on-exit on` for all dashboard panes so they stay open and show final state after their process exits. Use `tail -F` (capital F) instead of `tail -f` — it follows the file by name and handles log rotation. Write a "OPERATION COMPLETE" sentinel line to the event log when the operation finishes; the dashboard's agent-activity pane should detect this and display a completion banner. The tmux session itself should be started with `new-session -d` (detached) and the monitor command should attach to it — not start embedded in the agent's own shell.
 
 **Warning signs:**
-- Validator uses a binary VERIFIED/UNVERIFIED output with no UNVERIFIABLE middle state
-- The readiness gate treats UNVERIFIABLE the same as CONTRADICTED
-- Developers are manually overriding the readiness gate more than once per milestone
-- Research files that were accurate in prior milestones start being flagged as invalid
+- Running `/pde:monitor` without `remain-on-exit on` in the pane configuration
+- Dashboard panes use `tail -f` on files that may be rotated or renamed during a long operation
+- The tmux session is started in the same process group as the Claude Code session
+- No "operation complete" sentinel is written to the event log
 
-**Phase to address:** Research Validation Agent design phase — the three-status model (VERIFIED/UNVERIFIABLE/CONTRADICTED) must be defined in the agent's return format specification, not added as a patch after implementation.
+**Phase to address:** tmux dashboard implementation phase — the remain-on-exit and tail -F options must be in the initial pane creation script, not added later as a fix for reported silently-dying panes.
 
 ---
 
-### Pitfall 3: Dependency Verification That Checks Static Declarations, Not Runtime Paths
+### Pitfall 3: Running `/pde:monitor` From Inside an Existing tmux Session Creates a Nested Session Error
 
 **What goes wrong:**
-The cross-phase dependency checker reads `CONTEXT.md` files looking for declared dependencies (e.g., "Phase 3 depends on Phase 2 completing"). It finds the declaration, checks that Phase 2 is marked complete in the roadmap, and reports the dependency as satisfied. But the actual runtime dependency is that Phase 2's `pde-tools.cjs` enhancement must export a new `readiness()` function that Phase 3's workflow calls. Phase 2 was completed but the `readiness()` function was scoped out and not implemented. The dependency checker sees COMPLETE status — it does not read Phase 2's actual deliverables against Phase 3's actual consumption.
-
-Plans execute with a missing function. The failure surfaces three phases later with an obscure runtime error.
+The user is already running Claude Code inside a tmux session (common for developers who use tmux as their primary terminal). When `/pde:monitor` runs `tmux new-session -s pde-monitor`, tmux detects the `$TMUX` environment variable and refuses: "sessions should be nested with care, unset $TMUX to force." The monitor command fails with an error that is confusing to users who may not know they are inside tmux. Alternatively, if the command forces creation by unsetting $TMUX, the user ends up with unexpected nested sessions where key bindings and scrolling behave differently.
 
 **Why it happens:**
-Phase completion status is easy to check (it's a field in CONTEXT.md or STATE.md). Interface-level dependencies require reading what each phase produces and what each phase consumes — a cross-reference problem that requires understanding the codebase's actual data flow. Teams default to the easy check and call it dependency verification.
+The launch script checks `which tmux` to confirm tmux is installed but does not check `$TMUX` to determine whether the current process is already inside a tmux session. The nested session error is not documented in most tmux tutorials and surprises developers who have not encountered it.
 
 **How to avoid:**
-Define dependency checks at two levels and implement both. Level 1 (structural): Is the upstream phase marked complete? Does the expected output file exist? Level 2 (interface): Does the upstream phase's output contain the specific function/field/export that the downstream phase requires? Level 2 checks require the dependency specification to include interface contracts, not just "depends on Phase N." For PDE, this means plan templates should include an `interface_required` field listing specific exports or file shapes each plan needs from its upstreams.
+Before creating a new session, check `$TMUX`. If set, use `tmux switch-client -t pde-monitor` to switch to the monitor session instead of trying to create a new one from inside tmux. If the monitor session does not exist yet, create it with `TMUX= tmux new-session -d -s pde-monitor` (unset TMUX for the creation call only) then switch to it. This gives the user the monitor in a separate tmux session without a nested session. Document this behavior explicitly — it is the most common launch failure.
 
 **Warning signs:**
-- Dependency check reports only pass/fail with no interface-level detail
-- The check passes for a phase whose upstream deliverable file exists but is a stub
-- No plan template includes an explicit interface contract section
-- Runtime failures in execute phases are caused by missing function signatures that dependency checking should have caught
+- Monitor launch script contains `tmux new-session` without first checking `[ -n "$TMUX" ]`
+- No switch-client fallback path in the launch logic
+- Testing was only done from a non-tmux terminal (iTerm2 directly), not from within an existing tmux session
 
-**Phase to address:** Cross-phase dependency verification design phase — the interface contract schema must be defined before the checker is built. Without contracts to check against, the checker can only verify status fields, which is insufficient.
+**Phase to address:** tmux dashboard launch phase — the $TMUX detection and switch-client path must be implemented in the initial launch script. It cannot be treated as an edge case because the majority of developer users who want a monitoring dashboard are already running tmux.
 
 ---
 
-### Pitfall 4: Edge Case Analysis That Generates Noise Instead of Signal
+### Pitfall 4: The 6-Pane Layout Requires More Terminal Real Estate Than Most Terminals Provide
 
 **What goes wrong:**
-The plan edge case analysis agent reads a plan and generates a list of edge cases to consider. It produces 23 items: "What if the file is empty?", "What if the user cancels mid-execution?", "What if the network is unavailable?", "What if there are special characters in the filename?", etc. These are generically valid edge cases for any software system. The developer reviews the list, finds 18 of 23 are inapplicable to this specific plan (it reads a manifest file that PDE writes — it will never be empty; it runs offline — network unavailability is irrelevant), and dismisses the entire list including the 5 that were genuinely important.
-
-Alert fatigue from low-signal noise causes real issues to be missed at the same rate as no analysis at all.
+The 6-pane layout is designed on a large external monitor at 240x60 characters. On a MacBook 13" with a standard terminal at 80x24, tmux cannot split the window into 6 usable panes — each pane would be 12 characters wide (after separators), which is insufficient for any meaningful output. tmux enforces a minimum pane size of 2 lines and similar minimum widths. At small terminal sizes, tmux silently collapses panes or refuses to create them with "terminal too small" errors. The dashboard that works in development does not work for a large portion of users.
 
 **Why it happens:**
-Edge case generation via LLM is easy to make comprehensive (broad, generic coverage) and hard to make precise (high-relevance, context-specific coverage). Generic edge cases feel thorough. Without a filtering mechanism tied to the plan's actual domain and constraints, the output is a long list of generically true statements rather than a curated list of plan-specific risks.
+Dashboard layouts are designed at the developer's screen size and tested only at that size. The minimum viable terminal size for 6 panes (3 columns × 2 rows) is roughly 120×30 characters. This is not the default for most terminal emulators and is certainly not the standard in CI or remote SSH environments.
 
 **How to avoid:**
-Edge case analysis must be scoped to the plan's domain before generation. The agent should first extract: (1) what external systems does this plan touch, (2) what state does this plan read and write, (3) what are the defined error cases in the codebase for similar operations. Only then generate edge cases. Additionally, implement a relevance filter: any edge case that is not connected to one of the plan's explicit file targets, function calls, or state transitions should be excluded. Target 5-8 high-relevance edge cases, not 20+ generic ones. Quality over quantity is the design principle.
+Add a terminal size check before creating the dashboard layout. Detect `$(tput cols)` and `$(tput lines)`. Define a minimum: 120 columns × 30 lines for the 6-pane layout. If the terminal is below this threshold, offer a degraded 4-pane or 2-pane layout instead of failing silently. Better: make the layout adaptive — a 2-pane "essential" layout (agent activity + pipeline progress) that works in any terminal, upgrading to 6 panes only when space is available. The most useful information (what is running, what succeeded/failed) must be visible in the degraded layout.
 
 **Warning signs:**
-- Edge case lists contain more than 10 items per plan
-- Items on the list are not referenced to specific parts of the plan (no file path, no function name, no state field)
-- The same edge cases appear verbatim across multiple unrelated plans
-- Developer inspection rate of edge case lists drops below 50% after the first two uses
+- Dashboard script contains hardcoded `split-window -p 50` without terminal size guards
+- No fallback layout code path exists in the pane creation script
+- Dashboard was only tested at terminal widths > 160 characters
+- No documentation of minimum terminal size requirements
 
-**Phase to address:** Plan edge case analysis design phase — the relevance filtering criteria must be part of the agent's process steps, not an afterthought. The acceptance criterion should require that each generated edge case references a specific element of the analyzed plan.
+**Phase to address:** tmux dashboard layout phase — the adaptive layout and terminal size guard must be implemented before the initial launch script is shipped. A dashboard that crashes on small terminals will be reported as "broken" by users who do not read the minimum size requirement.
 
 ---
 
-### Pitfall 5: Integration Verification That Can't Keep Up With Codebase Evolution
+### Pitfall 5: Deep Instrumentation Requires Touching 40+ Files and Each Touch is a Regression Risk
 
 **What goes wrong:**
-The integration point verifier is built to check that all exports in `mcp-bridge.cjs` are consumed by at least one workflow file. It passes on Day 1. By Day 30, six new workflow files have been added and two have been modified. The integration verifier has a hardcoded list of workflow files to check against (the 12 that existed when it was built). The two new orphan exports from last week's features do not appear in its scan because the new workflow files are not in its scope list. It reports clean. Nobody notices until a user's workflow silently calls a function that was removed.
+The event infrastructure design calls for instrumentation across agents, executor, and tools. PDE has ~70+ workflow files, ~10 agent files, and ~20 pde-tools.cjs library modules. Adding `emitEvent(...)` calls to each of these requires touching a large fraction of the codebase. Each touch is a potential regression. A workflow that previously had 8 bash blocks now has 9 (the event emission). If any emission call has a syntax error, the entire workflow fails. If the event bus import fails to resolve, every instrumented file fails at import time.
 
-Static verification tools that cannot self-update their scope become actively misleading over time.
+The risk is not any single change — it is the multiplicative regression surface across all changes made simultaneously.
 
 **Why it happens:**
-The first pass of integration verification is written against the known codebase at time of implementation. Scope enumeration (which files to check) is hardcoded because it is the easiest approach. As the codebase grows, the hardcoded scope silently drifts from reality. Nobody remembers to update the verifier's scope list because it keeps reporting green.
+Instrumentation is often treated as a cross-cutting concern that can be added in one pass without careful per-file validation. The developer adds imports and emission calls across all files, runs a single end-to-end test, considers it done. But each file has unique context, and the "obvious" emission point in one file may be in a code path that is only executed under specific conditions — never exercised by the single end-to-end test.
 
 **How to avoid:**
-Integration verification must use dynamic scope discovery, not hardcoded file lists. For PDE, this means the verifier discovers workflow files by globbing `workflows/**/*.md`, discovers command stubs by globbing `commands/**/*.md`, and discovers exports by reading actual module export statements — not by checking a list written at implementation time. The glob pattern is the scope definition. Any file added to the codebase is automatically included in subsequent verification runs. Additionally, the verifier should report its scope (N files checked) as part of its output — a sudden drop in scope count is an early warning of misconfiguration.
+Instrument in layers, not in one pass. Phase 1: instrument the single most critical path (agent spawning in execute-phase.md). Validate that path fully before touching anything else. Phase 2: add instrumentation to pde-tools.cjs commands, which are centralized — one file, maximum coverage. Phase 3: extend to individual workflow files. This layered approach means the event infrastructure is tested end-to-end before the surface area explodes. It also means that if something goes wrong, the blast radius is limited to the current layer. Use a guard pattern: wrap all emission calls in a try-catch that swallows errors silently — the event infrastructure must NEVER cause the primary workflow to fail.
 
 **Warning signs:**
-- Verifier code contains hardcoded file path arrays instead of glob patterns
-- The verifier's scope count never changes between runs despite codebase growth
-- New workflow files were added without updating any verification configuration
-- Integration check output does not report how many files were inspected
+- All instrumentation is added in a single commit across 30+ files
+- No guard pattern (try-catch) around event emission calls in workflow files
+- The event bus module is imported at the top level of pde-tools.cjs without a conditional require
+- The first validation test attempts to verify the entire instrumented surface at once
 
-**Phase to address:** Integration point verification design phase — dynamic scope discovery via glob patterns must be a non-negotiable requirement. Any implementation using hardcoded paths should be rejected in code review.
+**Phase to address:** Instrumentation rollout phase — the layered approach (centralized first, distributed second) must be the explicit implementation strategy. Acceptance criteria should require per-layer validation before the next layer begins.
 
 ---
 
-### Pitfall 6: Tech Debt Closure That Accidentally Breaks Working Features
+### Pitfall 6: Named Pipes Become Stale or Block When No Reader is Attached
 
 **What goes wrong:**
-Tech debt item PLUG-01 says "end-to-end `claude plugin install` from GitHub not tested." The fix involves updating the plugin manifest, bumping dependency versions, and adding an install-test script. During the update, the engineer also "cleans up" the manifest format — removing fields that appear redundant. Three of the removed fields were being silently consumed by PDE's design pipeline coverage checks. The coverage checks fail. The pipeline is broken. The tech debt closure introduced a regression in a working feature because the impact of the "cleanup" was not verified before shipping.
+The event bus uses a named pipe (FIFO) to stream events from the PDE operation to the tmux dashboard panes. This works when the dashboard is open. When the user runs a PDE operation WITHOUT opening `/pde:monitor` first, writes to the named pipe block indefinitely — a FIFO write blocks until a reader opens the other end. The PDE operation hangs at the first event emission. The user has no indication of why the operation stopped responding.
 
-Tech debt items are often in structural files (manifests, configuration, core utilities) that have more consumers than their authors realize.
+Alternatively: the pipe is created but the reader exits (the tail process in the pane is killed by the user). Subsequent writes to the pipe either block (if the FIFO mode blocks) or produce EPIPE errors (if the writer detects a broken pipe). Neither case is handled gracefully by default.
 
 **Why it happens:**
-Tech debt closure has a psychological permission dynamic: "this was broken before, so I can change things freely." Developers treat tech debt items as invitations for broader cleanup, not surgical fixes. The broader the change, the higher the regression risk. Additionally, structural files like manifests and configuration objects are rarely covered by test assertions — the working features that depend on them are tested, but the specific fields they read are not.
+Named pipes feel like log files but they are not. Unlike a regular file, a FIFO write operation blocks until a reader is available. Developers who prototype with log files and then switch to named pipes for lower latency discover this behavior only when the reader is absent. The broken-pipe failure mode (EPIPE) is also not obvious — it manifests as an unhandled exception in the event writer, not as an error in the PDE operation itself.
 
 **How to avoid:**
-Treat each tech debt item as a surgical fix with a defined blast radius. Before touching any file, run grep to discover all consumers of that file. For configuration/manifest files, read every field and verify each field has a known consumer before removing it. The rule: "Only remove what you can prove has no consumer." For PLUG-01 specifically, the fix is adding an install test — nothing else in the manifest should change unless the install test proves it must. Scope the fix to the minimum change that closes the debt item.
+Do not use named pipes as the primary event transport. Use append-only log files in `/tmp/pde-events-{session}.jsonl` as the event store, with the tmux dashboard tailing those files. This is resilient to reader absence (writes always succeed), resilient to reader restarts (tail -F picks up from the current file end), and debuggable (the log file can be inspected directly). If lower latency is needed for the dashboard, use `inotifywait` or the macOS FSEvents equivalent to watch the log file for changes rather than a named pipe. Named pipes add complexity with no meaningful benefit for a monitoring use case where 100ms latency is acceptable.
 
 **Warning signs:**
-- Tech debt fix commits include changes to files not mentioned in the debt item description
-- A tech debt closure is followed within 24 hours by a regression fix commit
-- The "cleanup" description in a commit message covering a debt item
-- No grep-based consumer audit was performed before modifying a shared configuration file
+- Event bus implementation uses `mkfifo` or named pipe paths
+- Event emission code does not have EPIPE error handling
+- The test suite only runs with the dashboard open (reader always present)
+- No documentation about what happens when `/pde:monitor` is not running
 
-**Phase to address:** Tech debt closure phase (last planned phase) — each debt item should have a written blast-radius assessment before implementation begins. The assessment lists every file that reads or imports the file being changed.
+**Phase to address:** Event bus design phase — the log-file-based transport decision must be made before any IPC mechanism is implemented. Switching from named pipes to log files after consumers are built requires changing both the writer and all reader configurations.
 
 ---
 
-### Pitfall 7: Research Validation Agent Develops Stale Codebase View
+### Pitfall 7: tmux Auto-Install Script Breaks on Non-Standard Linux Distributions and WSL
 
 **What goes wrong:**
-The research validation agent is spawned to verify claims and reads the codebase at spawn time. During a multi-phase milestone, it is invoked again in Phase 4 to re-validate updated research. But Phase 2 and Phase 3 have added new files and modified existing ones. The agent's Glob patterns cache their results during a session. The re-validation still sees the Phase 0 codebase state. It correctly verifies claims about new files added in Phase 2 if the session was started after Phase 2 completed — but if the session spans multiple phases (common in PDE's execution model), the cached file system state may lag.
-
-More dangerously: a claim that was CONTRADICTED in Phase 0 (because a feature did not exist yet) may become valid in Phase 3, but if re-validation is not explicitly triggered, the CONTRADICTED status persists.
+The auto-install check detects macOS and runs `brew install tmux`. It detects Debian/Ubuntu and runs `apt-get install tmux`. But a user on Fedora gets `apt-get: command not found`. A WSL user on Windows with a custom distribution gets neither path. A user in a corporate environment where `sudo` is restricted gets a permissions error. In each case, the "helpful" auto-install silently fails, produces a confusing error message, and the user is left without tmux and without a clear path to resolution.
 
 **Why it happens:**
-Codebase verification assumes a point-in-time snapshot. Multi-phase development is a time-extended process. The gap between "when research was written" and "when the plan executes" is real, and the research validation agent must be designed with explicit re-validation points, not assumed to remain valid indefinitely.
+Auto-install scripts are written against the two most common platforms (macOS Homebrew + Debian apt) and tested only on those platforms. Edge cases (Fedora dnf, Arch pacman, Alpine apk, WSL, NixOS, restricted sudo) are not considered because they are individually rare — but collectively they represent a significant fraction of the developer population.
 
 **How to avoid:**
-Research validation results must carry a `validated_at_phase` timestamp. Any plan that proceeds on research validated more than N phases earlier (suggest: 2) should re-trigger validation for claims that directly inform that plan's approach. The research validation agent's codebase snapshot is only valid for the phase in which it ran. Implement this as a staleness check: if `validated_at_phase` + 2 < current_phase, mark the research as STALE and require re-validation before the readiness gate will PASS.
+Do not auto-install. Instead: detect tmux presence with `command -v tmux`. If absent, print a clear, platform-aware error message with copy-paste install commands for the four most common platforms (macOS/Homebrew, Debian/Ubuntu, Fedora/RHEL, Arch). Offer to attempt installation only with explicit user confirmation (`--auto-install` flag). Never silently fail the install — if the attempt fails, print the error and the manual install command. The detection and messaging path is more important than the install path. Most developers would rather have a clear "run this command" message than a failing auto-installer.
 
 **Warning signs:**
-- Research validation results have no timestamp or phase reference
-- The same validation output is cited across plans in different phases without re-running
-- A plan executes against a claim about a file's content that was modified two phases earlier
-- The readiness gate accepts validation results from a different milestone's research phase
+- The install script calls `brew` or `apt-get` without first checking if those commands exist
+- Testing was done only on macOS and Ubuntu
+- The script does not differentiate between "tmux not installed" and "tmux install failed"
+- No `--auto-install` flag — the script attempts installation unconditionally
 
-**Phase to address:** Research validation agent design — the `validated_at_phase` field must be part of the agent's output schema from the start. Adding it retroactively requires updating all downstream consumers of validation output.
+**Phase to address:** tmux availability detection phase — the detection script must be tested on macOS, Ubuntu, Fedora, and in a simulated WSL environment before shipping. The install attempt path should be opt-in via flag, not default behavior.
 
 ---
 
-### Pitfall 8: Dependency Verification Causes Pipeline Slowdown That Gets Disabled
+### Pitfall 8: Context Window Tracking Produces Systematically Wrong Numbers for Multi-Agent Sessions
 
 **What goes wrong:**
-The cross-phase dependency checker is correct but slow. It reads every plan file in the milestone, extracts interface contracts, and performs cross-reference checks. On a milestone with 20 plans across 8 phases, this takes 45 seconds. Developers in yolo mode start skipping it. By the third milestone, the check is commented out of the readiness gate because "it always passes anyway and takes too long." The verification that was correct and useful is now disabled — and it was disabled precisely because it was too slow, not because it was wrong.
+The context window pane shows "42% context used" based on a token estimate calculated from the current prompt size. But PDE operations spawn subagents, and each subagent has its own independent context window. The "42%" is only the orchestrator's context — the subagents may be at 85% independently. When a subagent is close to its context limit, it starts truncating earlier turns and loses references to task files it was supposed to read. This causes subtle behavioral degradation that the user cannot see because the dashboard is showing the wrong agent's context usage.
 
-Slow gates get disabled. Disabled gates provide no protection.
+Additionally, the token estimate itself uses a character-count approximation (3.5 chars per token) that can be off by 20-30% for code-heavy context versus prose-heavy context.
 
 **Why it happens:**
-Correctness is optimized before performance. The check is implemented to be thorough (reads all plans) rather than fast (reads only the current phase's dependency surface). As milestones grow, the all-plans approach scales linearly. At 20 plans it is annoying; at 50 plans it is intolerable. By the time the performance problem is obvious, the check has already been disabled.
+Context window tracking is implemented for the primary agent's perspective because that is the only process the monitoring system has direct access to. Subagent contexts are invisible from the orchestrator level — Claude Code does not expose per-subagent token counts. The approximation heuristic is chosen because Anthropic does not provide a local tokenizer for Claude 3+ models, and calling the official token-count API on every operation would add latency and cost.
 
 **How to avoid:**
-Design dependency checks to be incremental from the first implementation. The check should scope to: (1) plans in the current phase being verified, (2) plans in the direct upstream phase. It does not need to re-verify all prior phases every time — those were verified when they ran. PDE's existing readiness gate model (`/pde:check-readiness`) already runs just before execute — scope the dependency check to that moment's relevant surface, not the full milestone history.
+Be explicit about what the context window pane measures. Label it "Orchestrator context" not "Session context." Add a secondary indicator for "subagent depth" (how many nested subagents are currently active) so the user has a signal that context pressure may be higher than the orchestrator view shows. For the token estimate, use 4 chars per token (more conservative) and display as a range ("~35-45% used") rather than a single precise number. The range communicates the inherent imprecision and prevents users from trusting a false precision. Document that actual subagent context cannot be tracked from outside the model.
 
 **Warning signs:**
-- Dependency check runtime grows with milestone phase count (not constant or near-constant)
-- Developers are skipping `/pde:check-readiness` in more than 20% of phases
-- The check reads files from phases that were completed more than 3 phases earlier
-- A comment like "# TODO: make this faster" exists in the dependency checker within a week of implementation
+- The context pane label says "Session context" or "Total context" without qualification
+- Token estimate displays as a single percentage with no range or uncertainty indicator
+- The implementation assumes one context window covers all spawned agents
+- No documentation of what the context estimate is measuring and what it is not
 
-**Phase to address:** Cross-phase dependency verification design phase — performance requirements must be an acceptance criterion alongside correctness requirements. Maximum check runtime: 10 seconds regardless of milestone size.
+**Phase to address:** Context window tracking implementation phase — the labeling and range-display decisions must be made in design, not after user feedback reports "the numbers are always wrong."
 
 ---
 
-### Pitfall 9: Integration Verifier Reports Orphan Exports That Are Intentionally Pre-Registered
+### Pitfall 9: Concurrent PDE Operations Write to the Same Event Log and Corrupt the Session History
 
 **What goes wrong:**
-PDE's `mcp-bridge.cjs` TOOL_MAP contains two entries that have no current consumers: `github:update-pr` and `github:search-issues`. These are intentionally pre-registered for future use (noted in PROJECT.md). The integration verifier correctly identifies them as "exported but unconsumed" and flags them as integration gaps. The developer sees two FAIL items in the verification report and spends 30 minutes investigating whether they are real problems before realizing they are known intentional pre-registrations. Next time, the developer ignores all integration verifier output to avoid the false alarm.
+Two parallel PDE operations are running (e.g., two execute-phase calls in different terminal tabs, or a wave of parallel plan executors). Both write to the same event log file at `/tmp/pde-events.jsonl`. Without file locking, their JSON lines interleave at the byte level — a partial line from one process appears mid-line from another. The log file is now unparseable JSONL. The structured summary generation fails with a JSON parse error. The session history is lost.
 
-Pre-registered / intentional orphans are not bugs — treating them as bugs trains developers to ignore the verifier.
+Additionally: the dashboard is tailing this corrupted file and may display garbage in the log stream pane, confusing the user about what is actually happening.
 
 **Why it happens:**
-Integration verification tools have no concept of "intentional orphan." A function that is exported but not currently consumed either (a) is dead code that should be removed, or (b) is a pre-registration for known future use. Without a way to express (b), the verifier cannot distinguish the two cases and flags everything in category (a).
+File writes from multiple processes to the same file are not atomic beyond a single write() system call of at most PIPE_BUF bytes (typically 4096 bytes on Linux). Event payloads larger than PIPE_BUF will interleave. Most developers know about this risk in theory but assume their individual events are small enough to be safe — until they are not.
 
 **How to avoid:**
-Implement an allowlist mechanism for intentional orphans. In PDE's case, a `# TOOL_MAP_PREREGISTERED` comment above a TOOL_MAP entry signals that the entry is intentional and should not be flagged. The integration verifier reads these annotations and excludes them from its orphan report. Any pre-registered entry that has been in the allowlist for more than one milestone without gaining a consumer triggers a review prompt — not a failure, but a "this has been orphaned for two milestones, confirm it is still intentional."
+Use session-scoped log files, not a single global log file. The event log path should include a session identifier derived from the PDE session start time or a random UUID: `/tmp/pde-events-{session-id}.jsonl`. Each PDE invocation creates its own log file. The dashboard monitors the most recently created log file by default. Alternatively, use a single log file with atomic append via the O_APPEND flag (which provides atomic appends for writes up to PIPE_BUF bytes) and keep event payloads under 4096 bytes. The session-scoped approach is simpler and eliminates the problem entirely.
 
 **Warning signs:**
-- Integration verifier reports orphans that are listed in PROJECT.md or RETROSPECTIVE.md as known intentional pre-registrations
-- The same orphan entries appear in every integration report without ever being resolved
-- Developers are running `grep` to determine which entries were pre-registered versus accidentally orphaned
-- False positive rate in integration reports exceeds 15%
+- Event log path is a fixed global path like `/tmp/pde-events.jsonl`
+- Event payloads can exceed 4096 bytes (large metadata objects, multi-line content)
+- No session ID is generated at operation start
+- Multi-process concurrent execution is not tested as part of the event infrastructure validation
 
-**Phase to address:** Integration point verification design phase — the allowlist annotation format must be defined before the verifier is built. Retrofitting annotations after the verifier is built requires updating all pre-existing intentional orphans.
+**Phase to address:** Event bus design phase — session-scoped log paths must be part of the initial log file schema. Adding session IDs after consumers are built requires updating both writers and the dashboard's file-discovery logic.
 
 ---
 
-### Pitfall 10: Validation Agents That Modify State While Verifying It
+### Pitfall 10: Structured Log Summaries Accumulate Without Bounds and Fill /tmp
 
 **What goes wrong:**
-The research validation agent is designed to be read-only — it reads research files and codebase files to verify claims. During implementation, a convenience shortcut is added: if the agent detects that a research file is outdated, it "helpfully" updates the file with corrected information. This seems beneficial — the research files stay accurate. But: the updated research files are now being modified by a subagent that was spawned by the readiness gate. The readiness gate's purpose is verification, not modification. If the validation agent modifies files, it has side effects on the state that the main workflow did not plan for. Subsequent agents read the modified files and behave differently. The source of the behavior change is invisible because the modification happened silently during what was labeled a "read-only" verification pass.
-
-Verification agents with write side effects undermine the integrity of the verification process itself.
+Every PDE operation writes a raw event stream to `/tmp`. The session history requirement also writes structured summaries to `.planning/logs/`. Over time, a user running PDE multiple times per day accumulates hundreds of log files. The `/tmp` directory eventually fills up (especially on systems with tmpfs with limited size). The `.planning/logs/` directory in the project becomes a significant git noise source — `git status` shows dozens of untracked files and `git diff` is polluted with log entries.
 
 **Why it happens:**
-The desire to "fix things while you're looking at them" is a natural engineering impulse. When a validation agent finds a stale claim, writing the correction in the same pass feels efficient. The hidden cost is that the line between verification and modification disappears. Verification loses its role as an independent check. Future debugging becomes harder because the "before" state is gone.
+Log file management is not considered a feature during implementation — it is "just write to a file." The team focuses on making logs useful, not on managing their lifecycle. Cleanup is treated as "we'll add that later" and never gets added.
 
 **How to avoid:**
-Research validation agents must be strictly read-only. They may produce a report containing corrections, but they must never write corrections to files directly. If corrections are needed, the report should include a `corrections_needed` section that a human or a separate update pass can apply explicitly. This preserves the separation between "observe" and "change" that makes verification meaningful. In PDE's architecture, this aligns with the existing three-agent fleet pattern (auditor reads → improver proposes → validator accepts) — the validation agent is the auditor, and its role is read-only by design.
+Define log retention policy at implementation time, not as a future enhancement. For `/tmp` raw streams: write to timestamped files and implement a cleanup function that removes files older than 7 days, called at session start. For `.planning/logs/` structured summaries: keep only the last 20 sessions by default (configurable). Add `.planning/logs/` to the PDE `.gitignore` or at minimum document that users should add it — log files should not be committed. The `/pde:monitor` cleanup command should include a "clear old logs" option.
 
 **Warning signs:**
-- Validation agent code contains any `Write` or `Edit` tool calls
-- Research files are being modified during a readiness gate run
-- The git diff after a `/pde:check-readiness` run includes changes to `.planning/research/` files
-- A validation report says "automatically corrected" rather than "correction needed"
+- No retention/cleanup logic in the initial event infrastructure implementation
+- `.planning/logs/` is not in `.gitignore`
+- A single week of PDE usage accumulates more than 100MB in `/tmp`
+- The test suite creates log files but never cleans them up between runs
 
-**Phase to address:** Research validation agent implementation — enforce read-only as an architectural constraint, not a convention. The agent's `allowed_tools` should not include Write or Edit. This cannot be patched in after write behavior is established.
+**Phase to address:** Event infrastructure design phase — retention policy is part of the log file schema decision, not an operational concern to handle later. The cleanup function should be in the first shipped version.
 
 ---
 
@@ -242,12 +233,13 @@ Research validation agents must be strictly read-only. They may produce a report
 
 | Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
 |----------|-------------------|----------------|-----------------|
-| Verify claims at file-existence level only (Tier 1) | Faster to implement | Fails for content-level claims (counts, interfaces, signatures); validation confidence is overstated | Only for structural claims explicitly labeled as such |
-| Hardcode file scope in integration verifier | Avoids glob implementation | Silently misses new files; reports green while orphans accumulate | Never — use glob patterns from day one |
-| Binary VERIFIED/UNVERIFIED output (no UNVERIFIABLE state) | Simpler output schema | Blocks plans on unverifiable-but-correct claims; trains developers to bypass | Never — three-state model (VERIFIED/UNVERIFIABLE/CONTRADICTED) is the minimum viable design |
-| Allow validation agents to self-correct files they find stale | Efficient — fix and verify in one pass | Destroys the independence of verification; introduces silent state mutations during read-only passes | Never — validation is always read-only; corrections require a separate explicit pass |
-| Skip incremental scoping in dependency checker | Simpler first implementation | Scales poorly; gets disabled when slow; no protection after disabling | Acceptable only for a single-phase milestone prototype that will be refactored before shipping |
-| Use CONTRADICTED status for pre-registered intentional orphans | No allowlist implementation needed | Trains developers to ignore all verifier output; false positives destroy trust | Never — allowlist annotations are required from the first implementation |
+| Synchronous event emission inline with operations | Simpler code, no async management | Adds 5-20ms per emission; multiplied across 50+ operations per phase, creates noticeable slowdown | Never for log writes; acceptable only for in-memory counters with no I/O |
+| Named pipes instead of log files for event transport | Lower latency, "feels like real-time" | Blocks indefinitely when no reader; EPIPE errors on reader exit; no way to replay missed events | Never — log files with tail -F provide equivalent latency for monitoring use |
+| Single global event log file | No session management needed | Concurrent operations corrupt the file; log is unreadable after first parallel execution | Only for single-operation-at-a-time workflows confirmed in config |
+| Auto-install tmux unconditionally | User never sees "tmux not found" | Fails on non-standard distros; runs package manager commands without explicit consent; cannot be reversed | Never — always require explicit opt-in with --auto-install flag |
+| Hardcoded 6-pane layout with no size check | Simpler implementation | Fails or produces unusable output on small terminals; most reported bugs will be layout crashes | Never — terminal size guard is required from the first implementation |
+| Single context window measurement for all agents | No complexity in subagent tracking | Systematically misleads user; shows low usage while subagents are at limit | Acceptable only if the pane is labeled "Orchestrator context" with a documented caveat |
+| Instrument all files in one pass | Faster to implement in bulk | Regression risk multiplied across all files; single syntax error in any file breaks all workflows | Never — instrument in layers with per-layer validation |
 
 ---
 
@@ -255,13 +247,13 @@ Research validation agents must be strictly read-only. They may produce a report
 
 | Integration | Common Mistake | Correct Approach |
 |-------------|----------------|------------------|
-| Research validation + readiness gate | Plugging validation output directly into FAIL status for all non-VERIFIED claims | Map VERIFIED→PASS, UNVERIFIABLE→CONCERNS, CONTRADICTED→FAIL; let the existing readiness gate handle severity |
-| Dependency verification + story-file sharding | Checking dependencies only against monolithic PLAN.md; missing task-NNN.md shards | Dependency checker must glob both `*-PLAN.md` and `task-NNN.md` files; sharding is transparent to the checker |
-| Integration verifier + TOOL_MAP pre-registrations | Flagging all unconsumed TOOL_MAP entries as orphan bugs | Read `# TOOL_MAP_PREREGISTERED` annotations before generating orphan report |
-| Edge case analysis + AC-first planning | Generating edge cases before acceptance criteria are finalized | Edge case analysis runs after AC-N identifiers are assigned; references specific AC items |
-| Tech debt closure + protected-files mechanism | Modifying core files without checking protected-files.json | Read protected-files.json before touching any file in references/, bin/, or core config |
-| Validation agents + session-based execution model | Assuming validation results persist across Claude Code sessions | Each session spawns fresh agents with no memory of prior validation results; persist results to `.planning/research/` explicitly |
-| Dependency checker + mcp-bridge.cjs TOOL_MAP | Checking workflow files for raw MCP tool names that TOOL_MAP is designed to abstract | Dependency checker must understand the TOOL_MAP indirection; check for canonical names (e.g., `github:create-pr`), not raw MCP tool names |
+| Event bus + pde-tools.cjs | Importing the event bus at the top level of pde-tools.cjs — if the bus fails to load, all pde-tools.cjs commands fail | Lazy require inside the emit function with a try-catch; pde-tools.cjs must work without the event bus |
+| tmux dashboard + Claude Code sandbox | Claude Code's sandbox may block `tmux` commands that modify the terminal outside the working directory scope | Test all tmux commands through the actual Claude Code Bash tool, not directly in the shell; detect sandbox mode and warn if tmux commands are restricted |
+| Event log + .planning/ directory | Writing event logs to .planning/logs/ puts log files in the same directory as state files — git picks them up | Add .planning/logs/ to .gitignore before writing first log file; or use /tmp exclusively for raw streams |
+| tmux session naming + multiple projects | A fixed session name like "pde-monitor" collides when two projects run PDE simultaneously | Session name should include project slug: "pde-monitor-{project-slug}" derived from config.json |
+| Token counting + model profiles | PDE supports multiple model profiles with different context sizes (executor model vs verifier model) | Context window display must read the current active model's context limit from model-profiles.cjs, not a hardcoded value |
+| Log rotation + tail -f | The dashboard uses `tail -f` which stops following after the file is truncated or renamed | Use `tail -F` (capital F) in all dashboard pane scripts |
+| Event bus import + zero-npm-deps constraint | Adding an npm package for async event handling violates PDE's zero-npm-deps-at-plugin-root constraint | Implement the event bus as a pure Node.js module in bin/lib/ using built-in EventEmitter with process.nextTick for async dispatch |
 
 ---
 
@@ -269,23 +261,47 @@ Research validation agents must be strictly read-only. They may produce a report
 
 | Trap | Symptoms | Prevention | When It Breaks |
 |------|----------|------------|----------------|
-| All-phases dependency scan on every readiness check | Readiness gate takes 30+ seconds on mature milestones; developers skip it | Scope to current phase + 1 upstream phase; prior phases were already verified at their execution time | Any milestone with more than 5 phases |
-| Edge case agent reading full PLAN.md + all referenced files per plan | Edge case analysis consumes 40%+ of context budget before generating output | Summarize plan to key elements (file targets, state transitions, external calls) before passing to edge case agent | Plans with more than 8 task steps or 3 external integrations |
-| Research validation re-reading unchanged files | Validation takes longer than the work it validates | Cache file modification timestamps; skip unchanged files on re-validation runs | Any research re-validation run more than 1 phase after the initial run |
-| Integration verifier scanning all 650+ files in the codebase | Verifier exceeds 60-second timeout; killed mid-scan; reports partial results | Scope to integration surface files only: mcp-bridge.cjs, TOOL_MAP entries, workflow files that call bridge.call() | Immediately — the full codebase is never the right scope |
+| Synchronous log file write per event | Phase execution time grows proportionally with number of instrumented operations; 50 operations × 10ms = 500ms added latency | Use async fs.appendFile with no await; write to buffer and flush on interval | Immediately — any synchronous file I/O in the hot path is perceptible |
+| Log file JSON serialization of large objects | Token/cost meter events include full context snapshots; each event is 50KB; log file grows to GB in a single session | Define maximum event payload size (1KB); trim large fields to summaries before emission | Any session with more than 20 operation cycles |
+| Dashboard pane refresh rate too high | Terminal renders 60 updates/second; tmux send-keys overhead at high frequency; observable CPU usage from dashboard process | Use file-tail approach (terminal handles refresh rate natively) rather than polling-and-sending | At refresh rates above 10Hz; worst on battery-constrained laptops |
+| tmux new-window per event type | Creating a new tmux window/pane for each event category results in dozens of panes | Pre-create all 6 panes at dashboard launch; route events to the correct pane by writing to separate log files | Immediately — tmux has UI overhead per pane that grows with count |
+
+---
+
+## Security Mistakes
+
+| Mistake | Risk | Prevention |
+|---------|------|------------|
+| Writing API keys or secrets to event log files | Secrets in .planning/logs/ or /tmp are readable by any process on the system | Event schema must explicitly exclude fields from config.json that contain tokens or API keys; audit emit() call sites before shipping |
+| Executing user-controlled content in tmux send-keys | If event payloads contain shell metacharacters and are sent via send-keys, they could execute arbitrary commands in the dashboard pane | Never use send-keys with event content; write to files that are tailed by panes — file content is not interpreted as shell input by tail |
+| Session name predictability enabling session hijack | A fixed predictable tmux session name (pde-monitor) allows a malicious co-process to attach to the session | Include a random component or project-specific identifier in the session name |
+
+---
+
+## UX Pitfalls
+
+| Pitfall | User Impact | Better Approach |
+|---------|-------------|-----------------|
+| No visual indication that the dashboard is connected to a live operation | User opens dashboard, sees empty panes, does not know if it is working | Show a "Waiting for PDE events..." message in each pane at startup; replace with first live event |
+| Dashboard exits when the user runs any PDE command without opening monitor first | User accidentally runs execute-phase without monitor; the monitor they open afterward shows no history | Event log files persist; opening the dashboard after an operation should tail from the beginning of the most recent session's log |
+| Token/cost meter shows raw numbers with no context | User sees "42,891 tokens" with no reference to model limits or cost implications | Show percentage of context window used and estimated cost delta since session start |
+| Auto-advance and monitor interact confusingly | User enables auto_advance and opens monitor; phases advance automatically while the user is watching; no indication that this is expected | Display a "AUTO-ADVANCE ACTIVE" indicator in the pipeline progress pane when workflow.auto_advance is true |
+| Log stream pane shows raw JSONL that requires JSON parsing to read | Unformatted JSONL in a terminal pane is unreadable for most users | The log stream pane should pretty-print key fields (timestamp, event type, summary) using jq or a purpose-built formatter |
 
 ---
 
 ## "Looks Done But Isn't" Checklist
 
-- [ ] **Research validator claim tiers:** Validator distinguishes Tier 1 (structural), Tier 2 (content), and Tier 3 (behavioral) claims with different verification strategies — verify by reviewing claim processing logic for grep/read calls on Tier 2 claims
-- [ ] **Three-state output model:** Validator returns VERIFIED, UNVERIFIABLE, or CONTRADICTED (never binary VERIFIED/UNVERIFIED) — verify by checking the output schema in the agent's return format section
-- [ ] **Dependency checker interface contracts:** Plans include an `interface_required` field and dependency checker reads it — verify by checking a sample plan file for the field and the checker's parsing logic
-- [ ] **Dynamic scope discovery:** Integration verifier uses glob patterns not hardcoded file lists — verify by adding a dummy workflow file and confirming it appears in the next verification scope count
-- [ ] **Intentional orphan allowlist:** TOOL_MAP pre-registered entries are annotated and excluded from orphan reports — verify that `github:update-pr` and `github:search-issues` do not appear as orphan findings
-- [ ] **Validation agents are read-only:** Research validation agent's `allowed_tools` list does not include Write or Edit — verify by reviewing the agent definition's allowed_tools before shipping
-- [ ] **Staleness tracking:** Validation results include `validated_at_phase` and the readiness gate checks for staleness before accepting them — verify by simulating a 3-phase gap between validation and use
-- [ ] **Tech debt blast radius documented:** Each of the 7 known debt items has a written consumer audit before its fix is implemented — verify by requiring a consumer-audit artifact as part of the debt closure task's acceptance criteria
+- [ ] **Event bus async dispatch:** Verify that adding an event listener that calls `fs.writeFileSync` does NOT slow down a workflow — test by timing a 10-plan phase execution with and without the event bus active
+- [ ] **Dashboard persistence after operation:** After `/pde:execute-phase` completes, the dashboard tmux session should still be open and show the final state — verify by running a complete phase and then checking `tmux ls`
+- [ ] **Nested tmux detection:** Run `/pde:monitor` from inside an existing tmux session — it should switch to the monitor session, not error with "sessions should be nested with care"
+- [ ] **Small terminal degradation:** Resize terminal to 80×24 and run `/pde:monitor` — it should either use a degraded layout or print a clear minimum-size error, not crash or show an empty window
+- [ ] **No-dashboard operation:** Run `/pde:execute-phase` WITHOUT opening the monitor first — the operation should complete normally with zero perceptible performance impact from the event infrastructure
+- [ ] **Concurrent operation safety:** Run two phases in parallel (if parallelization is enabled) and verify that the event log files are readable JSONL after both complete
+- [ ] **Log file cleanup:** After a week of simulated PDE usage (create 30+ session log files), verify that old files are cleaned up and the .planning/logs/ directory does not grow unboundedly
+- [ ] **Zero-npm constraint preserved:** Run `npm ls` at the plugin root after implementing the event bus — no new npm dependencies should appear
+- [ ] **tmux not installed:** On a fresh environment without tmux, run `/pde:monitor` — it should detect the absence and print clear install instructions, not crash with a `command not found` error
+- [ ] **Context pane labeling:** The context window pane must explicitly say "Orchestrator" or "Current agent" — not "Session" or "Total" which would imply it covers subagents
 
 ---
 
@@ -293,13 +309,13 @@ Research validation agents must be strictly read-only. They may produce a report
 
 | Pitfall | Recovery Cost | Recovery Steps |
 |---------|---------------|----------------|
-| Validation over-claims (Tier 1 checks masquerading as Tier 2) | MEDIUM | Audit all claims in validation report against their verification method; re-implement Tier 2 checks as content-inspection; re-run full validation |
-| Validation over-blocks (binary UNVERIFIED = FAIL) | LOW | Add UNVERIFIABLE state to output schema; update readiness gate mapping to treat UNVERIFIABLE as CONCERNS; re-run blocked plans |
-| Dependency checker too slow, already disabled | HIGH | Rewrite with incremental scoping; re-enable as CONCERNS-level advisory before re-enabling as blocking gate; recover trust before recovering enforcement |
-| Integration verifier missing new files (hardcoded scope) | MEDIUM | Replace hardcoded arrays with glob patterns; identify any orphans that were missed in the gap period; fix uncovered orphans |
-| Validation agent wrote to research files silently | MEDIUM | Review git diff for unexpected modifications to `.planning/research/`; revert unintended mutations; restrict agent's allowed_tools to read-only; re-run validation |
-| Tech debt closure broke a working feature | MEDIUM | Revert the closure commit; perform consumer audit; re-implement with surgical scope; run full validation suite before re-shipping |
-| Edge case analysis noise causing review abandonment | LOW | Reduce edge case list to 5-8 items; add relevance filter requiring plan-element reference; re-demo to the team to rebuild confidence |
+| Synchronous event emission causing latency | MEDIUM | Audit all emit() call sites; wrap each in setImmediate(); profile before/after; test listener I/O is async |
+| Dashboard dies after operation | LOW | Add remain-on-exit to pane config; write completion sentinel to event log; retest lifecycle |
+| Named pipes blocking operations | HIGH | Replace named pipe transport with log files; update all writer and reader code; regression test all workflow operations |
+| Corrupted event log from concurrent writes | MEDIUM | Switch to session-scoped log files; replay affected operations; add concurrent-write test to validation suite |
+| Deep instrumentation regression in a workflow file | MEDIUM | Add try-catch guard around all emit() calls; identify and fix the breaking file; confirm event infrastructure cannot propagate failures to primary workflows |
+| Log files filling /tmp | LOW | Implement cleanup function with 7-day TTL; run once to clear accumulated files; add to session-start routine |
+| Auto-install script broke a user's environment | HIGH | Document the restoration steps for each affected package manager; implement explicit --auto-install flag to prevent recurrence |
 
 ---
 
@@ -307,33 +323,36 @@ Research validation agents must be strictly read-only. They may produce a report
 
 | Pitfall | Prevention Phase | Verification |
 |---------|------------------|--------------|
-| Validation claims too much (Pitfall 1) | Research Validation Agent design | Acceptance criterion: at least one Tier 2 content-inspection verification demonstrated |
-| Validation claims too little — blocks on unverifiable (Pitfall 2) | Research Validation Agent design | Output schema includes UNVERIFIABLE state; readiness gate maps it to CONCERNS not FAIL |
-| Dependency checks static declarations not runtime paths (Pitfall 3) | Cross-phase dependency verification design | Plan template includes `interface_required` field; checker reads and cross-references it |
-| Edge case analysis generates noise (Pitfall 4) | Plan edge case analysis design | Each generated edge case references a specific plan element (file path, function, state field) |
-| Integration verifier can't keep up with codebase (Pitfall 5) | Integration point verification design | Verifier uses glob patterns; scope count increases when a new workflow file is added |
-| Tech debt closure breaks working features (Pitfall 6) | Tech debt closure phase | Consumer audit artifact required per debt item before implementation begins |
-| Research validation develops stale codebase view (Pitfall 7) | Research Validation Agent design | Output includes `validated_at_phase`; readiness gate enforces staleness threshold |
-| Dependency verification causes slowdown that gets disabled (Pitfall 8) | Cross-phase dependency verification design | Acceptance criterion: maximum 10-second runtime regardless of milestone size |
-| Integration verifier flags intentional pre-registrations (Pitfall 9) | Integration point verification design | `github:update-pr` and `github:search-issues` do not appear in orphan report |
-| Validation agents modify state while verifying (Pitfall 10) | Research validation agent implementation | Agent's `allowed_tools` excludes Write and Edit; no file modifications in validation git diff |
+| Synchronous emission blocks workflows (Pitfall 1) | Event bus design | Time a 10-plan phase with bus active; must be within 5% of baseline |
+| Dashboard dies after operation (Pitfall 2) | tmux dashboard implementation | Run complete phase; confirm tmux session survives with remain-on-exit |
+| Nested tmux session error (Pitfall 3) | tmux launch script | Test from inside existing tmux; confirm switch-client path executes |
+| 6-pane layout on small terminals (Pitfall 4) | tmux layout implementation | Test at 80×24; adaptive/degraded layout must render without error |
+| Deep instrumentation regression risk (Pitfall 5) | Instrumentation rollout | Layer-by-layer validation; no cross-file bulk instrumentation commits |
+| Named pipe blocking (Pitfall 6) | Event bus design | Test operation without dashboard open; must complete with zero blocking |
+| Auto-install failures on non-standard platforms (Pitfall 7) | tmux availability detection | Test on macOS, Ubuntu, Fedora; --auto-install opt-in required |
+| Inaccurate context window tracking (Pitfall 8) | Context window pane implementation | Label review; range display; documented caveat about subagent contexts |
+| Concurrent log corruption (Pitfall 9) | Event bus design | Run two parallel phases; verify JSONL is parseable after both complete |
+| Log file accumulation (Pitfall 10) | Event infrastructure design | 30-session simulation; cleanup function runs; /tmp does not grow unboundedly |
 
 ---
 
 ## Sources
 
-- PDE RETROSPECTIVE.md (v0.1 through v0.6 lessons) — HIGH confidence (direct project history)
-- PDE PROJECT.md v0.7 milestone definition and known tech debt items — HIGH confidence (primary source)
-- "Agentic Engineering, Part 7: Dual Quality Gates" (sagarmandal.com, 2026-03-15) — HIGH confidence: independent validation/testing separation, mocked vs. real-world failure gap
-- IBM: "Alert Fatigue Reduction with AI Agents" — MEDIUM confidence: noise-vs-signal ratio patterns in automated alert systems
-- Anthropic: "Demystifying evals for AI agents" — HIGH confidence: signal-to-noise ratio in agent evaluation, ambiguity-as-noise principle
-- "How we prevent AI agent's drift and code slop generation" (dev.to/singhdevhub) — MEDIUM confidence: stale context failure mode in codebase-aware agents
-- "CI/CD for Context in Agentic Coding" (tessl.io) — MEDIUM confidence: specification staleness as a primary failure mode
-- vFunction: "How to Reduce Technical Debt" — MEDIUM confidence: blast radius analysis for tech debt closure
-- Edana.ch: "Refactoring Technical Debt and Eliminating Anti-Patterns" — MEDIUM confidence: surgical refactoring principles
-- PDE codebase direct inspection: mcp-bridge.cjs TOOL_MAP, protected-files.json, pde-tools.cjs readiness gate, agents/ directory — HIGH confidence
+- PDE PROJECT.md v0.8 milestone requirements (event bus, tmux dashboard) — HIGH confidence (primary source)
+- PDE codebase direct inspection: bin/lib/core.cjs (synchronous fs patterns), bin/pde-tools.cjs (hot path), workflows/execute-phase.md (instrumentation surface) — HIGH confidence
+- Node.js official documentation: EventEmitter synchronous dispatch, fs.appendFile async — HIGH confidence ([nodejs.org/api/events.html](https://nodejs.org/api/events.html))
+- Node.js race conditions blog post (nodejsdesignpatterns.com): concurrent file write race conditions — MEDIUM confidence
+- tmux/tmux GitHub issue #3124: nested session "sessions should be nested with care" behavior — HIGH confidence ([github.com/tmux/tmux/issues/3124](https://github.com/tmux/tmux/issues/3124))
+- tmux/tmux GitHub issue #1480: minimum pane size constraints — MEDIUM confidence
+- FreeCodeCamp: "Tmux in Practice: Local and Nested Remote Sessions" — MEDIUM confidence ([freecodecamp.org/news/tmux-in-practice-local-and-nested-remote-sessions](https://www.freecodecamp.org/news/tmux-in-practice-local-and-nested-remote-sessions-4f7ba5db8795/))
+- Propel.ai: "Token Counting Explained: tiktoken, Anthropic, and Gemini" — MEDIUM confidence (Claude 3+ has no local tokenizer; 3.5 char/token approximation error rate documented)
+- Node.js EPIPE error documentation (w3tutorials.net/blog/nodejs-epipe) — MEDIUM confidence
+- AWS Architecture Blog: "Leave-and-Layer Pattern for Event-Driven Modernization" — MEDIUM confidence (layered instrumentation strategy)
+- Sindre Sorhus emittery GitHub (async event emitter pattern): setImmediate-based async dispatch — MEDIUM confidence ([github.com/sindresorhus/emittery](https://github.com/sindresorhus/emittery))
+- tmux.info installation documentation: platform-specific package manager differences — HIGH confidence ([tmux.info/docs/installation](https://tmux.info/docs/installation))
+- Claude Code sandboxing documentation: Bash tool constraints, bwrap/seatbelt restrictions — HIGH confidence ([code.claude.com/docs/en/sandboxing](https://code.claude.com/docs/en/sandboxing))
 
 ---
 
-*Pitfalls research for: Adding automated validation, dependency verification, and quality gates to PDE (v0.7 Pipeline Reliability & Validation milestone)*
+*Pitfalls research for: Adding event infrastructure and tmux monitoring dashboard to PDE (v0.8 Observability milestone)*
 *Researched: 2026-03-19*
