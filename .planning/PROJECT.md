@@ -59,7 +59,13 @@ Any user can go from idea to shipped product through a single platform that hand
 
 ### Active
 
-(No active requirements — next milestone not yet started)
+- [ ] Event infrastructure with structured event bus and deep instrumentation across agents, executor, and tools
+- [ ] tmux-based monitoring dashboard with 6 panes: agent activity, pipeline progress, file changes, log stream, token/cost meter, context window
+- [ ] Explicit `/pde:monitor` command to launch dashboard
+- [ ] Auto-install check for tmux (detect missing, offer homebrew/apt install)
+- [ ] Persistent dashboard (stays open after operation finishes)
+- [ ] Reviewable session history: structured summaries in `.planning/logs/`, raw event streams in `/tmp`
+- [ ] Future-proof event schema designed for extensibility beyond monitoring
 
 ### Out of Scope
 
@@ -152,4 +158,4 @@ Any user can go from idea to shipped product through a single platform that hand
 | Tech debt closure as first v0.7 phase | Clean baseline before adding new verification surface area | ✓ Good — all 7 items resolved, no interference with new features |
 
 ---
-*Last updated: 2026-03-20 after v0.7 milestone complete*
+*Last updated: 2026-03-19 after v0.8 milestone started*
