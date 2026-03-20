@@ -336,6 +336,53 @@
 
 ---
 
+## Milestone: v0.8 — Observability & Event Infrastructure
+
+**Shipped:** 2026-03-20
+**Phases:** 6 | **Plans:** 13 | **Commits:** 80
+
+### What Was Built
+- Structured event infrastructure: PdeEventBus class with setImmediate-deferred async dispatch, session-scoped NDJSON files in /tmp, Claude Code hooks for automatic tool/agent event capture
+- tmux monitoring dashboard: `/pde:monitor` command with 6-pane layout (agent activity, pipeline progress, file changes, log stream, token/cost meter, context window)
+- Dashboard safety: adaptive layout for small terminals (<120x30), nested tmux detection with switch-client fallback, platform-aware auto-install for missing tmux
+- Session archival: automatic structured markdown summaries in `.planning/logs/` at every SessionEnd, NDJSON cleanup of files >7 days
+- Token/cost metering: chars/4 heuristic with ~est. labels, per-model cost from model-profiles config, orchestrator context utilization indicator
+- Workflow instrumentation: semantic phase/wave/plan events emitted from exactly 2 workflow files via surgical manual calls
+- Gap closure phase (63): plan_started/plan_complete events added to session summary aggregation
+
+### What Worked
+- **Event bus before consumers** — building the NDJSON write path (Phase 58) before dashboard (59), archiver (60), meter (61), and instrumentation (62) meant all consumers shared one stable event format
+- **Bash pane scripts with tail -F** — each dashboard pane is a standalone shell script tailing the NDJSON stream; dead simple, easily testable, no process coordination needed
+- **Surgical workflow instrumentation** — only 8 event-emit calls added to 2 files (execute-phase.md, execute-plan.md), minimizing regression surface across 40+ existing workflows
+- **Audit-driven gap closure** — Phase 63 existed because the v0.8 audit found plan events missing from session summaries (MISS-01); without the audit this gap would have shipped
+- **Zero npm dependencies** — entire observability layer built on Node.js built-ins (events, crypto, fs, os, path) and shell scripts; preserves PDE's zero-npm-at-root constraint
+
+### What Was Inefficient
+- **SUMMARY.md one_liner field still returns null** — eighth consecutive milestone; automated accomplishment extraction from SUMMARY files is fundamentally broken for the tech-tracking format
+- **10 human verification items deferred** — dashboard E2E, live hook auto-fire, real-time token display require active tmux session; structural grep tests can't verify these
+- **Phase Details duplication in ROADMAP.md** — full phase details (goals, success criteria, plans) lived in ROADMAP.md alongside the milestone progress table, making the file unnecessarily large before archival
+
+### Patterns Established
+- Event envelope schema: `{ schema_version, timestamp, event_type, session_id, extensions }` — extensions field reserves space for future consumers (presentations, idle-time productivity)
+- Session-scoped NDJSON: `/tmp/pde-session-{uuid}.ndjson` prevents concurrent session interleaving
+- Hook chain ordering: SessionStart hooks are async:false (session UUID must persist before tool events fire); SessionEnd hooks ordered emit-event → archive-session (NDJSON must be complete before archival reads it)
+- Adaptive layout pattern: check terminal dimensions → build_full_layout (≥120x30) or build_minimal_layout (<120x30) with priority-ordered pane selection
+- chars/4 heuristic with mandatory ~est. label: honest approximation when no local tokenizer exists
+- Inline pricing table: stable constants in bash script avoid extra config reads; Node subprocess spawned every N events to avoid per-event overhead
+
+### Key Lessons
+1. **Event schema extensibility pays immediately** — the extensions field was designed for future consumers (presentations, idle-time productivity), but the audit gap closure (Phase 63) used the plan_id field pattern established by the schema, making it a zero-friction addition.
+2. **Bash is the right tool for tmux panes** — each pane runs a standalone shell script with `tail -F | while read` loop. No process coordination, no IPC, no npm. When the domain is terminal-native, use terminal-native tools.
+3. **10 human verification items is acceptable** — these require active tmux sessions and real-time event streams that grep-based structural tests can't cover. Deferring them was the right trade-off; forcing synthetic verification would have been more complex than the feature itself.
+4. **One gap-closure phase per milestone remains the pattern** — v0.3 had 0, v0.4 had 1, v0.5 had 1, v0.6 had 0, v0.7 had 0, v0.8 had 1 (Phase 63). Milestone audits consistently find one small integration gap worth fixing.
+
+### Cost Observations
+- Model mix: sonnet for execution/verification agents, opus for orchestration
+- Timeline: ~15 hours (2026-03-19 23:08 → 2026-03-20 13:57)
+- Notable: 80 commits in ~15 hours; 6 phases, zero unplanned phases (Phase 63 was audit-driven but planned via /gsd:plan-milestone-gaps)
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -349,6 +396,7 @@
 | v0.5 | 99 | 7 | MCP integrations — 5 external tool integrations via central adapter, 315 validation tests |
 | v0.6 | ~91 | 8 | Workflow methodology — sharding, AC-first, reconciliation, readiness, tracking, agent memory |
 | v0.7 | ~47 | 4 | Pipeline verification — research validation, plan checker Dims 9-11, workflow integration |
+| v0.8 | 80 | 6 | Observability — event bus, tmux dashboard, session archival, token metering, workflow instrumentation |
 
 ### Cumulative Quality
 
@@ -361,3 +409,4 @@
 | v0.5 | 27/27 | 100% | 1 (phase 40.1) | 315 |
 | v0.6 | 24/24 | 100% | 0 (phase 53 planned) | 80 must-haves |
 | v0.7 | 37/37 | 100% | 0 | 5 tasks, all green |
+| v0.8 | 26/26 | 100% | 1 (phase 63, audit-driven) | 6/6 Nyquist compliant |
