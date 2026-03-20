@@ -15,8 +15,8 @@ Requirements for Pipeline Reliability & Validation milestone. Each maps to roadm
 - [x] **RVAL-04**: Claims are classified by tier — Tier 1 (structural: file exists), Tier 2 (content: function exported, parameter shape), Tier 3 (behavioral: logic claim) — and verification method matches tier
 - [x] **RVAL-05**: Research validator agent is strictly read-only (no Write, no Edit in allowed_tools)
 - [x] **RVAL-06**: RESEARCH-VALIDATION.md includes `validated_at_phase` field for staleness tracking across phases
-- [ ] **RVAL-07**: Research validation is wired into plan-phase.md as automatic step — runs when research exists and no validation artifact is present
-- [ ] **RVAL-08**: Plan-phase blocks on `contradicted_count > 0` with user choice prompt; surfaces `unverifiable_count > 0` as non-blocking CONCERNS
+- [x] **RVAL-07**: Research validation is wired into plan-phase.md as automatic step — runs when research exists and no validation artifact is present
+- [x] **RVAL-08**: Plan-phase blocks on `contradicted_count > 0` with user choice prompt; surfaces `unverifiable_count > 0` as non-blocking CONCERNS
 
 ### Cross-Phase Dependencies
 
@@ -57,7 +57,7 @@ Requirements for Pipeline Reliability & Validation milestone. Each maps to roadm
 
 ### Workflow Integration
 
-- [ ] **WIRE-01**: plan-phase.md enhanced with research validation step between research detection and planner spawn
+- [x] **WIRE-01**: plan-phase.md enhanced with research validation step between research detection and planner spawn
 - [ ] **WIRE-02**: check-readiness.md enhanced with `run_integration_checks` step after semantic checks (Mode B codebase-time verification)
 - [ ] **WIRE-03**: readiness.cjs enhanced with B4 and B5 check IDs — additive to existing check system
 - [ ] **WIRE-04**: All new verification artifacts (RESEARCH-VALIDATION.md, DEPENDENCY-GAPS.md, EDGE-CASES.md, INTEGRATION-CHECK.md) consumed by readiness gate in unified READINESS.md output
@@ -103,8 +103,8 @@ Requirements for Pipeline Reliability & Validation milestone. Each maps to roadm
 | RVAL-04 | Phase 55 | Complete |
 | RVAL-05 | Phase 55 | Complete |
 | RVAL-06 | Phase 55 | Complete |
-| RVAL-07 | Phase 57 | Pending |
-| RVAL-08 | Phase 57 | Pending |
+| RVAL-07 | Phase 57 | Complete |
+| RVAL-08 | Phase 57 | Complete |
 | DEPS-01 | Phase 56 | Complete |
 | DEPS-02 | Phase 56 | Complete |
 | DEPS-03 | Phase 56 | Complete |
@@ -123,7 +123,7 @@ Requirements for Pipeline Reliability & Validation milestone. Each maps to roadm
 | INTG-04 | Phase 57 | Pending |
 | INTG-05 | Phase 56 | Complete |
 | INTG-06 | Phase 56 | Complete |
-| WIRE-01 | Phase 57 | Pending |
+| WIRE-01 | Phase 57 | Complete |
 | WIRE-02 | Phase 57 | Pending |
 | WIRE-03 | Phase 57 | Pending |
 | WIRE-04 | Phase 57 | Pending |

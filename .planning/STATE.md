@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.7
 milestone_name: Pipeline Reliability & Validation
 status: unknown
-stopped_at: Completed 56-02-PLAN.md (Edge Cases dimension + EDGE-06 AC approval gate)
-last_updated: "2026-03-20T04:44:57.129Z"
+stopped_at: Completed 57-01-PLAN.md (Research Validation Gate wired into plan-phase.md)
+last_updated: "2026-03-20T05:26:00.000Z"
 progress:
   total_phases: 4
   completed_phases: 3
-  total_plans: 8
-  completed_plans: 8
+  total_plans: 11
+  completed_plans: 9
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-19)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 56 — plan-checker-enhancement
+**Current focus:** Phase 57 — workflow-integration
 
 ## Current Position
 
-Phase: 56 (plan-checker-enhancement) — COMPLETE
-Plan: 3 of 3
+Phase: 57 (workflow-integration) — EXECUTING
+Plan: 2 of 3
 
 ## Performance Metrics
 
@@ -43,6 +43,7 @@ Plan: 3 of 3
 | Phase 56-plan-checker-enhancement P01 | 3 | 1 tasks | 1 files |
 | Phase 56 P02 | 3 minutes | 2 tasks | 4 files |
 | Phase 56 P03 | 2 minutes | 1 tasks | 2 files |
+| Phase 57 P01 | 2 minutes | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -72,6 +73,9 @@ Key v0.7 architectural decisions (pre-execution):
 - [Phase 56]: Pitfall 4 prevention: Step 11.5 placed OUTSIDE the revision loop — checker is never re-invoked after AC append, AC append is additive-only
 - [Phase 56-03]: TOOL_MAP_PREREGISTERED exclusion set is dynamically built from mcp-bridge.cjs annotation — never hardcoded — to prevent drift as new pre-registered entries are added
 - [Phase 56-03]: INTG-05 scope is strictly the @-reference allowlist: no codebase scan, no glob, no file outside the allowlist is touched
+- [Phase 57-01]: Step 5.7 Research Validation Gate placed before Step 5.5 — validates before VALIDATION.md is created from potentially bad research; if contradicted, user exits before VALIDATION.md is written
+- [Phase 57-01]: RESEARCH-VALIDATION.md detection uses shell glob (ls *-RESEARCH-VALIDATION.md) not init.cjs field — init.cjs confirmed to not emit has_research_validation (Pitfall 2 prevention)
+- [Phase 57-01]: Stale RESEARCH-VALIDATION.md deleted before Step 5.7 detection when --research flag forces fresh RESEARCH.md — prevents skipping validation on stale artifact
 
 ### Pending Todos
 
