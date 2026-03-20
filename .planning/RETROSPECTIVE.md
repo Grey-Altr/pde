@@ -243,6 +243,58 @@
 
 ---
 
+## Milestone: v0.6 — Advanced Workflow Methodology
+
+**Shipped:** 2026-03-20
+**Phases:** 8 | **Plans:** 19 | **Commits:** ~91
+
+### What Was Built
+- Project context constitution: auto-generated `project-context.md` (max 4KB) injected into every subagent spawn
+- Story-file sharding: plans with 5+ tasks produce atomic `task-NNN.md` files; executor loads one at a time for ~90% context reduction
+- AC-first planning: acceptance criteria with unique AC-N identifiers, task-to-AC verification gates, boundary enforcement
+- Post-execution reconciliation: mandatory `RECONCILIATION.md` comparing planned vs actual git commits; high-risk task HALT gates
+- Readiness gate: `/pde:check-readiness` with PASS/CONCERNS/FAIL; execute-phase blocks on FAIL
+- Per-task workflow tracking with real-time status updates and `HANDOFF.md` for session breaks
+- Agent enhancements: assumptions capture, analyst persona interviews, analyst-to-brief pipeline, persistent agent memory with 50-entry cap and archival
+- File-hash manifest (`files-manifest.csv`) for safe framework updates preserving user modifications
+- BMAD/PAUL methodology reference document in PDE terms
+
+### What Worked
+- **BMAD/PAUL selective import** — cherry-picking patterns (context constitution, AC-first, reconciliation) rather than wholesale framework import meant each pattern fit PDE's existing architecture without friction
+- **TDD-first phases (47, 48)** — writing sharding and AC extraction tests before implementation caught edge cases (empty plans, pre-Phase-48 backwards compatibility) early
+- **Rapid 2-day timeline** — 8 phases in 2 days with zero unplanned gap-closure phases (Phase 53 was a planned polish phase, not a reactive fix)
+- **Nyquist compliance across all phases** — 7/8 phases fully compliant in VALIDATION.md, 8/8 passed actual verification with 80/80 must-haves
+- **Integration checker at milestone audit** — verified all 24 requirements had cross-phase wiring with zero orphaned connections
+
+### What Was Inefficient
+- **SUMMARY.md one_liner field still missing** — sixth consecutive milestone where automated accomplishment extraction returns empty; tech-tracking format needs a dedicated `one_liner:` YAML field
+- **STATE.md body narrative lagged again** — Current Position showed "Phase 46, ready to plan" even after all 8 phases completed; milestone archival is the right cleanup point
+- **SUMMARY frontmatter requirements_completed omissions** — phases 49, 50, 51, 52 had verified requirements missing from SUMMARY frontmatter; executor agents don't consistently populate this field
+- **pde-tools.cjs usage help text not updated** — v0.6 added 4 CLI subcommands (manifest, shard-plan, readiness, tracking) but the error-message command list was never updated; cosmetic but confusing
+
+### Patterns Established
+- Project context constitution: compact 4KB document synthesized from PROJECT.md + REQUIREMENTS.md + STATE.md decisions
+- Story-file sharding with task-count threshold: ≥5 tasks get sharded, <5 stay monolithic
+- AC-first planning: AC-N identifiers before task list, per-task `ac_refs`, verification gate before task completion
+- Three-tier reconciliation matching: slug > file overlap > phase-plan prefix
+- Readiness gate as execute-phase pre-flight: PASS proceeds, CONCERNS warns, FAIL blocks
+- Workflow-status.md as execution telemetry: init with real task names, set-status per task, read for progress
+- Per-agent persistent memory: 50-entry cap with date-named archival, loaded at spawn, appended on completion
+- Analyst persona pattern: multi-round probing interview feeding upstream context to /pde:brief
+
+### Key Lessons
+1. **Selective methodology import beats wholesale adoption** — BMAD and PAUL have patterns designed for human-directed sequential workflows; PDE needed only the ideas (context constitution, AC-first, reconciliation) adapted for autonomous parallel agents. Importing entire agent files or directory structures would have created conflicts.
+2. **Executor agents under-populate SUMMARY frontmatter** — the `requirements_completed` field was missing for 7/19 plans. Consider making this field mandatory in the executor's completion gate rather than optional.
+3. **One polish phase per milestone is the right cadence** — Phase 53 caught 6 real issues (context injection, task names, TASK_TOTAL guard, dead code, reconciler awareness, Nyquist gaps). Budgeting for this is cheaper than hoping for zero tech debt.
+4. **Milestone audit with integration checker is high-value** — the cross-phase wiring check found the pde-tools.cjs help text gap and confirmed all 24 requirements had end-to-end paths. Worth the 5-minute agent cost every time.
+
+### Cost Observations
+- Model mix: sonnet for execution/research/verification agents, opus for orchestration
+- Timeline: 2 days (2026-03-19 → 2026-03-20)
+- Notable: 8 phases, 19 plans, ~91 commits — zero unplanned phases, cleanest milestone alongside v0.3
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -254,6 +306,7 @@
 | v0.3 | 67 | 5 | Advanced design skills — 6 new skills, 13-stage pipeline, zero unplanned phases |
 | v0.4 | 131 | 10 | Self-improvement — audit fleet, skill builder, design elevation, pressure test |
 | v0.5 | 99 | 7 | MCP integrations — 5 external tool integrations via central adapter, 315 validation tests |
+| v0.6 | ~91 | 8 | Workflow methodology — sharding, AC-first, reconciliation, readiness, tracking, agent memory |
 
 ### Cumulative Quality
 
@@ -264,3 +317,4 @@
 | v0.3 | 25/25 | 100% | 0 | 306 |
 | v0.4 | 62/62 | 100% | 1 (phase 38) | 330+ |
 | v0.5 | 27/27 | 100% | 1 (phase 40.1) | 315 |
+| v0.6 | 24/24 | 100% | 0 (phase 53 planned) | 80 must-haves |
