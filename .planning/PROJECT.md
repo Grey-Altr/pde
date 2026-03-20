@@ -114,7 +114,7 @@ Any user can go from idea to shipped product through a single platform that hand
 - **Design pipeline:** 13 skills (recommend, competitive, opportunity, ideate, brief, system, flows, wireframe, critique, iterate, mockup, hig, handoff) + build orchestrator, DESIGN-STATE.md tracking, design-manifest.json artifact registry (13 coverage flags, pass-through-all pattern)
 - **Observability:** PdeEventBus (EventEmitter + setImmediate dispatch), session-scoped NDJSON in /tmp, Claude Code hooks (SubagentStart/Stop, PostToolUse, SessionStart/End), semantic workflow events (phase/wave/plan), tmux 6-pane dashboard, archive-session.cjs summaries in .planning/logs/
 - **Quality infrastructure:** Awwwards 4-dimension rubric, 3 quality reference files (motion-design, composition-typography, quality-standards), protected-files mechanism, 3-agent self-improvement fleet, skill builder with validation gate
-- **MCP integration layer:** mcp-bridge.cjs central adapter with TOOL_MAP (36 entries), APPROVED_SERVERS (5 services), probe/degrade contracts, connection persistence (.planning/mcp-connections.json), write-back confirmation gates
+- **MCP integration layer:** mcp-bridge.cjs central adapter with TOOL_MAP (46 entries), APPROVED_SERVERS (6 services incl. Google Stitch), probe/degrade contracts, connection persistence (.planning/mcp-connections.json), write-back confirmation gates, Stitch quota tracking (Standard 350/mo, Experimental 50/mo) with lazy monthly reset
 - **Workflow methodology:** story-file sharding (task-NNN.md), AC-first planning (AC-N verification gates), post-execution reconciliation (RECONCILIATION.md), readiness gate (PASS/CONCERNS/FAIL), per-task tracking (workflow-status.md), persistent agent memory (50-entry cap with archival), analyst persona interviews
 - **Pipeline verification:** Research validation agent (3-tier claim classification, codebase verification), plan checker Dimensions 9-11 (dependencies, edge cases, integration Mode A), readiness B4/B5 checks, run_integration_checks consuming all 4 artifact types
 - **Known tech debt:**
@@ -149,8 +149,8 @@ Any user can go from idea to shipped product through a single platform that hand
 | Awwwards-level as quality bar | PDE must produce stunning, professional-grade design output | ✓ Good — 330+ Nyquist assertions |
 | Prompt-only protected-files enforcement | bwrap sandbox can't prevent Claude Code Write/Edit; defense-in-depth | ✓ Good |
 | Version numbering correction v1.x → v0.x | Pre-1.0 product; semver signals maturity accurately | ✓ Good |
-| Central MCP adapter (mcp-bridge.cjs) | Single module for all integrations — consistent security, probe/degrade, tool mapping | ✓ Good — 5 integrations share one bridge |
-| Canonical tool name mapping (TOOL_MAP) | Insulates workflows from raw MCP tool name changes | ✓ Good — 36 entries, zero raw names in workflows |
+| Central MCP adapter (mcp-bridge.cjs) | Single module for all integrations — consistent security, probe/degrade, tool mapping | ✓ Good — 6 integrations share one bridge |
+| Canonical tool name mapping (TOOL_MAP) | Insulates workflows from raw MCP tool name changes | ✓ Good — 46 entries, zero raw names in workflows |
 | Verified-sources-only security policy | Only official MCP servers — prevents unauthorized tool access | ✓ Good — assertApproved() blocks all unapproved |
 | Write-back confirmation gates | Every external write requires explicit user consent (VAL-03) | ✓ Good — 26 confirmation gate tests GREEN |
 | Detection-based Pencil connection | VS Code extension auto-configures — no manual `claude mcp add` | ✓ Good — zero friction for VS Code users |
@@ -176,6 +176,10 @@ Any user can go from idea to shipped product through a single platform that hand
 | Hooks-first instrumentation | Claude Code hooks cover tool/agent lifecycle automatically; manual workflow events deferred to Phase 62 | ✓ Good — minimal regression surface |
 | tmux adaptive layout with priority ordering | Degrades from 6-pane to 2-pane on small terminals instead of crashing | ✓ Good — works on all terminal sizes |
 | Surgical manual event emits (8 calls in 2 files) | Minimizes workflow file changes; concentrated risk surface | ✓ Good — zero regressions across all workflows |
+| Stitch stdio transport (not HTTP) | Claude Code silently drops custom headers (#7290, #17069); stdio via npx proxy is reliable | ✓ Good — avoids known Claude Code bug |
+| TOOL_MAP_VERIFY_REQUIRED markers | Tool names from community repos (MEDIUM confidence); live gate confirms at connect time | ✓ Good — MCP-05 verification deferred to connection, not build |
+| Lazy monthly quota reset | Read-time check vs stored reset_at date; no cron/background process needed | ✓ Good — zero-npm-dependency preserved |
+| QUOTA-03 split across Phase 65/66 | Phase 65 provides detection signal; Phase 66 provides fallback routing (WFR-06) | ✓ Good — clean infrastructure/consumer separation |
 
 ---
-*Last updated: 2026-03-20 — Phase 64 complete: designCoverage schema extended with hasStitchWireframes across all 13 pipeline skills*
+*Last updated: 2026-03-20 — Phase 65 complete: Google Stitch registered as 6th MCP server with quota tracking infrastructure*
