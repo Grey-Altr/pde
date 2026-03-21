@@ -113,60 +113,60 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FNDX-01 | Pending | Pending |
-| FNDX-02 | Pending | Pending |
-| FNDX-03 | Pending | Pending |
-| FNDX-04 | Pending | Pending |
-| BREF-01 | Pending | Pending |
-| BREF-02 | Pending | Pending |
-| BREF-03 | Pending | Pending |
-| BREF-04 | Pending | Pending |
-| BREF-05 | Pending | Pending |
-| DSYS-01 | Pending | Pending |
-| DSYS-02 | Pending | Pending |
-| DSYS-03 | Pending | Pending |
-| DSYS-04 | Pending | Pending |
-| DSYS-05 | Pending | Pending |
-| DSYS-06 | Pending | Pending |
-| DSYS-07 | Pending | Pending |
-| FLOW-01 | Pending | Pending |
-| FLOW-02 | Pending | Pending |
-| FLOW-03 | Pending | Pending |
-| FLOW-04 | Pending | Pending |
-| WIRE-01 | Pending | Pending |
-| WIRE-02 | Pending | Pending |
-| WIRE-03 | Pending | Pending |
-| CRIT-01 | Pending | Pending |
-| CRIT-02 | Pending | Pending |
-| CRIT-03 | Pending | Pending |
-| CRIT-04 | Pending | Pending |
-| CRIT-05 | Pending | Pending |
-| CRIT-06 | Pending | Pending |
-| CRIT-07 | Pending | Pending |
-| CRIT-08 | Pending | Pending |
-| PHIG-01 | Pending | Pending |
-| PHIG-02 | Pending | Pending |
-| PHIG-03 | Pending | Pending |
-| PHIG-04 | Pending | Pending |
-| PHIG-05 | Pending | Pending |
-| PHIG-06 | Pending | Pending |
-| PHIG-07 | Pending | Pending |
-| HDOF-01 | Pending | Pending |
-| HDOF-02 | Pending | Pending |
-| HDOF-03 | Pending | Pending |
-| HDOF-04 | Pending | Pending |
-| HDOF-05 | Pending | Pending |
-| HDOF-06 | Pending | Pending |
-| PRNT-01 | Pending | Pending |
-| PRNT-02 | Pending | Pending |
-| PRNT-03 | Pending | Pending |
-| PRNT-04 | Pending | Pending |
+| FNDX-01 | Phase 74 | Pending |
+| FNDX-02 | Phase 74 | Pending |
+| FNDX-03 | Phase 74 | Pending |
+| FNDX-04 | Phase 74 | Pending |
+| BREF-01 | Phase 75 | Pending |
+| BREF-02 | Phase 75 | Pending |
+| BREF-03 | Phase 75 | Pending |
+| BREF-04 | Phase 75 | Pending |
+| BREF-05 | Phase 75 | Pending |
+| DSYS-01 | Phase 76 | Pending |
+| DSYS-02 | Phase 76 | Pending |
+| DSYS-03 | Phase 76 | Pending |
+| DSYS-04 | Phase 76 | Pending |
+| DSYS-05 | Phase 76 | Pending |
+| DSYS-06 | Phase 76 | Pending |
+| DSYS-07 | Phase 76 | Pending |
+| FLOW-01 | Phase 77 | Pending |
+| FLOW-02 | Phase 77 | Pending |
+| FLOW-03 | Phase 77 | Pending |
+| FLOW-04 | Phase 77 | Pending |
+| WIRE-01 | Phase 78 | Pending |
+| WIRE-02 | Phase 78 | Pending |
+| WIRE-03 | Phase 78 | Pending |
+| CRIT-01 | Phase 79 | Pending |
+| CRIT-02 | Phase 79 | Pending |
+| CRIT-03 | Phase 79 | Pending |
+| CRIT-04 | Phase 79 | Pending |
+| CRIT-05 | Phase 79 | Pending |
+| CRIT-06 | Phase 79 | Pending |
+| CRIT-07 | Phase 79 | Pending |
+| CRIT-08 | Phase 79 | Pending |
+| PHIG-01 | Phase 79 | Pending |
+| PHIG-02 | Phase 79 | Pending |
+| PHIG-03 | Phase 79 | Pending |
+| PHIG-04 | Phase 79 | Pending |
+| PHIG-05 | Phase 79 | Pending |
+| PHIG-06 | Phase 79 | Pending |
+| PHIG-07 | Phase 79 | Pending |
+| HDOF-01 | Phase 81 | Pending |
+| HDOF-02 | Phase 81 | Pending |
+| HDOF-03 | Phase 81 | Pending |
+| HDOF-04 | Phase 81 | Pending |
+| HDOF-05 | Phase 81 | Pending |
+| HDOF-06 | Phase 81 | Pending |
+| PRNT-01 | Phase 80 | Pending |
+| PRNT-02 | Phase 80 | Pending |
+| PRNT-03 | Phase 80 | Pending |
+| PRNT-04 | Phase 80 | Pending |
 
 **Coverage:**
-- v0.11 requirements: 47 total
-- Mapped to phases: 0
-- Unmapped: 47
+- v0.11 requirements: 48 total (note: initial estimate was 47; actual count is 48 across 9 categories)
+- Mapped to phases: 48
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-21*
-*Last updated: 2026-03-21 after initial definition*
+*Last updated: 2026-03-21 — traceability mapped to phases 74-81 during roadmap creation*

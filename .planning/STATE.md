@@ -6,7 +6,7 @@ status: active
 stopped_at: null
 last_updated: "2026-03-21"
 progress:
-  total_phases: 0
+  total_phases: 9
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -19,14 +19,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** v0.11 Experience Product Type — Defining requirements
+**Current focus:** v0.11 Phase 74 — Foundation and Regression Infrastructure
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-03-21 — Milestone v0.11 started
+Phase: 74 of 82 (Foundation and Regression Infrastructure)
+Plan: — of TBD
+Status: Ready to plan
+Last activity: 2026-03-21 — Roadmap created for v0.11 Experience Product Type (9 phases, 48 requirements)
+
+Progress: [░░░░░░░░░░] 0% (0/9 phases complete)
 
 ## Performance Metrics
 
@@ -41,35 +43,24 @@ Last activity: 2026-03-21 — Milestone v0.11 started
 
 Decisions are logged in PROJECT.md Key Decisions table.
 
-Key architectural constraints for this milestone:
+Key architectural constraints locked for this milestone:
 
-- Hook handler must produce zero stdout — all output to /tmp/ only
-- Suggestion generation: 2-second budget, zero LLM calls, max 3 synchronous file reads
-- All suggestion state in /tmp/ — zero files in .planning/ from suggestion system
-- Pane 7 added to build_full_layout() only — build_minimal_layout() unchanged
-- [Phase 70]: async: true on Notification hook — synchronous notification hooks block Claude Code notification delivery pipeline
-- [Phase 70]: MEANINGFUL_EVENTS = phase_started | phase_complete | plan_started — wave events excluded as too granular for suggestion triggers
-- [Phase 70]: Marker file idempotency via .last-event-ts prevents duplicate suggestion writes on repeat idle_prompt fires
-- [Phase 71]: No additional try/catch around generateSuggestions() — outer catch already swallows engine errors, preserving zero-exit-code contract
-- [Phase 72]: DESIGN-STATE items reclassified from category:review to category:think — per-item judgment calls are think-priority (3) per CONT-05 semantics
-- [Phase 72]: Catalog has 6 sections (not 7) — no review section; review category is exclusively for dynamically-generated artifact paths from design-manifest.json
-- [Phase 72]: Inject context-notes as <context_notes> XML block in plan-phase.md Step 8 planner prompt — after </files_to_read>, before Phase requirement IDs line
-- [Phase 72]: NOTES_CONTEXT placed last in brief.md Sub-step 2c — user-authored domain facts supplement PROJECT.md but are not a replacement
-- [Phase 73]: Polling (sleep 3) not tail -F for suggestion file — file is atomically replaced via fs.writeFileSync
-- [Phase 73]: P6 split at 50% from P5 (token/cost pane) in build_full_layout() — build_minimal_layout() unchanged per DASH-04
-- [Phase 73]: suggestions subcommand uses process.stdout.write (not console.log) for clean output piping
+- Sub-types (single-night, multi-day, recurring-series, installation, hybrid-event) are metadata attributes on the manifest, not structural pipeline branches — established in Phase 74, irreversible
+- Experience tokens live in SYS-experience-tokens.json, never merged into SYS-tokens.json — established in Phase 76, irreversible
+- All experience behavior lives as conditional blocks in existing workflow files — no new workflow files (preserves --from stage resumption)
+- Every regulatory value in critique and handoff output must carry [VERIFY WITH LOCAL AUTHORITY] inline tag — established in Phase 74 disclaimer block
+- Print artifacts are framed as composition reference guides, not production print files — "print-ready" phrase prohibited without prepress disclaimer
 
-### Completed Plan Decisions (71-01)
+### Phase Ordering Rationale
 
-- CATEGORY_PRIORITY sort: use `!== undefined` guard (not `|| 99`) — blocker has priority 0 which is falsy in JS
-- filePath rendered as `// {path}` suffix on suggestion output line for ENGN-05 artifact visibility
-- classifyPhase exported alongside generateSuggestions and rankSuggestions for unit-test assertions
-- readManifest reads from `.planning/design/design-manifest.json` (not project root)
-
-### Completed Plan Decisions (70-02)
-
-- messageIdleNotifThresholdMs: 5000 documented in ~/.CLAUDE.json in Getting Started, section after "What's Next" and before "Command Cheat Sheet"
-- Explicitly named ~/.CLAUDE.json (not settings.json) to prevent misconfiguration — confirmed from GH issue #13922
+- Phase 74 before all: regression infrastructure and two irreversible architecture decisions must precede any workflow modifications
+- Phase 75 before Phase 76: token generation is parametrized by brief data (venue capacity drives spatial tokens, vibe drives lighting palette)
+- Phase 76 before Phase 77: flow diagrams consume design tokens for zone color annotations
+- Phase 77 before Phase 78: floor plan requires spatial flow as layout rationale; timeline requires temporal flow
+- Phase 78 before Phase 79: critique and HIG review the floor plan — no layout means no safety review
+- Phase 79 and Phase 80 before Phase 81: HIG checklist and flyer artifacts are referenced sections in the production bible
+- Phase 82 last: all modifications complete before full regression validation runs
+- Phase 80 depends on Phase 76 (tokens), not Phase 79 — print runs in parallel with critique/HIG
 
 ### Pending Todos
 
@@ -77,12 +68,14 @@ Key architectural constraints for this milestone:
 
 ### Blockers/Concerns
 
-(None)
+- Research flag: SVG spatial generation quality for floor plans is empirically unvalidated — generate 2-3 example floor plans early in Phase 78 before committing to prompt architecture
+- Research flag: CSS @page browser compatibility (Chrome reliable, Firefox/Safari partial) — test print-to-PDF in Chrome before finalizing print artifact spec
+- Research flag: Multi-stage festival gantt legibility above ~20 items — explicit manifest naming convention for multi-stage TML artifacts needed in Phase 77
 
 ## Session Continuity
 
-Last session: 2026-03-21T07:49:34.007Z
-Stopped at: Completed 73-02-PLAN.md
+Last session: 2026-03-21
+Stopped at: Roadmap created — ready to plan Phase 74
 Resume file: None
 
-Next action: Run /pde:new-milestone to start v0.11
+Next action: Run /pde:plan-phase 74
