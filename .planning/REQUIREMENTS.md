@@ -55,10 +55,10 @@ Requirements for Google Stitch Integration milestone. Each maps to roadmap phase
 
 ### Critique Comparison
 
-- [ ] **CRT-01**: /pde:critique detects Stitch-sourced artifacts (via source: "stitch" in manifest) and applies Stitch-aware evaluation mode
-- [ ] **CRT-02**: Stitch-aware mode suppresses DTCG token-format consistency checks (Stitch uses hardcoded hex, not OKLCH custom properties)
-- [ ] **CRT-03**: Multimodal critique uses Claude's image reading to analyze Stitch PNG screenshots alongside HTML source
-- [ ] **CRT-04**: Critique compares Stitch output against design system tokens and flags divergences as recommendations (not failures)
+- [x] **CRT-01**: /pde:critique detects Stitch-sourced artifacts (via source: "stitch" in manifest) and applies Stitch-aware evaluation mode
+- [x] **CRT-02**: Stitch-aware mode suppresses DTCG token-format consistency checks (Stitch uses hardcoded hex, not OKLCH custom properties)
+- [x] **CRT-03**: Multimodal critique uses Claude's image reading to analyze Stitch PNG screenshots alongside HTML source
+- [x] **CRT-04**: Critique compares Stitch output against design system tokens and flags divergences as recommendations (not failures)
 
 ### Handoff Pattern Extraction
 
@@ -119,10 +119,10 @@ Requirements for Google Stitch Integration milestone. Each maps to roadmap phase
 | IDT-02 | Phase 67 | Complete |
 | IDT-03 | Phase 67 | Complete |
 | IDT-04 | Phase 67 | Complete |
-| CRT-01 | Phase 68 | Pending |
-| CRT-02 | Phase 68 | Pending |
-| CRT-03 | Phase 68 | Pending |
-| CRT-04 | Phase 68 | Pending |
+| CRT-01 | Phase 68 | Complete |
+| CRT-02 | Phase 68 | Complete |
+| CRT-03 | Phase 68 | Complete |
+| CRT-04 | Phase 68 | Complete |
 | HND-01 | Phase 69 | Pending |
 | HND-02 | Phase 69 | Pending |
 | HND-03 | Phase 69 | Pending |
