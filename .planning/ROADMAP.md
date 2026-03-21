@@ -226,7 +226,10 @@ Plans:
   3. Before any PDE phase has started, Pane 7 displays the zero-state message "Waiting for PDE to start a phase. Suggestions will appear when a phase completes." rather than empty content
   4. Running /pde:suggestions in a terminal without tmux prints the current suggestion list to stdout and exits cleanly
   5. The monitor.md workflow documentation describes the 7-pane layout including Pane 7's purpose and the zero-state behavior
-**Plans**: [To be planned]
+**Plans**: 2 plans
+Plans:
+- [ ] 73-01-PLAN.md — Pane 7 script and build_full_layout() P6 wiring
+- [ ] 73-02-PLAN.md — /pde:suggestions CLI command, monitor.md docs, and verification tests
 
 ## Progress
 
@@ -244,4 +247,4 @@ Plans:
 | 70. Hook Integration and Delivery Architecture | 2/2 | Complete    | 2026-03-21 | - |
 | 71. Suggestion Engine | 2/2 | Complete    | 2026-03-21 | - |
 | 72. Suggestion Catalog and Content Layer | 2/2 | Complete    | 2026-03-21 | - |
-| 73. Dashboard Integration | v0.10 | 0/TBD | Not started | - |
+| 73. Dashboard Integration | v0.10 | 0/2 | Not started | - |
