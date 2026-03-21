@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.1
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 68-01-PLAN.md
-last_updated: "2026-03-21T03:22:10.983Z"
+stopped_at: Completed 68-02-PLAN.md
+last_updated: "2026-03-21T03:27:40.028Z"
 progress:
   total_phases: 6
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 10
-  completed_plans: 9
+  completed_plans: 10
 ---
 
 # Project State
@@ -87,6 +87,7 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 68]: Token suppression scoped to 'Token not applied' row only — color contrast and all other calibration rows remain active for Stitch artifacts
 - [Phase 68]: Stitch Comparison uses recommendations (not findings) — does not affect composite score, Action List, or DESIGN-STATE Open Critique Items
 - [Phase 68]: PNG reading non-blocking in critique: HAS_PNG=false fallback if STH-{slug}.png missing; critique proceeds HTML-only in degraded mode
+- [Phase 68]: Use lastIndexOf (not indexOf) for ## Stitch Comparison ordering assertions — string has multiple prose occurrences before the actual template section
 
 ### Pending Todos
 
@@ -101,8 +102,8 @@ Decisions are logged in PROJECT.md Key Decisions table.
 
 ## Session Continuity
 
-Last session: 2026-03-21T03:22:10.980Z
-Stopped at: Completed 68-01-PLAN.md
+Last session: 2026-03-21T03:27:40.025Z
+Stopped at: Completed 68-02-PLAN.md
 Resume file: None
 
 Next action: Execute Phase 66 Plan 02 (mockup Stitch integration) or Phase 66 Plan 03 (Nyquist tests)
