@@ -46,7 +46,7 @@ Use highest-fidelity artifact found. Log which artifact(s) being audited and the
 
 </context_routing>
 
-<!-- Experience product type — Phase 74 stub: physical interface guidelines replacing WCAG checks (acoustic zone signage legibility, wayfinding contrast, crowd flow indicator visibility) are added in Phase 79. Current behavior: proceed with WCAG/HIG software path as temporary fallback for experience product type. NEVER apply software WCAG findings as final for experience products from this stub. -->
+<!-- Experience product type: physical HIG domains implemented in Step 4/7 — see productType gate. Required reading for experience mode: @references/experience-disclaimer.md -->
 
 <required_reading>
 @references/skill-style-guide.md
@@ -54,6 +54,7 @@ Use highest-fidelity artifact found. Log which artifact(s) being audited and the
 @references/wcag-baseline.md
 @references/interaction-patterns.md
 @references/motion-design.md
+@references/experience-disclaimer.md
 </required_reading>
 
 <flags>
@@ -186,7 +187,141 @@ Display: `Step 3/7: MCP probes complete. Axe: {available|unavailable}. Sequentia
 
 ---
 
-### Step 4/7: Execute WCAG + HIG audit
+### Step 4/7: Execute audit
+
+**Read PRODUCT_TYPE from design manifest:**
+
+```bash
+MANIFEST=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-read)
+if [[ "$MANIFEST" == @file:* ]]; then MANIFEST=$(cat "${MANIFEST#@file:}"); fi
+```
+
+Parse `productType` from the JSON result.
+
+**IF productType === "experience":**
+
+  **Switch audit target to floor plan:**
+
+  Use the Glob tool to check for `.planning/design/ux/wireframes/FLP-floor-plan-v*.html`.
+  - If found: SET AUDIT_ARTIFACT = floor plan path (highest version). SET FIDELITY_LEVEL = lofi (floor plans are always schematic).
+  - If not found: HALT with error:
+    ```
+    Error: No floor plan found for experience product HIG audit.
+      /pde:hig for experience products requires the floor plan artifact (FLP).
+      Run /pde:wireframe first to generate the floor plan, then re-run /pde:hig.
+    ```
+
+  Load @references/experience-disclaimer.md into context.
+
+  **IF --light mode (LIGHT_MODE=true) AND productType === "experience":**
+
+    Run abbreviated physical accessibility check only (matching critique Perspective 2 scope):
+    - Step-free access routes to all primary zones
+    - BSL interpreter sightlines at performance areas
+    - Quiet/sensory zone presence
+    - Wheelchair viewing platform presence
+    - Accessible toilet facilities count
+
+    Output using critique Perspective 3 table format:
+    | Severity | Effort | Location | Issue | Suggestion | Reference |
+    |----------|--------|----------|-------|------------|-----------|
+
+    Tag output: `[Physical HIG -- /pde:hig --light experience mode]`
+
+    **STOP HERE for --light experience mode. Do NOT proceed to Steps 5-7.**
+
+  **IF full mode AND productType === "experience":**
+
+    Run seven physical interface guideline domains:
+
+    #### Physical HIG Domain 1: Wayfinding
+
+    Checklist:
+    - Signage at all decision points (entry -> main zones, zones -> toilets/bar/exit)
+    - Low-light readability: retro-reflective or illuminated, 75mm letter height for 10m viewing distance [VERIFY WITH LOCAL AUTHORITY]
+    - Multilingual support if international audience in brief
+    - Accessibility wayfinding: step-free routes distinctly signed
+
+    Severity ratings:
+    - No signage at primary entry = Critical
+    - Missing at secondary zones = Major
+    - No low-light legibility for night event = Major
+    - Missing multilingual for international audience = Minor
+
+    #### Physical HIG Domain 2: Acoustic Zoning
+
+    Checklist:
+    - Conversation-possible zone at < 70dB adjacent to high-volume area [VERIFY WITH LOCAL AUTHORITY]
+    - Zone transition: gradual buffer zones between high/low volume areas
+    - Hearing protection notice posted for zones > 85dB sustained [VERIFY WITH LOCAL AUTHORITY]
+
+    Severity ratings:
+    - No conversation-possible zone = Major
+    - Abrupt high/low volume adjacency without buffer = Minor
+
+    #### Physical HIG Domain 3: Queue UX
+
+    Checklist:
+    - Wait time communication: status board positioned at entry gateline and bar
+    - Weather protection: covered queue for entry gateline
+    - Skip-queue tiers: separate VIP gateline if indicated in brief
+    - Queue capacity: physical space for max queue length without extending into primary circulation paths
+
+    #### Physical HIG Domain 4: Transaction Speed
+
+    Checklist:
+    - Bar order target < 90s per transaction [VERIFY WITH LOCAL AUTHORITY] — derive from bar station count and peak hourly attendance
+    - Entry processing target < 30s per person [VERIFY WITH LOCAL AUTHORITY] — derive from gateline width and arrival peak distribution
+    - Cashless vs cash: bar placement supports cashless-only operation if indicated in brief
+
+    #### Physical HIG Domain 5: Toilet Ratio
+
+    Checklist:
+    - Female ratio minimum 1:75 [VERIFY WITH LOCAL AUTHORITY] — use 50/50 gender split if not specified in brief
+    - Male ratio minimum 1:100 [VERIFY WITH LOCAL AUTHORITY]
+    - Accessible facilities minimum 1 per provision unit [VERIFY WITH LOCAL AUTHORITY]
+    - Distance: facilities within 150m from any zone [VERIFY WITH LOCAL AUTHORITY]
+
+    Severity ratings:
+    - Ratio below minimum = Critical
+    - Accessible facilities absent = Critical
+    - Distance > 150m from any zone = Major
+
+    #### Physical HIG Domain 6: Hydration
+
+    Checklist:
+    - Free water points minimum 1 per 500 attendees [VERIFY WITH LOCAL AUTHORITY — some jurisdictions mandate at licensed events]
+    - Visibility: water points positioned in high-traffic areas, not obscured by infrastructure
+    - Signage: "Free Water" conspicuously signed at wayfinding decision points
+
+    Severity ratings:
+    - No free water points = Critical
+    - Water points not signed = Major
+
+    #### Physical HIG Domain 7: First Aid
+
+    Checklist:
+    - Response time: trained first aider reachable within 2 minutes from any point on site (approximately 170m walking distance) [VERIFY WITH LOCAL AUTHORITY]
+    - First aid post clearly identified on floor plan with international medical symbol
+    - Staffing ratio: 1 first aider per 100-250 attendees [VERIFY WITH LOCAL AUTHORITY]
+    - Defibrillator (AED) positioned and signed [VERIFY WITH LOCAL AUTHORITY — mandatory in some jurisdictions for events over certain attendance thresholds]
+
+    Severity ratings:
+    - No first aid post identified on floor plan = Critical
+    - First aider response time > 2 minutes from any point = Critical
+    - No AED for events > 500 attendees = Major
+
+    **SKIP all WCAG criteria and POUR analysis entirely.** Do NOT produce findings for color contrast, keyboard navigation, focus indicators, touch targets, or any WCAG criterion.
+
+    Tag all output: `[Physical HIG -- /pde:hig experience mode]`
+
+    Set PHYSICAL_HIG_MODE = true.
+
+    Proceed to Step 5/7.
+
+ELSE:
+
+  **Standard WCAG/HIG audit path (existing behavior for software/hardware/hybrid products):**
 
 **IF --light mode (LIGHT_MODE=true):**
 
@@ -477,6 +612,43 @@ Display: `Step 4/7: Audit complete. {N} findings identified (critical: {c}, majo
 
 Use the template structure from templates/hig-audit.md. Write to `.planning/design/review/HIG-audit-v{N}.md`.
 
+**IF PHYSICAL_HIG_MODE = true (experience products):**
+
+Use the following physical HIG artifact format:
+
+**YAML Frontmatter:**
+```yaml
+---
+Generated: "{ISO 8601 date}"
+Skill: /pde:hig (HIG)
+Mode: physical-hig-experience
+Version: v{N}
+Status: draft
+Artifact: Floor Plan FLP-v{N}
+Fidelity: lofi
+Enhanced By: "none"
+---
+```
+
+**Sections in order:**
+1. `# Physical HIG Audit: {project_name}` (or artifact name if no project name found)
+2. `## Executive Summary` — overall physical compliance summary, critical finding count, recommended priority actions
+3. `## Physical HIG Domains Summary` — table with all 7 domains:
+   `| Domain | Status | Findings | Priority |` with one row per domain
+4. `## Findings by Severity` — all findings sorted critical → major → minor → nit
+5. `## Recommendations` — priority-ordered remediation actions
+
+**Footer:**
+```markdown
+---
+
+*Generated by PDE-OS /pde:hig | {ISO 8601 date} | Mode: physical-hig-experience | Artifact: Floor Plan FLP-v{N}*
+
+[Physical HIG -- /pde:hig experience mode]
+```
+
+ELSE (standard software/hardware/hybrid products):
+
 **YAML Frontmatter:**
 ```yaml
 ---
@@ -595,15 +767,20 @@ node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design lock-release
 
 **Update design manifest (7-call pattern):**
 
+If PHYSICAL_HIG_MODE = true (experience products): set artifact type to `physical-hig-audit`.
+ELSE (software/hardware/hybrid products): set artifact type to `hig-audit`.
+
 ```bash
 node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update HIG code HIG
 node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update HIG name "HIG Audit"
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update HIG type hig-audit
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update HIG type {physical-hig-audit if PHYSICAL_HIG_MODE=true, else hig-audit}
 node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update HIG domain review
 node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update HIG path ".planning/design/review/HIG-audit-v{N}.md"
 node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update HIG status draft
 node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update HIG version {N}
 ```
+
+Note: The `hasHigAudit: true` coverage flag name is the same regardless of mode (physical or software).
 
 **Set coverage flag (pass-through-all — read-before-set to prevent clobber):**
 
