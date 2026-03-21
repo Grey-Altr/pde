@@ -148,7 +148,7 @@ Full details: .planning/milestones/v0.8-ROADMAP.md
 <summary>🔄 v0.9 Google Stitch Integration (Phases 64-69) — IN PROGRESS</summary>
 
 - [x] **Phase 64: Coverage Schema Migration** - Extend designCoverage with hasStitchWireframes across all 13 pipeline skills (completed 2026-03-20)
-- [ ] **Phase 65: MCP Bridge + Quota Infrastructure** - Register Stitch as 6th approved server with auth, tool map, and quota tracking
+- [x] **Phase 65: MCP Bridge + Quota Infrastructure** - Register Stitch as 6th approved server with auth, tool map, and quota tracking (completed 2026-03-20)
 - [ ] **Phase 66: Wireframe + Mockup Stitch Integration** - --use-stitch flag on wireframe and mockup with full generate-fetch-persist-annotate pipeline, consent gates, and efficiency contracts
 - [ ] **Phase 67: Ideation Visual Divergence** - --diverge generates Stitch visual variants per concept with batch consent and quota awareness
 - [ ] **Phase 68: Critique Stitch Comparison** - Stitch-aware critique mode with multimodal PNG analysis and token delta report
@@ -183,8 +183,8 @@ Plans:
   5. checkStitchQuota returns allowed:false with reason quota_exhausted when limit reached, enabling Phase 66 automatic fallback routing (WFR-06)
 **Plans**: 2 plans
 Plans:
-- [ ] 65-01-PLAN.md — Register Stitch in APPROVED_SERVERS, TOOL_MAP, AUTH_INSTRUCTIONS, and connect.md Step 3.10
-- [ ] 65-02-PLAN.md — Implement quota tracking functions and surface in progress/health workflows
+- [x] 65-01-PLAN.md — Register Stitch in APPROVED_SERVERS, TOOL_MAP, AUTH_INSTRUCTIONS, and connect.md Step 3.10
+- [x] 65-02-PLAN.md — Implement quota tracking functions and surface in progress/health workflows
 
 ### Phase 66: Wireframe + Mockup Stitch Integration
 **Goal**: Users can run /pde:wireframe --use-stitch and /pde:mockup --use-stitch to generate screens through Stitch, with data persisted locally, annotations injected, consent obtained before every data transmission, and cached artifacts reused by downstream stages
@@ -246,7 +246,7 @@ Plans:
 | 54-57 | v0.7 | 11/11 | Complete | 2026-03-20 |
 | 58-63 | v0.8 | 13/13 | Complete | 2026-03-20 |
 | 64 | v0.9 | Complete    | 2026-03-20 | 2026-03-20 |
-| 65 | 2/2 | Complete    | 2026-03-20 | - |
+| 65 | v0.9 | 2/2 | Complete | 2026-03-20 |
 | 66 | v0.9 | 0/TBD | Not started | - |
 | 67 | v0.9 | 0/TBD | Not started | - |
 | 68 | v0.9 | 0/TBD | Not started | - |
