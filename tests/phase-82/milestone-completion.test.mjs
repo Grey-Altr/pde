@@ -260,13 +260,6 @@ describe('Pending phases — Phase 74 stubs intact (phases 75-78 NOT YET IMPLEME
 // ---------------------------------------------------------------------------
 
 describe('Pending phases — test.todo() markers for phases 75-78', () => {
-  // Phase 75: BREF extensions — experience brief capture fields
-  test.todo('Phase 75: BREF-01 — experience brief captures promise statement');
-  test.todo('Phase 75: BREF-02 — experience brief captures vibe contract');
-  test.todo('Phase 75: BREF-03 — experience brief captures audience archetype');
-  test.todo('Phase 75: BREF-04 — experience brief captures venue constraints');
-  test.todo('Phase 75: BREF-05 — experience brief captures repeatability intent');
-
   // Phase 76: DSYS — experience design system tokens
   test.todo('Phase 76: DSYS-01 — sonic design tokens generated');
   test.todo('Phase 76: DSYS-02 — lighting design tokens generated');
