@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.11
 milestone_name: Experience Product Type
 status: unknown
-stopped_at: Completed 77-01-PLAN.md
-last_updated: "2026-03-21T22:56:36.261Z"
+stopped_at: Completed 77-02-PLAN.md
+last_updated: "2026-03-21T23:00:01.319Z"
 progress:
   total_phases: 9
-  completed_phases: 7
+  completed_phases: 8
   total_plans: 16
-  completed_plans: 15
+  completed_plans: 16
 ---
 
 # Project State
@@ -84,6 +84,7 @@ Key architectural constraints locked for this milestone:
 - [Phase 77]: Step 4-EXP mutual exclusion: experience products skip Steps 4a-4e entirely — TFL/SFL/SOC generated via dedicated path, not alongside software flow
 - [Phase 77]: spaces-inventory.json uses fixed unversioned path (.planning/design/ux/spaces-inventory.json) — same convention as FLW-screen-inventory.json, consumed by Phase 78 floor plan
 - [Phase 77]: Coverage updated to 16-field read-merge-write pattern (adds hasPrintCollateral, hasProductionBible) — prevents coverage field truncation on experience product runs
+- [Phase 77]: No new decisions — FLOW todo markers removed after positive assertions confirmed present from Plan 01
 
 ### Phase Ordering Rationale
 
@@ -108,8 +109,8 @@ Key architectural constraints locked for this milestone:
 
 ## Session Continuity
 
-Last session: 2026-03-21T22:56:36.258Z
-Stopped at: Completed 77-01-PLAN.md
+Last session: 2026-03-21T23:00:01.316Z
+Stopped at: Completed 77-02-PLAN.md
 Resume file: None
 
 Next action: Execute Phase 75 (experience design system token generation)
