@@ -149,6 +149,33 @@ Store as PRODUCT_NAME, PRODUCT_TYPE.
 
 <!-- Experience product type — Phase 74 stub: floor plan (FLP) and timeline (TML) artifacts are added in Phase 78. Current behavior: proceed with software wireframe path as temporary fallback for experience product type. NEVER produce floor plans or timeline wireframes from this stub. -->
 
+<!-- Phase 80 — Print Collateral: FLY (event flyer) and SIT (series identity template) -->
+<!-- Depends on: PRODUCT_TYPE === "experience" from Step 2e brief read -->
+<!-- Soft dependency: SYS-experience-tokens.json for brand colors (fallback: 3-color default palette) -->
+
+#### 2h. Print collateral prerequisites (experience products only)
+
+IF `PRODUCT_TYPE !== "experience"`: skip Step 2h entirely.
+
+Use the Glob tool to check for `.planning/design/assets/SYS-experience-tokens.json`.
+
+- If **absent**: set `PRINT_TOKENS_AVAILABLE = false`. Define fallback palette:
+  ```javascript
+  /* Fallback: run /pde:system first for branded tokens */
+  const PRINT_PALETTE = {
+    brand_primary: "#1a1a1a",
+    brand_accent: "#ff5500",
+    brand_bg: "#ffffff"
+  };
+  ```
+  Log: `Warning: SYS-experience-tokens.json not found. Using fallback print palette. Run /pde:system for branded tokens.`
+
+- If **present**: set `PRINT_TOKENS_AVAILABLE = true`. Use the Read tool to load it. Extract `brand_primary`, `brand_accent`, `brand_bg` color values for use in CMYK table generation. Store as `PRINT_PALETTE`.
+
+Read `design-manifest.json` (if present) to extract `experienceSubType`:
+- If `experienceSubType === "recurring-series"`: set `GENERATE_SIT = true`
+- Otherwise: set `GENERATE_SIT = false`. Log: `SIT skipped — experienceSubType is {value}, not recurring-series.`
+
 #### 2f. Read design tokens (soft dependency)
 
 Use the Glob tool to check for `.planning/design/assets/tokens.css`.
@@ -806,6 +833,268 @@ After completing the five decision sub-steps, embed the following COMPOSITION an
 
 This annotation block MUST be present in every generated wireframe HTML file regardless of fidelity level. It is a structural requirement, not a quality enhancement.
 
+#### 4g. Generate print collateral (experience products only)
+
+IF `PRODUCT_TYPE !== "experience"`: **skip Step 4g entirely.** Do not generate any print files for non-experience products.
+
+This step generates TWO print collateral artifacts for experience products.
+
+---
+
+**FLY artifact (always generated for experience products):**
+
+Generate a self-contained HTML file using the scaffold below. The file MUST contain ALL of the following elements:
+
+```html
+<!DOCTYPE html>
+<!-- Source: PDE Phase 80 — FLY artifact pattern -->
+<!-- PREPRESS NOTICE: This is a composition reference, NOT a production print file. -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FLY — {{EVENT_NAME}} — Event Flyer (Composition Reference)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+  <style>
+    /* Reset */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #e8e8e8;
+      font-family: system-ui, sans-serif;
+      padding: 40px 20px;
+    }
+
+    /* Format switching */
+    .format-selector {
+      display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap;
+    }
+    .format-btn {
+      padding: 6px 14px; border: 1px solid #999; border-radius: 4px;
+      background: white; cursor: pointer; font-size: 13px;
+    }
+    .format-btn.active { background: #1a1a1a; color: white; border-color: #1a1a1a; }
+
+    /* ---- A5 FORMAT (default) ---- */
+    @page { size: A5 portrait; margin: 0; }
+
+    body[data-format="a5"] .page-container,
+    body:not([data-format]) .page-container {
+      width: 148mm; height: 210mm;
+    }
+
+    /* ---- A4 FORMAT ---- */
+    body[data-format="a4"] .page-container { width: 210mm; height: 297mm; }
+
+    /* ---- INSTAGRAM SQUARE (1080x1080px — screen-only, no @page) ---- */
+    body[data-format="ig-square"] .page-container {
+      width: 1080px; height: 1080px;
+      transform: scale(0.35); transform-origin: top left;
+      margin-bottom: calc(1080px * (0.35 - 1) + 24px);
+    }
+
+    /* ---- INSTAGRAM STORY (1080x1920px — screen-only, no @page) ---- */
+    body[data-format="ig-story"] .page-container {
+      width: 1080px; height: 1920px;
+      transform: scale(0.25); transform-origin: top left;
+      margin-bottom: calc(1920px * (0.25 - 1) + 24px);
+    }
+
+    /* Page container */
+    .page-container {
+      position: relative;
+      background: white;
+      overflow: hidden;
+      margin: 0 auto;
+    }
+
+    /* Bleed zone (3mm) — faked via pseudo-element (the @page bleed descriptor is not implemented in any browser) */
+    .page-container::before {
+      content: '';
+      position: absolute;
+      inset: -3mm;
+      border: 1.5px dashed rgba(0,80,200,0.5);
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    /* Safe zone (5mm inside trim) */
+    .page-container::after {
+      content: '';
+      position: absolute;
+      inset: 5mm;
+      border: 1px dashed rgba(200,0,0,0.35);
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    /* Zone legend */
+    .zone-legend {
+      display: flex; gap: 16px; margin-top: 8px;
+      font-size: 11px; color: #555;
+    }
+    .zone-legend span::before {
+      content: ''; display: inline-block;
+      width: 20px; height: 2px; vertical-align: middle; margin-right: 4px;
+    }
+    .zone-legend .bleed-swatch::before { border-top: 1.5px dashed rgba(0,80,200,0.5); }
+    .zone-legend .safe-swatch::before  { border-top: 1px dashed rgba(200,0,0,0.35); }
+
+    /* Hide guides on actual print */
+    @media print {
+      body { background: white; padding: 0; }
+      .format-selector, .zone-legend, .cmyk-table,
+      .prepress-disclaimer, .format-btn { display: none !important; }
+      .page-container::before, .page-container::after { display: none !important; }
+      /* Instagram formats are screen-only — hide entirely on print */
+      body[data-format="ig-square"] .page-container,
+      body[data-format="ig-story"] .page-container { display: none !important; }
+    }
+  </style>
+</head>
+<body data-format="a5">
+
+  <nav class="format-selector" aria-label="Format variants">
+    <button class="format-btn active" onclick="setFormat('a5', this)">A5 Flyer (148×210mm)</button>
+    <button class="format-btn" onclick="setFormat('a4', this)">A4 Poster (210×297mm)</button>
+    <button class="format-btn" onclick="setFormat('ig-square', this)">Instagram Square (1080×1080px)</button>
+    <button class="format-btn" onclick="setFormat('ig-story', this)">Instagram Story (1080×1920px)</button>
+  </nav>
+
+  <div class="page-container">
+    <!-- COMPOSITION: event-flyer
+      Awwwards-level composition rules:
+      - Clear focal hierarchy: L1 event name > L2 headliner > L3 date/venue > L4 details
+      - Intentional negative space: minimum 25% of page area empty
+      - Maximum 3 typefaces: 1 display, 1 body, 1 accent (optional)
+      - Grid: rule-of-thirds or golden-ratio — chosen per event aesthetic
+      - Color: derived from SYS-experience-tokens.json brand coherence tokens
+      - Legible at intended print size (14pt minimum body text at A5)
+    -->
+
+    <!-- Flyer content generated here from PRINT_PALETTE + brief data -->
+    <!-- Typography: display face for event name (L1), body for date/venue (L3) -->
+    <!-- Color: brand colors from PRINT_PALETTE; dark background preferred for event flyers -->
+
+  </div>
+
+  <div class="zone-legend">
+    <span class="bleed-swatch">Bleed zone (3mm — simulated, @page bleed not browser-supported)</span>
+    <span class="safe-swatch">Safe zone (5mm inside trim)</span>
+  </div>
+
+  <!-- CMYK approximation table — generated from PRINT_PALETTE brand colors -->
+  <!-- Use inline rgbToCmyk function (RapidTables standard formula) to compute values: -->
+  <!-- function rgbToCmyk(r, g, b) { -->
+  <!--   const rr = r/255, gg = g/255, bb = b/255; -->
+  <!--   const k = 1 - Math.max(rr, gg, bb); -->
+  <!--   if (k === 1) return { c: 0, m: 0, y: 0, k: 100, inkTotal: 100 }; -->
+  <!--   const c = Math.round(((1-rr-k)/(1-k))*100); -->
+  <!--   const m = Math.round(((1-gg-k)/(1-k))*100); -->
+  <!--   const y = Math.round(((1-bb-k)/(1-k))*100); -->
+  <!--   const kk = Math.round(k*100); -->
+  <!--   return { c, m, y, k: kk, inkTotal: c+m+y+kk }; -->
+  <!-- } -->
+  <!-- Flag rows where inkTotal > 300% with warning indicator -->
+  <table class="cmyk-table" style="margin-top:24px; border-collapse:collapse; font-size:12px; width:100%; max-width:600px;">
+    <caption style="font-weight:bold; margin-bottom:8px; text-align:left;">CMYK Approximation — Composition Reference Only</caption>
+    <thead>
+      <tr style="background:#f0f0f0;">
+        <th style="padding:6px 8px; text-align:left; border:1px solid #ddd;">Swatch</th>
+        <th style="padding:6px 8px; border:1px solid #ddd;">Name</th>
+        <th style="padding:6px 8px; border:1px solid #ddd;">Hex</th>
+        <th style="padding:6px 8px; border:1px solid #ddd;">C</th>
+        <th style="padding:6px 8px; border:1px solid #ddd;">M</th>
+        <th style="padding:6px 8px; border:1px solid #ddd;">Y</th>
+        <th style="padding:6px 8px; border:1px solid #ddd;">K</th>
+        <th style="padding:6px 8px; border:1px solid #ddd;">Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- One row per PRINT_PALETTE color — Claude generates rows here -->
+      <!-- Example row: -->
+      <!-- <tr><td><span style="display:inline-block;width:20px;height:20px;background:{hex}"></span></td> -->
+      <!--   <td>Brand Primary</td><td>{hex}</td><td>{C}%</td><td>{M}%</td><td>{Y}%</td><td>{K}%</td> -->
+      <!--   <td style="{inkTotal > 300 ? 'color:red;font-weight:bold' : ''}">{inkTotal}%{inkTotal > 300 ? ' ⚠' : ''}</td></tr> -->
+    </tbody>
+  </table>
+  <p style="font-size:11px; color:#666; margin-top:8px; max-width:600px;">
+    These values are mathematical sRGB-to-CMYK approximations. No ICC profiles or GCR/UCR applied.
+    Total ink &gt; 300% may cause issues on press. Provide actual brand color specifications to your supplier.
+  </p>
+
+  <!-- MANDATORY prepress disclaimer — do NOT use the phrase "print-ready" without this block -->
+  <!-- IMPORTANT: The phrase "print-ready" is prohibited in generated flyer content. -->
+  <!-- If describing this artifact, use "composition reference" instead. -->
+  <!-- If the phrase "print-ready" must appear, it MUST be immediately adjacent to this disclaimer block. -->
+  <aside class="prepress-disclaimer" style="margin-top:24px; padding:12px 16px; background:#fff8dc; border:1px solid #e0c060; border-radius:4px; font-size:12px; max-width:600px;">
+    <strong>COMPOSITION REFERENCE — NOT A PRODUCTION PRINT FILE.</strong>
+    This artifact is a design layout guide. Resolution, color fidelity, bleed registration,
+    and ICC profile conformance have not been verified. Submit production-ready artwork
+    (PDF/X-1a or PDF/X-4, minimum 300 DPI, CMYK, embedded fonts) to your print supplier.
+  </aside>
+
+  <script>
+    function setFormat(f, btn) {
+      document.body.dataset.format = f;
+      document.querySelectorAll('.format-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    }
+  </script>
+</body>
+</html>
+```
+
+Save the generated FLY HTML content as `FLY_HTML`. Do NOT write the file yet — file writes happen in Step 5b.
+
+---
+
+**SIT artifact (only when `experienceSubType === "recurring-series"`):**
+
+Gate: `IF GENERATE_SIT !== true`: **SKIP SIT generation entirely.** Log: `SIT skipped — experienceSubType is not recurring-series.`
+
+Generate a second HTML file using the same scaffold as FLY, but with `{{variable}}` template slots wrapping all edition-specific values. Mandatory slots: `{{EVENT_NAME}}`, `{{DATE}}`, `{{VENUE}}`, `{{HEADLINER}}`, `{{EDITION_NUMBER}}`. Each slot MUST use `<span class="template-slot">` with styling:
+
+```css
+.template-slot {
+  background: rgba(255, 200, 0, 0.25);
+  border: 1px dashed rgba(200,150,0,0.6);
+  padding: 2px 4px;
+  border-radius: 2px;
+  font-style: italic;
+  color: #7a5c00;
+}
+```
+
+Example slot usage:
+```html
+<h2 class="flyer-headline"><span class="template-slot">{{EVENT_NAME}}</span></h2>
+<p class="flyer-date"><span class="template-slot">{{DATE}}</span> — <span class="template-slot">{{VENUE}}</span></p>
+<p class="flyer-headliner">Headliner: <span class="template-slot">{{HEADLINER}}</span></p>
+<p class="flyer-edition">Vol. <span class="template-slot">{{EDITION_NUMBER}}</span></p>
+```
+
+Add a template slot legend below the SIT page-container explaining each variable's purpose:
+
+```html
+<div class="sit-legend" style="margin-top:16px; font-size:12px; max-width:600px; padding:12px; background:#fffde7; border:1px solid #ffe082; border-radius:4px;">
+  <strong>Template Slots — replace per edition:</strong>
+  <ul style="margin-top:8px; padding-left:16px; line-height:1.8;">
+    <li><code>{{EVENT_NAME}}</code> — Series name (e.g., "Saturday Night Sessions")</li>
+    <li><code>{{DATE}}</code> — Full event date (e.g., "Saturday 15 March 2026")</li>
+    <li><code>{{VENUE}}</code> — Venue name and address</li>
+    <li><code>{{HEADLINER}}</code> — Main act or featured artist name</li>
+    <li><code>{{EDITION_NUMBER}}</code> — Edition number (e.g., "12" for Vol. 12)</li>
+  </ul>
+</div>
+```
+
+Save the generated SIT HTML content as `SIT_HTML`. Do NOT write the file yet — file writes happen in Step 5b.
+
+---
+
+Display: `Step 4g: Print collateral generated — FLY artifact ready. {GENERATE_SIT ? "SIT series identity template ready." : "SIT skipped (experienceSubType not recurring-series)."}`
+
 Display per screen: `Step 4/7: Generated wireframe for {Screen Label} ({FIDELITY}).`
 
 ---
@@ -826,6 +1115,29 @@ For each screen in SCREENS: use the Write tool to write the HTML generated in St
 `.planning/design/ux/wireframes/WFR-{slug}.html`
 
 Display per file: `  -> Created: .planning/design/ux/wireframes/WFR-{slug}.html`
+
+#### 5b-print. Write print collateral files (experience products only)
+
+IF `PRODUCT_TYPE !== "experience"`: skip Step 5b-print entirely.
+
+Create directory `.planning/design/physical/print/` if it does not exist:
+```bash
+mkdir -p .planning/design/physical/print/
+```
+
+Write the FLY artifact:
+```
+.planning/design/physical/print/FLY-event-flyer-v1.html
+```
+Use the Write tool to write the `FLY_HTML` content generated in Step 4g.
+Display: `  -> Created: .planning/design/physical/print/FLY-event-flyer-v1.html`
+
+IF `GENERATE_SIT === true`: write the SIT artifact:
+```
+.planning/design/physical/print/SIT-series-identity-v1.html
+```
+Use the Write tool to write the `SIT_HTML` content generated in Step 4g.
+Display: `  -> Created: .planning/design/physical/print/SIT-series-identity-v1.html`
 
 #### 5c. Write index.html (ALWAYS — even for single-screen batch)
 
@@ -981,6 +1293,32 @@ node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update WFR status
 node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update WFR version 1
 ```
 
+#### 7c-print. Print collateral manifest registration (experience products only)
+
+IF `PRODUCT_TYPE !== "experience"`: skip Step 7c-print entirely.
+
+```bash
+# Print collateral manifest registration (experience products only)
+# FLY artifact (always for experience)
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update FLY code FLY
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update FLY name "Event Flyer"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update FLY type print-collateral
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update FLY domain physical
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update FLY path ".planning/design/physical/print/FLY-event-flyer-v1.html"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update FLY status draft
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update FLY version 1
+
+# SIT artifact (only if experienceSubType === "recurring-series")
+# IF GENERATE_SIT !== true: skip SIT manifest registration
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update SIT code SIT
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update SIT name "Series Identity Template"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update SIT type print-collateral
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update SIT domain physical
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update SIT path ".planning/design/physical/print/SIT-series-identity-v1.html"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update SIT status draft
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update SIT version 1
+```
+
 #### 7d. Coverage flag (CRITICAL — read-before-set to prevent clobber)
 
 ```bash
@@ -988,14 +1326,17 @@ COV=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design coverage-check)
 if [[ "$COV" == @file:* ]]; then COV=$(cat "${COV#@file:}"); fi
 ```
 
-Parse the JSON output. Extract ALL fourteen current flag values: hasDesignSystem, hasWireframes, hasFlows, hasHardwareSpec, hasCritique, hasIterate, hasHandoff, hasIdeation, hasCompetitive, hasOpportunity, hasMockup, hasHigAudit, hasRecommendations, hasStitchWireframes. Default any absent field to `false`. Merge `hasWireframes: true` while preserving all other thirteen values. If any STH-{slug} artifacts were successfully persisted in Step 4-STITCH, also set `hasStitchWireframes: true`. Then write the full merged fourteen-field object:
+Parse the JSON output. Extract ALL fifteen current flag values: hasDesignSystem, hasWireframes, hasFlows, hasHardwareSpec, hasCritique, hasIterate, hasHandoff, hasIdeation, hasCompetitive, hasOpportunity, hasMockup, hasHigAudit, hasRecommendations, hasStitchWireframes, hasPrintCollateral. Default any absent field to `false`. Merge `hasWireframes: true` while preserving all other fourteen values. If any STH-{slug} artifacts were successfully persisted in Step 4-STITCH, also set `hasStitchWireframes: true`. If FLY print collateral was generated in Step 4g (PRODUCT_TYPE === "experience"), also set `hasPrintCollateral: true`. Then write the full merged fifteen-field object:
 
 ```bash
-# Standard run (no STH artifacts):
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":{current},"hasWireframes":true,"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":{current}}'
+# Standard run (no STH artifacts, non-experience product):
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":{current},"hasWireframes":true,"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":{current},"hasPrintCollateral":{current}}'
 
 # --use-stitch run (STH artifacts persisted — set hasStitchWireframes: true):
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":{current},"hasWireframes":true,"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":true}'
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":{current},"hasWireframes":true,"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":true,"hasPrintCollateral":{current}}'
+
+# Experience product run (print collateral generated — set hasPrintCollateral: true):
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":{current},"hasWireframes":true,"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":{current},"hasPrintCollateral":true}'
 ```
 
 #### 7e. Release lock
