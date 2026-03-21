@@ -1,7 +1,7 @@
 // Phase 82 — Integration Validation and Regression Audit
 // Milestone completion audit: SC-2 — all experience sub-types exercisable through pipeline.
-// Verifies completed phases (74, 79, 80, 81) have implementations intact.
-// Documents pending phase (78) as test.todo() markers.
+// Verifies completed phases (74, 75, 76, 77, 78, 79, 80, 81) have implementations intact.
+// All phases complete — zero pending markers remaining.
 
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
@@ -206,10 +206,10 @@ describe('Phase 81 — handoff production bible (COMPLETE)', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Pending phases — Phase 74 architecture refs intact (phase 78 NOT YET IMPLEMENTED)
+// Phase 74 architecture refs intact (all phases 75-78 COMPLETE)
 // ---------------------------------------------------------------------------
 
-describe('Pending phases — Phase 74 architecture refs intact (phase 78 NOT YET IMPLEMENTED)', () => {
+describe('Phase 74 architecture refs intact (all phases 75-78 COMPLETE)', () => {
   test('flows.md retains Phase 74 architecture reference (Phase 77 complete — reference comment preserved)', () => {
     const content = readWorkflow('workflows/flows.md');
     assert.ok(
@@ -260,7 +260,7 @@ describe('Pending phases — Phase 74 architecture refs intact (phase 78 NOT YET
 });
 
 // ---------------------------------------------------------------------------
-// Pending phases — test.todo() markers for phase 78
+// Phase 76, 77, 78 — COMPLETE
 // ---------------------------------------------------------------------------
 
 describe('Phase 76 — experience design token architecture (COMPLETE)', () => {
