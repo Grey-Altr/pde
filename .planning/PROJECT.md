@@ -71,6 +71,8 @@ Any user can go from idea to shipped product through a single platform that hand
 - ✓ Handoff Stitch pattern extraction with annotation gate, @component: extraction, hex-to-OKLCH TypeScript interfaces — v0.9
 - ✓ 215 Nyquist structural regression tests across all v0.9 phases — v0.9
 
+- ✓ Suggestion engine: standalone CJS module ranking idle-time suggestions by phase state, blockers, next-phase prep — zero LLM, <2s, tech-noir output — v0.10
+
 ### Active
 
 ## Current Milestone: v0.10 Idle Time Productivity
