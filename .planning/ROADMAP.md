@@ -213,7 +213,10 @@ Plans:
   3. Each visual variant is generated from its text prompt alone with no shared design DNA between variants — running a color extraction on 3 variant images shows meaningfully different palettes
   4. When fewer Experimental generations remain than the batch requires, the command warns the user, falls back to text-only diverge for the remaining concepts, and does not abort the entire ideation run
   5. Variant images are surfaced in the convergence/scoring phase output so users can compare visuals when selecting a direction
-**Plans**: [To be planned]
+**Plans**: 2 plans
+Plans:
+- [ ] 67-01-PLAN.md — Add --diverge flag with full 4-STITCH pipeline and converge visual surfacing to ideate.md
+- [ ] 67-02-PLAN.md — Nyquist test suite covering all 5 Phase 67 requirements
 
 ### Phase 68: Critique Stitch Comparison
 **Goal**: /pde:critique detects Stitch-sourced artifacts and applies a Stitch-aware evaluation mode that produces meaningful design feedback rather than structural false positives from DTCG token incompatibility
@@ -252,6 +255,6 @@ Plans:
 | 64 | v0.9 | Complete    | 2026-03-20 | 2026-03-20 |
 | 65 | v0.9 | 2/2 | Complete | 2026-03-20 |
 | 66 | 3/3 | Complete    | 2026-03-21 | - |
-| 67 | v0.9 | 0/TBD | Not started | - |
+| 67 | v0.9 | 0/2 | Not started | - |
 | 68 | v0.9 | 0/TBD | Not started | - |
 | 69 | v0.9 | 0/TBD | Not started | - |
