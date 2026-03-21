@@ -172,11 +172,11 @@ Full details: .planning/milestones/v0.10-ROADMAP.md
 
 </details>
 
-### 🚧 v0.11 Experience Product Type (In Progress)
+### v0.11 Experience Product Type (In Progress)
 
 **Milestone Goal:** Extend PDE's product type detection to support "experience" products (events, festivals, installations) with physical design artifacts across all 13 pipeline stages.
 
-**Phase Numbering:** Continues from v0.10's Phase 73. Phases 74–82.
+**Phase Numbering:** Continues from v0.10's Phase 73. Phases 74-82.
 
 - [x] **Phase 74: Foundation and Regression Infrastructure** — Experience product type detection, sub-type architecture, branch site audit, regression smoke matrix, disclaimer block (completed 2026-03-21)
 - [ ] **Phase 75: Brief Extensions** — Five new brief fields capturing the physical design contract (promise statement, vibe contract, audience archetype, venue constraints, repeatability intent)
@@ -259,7 +259,10 @@ Plans:
   2. Every regulatory value in the critique output (egress times, ratios, distances) carries an inline `[VERIFY WITH LOCAL AUTHORITY]` tag
   3. Running `/pde:hig` for an experience product produces physical interface guidelines covering wayfinding, acoustic zoning, queue UX, transaction speed, toilet ratio, hydration, and first aid — with no WCAG findings present
   4. Running `/pde:critique` and `/pde:hig` for a software product produces no experience-specific perspectives or guidelines
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 79-01-PLAN.md — Nyquist test suite + critique.md seven experience perspectives (CRIT-01 through CRIT-08)
+- [ ] 79-02-PLAN.md — hig.md seven physical interface guideline domains (PHIG-01 through PHIG-07)
 
 ### Phase 80: Print Collateral
 **Goal**: The wireframe stage generates print-spec event flyer (FLY) and series identity template artifacts as self-contained HTML files with CSS @page print dimensions, CMYK approximation tables, and mandatory prepress disclaimers
@@ -309,12 +312,12 @@ Plans:
 | 58-63 | v0.8 | 13/13 | Complete | 2026-03-20 |
 | 64-69 | v0.9 | 12/12 | Complete | 2026-03-21 |
 | 70-73 | v0.10 | 8/8 | Complete | 2026-03-21 |
-| 74. Foundation and Regression Infrastructure | 2/2 | Complete   | 2026-03-21 | - |
+| 74. Foundation and Regression Infrastructure | 2/2 | Complete    | 2026-03-21 | - |
 | 75. Brief Extensions | v0.11 | 0/TBD | Not started | - |
 | 76. Experience Design Token Architecture | v0.11 | 0/TBD | Not started | - |
 | 77. Flow Diagrams | v0.11 | 0/TBD | Not started | - |
 | 78. Wireframe Stage Extensions | v0.11 | 0/TBD | Not started | - |
-| 79. Critique and HIG Extensions | v0.11 | 0/TBD | Not started | - |
+| 79. Critique and HIG Extensions | v0.11 | 0/2 | Not started | - |
 | 80. Print Collateral | v0.11 | 0/TBD | Not started | - |
 | 81. Handoff — Production Bible | v0.11 | 0/TBD | Not started | - |
 | 82. Integration Validation and Regression Audit | v0.11 | 0/TBD | Not started | - |
