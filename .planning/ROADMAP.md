@@ -325,5 +325,5 @@ Plans:
 | 78. Wireframe Stage Extensions | v0.11 | 0/TBD | Not started | - |
 | 79. Critique and HIG Extensions | 2/2 | Complete    | 2026-03-21 | - |
 | 80. Print Collateral | 2/2 | Complete    | 2026-03-21 | - |
-| 81. Handoff — Production Bible | v0.11 | 0/TBD | Not started | - |
+| 81. Handoff — Production Bible | 1/2 | In Progress|  | - |
 | 82. Integration Validation and Regression Audit | v0.11 | 0/TBD | Not started | - |

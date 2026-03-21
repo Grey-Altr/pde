@@ -68,12 +68,12 @@ Requirements for Experience Product Type milestone. Each maps to roadmap phases.
 
 ### Handoff — Production Bible
 
-- [ ] **HDOF-01**: Advance document generated (load-in, sound check, doors, curfew, load-out, contact sheet, rider fulfillment)
-- [ ] **HDOF-02**: Run sheet generated (minute-by-minute timeline, responsible person, technical cue, contingency notes)
-- [ ] **HDOF-03**: Staffing plan generated (roles, headcount, shifts, briefing time, door policy, bar menu/pricing)
-- [ ] **HDOF-04**: Budget framework generated (line-item costs, revenue at 60%/80%/100% capacity, break-even)
-- [ ] **HDOF-05**: Post-event template generated (feedback collection, financial reconciliation, retrospective)
-- [ ] **HDOF-06**: Print spec output for all collateral artifacts (bleed, safe area, DPI, color mode, trim size)
+- [x] **HDOF-01**: Advance document generated (load-in, sound check, doors, curfew, load-out, contact sheet, rider fulfillment)
+- [x] **HDOF-02**: Run sheet generated (minute-by-minute timeline, responsible person, technical cue, contingency notes)
+- [x] **HDOF-03**: Staffing plan generated (roles, headcount, shifts, briefing time, door policy, bar menu/pricing)
+- [x] **HDOF-04**: Budget framework generated (line-item costs, revenue at 60%/80%/100% capacity, break-even)
+- [x] **HDOF-05**: Post-event template generated (feedback collection, financial reconciliation, retrospective)
+- [x] **HDOF-06**: Print spec output for all collateral artifacts (bleed, safe area, DPI, color mode, trim size)
 
 ### Print Collateral
 
@@ -151,12 +151,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PHIG-05 | Phase 79 | Complete |
 | PHIG-06 | Phase 79 | Complete |
 | PHIG-07 | Phase 79 | Complete |
-| HDOF-01 | Phase 81 | Pending |
-| HDOF-02 | Phase 81 | Pending |
-| HDOF-03 | Phase 81 | Pending |
-| HDOF-04 | Phase 81 | Pending |
-| HDOF-05 | Phase 81 | Pending |
-| HDOF-06 | Phase 81 | Pending |
+| HDOF-01 | Phase 81 | Complete |
+| HDOF-02 | Phase 81 | Complete |
+| HDOF-03 | Phase 81 | Complete |
+| HDOF-04 | Phase 81 | Complete |
+| HDOF-05 | Phase 81 | Complete |
+| HDOF-06 | Phase 81 | Complete |
 | PRNT-01 | Phase 80 | Complete |
 | PRNT-02 | Phase 80 | Complete |
 | PRNT-03 | Phase 80 | Complete |

@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.11
 milestone_name: Experience Product Type
 status: unknown
-stopped_at: Completed 80-02-PLAN.md
-last_updated: "2026-03-21T19:56:35.525Z"
+stopped_at: Completed 81-01-PLAN.md
+last_updated: "2026-03-21T20:29:27.744Z"
 progress:
   total_phases: 9
   completed_phases: 3
-  total_plans: 6
-  completed_plans: 6
+  total_plans: 8
+  completed_plans: 7
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 80 — print-collateral
+**Current focus:** Phase 81 — handoff-production-bible
 
 ## Current Position
 
-Phase: 80 (print-collateral) — EXECUTING
-Plan: 2 of 2
+Phase: 81 (handoff-production-bible) — EXECUTING
+Plan: 1 of 2
 
 ## Performance Metrics
 
@@ -65,6 +65,9 @@ Key architectural constraints locked for this milestone:
 - [Phase 80-01]: Instagram formats use fixed px + transform:scale, never @page — screen-only artifacts
 - [Phase 80-01]: SIT gated strictly on experienceSubType === recurring-series; hasPrintCollateral is 15th coverage flag
 - [Phase 80-print-collateral]: PRG uses @page schedule landscape for schedule grid legibility; GENERATE_PRG flag mirrors GENERATE_SIT pattern
+- [Phase 81]: Four-pass BIB generation (Pass A-D) mandatory — single-pass truncates at staffing plan for venues above 500 capacity
+- [Phase 81]: HND_GENERATES_SOFTWARE = false for pure experience; = true only for hybrid-event — prevents software layer generation for single-night, multi-day, recurring-series, and installation sub-types
+- [Phase 81]: STACK.md bypass in Step 2a reads manifest before hard-stop — non-hybrid-event experience products skip STACK.md check (FRAMEWORK=none, TYPESCRIPT=false)
 
 ### Phase Ordering Rationale
 
@@ -89,8 +92,8 @@ Key architectural constraints locked for this milestone:
 
 ## Session Continuity
 
-Last session: 2026-03-21T19:53:27.867Z
-Stopped at: Completed 80-02-PLAN.md
+Last session: 2026-03-21T20:29:27.741Z
+Stopped at: Completed 81-01-PLAN.md
 Resume file: None
 
 Next action: Execute Phase 75 (experience design system token generation)
