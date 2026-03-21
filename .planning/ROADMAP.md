@@ -214,7 +214,10 @@ Plans:
   2. All five fields appear in the generated BRIEF.md under clearly labelled sections
   3. Running `/pde:brief` for a software product produces no new fields — existing output is byte-identical to pre-milestone baseline
   4. DESIGN-STATE.md Quick Reference includes a Sub-type row populated from the brief
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 75-01-PLAN.md — Wave 0 Nyquist tests + experience brief sections in brief.md and design-brief.md template (BREF-01 through BREF-05)
+- [ ] 75-02-PLAN.md — Phase 82 test update: flip negative BREF assertions to positive + cross-phase regression
 
 ### Phase 76: Experience Design Token Architecture
 **Goal**: SYS-experience-tokens.json exists as a separate file from SYS-tokens.json, populated with sonic, lighting, spatial, atmospheric, wayfinding, and brand coherence token categories — all within a 30-token cap
@@ -226,7 +229,10 @@ Plans:
   3. Running `tokens-to-css --experience` produces SYS-experience-tokens.css with CSS custom properties for all experience categories
   4. SYS-tokens.json for an experience project is byte-identical to a software project's token file (no experience categories bleed in)
   5. The experience token file contains no more than 30 token entries total
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 75-01-PLAN.md — Wave 0 Nyquist tests + experience brief sections in brief.md and design-brief.md template (BREF-01 through BREF-05)
+- [ ] 75-02-PLAN.md — Phase 82 test update: flip negative BREF assertions to positive + cross-phase regression
 
 ### Phase 77: Flow Diagrams
 **Goal**: The flows stage produces temporal, spatial, and social flow diagrams for experience products, plus a spaces inventory JSON that the wireframe stage consumes for floor plan generation
@@ -237,7 +243,10 @@ Plans:
   2. A spaces-inventory.json file is written alongside the flow diagrams, containing zone names, capacity estimates, and adjacency relationships
   3. All three flow artifacts are registered in design-manifest.json under their flow artifact codes
   4. Running `/pde:flows` for a software product produces only the existing user flow diagram — no experience artifacts
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 75-01-PLAN.md — Wave 0 Nyquist tests + experience brief sections in brief.md and design-brief.md template (BREF-01 through BREF-05)
+- [ ] 75-02-PLAN.md — Phase 82 test update: flip negative BREF assertions to positive + cross-phase regression
 
 ### Phase 78: Wireframe Stage Extensions
 **Goal**: The wireframe stage generates a floor plan (FLP) and timeline (TML) artifact for experience products — both self-contained HTML files registered in the manifest under their artifact codes
@@ -248,7 +257,10 @@ Plans:
   2. The floor plan SVG includes a scale bar element and a "SCHEMATIC ONLY" disclaimer text element — no zone label is smaller than font-size 14, no wall stroke thinner than 3
   3. Running `/pde:wireframe` for an experience product also produces a timeline wireframe HTML file rendered as a Mermaid gantt chart with parallel operational tracks and energy curve overlay
   4. Both FLP and TML artifacts appear in design-manifest.json under their artifact codes with correct source paths
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 75-01-PLAN.md — Wave 0 Nyquist tests + experience brief sections in brief.md and design-brief.md template (BREF-01 through BREF-05)
+- [ ] 75-02-PLAN.md — Phase 82 test update: flip negative BREF assertions to positive + cross-phase regression
 
 ### Phase 79: Critique and HIG Extensions
 **Goal**: The critique stage applies seven event-specific perspectives to the floor plan, and the HIG stage applies physical interface guidelines replacing WCAG checks — both with mandatory regulatory disclaimer tags on every compliance assertion
@@ -322,7 +334,7 @@ Plans:
 | 64-69 | v0.9 | 12/12 | Complete | 2026-03-21 |
 | 70-73 | v0.10 | 8/8 | Complete | 2026-03-21 |
 | 74. Foundation and Regression Infrastructure | 2/2 | Complete    | 2026-03-21 | - |
-| 75. Brief Extensions | v0.11 | 0/TBD | Not started | - |
+| 75. Brief Extensions | v0.11 | 0/2 | Not started | - |
 | 76. Experience Design Token Architecture | v0.11 | 0/TBD | Not started | - |
 | 77. Flow Diagrams | v0.11 | 0/TBD | Not started | - |
 | 78. Wireframe Stage Extensions | v0.11 | 0/TBD | Not started | - |
