@@ -154,10 +154,14 @@
  *   init milestone-op                  All context for milestone operations
  *   init map-codebase                  All context for map-codebase workflow
  *   init progress                      All context for progress workflow
+ *
+ * Suggestions:
+ *   suggestions                        Print current idle suggestions to stdout
  */
 
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 const { error } = require('./lib/core.cjs');
 const state = require('./lib/state.cjs');
 const phase = require('./lib/phase.cjs');
@@ -798,6 +802,25 @@ async function main() {
       safeAppendEvent(sessionId, envelope);
 
       if (raw) { process.stdout.write(JSON.stringify({ ok: true, event_type: eventType })); }
+      break;
+    }
+
+    case 'suggestions': {
+      const configPath = path.join(cwd, '.planning', 'config.json');
+      let sessionId = 'unknown';
+      try {
+        const cfg = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+        if (cfg.monitoring && cfg.monitoring.session_id) {
+          sessionId = cfg.monitoring.session_id;
+        }
+      } catch { /* config not found — use 'unknown' session ID */ }
+      const suggPath = path.join(os.tmpdir(), `pde-suggestions-${sessionId}.md`);
+      try {
+        const content = fs.readFileSync(suggPath, 'utf-8');
+        process.stdout.write(content.trimEnd() + '\n');
+      } catch {
+        process.stdout.write('Waiting for PDE to start a phase. Suggestions will appear when a phase completes.\n');
+      }
       break;
     }
 
