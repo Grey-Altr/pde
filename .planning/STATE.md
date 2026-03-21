@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.10
 milestone_name: Idle Time Productivity
 status: unknown
-stopped_at: "Completed 70-02-PLAN.md"
-last_updated: "2026-03-21T05:46:00Z"
+stopped_at: Completed 70-01-PLAN.md
+last_updated: "2026-03-21T05:47:31.692Z"
 progress:
   total_phases: 4
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
+  completed_plans: 2
 ---
 
 # Project State
@@ -50,6 +50,9 @@ Key architectural constraints for this milestone:
 - Suggestion generation: 2-second budget, zero LLM calls, max 3 synchronous file reads
 - All suggestion state in /tmp/ — zero files in .planning/ from suggestion system
 - Pane 7 added to build_full_layout() only — build_minimal_layout() unchanged
+- [Phase 70]: async: true on Notification hook — synchronous notification hooks block Claude Code notification delivery pipeline
+- [Phase 70]: MEANINGFUL_EVENTS = phase_started | phase_complete | plan_started — wave events excluded as too granular for suggestion triggers
+- [Phase 70]: Marker file idempotency via .last-event-ts prevents duplicate suggestion writes on repeat idle_prompt fires
 
 ### Completed Plan Decisions (70-02)
 
@@ -66,8 +69,8 @@ Key architectural constraints for this milestone:
 
 ## Session Continuity
 
-Last session: 2026-03-21
-Stopped at: Completed 70-02-PLAN.md
+Last session: 2026-03-21T05:47:31.689Z
+Stopped at: Completed 70-01-PLAN.md
 Resume file: None
 
 Next action: /pde:execute-phase (Phase 70 complete — move to Phase 71)

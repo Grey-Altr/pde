@@ -163,7 +163,7 @@ Full details: .planning/milestones/v0.9-ROADMAP.md
 
 **Milestone Goal:** Guided productivity system for users during PDE processing wait times — context-aware suggestions, domain knowledge capture, and upcoming-phase previews delivered passively via the tmux dashboard while agents work. No interruptions, no LLM calls in the suggestion path, zero new npm dependencies.
 
-- [ ] **Phase 70: Hook Integration and Delivery Architecture** - Lock in the non-intrusive hook contract before any suggestion content is authored
+- [x] **Phase 70: Hook Integration and Delivery Architecture** - Lock in the non-intrusive hook contract before any suggestion content is authored (completed 2026-03-21)
 - [ ] **Phase 71: Suggestion Engine** - Phase-aware engine module that reads state files and returns a ranked suggestion list within 2 seconds
 - [ ] **Phase 72: Suggestion Catalog and Content Layer** - Full idle-catalog.md with 6 phase categories plus context-notes directory consumed by planning workflows
 - [ ] **Phase 73: Dashboard Integration** - Pane 7 addition to full layout plus /pde:suggestions CLI fallback
@@ -244,7 +244,7 @@ Plans:
 | 54-57 | v0.7 | 11/11 | Complete | 2026-03-20 |
 | 58-63 | v0.8 | 13/13 | Complete | 2026-03-20 |
 | 64-69 | v0.9 | 12/12 | Complete | 2026-03-21 |
-| 70. Hook Integration and Delivery Architecture | 1/2 | In Progress|  | - |
+| 70. Hook Integration and Delivery Architecture | 2/2 | Complete   | 2026-03-21 | - |
 | 71. Suggestion Engine | v0.10 | 0/TBD | Not started | - |
 | 72. Suggestion Catalog and Content Layer | v0.10 | 0/TBD | Not started | - |
 | 73. Dashboard Integration | v0.10 | 0/TBD | Not started | - |

@@ -7,10 +7,10 @@
 
 ### Delivery Infrastructure
 
-- [ ] **DLVR-01**: idle_prompt Notification hook registered in hooks.json with async: true and idle_prompt matcher
-- [ ] **DLVR-02**: Hook handler produces zero stdout — all suggestion output written to /tmp/pde-suggestions-{sessionId}.md only
-- [ ] **DLVR-03**: Suggestion updates gated on meaningful PDE events (phase_started, phase_complete, plan_started) from NDJSON stream — not on every idle_prompt fire
-- [ ] **DLVR-04**: All suggestion state files written to /tmp/ — zero files in .planning/ from suggestion system (context-notes excluded, those are user-authored)
+- [x] **DLVR-01**: idle_prompt Notification hook registered in hooks.json with async: true and idle_prompt matcher
+- [x] **DLVR-02**: Hook handler produces zero stdout — all suggestion output written to /tmp/pde-suggestions-{sessionId}.md only
+- [x] **DLVR-03**: Suggestion updates gated on meaningful PDE events (phase_started, phase_complete, plan_started) from NDJSON stream — not on every idle_prompt fire
+- [x] **DLVR-04**: All suggestion state files written to /tmp/ — zero files in .planning/ from suggestion system (context-notes excluded, those are user-authored)
 - [x] **DLVR-05**: Getting Started documentation updated with messageIdleNotifThresholdMs: 5000 recommendation for ~/.CLAUDE.json
 
 ### Suggestion Engine
@@ -68,10 +68,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DLVR-01 | Phase 70 | Pending |
-| DLVR-02 | Phase 70 | Pending |
-| DLVR-03 | Phase 70 | Pending |
-| DLVR-04 | Phase 70 | Pending |
+| DLVR-01 | Phase 70 | Complete |
+| DLVR-02 | Phase 70 | Complete |
+| DLVR-03 | Phase 70 | Complete |
+| DLVR-04 | Phase 70 | Complete |
 | DLVR-05 | Phase 70 | Complete |
 | ENGN-01 | Phase 71 | Pending |
 | ENGN-02 | Phase 71 | Pending |
