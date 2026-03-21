@@ -1,10 +1,11 @@
 ---
 phase: 70
 slug: hook-integration-and-delivery-architecture
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: validated
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-20
+validated: 2026-03-21
 ---
 
 # Phase 70 — Validation Strategy
@@ -17,20 +18,20 @@ created: 2026-03-20
 
 | Property | Value |
 |----------|-------|
-| **Framework** | jest 29.x / Node.js assert |
-| **Config file** | none — Wave 0 installs if needed |
-| **Quick run command** | `node hooks/tests/test-idle-suggestions.cjs` |
-| **Full suite command** | `node hooks/tests/test-idle-suggestions.cjs --full` |
-| **Estimated runtime** | ~5 seconds |
+| **Framework** | Node.js assert (inline) |
+| **Config file** | none |
+| **Quick run command** | `node hooks/tests/verify-phase-70.cjs` |
+| **Full suite command** | `node hooks/tests/verify-phase-70.cjs` |
+| **Estimated runtime** | ~1 second |
 
 ---
 
 ## Sampling Rate
 
-- **After every task commit:** Run `node hooks/tests/test-idle-suggestions.cjs`
-- **After every plan wave:** Run `node hooks/tests/test-idle-suggestions.cjs --full`
+- **After every task commit:** Run `node hooks/tests/verify-phase-70.cjs`
+- **After every plan wave:** Run `node hooks/tests/verify-phase-70.cjs`
 - **Before `/gsd:verify-work`:** Full suite must be green
-- **Max feedback latency:** 5 seconds
+- **Max feedback latency:** 1 second
 
 ---
 
@@ -38,11 +39,11 @@ created: 2026-03-20
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 70-01-01 | 01 | 1 | DLVR-01 | integration | `node hooks/tests/test-idle-suggestions.cjs --test=zero-stdout` | ❌ W0 | ⬜ pending |
-| 70-01-02 | 01 | 1 | DLVR-02 | integration | `node hooks/tests/test-idle-suggestions.cjs --test=event-gating` | ❌ W0 | ⬜ pending |
-| 70-01-03 | 01 | 1 | DLVR-03 | integration | `node hooks/tests/test-idle-suggestions.cjs --test=no-spurious-update` | ❌ W0 | ⬜ pending |
-| 70-01-04 | 01 | 1 | DLVR-04 | integration | `node hooks/tests/test-idle-suggestions.cjs --test=no-planning-files` | ❌ W0 | ⬜ pending |
-| 70-02-01 | 02 | 2 | DLVR-05 | manual | Review Getting Started docs | ❌ W0 | ⬜ pending |
+| 70-01-01 | 01 | 1 | DLVR-01 | integration | `node hooks/tests/verify-phase-70.cjs` | ✅ | ✅ green |
+| 70-01-02 | 01 | 1 | DLVR-02 | integration | `node hooks/tests/verify-phase-70.cjs` | ✅ | ✅ green |
+| 70-01-03 | 01 | 1 | DLVR-03 | integration | `node hooks/tests/verify-phase-70.cjs` | ✅ | ✅ green |
+| 70-01-04 | 01 | 1 | DLVR-04 | integration | `node hooks/tests/verify-phase-70.cjs` | ✅ | ✅ green |
+| 70-02-01 | 02 | 1 | DLVR-05 | integration | `node hooks/tests/verify-phase-70.cjs` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -50,28 +51,33 @@ created: 2026-03-20
 
 ## Wave 0 Requirements
 
-- [ ] `hooks/tests/test-idle-suggestions.cjs` — test harness for idle suggestion handler
-- [ ] Test fixtures for mock NDJSON event streams
-
-*If none: "Existing infrastructure covers all phase requirements."*
+Existing infrastructure covers all phase requirements.
 
 ---
 
 ## Manual-Only Verifications
 
-| Behavior | Requirement | Why Manual | Test Instructions |
-|----------|-------------|------------|-------------------|
-| Getting Started docs contain threshold config | DLVR-05 | Documentation content review | Verify `messageIdleNotifThresholdMs: 5000` appears in Getting Started with correct `~/.CLAUDE.json` key |
+All phase behaviors have automated verification.
 
 ---
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 5s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 1s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-03-21
+
+---
+
+## Validation Audit 2026-03-21
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
