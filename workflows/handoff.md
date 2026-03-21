@@ -337,6 +337,37 @@ From the WIREFRAME_CONTENTS[slug] HTML:
 
 Store per-screen annotation data as SCREEN_ANNOTATIONS[slug].
 
+#### 4b-stitch. Extract Stitch @component: annotations (for STITCH_ARTIFACTS only)
+
+STITCH_ARTIFACTS contains only artifacts where `stitch_annotated === true` (from Step 2l gate). Unannotated artifacts are in STITCH_UNANNOTATED and are skipped here.
+
+For each slug in STITCH_ARTIFACTS (from Step 2l):
+  From WIREFRAME_CONTENTS[slug]:
+
+  1. Find all `<!-- @component: ComponentName -->` comments.
+     Use regex: `/<!-- @component: ([^>]+) -->/g`
+     For each match: store {name: match[1].trim(), element: HTML tag immediately following the comment}
+
+  2. For each found component, inspect the HTML element immediately following the comment to infer props:
+     - `<nav`: links array (`Array<{ label: string; href: string }>`), aria-label
+     - `<header`: logo slot, navigation reference, action buttons
+     - `<main`: content children, scroll behavior
+     - `<section`: section-id, heading text, children elements
+     - `<form`: fields array, onSubmit handler, isLoading state, error states
+
+  3. Extract hex color values from inline styles and `<style>` blocks:
+     Regex for inline: `/(?:color|background-color|border-color|fill|stroke)\s*:\s*(#[0-9a-fA-F]{3,8})\b/g`
+     Regex for style blocks: `/#([0-9a-fA-F]{3,8})\b/g` within `<style>...</style>` content
+     Store as STITCH_COLORS[slug] = [{property, hexValue, componentName}]
+     Only extract from CSS color properties (color, background-color, border-color, fill, stroke). Do NOT extract hex patterns from non-color contexts (data attributes, IDs, etc.).
+
+  4. Cross-reference with standard SCREEN_ANNOTATIONS[slug] to classify each component:
+     - **WFR+Stitch**: Component name from @component: annotation semantically matches a component in SCREEN_ANNOTATIONS (use substring match — "Navigation" matches "SiteNavigation", "Form" matches "LoginForm")
+     - **Stitch-only**: No semantic match found in SCREEN_ANNOTATIONS
+     - **WFR-only**: Component in SCREEN_ANNOTATIONS has no @component: counterpart
+
+  Store as STITCH_SCREEN_ANNOTATIONS[slug] = {components: [{name, sourceTag, element, props}], colors: STITCH_COLORS[slug], wrfOnlyComponents: [...]}
+
 #### 4c. Parse screen inventory for route mappings
 
 If INVENTORY_AVAILABLE: parse INVENTORY_CONTENT JSON. Extract for each screen:
@@ -589,6 +620,34 @@ After `### Interaction Specs`, check whether this screen has concept-specific in
     - `### Component Stubs` — React, Vue, and Svelte stub blocks (language-appropriate based on FRAMEWORK — include all three for "none", include the detected framework first for known frameworks)
     - `### Test Specs` — table with component/state/interaction/expected
 
+10a. **If STITCH_ARTIFACTS is non-empty:** After the Per-Screen Detail Specs (item 10), append:
+
+    `## STITCH_COMPONENT_PATTERNS`
+
+    > This section is generated from Stitch-annotated HTML artifacts.
+    > Components are tagged by source: WFR+Stitch (confirmed), Stitch-only (verify before implementation), WFR-only (no Stitch counterpart).
+    > Color values have been converted from hex to OKLCH format.
+
+    For each slug in STITCH_ARTIFACTS:
+
+    `### STH-{slug} Component Patterns`
+
+    | Component | Source Tag | Annotation Type | Notes |
+    |-----------|-----------|-----------------|-------|
+    | {name} | WFR+Stitch | @component: {element} | Found in both STH and WFR wireframes |
+    | {name} | Stitch-only | @component: {element} | **Verify before implementation** — this component appears in Stitch output but has no WFR wireframe counterpart. Confirm it represents intended functionality before building. |
+    | {name} | WFR-only | ANNOTATION: | No Stitch counterpart |
+
+    If STITCH_COLORS[slug] is non-empty, add a color extraction table:
+
+    `#### Extracted Colors (hex -> OKLCH)`
+
+    | Property | Stitch Hex | OKLCH | Component |
+    |----------|-----------|-------|-----------|
+    | {property} | {hexValue} | {oklchValue from hexToOklch} | {componentName} |
+
+    If STITCH_ARTIFACTS is empty: omit the entire STITCH_COMPONENT_PATTERNS section.
+
 11. If PRODUCT_TYPE is "hardware" or "hybrid":
     `# Hardware Handoff` — BOM Export, Dimension Drawings, Materials & Finish Spec, DFM Notes, Assembly Sequence, Compliance Checklist, Supplier List, Prototyping Guide sections (populate from brief or hardware spec if available, otherwise use placeholder structure with notes)
     If PRODUCT_TYPE is "hybrid", add `## Cross-References (Hybrid Products)` table.
@@ -645,6 +704,96 @@ export interface {ComponentName}Props {
 ```
 
 Populate interfaces with ALL field data derived in Step 4g SCREEN_SPECS. Include JSDoc for every field explaining its purpose and accepted values.
+
+**If STITCH_ARTIFACTS is non-empty:** After the standard per-screen interface sections, append a Stitch Component Patterns section:
+
+```typescript
+// ─── Stitch Component Patterns ──────────────────────────────────────────────
+
+/**
+ * Components extracted from Stitch-annotated HTML artifacts.
+ * WFR+Stitch: confirmed in both wireframe and Stitch output.
+ * Stitch-only: present in Stitch output only — verify before implementation.
+ * Color values converted from hex to OKLCH.
+ */
+```
+
+For each slug in STITCH_ARTIFACTS, for each component in STITCH_SCREEN_ANNOTATIONS[slug].components:
+
+- **Naming convention:** `STH_{PascalCaseSlug}_{ComponentName}Props` (e.g., `STH_Login_NavigationProps`). The `STH_` prefix distinguishes Stitch-extracted interfaces from standard WFR interfaces.
+
+- **If sourceTag is "WFR+Stitch":**
+  ```typescript
+  /** {ComponentName} component extracted from STH-{slug}.html (WFR+Stitch) */
+  export interface STH_{Slug}_{ComponentName}Props {
+    /** field description */
+    fieldName: type;
+  }
+  ```
+
+- **If sourceTag is "Stitch-only":**
+  ```typescript
+  /**
+   * @verify - Stitch-only component: verify before implementation.
+   * This component ({ComponentName}) appears in Stitch output (STH-{slug}.html)
+   * but has no WFR wireframe counterpart. Confirm it represents
+   * intended functionality before building.
+   */
+  export interface STH_{Slug}_{ComponentName}Props {
+    /** field description */
+    fieldName: type;
+  }
+  ```
+
+- **For color fields:** Apply the inline hexToOklch conversion function. Include the original hex in a JSDoc @see comment:
+  ```typescript
+  /**
+   * Brand color — Stitch hex #3b82f6 converted to OKLCH.
+   * @see oklch(0.590 0.210 264.0)
+   */
+  brandColor?: string; // oklch(0.590 0.210 264.0)
+  ```
+
+**hexToOklch inline function** — include this function definition in the Step 5c prose (following the sync-figma.md figmaColorToCss precedent of inline zero-dep functions):
+
+```javascript
+function hexToOklch(hex) {
+  if (/^#[0-9a-fA-F]{3}$/.test(hex)) {
+    hex = '#' + hex[1]+hex[1] + hex[2]+hex[2] + hex[3]+hex[3];
+  }
+  if (/^#[0-9a-fA-F]{8}$/.test(hex)) {
+    hex = hex.slice(0, 7);
+  }
+  if (!/^#[0-9a-fA-F]{6}$/.test(hex)) {
+    return null;
+  }
+  const r = parseInt(hex.slice(1, 3), 16) / 255;
+  const g = parseInt(hex.slice(3, 5), 16) / 255;
+  const b = parseInt(hex.slice(5, 7), 16) / 255;
+  function toLinear(x) {
+    return x <= 0.04045 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4);
+  }
+  const lr = toLinear(r), lg = toLinear(g), lb = toLinear(b);
+  const l_ = Math.cbrt(0.4122214708*lr + 0.5363325363*lg + 0.0514459929*lb);
+  const m_ = Math.cbrt(0.2119034982*lr + 0.6806995451*lg + 0.1073969566*lb);
+  const s_ = Math.cbrt(0.0883024619*lr + 0.2817188376*lg + 0.6299787005*lb);
+  const L = 0.2104542553*l_ + 0.7936177850*m_ - 0.0040720468*s_;
+  const a = 1.9779984951*l_ - 2.4285922050*m_ + 0.4505937099*s_;
+  const bK = 0.0259040371*l_ + 0.7827717662*m_ - 0.8086757660*s_;
+  const C = Math.sqrt(a*a + bK*bK);
+  let H = Math.atan2(bK, a) * (180 / Math.PI);
+  if (H < 0) H += 360;
+  return `oklch(${L.toFixed(3)} ${C.toFixed(3)} ${H.toFixed(1)})`;
+}
+```
+
+**Edge case handling:** When hexToOklch returns null (for `transparent`, `inherit`, `currentColor`, `var(--*)`), preserve the original value unchanged in the interface field comment. Do not attempt conversion.
+
+**Anti-patterns to avoid:**
+- Do NOT apply hexToOklch to non-color values (spacing, opacity, font sizes)
+- Do NOT silently omit Stitch-only components — include with @verify label per HND-04
+- Do NOT create duplicate interface names — STH_ prefix prevents collision with WFR interfaces
+- Do NOT replace the standard handoff pipeline — Phase 69 ADDS extraction on top, does not create a separate path
 
 Display: `Step 5/7 (5c): HND-types-v{HND_VERSION}.ts written.`
 
