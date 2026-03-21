@@ -24,6 +24,7 @@ Generate browser-viewable HTML/CSS wireframes for each screen in the flow invent
 | `--lofi` | Boolean | Set fidelity to lofi. Equivalent to positional argument "lofi". |
 | `--midfi` | Boolean | Set fidelity to midfi. Equivalent to positional argument "midfi". |
 | `--hifi` | Boolean | Set fidelity to hifi. Equivalent to positional argument "hifi". |
+| `--use-stitch` | Boolean | Route generation through Google Stitch MCP instead of Claude HTML/CSS. Requires Stitch connection via /pde:connect stitch. |
 </flags>
 
 <process>
@@ -157,6 +158,12 @@ Use the Glob tool to check for `.planning/design/assets/tokens.css`.
     - marketing/other: `--color-surface: #ffffff; --color-text: #111827; --color-action: #dc2626; --color-border: #d1d5db; --color-surface-alt: #f3f4f6;`
   - Inline `<style>` block includes comment: `/* Fallback: run /pde:system first for branded tokens */`
 
+#### 2g. Parse --use-stitch flag
+
+Check $ARGUMENTS for `--use-stitch`:
+- If present: SET USE_STITCH = true. Log: `  -> --use-stitch detected: Stitch generation mode enabled.`
+- If absent: SET USE_STITCH = false. Proceed with standard Claude HTML/CSS generation.
+
 **If `--dry-run` flag is active:** Display planned output at end of Step 2 and HALT (do not write files):
 
 ```
@@ -222,7 +229,35 @@ Attempt to call a tool in the `mcp__playwright__*` namespace with a minimal test
 - If tool responds: SET `PLAYWRIGHT_AVAILABLE = true`. Log: `  -> Playwright MCP: available`
 - If tool not found or errors: SET `PLAYWRIGHT_AVAILABLE = false`. Log: `  -> Playwright MCP: unavailable (continuing without)`
 
-Display: `Step 3/7: MCP probes complete. Sequential Thinking: {available | unavailable}. Playwright: {available | unavailable}.`
+**Probe Stitch MCP** (if USE_STITCH is true AND not skipped by --no-mcp):
+
+Check for TOOL_MAP_VERIFY_REQUIRED markers:
+```bash
+node --input-type=module <<'EOF'
+import { createRequire } from 'module';
+const req = createRequire(import.meta.url);
+const { TOOL_MAP } = req(`${process.env.CLAUDE_PLUGIN_ROOT}/bin/lib/mcp-bridge.cjs`);
+const verified = !JSON.stringify(TOOL_MAP).includes('VERIFY_REQUIRED');
+process.stdout.write(JSON.stringify({ verified }));
+EOF
+```
+If `verified: false`: display warning:
+```
+Warning: Stitch TOOL_MAP entries have not been verified against the live server.
+  Run /pde:connect stitch --confirm to verify tool names before using --use-stitch.
+  Proceeding with unverified tool names — generation may fail if names are incorrect.
+```
+Proceed (do not halt — this is a warning, not a gate).
+
+Attempt to call `mcp__stitch__list_projects` (the Stitch probe tool) with a 10-second timeout:
+- If responds: SET STITCH_MCP_AVAILABLE = true. Log: `  -> Stitch MCP: available`
+- If tool not found, errors, or timeout: SET STITCH_MCP_AVAILABLE = false, SET USE_STITCH = false. Log:
+  ```
+  Warning: Stitch MCP unavailable (probe timeout or error). Falling back to Claude HTML/CSS generation.
+  ```
+  Display: `  -> Stitch MCP: unavailable — falling back to Claude generation`
+
+Display: `Step 3/7: MCP probes complete. Sequential Thinking: {available | unavailable}. Playwright: {available | unavailable}. Stitch: {available | unavailable | not requested}.`
 
 ---
 
