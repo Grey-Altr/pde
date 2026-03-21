@@ -321,6 +321,6 @@ Plans:
 | 77. Flow Diagrams | v0.11 | 0/TBD | Not started | - |
 | 78. Wireframe Stage Extensions | v0.11 | 0/TBD | Not started | - |
 | 79. Critique and HIG Extensions | 2/2 | Complete    | 2026-03-21 | - |
-| 80. Print Collateral | v0.11 | 0/2 | Not started | - |
+| 80. Print Collateral | 1/2 | In Progress|  | - |
 | 81. Handoff — Production Bible | v0.11 | 0/TBD | Not started | - |
 | 82. Integration Validation and Regression Audit | v0.11 | 0/TBD | Not started | - |
