@@ -1,7 +1,7 @@
 // Phase 82 — Integration Validation and Regression Audit
 // Milestone completion audit: SC-2 — all experience sub-types exercisable through pipeline.
 // Verifies completed phases (74, 79, 80, 81) have implementations intact.
-// Documents pending phases (75-78) as test.todo() markers.
+// Documents pending phases (77-78) as test.todo() markers.
 
 import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
@@ -206,10 +206,10 @@ describe('Phase 81 — handoff production bible (COMPLETE)', () => {
 });
 
 // ---------------------------------------------------------------------------
-// Pending phases — Phase 74 stubs intact (phases 75-78 NOT YET IMPLEMENTED)
+// Pending phases — Phase 74 stubs intact (phases 77-78 NOT YET IMPLEMENTED)
 // ---------------------------------------------------------------------------
 
-describe('Pending phases — Phase 74 stubs intact (phases 75-78 NOT YET IMPLEMENTED)', () => {
+describe('Pending phases — Phase 74 stubs intact (phases 77-78 NOT YET IMPLEMENTED)', () => {
   test('flows.md still has Phase 74 stub (Phase 77 pending)', () => {
     const content = readWorkflow('workflows/flows.md');
     assert.ok(
@@ -218,11 +218,15 @@ describe('Pending phases — Phase 74 stubs intact (phases 75-78 NOT YET IMPLEME
     );
   });
 
-  test('system.md still has Phase 74 stub (Phase 76 pending)', () => {
+  test('system.md has Phase 76 experience token architecture (Phase 76 complete)', () => {
     const content = readWorkflow('workflows/system.md');
     assert.ok(
-      content.includes('Phase 74'),
-      'system.md: Phase 74 stub comment missing — stub must remain until Phase 76 implements experience design system token extensions'
+      content.includes('SYS-experience-tokens.json'),
+      'system.md: SYS-experience-tokens.json generation missing — Phase 76 not implemented'
+    );
+    assert.ok(
+      content.includes('Step 5b'),
+      'system.md: Step 5b experience token block missing — Phase 76 not implemented'
     );
   });
 
@@ -256,7 +260,7 @@ describe('Pending phases — Phase 74 stubs intact (phases 75-78 NOT YET IMPLEME
 });
 
 // ---------------------------------------------------------------------------
-// Pending phases — test.todo() markers for phases 75-78
+// Pending phases — test.todo() markers for phases 77-78
 // ---------------------------------------------------------------------------
 
 describe('Phase 76 — experience design token architecture (COMPLETE)', () => {
