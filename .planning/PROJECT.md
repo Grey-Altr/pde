@@ -80,6 +80,7 @@ Any user can go from idea to shipped product through a single platform that hand
 
 - Phase 74 complete: Experience product type structurally integrated — detection in brief.md (48 signals, 5 sub-types), branch stubs in all 14 pipeline workflows, regression smoke matrix (7/7 pass), experienceSubType manifest field, regulatory disclaimer block — v0.11
 - Phase 79 complete: Critique and HIG extensions — critique.md has 7 experience-specific perspectives (safety, accessibility, operations, sustainability, licensing/legal, financial, community), hig.md has 7 physical interface guideline domains (wayfinding, acoustic zoning, queue UX, transaction speed, toilet ratio, hydration, first aid), all with inline `[VERIFY WITH LOCAL AUTHORITY]` regulatory disclaimers, 20 Nyquist tests passing — v0.11
+- Phase 80 complete: Print collateral — wireframe.md generates FLY event flyer (A5/A4/Instagram variants, CMYK tables, prepress disclaimers), SIT series identity template ({{variable}} slots, recurring-series gate), PRG festival program (5-page multi-day, schedule grid, artist bios, venue map, sponsors), Awwwards composition annotations, 23 Nyquist tests passing — v0.11
 
 ## Current Milestone: v0.11 Experience Product Type
 
