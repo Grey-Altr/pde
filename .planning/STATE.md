@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.11
 milestone_name: Experience Product Type
 status: unknown
-stopped_at: Completed 75-01-PLAN.md
-last_updated: "2026-03-21T21:51:48.912Z"
+stopped_at: Completed 75-02-PLAN.md
+last_updated: "2026-03-21T21:54:13.350Z"
 progress:
   total_phases: 9
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 12
-  completed_plans: 11
+  completed_plans: 12
 ---
 
 # Project State
@@ -76,6 +76,7 @@ Key architectural constraints locked for this milestone:
 - [Phase 75]: Wave 0 TDD strategy: tests written and committed red before workflow edits — validates pre-state and creates unambiguous pass/fail contract
 - [Phase 75]: Experience sections grouped in single product_type == "experience" guard block after Scope Boundaries — simpler, more grep-friendly than per-section guards
 - [Phase 75]: Phase 82 negative BREF assertions replaced with positive assertions in same commit as workflow edits — keeps milestone regression suite accurate immediately
+- [Phase 75]: No new decisions — BREF todo markers removed after positive assertions confirmed present from Plan 01
 
 ### Phase Ordering Rationale
 
@@ -100,8 +101,8 @@ Key architectural constraints locked for this milestone:
 
 ## Session Continuity
 
-Last session: 2026-03-21T21:51:43.338Z
-Stopped at: Completed 75-01-PLAN.md
+Last session: 2026-03-21T21:54:09.165Z
+Stopped at: Completed 75-02-PLAN.md
 Resume file: None
 
 Next action: Execute Phase 75 (experience design system token generation)
