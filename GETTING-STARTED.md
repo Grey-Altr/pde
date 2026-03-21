@@ -264,6 +264,22 @@ Milestones checkpoint your progress, tag the release, and prepare the project fo
 
 ---
 
+## Idle Suggestion Threshold (Optional)
+
+PDE surfaces productivity suggestions when Claude Code is idle between operations. These suggestions appear in the tmux dashboard (Pane 7 of `/pde:monitor`) and are accessible via `/pde:suggestions`.
+
+By default, Claude Code waits 60 seconds before firing the idle notification. To see suggestions sooner, add this to `~/.CLAUDE.json`:
+
+```json
+{
+  "messageIdleNotifThresholdMs": 5000
+}
+```
+
+This makes suggestions appear after 5 seconds of idle time instead of 60 seconds. The setting lives in `~/.CLAUDE.json` (your global Claude Code config), not in the project's `.claude/settings.json`.
+
+---
+
 ## Command Cheat Sheet
 
 All `/pde:` commands, grouped by when you use them.
