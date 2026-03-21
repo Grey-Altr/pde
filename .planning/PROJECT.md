@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A full professional product design and development platform delivered as a Claude Code plugin. PDE takes users from raw idea to shipped product through AI-assisted research, design, planning, coding, testing, and deployment. Includes a complete 13-stage design pipeline (recommend → competitive → opportunity → ideate → brief → system → flows → wireframe → critique → iterate → mockup → hig → handoff) orchestrable via a single `/pde:build` command. Features a self-improvement fleet that audits, validates, and elevates its own output quality against Awwwards-level standards. Integrates with external development tools (GitHub, Linear, Jira, Figma, Pencil) via MCP for bidirectional sync of requirements, design tokens, and work items. Implements advanced workflow methodology with story-file sharding, acceptance-criteria-first planning, post-execution reconciliation, readiness gating, per-task tracking, and persistent agent memory. Automated pipeline verification validates research claims against the codebase, detects cross-phase dependencies, surfaces edge cases with BDD AC generation, and verifies integration points — all wired as automatic gates in the planning and readiness workflows. Real-time observability via structured event infrastructure with NDJSON event bus, persistent tmux monitoring dashboard (`/pde:monitor`), automatic session history summaries, and token/cost estimation — zero npm dependencies.
+A full professional product design and development platform delivered as a Claude Code plugin. PDE takes users from raw idea to shipped product through AI-assisted research, design, planning, coding, testing, and deployment. Includes a complete 13-stage design pipeline (recommend → competitive → opportunity → ideate → brief → system → flows → wireframe → critique → iterate → mockup → hig → handoff) orchestrable via a single `/pde:build` command. Features a self-improvement fleet that audits, validates, and elevates its own output quality against Awwwards-level standards. Integrates with external development tools (GitHub, Linear, Jira, Figma, Pencil) via MCP for bidirectional sync of requirements, design tokens, and work items. Implements advanced workflow methodology with story-file sharding, acceptance-criteria-first planning, post-execution reconciliation, readiness gating, per-task tracking, and persistent agent memory. Automated pipeline verification validates research claims against the codebase, detects cross-phase dependencies, surfaces edge cases with BDD AC generation, and verifies integration points — all wired as automatic gates in the planning and readiness workflows. Real-time observability via structured event infrastructure with NDJSON event bus, persistent 7-pane tmux monitoring dashboard (`/pde:monitor`) with idle-time suggestion display, automatic session history summaries, and token/cost estimation. Guided idle-time productivity system delivers phase-aware suggestions during agent processing with user-authored context notes flowing into planning workflows — zero npm dependencies.
 
 ## Core Value
 
@@ -70,20 +70,15 @@ Any user can go from idea to shipped product through a single platform that hand
 - ✓ Critique Stitch comparison with manifest detection, DTCG token suppression, multimodal PNG analysis — v0.9
 - ✓ Handoff Stitch pattern extraction with annotation gate, @component: extraction, hex-to-OKLCH TypeScript interfaces — v0.9
 - ✓ 215 Nyquist structural regression tests across all v0.9 phases — v0.9
-
-- ✓ Suggestion engine: standalone CJS module ranking idle-time suggestions by phase state, blockers, next-phase prep — zero LLM, <2s, tech-noir output — v0.10
+- ✓ Hook delivery infrastructure with zero-stdout contract, NDJSON event gating, marker-based idempotency — v0.10
+- ✓ Phase-aware suggestion engine: standalone CJS module ranking idle-time suggestions by blockers, artifacts, next-phase prep — zero LLM, <2s — v0.10
+- ✓ Human-editable suggestion catalog with 6 phase categories, DESIGN-STATE incomplete-item extraction, time/cost labels — v0.10
+- ✓ User-authored context notes (.planning/context-notes/) injected into plan-phase and brief workflows — v0.10
+- ✓ 7-pane tmux dashboard with Pane 7 (suggestions), /pde:suggestions CLI, adaptive degradation preserved — v0.10
 
 ### Active
 
-## Current Milestone: v0.10 Idle Time Productivity
-
-**Goal:** Guided productivity system for users during PDE processing wait times — learning content, context previews, and actionable prompts while agents work.
-
-**Target features:**
-- Guided productivity prompts during agent processing
-- Learning content relevant to current project phase
-- Context previews for upcoming work
-- Pairs with tmux dashboard (v0.8)
+(Next milestone not yet started)
 
 ### Out of Scope
 
@@ -107,8 +102,9 @@ Any user can go from idea to shipped product through a single platform that hand
 
 ## Context
 
-- **Shipped v0.9** on 2026-03-21: ~100,000 LOC (JavaScript/Markdown/Shell), ~856 total commits, 215 Nyquist tests
-- **Planned roadmap:** v0.10 Idle Time Productivity → v0.11 Experience Product Type → v0.12 Business Product Type → v0.13 AutoResearch → v0.14 WebMCP → v0.15 CLI-Anything → v0.16 Remote Dashboard → v0.17 Stakeholder Presentations → v1.0 Standalone CLI
+- **Shipped v0.10** on 2026-03-21: ~109,000 LOC (JavaScript/Markdown/Shell), ~962 total commits
+- **Planned roadmap:** v0.11 Experience Product Type → v0.12 Business Product Type → v0.13 AutoResearch → v0.14 WebMCP → v0.15 CLI-Anything → v0.16 Remote Dashboard → v0.17 Stakeholder Presentations → v1.0 Standalone CLI
+- **v0.10** shipped 2026-03-21: 107 files changed, 56 commits (idle-time productivity: suggestion engine, catalog, context notes, 7-pane dashboard)
 - **v0.9** shipped 2026-03-21: 91 files changed, 76 commits (Google Stitch integration across 5 pipeline skills)
 - **v0.1** shipped 2026-03-15: 303 files, ~60,000 LOC, 127 commits (GSD → PDE rebrand)
 - **v0.2** shipped 2026-03-16: 172 files changed, 135 commits (7-stage design pipeline)
@@ -122,7 +118,8 @@ Any user can go from idea to shipped product through a single platform that hand
 - **Distribution:** Claude Code plugin via GitHub; marketplace registration pending
 - **Architecture:** skills (slash commands) → workflows → agents → templates → references → bin scripts → config; event infrastructure (hooks → event-bus → NDJSON → dashboard/archiver)
 - **Design pipeline:** 13 skills (recommend, competitive, opportunity, ideate, brief, system, flows, wireframe, critique, iterate, mockup, hig, handoff) + build orchestrator, DESIGN-STATE.md tracking, design-manifest.json artifact registry (14 coverage flags, pass-through-all pattern); wireframe and mockup support `--use-stitch` flag for Stitch MCP generation with consent gates, annotation injection, 10s fallback, and local artifact caching (STH-{slug}.html/png); critique detects Stitch-sourced artifacts via manifest `source: "stitch"`, suppresses DTCG token-format false positives, reads STH PNG screenshots for multimodal visual analysis, and appends conditional `## Stitch Comparison` delta reports with token compliance percentages; handoff detects `stitch_annotated: true` in manifest (Step 2l), extracts `@component:` annotations from Stitch HTML (Step 4b-stitch), produces STITCH_COMPONENT_PATTERNS section with WFR+Stitch/Stitch-only/WFR-only source tags (Step 5b), generates `STH_{Slug}_{Component}Props` TypeScript interfaces with inline hex-to-OKLCH conversion and `@verify` labels for Stitch-only components (Step 5c)
-- **Observability:** PdeEventBus (EventEmitter + setImmediate dispatch), session-scoped NDJSON in /tmp, Claude Code hooks (SubagentStart/Stop, PostToolUse, SessionStart/End), semantic workflow events (phase/wave/plan), tmux 6-pane dashboard, archive-session.cjs summaries in .planning/logs/
+- **Observability:** PdeEventBus (EventEmitter + setImmediate dispatch), session-scoped NDJSON in /tmp, Claude Code hooks (SubagentStart/Stop, PostToolUse, SessionStart/End, Notification/idle_prompt), semantic workflow events (phase/wave/plan), tmux 7-pane dashboard (agent activity, pipeline progress, file changes, log stream, token/cost, context window, suggestions), archive-session.cjs summaries in .planning/logs/
+- **Idle-time productivity:** idle-suggestions.cjs engine with phase classification, blocker prioritization, artifact-fed targeting; idle-catalog.md with 6 phase categories; context-notes/ directory injected into plan-phase and brief workflows; pane-suggestions.sh polling display; /pde:suggestions CLI command
 - **Quality infrastructure:** Awwwards 4-dimension rubric, 3 quality reference files (motion-design, composition-typography, quality-standards), protected-files mechanism, 3-agent self-improvement fleet, skill builder with validation gate
 - **MCP integration layer:** mcp-bridge.cjs central adapter with TOOL_MAP (46 entries), APPROVED_SERVERS (6 services incl. Google Stitch), probe/degrade contracts, connection persistence (.planning/mcp-connections.json), write-back confirmation gates, Stitch quota tracking (Standard 350/mo, Experimental 50/mo) with lazy monthly reset
 - **Workflow methodology:** story-file sharding (task-NNN.md), AC-first planning (AC-N verification gates), post-execution reconciliation (RECONCILIATION.md), readiness gate (PASS/CONCERNS/FAIL), per-task tracking (workflow-status.md), persistent agent memory (50-entry cap with archival), analyst persona interviews
@@ -195,17 +192,10 @@ Any user can go from idea to shipped product through a single platform that hand
 | Stitch Comparison as recommendations not findings | Stitch deviations excluded from Action List and DESIGN-STATE | ✓ Good — prevents blocking on tool limitations vs design intent |
 | hexToOklch inline function (zero npm) | Math.cbrt/Math.atan2 OKLab conversion embedded in handoff workflow | ✓ Good — zero-npm-dependency preserved, handles #rgb/#rrggbbaa/named colors |
 | Stitch-only components get @verify label | Human decision prompt rather than silent omission or auto-acceptance | ✓ Good — safe default for unvalidated components |
-| Stitch stdio transport (not HTTP) | Claude Code silently drops custom headers (#7290, #17069); stdio via npx proxy is reliable | ✓ Good — avoids known Claude Code bug |
-| TOOL_MAP_VERIFY_REQUIRED markers | Tool names from community repos (MEDIUM confidence); live gate confirms at connect time | ✓ Good — MCP-05 verification deferred to connection, not build |
-| Lazy monthly quota reset | Read-time check vs stored reset_at date; no cron/background process needed | ✓ Good — zero-npm-dependency preserved |
 | QUOTA-03 split across Phase 65/66 | Phase 65 provides detection signal; Phase 66 provides fallback routing (WFR-06) | ✓ Good — clean infrastructure/consumer separation |
-
 | Hook delivery architecture for idle suggestions | idle_prompt hook fires silently, /tmp/-only state, event gating, threshold docs | ✓ Good — zero stdout, NDJSON event gating, marker-based dedup |
-
----
 | Suggestion catalog and context notes | Human-editable idle-catalog.md replaces hardcoded suggestions; context-notes/ injects domain knowledge into plan/brief workflows | ✓ Good — catalog is plain markdown, context notes are opt-in with README |
-
 | Dashboard integration (Pane 7) | 7-pane tmux layout with live suggestion display, adaptive degradation preserved, /pde:suggestions CLI for non-tmux users | ✓ Good — polling loop, zero-state fallback, build_minimal_layout() untouched |
-
----
-*Last updated: 2026-03-21 after Phase 73 — Dashboard Integration: Pane 7 suggestion display in 7-pane tmux layout, pane-suggestions.sh polling script, /pde:suggestions CLI command, monitor.md updated. Milestone v0.10 (Idle Time Productivity) complete.*
+| Zero-LLM suggestion engine | Suggestions ranked by file reads + heuristics only; no model calls during idle time | ✓ Good — <2s budget, zero cost, no recursive wait |
+| Context notes as opt-in enrichment | User-authored notes injected into planner prompt, not auto-generated | ✓ Good — if PDE can infer it, user input isn't needed |
+*Last updated: 2026-03-21 after v0.10 milestone — Idle Time Productivity: hook delivery, suggestion engine, catalog/content layer, context notes, 7-pane dashboard integration.*

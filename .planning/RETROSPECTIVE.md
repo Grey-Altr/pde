@@ -420,6 +420,48 @@ Google Stitch AI UI design tool fully integrated into PDE's 13-stage design pipe
 
 ---
 
+## Milestone: v0.10 — Idle Time Productivity
+
+**Shipped:** 2026-03-21
+**Phases:** 4 | **Plans:** 8 | **Commits:** 56
+
+### What Was Built
+- Notification/idle_prompt hook with zero-stdout contract and NDJSON event gating
+- Phase-aware suggestion engine (bin/lib/idle-suggestions.cjs) with ranked output in <2s, zero LLM calls
+- Human-editable suggestion catalog (idle-catalog.md) with 6 phase categories and time/cost labels
+- User-authored context-notes/ directory injected into plan-phase and brief workflows
+- 7-pane tmux dashboard with Pane 7 (suggestions) polling display
+- /pde:suggestions CLI command for non-tmux access
+
+### What Worked
+- **Zero-LLM constraint** — forcing suggestions to be file-read-only kept the engine fast (<2s) and zero-cost, avoiding recursive wait during agent processing
+- **Hook zero-stdout contract** — keeping suggestion delivery invisible to the main conversation pane was the right UX — users see suggestions only when they look at the dashboard
+- **Catalog as markdown** — making idle-catalog.md human-editable means users can customize suggestions without touching code
+- **Context notes injection** — clean separation of user-authored domain knowledge from PDE-generated content; workflows probe and inject without failing on absence
+
+### What Was Inefficient
+- **SUMMARY one-liner extraction** — v0.10 summaries also lack one-liner frontmatter (same pattern as v0.7); the summary-extract tool returns null. Tech debt continues to accumulate on this front
+- **Phase detail bloat in ROADMAP.md** — the detailed phase sections (goals, success criteria, plan lists) are valuable during active work but add 80+ lines per phase that become dead weight after completion
+
+### Patterns Established
+- Notification hook pattern: async hook → /tmp/ state file → polling display script (no stdout, no interruption)
+- Context enrichment via user-authored files: opt-in directory with README, soft-probe pattern in workflows
+- Suggestion ranking by priority tiers: blockers > artifacts > catalog > fallback
+- Pane-script pattern: standalone bash script per tmux pane, sourced from config.json for session ID
+
+### Key Lessons
+1. **Ambient display beats notification** — the tmux dashboard pane approach was correct; push notifications during agent work destroy flow state
+2. **Zero-LLM is a feature** — no model calls in the suggestion path means no cost, no latency, no recursive agent invocation
+3. **Human-editable catalogs** — markdown files that users can customize are more maintainable than hardcoded arrays in CJS modules
+4. **Context notes close a gap** — users have domain knowledge that PDE can't infer; giving them a structured place to externalize it improves planning quality
+
+### Cost Observations
+- Model mix: ~30% opus (planning), ~65% sonnet (execution), ~5% orchestration
+- Sessions: 1 session (all 4 phases in single run)
+- Notable: 56 commits in ~4 hours — smallest milestone by phase count (4) but highest velocity per phase
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -434,6 +476,8 @@ Google Stitch AI UI design tool fully integrated into PDE's 13-stage design pipe
 | v0.6 | ~91 | 8 | Workflow methodology — sharding, AC-first, reconciliation, readiness, tracking, agent memory |
 | v0.7 | ~47 | 4 | Pipeline verification — research validation, plan checker Dims 9-11, workflow integration |
 | v0.8 | 80 | 6 | Observability — event bus, tmux dashboard, session archival, token metering, workflow instrumentation |
+| v0.9 | 76 | 6 | Google Stitch — AI UI generation across 5 pipeline skills, quota tracking, consent gates |
+| v0.10 | 56 | 4 | Idle-time productivity — suggestion engine, catalog, context notes, 7-pane dashboard |
 
 ### Cumulative Quality
 
@@ -447,3 +491,5 @@ Google Stitch AI UI design tool fully integrated into PDE's 13-stage design pipe
 | v0.6 | 24/24 | 100% | 0 (phase 53 planned) | 80 must-haves |
 | v0.7 | 37/37 | 100% | 0 | 5 tasks, all green |
 | v0.8 | 26/26 | 100% | 1 (phase 63, audit-driven) | 6/6 Nyquist compliant |
+| v0.9 | 30/30 | 100% | 0 | 215 |
+| v0.10 | 23/23 | 100% | 0 | — |

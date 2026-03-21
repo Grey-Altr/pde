@@ -1,5 +1,25 @@
 # Milestones
 
+## v0.10 Idle Time Productivity (Shipped: 2026-03-21)
+
+**Phases completed:** 4 phases, 8 plans
+**Commits:** 56 | **Files:** 107 | **LOC:** ~109,000
+**Timeline:** ~4 hours (2026-03-21)
+**Git range:** v0.9..HEAD
+
+**Key accomplishments:**
+
+1. Hook delivery infrastructure: Notification/idle_prompt hook with zero-stdout contract, NDJSON event gating (fires only on meaningful PDE events), marker-based idempotency, and /tmp/-only state files
+2. Suggestion engine: Standalone CJS module (bin/lib/idle-suggestions.cjs) with phase-aware ranking, blocker prioritization, next-phase preview, artifact-fed targeting, time-bounded micro-task calibration — zero LLM calls, <2s budget, tech-noir output
+3. Suggestion catalog: Human-editable idle-catalog.md with 6 phase categories (research/plan/execute/design/validation/default), DESIGN-STATE.md incomplete-item extraction, time-to-complete labels and resumption cost categories
+4. Context notes: User-authored .planning/context-notes/ directory with README, injected into /pde:plan (Step 7.2 + planner prompt) and /pde:brief (Sub-step 2c + Step 5) for domain knowledge enrichment
+5. Dashboard integration: 7-pane tmux layout with Pane 7 (suggestions) via pane-suggestions.sh polling script, adaptive degradation preserved, /pde:suggestions CLI command for non-tmux access
+6. Documentation: Getting Started updated with messageIdleNotifThresholdMs: 5000 recommendation, monitor.md updated for 7-pane layout
+
+**Delivered:** A guided productivity system for users during PDE processing wait times — phase-aware suggestions ranked by blockers, artifacts, and upcoming work, delivered via ambient tmux dashboard pane and CLI command, with user-authored context notes flowing into planning workflows — all built with zero LLM calls, zero npm dependencies, and zero stdout pollution.
+
+---
+
 ## v0.9 Google Stitch Integration (Shipped: 2026-03-21)
 
 **Phases completed:** 6 phases, 12 plans
