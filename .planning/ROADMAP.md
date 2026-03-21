@@ -180,7 +180,7 @@ Full details: .planning/milestones/v0.10-ROADMAP.md
 
 - [x] **Phase 74: Foundation and Regression Infrastructure** — Experience product type detection, sub-type architecture, branch site audit, regression smoke matrix, disclaimer block (completed 2026-03-21)
 - [x] **Phase 75: Brief Extensions** — Five new brief fields capturing the physical design contract (promise statement, vibe contract, audience archetype, venue constraints, repeatability intent) (completed 2026-03-21)
-- [ ] **Phase 76: Experience Design Token Architecture** — SYS-experience-tokens.json with sonic, lighting, spatial, atmospheric, wayfinding, and brand coherence token categories
+- [x] **Phase 76: Experience Design Token Architecture** — SYS-experience-tokens.json with sonic, lighting, spatial, atmospheric, wayfinding, and brand coherence token categories (completed 2026-03-21)
 - [ ] **Phase 77: Flow Diagrams** — Temporal, spatial, and social flow dimensions; spaces inventory JSON feeding downstream floor plan
 - [ ] **Phase 78: Wireframe Stage Extensions** — Floor plan (FLP) and timeline (TML) artifact types; FPL/TML manifest registration
 - [x] **Phase 79: Critique and HIG Extensions** — Seven event-specific critique perspectives; physical interface guidelines replacing WCAG checks; regulatory disclaimer enforcement (completed 2026-03-21)
@@ -335,7 +335,7 @@ Plans:
 | 70-73 | v0.10 | 8/8 | Complete | 2026-03-21 |
 | 74. Foundation and Regression Infrastructure | 2/2 | Complete    | 2026-03-21 | - |
 | 75. Brief Extensions | 2/2 | Complete    | 2026-03-21 | - |
-| 76. Experience Design Token Architecture | 1/2 | In Progress|  | - |
+| 76. Experience Design Token Architecture | 2/2 | Complete   | 2026-03-21 | - |
 | 77. Flow Diagrams | v0.11 | 0/TBD | Not started | - |
 | 78. Wireframe Stage Extensions | v0.11 | 0/TBD | Not started | - |
 | 79. Critique and HIG Extensions | 2/2 | Complete    | 2026-03-21 | - |
