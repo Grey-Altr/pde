@@ -62,10 +62,10 @@ Requirements for Google Stitch Integration milestone. Each maps to roadmap phase
 
 ### Handoff Pattern Extraction
 
-- [ ] **HND-01**: /pde:handoff detects Stitch-sourced artifacts and applies pattern extraction mode
-- [ ] **HND-02**: Hex-to-OKLCH inline conversion for extracted color values (following existing figmaColorToCss precedent)
-- [ ] **HND-03**: Component pattern extraction from annotated Stitch HTML produces TypeScript interfaces
-- [ ] **HND-04**: stitch_annotated: true gate — handoff verifies annotation injection completed before extracting patterns
+- [x] **HND-01**: /pde:handoff detects Stitch-sourced artifacts and applies pattern extraction mode
+- [x] **HND-02**: Hex-to-OKLCH inline conversion for extracted color values (following existing figmaColorToCss precedent)
+- [x] **HND-03**: Component pattern extraction from annotated Stitch HTML produces TypeScript interfaces
+- [x] **HND-04**: stitch_annotated: true gate — handoff verifies annotation injection completed before extracting patterns
 
 ## Future Requirements
 
@@ -123,10 +123,10 @@ Requirements for Google Stitch Integration milestone. Each maps to roadmap phase
 | CRT-02 | Phase 68 | Complete |
 | CRT-03 | Phase 68 | Complete |
 | CRT-04 | Phase 68 | Complete |
-| HND-01 | Phase 69 | Pending |
-| HND-02 | Phase 69 | Pending |
-| HND-03 | Phase 69 | Pending |
-| HND-04 | Phase 69 | Pending |
+| HND-01 | Phase 69 | Complete |
+| HND-02 | Phase 69 | Complete |
+| HND-03 | Phase 69 | Complete |
+| HND-04 | Phase 69 | Complete |
 
 **Coverage:**
 - v0.9 requirements: 36 total

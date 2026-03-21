@@ -263,4 +263,4 @@ Plans:
 | 66 | 3/3 | Complete    | 2026-03-21 | - |
 | 67 | 2/2 | Complete    | 2026-03-21 | - |
 | 68 | 2/2 | Complete    | 2026-03-21 | - |
-| 69 | v0.9 | 0/TBD | Not started | - |
+| 69 | 1/2 | In Progress|  | - |
