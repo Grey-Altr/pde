@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.11
 milestone_name: Experience Product Type
 status: unknown
-stopped_at: Completed 81-02-PLAN.md
-last_updated: "2026-03-21T20:35:09.709Z"
+stopped_at: Completed 82-01-PLAN.md
+last_updated: "2026-03-21T21:13:19.882Z"
 progress:
   total_phases: 9
   completed_phases: 4
-  total_plans: 8
-  completed_plans: 8
+  total_plans: 10
+  completed_plans: 9
 ---
 
 # Project State
@@ -19,11 +19,11 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 81 — handoff-production-bible
+**Current focus:** Phase 82 — integration-validation-and-regression-audit
 
 ## Current Position
 
-Phase: 81 (handoff-production-bible) — EXECUTING
+Phase: 82 (integration-validation-and-regression-audit) — EXECUTING
 Plan: 1 of 2
 
 ## Performance Metrics
@@ -70,6 +70,8 @@ Key architectural constraints locked for this milestone:
 - [Phase 81]: STACK.md bypass in Step 2a reads manifest before hard-stop — non-hybrid-event experience products skip STACK.md check (FRAMEWORK=none, TYPESCRIPT=false)
 - [Phase 81-02]: NEVER-guard language lives inline at Step 4i branch decision — not only in anti-patterns — providing defense-in-depth against product-type violations
 - [Phase 81-02]: SC-4 Nyquist test checks for affirmative BIB generation instructions (not word presence) allowing NEVER-guard prohibition text in software branch
+- [Phase 82]: wireframe.md experience keyword is 'FLY artifact' not GENERATE_FLY — that constant was never defined in wireframe.md
+- [Phase 82]: 4 fixture JSON manifests required hasPrintCollateral/hasProductionBible fields added to match 16-field canonical schema — added as auto-fix Rule 2
 
 ### Phase Ordering Rationale
 
@@ -94,8 +96,8 @@ Key architectural constraints locked for this milestone:
 
 ## Session Continuity
 
-Last session: 2026-03-21T20:35:09.706Z
-Stopped at: Completed 81-02-PLAN.md
+Last session: 2026-03-21T21:13:13.491Z
+Stopped at: Completed 82-01-PLAN.md
 Resume file: None
 
 Next action: Execute Phase 75 (experience design system token generation)
