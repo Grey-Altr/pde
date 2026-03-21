@@ -309,7 +309,7 @@ Plans:
 | 58-63 | v0.8 | 13/13 | Complete | 2026-03-20 |
 | 64-69 | v0.9 | 12/12 | Complete | 2026-03-21 |
 | 70-73 | v0.10 | 8/8 | Complete | 2026-03-21 |
-| 74. Foundation and Regression Infrastructure | v0.11 | 0/2 | Not started | - |
+| 74. Foundation and Regression Infrastructure | 1/2 | In Progress|  | - |
 | 75. Brief Extensions | v0.11 | 0/TBD | Not started | - |
 | 76. Experience Design Token Architecture | v0.11 | 0/TBD | Not started | - |
 | 77. Flow Diagrams | v0.11 | 0/TBD | Not started | - |

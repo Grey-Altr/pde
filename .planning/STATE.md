@@ -1,15 +1,15 @@
 ---
-pde_state_version: 1.0
+gsd_state_version: 1.0
 milestone: v0.11
 milestone_name: Experience Product Type
-status: active
-stopped_at: null
-last_updated: "2026-03-21"
+status: executing
+stopped_at: "Completed 74-01-PLAN.md"
+last_updated: "2026-03-21T10:22:00Z"
 progress:
   total_phases: 9
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 2
+  completed_plans: 1
 ---
 
 # Project State
@@ -19,16 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** v0.11 Phase 74 — Foundation and Regression Infrastructure
+**Current focus:** Phase 74 — foundation-and-regression-infrastructure
 
 ## Current Position
 
-Phase: 74 of 82 (Foundation and Regression Infrastructure)
-Plan: — of TBD
-Status: Ready to plan
-Last activity: 2026-03-21 — Roadmap created for v0.11 Experience Product Type (9 phases, 48 requirements)
-
-Progress: [░░░░░░░░░░] 0% (0/9 phases complete)
+Phase: 74 (foundation-and-regression-infrastructure) — EXECUTING
+Plan: 2 of 2
 
 ## Performance Metrics
 
@@ -42,6 +38,11 @@ Progress: [░░░░░░░░░░] 0% (0/9 phases complete)
 ### Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table.
+
+**Phase 74 Plan 01 decisions (2026-03-21):**
+- Experience classification precedes hybrid in brief.md chain — experience + software signals resolve to hybrid-event sub-type, not hybrid product type
+- experienceSubType written as null for non-experience products (null = sentinel, not omission)
+- Regression smoke matrix written before workflow edits (Wave 0 strategy)
 
 Key architectural constraints locked for this milestone:
 
@@ -75,7 +76,7 @@ Key architectural constraints locked for this milestone:
 ## Session Continuity
 
 Last session: 2026-03-21
-Stopped at: Roadmap created — ready to plan Phase 74
+Stopped at: Completed 74-01-PLAN.md
 Resume file: None
 
-Next action: Run /pde:plan-phase 74
+Next action: Execute 74-02-PLAN.md (experience branch stubs in 13 downstream workflows)
