@@ -302,7 +302,10 @@ Plans:
   2. Each of the 5 experience sub-types (single-night, multi-day, recurring-series, installation, hybrid-event) can be exercised through the full pipeline and produces its expected artifact set
   3. No new workflow files were added during the milestone — all experience extensions live as conditional blocks in existing files, confirmed by `git diff --name-only v0.10..HEAD | grep workflows/`
   4. The skill registry confirms all 13 pipeline skills are operational for both software and experience product types
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 82-01-PLAN.md -- Fix Phase 64 test drift + regression matrix (SC-1, SC-3, SC-4)
+- [ ] 82-02-PLAN.md -- Milestone completion audit + full suite gate (SC-2)
 
 ## Progress
 
@@ -325,5 +328,5 @@ Plans:
 | 78. Wireframe Stage Extensions | v0.11 | 0/TBD | Not started | - |
 | 79. Critique and HIG Extensions | 2/2 | Complete    | 2026-03-21 | - |
 | 80. Print Collateral | 2/2 | Complete    | 2026-03-21 | - |
-| 81. Handoff — Production Bible | 2/2 | Complete   | 2026-03-21 | - |
-| 82. Integration Validation and Regression Audit | v0.11 | 0/TBD | Not started | - |
+| 81. Handoff — Production Bible | 2/2 | Complete    | 2026-03-21 | - |
+| 82. Integration Validation and Regression Audit | v0.11 | 0/2 | Not started | - |
