@@ -273,7 +273,10 @@ Plans:
   2. The generated flyer includes no use of the phrase "print-ready" without an adjacent prepress disclaimer stating the artifact is a composition reference, not a production print file
   3. For recurring-series sub-type events, a series identity template is generated with `{{variable}}` slots for edition-specific values (date, headliner, venue)
   4. All print artifact compositions follow Awwwards-level standards: clear focal hierarchy, intentional negative space, maximum 3 typefaces, legible at intended print size
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 80-01-PLAN.md — Wave 0 Nyquist tests + FLY event flyer and SIT series identity template in wireframe.md (PRNT-01, PRNT-02, PRNT-04)
+- [ ] 80-02-PLAN.md — PRG festival program multi-page generation + visual verification checkpoint (PRNT-03)
 
 ### Phase 81: Handoff — Production Bible
 **Goal**: The handoff stage assembles a production bible (BIB artifact) from all upstream experience artifacts — containing advance document, run sheet, staffing plan, budget framework, post-event template, and print spec output — as the completion artifact for the experience pipeline
@@ -317,7 +320,7 @@ Plans:
 | 76. Experience Design Token Architecture | v0.11 | 0/TBD | Not started | - |
 | 77. Flow Diagrams | v0.11 | 0/TBD | Not started | - |
 | 78. Wireframe Stage Extensions | v0.11 | 0/TBD | Not started | - |
-| 79. Critique and HIG Extensions | 2/2 | Complete   | 2026-03-21 | - |
-| 80. Print Collateral | v0.11 | 0/TBD | Not started | - |
+| 79. Critique and HIG Extensions | 2/2 | Complete    | 2026-03-21 | - |
+| 80. Print Collateral | v0.11 | 0/2 | Not started | - |
 | 81. Handoff — Production Bible | v0.11 | 0/TBD | Not started | - |
 | 82. Integration Validation and Regression Audit | v0.11 | 0/TBD | Not started | - |
