@@ -8,6 +8,7 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const { generateSuggestions } = require('../bin/lib/idle-suggestions.cjs');
 
 // ─── Event gating ─────────────────────────────────────────────────────────────
 
@@ -62,17 +63,9 @@ process.stdin.on('end', () => {
       process.exit(0); // already processed this event
     }
 
-    // Write suggestion placeholder to /tmp/
+    // Write engine suggestions to /tmp/
     const suggPath = path.join(os.tmpdir(), `pde-suggestions-${sessionId}.md`);
-    const content = [
-      '# Suggestions',
-      '',
-      `_Last updated: ${new Date().toISOString()}_`,
-      `_Event: ${lastMeaningful.event_type}_`,
-      '',
-      '_PDE is processing. Suggestions will appear when the engine is installed (Phase 71)._',
-      ''
-    ].join('\n');
+    const content = generateSuggestions({ cwd, event: lastMeaningful });
     fs.writeFileSync(suggPath, content, 'utf-8');
 
     // Write marker file
