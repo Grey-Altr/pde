@@ -1,9 +1,9 @@
 ---
 phase: 72
 slug: suggestion-catalog-and-content-layer
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-21
 ---
 
@@ -38,9 +38,9 @@ created: 2026-03-21
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 72-01-01 | 01 | 1 | CONT-01, CONT-02, CONT-03, CONT-05, CONT-06 | unit | `node hooks/tests/verify-phase-72.cjs` | ❌ W0 | ⬜ pending |
-| 72-01-02 | 01 | 1 | CONT-01, CONT-02, CONT-05 | integration | `node hooks/tests/verify-phase-72.cjs` | ❌ W0 | ⬜ pending |
-| 72-02-01 | 02 | 1 | CONT-04 | integration | `grep -c "context-notes" workflows/plan-phase.md && grep -c "context-notes" workflows/brief.md && test -f .planning/context-notes/README.md` | ✅ | ⬜ pending |
+| 72-01-01 | 01 | 1 | CONT-01, CONT-02, CONT-03, CONT-05, CONT-06 | unit | `node hooks/tests/verify-phase-72.cjs` | ✅ | ✅ green |
+| 72-01-02 | 01 | 1 | CONT-01, CONT-02, CONT-05 | integration | `node hooks/tests/verify-phase-72.cjs` | ✅ | ✅ green |
+| 72-02-01 | 02 | 1 | CONT-04 | integration | `grep -c "context-notes" workflows/plan-phase.md && grep -c "context-notes" workflows/brief.md && test -f .planning/context-notes/README.md` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -48,9 +48,9 @@ created: 2026-03-21
 
 ## Wave 0 Requirements
 
-- [ ] `hooks/tests/verify-phase-72.cjs` — CJS test runner for catalog parser, engine integration, DESIGN-STATE extraction, and suggestion output validation
+- [x] `hooks/tests/verify-phase-72.cjs` — CJS test runner for catalog parser, engine integration, DESIGN-STATE extraction, and suggestion output validation (9 tests, all passing)
 
-*This single file covers CONT-01 through CONT-06 engine-side checks. Created as first task action in 72-01.*
+*Created during Plan 72-01 Task 1. All 9 tests green.*
 
 ---
 
@@ -65,11 +65,23 @@ created: 2026-03-21
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 5s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 5s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-03-21
+
+---
+
+## Validation Audit 2026-03-21
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+All 6 CONT requirements covered by `verify-phase-72.cjs` (9 tests, 9 passing). VALIDATION.md finalized from draft during milestone audit.
