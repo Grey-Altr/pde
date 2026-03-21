@@ -1,0 +1,102 @@
+# Requirements: PDE v0.10 Idle Time Productivity
+
+**Defined:** 2026-03-20
+**Core Value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
+
+## v0.10 Requirements
+
+### Delivery Infrastructure
+
+- [ ] **DLVR-01**: idle_prompt Notification hook registered in hooks.json with async: true and idle_prompt matcher
+- [ ] **DLVR-02**: Hook handler produces zero stdout — all suggestion output written to /tmp/pde-suggestions-{sessionId}.md only
+- [ ] **DLVR-03**: Suggestion updates gated on meaningful PDE events (phase_started, phase_complete, plan_started) from NDJSON stream — not on every idle_prompt fire
+- [ ] **DLVR-04**: All suggestion state files written to /tmp/ — zero files in .planning/ from suggestion system (context-notes excluded, those are user-authored)
+- [ ] **DLVR-05**: Getting Started documentation updated with messageIdleNotifThresholdMs: 5000 recommendation for ~/.CLAUDE.json
+
+### Suggestion Engine
+
+- [ ] **ENGN-01**: Phase-aware suggestion engine reads STATE.md + DESIGN-STATE.md to classify current phase (research/plan/execute/design/validation/default)
+- [ ] **ENGN-02**: Suggestion generation completes within 2-second budget with zero LLM calls and max 3 synchronous file reads
+- [ ] **ENGN-03**: Blockers from STATE.md blockers field appear as highest-priority suggestions above all other categories
+- [ ] **ENGN-04**: Upcoming phase preview reads ROADMAP.md next-phase entry and surfaces 2-3 preparation prompts
+- [ ] **ENGN-05**: Artifact-fed targeting reads design-manifest.json and critique outputs to include specific file paths and severity in suggestions
+- [ ] **ENGN-06**: Time-bounded micro-task calibration filters suggestions to match estimated remaining processing time (fixed heuristics: research 5-10min, execute 10-30min per task)
+
+### Content & Knowledge Capture
+
+- [ ] **CONT-01**: Phase-keyed suggestion catalog (.planning/idle-catalog.md) with 6 phase categories × 3-5 suggestions each plus generic fallback section
+- [ ] **CONT-02**: Artifact review queue surfaces "new artifact ready for review" with specific file paths on phase_complete events
+- [ ] **CONT-03**: Domain knowledge externalization prompts displayed during agent processing with phase-specific questions the user can answer
+- [ ] **CONT-04**: User-authored context notes stored in .planning/context-notes/ directory, consumable by /pde:plan and /pde:brief in subsequent phases
+- [ ] **CONT-05**: Human-taste decision queue reads DESIGN-STATE.md for incomplete design choices and surfaces them as low-urgency decision prompts
+- [ ] **CONT-06**: Each suggestion labeled with expected time-to-complete and resumption cost category (low/medium/high)
+
+### Dashboard Integration
+
+- [ ] **DASH-01**: Suggestion pane (Pane 7) added to build_full_layout() only — build_minimal_layout() unchanged
+- [ ] **DASH-02**: Pane displays ranked suggestion list with ANSI formatting, passively and without alerts/beeps/modals
+- [ ] **DASH-03**: Zero-state fallback content displayed when no phase is active ("Waiting for PDE to start a phase...")
+- [ ] **DASH-04**: Adaptive layout degradation preserved — existing 6→4→3→2 pane model not broken by Pane 7 addition
+- [ ] **DASH-05**: /pde:suggestions CLI command provides non-tmux access to current suggestion list via pde-tools.cjs
+- [ ] **DASH-06**: monitor.md workflow documentation updated for 7-pane layout description
+
+## v0.11+ Requirements
+
+Deferred to future milestones. Tracked but not in current roadmap.
+
+### Advanced Suggestions
+
+- **ADVS-01**: Parallel session templates with pre-configured tmux splits for unrelated work
+- **ADVS-02**: Suggestion effectiveness feedback loop tracking which suggestions users act on
+- **ADVS-03**: LLM-personalized suggestion ranking based on user history and project patterns
+
+## Out of Scope
+
+| Feature | Reason |
+|---------|--------|
+| Push notifications / interruptions on phase complete | 23-minute flow recovery cost; tmux dashboard already shows completion passively |
+| LLM-generated suggestions at display time | Creates recursive wait; violates feature premise; 2-second budget |
+| Gamification (streaks, points, badges) | Rejected pattern in professional developer tooling |
+| Dedicated /pde:idle command/mode | Requires behavior change; ambient display is the value |
+| Auto-generated context notes | If PDE can infer it, user input isn't needed; defeats externalization purpose |
+| Persistent idle-task history across sessions | Per-agent memory has 50-entry cap; marginal value for audit of 5-minute waits |
+| Suggestions requiring internet/external tools | Conflicts with file-based, zero-npm constraint model |
+
+## Traceability
+
+Which phases cover which requirements. Updated during roadmap creation.
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| DLVR-01 | — | Pending |
+| DLVR-02 | — | Pending |
+| DLVR-03 | — | Pending |
+| DLVR-04 | — | Pending |
+| DLVR-05 | — | Pending |
+| ENGN-01 | — | Pending |
+| ENGN-02 | — | Pending |
+| ENGN-03 | — | Pending |
+| ENGN-04 | — | Pending |
+| ENGN-05 | — | Pending |
+| ENGN-06 | — | Pending |
+| CONT-01 | — | Pending |
+| CONT-02 | — | Pending |
+| CONT-03 | — | Pending |
+| CONT-04 | — | Pending |
+| CONT-05 | — | Pending |
+| CONT-06 | — | Pending |
+| DASH-01 | — | Pending |
+| DASH-02 | — | Pending |
+| DASH-03 | — | Pending |
+| DASH-04 | — | Pending |
+| DASH-05 | — | Pending |
+| DASH-06 | — | Pending |
+
+**Coverage:**
+- v0.10 requirements: 23 total
+- Mapped to phases: 0
+- Unmapped: 23 ⚠️
+
+---
+*Requirements defined: 2026-03-20*
+*Last updated: 2026-03-20 after initial definition*
