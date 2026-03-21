@@ -159,7 +159,7 @@ Full details: .planning/milestones/v0.9-ROADMAP.md
 
 </details>
 
-### 🚧 v0.10 Idle Time Productivity (In Progress)
+### v0.10 Idle Time Productivity (In Progress)
 
 **Milestone Goal:** Guided productivity system for users during PDE processing wait times — context-aware suggestions, domain knowledge capture, and upcoming-phase previews delivered passively via the tmux dashboard while agents work. No interruptions, no LLM calls in the suggestion path, zero new npm dependencies.
 
@@ -182,8 +182,8 @@ Full details: .planning/milestones/v0.9-ROADMAP.md
   5. Getting Started documentation contains a messageIdleNotifThresholdMs: 5000 recommendation with the correct ~/.CLAUDE.json key
 **Plans**: 2 plans
 Plans:
-- [ ] 70-01-PLAN.md — Hook registration + idle-suggestions.cjs handler with event gating
-- [ ] 70-02-PLAN.md — Getting Started threshold configuration documentation
+- [x] 70-01-PLAN.md — Hook registration + idle-suggestions.cjs handler with event gating
+- [x] 70-02-PLAN.md — Getting Started threshold configuration documentation
 
 ### Phase 71: Suggestion Engine
 **Goal**: A standalone, unit-testable CJS module (bin/lib/idle-suggestions.cjs) that reads current phase state and returns a ranked suggestion list from the catalog within 2 seconds using no LLM calls
@@ -198,8 +198,8 @@ Plans:
   6. Running the module against STATE.md and DESIGN-STATE.md that reference missing files produces graceful fallback output rather than an error
 **Plans**: 2 plans
 Plans:
-- [ ] 70-01-PLAN.md — Hook registration + idle-suggestions.cjs handler with event gating
-- [ ] 70-02-PLAN.md — Getting Started threshold configuration documentation
+- [ ] 71-01-PLAN.md — TDD engine module with ranking, classification, formatting, and test suite
+- [ ] 71-02-PLAN.md — Wire engine into Phase 70 hook handler
 
 ### Phase 72: Suggestion Catalog and Content Layer
 **Goal**: A complete, human-editable suggestion catalog covers all 6 PDE phase types plus a generic fallback, context-notes directory is initialized with a README, and /pde:plan and /pde:brief consume user-authored context notes in subsequent planning cycles
@@ -211,10 +211,7 @@ Plans:
   3. Each phase section of the catalog contains at least one domain knowledge externalization prompt phrased as a question the user can answer during wait time
   4. Placing a markdown file in .planning/context-notes/ and then running /pde:plan causes that file's content to appear in the planning context under a Context Notes section
   5. When DESIGN-STATE.md contains incomplete design choices, the suggestion list includes at least one low-urgency decision prompt sourced from those incomplete choices
-**Plans**: 2 plans
-Plans:
-- [ ] 70-01-PLAN.md — Hook registration + idle-suggestions.cjs handler with event gating
-- [ ] 70-02-PLAN.md — Getting Started threshold configuration documentation
+**Plans**: [To be planned]
 
 ### Phase 73: Dashboard Integration
 **Goal**: The 7-pane tmux dashboard is complete — Pane 7 shows a live ranked suggestion list in the full layout, the adaptive degradation model is preserved for smaller terminals, and non-tmux users have CLI access via /pde:suggestions
@@ -226,10 +223,7 @@ Plans:
   3. Before any PDE phase has started, Pane 7 displays the zero-state message "Waiting for PDE to start a phase. Suggestions will appear when a phase completes." rather than empty content
   4. Running /pde:suggestions in a terminal without tmux prints the current suggestion list to stdout and exits cleanly
   5. The monitor.md workflow documentation describes the 7-pane layout including Pane 7's purpose and the zero-state behavior
-**Plans**: 2 plans
-Plans:
-- [ ] 70-01-PLAN.md — Hook registration + idle-suggestions.cjs handler with event gating
-- [ ] 70-02-PLAN.md — Getting Started threshold configuration documentation
+**Plans**: [To be planned]
 
 ## Progress
 
@@ -245,6 +239,6 @@ Plans:
 | 58-63 | v0.8 | 13/13 | Complete | 2026-03-20 |
 | 64-69 | v0.9 | 12/12 | Complete | 2026-03-21 |
 | 70. Hook Integration and Delivery Architecture | 2/2 | Complete    | 2026-03-21 | - |
-| 71. Suggestion Engine | v0.10 | 0/TBD | Not started | - |
+| 71. Suggestion Engine | v0.10 | 0/2 | Not started | - |
 | 72. Suggestion Catalog and Content Layer | v0.10 | 0/TBD | Not started | - |
 | 73. Dashboard Integration | v0.10 | 0/TBD | Not started | - |
