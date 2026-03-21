@@ -1,239 +1,219 @@
 # Pitfalls Research
 
-**Domain:** Adding intelligent idle time productivity to an existing AI-assisted development platform (PDE v0.10)
-**Researched:** 2026-03-20
-**Confidence:** HIGH for UX and flow-interruption pitfalls (grounded in published developer cognition research and PDE codebase inspection); HIGH for Claude Code hook integration pitfalls (official Claude Code hooks documentation); MEDIUM for suggestion relevance and content generation pitfalls (pattern inference from adjacent domains)
-
----
-
-## The Fundamental Tension
-
-Idle time productivity is the wrong frame. The real question is: "What can a developer do during a PDE wait that makes the next PDE cycle better?" The moment the feature optimizes for "keeping the user busy" rather than "shortening the feedback loop between human and PDE," it becomes a distraction engine masquerading as productivity tooling.
-
-PDE phases (research, plan, execute) can take 2-10 minutes. During that time, a developer who was in deep flow does not want task interruption — they want a safe place to mentally discharge or pre-load the next cycle. The feature succeeds if users say "I did something useful while PDE was running." It fails if users say "PDE kept bothering me."
-
-Every architectural decision in v0.10 must be measured against this tension.
+**Domain:** Adding "experience" product type to existing multi-type design pipeline (PDE v0.11)
+**Researched:** 2026-03-21
+**Confidence:** HIGH for pipeline integration pitfalls (grounded in direct codebase inspection of all 14 workflow branch sites); MEDIUM for LLM safety/licensing accuracy claims (cross-referenced WebSearch findings with known hallucination patterns); MEDIUM for SVG floor plan and print color space claims (fundamental technical constraints, not PDE-specific)
 
 ---
 
 ## Critical Pitfalls
 
-### Pitfall 1: Interrupting Flow to Announce Idle Time
+### Pitfall 1: Default-Else Regression — Existing Types Silently Fall Into Experience Branch
 
 **What goes wrong:**
-The suggestion system fires at the moment Claude Code becomes idle — immediately after a subagent stops or a tool completes — and presents a list of productive activities the user "could" do. The user was mentally tracking the PDE process, possibly planning their next instruction, and the suggestion pane flashes or refreshes with new content. This is an interruption, not a suggestion. It costs the user the same cognitive recovery time as any other notification: 23 minutes of lost deep focus for a complex coding task, 15 minutes minimum before flow is re-established.
+Every workflow that handles product type branching uses a chain like `IF software ... ELSE IF hardware ... ELSE IF hybrid ...`. Adding `experience` to that chain requires inserting a new branch without accidentally making it the new catch-all or erasing the existing default. If the final `ELSE` is converted to `ELSE IF experience` — a natural refactor — the implicit software default disappears. Any unclassified project or any project whose brief lacks a Product Type field will fall through to an error state or to experience logic applied to a software project.
 
 **Why it happens:**
-The `Notification` hook with `idle_prompt` matcher is the natural integration point for detecting Claude Code idle state. Developers building the feature wire this hook to immediately surface suggestions, conflating "technically idle" with "needs input." The system is optimized for zero latency between PDE idle and suggestion display, when the correct optimization is "suggestions are visible when the user looks for them, not when PDE becomes idle."
+The brief detection step in `brief.md` (Step 4/7) currently resolves to exactly one of three canonical strings: `software`, `hardware`, `hybrid`. All downstream consumers read that string and branch. Adding a fourth value requires updating every branch site. Developers typically update the detection step correctly but miss one or two downstream consumers, or they place `ELSE IF experience` after `ELSE IF hybrid` and inadvertently remove the fallback default.
 
 **How to avoid:**
-- Suggestions belong in the persistent tmux dashboard (pane 6 or a dedicated pane), not in a notification or Claude Code conversation output. The user consults the pane when they want it — the pane does not demand attention.
-- If the `Notification`/`idle_prompt` hook is used at all, it should update a file or pane silently. It must not produce stdout that Claude Code injects into the conversation, and must not ring, flash, or produce visible terminal output in the main Claude Code pane.
-- The hook handler must be `async: true` with no stdout output (only silent file writes). Any output from a hook handler is shown to the user by Claude Code — this is a feature of the hook system, not a side effect to ignore.
-- Design rule: suggestions are pull, not push. The user pulls suggestions from the dashboard pane when they choose. PDE never pushes suggestions into the user's primary workflow.
+- Before writing any new code, audit every `product_type` branch site across all 14 workflows. Known sites confirmed by codebase inspection: `brief.md` (Step 4, Step 7 frontmatter), `system.md` (Step 3 color fallback), `wireframe.md` (Step 3 CSS defaults), `handoff.md` (Steps 4i hardware sections, Step 2b coverage parse, Step 11 hardware section gate), `flows.md`, `hig.md`, `critique.md`. Run `grep -rn "software\|hardware\|hybrid" workflows/` to find all sites.
+- At every branch site, the required pattern is: `IF software ... ELSE IF hardware ... ELSE IF hybrid ... ELSE IF experience ... ELSE [default to software, never error]`. The final ELSE must remain a software fallback.
+- Update `design-manifest.json` template's `productType` comment field from `"software | hardware | hybrid"` to `"software | hardware | hybrid | experience"` in the same commit that adds detection. This is a sentinel — if the template still reads 3 values, the update is incomplete.
+- Write two Nyquist regression assertions: (1) a project with no detectable product type signals defaults to `software`, not an error; (2) `experience`-type tokens never appear in a software project's manifest.
 
 **Warning signs:**
-- The `idle_prompt` hook handler produces stdout or writes to the conversation transcript.
-- Suggestion content appears in the main Claude Code terminal pane.
-- The dashboard pane refreshes visibly (flickers, scrolls) at the moment of PDE idle state, rather than updating quietly.
-- A test that validates "suggestions appear within N seconds of idle state" — timing to idle onset is the wrong metric.
+- An existing software project brief run through the updated pipeline produces experience-specific output (floor plan placeholder, vibe contract section, sonic token references).
+- A project with no product type signals throws an error rather than defaulting to software.
+- The DESIGN-STATE.md Quick Reference `| Product Type |` row shows `experience` for a project that was classified as software before the milestone.
+- Running `grep -rn "product_type === 'experience'" workflows/` returns hits in more files than anticipated.
 
-**Phase to address:** Phase 1 (hook integration and delivery mechanism) — the delivery architecture must be established before any suggestion content is generated. Getting the delivery wrong here poisons all downstream content work.
+**Phase to address:**
+Phase 1 (product type detection extension in `brief.md`). All branch sites in downstream workflows must be updated in the same phase — not split across phases. The pattern "add detection in Phase 1, update consumers in Phase 5" creates a window where the pipeline is in a broken state and tests will not catch it.
 
 ---
 
-### Pitfall 2: Suggestions That Don't Connect to the Current PDE Phase
+### Pitfall 2: Token Schema Pollution — Experience Token Categories Corrupt the Existing DTCG Tree
 
 **What goes wrong:**
-The suggestion engine generates a generic list of "things to do while waiting" — write tests, review the README, check GitHub issues — without knowing what PDE is currently doing. A user running `/pde:wireframe` gets suggestions to "externalize domain knowledge" (relevant for brief phase) or "set up test fixtures" (relevant for execute phase). The suggestions feel irrelevant, the user dismisses them once, and then ignores the entire pane for the rest of the session. The feature has effectively zero adoption after the first irrelevant suggestion.
+The existing `system.md` DTCG tree has exactly 7 top-level categories: `color`, `typography`, `spacing`, `shadow`, `border`, `motion`, `component`. Adding experience token categories (sonic, lighting, spatial, thermal/atmospheric) as additional top-level keys inside `SYS-tokens.json` will not cause JSON errors, but will silently break the `tokens-to-css` CLI transformer in `pde-tools.cjs`, which walks known category keys and skips unrecognized ones. Unknown categories produce incomplete CSS with no error or warning. More critically, if experience tokens share key names with existing categories (e.g., extending `color` with a `lighting` sub-tree), the merge silently overrides software color semantics.
 
 **Why it happens:**
-Phase context is available in the NDJSON event stream and in `.planning/` state files, but the suggestion generator is written as a static template engine rather than a context reader. The NDJSON events (`phase_start`, `plan_wave_start`, workflow semantic events) contain exactly the information needed to select phase-appropriate suggestions — but reading this stream requires a small runtime that parses the session log, which feels like "over-engineering" during implementation.
+The DTCG 2025.10 spec (which reached stable status October 2025) explicitly allows `$extensions` for custom data. Developers reasonably assume adding new top-level keys is safe because the spec says tools should ignore what they don't understand. PDE's `tokens-to-css` transformer is not a generic DTCG tool — it is a hardcoded walker of the 7 known categories. Unknown keys are skipped, not flagged. The Figma MCP integration additionally drops `$extensions` on round-trip export — confirmed behavior per DTCG Community Group reports.
 
 **How to avoid:**
-- The suggestion engine must read the current PDE phase from the NDJSON event stream before generating any suggestions. The session-scoped NDJSON file at `/tmp/pde-session-{id}.ndjson` already contains `phase_start` events with phase name. Reading the last `phase_start` event gives the current phase.
-- Define a suggestion taxonomy keyed by PDE phase: `brief` phase → user story externalization, domain knowledge, business rules; `wireframe` phase → taste decisions (typography, color palette reference), visual inspiration; `execute` phase → test data preparation, environment setup, bug triage; `research` phase → competitor screenshots, product screenshots, reference material curation.
-- A suggestion shown with a phase label ("During wireframe phase, this is productive:") is valued; a suggestion shown without context is noise.
-- If the current phase cannot be determined from the event stream, default to generic "parallel work" suggestions (unrelated bug fixes, docs, git housekeeping) and label them as "no active PDE phase detected."
+- Experience token categories belong in a separate `SYS-experience-tokens.json` file alongside the existing `SYS-tokens.json`, never merged into it. A matching `SYS-experience-tokens.css` is generated separately.
+- For any experience metadata that must coexist with the main token file (e.g., to survive Figma import), use DTCG `$extensions` with reverse-domain notation: `"com.pde.experience.sonic"`. This avoids collision with both existing PDE keys and future DTCG spec additions.
+- Update `tokens-to-css` to accept an `--experience` flag that processes the separate experience token file instead of modifying the core 7-category transformer.
+- Gate experience token generation behind `product_type === "experience"`. Experience tokens must never be generated for software, hardware, or hybrid projects.
+- Add Nyquist assertion: running `pde-tools.cjs design tokens-to-css` on a software project after the milestone produces byte-identical CSS to the pre-milestone baseline.
 
 **Warning signs:**
-- Suggestion content is hardcoded without reading the NDJSON event stream.
-- The same suggestion list appears regardless of whether PDE is in brief, wireframe, or execute phase.
-- No `phase_start` event parsing in the suggestion generator.
-- Users in the execute phase see design-focused suggestions (or vice versa).
+- `pde-tools.cjs design tokens-to-css` on an experience project produces CSS with fewer variables than expected and no error message.
+- A software project re-run through system skill after the milestone produces a token file with sonic, lighting, or thermal keys.
+- Figma MCP sync of an experience project discards experience token categories on export with no warning.
+- The `SYS-tokens.json` template in `templates/` has more than 7 top-level category keys after the milestone.
 
-**Phase to address:** Phase 2 (phase-aware suggestion taxonomy) — the taxonomy and phase-reading logic must be built as part of the first suggestion generation implementation, not added as a follow-up enhancement.
+**Phase to address:**
+Phase 3 (design system extensions). The separate-file architecture must be established before any experience token categories are authored. The architecture decision made here propagates to handoff, Figma sync, and critique — retrofitting to separate files after those workflows are written is the most expensive possible rework.
 
 ---
 
-### Pitfall 3: The Suggestion Engine Becomes a Mini-AI Feature (Over-Engineering)
+### Pitfall 3: SVG Floor Plan Illegibility — Plans Pass Validation but Are Operationally Useless
 
 **What goes wrong:**
-The suggestion engine expands beyond static phase-keyed suggestions into a dynamic LLM-powered activity recommender that analyzes `.planning/` state files, reads the current task in `workflow-status.md`, and generates personalized suggestions for this specific project, this specific phase, and this specific user. This requires spawning a subagent, reading multiple state files, and producing natural-language output — turning a "while you wait" feature into a feature that itself requires waiting. The suggestion generation takes 30-60 seconds. The user asks PDE a question, waits for PDE's answer, then waits for PDE to generate suggestions about what to do while they were waiting.
+LLM-generated SVG floor plans will produce structurally valid XML that looks like a floor plan but is unusable for actual event operations: zone labels at 6px font-size (invisible at print resolution), walls at 0.5px stroke (disappears at 100% zoom in print preview), a "1:100" scale label with no relationship to the actual SVG coordinate system, and zones (stage, FOH, catering, toilets) sized uniformly as equal rectangles regardless of stated venue capacity. The output passes a `xmllint` validation. It fails any operational review.
 
 **Why it happens:**
-The highest-value suggestions are project-specific ("the acceptance criteria for task-007 need clarification — do that now"). Reaching that specificity requires reading project state. The temptation is to add one more file read, one more context dimension, until the feature is a full context-aware recommendation engine. Each addition feels like a marginal improvement; the cumulative result is a feature that contradicts its own premise.
+SVG generation is a text task — the model emits `<rect>` and `<text>` tags without spatial reasoning grounded in architectural constraints. The model optimizes for "does this look like a floor plan in the rendered output" not "is this useful for a production manager." There is no training signal connecting SVG coordinate values to real-world spatial relationships: the model does not know how large a stage needs to be relative to an FOH mix position at a 1200-person venue, or that fire egress paths must be drawn proportionally wider than decorative pathways.
 
 **How to avoid:**
-- Hard constraint: suggestion generation must complete within 2 seconds. If it requires an LLM call or reads more than 3 files, it violates this constraint.
-- Use a tiered approach: static phase-keyed templates (zero latency) as the base layer; optional one-liner contextual hints derived from single-file reads (e.g., reading the current task name from `workflow-status.md` to personalize the suggestion label) as the enhancement layer. The enhancement layer must degrade gracefully if the file does not exist.
-- The suggestion pane in the tmux dashboard displays pre-computed markdown content written by a hook handler. The hook handler reads phase from the NDJSON stream (one file read, no LLM) and selects from the static taxonomy. This is the entire suggestion engine.
-- Reserve LLM-powered suggestion generation for a future milestone (AutoResearch pattern). v0.10 must work offline with zero LLM calls for the suggestion generation itself.
+- Establish a fixed SVG coordinate system in the wireframe workflow prompt: 1 SVG unit = 0.1m, canonical viewBox `0 0 1500 1000` (150m × 100m maximum). This is explicit and mandatory, not a suggestion.
+- Mandate minimum stroke and font values: walls at `stroke-width="3"`, zone borders at `stroke-width="1.5"`, all text labels at `font-size="14"` minimum.
+- Require a scale bar element: `<line x1="50" y1="950" x2="150" y2="950" stroke="black" stroke-width="2"/>` with a `<text>10m</text>` label (100 SVG units = 10m per the coordinate system above).
+- Scope the artifact explicitly as a "zone layout schematic" not a "scale architectural drawing." Include a mandatory SVG `<text>` disclaimer element: content `SCHEMATIC ONLY — not to scale — verify dimensions with venue`.
+- Read venue capacity from the brief extension fields (venue_capacity, stage_dimensions, venue_dimensions) to constrain zone proportions: stage zone must occupy at least 15% of total viewBox area for venues over 500 capacity.
+- Do not attempt realistic egress path geometry. Label egress paths as named zones ("Emergency Exit A") without attempting to draw egress route widths to scale.
 
 **Warning signs:**
-- The suggestion generator spawns a subagent or calls `pde-tools.cjs` with an LLM-backed command.
-- Suggestion generation reads more than 3 files.
-- The tmux suggestion pane shows "Generating suggestions..." before displaying content.
-- v0.10 planning documents describe "intelligent suggestion engine" or "AI-powered recommendations" without a latency constraint.
+- Floor plan SVG contains no `<line>` element with a scale bar label.
+- Stage area `<rect>` is smaller than the toilet block `<rect>`.
+- Font-size attributes below 12 on any visible text element.
+- Zone widths are uniform (all `<rect>` elements have identical `width` attributes) regardless of stated venue capacity.
+- No disclaimer text element present in the SVG output.
+- viewBox dimensions do not correspond to the venue size stated in the brief.
 
-**Phase to address:** Phase 1 (design constraint definition) — the 2-second constraint and static-taxonomy approach must be the design contract before any implementation begins. Define the constraint explicitly in the phase requirements so it cannot drift during implementation.
+**Phase to address:**
+Phase 5 (wireframe stage extensions — floor plan artifact). The coordinate system, minimum stroke/font rules, and zone-sizing conventions must be embedded in the workflow prompt before any floor plan generation is attempted. Coordinate system decisions are not retrofittable: existing floor plans become inconsistent with new ones if the convention changes mid-milestone.
 
 ---
 
-### Pitfall 4: Treating the `idle_prompt` Hook as a Reliable Idle State Signal
+### Pitfall 4: Print Artifact Color Space Mismatch — HTML/CSS Flyers Are Presented as Print-Ready
 
 **What goes wrong:**
-The implementation uses the `Notification`/`idle_prompt` hook as the primary signal for "PDE is idle, show suggestions now." In practice, `idle_prompt` fires when Claude Code is waiting for the user to type a message — not necessarily when a PDE phase has completed. It fires after every response, including short one-sentence answers where the user is mid-workflow and does not want suggestion prompts. It fires multiple times in a session, potentially hundreds of times. A suggestions pane that refreshes on every `idle_prompt` fires constantly, and a hook handler that performs file writes on every `idle_prompt` generates significant I/O.
+PDE's mockup and wireframe skills produce HTML/CSS artifacts using RGB and OKLCH color values derived from the DTCG token system. Event flyers and festival programs targeting commercial printing require CMYK color values, 3mm bleed areas, crop marks, and PDF/X-1a or PDF/X-4 format. Generating a "print-ready" flyer as HTML/CSS with OKLCH token references produces an artifact that looks correct on screen and prints incorrectly. High-chroma OKLCH colors — electric blues, vivid greens, hot pinks common in event branding — have no CMYK equivalent and flatten to dull analogues when converted. The color gamut gap is significant: CMYK delivers approximately 16,000 shades versus over 16 million in RGB.
 
 **Why it happens:**
-`idle_prompt` is the most visible "idle" signal available in the Claude Code hook system. The v0.8 event infrastructure hooks use `SubagentStop` and `SessionEnd` for meaningful state transitions. The `idle_prompt` notification seems analogous — "Claude is idle, so PDE is idle." But `idle_prompt` fires on every turn boundary, not just after long-running PDE phases.
+PDE's design system is built for screen output using OKLCH, a perceptually uniform color space optimized for digital rendering. Reusing those tokens for print artifacts assumes RGB-to-CMYK conversion is lossless, which it is not. PDE has no print color pipeline and no mechanism to declare CMYK equivalents of OKLCH values. The system skill does not generate an ICC profile. Calling the HTML artifact "print-ready" misrepresents its nature to users who may send it directly to a commercial printer.
 
 **How to avoid:**
-- Use PDE's own semantic event stream as the primary signal for "a meaningful PDE operation completed." The NDJSON events `subagent_stop`, `phase_start`, and workflow semantic events (`plan_wave_complete`) are better signals for "suggest something now" than `idle_prompt`.
-- If `idle_prompt` is used, gate suggestion updates on whether the last PDE event in the NDJSON stream represents a meaningful completion (a subagent stopped, a phase completed). An `idle_prompt` that fires without a preceding meaningful PDE event should not trigger a suggestion refresh.
-- The suggestion pane should update at most once per completed PDE phase, not once per idle_prompt fire.
-- The hook handler for `Notification`/`idle_prompt` must be `async: true` and must do nothing if the PDE session has not recently completed a meaningful operation. The check is a single stat() call on the NDJSON file followed by a tail-read — fast enough to not block.
+- Scope all print artifacts explicitly as "print layout reference guides" in the workflow output, not "production print files." The exact phrase "print-ready" must not appear in any output artifact without an accompanying disclaimer.
+- Include a mandatory CMYK approximation table in the design system output for experience projects: for each brand color token, provide the nearest CMYK equivalent using a lookup table. Document this as an approximation without ICC profile validation, not a specification.
+- Add a bleed and margin guide to the HTML layout: a 3mm bleed zone as a dashed border CSS element, safe zone at 5mm from edge, crop mark overlays as SVG elements. These are guides for the designer, not production values.
+- Include in the production bible handoff section: "All print artifacts require professional prepress review and conversion to PDF/X-1a or PDF/X-4 format before sending to commercial printer. PDE print layouts are composition references, not press-ready files."
+- Never claim `PDF/X-1a` or `PDF/X-4` output capability. PDE cannot produce ICC-profile-embedded PDFs.
 
 **Warning signs:**
-- The tmux suggestion pane visibly refreshes more than once per PDE operation.
-- The `idle_prompt` hook handler does not check the NDJSON stream before writing new suggestions.
-- `/tmp/pde-session-{id}.ndjson` grows unusually fast (many small hook-triggered writes per session).
-- The suggestion pane shows the same content repeated many times in the session log.
+- A flyer template uses high-chroma OKLCH values (chroma > 0.2) without a CMYK approximation in the design system documentation.
+- No bleed or crop mark indicators present in the print layout HTML.
+- The handoff artifact description includes "print-ready" without a prepress disclaimer.
+- The production bible contains no statement directing users to professional prepress conversion.
 
-**Phase to address:** Phase 1 (hook integration architecture) — the event-gating logic for `idle_prompt` must be in the hook handler from the first implementation.
+**Phase to address:**
+Phase 7 (flyer and print collateral). The scope boundary — "layout reference with CMYK approximations, not production print file" — must be written into the phase requirements before any print artifact workflow is authored. The scope boundary is load-bearing: without it, the natural tendency is to claim full print-production fidelity, which is technically impossible for this pipeline.
 
 ---
 
-### Pitfall 5: The Suggestion Pane Competes with Monitoring Dashboard Panes for Attention
+### Pitfall 5: LLM Safety and Licensing Hallucination — Production Bible Contains Dangerous Inaccuracies
 
 **What goes wrong:**
-A new "suggestions" pane is added to the tmux dashboard as a 7th pane. On small terminals (the common case — the tmux adaptive layout already degrades from 6 to 2 panes), the suggestion pane gets priority assigned incorrectly: it either replaces a high-value monitoring pane (pipeline progress, token meter) or causes all panes to shrink below readable size. The dashboard's TMUX-09 adaptive layout logic, which handles degradation from 6 panes to 2 panes at minimum terminal sizes, has to be updated for 7 panes — introducing regression risk for existing pane layout tests.
+The production bible (advance document, run sheet, staffing plan) and the critique stage safety and licensing perspectives will contain jurisdiction-specific regulations that the model states confidently but which are outdated, jurisdiction-wrong, or invented. Examples: asserting a specific first-aid station count per 1000 attendees as a regulatory fact (invented ratio with no universal legal basis), citing fire egress widths in centimeters that apply to one state or country but not another, specifying a noise ordinance dB limit at the property line from the wrong jurisdiction. A production team relying on these figures without independent verification risks non-compliance with actual local requirements.
 
-Additionally, a suggestions pane that shows content permanently occupies screen real estate even when PDE is actively running and the user is watching agent activity. The pane competes visually with the agent activity pane, drawing the user's attention to suggestions when they want to monitor execution.
+**Why it happens:**
+Event safety regulations are jurisdiction-specific (municipal fire codes, county zoning, state liquor licensing, EPA and local noise ordinances, ADA requirements), updated frequently, and unevenly represented in LLM training data. The model cannot know which jurisdiction applies to the event unless explicitly told, and even when told, may apply training data from a different jurisdiction if the target jurisdiction is underrepresented. Unlike web development standards (which are stable and universal), event permitting law varies significantly between cities within the same country. The model has no way to signal this uncertainty internally — it presents jurisdiction-specific facts at the same confidence level as universal facts.
 
 **How to avoid:**
-- The suggestion pane should share space with an existing low-priority pane rather than requiring a new 7th pane. The most natural integration is into pane 6 (log stream or an under-used pane during active phases), with the pane content switching between "log stream" during active PDE operations and "suggestions" during idle periods.
-- Alternatively, surface suggestions in a standalone tmux pane that is only opened when PDE has been idle for >30 seconds (not a permanent pane), and closed automatically when a new PDE operation starts.
-- The adaptive layout logic must treat the suggestion display as optional — if terminal is below 6-pane threshold, suggestions are not shown (they can be accessed via a separate command).
-- Add a `/pde:suggestions` command that dumps the current suggestion set to stdout — this provides the content without requiring the tmux pane to be visible.
+- Every section of the critique safety perspective and production bible that touches regulations must include a section-level disclaimer: "Regulatory requirements vary significantly by jurisdiction. Verify all occupancy limits, egress widths, noise ordinances, alcohol licensing, and safety ratios with your local authority having jurisdiction (AHJ) before finalizing."
+- Replace specific numerical regulatory thresholds with industry guidance ranges labeled as such: instead of "1 toilet per 100 attendees (required)", write "Industry guidance ranges: 1 toilet per 75-150 attendees depending on event duration and alcohol service — verify with local health authority."
+- Frame the critique safety perspective as "questions to verify with your AHJ" not "here are the applicable regulations." Every regulatory claim is a question: "Has the venue fire marshal confirmed maximum occupancy for this layout?" not "Maximum occupancy is N persons per fire code."
+- Add a mandatory `[VERIFY WITH LOCAL AUTHORITY]` inline tag to every numerical value in the production bible that derives from regulatory requirements.
+- Include a "Regulatory Verification Checklist" section in the production bible structured as a to-do list of questions (not a statement of compliance): fire marshal occupancy confirmation, noise ordinance check, liquor license verification, temporary food permit, etc.
 
 **Warning signs:**
-- The v0.10 dashboard implementation adds a 7th pane unconditionally.
-- Existing pane layout tests fail after adding suggestion pane support.
-- The suggestion pane is visible (and updated) while a PDE subagent is actively running.
-- No `/pde:suggestions` fallback command exists for users without tmux.
+- Production bible states a specific maximum occupancy as a bare fact without citing the venue's certificate of occupancy.
+- Critique safety perspective references specific regulation codes (e.g., "NFPA 101 Section 7.3") without a jurisdiction and AHJ-verification qualifier.
+- Staffing plan specifies a "legally required" security-to-attendee ratio without jurisdiction qualifier.
+- No disclaimer text appears anywhere in any safety-adjacent section of the production bible or critique report.
+- The advance document contains a "Compliance Status: COMPLIANT" assertion generated by the model.
 
-**Phase to address:** Phase 3 (tmux dashboard integration) — pane placement and adaptive layout impact must be assessed before implementing the pane, not retrofitted after the layout breaks.
+**Phase to address:**
+Phase 8 (critique stage experience perspectives) and Phase 9 (handoff production bible). Both phases must begin with a mandatory disclaimer architecture — a reusable disclaimer block template that is injected into every safety and licensing section. This is not optional polish; it is a liability mitigation requirement. Define the disclaimer block in Phase 1 (brief extensions) so it is available to all downstream phases.
 
 ---
 
-### Pitfall 6: Suggestion Content That Creates Context Switching Cost at Resumption
+### Pitfall 6: Sub-Type Scope Creep — Five Sub-Types Become Five Separate Pipeline Branches
 
 **What goes wrong:**
-A suggestion prompts the user to open a new Claude Code session for "parallel work" (a parallel bug fix, docs update, git housekeeping). The user follows the suggestion, opens a parallel session, starts working on a different task. PDE completes in the primary session. The user now has two active cognitive contexts — the PDE task they were waiting on and the parallel task they started. Re-entering the PDE session requires rebuilding the mental model they had before the suggestion, plus managing the parallel session's state. The suggestion successfully "kept the user busy" and created a net negative productivity outcome.
-
-This is the fundamental UX trap: suggestions that maximize activity during idle time systematically undermine the post-idle context restoration. The research baseline is clear: it takes 23 minutes to recover from an interruption for standard tasks, and 45 minutes for complex coding tasks. A well-intentioned suggestion can impose this cost at exactly the wrong moment.
+The five sub-types (single-night, multi-day, recurring-series, installation, hybrid-event) begin as classification metadata in the brief but evolve into separate pipeline branches as each phase developer reasons about differences. "Multi-day events need a per-day timeline wireframe" becomes a new branch. "Recurring-series events need a series identity template in handoff" becomes another. "Installation events need a different floor plan orientation" becomes a third. By Phase 5, each sub-type has unique conditional logic in flows, wireframe, and handoff. The test matrix is 5× larger than anticipated, and the pipeline has 40+ sub-type-specific branch points that must all be kept consistent.
 
 **Why it happens:**
-"Parallel Claude Code sessions for unrelated work" is listed as a valid idle activity category in the project memory for this milestone. The suggestion is technically correct — users can and do run parallel sessions. But a suggestion to start parallel work is functionally an instruction to context-switch, which is the primary developer productivity antipattern.
+Sub-type differences are real and meaningful, but they can be handled through parametric variation (one prompt template with a `sub_type` field that adjusts specific sentences) rather than separate pipeline branches. The instinct to make differences explicit in code is correct in isolation but wrong at scale: 5 sub-types × 8 pipeline stages = 40 branch points to maintain. Each subsequent milestone that touches these workflows inherits this complexity.
 
 **How to avoid:**
-- Restrict default suggestions to activities that: (a) require no new cognitive context to begin, and (b) produce artifacts that feed the current PDE cycle. Examples that pass: annotate a screenshot, write one acceptance criterion, make a taste decision (choose a typeface), review the last PDE output. Examples that fail: start a parallel bug fix, open a new issue, write documentation.
-- "Low-interruption" suggestions are ones the user can start and stop within 2 minutes without losing their place. The session memory file for this milestone already identifies good categories: source material curation, human-taste decisions, review/critique queue. These are the right defaults.
-- Suggestions for parallel work (parallel sessions, unrelated tasks) must be explicitly opt-in, not in the default suggestion set. If offered, they must be labeled "Context-switching activity — consider your return to this PDE session."
-- Never suggest starting a new Claude Code session as an idle activity. The user already has one open.
+- Lock in the architecture decision in Phase 1: sub-types are metadata attributes on the `experience` product type, not separate product types. The sub-type is stored as `sub_type` in the brief frontmatter but the pipeline has exactly one `experience` branch in every workflow — not five.
+- Drive sub-type variation through parametric prompt strings, not conditional branches. The flows workflow for experience type reads the `sub_type` field and adjusts the temporal dimension prompt with a single conditional sentence insertion — one prompt path, not two.
+- Cap sub-type branching at the brief stage. Every workflow after brief reads `product_type: experience` and `sub_type: [value]` and uses one unified experience path with sub-type-aware parametric sections.
+- Document the complete sub-type influence map explicitly and treat it as a closed list: `single-night` — `repeatability_intent` field only; `multi-day` — adds per-day sections to timeline wireframe; `recurring-series` — adds series identity template to handoff; `installation` — changes floor plan orientation (landscape) and removes run sheet; `hybrid-event` — adds digital flow dimensions alongside physical flow. This is the complete list.
 
 **Warning signs:**
-- Suggestion content includes "open a parallel session" or "work on an unrelated bug" as a default (unlabeled) suggestion.
-- No distinction in suggestion content between "feeds the current PDE cycle" activities and "unrelated work" activities.
-- Suggestions are not labeled with expected time-to-complete or resumption cost.
+- Any workflow file other than `brief.md` contains `IF sub_type === "installation"` or equivalent conditional branches.
+- The wireframe stage has multiple floor plan prompt paths differentiated by sub-type.
+- The handoff stage contains sub-type-specific section generation blocks beyond the documented complete list.
+- Test count for experience product type exceeds 2× the test count added for any prior product type in a single milestone.
+- A phase plan introduces a new sub-type distinction not on the documented complete list.
 
-**Phase to address:** Phase 2 (suggestion taxonomy design) — the taxonomy must explicitly categorize suggestions by resumption cost before any content is written. Activities with high resumption cost are either excluded or labeled.
+**Phase to address:**
+Phase 1 (product type detection and brief extensions). The sub-type architecture decision must be made and recorded as a Key Decision in PROJECT.md in Phase 1. If deferred, each subsequent phase makes local sub-type branching decisions that become globally inconsistent and unmaintainable.
 
 ---
 
-### Pitfall 7: State File Pollution From Idle Suggestion Infrastructure
+### Pitfall 7: Cross-Product-Type Regression Tests Are Missing — Experience Tests Are Only Additive
 
 **What goes wrong:**
-The suggestion system writes a suggestion state file to `.planning/` on every idle event — `suggestions.md` or `idle-state.json` — to persist the current suggestion set for the pane reader. Over a multi-hour session with many PDE operations, this file is written dozens of times. Because suggestions are keyed to PDE phases, and PDE phases rotate through research → plan → execute → reconcile repeatedly, the suggestion file represents stale context the moment the next phase starts. Over multiple sessions, the file accumulates; `.planning/` fills with idle-state artifacts that are meaningless outside their originating session.
-
-Additionally, the suggestion state file may be accidentally committed to git if the developer runs `git add .` during an execute phase.
+The test suite grows by 40+ new assertions for experience-type behavior. None of them test that software/hardware/hybrid behavior is unchanged. A developer updates the experience branch in `handoff.md` and accidentally removes the `ELSE` default that routes hardware projects to their BOM Export section. The error is not caught by the experience-type tests (which pass), not caught by the positive-path hardware tests (which are not run post-milestone), and is discovered by a user six weeks later. The regression is real but the test suite shows green.
 
 **Why it happens:**
-The v0.8 event infrastructure uses `/tmp/pde-session-{id}.ndjson` for session-scoped data (ephemeral, auto-cleaned on reboot) and `.planning/logs/` for persistent session summaries. The idle suggestion feature needs a writable location for the pane to read suggestion content. `.planning/` feels like the right place (it's where all PDE state lives), but suggestion state is ephemeral session data, not project state.
+Additive testing is the natural mode for new features: write tests that verify the new behavior exists. Regression testing for existing behavior requires deliberately thinking about what could break — which requires understanding the old code paths well enough to know which ones are at risk. Developers adding experience-specific assertions focus on proving the new behavior, not disproving breakage of old behavior.
 
 **How to avoid:**
-- All suggestion state belongs in `/tmp/`, not `.planning/`. The suggestion pane script reads from `/tmp/pde-suggestions-{sessionId}.md` — session-scoped, auto-cleaned, never committed.
-- If suggestion content needs to persist across sessions (e.g., a "review queue" the user has built up), it belongs in `.planning/logs/` with a session archive summary, not in a live state file.
-- The suggestion file must not be written to `.planning/` or any directory that could be included in a `git add .`. Verify this constraint in the phase that implements the file write path.
-- `hooks.json` modifications for the idle suggestion hook must not create a new persistent file type in `.planning/`.
+- For every new conditional branch added to an existing workflow, write a minimum of 3 cross-type assertions: (1) existing type X does not get experience output; (2) the new experience type gets expected output; (3) the default fallback (no product type detected) still produces software output. These three assertions per branch are more valuable than 10 experience-only positive assertions.
+- Create a single smoke matrix test file `experience-regression.test.mjs` that covers all 4 product types against the 3 most critical shared paths: brief detection produces correct `productType` field; system skill produces correct token file count per type; handoff skill produces correct sections per type. This matrix test is the regression guard for the entire milestone.
+- Apply the pass-through-all coverage pattern to experience: every skill that reads coverage flags must pass through new experience-specific flags (`hasFloorPlan`, `hasProductionBible`, `hasEventFlyer`) without overwriting or omitting them. New flags not in the pass-through-all pattern of an existing skill will be silently zeroed out.
+- Run the smoke matrix test at the end of every phase, not just at milestone completion.
 
 **Warning signs:**
-- `idle-state.json` or `suggestions.md` appears in `.planning/` root.
-- Running `git status` after a PDE session shows modified suggestion state files as unstaged changes.
-- The suggestion file path hardcoded to `.planning/` in the hook handler.
-- Multiple suggestion state files accumulating in `.planning/` across sessions.
+- Phase test files contain experience-type positive assertions with no complementary software-type negative assertions.
+- The test suite reports zero failures after Phase 3 but running a software project through the system skill manually produces experience token category keys.
+- Coverage flags `hasFloorPlan` or `hasProductionBible` appear in a software project's `design-manifest.json`.
+- The smoke matrix test file does not exist by the end of Phase 1.
 
-**Phase to address:** Phase 1 (hook handler implementation) — the file write path must be `/tmp/` from the first implementation. Changing this later requires finding all readers of the wrong path.
+**Phase to address:**
+Phase 1 (establish smoke matrix test architecture). The cross-type regression test strategy and smoke matrix file must be created in Phase 1 — not written as a final validation step at milestone completion. Each subsequent phase appends cross-type assertions to the existing matrix.
 
 ---
 
-### Pitfall 8: Zero-Suggestions State Not Designed
+### Pitfall 8: Multi-Sensory Token Overload — Experience Design System Becomes a Specification Document
 
 **What goes wrong:**
-On first install, before any PDE phase has run, the suggestion pane shows either an error ("Could not read suggestion file"), an empty pane, or a stale file from a previous session. The user opens the dashboard for the first time and the suggestion pane appears broken. This is a first-impression failure that creates lasting distrust of the feature.
-
-Similarly, when no PDE session is active (the user launched the dashboard without running any PDE command), the pane has no phase context and no NDJSON event stream to read. The suggestion logic that checks "last completed phase" finds nothing.
+A sonic + lighting + spatial + thermal token set sounds comprehensive. In practice, the model will generate 60-120 additional token entries: sonic BPM tempo ranges, reverb time constants in seconds, color temperature in Kelvin for 8 distinct lighting zones, lux levels for wayfinding vs. stage wash, thermal humidity targets per area type, HVAC capacity formulas. The resulting `SYS-experience-tokens.json` is a multi-sensory specification document, not a design system. No design tool reads sonic BPM or thermal humidity as tokens. The critique stage evaluates token compliance metrics against these entries and produces nonsense output (APCA contrast ratios applied to reverb time constants). The handoff stage references "see design system for complete sonic specification" but the sound engineer has no way to open a JSON file.
 
 **Why it happens:**
-Suggestion generation is designed for the happy path: PDE is running, a phase just completed, the NDJSON stream has recent events. The edge cases (no session, first run, session between PDE operations) are not considered during implementation.
+The multi-sensory design space is large. The experience brief includes sonic, lighting, spatial, and thermal dimensions, each with legitimate design parameters. Without explicit scope constraints in the workflow prompt, the model fills every dimension comprehensively, optimizing for apparent completeness rather than artifact usefulness. The academic literature on multi-sensory architecture covers dozens of controllable dimensions — the model has seen this literature.
 
 **How to avoid:**
-- The suggestion pane script must have an explicit "no active session" state that renders useful content: a short description of what the pane does when PDE is running, plus a list of universally applicable activities (source material curation, writing acceptance criteria ahead of time, human taste decisions) that are phase-agnostic.
-- The suggestion file at `/tmp/pde-suggestions-{sessionId}.md` must have a well-defined initial state that the pane writer creates on `SessionStart`, before any phase has completed.
-- The "no session" fallback (no NDJSON file found) must render a specific message, not an empty pane. Suggested text: "Waiting for PDE to start a phase. Suggestions will appear when a phase completes."
-- Test the zero-state explicitly: start the dashboard without running any PDE command and verify the pane renders sensible fallback content.
+- Limit experience design system tokens to the actionable subset: tokens that inform a physical artifact (floor plan annotations, flyer color palette, wayfinding signage palette) or a vendor brief (lighting color temperature range, target SPL). Exclude tokens with no physical artifact expression.
+- Define hard entry limits per experience token category in the system.md workflow prompt: `color` — brand palette + 2 zone variants (10 entries max); `lighting` — 3 entries max (color temp range, zones description, intensity guidance); `sonic` — 2 entries max (target SPL and genre tempo guidance); `spatial` — 3 entries max (zone labels). Total experience tokens: 30 entries maximum.
+- Frame sonic and thermal tokens as "vendor brief parameters" not "design system values." They belong as plain-text sections in the production bible, not as DTCG leaf nodes.
+- Add a clarity check assertion to the system skill experience branch: total experience-specific token entries must not exceed 30. Generation exceeding 30 entries is a scope violation.
 
 **Warning signs:**
-- The suggestion pane shows an empty box or error text when no PDE session is active.
-- No `SessionStart` hook handler initializes the suggestion file.
-- The pane script crashes when the suggestion file does not exist.
-- No test covers the "dashboard open, no PDE session" scenario.
+- `SYS-experience-tokens.json` contains more than 50 token entries.
+- Token entries include values like `"reverb.time.stage": { "$value": "1.2s", "$type": "duration" }`.
+- The critique stage outputs APCA contrast ratio violations for sonic or thermal tokens.
+- The handoff production bible references the token file for a vendor who cannot interpret JSON.
 
-**Phase to address:** Phase 3 (tmux pane implementation) — the zero-state must be specified in the pane script requirements and tested before the phase is marked complete.
-
----
-
-### Pitfall 9: Suggestion Content Becomes Stale Across PDE Versions
-
-**What goes wrong:**
-The suggestion taxonomy references PDE phase names, workflow steps, and artifact paths that match v0.10. When PDE is updated in v0.11+ (new phase names, new workflow structure, new artifact types), the suggestion content refers to outdated steps. A suggestion that says "annotate your wireframe in `.planning/design/ux/`" is wrong if v0.11 changes the wireframe output path. A suggestion that says "complete the `brief` phase first" is wrong if a future milestone refactors phase naming.
-
-**Why it happens:**
-Suggestion content is typically written as prose strings embedded in JavaScript or as markdown files — neither form has a test that validates the referenced paths, commands, or phase names exist in the current PDE version.
-
-**How to avoid:**
-- Suggestion content must not reference specific file paths or PDE command names directly. Use abstract descriptions: "review your wireframe outputs" rather than "review `.planning/design/ux/WFR-*.html`."
-- Where PDE command names must be referenced (e.g., "run `/pde:flows` to prepare"), use a constant or reference table so updates require a single change, not a content audit.
-- Add at least one Nyquist regression test that validates suggestion taxonomy keys match the current set of PDE phase names in the event schema. A taxonomy entry that references a non-existent phase name should fail a test.
-- Keep suggestion content at the level of user intent ("externalize acceptance criteria"), not implementation specifics ("edit `task-003.md`").
-
-**Warning signs:**
-- Suggestion strings contain hardcoded file paths matching `.planning/design/ux/WFR-*.html` or similar.
-- No test validates suggestion taxonomy keys against the PDE event schema.
-- Suggestion content refers to PDE command names that have changed in recent milestones.
-
-**Phase to address:** Phase 2 (suggestion taxonomy) — content must be written at the right abstraction level from the start. The Nyquist test for taxonomy key validity belongs in Phase 2 or Phase 3.
+**Phase to address:**
+Phase 3 (design system extensions). Token category scope limits must be defined in the workflow prompt before generation begins — not discovered through iteration after an oversized token file is already in place.
 
 ---
 
@@ -241,41 +221,25 @@ Suggestion content is typically written as prose strings embedded in JavaScript 
 
 | Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
 |----------|-------------------|----------------|-----------------|
-| Writing suggestion state to `.planning/` instead of `/tmp/` | Simpler path resolution (already know `.planning/` path) | State files committed to git accidentally; pollutes project state; accumulates across sessions | Never — suggestion state is ephemeral session data, not project state |
-| Using `idle_prompt` hook without NDJSON event-gating | Single hook fires on every idle, simple to wire | Suggestion pane refreshes constantly during normal Claude Code use, not just PDE phase completions | Never — gate on meaningful PDE events only |
-| Static suggestion content without phase-keying | Faster to implement; no NDJSON reads | Suggestions feel irrelevant; user trains themselves to ignore the pane; adoption collapses after first session | Never for the default suggestion set; acceptable only for the "no active session" fallback |
-| Adding a 7th tmux pane unconditionally | Simplest architecture | Breaks existing adaptive layout for terminals below 6-pane threshold; regression risk for TMUX-09 | Never — either share an existing pane or make the suggestion pane conditional |
-| LLM-powered suggestion generation | Highest-quality, most personalized suggestions | Generates a wait before the thing that reduces wait; violates the premise of the feature | Acceptable only as an explicit opt-in future enhancement (v0.13 AutoResearch milestone), never as the default path |
-| Stdout output from the idle_prompt hook handler | Easiest way to surface content to the user | Claude Code displays hook stdout to the user in the main conversation pane — this is an interruption, not a suggestion | Never — suggestion delivery must be via pane file update only |
+| Add `experience` to `productType` enum in brief detection only, update downstream consumers "in the next phase" | Faster Phase 1 | Pipeline in broken state between phases; tests pass in isolation but fail in integration | Never — branch site updates are atomic with detection changes |
+| Merge experience tokens into `SYS-tokens.json` alongside the existing 7 categories | Single-file simplicity | Breaks `tokens-to-css` transformer silently; corrupts software project runs; Figma sync drops experience tokens on export | Never |
+| Write sub-type conditional branches per workflow rather than parametric prompt strings | Explicit, readable sub-type logic | 5 sub-types × 8 stages = 40 branches; each new sub-type or stage addition multiplies this | Never at this milestone scale |
+| Write only positive-path experience tests without cross-type regression guards | Faster test authoring | Silent regressions in software/hardware flows found only by users post-ship | Only acceptable if a manual regression smoke test is documented, run, and recorded in RECONCILIATION.md before ship |
+| Describe print artifacts as "print-ready" without CMYK approximations or disclaimers | Better output marketing copy | Users send HTML to printer; colors shift; trust is damaged and not recoverable without a support workflow | Never — always scope as "layout reference" |
+| Include specific regulatory ratios or capacity limits as stated facts in the production bible | More specific, apparently more actionable output | Jurisdiction mismatch creates real operational risk; users rely on wrong numbers without knowing to verify | Never without an inline `[VERIFY WITH LOCAL AUTHORITY]` tag on every numerical value |
 
 ---
 
 ## Integration Gotchas
 
-### Claude Code Hook System (`hooks.json`)
-
-| Common Mistake | Correct Approach |
-|----------------|------------------|
-| Adding `Notification`/`idle_prompt` hook with synchronous execution | Use `async: true` — the notification hook must not block Claude Code's notification delivery pipeline |
-| Producing stdout from the hook handler | The hook handler writes to `/tmp/pde-suggestions-{sessionId}.md` only — zero stdout. Claude Code displays hook stdout to the user. |
-| Assuming `idle_prompt` maps 1:1 with "PDE phase completed" | Check the NDJSON event stream; only update suggestions when the last event is a meaningful PDE completion (subagent_stop after a phase, not just any idle_prompt) |
-| Registering the suggestion hook globally without a phase-awareness gate | Add phase-detection logic inside the handler; the hook itself cannot filter by PDE context |
-
-### NDJSON Event Stream
-
-| Common Mistake | Correct Approach |
-|----------------|------------------|
-| Reading the full NDJSON session file on every `idle_prompt` | Tail the last N lines (last 20 events) — the phase context is always in recent events; reading the full file grows costly over long sessions |
-| Assuming session ID is available in the `idle_prompt` hook payload | The `idle_prompt` notification payload contains `session_id` from Claude Code's perspective, but PDE's session ID (written by `session-start` in `emit-event.cjs`) is stored separately; resolve via the PDE session ID file in `/tmp/` |
-| Reading `.planning/STATE.md` or `workflow-status.md` for phase context | These files reflect workflow-level state, not event-level state; reading them requires file stat + read for every suggestion update. The NDJSON tail is sufficient and cheaper. |
-
-### tmux Dashboard
-
-| Common Mistake | Correct Approach |
-|----------------|------------------|
-| Hardcoding the suggestion pane as pane 6 (0-indexed) | The adaptive layout can drop to 2 panes; the suggestion pane must be conditional on terminal size, or integrated into an existing pane |
-| Using `tmux send-keys` to update suggestion pane content | Write to a temp file and use `watch cat` or a polling script in the pane — consistent with how existing dashboard panes (pane-log-stream.sh, pane-pipeline-progress.sh) work |
-| Starting the suggestion pane script before the PDE session has a session ID | The suggestion pane script must wait for the PDE session NDJSON file to appear in `/tmp/` before starting its read loop |
+| Integration | Common Mistake | Correct Approach |
+|-------------|----------------|------------------|
+| `pde-tools.cjs design manifest-set-top-level productType experience` | Calling this command without updating the template schema comment | Update `templates/design-manifest.json` `productType` field comment to include `experience` in the same commit; downstream tools that validate against the template will otherwise reject the new value |
+| Figma MCP DTCG export for experience tokens | Including experience tokens in the main `SYS-tokens.json` file that Figma sync reads | Keep experience tokens in `SYS-experience-tokens.json`; document in handoff that experience tokens do not round-trip through Figma and must be maintained in PDE manually |
+| DESIGN-STATE.md coverage flags pass-through | Adding `hasFloorPlan` and `hasProductionBible` as new coverage flags without updating the pass-through-all pattern in every existing skill | Run `grep -rn "coverage-check\|designCoverage" workflows/` to find every skill that reads coverage; each must be updated to pass through the new flags |
+| DESIGN-STATE.md `\| Product Type \|` row updates | Existing skills that update this row via regex may not recognize `experience` as valid and overwrite it with `software` | Audit every skill that writes to DESIGN-STATE.md Quick Reference table and add `experience` to any validation regex or conditional |
+| Google Stitch for floor plan generation | Attempting `--use-stitch` on the floor plan wireframe artifact | Stitch is a UI screen tool; requesting event floor plans via Stitch produces screen mockups, not spatial schematics. Floor plans must be generated as inline SVG by the model directly. Document Stitch exclusion explicitly in the wireframe workflow for experience type. |
+| Critique stage DTCG token compliance checks | Running the standard DTCG token compliance checker against experience-specific token files | Experience tokens in `SYS-experience-tokens.json` are not DTCG standard types (sonic, thermal); the compliance checker must skip this file or the critique will produce invalid findings |
 
 ---
 
@@ -283,9 +247,20 @@ Suggestion content is typically written as prose strings embedded in JavaScript 
 
 | Trap | Symptoms | Prevention | When It Breaks |
 |------|----------|------------|----------------|
-| Polling the NDJSON event file on every pane refresh interval (e.g., every 2 seconds) | CPU usage visible in activity monitor during active PDE sessions; NDJSON file has high inotify pressure | Increase poll interval for suggestion pane to 10-15 seconds (suggestions don't need second-level freshness); use `inotifywait` or `fswatch` on macOS as a file-change trigger instead of interval polling | Immediately on active sessions with high event volume (execute phase, many subagents) |
-| Writing the suggestion file on every `idle_prompt` hook (100+ times per session) | High I/O on `/tmp/`; hook latency increases over session lifetime | Gate suggestion file writes on meaningful PDE events only (see Pitfall 4) | Any session with 50+ Claude Code turns |
-| Reading all suggestion categories on every pane refresh | Memory and parse time grows if taxonomy is large | Load taxonomy once at pane script startup, store in shell variables; re-read only when NDJSON shows a new phase | If taxonomy grows to 50+ entries per phase |
+| Generating the full production bible (advance document + run sheet + staffing plan + budget) in a single prompt | Token budget exceeded mid-generation; handoff output is truncated at the staffing plan section | Split production bible into 4 separate generation calls, each writing its own artifact; aggregate paths into the manifest | Any venue with >500 capacity; budget templates alone reach 2000+ tokens of tabular content |
+| Generating a multi-day event timeline wireframe as a single SVG | SVG file exceeds 50KB; the model loses spatial coherence for later days; zones are inconsistently sized across days | Generate one timeline SVG per event day and aggregate as a multi-file compound artifact | Any event with 3+ days and more than 8 distinct programming zones |
+| Running all 7 critique perspectives (safety, accessibility, operations, sustainability, licensing, financial, community) in a single pass | Perspectives 5-7 contain generic, non-domain-specific findings; the model exhausts its domain-specific knowledge by perspective 4 | Run safety and licensing perspectives separately from aesthetic and community perspectives; 2-pass critique for experience type | All experience projects — the domain breadth always exceeds single-pass quality |
+| Floor plan SVG with full zone detail labels for 12+ zones | SVG becomes illegible at A3 print size; labels overlap when rendered at 150% zoom | Use zone codes (S1, FOH, C1, T1, E1) on the floor plan diagram with a separate reference legend table in the wireframe markdown file | Any venue with more than 8 distinct zones |
+
+---
+
+## Security Mistakes
+
+| Mistake | Risk | Prevention |
+|---------|------|------------|
+| Production bible includes specific vendor names and pricing sourced from LLM training data | LLM-hallucinated vendor details presented as real; users contact non-existent vendors or rely on fabricated pricing in budget planning | Never generate specific vendor names or pricing in production bible templates; use placeholder categories ("preferred AV vendor — obtain 3 quotes", "catering partner TBD") with explicit "populate from actual quotes" instructions |
+| Floor plan presented without disclaimer for emergency egress planning | Emergency services or venue managers given schematic geometry that does not reflect actual egress route dimensions; safety hazard in an emergency | Every floor plan SVG must contain a mandatory disclaimer text element: "SCHEMATIC ONLY — not for emergency planning or regulatory submissions without professional architectural review" |
+| Regulatory compliance numbers stated without jurisdiction in critique or production bible | Non-compliant event because production team relied on rules from the wrong jurisdiction | Every regulatory figure must be tagged `[JURISDICTION-SPECIFIC — verify with AHJ]` inline; never present a number as a universal regulatory fact |
 
 ---
 
@@ -293,25 +268,27 @@ Suggestion content is typically written as prose strings embedded in JavaScript 
 
 | Pitfall | User Impact | Better Approach |
 |---------|-------------|-----------------|
-| Suggestions that require reading to understand (long text) | User skims or dismisses; cognitive load during idle period should be lower than during active work | Each suggestion is one sentence, action-oriented, starting with a verb: "Write one acceptance criterion for the next planned task." |
-| More than 3 suggestions visible at once | User treats the list as a task queue; feels pressure rather than option; ignores the list after first overwhelm | Show exactly 2-3 suggestions maximum; rotate if more are available; never show a scrollable list |
-| Suggestions that require knowing PDE internals ("annotate WFR artifacts") | User unfamiliar with PDE internals ignores the suggestion | Suggestions describe the human activity, not the PDE artifact: "Make a typography choice for your product" not "set a typeface in assets/tokens.css" |
-| No way to dismiss or mark suggestions complete | Suggestion pane shows the same items repeatedly; completed suggestions feel like undone tasks | Add a simple completed-today list to the suggestion state; hide suggestions marked completed in this session; reset at session start |
-| Suggestions during the first 60 seconds of a PDE phase | User is still reading the phase output, tracking agent progress, or planning their next instruction — this is the highest-cost interruption window | Apply a 60-second minimum cool-down after phase start before surfacing suggestions; suggestions are for the middle of waiting, not the start |
+| Pipeline fails silently when `experience` sub-type value is not in the allowed set | User runs `/pde:build --from brief` with a custom sub-type and gets software-default output with no error; discovers the problem at wireframe stage when no floor plan appears | Add sub-type validation to brief Step 4: if `sub_type` is present but not in the 5-value allowed set, emit a WARNING in DESIGN-STATE.md and halt with a descriptive error listing valid values |
+| Experience-type critique applies software HIG audit criteria | Safety and operations perspectives produce digital-product findings ("ensure sufficient touch target size", "keyboard navigation is missing") that are accurate for software but irrelevant for a physical event | Explicitly gate the HIG audit perspective by product type: for experience type, suppress digital interface criteria and substitute physical interface guidelines (wayfinding legibility at 5m, queue UX, transaction speed, toilet ratio) |
+| Production bible run sheet uses bare time values without timezone | A run sheet that says "16:00 stage check" without timezone is unusable for events with international crew or for multi-venue events | All run sheet timestamps must include a venue timezone label; capture `venue_timezone` as a required field in the brief extension alongside `venue_name` and `venue_location` |
+| Floor plan and timeline wireframe exist as disconnected artifacts | User generates a floor plan for Phase 1 of a multi-day event but the timeline wireframe covers the full event; zones are inconsistent between the two artifacts | Wireframe stage for experience type must treat floor plan and timeline as a compound artifact: the timeline references zone codes from the floor plan; both are registered under a single compound artifact code |
 
 ---
 
 ## "Looks Done But Isn't" Checklist
 
-- [ ] **Zero-state renders correctly:** Open the tmux dashboard without running any PDE command and verify the suggestion pane shows fallback content, not an error or empty box.
-- [ ] **Async hook execution:** Verify `async: true` is set on the `idle_prompt` hook handler in `hooks.json` — blocking notification hooks delay Claude Code's UI response.
-- [ ] **No stdout from hook handler:** Confirm the `idle_prompt` handler produces zero stdout (only file writes) — any stdout appears in the main Claude Code conversation pane as an interruption.
-- [ ] **Suggestion file in `/tmp/`, not `.planning/`:** Run `git status` after a full PDE session and verify no suggestion state files appear as unstaged changes.
-- [ ] **Phase-keyed suggestions differ by phase:** Run PDE through brief phase, then wireframe phase — verify the suggestion pane shows distinct content for each phase, not the same list.
-- [ ] **Pane does not break adaptive layout:** Resize terminal to below 6-pane threshold; verify existing dashboard panes still display correctly and the suggestion pane degrades gracefully.
-- [ ] **Suggestion refresh rate is bounded:** Over a 30-minute PDE session with 5 phases, verify the suggestion file is written no more than once per phase completion, not once per `idle_prompt` fire.
-- [ ] **2-second generation constraint met:** Time the suggestion generation from phase-completion event to file write; verify it completes under 2 seconds without LLM calls.
-- [ ] **No parallel-session suggestions in default set:** Review all default suggestion content; confirm "open a parallel session" or equivalent is not in the default taxonomy (may be in an opt-in extended set).
+- [ ] **Product type detection complete:** `experience` added to `brief.md` detection — verify all 14 downstream workflows handle the 4th value, not just `brief.md`. Run `grep -rn "software\|hardware\|hybrid" workflows/` and confirm every site has been updated.
+- [ ] **Design manifest schema updated:** `productType` comment includes `experience` — verify `pde-tools.cjs design manifest-set-top-level productType experience` executes without validation error.
+- [ ] **Token file separation:** Experience tokens in a separate file — verify running `pde-tools.cjs design tokens-to-css` on a software project after the milestone produces byte-identical CSS output to the pre-milestone baseline.
+- [ ] **Pass-through-all coverage pattern extended:** New flags `hasFloorPlan`, `hasProductionBible`, `hasEventFlyer` pass through all existing skills — verify a software project run through the full pipeline has none of these flags set in `design-manifest.json`.
+- [ ] **Safety disclaimers in production bible:** All regulatory sections include `[VERIFY WITH LOCAL AUTHORITY]` — verify no bare numerical regulatory value appears in any handoff template without this tag.
+- [ ] **Sub-type branching locked to brief stage:** No sub-type conditionals in workflows beyond `brief.md` — run `grep -rn "sub_type" workflows/` and confirm results are limited to `brief.md` and parametric prompt strings in `flows.md` and `wireframe.md`.
+- [ ] **Print scope disclaimer present:** Flyer and print artifact output includes "layout reference, not production print file" — verify "print-ready" does not appear in any artifact description without an accompanying disclaimer.
+- [ ] **Smoke matrix test exists and passes:** `experience-regression.test.mjs` covers 4 product types × 3 critical paths — confirm the file exists and is included in the milestone acceptance test gate.
+- [ ] **DESIGN-STATE `| Product Type |` row updated:** Run a brief with experience signals and confirm DESIGN-STATE shows `experience`, not `software`.
+- [ ] **Stitch exclusion for floor plans documented:** Verify the wireframe workflow prompt for experience type explicitly states floor plan artifacts are not eligible for `--use-stitch` generation.
+- [ ] **SVG floor plan has scale bar:** Verify every generated floor plan SVG contains a scale bar element and disclaimer text element before the wireframe phase is marked complete.
+- [ ] **Production bible generation split across 4 calls:** Verify the handoff workflow for experience type generates advance document, run sheet, staffing plan, and budget template as separate sequential generation steps, not as a single prompt.
 
 ---
 
@@ -319,12 +296,12 @@ Suggestion content is typically written as prose strings embedded in JavaScript 
 
 | Pitfall | Recovery Cost | Recovery Steps |
 |---------|---------------|----------------|
-| Suggestion state written to `.planning/` (wrong path) | LOW | Move file write path to `/tmp/` in hook handler; delete existing `.planning/` suggestion files; add to `.gitignore` |
-| `idle_prompt` hook producing stdout (polluting conversation) | LOW | Remove stdout from handler; ensure only file writes; redeploy hooks.json |
-| Suggestion pane breaking adaptive layout | MEDIUM | Revert to 6-pane layout; integrate suggestions into existing pane; update adaptive layout tests |
-| LLM-powered suggestion engine shipping by mistake | HIGH | Remove LLM call; replace with static taxonomy; rewrite suggestion generator to respect 2-second constraint; update Nyquist tests |
-| Suggestions irrelevant to current phase (no NDJSON reading) | MEDIUM | Add NDJSON tail read to handler; map phase events to taxonomy keys; test with each PDE phase |
-| Stale suggestion content after PDE version upgrade | LOW | Audit taxonomy content against current phase names; update abstract descriptions; add taxonomy key validation test |
+| Default-else regression discovered post-ship | HIGH | Audit all 14 workflow branch sites; patch each; re-run full Nyquist test suite; re-ship affected files; affected user projects must re-run brief to regenerate correct `productType` field — existing brief artifacts are not automatically corrected |
+| Token schema pollution (experience tokens merged into `SYS-tokens.json`) | HIGH | Create separate `SYS-experience-tokens.json` architecture; update `tokens-to-css`; update all consumers; every experience project that ran system skill must re-run it to get clean token separation |
+| Sub-type branch explosion discovered mid-milestone | MEDIUM | Consolidate sub-type branches into parametric prompt strings; delete branch-specific workflow variants; rewrite affected test assertions; expect 2-3 day delay per affected phase |
+| Production bible regulatory inaccuracy discovered by user post-ship | MEDIUM | Add disclaimer architecture in a patch release; previously generated documents cannot be retracted; issue communication about required AHJ verification for all regulatory values |
+| Floor plan SVG coordinate system inconsistency (wrong system used in early phases) | MEDIUM | Update coordinate system constants in wireframe workflow; all previously generated floor plans must be regenerated by users; coordinate system change is not backward-compatible |
+| Print artifact sent to commercial printer directly (no CMYK conversion) | LOW (for PDE) | Add scope disclaimer in a patch; not a code regression; ensure CMYK approximations section is added to the design system output for experience projects in the same patch |
 
 ---
 
@@ -332,32 +309,30 @@ Suggestion content is typically written as prose strings embedded in JavaScript 
 
 | Pitfall | Prevention Phase | Verification |
 |---------|------------------|--------------|
-| Flow interruption from push-delivery (Pitfall 1) | Phase 1: Hook integration | Verify hook handler has zero stdout; suggestion content only in tmux pane; pane does not flash on idle_prompt fire |
-| Phase-irrelevant suggestions (Pitfall 2) | Phase 2: Suggestion taxonomy | Run PDE through 3 distinct phases; verify suggestion pane shows different content for each phase |
-| Over-engineering the suggestion engine (Pitfall 3) | Phase 1: Design constraint definition | Measure suggestion generation time; must complete under 2 seconds; no LLM calls in the critical path |
-| `idle_prompt` over-firing (Pitfall 4) | Phase 1: Hook integration | Count suggestion file writes over a 20-turn PDE session; must not exceed phase-completion count |
-| Suggestion pane breaking dashboard layout (Pitfall 5) | Phase 3: tmux dashboard integration | Run layout tests at 6-pane and degraded terminal sizes; verify no regressions in existing pane behavior |
-| High-resumption-cost suggestions (Pitfall 6) | Phase 2: Suggestion taxonomy | Audit all default suggestions against resumption-cost criteria; reject any requiring parallel context |
-| State file pollution in `.planning/` (Pitfall 7) | Phase 1: File write path | `git status` after a full session shows zero untracked/modified suggestion files |
-| Zero-state not designed (Pitfall 8) | Phase 3: tmux pane implementation | Start dashboard without PDE session; verify fallback content renders; no errors or empty pane |
-| Stale content across PDE versions (Pitfall 9) | Phase 2: Taxonomy + test | Nyquist test validates taxonomy keys against current PDE phase name constants |
+| Default-else regression (Pitfall 1) | Phase 1: Product type detection extension | All 14 workflow branch sites updated; smoke matrix test passes for all 4 product types; default fallback produces `software`, not error |
+| Token schema pollution (Pitfall 2) | Phase 3: Design system extensions | `pde-tools.cjs design tokens-to-css` on a software project produces identical CSS to pre-milestone baseline; experience tokens in separate file |
+| SVG floor plan illegibility (Pitfall 3) | Phase 5: Wireframe stage extensions | Generated floor plan SVG contains scale bar element, minimum 14px font-size, disclaimer text element, and viewBox dimensions corresponding to brief venue size |
+| Print artifact color space mismatch (Pitfall 4) | Phase 7: Flyer and print collateral | Handoff section contains CMYK approximation table; "print-ready" does not appear without disclaimer; output described as "layout reference" |
+| LLM safety/licensing hallucination (Pitfall 5) | Phase 8: Critique experience perspectives + Phase 9: Handoff production bible | Every numerical regulatory value tagged `[VERIFY WITH LOCAL AUTHORITY]`; no bare regulatory facts; AHJ verification checklist present in production bible |
+| Sub-type scope creep (Pitfall 6) | Phase 1: Brief extensions (decision locked here) | `grep -rn "sub_type" workflows/` returns results only in `brief.md` and parametric prompt strings — zero conditional branch blocks outside `brief.md` |
+| Cross-type regression testing gap (Pitfall 7) | Phase 1: Smoke matrix test established | `experience-regression.test.mjs` exists and covers 4 product types × 3 paths; run as part of pre-ship acceptance gate for every subsequent phase |
+| Multi-sensory token overload (Pitfall 8) | Phase 3: Design system extensions | `SYS-experience-tokens.json` contains 30 entries or fewer; no reverb, humidity, or non-artifact-expressible token types present; critique stage does not attempt APCA compliance checks on experience-specific tokens |
 
 ---
 
 ## Sources
 
-- PDE PROJECT.md v0.10 milestone goal and target features — HIGH confidence
-- PDE codebase inspection: `hooks/hooks.json` (current hook registrations, async flags), `hooks/emit-event.cjs` (HOOK_TO_EVENT_TYPE map, stdout behavior), `bin/lib/event-bus.cjs` (NDJSON session file path pattern `/tmp/pde-session-{sessionId}.ndjson`), `bin/monitor-dashboard.sh` (adaptive layout, SESSION name, MIN_COLS/MIN_ROWS), `bin/pane-log-stream.sh` and related pane scripts (pane pattern: watch a file, no LLM calls) — HIGH confidence
-- PDE agent memory: `project_idle_time_productivity.md` (idle activity category taxonomy, feedback loop framing) — HIGH confidence
-- Claude Code official hooks documentation: `https://code.claude.com/docs/en/hooks` — `Notification`/`idle_prompt` hook event, payload schema, `additionalContext` return, async execution behavior — HIGH confidence
-- UC Irvine / Gloria Mark research on interruption recovery: 23 minutes 15 seconds average recovery time; 45 minutes for complex coding tasks; flow requires 15 uninterrupted minutes to enter — HIGH confidence (widely cited, multiple independent sources)
-- arxiv.org: "Developer Interaction Patterns with Proactive AI: A Five-Day Field Study" (2601.10253) — workflow boundary interventions well-received; mid-task interventions frequently dismissed — MEDIUM confidence (academic, specific study conditions)
-- arxiv.org: "Optimizing LLM Code Suggestions: Feedback-Driven Timing with Lightweight State" (2511.18842) — timing is the critical UX variable for developer suggestion tools; mistimed suggestions degrade both UX and ROI — MEDIUM confidence
-- tmux GitHub issues: pane-died hook inconsistencies (#2483), pane-exited scope bugs (#2882), focus-events requirement for focus hooks (#2808) — relevant to why hook-based idle detection needs event-gating — HIGH confidence (official issue tracker)
-- Notification fatigue in developer tooling: Courier.com "Notification Fatigue Is Real and Getting Worse" (Jan 2026); Icinga alert fatigue analysis — pattern applies to suggestion noise — MEDIUM confidence (industry analysis, not developer tool-specific study)
-- Stack Overflow blog: "Developer Flow State and Its Impact on Productivity" (2018) — foundational flow state entry time and interruption impact — HIGH confidence (widely replicated finding)
+- PDE codebase inspection: `workflows/brief.md` (Step 4/7 product type detection, allowed values: `software | hardware | hybrid`), `workflows/system.md` (7-category DTCG structure, `tokens-to-css` dependency), `workflows/handoff.md` (Steps 4i, 2b, 11 hardware section gating), `workflows/wireframe.md` (Step 3 CSS default fallback), `workflows/critique.md`, `workflows/flows.md`, `bin/lib/design.cjs` (`cmdCoverageCheck`, `designCoverage` field), `templates/design-manifest.json` (schema structure, `productType` field), `bin/pde-tools.cjs` (manifest commands) — HIGH confidence: direct codebase evidence
+- DTCG 2025.10 specification stable release: https://www.w3.org/community/design-tokens/2025/10/28/design-tokens-specification-reaches-first-stable-version/ — confirmed `$extensions` support and Figma export behavior (MEDIUM confidence: community group announcement; Figma behavior based on reported tool status)
+- `$extensions` namespace behavior: https://www.alwaystwisted.com/articles/understanding-extensions-in-the-design-tokens-spec — reverse-domain notation recommendation (MEDIUM confidence: single source, consistent with spec intent)
+- AI hallucination in event planning: https://sched.com/blog/ai-event-planning-pitfalls/ — vendor hallucination and fabricated fact patterns (MEDIUM confidence: domain-specific, consistent with known LLM behavior)
+- CMYK vs RGB gamut gap: https://www.dusted.com/insights/rgb-vs-cmyk-colour-spaces-explained and https://ironmarkusa.com/cmyk-vs-rgb-whats-the-difference/ — 16M vs 16K shade differential; PDF/X format requirements (HIGH confidence: multiple independent sources, fundamental color science)
+- Event licensing jurisdiction variation: https://www.venuesnyc.com/blog/permits-licenses-required-for-events-in-NYC and https://diamondevent.com/blog/utah-event-permits-and-regulations/ — illustrative examples of jurisdiction-specific requirements and variation (MEDIUM confidence: illustrative, not exhaustive)
+- AI document generation accuracy cycles: https://www.mindstudio.ai/blog/building-ai-powered-documentation-systems-manufacturing — 3-5 review cycles required; right-first-time rates 5-20% for production documents (MEDIUM confidence: manufacturing domain extrapolated to event production documents)
+- Feature flag testing matrix complexity: https://testrigor.com/blog/feature-flags-how-to-test/ — permutation explosion per conditional flag (MEDIUM confidence: illustrative of pattern)
+- SVG floor plan coordinate conventions: https://visual-integrity.com/svg-floor-plan/ and Home Assistant floorplan community guidance — general SVG floor plan conventions (LOW confidence: no event-venue-specific SVG standard exists; coordinate system recommendations are PDE-specific design decisions)
 
 ---
 
-*Pitfalls research for: Adding intelligent idle time productivity to PDE (v0.10 Idle Time Productivity milestone)*
-*Researched: 2026-03-20*
+*Pitfalls research for: PDE v0.11 Experience Product Type — adding new product type to existing multi-type design pipeline*
+*Researched: 2026-03-21*
