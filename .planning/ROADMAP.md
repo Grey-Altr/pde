@@ -337,7 +337,7 @@ Plans:
 | 75. Brief Extensions | 2/2 | Complete    | 2026-03-21 | - |
 | 76. Experience Design Token Architecture | 2/2 | Complete    | 2026-03-21 | - |
 | 77. Flow Diagrams | 2/2 | Complete    | 2026-03-21 | - |
-| 78. Wireframe Stage Extensions | 2/2 | Complete   | 2026-03-21 | - |
+| 78. Wireframe Stage Extensions | 2/2 | Complete    | 2026-03-21 | - |
 | 79. Critique and HIG Extensions | 2/2 | Complete    | 2026-03-21 | - |
 | 80. Print Collateral | 2/2 | Complete    | 2026-03-21 | - |
 | 81. Handoff — Production Bible | 2/2 | Complete    | 2026-03-21 | - |
