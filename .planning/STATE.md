@@ -3,13 +3,13 @@ pde_state_version: 1.0
 milestone: v0.1
 milestone_name: milestone
 status: unknown
-stopped_at: Phase 66 context gathered
-last_updated: "2026-03-21T00:06:14.870Z"
+stopped_at: "Completed 66-01-PLAN.md"
+last_updated: "2026-03-21T00:31:37Z"
 progress:
   total_phases: 6
   completed_phases: 2
-  total_plans: 3
-  completed_plans: 3
+  total_plans: 4
+  completed_plans: 4
 ---
 
 # Project State
@@ -23,8 +23,8 @@ See: .planning/PROJECT.md (updated 2026-03-20)
 
 ## Current Position
 
-Phase: 66 (wireframe-mockup-stitch-integration) — NOT STARTED
-Plan: 0 of TBD
+Phase: 66 (wireframe-mockup-stitch-integration) — IN PROGRESS
+Plan: 1 of TBD (66-01 complete)
 
 ## Performance Metrics
 
@@ -43,6 +43,13 @@ Plan: 0 of TBD
 ### Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table.
+
+**v0.9 Phase 66 Plan 01 decisions (post-implementation):**
+
+- ESM createRequire pattern required for all mcp-bridge.cjs calls in workflow bash blocks — `node --input-type=module <<'EOF'` with `import { createRequire } from 'module'`; project validator rejects inline `require()` in workflow sandbox scope
+- Stitch probe TOOL_MAP_VERIFY_REQUIRED warning is non-blocking — workflow proceeds with unverified tool names and warns user to run `/pde:connect stitch --confirm`
+- hasStitchWireframes set via dual manifest-set-top-level pattern: standard runs pass `{current}` through, `--use-stitch` runs set `true` explicitly
+- stitch:list-screens mentioned only as prohibition in 4-STITCH-C step 3 — not used anywhere in pipeline (confirmed list_screens state-sync bug avoidance)
 
 **v0.9 Phase 65 decisions (post-implementation):**
 
@@ -86,8 +93,8 @@ Decisions are logged in PROJECT.md Key Decisions table.
 
 ## Session Continuity
 
-Last session: 2026-03-21T00:06:14.867Z
-Stopped at: Phase 66 context gathered
-Resume file: .planning/phases/66-wireframe-mockup-stitch-integration/66-CONTEXT.md
+Last session: 2026-03-21T00:31:37Z
+Stopped at: Completed 66-01-PLAN.md
+Resume file: .planning/phases/66-wireframe-mockup-stitch-integration/66-01-SUMMARY.md
 
-Next action: Discuss Phase 66 (wireframe-mockup-stitch-integration)
+Next action: Execute Phase 66 Plan 02 (mockup Stitch integration) or Phase 66 Plan 03 (Nyquist tests)

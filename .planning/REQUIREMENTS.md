@@ -24,27 +24,27 @@ Requirements for Google Stitch Integration milestone. Each maps to roadmap phase
 
 ### User Consent
 
-- [ ] **CONSENT-01**: Every outbound call to Stitch (prompts, images, design context sent TO Stitch) requires explicit user approval before transmission
-- [ ] **CONSENT-02**: Every inbound artifact from Stitch (HTML, images, Design DNA received FROM Stitch) requires explicit user approval before persisting to local files
-- [ ] **CONSENT-03**: Consent prompts clearly show what data is being sent/received and to/from where
-- [ ] **CONSENT-04**: Batch operations (ideation diverge with multiple variants) present a single batch-consent prompt rather than per-item consent
+- [x] **CONSENT-01**: Every outbound call to Stitch (prompts, images, design context sent TO Stitch) requires explicit user approval before transmission
+- [x] **CONSENT-02**: Every inbound artifact from Stitch (HTML, images, Design DNA received FROM Stitch) requires explicit user approval before persisting to local files
+- [x] **CONSENT-03**: Consent prompts clearly show what data is being sent/received and to/from where
+- [x] **CONSENT-04**: Batch operations (ideation diverge with multiple variants) present a single batch-consent prompt rather than per-item consent
 
 ### Pipeline Efficiency
 
-- [ ] **EFF-01**: Fetched Stitch HTML and images cached locally — critique, handoff, and iterate reuse cached artifacts without re-fetching
-- [ ] **EFF-02**: Stitch artifact reuse across pipeline stages — wireframe output flows directly to mockup/critique/handoff without regeneration
+- [x] **EFF-01**: Fetched Stitch HTML and images cached locally — critique, handoff, and iterate reuse cached artifacts without re-fetching
+- [x] **EFF-02**: Stitch artifact reuse across pipeline stages — wireframe output flows directly to mockup/critique/handoff without regeneration
 - [ ] **EFF-03**: Batch MCP calls for multi-screen generation (ideation variants, wireframe sets) rather than sequential one-at-a-time
-- [ ] **EFF-04**: Stitch failure detection within 10-second timeout budget with immediate fallback to Claude generation (no retry loops)
-- [ ] **EFF-05**: Annotation injection (PDE component comments) begins as soon as first screen arrives, not after all screens complete
+- [x] **EFF-04**: Stitch failure detection within 10-second timeout budget with immediate fallback to Claude generation (no retry loops)
+- [x] **EFF-05**: Annotation injection (PDE component comments) begins as soon as first screen arrives, not after all screens complete
 
 ### Wireframe & Mockup Integration
 
-- [ ] **WFR-01**: --use-stitch flag on /pde:wireframe routes generation through Stitch MCP instead of Claude HTML/CSS
-- [ ] **WFR-02**: Stitch-generated HTML fetched from download URL, persisted as STH-{slug}.html in .planning/design/ (separate namespace from WFR- artifacts)
-- [ ] **WFR-03**: Annotation injection step adds <!-- @component: --> comments to Stitch HTML before manifest registration (required for downstream critique/handoff)
-- [ ] **WFR-04**: design-manifest.json registers Stitch artifacts with source: "stitch" metadata for downstream stage awareness
+- [x] **WFR-01**: --use-stitch flag on /pde:wireframe routes generation through Stitch MCP instead of Claude HTML/CSS
+- [x] **WFR-02**: Stitch-generated HTML fetched from download URL, persisted as STH-{slug}.html in .planning/design/ (separate namespace from WFR- artifacts)
+- [x] **WFR-03**: Annotation injection step adds <!-- @component: --> comments to Stitch HTML before manifest registration (required for downstream critique/handoff)
+- [x] **WFR-04**: design-manifest.json registers Stitch artifacts with source: "stitch" metadata for downstream stage awareness
 - [ ] **WFR-05**: /pde:mockup supports --use-stitch flag with same generate-fetch-persist-annotate pipeline
-- [ ] **WFR-06**: Graceful degradation to Claude HTML/CSS when Stitch MCP is unavailable or quota exhausted
+- [x] **WFR-06**: Graceful degradation to Claude HTML/CSS when Stitch MCP is unavailable or quota exhausted
 
 ### Ideation Visual Divergence
 
@@ -100,21 +100,21 @@ Requirements for Google Stitch Integration milestone. Each maps to roadmap phase
 | QUOTA-02 | Phase 65 | Complete |
 | QUOTA-03 | Phase 65 | Complete |
 | QUOTA-04 | Phase 65 | Complete |
-| CONSENT-01 | Phase 66 | Pending |
-| CONSENT-02 | Phase 66 | Pending |
-| CONSENT-03 | Phase 66 | Pending |
-| CONSENT-04 | Phase 66 | Pending |
-| EFF-01 | Phase 66 | Pending |
-| EFF-02 | Phase 66 | Pending |
+| CONSENT-01 | Phase 66 | Complete |
+| CONSENT-02 | Phase 66 | Complete |
+| CONSENT-03 | Phase 66 | Complete |
+| CONSENT-04 | Phase 66 | Complete |
+| EFF-01 | Phase 66 | Complete |
+| EFF-02 | Phase 66 | Complete |
 | EFF-03 | Phase 67 | Pending |
-| EFF-04 | Phase 66 | Pending |
-| EFF-05 | Phase 66 | Pending |
-| WFR-01 | Phase 66 | Pending |
-| WFR-02 | Phase 66 | Pending |
-| WFR-03 | Phase 66 | Pending |
-| WFR-04 | Phase 66 | Pending |
+| EFF-04 | Phase 66 | Complete |
+| EFF-05 | Phase 66 | Complete |
+| WFR-01 | Phase 66 | Complete |
+| WFR-02 | Phase 66 | Complete |
+| WFR-03 | Phase 66 | Complete |
+| WFR-04 | Phase 66 | Complete |
 | WFR-05 | Phase 66 | Pending |
-| WFR-06 | Phase 66 | Pending |
+| WFR-06 | Phase 66 | Complete |
 | IDT-01 | Phase 67 | Pending |
 | IDT-02 | Phase 67 | Pending |
 | IDT-03 | Phase 67 | Pending |
