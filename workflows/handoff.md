@@ -531,9 +531,9 @@ Store per-screen derived specs as SCREEN_SPECS[slug].
 #### 4i. Apply productType conditional for hardware sections
 
 Based on PRODUCT_TYPE:
-- "software": include software component API sections, omit Hardware Handoff sections
-- "hardware": omit software component API sections (replace with Note: "Software component APIs not applicable for hardware product"), include Hardware Handoff sections
-- "hybrid": include both software and hardware sections
+- "software": include software component API sections, omit Hardware Handoff sections. NEVER generate Production Bible (BIB) sections for software products.
+- "hardware": omit software component API sections (replace with Note: "Software component APIs not applicable for hardware product"), include Hardware Handoff sections. NEVER generate Production Bible (BIB) sections for hardware products.
+- "hybrid": include both software and hardware sections. NEVER generate Production Bible (BIB) sections for hybrid products (only hybrid-event sub-type produces BIB — see "experience" branch below).
 - "experience":
   1. STACK.md check status: IF experienceSubType is "hybrid-event": STACK.md check was REQUIRED
      (framework detection needed for digital layer). IF experienceSubType is any other value
@@ -709,6 +709,8 @@ After `### Interaction Specs`, check whether this screen has concept-specific in
     If PRODUCT_TYPE is "experience" (or "hybrid-event" sub-type producing BIB):
 
     **BIB Generation — Four-Pass Split**
+
+    > GUARD: IF PRODUCT_TYPE is NOT "experience": SKIP this entire BIB generation block. This block ONLY executes for experience products. Software, hardware, and hybrid (non-hybrid-event) products must never enter this block.
 
     > CRITICAL: Generate the production bible across four separate generation passes to avoid token budget truncation. This is a performance requirement — single-pass generation truncates at the staffing plan section for venues above 500 capacity.
 
@@ -1167,6 +1169,8 @@ node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update HND versio
 
 #### 7b-bib. Register BIB artifact in manifest (experience products only)
 
+IF BIB_GENERATES_SECTIONS is NOT true: SKIP Step 7b-bib entirely. BIB artifact is only registered for experience products. Non-experience products (software, hardware, hybrid) never set BIB_GENERATES_SECTIONS and must never reach this step.
+
 IF BIB_GENERATES_SECTIONS is true:
 
 ```bash
@@ -1289,6 +1293,8 @@ NEVER do any of the following:
 - **Generate BIB for software products:** The experience branch at Step 4i must ONLY execute when PRODUCT_TYPE is "experience". Software, hardware, and hybrid (non-hybrid-event) products must NEVER receive production bible sections.
 
 - **Require STACK.md for pure experience products:** Step 2a bypass must be in place for non-hybrid-event experience products. The STACK.md hard-stop error must not trigger for single-night, multi-day, recurring-series, or installation sub-types.
+
+- **Skip software handoff for hybrid-event:** When experienceSubType is "hybrid-event", BOTH the production bible AND the software handoff spec must be generated. The hybrid-event is the ONLY experience sub-type that produces HND-handoff-spec and HND-types files alongside the BIB document. Omitting the software handoff for hybrid-event leaves the digital ticketing/app layer without implementation specs.
 
 </process>
 

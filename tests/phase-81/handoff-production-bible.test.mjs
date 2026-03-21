@@ -471,10 +471,14 @@ describe('SC-4: Software product isolation — no BIB generation', () => {
     );
   });
 
-  test('handoff.md software branch does NOT contain "Production Bible"', () => {
+  test('handoff.md software branch does NOT instruct generation of "Production Bible" (NEVER-guard allowed)', () => {
+    // The software branch may contain a prohibition ("NEVER generate Production Bible") but must NOT
+    // contain affirmative BIB generation instructions like "Set BIB_GENERATES_SECTIONS" or "Proceed to Step 5 BIB"
     assert.ok(
-      !softwareBranchText.includes('Production Bible'),
-      'handoff.md software branch must not reference "Production Bible" — BIB generation is for experience products only'
+      !softwareBranchText.includes('Set BIB_GENERATES_SECTIONS') &&
+      !softwareBranchText.includes('BIB generation') &&
+      !softwareBranchText.includes('Proceed to Step 5 BIB'),
+      'handoff.md software branch must not contain affirmative BIB generation instructions'
     );
   });
 
