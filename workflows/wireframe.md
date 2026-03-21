@@ -1093,7 +1093,472 @@ Save the generated SIT HTML content as `SIT_HTML`. Do NOT write the file yet —
 
 ---
 
-Display: `Step 4g: Print collateral generated — FLY artifact ready. {GENERATE_SIT ? "SIT series identity template ready." : "SIT skipped (experienceSubType not recurring-series)."}`
+**PRG artifact (only when `experienceSubType === "multi-day"`):**
+
+Gate: `IF experienceSubType !== "multi-day"`: **SKIP PRG generation entirely.** Log: `PRG skipped — experienceSubType is {value}, not multi-day.`
+Set `GENERATE_PRG = false` and skip to the Display line below.
+
+Otherwise set `GENERATE_PRG = true` and generate a multi-page self-contained HTML file for the festival program. The PRG artifact is an A4 landscape composition reference.
+
+```html
+<!DOCTYPE html>
+<!-- Source: PDE Phase 80 — PRG artifact pattern -->
+<!-- PREPRESS NOTICE: This is a composition reference, NOT a production print file. -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PRG — {{EVENT_NAME}} — Festival Program (Composition Reference)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    /* COMPOSITION: festival-program
+       Awwwards-level composition rules:
+       - Schedule grid: maximum 2 typefaces (mono for times, sans-serif for content)
+       - Artist cards: consistent card dimensions, 8px border-radius, subtle shadow
+       - Negative space: 15mm margins on all pages, 8-12px gap between grid items
+       - Color hierarchy: brand primary for headings, neutral for body, accent for callouts
+       - Legible at A4: minimum 10pt body text, minimum 8pt table cell text
+    */
+
+    /* Multi-page @page rules */
+    @page { size: A4 portrait; margin: 15mm; }
+    @page cover { size: A4 portrait; margin: 0; }
+    @page schedule { size: A4 landscape; margin: 10mm; }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f5f5f5;
+    }
+
+    /* Page navigation — screen only */
+    .page-nav {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      background: rgba(0,0,0,0.85);
+      color: #fff;
+      display: flex;
+      gap: 0;
+      z-index: 1000;
+      font-size: 13px;
+    }
+    .page-nav a {
+      color: #fff;
+      text-decoration: none;
+      padding: 10px 18px;
+      border-right: 1px solid rgba(255,255,255,0.15);
+      transition: background 0.15s;
+    }
+    .page-nav a:hover { background: rgba(255,255,255,0.1); }
+
+    .page {
+      page-break-after: always;
+      min-height: 297mm;
+      position: relative;
+      background: #fff;
+      margin: 60px auto 32px;
+      max-width: 210mm;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.12);
+    }
+    .page:last-child { page-break-after: auto; }
+
+    /* Cover page */
+    .cover-page {
+      page: cover;
+      min-height: 297mm;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(160deg, var(--color-primary, #1a1a2e) 0%, var(--color-secondary, #16213e) 60%, var(--color-accent, #0f3460) 100%);
+      color: #fff;
+      text-align: center;
+      padding: 40mm;
+      box-sizing: border-box;
+    }
+    .cover-page .hero-area {
+      width: 100%;
+      height: 80mm;
+      background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%);
+      border: 1px dashed rgba(255,255,255,0.25);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 12mm;
+      font-size: 11px;
+      opacity: 0.6;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .cover-page h1 { font-size: 36px; font-weight: 900; margin: 0 0 8px; letter-spacing: -0.02em; }
+    .cover-page .dates { font-size: 18px; opacity: 0.85; margin-bottom: 6px; }
+    .cover-page .venue { font-size: 14px; opacity: 0.65; }
+
+    /* Schedule page */
+    .schedule-page {
+      page: schedule;
+      min-height: 210mm;
+      padding: 10mm;
+      box-sizing: border-box;
+    }
+    .schedule-page h2 { font-size: 18px; font-weight: 700; margin: 0 0 8px; color: var(--color-primary, #1a1a2e); }
+
+    .schedule-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 11px;
+    }
+    .schedule-table thead th {
+      background: var(--color-primary, #1a1a2e);
+      color: #fff;
+      padding: 6px 8px;
+      text-align: left;
+      font-weight: 700;
+    }
+    .schedule-table thead th:first-child {
+      font-family: 'JetBrains Mono', monospace;
+      width: 60px;
+    }
+    .schedule-table tbody td {
+      padding: 5px 8px;
+      border-bottom: 1px solid #e5e7eb;
+      vertical-align: top;
+    }
+    .schedule-table tbody td:first-child {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      color: #6b7280;
+      white-space: nowrap;
+    }
+    .schedule-table tbody tr:nth-child(even) { background: #f9fafb; }
+    .schedule-table tbody tr:nth-child(odd) { background: #fff; }
+    .schedule-table .act-tag {
+      display: inline-block;
+      background: var(--color-accent, #0f3460);
+      color: #fff;
+      font-size: 9px;
+      padding: 2px 5px;
+      border-radius: 3px;
+      margin-bottom: 2px;
+    }
+
+    /* Lineup/bios page */
+    .lineup-page {
+      padding: 15mm;
+      box-sizing: border-box;
+    }
+    .lineup-page h2 { font-size: 18px; font-weight: 700; margin: 0 0 8mm; color: var(--color-primary, #1a1a2e); }
+    .artist-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+    .artist-card {
+      border: 1px solid #e5e7eb;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+    .artist-photo-placeholder {
+      width: 100%;
+      height: 80px;
+      background: linear-gradient(135deg, #e5e7eb 0%, #d1d5db 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .artist-card-body { padding: 8px; }
+    .artist-name { font-weight: 700; font-size: 11px; margin: 0 0 3px; }
+    .artist-genre {
+      display: inline-block;
+      background: #f3f4f6;
+      color: #374151;
+      font-size: 9px;
+      padding: 2px 6px;
+      border-radius: 10px;
+      margin-bottom: 4px;
+    }
+    .artist-set-time { font-size: 10px; color: #6b7280; margin-bottom: 4px; font-family: 'JetBrains Mono', monospace; }
+    .artist-bio { font-size: 10px; color: #374151; line-height: 1.4; }
+
+    /* Venue map page */
+    .venue-page {
+      padding: 15mm;
+      box-sizing: border-box;
+    }
+    .venue-page h2 { font-size: 18px; font-weight: 700; margin: 0 0 6mm; color: var(--color-primary, #1a1a2e); }
+    .venue-map-area {
+      width: 100%;
+      height: 160mm;
+      background: #f3f4f6;
+      border: 2px dashed #d1d5db;
+      border-radius: 4px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #9ca3af;
+      font-size: 12px;
+      text-align: center;
+      gap: 8px;
+    }
+    .map-legend {
+      margin-top: 8mm;
+      display: flex;
+      gap: 16px;
+      font-size: 10px;
+      flex-wrap: wrap;
+    }
+    .legend-item { display: flex; align-items: center; gap: 5px; }
+    .legend-swatch {
+      width: 12px;
+      height: 12px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    /* Sponsors & info page */
+    .sponsors-page {
+      padding: 15mm;
+      box-sizing: border-box;
+    }
+    .sponsors-page h2 { font-size: 18px; font-weight: 700; margin: 0 0 6mm; color: var(--color-primary, #1a1a2e); }
+    .sponsor-tier { margin-bottom: 8mm; }
+    .sponsor-tier-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #6b7280;
+      margin-bottom: 4mm;
+      border-bottom: 1px solid #e5e7eb;
+      padding-bottom: 2mm;
+    }
+    .sponsor-logos {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .sponsor-logo-placeholder {
+      background: #f3f4f6;
+      border: 1px dashed #d1d5db;
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #9ca3af;
+      font-size: 9px;
+      text-transform: uppercase;
+    }
+    .sponsor-logo-placeholder.headline { width: 100px; height: 50px; }
+    .sponsor-logo-placeholder.supporting { width: 70px; height: 35px; }
+    .sponsor-logo-placeholder.community { width: 50px; height: 28px; }
+
+    .info-block {
+      margin-top: 8mm;
+      padding: 8mm;
+      background: #f9fafb;
+      border-radius: 4px;
+      font-size: 11px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px 16px;
+    }
+    .info-block dt { font-weight: 700; color: #374151; }
+    .info-block dd { margin: 0; color: #6b7280; }
+
+    .prepress-disclaimer {
+      margin: 8px 15mm;
+      padding: 8px 12px;
+      background: #fff8dc;
+      border: 1px solid #e0c060;
+      border-radius: 4px;
+      font-size: 10px;
+      max-width: 180mm;
+    }
+
+    @media print {
+      .prepress-disclaimer, .page-nav { display: none !important; }
+      body { background: #fff; }
+      .page { margin: 0; box-shadow: none; max-width: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Page navigation — screen only, hidden on print via @media print -->
+<nav class="page-nav" aria-label="Program sections">
+  <a href="#cover">Cover</a>
+  <a href="#schedule">Schedule</a>
+  <a href="#lineup">Lineup</a>
+  <a href="#map">Map</a>
+  <a href="#sponsors">Sponsors</a>
+</nav>
+
+<!-- COMPOSITION: festival-program
+  Awwwards-level composition rules:
+  - Schedule grid: maximum 2 typefaces (mono for times, sans-serif for content)
+  - Artist cards: consistent card dimensions, 8px border-radius, subtle shadow
+  - Negative space: 15mm margins on all pages, 8-12px gap between grid items
+  - Color hierarchy: brand primary for headings, neutral for body, accent for callouts
+  - Legible at A4: minimum 10pt body text, minimum 8pt table cell text
+-->
+
+<!-- Page 1: Cover -->
+<section id="cover" class="page cover-page">
+  <div class="hero-area">[ Hero Visual — Brand Gradient Placeholder ]</div>
+  <h1>{Insert festival name from brief}</h1>
+  <div class="dates">{Insert festival dates}</div>
+  <div class="venue">{Insert venue name and city}</div>
+  <aside class="prepress-disclaimer" style="position:absolute;bottom:15mm;left:15mm;right:15mm;margin:0;">
+    <strong>COMPOSITION REFERENCE — NOT A PRODUCTION PRINT FILE.</strong>
+    This artifact is a design layout guide. Resolution, color fidelity, bleed registration,
+    and ICC profile conformance have not been verified. Submit production-ready artwork
+    via a certified prepress vendor. The phrase "print-ready" MUST NOT be applied to this file.
+  </aside>
+</section>
+
+<!-- Page 2: Schedule Grid -->
+<!-- Schedule data populated from temporal flow artifact if available; placeholder grid if absent -->
+<section id="schedule" class="page schedule-page">
+  <h2>Festival Schedule</h2>
+  <table class="schedule-table">
+    <thead>
+      <tr>
+        <th>Time</th>
+        <th>Stage / Area 1</th>
+        <th>Stage / Area 2</th>
+        <th>Stage / Area 3</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Time slots in 30-min increments — populated from temporal flow artifact if available -->
+      <tr><td>12:00</td><td><span class="act-tag">Main</span><br>Placeholder Act</td><td>—</td><td>—</td></tr>
+      <tr><td>12:30</td><td></td><td><span class="act-tag">Stage 2</span><br>Placeholder Act</td><td>—</td></tr>
+      <tr><td>13:00</td><td><span class="act-tag">Main</span><br>Placeholder Act</td><td></td><td><span class="act-tag">Stage 3</span><br>Placeholder Act</td></tr>
+      <tr><td>13:30</td><td></td><td><span class="act-tag">Stage 2</span><br>Placeholder Act</td><td></td></tr>
+      <tr><td>14:00</td><td><span class="act-tag">Main</span><br>Placeholder Act</td><td></td><td></td></tr>
+      <tr><td>14:30</td><td></td><td><span class="act-tag">Stage 2</span><br>Placeholder Act</td><td><span class="act-tag">Stage 3</span><br>Placeholder Act</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- Page 3: Artist / Lineup Bios -->
+<!-- Artist data populated from brief lineup field if available; placeholder cards if absent -->
+<section id="lineup" class="page lineup-page">
+  <h2>Artist Lineup</h2>
+  <div class="artist-grid">
+    <div class="artist-card">
+      <div class="artist-photo-placeholder">[ Photo ]</div>
+      <div class="artist-card-body">
+        <div class="artist-name">Artist Name 1</div>
+        <span class="artist-genre">Electronic</span>
+        <div class="artist-set-time">12:00 — Main Stage</div>
+        <div class="artist-bio">Two-line bio placeholder. Genre, origin, and notable release mentioned concisely.</div>
+      </div>
+    </div>
+    <div class="artist-card">
+      <div class="artist-photo-placeholder">[ Photo ]</div>
+      <div class="artist-card-body">
+        <div class="artist-name">Artist Name 2</div>
+        <span class="artist-genre">Techno</span>
+        <div class="artist-set-time">13:30 — Stage 2</div>
+        <div class="artist-bio">Two-line bio placeholder. Genre, origin, and notable release mentioned concisely.</div>
+      </div>
+    </div>
+    <div class="artist-card">
+      <div class="artist-photo-placeholder">[ Photo ]</div>
+      <div class="artist-card-body">
+        <div class="artist-name">Artist Name 3</div>
+        <span class="artist-genre">Ambient</span>
+        <div class="artist-set-time">14:00 — Stage 3</div>
+        <div class="artist-bio">Two-line bio placeholder. Genre, origin, and notable release mentioned concisely.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Page 4: Venue Map -->
+<!-- Venue map references FLP floor plan. If FLP absent, generates placeholder schematic with zone labels from spaces-inventory.json -->
+<section id="map" class="page venue-page">
+  <h2>Venue Map</h2>
+  <div class="venue-map-area">
+    <span>[ Venue Map Placeholder ]</span>
+    <span style="font-size:10px;">References FLP floor plan artifact if available.<br>Zone labels from spaces-inventory.json.</span>
+  </div>
+  <div class="map-legend">
+    <div class="legend-item"><div class="legend-swatch" style="background:#0f3460;"></div> Main Stage</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#16213e;"></div> Stage 2</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#1a1a2e;"></div> Stage 3</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#e5e7eb;border:1px solid #d1d5db;"></div> Facilities</div>
+    <div class="legend-item"><div class="legend-swatch" style="background:#ef4444;"></div> Emergency Exit</div>
+  </div>
+</section>
+
+<!-- Page 5: Sponsors & Info -->
+<!-- Sponsor data is placeholder — populated from brief or manual entry -->
+<section id="sponsors" class="page sponsors-page">
+  <h2>Sponsors &amp; Practical Info</h2>
+
+  <div class="sponsor-tier">
+    <div class="sponsor-tier-label">Headline Sponsors</div>
+    <div class="sponsor-logos">
+      <div class="sponsor-logo-placeholder headline">Logo 1</div>
+      <div class="sponsor-logo-placeholder headline">Logo 2</div>
+    </div>
+  </div>
+
+  <div class="sponsor-tier">
+    <div class="sponsor-tier-label">Supporting Sponsors</div>
+    <div class="sponsor-logos">
+      <div class="sponsor-logo-placeholder supporting">Logo 3</div>
+      <div class="sponsor-logo-placeholder supporting">Logo 4</div>
+      <div class="sponsor-logo-placeholder supporting">Logo 5</div>
+    </div>
+  </div>
+
+  <div class="sponsor-tier">
+    <div class="sponsor-tier-label">Community Partners</div>
+    <div class="sponsor-logos">
+      <div class="sponsor-logo-placeholder community">Partner 1</div>
+      <div class="sponsor-logo-placeholder community">Partner 2</div>
+      <div class="sponsor-logo-placeholder community">Partner 3</div>
+    </div>
+  </div>
+
+  <dl class="info-block">
+    <dt>Address</dt><dd>{Insert venue address}</dd>
+    <dt>Transport</dt><dd>{Insert nearest transport links}</dd>
+    <dt>Accessibility</dt><dd>{Insert accessibility details}</dd>
+    <dt>Contact</dt><dd>{Insert contact email / phone}</dd>
+    <dt>Social Media</dt><dd>{Insert social handles}</dd>
+    <dt>Website</dt><dd>{Insert festival URL}</dd>
+  </dl>
+</section>
+
+<aside class="prepress-disclaimer">
+  <strong>COMPOSITION REFERENCE — NOT A PRODUCTION PRINT FILE.</strong>
+  This artifact is a design layout guide for the festival program.
+  The phrase "print-ready" MUST NOT be applied to this file without verified prepress output.
+</aside>
+
+</body>
+</html>
+```
+
+Save the generated PRG HTML content as `PRG_HTML`. Do NOT write the file yet — file writes happen in Step 5b.
+
+---
+
+Display: `Step 4g: Print collateral generated — FLY artifact ready. {GENERATE_SIT ? "SIT series identity template ready." : "SIT skipped (experienceSubType not recurring-series)."} {GENERATE_PRG ? "PRG festival program ready." : "PRG skipped (experienceSubType not multi-day)."}`
 
 Display per screen: `Step 4/7: Generated wireframe for {Screen Label} ({FIDELITY}).`
 
@@ -1138,6 +1603,13 @@ IF `GENERATE_SIT === true`: write the SIT artifact:
 ```
 Use the Write tool to write the `SIT_HTML` content generated in Step 4g.
 Display: `  -> Created: .planning/design/physical/print/SIT-series-identity-v1.html`
+
+IF `GENERATE_PRG === true`: write the PRG artifact:
+```
+.planning/design/physical/print/PRG-festival-program-v1.html
+```
+Use the Write tool to write the `PRG_HTML` content generated in Step 4g.
+Display: `  -> Created: .planning/design/physical/print/PRG-festival-program-v1.html`
 
 #### 5c. Write index.html (ALWAYS — even for single-screen batch)
 
@@ -1317,6 +1789,16 @@ node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update SIT domain
 node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update SIT path ".planning/design/physical/print/SIT-series-identity-v1.html"
 node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update SIT status draft
 node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update SIT version 1
+
+# PRG artifact (only if experienceSubType === "multi-day")
+# IF GENERATE_PRG !== true: skip PRG manifest registration
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update PRG code PRG
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update PRG name "Festival Program"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update PRG type print-collateral
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update PRG domain physical
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update PRG path ".planning/design/physical/print/PRG-festival-program-v1.html"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update PRG status draft
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update PRG version 1
 ```
 
 #### 7d. Coverage flag (CRITICAL — read-before-set to prevent clobber)

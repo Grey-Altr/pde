@@ -169,3 +169,60 @@ describe('PRNT-01: prepress disclaimer block in generation template', () => {
     );
   });
 });
+
+// ---------------------------------------------------------------------------
+// PRNT-03: PRG festival program — wireframe.md experience branch
+// ---------------------------------------------------------------------------
+
+describe('PRNT-03: PRG festival program — wireframe.md experience branch', () => {
+  const content = readFileSync(join(ROOT, 'workflows/wireframe.md'), 'utf8');
+
+  test('wireframe.md contains PRG artifact generation block', () => {
+    assert.ok(
+      content.includes('PRG'),
+      'wireframe.md missing PRG artifact code'
+    );
+  });
+
+  test('wireframe.md gates PRG generation on multi-day sub-type', () => {
+    assert.ok(
+      content.includes('multi-day') && content.includes('PRG'),
+      'wireframe.md missing multi-day sub-type gate for PRG generation'
+    );
+  });
+
+  test('wireframe.md PRG contains schedule grid section', () => {
+    assert.ok(
+      content.includes('schedule') && content.includes('grid'),
+      'wireframe.md PRG missing schedule grid section'
+    );
+  });
+
+  test('wireframe.md PRG contains artist bio section', () => {
+    assert.ok(
+      content.includes('artist') && (content.includes('bio') || content.includes('lineup')),
+      'wireframe.md PRG missing artist bio/lineup section'
+    );
+  });
+
+  test('wireframe.md PRG contains venue map placeholder', () => {
+    assert.ok(
+      content.includes('venue') && content.includes('map'),
+      'wireframe.md PRG missing venue map placeholder'
+    );
+  });
+
+  test('wireframe.md PRG contains sponsors section', () => {
+    assert.ok(
+      content.includes('sponsor'),
+      'wireframe.md PRG missing sponsors section'
+    );
+  });
+
+  test('wireframe.md contains PRG manifest registration', () => {
+    assert.ok(
+      content.includes('manifest-update PRG'),
+      'wireframe.md missing PRG manifest registration (manifest-update PRG)'
+    );
+  });
+});
