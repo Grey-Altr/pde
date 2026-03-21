@@ -67,6 +67,26 @@ This step has twelve sub-sections executed in order.
 
 #### 2a. Read STACK.md (hard dependency)
 
+**Experience product bypass:** Before reading STACK.md, check the design manifest for PRODUCT_TYPE:
+
+```bash
+MANIFEST_RAW=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-read)
+if [[ "$MANIFEST_RAW" == @file:* ]]; then MANIFEST_RAW=$(cat "${MANIFEST_RAW#@file:}"); fi
+```
+
+Parse `productType` and `experienceSubType` from the manifest JSON.
+
+IF PRODUCT_TYPE is "experience" AND experienceSubType is NOT "hybrid-event":
+  SKIP STACK.md check — production bible does not require framework detection.
+  Set FRAMEWORK = "none", TYPESCRIPT = false.
+  Display: `Step 2/7 (2a): STACK.md check skipped — experience product (non-hybrid). Framework: none.`
+  Proceed directly to Step 2b.
+
+IF PRODUCT_TYPE is "experience" AND experienceSubType is "hybrid-event":
+  Proceed with STACK.md check below (framework detection needed for digital layer).
+
+For all other product types: proceed with STACK.md check below (existing behavior unchanged).
+
 Use the Read tool to read `.planning/research/STACK.md`.
 
 If the file does not exist (Read returns an error or empty result): HALT with this exact error message:
@@ -514,9 +534,40 @@ Based on PRODUCT_TYPE:
 - "software": include software component API sections, omit Hardware Handoff sections
 - "hardware": omit software component API sections (replace with Note: "Software component APIs not applicable for hardware product"), include Hardware Handoff sections
 - "hybrid": include both software and hardware sections
-- "experience":  Phase 74 stub — experience-specific content added in subsequent phases.
-                 Current behavior: proceed with software path as temporary fallback.
-                 NEVER produce floor plans, production bibles, or experience token files from this stub.
+- "experience":
+  1. STACK.md check status: IF experienceSubType is "hybrid-event": STACK.md check was REQUIRED
+     (framework detection needed for digital layer). IF experienceSubType is any other value
+     (single-night, multi-day, recurring-series, installation): STACK.md check was SKIPPED.
+     FRAMEWORK = "none", TYPESCRIPT = false for pure experience products.
+
+  2. Discover upstream experience artifacts from manifest:
+     - FLP: Glob `.planning/design/ux/wireframes/FLP-floor-plan-v*.html` — highest version
+     - TML: Glob `.planning/design/ux/wireframes/TML-timeline-v*.html` — highest version
+     - FLY: Glob `.planning/design/physical/print/FLY-event-flyer-v*.html` — highest version
+     - SIT: Glob `.planning/design/physical/print/SIT-series-identity-v*.html` — highest version
+     - PRG: Glob `.planning/design/physical/print/PRG-festival-program-v*.html` — highest version
+     Store each as: FLP_PATH, TML_PATH, FLY_PATH, SIT_PATH, PRG_PATH (null if not found).
+     WARN if FLP_PATH is null ("Floor plan artifact not found — production bible will omit site plan reference").
+     WARN if TML_PATH is null ("Timeline artifact not found — run sheet will use brief temporal data only").
+
+  3. Load @references/experience-disclaimer.md into context before generating any section.
+
+  4. Set BIB_GENERATES_SECTIONS = true.
+     Set HND_GENERATES_SOFTWARE = false (unless experienceSubType is "hybrid-event").
+     IF experienceSubType is "hybrid-event": ALSO set HND_GENERATES_SOFTWARE = true.
+
+  5. Extract from BRIEF_CONTENT (if BRIEF_AVAILABLE):
+     - event_name, venue_name, venue_location, venue_capacity
+     - experienceSubType
+     - curfew (from venue constraints)
+     - load_in_window (from venue constraints)
+     - artist_lineup (if present)
+     Set BIB_CONTEXT from these extracted fields.
+
+  6. Determine BIB_VERSION: Use the Glob tool to find all files matching `.planning/design/handoff/BIB-*-v*.md`. Parse the `v{N}` suffix. If no BIB files exist: set BIB_VERSION = 1. If files exist: set BIB_VERSION = max(N) + 1.
+
+  7. Proceed to Step 5 BIB generation (four-pass split).
+     IF HND_GENERATES_SOFTWARE is true (hybrid-event only): ALSO execute Steps 4b through 4h for the software layer, then proceed to Step 5 which generates BOTH BIB and HND outputs.
 - If PRODUCT_TYPE unavailable (default "software"): include software sections only
 
 ---
@@ -655,9 +706,215 @@ After `### Interaction Specs`, check whether this screen has concept-specific in
 11. If PRODUCT_TYPE is "hardware" or "hybrid":
     `# Hardware Handoff` — BOM Export, Dimension Drawings, Materials & Finish Spec, DFM Notes, Assembly Sequence, Compliance Checklist, Supplier List, Prototyping Guide sections (populate from brief or hardware spec if available, otherwise use placeholder structure with notes)
     If PRODUCT_TYPE is "hybrid", add `## Cross-References (Hybrid Products)` table.
-    If PRODUCT_TYPE is "experience": Phase 74 stub — production bible and experience handoff sections added in Phase 81.
-                 Current behavior: proceed with software path as temporary fallback.
-                 NEVER produce floor plans, production bibles, or experience token files from this stub.
+    If PRODUCT_TYPE is "experience" (or "hybrid-event" sub-type producing BIB):
+
+    **BIB Generation — Four-Pass Split**
+
+    > CRITICAL: Generate the production bible across four separate generation passes to avoid token budget truncation. This is a performance requirement — single-pass generation truncates at the staffing plan section for venues above 500 capacity.
+
+    **Pass A — Section 1: Advance Document**
+
+    Generate the advance document section with this structure:
+
+    ```markdown
+    ## 1. Advance Document
+
+    ### 1.1 Day-of Schedule
+    | Time | Activity | Owner | Notes |
+    |------|----------|-------|-------|
+    | {load_in_window from BIB_CONTEXT} | Load-in begins | Production Manager | [VERIFY WITH LOCAL AUTHORITY] |
+    | {sound_check time — derive from load-in + 2hrs} | Sound check | FOH Engineer | |
+    | {doors time — derive from event start - 30min} | Doors open | Door Manager | |
+    | {event start} | Event begins | Stage Manager | |
+    | {curfew from BIB_CONTEXT} | Curfew [VERIFY WITH LOCAL AUTHORITY] | Venue Liaison | Local noise ordinance |
+    | {curfew + 1hr} | Load-out complete | Production Manager | |
+
+    Populate times from BIB_CONTEXT. If times are unavailable, use placeholder format `HH:MM` with note "(confirm with venue)".
+
+    ### 1.2 Contact Sheet
+    | Role | Name | Phone | Email | On-site From |
+    |------|------|-------|-------|-------------|
+    | Production Manager | TBD | TBD | TBD | {load_in_window} |
+    | FOH Engineer | TBD | TBD | TBD | {sound_check} |
+    | Door Manager | TBD | TBD | TBD | {doors - 30min} |
+    | Venue Liaison | TBD | TBD | TBD | {load_in_window} |
+    | Security Lead | TBD | TBD | TBD | {doors - 1hr} |
+
+    ### 1.3 Rider Fulfillment Checklist
+    - [ ] Technical rider items confirmed with venue
+    - [ ] Hospitality rider items sourced
+    - [ ] Dietary requirements confirmed
+    - [ ] Backline confirmed or hired
+    ```
+
+    Store output as BIB_SECTION_ADVANCE.
+
+    **Pass B — Section 2: Run Sheet**
+
+    Generate the run sheet section. Source: TML timeline artifact ({TML_PATH}) if available, otherwise derive from brief temporal data.
+
+    ```markdown
+    ## 2. Run Sheet
+
+    > Source: TML timeline artifact ({TML_PATH or "not found — derived from brief"})
+    > All times in {venue_timezone or "local time — confirm venue timezone"}.
+
+    | Time | Duration | Activity | Responsible | Technical Cue | Contingency |
+    |------|----------|----------|-------------|---------------|-------------|
+    ```
+
+    Populate the run sheet table from TML_PATH content (parse the gantt chart timeline data) or from BRIEF_CONTENT temporal data. Each row must have all six columns filled. Use "–" for empty Technical Cue or Contingency cells. Every time value that references a curfew or legally mandated deadline must include `[VERIFY WITH LOCAL AUTHORITY]`.
+
+    Store output as BIB_SECTION_RUNSHEET.
+
+    **Pass C — Section 3: Staffing Plan + Section 4: Budget Framework**
+
+    Generate the staffing plan and budget framework together (they share capacity-derived calculations).
+
+    ```markdown
+    ## 3. Staffing Plan
+
+    ### 3.1 Role Matrix
+    | Role | Headcount | Shift Start | Shift End | Zone | Briefing Time | Notes |
+    |------|-----------|-------------|-----------|------|---------------|-------|
+    | Door Manager | {derive from capacity} | {doors - 1hr} | {curfew} | Entry | {doors - 1.5hr} | |
+    | Bar Staff | {derive: 1 per 75 attendees} [VERIFY WITH LOCAL AUTHORITY] | {doors - 30min} | {close} | Bar Zone | {doors - 1hr} | Ratio is guidance only |
+    | Security | {derive: 1 per 100 attendees} [VERIFY WITH LOCAL AUTHORITY] | {doors - 1hr} | {load_out} | All zones | {doors - 1.5hr} | SIA licensed where required |
+    | FOH Engineer | 1 | {sound_check} | {curfew + 30min} | FOH/Stage | {sound_check} | |
+    | Stage Manager | 1 | {load_in} | {load_out} | Stage | {load_in} | |
+    | First Aid | {derive: minimum 2 for <500, 4 for 500-2000} [VERIFY WITH LOCAL AUTHORITY] | {doors - 30min} | {curfew + 30min} | Medical Point | {doors - 1hr} | |
+
+    Derive headcounts from venue_capacity in BIB_CONTEXT. All ratios are industry guidance ranges — every ratio line must include `[VERIFY WITH LOCAL AUTHORITY]`.
+
+    ### 3.2 Door Policy
+    {Derive from brief audience archetype field or use placeholder: "Door policy TBD — confirm age restriction, dress code, and re-entry rules with promoter."}
+
+    ### 3.3 Bar Menu Framework
+    | Item | Price Point | Notes |
+    |------|------------|-------|
+    | {item} | TBD — set based on venue agreement | Populate from venue bar contract |
+
+    Do NOT include specific pricing. Use "TBD — set based on venue agreement" for all price points.
+
+    ## 4. Budget Framework
+
+    ### 4.1 Line Items
+    | Category | Line Item | Estimated Cost | Notes |
+    |----------|-----------|----------------|-------|
+    | Venue | Hire fee | TBD — obtain from venue | |
+    | Technical | PA/AV — preferred vendor TBD (obtain 3 quotes) | TBD | |
+    | Staffing | Door, bar, security (see Staffing Plan) | TBD | |
+    | Marketing | Print collateral (see Print Spec) | TBD | |
+    | Artist | Fees and hospitality | TBD | |
+    | Insurance | Public liability [VERIFY WITH LOCAL AUTHORITY] | TBD | |
+    | Contingency | 10% on total production costs | TBD | Industry standard buffer |
+
+    Do NOT include specific vendor names or dollar/pound amounts. Use "TBD" placeholders throughout.
+
+    ### 4.2 Revenue Scenarios
+    | Capacity | Ticket Price | Gross Revenue | Net (after 15% fees) |
+    |----------|-------------|---------------|---------------------|
+    | 60% ({venue_capacity * 0.6} attendees) | TBD | TBD | TBD |
+    | 80% ({venue_capacity * 0.8} attendees) | TBD | TBD | TBD |
+    | 100% ({venue_capacity} attendees) | TBD | TBD | TBD |
+
+    ### 4.3 Break-even Analysis
+    Break-even ticket count = Total Costs / (Ticket Price x (1 - fee%))
+    [Populate once ticket price and total cost estimates are confirmed]
+    ```
+
+    Store output as BIB_SECTION_STAFFING_BUDGET.
+
+    **Pass D — Section 5: Post-Event Template + Section 6: Print Spec Output**
+
+    ```markdown
+    ## 5. Post-Event Template
+
+    ### 5.1 Feedback Collection
+    - [ ] Attendee survey (method: TBD — email/QR code at exit)
+    - [ ] Artist / performer debrief
+    - [ ] Venue staff debrief
+    - [ ] Social media sentiment capture (24-hour window)
+
+    ### 5.2 Financial Reconciliation
+    | Category | Budget | Actual | Variance |
+    |----------|--------|--------|---------|
+    | [All line items from Section 4] | | | |
+
+    ### 5.3 Retrospective Template
+    **What went well:**
+    **What to improve:**
+    **Key decisions for next edition:**
+    **Regulatory findings to address:** [note any AHJ feedback received]
+    ```
+
+    For Section 6 — Print Spec Output: only generate if at least one of FLY_PATH, SIT_PATH, PRG_PATH is non-null. If all are null, include: "No print collateral artifacts found. Run `/pde:wireframe` to generate event flyer and program."
+
+    If at least one print artifact exists:
+
+    ```markdown
+    ## 6. Print Spec Output
+
+    | Artifact | Code | Path | Format | Dimensions | Bleed | Safe Area | DPI | Color Mode | Trim Size |
+    |----------|------|------|--------|------------|-------|-----------|-----|-----------|-----------|
+    | Event Flyer | FLY | {FLY_PATH or "not generated"} | HTML to PDF | A5 / A4 / 1080px sq / 1080x1920 story | 3mm | 5mm | 300 DPI min | sRGB (CMYK approx. in file) | A5 |
+    | Series Identity Template | SIT | {SIT_PATH or "not generated — recurring-series only"} | HTML to PDF | A5 | 3mm | 5mm | 300 DPI min | sRGB | A5 |
+    | Festival Program | PRG | {PRG_PATH or "not generated — multi-day only"} | HTML to PDF | A5 multi-page | 3mm | 5mm | 300 DPI min | sRGB | A5 |
+
+    > **Print Scope Disclaimer:** All print artifacts are composition reference guides only.
+    > They are not production print files. Professional prepress conversion (PDF/X-1a or PDF/X-4)
+    > and CMYK profile conversion by a qualified printer are required before commercial printing.
+    ```
+
+    Store output as BIB_SECTION_POST_PRINT.
+
+    **BIB Assembly**
+
+    After all four passes complete, assemble the final BIB document by writing a single file using the Write tool:
+
+    File: `.planning/design/handoff/BIB-{event-slug}-v{BIB_VERSION}.md`
+
+    Where `event-slug` is derived from `event_name` in BIB_CONTEXT using kebab-case (lowercase, spaces replaced with hyphens, special characters removed).
+
+    The assembled document structure:
+
+    ```markdown
+    ---
+    Generated: "{YYYY-MM-DD}"
+    Skill: /pde:handoff (HND)
+    Version: v{BIB_VERSION}
+    Status: draft
+    Product Type: "experience"
+    Experience Sub-type: "{experienceSubType}"
+    Event: "{event_name}"
+    Venue: "{venue_name}"
+    ---
+
+    # Production Bible: {event_name}
+
+    > **Regulatory Notice:** All regulatory values in this document (capacity limits, egress distances,
+    > staffing ratios, timing requirements) are industry guidance ranges only.
+    > [VERIFY WITH LOCAL AUTHORITY] before finalizing any operational plan.
+    > See: `references/experience-disclaimer.md`
+
+    {BIB_SECTION_ADVANCE}
+
+    {BIB_SECTION_RUNSHEET}
+
+    {BIB_SECTION_STAFFING_BUDGET}
+
+    {BIB_SECTION_POST_PRINT}
+
+    ---
+    *Generated by PDE-OS /pde:handoff | {date} | Product Type: experience | Sub-type: {experienceSubType}*
+    ```
+
+    Display: `Step 5/7 (5-bib): BIB-{event-slug}-v{BIB_VERSION}.md written ({N} sections across 4 passes).`
+
+    IF HND_GENERATES_SOFTWARE is true (hybrid-event only):
+      ALSO write HND-handoff-spec-v{HND_VERSION}.md and HND-types-v{HND_VERSION}.ts using existing Steps 5b and 5c.
+      Display: `Step 5/7 (5b): HND-handoff-spec-v{HND_VERSION}.md written (hybrid-event software layer).`
+      Display: `Step 5/7 (5c): HND-types-v{HND_VERSION}.ts written (hybrid-event software layer).`
 
 12. Footer:
     ```
@@ -908,6 +1165,28 @@ node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update HND status
 node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update HND version ${HND_VERSION}
 ```
 
+#### 7b-bib. Register BIB artifact in manifest (experience products only)
+
+IF BIB_GENERATES_SECTIONS is true:
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update BIB code BIB
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update BIB name "Production Bible"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update BIB type production-bible
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update BIB domain handoff
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update BIB path ".planning/design/handoff/"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update BIB status complete
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update BIB version ${BIB_VERSION}
+```
+
+Display: `Step 7/7 (7b-bib): BIB artifact registered in manifest. Version: v{BIB_VERSION}.`
+
+Also update Step 7a DESIGN-STATE.md for experience products:
+
+IF PRODUCT_TYPE is "experience":
+  Decision Log row: `| BIB | production bible v{BIB_VERSION} generated, experience sub-type: {experienceSubType} | {YYYY-MM-DD} |`
+  Iteration History row: `| BIB-{event-slug}-v{BIB_VERSION}.md | v{BIB_VERSION} | Created by /pde:handoff | {YYYY-MM-DD} |`
+
 #### 7c. Set coverage flag (CRITICAL — read-before-set to prevent clobber)
 
 ```bash
@@ -915,10 +1194,19 @@ COV=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design coverage-check)
 if [[ "$COV" == @file:* ]]; then COV=$(cat "${COV#@file:}"); fi
 ```
 
-Parse the JSON output from coverage-check. Extract ALL fourteen current flag values: `hasDesignSystem`, `hasWireframes`, `hasFlows`, `hasHardwareSpec`, `hasCritique`, `hasIterate`, `hasHandoff`, `hasIdeation`, `hasCompetitive`, `hasOpportunity`, `hasMockup`, `hasHigAudit`, `hasRecommendations`, `hasStitchWireframes`. Default any absent field to `false`. Merge `hasHandoff: true` while preserving all other thirteen values. Then write the full merged fourteen-field object:
+Parse the JSON output from coverage-check. Extract ALL sixteen current flag values: `hasDesignSystem`, `hasWireframes`, `hasFlows`, `hasHardwareSpec`, `hasCritique`, `hasIterate`, `hasHandoff`, `hasIdeation`, `hasCompetitive`, `hasOpportunity`, `hasMockup`, `hasHigAudit`, `hasRecommendations`, `hasStitchWireframes`, `hasPrintCollateral`, `hasProductionBible`. Default any absent field to `false`.
+
+IF PRODUCT_TYPE is "experience": merge `hasProductionBible: true` (and `hasHandoff: true` only if hybrid-event), preserve all other fourteen values. Then write the full merged sixteen-field object:
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":{current},"hasWireframes":{current},"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":true,"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":{current}}'
+# For experience products:
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":{current},"hasWireframes":{current},"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":{current},"hasPrintCollateral":{current},"hasProductionBible":true}'
+
+# For hybrid-event (both BIB and HND flags):
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":{current},"hasWireframes":{current},"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":true,"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":{current},"hasPrintCollateral":{current},"hasProductionBible":true}'
+
+# For non-experience products (existing behavior, updated field count):
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":{current},"hasWireframes":{current},"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":true,"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":{current},"hasPrintCollateral":{current},"hasProductionBible":{current}}'
 ```
 
 Replace each `{current}` with the actual value read from coverage-check output (true or false).
@@ -946,7 +1234,25 @@ Next steps:
   - Run /pde:build to orchestrate the full pipeline summary
 ```
 
-Display: `Step 7/7: Manifest updated. Coverage: hasHandoff = true. Done.`
+IF PRODUCT_TYPE is "experience":
+  Display: `Step 7/7: Manifest updated. Coverage: hasProductionBible = true. Done.`
+  Summary table:
+  ```
+  ## /pde:handoff Summary
+
+  | Property | Value |
+  |----------|-------|
+  | Production Bible | .planning/design/handoff/BIB-{event-slug}-v{BIB_VERSION}.md |
+  | Sections | 6 (Advance, Run Sheet, Staffing, Budget, Post-Event, Print Spec) |
+  | Product Type | experience |
+  | Sub-type | {experienceSubType} |
+  | Generation Passes | 4 |
+  | Upstream Artifacts | FLP: {found/missing}, TML: {found/missing}, FLY/SIT/PRG: {found/missing} |
+  ```
+  IF experienceSubType is "hybrid-event": also show HND spec and types rows from the standard summary below.
+
+IF PRODUCT_TYPE is NOT "experience":
+  Display: `Step 7/7: Manifest updated. Coverage: hasHandoff = true. Done.`
 
 ---
 
@@ -973,6 +1279,16 @@ NEVER do any of the following:
 - **Ignore productType for hardware sections:** Hardware and hybrid product handoffs require BOM Export, dimension drawings, materials spec, and assembly sequences. Software products never include these sections. Omitting or including the wrong sections creates confusion for implementation teams.
 
 - **Select unversioned wireframe when versioned exists:** Always prefer `WFR-{screen}-v{N}.html` (highest N) over `WFR-{screen}.html` when both exist. The versioned file is the result of critique-driven iteration and contains the most refined content and annotations.
+
+- **Generate all BIB sections in a single pass:** The four-pass split (Pass A through Pass D) is mandatory. Single-pass generation truncates at the staffing plan section for venues above 500 capacity. Each pass generates specific named sections; the final assembly step collects all four outputs.
+
+- **Include specific vendor names or pricing in budget:** Never generate actual vendor names or specific monetary amounts. Use placeholder categories: "preferred AV vendor — obtain 3 quotes", "TBD — set based on venue agreement".
+
+- **State regulatory thresholds without disclaimer:** Never state a specific ratio, distance, or occupancy limit in the production bible without `[VERIFY WITH LOCAL AUTHORITY]` on the same line or immediately following. This applies to every numerical regulatory value in Sections 1, 3, and 4.
+
+- **Generate BIB for software products:** The experience branch at Step 4i must ONLY execute when PRODUCT_TYPE is "experience". Software, hardware, and hybrid (non-hybrid-event) products must NEVER receive production bible sections.
+
+- **Require STACK.md for pure experience products:** Step 2a bypass must be in place for non-hybrid-event experience products. The STACK.md hard-stop error must not trigger for single-night, multi-day, recurring-series, or installation sub-types.
 
 </process>
 
