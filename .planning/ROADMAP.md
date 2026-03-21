@@ -211,7 +211,10 @@ Plans:
   3. Each phase section of the catalog contains at least one domain knowledge externalization prompt phrased as a question the user can answer during wait time
   4. Placing a markdown file in .planning/context-notes/ and then running /pde:plan causes that file's content to appear in the planning context under a Context Notes section
   5. When DESIGN-STATE.md contains incomplete design choices, the suggestion list includes at least one low-urgency decision prompt sourced from those incomplete choices
-**Plans**: [To be planned]
+**Plans**: 2 plans
+Plans:
+- [ ] 72-01-PLAN.md — Catalog file, catalog parser, DESIGN-STATE extraction, hook wiring, and tests
+- [ ] 72-02-PLAN.md — Context-notes directory and plan-phase/brief workflow injection
 
 ### Phase 73: Dashboard Integration
 **Goal**: The 7-pane tmux dashboard is complete — Pane 7 shows a live ranked suggestion list in the full layout, the adaptive degradation model is preserved for smaller terminals, and non-tmux users have CLI access via /pde:suggestions
@@ -240,5 +243,5 @@ Plans:
 | 64-69 | v0.9 | 12/12 | Complete | 2026-03-21 |
 | 70. Hook Integration and Delivery Architecture | 2/2 | Complete    | 2026-03-21 | - |
 | 71. Suggestion Engine | 2/2 | Complete    | 2026-03-21 | - |
-| 72. Suggestion Catalog and Content Layer | v0.10 | 0/TBD | Not started | - |
+| 72. Suggestion Catalog and Content Layer | v0.10 | 0/2 | Not started | - |
 | 73. Dashboard Integration | v0.10 | 0/TBD | Not started | - |
