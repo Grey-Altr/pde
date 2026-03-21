@@ -231,8 +231,8 @@ Plans:
   5. The experience token file contains no more than 30 token entries total
 **Plans**: 2 plans
 Plans:
-- [ ] 75-01-PLAN.md — Wave 0 Nyquist tests + experience brief sections in brief.md and design-brief.md template (BREF-01 through BREF-05)
-- [ ] 75-02-PLAN.md — Phase 82 test update: flip negative BREF assertions to positive + cross-phase regression
+- [ ] 76-01-PLAN.md — Wave 0 Nyquist tests + system.md experience token conditional block (DSYS-01 through DSYS-07)
+- [ ] 76-02-PLAN.md — Phase 82 test update: flip DSYS todo markers to positive assertions
 
 ### Phase 77: Flow Diagrams
 **Goal**: The flows stage produces temporal, spatial, and social flow diagrams for experience products, plus a spaces inventory JSON that the wireframe stage consumes for floor plan generation
@@ -335,7 +335,7 @@ Plans:
 | 70-73 | v0.10 | 8/8 | Complete | 2026-03-21 |
 | 74. Foundation and Regression Infrastructure | 2/2 | Complete    | 2026-03-21 | - |
 | 75. Brief Extensions | 2/2 | Complete    | 2026-03-21 | - |
-| 76. Experience Design Token Architecture | v0.11 | 0/TBD | Not started | - |
+| 76. Experience Design Token Architecture | v0.11 | 0/2 | Planned | - |
 | 77. Flow Diagrams | v0.11 | 0/TBD | Not started | - |
 | 78. Wireframe Stage Extensions | v0.11 | 0/TBD | Not started | - |
 | 79. Critique and HIG Extensions | 2/2 | Complete    | 2026-03-21 | - |
