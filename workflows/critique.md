@@ -9,6 +9,7 @@ Multi-perspective design critique of wireframes grounded in the project's brief 
 @references/wcag-baseline.md
 @references/quality-standards.md
 @references/composition-typography.md
+@references/experience-disclaimer.md
 </required_reading>
 
 <flags>

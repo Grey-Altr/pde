@@ -6,6 +6,7 @@ Synthesize all upstream design pipeline artifacts (brief, flows, screen inventor
 @references/skill-style-guide.md
 @references/mcp-integration.md
 @references/motion-design.md
+@references/experience-disclaimer.md
 </required_reading>
 
 <flags>
