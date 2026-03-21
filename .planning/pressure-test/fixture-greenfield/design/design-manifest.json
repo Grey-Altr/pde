@@ -19,6 +19,8 @@
     "hasMockup": false,
     "hasHigAudit": false,
     "hasRecommendations": false,
-    "hasStitchWireframes": false
+    "hasStitchWireframes": false,
+    "hasPrintCollateral": false,
+    "hasProductionBible": false
   }
 }

@@ -2,9 +2,9 @@
  * manifest-schema.test.mjs
  * Phase 64 — Coverage Schema Migration (MCP-04)
  *
- * Tests: All 5 JSON manifest files have the 14-field canonical designCoverage schema
+ * Tests: All 5 JSON manifest files have the 16-field canonical designCoverage schema
  * with hasStitchWireframes present and set to false. Existing true values are not
- * clobbered. Field order follows the canonical 14-field sequence.
+ * clobbered. Field order follows the canonical 16-field sequence.
  */
 
 import { test } from 'node:test';
@@ -31,6 +31,8 @@ const CANONICAL_FIELDS = [
   'hasHigAudit',
   'hasRecommendations',
   'hasStitchWireframes',
+  'hasPrintCollateral',      // Added Phase 80/81 — experience print artifacts
+  'hasProductionBible',      // Added Phase 81 — experience production bible
 ];
 
 const JSON_FILES = [
@@ -72,7 +74,7 @@ test('hasStitchWireframes is false in all 5 JSON manifest files (schema extensio
   }
 });
 
-test('all 5 JSON manifest files have all 14 canonical designCoverage fields', () => {
+test('all 5 JSON manifest files have all 16 canonical designCoverage fields', () => {
   for (const relPath of JSON_FILES) {
     const manifest = loadManifest(relPath);
     const keys = Object.keys(manifest.designCoverage).filter(k => k !== '_comment');
@@ -84,13 +86,13 @@ test('all 5 JSON manifest files have all 14 canonical designCoverage fields', ()
     }
     assert.strictEqual(
       keys.length,
-      14,
-      `${relPath}: designCoverage has ${keys.length} fields, expected 14. Got: ${keys.join(', ')}`
+      16,
+      `${relPath}: designCoverage has ${keys.length} fields, expected 16. Got: ${keys.join(', ')}`
     );
   }
 });
 
-test('canonical 14-field order is maintained in all 5 JSON manifest files', () => {
+test('canonical 16-field order is maintained in all 5 JSON manifest files', () => {
   for (const relPath of JSON_FILES) {
     const manifest = loadManifest(relPath);
     const keys = Object.keys(manifest.designCoverage).filter(k => k !== '_comment');
