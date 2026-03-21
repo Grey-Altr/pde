@@ -73,7 +73,15 @@ Any user can go from idea to shipped product through a single platform that hand
 
 ### Active
 
-(No active milestone — run `/pde:new-milestone` to start next)
+## Current Milestone: v0.10 Idle Time Productivity
+
+**Goal:** Guided productivity system for users during PDE processing wait times — learning content, context previews, and actionable prompts while agents work.
+
+**Target features:**
+- Guided productivity prompts during agent processing
+- Learning content relevant to current project phase
+- Context previews for upcoming work
+- Pairs with tmux dashboard (v0.8)
 
 ### Out of Scope
 
@@ -98,6 +106,7 @@ Any user can go from idea to shipped product through a single platform that hand
 ## Context
 
 - **Shipped v0.9** on 2026-03-21: ~100,000 LOC (JavaScript/Markdown/Shell), ~856 total commits, 215 Nyquist tests
+- **Planned roadmap:** v0.10 Idle Time Productivity → v0.11 Experience Product Type → v0.12 Business Product Type → v0.13 AutoResearch → v0.14 WebMCP → v0.15 CLI-Anything → v0.16 Remote Dashboard → v0.17 Stakeholder Presentations → v1.0 Standalone CLI
 - **v0.9** shipped 2026-03-21: 91 files changed, 76 commits (Google Stitch integration across 5 pipeline skills)
 - **v0.1** shipped 2026-03-15: 303 files, ~60,000 LOC, 127 commits (GSD → PDE rebrand)
 - **v0.2** shipped 2026-03-16: 172 files changed, 135 commits (7-stage design pipeline)
