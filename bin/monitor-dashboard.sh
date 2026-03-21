@@ -110,6 +110,23 @@ if [ -z "$NDJSON_PATH" ]; then
   NDJSON_PATH="/tmp/pde-session-unknown.ndjson"
 fi
 
+# ── Suggestion file path resolution ──────────────────────────────────────────
+SUGG_PATH=$(node -e "
+  const fs = require('fs');
+  const path = require('path');
+  const os = require('os');
+  try {
+    const cfg = JSON.parse(fs.readFileSync(path.join(process.cwd(), '.planning/config.json'), 'utf-8'));
+    const sid = cfg.monitoring && cfg.monitoring.session_id || 'unknown';
+    console.log(path.join(os.tmpdir(), 'pde-suggestions-' + sid + '.md'));
+  } catch(e) {
+    console.log(path.join(os.tmpdir(), 'pde-suggestions-unknown.md'));
+  }
+" 2>/dev/null)
+if [ -z "$SUGG_PATH" ]; then
+  SUGG_PATH="/tmp/pde-suggestions-unknown.md"
+fi
+
 # ── Terminal size detection (stty size, outside tmux) ───────────────────────
 if [ -t 0 ]; then
   read -r ROWS COLS < <(stty size 2>/dev/null || echo "24 80")
@@ -149,6 +166,7 @@ tmux set-window-option -t "$SESSION" remain-on-exit on
 build_full_layout() {
   local session="$1"
   local ndjson="$2"
+  local sugg_path="$3"
 
   # Layout: 3 panes left column, 3 panes right column
   # Capture initial pane (becomes "agent activity")
@@ -169,6 +187,9 @@ build_full_layout() {
   # Right column: token meter below log stream
   P5=$(tmux split-window -v -dPF '#{pane_id}' -t "${session}:0.${P4}" -p 50)
 
+  # Right column: suggestions below token meter
+  P6=$(tmux split-window -v -dPF '#{pane_id}' -t "${session}:0.${P5}" -p 50)
+
   # Label each pane
   tmux select-pane -t "${P0}" -T "agent activity"
   tmux select-pane -t "${P1}" -T "pipeline progress"
@@ -176,6 +197,7 @@ build_full_layout() {
   tmux select-pane -t "${P3}" -T "context window"
   tmux select-pane -t "${P4}" -T "log stream"
   tmux select-pane -t "${P5}" -T "token / cost"
+  tmux select-pane -t "${P6}" -T "suggestions"
 
   # Start streaming processes in each pane
   tmux send-keys -t "${P0}" "bash '${PLUGIN_ROOT}/bin/pane-agent-activity.sh' '${ndjson}'" C-m
@@ -184,6 +206,7 @@ build_full_layout() {
   tmux send-keys -t "${P3}" "bash '${PLUGIN_ROOT}/bin/pane-context-window.sh' '${ndjson}'" C-m
   tmux send-keys -t "${P4}" "bash '${PLUGIN_ROOT}/bin/pane-log-stream.sh' '${ndjson}'" C-m
   tmux send-keys -t "${P5}" "bash '${PLUGIN_ROOT}/bin/pane-token-meter.sh' '${ndjson}'" C-m
+  tmux send-keys -t "${P6}" "bash '${PLUGIN_ROOT}/bin/pane-suggestions.sh' '${sugg_path}'" C-m
 }
 
 build_minimal_layout() {
@@ -203,7 +226,7 @@ build_minimal_layout() {
 
 # ── Layout selection ─────────────────────────────────────────────────────────
 if [ "$COLS" -ge "$MIN_COLS" ] && [ "$ROWS" -ge "$MIN_ROWS" ]; then
-  build_full_layout "$SESSION" "$NDJSON_PATH"
+  build_full_layout "$SESSION" "$NDJSON_PATH" "$SUGG_PATH"
 else
   build_minimal_layout "$SESSION" "$NDJSON_PATH"
 fi
