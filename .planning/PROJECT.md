@@ -205,5 +205,7 @@ Any user can go from idea to shipped product through a single platform that hand
 ---
 | Suggestion catalog and context notes | Human-editable idle-catalog.md replaces hardcoded suggestions; context-notes/ injects domain knowledge into plan/brief workflows | ✓ Good — catalog is plain markdown, context notes are opt-in with README |
 
+| Dashboard integration (Pane 7) | 7-pane tmux layout with live suggestion display, adaptive degradation preserved, /pde:suggestions CLI for non-tmux users | ✓ Good — polling loop, zero-state fallback, build_minimal_layout() untouched |
+
 ---
-*Last updated: 2026-03-21 after Phase 72 — Suggestion Catalog and Content Layer: idle-catalog.md with 6 sections and 21 entries, catalog parser in suggestion engine, context-notes directory with workflow injection into plan-phase and brief*
+*Last updated: 2026-03-21 after Phase 73 — Dashboard Integration: Pane 7 suggestion display in 7-pane tmux layout, pane-suggestions.sh polling script, /pde:suggestions CLI command, monitor.md updated. Milestone v0.10 (Idle Time Productivity) complete.*
