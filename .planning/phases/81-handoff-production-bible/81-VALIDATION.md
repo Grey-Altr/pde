@@ -46,10 +46,10 @@ This phase uses **TDD as Wave 0 equivalent**. Plan 01 Task 1 writes failing test
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | Status |
 |---------|------|------|-------------|-----------|-------------------|--------|
-| 81-01-01 | 01 | 1 | HDOF-01..06 | integration | `node --test tests/phase-81/handoff-production-bible.test.mjs` | pending |
-| 81-01-02 | 01 | 1 | HDOF-01..06 | integration | `node --test tests/phase-81/handoff-production-bible.test.mjs` | pending |
-| 81-02-01 | 02 | 2 | HDOF-01..06 | integration | `node --test tests/phase-81/handoff-production-bible.test.mjs` | pending |
-| 81-02-02 | 02 | 2 | HDOF-01..06 | integration | `node --test tests/phase-81/handoff-production-bible.test.mjs` | pending |
+| 81-01-01 | 01 | 1 | HDOF-01..06 | integration | `node --test tests/phase-81/handoff-production-bible.test.mjs` | green |
+| 81-01-02 | 01 | 1 | HDOF-01..06 | integration | `node --test tests/phase-81/handoff-production-bible.test.mjs` | green |
+| 81-02-01 | 02 | 2 | HDOF-01..06 | integration | `node --test tests/phase-81/handoff-production-bible.test.mjs` | green |
+| 81-02-02 | 02 | 2 | HDOF-01..06 | integration | `node --test tests/phase-81/handoff-production-bible.test.mjs` | green |
 
 *Status: pending / green / red / flaky*
 
@@ -73,3 +73,20 @@ This phase uses **TDD as Wave 0 equivalent**. Plan 01 Task 1 writes failing test
 - [x] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** approved
+
+---
+
+## Validation Audit 2026-03-21
+
+| Metric | Count |
+|--------|-------|
+| Total tests | 72 |
+| Suites | 16 |
+| Pass | 72 |
+| Fail | 0 |
+| Requirements covered | 6/6 (HDOF-01..06) |
+| Success criteria covered | 5/5 (SC-1..5) |
+| Phase 80 regression | 23/23 green |
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
