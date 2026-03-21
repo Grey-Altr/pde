@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.10
 milestone_name: Idle Time Productivity
-status: unknown
-stopped_at: Phase 71 context gathered
-last_updated: "2026-03-21T06:19:19.471Z"
+status: executing
+stopped_at: "Completed 71-01-PLAN.md"
+last_updated: "2026-03-21T06:44:16Z"
 progress:
   total_phases: 4
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 4
+  completed_plans: 3
 ---
 
 # Project State
@@ -19,18 +19,18 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-20)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 70 — Hook Integration and Delivery Architecture
+**Current focus:** Phase 71 — suggestion-engine
 
 ## Current Position
 
-Phase: 70 (Hook Integration and Delivery Architecture) — EXECUTING
-Plan: 2 of 2 (COMPLETE)
+Phase: 71 (suggestion-engine) — EXECUTING
+Plan: 2 of 2
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed (v0.10): 1
+- Total plans completed (v0.10): 3
 - Phases: 0/4
 - Timeline: Starting
 
@@ -54,6 +54,13 @@ Key architectural constraints for this milestone:
 - [Phase 70]: MEANINGFUL_EVENTS = phase_started | phase_complete | plan_started — wave events excluded as too granular for suggestion triggers
 - [Phase 70]: Marker file idempotency via .last-event-ts prevents duplicate suggestion writes on repeat idle_prompt fires
 
+### Completed Plan Decisions (71-01)
+
+- CATEGORY_PRIORITY sort: use `!== undefined` guard (not `|| 99`) — blocker has priority 0 which is falsy in JS
+- filePath rendered as `// {path}` suffix on suggestion output line for ENGN-05 artifact visibility
+- classifyPhase exported alongside generateSuggestions and rankSuggestions for unit-test assertions
+- readManifest reads from `.planning/design/design-manifest.json` (not project root)
+
 ### Completed Plan Decisions (70-02)
 
 - messageIdleNotifThresholdMs: 5000 documented in ~/.CLAUDE.json in Getting Started, section after "What's Next" and before "Command Cheat Sheet"
@@ -69,8 +76,8 @@ Key architectural constraints for this milestone:
 
 ## Session Continuity
 
-Last session: 2026-03-21T06:19:19.468Z
-Stopped at: Phase 71 context gathered
-Resume file: .planning/phases/71-suggestion-engine/71-CONTEXT.md
+Last session: 2026-03-21T06:44:16Z
+Stopped at: Completed 71-01-PLAN.md
+Resume file: .planning/phases/71-suggestion-engine/71-01-SUMMARY.md
 
-Next action: /pde:execute-phase (Phase 70 complete — move to Phase 71)
+Next action: Execute Phase 71 Plan 02 — hook handler integration

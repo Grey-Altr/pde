@@ -15,12 +15,12 @@
 
 ### Suggestion Engine
 
-- [ ] **ENGN-01**: Phase-aware suggestion engine reads STATE.md + DESIGN-STATE.md to classify current phase (research/plan/execute/design/validation/default)
-- [ ] **ENGN-02**: Suggestion generation completes within 2-second budget with zero LLM calls and max 3 synchronous file reads
-- [ ] **ENGN-03**: Blockers from STATE.md blockers field appear as highest-priority suggestions above all other categories
-- [ ] **ENGN-04**: Upcoming phase preview reads ROADMAP.md next-phase entry and surfaces 2-3 preparation prompts
-- [ ] **ENGN-05**: Artifact-fed targeting reads design-manifest.json and critique outputs to include specific file paths and severity in suggestions
-- [ ] **ENGN-06**: Time-bounded micro-task calibration filters suggestions to match estimated remaining processing time (fixed heuristics: research 5-10min, execute 10-30min per task)
+- [x] **ENGN-01**: Phase-aware suggestion engine reads STATE.md + DESIGN-STATE.md to classify current phase (research/plan/execute/design/validation/default)
+- [x] **ENGN-02**: Suggestion generation completes within 2-second budget with zero LLM calls and max 3 synchronous file reads
+- [x] **ENGN-03**: Blockers from STATE.md blockers field appear as highest-priority suggestions above all other categories
+- [x] **ENGN-04**: Upcoming phase preview reads ROADMAP.md next-phase entry and surfaces 2-3 preparation prompts
+- [x] **ENGN-05**: Artifact-fed targeting reads design-manifest.json and critique outputs to include specific file paths and severity in suggestions
+- [x] **ENGN-06**: Time-bounded micro-task calibration filters suggestions to match estimated remaining processing time (fixed heuristics: research 5-10min, execute 10-30min per task)
 
 ### Content & Knowledge Capture
 
@@ -73,12 +73,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DLVR-03 | Phase 70 | Complete |
 | DLVR-04 | Phase 70 | Complete |
 | DLVR-05 | Phase 70 | Complete |
-| ENGN-01 | Phase 71 | Pending |
-| ENGN-02 | Phase 71 | Pending |
-| ENGN-03 | Phase 71 | Pending |
-| ENGN-04 | Phase 71 | Pending |
-| ENGN-05 | Phase 71 | Pending |
-| ENGN-06 | Phase 71 | Pending |
+| ENGN-01 | Phase 71 | Complete |
+| ENGN-02 | Phase 71 | Complete |
+| ENGN-03 | Phase 71 | Complete |
+| ENGN-04 | Phase 71 | Complete |
+| ENGN-05 | Phase 71 | Complete |
+| ENGN-06 | Phase 71 | Complete |
 | CONT-01 | Phase 72 | Pending |
 | CONT-02 | Phase 72 | Pending |
 | CONT-03 | Phase 72 | Pending |
