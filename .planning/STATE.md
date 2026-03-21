@@ -2,9 +2,9 @@
 pde_state_version: 1.0
 milestone: v0.10
 milestone_name: Idle Time Productivity
-status: unknown
-stopped_at: Completed 73-02-PLAN.md
-last_updated: "2026-03-21T08:42:01.688Z"
+status: complete
+stopped_at: Milestone v0.10 shipped
+last_updated: "2026-03-21T09:07:24.876Z"
 progress:
   total_phases: 4
   completed_phases: 4
@@ -82,4 +82,4 @@ Last session: 2026-03-21T07:49:34.007Z
 Stopped at: Completed 73-02-PLAN.md
 Resume file: None
 
-Next action: Phase 72 Plan 01 complete — proceed to Phase 72 Plan 02 (context-notes directory and plan-phase workflow injection)
+Next action: Run /pde:new-milestone to start v0.11
