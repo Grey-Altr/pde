@@ -145,6 +145,67 @@ function checkDesignState(cwd) {
 }
 
 /**
+ * Parses .planning/idle-catalog.md into candidate arrays keyed by phase type.
+ * Returns entries for the given phaseType, or default fallback, or null.
+ */
+function parseCatalog(catalogPath, phaseType) {
+  if (!catalogPath) return null;
+  let raw;
+  try { raw = fs.readFileSync(catalogPath, 'utf-8'); } catch { return null; }
+
+  const sections = {};
+  let currentSection = null;
+  const lines = raw.split('\n');
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const headingMatch = line.match(/^##\s+(\w+)/);
+    if (headingMatch) {
+      currentSection = headingMatch[1].toLowerCase();
+      sections[currentSection] = [];
+      continue;
+    }
+    if (!currentSection) continue;
+    const bulletMatch = line.match(/^-\s+(.+)/);
+    if (bulletMatch) {
+      const text = bulletMatch[1].trim();
+      const nextLine = (lines[i + 1] || '').trim();
+      const labelMatch = nextLine.match(/^(\d+)min\s*\/\/\s*resumption:(\w+)/);
+      sections[currentSection].push({
+        category: 'think',
+        text: text,
+        minutes: labelMatch ? parseInt(labelMatch[1], 10) : 5,
+        resumption: (labelMatch && labelMatch[2]) ? labelMatch[2] : 'low',
+        filePath: null,
+        source: 'catalog',
+      });
+      if (labelMatch) i++;
+    }
+  }
+
+  return sections[phaseType] || sections['default'] || null;
+}
+
+/**
+ * Extracts actual text of incomplete [ ] items from DESIGN-STATE.md.
+ * Returns array of item text strings.
+ */
+function extractDesignStateIncompleteItems(cwd) {
+  if (!cwd) return [];
+  const designStatePath = path.join(cwd, '.planning', 'DESIGN-STATE.md');
+  try {
+    const content = fs.readFileSync(designStatePath, 'utf-8');
+    const items = [];
+    const lines = content.split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      const m = lines[i].match(/^[-*]\s+\[\s\]\s+(.+)/);
+      if (m) { items.push(m[1].trim()); }
+    }
+    return items;
+  } catch { return []; }
+}
+
+/**
  * Assembles the full candidate array from all sources.
  * Enforces the 3-file-read budget — STATE.md and ROADMAP.md are reads 1 and 2.
  * Read 3 is: DESIGN-STATE.md if it exists, else design-manifest.json, else catalogPath.
@@ -194,13 +255,25 @@ function gatherCandidates(cwd, phaseType, stateData, catalogPath) {
     });
   }
 
-  // File read 3: DESIGN-STATE.md or design-manifest.json or catalogPath
-  // checkDesignState performs the actual read — counts as read 3
-  if (cwd && checkDesignState(cwd)) {
-    // Design phase: surface incomplete stage review suggestions
+  // File read 3: DESIGN-STATE.md or design-manifest.json
+  // extractDesignStateIncompleteItems performs the actual read — counts as read 3
+  const incompleteDesignItems = cwd ? extractDesignStateIncompleteItems(cwd) : [];
+  if (incompleteDesignItems.length > 0) {
+    for (let i = 0; i < incompleteDesignItems.length; i++) {
+      candidates.push({
+        category: 'think',
+        text: 'decide: ' + incompleteDesignItems[i].toLowerCase(),
+        minutes: 3,
+        resumption: 'low',
+        filePath: path.join(cwd, '.planning', 'DESIGN-STATE.md'),
+        source: 'design-state',
+      });
+    }
+  } else if (checkDesignState(cwd)) {
+    // DESIGN-STATE.md exists but items couldn't be extracted — generic fallback
     candidates.push({
-      category: 'review',
-      text: 'review: incomplete design stages in design-state',
+      category: 'think',
+      text: 'decide: review incomplete design choices in design-state',
       minutes: 5,
       resumption: 'med',
       filePath: path.join(cwd, '.planning', 'DESIGN-STATE.md'),
@@ -222,9 +295,13 @@ function gatherCandidates(cwd, phaseType, stateData, catalogPath) {
     }
   }
 
-  // Static fallback think entries (Phase 72 catalog not yet available)
-  for (let i = 0; i < STATIC_THINK.length; i++) {
-    candidates.push(STATIC_THINK[i]);
+  // Catalog-sourced think entries (Phase 72) — fall back to STATIC_THINK if catalog absent
+  const catalogEntries = parseCatalog(catalogPath, phaseType);
+  const thinkSource = catalogEntries && catalogEntries.length > 0
+    ? catalogEntries
+    : STATIC_THINK;
+  for (let i = 0; i < thinkSource.length; i++) {
+    candidates.push(thinkSource[i]);
   }
 
   return candidates;
