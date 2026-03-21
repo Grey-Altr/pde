@@ -95,6 +95,14 @@ None - no external service configuration required.
 - Phase 71 can implement actual suggestion content generation by replacing the placeholder writeFileSync block in idle-suggestions.cjs
 - Gate logic and marker file pattern are in place — Phase 71 only needs to change what gets written to the suggestion file
 
+## Self-Check: PASSED
+
+- FOUND: hooks/idle-suggestions.cjs
+- FOUND: hooks/hooks.json (with Notification block)
+- FOUND: 70-01-SUMMARY.md
+- FOUND commit face76e: feat(70-01): register Notification/idle_prompt hook in hooks.json
+- FOUND commit 43106be: feat(70-01): create idle-suggestions.cjs hook handler with event gating
+
 ---
 *Phase: 70-hook-integration-and-delivery-architecture*
 *Completed: 2026-03-21*
