@@ -17,20 +17,20 @@ created: 2026-03-21
 
 | Property | Value |
 |----------|-------|
-| **Framework** | vitest / manual HTML inspection |
-| **Config file** | vitest.config.ts or "none — Wave 0 installs" |
-| **Quick run command** | `npx vitest run --reporter=verbose tests/phases/80` |
-| **Full suite command** | `npx vitest run` |
-| **Estimated runtime** | ~15 seconds |
+| **Framework** | node:test (built-in test runner) / manual HTML inspection |
+| **Config file** | none — uses node:test built-in |
+| **Quick run command** | `node --test tests/phase-80/print-collateral.test.mjs` |
+| **Full suite command** | `node --test tests/phase-80/print-collateral.test.mjs` |
+| **Estimated runtime** | ~5 seconds |
 
 ---
 
 ## Sampling Rate
 
-- **After every task commit:** Run `npx vitest run --reporter=verbose tests/phases/80`
-- **After every plan wave:** Run `npx vitest run`
+- **After every task commit:** Run `node --test tests/phase-80/print-collateral.test.mjs`
+- **After every plan wave:** Run `node --test tests/phase-80/print-collateral.test.mjs`
 - **Before `/gsd:verify-work`:** Full suite must be green
-- **Max feedback latency:** 15 seconds
+- **Max feedback latency:** 5 seconds
 
 ---
 
@@ -38,10 +38,10 @@ created: 2026-03-21
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 80-01-01 | 01 | 1 | PRNT-01 | unit | `npx vitest run tests/phases/80/flyer-page-spec.test.ts` | ❌ W0 | ⬜ pending |
-| 80-01-02 | 01 | 1 | PRNT-02 | unit | `npx vitest run tests/phases/80/prepress-disclaimer.test.ts` | ❌ W0 | ⬜ pending |
-| 80-01-03 | 01 | 1 | PRNT-03 | unit | `npx vitest run tests/phases/80/series-template.test.ts` | ❌ W0 | ⬜ pending |
-| 80-01-04 | 01 | 1 | PRNT-04 | manual | Visual inspection of composition quality | N/A | ⬜ pending |
+| 80-01-01 | 01 | 1 | PRNT-01, PRNT-02, PRNT-04 | unit | `node --test tests/phase-80/print-collateral.test.mjs` | ❌ W0 | ⬜ pending |
+| 80-01-02 | 01 | 1 | PRNT-01, PRNT-02, PRNT-04 | unit | `node --test tests/phase-80/print-collateral.test.mjs` | ❌ W0 | ⬜ pending |
+| 80-02-01 | 02 | 2 | PRNT-03 | unit | `node --test tests/phase-80/print-collateral.test.mjs` | ❌ W0 | ⬜ pending |
+| 80-02-02 | 02 | 2 | PRNT-04 | manual | Visual inspection of composition quality | N/A | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -49,12 +49,9 @@ created: 2026-03-21
 
 ## Wave 0 Requirements
 
-- [ ] `tests/phases/80/flyer-page-spec.test.ts` — stubs for PRNT-01 (@page size, bleed zone, safe zone, CMYK table)
-- [ ] `tests/phases/80/prepress-disclaimer.test.ts` — stubs for PRNT-02 (disclaimer adjacency check)
-- [ ] `tests/phases/80/series-template.test.ts` — stubs for PRNT-03 ({{variable}} slot detection)
-- [ ] Test fixture: sample experience product config for flyer generation
+- [ ] `tests/phase-80/print-collateral.test.mjs` — unified test file for all PRNT requirements (FLY @page, bleed, CMYK, SIT {{variable}} slots, prepress disclaimer, PRG multi-page)
 
-*If none: "Existing infrastructure covers all phase requirements."*
+*Wave 0 is Plan 01 Task 1 — creates test file with 16 assertions in red state.*
 
 ---
 
@@ -72,7 +69,7 @@ created: 2026-03-21
 - [ ] Sampling continuity: no 3 consecutive tasks without automated verify
 - [ ] Wave 0 covers all MISSING references
 - [ ] No watch-mode flags
-- [ ] Feedback latency < 15s
+- [ ] Feedback latency < 5s
 - [ ] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** pending
