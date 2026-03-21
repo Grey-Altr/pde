@@ -241,7 +241,10 @@ Plans:
   2. When stitch_annotated is absent or false, `/pde:handoff` refuses to extract Stitch patterns and prints a clear message telling the user to run wireframe with --use-stitch first (annotation injection is a hard prerequisite)
   3. Color values extracted from Stitch HTML are converted to OKLCH format in the TypeScript interfaces using an inline hex-to-OKLCH function (no npm dependency added)
   4. Stitch-only components not found in WFR annotations are included in HND-types.ts with a "verify before implementation" label and a human decision prompt, rather than being silently omitted or accepted as authoritative
-**Plans**: [To be planned]
+**Plans**: 2 plans
+Plans:
+- [ ] 69-01-PLAN.md — Modify handoff.md with Stitch detection, annotation extraction, hex-to-OKLCH conversion, and STITCH_COMPONENT_PATTERNS output
+- [ ] 69-02-PLAN.md — Nyquist test suite covering all 4 HND requirements
 
 ## Progress
 
