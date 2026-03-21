@@ -288,7 +288,10 @@ Plans:
   3. Every safety and licensing section in the production bible carries a `[VERIFY WITH LOCAL AUTHORITY]` disclaimer block — no specific regulatory thresholds appear without this tag
   4. Running `/pde:handoff` for a software product produces only TypeScript interfaces and component specs — no production bible sections
   5. For hybrid-event sub-type, the handoff produces both software API handoff sections and production bible sections in a single output, with both artifact sets registered in the manifest
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 81-01-PLAN.md -- Nyquist tests + experience branch with six BIB sections, Step 2a bypass, four-pass generation, manifest template update
+- [ ] 81-02-PLAN.md -- Software guard hardening, hybrid-event dual-surface verification, integration tests
 
 ### Phase 82: Integration Validation and Regression Audit
 **Goal**: All 9 phases of experience product type extensions are confirmed regression-safe — software, hardware, and hybrid projects produce byte-identical outputs to pre-milestone baselines, and all 5 experience sub-types produce their full artifact sets
