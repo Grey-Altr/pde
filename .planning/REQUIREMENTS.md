@@ -24,13 +24,13 @@ Requirements for Experience Product Type milestone. Each maps to roadmap phases.
 
 ### Design System
 
-- [ ] **DSYS-01**: Sonic design tokens generated (genre/BPM corridor, volume curve, system spec, transition strategy)
-- [ ] **DSYS-02**: Lighting design tokens generated (color palette per zone/phase, intensity curve, fixture types, house lights protocol)
-- [ ] **DSYS-03**: Spatial design tokens generated (zone definitions with mood, density targets, sightlines, material palette)
-- [ ] **DSYS-04**: Thermal/atmospheric tokens generated (ventilation, outdoor/indoor transitions, haze levels)
-- [ ] **DSYS-05**: Wayfinding design tokens generated (sign hierarchy, arrow/icon standards, legibility distances, outdoor contrast)
-- [ ] **DSYS-06**: Brand coherence tokens generated (flyer → wristband → signage → merch identity, tone of voice, sensory signature)
-- [ ] **DSYS-07**: Experience tokens stored in separate file (SYS-experience-tokens.json) to prevent schema pollution
+- [x] **DSYS-01**: Sonic design tokens generated (genre/BPM corridor, volume curve, system spec, transition strategy)
+- [x] **DSYS-02**: Lighting design tokens generated (color palette per zone/phase, intensity curve, fixture types, house lights protocol)
+- [x] **DSYS-03**: Spatial design tokens generated (zone definitions with mood, density targets, sightlines, material palette)
+- [x] **DSYS-04**: Thermal/atmospheric tokens generated (ventilation, outdoor/indoor transitions, haze levels)
+- [x] **DSYS-05**: Wayfinding design tokens generated (sign hierarchy, arrow/icon standards, legibility distances, outdoor contrast)
+- [x] **DSYS-06**: Brand coherence tokens generated (flyer → wristband → signage → merch identity, tone of voice, sensory signature)
+- [x] **DSYS-07**: Experience tokens stored in separate file (SYS-experience-tokens.json) to prevent schema pollution
 
 ### Flows
 
@@ -122,13 +122,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 | BREF-03 | Phase 75 | Complete |
 | BREF-04 | Phase 75 | Complete |
 | BREF-05 | Phase 75 | Complete |
-| DSYS-01 | Phase 76 | Pending |
-| DSYS-02 | Phase 76 | Pending |
-| DSYS-03 | Phase 76 | Pending |
-| DSYS-04 | Phase 76 | Pending |
-| DSYS-05 | Phase 76 | Pending |
-| DSYS-06 | Phase 76 | Pending |
-| DSYS-07 | Phase 76 | Pending |
+| DSYS-01 | Phase 76 | Complete |
+| DSYS-02 | Phase 76 | Complete |
+| DSYS-03 | Phase 76 | Complete |
+| DSYS-04 | Phase 76 | Complete |
+| DSYS-05 | Phase 76 | Complete |
+| DSYS-06 | Phase 76 | Complete |
+| DSYS-07 | Phase 76 | Complete |
 | FLOW-01 | Phase 77 | Pending |
 | FLOW-02 | Phase 77 | Pending |
 | FLOW-03 | Phase 77 | Pending |

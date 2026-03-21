@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.11
 milestone_name: Experience Product Type
 status: unknown
-stopped_at: Completed 75-02-PLAN.md
-last_updated: "2026-03-21T21:56:38.700Z"
+stopped_at: Completed 76-01-PLAN.md
+last_updated: "2026-03-21T22:22:43.063Z"
 progress:
   total_phases: 9
   completed_phases: 6
-  total_plans: 12
-  completed_plans: 12
+  total_plans: 14
+  completed_plans: 13
 ---
 
 # Project State
@@ -19,11 +19,11 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 75 — brief-extensions
+**Current focus:** Phase 76 — experience-design-token-architecture
 
 ## Current Position
 
-Phase: 75 (brief-extensions) — EXECUTING
+Phase: 76 (experience-design-token-architecture) — EXECUTING
 Plan: 1 of 2
 
 ## Performance Metrics
@@ -77,6 +77,9 @@ Key architectural constraints locked for this milestone:
 - [Phase 75]: Experience sections grouped in single product_type == "experience" guard block after Scope Boundaries — simpler, more grep-friendly than per-section guards
 - [Phase 75]: Phase 82 negative BREF assertions replaced with positive assertions in same commit as workflow edits — keeps milestone regression suite accurate immediately
 - [Phase 75]: No new decisions — BREF todo markers removed after positive assertions confirmed present from Plan 01
+- [Phase 76]: Step 5b placement is AFTER SYS-tokens.json write and BEFORE Step 6 — ensures base file is byte-identical for non-experience products
+- [Phase 76]: SYS-experience-tokens.json first reference moved out of Step 2 stub comment — ensures PRODUCT_TYPE guard precedes all file references in test ordering
+- [Phase 76]: Phase 82 DSYS todo markers (7) replaced with positive passing assertions in same commit as system.md edit
 
 ### Phase Ordering Rationale
 
@@ -101,8 +104,8 @@ Key architectural constraints locked for this milestone:
 
 ## Session Continuity
 
-Last session: 2026-03-21T21:54:09.165Z
-Stopped at: Completed 75-02-PLAN.md
+Last session: 2026-03-21T22:22:36.390Z
+Stopped at: Completed 76-01-PLAN.md
 Resume file: None
 
 Next action: Execute Phase 75 (experience design system token generation)
