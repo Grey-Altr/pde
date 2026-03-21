@@ -1,249 +1,159 @@
 # Feature Research
 
-**Domain:** AI visual design generation — Google Stitch as PDE's primary design engine (v0.9)
+**Domain:** Intelligent idle time productivity — context-aware activity suggestions during AI agent processing in PDE
 **Researched:** 2026-03-20
-**Confidence:** MEDIUM (Stitch capabilities verified across multiple independent sources including official Google blog, official docs attempts, GitHub MCP repos, and several independent reviews; some claims from single sources flagged inline)
+**Confidence:** MEDIUM (core UX patterns verified against multiple sources; PDE-specific integration design inferred from existing infrastructure with HIGH confidence; no direct competitor product exists — this is a novel feature space)
 
 ---
 
-> **Scope note:** This file covers ONLY what Google Stitch adds to PDE's v0.9 milestone. Existing PDE design capabilities (13-stage pipeline, Claude HTML/CSS generation, Figma DTCG token sync, Pencil canvas, OKLCH design tokens) are stable dependencies — not rebuilt here. Every feature described is either additive or a replacement for Claude's HTML/CSS generation path within existing pipeline stages.
+> **Scope note:** This file covers ONLY what v0.10 adds to PDE. Existing infrastructure (tmux dashboard, event bus, STATE.md, ROADMAP.md, per-agent memory, session archival) is a stable dependency — not rebuilt here. Every feature described is either additive to the existing dashboard or a new command surfaced during processing wait time.
 
 ---
 
-## Baseline: What Claude HTML/CSS Generation Provides (Stable Dependency)
+## What "Idle Time" Means in PDE Context
 
-```
-Existing design generation (pre-v0.9):
-  /pde:wireframe       — lofi/midfi/hifi HTML/CSS wireframes via Claude code generation
-  /pde:mockup          — full visual polish, interactions, state transitions via Claude
-  /pde:ideate          — multi-phase diverge→converge (text-based concept descriptions)
-  /pde:critique        — multi-perspective critique with severity-rated findings
-  /pde:handoff         — synthesizes design artifacts into component APIs + TypeScript interfaces
-  /pde:iterate         — applies critique/HIG feedback to revise design artifacts
-  Figma MCP            — DTCG token import/export, wireframe context, Code Connect handoff
-  Design tokens        — DTCG 2025.10 + OKLCH + dual dark mode
+PDE phases — research, plan, execute — each take minutes of wall-clock time while agents run. The user is currently passive: watching the tmux dashboard but unable to usefully contribute. Context switching to unrelated work is expensive (Gloria Mark/UC Irvine: 23 minutes to regain full focus after an interruption). The design goal is to find work that is:
 
-Strengths of Claude-generated HTML/CSS:
-  - Full design system token compliance (DTCG, OKLCH, custom properties)
-  - Motion tokens, spring physics, APCA contrast enforcement
-  - Interactions and state transitions (hover, focus, active states)
-  - Arbitrary fidelity: lofi placeholder blocks → hifi pixel-perfect layouts
-  - Component API generation alongside visual output
-  - Zero external API dependency or generation limits
-  - HIG audit integration (reads its own output)
-  - Awwwards-level quality bar with self-improvement fleet
+1. **Low enough cognitive load** to pick up and put down without a 23-minute re-ramp
+2. **Valuable to PDE's next cycle** — produces artifacts the next phase can consume directly
+3. **Non-intrusive** — does not interrupt flow if the user is in deep work; visible but ignorable
 
-What Claude-generated HTML/CSS lacks vs Stitch:
-  - Multi-direction visual exploration (Claude generates one direction, not 5 variants)
-  - Image-grounded generation from sketch/screenshot inputs
-  - Non-designer accessibility: requires detailed prompts for good output
-  - Visual fidelity from initial generation (requires iteration to reach hifi)
-  - "Vibe" generation from emotional/feeling descriptions vs functional specs
-```
-
----
-
-## Google Stitch Capability Matrix (Confirmed Capabilities)
-
-> Sources: official Google Developers Blog, GitHub davideast/stitch-mcp (official-affiliated), Kargatharaakash/stitch-mcp, Google Codelabs design-to-code codelab, index.dev review, nxcode.io guide, almcorp.com guide.
-
-### What Stitch Actually Generates
-
-| Output Type | Confirmed | Quality Assessment | Notes |
-|-------------|-----------|-------------------|-------|
-| HTML + Tailwind CSS screens | YES | Reasonable for prototyping; needs refinement for production | Not semantic HTML or component-structured by default |
-| Multiple layout variants per prompt | YES | 3-5 variants typical; visual divergence is the primary value | Allows broad exploration before committing |
-| Multi-screen flows (mobile + web) | YES | Cinema app example: registration, profile, listings, booking, payment | Full-app screen sets from single project |
-| Figma export with Auto Layout | YES | Named, grouped layers with Auto Layout structure | Official Figma plugin; primary handoff path |
-| Screen screenshots (base64) | YES (via MCP) | `get_screen_image` tool returns base64 PNG | Used for critique comparator workflows |
-| React component scaffolding | PARTIAL | Via Antigravity IDE workflow; not native Stitch output | Downstream from Stitch HTML via coding agent |
-| Figma-format token exports | NO | Stitch does not output DTCG tokens or design system artifacts | Critical gap for PDE's DTCG pipeline |
-| Animations / micro-interactions | NO | Static screens only; no motion support | Confirmed in multiple reviews |
-| ARIA / accessibility attributes | NO | No accessibility output; no contrast checking | Must be added downstream |
-| Backend code / state management | NO | Frontend scaffolding only; no click handlers that function | Confirmed: "form submit had no effect" |
-
-### What Stitch Accepts as Input
-
-| Input Type | Confirmed | Caveats |
-|------------|-----------|---------|
-| Natural language text prompts | YES — primary input | Quality of output depends heavily on prompt specificity |
-| Image upload (screenshot, mockup) | YES — Experimental Mode only | Requires Gemini 2.5 Pro; uses more generation credits |
-| Hand-drawn sketch upload | CLAIMED but DISPUTED | One review: "Stitch simply asks you to describe the content in text instead — the image input is effectively useless for generating UI layouts" (LOW confidence this works reliably) |
-| Voice descriptions (Voice Canvas) | YES — March 2026 update | Speaks directly to canvas; agent asks clarifying questions, makes live updates |
-| Design reference for redesign | YES | Upload existing screenshot; Stitch rebuilds as structured design |
-| DESIGN.md / brand guidelines document | YES (workaround) | Not native token import; users paste brand context as text to get closer to brand consistency |
-
-### MCP Server Tools (Confirmed — from GitHub repos)
-
-The `@_davideast/stitch-mcp` package (official-affiliated, maintained by davideast) exposes these tools via MCP:
-
-| Tool | What It Does | Input | Output |
-|------|-------------|-------|--------|
-| `list_projects` | Lists Stitch projects in account | none | Project list with IDs |
-| `list_screens` | Lists screens within a project | `projectId` | Screen list with IDs |
-| `get_project` | Gets project metadata | `projectId` | Project metadata |
-| `get_screen` | Gets screen metadata | `screenId` | Screen info |
-| `get_screen_code` | Retrieves screen HTML/CSS | `screenId` | Raw HTML string |
-| `get_screen_image` | Gets screen screenshot | `screenId` | Base64 PNG |
-| `build_site` | Maps screens to routes, returns all HTML | `projectId`, `routes[]` | `{ route: html }` per route |
-| `generate_screen_from_text` | Creates new screen from prompt | text prompt | New screen in project |
-| `extract_design_context` | "Design DNA" — fonts, colors, layouts | `screenId` | Design tokens as markdown |
-| `create_project` | Creates new Stitch project | project name | Project ID |
-
-Authentication: API Key (`STITCH_API_KEY` env var) or Google Cloud ADC. API Key is simpler. Requires Google Cloud project with billing enabled and Stitch API enabled.
-
-**Note:** `davideast/stitch-mcp` is labeled "NOT affiliated with, endorsed by, or sponsored by Google LLC — provided AS-IS." A separate `Kargatharaakash/stitch-mcp` also exists and duplicates most tools. The `davideast` package is more widely referenced and has npm publication.
+Research confirms this category exists and is under-served. CHI 2025 research on proactive AI assistants found suggestions land best "at subtask boundaries" and must be "attention-aware." CI/CD tooling research shows that the longer code waits in review, the bigger the context switch — meaning the problem PDE faces (human waiting on machine) is symmetric to the problem tools like LinearB try to solve (machine waiting on human).
 
 ---
 
 ## Feature Landscape
 
-### Table Stakes (Users Expect These from Stitch-as-Primary-Engine)
+### Table Stakes (Users Expect These)
 
-These are required for "Stitch as primary engine" to be a credible claim. Missing any of these means PDE's existing Claude-generated pipeline is still doing the real work and Stitch is cosmetic.
+These are non-negotiable for the milestone to feel complete. Missing any makes the feature feel like a status display, not a productivity tool.
 
 | Feature | Why Expected | Complexity | Notes |
 |---------|--------------|------------|-------|
-| **`--use-stitch` flag on `/pde:wireframe`** | Users need an explicit opt-in to Stitch rendering path; no flag = no choice between Claude and Stitch | LOW | Flag routes to Stitch MCP `generate_screen_from_text`; returns HTML for downstream pipeline stages |
-| **`--use-stitch` flag on `/pde:mockup`** | Mockup is the hifi generation stage; Stitch's strong suit is visual polish from prompts | LOW | Same flag pattern; calls Stitch with brief + wireframe context as prompt |
-| **Stitch MCP server integration** | Without MCP registration in mcp-bridge.cjs, no tool calls possible | MEDIUM | 6th approved server; needs `assertApproved()` entry, TOOL_MAP entries for all Stitch tools, probe/degrade contract |
-| **Screen HTML retrieval for pipeline stages** | PDE's critique, iterate, handoff stages need to read Stitch's output | LOW | `get_screen_code` MCP tool; HTML stored in `.planning/design/` alongside existing artifacts |
-| **Screen image retrieval for critique** | `/pde:critique` visual comparison requires image, not just HTML | LOW | `get_screen_image` returns base64 PNG; critique skill reads it for visual analysis |
-| **Design DNA extraction into handoff** | `/pde:handoff` needs Stitch's color/font/layout data to produce implementation specs | MEDIUM | `extract_design_context` output → handoff skill → component token mapping |
-| **Graceful degradation when Stitch unavailable** | MCP probe/degrade contract pattern already established for all 5 existing integrations | LOW | Same `probeConnection()` pattern as Figma, Pencil integrations |
-| **Write-back confirmation gates** | PDE policy: every external write requires explicit user consent | LOW | Stitch `generate_screen_from_text` and `create_project` are writes; need confirmation gates (VAL-03 pattern) |
-| **Authentication path via API Key** | API Key (`STITCH_API_KEY`) is simpler than ADC; must be the documented path | LOW | Env var; document in Getting Started alongside existing MCP credential patterns |
+| **Phase-aware suggestion list** | Without phase context, suggestions are generic ("go do something else"). Users expect suggestions relevant to *what PDE is currently doing* — brief phase vs execute phase demand different human activities. | MEDIUM | Reads current phase from STATE.md and DESIGN-STATE.md. Different suggestion banks per phase. Surfaces in dedicated tmux pane (Pane 7 or overlay on Pane 1). |
+| **Actionable prompts, not status updates** | "Here's what you could work on" not "here's what PDE is doing." The tmux dashboard already shows progress; this feature must show a call-to-action. | LOW | Wording matters: "Review the wireframe critique at `.planning/design/critique.md` and annotate disagreements" beats "Critique stage is running." |
+| **Artifact review queue** | When PDE produces artifacts, users expect to be told they exist and can be reviewed now. This is the lowest-friction pull-based feedback loop. | LOW | Watches `.planning/design/` and `.planning/` for new files after phase completion. Surfaces "new artifact ready for review" immediately. |
+| **Activity categories appropriate to project state** | Suggestions must match where the project actually is. Suggesting "finalize acceptance criteria" when execution is 80% complete is wrong and breaks trust. | MEDIUM | Categories: pre-planning (externalize knowledge), mid-plan (validate ACs), during-execution (review outputs, run verifications), post-execution (handoff prep). All driven by STATE.md fields. |
+| **Dismissable / ignorable** | A feature that demands attention breaks the non-intrusive contract. User in flow state must be able to ignore suggestions entirely without penalty. | LOW | Suggestions displayed passively in tmux pane. No modal, no alert, no beep. Pane can be hidden with standard tmux commands. |
+| **Integration with existing tmux dashboard** | Users already have `/pde:monitor` open. A new tool requires a new habit. Suggestions must appear in the existing dashboard surface. | MEDIUM | Either new pane (Pane 7) added to dashboard layout, or suggestion content injected into existing Pane 1 (activity log) when idle period detected. Adaptive layout already degrades from 6 to 2 panes — new pane must fit the same degradation model. |
 
-### Differentiators (What Stitch Enables That Claude HTML/CSS Cannot)
+### Differentiators (Competitive Advantage)
 
-These are the reasons to integrate Stitch. Each maps to a capability gap in the existing pipeline.
+These make the feature genuinely intelligent vs a generic "while you wait" checklist. Each maps to a PDE-specific capability gap that no existing CI/CD tool or IDE feature addresses.
 
-| Feature | Value Proposition | Complexity | Pipeline Stage | Notes |
-|---------|-------------------|------------|----------------|-------|
-| **Multi-direction visual exploration during ideation** | Stitch generates 3-5 visually distinct layout variants from a single prompt; Claude generates one direction. For `/pde:ideate --diverge`, showing 5 visual directions vs 5 text descriptions is qualitatively different. | MEDIUM | `/pde:ideate` | Calls `generate_screen_from_text` N times with divergent prompt variants; stores all screens in one Stitch project; retrieves all screen images for display |
-| **"Vibe Design" mode — emotional/feeling-based generation** | Stitch's Vibe Design accepts business objectives or desired user feelings ("calming", "energetic startup", "enterprise trust") and generates matching directions. Claude requires functional specs. This opens PDE to non-designer users who struggle with component-level prompting. | MEDIUM | `/pde:ideate`, `/pde:wireframe` | Prompt engineering: translate PDE brief emotional sections into Stitch vibe prompts; requires brief to have "desired user feeling" field populated |
-| **Image-grounded generation from screenshots** | Upload a competitor's screenshot or an existing design; Stitch rebuilds it as an editable structured design. Enables competitive redesign workflows that Claude cannot do reliably. | MEDIUM | `/pde:wireframe` with `--from-image` | Experimental Mode only (50/month vs 350/month credits); image upload path through MCP (if supported — MEDIUM confidence the `generate_screen_from_text` tool also accepts image context) |
-| **Voice-described design variants** | Voice Canvas allows speaking design intent; Stitch agents clarify and update live. For PDE's analyst persona interview workflow, voice input lowers the barrier for brief creation. | HIGH | `/pde:ideate`, analyst persona | Requires voice input path through MCP or Stitch web UI; MCP tools are text-only as of research date — voice may only be available through Stitch's browser canvas (LOW confidence MCP exposes voice) |
-| **Design DNA extraction for token seeding** | `extract_design_context` returns structured color palette, typography, and layout rules from any Stitch screen. For PDE's design system stage, this provides a starting point for DTCG token generation from visual output rather than from scratch. | MEDIUM | `/pde:system` | Design DNA output → seed OKLCH palette from Stitch colors → DTCG token generation; creates visual-first design system path |
-| **Stitch output comparison in critique** | `/pde:critique` can compare Claude-generated vs Stitch-generated versions of the same screen. Side-by-side critique with different rendering engines surfaces visual tradeoffs before committing to one direction. | MEDIUM | `/pde:critique` | `get_screen_image` for Stitch version; existing critique skill receives both images + design brief; multi-perspective critique applied to both |
-| **Pattern extraction from Stitch visuals for handoff** | `extract_design_context` Design DNA feeds into `/pde:handoff` alongside existing brief + token data. Stitch-sourced patterns (confirmed visual colors, confirmed typefaces) reduce ambiguity in component specs. | MEDIUM | `/pde:handoff` | Design DNA markdown → handoff skill context; maps Stitch colors to DTCG OKLCH equivalents |
-| **Figma-format export path from Stitch** | Stitch exports directly to Figma with Auto Layout and grouped layers. For PDE's Figma integration, this provides a higher-fidelity starting point than the existing wireframe → Figma token export path. | LOW | Figma MCP | Stitch → Figma export is user-initiated in Stitch web UI; MCP does not expose this directly (LOW confidence). The value is in the recommended workflow documentation, not PDE automation. |
+| Feature | Value Proposition | Complexity | Notes |
+|---------|-------------------|------------|-------|
+| **Artifact-fed suggestion targeting** | Suggestions reference specific artifacts by path. "Review the wireframe at `.planning/design/wireframe/WFR-homepage.html` — the critique found 3 HIGH severity findings at lines 47-89" is 10x more actionable than "review design artifacts." | MEDIUM | Reads design-manifest.json and latest critique/plan artifacts. Extracts severity, file paths, open findings. Surfaces as pre-formatted review prompts. |
+| **Domain knowledge externalization prompts** | The most valuable idle activity for PDE's next cycle is writing down what only the user knows: business rules, edge cases, user stories, acceptance criteria that PDE cannot infer. Phase-specific prompts surface the right questions at the right time. | MEDIUM | Prompt bank keyed by project phase. Example during ideation: "What are the 3 non-obvious constraints on this product that a designer wouldn't know?" During planning: "List the edge cases in the payment flow that break happy-path assumptions." Outputs stored in `.planning/context-notes/` (new directory). |
+| **Human-taste decision queue** | Design decisions that require human aesthetic judgment (color palette preference, typography choices, brand tone) are low-urgency but block PDE from producing brand-aligned output. Surfacing these as a queue during idle time completes them without blocking PDE's critical path. | MEDIUM | Reads DESIGN-STATE.md for incomplete design system choices. Generates short decision prompts: "Choose between warm or cool neutrals for the primary background — this affects token generation in the next phase." Responses stored in `.planning/design/taste-decisions.md`. |
+| **Parallel session templates** | For unrelated work that doesn't touch the current PDE project, suggesting a pre-configured Claude Code window with a specific task (bug fix, documentation, git housekeeping) lets users context-switch safely without losing place in PDE. | HIGH | Requires generating a tmux split command or `/pde:parallel-task` shortcut. HIGH complexity because it crosses session boundaries. Value is real but implementation touches tmux session management, which is outside the event bus. |
+| **Upcoming phase preview** | Showing what PDE will need from the user in the next phase lets users prepare mentally and gather materials ahead of time. "The next phase is wireframe — have reference screenshots ready" reduces the start-of-phase lag. | LOW | Reads ROADMAP.md for next phase. Filters for human-input requirements in that phase's success criteria. Surfaces as "preparing for next phase" suggestions. Already available in STATE.md (pending_todos field). |
+| **Blockers-first prioritization** | ROADMAP.md and STATE.md already track blockers. Surfacing open blockers as the highest-priority idle-time activity ensures the most impactful work happens during wait time. | LOW | Reads `blockers` field from STATE.md. If non-empty, blockers appear before any other suggestion. "Resolve this blocker first — it will unblock the next phase." This is a direct use of existing infrastructure. |
+| **Time-bounded micro-tasks** | Suggestions calibrated to the expected remaining processing time. If a phase is 90% complete, suggest a 2-minute task (add a note to the brief). If a phase just started and will take 8 minutes, suggest a 5-minute structured activity. | HIGH | Requires phase duration estimation from past session archives. HIGH complexity because duration data must be learned. Could start with fixed heuristics (research phase: 5-10 minutes; execute phase: 10-30 minutes per task) and refine. |
 
-### Anti-Features (Avoid These in v0.9)
+### Anti-Features (Avoid These in v0.10)
 
-These seem like natural extensions but create problems for PDE's architecture or constraints.
+These seem natural extensions but create architectural conflicts or user experience problems.
 
 | Feature | Why Requested | Why Problematic | Alternative |
 |---------|---------------|-----------------|-------------|
-| **Replacing Claude HTML/CSS generation entirely** | "Stitch is the primary engine now" implies Claude generation is deprecated | Stitch produces HTML + Tailwind CSS with no motion tokens, no OKLCH custom properties, no APCA contrast, no ARIA, no state transitions. The Awwwards-quality bar requires all of these. Stitch output is a starting point, not a finished artifact. | Keep Claude generation as the quality path; Stitch is the ideation/exploration path. `--use-stitch` flag makes Stitch an alternative, not a replacement. |
-| **Automatic Stitch screen sync on every pipeline run** | Convenience: always have latest Stitch designs synced without explicit command | Stitch has 350 free monthly generations. Automatic generation on every pipeline run would exhaust limits rapidly. Each Stitch API call creates a generation credit deduction. | Explicit `--use-stitch` flag or explicit sync command. Users control when Stitch credits are consumed. |
-| **Stitch as design system source of truth** | Design DNA output contains colors and typography; seems like it could replace DTCG tokens | Stitch cannot enforce brand guidelines across projects. Each generation starts fresh. Design DNA is a point-in-time extraction, not a maintained token system. DTCG 2025.10 is PDE's established token standard; Stitch colors must be translated to OKLCH DTCG format, not the other way around. | Use Design DNA to seed DTCG tokens, not replace them. Extract → convert to OKLCH → merge into existing token file. |
-| **Storing Stitch HTML in `.planning/` long-term** | Stitch HTML is an artifact, should live with other design artifacts | Stitch HTML uses Tailwind CDN classes, not PDE's DTCG custom properties. Stored raw, it diverges from the design system immediately. Using it as-is in implementation creates a parallel styling system. | Treat Stitch HTML as ephemeral reference. Extract Design DNA. Use Claude's implementation path for production-quality component generation with DTCG tokens. |
-| **Exposing all 9 Stitch MCP tools to all PDE subagents** | More tools = more capability for agents | PROJECT.md explicitly rules out "MCP tool passthrough to all subagents — destroys 85% context savings from Tool Search." PDE's TOOL_MAP pattern insulates agents from raw MCP tools. | Route Stitch calls through mcp-bridge.cjs TOOL_MAP with canonical names. Agents call PDE canonical names; bridge calls Stitch. Same pattern as all other integrations. |
-| **Voice Canvas integration via MCP** | Voice input is a differentiator; PDE's analyst persona could use it | MCP tools for Stitch are text-only as of March 2026. Voice Canvas is a Stitch browser UI feature. Attempting to route voice through MCP would require screen-scraping or unofficial APIs — contrary to PDE's verified-sources-only security policy. | Document Voice Canvas as a user workflow that precedes PDE: user explores in Stitch voice canvas → exports project → PDE retrieves via MCP. Separation of concerns. |
-| **Real-time Stitch canvas watching** | "Observe as users iterate in Stitch canvas" for live critique | No webhook or streaming API exists for Stitch canvas events. Polling would require repeated `list_screens` calls. Same architectural impossibility as real-time Figma sync, which is already ruled out in PROJECT.md. | Explicit sync: user triggers `/pde:critique --from-stitch {projectId}` when they want PDE to fetch current state. |
+| **Interrupting the user when a phase completes** | "Alert me when done so I can get back to work immediately" — sounds good for responsiveness | Gloria Mark research: 23-minute recovery from interruptions. A notification that fires at arbitrary times destroys the focus session the user is in. The tmux dashboard is already a passive, always-on status surface — anything beyond that becomes an interruption. | User watches the dashboard pane passively. Phase completion is already visible in Pane 1 (agent activity) and Pane 4 (pipeline progress). No additional alert needed. |
+| **Automatic generation of context notes** | "PDE should write the domain knowledge prompts and fill them in by inferring from existing artifacts" | If PDE can infer it, it doesn't need the user to write it — this is not an idle-time problem. The value of domain knowledge externalization is surfacing what PDE *cannot* infer: unwritten business rules, team conventions, user context the codebase doesn't contain. Auto-generation defeats the purpose. | Prompt the user with specific questions. Write the user's answers to structured files. Not the other way around. |
+| **Gamification (streaks, points, badges for completing idle tasks)** | "Make it engaging; reward productive idle time" | Gamification in developer tooling is consistently rejected by senior developers and creates perverse incentives (completing tasks for points rather than value). PDE's user base is professional developers who want signal, not dopamine mechanics. | Clear progress indicators: "You've provided 3 domain knowledge notes in this session — all will be available to the planning phase." Outcome-oriented, not game-oriented. |
+| **A dedicated idle-time command (`/pde:idle`)** | "Give users a command to explicitly enter idle mode with a structured activity list" | Requires the user to change behavior (explicitly invoke a mode). The value of idle-time productivity is *ambient* — suggestions available without the user having to decide to seek them. A separate command adds friction and will be forgotten. | Suggestions appear automatically in the tmux dashboard when a phase is running. No mode, no command, no new habit to build. |
+| **Full pre-phase briefing document generation** | "While waiting, generate a rich summary of what's coming next in the pipeline" | The planning phase already produces HANDOFF.md, ROADMAP.md entries, and task-NNN.md files. A separate "upcoming briefing" document duplicates this content with a different audience framing and creates a second source of truth. | Surface existing ROADMAP.md next-phase content in the suggestions pane. Link to the actual planning artifacts. Don't generate new documents that duplicate state already tracked. |
+| **Suggestions that require internet access or external tools** | "Suggest checking competitors while waiting" — sounds productive | PDE's constraint model (file-based, no server, zero npm deps at plugin root) means internet-dependent suggestions cannot be acted on within PDE's tooling. Suggestions that require leaving the terminal (browser, Figma, etc.) create a different context switch problem. | Suggest file-based activities: reviewing existing artifacts, writing notes to `.planning/`, running `/pde:check-readiness`, running tests. External-tool suggestions can appear as explicit "if you have time for longer tasks" category, clearly labeled as out-of-PDE-scope. |
+| **Persistent idle-task history across sessions** | "Track what I did during idle time across all sessions" | Per-agent memory has a 50-entry cap specifically to prevent context bloat. A separate idle-task history adds another storage file that session archival must track. Marginal value: users rarely need to audit what they did during a 5-minute wait 3 weeks ago. | Context notes produced during idle time are already persisted in `.planning/context-notes/`. The *outputs* of idle activity are tracked; the activity history itself is not needed. |
 
 ---
 
 ## Feature Dependencies
 
 ```
-[Stitch MCP Server Registration in mcp-bridge.cjs]
-    └──required-by──> ALL Stitch features (no MCP = no tool calls)
-    └──follows-pattern-of──> [EXISTING: Figma MCP integration]
-    └──requires──> assertApproved() entry for stitch.withgoogle.com
-    └──requires──> TOOL_MAP entries: list_projects, list_screens, get_screen, get_screen_code,
-                   get_screen_image, build_site, generate_screen_from_text,
-                   extract_design_context, create_project
-    └──requires──> probeConnection() / degradeGracefully() contract
-    └──requires──> STITCH_API_KEY in user environment
+[Phase Event (phase_started, phase_complete from event bus)]
+    └──required-by──> [Phase-Aware Suggestion Engine]
+                          └──reads──> STATE.md (current_phase, blockers, pending_todos)
+                          └──reads──> ROADMAP.md (next phase requirements)
+                          └──reads──> design-manifest.json (artifact inventory)
+                          └──outputs──> [Suggestion List (ranked)]
+                                            └──displayed-in──> [tmux Pane: Suggestion Display]
+                                            └──stores-to──> .planning/context-notes/ (user-written notes)
 
-[--use-stitch flag on /pde:wireframe]
-    └──depends-on──> [Stitch MCP Server Registration]
-    └──calls──> generate_screen_from_text (write — needs confirmation gate)
-    └──calls──> get_screen_code (read)
-    └──stores-output-in──> .planning/design/wireframe/ (same as existing path)
-    └──conflicts-with──> Claude HTML/CSS generation (mutual exclusion; one path per invocation)
+[Artifact-Fed Suggestion Targeting]
+    └──depends-on──> [Phase-Aware Suggestion Engine]
+    └──reads──> .planning/design/ (latest artifacts)
+    └──reads──> critique output files (severity + findings)
+    └──enhances──> [Suggestion List] with specific file paths and finding summaries
 
-[--use-stitch flag on /pde:mockup]
-    └──depends-on──> [Stitch MCP Server Registration]
-    └──depends-on──> [--use-stitch flag on /pde:wireframe] (wireframe context feeds mockup prompt)
-    └──calls──> generate_screen_from_text with hifi brief
-    └──calls──> get_screen_code
-    └──stores-output-in──> .planning/design/mockup/
+[Domain Knowledge Externalization Prompts]
+    └──depends-on──> [Phase-Aware Suggestion Engine]
+    └──reads──> .planning/project-context.md (existing context)
+    └──reads──> current phase from STATE.md
+    └──outputs──> .planning/context-notes/{timestamp}-context.md (user answers)
+    └──consumed-by──> [EXISTING: /pde:plan] and [EXISTING: /pde:brief] in subsequent phases
 
-[Visual Divergence during /pde:ideate --diverge via Stitch]
-    └──depends-on──> [Stitch MCP Server Registration]
-    └──calls──> generate_screen_from_text N times (N = diverge count, default 3)
-    └──calls──> get_screen_image for each screen (for display/critique)
-    └──requires──> create_project (write — confirmation gate)
-    └──enhances──> [EXISTING: /pde:ideate diverge phase] (adds visual artifacts to text concepts)
+[Human-Taste Decision Queue]
+    └──depends-on──> [Phase-Aware Suggestion Engine]
+    └──reads──> DESIGN-STATE.md (incomplete design system choices)
+    └──outputs──> .planning/design/taste-decisions.md (user choices)
+    └──consumed-by──> [EXISTING: /pde:system] in design token generation phase
 
-[Stitch Output Comparison in /pde:critique]
-    └──depends-on──> [--use-stitch flag on /pde:wireframe OR /pde:mockup]
-    └──calls──> get_screen_image (read — no confirmation gate needed)
-    └──feeds-into──> [EXISTING: multi-perspective critique workflow]
-    └──enhances──> [EXISTING: /pde:critique] (adds visual comparison capability)
+[Blockers-First Prioritization]
+    └──depends-on──> [Phase-Aware Suggestion Engine]
+    └──reads──> STATE.md blockers field (already exists)
+    └──enhances──> [Suggestion List] by promoting blockers to top
+    └──NOTE──> zero new infrastructure needed; pure logic over existing data
 
-[Design DNA Extraction feeding /pde:handoff]
-    └──depends-on──> [Stitch MCP Server Registration]
-    └──calls──> extract_design_context (read)
-    └──output-feeds-into──> [EXISTING: /pde:handoff component spec generation]
-    └──enhances──> [EXISTING: /pde:handoff] (visual-sourced token seeds)
-    └──NOTE──> Design DNA colors must be converted to OKLCH DTCG format — raw Stitch hex values
-               are not compatible with PDE's DTCG 2025.10 pipeline
+[Upcoming Phase Preview]
+    └──depends-on──> [Phase-Aware Suggestion Engine]
+    └──reads──> ROADMAP.md next phase entry (already exists)
+    └──enhances──> [Suggestion List] with preparation prompts
+    └──NOTE──> zero new infrastructure needed; pure logic over existing data
 
-[Design DNA Token Seeding for /pde:system]
-    └──depends-on──> [Design DNA Extraction]
-    └──converts──> hex palette → OKLCH equivalents
-    └──merges-into──> [EXISTING: DTCG token file] (additive, non-destructive)
-    └──enhances──> [EXISTING: /pde:system] (visual-first design system path)
+[tmux Pane: Suggestion Display]
+    └──depends-on──> [EXISTING: tmux dashboard (/pde:monitor)]
+    └──requires──> adaptive layout extension (existing pane count: 6 → 7, or overlay mode)
+    └──reads-from──> [Phase-Aware Suggestion Engine] output
+    └──NOTE──> must fit within existing adaptive layout (6→4→3→2 pane degradation model)
 
-[Graceful Degradation when Stitch unavailable]
-    └──depends-on──> [Stitch MCP Server Registration]
-    └──follows-pattern-of──> [EXISTING: Pencil, Figma degradation contracts]
-    └──fallback-to──> Claude HTML/CSS generation (existing path)
-    └──required-by──> ALL Stitch features (no degradation = hard failure on auth/network issues)
-
-[Write-Back Confirmation Gates for Stitch]
-    └──required-by──> generate_screen_from_text (creates Stitch content)
-    └──required-by──> create_project (creates Stitch project)
-    └──follows-pattern-of──> [EXISTING: VAL-03 confirmation gate pattern]
-    └──NOT required by──> read-only tools: get_screen_code, get_screen_image,
-                           extract_design_context, list_projects, list_screens
+[Time-Bounded Micro-Task Calibration]
+    └──depends-on──> [Phase-Aware Suggestion Engine]
+    └──reads──> .planning/logs/ session archives (for phase duration history)
+    └──enhances──> [Suggestion List] by filtering to tasks matching remaining time budget
+    └──NOTE──> HIGH complexity; requires duration estimation; defer to v0.10.x or start with fixed heuristics
 ```
 
 ### Dependency Notes
 
-- **MCP registration is the critical path:** Every Stitch feature is blocked until `mcp-bridge.cjs` registers Stitch as the 6th approved server. This must be Phase 1 of the milestone.
-- **Design DNA requires OKLCH conversion:** Stitch outputs hex colors. PDE's design token pipeline uses OKLCH. A conversion function (similar to `figmaColorToCss` in the existing Figma integration) must be embedded inline — no npm dependencies.
-- **Write operations require confirmation gates:** `generate_screen_from_text` and `create_project` modify external state in Google's Stitch platform. These are writes that follow PDE's VAL-03 pattern. Read operations (get, list, extract) do not need confirmation.
-- **Stitch HTML is Tailwind CSS, not DTCG custom properties:** PDE must not treat Stitch HTML as a design system artifact. It is reference material for visual pattern extraction, not implementation source.
-- **Generation credit budget awareness:** 350 Standard Mode / 50 Experimental Mode per month. PDE workflows that loop (e.g., critique-iterate loops) must not automatically call `generate_screen_from_text` without user confirmation.
+- **Event bus is the trigger, not polling:** The suggestion engine does not poll STATE.md on a timer. `phase_started` events (already emitted by existing workflow instrumentation from v0.8) trigger suggestion refresh. This is already wired — no new event infrastructure needed.
+- **STATE.md is the single source of truth:** Phase, blockers, pending_todos are already maintained by PDE workflows. The suggestion engine is a reader, not a writer, of this state. This is a clean consumer relationship.
+- **`.planning/context-notes/` is the one new directory:** All other reads are from existing files. The only new write path is user-authored context notes stored in this new directory. It should be read by planning and brief workflows in subsequent phases.
+- **tmux pane layout is the hardest dependency:** The existing adaptive layout is carefully engineered (6→4→3→2 pane degradation). Adding Pane 7 requires either extending the degradation table or implementing an overlay/rotation strategy for small terminals. This is the primary implementation risk.
+- **Domain knowledge prompts require a prompt bank:** A curated bank of phase-specific questions must be authored as part of the milestone. This is content work, not code work, but it is on the critical path.
 
 ---
 
-## MVP Definition (for v0.9 Milestone)
+## MVP Definition (for v0.10 Milestone)
 
-### Launch With (v0.9 core — minimum to satisfy "Stitch as primary engine" claim)
+### Launch With (v0.10 core — minimum to satisfy "intelligent idle time productivity" claim)
 
-- [ ] **Stitch MCP server registration** — 6th entry in mcp-bridge.cjs APPROVED_SERVERS and TOOL_MAP; `assertApproved()` enforcement; probe/degrade contract; STITCH_API_KEY authentication — *required before any other Stitch feature*
-- [ ] **`--use-stitch` on `/pde:wireframe`** — calls `generate_screen_from_text` (with confirmation gate), retrieves HTML via `get_screen_code`, stores in `.planning/design/wireframe/stitch-{screenId}.html`
-- [ ] **`--use-stitch` on `/pde:mockup`** — same pattern; richer prompt incorporating brief visual targets and fidelity level; hifi variant
-- [ ] **Stitch screen image retrieval for `/pde:critique`** — `get_screen_image` returns base64 PNG; critique skill receives Stitch visual alongside existing HTML artifact for comparison critique
-- [ ] **Design DNA extraction for `/pde:handoff`** — `extract_design_context` output fed into handoff skill context; hex-to-OKLCH conversion embedded inline; additive merge into DTCG token file
-- [ ] **Graceful degradation on Stitch unavailable** — auth failure or network error falls back to Claude HTML/CSS generation with clear user message; no hard failure
+- [ ] **Phase-aware suggestion engine** — reads STATE.md + DESIGN-STATE.md on `phase_started` event; generates ranked suggestion list; core logic that all other features build on
+- [ ] **Blockers-first prioritization** — if STATE.md has blockers, they appear first; zero new infrastructure; highest ROI per line of code
+- [ ] **Artifact review queue** — on `phase_complete` event, scan `.planning/design/` for new artifacts; surface "new artifact ready for review" with specific file paths from design-manifest.json
+- [ ] **Domain knowledge externalization prompts** — phase-specific question bank (6 phases × 3-5 questions); prompts displayed in suggestion pane; user-written answers stored in `.planning/context-notes/`
+- [ ] **Upcoming phase preview** — reads ROADMAP.md next-phase entry; surfaces 2-3 preparation prompts; requires zero new infrastructure
+- [ ] **tmux suggestion pane** — new Pane 7 in dashboard layout; fits adaptive degradation model; displays ranked suggestion list; passive, ignorable
 
-### Add After Validation (v0.9.x — extend once core is working)
+### Add After Validation (v0.10.x — extend once core is working)
 
-- [ ] **Visual divergence during `/pde:ideate --diverge`** — Stitch generates visual variants for each text concept; `get_screen_image` for each; images stored in `.planning/design/ideate/`; add when core `--use-stitch` flag is stable and credit budget behavior is confirmed
-- [ ] **Design DNA token seeding for `/pde:system`** — feed Design DNA into design system generation as a starting palette; add once handoff integration confirms the OKLCH conversion function is correct
-- [ ] **Wave-aware Stitch generation** — if `/pde:ideate --diverge` runs multiple parallel Stitch calls via agent waves, add wave tracking for Stitch API calls in the event bus
+- [ ] **Artifact-fed suggestion targeting** — add specific file paths and finding summaries to suggestions; add when core suggestion display is confirmed working and design-manifest.json structure is stable
+- [ ] **Human-taste decision queue** — add when DESIGN-STATE.md incomplete-choices tracking is confirmed; depends on users actually encountering incomplete design choices in practice
+- [ ] **Time-bounded micro-task calibration** — add when session archive data is sufficient to estimate phase durations reliably; start with fixed heuristics (research: 5-10 min, execute: 10-30 min per task)
 
 ### Future Consideration (v1.0+)
 
-- [ ] **Vibe Design mode** — explicit "vibe" prompt path in wireframe/ideate that translates PDE brief emotional sections into Stitch vibe prompts; defer until core generation paths are validated
-- [ ] **Stitch project as persistent design workspace** — maintain one Stitch project per PDE project across sessions; track project ID in DESIGN-STATE.md; adds complexity but enables iterative refinement sessions
+- [ ] **Parallel session templates** — pre-configured tmux splits for unrelated work; defer because it crosses session boundaries and requires tmux session management beyond the current event infrastructure
+- [ ] **Suggestion effectiveness feedback loop** — track which suggestions users act on (via context-notes creation timestamps vs suggestion display timestamps); use to refine prompt bank and ordering; defer until basic usage patterns are established
 
 ---
 
@@ -251,102 +161,71 @@ These seem like natural extensions but create problems for PDE's architecture or
 
 | Feature | User Value | Implementation Cost | Priority |
 |---------|------------|---------------------|----------|
-| Stitch MCP server registration | HIGH — foundational blocker for all Stitch features | MEDIUM | P1 |
-| `--use-stitch` on `/pde:wireframe` | HIGH — core claim of milestone; validates Stitch as rendering engine | MEDIUM | P1 |
-| `--use-stitch` on `/pde:mockup` | HIGH — hifi generation is Stitch's strongest capability | MEDIUM | P1 |
-| Graceful degradation | HIGH — without fallback, any auth/network issue breaks pipeline | LOW | P1 |
-| Write-back confirmation gates | HIGH — PDE policy; confirmed by 315 tests in v0.5 | LOW | P1 |
-| Screen image retrieval for critique | MEDIUM — enables visual comparison; straightforward tool call | LOW | P1 |
-| Design DNA extraction for handoff | MEDIUM — high value for token seeding; needs OKLCH conversion | MEDIUM | P1 |
-| Visual divergence in ideation | HIGH — strongest Stitch differentiator; transforms ideation output | MEDIUM | P2 |
-| Design DNA seeding for system stage | MEDIUM — visual-first design system path; add after handoff validated | MEDIUM | P2 |
-| Vibe Design prompt mode | MEDIUM — opens tool to non-designers; requires brief field additions | MEDIUM | P3 |
-| Persistent Stitch project per PDE project | LOW — adds state management complexity; marginal user value vs fresh project per run | HIGH | P3 |
+| Phase-aware suggestion engine (core logic) | HIGH — foundational; all other features depend on it | MEDIUM — reads existing files, wires to existing events | P1 |
+| Blockers-first prioritization | HIGH — directly surfaces the most impactful work | LOW — pure logic over STATE.md blockers field | P1 |
+| Upcoming phase preview | HIGH — reduces start-of-phase lag for users | LOW — reads existing ROADMAP.md; no new infrastructure | P1 |
+| Artifact review queue | HIGH — closes the feedback loop; user knows when to look | LOW — scans existing directories on phase_complete event | P1 |
+| Domain knowledge externalization prompts | HIGH — produces artifacts PDE can consume in next cycle | MEDIUM — requires authored question bank + new context-notes directory | P1 |
+| tmux suggestion pane (display) | HIGH — without display surface, no feature is visible | MEDIUM — must extend adaptive layout without breaking existing 6-pane model | P1 |
+| Artifact-fed suggestion targeting | MEDIUM — makes suggestions dramatically more specific and useful | MEDIUM — reads design-manifest.json + critique outputs; parsing required | P2 |
+| Human-taste decision queue | MEDIUM — eliminates the "I forgot to pick colors" delay | MEDIUM — reads DESIGN-STATE.md incomplete choices; requires DESIGN-STATE.md to track this consistently | P2 |
+| Time-bounded micro-task calibration | MEDIUM — right-sized tasks feel achievable; oversized tasks get skipped | HIGH — requires phase duration history from session archives | P3 |
+| Parallel session templates | MEDIUM — enables safe context switching for unrelated work | HIGH — crosses session boundary; touches tmux session management | P3 |
 
 **Priority key:**
-- P1: Must have for v0.9 milestone to close
-- P2: Include if implementation permits; strong v0.9.x candidates
+- P1: Must have for v0.10 milestone to close
+- P2: Include if implementation permits; strong v0.10.x candidates
 - P3: Future milestone consideration
 
 ---
 
-## Capability Gap Analysis: Stitch vs Claude HTML/CSS
+## Competitor / Analog Analysis
 
-This is the key question for the downstream roadmap: where does Stitch win, where does Claude win, and where does neither win alone?
+No direct competitor exists for this exact feature in developer tooling. The closest analogs inform the design:
 
-| Dimension | Stitch | Claude HTML/CSS | Winner | PDE Strategy |
-|-----------|--------|----------------|--------|---------------|
-| **Visual exploration breadth** | 3-5 layout variants per prompt | 1 direction per prompt | Stitch | Use Stitch for ideation/diverge phases |
-| **Design quality (initial generation)** | HIGH — Gemini 3 trained on vast visual corpus | MEDIUM — requires iteration to reach hifi | Stitch | Use Stitch for initial visual direction |
-| **Design system token compliance** | NONE — no DTCG, no OKLCH, no custom properties | HIGH — DTCG 2025.10 + OKLCH + dual dark mode | Claude | Always run Claude refinement after Stitch for production |
-| **Motion and interactions** | NONE — static screens only | HIGH — motion tokens, spring physics, state transitions | Claude | Stitch screens are always static; Claude adds motion layer |
-| **Accessibility** | NONE — no ARIA, no contrast checking | MEDIUM — APCA contrast enforced; ARIA in templates | Claude | Stitch output always needs accessibility pass |
-| **Component API generation** | NONE | HIGH — TypeScript interfaces, component specs | Claude | Handoff always uses Claude; Stitch feeds context only |
-| **Non-designer usability** | HIGH — "describe a feeling" works | LOW — requires component-level prompt detail | Stitch | Stitch is the entry point for non-designer users |
-| **Image-based generation** | YES (Experimental Mode) | PARTIAL — can describe layouts from images | Stitch | Use Stitch for sketch-to-UI; confirm sketch upload actually works (LOW confidence) |
-| **Generation limits** | 350/month Standard, 50/month Experimental | Unlimited (Claude API) | Claude | Stitch is premium; Claude is baseline |
-| **Figma export quality** | HIGH — Auto Layout, grouped named layers | MEDIUM — token export only, no screen export | Stitch | Use Stitch Figma path for screen handoff; keep Claude for token sync |
-| **Iteration speed** | HIGH — regenerate in seconds | MEDIUM — full HTML regeneration per iteration | Stitch | Stitch for visual iteration; Claude for code refinement |
-| **Design token extraction** | PARTIAL — hex colors, fonts, layouts | N/A (generates tokens, doesn't extract) | Neither | Design DNA → OKLCH conversion is the bridge |
-| **Voice interaction** | YES (browser only) | NO | Stitch (browser) | Document as pre-PDE workflow; MCP cannot expose this |
+| Feature Dimension | Analog | How They Do It | PDE Approach |
+|-------------------|--------|----------------|--------------|
+| Idle time activity suggestions | CI/CD tools (GitHub Actions, CircleCI) | Show build status only; no activity suggestions | Active suggestions keyed to project state, not just progress display |
+| Context-aware task recommendations | JetBrains Mylar (research prototype) | Task context filters IDE elements to relevant files | PDE surfaces relevant ROADMAP/STATE content during waiting rather than filtering code view |
+| Proactive AI suggestions at subtask boundaries | CHI 2025 proactive assistant research | Reduce wait time from 20s to 5s; show 3-5 suggestions; frequency tunable | Show suggestions on `phase_started`; passive display; ignorable |
+| "What should I work on next" | LinearB gitStream | Routes PRs, surfaces blockers in engineering workflow | Surfaces STATE.md blockers + next-phase prep; same problem, different layer |
+| Non-intrusive ambient display | tmux status bars, terminal prompt tools | System metrics in status bar; visible without interrupting | tmux pane that user can ignore; no alerts/beeps; passive pull not active push |
+| Domain knowledge capture during pauses | Pomodoro break structuring (developer variant) | 50/10 cycle: productive break maximizes next work block | Structure the wait with specific questions that produce PDE-usable outputs |
 
-**Synthesis:** Stitch is strongest at visual ideation and initial direction-setting. Claude is strongest at quality, compliance, interactivity, and code production. The right architecture is sequential: Stitch generates options → user selects direction → Claude refines to production quality. Neither replaces the other.
+**Key differentiation:** All existing tools either display status (what the machine is doing) or recommend code-level work (next PR to review, next bug to fix). PDE's suggestion system is unique in that it recommends work that *feeds back into the AI agent's next cycle* — making the human-machine loop tighter, not just making the human more productive in isolation.
 
 ---
 
-## Confirmed Limitations (Not Speculation)
+## Activity Categories by PDE Phase
 
-These limitations are confirmed across multiple independent sources and affect how PDE can use Stitch:
+This is the core content model. Each phase requires a different category of human activity:
 
-1. **No design system enforcement** — Stitch cannot maintain consistent brand guidelines across projects or generations. Every generation starts fresh. PDE's DTCG tokens cannot be imported into Stitch to constrain output. (MEDIUM-HIGH confidence; confirmed in multiple reviews)
-
-2. **Static screens only** — No animations, no micro-interactions, no state transitions in generated output. (HIGH confidence; confirmed across all reviews)
-
-3. **No semantic HTML structure** — Generated HTML does not follow component naming conventions, semantic element choices, or accessibility patterns. (HIGH confidence; multiple sources)
-
-4. **Tailwind CDN classes, not DTCG custom properties** — Stitch uses Tailwind's utility classes. PDE's design system uses DTCG OKLCH custom properties. These are architecturally incompatible as drop-in replacements. (HIGH confidence; confirmed from output samples)
-
-5. **350/month generation limit** — Standard Mode caps at 350 generations. Experimental Mode (image input) caps at 50. Iterative pipeline runs will exhaust credits. (HIGH confidence; official pricing page)
-
-6. **Single-user tool** — No real-time multiplayer. No team collaboration. For PDE's single-user Claude Code plugin model, this is fine — but relevant for team workflows. (HIGH confidence)
-
-7. **Sketch upload reliability questionable** — Documented capability; one credible review found it falls back to text prompts when sketch is uploaded. (LOW confidence on the capability actually working; MEDIUM confidence on the limitation existing)
-
-8. **Voice Canvas is browser-only** — Voice Canvas is a Stitch web UI feature. MCP tools as of March 2026 do not expose voice input. Confirmed by inspecting `@_davideast/stitch-mcp` tool definitions, which are all text-based. (MEDIUM confidence)
-
-9. **Google Cloud project required** — Authentication requires either a STITCH_API_KEY (simpler) or Google Cloud ADC with billing enabled. The API Key path is straightforward but adds a setup step for PDE users. (HIGH confidence)
-
-10. **`davideast/stitch-mcp` is community-maintained, not official Google** — The npm package is labeled "NOT affiliated with, endorsed by, or sponsored by Google LLC." API compatibility or availability could change without notice. (HIGH confidence on the disclaimer; implications for PDE's verified-sources-only policy need architectural decision)
-
----
-
-## Critical Architecture Decision: Official vs Community MCP
-
-PDE's `mcp-bridge.cjs` enforces a verified-sources-only security policy: "Only official MCP servers from approved vendors." This creates a conflict:
-
-- **Official Stitch MCP server** (`stitch.withgoogle.com/docs/mcp/setup`): Exists and is documented by Google. The docs page requires authentication to read, but the MCP setup URL is official. However, the npm package `@_davideast/stitch-mcp` explicitly disclaims Google affiliation.
-- **Community packages**: `davideast/stitch-mcp` and `Kargatharaakash/stitch-mcp` are community implementations.
-
-**Resolution needed in milestone planning:** Confirm whether Google's official Stitch MCP server (if it exists at stitch.withgoogle.com) satisfies PDE's verified-sources-only policy. If the official docs page at `stitch.withgoogle.com/docs/mcp/setup` describes an official server configuration (not the davideast community package), that is the approved path. If Google's "MCP server" is actually the davideast community package, a policy exception or policy clarification is needed.
+| PDE Phase | Best Idle Activities | Why Now | Output Consumed By |
+|-----------|---------------------|---------|-------------------|
+| Research (research phase running) | Domain knowledge externalization; edge case brainstorm; competitor reference gathering (file-based) | Research agent is working with what it knows; user's domain expertise is not in the codebase | `/pde:plan` uses context-notes for planning context |
+| Plan (plan phase running) | Review and annotate acceptance criteria; validate task ordering; identify missing requirements | Plan is being generated; user can pre-approve or flag concerns before readiness gate | Readiness gate (`/pde:check-readiness`) consumes annotations |
+| Execute (execute phase running) | Review completed task outputs; run manual verification steps; prepare test data/fixtures | Tasks complete incrementally; early review catches drift before reconciliation | RECONCILIATION.md captures discrepancies user noticed |
+| Design pipeline (wireframe/mockup/critique running) | Human-taste decisions (color, typography); review previous design artifacts; prepare reference screenshots | Design generation is happening; user's aesthetic preferences are needed for iteration | `/pde:iterate` uses taste-decisions.md; critique takes user annotations |
+| Validation/verification running | Write edge case notes; review BDD acceptance criteria; flag assumptions | Verification is checking known cases; user knows unknown cases | Plan checker Dimension 10 (edge cases) can consume edge-case notes |
+| Any phase | Review blockers; prepare for next phase; git housekeeping in separate terminal | Universal activities appropriate regardless of phase | STATE.md blockers cleared; ROADMAP.md next phase ready |
 
 ---
 
 ## Sources
 
-- **Google Developers Blog — "From idea to app: Introducing Stitch, a new way to design UIs"** (HIGH confidence): `https://developers.googleblog.com/stitch-a-new-way-to-design-uis/` — official announcement; input formats, output formats, Figma integration, Gemini 2.5 Pro foundation
-- **Google blog — "Design UI using AI with Stitch from Google Labs"** (HIGH confidence): `https://blog.google/innovation-and-ai/models-and-research/google-labs/stitch-ai-ui-design/` — official; March 2026 Voice Canvas, Vibe Design, canvas, SDK, MCP server announcement
-- **Stitch official docs — MCP setup** (MEDIUM confidence — page rendered JS, content not extractable): `https://stitch.withgoogle.com/docs/mcp/setup` — official MCP setup page; confirmed exists; content gated behind auth
-- **davideast/stitch-mcp on GitHub** (HIGH confidence for tool definitions): `https://github.com/davideast/stitch-mcp` — 9 tool definitions confirmed; `build_site`, `get_screen_code`, `get_screen_image` higher-level tools; authentication methods; known limitations documented inline
-- **Kargatharaakash/stitch-mcp on GitHub** (MEDIUM confidence — cross-validation): `https://github.com/Kargatharaakash/stitch-mcp` — Design DNA extraction feature; 9 overlapping tool definitions; confirms MCP tool landscape
-- **Google Codelabs — "Design-to-Code with Antigravity and Stitch MCP"** (HIGH confidence — official Google codelab): `https://codelabs.developers.google.com/design-to-code-with-antigravity-stitch?hl=en` — confirmed 4-phase workflow; Design DNA extraction → React/Tailwind scaffolding; input/output chain
-- **index.dev — "Google Stitch Review 2026"** (MEDIUM confidence — independent review): `https://www.index.dev/blog/google-stitch-ai-review-for-ui-designers` — cinema app walkthrough; confirmed no animations; form submit non-functional; lacks component naming by default
-- **nxcode.io — "Google Stitch Complete Guide: Vibe Design, Voice Canvas & Free AI UI Tool (2026)"** (MEDIUM confidence): `https://www.nxcode.io/resources/news/google-stitch-complete-guide-vibe-design-2026` — Vibe Design details; Voice Canvas; infinite canvas; Design Agent; 350/50 generation limits; output format details
-- **nxcode.io — "Google Stitch vs Figma 2026"** (MEDIUM confidence): `https://www.nxcode.io/resources/news/google-stitch-vs-figma-ai-design-comparison-2026` — Figma advantages (design systems, multiplayer, dev mode); Stitch advantages (speed, code output, voice); recommended hybrid workflow
-- **nxcode.io — "Google Stitch vs v0 vs Lovable 2026"** (MEDIUM confidence): `https://www.nxcode.io/resources/news/google-stitch-vs-v0-vs-lovable-ai-app-builder-2026` — confirmed "no interactivity, no state management, no click handlers"; "Stitch gives best design, v0 gives best code, Lovable gives most complete product"
-- **winbuzzer.com — "Google Revamps Stitch AI with Voice, Canvas, Dev Tools"** (MEDIUM confidence — news coverage): `https://winbuzzer.com/2026/03/20/google-redesigns-stitch-ai-voice-canvas-developer-integrations-xcxwbn/` — March 2026 update; SDK; MCP server; Figma stock drop context
-- **PDE PROJECT.md** (HIGH confidence — authoritative): existing architecture, constraints, zero-npm policy, verified-sources-only, mcp-bridge.cjs patterns, MCP integration model
+- **UC Irvine / Gloria Mark — "The Cost of Interrupted Work"** (HIGH confidence — widely cited, replicated): 23-minute recovery time after interruption; complexity correlates with longer recovery; https://codezero.io/blog/context-switching-costs-for-devs
+- **CHI 2025 — "Need Help? Designing Proactive AI Assistants for Programming"** (MEDIUM confidence — conference paper, limited access): proactive suggestions best at subtask boundaries; must be attention-aware; frequency tunable; https://dl.acm.org/doi/10.1145/3706598.3714002
+- **arXiv 2601.10253 — "Developer Interaction Patterns with Proactive AI: A Five-Day Field Study"** (MEDIUM confidence — preprint): AI interactions during implementation (38.2%) and debugging (26.4%); https://arxiv.org/html/2601.10253v1
+- **LinearB / engineering metrics research** (MEDIUM confidence): PR pickup time and review wait times as productivity proxies; context switching at review boundaries costs developer time; https://linearb.io/blog/engineering-metrics-benchmarks-what-makes-elite-teams
+- **JetBrains State of Developer Ecosystem 2025** (HIGH confidence — annual survey, n=23K+): context switching is primary productivity killer; non-technical factors (clarity, collaboration) as important as tooling; https://blog.jetbrains.com/research/2025/10/state-of-developer-ecosystem-2025/
+- **Graphite.dev — "How long should your CI take?"** (MEDIUM confidence): 5-minute increase in CI time increases time-to-merge by 1+ hour; feedback loop delay compounds; https://graphite.dev/blog/how-long-should-ci-take
+- **Speakwise context switching statistics 2026** (LOW confidence — aggregated stats): 1,200 app switches/day average; 275 interruptions/day; https://speakwiseapp.com/blog/context-switching-statistics
+- **NN/g — Indicators, Validations, and Notifications** (HIGH confidence — authoritative UX research): passive notifications are informational, non-urgent, non-modal; badge/corner placement for low-intrusiveness; https://www.nngroup.com/articles/indicators-validations-notifications/
+- **super-productivity.com — "Context Switching Costs for Developers"** (MEDIUM confidence): 10 IQ point temporary drop from heavy multitasking; twice as many errors in interrupted tasks; https://super-productivity.com/blog/context-switching-costs-for-developers/
+- **Pomodoro 50/10 for developers** (MEDIUM confidence — practitioner evidence): 50/10 cycle matches ultradian focus rhythms better than 25/5 for complex coding tasks; structured break quality determines next block quality; https://pomodo.io/blog/developers-50-10-pomodoro-timer/
+- **PDE PROJECT.md, STATE.md, ROADMAP.md, project_idle_time_productivity.md** (HIGH confidence — authoritative): existing infrastructure, constraints, activity categories user previously identified, architectural patterns
 
 ---
 
-*Feature research for: PDE v0.9 — Google Stitch Integration as Primary Visual Design Engine*
+*Feature research for: PDE v0.10 — Intelligent Idle Time Productivity System*
 *Researched: 2026-03-20*

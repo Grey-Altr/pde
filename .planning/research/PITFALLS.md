@@ -1,253 +1,239 @@
 # Pitfalls Research
 
-**Domain:** Making Google Stitch the primary visual design engine of an existing self-contained AI design pipeline (PDE v0.9)
+**Domain:** Adding intelligent idle time productivity to an existing AI-assisted development platform (PDE v0.10)
 **Researched:** 2026-03-20
-**Confidence:** HIGH for architectural failure modes (grounded in PDE codebase inspection and Stitch documentation); MEDIUM for Stitch-specific behavior (API and output format documentation is sparse; the MCP server is recent and community-documented)
+**Confidence:** HIGH for UX and flow-interruption pitfalls (grounded in published developer cognition research and PDE codebase inspection); HIGH for Claude Code hook integration pitfalls (official Claude Code hooks documentation); MEDIUM for suggestion relevance and content generation pitfalls (pattern inference from adjacent domains)
 
 ---
 
 ## The Fundamental Tension
 
-PDE's design pipeline was built self-contained by deliberate choice. Every skill — wireframe, mockup, critique, handoff — reads and writes local files in `.planning/design/`. The Bash tool, Read tool, and Write tool are the only dependencies. A user can run `/pde:build` on a plane with no internet and get a complete design output.
+Idle time productivity is the wrong frame. The real question is: "What can a developer do during a PDE wait that makes the next PDE cycle better?" The moment the feature optimizes for "keeping the user busy" rather than "shortening the feedback loop between human and PDE," it becomes a distraction engine masquerading as productivity tooling.
 
-Making Stitch the primary rendering engine breaks this guarantee for four touchpoints simultaneously. The pipeline goes from "always works" to "works when Stitch works." Every architectural decision in v0.9 must be measured against this trade.
+PDE phases (research, plan, execute) can take 2-10 minutes. During that time, a developer who was in deep flow does not want task interruption — they want a safe place to mentally discharge or pre-load the next cycle. The feature succeeds if users say "I did something useful while PDE was running." It fails if users say "PDE kept bothering me."
+
+Every architectural decision in v0.10 must be measured against this tension.
 
 ---
 
 ## Critical Pitfalls
 
-### Pitfall 1: Stitch is a Google Labs Tool — Its API Stability Is Not Guaranteed
+### Pitfall 1: Interrupting Flow to Announce Idle Time
 
 **What goes wrong:**
-Google Labs tools ship early and change without notice. The Stitch MCP server is a recent addition (launched alongside the MCP spec and API keys in early 2026). Forum posts from January 2026 show users unable to generate API keys at all — the feature was on the roadmap but not deployed. The `--use-stitch` flag in four PDE commands becomes non-functional silently if the Stitch API changes its tool names, removes an endpoint, or stops accepting the auth format PDE configured. PDE has no test coverage for external API shape changes and no automated alert when Stitch tools stop responding as expected.
+The suggestion system fires at the moment Claude Code becomes idle — immediately after a subagent stops or a tool completes — and presents a list of productive activities the user "could" do. The user was mentally tracking the PDE process, possibly planning their next instruction, and the suggestion pane flashes or refreshes with new content. This is an interruption, not a suggestion. It costs the user the same cognitive recovery time as any other notification: 23 minutes of lost deep focus for a complex coding task, 15 minutes minimum before flow is re-established.
 
 **Why it happens:**
-The mcp-bridge.cjs TOOL_MAP pattern insulates PDE from raw MCP tool name changes — but only if tool names are known and stable at implementation time. The two competing Stitch MCP implementations (davideast's `@_davideast/stitch-mcp` and Kargatharaakash's `stitch-mcp`) expose different tool names for the same capabilities. Workflows that hard-code one tool name will break silently if the user configured the other server. More critically: the official Stitch SDK (`@google/stitch-sdk`) is npm-based and requires Node.js package management — a direct conflict with PDE's zero-npm-at-plugin-root constraint.
+The `Notification` hook with `idle_prompt` matcher is the natural integration point for detecting Claude Code idle state. Developers building the feature wire this hook to immediately surface suggestions, conflating "technically idle" with "needs input." The system is optimized for zero latency between PDE idle and suggestion display, when the correct optimization is "suggestions are visible when the user looks for them, not when PDE becomes idle."
 
 **How to avoid:**
-- Register Stitch as the 6th approved server in APPROVED_SERVERS with the official MCP server URL only (not community variants), with a clear `probeTool` that validates the server is the expected version
-- Add Stitch TOOL_MAP entries only for verified official tool names from `stitch.withgoogle.com/docs/mcp/setup` — not from community implementations
-- Never call the Stitch SDK directly from PDE code (npm constraint); call only via MCP tool invocations through mcp-bridge.cjs
-- The `--use-stitch` flag must check probe status before the first generation call, not assume connectivity
-- Document the Google Labs instability risk explicitly in `/pde:connect stitch` output
+- Suggestions belong in the persistent tmux dashboard (pane 6 or a dedicated pane), not in a notification or Claude Code conversation output. The user consults the pane when they want it — the pane does not demand attention.
+- If the `Notification`/`idle_prompt` hook is used at all, it should update a file or pane silently. It must not produce stdout that Claude Code injects into the conversation, and must not ring, flash, or produce visible terminal output in the main Claude Code pane.
+- The hook handler must be `async: true` with no stdout output (only silent file writes). Any output from a hook handler is shown to the user by Claude Code — this is a feature of the hook system, not a side effect to ignore.
+- Design rule: suggestions are pull, not push. The user pulls suggestions from the dashboard pane when they choose. PDE never pushes suggestions into the user's primary workflow.
 
 **Warning signs:**
-- Any workflow calling `mcp__stitch__*` tool names that are not in the official Stitch MCP documentation
-- TOOL_MAP entries derived from community GitHub repos rather than official docs
-- No probe registered for Stitch in APPROVED_SERVERS
-- A test that passes with Stitch connected but does not verify tool names are still valid
+- The `idle_prompt` hook handler produces stdout or writes to the conversation transcript.
+- Suggestion content appears in the main Claude Code terminal pane.
+- The dashboard pane refreshes visibly (flickers, scrolls) at the moment of PDE idle state, rather than updating quietly.
+- A test that validates "suggestions appear within N seconds of idle state" — timing to idle onset is the wrong metric.
 
-**Phase to address:** MCP bridge registration phase (first phase) — TOOL_MAP entries must be verified against the official `stitch.withgoogle.com/docs/mcp/setup` page at implementation time, not derived from community implementations. Probe verification is mandatory.
+**Phase to address:** Phase 1 (hook integration and delivery mechanism) — the delivery architecture must be established before any suggestion content is generated. Getting the delivery wrong here poisons all downstream content work.
 
 ---
 
-### Pitfall 2: Generation Quota Exhaustion Silently Blocks the Ideation Diverge Phase
+### Pitfall 2: Suggestions That Don't Connect to the Current PDE Phase
 
 **What goes wrong:**
-Stitch Standard Mode offers 350 generations per month. Experimental Mode offers 50. The `/pde:ideate --diverge` phase generates a minimum of 5 distinct directions. If visual divergence uses Stitch for each direction, that is 5 Experimental-mode generations per single ideation run. A user who runs ideation twice a day hits the 50-generation Experimental limit in 5 days. Standard mode provides more headroom (350 / 5 = 70 runs per month) but degrades output quality for design generation.
-
-The failure mode is not a clear error — Stitch returns a 429-equivalent response or a generation failure that PDE's current workflows have no handling for. The ideation diverge either fails mid-run (partial artifacts in `.planning/design/strategy/`) or fails silently (Stitch call is swallowed, the direction is generated without visual content, and the coverage flag is set anyway).
+The suggestion engine generates a generic list of "things to do while waiting" — write tests, review the README, check GitHub issues — without knowing what PDE is currently doing. A user running `/pde:wireframe` gets suggestions to "externalize domain knowledge" (relevant for brief phase) or "set up test fixtures" (relevant for execute phase). The suggestions feel irrelevant, the user dismisses them once, and then ignores the entire pane for the rest of the session. The feature has effectively zero adoption after the first irrelevant suggestion.
 
 **Why it happens:**
-PDE workflows follow a probe/degrade contract for MCP availability — if the service is unreachable, they skip the MCP step. But quota exhaustion is a different failure: the service is reachable, the probe succeeds, but individual generation calls fail. The existing probe/degrade contract does not distinguish "service unavailable" from "service temporarily unable to generate." A quota-exhausted Stitch behaves like a healthy server until the generate call is made, at which point the failure occurs deep in the workflow with no graceful path back to the Claude-generated fallback.
+Phase context is available in the NDJSON event stream and in `.planning/` state files, but the suggestion generator is written as a static template engine rather than a context reader. The NDJSON events (`phase_start`, `plan_wave_start`, workflow semantic events) contain exactly the information needed to select phase-appropriate suggestions — but reading this stream requires a small runtime that parses the session log, which feels like "over-engineering" during implementation.
 
 **How to avoid:**
-- Track generation counts in `.planning/config.json` under a `stitch_quota` key (monthly reset date + count used + mode)
-- Check the estimated remaining quota before starting a batch diverge sequence
-- Warn the user when fewer than 10 Standard generations or 5 Experimental generations remain before beginning a multi-generation operation
-- On generation failure mid-sequence, fall back to Claude-generated HTML for remaining variants without failing the entire diverge run
-- Treat quota exhaustion as a degrade condition, not an error condition — the workflow continues with reduced Stitch output
+- The suggestion engine must read the current PDE phase from the NDJSON event stream before generating any suggestions. The session-scoped NDJSON file at `/tmp/pde-session-{id}.ndjson` already contains `phase_start` events with phase name. Reading the last `phase_start` event gives the current phase.
+- Define a suggestion taxonomy keyed by PDE phase: `brief` phase → user story externalization, domain knowledge, business rules; `wireframe` phase → taste decisions (typography, color palette reference), visual inspiration; `execute` phase → test data preparation, environment setup, bug triage; `research` phase → competitor screenshots, product screenshots, reference material curation.
+- A suggestion shown with a phase label ("During wireframe phase, this is productive:") is valued; a suggestion shown without context is noise.
+- If the current phase cannot be determined from the event stream, default to generic "parallel work" suggestions (unrelated bug fixes, docs, git housekeeping) and label them as "no active PDE phase detected."
 
 **Warning signs:**
-- No quota tracking in the Stitch integration
-- `--diverge` generates all 5+ variants before checking any generation result
-- A mid-run Stitch failure produces an incomplete artifact set with no user notification
-- The coverage flag `hasIdeation` is set even when Stitch variants were not generated
+- Suggestion content is hardcoded without reading the NDJSON event stream.
+- The same suggestion list appears regardless of whether PDE is in brief, wireframe, or execute phase.
+- No `phase_start` event parsing in the suggestion generator.
+- Users in the execute phase see design-focused suggestions (or vice versa).
 
-**Phase to address:** Ideation diverge integration phase — quota tracking and mid-run fallback must be built into the first implementation of Stitch-powered diverge. Adding it later requires touching the artifact registration logic retroactively.
+**Phase to address:** Phase 2 (phase-aware suggestion taxonomy) — the taxonomy and phase-reading logic must be built as part of the first suggestion generation implementation, not added as a follow-up enhancement.
 
 ---
 
-### Pitfall 3: Stitch Output Does Not Respect PDE's DTCG/OKLCH Design Tokens
+### Pitfall 3: The Suggestion Engine Becomes a Mini-AI Feature (Over-Engineering)
 
 **What goes wrong:**
-PDE's design system skill generates `assets/tokens.css` with DTCG-format tokens in OKLCH color space. The wireframe workflow explicitly consumes this file: "Wireframes consume design tokens from assets/tokens.css when available." Stitch generates its own HTML/CSS with class names and color values chosen by its generative model — no knowledge of PDE's tokens. The Stitch output uses hardcoded hex colors, arbitrary class names, and generic Tailwind-style utilities. The result is two divergent design languages in the same pipeline: the design system tokens and the Stitch aesthetic.
-
-The critique stage then evaluates Stitch HTML against PDE's quality rubric, which includes OKLCH color usage and design token consistency. Stitch output will systematically fail this check. The critique report fills with token-consistency findings that have nothing to do with the design quality of the screens — they are structural mismatch artifacts. The critique signal is polluted.
+The suggestion engine expands beyond static phase-keyed suggestions into a dynamic LLM-powered activity recommender that analyzes `.planning/` state files, reads the current task in `workflow-status.md`, and generates personalized suggestions for this specific project, this specific phase, and this specific user. This requires spawning a subagent, reading multiple state files, and producing natural-language output — turning a "while you wait" feature into a feature that itself requires waiting. The suggestion generation takes 30-60 seconds. The user asks PDE a question, waits for PDE's answer, then waits for PDE to generate suggestions about what to do while they were waiting.
 
 **Why it happens:**
-Stitch has no design system import capability at the generation step. The `extract_design_context` tool extracts colors and fonts from existing Stitch screens to maintain consistency across a Stitch project — but this is Stitch-internal consistency, not PDE token consistency. There is no Stitch API parameter to inject a CSS token file into generation. Stitch's Gemini model generates visual design from aesthetic training, not from a provided token specification.
+The highest-value suggestions are project-specific ("the acceptance criteria for task-007 need clarification — do that now"). Reaching that specificity requires reading project state. The temptation is to add one more file read, one more context dimension, until the feature is a full context-aware recommendation engine. Each addition feels like a marginal improvement; the cumulative result is a feature that contradicts its own premise.
 
 **How to avoid:**
-- Never evaluate Stitch output with the standard DTCG token consistency criterion in critique — add a Stitch-aware critique mode that substitutes "visual consistency with Stitch design DNA" for "token alignment with assets/tokens.css"
-- When extracting patterns from Stitch output for handoff, perform a token-mapping step: scan Stitch HTML for color values and suggest the nearest DTCG token equivalent in the handoff spec
-- Document clearly: Stitch is the diverge/explore tool; the design system token layer is the converge/implement layer. These are different phases of the design process, not competing sources of truth
-- The `--use-stitch` flag should suppress the token-consistency criterion in the critique pass that evaluates Stitch artifacts
-- For mockup (which applies tokens to wireframes), maintain Claude-generated HTML as the token-aware implementation path; use Stitch as visual reference only
+- Hard constraint: suggestion generation must complete within 2 seconds. If it requires an LLM call or reads more than 3 files, it violates this constraint.
+- Use a tiered approach: static phase-keyed templates (zero latency) as the base layer; optional one-liner contextual hints derived from single-file reads (e.g., reading the current task name from `workflow-status.md` to personalize the suggestion label) as the enhancement layer. The enhancement layer must degrade gracefully if the file does not exist.
+- The suggestion pane in the tmux dashboard displays pre-computed markdown content written by a hook handler. The hook handler reads phase from the NDJSON stream (one file read, no LLM) and selects from the static taxonomy. This is the entire suggestion engine.
+- Reserve LLM-powered suggestion generation for a future milestone (AutoResearch pattern). v0.10 must work offline with zero LLM calls for the suggestion generation itself.
 
 **Warning signs:**
-- The critique workflow runs token-consistency checks on Stitch-sourced HTML without a Stitch-mode flag
-- The handoff spec lists Stitch color hex values as component colors without mapping them to DTCG tokens
-- The design-manifest.json stores Stitch HTML paths as the authoritative wireframe/mockup artifacts without a `source: "stitch"` annotation
+- The suggestion generator spawns a subagent or calls `pde-tools.cjs` with an LLM-backed command.
+- Suggestion generation reads more than 3 files.
+- The tmux suggestion pane shows "Generating suggestions..." before displaying content.
+- v0.10 planning documents describe "intelligent suggestion engine" or "AI-powered recommendations" without a latency constraint.
 
-**Phase to address:** Critique integration phase AND handoff integration phase — both must define Stitch-aware evaluation modes before the first Stitch artifact enters these stages.
+**Phase to address:** Phase 1 (design constraint definition) — the 2-second constraint and static-taxonomy approach must be the design contract before any implementation begins. Define the constraint explicitly in the phase requirements so it cannot drift during implementation.
 
 ---
 
-### Pitfall 4: Stitch HTML Arrives as a Download URL, Not a Local File Path
+### Pitfall 4: Treating the `idle_prompt` Hook as a Reliable Idle State Signal
 
 **What goes wrong:**
-PDE's critique and handoff workflows discover artifacts by reading local file paths from `design-manifest.json`. A wireframe artifact at `.planning/design/ux/WFR-login-v1.html` is read directly with the Read tool. Stitch returns HTML from `fetch_screen_code` / `get_screen_code` as a download URL (e.g., `https://storage.googleapis.com/...`). This URL is time-limited (Google Cloud signed URLs typically expire in 1-15 minutes). If the Stitch HTML is registered in the design manifest as a URL and critique or handoff runs later in the session, the URL may be expired when the workflow tries to read it.
-
-Downstream consumers that call `Read(url)` instead of `Read(localPath)` will fail at artifact read time. Workflows that pass the URL to Claude for analysis instead of reading the content will produce analysis of the URL string, not the design content. Neither failure mode is loud — both produce subtly wrong outputs that look like they completed normally.
+The implementation uses the `Notification`/`idle_prompt` hook as the primary signal for "PDE is idle, show suggestions now." In practice, `idle_prompt` fires when Claude Code is waiting for the user to type a message — not necessarily when a PDE phase has completed. It fires after every response, including short one-sentence answers where the user is mid-workflow and does not want suggestion prompts. It fires multiple times in a session, potentially hundreds of times. A suggestions pane that refreshes on every `idle_prompt` fires constantly, and a hook handler that performs file writes on every `idle_prompt` generates significant I/O.
 
 **Why it happens:**
-The MCP tools return download URLs rather than file content directly, requiring an additional fetch step. PDE's current MCP integration pattern (Figma, Pencil) follows the probe/degrade model for connection status, but does not handle the "artifact available at a transient URL" pattern. Stitch is the first integration where the primary artifact is a remote URL that must be materialized locally before the downstream workflow can use it.
+`idle_prompt` is the most visible "idle" signal available in the Claude Code hook system. The v0.8 event infrastructure hooks use `SubagentStop` and `SessionEnd` for meaningful state transitions. The `idle_prompt` notification seems analogous — "Claude is idle, so PDE is idle." But `idle_prompt` fires on every turn boundary, not just after long-running PDE phases.
 
 **How to avoid:**
-- After every Stitch generation call, immediately fetch the download URL and write the content to a local file at the canonical PDE artifact path (e.g., `.planning/design/ux/WFR-login-v1.html` for wireframes, `.planning/design/visual/MCK-login-v1.html` for mockups)
-- Register the local file path in design-manifest.json, not the Stitch URL
-- Treat the Stitch URL as a transient resource — fetch, persist locally, discard the URL
-- The Stitch MCP integration workflow must complete the full generate-fetch-persist cycle before returning to the calling skill
-- Add a `source: "stitch"` metadata field to manifest entries so downstream workflows can apply Stitch-aware evaluation modes
+- Use PDE's own semantic event stream as the primary signal for "a meaningful PDE operation completed." The NDJSON events `subagent_stop`, `phase_start`, and workflow semantic events (`plan_wave_complete`) are better signals for "suggest something now" than `idle_prompt`.
+- If `idle_prompt` is used, gate suggestion updates on whether the last PDE event in the NDJSON stream represents a meaningful completion (a subagent stopped, a phase completed). An `idle_prompt` that fires without a preceding meaningful PDE event should not trigger a suggestion refresh.
+- The suggestion pane should update at most once per completed PDE phase, not once per idle_prompt fire.
+- The hook handler for `Notification`/`idle_prompt` must be `async: true` and must do nothing if the PDE session has not recently completed a meaningful operation. The check is a single stat() call on the NDJSON file followed by a tail-read — fast enough to not block.
 
 **Warning signs:**
-- design-manifest.json contains `https://storage.googleapis.com/` URLs as artifact paths
-- The Stitch integration workflow returns without verifying the local file was written successfully
-- A critique or handoff run that starts more than 5 minutes after wireframe generation fails to read the Stitch artifact
+- The tmux suggestion pane visibly refreshes more than once per PDE operation.
+- The `idle_prompt` hook handler does not check the NDJSON stream before writing new suggestions.
+- `/tmp/pde-session-{id}.ndjson` grows unusually fast (many small hook-triggered writes per session).
+- The suggestion pane shows the same content repeated many times in the session log.
 
-**Phase to address:** Wireframe integration phase (the first Stitch touchpoint) — the generate-fetch-persist pattern must be established in the first implementation and reused by all subsequent Stitch touchpoints. If mockup or ideate implement their own URL handling, divergent patterns accumulate.
+**Phase to address:** Phase 1 (hook integration architecture) — the event-gating logic for `idle_prompt` must be in the hook handler from the first implementation.
 
 ---
 
-### Pitfall 5: Stitch HTML Has No PDE Annotation Conventions — Handoff Reads Silence
+### Pitfall 5: The Suggestion Pane Competes with Monitoring Dashboard Panes for Attention
 
 **What goes wrong:**
-PDE's handoff workflow reads HTML wireframe files and extracts annotations from HTML comments following PDE's convention: `<!-- @component: ComponentName -->`, `<!-- @state: loading -->`, `<!-- @a11y: aria-label="..." -->`. These annotations are the basis for generating TypeScript interfaces and component API specs in the handoff spec. Claude writes these annotations when generating wireframes. Stitch generates clean production-quality HTML with semantic class names but zero PDE annotation comments. The handoff workflow reads a Stitch HTML file and finds no annotations — it either halts on `HND-01` (insufficient annotations) or generates a handoff spec with empty component specifications.
+A new "suggestions" pane is added to the tmux dashboard as a 7th pane. On small terminals (the common case — the tmux adaptive layout already degrades from 6 to 2 panes), the suggestion pane gets priority assigned incorrectly: it either replaces a high-value monitoring pane (pipeline progress, token meter) or causes all panes to shrink below readable size. The dashboard's TMUX-09 adaptive layout logic, which handles degradation from 6 panes to 2 panes at minimum terminal sizes, has to be updated for 7 panes — introducing regression risk for existing pane layout tests.
 
-This is the "looks done but isn't" failure: the handoff skill completes, writes a file, sets the coverage flag, and the output is a shell of a handoff spec with no component API definitions.
-
-**Why it happens:**
-Stitch is designed to produce deployment-ready HTML, not annotated design artifacts. Its output optimizes for visual fidelity and code correctness, not for machine-readable design intent signals. The annotation layer is PDE-specific and there is no mechanism to inject it into Stitch's generation prompt — Stitch generation is a visual-first operation, not a text-annotation operation.
+Additionally, a suggestions pane that shows content permanently occupies screen real estate even when PDE is actively running and the user is watching agent activity. The pane competes visually with the agent activity pane, drawing the user's attention to suggestions when they want to monitor execution.
 
 **How to avoid:**
-- After fetching and persisting Stitch HTML, run a mandatory annotation-injection step where Claude reads the Stitch HTML, identifies components, states, and accessibility implications, and injects PDE-format annotation comments into the local copy
-- This step runs between "generate Stitch artifact" and "register artifact in manifest" — the manifest entry points to the annotated local copy, never the raw Stitch download
-- Document this explicitly: "Stitch output is a visual starting point; annotations are added by PDE before downstream consumption"
-- Add a `stitch_annotated: true` field to manifest entries that have passed through annotation injection, so handoff can verify the step completed
-- If annotation injection fails or is skipped, handoff must warn the user and offer to run in `--force` mode (generate spec from visual analysis without annotations)
+- The suggestion pane should share space with an existing low-priority pane rather than requiring a new 7th pane. The most natural integration is into pane 6 (log stream or an under-used pane during active phases), with the pane content switching between "log stream" during active PDE operations and "suggestions" during idle periods.
+- Alternatively, surface suggestions in a standalone tmux pane that is only opened when PDE has been idle for >30 seconds (not a permanent pane), and closed automatically when a new PDE operation starts.
+- The adaptive layout logic must treat the suggestion display as optional — if terminal is below 6-pane threshold, suggestions are not shown (they can be accessed via a separate command).
+- Add a `/pde:suggestions` command that dumps the current suggestion set to stdout — this provides the content without requiring the tmux pane to be visible.
 
 **Warning signs:**
-- Handoff workflow receives a Stitch HTML path and reads it without checking for `<!-- @component:` annotations
-- The `stitch_annotated` field is missing from design-manifest.json entries for Stitch artifacts
-- The HND coverage flag is set on a handoff spec that contains empty component API sections
-- No annotation injection step exists in the Stitch wireframe integration workflow
+- The v0.10 dashboard implementation adds a 7th pane unconditionally.
+- Existing pane layout tests fail after adding suggestion pane support.
+- The suggestion pane is visible (and updated) while a PDE subagent is actively running.
+- No `/pde:suggestions` fallback command exists for users without tmux.
 
-**Phase to address:** Handoff integration phase — annotation injection is a required step that must be designed as part of the Stitch-to-handoff data pipeline, not an optional enhancement.
+**Phase to address:** Phase 3 (tmux dashboard integration) — pane placement and adaptive layout impact must be assessed before implementing the pane, not retrofitted after the layout breaks.
 
 ---
 
-### Pitfall 6: Service Outage Breaks the Entire Design Phase for Sessions That Depend on Stitch
+### Pitfall 6: Suggestion Content That Creates Context Switching Cost at Resumption
 
 **What goes wrong:**
-Before v0.9, a PDE user with no internet access could run `/pde:wireframe` and get a complete output. After v0.9, a user who passes `--use-stitch` to their wireframe command gets a hard failure if Stitch is unreachable, the API key is revoked, or the Google Labs service has an outage. The failure cascades: wireframe fails → critique has no artifact to evaluate → iterate has no critique to act on → handoff has no wireframe to spec → the entire design track is blocked.
+A suggestion prompts the user to open a new Claude Code session for "parallel work" (a parallel bug fix, docs update, git housekeeping). The user follows the suggestion, opens a parallel session, starts working on a different task. PDE completes in the primary session. The user now has two active cognitive contexts — the PDE task they were waiting on and the parallel task they started. Re-entering the PDE session requires rebuilding the mental model they had before the suggestion, plus managing the parallel session's state. The suggestion successfully "kept the user busy" and created a net negative productivity outcome.
 
-The existing probe/degrade pattern in mcp-bridge.cjs handles "service not configured" gracefully. It does not handle "service was working when probed, then failed mid-generation" — which is the common failure mode for cloud AI services under load. The probe runs at the start of the workflow, but the generation call happens several steps later. Between probe and generation, the service can degrade.
+This is the fundamental UX trap: suggestions that maximize activity during idle time systematically undermine the post-idle context restoration. The research baseline is clear: it takes 23 minutes to recover from an interruption for standard tasks, and 45 minutes for complex coding tasks. A well-intentioned suggestion can impose this cost at exactly the wrong moment.
 
 **Why it happens:**
-PDE's current five MCP integrations (GitHub, Linear, Jira, Figma, Pencil) are enhancement integrations — they add context or sync artifacts, but the core design output is always Claude-generated. If Figma is unavailable, the wireframe is still generated without Figma context. Stitch is the first integration where the MCP tool IS the primary output. The probe/degrade contract was designed for optional enhancement, not primary generation. Applying it to a primary-output integration requires a different contract: "generate via Stitch if available, generate via Claude if not" rather than "enhance via MCP if available, skip enhancement if not."
+"Parallel Claude Code sessions for unrelated work" is listed as a valid idle activity category in the project memory for this milestone. The suggestion is technically correct — users can and do run parallel sessions. But a suggestion to start parallel work is functionally an instruction to context-switch, which is the primary developer productivity antipattern.
 
 **How to avoid:**
-- Implement a two-path generation contract for all Stitch touchpoints: Stitch path (if `--use-stitch` and Stitch available) and Claude path (always available)
-- The Claude path must produce equivalent artifacts in the same file locations with the same manifest registration — it is not a degraded path, it is an equivalent path
-- On Stitch generation failure mid-run (after probe succeeded), automatically fall through to the Claude path without user intervention, with a prominent notice: "Stitch generation failed — completed using Claude. Stitch artifacts replaced with Claude equivalents."
-- The `--use-stitch` flag means "prefer Stitch" not "require Stitch" — this framing must be in the flag documentation and in workflow comments
-- Never mark a touchpoint as requiring Stitch in the coverage schema — the coverage flag should be set on artifact existence, not on generation source
+- Restrict default suggestions to activities that: (a) require no new cognitive context to begin, and (b) produce artifacts that feed the current PDE cycle. Examples that pass: annotate a screenshot, write one acceptance criterion, make a taste decision (choose a typeface), review the last PDE output. Examples that fail: start a parallel bug fix, open a new issue, write documentation.
+- "Low-interruption" suggestions are ones the user can start and stop within 2 minutes without losing their place. The session memory file for this milestone already identifies good categories: source material curation, human-taste decisions, review/critique queue. These are the right defaults.
+- Suggestions for parallel work (parallel sessions, unrelated tasks) must be explicitly opt-in, not in the default suggestion set. If offered, they must be labeled "Context-switching activity — consider your return to this PDE session."
+- Never suggest starting a new Claude Code session as an idle activity. The user already has one open.
 
 **Warning signs:**
-- Any workflow that halts on Stitch failure rather than falling through to Claude generation
-- The `--use-stitch` flag documentation that says "requires Stitch connection" without a fallback clause
-- Stitch probe run at workflow start but no mid-generation failure handling
-- Coverage flags that distinguish "stitch-generated" from "claude-generated" in ways that block downstream skills
+- Suggestion content includes "open a parallel session" or "work on an unrelated bug" as a default (unlabeled) suggestion.
+- No distinction in suggestion content between "feeds the current PDE cycle" activities and "unrelated work" activities.
+- Suggestions are not labeled with expected time-to-complete or resumption cost.
 
-**Phase to address:** Every Stitch touchpoint phase — the two-path contract (Stitch or Claude) must be in the first implementation of each touchpoint. Retrofitting fallback logic into a Stitch-only implementation requires touching every step that calls a Stitch tool.
+**Phase to address:** Phase 2 (suggestion taxonomy design) — the taxonomy must explicitly categorize suggestions by resumption cost before any content is written. Activities with high resumption cost are either excluded or labeled.
 
 ---
 
-### Pitfall 7: Image Input to Stitch (Wireframe-as-Input) Is Unreliable in Experimental Mode
+### Pitfall 7: State File Pollution From Idle Suggestion Infrastructure
 
 **What goes wrong:**
-One planned touchpoint feeds PDE wireframe HTML screenshots into Stitch as image inputs for higher-fidelity generation. This is the "wireframe to mockup via Stitch" path where existing lofi wireframes become hifi mockups. Stitch's Experimental Mode supports image inputs, but documented behavior shows inconsistency: uploaded wireframes sometimes trigger a text-prompt request instead of rendering the wireframe. The Experimental Mode limit (50 generations per month, shared across ALL image-input uses) makes failed attempts costly — each failed attempt consumes a generation even if no useful output is produced.
+The suggestion system writes a suggestion state file to `.planning/` on every idle event — `suggestions.md` or `idle-state.json` — to persist the current suggestion set for the pane reader. Over a multi-hour session with many PDE operations, this file is written dozens of times. Because suggestions are keyed to PDE phases, and PDE phases rotate through research → plan → execute → reconcile repeatedly, the suggestion file represents stale context the moment the next phase starts. Over multiple sessions, the file accumulates; `.planning/` fills with idle-state artifacts that are meaningless outside their originating session.
 
-Additionally, Stitch cannot capture navigation state, interaction behavior, or multi-screen flows from a screenshot. A PDE wireframe may use CSS classes and state comments to show loading/error states. The screenshot Stitch receives is a single static frame with no state information.
+Additionally, the suggestion state file may be accidentally committed to git if the developer runs `git add .` during an execute phase.
 
 **Why it happens:**
-Image-to-UI interpretation requires the model to infer design intent from pixel data. This is more ambiguous than text prompting, and the Gemini 2.5 Pro model that powers Experimental mode makes different interpretation choices across runs. The 50-generation monthly cap for Experimental mode was not designed for automated pipeline use — it is sized for manual iterative design work by a single user.
+The v0.8 event infrastructure uses `/tmp/pde-session-{id}.ndjson` for session-scoped data (ephemeral, auto-cleaned on reboot) and `.planning/logs/` for persistent session summaries. The idle suggestion feature needs a writable location for the pane to read suggestion content. `.planning/` feels like the right place (it's where all PDE state lives), but suggestion state is ephemeral session data, not project state.
 
 **How to avoid:**
-- For the wireframe-to-mockup path, use text description of the wireframe as the Stitch generation input rather than a screenshot — Claude can generate a structured description of the wireframe's layout, components, and intent that Stitch can interpret reliably
-- If image input is used, implement retry logic with a budget of exactly one retry per screen (preserving quota), falling back to Claude-generated mockup on second failure
-- Use Standard Mode (Gemini 2.5 Flash, 350/month) for the automated pipeline — reserve Experimental Mode for manual user exploration
-- Capture Stitch generation failures explicitly and report them in the skill output with the mode and attempt count consumed
+- All suggestion state belongs in `/tmp/`, not `.planning/`. The suggestion pane script reads from `/tmp/pde-suggestions-{sessionId}.md` — session-scoped, auto-cleaned, never committed.
+- If suggestion content needs to persist across sessions (e.g., a "review queue" the user has built up), it belongs in `.planning/logs/` with a session archive summary, not in a live state file.
+- The suggestion file must not be written to `.planning/` or any directory that could be included in a `git add .`. Verify this constraint in the phase that implements the file write path.
+- `hooks.json` modifications for the idle suggestion hook must not create a new persistent file type in `.planning/`.
 
 **Warning signs:**
-- The wireframe-to-mockup Stitch path uses Experimental Mode by default
-- No retry budget or failure mode is defined for image-input generation
-- Quota tracking does not distinguish Standard from Experimental mode consumption
-- A failed Stitch image-input attempt silently consumes a quota unit and produces no artifact
+- `idle-state.json` or `suggestions.md` appears in `.planning/` root.
+- Running `git status` after a PDE session shows modified suggestion state files as unstaged changes.
+- The suggestion file path hardcoded to `.planning/` in the hook handler.
+- Multiple suggestion state files accumulating in `.planning/` across sessions.
 
-**Phase to address:** Mockup integration phase — the text-description input strategy and mode selection must be decided before the first implementation. Switching from image-input to text-description after implementation requires changing the generation prompt strategy entirely.
+**Phase to address:** Phase 1 (hook handler implementation) — the file write path must be `/tmp/` from the first implementation. Changing this later requires finding all readers of the wrong path.
 
 ---
 
-### Pitfall 8: Authentication Setup Adds Mandatory User-Facing Friction Before First Use
+### Pitfall 8: Zero-Suggestions State Not Designed
 
 **What goes wrong:**
-All five existing PDE MCP integrations use standard OAuth flows (GitHub, Linear, Jira, Figma) or auto-configure from VS Code (Pencil). Stitch adds a new authentication pattern: a `STITCH_API_KEY` environment variable that must be set manually before the MCP server can be configured. The user must navigate to `stitch.withgoogle.com`, generate an API key in Settings, copy it, set it as an environment variable, then run `claude mcp add` to configure the server. This is three steps more than any existing PDE integration. If the user skips any step, `/pde:connect stitch` fails at probe time with a cryptic MCP authentication error rather than a clear "API key not set" message.
+On first install, before any PDE phase has run, the suggestion pane shows either an error ("Could not read suggestion file"), an empty pane, or a stale file from a previous session. The user opens the dashboard for the first time and the suggestion pane appears broken. This is a first-impression failure that creates lasting distrust of the feature.
 
-Additionally, the API key is stored in the shell environment — it is not persisted between sessions unless the user adds it to their shell profile. A user who successfully connects Stitch in one session will find it disconnected in the next session if they did not update their `.zshrc` or `.bash_profile`.
+Similarly, when no PDE session is active (the user launched the dashboard without running any PDE command), the pane has no phase context and no NDJSON event stream to read. The suggestion logic that checks "last completed phase" finds nothing.
 
 **Why it happens:**
-Stitch API key authentication is new (launched early 2026) and the setup flow was designed for manual interactive use, not for programmatic onboarding by a CLI tool. The existing PDE `/pde:connect` flow sends the user through an OAuth browser redirect that handles session persistence automatically. The API key approach requires the user to manage persistence themselves.
+Suggestion generation is designed for the happy path: PDE is running, a phase just completed, the NDJSON stream has recent events. The edge cases (no session, first run, session between PDE operations) are not considered during implementation.
 
 **How to avoid:**
-- The `/pde:connect stitch` workflow must check for `STITCH_API_KEY` before attempting to add the MCP server, and print a specific multi-step setup guide if the variable is absent
-- After a successful connection, explicitly recommend that the user add `export STITCH_API_KEY=...` to their shell profile, with the exact command to run
-- The `--use-stitch` flag on wireframe and mockup must check connection status at startup and emit a clear "Stitch not connected" error (not a generic MCP error) if the server is absent from the Claude Code MCP list
-- Document this as the highest-friction integration in PDE's Getting Started guide — "Stitch requires a manual API key setup; other integrations use browser OAuth"
+- The suggestion pane script must have an explicit "no active session" state that renders useful content: a short description of what the pane does when PDE is running, plus a list of universally applicable activities (source material curation, writing acceptance criteria ahead of time, human taste decisions) that are phase-agnostic.
+- The suggestion file at `/tmp/pde-suggestions-{sessionId}.md` must have a well-defined initial state that the pane writer creates on `SessionStart`, before any phase has completed.
+- The "no session" fallback (no NDJSON file found) must render a specific message, not an empty pane. Suggested text: "Waiting for PDE to start a phase. Suggestions will appear when a phase completes."
+- Test the zero-state explicitly: start the dashboard without running any PDE command and verify the pane renders sensible fallback content.
 
 **Warning signs:**
-- `/pde:connect stitch` does not check for `STITCH_API_KEY` before calling `claude mcp add`
-- The authentication error message from the MCP server reaches the user without PDE wrapping it in a human-readable explanation
-- No shell profile setup recommendation in the `/pde:connect stitch` success output
-- Stitch connection works in one session but fails in the next because the environment variable was not persisted
+- The suggestion pane shows an empty box or error text when no PDE session is active.
+- No `SessionStart` hook handler initializes the suggestion file.
+- The pane script crashes when the suggestion file does not exist.
+- No test covers the "dashboard open, no PDE session" scenario.
 
-**Phase to address:** MCP bridge registration phase — the authentication guidance must be built into `/pde:connect stitch` from the first implementation, before any user testing.
+**Phase to address:** Phase 3 (tmux pane implementation) — the zero-state must be specified in the pane script requirements and tested before the phase is marked complete.
 
 ---
 
-### Pitfall 9: The `extract_design_context` Tool Creates Stitch-Internal Consistency, Not PDE Consistency
+### Pitfall 9: Suggestion Content Becomes Stale Across PDE Versions
 
 **What goes wrong:**
-The `extract_design_context` MCP tool (exposed by the Kargatharaakash server) extracts "Design DNA" (fonts, colors, layouts) from existing Stitch screens to maintain consistency when generating additional screens. This is Stitch's internal consistency mechanism — it ensures new screens look like existing Stitch screens. It does NOT align with PDE's design system tokens.
-
-If PDE uses `extract_design_context` to seed new screen generation, the design DNA is sourced from Stitch's AI-generated aesthetic (arbitrary hex colors, Google-selected typefaces) and propagates through the session. Each successive Stitch generation reinforces the Stitch aesthetic, pulling further from PDE's OKLCH token system. By the end of the ideation diverge, all five directions share a Stitch visual language rather than five genuinely distinct directions informed by the project's design system.
+The suggestion taxonomy references PDE phase names, workflow steps, and artifact paths that match v0.10. When PDE is updated in v0.11+ (new phase names, new workflow structure, new artifact types), the suggestion content refers to outdated steps. A suggestion that says "annotate your wireframe in `.planning/design/ux/`" is wrong if v0.11 changes the wireframe output path. A suggestion that says "complete the `brief` phase first" is wrong if a future milestone refactors phase naming.
 
 **Why it happens:**
-The "Designer Flow" recommended in the Stitch MCP documentation (extract context → generate with context) is designed for design-system consistency within Stitch projects. Applied to a PDE pipeline where PDE has its own design system, this flow substitutes Stitch's generative aesthetic for PDE's intentional design language.
+Suggestion content is typically written as prose strings embedded in JavaScript or as markdown files — neither form has a test that validates the referenced paths, commands, or phase names exist in the current PDE version.
 
 **How to avoid:**
-- For ideation diverge (where visual distinctiveness is the goal), do NOT use `extract_design_context` — each variant should be generated from the text prompt alone to maximize visual divergence
-- For mockup (where consistency with the design system is the goal), do NOT use `extract_design_context` — use the PDE design system description as the style input instead
-- Reserve `extract_design_context` only for the case where a user explicitly wants to extend an existing Stitch project's visual language
-- Document this explicitly: "extract_design_context creates consistency within a Stitch session; it does not enforce PDE design tokens"
+- Suggestion content must not reference specific file paths or PDE command names directly. Use abstract descriptions: "review your wireframe outputs" rather than "review `.planning/design/ux/WFR-*.html`."
+- Where PDE command names must be referenced (e.g., "run `/pde:flows` to prepare"), use a constant or reference table so updates require a single change, not a content audit.
+- Add at least one Nyquist regression test that validates suggestion taxonomy keys match the current set of PDE phase names in the event schema. A taxonomy entry that references a non-existent phase name should fail a test.
+- Keep suggestion content at the level of user intent ("externalize acceptance criteria"), not implementation specifics ("edit `task-003.md`").
 
 **Warning signs:**
-- The ideation diverge Stitch integration calls `extract_design_context` before generating each variant
-- The mockup Stitch integration uses `extract_design_context` from a previous Stitch session to establish "consistency"
-- All five ideation variants share the same color palette (artifact of shared design DNA)
+- Suggestion strings contain hardcoded file paths matching `.planning/design/ux/WFR-*.html` or similar.
+- No test validates suggestion taxonomy keys against the PDE event schema.
+- Suggestion content refers to PDE command names that have changed in recent milestones.
 
-**Phase to address:** Ideation diverge integration phase AND mockup integration phase — the decision not to use `extract_design_context` must be explicit in the workflow design, not left to implementation discretion.
+**Phase to address:** Phase 2 (suggestion taxonomy) — content must be written at the right abstraction level from the start. The Nyquist test for taxonomy key validity belongs in Phase 2 or Phase 3.
 
 ---
 
@@ -255,52 +241,41 @@ The "Designer Flow" recommended in the Stitch MCP documentation (extract context
 
 | Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
 |----------|-------------------|----------------|-----------------|
-| Storing Stitch download URLs in design-manifest.json instead of fetching and persisting locally | Faster integration, no fetch step | URLs expire in minutes; critique/handoff that runs later fails silently | Never — persist locally immediately after generation |
-| Using community MCP server tool names instead of official Stitch docs | Faster to implement (more community examples) | Tool names differ between implementations; break silently when users install the other server | Never — verify against `stitch.withgoogle.com/docs/mcp/setup` only |
-| Skipping the annotation-injection step for Stitch HTML | One fewer step per generation | Handoff reads Stitch HTML and finds no annotations; outputs empty component specs | Never — annotation injection is required for handoff to produce meaningful output |
-| Using `extract_design_context` for consistency across all Stitch calls | Visually consistent Stitch output | Overrides PDE design tokens; homogenizes ideation diverge variants | Only when explicitly extending an existing Stitch project (never in PDE's automated flows) |
-| Setting coverage flags on Stitch-sourced artifacts without verifying annotation injection completed | Coverage appears complete | Downstream skills (critique, handoff) get incomplete artifacts without warning | Never — coverage flag should gate on artifact completeness, not generation completion |
-| Running `--use-stitch` diverge with all 5 variants before checking first generation result | Simpler sequential code | Consumes all quota on first generation failure; no partial results | Never — check after first generation; fall back early |
+| Writing suggestion state to `.planning/` instead of `/tmp/` | Simpler path resolution (already know `.planning/` path) | State files committed to git accidentally; pollutes project state; accumulates across sessions | Never — suggestion state is ephemeral session data, not project state |
+| Using `idle_prompt` hook without NDJSON event-gating | Single hook fires on every idle, simple to wire | Suggestion pane refreshes constantly during normal Claude Code use, not just PDE phase completions | Never — gate on meaningful PDE events only |
+| Static suggestion content without phase-keying | Faster to implement; no NDJSON reads | Suggestions feel irrelevant; user trains themselves to ignore the pane; adoption collapses after first session | Never for the default suggestion set; acceptable only for the "no active session" fallback |
+| Adding a 7th tmux pane unconditionally | Simplest architecture | Breaks existing adaptive layout for terminals below 6-pane threshold; regression risk for TMUX-09 | Never — either share an existing pane or make the suggestion pane conditional |
+| LLM-powered suggestion generation | Highest-quality, most personalized suggestions | Generates a wait before the thing that reduces wait; violates the premise of the feature | Acceptable only as an explicit opt-in future enhancement (v0.13 AutoResearch milestone), never as the default path |
+| Stdout output from the idle_prompt hook handler | Easiest way to surface content to the user | Claude Code displays hook stdout to the user in the main conversation pane — this is an interruption, not a suggestion | Never — suggestion delivery must be via pane file update only |
 
 ---
 
 ## Integration Gotchas
 
-### Wireframe Touchpoint (`/pde:wireframe --use-stitch`)
+### Claude Code Hook System (`hooks.json`)
 
 | Common Mistake | Correct Approach |
 |----------------|------------------|
-| Calling Stitch generate and registering the download URL as the artifact | Fetch URL content immediately, write to `.planning/design/ux/WFR-{screen}-v{N}.html`, register local path |
-| Probing at workflow start and assuming Stitch will succeed at generation time | Add generation-failure handling that falls through to Claude generation without user intervention |
-| Generating all screens before checking any result | Generate screen 1, verify result, then continue — allows early fallback if quota is exhausted |
-| Passing raw Stitch HTML to critique | Run annotation-injection step before registering artifact; annotated copy is the registered artifact |
+| Adding `Notification`/`idle_prompt` hook with synchronous execution | Use `async: true` — the notification hook must not block Claude Code's notification delivery pipeline |
+| Producing stdout from the hook handler | The hook handler writes to `/tmp/pde-suggestions-{sessionId}.md` only — zero stdout. Claude Code displays hook stdout to the user. |
+| Assuming `idle_prompt` maps 1:1 with "PDE phase completed" | Check the NDJSON event stream; only update suggestions when the last event is a meaningful PDE completion (subagent_stop after a phase, not just any idle_prompt) |
+| Registering the suggestion hook globally without a phase-awareness gate | Add phase-detection logic inside the handler; the hook itself cannot filter by PDE context |
 
-### Ideation Diverge Touchpoint (`/pde:ideate --diverge` with Stitch)
-
-| Common Mistake | Correct Approach |
-|----------------|------------------|
-| Using Experimental Mode for automated diverge | Use Standard Mode (350/month) for automated generation; reserve Experimental for manual iterations |
-| Using `extract_design_context` to seed each variant | Generate each variant independently from text prompt — divergence requires no shared design DNA |
-| Generating all 5+ variants before checking quota | Check remaining quota before starting; warn if fewer than 5 generations remain |
-| Setting `hasIdeation` coverage flag when Stitch variants partially failed | Only set flag when all requested variants were generated (via Stitch or Claude fallback) |
-
-### Critique Touchpoint (`/pde:critique` with Stitch artifacts)
+### NDJSON Event Stream
 
 | Common Mistake | Correct Approach |
 |----------------|------------------|
-| Running token-consistency criterion on Stitch HTML | Check `source: "stitch"` in manifest; substitute "visual consistency with design DNA" criterion |
-| Failing critique because Stitch HTML uses hex colors not OKLCH tokens | Stitch-mode critique evaluates design quality, not token format — suppress token-format checks |
-| Reading Stitch artifact via stored URL (expired) | Always read from local file path; URLs must be materialized before manifest registration |
-| Critique report filled with token-mismatch findings from Stitch output | Stitch-mode critique must filter these; they are structural artifacts, not design problems |
+| Reading the full NDJSON session file on every `idle_prompt` | Tail the last N lines (last 20 events) — the phase context is always in recent events; reading the full file grows costly over long sessions |
+| Assuming session ID is available in the `idle_prompt` hook payload | The `idle_prompt` notification payload contains `session_id` from Claude Code's perspective, but PDE's session ID (written by `session-start` in `emit-event.cjs`) is stored separately; resolve via the PDE session ID file in `/tmp/` |
+| Reading `.planning/STATE.md` or `workflow-status.md` for phase context | These files reflect workflow-level state, not event-level state; reading them requires file stat + read for every suggestion update. The NDJSON tail is sufficient and cheaper. |
 
-### Handoff Touchpoint (`/pde:handoff` with Stitch artifacts)
+### tmux Dashboard
 
 | Common Mistake | Correct Approach |
 |----------------|------------------|
-| Reading Stitch HTML expecting PDE annotation comments | Verify `stitch_annotated: true` in manifest; run annotation injection if missing |
-| Generating TypeScript interfaces from unannotated Stitch HTML | Require annotation injection before handoff; offer `--force` mode that generates specs from visual analysis |
-| Mapping Stitch hex colors directly to component props | Token-mapping step: find nearest DTCG token for each Stitch color value; document the mapping |
-| Handoff spec references Stitch download URL for design reference | All artifact paths in handoff spec must be local file paths |
+| Hardcoding the suggestion pane as pane 6 (0-indexed) | The adaptive layout can drop to 2 panes; the suggestion pane must be conditional on terminal size, or integrated into an existing pane |
+| Using `tmux send-keys` to update suggestion pane content | Write to a temp file and use `watch cat` or a polling script in the pane — consistent with how existing dashboard panes (pane-log-stream.sh, pane-pipeline-progress.sh) work |
+| Starting the suggestion pane script before the PDE session has a session ID | The suggestion pane script must wait for the PDE session NDJSON file to appear in `/tmp/` before starting its read loop |
 
 ---
 
@@ -308,20 +283,9 @@ The "Designer Flow" recommended in the Stitch MCP documentation (extract context
 
 | Trap | Symptoms | Prevention | When It Breaks |
 |------|----------|------------|----------------|
-| Sequential Stitch generation for 5 ideation variants | Ideation diverge takes 5x the single-screen generation time (each Stitch call is a round trip to Google's API) | Batch generation if the API supports it; otherwise accept the latency and report progress per variant | Immediately — 5 sequential 5-10s API calls is 25-50s minimum for diverge |
-| Fetching Stitch HTML at critique time instead of generation time | Critique workflow stalls on URL fetch; fails if URL is expired | Materialize all Stitch URLs to local files at generation time; never store URLs in manifest | Any critique run more than ~15 minutes after generation |
-| Annotation injection on every Stitch HTML file at handoff time | Handoff runs Claude analysis on all Stitch files serially; each is a full LLM call | Run annotation injection immediately after generation (while context is fresh); store result; handoff reads pre-annotated file | When Stitch artifacts accumulate across sessions |
-| Stitch probe run on every `--use-stitch` command invocation | Each probe is a live network call adding latency to command startup | Cache probe result in `.planning/mcp-connections.json` with a 60-second TTL (same as existing integrations) | Immediately — uncached probes add 1-3s to every command start |
-
----
-
-## Security Mistakes
-
-| Mistake | Risk | Prevention |
-|---------|------|------------|
-| Storing `STITCH_API_KEY` value in `.planning/config.json` | API key readable by any process with access to the project directory; may be committed to git | Never store key value in project files — reference env var name only; document that the env var must be set in shell profile or secrets manager |
-| Committing Stitch-generated HTML that contains embedded user data | If Stitch HTML includes injected prompt content (user-described product details), that content is in a committed file | Review Stitch artifacts for sensitive content before commit; add `.planning/design/` artifacts to `.gitignore` by default |
-| Using a single shared API key across multiple users/projects | Key exhausts shared quota; one project's heavy use blocks all projects | Each user/project should have its own API key; document this in multi-user setup guide |
+| Polling the NDJSON event file on every pane refresh interval (e.g., every 2 seconds) | CPU usage visible in activity monitor during active PDE sessions; NDJSON file has high inotify pressure | Increase poll interval for suggestion pane to 10-15 seconds (suggestions don't need second-level freshness); use `inotifywait` or `fswatch` on macOS as a file-change trigger instead of interval polling | Immediately on active sessions with high event volume (execute phase, many subagents) |
+| Writing the suggestion file on every `idle_prompt` hook (100+ times per session) | High I/O on `/tmp/`; hook latency increases over session lifetime | Gate suggestion file writes on meaningful PDE events only (see Pitfall 4) | Any session with 50+ Claude Code turns |
+| Reading all suggestion categories on every pane refresh | Memory and parse time grows if taxonomy is large | Load taxonomy once at pane script startup, store in shell variables; re-read only when NDJSON shows a new phase | If taxonomy grows to 50+ entries per phase |
 
 ---
 
@@ -329,24 +293,25 @@ The "Designer Flow" recommended in the Stitch MCP documentation (extract context
 
 | Pitfall | User Impact | Better Approach |
 |---------|-------------|-----------------|
-| Silent fallback from Stitch to Claude with no notification | User assumes they got Stitch output; compares to a previous run and sees different visual quality | Always notify when fallback occurred: "Stitch unavailable — generated with Claude instead. Run with --use-stitch to retry." |
-| Quota warning only after exhaustion | User discovers they have 0 generations remaining mid-workflow, all previous work is lost | Warn when fewer than 10% of quota remains (35 Standard / 5 Experimental) at workflow start |
-| `--use-stitch` flag appearing on 4 separate commands without unified quota display | User does not know total quota remaining when running multiple commands | `/pde:monitor` or `/pde:connect stitch --status` should show current quota remaining across all modes |
-| Stitch variants in ideation look visually similar despite `--diverge` | User cannot distinguish 5 directions; ideation is not providing divergence value | Log each variant's Stitch prompt separately; if all prompts are too similar, warn that divergence may be insufficient |
+| Suggestions that require reading to understand (long text) | User skims or dismisses; cognitive load during idle period should be lower than during active work | Each suggestion is one sentence, action-oriented, starting with a verb: "Write one acceptance criterion for the next planned task." |
+| More than 3 suggestions visible at once | User treats the list as a task queue; feels pressure rather than option; ignores the list after first overwhelm | Show exactly 2-3 suggestions maximum; rotate if more are available; never show a scrollable list |
+| Suggestions that require knowing PDE internals ("annotate WFR artifacts") | User unfamiliar with PDE internals ignores the suggestion | Suggestions describe the human activity, not the PDE artifact: "Make a typography choice for your product" not "set a typeface in assets/tokens.css" |
+| No way to dismiss or mark suggestions complete | Suggestion pane shows the same items repeatedly; completed suggestions feel like undone tasks | Add a simple completed-today list to the suggestion state; hide suggestions marked completed in this session; reset at session start |
+| Suggestions during the first 60 seconds of a PDE phase | User is still reading the phase output, tracking agent progress, or planning their next instruction — this is the highest-cost interruption window | Apply a 60-second minimum cool-down after phase start before surfacing suggestions; suggestions are for the middle of waiting, not the start |
 
 ---
 
 ## "Looks Done But Isn't" Checklist
 
-- [ ] **Stitch HTML persisted locally:** After generation, verify `.planning/design/ux/WFR-{screen}-v1.html` exists and contains HTML content — the manifest must not have a `https://` URL as the artifact path
-- [ ] **Annotation injection completed:** After Stitch wireframe generation, verify the local HTML file contains at least one `<!-- @component:` annotation — if not, annotation injection did not run
-- [ ] **`stitch_annotated: true` in manifest:** design-manifest.json entries for Stitch artifacts must carry this field — handoff checks it before proceeding
-- [ ] **Critique suppresses token-consistency checks on Stitch artifacts:** Run critique on a Stitch-sourced wireframe and verify the report does not cite OKLCH or DTCG token violations as findings
-- [ ] **Quota tracking active:** After a Stitch generation, verify `.planning/config.json` has updated `stitch_quota.used` — if the count did not increment, quota tracking is not wired
-- [ ] **Fallback produces equivalent artifact:** Disconnect Stitch (unset `STITCH_API_KEY`) and run `/pde:wireframe --use-stitch` — the workflow must complete with a Claude-generated HTML file at the same path, with a fallback notice in the output
-- [ ] **Probe cached in mcp-connections.json:** After the first `--use-stitch` command, verify `mcp-connections.json` has a Stitch entry with `lastChecked` timestamp — if not, the probe is running live on every invocation
-- [ ] **Handoff with Stitch artifacts produces non-empty component specs:** Run `/pde:handoff` after a Stitch wireframe + annotation injection — the output TypeScript file must contain at least one interface definition, not just a shell
-- [ ] **Shell profile setup recommended after connect:** Run `/pde:connect stitch` and verify the success output includes the exact command to add `STITCH_API_KEY` to the user's shell profile
+- [ ] **Zero-state renders correctly:** Open the tmux dashboard without running any PDE command and verify the suggestion pane shows fallback content, not an error or empty box.
+- [ ] **Async hook execution:** Verify `async: true` is set on the `idle_prompt` hook handler in `hooks.json` — blocking notification hooks delay Claude Code's UI response.
+- [ ] **No stdout from hook handler:** Confirm the `idle_prompt` handler produces zero stdout (only file writes) — any stdout appears in the main Claude Code conversation pane as an interruption.
+- [ ] **Suggestion file in `/tmp/`, not `.planning/`:** Run `git status` after a full PDE session and verify no suggestion state files appear as unstaged changes.
+- [ ] **Phase-keyed suggestions differ by phase:** Run PDE through brief phase, then wireframe phase — verify the suggestion pane shows distinct content for each phase, not the same list.
+- [ ] **Pane does not break adaptive layout:** Resize terminal to below 6-pane threshold; verify existing dashboard panes still display correctly and the suggestion pane degrades gracefully.
+- [ ] **Suggestion refresh rate is bounded:** Over a 30-minute PDE session with 5 phases, verify the suggestion file is written no more than once per phase completion, not once per `idle_prompt` fire.
+- [ ] **2-second generation constraint met:** Time the suggestion generation from phase-completion event to file write; verify it completes under 2 seconds without LLM calls.
+- [ ] **No parallel-session suggestions in default set:** Review all default suggestion content; confirm "open a parallel session" or equivalent is not in the default taxonomy (may be in an opt-in extended set).
 
 ---
 
@@ -354,13 +319,12 @@ The "Designer Flow" recommended in the Stitch MCP documentation (extract context
 
 | Pitfall | Recovery Cost | Recovery Steps |
 |---------|---------------|----------------|
-| Stitch URL stored in manifest (expired) | MEDIUM | Re-run the Stitch generation for affected screens; implement generate-fetch-persist pattern; update manifest entries |
-| Annotation injection missing from Stitch artifacts | LOW | Run annotation injection as a standalone step against existing Stitch HTML files; update `stitch_annotated` flag in manifest |
-| Quota exhausted mid-ideation | LOW | Fall back to Claude for remaining variants; continue from last successful Stitch variant; notify user |
-| Community MCP server tool names used (not official) | HIGH | Audit all TOOL_MAP Stitch entries against official docs; update to official names; test each touchpoint |
-| `extract_design_context` used for diverge (all variants look similar) | MEDIUM | Regenerate variants without context seeding; delete Stitch-internal project if context was applied |
-| STITCH_API_KEY not persisted across sessions | LOW | Add env var to shell profile; reconnect with `/pde:connect stitch`; re-run failed command |
-| Token-consistency failures polluting critique reports | MEDIUM | Add `source` field to existing Stitch manifest entries; update critique to read source field; re-run critique with Stitch-aware mode |
+| Suggestion state written to `.planning/` (wrong path) | LOW | Move file write path to `/tmp/` in hook handler; delete existing `.planning/` suggestion files; add to `.gitignore` |
+| `idle_prompt` hook producing stdout (polluting conversation) | LOW | Remove stdout from handler; ensure only file writes; redeploy hooks.json |
+| Suggestion pane breaking adaptive layout | MEDIUM | Revert to 6-pane layout; integrate suggestions into existing pane; update adaptive layout tests |
+| LLM-powered suggestion engine shipping by mistake | HIGH | Remove LLM call; replace with static taxonomy; rewrite suggestion generator to respect 2-second constraint; update Nyquist tests |
+| Suggestions irrelevant to current phase (no NDJSON reading) | MEDIUM | Add NDJSON tail read to handler; map phase events to taxonomy keys; test with each PDE phase |
+| Stale suggestion content after PDE version upgrade | LOW | Audit taxonomy content against current phase names; update abstract descriptions; add taxonomy key validation test |
 
 ---
 
@@ -368,36 +332,32 @@ The "Designer Flow" recommended in the Stitch MCP documentation (extract context
 
 | Pitfall | Prevention Phase | Verification |
 |---------|------------------|--------------|
-| Google Labs API instability / community tool names (Pitfall 1) | MCP bridge registration | Verify all Stitch TOOL_MAP entries against official `stitch.withgoogle.com/docs/mcp/setup`; probe returns healthy |
-| Quota exhaustion blocking ideation diverge (Pitfall 2) | Ideation diverge integration | Simulate quota exhaustion; verify workflow falls back to Claude for remaining variants without failing |
-| Stitch HTML ignores DTCG/OKLCH tokens (Pitfall 3) | Critique integration AND handoff integration | Run critique on Stitch artifact; verify token-consistency criterion is suppressed; verify handoff maps colors to DTCG tokens |
-| Stitch download URL expiration (Pitfall 4) | Wireframe integration (first Stitch touchpoint) | Wait 20 minutes after generation; verify critique can still read wireframe artifact from local path |
-| Missing PDE annotations in Stitch HTML (Pitfall 5) | Handoff integration | Verify Stitch HTML has `<!-- @component:` annotations before handoff; verify handoff spec contains non-empty TypeScript interfaces |
-| Service outage cascades to full design track failure (Pitfall 6) | Every Stitch touchpoint phase | Disconnect Stitch; run `--use-stitch` on wireframe; verify Claude fallback completes with equivalent artifact |
-| Unreliable image-to-UI in Experimental mode (Pitfall 7) | Mockup integration | Use text-description strategy; verify Standard mode is default for automated pipeline; verify retry budget is 1 |
-| Authentication friction and session persistence (Pitfall 8) | MCP bridge registration | Unset `STITCH_API_KEY`; verify `/pde:connect stitch` prints specific setup guide; verify success output includes shell profile command |
-| `extract_design_context` overriding PDE design system (Pitfall 9) | Ideation diverge integration AND mockup integration | Verify diverge workflow does not call `extract_design_context`; verify 5 variants have distinct color palettes |
+| Flow interruption from push-delivery (Pitfall 1) | Phase 1: Hook integration | Verify hook handler has zero stdout; suggestion content only in tmux pane; pane does not flash on idle_prompt fire |
+| Phase-irrelevant suggestions (Pitfall 2) | Phase 2: Suggestion taxonomy | Run PDE through 3 distinct phases; verify suggestion pane shows different content for each phase |
+| Over-engineering the suggestion engine (Pitfall 3) | Phase 1: Design constraint definition | Measure suggestion generation time; must complete under 2 seconds; no LLM calls in the critical path |
+| `idle_prompt` over-firing (Pitfall 4) | Phase 1: Hook integration | Count suggestion file writes over a 20-turn PDE session; must not exceed phase-completion count |
+| Suggestion pane breaking dashboard layout (Pitfall 5) | Phase 3: tmux dashboard integration | Run layout tests at 6-pane and degraded terminal sizes; verify no regressions in existing pane behavior |
+| High-resumption-cost suggestions (Pitfall 6) | Phase 2: Suggestion taxonomy | Audit all default suggestions against resumption-cost criteria; reject any requiring parallel context |
+| State file pollution in `.planning/` (Pitfall 7) | Phase 1: File write path | `git status` after a full session shows zero untracked/modified suggestion files |
+| Zero-state not designed (Pitfall 8) | Phase 3: tmux pane implementation | Start dashboard without PDE session; verify fallback content renders; no errors or empty pane |
+| Stale content across PDE versions (Pitfall 9) | Phase 2: Taxonomy + test | Nyquist test validates taxonomy keys against current PDE phase name constants |
 
 ---
 
 ## Sources
 
-- PDE PROJECT.md v0.9 milestone requirements (Stitch integration targets) — HIGH confidence
-- PDE codebase direct inspection: bin/lib/mcp-bridge.cjs (APPROVED_SERVERS, TOOL_MAP, probe/degrade contracts), workflows/wireframe.md (artifact paths, tokens.css consumption), workflows/critique.md (artifact discovery pattern), workflows/handoff.md (annotation reading pattern), workflows/ideate.md (diverge phase structure) — HIGH confidence
-- Google Stitch official blog: [Design UI using AI with Stitch from Google Labs](https://blog.google/innovation-and-ai/models-and-research/google-labs/stitch-ai-ui-design/) — HIGH confidence
-- Google Developers Blog Stitch introduction: [From idea to app: Introducing Stitch, a new way to design UIs](https://developers.googleblog.com/stitch-a-new-way-to-design-uis/) — HIGH confidence
-- Stitch SDK GitHub (google-labs-code): [google-labs-code/stitch-sdk](https://github.com/google-labs-code/stitch-sdk) — authentication, output formats (HTML download URL), API key setup — HIGH confidence
-- davideast stitch-mcp GitHub: [davideast/stitch-mcp](https://github.com/davideast/stitch-mcp) — tool names `build_site`, `get_screen_code`, `get_screen_image` — MEDIUM confidence (community implementation)
-- Kargatharaakash stitch-mcp GitHub: [Kargatharaakash/stitch-mcp](https://github.com/Kargatharaakash/stitch-mcp) — tool names `extract_design_context`, `fetch_screen_code`, `generate_screen_from_text` — MEDIUM confidence (community implementation, tool names differ from davideast)
-- Google AI Developers Forum — API key unavailability: [I cannot generate an API key on the Stitch website](https://discuss.ai.google.dev/t/i-cannot-generate-an-api-key-on-the-stitch-website/114453) — HIGH confidence (official Google response confirming API was not yet available in Jan 2026)
-- Google AI Developers Forum — API availability confirmed: [Stitch by Google on X — API Keys launched](https://x.com/stitchbygoogle/status/2016567646180041166) — HIGH confidence (official account)
-- Index.dev Stitch review 2026: [Google Stitch Review 2026](https://www.index.dev/blog/google-stitch-ai-review-for-ui-designers) — output quality, design token limitations, no component naming — MEDIUM confidence
-- NxCode Stitch complete guide: [Google Stitch Complete Guide 2026](https://www.nxcode.io/resources/news/google-stitch-complete-guide-vibe-design-2026) — 350/50 generation limits, Standard vs Experimental modes — MEDIUM confidence
-- WinBuzzer: [Google Revamps Stitch AI with Voice, Canvas, Dev Tools](https://winbuzzer.com/2026/03/20/google-redesigns-stitch-ai-voice-canvas-developer-integrations-xcxwbn/) — March 2026 feature update — MEDIUM confidence
-- Fallback pattern: [AWS Builders Library — Avoiding fallback in distributed systems](https://aws.amazon.com/builders-library/avoiding-fallback-in-distributed-systems/) — primary-path reliability vs fallback complexity trade-off — HIGH confidence
-- MCP market Stitch listing: [mcpmarket.com/server/stitch](https://mcpmarket.com/server/stitch) — server capabilities overview — LOW confidence (aggregator, not official)
+- PDE PROJECT.md v0.10 milestone goal and target features — HIGH confidence
+- PDE codebase inspection: `hooks/hooks.json` (current hook registrations, async flags), `hooks/emit-event.cjs` (HOOK_TO_EVENT_TYPE map, stdout behavior), `bin/lib/event-bus.cjs` (NDJSON session file path pattern `/tmp/pde-session-{sessionId}.ndjson`), `bin/monitor-dashboard.sh` (adaptive layout, SESSION name, MIN_COLS/MIN_ROWS), `bin/pane-log-stream.sh` and related pane scripts (pane pattern: watch a file, no LLM calls) — HIGH confidence
+- PDE agent memory: `project_idle_time_productivity.md` (idle activity category taxonomy, feedback loop framing) — HIGH confidence
+- Claude Code official hooks documentation: `https://code.claude.com/docs/en/hooks` — `Notification`/`idle_prompt` hook event, payload schema, `additionalContext` return, async execution behavior — HIGH confidence
+- UC Irvine / Gloria Mark research on interruption recovery: 23 minutes 15 seconds average recovery time; 45 minutes for complex coding tasks; flow requires 15 uninterrupted minutes to enter — HIGH confidence (widely cited, multiple independent sources)
+- arxiv.org: "Developer Interaction Patterns with Proactive AI: A Five-Day Field Study" (2601.10253) — workflow boundary interventions well-received; mid-task interventions frequently dismissed — MEDIUM confidence (academic, specific study conditions)
+- arxiv.org: "Optimizing LLM Code Suggestions: Feedback-Driven Timing with Lightweight State" (2511.18842) — timing is the critical UX variable for developer suggestion tools; mistimed suggestions degrade both UX and ROI — MEDIUM confidence
+- tmux GitHub issues: pane-died hook inconsistencies (#2483), pane-exited scope bugs (#2882), focus-events requirement for focus hooks (#2808) — relevant to why hook-based idle detection needs event-gating — HIGH confidence (official issue tracker)
+- Notification fatigue in developer tooling: Courier.com "Notification Fatigue Is Real and Getting Worse" (Jan 2026); Icinga alert fatigue analysis — pattern applies to suggestion noise — MEDIUM confidence (industry analysis, not developer tool-specific study)
+- Stack Overflow blog: "Developer Flow State and Its Impact on Productivity" (2018) — foundational flow state entry time and interruption impact — HIGH confidence (widely replicated finding)
 
 ---
 
-*Pitfalls research for: Making Google Stitch the primary visual design engine of PDE (v0.9 Google Stitch Integration milestone)*
+*Pitfalls research for: Adding intelligent idle time productivity to PDE (v0.10 Idle Time Productivity milestone)*
 *Researched: 2026-03-20*

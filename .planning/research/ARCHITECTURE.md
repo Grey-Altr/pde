@@ -1,8 +1,14 @@
 # Architecture Research
 
-**Domain:** Google Stitch integration into PDE's existing MCP bridge and 13-stage design pipeline
+**Domain:** Idle time productivity system integrated into PDE's existing event infrastructure and tmux dashboard
 **Researched:** 2026-03-20
-**Confidence:** MEDIUM — Stitch MCP tool names confirmed via community repos and mcpservers.org; official parameter schemas not publicly documented; raw MCP tool names should be treated as MEDIUM confidence until verified against live server
+**Confidence:** HIGH — architecture is fully derivable from direct codebase inspection; no external dependencies required
+
+---
+
+> **Scope note:** This file covers ONLY the v0.10 idle time productivity milestone. Existing PDE architecture
+> (event bus, tmux dashboard, workflow engine, state model) is documented in PROJECT.md — not repeated here.
+> Every component described is either additive or a minimal surgical modification to existing files.
 
 ---
 
@@ -10,739 +16,487 @@
 
 ### System Overview
 
-The Stitch integration adds a 6th approved server to PDE's existing MCP bridge without changing the bridge's contract model. The architecture follows the same pattern established for Figma and Pencil: a new APPROVED_SERVERS entry, new TOOL_MAP canonical names, and per-skill workflow adaptations at each of the 4 touchpoints.
+The idle time productivity system sits between the existing event bus (producer) and the tmux dashboard (consumer). It adds one new consumer layer — an idle detector that reads the NDJSON stream, recognizes agent-busy windows, and writes suggestion content to a new tmux pane (pane-idle-suggestions.sh).
 
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                         Skill Layer (commands/*.md)                      │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐  ┌─────────────┐  │
-│  │ wireframe.md │  │  ideate.md   │  │  critique.md │  │  handoff.md │  │
-│  │ (touchpoint  │  │ (touchpoint  │  │ (touchpoint  │  │ (touchpoint │  │
-│  │    1: WFR)   │  │   2: IDT)    │  │    3: CRT)   │  │    4: HND)  │  │
-│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘  └──────┬──────┘  │
-│         │                │                  │                 │          │
-├─────────┴────────────────┴──────────────────┴─────────────────┴──────────┤
-│                    Workflow Layer (workflows/*.md)                         │
-│  wireframe.md   │  wireframe-stitch.md  │  critique-stitch-compare.md     │
-│  ideate.md      │  (new: primary path)  │  (new: Stitch delta section)    │
-│  mockup.md      │  ideate-stitch.md     │  handoff.md (enhanced)          │
-│                 │  (new: diverge patch) │                                 │
-├─────────────────────────────────────────────────────────────────────────┤
-│                 mcp-bridge.cjs (central adapter)                          │
+┌──────────────────────────────────────────────────────────────────────────┐
+│                         Workflow Layer (existing)                         │
+│   execute-phase.md  →  subagents spawn  →  PostToolUse hooks fire        │
+└──────────────────────────────┬───────────────────────────────────────────┘
+                               │ events written by pde-tools.cjs hooks
+                               ▼
+┌──────────────────────────────────────────────────────────────────────────┐
+│               Event Bus + NDJSON Log (existing, unmodified)               │
 │                                                                           │
-│  APPROVED_SERVERS           TOOL_MAP                                      │
-│  ┌────────────┐             ┌──────────────────────────────────────────┐  │
-│  │ github     │             │ stitch:probe → mcp__stitch__list_projects│  │
-│  │ linear     │             │ stitch:list-projects → ...               │  │
-│  │ figma      │    +        │ stitch:list-screens → ...                │  │
-│  │ pencil     │  stitch     │ stitch:get-screen → ...                  │  │
-│  │ atlassian  │  (new)      │ stitch:generate-screen → ...             │  │
-│  └────────────┘             │ stitch:fetch-code → ...                  │  │
-│                             │ stitch:fetch-image → ...                 │  │
-│                             │ stitch:extract-context → ...             │  │
-│                             │ stitch:create-project → ...              │  │
-│                             │ stitch:get-project → ...                 │  │
-│                             └──────────────────────────────────────────┘  │
-├─────────────────────────────────────────────────────────────────────────┤
-│                    Artifact Storage Layer                                  │
+│   PdeEventBus (EventEmitter + setImmediate)                               │
+│   /tmp/pde-session-{sessionId}.ndjson  ← append-only, session-scoped     │
 │                                                                           │
-│  .planning/design/                                                        │
-│  ├── ux/wireframes/      WFR-{slug}.html  ← primary output (unchanged)   │
-│  ├── ux/wireframes/      STH-{slug}.html  ← new: Stitch HTML variant      │
-│  ├── ux/wireframes/      STH-{slug}.png   ← new: Stitch screenshot        │
-│  ├── strategy/           STH-design-dna.json ← new: extracted Design DNA  │
-│  └── review/             CRT-critique-v{N}.md (enhanced with Stitch delta)│
+│   Existing event types consumed by idle detector:                        │
+│     subagent_start  — agent became busy                                  │
+│     subagent_stop   — agent completed                                    │
+│     phase_started   — phase context available                            │
+│     phase_complete  — phase ended, new context upcoming                  │
+│     plan_started    — specific plan context                              │
+│     plan_complete   — plan done                                          │
+└──────────────────────────────┬───────────────────────────────────────────┘
+                               │ tail -F (existing pane pattern)
+                ┌──────────────┴──────────────────────────────┐
+                │                                             │
+                ▼                                             ▼
+┌───────────────────────────────┐          ┌──────────────────────────────────┐
+│   Existing 6 Dashboard Panes  │          │  NEW: Idle Suggestions Pane      │
+│   (unmodified)                │          │  (pane-idle-suggestions.sh)      │
+│                               │          │                                  │
+│   agent activity              │          │  Reads NDJSON stream             │
+│   pipeline progress           │          │  Detects idle windows            │
+│   file changes                │          │  Reads .planning/ state          │
+│   context window              │          │  Emits ranked suggestion list    │
+│   log stream                  │          │                                  │
+│   token / cost                │          │  Refreshes on:                   │
+└───────────────────────────────┘          │    - phase_started               │
+                                           │    - plan_started                │
+                                           │    - subagent_start (entering    │
+                                           │      busy state, show prompts)   │
+                                           └──────────────────────────────────┘
+                                                          │
+                                                          │ reads
+                                                          ▼
+┌──────────────────────────────────────────────────────────────────────────┐
+│                     Suggestion Engine (NEW)                               │
 │                                                                           │
-│  .planning/mcp-connections.json  ← stitch entry added on connect          │
-└─────────────────────────────────────────────────────────────────────────┘
+│   idle-suggestions.cjs                                                    │
+│   ├── Phase context reader  (reads STATE.md, current phase PLAN.md)      │
+│   ├── Suggestion catalog    (static map: phase-type → suggestion set)    │
+│   ├── Idle window detector  (subagent_start → subagent_stop duration)    │
+│   └── Output formatter      (ranked list with time estimates + prompts)  │
+│                                                                           │
+│   State it reads (all existing files, no new files written):             │
+│     .planning/STATE.md            → current phase, milestone, status     │
+│     .planning/ROADMAP.md          → upcoming phases (context preview)    │
+│     .planning/config.json         → model profile, preferences           │
+│     .planning/phases/{N}/PLAN.md  → current phase task list              │
+│     /tmp/pde-session-{id}.ndjson  → live event stream                    │
+└──────────────────────────────────────────────────────────────────────────┘
 ```
 
 ### Component Responsibilities
 
-| Component | Responsibility | Modification Type |
-|-----------|----------------|-------------------|
-| `bin/lib/mcp-bridge.cjs` | Add stitch to APPROVED_SERVERS and 10 entries to TOOL_MAP | MODIFIED |
-| `workflows/wireframe.md` | Add Step 1.6: Stitch rendering path alongside Figma context | MODIFIED |
-| `workflows/wireframe-stitch.md` | Stitch generation sub-workflow — prompt construction, result storage, STH artifact registration | NEW |
-| `workflows/ideate.md` | Add Stitch diverge variant invocation in Pass 1 | MODIFIED |
-| `workflows/ideate-stitch.md` | Stitch diverge sub-workflow — generate N visual variants, save as STH images | NEW |
-| `workflows/critique.md` | Add Step 3.6: Stitch comparison section alongside Pencil screenshot | MODIFIED |
-| `workflows/critique-stitch-compare.md` | Compare Stitch output against design system tokens — Design DNA delta report | NEW |
-| `workflows/handoff.md` | Add Step 1.6: Stitch pattern extraction alongside Figma Code Connect | MODIFIED |
-| `workflows/handoff-stitch-extract.md` | Pattern extraction — Design DNA to implementation patterns, Stitch HTML to component APIs | NEW |
-| `commands/wireframe.md` | Add `mcp__stitch__*` to allowed-tools | MODIFIED |
-| `commands/ideate.md` | Add `mcp__stitch__*` to allowed-tools | MODIFIED |
-| `commands/critique.md` | Add `mcp__stitch__*` to allowed-tools | MODIFIED |
-| `commands/handoff.md` | Add `mcp__stitch__*` to allowed-tools | MODIFIED |
-| `commands/connect.md` | Add `stitch` to approved services list in help text | MODIFIED |
-| `workflows/connect.md` | Add Stitch auth instructions case | MODIFIED |
+| Component | Responsibility | New or Modified |
+|-----------|---------------|-----------------|
+| `bin/lib/idle-suggestions.cjs` | Suggestion catalog, phase context reader, idle window detection, output formatting | NEW |
+| `bin/pane-idle-suggestions.sh` | Tail NDJSON, call idle-suggestions.cjs on relevant events, render to terminal | NEW |
+| `bin/monitor-dashboard.sh` | Create 7th pane (idle suggestions) in full layout | MODIFIED (surgical) |
+| `pde-tools.cjs` | Optional `idle suggest` command for non-dashboard access | MODIFIED (additive) |
+| `workflows/monitor.md` | Updated layout description (7 panes) | MODIFIED (docs only) |
+
+**Unchanged components:** `bin/lib/event-bus.cjs`, `bin/lib/config.cjs`, all 6 existing pane scripts, all workflow files, `mcp-bridge.cjs`.
 
 ---
 
 ## Recommended Project Structure
 
 ```
-bin/lib/
-└── mcp-bridge.cjs          ← MODIFIED: +1 APPROVED_SERVERS entry, +10 TOOL_MAP entries
-
-commands/
-├── wireframe.md            ← MODIFIED: add mcp__stitch__* to allowed-tools
-├── mockup.md               ← MODIFIED: add mcp__stitch__* to allowed-tools
-├── ideate.md               ← MODIFIED: add mcp__stitch__* to allowed-tools
-├── critique.md             ← MODIFIED: add mcp__stitch__* to allowed-tools
-├── handoff.md              ← MODIFIED: add mcp__stitch__* to allowed-tools
-└── connect.md              ← MODIFIED: add stitch to help text
-
-workflows/
-├── wireframe.md            ← MODIFIED: Step 1.6 Stitch path
-├── wireframe-stitch.md     ← NEW
-├── mockup.md               ← MODIFIED: Step 1.5 reuse wireframe-stitch.md
-├── ideate.md               ← MODIFIED: Stitch diverge in Pass 1
-├── ideate-stitch.md        ← NEW
-├── critique.md             ← MODIFIED: Step 3.6 Stitch compare
-├── critique-stitch-compare.md ← NEW
-├── handoff.md              ← MODIFIED: Step 1.6 Stitch extract
-├── handoff-stitch-extract.md  ← NEW
-└── connect.md              ← MODIFIED: stitch auth case
-
-.planning/design/
-├── ux/wireframes/
-│   ├── WFR-{slug}.html     ← existing HTML output (unchanged)
-│   ├── STH-{slug}.html     ← new: Stitch HTML variant
-│   ├── STH-{slug}.png      ← new: Stitch screenshot (base64-decoded to file)
-│   └── index.html          ← MODIFIED: include STH entries in navigation
-├── strategy/
-│   ├── IDT-ideation-v{N}.md  ← enhanced: image links to STH-ideate-direction-*.png
-│   └── STH-ideate-direction-{1..3}.png  ← new: ideation visual variants
-│   └── STH-design-dna.json ← new: Stitch Design DNA (fonts/colors/layouts)
-└── review/
-    └── CRT-critique-v{N}.md ← enhanced with ## Stitch Comparison section
+bin/
+├── lib/
+│   ├── idle-suggestions.cjs    # NEW: suggestion engine (CommonJS, zero npm deps)
+│   └── [existing libs unchanged]
+├── pane-idle-suggestions.sh    # NEW: tmux pane script (bash, follows existing pane pattern)
+├── pane-agent-activity.sh      # UNCHANGED
+├── pane-pipeline-progress.sh   # UNCHANGED
+├── pane-file-changes.sh        # UNCHANGED
+├── pane-context-window.sh      # UNCHANGED
+├── pane-log-stream.sh          # UNCHANGED
+├── pane-token-meter.sh         # UNCHANGED
+└── monitor-dashboard.sh        # MODIFIED: add P6 pane in full layout
 ```
+
+### Structure Rationale
+
+- **`bin/lib/idle-suggestions.cjs`** follows the exact pattern of `bin/lib/event-bus.cjs`, `bin/lib/state.cjs`, `bin/lib/config.cjs` — Node.js CommonJS, no top-level side effects, exported functions.
+- **`bin/pane-idle-suggestions.sh`** follows the exact pattern of `bin/pane-agent-activity.sh` and `bin/pane-token-meter.sh` — bash script that takes NDJSON path as $1, tails the file, processes events in a case statement.
+- **No new directory** is created — all new files slot into existing bin/ locations.
+- **No new config keys** are required initially — suggestion catalog is static code; opt-out can use existing `monitoring.enabled` check.
 
 ---
 
 ## Architectural Patterns
 
-### Pattern 1: Engine Hierarchy with Probe/Degrade
+### Pattern 1: Pane Script as Event-Driven Shell Loop
 
-**What:** Stitch is the primary rendering engine; PDE's HTML wireframe generator is the fallback. The hierarchy is enforced at the workflow level, not in mcp-bridge.cjs. The bridge's role remains limited to tool lookup and approval — routing logic lives in the workflow.
+The existing pane scripts establish this pattern precisely. `pane-idle-suggestions.sh` follows it exactly:
 
-**When to use:** Every call site that currently generates HTML wireframes or mockups.
+**What:** A bash script that receives NDJSON path as $1, runs `tail -F` on it, and processes events in a `case "$event_type" in` block. State is accumulated in local bash variables. On relevant events, the pane calls `node idle-suggestions.cjs` with context arguments, then renders the output.
 
-**Trade-offs:** Keeps mcp-bridge.cjs as a pure policy layer (existing contract preserved). Routing complexity moves to individual workflows — each workflow independently checks Stitch connection status and applies the hierarchy.
+**When to use:** Any dashboard pane that must react to live event stream.
 
-**Primary/Fallback routing logic in wireframe.md Step 1.6:**
+**Trade-offs:** Simple, zero npm, cross-platform. Cannot share in-process state with other panes (each pane is a separate process). Calling `node` on each render event adds ~20ms latency — acceptable for suggestion refresh frequency (every plan_started / phase_started, not every event).
 
-```
-IF stitch connection status == 'connected' AND --no-mcp NOT set AND --quick NOT set:
-  Follow @workflows/wireframe-stitch.md
-  SET STITCH_RENDERER_AVAILABLE = true
-  SET RENDERING_ENGINE = "stitch"
-  Store STH artifacts alongside existing WFR artifacts
-  IF wireframe-stitch.md fails or returns error:
-    Log: "  -> Stitch rendering failed — falling back to PDE HTML generator"
-    SET STITCH_RENDERER_AVAILABLE = false
-    SET RENDERING_ENGINE = "pde-html"
-    Continue with standard wireframe generation (Step 4 onward)
-ELSE:
-  SET STITCH_RENDERER_AVAILABLE = false
-  SET RENDERING_ENGINE = "pde-html"
-  Continue with standard wireframe generation (Step 4 onward)
-```
+**Example shell pattern:**
+```bash
+# pane-idle-suggestions.sh — follows existing pane conventions
+NDJSON="${1:-}"
+PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
 
-**Flag semantics:**
+echo "[ idle suggestions ] waiting for session events..."
+echo ""
 
-| Flag | Behavior |
-|------|----------|
-| (no flag) | Stitch primary if connected, PDE HTML fallback |
-| `--use-stitch` | Assert Stitch as primary; HALT if not connected (no silent fallback) |
-| `--no-stitch` | Skip Stitch entirely; PDE HTML only |
-| `--quick` | Skip Stitch (same as --no-mcp for Stitch path) |
-| `--no-mcp` | Skip all MCP including Stitch |
+# Track state across events
+CURRENT_PHASE=""
+CURRENT_PLAN=""
+AGENT_COUNT=0
 
-**Figma relationship:** Figma is demoted from its Step 1.5 "design context provider" role in wireframe.md. The Stitch Design DNA (colors/fonts/layout) replaces Figma design context as the wireframe enrichment source when Stitch is connected. Figma retains its `mockup-export-figma.md` and `handoff-figma-codeConnect.md` sub-workflows for export and Code Connect — it is not removed. The priority order for design context:
-
-```
-1. Stitch Design DNA (from STH-design-dna.json if present)
-2. Figma design context (wireframe-figma-context.md)
-3. PDE design tokens (assets/tokens.css)
-4. Inline fallback palette (hardcoded by product type)
-```
-
----
-
-### Pattern 2: Image-to-Text Bridge for Critique and Handoff
-
-**What:** Stitch's primary output for critique and handoff is a screenshot image (PNG via `stitch:fetch-image`). The existing critique and handoff workflows are text-based (they read HTML files and annotation comments). A bridging step converts Stitch image output to structured text by (a) reading the companion HTML code via `stitch:fetch-code`, (b) using Claude's native multimodal vision to describe the visual design from the PNG, and (c) cross-referencing the Design DNA JSON for extracted token values.
-
-**When to use:** Any skill that receives Stitch output and needs to reason about it textually.
-
-**Trade-offs:** Adds a vision analysis step. The PNG is Claude's lens — it can describe color usage, spatial hierarchy, typography, and component patterns from the image, then compare against design tokens from `STH-design-dna.json`. This is more accurate than parsing HTML alone because Stitch may use inline styles or framework-specific class names that do not map directly to DTCG tokens. Claude Code's multimodal capability to read images is a native feature requiring no additional tooling.
-
-**Bridge sequence for critique:**
-
-```
-1. stitch:fetch-image → STH-{slug}.png (base64 → Buffer.from(b64,'base64') → fs.writeFileSync)
-2. stitch:fetch-code  → STH-{slug}.html (raw HTML/CSS from Stitch)
-3. stitch:extract-context → STH-design-dna.json (Design DNA: colors, fonts, layout)
-4. Claude reads STH-{slug}.png visually → produces STITCH_VISUAL_DESCRIPTION
-5. Compare STITCH_VISUAL_DESCRIPTION against:
-   - .planning/design/assets/tokens.css (PDE design system tokens)
-   - STH-design-dna.json (Stitch's own extracted context)
-6. Output delta: token compliance percentage, deviating properties, specific values
+tail -F "${NDJSON}" 2>/dev/null | while IFS= read -r line; do
+  event_type=$(echo "$line" | jq -r '.event_type // empty' 2>/dev/null)
+  case "$event_type" in
+    phase_started)
+      CURRENT_PHASE=$(echo "$line" | jq -r '.phase_name // ""' 2>/dev/null)
+      ;;
+    plan_started)
+      CURRENT_PLAN=$(echo "$line" | jq -r '.plan_id // ""' 2>/dev/null)
+      ;;
+    subagent_start)
+      AGENT_COUNT=$(( AGENT_COUNT + 1 ))
+      # Agents just became busy — good time to show suggestions
+      if [ "$AGENT_COUNT" -eq 1 ]; then
+        printf '\033[3;1H\033[J'
+        node "${PLUGIN_ROOT}/bin/lib/idle-suggestions.cjs" \
+          --phase "$CURRENT_PHASE" \
+          --plan "$CURRENT_PLAN" \
+          2>/dev/null || echo "  (suggestions unavailable)"
+      fi
+      ;;
+    subagent_stop)
+      AGENT_COUNT=$(( AGENT_COUNT > 0 ? AGENT_COUNT - 1 : 0 ))
+      ;;
+  esac
+done
 ```
 
-**Bridge sequence for handoff:**
+### Pattern 2: CJS Module with No Top-Level Side Effects
 
-```
-1. STH-{slug}.html exists → parse for component structure (sections, forms, nav)
-2. STH-design-dna.json exists → extract typography, color, spacing decisions
-3. Claude reads STH-{slug}.png visually → identify component boundaries and interaction patterns
-4. Cross-reference against WFR annotation comments (<!-- ANNOTATION: ... -->) in WFR-{slug}.html
-5. Produce STITCH_COMPONENT_PATTERNS: components with visual descriptions and interface shapes
-6. Merge into handoff spec alongside WFR-derived patterns
-```
+Follows `bin/lib/event-bus.cjs` convention: CRITICAL comment, lazy requires inside functions, exported named functions only. Required because `pde-tools.cjs` does conditional require at the top of its case dispatch.
 
----
+**What:** `idle-suggestions.cjs` exports `getSuggestions(phaseContext)` and `formatSuggestions(suggestions)`. No `require` calls at module load time that touch the filesystem or spawn processes.
 
-### Pattern 3: Stitch Connection via API Key (not OAuth)
+**When to use:** Any lib module that may be required from `pde-tools.cjs`.
 
-**What:** Stitch authentication uses an API key (`STITCH_API_KEY` environment variable or Stitch account settings), NOT the browser OAuth flow used by GitHub, Linear, Figma, and Atlassian. This is structurally different from all 5 existing approved servers.
+**Trade-offs:** Slightly more boilerplate than top-level requires. Required by existing convention — do not deviate.
 
-**When to use:** The `stitch` APPROVED_SERVERS entry must reflect this difference in `installCmd` and `AUTH_INSTRUCTIONS`.
-
-**Trade-offs:** API key auth is simpler than OAuth (no `/mcp → Authenticate → browser flow`), but the user must manually obtain the key from stitch.withgoogle.com settings and pass it during `claude mcp add`. The connect workflow needs a different instruction set for Stitch compared to OAuth servers.
-
-**APPROVED_SERVERS entry shape:**
-
+**Example module structure:**
 ```javascript
-stitch: {
-  displayName: 'Google Stitch',
-  transport: 'http',
-  url: null,             // LOW confidence — official MCP URL not yet confirmed
-  installCmd: null,      // Requires API key; user must set STITCH_API_KEY before add
-  probeTimeoutMs: 15000, // Generative calls can be slow; probe is read-only list_projects
-  probeTool: 'mcp__stitch__list_projects', // Lightest read-only probe
-  probeArgs: {},
-},
-```
+'use strict';
+// CRITICAL: No top-level side effects. Lazy-require inside functions only.
 
-**Confidence note:** The official Stitch MCP server URL is LOW confidence. Two community implementations exist (`davideast/stitch-mcp` and `Kargatharaakash/stitch-mcp`). The official `stitch.withgoogle.com/docs/mcp/setup` page appears to exist but returned minified JavaScript on fetch. PDE's verified-sources-only security policy means the URL must be confirmed before shipping. One option: ship with the official server URL from Google's documentation once it becomes parseable; another: document both options and default to the official server.
-
----
-
-### Pattern 4: Stitch Project Persistence via mcp-connections.json
-
-**What:** Stitch organizes output into projects and screens. PDE needs a stable project-per-PDE-project mapping so Stitch screens accumulate across sessions rather than generating orphans. The mapping is stored in `.planning/mcp-connections.json` as extra fields on the stitch connection entry.
-
-**Data stored in mcp-connections.json under `stitch`:**
-
-```json
-{
-  "server_key": "stitch",
-  "display_name": "Google Stitch",
-  "status": "connected",
-  "stitch_project_id": "<uuid from stitch:create-project or stitch:list-projects>",
-  "stitch_project_name": "<project name matching .planning/PROJECT.md project name>",
-  "last_updated": "<ISO timestamp>"
+function getSuggestions(opts) {
+  const fs = require('fs');
+  const path = require('path');
+  // ... read state files, return suggestion array
 }
+
+function formatSuggestions(suggestions) {
+  // ... return ANSI-colored terminal string
+}
+
+module.exports = { getSuggestions, formatSuggestions };
 ```
 
-**Project init sequence (first Stitch run for a PDE project):**
+### Pattern 3: Phase-Context-Aware Suggestion Catalog
 
-```
-IF stitch_project_id absent from mcp-connections.json:
-  1. stitch:list-projects → search for project matching PROJECT.md project name
-  2. IF found: use existing project_id → updateConnectionStatus('stitch', 'connected', {stitch_project_id})
-  3. IF not found: stitch:create-project → capture new project_id → updateConnectionStatus(...)
-```
+The suggestion engine maps current PDE phase type to a ranked suggestion set. Phase type is derived from STATE.md `current_phase` field plus the ROADMAP.md phase description (to infer phase purpose without parsing the full plan).
 
-This follows the same pattern as how Pencil stores editor state — extra fields on the connection entry, written via the existing `updateConnectionStatus` function with no changes to mcp-bridge.cjs's core API.
+**What:** A static object mapping phase keywords to suggestion categories. No LLM call required — all suggestions are pre-authored and context-filtered at render time.
 
----
+**When to use:** Any feature that needs to surface contextually relevant content without incurring LLM latency.
 
-## Data Flow for Each Touchpoint
+**Trade-offs:** Fast and zero-cost. Suggestions are pre-written, not generated. The catalog must be updated when new phase types are introduced. This is a feature, not a bug — pre-authored suggestions are more reliable than generated ones.
 
-### Touchpoint 1: Wireframe/Mockup — Stitch as Primary Renderer
-
-```
-User runs: /pde:wireframe "login, dashboard" hifi
-
-wireframe.md Step 1.6: Stitch path check
-    │
-    ├─ node script: loadConnections() → stitch.status == 'connected'?
-    │       YES → @workflows/wireframe-stitch.md
-    │
-    wireframe-stitch.md:
-      1. Read stitch_project_id from mcp-connections.json
-         IF absent: init project (list-projects → create-project)
-      2. Load STH-design-dna.json (if exists) → DESIGN_DNA
-      3. Determine MAX_STITCH_SCREENS from config.json (default: 3)
-      4. For each screen (up to MAX_STITCH_SCREENS):
-         a. Construct prompt:
-            "[screen label] screen for [PRODUCT_NAME].
-             Persona: [persona from INVENTORY]. Journey: [step].
-             Design style: [DESIGN_DNA summary if available].
-             Include states: default, loading, error."
-         b. stitch:generate-screen (stitch_project_id, prompt) → {screen_id}
-         c. stitch:fetch-code(screen_id)  → raw HTML/CSS
-            → Write: .planning/design/ux/wireframes/STH-{slug}.html
-         d. stitch:fetch-image(screen_id) → base64 PNG
-            → Decode: Buffer.from(b64, 'base64')
-            → Write: .planning/design/ux/wireframes/STH-{slug}.png
-         e. stitch:extract-context(screen_id) → Design DNA
-            → Merge into: .planning/design/strategy/STH-design-dna.json
-      5. Register STH artifacts in design-manifest.json:
-         pde-tools.cjs design manifest-update STH code STH
-         pde-tools.cjs design manifest-update STH name "Stitch Wireframes"
-         pde-tools.cjs design manifest-update STH type stitch-wireframes
-         pde-tools.cjs design manifest-update STH domain ux
-         pde-tools.cjs design manifest-update STH path ".planning/design/ux/wireframes/"
-      6. Set hasStitchWireframes: true in designCoverage (14th flag, pass-through-all)
-      7. Return STITCH_FILES=[list of STH-*.html and STH-*.png paths]
-
-wireframe.md Steps 4-7 continue (PDE HTML generator still runs):
-    - WFR HTML files generated as normal (annotations preserved)
-    - index.html updated: both WFR-{slug}.html and STH-{slug}.html per screen
-    - DESIGN-STATE.md: new STH row alongside WFR row in Artifact Index
-    - Manifest: WFR entry unchanged; STH entry added
-
-Output artifacts:
-  .planning/design/ux/wireframes/WFR-{slug}.html     (PDE HTML — annotation-rich)
-  .planning/design/ux/wireframes/STH-{slug}.html     (Stitch HTML — visual primary)
-  .planning/design/ux/wireframes/STH-{slug}.png      (Stitch screenshot)
-  .planning/design/strategy/STH-design-dna.json      (Design DNA)
-```
-
-**Mockup touchpoint reuse:** `mockup.md` Step 1.5 adds a Stitch path using the same `wireframe-stitch.md` sub-workflow with a `--mockup` context flag that adjusts prompt language to "interactive, high-fidelity" and disables lofi content rules. No separate `mockup-stitch.md` needed.
-
----
-
-### Touchpoint 2: Ideation — Visual Divergence During Diverge Phase
-
-```
-User runs: /pde:ideate
-
-ideate.md Pass 1 (Diverge) currently: generates 5+ text-only directions
-
-NEW: After generating text directions, check Stitch connection:
-  node script: loadConnections() → stitch.status == 'connected'?
-    YES → @workflows/ideate-stitch.md
-
-ideate-stitch.md:
-  1. Read MAX_STITCH_SCREENS from config.json (default: 3)
-  2. Select first N text directions (N = min(3, total_directions))
-  3. Ensure Stitch project exists (same init sequence as touchpoint 1)
-  4. For each selected direction (index 1..N):
-     a. Extract concept summary: visual style, interaction model, density
-     b. Construct prompt:
-        "Landing page for [PRODUCT_NAME] in [direction.title] direction.
-         [direction.concept_desc]. Visual aesthetic: [direction.visual_style].
-         Color mood: [direction.color_mood]. Interaction: [direction.interaction_model]."
-     c. stitch:generate-screen(stitch_project_id, prompt) → {screen_id}
-     d. stitch:fetch-image(screen_id) → base64 PNG
-        → Decode and write: .planning/design/strategy/STH-ideate-direction-{N}.png
-  5. Return: STITCH_IDEATE_IMAGES=[path list]
-
-ideate.md Pass 1 continues:
-  IDT artifact ## Diverge section enhanced:
-    Each direction entry gets image reference if Stitch generated one:
-    "[Direction N]: [title]
-     Visual variant: [STH-ideate-direction-N.png]"
-  File link enables Claude to read the PNG in Pass 2
-
-ideate.md Pass 2 (Converge):
-  Scoring criteria adds: "Visual distinctiveness (Stitch variant shows unique aesthetic)"
-  Recommended direction can cite visual alignment: "Direction 2 chosen; Stitch variant
-  confirms visual coherence with design DNA"
-
-Output artifacts:
-  .planning/design/strategy/IDT-ideation-v{N}.md   (enhanced with image links)
-  .planning/design/strategy/STH-ideate-direction-1.png
-  .planning/design/strategy/STH-ideate-direction-2.png
-  .planning/design/strategy/STH-ideate-direction-3.png
-```
-
-**Budget constraint:** 3 Stitch generations per ideation run maximum. The free tier provides 350 generations per month; bulk ideation generation would exhaust the budget quickly. Subsequent text directions (4+) remain text-only. MAX_STITCH_SCREENS in config.json controls this.
-
----
-
-### Touchpoint 3: Critique — Compare Stitch Output Against Design System Tokens
-
-```
-User runs: /pde:critique
-
-critique.md Step 3.5: Pencil screenshot capture (existing — unchanged)
-
-NEW Step 3.6: Stitch comparison:
-  node script: loadConnections() → stitch.status == 'connected'?
-    YES → check if STH artifacts exist:
-      Glob: .planning/design/ux/wireframes/STH-*.{html,png}
-      IF found → @workflows/critique-stitch-compare.md
-      IF not found → log "No Stitch artifacts found — skipping Stitch comparison"
-
-critique-stitch-compare.md:
-  1. Load STH-design-dna.json → STITCH_DNA (colors, fonts, layout from Stitch)
-  2. Load .planning/design/assets/tokens.css → PDE_TOKENS
-  3. Load BRF-brief-v*.md → BRIEF_CONTEXT
-  4. For each STH-{slug}.png found:
-     a. Read PNG using Read tool (Claude multimodal vision) →
-        Prompt: "Describe the visual design properties in this UI screenshot:
-                 (1) Background and surface colors (hex values if visible)
-                 (2) Text colors and typography (font families if detectable)
-                 (3) Button and interactive element styling
-                 (4) Spacing density (tight/comfortable/spacious)
-                 (5) Border radius and shadow treatment
-                 (6) Overall layout structure (sidebar, top nav, content area)"
-        Store as VISUAL_DESC
-     b. Read STH-{slug}.html → extract inline CSS values and class patterns
-     c. Compare against PDE_TOKENS (CSS custom properties in tokens.css):
-        For each token category (color, spacing, typography, radius, shadow):
-          - Count: how many Stitch values match PDE token values?
-          - Flag: deviating values with "Stitch: X | Token: Y" pairs
-     d. Compare against STITCH_DNA:
-        - Design DNA should agree with PNG visual desc (internal consistency check)
-        - Flag discrepancies between DNA json and visual output
-     e. Produce per-screen delta:
-        {
-          screen: slug,
-          token_compliance_pct: N,
-          deviating_properties: [{property, stitch_value, token_value}],
-          novel_patterns: [description of Stitch patterns absent from WFR-{slug}.html],
-          missing_patterns: [WFR patterns absent from Stitch output]
-        }
-  5. Aggregate across all screens:
-     - Overall token compliance: weighted average
-     - Top 3 deviating properties (most common across screens)
-     - Recommended token updates (if Stitch choices are consistently better)
-     - Recommended Stitch prompt refinements (if compliance is below 70%)
-
-critique.md Step 5: Write report — CRT-critique-v{N}.md includes new section:
-
-  ## Stitch Comparison
-  **Overall Token Compliance:** {N}% across {M} screens
-  **Design Engine:** Google Stitch (primary) vs. PDE Design System tokens
-
-  | Screen | Compliance | Top Deviation | Novel Patterns |
-  |--------|------------|---------------|----------------|
-  | {slug} | {N}%       | {property}    | {count}        |
-
-  **Top Deviating Properties:**
-  | Property | Stitch Value | PDE Token | Recommendation |
-  |----------|-------------|-----------|----------------|
-
-  **Recommendations:**
-  - Token updates: [if Stitch consistently uses better values]
-  - Prompt refinements: [to improve compliance on next generation]
-
-Output:
-  .planning/design/review/CRT-critique-v{N}.md (Stitch section appended)
-  No new artifact files — all output in existing CRT report
-```
-
-**Key constraint:** The Stitch comparison is additive — it does not replace the 4-perspective critique or change the composite score. The CRT scorecard, findings table, and action list are unchanged. The Stitch section is supplementary analysis below the existing report content.
-
----
-
-### Touchpoint 4: Handoff — Extract Patterns From Stitch Visuals
-
-```
-User runs: /pde:handoff
-
-handoff.md Step 1.5: Figma Code Connect (existing — unchanged)
-
-NEW Step 1.6: Stitch pattern extraction:
-  node script: loadConnections() → stitch.status == 'connected'?
-    YES → check if STH artifacts exist:
-      Glob: .planning/design/ux/wireframes/STH-*.{html,png}
-      IF found → @workflows/handoff-stitch-extract.md
-      IF not found → log "No Stitch artifacts — skipping Stitch pattern extraction"
-
-handoff-stitch-extract.md:
-  1. Load STH-design-dna.json → STITCH_DNA
-  2. Load STACK.md → FRAMEWORK, TYPESCRIPT, COMPONENT_IMPORT_PATTERN
-  3. For each STH-{slug}.html + STH-{slug}.png pair:
-     a. Parse HTML for structural component indicators:
-        - <nav>, <header>, <footer> → layout shell components
-        - <form>, <input>, <button> → interaction components
-        - <table>, <ul>, <dl> used for data → data display components
-        - Modal, drawer, tooltip patterns (z-index, fixed positioning) → overlay components
-     b. Read STH-{slug}.png using Read tool (Claude multimodal):
-        Prompt: "Identify the distinct UI components in this screenshot.
-                 For each component:
-                 (1) Component name (e.g. 'NavigationBar', 'LoginForm', 'DataTable')
-                 (2) Visual description (layout, states shown, interactive elements)
-                 (3) Props inferred from visual (e.g. isLoading: boolean, title: string)
-                 (4) Any state variations visible"
-        Store as STITCH_VISUAL_COMPONENTS
-     c. Read WFR-{slug}.html for <!-- ANNOTATION: --> and <!-- COMPOSITION: --> comments
-        Store as WFR_ANNOTATIONS
-     d. Cross-reference STITCH_VISUAL_COMPONENTS against WFR_ANNOTATIONS:
-        - Match: same component found in both → "confirmed by Stitch"
-        - Stitch-only: in Stitch but not WFR annotation → "Stitch-only pattern"
-        - WFR-only: in WFR annotation but not Stitch → "WFR-only pattern"
-  4. Produce STITCH_COMPONENT_PATTERNS:
-     [{
-       name: "ComponentName",
-       source: "WFR+Stitch" | "Stitch-only" | "WFR-only",
-       visual_desc: "...",
-       props: [{name, type, required, description}],
-       states: ["default", "loading", "error"],
-       screen: slug
-     }]
-  5. For Stitch-only components (not in WFR annotations):
-     IF TYPESCRIPT == true: generate interface:
-     ```typescript
-     // Stitch-extracted: {screen_slug} — verify before implementation
-     export interface {ComponentName}Props {
-       {props derived from visual analysis}
-     }
-     ```
-  6. Return STITCH_COMPONENT_PATTERNS for handoff.md to merge
-
-handoff.md Step 6: Assemble spec
-  HND-handoff-spec-v{N}.md new section:
-
-  ## Stitch-Extracted Patterns
-
-  | Component | Source | WFR Confirmed | TypeScript Interface |
-  |-----------|--------|---------------|----------------------|
-  | {name}    | WFR+Stitch / Stitch-only | Yes/No | HND-types-v{N}.ts#L{line} |
-
-  Human decision required for source="Stitch-only" components:
-  "The following components appear in Stitch output but have no WFR annotation equivalent.
-   Verify intent before implementing: {list}"
-
-  HND-types-v{N}.ts enhanced:
-  // ─── Stitch-extracted interfaces ──────────────────────────────
-  // Source: Stitch visual analysis — verify against wireframe intent
-  export interface {ComponentName}Props { ... }
-
-Output:
-  .planning/design/handoff/HND-handoff-spec-v{N}.md (Stitch section added)
-  .planning/design/handoff/HND-types-v{N}.ts (Stitch-only interfaces appended)
-```
-
----
-
-## TOOL_MAP Entries for Stitch
-
-**Canonical name format:** `stitch:{action}` matching the existing pattern (`github:list-issues`, `figma:get-screenshot`, `pencil:get-screenshot`).
-
-**Proposed entries** (raw MCP names are MEDIUM confidence — confirmed via community repo documentation at `Kargatharaakash/stitch-mcp` and `davideast/stitch-mcp`, not from official Google source):
-
+**Catalog structure (conceptual):**
 ```javascript
-// Stitch — Phase XX
-// Raw tool names MEDIUM confidence — verify against live server before shipping
-// Verification: claude code /mcp → select stitch → list tools
-'stitch:probe':                   'mcp__stitch__list_projects',
-'stitch:list-projects':           'mcp__stitch__list_projects',
-'stitch:get-project':             'mcp__stitch__get_project',
-'stitch:create-project':          'mcp__stitch__create_project',
-'stitch:list-screens':            'mcp__stitch__list_screens',
-'stitch:get-screen':              'mcp__stitch__get_screen',
-'stitch:generate-screen':         'mcp__stitch__generate_screen_from_text',
-'stitch:fetch-code':              'mcp__stitch__fetch_screen_code',
-'stitch:fetch-image':             'mcp__stitch__fetch_screen_image',
-'stitch:extract-context':         'mcp__stitch__extract_design_context',
-```
-
-**AUTH_INSTRUCTIONS entry for connect.md:**
-
-```javascript
-stitch: [
-  '1. Visit https://stitch.withgoogle.com → Profile → Stitch settings → API Keys → Create key',
-  '2. Copy the generated API key',
-  '3. Run: claude mcp add --transport http stitch <stitch-mcp-url> --env STITCH_API_KEY=<key>',
-  '   Note: Confirm the official Stitch MCP URL at https://stitch.withgoogle.com/docs/mcp/setup',
-  '4. Run /pde:connect stitch --confirm',
-],
+const SUGGESTION_CATALOG = {
+  research: [
+    { id: 'curate-refs', title: 'Curate reference screenshots', timeEst: '5-10 min',
+      prompt: 'Screenshot 3 competitor UIs that handle [current feature] well. Save to .planning/research/refs/.' },
+    { id: 'domain-docs', title: 'Write domain knowledge', timeEst: '10-15 min',
+      prompt: 'List 5 business rules or edge cases for [current phase feature] that PDE might not know.' },
+  ],
+  plan: [
+    { id: 'review-plan', title: 'Review upcoming plan', timeEst: '3-5 min',
+      prompt: 'Read the current PLAN.md and note any tasks where your domain knowledge is needed.' },
+    { id: 'prep-fixtures', title: 'Prepare test fixtures', timeEst: '10-20 min',
+      prompt: 'Create test data files for [current phase] so the executor can use real examples.' },
+  ],
+  execute: [
+    { id: 'review-artifacts', title: 'Review produced artifacts', timeEst: '5 min',
+      prompt: 'Check .planning/ for new files from the last plan. Note any corrections for the next iteration.' },
+    { id: 'taste-decisions', title: 'Make human-taste decisions', timeEst: '5-10 min',
+      prompt: 'If design tokens were generated, pick your preferred color palette variant now.' },
+  ],
+  design: [
+    { id: 'competitor-screenshots', title: 'Capture competitor UI screenshots', timeEst: '10 min',
+      prompt: 'Take 3 screenshots of competitor designs for the feature being designed.' },
+    { id: 'annotate-wireframes', title: 'Annotate existing wireframes', timeEst: '5-10 min',
+      prompt: 'Open the latest WFR artifact and add inline comments for any corrections.' },
+  ],
+  // generic fallback for unknown phase types
+  _default: [
+    { id: 'user-stories', title: 'Externalize user stories', timeEst: '10 min',
+      prompt: 'Write 3 user stories from the current phase that PDE can verify against.' },
+    { id: 'git-hygiene', title: 'Git housekeeping', timeEst: '5 min',
+      prompt: 'Squash fixup commits, update branch descriptions, or prune stale branches.' },
+  ],
+};
 ```
 
 ---
 
-## designCoverage Extension
+## Data Flow
 
-The 13-field designCoverage object in design-manifest.json must be extended to a 14-field object. All 13 existing skills follow the pass-through-all pattern — adding a 14th field requires updating all 13 existing skill workflows to pass through `hasStitchWireframes` in their coverage write.
-
-**New field:** `hasStitchWireframes: boolean` — set to `true` by `wireframe-stitch.md` when at least one STH artifact is written successfully.
-
-**All 13 workflows that need pass-through update:**
+### "Agent is busy" → "Here is what to do" Flow
 
 ```
-workflows/wireframe.md    ← also sets hasStitchWireframes: true
-workflows/mockup.md
-workflows/system.md
-workflows/flows.md
-workflows/critique.md
-workflows/iterate.md
-workflows/handoff.md
-workflows/ideate.md
-workflows/competitive.md
-workflows/opportunity.md
-workflows/hig.md
-workflows/recommend.md
-workflows/brief.md
+1. User invokes /pde:execute-phase (or /pde:plan-phase, /pde:build, etc.)
+   └─> Orchestrator workflow begins
+
+2. Orchestrator spawns first subagent
+   └─> SubagentStart hook fires (Claude Code hook, existing)
+   └─> pde-tools.cjs "subagent-start" case block runs
+   └─> PdeEventBus.dispatch("subagent_start", { agent_type, session_id })
+   └─> NDJSON line appended: { event_type: "subagent_start", ts: ..., agent_type: ... }
+
+3. pane-idle-suggestions.sh detects "subagent_start" in NDJSON tail
+   └─> AGENT_COUNT increments to 1 (transition from idle to busy)
+   └─> Shell calls: node idle-suggestions.cjs --phase <current> --plan <current>
+
+4. idle-suggestions.cjs:
+   a. Reads .planning/STATE.md (synchronous fs.readFileSync)
+      └─> Extracts: current_phase, current_milestone, status
+   b. Reads .planning/ROADMAP.md (first 30 lines for upcoming phase preview)
+      └─> Extracts: next 2-3 phase names for "context preview" suggestions
+   c. Reads .planning/phases/{N}/PLAN.md if it exists
+      └─> Extracts: incomplete tasks (for "help complete" suggestions)
+   d. Classifies phase type from phase name keywords
+      (research|competitive|opportunity → "research" class)
+      (plan|check-readiness → "plan" class)
+      (execute → "execute" class)
+      (wireframe|mockup|ideate|brief|critique → "design" class)
+   e. Looks up SUGGESTION_CATALOG[phaseType] (with _default fallback)
+   f. Returns top 4 suggestions ranked by: context relevance > time estimate
+
+5. pane-idle-suggestions.sh renders output to terminal:
+   └─> Clears pane content area (ANSI escape)
+   └─> Prints header: "[ while you wait ]  Phase: {current_phase}"
+   └─> Prints 4 ranked suggestions with: title, time estimate, actionable prompt
+
+6. Suggestions remain displayed until:
+   - subagent_stop fires AND AGENT_COUNT returns to 0 (all agents done)
+   - A new phase_started / plan_started event fires (refresh with new context)
+   - User manually switches tmux pane focus
 ```
 
-This is 13 file modifications for one new coverage flag — a known cost of the pass-through-all pattern. A dedicated migration phase as the FIRST phase of the milestone addresses this before any Stitch-specific logic is shipped.
+### State Reading (what idle-suggestions.cjs reads and why)
+
+```
+.planning/STATE.md
+    └─> current_phase (number + name) — required for catalog lookup
+    └─> status: in_progress / complete — suppress suggestions if complete
+
+.planning/ROADMAP.md
+    └─> Upcoming phase names (lines after current) — for "context preview" suggestions
+    └─> Capped at 30 lines to keep read fast
+
+.planning/phases/{N}/PLAN.md  (if exists, graceful skip if not)
+    └─> Incomplete tasks — for "review what's being built" suggestions
+    └─> Only the task list section (first 80 lines)
+
+/tmp/pde-session-{id}.ndjson  (indirectly — pane script reads, not idle-suggestions.cjs)
+    └─> event_type: subagent_start — idle window detected
+    └─> event_type: phase_started — context refresh trigger
+    └─> event_type: plan_started — context refresh trigger
+
+.planning/config.json  (optional, graceful skip)
+    └─> monitoring.enabled — if false, don't render suggestions
+    └─> model_profile — may inform which suggestions are relevant
+```
+
+---
+
+## tmux Dashboard Integration
+
+### 7th Pane Placement
+
+The existing full layout creates 6 panes in 2 columns (3 left, 3 right). The idle suggestions pane becomes the 7th pane. Two layout options are viable:
+
+**Option A (recommended): Bottom banner across full width**
+
+Add a horizontal split below the existing 2-column layout. The suggestions pane spans the full terminal width, giving suggestion text room to breathe. Requires `build_full_layout()` to add a final `split-window -v` below the existing 6 panes before labeling and starting processes.
+
+```
+┌──────────────────────┬──────────────────────┐
+│   agent activity     │   pipeline progress  │
+├──────────────────────┼──────────────────────┤
+│   file changes       │   log stream         │
+├──────────────────────┼──────────────────────┤
+│   context window     │   token / cost       │
+├──────────────────────┴──────────────────────┤
+│           while you wait                    │  ← NEW pane
+└─────────────────────────────────────────────┘
+```
+
+**Option B: 4th pane in right column**
+
+Split pane-token-meter vertically. Narrower but doesn't change the left column. Higher implementation complexity because it requires adjusting `-p 50` splits in right column.
+
+Recommendation: Option A. Wider pane means more suggestion text visible without truncation. One additional `split-window -v -p 20` after the 6-pane layout is complete suffices.
+
+### monitor-dashboard.sh Modification
+
+`build_full_layout()` receives one new block after the 6 existing panes:
+
+```bash
+# P6: idle suggestions (full-width bottom banner)
+P6=$(tmux split-window -v -dPF '#{pane_id}' -t "${session}:0" -p 20)
+tmux select-pane -t "${P6}" -T "while you wait"
+tmux send-keys -t "${P6}" "bash '${PLUGIN_ROOT}/bin/pane-idle-suggestions.sh' '${ndjson}'" C-m
+```
+
+`build_minimal_layout()` is NOT modified — small terminals get 2 panes (agent activity + pipeline progress), unchanged. The idle suggestions pane is full-layout-only.
+
+`setMaxListeners(20)` in `event-bus.cjs` already accounts for 6 panes + additional consumers — no change needed.
 
 ---
 
 ## Anti-Patterns
 
-### Anti-Pattern 1: Generating Stitch Output Without Connection Check
+### Anti-Pattern 1: LLM-Generated Suggestions at Render Time
 
-**What people do:** Directly call `mcp__stitch__generate_screen_from_text` in a workflow without checking connection status first.
+**What people do:** Call Claude API inside `idle-suggestions.cjs` to generate personalized suggestions based on current project state.
 
-**Why it's wrong:** Fails opaquely when Stitch is not configured. The probe/degrade contract must be respected — check `mcp-connections.json` first, degrade to PDE HTML on missing connection.
+**Why it's wrong:** Introduces LLM latency (seconds) into a UI render path that fires on every subagent_start event. Creates cost for every agent spawn. Requires API key handling in a pane script. Violates PDE's session-based model (background processes cannot make Claude API calls from within a hook).
 
-**Do this instead:** Always check `stitch.status == 'connected'` via `loadConnections()` before any Stitch tool call. Pattern is identical to the Pencil check in critique.md Step 3.5.
+**Do this instead:** Pre-author suggestion catalog keyed by phase type. Use state file reading (fast, synchronous) for context. Phase type covers 90% of the contextual variation that matters. LLM generation would add cost and latency for marginal personalization gain.
 
----
+### Anti-Pattern 2: Writing State Files from the Pane Script
 
-### Anti-Pattern 2: Replacing WFR Artifacts With STH Artifacts
+**What people do:** Have `pane-idle-suggestions.sh` write a `.planning/idle-state.json` to track which suggestions were shown, user dismissals, etc.
 
-**What people do:** Write `STH-{slug}.html` to the same path as `WFR-{slug}.html`, overwriting PDE wireframes.
+**Why it's wrong:** Pane scripts are read-only observers in the existing architecture. All 6 existing pane scripts call no write operations. Introducing write behavior in a pane script creates a second write path into `.planning/` that bypasses `pde-tools.cjs` validation and locking. The pane runs as a background process concurrent with workflow execution — file contention is a real risk.
 
-**Why it's wrong:** Destroys the `<!-- ANNOTATION: -->` and `<!-- COMPOSITION: -->` comments that critique and handoff depend on. Stitch HTML has no PDE annotations — it is raw generated code. Overwriting WFR files would break both downstream skills.
+**Do this instead:** Accept stateless rendering. Suggestions are re-derived from state files on each refresh. No need to track "shown" state — users can dismiss by switching tmux pane focus. If dismissal tracking becomes needed in a later milestone, add a `pde-tools.cjs idle-dismiss` command that owns the write path.
 
-**Do this instead:** STH artifacts always use the `STH-` prefix and live alongside WFR artifacts. WFR is the authoritative PDE artifact with annotation structure; STH is the Stitch variant for comparison and enrichment. The two namespaces are independent.
+### Anti-Pattern 3: Polling STATE.md in a Loop
 
----
+**What people do:** Run a `while true; do sleep 10; node idle-suggestions.cjs; done` loop that re-reads state every N seconds.
 
-### Anti-Pattern 3: Adding hasStitchWireframes Without Pass-Through Migration
+**Why it's wrong:** Creates constant process churn (spawning node every 10 seconds) whether or not anything changed. Cannot distinguish between "agent working" and "agent idle" — suggests all the time or never. Ignores the event stream that already provides the correct trigger signals.
 
-**What people do:** Add `hasStitchWireframes` to the wireframe coverage write without updating all 12 other skills that write designCoverage.
+**Do this instead:** Use the NDJSON tail as the trigger signal, exactly as all 6 existing pane scripts do. Refresh suggestions on `subagent_start` (agent became busy → show suggestions) and `phase_started`/`plan_started` (new context available → refresh content). No polling.
 
-**Why it's wrong:** Any skill that writes designCoverage without the new field will overwrite it to `undefined` (treated as absent). The pass-through-all pattern's anti-pattern in wireframe.md states: "Set designCoverage without reading coverage-check first resets flags set by other skills." This applies to new fields too.
+### Anti-Pattern 4: Adding a New Event Type for Idle Detection
 
-**Do this instead:** Add a dedicated Phase 1 migration before shipping any Stitch-specific logic. Update all 13 skills' coverage writes to include `hasStitchWireframes` in their pass-through before any Stitch workflow is live.
+**What people do:** Add a new `agent_idle` event type emitted by the orchestrator when it detects no active agents.
 
----
+**Why it's wrong:** Idle detection requires no new events — `subagent_stop` with AGENT_COUNT returning to 0 is the existing signal. Adding a new event type requires modifying `pde-tools.cjs` hook handlers and the event schema, touching more existing code than necessary.
 
-### Anti-Pattern 4: Blocking on Stitch Generation Timeout
+**Do this instead:** Track AGENT_COUNT in the pane script's bash loop (increment on `subagent_start`, decrement on `subagent_stop`). When it transitions from 1 to 0, all agents completed. No new events needed.
 
-**What people do:** Call `stitch:generate-screen` inline in a multi-screen batch with no cap, blocking the workflow for many minutes.
+### Anti-Pattern 5: Blocking `build_minimal_layout()` Entry
 
-**Why it's wrong:** Stitch generates one screen at a time and may take 10-60 seconds per generation at hifi fidelity. A 10-screen batch could block for 10+ minutes. Claude Code sessions have context limits and user patience limits.
+**What people do:** Add the suggestions pane to both `build_full_layout()` and `build_minimal_layout()`, so the pane always appears.
 
-**Do this instead:** Cap at MAX_STITCH_SCREENS from config.json (default: 3). For larger screen sets, generate Stitch variants only for the primary screen per journey (most important screen per flow). Log skipped screens with instructions to generate them individually.
+**Why it's wrong:** The minimal layout exists precisely because small terminals cannot handle 6 panes gracefully. Adding a 7th (or 3rd) pane to the minimal layout defeats the adaptive degradation logic. On a 80x24 terminal, 3 panes are cramped and the suggestion text will truncate to unreadable width.
 
----
-
-### Anti-Pattern 5: Treating Stitch HTML as Spec-Quality Handoff Source
-
-**What people do:** Parse `STH-{slug}.html` as the primary handoff spec source, ignoring WFR annotation comments.
-
-**Why it's wrong:** Stitch generates idiomatic frontend code for its own rendering pipeline — not annotation-rich handoff specs. The HTML may use Stitch-specific class names, inline styles without token references, and no `<!-- ANNOTATION: -->` comments documenting state triggers.
-
-**Do this instead:** Stitch HTML is one signal among many in handoff extraction. WFR annotation comments remain the authoritative semantic source. Stitch HTML provides visual structure confirmation and component boundary evidence. Both are used; neither replaces the other.
+**Do this instead:** Add the 7th pane to `build_full_layout()` only. The `build_minimal_layout()` path remains a 2-pane layout showing only agent activity and pipeline progress.
 
 ---
 
-### Anti-Pattern 6: Using a Community Stitch MCP Server Without Security Audit
+## Build Order
 
-**What people do:** Configure `Kargatharaakash/stitch-mcp` or `davideast/stitch-mcp` as the approved server URL without verifying against PDE's verified-sources-only security policy.
+Dependencies are strict in one direction: the suggestion engine must exist before the pane script that calls it, and the pane script must exist before `monitor-dashboard.sh` adds it to the layout.
 
-**Why it's wrong:** PDE's security policy (`assertApproved`) requires official MCP servers from approved vendors. Community implementations have not been audited. Using them would violate the verified-sources-only policy that protects against unauthorized tool access.
+```
+Phase 1: idle-suggestions.cjs (core engine, no external deps)
+    └─> Unit-testable in isolation: node idle-suggestions.cjs --phase "execute-phase-70" --plan "1"
+    └─> No dashboard changes yet; can be developed and tested standalone
+    └─> Outputs: ANSI-colored terminal string, graceful fallback if STATE.md missing
 
-**Do this instead:** The APPROVED_SERVERS `url` field for stitch should point to the official Google Stitch MCP endpoint, confirmed from `stitch.withgoogle.com/docs/mcp/setup`. If the official URL is not yet resolvable at milestone start, ship the Stitch entry with `url: null` and `status: 'pending-official-url'` until confirmed. Do not use community servers as the approved endpoint.
+Phase 2: pane-idle-suggestions.sh (pane script, depends on Phase 1)
+    └─> Can test standalone: bash pane-idle-suggestions.sh /tmp/pde-session-test.ndjson
+    └─> Inject test events via: echo '{"event_type":"subagent_start","ts":"..."}' >> /tmp/pde-session-test.ndjson
+    └─> No dashboard changes yet; visible only when run directly
+
+Phase 3: monitor-dashboard.sh modification (depends on Phase 2)
+    └─> Add P6 pane in build_full_layout() only
+    └─> Test: /pde:monitor (kill existing session first)
+    └─> Verify: 7 panes visible on full-size terminal, 2 panes on small terminal
+
+Phase 4: pde-tools.cjs idle command (optional, depends on Phase 1)
+    └─> Adds: node pde-tools.cjs idle suggest
+    └─> Outputs suggestion list to stdout (non-dashboard access path)
+    └─> Useful for: scripts, testing, headless mode without tmux
+```
+
+**Minimum shippable:** Phases 1-3 alone deliver the full feature. Phase 4 is additive convenience.
 
 ---
 
 ## Integration Points
 
-### External Services
+### Existing Infrastructure Consumed (Read-Only)
 
-| Service | Integration Pattern | Confidence | Notes |
-|---------|---------------------|------------|-------|
-| Google Stitch (stitch.withgoogle.com) | HTTP MCP server + API key auth | MEDIUM | Official MCP URL not yet confirmed; verify before Phase 2 |
-| Google Cloud (gcloud) | Not required for API key path | HIGH | Only needed for OAuth/service account variant; API key is simpler |
+| Infrastructure | How Consumed | Notes |
+|---------------|-------------|-------|
+| `/tmp/pde-session-{id}.ndjson` | `tail -F` in pane script, identical to all 6 existing panes | No modification needed |
+| `.planning/STATE.md` | `fs.readFileSync` in idle-suggestions.cjs | Graceful skip if missing; same pattern as other lib modules |
+| `.planning/ROADMAP.md` | First 30 lines only; cap prevents slow reads on large roadmaps | Graceful skip if missing |
+| `.planning/phases/{N}/PLAN.md` | First 80 lines if current phase dir is known | Graceful skip if not found |
+| `.planning/config.json` | `monitoring.enabled` check; follows config.cjs patterns | Graceful skip uses defaults |
+| `bin/lib/event-bus.cjs` | Not directly consumed by idle system; NDJSON is the interface | Event bus writes; pane reads |
+| `bin/lib/model-profiles.cjs` | Optional: may inform suggestion relevance by model tier | Graceful skip |
+
+### Existing Infrastructure Extended (Modified)
+
+| Component | What Changes | Risk Level |
+|-----------|-------------|-----------|
+| `bin/monitor-dashboard.sh` `build_full_layout()` | Add 1 pane creation block and 1 `send-keys` call at end | LOW — additive; existing layout unaffected |
+| `bin/pde-tools.cjs` | Add `idle` command case (optional) | LOW — additive case block, no existing paths touched |
+| `workflows/monitor.md` | Update pane count description | NONE — documentation only |
 
 ### Internal Boundaries
 
 | Boundary | Communication | Notes |
 |----------|---------------|-------|
-| wireframe.md ↔ wireframe-stitch.md | Sub-workflow include (`@workflows/wireframe-stitch.md`) | Same pattern as wireframe-figma-context.md |
-| mockup.md ↔ wireframe-stitch.md | Sub-workflow include with `--mockup` flag | Reuse, no new sub-workflow needed |
-| critique.md ↔ critique-stitch-compare.md | Sub-workflow include after Step 3.5 | Same pattern as critique-pencil-screenshot.md |
-| handoff.md ↔ handoff-stitch-extract.md | Sub-workflow include after Step 1.5 | Same pattern as handoff-figma-codeConnect.md |
-| ideate.md ↔ ideate-stitch.md | Sub-workflow include inside Pass 1 | New pattern — ideate has no prior sub-workflow |
-| any stitch workflow ↔ mcp-bridge.cjs | `loadConnections()` via Node.js inline script | Same pattern as critique-pencil-screenshot.md |
-| wireframe-stitch.md ↔ design-manifest.json | Via `pde-tools.cjs design manifest-update STH ...` | STH is new artifact code |
-| commands/*.md ↔ Stitch MCP tools | `allowed-tools: mcp__stitch__*` wildcard | Same wildcard pattern as mcp__figma__* |
+| pane-idle-suggestions.sh ↔ idle-suggestions.cjs | CLI invocation: `node idle-suggestions.cjs --phase X --plan Y` | Pane is orchestrator, engine is pure function |
+| idle-suggestions.cjs ↔ .planning/ | Direct synchronous file reads (no pde-tools.cjs intermediary) | Acceptable for read-only; follows pane-token-meter.sh precedent of direct node reads |
+| pane-idle-suggestions.sh ↔ NDJSON | `tail -F` read-only | Identical to all other pane scripts; no risk |
+| pane-idle-suggestions.sh ↔ monitor-dashboard.sh | Script path passed as `send-keys` argument | No API surface; just a file path |
 
 ---
 
-## Build Order and Phase Dependencies
+## Scaling Considerations
 
-```
-Phase 1: Coverage migration (prerequisite for all Stitch phases)
-  Files: all 13 coverage-writing workflows + design-manifest.json template
-  → Add hasStitchWireframes to all 13 skills' coverage pass-through
-  → No behavioral change; pure schema extension
+This system operates entirely within a single user's local machine. There are no multi-user or server scaling dimensions. The relevant scaling axis is session complexity:
 
-Phase 2: mcp-bridge.cjs extension + connect workflow
-  Files: bin/lib/mcp-bridge.cjs, commands/connect.md, workflows/connect.md
-  → Add stitch APPROVED_SERVERS entry
-  → Add 10 TOOL_MAP entries (raw names MEDIUM confidence — verify live)
-  → Add stitch AUTH_INSTRUCTIONS
-  → Add stitch to connect.md help text
-  Verification gate: /pde:connect stitch confirms probe tool works
+| Session Scale | Architecture Adjustments |
+|--------------|--------------------------|
+| Short session (< 50 events) | No adjustment needed; NDJSON stays small |
+| Long session (500+ events) | `tail -F` reads only new lines; no reprocessing of history — no issue |
+| Many parallel agents (wave of 10+) | AGENT_COUNT tracking still works; suggestion refresh fires on first spawn only (AGENT_COUNT == 1 transition), not on every spawn |
+| Very large ROADMAP.md or PLAN.md | 30-line / 80-line caps prevent slow reads; content may be truncated but that's acceptable |
 
-Phase 3: Touchpoint 1 — Wireframe/Mockup (stitch as primary renderer)
-  Files: workflows/wireframe-stitch.md (NEW), workflows/wireframe.md,
-         workflows/mockup.md, commands/wireframe.md, commands/mockup.md
-  Depends on: Phase 1, Phase 2
-
-Phase 4: Touchpoint 2 — Ideation (visual divergence)
-  Files: workflows/ideate-stitch.md (NEW), workflows/ideate.md, commands/ideate.md
-  Depends on: Phase 2
-  Parallel with: Phase 3
-
-Phase 5: Touchpoint 3 — Critique (token compliance comparison)
-  Files: workflows/critique-stitch-compare.md (NEW), workflows/critique.md,
-         commands/critique.md
-  Depends on: Phase 3 (needs STH artifacts to compare against)
-
-Phase 6: Touchpoint 4 — Handoff (pattern extraction)
-  Files: workflows/handoff-stitch-extract.md (NEW), workflows/handoff.md,
-         commands/handoff.md
-  Depends on: Phase 3 (needs STH artifacts)
-  Parallel with: Phase 5
-```
-
-**Minimum viable delivery:** Phases 1-3 deliver the primary value (Stitch as wireframe renderer). Phases 4-6 are enhancements. If timeline is tight, Phases 4-6 can move to a point release.
-
----
-
-## Zero-NPM Constraint Compliance
-
-The zero-npm-dependency constraint at the plugin root is preserved:
-
-- All Stitch tool calls go through Claude Code's MCP runtime — no npm client library
-- `mcp-bridge.cjs` uses only `node:fs` and `node:path` (unchanged)
-- Base64-to-PNG conversion: `Buffer.from(b64string, 'base64')` + `fs.writeFileSync` — both Node.js built-ins, no `sharp` or image processing library needed
-- Claude's native multimodal vision (reading PNG files via the Read tool) requires no additional tooling
-- The Stitch MCP server package (e.g., official Google package) is installed globally by the user via `claude mcp add` — it is NOT a PDE dependency and does not appear in any PDE package.json
-
-The only new binary the user installs is the Stitch MCP server itself, as a precondition of `/pde:connect stitch`, exactly as GitHub/Linear/Figma MCP servers are user-installed preconditions.
+**First bottleneck:** None expected within normal PDE usage. The `node idle-suggestions.cjs` call on each `subagent_start` transition adds ~20ms — imperceptible to users and infrequent (once per wave, not once per event).
 
 ---
 
 ## Sources
 
-- [GitHub: davideast/stitch-mcp — CLI for Stitch integration](https://github.com/davideast/stitch-mcp) — MEDIUM confidence (community, not official)
-- [GitHub: Kargatharaakash/stitch-mcp — Universal MCP Server](https://github.com/Kargatharaakash/stitch-mcp) — MEDIUM confidence (community)
-- [MCP Servers registry: stitch-mcp tool list](https://mcpservers.org/servers/kargatharaakash/stitch-mcp) — MEDIUM confidence (community registry)
-- [Google Labs: Stitch announcement](https://blog.google/innovation-and-ai/models-and-research/google-labs/stitch-ai-ui-design/) — HIGH confidence (official)
-- [Google Codelabs: Design-to-Code with Antigravity and Stitch MCP](https://codelabs.developers.google.com/design-to-code-with-antigravity-stitch) — MEDIUM confidence (documents Antigravity IDE integration, not Claude Code directly)
-- [NxCode: Google Stitch Complete Guide Vibe Design 2026](https://www.nxcode.io/resources/news/google-stitch-complete-guide-vibe-design-2026) — LOW confidence (third-party)
-- [Winbuzzer: Google Redesigns Stitch AI, Voice Canvas, Developer Integrations](https://winbuzzer.com/2026/03/20/google-redesigns-stitch-ai-voice-canvas-developer-integrations-xcxwbn/) — MEDIUM confidence (news, March 2026)
-- [Google Stitch MCP Setup Docs](https://stitch.withgoogle.com/docs/mcp/setup) — HIGH confidence source; page returned minified JS on fetch, content not parseable
+- `bin/lib/event-bus.cjs` — NDJSON schema, event types, dispatch pattern (direct codebase inspection)
+- `bin/pane-agent-activity.sh`, `bin/pane-token-meter.sh`, `bin/pane-context-window.sh` — pane script pattern (direct codebase inspection)
+- `bin/monitor-dashboard.sh` — `build_full_layout()`, `build_minimal_layout()`, layout primitives (direct codebase inspection)
+- `bin/pde-tools.cjs` — command dispatch pattern, case block structure, lazy-require convention (direct codebase inspection)
+- `.planning/PROJECT.md` — zero-npm constraint, file-based state model, v0.10 milestone goals, existing event/dashboard architecture description
+- `memory/project_idle_time_productivity.md` — feature intent: activity categories, human-machine feedback loop goal, tmux pane template approach
 
 ---
 
-*Architecture research for: Google Stitch integration into PDE v0.9*
+*Architecture research for: PDE v0.10 — Idle Time Productivity Integration*
 *Researched: 2026-03-20*
