@@ -14,7 +14,8 @@ Schema: 1.0
 | Property | Value |
 |----------|-------|
 | Project | {project_name} |
-| Product Type | {software/hardware/hybrid} |
+| Product Type | {software/hardware/hybrid/experience} |
+| Sub-type | {null for non-experience / single-night, multi-day, recurring-series, installation, hybrid-event} |
 | Platform | {web} |
 | Output Root | {output_root} |
 | Created | {date} |

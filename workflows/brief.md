@@ -174,10 +174,21 @@ Scan the content of PROJECT.md for the following signals:
 
 **Hardware signals:** PCB, circuit board, 3D print, 3D printing, CAD, BOM, bill of materials, enclosure, firmware, microcontroller, Arduino, Raspberry Pi, sensor, actuator, embedded, assembly, injection mold, injection molding, CNC, FDM, tolerance, product box, physical unit, supply chain, manufacturing, prototype, schematic, soldering, voltage, current, power supply, battery, motor, servo, actuator, JTAG, GPIO, I2C, SPI, UART.
 
+**Experience signals:** event, festival, installation, live performance, concert, venue, capacity, attendees, run-of-show, front-of-house, FOH, backstage, production, PA system, stage, set design, programme, lineup, artist, performer, act, sponsor, volunteer, site map, floor plan, acoustic zone, wayfinding, hydration station, first aid, crowd management, egress, ticket, gateline, wristband, merchandise, bar, catering, dB, watts, lux, crowd flow, ingress, site plan, temporary structure, marquee, tent
+
 **Classification logic:**
 
 ```
-IF both software AND hardware signals are present:
+IF experience signals present AND NOT dominated by software signals:
+  product_type = "experience"
+  Detect sub_type from secondary signals:
+    single-night: "one night", "one-day", "24h", "evening event", single date
+    multi-day: "weekend", "multi-day", "festival" (3+ days implied), numbered days
+    recurring-series: "monthly", "quarterly", "series", "season", "weekly"
+    installation: "installation", "exhibition", "gallery", "open-ended", "visitor-led"
+    hybrid-event: both experience AND software signals present with digital product layer
+  Default sub_type: "single-night" if no sub-type signals detected
+ELSE IF both software AND hardware signals are present:
   product_type = "hybrid"
 ELSE IF only hardware signals present (no software signals):
   product_type = "hardware"
@@ -185,10 +196,10 @@ ELSE (only software signals, OR ambiguous/no signals):
   product_type = "software"  (default)
 ```
 
-Resolve to ONE canonical lowercase string: `software`, `hardware`, or `hybrid`.
+Resolve to ONE canonical lowercase string: `software`, `hardware`, `hybrid`, or `experience`.
 
 **If Sequential Thinking MCP available AND classification is ambiguous** (both signal types present but unclear dominance):
-Use `mcp__sequential-thinking__think` with prompt: `"Review this PROJECT.md content and determine whether this product is primarily 'software', 'hardware', or 'hybrid'. Base the classification on which set of concerns dominates the design work. Content: [PROJECT.md content summary]"`. Use the reasoning to inform the final classification decision.
+Use `mcp__sequential-thinking__think` with prompt: `"Review this PROJECT.md content and determine whether this product is primarily 'software', 'hardware', 'hybrid', or 'experience'. Base the classification on which set of concerns dominates the design work. Content: [PROJECT.md content summary]"`. Use the reasoning to inform the final classification decision.
 
 **Detect platform:**
 
@@ -469,7 +480,8 @@ Read the current root DESIGN-STATE.md, then apply these three updates using the 
 
 2. **Quick Reference section** — add or update these rows:
    ```
-   | Product Type | {canonical lowercase type: software/hardware/hybrid} |
+   | Product Type | {canonical lowercase type: software/hardware/hybrid/experience} |
+   | Sub-type | {sub_type} |    ← only for experience product type
    | Platform | {platform} |
    ```
 
@@ -504,11 +516,14 @@ node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update BRF versio
 **Set manifest root-level fields:**
 
 - `{project_name}` — Extract from PROJECT.md: use the `name:` frontmatter field if present, otherwise use the text of the first `# Heading`. If neither is available, use `"unknown"`.
-- `{product_type}` — Use the product type string already resolved in Step 4 (one of: `software`, `hardware`, `hybrid`).
+- `{product_type}` — Use the product type string already resolved in Step 4 (one of: `software`, `hardware`, `hybrid`, `experience`).
 
 ```bash
 node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level projectName "{project_name}"
 node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level productType {product_type}
+# If experience type: write sub-type to manifest
+# If non-experience type: write null to clear any prior value
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level experienceSubType {sub_type_or_null}
 ```
 
 Display: `Step 7/7: Root DESIGN-STATE and manifest updated.`
@@ -541,7 +556,7 @@ Display the final summary table (always the last output):
 - NEVER write to root DESIGN-STATE.md without first acquiring the write lock via `pde-tools.cjs design lock-acquire`. Writing without the lock risks concurrent write corruption.
 - NEVER skip domain DESIGN-STATE.md creation. `strategy/DESIGN-STATE.md` MUST be created if it does not exist. Downstream skills (/pde:flows, /pde:system) read this file to discover prior brief artifacts.
 - NEVER continue if PROJECT.md is missing. Hard error, not warning. PROJECT.md is the only hard prerequisite.
-- ALWAYS use the same canonical lowercase product type string (`software`, `hardware`, or `hybrid`) in all three locations: brief frontmatter `Product Type` field, brief `## Product Type` section `**Type:**` line, and root DESIGN-STATE.md Quick Reference `| Product Type |` row. Inconsistent casing or abbreviations break downstream consumers.
+- ALWAYS use the same canonical lowercase product type string (`software`, `hardware`, `hybrid`, or `experience`) in all three locations: brief frontmatter `Product Type` field, brief `## Product Type` section `**Type:**` line, and root DESIGN-STATE.md Quick Reference `| Product Type |` row. Inconsistent casing or abbreviations break downstream consumers.
 - ALWAYS release the write lock (Step 7 lock-release) even if an error occurs during root DESIGN-STATE.md updates. The lock has a 60s TTL but releasing immediately prevents blocking other skills.
 - NEVER add a `hasBrief` flag to design-manifest.json. Brief completion is tracked via the presence of `artifacts.BRF` in the manifest, not via a coverage flag. The manifest schema does not have a `hasBrief` field.
 
