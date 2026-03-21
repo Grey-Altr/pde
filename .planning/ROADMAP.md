@@ -227,7 +227,10 @@ Plans:
   2. The CRT report for a Stitch-sourced artifact contains zero DTCG token-format consistency findings (hardcoded hex values from Stitch are not flagged as token violations)
   3. The Stitch Comparison section shows a per-screen delta report listing: token compliance percentage, properties that deviate from the design system, novel patterns found in Stitch output, and patterns present in the design system but absent in Stitch output
   4. Claude reads the STH-{slug}.png screenshot file using multimodal image analysis as part of the critique, and the report references visual observations that could only be derived from the image (not just HTML source)
-**Plans**: [To be planned]
+**Plans**: 2 plans
+Plans:
+- [ ] 68-01-PLAN.md — Add Stitch-aware evaluation mode to critique.md (detection, token suppression, PNG reading, comparison section)
+- [ ] 68-02-PLAN.md — Nyquist test suite covering all 4 CRT requirements
 
 ### Phase 69: Handoff Pattern Extraction
 **Goal**: /pde:handoff detects Stitch-sourced artifacts, extracts component patterns from annotated HTML, converts hex colors to OKLCH, and produces TypeScript interfaces that integrate with the existing handoff spec
@@ -256,5 +259,5 @@ Plans:
 | 65 | v0.9 | 2/2 | Complete | 2026-03-20 |
 | 66 | 3/3 | Complete    | 2026-03-21 | - |
 | 67 | 2/2 | Complete    | 2026-03-21 | - |
-| 68 | v0.9 | 0/TBD | Not started | - |
+| 68 | v0.9 | 0/2 | Not started | - |
 | 69 | v0.9 | 0/TBD | Not started | - |
