@@ -16,7 +16,7 @@ Enhanced By: "{MCP list or none}"
 
 ## Product Type
 
-**Type:** {software | hardware | hybrid}
+**Type:** {software | hardware | hybrid | experience}
 **Platform:** {web | mobile | desktop | embedded | multi-platform}
 **Rationale:** {why this classification}
 
@@ -64,6 +64,44 @@ Enhanced By: "{MCP list or none}"
 
 **Out of scope (v1):**
 - {feature/capability} -- {why deferred}
+
+<!-- Experience product type only — omit for software, hardware, hybrid -->
+## Promise Statement
+
+{One sentence an attendee tells a friend}
+
+## Vibe Contract
+
+- **Emotional arc:** {opening mood → build → peak → comedown → departure feeling}
+- **Peak timing:** {when peak energy occurs}
+- **Aesthetic register:** {lighting aesthetic, sound character, material mood}
+- **Energy level:** {Low | Medium | High | Transcendent}
+
+## Audience Archetype
+
+| Dimension | Value |
+|-----------|-------|
+| Crowd composition | {demographic mix} |
+| Mobility needs | {accessibility requirements} |
+| Group size | {typical party size} |
+| Energy profile | {physical engagement expectation} |
+
+## Venue Constraints
+
+| Constraint | Value |
+|------------|-------|
+| Capacity | {maximum legal capacity} [VERIFY WITH LOCAL AUTHORITY] |
+| Curfew | {noise curfew time} [VERIFY WITH LOCAL AUTHORITY] |
+| Noise limits | {dB SPL limit} [VERIFY WITH LOCAL AUTHORITY] |
+| Load-in windows | {when production can access venue} |
+| Fixed infrastructure | {PA, stage, lighting rigs, bar locations, structural restrictions} |
+
+## Repeatability Intent
+
+**Type:** one-off | series
+**Cadence:** {weekly / monthly / quarterly / annual / irregular} | N/A
+**Edition naming:** {how editions are distinguished} | N/A
+**Template mode:** enabled | disabled
 
 ---
 

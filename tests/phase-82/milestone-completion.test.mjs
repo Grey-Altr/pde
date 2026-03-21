@@ -226,19 +226,31 @@ describe('Pending phases — Phase 74 stubs intact (phases 75-78 NOT YET IMPLEME
     );
   });
 
-  test('brief.md has experience detection but BREF extension fields are pending (Phase 75)', () => {
+  test('brief.md has experience detection and BREF extension fields (Phase 75 complete)', () => {
     const content = readWorkflow('workflows/brief.md');
     assert.ok(
       content.includes('experience'),
-      'brief.md: experience detection missing — Phase 74 must wire experience classification'
+      'brief.md: experience detection missing'
     );
     assert.ok(
-      !content.includes('promise_statement'),
-      'brief.md: promise_statement field found but Phase 75 (BREF extensions) is not yet implemented'
+      content.includes('Promise Statement'),
+      'brief.md: Promise Statement section missing — Phase 75 (BREF-01) not implemented'
     );
     assert.ok(
-      !content.includes('vibe_contract'),
-      'brief.md: vibe_contract field found but Phase 75 (BREF extensions) is not yet implemented'
+      content.includes('Vibe Contract'),
+      'brief.md: Vibe Contract section missing — Phase 75 (BREF-02) not implemented'
+    );
+    assert.ok(
+      content.includes('Audience Archetype'),
+      'brief.md: Audience Archetype section missing — Phase 75 (BREF-03) not implemented'
+    );
+    assert.ok(
+      content.includes('Venue Constraints'),
+      'brief.md: Venue Constraints section missing — Phase 75 (BREF-04) not implemented'
+    );
+    assert.ok(
+      content.includes('Repeatability Intent'),
+      'brief.md: Repeatability Intent section missing — Phase 75 (BREF-05) not implemented'
     );
   });
 });

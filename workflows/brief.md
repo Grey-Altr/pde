@@ -293,7 +293,7 @@ Enhanced By: "{comma-separated MCP names used, or none}"
 **`## Product Type`**
 
 ```markdown
-**Type:** {software | hardware | hybrid}
+**Type:** {software | hardware | hybrid | experience}
 **Platform:** {web | mobile | desktop | embedded | multi-platform}
 **Rationale:** {1-2 sentences explaining the classification and which signals led to it}
 
@@ -319,6 +319,13 @@ For `hardware` type, the Design Constraints table MUST cover:
 
 For `hybrid` type, include BOTH software AND hardware constraint categories, PLUS:
 - Integration protocol (BLE, USB, Wi-Fi, API bridge — based on how software and hardware communicate)
+
+For `experience` type, the Design Constraints table MUST cover:
+- Venue capacity (legal maximum attendee count) — [VERIFY WITH LOCAL AUTHORITY]
+- Noise ordinance (dB SPL limit at boundary / curfew time) — [VERIFY WITH LOCAL AUTHORITY]
+- Egress requirement (minimum exit count, route widths, emergency egress) — [VERIFY WITH LOCAL AUTHORITY]
+- Accessibility standard (step-free access routes, BSL provision, quiet zones, platform seating)
+- Sub-type (single-night | multi-day | recurring-series | installation | hybrid-event) — detected in Step 4
 
 **`## Target Users`**
 
@@ -402,6 +409,52 @@ Include 3-6 assumptions about market, users, technology, or business model. Thes
 ```
 
 Derive in-scope items from PROJECT.md's stated goals. Derive out-of-scope items from PROJECT.md's explicit exclusions, plus infer common scope-creep items for this product category that would be deferred to v2+.
+
+<!-- Experience product type — Phase 75: experience-specific sections -->
+**If `product_type == "experience"`**, after writing `## Scope Boundaries`, write these five additional sections:
+
+**`## Promise Statement`** — One sentence in the voice of an attendee: what they would tell a friend about this event. Synthesize from PROJECT.md event description, atmosphere goals, and any language about the intended attendee experience. If PROJECT.md does not provide enough context, write: `[PROVIDE: One sentence your attendee tells a friend — what makes this event unmissable?]`
+
+**`## Vibe Contract`** — The emotional arc of the event with three components:
+- **Emotional arc:** Opening mood → build → peak → comedown → departure feeling (derive from event goals in PROJECT.md)
+- **Peak timing:** When does the event reach maximum energy? (derive from run-of-show signals in PROJECT.md, or `[PROVIDE: Peak timing — e.g., "midnight drop" or "golden hour finale"]`)
+- **Aesthetic register:** The sensory vocabulary of the event: lighting aesthetic, sound character, material mood (derive from atmosphere signals in PROJECT.md)
+- **Energy level:** Low / Medium / High / Transcendent — where does this sit on the physiological engagement scale?
+
+**`## Audience Archetype`** — The crowd composition described in four dimensions:
+| Dimension | Value |
+|-----------|-------|
+| Crowd composition | {demographic mix — age range, scene membership, first-timers vs regulars} |
+| Mobility needs | {accessibility requirements — step-free, seating zones, companion spaces} |
+| Group size | {typical party size — solo, pairs, groups of 4-6, large crews} |
+| Energy profile | {physical engagement expectation — active dance floor, seated performance, mixed zones} |
+
+Synthesize from PROJECT.md audience descriptions. Use `[PROVIDE: ...]` for any dimension with no PROJECT.md basis.
+
+**`## Venue Constraints`** — The fixed physical parameters of the venue:
+| Constraint | Value |
+|------------|-------|
+| Capacity | {maximum legal capacity — `[PROVIDE]` if unknown} [VERIFY WITH LOCAL AUTHORITY] |
+| Curfew | {noise curfew time — `[PROVIDE]` if unknown} [VERIFY WITH LOCAL AUTHORITY] |
+| Noise limits | {dB SPL limit or zone restrictions — `[PROVIDE]` if unknown} [VERIFY WITH LOCAL AUTHORITY] |
+| Load-in windows | {when production can access the venue — `[PROVIDE]` if unknown} |
+| Fixed infrastructure | {PA system, stage, lighting rigs, bar locations, structural restrictions} |
+
+Synthesize from PROJECT.md venue signals. ALL numerical regulatory values MUST carry `[VERIFY WITH LOCAL AUTHORITY]` inline per `@references/experience-disclaimer.md`.
+
+**`## Repeatability Intent`** — Whether this is a one-off or a series:
+
+**Format:**
+```
+**Type:** one-off | series
+**Cadence:** {if series: weekly / monthly / quarterly / annual / irregular} | N/A
+**Edition naming:** {if series: how editions are distinguished — "Autumn 2026", "Vol. 3", etc.} | N/A
+**Template mode:** {enabled if series — downstream artifacts will include {{variable}} slots} | disabled
+```
+
+Derive from sub_type signals: `recurring-series` → series type. `single-night`, `multi-day`, `installation` → one-off unless PROJECT.md states otherwise.
+
+<!-- End experience-only sections -->
 
 **Footer:**
 ```markdown
