@@ -79,6 +79,7 @@ Any user can go from idea to shipped product through a single platform that hand
 ### Active
 
 - Phase 74 complete: Experience product type structurally integrated — detection in brief.md (48 signals, 5 sub-types), branch stubs in all 14 pipeline workflows, regression smoke matrix (7/7 pass), experienceSubType manifest field, regulatory disclaimer block — v0.11
+- Phase 79 complete: Critique and HIG extensions — critique.md has 7 experience-specific perspectives (safety, accessibility, operations, sustainability, licensing/legal, financial, community), hig.md has 7 physical interface guideline domains (wayfinding, acoustic zoning, queue UX, transaction speed, toilet ratio, hydration, first aid), all with inline `[VERIFY WITH LOCAL AUTHORITY]` regulatory disclaimers, 20 Nyquist tests passing — v0.11
 
 ## Current Milestone: v0.11 Experience Product Type
 
@@ -216,4 +217,4 @@ Any user can go from idea to shipped product through a single platform that hand
 | Sub-types as manifest metadata, not pipeline branches | 5 experience sub-types stored as `experienceSubType` in manifest; conditional blocks in existing workflows, no new workflow files | ✓ Good — 8 branch points vs 40 if structural; preserves --from resumption |
 | Experience branch stubs before content | Phase 74 adds empty stubs to all 14 workflows; content filled by Phases 75-82 | ✓ Good — atomicity preserved, regression test guards from day one |
 | Regulatory disclaimer as reusable reference block | `references/experience-disclaimer.md` loaded via `@references/` pattern in critique and handoff | ✓ Good — single source of truth for [VERIFY WITH LOCAL AUTHORITY] tag |
-*Last updated: 2026-03-21 after Phase 74 complete — Foundation and Regression Infrastructure*
+*Last updated: 2026-03-21 after Phase 79 complete — Critique and HIG Extensions*
