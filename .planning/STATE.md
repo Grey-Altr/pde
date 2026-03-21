@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.11
 milestone_name: Experience Product Type
 status: unknown
-stopped_at: Completed 76-02-PLAN.md
-last_updated: "2026-03-21T22:30:05.511Z"
+stopped_at: Completed 77-01-PLAN.md
+last_updated: "2026-03-21T22:56:36.261Z"
 progress:
   total_phases: 9
   completed_phases: 7
-  total_plans: 14
-  completed_plans: 14
+  total_plans: 16
+  completed_plans: 15
 ---
 
 # Project State
@@ -19,11 +19,11 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 76 — experience-design-token-architecture
+**Current focus:** Phase 77 — flow-diagrams
 
 ## Current Position
 
-Phase: 76 (experience-design-token-architecture) — EXECUTING
+Phase: 77 (flow-diagrams) — EXECUTING
 Plan: 1 of 2
 
 ## Performance Metrics
@@ -81,6 +81,9 @@ Key architectural constraints locked for this milestone:
 - [Phase 76]: SYS-experience-tokens.json first reference moved out of Step 2 stub comment — ensures PRODUCT_TYPE guard precedes all file references in test ordering
 - [Phase 76]: Phase 82 DSYS todo markers (7) replaced with positive passing assertions in same commit as system.md edit
 - [Phase 76]: Stub test at lines 221-227 replaced with Phase 76 complete assertions (SYS-experience-tokens.json + Step 5b) — keeps structural parity with Phase 75 pattern
+- [Phase 77]: Step 4-EXP mutual exclusion: experience products skip Steps 4a-4e entirely — TFL/SFL/SOC generated via dedicated path, not alongside software flow
+- [Phase 77]: spaces-inventory.json uses fixed unversioned path (.planning/design/ux/spaces-inventory.json) — same convention as FLW-screen-inventory.json, consumed by Phase 78 floor plan
+- [Phase 77]: Coverage updated to 16-field read-merge-write pattern (adds hasPrintCollateral, hasProductionBible) — prevents coverage field truncation on experience product runs
 
 ### Phase Ordering Rationale
 
@@ -105,8 +108,8 @@ Key architectural constraints locked for this milestone:
 
 ## Session Continuity
 
-Last session: 2026-03-21T22:26:40.710Z
-Stopped at: Completed 76-02-PLAN.md
+Last session: 2026-03-21T22:56:36.258Z
+Stopped at: Completed 77-01-PLAN.md
 Resume file: None
 
 Next action: Execute Phase 75 (experience design system token generation)

@@ -34,10 +34,10 @@ Requirements for Experience Product Type milestone. Each maps to roadmap phases.
 
 ### Flows
 
-- [ ] **FLOW-01**: Temporal flow diagram generated (awareness → anticipation → arrival → immersion → peak → comedown → departure → afterglow)
-- [ ] **FLOW-02**: Spatial flow diagram generated (entry funnel → zones → circulation → bottlenecks → emergency egress)
-- [ ] **FLOW-03**: Social flow diagram generated (solo vs group, meeting points, stranger interaction, dancefloor density)
-- [ ] **FLOW-04**: Spaces inventory JSON produced alongside flow diagrams for floor plan consumption
+- [x] **FLOW-01**: Temporal flow diagram generated (awareness → anticipation → arrival → immersion → peak → comedown → departure → afterglow)
+- [x] **FLOW-02**: Spatial flow diagram generated (entry funnel → zones → circulation → bottlenecks → emergency egress)
+- [x] **FLOW-03**: Social flow diagram generated (solo vs group, meeting points, stranger interaction, dancefloor density)
+- [x] **FLOW-04**: Spaces inventory JSON produced alongside flow diagrams for floor plan consumption
 
 ### Wireframe
 
@@ -129,10 +129,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DSYS-05 | Phase 76 | Complete |
 | DSYS-06 | Phase 76 | Complete |
 | DSYS-07 | Phase 76 | Complete |
-| FLOW-01 | Phase 77 | Pending |
-| FLOW-02 | Phase 77 | Pending |
-| FLOW-03 | Phase 77 | Pending |
-| FLOW-04 | Phase 77 | Pending |
+| FLOW-01 | Phase 77 | Complete |
+| FLOW-02 | Phase 77 | Complete |
+| FLOW-03 | Phase 77 | Complete |
+| FLOW-04 | Phase 77 | Complete |
 | WIRE-01 | Phase 78 | Pending |
 | WIRE-02 | Phase 78 | Pending |
 | WIRE-03 | Phase 78 | Pending |

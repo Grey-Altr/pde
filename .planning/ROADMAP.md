@@ -336,7 +336,7 @@ Plans:
 | 74. Foundation and Regression Infrastructure | 2/2 | Complete    | 2026-03-21 | - |
 | 75. Brief Extensions | 2/2 | Complete    | 2026-03-21 | - |
 | 76. Experience Design Token Architecture | 2/2 | Complete    | 2026-03-21 | - |
-| 77. Flow Diagrams | v0.11 | 0/2 | Planned | - |
+| 77. Flow Diagrams | 1/2 | In Progress|  | - |
 | 78. Wireframe Stage Extensions | v0.11 | 0/TBD | Not started | - |
 | 79. Critique and HIG Extensions | 2/2 | Complete    | 2026-03-21 | - |
 | 80. Print Collateral | 2/2 | Complete    | 2026-03-21 | - |
