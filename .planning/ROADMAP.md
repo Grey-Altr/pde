@@ -259,8 +259,8 @@ Plans:
   4. Both FLP and TML artifacts appear in design-manifest.json under their artifact codes with correct source paths
 **Plans**: 2 plans
 Plans:
-- [ ] 75-01-PLAN.md — Wave 0 Nyquist tests + experience brief sections in brief.md and design-brief.md template (BREF-01 through BREF-05)
-- [ ] 75-02-PLAN.md — Phase 82 test update: flip negative BREF assertions to positive + cross-phase regression
+- [ ] 78-01-PLAN.md — Wave 0 Nyquist tests + experience wireframe generation in wireframe.md (WIRE-01 through WIRE-03)
+- [ ] 78-02-PLAN.md — Phase 82 test update: flip WIRE todo markers to positive assertions + milestone gate verification
 
 ### Phase 79: Critique and HIG Extensions
 **Goal**: The critique stage applies seven event-specific perspectives to the floor plan, and the HIG stage applies physical interface guidelines replacing WCAG checks — both with mandatory regulatory disclaimer tags on every compliance assertion
@@ -337,7 +337,7 @@ Plans:
 | 75. Brief Extensions | 2/2 | Complete    | 2026-03-21 | - |
 | 76. Experience Design Token Architecture | 2/2 | Complete    | 2026-03-21 | - |
 | 77. Flow Diagrams | 2/2 | Complete    | 2026-03-21 | - |
-| 78. Wireframe Stage Extensions | v0.11 | 0/TBD | Not started | - |
+| 78. Wireframe Stage Extensions | v0.11 | 0/2 | Not started | - |
 | 79. Critique and HIG Extensions | 2/2 | Complete    | 2026-03-21 | - |
 | 80. Print Collateral | 2/2 | Complete    | 2026-03-21 | - |
 | 81. Handoff — Production Bible | 2/2 | Complete    | 2026-03-21 | - |
