@@ -451,3 +451,210 @@ describe('Manifest template: hasProductionBible flag', () => {
     );
   });
 });
+
+// ---------------------------------------------------------------------------
+// SC-4: Software product isolation — no BIB generation
+// ---------------------------------------------------------------------------
+
+describe('SC-4: Software product isolation — no BIB generation', () => {
+  const content = readFileSync(join(ROOT, 'workflows/handoff.md'), 'utf8');
+
+  // Extract the software branch text from Step 4i
+  // The software branch starts at `- "software":` and ends before `- "hardware":`
+  const softwareBranchMatch = content.match(/- "software":[^\n]*(?:\n(?!- ")[^\n]*)*/);
+  const softwareBranchText = softwareBranchMatch ? softwareBranchMatch[0] : '';
+
+  test('handoff.md software branch contains "software component API" instruction', () => {
+    assert.ok(
+      softwareBranchText.includes('software component API') || softwareBranchText.includes('software component api'),
+      'handoff.md software branch missing "software component API" instruction at Step 4i'
+    );
+  });
+
+  test('handoff.md software branch does NOT contain "Production Bible"', () => {
+    assert.ok(
+      !softwareBranchText.includes('Production Bible'),
+      'handoff.md software branch must not reference "Production Bible" — BIB generation is for experience products only'
+    );
+  });
+
+  test('handoff.md software branch does NOT contain "BIB_GENERATES_SECTIONS"', () => {
+    assert.ok(
+      !softwareBranchText.includes('BIB_GENERATES_SECTIONS'),
+      'handoff.md software branch must not set BIB_GENERATES_SECTIONS — this flag is for experience products only'
+    );
+  });
+
+  test('handoff.md software branch does NOT contain "Advance Document"', () => {
+    assert.ok(
+      !softwareBranchText.includes('Advance Document'),
+      'handoff.md software branch must not contain "Advance Document" — this is a BIB section (experience products only)'
+    );
+  });
+
+  test('handoff.md software branch does NOT contain "Run Sheet"', () => {
+    assert.ok(
+      !softwareBranchText.includes('Run Sheet'),
+      'handoff.md software branch must not contain "Run Sheet" — this is a BIB section (experience products only)'
+    );
+  });
+
+  test('handoff.md anti-patterns section explicitly prohibits BIB generation for software products', () => {
+    assert.ok(
+      content.includes('Generate BIB for software products') ||
+      content.includes('NEVER receive production bible sections') ||
+      content.includes('NEVER generate Production Bible'),
+      'handoff.md anti-patterns must explicitly prohibit BIB generation for software products'
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// SC-5: Hybrid-event dual-surface output
+// ---------------------------------------------------------------------------
+
+describe('SC-5: Hybrid-event dual-surface output', () => {
+  const content = readFileSync(join(ROOT, 'workflows/handoff.md'), 'utf8');
+
+  test('handoff.md contains hybrid-event sub-type name', () => {
+    assert.ok(
+      content.includes('hybrid-event'),
+      'handoff.md missing "hybrid-event" sub-type reference'
+    );
+  });
+
+  test('handoff.md sets HND_GENERATES_SOFTWARE = true for hybrid-event', () => {
+    assert.ok(
+      content.includes('HND_GENERATES_SOFTWARE = true'),
+      'handoff.md must set HND_GENERATES_SOFTWARE = true for hybrid-event sub-type'
+    );
+  });
+
+  test('handoff.md sets BIB_GENERATES_SECTIONS = true for experience products', () => {
+    assert.ok(
+      content.includes('BIB_GENERATES_SECTIONS = true'),
+      'handoff.md must set BIB_GENERATES_SECTIONS = true for experience products (including hybrid-event)'
+    );
+  });
+
+  test('handoff.md contains instruction to write BIB file (BIB- prefix)', () => {
+    assert.ok(
+      content.includes('BIB-{event-slug}') || content.includes('BIB-{event_slug}') || content.includes('BIB-'),
+      'handoff.md must contain instruction to write BIB output file'
+    );
+  });
+
+  test('handoff.md contains instruction to ALSO write HND-handoff-spec for hybrid-event', () => {
+    assert.ok(
+      content.includes('HND-handoff-spec-v{HND_VERSION}.md') || content.includes('HND-handoff-spec'),
+      'handoff.md must contain instruction to write HND-handoff-spec file (for hybrid-event software layer)'
+    );
+  });
+
+  test('handoff.md Step 7b-bib registers BIB artifact in manifest', () => {
+    assert.ok(
+      content.includes('manifest-update BIB'),
+      'handoff.md Step 7b-bib must register BIB artifact via manifest-update BIB'
+    );
+  });
+
+  test('handoff.md Step 7b registers HND artifact in manifest', () => {
+    assert.ok(
+      content.includes('manifest-update HND'),
+      'handoff.md Step 7b must register HND artifact via manifest-update HND'
+    );
+  });
+
+  test('handoff.md hybrid-event produces both BIB and HND (dual output instruction present)', () => {
+    // Verify the dual-output instruction: hybrid-event writes BOTH BIB and HND outputs
+    assert.ok(
+      content.includes('BOTH BIB') || content.includes('ALSO write HND') || content.includes('both BIB'),
+      'handoff.md must explicitly state that hybrid-event produces BOTH BIB and HND outputs'
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Hybrid-event STACK.md check NOT skipped
+// ---------------------------------------------------------------------------
+
+describe('Hybrid-event STACK.md check NOT skipped', () => {
+  const content = readFileSync(join(ROOT, 'workflows/handoff.md'), 'utf8');
+
+  test('handoff.md Step 2a explicitly requires STACK.md check for hybrid-event', () => {
+    // The bypass condition must exclude hybrid-event — hybrid-event needs STACK.md for digital layer
+    assert.ok(
+      content.includes('experienceSubType is "hybrid-event"') ||
+      content.includes("experienceSubType is 'hybrid-event'"),
+      'handoff.md Step 2a must reference hybrid-event in STACK.md bypass condition'
+    );
+  });
+
+  test('handoff.md Step 2a SKIP condition applies only to non-hybrid-event experience', () => {
+    // The skip must be conditional on NOT being hybrid-event
+    assert.ok(
+      content.includes('experienceSubType is NOT "hybrid-event"') ||
+      content.includes("experienceSubType is NOT 'hybrid-event'"),
+      'handoff.md SKIP STACK.md check must be gated on experienceSubType NOT being "hybrid-event"'
+    );
+  });
+
+  test('handoff.md Step 2a contains "Proceed with STACK.md check" for hybrid-event path', () => {
+    assert.ok(
+      content.includes('Proceed with STACK.md check'),
+      'handoff.md Step 2a must have a "Proceed with STACK.md check" instruction for hybrid-event'
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// No Phase 74 stubs remaining
+// ---------------------------------------------------------------------------
+
+describe('No Phase 74 stubs remaining', () => {
+  const content = readFileSync(join(ROOT, 'workflows/handoff.md'), 'utf8');
+
+  test('handoff.md does NOT contain "Phase 74 stub"', () => {
+    assert.ok(
+      !content.includes('Phase 74 stub'),
+      'handoff.md must not contain "Phase 74 stub" — all stubs must be replaced with full implementation'
+    );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Step 7d summary handles experience products
+// ---------------------------------------------------------------------------
+
+describe('Step 7d summary handles experience products', () => {
+  const content = readFileSync(join(ROOT, 'workflows/handoff.md'), 'utf8');
+
+  test('handoff.md Step 7d summary table contains "Production Bible" row for experience products', () => {
+    assert.ok(
+      content.includes('Production Bible'),
+      'handoff.md Step 7d summary table must include "Production Bible" row for experience product output'
+    );
+  });
+
+  test('handoff.md Step 7d summary has conditional block for experience products', () => {
+    assert.ok(
+      content.includes('IF PRODUCT_TYPE is "experience"') || content.includes("IF PRODUCT_TYPE is 'experience'"),
+      'handoff.md Step 7d must have a conditional block specifically for experience product summary output'
+    );
+  });
+
+  test('handoff.md Step 7d summary includes Sub-type row for experience products', () => {
+    assert.ok(
+      content.includes('Sub-type') || content.includes('sub-type') || content.includes('Sub-Type'),
+      'handoff.md Step 7d experience summary must include Sub-type row showing experienceSubType value'
+    );
+  });
+
+  test('handoff.md Step 7d summary for hybrid-event includes HND spec reference', () => {
+    // The summary note for hybrid-event should reference both BIB and HND outputs
+    assert.ok(
+      content.includes('hybrid-event') && (content.includes('HND spec') || content.includes('HND-handoff-spec')),
+      'handoff.md Step 7d must reference HND spec for hybrid-event alongside the production bible'
+    );
+  });
+});
