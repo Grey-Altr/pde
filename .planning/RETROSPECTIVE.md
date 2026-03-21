@@ -383,6 +383,43 @@
 
 ---
 
+## Milestone: v0.9 — Google Stitch Integration
+
+**Shipped:** 2026-03-21
+**Phases:** 6 | **Plans:** 12 | **Commits:** 76
+
+### What Was Built
+Google Stitch AI UI design tool fully integrated into PDE's 13-stage design pipeline. Coverage schema extended (Phase 64), MCP bridge + quota infrastructure (Phase 65), wireframe/mockup `--use-stitch` with generate-fetch-persist-annotate pipeline (Phase 66), ideation visual divergence with batch consent (Phase 67), critique Stitch comparison with token suppression and multimodal PNG analysis (Phase 68), handoff pattern extraction with hex-to-OKLCH TypeScript interfaces (Phase 69). 215 Nyquist tests provide structural regression coverage.
+
+### What Worked
+- **Research-first approach pays off**: Phase 69 research (handoff pattern extraction) identified exact insertion points in the 1000+ line handoff.md workflow, preventing blind exploration during execution
+- **File-parse test pattern**: Established in Phase 65, the `readFileSync + node:test + assert/strict` pattern proved remarkably effective — 215 tests run in <60ms total, providing fast feedback without requiring live MCP connections
+- **Pass-through-all pattern for coverage flags**: The `{current}` placeholder approach from Phase 64 prevented coverage flag clobbering across all 12 workflows — zero regressions when hasStitchWireframes was added as the 14th field
+- **Per-artifact detection (not per-project)**: Using manifest `source: "stitch"` per-artifact rather than the project-level `hasStitchWireframes` flag enabled mixed WFR+Stitch projects from day one
+- **Auto-advance pipeline**: Phases 67-69 each ran plan→verify→execute→verify in a single auto-advance chain, reducing orchestration overhead
+
+### What Was Inefficient
+- **VALIDATION.md pre-execution drift**: The validation strategy created before planning (Step 5.5 of plan-phase) uses stale test infrastructure guesses that never match the actual plans. Phase 66 ended up with `nyquist_compliant: false` frontmatter despite 65/65 tests passing — pure documentation debt
+- **SUMMARY frontmatter inconsistency**: Phase 65 SUMMARYs have empty `requirements-completed` arrays while all other phases populate them. This created a 3-source cross-reference gap during milestone audit
+- **Phase Detail section in ROADMAP.md**: The detailed phase sections accumulated ~100 lines per phase. By Phase 69, the ROADMAP was nearly 250 lines of archived detail. Archival should happen per-phase, not per-milestone
+
+### Patterns Established
+- **Stitch integration pattern**: consent gate → MCP call → fetch artifact → persist locally → inject annotations → register in manifest with `source: "stitch"` — reusable for any future MCP-based generation tool
+- **DTCG token suppression**: Per-artifact `SUPPRESS_TOKEN_FINDINGS` flag rather than global mode switch — allows mixed token-aware and token-suppressed critique in the same run
+- **Inline conversion functions**: hexToOklch (handoff) follows the figmaColorToCss (Figma integration) precedent — zero-npm pure-math conversion functions embedded in workflows
+
+### Key Lessons
+- Quota tracking with lazy initialization is the right pattern for optional MCP integrations — no config pre-seeding needed, no overhead when the integration isn't used
+- TOOL_MAP_VERIFY_REQUIRED markers with live verification gates are safer than assumed tool names from community documentation
+- The annotation injection → gate → extraction chain (Phase 66 → Phase 69) demonstrates that phased MCP integration works when each phase deposits a clear signal in the manifest for downstream phases to consume
+
+### Cost Observations
+- Model mix: ~40% opus (planning), ~55% sonnet (execution, verification, integration check), ~5% orchestration overhead
+- Sessions: 3 (phases 64-66 in session 1, phases 67-69 + audit in session 2, milestone completion in session 3)
+- Notable: Auto-advance chain reduced human intervention to zero for phases 67-69 — each phase planned, executed, and verified autonomously
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
