@@ -396,6 +396,8 @@ For each wireframe file in WIREFRAME_FILES:
       - At hifi: color contrast failures are "major" or "critical" (real product colors applied)
     Tag: [Manual WCAG review -- install /pde:hig for enhanced accessibility audit]
 
+  <!-- Experience product type — Phase 74 stub: seven event-specific critique perspectives (safety, accessibility, operations, sustainability, licensing, financial, community) are added in Phase 79. Current behavior: proceed with software critique path as temporary fallback for experience product type. NEVER apply these software critique perspectives as final for experience products from this stub. -->
+
   #### Perspective 4: Business Alignment (weight 1.0x)
 
   Evaluate against:

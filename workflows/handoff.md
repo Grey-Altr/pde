@@ -513,6 +513,9 @@ Based on PRODUCT_TYPE:
 - "software": include software component API sections, omit Hardware Handoff sections
 - "hardware": omit software component API sections (replace with Note: "Software component APIs not applicable for hardware product"), include Hardware Handoff sections
 - "hybrid": include both software and hardware sections
+- "experience":  Phase 74 stub — experience-specific content added in subsequent phases.
+                 Current behavior: proceed with software path as temporary fallback.
+                 NEVER produce floor plans, production bibles, or experience token files from this stub.
 - If PRODUCT_TYPE unavailable (default "software"): include software sections only
 
 ---
@@ -651,6 +654,9 @@ After `### Interaction Specs`, check whether this screen has concept-specific in
 11. If PRODUCT_TYPE is "hardware" or "hybrid":
     `# Hardware Handoff` — BOM Export, Dimension Drawings, Materials & Finish Spec, DFM Notes, Assembly Sequence, Compliance Checklist, Supplier List, Prototyping Guide sections (populate from brief or hardware spec if available, otherwise use placeholder structure with notes)
     If PRODUCT_TYPE is "hybrid", add `## Cross-References (Hybrid Products)` table.
+    If PRODUCT_TYPE is "experience": Phase 74 stub — production bible and experience handoff sections added in Phase 81.
+                 Current behavior: proceed with software path as temporary fallback.
+                 NEVER produce floor plans, production bibles, or experience token files from this stub.
 
 12. Footer:
     ```

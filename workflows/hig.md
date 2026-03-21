@@ -46,6 +46,8 @@ Use highest-fidelity artifact found. Log which artifact(s) being audited and the
 
 </context_routing>
 
+<!-- Experience product type — Phase 74 stub: physical interface guidelines replacing WCAG checks (acoustic zone signage legibility, wayfinding contrast, crowd flow indicator visibility) are added in Phase 79. Current behavior: proceed with WCAG/HIG software path as temporary fallback for experience product type. NEVER apply software WCAG findings as final for experience products from this stub. -->
+
 <required_reading>
 @references/skill-style-guide.md
 @references/mcp-integration.md

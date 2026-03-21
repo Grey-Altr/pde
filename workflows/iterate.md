@@ -7,6 +7,8 @@ Critique-driven iteration of wireframes. Reads the latest CRT-critique-v{N}.md, 
 @references/mcp-integration.md
 </required_reading>
 
+<!-- Experience product type — Phase 74 stub: experience iteration targets floor plan revisions (FLP), run-of-show updates (TML), and signage adjustments rather than wireframe HTML. Added in Phase 79 after critique experience perspectives are established. Current behavior: proceed with wireframe iteration path as temporary fallback for experience product type. NEVER apply wireframe iteration to experience floor plans from this stub. -->
+
 <flags>
 ## Supported Flags
 

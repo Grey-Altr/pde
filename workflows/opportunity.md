@@ -28,6 +28,8 @@ IF PROJECT.md missing:
 IF CMP competitive artifact found:
   Load most recent version (highest version number)
   Parse ## Opportunity Highlights > ### Top Opportunities numbered list
+
+<!-- Experience product type — Phase 74 stub: opportunity analysis applies to experience market (venue operators, event producers, attendee-facing features). Experience-specific opportunity scoring extensions added in subsequent phases. Current behavior: proceed with software opportunity analysis path as temporary fallback for experience product type. -->
   For each item extract: bold name (**[Gap Name]**), Source: sub-field,
     Estimated reach: sub-field, Competitive advantage: sub-field
   Pre-populate candidates table

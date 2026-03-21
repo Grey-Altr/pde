@@ -35,6 +35,8 @@ IF BRF brief artifact found:
 ELSE:
   Log: "  -> No brief found — using PROJECT.md only for competitor identification"
 
+<!-- Experience product type — Phase 74 stub: competitive analysis applies to experience venues and events (venue operators, festival brands, live experience producers). Experience-specific competitive analysis framework added in subsequent phases. Current behavior: proceed with software competitive analysis path as temporary fallback for experience product type. -->
+
 IF REQUIREMENTS.md found:
   Load it — use for feature comparison matrix rows
   Log: "  -> REQUIREMENTS.md loaded: {N} requirements for matrix"

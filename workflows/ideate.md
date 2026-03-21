@@ -533,6 +533,7 @@ ELSE:
 
 ### Product Type
 {From PROJECT.md product type detection or BRF artifact if present}
+<!-- Experience product type — Phase 74 stub: experience ideation follows the same divergent concept generation pattern. Experience-specific ideation extensions (venue layouts, run-of-show concepts, spatial experience concepts) added in subsequent phases. Current behavior: proceed with software ideation path as temporary fallback for experience product type. -->
 
 ### Platform
 {From PROJECT.md target platform}

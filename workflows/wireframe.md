@@ -147,6 +147,8 @@ Use the Glob tool to check for `.planning/design/strategy/BRF-brief-v*.md`. Sort
 
 Store as PRODUCT_NAME, PRODUCT_TYPE.
 
+<!-- Experience product type — Phase 74 stub: floor plan (FLP) and timeline (TML) artifacts are added in Phase 78. Current behavior: proceed with software wireframe path as temporary fallback for experience product type. NEVER produce floor plans or timeline wireframes from this stub. -->
+
 #### 2f. Read design tokens (soft dependency)
 
 Use the Glob tool to check for `.planning/design/assets/tokens.css`.

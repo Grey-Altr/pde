@@ -195,7 +195,8 @@ From package.json (if available): existing dependencies and devDependencies — 
 From STACK.md (if available): confirmed stack components to refine matching.
 
 Derive a **project profile** with these fields:
-- `product_type`: software / hardware / hybrid
+- `product_type`: software / hardware / hybrid / experience
+<!-- Experience product type — Phase 74 stub: recommendations apply to experience tooling (venue management software, event production tools, crowd management systems, ticketing platforms). Experience-specific tool recommendations added in subsequent phases. Current behavior: proceed with software tool recommendation path as temporary fallback for experience product type. -->
 - `primary_language`: TypeScript / JavaScript / Python / Go / Rust / etc.
 - `framework`: React / Vue / Next.js / Express / FastAPI / etc. (or "unknown")
 - `database`: PostgreSQL / MySQL / MongoDB / SQLite / Redis / etc. (or "none detected")

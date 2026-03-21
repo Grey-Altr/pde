@@ -69,6 +69,8 @@ Continue without brief — Claude uses `.planning/PROJECT.md` as fallback contex
 - Key user goals and tasks from Jobs to Be Done section
 - Constraints that affect user flow (e.g., offline-first, accessibility requirements, platform constraints)
 
+<!-- Experience product type — Phase 74 stub: temporal, spatial, and social flow dimensions (crowd flow, ingress/egress, stage-to-stage routing, run-of-show timing) are added in Phase 77. Current behavior: proceed with software flow path as temporary fallback for experience product type. NEVER produce experience-specific spatial flow diagrams from this stub. -->
+
 **Version gate (existing flow documents):**
 
 Use the Glob tool to check for `.planning/design/ux/FLW-flows-v*.md`. Sort all matches descending by version number (parse the `v{N}` suffix), find the maximum version N.

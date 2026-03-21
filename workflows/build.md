@@ -2,6 +2,8 @@
 Thin orchestrator that reads designCoverage from the design manifest, determines which of the TOTAL design stages are complete, skips them, and invokes each remaining stage in canonical order via flat Skill() calls. Adds no skill logic — all behavior lives in individual skill workflows. Supports verification gates between stages (interactive mode) and auto-continue (yolo mode). Resumes from last complete stage after interruption or crash.
 
 Pipeline order: recommend → competitive → opportunity → ideate → brief → system → flows → wireframe → critique → iterate → mockup → hig → handoff
+
+<!-- Experience product type — Phase 74 stub: the experience type follows the same stage progression as software. No new pipeline stages are added in Phase 74. Experience-specific stage behavior (floor plan at wireframe stage, production bible at handoff stage) is added in Phases 77-81. The --from stage names above remain valid for all product types including experience. -->
 </purpose>
 
 <required_reading>

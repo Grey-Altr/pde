@@ -67,7 +67,8 @@ Use the Glob tool to search for `.planning/design/strategy/BRF-brief-v*.md`. Sor
   ```
 - If **brief found**: read the highest-version brief. Extract and record:
   - `PRODUCT_NAME` — from brief frontmatter or `# Design Brief` heading context
-  - `PRODUCT_TYPE` — from `**Type:**` line in brief (software|hardware|hybrid)
+  - `PRODUCT_TYPE` — from `**Type:**` line in brief (software|hardware|hybrid|experience)
+  <!-- Experience product type: experience-specific design system extensions (SYS-experience-tokens.json) added in Phase 76. Phase 74 stub — proceed with software path as temporary fallback for experience product type. -->
   - `PLATFORM` — from `**Platform:**` line in brief (web|mobile|desktop|embedded|multi-platform)
   - `BRAND_COLORS` — from any brand color mentions (hex, oklch, rgb values listed in brief)
   - `TYPOGRAPHY_PREFS` — any font family preferences stated in brief

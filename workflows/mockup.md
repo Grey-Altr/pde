@@ -151,6 +151,8 @@ Use the Glob tool to check for `.planning/design/visual/SYS-system-v*.md`. If fo
 
 Use the Glob tool to check for `.planning/design/strategy/BRF-brief-v*.md`. If found, load the highest-version file for PRODUCT_NAME, PRODUCT_TYPE, and key product context.
 
+<!-- Experience product type — Phase 74 stub: experience mockup extensions (signage mockups, wayfinding panels, wristband designs, site map renders) added in later phases. Current behavior: proceed with software mockup path as temporary fallback for experience product type. NEVER produce physical experience design mockups from this stub. -->
+
 If neither brief nor design system is found, use PROJECT.md as fallback context:
 ```
 Warning: No design brief or design system found.
