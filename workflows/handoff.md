@@ -62,7 +62,7 @@ If `--no-mcp` IS set:
 
 ### Step 2/7: Check prerequisites and discover artifacts
 
-This step has eleven sub-sections executed in order.
+This step has twelve sub-sections executed in order.
 
 #### 2a. Read STACK.md (hard dependency)
 
@@ -149,6 +149,14 @@ Use the Glob tool to find all files matching `.planning/design/review/ITR-change
 
 For each wireframe file in WIREFRAME_FILES:
 
+**If the wireframe filename starts with `STH-`** (Stitch-sourced HTML):
+  Skip the STATE_DIV_COUNT / ANNOTATION_COUNT ratio check for this file.
+  Instead, count occurrences of `<!-- @component:` in the file content.
+  Display: `  STH-{slug}: Stitch HTML format — {N} @component: annotations found (pde-state coverage not applicable).`
+  Continue to next wireframe file.
+
+**Otherwise** (standard Claude-generated wireframe):
+
 Use the Read tool to load the wireframe HTML content. Count two values:
 1. STATE_DIV_COUNT: number of `<div class="pde-state--` occurrences (or `pde-state--` as a class prefix anywhere in the file)
 2. ANNOTATION_COUNT: number of `<!-- ANNOTATION:` occurrences in the file
@@ -173,6 +181,43 @@ Use the Glob tool to find all files matching `.planning/design/handoff/HND-hando
 Also confirm no types file conflicts: Glob for `.planning/design/handoff/HND-types-v*.ts`. The types version mirrors the spec version (always same N).
 
 Display: `Step 2/7: Prerequisites checked. Handoff spec v{HND_VERSION} will be generated.`
+
+#### 2l. Classify Stitch artifacts and verify annotation gate
+
+Read the design manifest:
+
+```bash
+MANIFEST=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-read)
+if [[ "$MANIFEST" == @file:* ]]; then MANIFEST=$(cat "${MANIFEST#@file:}"); fi
+```
+
+Parse JSON output. Initialize three lists: STITCH_CANDIDATES, STITCH_ARTIFACTS (extractable), STITCH_UNANNOTATED (gate failed).
+
+For each file path in WIREFRAME_FILES:
+- Extract artifact code from filename stem (e.g., `STH-login.html` -> `STH-login`)
+- Look up `manifest.artifacts[code]`
+- If `manifest.artifacts[code].source === "stitch"`: add code to STITCH_CANDIDATES
+
+For each code in STITCH_CANDIDATES:
+- If `manifest.artifacts[code].stitch_annotated === true`: add to STITCH_ARTIFACTS
+- Else: add to STITCH_UNANNOTATED
+
+If STITCH_UNANNOTATED is non-empty:
+  For each unannotated artifact code, display:
+  ```
+  Warning: Stitch artifact {code} cannot be pattern-extracted.
+    stitch_annotated: true was not set in the manifest.
+    Annotation injection is a hard prerequisite for pattern extraction.
+    To fix: run /pde:wireframe --use-stitch to regenerate with annotations.
+    This artifact will be skipped in STITCH_COMPONENT_PATTERNS output.
+  ```
+
+If STITCH_ARTIFACTS is non-empty:
+  Display: `Step 2/7 (2l): {N} Stitch artifact(s) ready for pattern extraction: {comma-separated slug list}.`
+Else if STITCH_UNANNOTATED is non-empty:
+  Display: `Step 2/7 (2l): No Stitch artifacts available for extraction (unannotated). Run /pde:wireframe --use-stitch first.`
+Else:
+  Display: `Step 2/7 (2l): No Stitch artifacts detected. Standard handoff mode.`
 
 #### Hard stop check
 
