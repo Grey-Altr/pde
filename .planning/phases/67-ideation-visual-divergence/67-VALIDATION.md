@@ -1,7 +1,7 @@
 ---
 phase: 67
 slug: ideation-visual-divergence
-status: draft
+status: validated
 nyquist_compliant: true
 wave_0_complete: true
 created: 2026-03-20
@@ -38,12 +38,12 @@ created: 2026-03-20
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 67-01-01 | 01 | 1 | IDT-01, IDT-02, IDT-03, IDT-04, EFF-03 | structural grep | `grep -c '4-STITCH' workflows/ideate.md` | n/a | pending |
-| 67-02-01 | 02 | 2 | IDT-01 | file-parse | `node --test tests/phase-67/diverge-stitch-flag.test.mjs` | W2 | pending |
-| 67-02-02 | 02 | 2 | IDT-02 | file-parse | `node --test tests/phase-67/stitch-png-persist.test.mjs` | W2 | pending |
-| 67-02-03 | 02 | 2 | IDT-03 | file-parse | `node --test tests/phase-67/visual-distinctness.test.mjs` | W2 | pending |
-| 67-02-04 | 02 | 2 | IDT-04 | file-parse | `node --test tests/phase-67/quota-partial-batch.test.mjs` | W2 | pending |
-| 67-02-05 | 02 | 2 | EFF-03 | file-parse | `node --test tests/phase-67/batch-efficiency.test.mjs` | W2 | pending |
+| 67-01-01 | 01 | 1 | IDT-01, IDT-02, IDT-03, IDT-04, EFF-03 | structural grep | `grep -c '4-STITCH' workflows/ideate.md` | yes | green |
+| 67-02-01 | 02 | 2 | IDT-01, IDT-02, IDT-04 | file-parse | `node --test tests/phase-67/diverge-stitch-flag.test.mjs` | yes | green |
+| 67-02-02 | 02 | 2 | CONSENT-04 | file-parse | `node --test tests/phase-67/consent-batch.test.mjs` | yes | green |
+| 67-02-03 | 02 | 2 | IDT-03 | file-parse | `node --test tests/phase-67/visual-convergence.test.mjs` | yes | green |
+| 67-02-04 | 02 | 2 | IDT-04 | file-parse | `node --test tests/phase-67/quota-partial-batch.test.mjs` | yes | green |
+| 67-02-05 | 02 | 2 | EFF-03 | file-parse | `node --test tests/phase-67/batch-efficiency.test.mjs` | yes | green |
 
 *Status: pending / green / red / flaky*
 
@@ -75,3 +75,17 @@ Existing infrastructure covers all phase requirements. Plan 01 uses grep-based s
 - [x] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** approved 2026-03-20
+
+---
+
+## Validation Audit 2026-03-21
+
+| Metric | Count |
+|--------|-------|
+| Requirements audited | 5 (IDT-01, IDT-02, IDT-03, IDT-04, EFF-03) |
+| Test files | 5 |
+| Assertions | 33 |
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+| Suite status | 33/33 pass |
