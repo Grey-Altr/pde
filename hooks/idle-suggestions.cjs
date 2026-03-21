@@ -65,7 +65,8 @@ process.stdin.on('end', () => {
 
     // Write engine suggestions to /tmp/
     const suggPath = path.join(os.tmpdir(), `pde-suggestions-${sessionId}.md`);
-    const content = generateSuggestions({ cwd, event: lastMeaningful });
+    const catalogPath = path.join(cwd, '.planning', 'idle-catalog.md');
+    const content = generateSuggestions({ cwd, event: lastMeaningful, catalogPath });
     fs.writeFileSync(suggPath, content, 'utf-8');
 
     // Write marker file
