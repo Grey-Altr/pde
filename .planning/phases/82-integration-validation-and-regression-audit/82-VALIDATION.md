@@ -1,9 +1,9 @@
 ---
 phase: 82
 slug: integration-validation-and-regression-audit
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: compliant
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-21
 ---
 
@@ -38,11 +38,11 @@ created: 2026-03-21
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 82-01-01 | 01 | 1 | SC-1 (Phase 64 fix) | structural | `node --test tests/phase-64/manifest-schema.test.mjs` | Yes | pending |
-| 82-01-02 | 01 | 1 | SC-1 (Phase 64 fix) | structural | `node --test tests/phase-64/workflow-pass-through.test.mjs` | Yes | pending |
-| 82-01-03 | 01 | 1 | SC-1, SC-3, SC-4 | structural | `node --test tests/phase-82/regression-matrix.test.mjs` | No (W0) | pending |
-| 82-02-01 | 02 | 2 | SC-2 | structural | `node --test tests/phase-82/milestone-completion.test.mjs` | No (W0) | pending |
-| 82-02-02 | 02 | 2 | SC-3 | git assertion | `git diff --diff-filter=A v0.10..HEAD --name-only \| grep workflows/` | N/A | pending |
+| 82-01-01 | 01 | 1 | SC-1 (Phase 64 fix) | structural | `node --test tests/phase-64/manifest-schema.test.mjs` | Yes | green |
+| 82-01-02 | 01 | 1 | SC-1 (Phase 64 fix) | structural | `node --test tests/phase-64/workflow-pass-through.test.mjs` | Yes | green |
+| 82-01-03 | 01 | 1 | SC-1, SC-3, SC-4 | structural | `node --test tests/phase-82/regression-matrix.test.mjs` | Yes | green |
+| 82-02-01 | 02 | 2 | SC-2 | structural | `node --test tests/phase-82/milestone-completion.test.mjs` | Yes | green |
+| 82-02-02 | 02 | 2 | SC-3 | git assertion | `git diff --diff-filter=A v0.10..HEAD --name-only \| grep workflows/` | N/A | green |
 
 *Status: pending · green · red · flaky*
 
@@ -50,8 +50,8 @@ created: 2026-03-21
 
 ## Wave 0 Requirements
 
-- [ ] `tests/phase-82/regression-matrix.test.mjs` — cross-type regression matrix, skill registry, no-new-workflow-files assertions (SC-1, SC-3, SC-4)
-- [ ] `tests/phase-82/milestone-completion.test.mjs` — milestone state audit with todo() markers for phases 75-78 (SC-2)
+- [x] `tests/phase-82/regression-matrix.test.mjs` — cross-type regression matrix, skill registry, no-new-workflow-files assertions (SC-1, SC-3, SC-4)
+- [x] `tests/phase-82/milestone-completion.test.mjs` — milestone state audit with todo() markers for phases 75-78 (SC-2)
 
 *Existing infrastructure (phase-64, phase-74, phase-79, phase-80, phase-81 test suites) covers baseline regression assertions.*
 
@@ -65,11 +65,23 @@ created: 2026-03-21
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 5s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 5s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-03-21
+
+---
+
+## Validation Audit 2026-03-21
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+All 5 task verification commands run green. Full suite: 162 pass, 0 fail, 19 todo (exit 0).
