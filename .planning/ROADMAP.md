@@ -166,7 +166,7 @@ Full details: .planning/milestones/v0.9-ROADMAP.md
 - [x] **Phase 70: Hook Integration and Delivery Architecture** - Lock in the non-intrusive hook contract before any suggestion content is authored (completed 2026-03-21)
 - [x] **Phase 71: Suggestion Engine** - Phase-aware engine module that reads state files and returns a ranked suggestion list within 2 seconds (completed 2026-03-21)
 - [x] **Phase 72: Suggestion Catalog and Content Layer** - Full idle-catalog.md with 6 phase categories plus context-notes directory consumed by planning workflows (completed 2026-03-21)
-- [ ] **Phase 73: Dashboard Integration** - Pane 7 addition to full layout plus /pde:suggestions CLI fallback
+- [x] **Phase 73: Dashboard Integration** - Pane 7 addition to full layout plus /pde:suggestions CLI fallback (completed 2026-03-21)
 
 ## Phase Details
 
@@ -247,4 +247,4 @@ Plans:
 | 70. Hook Integration and Delivery Architecture | 2/2 | Complete    | 2026-03-21 | - |
 | 71. Suggestion Engine | 2/2 | Complete    | 2026-03-21 | - |
 | 72. Suggestion Catalog and Content Layer | 2/2 | Complete    | 2026-03-21 | - |
-| 73. Dashboard Integration | 1/2 | In Progress|  | - |
+| 73. Dashboard Integration | 2/2 | Complete   | 2026-03-21 | - |

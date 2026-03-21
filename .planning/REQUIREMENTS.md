@@ -37,8 +37,8 @@
 - [x] **DASH-02**: Pane displays ranked suggestion list with ANSI formatting, passively and without alerts/beeps/modals
 - [x] **DASH-03**: Zero-state fallback content displayed when no phase is active ("Waiting for PDE to start a phase...")
 - [x] **DASH-04**: Adaptive layout degradation preserved — existing 6→4→3→2 pane model not broken by Pane 7 addition
-- [ ] **DASH-05**: /pde:suggestions CLI command provides non-tmux access to current suggestion list via pde-tools.cjs
-- [ ] **DASH-06**: monitor.md workflow documentation updated for 7-pane layout description
+- [x] **DASH-05**: /pde:suggestions CLI command provides non-tmux access to current suggestion list via pde-tools.cjs
+- [x] **DASH-06**: monitor.md workflow documentation updated for 7-pane layout description
 
 ## v0.11+ Requirements
 
@@ -89,8 +89,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DASH-02 | Phase 73 | Complete |
 | DASH-03 | Phase 73 | Complete |
 | DASH-04 | Phase 73 | Complete |
-| DASH-05 | Phase 73 | Pending |
-| DASH-06 | Phase 73 | Pending |
+| DASH-05 | Phase 73 | Complete |
+| DASH-06 | Phase 73 | Complete |
 
 **Coverage:**
 - v0.10 requirements: 23 total
