@@ -216,7 +216,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 - [ ] 67-01-PLAN.md — Add --diverge flag with full 4-STITCH pipeline and converge visual surfacing to ideate.md
-- [ ] 67-02-PLAN.md — Nyquist test suite covering all 5 Phase 67 requirements
+- [x] 67-02-PLAN.md — Nyquist test suite covering all 5 Phase 67 requirements (completed 2026-03-21)
 
 ### Phase 68: Critique Stitch Comparison
 **Goal**: /pde:critique detects Stitch-sourced artifacts and applies a Stitch-aware evaluation mode that produces meaningful design feedback rather than structural false positives from DTCG token incompatibility
@@ -255,6 +255,6 @@ Plans:
 | 64 | v0.9 | Complete    | 2026-03-20 | 2026-03-20 |
 | 65 | v0.9 | 2/2 | Complete | 2026-03-20 |
 | 66 | 3/3 | Complete    | 2026-03-21 | - |
-| 67 | 1/2 | In Progress|  | - |
+| 67 | 2/2 | Complete   | 2026-03-21 | - |
 | 68 | v0.9 | 0/TBD | Not started | - |
 | 69 | v0.9 | 0/TBD | Not started | - |

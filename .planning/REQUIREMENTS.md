@@ -33,7 +33,7 @@ Requirements for Google Stitch Integration milestone. Each maps to roadmap phase
 
 - [x] **EFF-01**: Fetched Stitch HTML and images cached locally — critique, handoff, and iterate reuse cached artifacts without re-fetching
 - [x] **EFF-02**: Stitch artifact reuse across pipeline stages — wireframe output flows directly to mockup/critique/handoff without regeneration
-- [ ] **EFF-03**: Batch MCP calls for multi-screen generation (ideation variants, wireframe sets) rather than sequential one-at-a-time
+- [x] **EFF-03**: Batch MCP calls for multi-screen generation (ideation variants, wireframe sets) rather than sequential one-at-a-time
 - [x] **EFF-04**: Stitch failure detection within 10-second timeout budget with immediate fallback to Claude generation (no retry loops)
 - [x] **EFF-05**: Annotation injection (PDE component comments) begins as soon as first screen arrives, not after all screens complete
 
@@ -48,10 +48,10 @@ Requirements for Google Stitch Integration milestone. Each maps to roadmap phase
 
 ### Ideation Visual Divergence
 
-- [ ] **IDT-01**: /pde:ideate --diverge feeds concept descriptions to Stitch to generate 3-5 visual interpretations per concept
-- [ ] **IDT-02**: Stitch-generated variant images stored alongside text-based concept descriptions in ideation artifacts
-- [ ] **IDT-03**: Visual variants feed into convergence/scoring phase for comparison
-- [ ] **IDT-04**: Quota-aware: checks remaining Experimental generations before starting batch, falls back to text-only diverge if insufficient
+- [x] **IDT-01**: /pde:ideate --diverge feeds concept descriptions to Stitch to generate 3-5 visual interpretations per concept
+- [x] **IDT-02**: Stitch-generated variant images stored alongside text-based concept descriptions in ideation artifacts
+- [x] **IDT-03**: Visual variants feed into convergence/scoring phase for comparison
+- [x] **IDT-04**: Quota-aware: checks remaining Experimental generations before starting batch, falls back to text-only diverge if insufficient
 
 ### Critique Comparison
 
@@ -106,7 +106,7 @@ Requirements for Google Stitch Integration milestone. Each maps to roadmap phase
 | CONSENT-04 | Phase 66 | Complete |
 | EFF-01 | Phase 66 | Complete |
 | EFF-02 | Phase 66 | Complete |
-| EFF-03 | Phase 67 | Pending |
+| EFF-03 | Phase 67 | Complete |
 | EFF-04 | Phase 66 | Complete |
 | EFF-05 | Phase 66 | Complete |
 | WFR-01 | Phase 66 | Complete |
@@ -115,10 +115,10 @@ Requirements for Google Stitch Integration milestone. Each maps to roadmap phase
 | WFR-04 | Phase 66 | Complete |
 | WFR-05 | Phase 66 | Complete |
 | WFR-06 | Phase 66 | Complete |
-| IDT-01 | Phase 67 | Pending |
-| IDT-02 | Phase 67 | Pending |
-| IDT-03 | Phase 67 | Pending |
-| IDT-04 | Phase 67 | Pending |
+| IDT-01 | Phase 67 | Complete |
+| IDT-02 | Phase 67 | Complete |
+| IDT-03 | Phase 67 | Complete |
+| IDT-04 | Phase 67 | Complete |
 | CRT-01 | Phase 68 | Pending |
 | CRT-02 | Phase 68 | Pending |
 | CRT-03 | Phase 68 | Pending |
