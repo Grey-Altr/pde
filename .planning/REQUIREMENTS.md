@@ -68,35 +68,35 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DLVR-01 | — | Pending |
-| DLVR-02 | — | Pending |
-| DLVR-03 | — | Pending |
-| DLVR-04 | — | Pending |
-| DLVR-05 | — | Pending |
-| ENGN-01 | — | Pending |
-| ENGN-02 | — | Pending |
-| ENGN-03 | — | Pending |
-| ENGN-04 | — | Pending |
-| ENGN-05 | — | Pending |
-| ENGN-06 | — | Pending |
-| CONT-01 | — | Pending |
-| CONT-02 | — | Pending |
-| CONT-03 | — | Pending |
-| CONT-04 | — | Pending |
-| CONT-05 | — | Pending |
-| CONT-06 | — | Pending |
-| DASH-01 | — | Pending |
-| DASH-02 | — | Pending |
-| DASH-03 | — | Pending |
-| DASH-04 | — | Pending |
-| DASH-05 | — | Pending |
-| DASH-06 | — | Pending |
+| DLVR-01 | Phase 70 | Pending |
+| DLVR-02 | Phase 70 | Pending |
+| DLVR-03 | Phase 70 | Pending |
+| DLVR-04 | Phase 70 | Pending |
+| DLVR-05 | Phase 70 | Pending |
+| ENGN-01 | Phase 71 | Pending |
+| ENGN-02 | Phase 71 | Pending |
+| ENGN-03 | Phase 71 | Pending |
+| ENGN-04 | Phase 71 | Pending |
+| ENGN-05 | Phase 71 | Pending |
+| ENGN-06 | Phase 71 | Pending |
+| CONT-01 | Phase 72 | Pending |
+| CONT-02 | Phase 72 | Pending |
+| CONT-03 | Phase 72 | Pending |
+| CONT-04 | Phase 72 | Pending |
+| CONT-05 | Phase 72 | Pending |
+| CONT-06 | Phase 72 | Pending |
+| DASH-01 | Phase 73 | Pending |
+| DASH-02 | Phase 73 | Pending |
+| DASH-03 | Phase 73 | Pending |
+| DASH-04 | Phase 73 | Pending |
+| DASH-05 | Phase 73 | Pending |
+| DASH-06 | Phase 73 | Pending |
 
 **Coverage:**
 - v0.10 requirements: 23 total
-- Mapped to phases: 0
-- Unmapped: 23 ⚠️
+- Mapped to phases: 23
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-20*
-*Last updated: 2026-03-20 after initial definition*
+*Last updated: 2026-03-20 after roadmap creation — all 23 requirements mapped to Phases 70-73*

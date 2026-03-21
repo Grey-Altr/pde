@@ -11,6 +11,7 @@
 - ✅ **v0.7 Pipeline Reliability & Validation** — Phases 54-57 (shipped 2026-03-20)
 - ✅ **v0.8 Observability & Event Infrastructure** — Phases 58-63 (shipped 2026-03-20)
 - ✅ **v0.9 Google Stitch Integration** — Phases 64-69 (shipped 2026-03-21)
+- 🚧 **v0.10 Idle Time Productivity** — Phases 70-73 (in progress)
 
 ## Phases
 
@@ -158,11 +159,65 @@ Full details: .planning/milestones/v0.9-ROADMAP.md
 
 </details>
 
+### 🚧 v0.10 Idle Time Productivity (In Progress)
+
+**Milestone Goal:** Guided productivity system for users during PDE processing wait times — context-aware suggestions, domain knowledge capture, and upcoming-phase previews delivered passively via the tmux dashboard while agents work. No interruptions, no LLM calls in the suggestion path, zero new npm dependencies.
+
+- [ ] **Phase 70: Hook Integration and Delivery Architecture** - Lock in the non-intrusive hook contract before any suggestion content is authored
+- [ ] **Phase 71: Suggestion Engine** - Phase-aware engine module that reads state files and returns a ranked suggestion list within 2 seconds
+- [ ] **Phase 72: Suggestion Catalog and Content Layer** - Full idle-catalog.md with 6 phase categories plus context-notes directory consumed by planning workflows
+- [ ] **Phase 73: Dashboard Integration** - Pane 7 addition to full layout plus /pde:suggestions CLI fallback
+
 ## Phase Details
 
-*v0.9 phase details archived to `.planning/milestones/v0.9-ROADMAP.md`*
+### Phase 70: Hook Integration and Delivery Architecture
+**Goal**: The idle suggestion delivery contract is established — hook fires silently, state is written only to /tmp/, updates are gated on meaningful PDE events, and Getting Started documentation reflects the recommended threshold configuration
+**Depends on**: Phase 69 (v0.9 complete)
+**Requirements**: DLVR-01, DLVR-02, DLVR-03, DLVR-04, DLVR-05
+**Success Criteria** (what must be TRUE):
+  1. Running the idle_prompt hook handler produces zero stdout in the Claude Code conversation pane — suggestions appear nowhere in the main interface
+  2. After a phase_started or phase_complete event fires in the NDJSON stream, a /tmp/pde-suggestions-{sessionId}.md file is created or updated with ranked suggestion content
+  3. Triggering idle_prompt repeatedly without any PDE phase events between fires does not update the suggestion file — the file timestamp remains unchanged
+  4. A git status after a full session shows zero new files in the .planning/ directory attributable to the suggestion system
+  5. Getting Started documentation contains a messageIdleNotifThresholdMs: 5000 recommendation with the correct ~/.CLAUDE.json key
+**Plans**: TBD
 
-<!-- Archived phases 64-69 removed — see milestones/v0.9-ROADMAP.md -->
+### Phase 71: Suggestion Engine
+**Goal**: A standalone, unit-testable CJS module (bin/lib/idle-suggestions.cjs) that reads current phase state and returns a ranked suggestion list from the catalog within 2 seconds using no LLM calls
+**Depends on**: Phase 70
+**Requirements**: ENGN-01, ENGN-02, ENGN-03, ENGN-04, ENGN-05, ENGN-06
+**Success Criteria** (what must be TRUE):
+  1. Calling `node idle-suggestions.cjs --phase "execute"` from the terminal returns a formatted suggestion list classified correctly for the execute phase in under 2 seconds
+  2. When STATE.md contains a populated blockers field, those blockers appear as the first items in the returned suggestion list above all other categories
+  3. The engine reads ROADMAP.md next-phase entry and surfaces 2-3 preparation prompts specific to the upcoming phase
+  4. When design-manifest.json contains completed artifacts, the returned list includes at least one suggestion referencing a specific file path from that manifest
+  5. Suggestions are labeled with expected time-to-complete and a resumption cost category (low/medium/high)
+  6. Running the module against STATE.md and DESIGN-STATE.md that reference missing files produces graceful fallback output rather than an error
+**Plans**: TBD
+
+### Phase 72: Suggestion Catalog and Content Layer
+**Goal**: A complete, human-editable suggestion catalog covers all 6 PDE phase types plus a generic fallback, context-notes directory is initialized with a README, and /pde:plan and /pde:brief consume user-authored context notes in subsequent planning cycles
+**Depends on**: Phase 71
+**Requirements**: CONT-01, CONT-02, CONT-03, CONT-04, CONT-05, CONT-06
+**Success Criteria** (what must be TRUE):
+  1. Opening .planning/idle-catalog.md shows distinct sections for research, plan, execute, design, validation, and default phases — each with 3-5 suggestions and time/resumption-cost labels
+  2. When a phase_complete event fires, the suggestion list surfaces at least one "new artifact ready for review" entry with the specific file path of the completed artifact
+  3. Each phase section of the catalog contains at least one domain knowledge externalization prompt phrased as a question the user can answer during wait time
+  4. Placing a markdown file in .planning/context-notes/ and then running /pde:plan causes that file's content to appear in the planning context under a Context Notes section
+  5. When DESIGN-STATE.md contains incomplete design choices, the suggestion list includes at least one low-urgency decision prompt sourced from those incomplete choices
+**Plans**: TBD
+
+### Phase 73: Dashboard Integration
+**Goal**: The 7-pane tmux dashboard is complete — Pane 7 shows a live ranked suggestion list in the full layout, the adaptive degradation model is preserved for smaller terminals, and non-tmux users have CLI access via /pde:suggestions
+**Depends on**: Phase 72
+**Requirements**: DASH-01, DASH-02, DASH-03, DASH-04, DASH-05, DASH-06
+**Success Criteria** (what must be TRUE):
+  1. Running /pde:monitor on a terminal with sufficient size launches a 7-pane layout where Pane 7 displays the current suggestion list with ANSI formatting and no alerts or audible signals
+  2. Running /pde:monitor on a small terminal produces the existing degraded layout (4-pane or 2-pane) without Pane 7 — build_minimal_layout() is completely unchanged
+  3. Before any PDE phase has started, Pane 7 displays the zero-state message "Waiting for PDE to start a phase. Suggestions will appear when a phase completes." rather than empty content
+  4. Running /pde:suggestions in a terminal without tmux prints the current suggestion list to stdout and exits cleanly
+  5. The monitor.md workflow documentation describes the 7-pane layout including Pane 7's purpose and the zero-state behavior
+**Plans**: TBD
 
 ## Progress
 
@@ -177,3 +232,7 @@ Full details: .planning/milestones/v0.9-ROADMAP.md
 | 54-57 | v0.7 | 11/11 | Complete | 2026-03-20 |
 | 58-63 | v0.8 | 13/13 | Complete | 2026-03-20 |
 | 64-69 | v0.9 | 12/12 | Complete | 2026-03-21 |
+| 70. Hook Integration and Delivery Architecture | v0.10 | 0/TBD | Not started | - |
+| 71. Suggestion Engine | v0.10 | 0/TBD | Not started | - |
+| 72. Suggestion Catalog and Content Layer | v0.10 | 0/TBD | Not started | - |
+| 73. Dashboard Integration | v0.10 | 0/TBD | Not started | - |
