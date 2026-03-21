@@ -201,7 +201,7 @@ Plans:
 Plans:
 - [ ] 66-01-PLAN.md — Add --use-stitch Stitch generation pipeline to wireframe.md with consent, annotation, fallback
 - [ ] 66-02-PLAN.md — Add --use-stitch Stitch generation pipeline to mockup.md mirroring wireframe pattern
-- [ ] 66-03-PLAN.md — Nyquist test suite covering all 14 Phase 66 requirements
+- [x] 66-03-PLAN.md — Nyquist test suite covering all 14 Phase 66 requirements (completed 2026-03-21)
 
 ### Phase 67: Ideation Visual Divergence
 **Goal**: Users running /pde:ideate --diverge receive Stitch-generated visual variant images alongside text concept descriptions, with quota checked before the batch starts and independent variants that are visually distinct from each other
@@ -251,7 +251,7 @@ Plans:
 | 58-63 | v0.8 | 13/13 | Complete | 2026-03-20 |
 | 64 | v0.9 | Complete    | 2026-03-20 | 2026-03-20 |
 | 65 | v0.9 | 2/2 | Complete | 2026-03-20 |
-| 66 | 2/3 | In Progress|  | - |
+| 66 | 3/3 | Complete   | 2026-03-21 | - |
 | 67 | v0.9 | 0/TBD | Not started | - |
 | 68 | v0.9 | 0/TBD | Not started | - |
 | 69 | v0.9 | 0/TBD | Not started | - |
