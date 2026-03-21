@@ -74,6 +74,7 @@ ELSE:
 | `--no-mcp` | Boolean | Skip ALL MCP probes. Pure baseline mode. |
 | `--no-sequential-thinking` | Boolean | Skip Sequential Thinking MCP specifically while allowing other MCPs. |
 | `--force` | Boolean | Skip confirmation when IDT artifact already exists; auto-increment version. |
+| `--diverge` | Boolean | Generate Stitch visual variants per direction using Experimental quota (Gemini Pro). Requires Stitch MCP connection. Falls back to text-only if quota insufficient or Stitch unavailable. |
 
 </flags>
 
@@ -81,7 +82,7 @@ ELSE:
 
 ## /pde:ideate — Two-Pass Diverge-Converge Ideation Pipeline
 
-Check for flags in $ARGUMENTS before beginning: `--dry-run`, `--quick`, `--verbose`, `--no-mcp`, `--no-sequential-thinking`, `--force`.
+Check for flags in $ARGUMENTS before beginning: `--dry-run`, `--quick`, `--verbose`, `--no-mcp`, `--no-sequential-thinking`, `--force`, `--diverge`.
 
 ---
 
@@ -194,7 +195,28 @@ If not disabled via flags, attempt to call `mcp__sequential-thinking__think` wit
   - If retry succeeds: `SEQUENTIAL_THINKING_AVAILABLE = true`
   - If retry fails: `SEQUENTIAL_THINKING_AVAILABLE = false`. Log: `  -> Sequential Thinking MCP: unavailable (degraded mode)`
 
-Display: `Step 3/7: MCP probes complete. Sequential Thinking: {available|unavailable}.`
+**Probe Stitch MCP (when --diverge present):**
+
+```
+IF --diverge in $ARGUMENTS AND --no-mcp NOT in $ARGUMENTS:
+  SET DIVERGE_STITCH = true
+  Attempt to call stitch:generate-screen with a no-op probe (empty prompt or minimal test)
+  Timeout: 10 seconds
+  If tool responds: Log: "  -> Stitch MCP: available (visual divergence enabled)"
+  If tool not found or errors:
+    SET DIVERGE_STITCH = false
+    Log: "  -> Stitch MCP: unavailable. Visual divergence disabled — text-only ideation."
+
+  Check TOOL_MAP_VERIFY_REQUIRED:
+  If any stitch:generate-screen or stitch:fetch-screen-image entries are marked TOOL_MAP_VERIFY_REQUIRED:
+    Log: "  -> Warning: TOOL_MAP entries unverified. Run /pde:connect stitch --confirm for verified tool names."
+    (Non-blocking — continue with unverified names)
+
+IF --diverge NOT in $ARGUMENTS:
+  SET DIVERGE_STITCH = false
+```
+
+Display: `Step 3/7: MCP probes complete. Sequential Thinking: {available|unavailable}. Stitch visual divergence: {enabled|disabled}.`
 
 ---
 
@@ -257,6 +279,178 @@ Display: `Step 4/7: Diverge complete. {M} directions generated. Intermediate IDT
 
 ---
 
+### Step 4-STITCH: Visual variant generation (--diverge only)
+
+Skip this entire section if DIVERGE_STITCH is false. Jump directly to Step 5/7.
+
+**4-STITCH-A: Pre-flight Experimental quota check**
+
+```bash
+node --input-type=module <<'EOF'
+import { createRequire } from 'module';
+const req = createRequire(import.meta.url);
+const { checkStitchQuota } = req(`${process.env.CLAUDE_PLUGIN_ROOT}/bin/lib/mcp-bridge.cjs`);
+const result = checkStitchQuota('experimental');
+process.stdout.write(JSON.stringify(result));
+EOF
+```
+
+Parse result JSON `{allowed, remaining, reason, pct, used, limit}`. Compute STITCH_BATCH_SIZE:
+
+- If `remaining === 0` (quota exhausted): Display:
+  ```
+  Stitch Experimental quota exhausted (Experimental: {used}/{limit} used this month).
+  Visual divergence unavailable. Proceeding with text-only ideation.
+  ```
+  SET DIVERGE_STITCH = false. Skip 4-STITCH-B through 4-STITCH-F entirely.
+
+- If `remaining < DIRECTION_COUNT` (partial batch): SET `STITCH_BATCH_SIZE = remaining`. Display:
+  ```
+  Warning: {remaining} Experimental generation(s) remaining of {limit}. Generating visuals for first {remaining} direction(s) only.
+  ```
+
+- If `remaining >= DIRECTION_COUNT` (full batch): SET `STITCH_BATCH_SIZE = DIRECTION_COUNT`.
+
+**4-STITCH-B: Compute isolated prompts per direction**
+
+For each direction at index {i} from 1 to DIRECTION_COUNT, build an isolated Stitch prompt from that direction's text block ONLY:
+
+```
+"UI concept for: {direction_name}
+Core concept: {direction_core_concept}
+Target users: {direction_target_user}
+Technology approach: {direction_tech_approach}
+Generate a single screen visual showing the core UI proposition.
+Style: clean product UI, no decorative illustration."
+```
+
+CRITICAL isolation rules:
+1. No shared project_id across directions. Each direction generates into its own isolated call. If `generate_screen_from_text` requires a project_id, create a fresh project per direction via `stitch:create-project`. Do NOT reuse a single project for all directions (Design DNA would propagate, violating visual distinctiveness).
+2. Prompt includes only the direction's own attributes. Does NOT reference other directions.
+3. modelId MUST be `"GEMINI_3_PRO"` (Experimental quota). Do NOT use `"GEMINI_3_FLASH"` (that is Standard quota for wireframe, not ideation).
+
+Collect all prompts into DIRECTION_PROMPTS array before proceeding.
+
+**4-STITCH-C: Batch outbound consent (CONSENT-04)**
+
+AskUserQuestion:
+```
+About to send concept descriptions to Google Stitch (stitch.withgoogle.com):
+
+  Directions ({STITCH_BATCH_SIZE}):
+  {for each direction up to STITCH_BATCH_SIZE: "  - Direction {i}: {direction_name}"}
+
+  What will be sent: A text description of each direction's UI concept and target user.
+  Model: Gemini Pro (Experimental — counts against 50/month limit)
+  Quota: {remaining - STITCH_BATCH_SIZE} Experimental generation(s) remaining after this batch.
+  Service: Google Stitch MCP (stitch.withgoogle.com)
+
+Approve sending these prompts to Stitch? (yes / no)
+```
+
+If "no": SET DIVERGE_STITCH = false. Display: `Visual divergence cancelled by user. Proceeding with text-only ideation.` Skip 4-STITCH-D through 4-STITCH-F.
+
+**4-STITCH-D: Per-direction visual generation loop (batch MCP — EFF-03)**
+
+For each direction at index {i} from 1 to DIRECTION_COUNT:
+
+  IF {i} > STITCH_BATCH_SIZE:
+    Log: `Direction {i} ({name}): text-only (Experimental quota insufficient).`
+    Mark direction as STITCH_FALLBACK_TEXT_ONLY. Continue to next direction.
+
+  1. Call `stitch:generate-screen` (mapped via TOOL_MAP to `mcp__stitch__generate_screen_from_text`):
+     - prompt: DIRECTION_PROMPTS[{i}]
+     - modelId: "GEMINI_3_PRO"
+     - (NO shared project_id — isolation required for visual distinctiveness)
+     If call fails or times out (10-second budget): Mark as STITCH_FAILED. Log:
+     ```
+     Warning: Stitch generation failed for Direction {i} ({name}): {error message}.
+     This direction will be text-only.
+     ```
+     Continue to next direction (do NOT abort).
+
+  2. Capture screenId from response. Use DIRECTLY for next call.
+     Do NOT call stitch:list-screens (confirmed list_screens state-sync bug).
+
+  3. Call `stitch:fetch-screen-image` using screenId.
+     Store as VARIANT_PNG (held in memory).
+     Handle both base64 and binary formats:
+     - If string starting with `data:` or looks like base64: decode with Buffer.from(content, 'base64')
+     - Otherwise: treat as binary buffer
+
+  4. Do NOT fetch HTML (no `stitch:fetch-screen-code` call). Ideation variants are PNG-only.
+
+  5. Do NOT run annotation injection. Annotation is for HTML artifacts consumed by handoff — PNGs have no DOM to annotate.
+
+  6. Inbound consent (CONSENT-02, CONSENT-03):
+     AskUserQuestion:
+     ```
+     Received from Google Stitch:
+       Direction {i}: {direction_name}
+       Image: STH-ideate-direction-{i}.png (~{size}KB)
+       Target: .planning/design/strategy/
+
+     Persist this image? (yes / no)
+     ```
+     If "no": Skip persist for this direction. Log: `Skipping visual for Direction {i} per user decision.` Continue.
+
+  7. Persist: Write VARIANT_PNG to `.planning/design/strategy/STH-ideate-direction-{i}.png`
+
+  8. Increment Experimental quota:
+     ```bash
+     node --input-type=module <<'EOF'
+     import { createRequire } from 'module';
+     const req = createRequire(import.meta.url);
+     const { incrementStitchQuota } = req(`${process.env.CLAUDE_PLUGIN_ROOT}/bin/lib/mcp-bridge.cjs`);
+     process.stdout.write(JSON.stringify(incrementStitchQuota('experimental')));
+     EOF
+     ```
+
+End loop.
+
+Display summary:
+```
+Visual divergence complete: {generated_count} visual(s) generated, {text_only_count} text-only direction(s).
+```
+
+**4-STITCH-E: Partial-batch fallback summary**
+
+If any directions were marked STITCH_FALLBACK_TEXT_ONLY or STITCH_FAILED:
+  Display: `{count} direction(s) did not receive visual variants. These will be scored on text descriptions only in the convergence step.`
+
+The run NEVER aborts due to partial quota or per-direction failure. Text-only fallback is always the correct behavior.
+
+**4-STITCH-F: Update IDT artifact with ## Visual Variants section**
+
+Read the intermediate IDT artifact (written in Step 4/7 with Status: diverge-complete).
+Insert a `## Visual Variants` section AFTER `## Diverge Phase` and BEFORE `## Recommend Checkpoint` (which will be added in Step 6/7):
+
+```markdown
+## Visual Variants
+
+> Generated by /pde:ideate --diverge using Google Stitch (Experimental — Gemini Pro)
+> Generated: {ISO 8601 date}
+
+| Direction | Visual | Path |
+|-----------|--------|------|
+{for each direction 1..DIRECTION_COUNT:
+  if STITCH_FALLBACK_TEXT_ONLY:
+    "| Direction {i}: {name} | — | Stitch fallback: Experimental quota insufficient |"
+  elif STITCH_FAILED:
+    "| Direction {i}: {name} | — | Stitch fallback: generation error |"
+  elif user declined inbound consent:
+    "| Direction {i}: {name} | — | Stitch fallback: user declined |"
+  else:
+    "| Direction {i}: {name} | [View](STH-ideate-direction-{i}.png) | `.planning/design/strategy/STH-ideate-direction-{i}.png` |"
+}
+```
+
+Write updated IDT artifact back to disk (still Status: diverge-complete at this point — Step 6/7 will update to ideation-complete).
+
+Display: `Step 4-STITCH: Visual variants written to IDT artifact.`
+
+---
+
 ### Step 5/7: Recommend checkpoint
 
 Invoke recommend at the diverge-converge transition to surface tooling feasibility signals:
@@ -287,6 +481,15 @@ Score each direction against a readiness rubric using 0-3 scales consistent with
 | Feasibility | Requires unavailable tech or resources | Significant unknowns requiring research | Achievable with known tools and team | Straightforward implementation with current stack |
 | Distinctiveness | Duplicate of existing product in market | Minor variation on existing approach | Novel combination of existing patterns | Unique market position with clear differentiation |
 
+**Visual variant detection (when --diverge was used):**
+
+After loading the intermediate IDT artifact (Status: diverge-complete):
+  IF artifact contains "## Visual Variants" section:
+    SET HAS_VISUAL_VARIANTS = true
+    Parse variant paths from the table (direction index -> PNG path or fallback note)
+  ELSE:
+    SET HAS_VISUAL_VARIANTS = false
+
 **RULES:**
 - Show scores for ALL directions — do not silently drop any direction.
 - Include the feasibility annotation from Step 5 in each direction's scoring rationale.
@@ -297,8 +500,13 @@ Score each direction against a readiness rubric using 0-3 scales consistent with
 ```
 ## Converge Phase
 
-| Direction | Goal Alignment (0-3) | Feasibility (0-3) | Distinctiveness (0-3) | Total (/9) | Recommended |
-|-----------|---------------------|-------------------|----------------------|------------|-------------|
+IF HAS_VISUAL_VARIANTS:
+  | Direction | Goal Alignment (0-3) | Feasibility (0-3) | Distinctiveness (0-3) | Total (/9) | Visual | Recommended |
+  Per row: Visual column = "[View](STH-ideate-direction-{i}.png)" if PNG exists, else "text-only"
+ELSE:
+  | Direction | Goal Alignment (0-3) | Feasibility (0-3) | Distinctiveness (0-3) | Total (/9) | Recommended |
+  (unchanged — backwards-compatible with non-diverge runs)
+
 | {name} | {score} | {score} | {score} | {total} | {* if recommended} |
 
 ### Scoring Rationale
@@ -523,6 +731,13 @@ Display the final summary table (always the last output):
 - ALWAYS release write lock even on error. The lock has a 60s TTL but releasing immediately prevents blocking other skills.
 - NEVER present fewer than 5 directions in the diverge pass. The minimum 5 constraint prevents premature narrowing. If the problem space is rich, generate more.
 - NEVER silently drop any direction from the converge scoring. All diverge directions MUST appear in the converge scoring table.
+- NEVER run the 4-STITCH visual diverge BEFORE text directions in Step 4 complete. Stitch prompts are built from text direction content. Step 4-STITCH runs AFTER Step 4/7, not in parallel.
+- NEVER share a project_id across directions in 4-STITCH-D. Each direction must be generated in isolation to ensure visually distinct variants. Design DNA propagation violates IDT-01.
+- NEVER use modelId "GEMINI_3_FLASH" for ideation. Ideation uses Experimental quota (GEMINI_3_PRO). Using Flash would debit Standard quota.
+- NEVER fetch HTML (stitch:fetch-screen-code) for ideation variants. PNG-only. HTML fetch is unnecessary MCP overhead for visual thumbnails.
+- NEVER apply annotation injection to ideation PNGs. Annotation is for HTML artifacts consumed by handoff. PNGs have no DOM.
+- NEVER abort the entire ideation run due to partial Experimental quota or per-direction Stitch failure. Text-only fallback is always the correct behavior.
+- NEVER use inline CommonJS module loading in ESM workflow bash blocks. Always use the createRequire pattern (node --input-type=module with `import { createRequire } from 'module'`) to load mcp-bridge.cjs.
 
 </process>
 
