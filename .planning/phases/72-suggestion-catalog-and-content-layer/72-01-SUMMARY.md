@@ -105,6 +105,18 @@ None — no external service configuration required.
 - Phase 72 Plan 02 ready to begin: context-notes directory initialization and plan-phase workflow injection (CONT-04)
 - No blockers
 
+## Self-Check: PASSED
+
+- FOUND: .planning/idle-catalog.md
+- FOUND: hooks/tests/verify-phase-72.cjs
+- FOUND: bin/lib/idle-suggestions.cjs
+- FOUND: hooks/idle-suggestions.cjs
+- FOUND: 72-01-SUMMARY.md
+- FOUND: commit 69e10af (task 1)
+- FOUND: commit 56d0898 (task 2)
+- 9/9 Phase 72 tests pass
+- 17/17 Phase 71 tests pass (zero regressions)
+
 ---
 *Phase: 72-suggestion-catalog-and-content-layer*
 *Completed: 2026-03-21*
