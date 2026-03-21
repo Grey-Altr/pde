@@ -78,7 +78,20 @@ Any user can go from idea to shipped product through a single platform that hand
 
 ### Active
 
-(Next milestone not yet started)
+## Current Milestone: v0.11 Experience Product Type
+
+**Goal:** Extend PDE's product type detection to support "experience" products (events, festivals, installations) with physical design artifacts across all pipeline stages.
+
+**Target features:**
+- Product type detection for `experience` with 5 sub-types (single-night, multi-day, recurring-series, installation, hybrid-event)
+- Brief stage extensions (promise statement, audience archetype, vibe contract, venue constraints, repeatability intent)
+- Flows stage extensions (temporal, spatial, social flow dimensions)
+- Design system extensions (sonic, lighting, spatial, thermal/atmospheric, brand palettes)
+- Wireframe stage new artifact types (floor plan, timeline wireframe)
+- Critique stage event-specific perspectives (safety, accessibility, operations, sustainability, licensing, financial, community)
+- HIG stage physical interface guidelines (wayfinding, acoustic zoning, queue UX, transaction speed, toilet ratio, hydration, first aid)
+- Handoff stage production bible (advance document, run sheet, staffing plan, budget, post-event template)
+- Flyer & print collateral as first-class design artifacts (event flyer, series identity template, festival program)
 
 ### Out of Scope
 
@@ -198,4 +211,4 @@ Any user can go from idea to shipped product through a single platform that hand
 | Dashboard integration (Pane 7) | 7-pane tmux layout with live suggestion display, adaptive degradation preserved, /pde:suggestions CLI for non-tmux users | ✓ Good — polling loop, zero-state fallback, build_minimal_layout() untouched |
 | Zero-LLM suggestion engine | Suggestions ranked by file reads + heuristics only; no model calls during idle time | ✓ Good — <2s budget, zero cost, no recursive wait |
 | Context notes as opt-in enrichment | User-authored notes injected into planner prompt, not auto-generated | ✓ Good — if PDE can infer it, user input isn't needed |
-*Last updated: 2026-03-21 after v0.10 milestone — Idle Time Productivity: hook delivery, suggestion engine, catalog/content layer, context notes, 7-pane dashboard integration.*
+*Last updated: 2026-03-21 after starting v0.11 milestone — Experience Product Type*

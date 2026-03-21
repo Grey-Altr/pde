@@ -1,15 +1,15 @@
 ---
 pde_state_version: 1.0
-milestone: v0.10
-milestone_name: Idle Time Productivity
-status: complete
-stopped_at: Milestone v0.10 shipped
-last_updated: "2026-03-21T09:07:24.876Z"
+milestone: v0.11
+milestone_name: Experience Product Type
+status: active
+stopped_at: null
+last_updated: "2026-03-21"
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 8
-  completed_plans: 8
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
 # Project State
@@ -19,11 +19,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Planning next milestone (v0.11)
+**Current focus:** v0.11 Experience Product Type — Defining requirements
 
 ## Current Position
 
-Milestone v0.10 complete. Next milestone not yet started.
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-21 — Milestone v0.11 started
 
 ## Performance Metrics
 
