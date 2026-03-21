@@ -209,12 +209,12 @@ describe('Phase 81 — handoff production bible (COMPLETE)', () => {
 // Pending phases — Phase 74 stubs intact (phases 77-78 NOT YET IMPLEMENTED)
 // ---------------------------------------------------------------------------
 
-describe('Pending phases — Phase 74 stubs intact (phases 77-78 NOT YET IMPLEMENTED)', () => {
-  test('flows.md still has Phase 74 stub (Phase 77 pending)', () => {
+describe('Pending phases — Phase 74 architecture refs intact (phase 78 NOT YET IMPLEMENTED)', () => {
+  test('flows.md retains Phase 74 architecture reference (Phase 77 complete — reference comment preserved)', () => {
     const content = readWorkflow('workflows/flows.md');
     assert.ok(
       content.includes('Phase 74'),
-      'flows.md: Phase 74 stub comment missing — stub must remain until Phase 77 implements temporal/spatial/social flow dimensions'
+      'flows.md: Phase 74 architecture reference missing — comment must retain "Phase 74" substring'
     );
   });
 
@@ -303,13 +303,28 @@ describe('Phase 76 — experience design token architecture (COMPLETE)', () => {
   });
 });
 
-describe('Pending phases — test.todo() markers for phases 77-78', () => {
+describe('Phase 77 — experience flow diagrams (COMPLETE)', () => {
 
   // Phase 77: FLOW — experience flow diagrams
-  test.todo('Phase 77: FLOW-01 — temporal flow diagram generated');
-  test.todo('Phase 77: FLOW-02 — spatial flow diagram generated');
-  test.todo('Phase 77: FLOW-03 — social flow diagram generated');
-  test.todo('Phase 77: FLOW-04 — spaces inventory JSON produced');
+  test('Phase 77: FLOW-01 — temporal flow diagram generated (flows.md contains Step 4-EXP with TFL)', () => {
+    const content = readWorkflow('workflows/flows.md');
+    assert.ok(content.includes('TFL') || content.includes('temporal flow'), 'FLOW-01: temporal flow generation missing from flows.md');
+    assert.ok(content.includes('PRODUCT_TYPE == "experience"'), 'FLOW-01: PRODUCT_TYPE experience guard missing from flows.md');
+  });
+  test('Phase 77: FLOW-02 — spatial flow diagram generated (flows.md contains SFL with BOTTLENECK)', () => {
+    const content = readWorkflow('workflows/flows.md');
+    assert.ok(content.includes('SFL') || content.includes('spatial flow'), 'FLOW-02: spatial flow generation missing from flows.md');
+    assert.ok(content.includes('BOTTLENECK'), 'FLOW-02: BOTTLENECK annotation keyword missing from flows.md');
+  });
+  test('Phase 77: FLOW-03 — social flow diagram generated (flows.md contains SOC)', () => {
+    const content = readWorkflow('workflows/flows.md');
+    assert.ok(content.includes('SOC') || content.includes('social flow'), 'FLOW-03: social flow generation missing from flows.md');
+  });
+  test('Phase 77: FLOW-04 — spaces inventory JSON produced (flows.md contains spaces-inventory.json)', () => {
+    const content = readWorkflow('workflows/flows.md');
+    assert.ok(content.includes('spaces-inventory.json'), 'FLOW-04: spaces-inventory.json generation missing from flows.md');
+    assert.ok(content.includes('venueCapacity'), 'FLOW-04: venueCapacity schema field missing from flows.md');
+  });
 
   // Phase 78: WIRE — experience wireframes
   test.todo('Phase 78: WIRE-01 — floor plan wireframe generated as SVG-in-HTML');

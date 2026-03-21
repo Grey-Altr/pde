@@ -69,7 +69,7 @@ Continue without brief — Claude uses `.planning/PROJECT.md` as fallback contex
 - Key user goals and tasks from Jobs to Be Done section
 - Constraints that affect user flow (e.g., offline-first, accessibility requirements, platform constraints)
 
-<!-- Experience product type — Phase 74 stub: temporal, spatial, and social flow dimensions (crowd flow, ingress/egress, stage-to-stage routing, run-of-show timing) are added in Phase 77. Current behavior: proceed with software flow path as temporary fallback for experience product type. NEVER produce experience-specific spatial flow diagrams from this stub. -->
+<!-- Experience product type — Phase 74 architecture: temporal, spatial, and social flow diagrams implemented in Phase 77. See Step 4-EXP experience block for TFL/SFL/SOC generation. Software products skip this block entirely. -->
 
 **Version gate (existing flow documents):**
 
@@ -147,6 +147,178 @@ Display: `Step 3/7: MCP probes complete. Sequential Thinking: {available | unava
 ### Step 4/7: Generate flow diagrams
 
 This is the core generation step. Claude synthesizes and generates all diagram content in memory before writing to files in Step 5.
+
+**IF `PRODUCT_TYPE == "experience"`:** skip Steps 4a through 4e (software path) and jump to Step 4-EXP below.
+
+#### Step 4-EXP: Experience flow generation (experience products only)
+
+Read the experience brief fields from BRIEF.md:
+- `VIBE_CONTRACT` — from Vibe Contract section (emotional arc, peak timing, energy level, aesthetic register)
+- `VENUE_CONSTRAINTS` — from Venue Constraints section (capacity, curfew, noise limits, load-in windows, fixed infrastructure)
+- `AUDIENCE_ARCHETYPE` — from Audience Archetype section (crowd composition, mobility needs, group size, energy profile)
+
+Read `SYS-experience-tokens.json` if present (soft dependency):
+- Extract `spatial.zone-count.$value` for ZONE_COUNT
+- Extract `spatial.density-target.$value` for DENSITY_TARGET
+- If file absent: set ZONE_COUNT = "3-5 zones (estimated)", DENSITY_TARGET = "moderate"
+
+Generate three experience flow diagrams (held in memory):
+
+##### TFL: Temporal Flow Diagram (FLOW-01)
+
+Generate a Mermaid `flowchart LR` representing the eight-stage attendee emotional arc. Each stage is a node; transitions show timing/triggers derived from the Vibe Contract energy level and peak timing.
+
+```mermaid
+flowchart LR
+    TFL_1["Awareness\n(pre-event discovery)"]
+    TFL_2["Anticipation\n(ticket purchase → doors)"]
+    TFL_3["Arrival\n(entry funnel, first impressions)"]
+    TFL_4["Immersion\n(settling in, zone exploration)"]
+    TFL_5["Peak\n(headline act / peak energy)"]
+    TFL_6["Comedown\n(post-peak transition)"]
+    TFL_7["Departure\n(exit flow, transport)"]
+    TFL_8["Afterglow\n(social media, memory)"]
+
+    TFL_1 -->|"ticket purchase"| TFL_2
+    TFL_2 -->|"doors open"| TFL_3
+    TFL_3 -->|"entry complete"| TFL_4
+    TFL_4 -->|"peak act begins"| TFL_5
+    TFL_5 -->|"set ends"| TFL_6
+    TFL_6 -->|"curfew approach"| TFL_7
+    TFL_7 -->|"post-event"| TFL_8
+```
+
+Node IDs use `TFL_{N}` prefix. Customize stage descriptions and transition labels using the Vibe Contract (peak timing drives the TFL_4->TFL_5 transition label; energy level drives descriptive text in each node annotation).
+
+Below the diagram, generate a **Temporal Analysis** table:
+
+```markdown
+| Stage | Duration Estimate | Energy Level | Key Design Consideration |
+|-------|-------------------|--------------|--------------------------|
+| Awareness | Weeks/days pre-event | Low | Discovery channels, ticket design |
+| Anticipation | Days to hours | Building | Communication cadence, pre-event content |
+| Arrival | 30-60 min | Medium-high | Queue management, first impression |
+| Immersion | 1-3 hours | High | Zone exploration, wayfinding |
+| Peak | 30-90 min | Maximum | Crowd density, safety, sightlines |
+| Comedown | 30-60 min | Declining | Transition spaces, hydration |
+| Departure | 30-60 min | Low | Exit flow, transport, coat check |
+| Afterglow | Post-event | Warm | Social sharing, feedback collection |
+```
+
+Customize durations and energy levels based on Venue Constraints (curfew affects departure timing) and Vibe Contract (energy arc).
+
+##### SFL: Spatial Flow Diagram (FLOW-02)
+
+Generate a Mermaid `flowchart TD` representing crowd movement through physical zones. Nodes are locations/zones; edges show movement with capacity and bottleneck annotations.
+
+```mermaid
+flowchart TD
+    SFL_ENTRY["Entry Funnel\n(ticket scan, bag check)"]
+    SFL_FOYER["Arrival Foyer\n(capacity: {venue_capacity * 0.15})"]
+    SFL_ZONE1["Main Floor\n(density: {DENSITY_TARGET})"]
+    SFL_ZONE2["Secondary Zone\n(bar, chill area)"]
+    SFL_ZONE3["Outdoor / Smoking"]
+    SFL_EGRESS["Emergency Egress\n(all zones)"]
+    SFL_EXIT["Exit Funnel\n(late-night transport)"]
+
+    SFL_ENTRY -->|"ingress flow"| SFL_FOYER
+    SFL_FOYER -->|"BOTTLENECK: entry pinch"| SFL_ZONE1
+    SFL_FOYER --> SFL_ZONE2
+    SFL_ZONE1 <--> SFL_ZONE2
+    SFL_ZONE2 <--> SFL_ZONE3
+    SFL_ZONE1 -->|"EMERGENCY"| SFL_EGRESS
+    SFL_ZONE2 -->|"EMERGENCY"| SFL_EGRESS
+    SFL_ZONE3 -->|"EMERGENCY"| SFL_EGRESS
+    SFL_ZONE1 -->|"curfew"| SFL_EXIT
+```
+
+Node IDs use `SFL_` prefix. Zone count and names derive from `spatial.zone-count` token and Venue Constraints. Bottleneck annotations on edges use `BOTTLENECK:` prefix for downstream Phase 78 floor plan detection. Every zone must have an `EMERGENCY` edge to `SFL_EGRESS`.
+
+Below the diagram, generate a **Zone Capacity Analysis** table:
+
+```markdown
+| Zone | Estimated Capacity | Density Target | Mood | Adjacent Zones |
+|------|-------------------|----------------|------|----------------|
+| Entry Funnel | {venue_capacity * 0.05} | controlled | anticipation | Foyer |
+| Arrival Foyer | {venue_capacity * 0.15} | moderate | welcome | Main Floor, Secondary |
+| Main Floor | {venue_capacity * 0.55} | {DENSITY_TARGET} | peak energy | Secondary, Egress |
+| Secondary Zone | {venue_capacity * 0.20} | moderate | social | Main Floor, Outdoor |
+| Outdoor | {venue_capacity * 0.05} | low | decompression | Secondary |
+```
+
+##### SOC: Social Flow Diagram (FLOW-03)
+
+Generate a Mermaid `flowchart TD` representing attendee social modes and interaction points. Nodes distinguish solo arrivals, group arrivals, meeting points, stranger interaction zones, and dancefloor density dynamics.
+
+```mermaid
+flowchart TD
+    SOC_SOLO["Solo Arrival"]
+    SOC_GROUP["Group Arrival"]
+    SOC_MEET["Meeting Point\n(designated area)"]
+    SOC_BAR["Bar / Social Zone\n(stranger interaction)"]
+    SOC_DANCE["Dancefloor\n(collective energy)"]
+    SOC_CHILL["Chill Zone\n(conversation possible)"]
+    SOC_SHARED["Shared Experience\n(peak moment)"]
+
+    SOC_SOLO -->|"find friends"| SOC_MEET
+    SOC_GROUP -->|"arrive together"| SOC_MEET
+    SOC_SOLO -->|"explore alone"| SOC_BAR
+    SOC_MEET -->|"move to music"| SOC_DANCE
+    SOC_BAR -->|"meet strangers"| SOC_DANCE
+    SOC_DANCE -->|"need break"| SOC_CHILL
+    SOC_CHILL -->|"re-energize"| SOC_DANCE
+    SOC_DANCE -->|"peak act"| SOC_SHARED
+    SOC_BAR --> SOC_CHILL
+```
+
+Node IDs use `SOC_` prefix. Customize node descriptions using Audience Archetype (group size distribution, energy profile). Below the diagram, generate a **Social Dynamics Analysis** noting solo vs group arrival ratio, stranger interaction probability, and dancefloor density expectations derived from Audience Archetype.
+
+##### Spaces Inventory JSON (FLOW-04)
+
+Build a `SPACES_INVENTORY` JSON object conforming to this exact schema:
+
+```json
+{
+  "schemaVersion": "1.0",
+  "generatedAt": "{ISO 8601 date}",
+  "source": "Phase 77 — /pde:flows experience block",
+  "venueCapacity": "{capacity from Venue Constraints}",
+  "zones": [
+    {
+      "id": "zone-{kebab-case-name}",
+      "name": "{Zone Display Name}",
+      "capacity": "{number}",
+      "densityTarget": "{high|moderate|low}",
+      "mood": "{mood from spatial tokens or brief}",
+      "adjacentTo": ["{zone-id}", "..."],
+      "sightlines": "{description}"
+    }
+  ],
+  "bottlenecks": [
+    {
+      "location": "{location name}",
+      "type": "{ingress|egress|internal}",
+      "zoneId": "{zone-id}",
+      "mitigationNote": "{recommendation}"
+    }
+  ],
+  "emergencyEgress": [
+    {
+      "zoneId": "{zone-id}",
+      "exitPath": "{description}",
+      "estimatedEvacTimeSec": "{number}"
+    }
+  ]
+}
+```
+
+Zone data derives from the SFL spatial flow diagram zones. Capacity estimates from Venue Constraints; density targets from SYS-experience-tokens.json spatial category; mood from spatial tokens or Vibe Contract.
+
+After generating all four artifacts in memory, jump to Step 5-EXP.
+
+**End experience flow generation block.** Non-experience products skip this entire Step 4-EXP and proceed to Step 4a as before.
+
+---
 
 #### 4a: Persona and journey identification
 
@@ -411,6 +583,55 @@ Display: `Step 5/7: Flow artifacts written.`
 
 ---
 
+#### Step 5-EXP: Write experience flow artifacts (experience products only)
+
+**IF `PRODUCT_TYPE == "experience"` (continuing from Step 4-EXP):**
+
+Write all files using the Write tool. Display confirmation after each file.
+
+**File 1: Temporal flow document**
+
+Write to `.planning/design/ux/TFL-temporal-flow-v1.md`. Include frontmatter:
+
+```yaml
+---
+Generated: "{ISO 8601 date}"
+Skill: /pde:flows (TFL)
+Version: v1
+Status: draft
+Source Brief: "{brief path}"
+Type: experience-flow-temporal
+---
+```
+
+Content: the temporal flow Mermaid diagram and Temporal Analysis table from Step 4-EXP.
+
+Display: `  -> Created: .planning/design/ux/TFL-temporal-flow-v1.md`
+
+**File 2: Spatial flow document**
+
+Write to `.planning/design/ux/SFL-spatial-flow-v1.md`. Include frontmatter with `Type: experience-flow-spatial`. Content: the spatial flow Mermaid diagram and Zone Capacity Analysis table from Step 4-EXP.
+
+Display: `  -> Created: .planning/design/ux/SFL-spatial-flow-v1.md`
+
+**File 3: Social flow document**
+
+Write to `.planning/design/ux/SOC-social-flow-v1.md`. Include frontmatter with `Type: experience-flow-social`. Content: the social flow Mermaid diagram and Social Dynamics Analysis from Step 4-EXP.
+
+Display: `  -> Created: .planning/design/ux/SOC-social-flow-v1.md`
+
+**File 4: Spaces inventory JSON**
+
+Write to `.planning/design/ux/spaces-inventory.json` (fixed path, unversioned — same convention as `FLW-screen-inventory.json`). Write the full `SPACES_INVENTORY` JSON object from Step 4-EXP.
+
+Display: `  -> Created: .planning/design/ux/spaces-inventory.json`
+
+Display: `Step 5/7: Experience flow artifacts written (3 diagrams + 1 JSON).`
+
+**Skip to Step 6.** (Non-experience products use the standard Step 5 above.)
+
+---
+
 ### Step 6/7: Update ux domain DESIGN-STATE
 
 **Check if domain DESIGN-STATE exists:**
@@ -435,6 +656,16 @@ If the file already exists (re-run scenario, v2+): update the existing FLW row's
 ```
 
 Display: `Step 6/7: UX DESIGN-STATE.md updated with FLW artifact entry.`
+
+**If `PRODUCT_TYPE == "experience"`:** Add or update THREE artifact rows instead of one FLW row:
+
+```
+| TFL | Temporal Flow | /pde:flows | draft | v1 | none | -- | {YYYY-MM-DD} |
+| SFL | Spatial Flow | /pde:flows | draft | v1 | none | -- | {YYYY-MM-DD} |
+| SOC | Social Flow | /pde:flows | draft | v1 | none | -- | {YYYY-MM-DD} |
+```
+
+Do NOT add the FLW row for experience products (mutual exclusion — experience products produce TFL/SFL/SOC, not FLW).
 
 ---
 
@@ -508,6 +739,36 @@ node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update FLW status
 node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update FLW version {N}
 ```
 
+**If `PRODUCT_TYPE == "experience"`:** Register three experience flow artifacts INSTEAD of FLW:
+
+```bash
+# Temporal flow (TFL)
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update TFL code TFL
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update TFL name "Temporal Flow Diagram"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update TFL type experience-flow-temporal
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update TFL domain ux
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update TFL path ".planning/design/ux/TFL-temporal-flow-v1.md"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update TFL status draft
+
+# Spatial flow (SFL) -- also references spaces-inventory.json
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update SFL code SFL
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update SFL name "Spatial Flow Diagram"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update SFL type experience-flow-spatial
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update SFL domain ux
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update SFL path ".planning/design/ux/SFL-spatial-flow-v1.md"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update SFL status draft
+
+# Social flow (SOC)
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update SOC code SOC
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update SOC name "Social Flow Diagram"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update SOC type experience-flow-social
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update SOC domain ux
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update SOC path ".planning/design/ux/SOC-social-flow-v1.md"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update SOC status draft
+```
+
+Do NOT register the FLW artifact for experience products.
+
 **Set coverage flag (CRITICAL: preserve existing flags):**
 
 Read current coverage first (never hardcode — this would clobber flags set by other skills):
@@ -517,7 +778,7 @@ COV=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design coverage-check)
 if [[ "$COV" == @file:* ]]; then COV=$(cat "${COV#@file:}"); fi
 ```
 
-Parse the JSON output to extract current flag values for ALL fourteen fields:
+Parse the JSON output to extract current flag values for ALL sixteen fields:
 - `hasDesignSystem` — current value from COV output
 - `hasWireframes` — current value from COV output
 - `hasFlows` — (this skill sets to true)
@@ -532,11 +793,13 @@ Parse the JSON output to extract current flag values for ALL fourteen fields:
 - `hasHigAudit` — current value from COV output (default false if absent)
 - `hasRecommendations` — current value from COV output (default false if absent)
 - `hasStitchWireframes` — current value from COV output (default false if absent)
+- `hasPrintCollateral` — current value from COV output (default false if absent)
+- `hasProductionBible` — current value from COV output (default false if absent)
 
-Merge `hasFlows: true` into the existing values, then write the full fourteen-field object (all flags must be present — default any absent field to `false`):
+Merge `hasFlows: true` into the existing values, then write the full sixteen-field object (all flags must be present — default any absent field to `false`):
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":{current},"hasWireframes":{current},"hasFlows":true,"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":{current}}'
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":{current},"hasWireframes":{current},"hasFlows":true,"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":{current},"hasPrintCollateral":{current},"hasProductionBible":{current}}'
 ```
 
 Display: `Step 7/7: Root DESIGN-STATE and manifest updated.`
@@ -574,6 +837,14 @@ Display the final summary table as the last output of every run:
 | MCP enhancements | {comma-separated list of MCPs actually used, or "none"} |
 ```
 
+**If `PRODUCT_TYPE == "experience"`:**
+
+| Property | Value |
+|----------|-------|
+| Files created | .planning/design/ux/TFL-temporal-flow-v1.md, .planning/design/ux/SFL-spatial-flow-v1.md, .planning/design/ux/SOC-social-flow-v1.md, .planning/design/ux/spaces-inventory.json, .planning/design/ux/DESIGN-STATE.md (if it does not exist) |
+| Files modified | .planning/design/DESIGN-STATE.md, .planning/design/design-manifest.json |
+| Next suggested skill | /pde:wireframe |
+
 </process>
 
 <output>
@@ -582,4 +853,8 @@ Display the final summary table as the last output of every run:
 - `.planning/design/ux/DESIGN-STATE.md` — ux domain state file (created if absent); updated with FLW artifact entry
 - `.planning/design/DESIGN-STATE.md` — root state updated (Cross-Domain Map, Quick Reference, Decision Log, Iteration History)
 - `.planning/design/design-manifest.json` — manifest updated with FLW artifact entry and hasFlows: true in designCoverage
+- `.planning/design/ux/TFL-temporal-flow-v1.md` — temporal flow diagram (experience products only)
+- `.planning/design/ux/SFL-spatial-flow-v1.md` — spatial flow diagram with zone/bottleneck annotations (experience products only)
+- `.planning/design/ux/SOC-social-flow-v1.md` — social flow diagram (experience products only)
+- `.planning/design/ux/spaces-inventory.json` — machine-readable zone inventory for Phase 78 floor plan (experience products only)
 </output>
