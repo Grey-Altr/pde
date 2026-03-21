@@ -14,7 +14,7 @@
 |----|-------------|-----------------|
 | BREF-01 | Experience brief captures promise statement (one sentence an attendee tells a friend) | Step 5 synthesis section in brief.md is the insertion point; section name `## Promise Statement` follows established heading pattern |
 | BREF-02 | Experience brief captures vibe contract (emotional arc with peak timing, energy level, aesthetic register) | Step 5 synthesis section; section name `## Vibe Contract`; field structure derived from event planning domain terminology |
-| BREF-03 | Experience brief captures audience archetype (crowd composition, mobility needs, group size, energy profile) | Step 5 synthesis section; section name `## Audience Archetype`; replaces/extends personas for experience type |
+| BREF-03 | Experience brief captures audience archetype (crowd composition, mobility needs, group size, energy profile) | Step 5 synthesis section; section name `## Audience Archetype`; supplements existing `## Target Users` for crowd-level data |
 | BREF-04 | Experience brief captures venue constraints (capacity, curfew, noise limits, load-in windows, fixed infrastructure) | Step 5 synthesis section; section name `## Venue Constraints`; feeds downstream spatial tokens (Phase 76) |
 | BREF-05 | Experience brief captures repeatability intent (one-off vs series with cadence) | Step 5 synthesis section; section name `## Repeatability Intent`; links to REPT-01/REPT-02 future requirements |
 
@@ -28,11 +28,11 @@ Phase 75 extends `workflows/brief.md` to produce five additional output sections
 
 The core implementation is a conditional block in brief.md Step 5 (Synthesize brief content): when `product_type = "experience"`, after generating all common sections (Problem Statement, Target Users, Jobs to Be Done, Constraints, etc.), five additional experience-specific sections are written into the brief. When `product_type` is anything else, no new sections are written and the output must be byte-identical to the pre-milestone baseline.
 
-The most important discovery from codebase inspection is that brief.md currently has an incomplete `## Product Type` section instruction: it says `**Type:** {software | hardware | hybrid}` (missing `experience`) and has no `For 'experience' type, the Design Constraints table MUST cover:` clause. Phase 75 must fix this alongside adding the five new sections. The `templates/design-brief.md` template has the same gap. Both files require targeted edits.
+Two codebase gaps confirmed by direct inspection: (1) brief.md Step 5's `## Product Type` section shows `**Type:** {software | hardware | hybrid}` with no experience option, and has no `For 'experience' type, the Design Constraints table MUST cover:` clause. (2) `templates/design-brief.md` has the same gap. Both require targeted edits in Phase 75.
 
-The second critical discovery is that "prompting" per the success criteria does not mean interactive Q&A. Brief.md generates content from PROJECT.md context — it does not interactively ask users for values field by field. The five new sections are synthesized from PROJECT.md content (plus any upstream context artifacts) exactly as all existing sections are. When a user's PROJECT.md provides insufficient context for a field, the brief generates a best-effort placeholder with a `[PROVIDE: ...]` marker pattern. This is the correct interpretation of "prompts for" in the success criteria — it means the fields appear in the output with structured placeholders when source data is thin.
+**CRITICAL NEW DISCOVERY:** `tests/phase-82/milestone-completion.test.mjs` lines 229-243 contains a **negative assertion** that checks `!content.includes('promise_statement')` and `!content.includes('vibe_contract')` — explicitly asserting these fields do NOT yet exist. When Phase 75 adds these fields, this test will FAIL unless Phase 75 also updates (or removes) those negative assertions. This is a mandatory file edit for Phase 75. The test currently passes (17/17 non-todo assertions pass); after Phase 75 it must still pass with those two negative assertions replaced by positive ones.
 
-**Primary recommendation:** Add one conditional block in brief.md Step 5 that fires only for `product_type === "experience"`, generating all five sections in a single guarded block. This is the minimum change that satisfies BREF-01 through BREF-05 without touching any non-experience code path.
+**Primary recommendation:** Add one conditional block in brief.md Step 5 that fires only for `product_type === "experience"`, generating all five sections in a single guarded block. Update `tests/phase-82/milestone-completion.test.mjs` to replace the negative BREF assertions with positive ones. This is the minimum change that satisfies BREF-01 through BREF-05 without touching any non-experience code path.
 
 ---
 
@@ -69,8 +69,12 @@ The second critical discovery is that "prompting" per the success criteria does 
 
 ```
 tests/
-└── phase-75/
-    └── brief-extensions.test.mjs   # Nyquist assertions — written first (Wave 0)
+├── phase-74/
+│   └── experience-regression.test.mjs  # MUST still pass after Phase 75
+├── phase-75/
+│   └── brief-extensions.test.mjs       # NEW: Nyquist assertions (Wave 0)
+└── phase-82/
+    └── milestone-completion.test.mjs   # MUST be updated: flip negative BREF assertions
 
 workflows/
 └── brief.md    # MODIFIED: +experience Design Constraints in Step 5, +5 experience sections in Step 5
@@ -83,7 +87,7 @@ templates/
 
 **What:** A single `IF product_type == "experience"` guard in brief.md Step 5, after all common sections are written. Generates five named sections only for experience products. The entire block is skipped for non-experience types.
 
-**When to use:** Only in brief.md Step 5, after `## Scope Boundaries`. This preserves the existing section order and keeps all five experience sections grouped together.
+**When to use:** Only in brief.md Step 5, after `## Scope Boundaries` (currently at line 392-404). This preserves the existing section order and keeps all five experience sections grouped together.
 
 **Example:**
 
@@ -138,7 +142,7 @@ Derive from sub_type signals: `recurring-series` → series type. `single-night`
 
 **What:** Add a `For 'experience' type, the Design Constraints table MUST cover:` clause to the Step 5 `## Product Type` section instruction in brief.md, parallel to the existing software/hardware/hybrid clauses.
 
-**When to use:** brief.md Step 5, `## Product Type` section — exactly where the `For 'software' type, ...` and `For 'hardware' type, ...` clauses already live.
+**When to use:** brief.md Step 5, `## Product Type` section (lines 293-321) — exactly where the `For 'software' type, ...` and `For 'hardware' type, ...` clauses already live.
 
 **Example:**
 
@@ -151,19 +155,69 @@ For `experience` type, the Design Constraints table MUST cover:
 - Sub-type (single-night | multi-day | recurring-series | installation | hybrid-event) — locked by Phase 74 detection
 ```
 
-**Also update:** The `**Type:** {software | hardware | hybrid}` line to `**Type:** {software | hardware | hybrid | experience}`.
+**Also update:** The `**Type:** {software | hardware | hybrid}` line (currently at brief.md line 296) to `**Type:** {software | hardware | hybrid | experience}`.
 
 ### Pattern 3: Template Sync (design-brief.md)
 
-**What:** The `templates/design-brief.md` file is used as the output structure reference in brief.md Step 5. It currently shows `**Type:** {software | hardware | hybrid}` and has no experience sections. Update it to reflect experience as a valid type and add the five experience section stubs.
+**What:** The `templates/design-brief.md` file is used as the output structure reference in brief.md Step 5. It currently shows `**Type:** {software | hardware | hybrid}` (line 19) and has no experience sections. Update it to reflect experience as a valid type and add the five experience section stubs.
 
-**When to use:** Update `templates/design-brief.md` as part of the same task that modifies brief.md Step 5.
+**When to use:** Update `templates/design-brief.md` in the same task that modifies brief.md Step 5. One task, two files, atomic commit.
 
-### Pattern 4: Regression Test Structure
+### Pattern 4: Phase 82 Test Update (MANDATORY)
+
+**What:** `tests/phase-82/milestone-completion.test.mjs` lines 229-243 contains a negative assertion block that explicitly verifies Phase 75 has NOT yet been implemented. These assertions check that `promise_statement` and `vibe_contract` do NOT appear in brief.md. When Phase 75 adds these fields, these assertions will fail and break the Phase 82 test suite.
+
+**The current negative test (lines 229-243):**
+```javascript
+test('brief.md has experience detection but BREF extension fields are pending (Phase 75)', () => {
+  const content = readWorkflow('workflows/brief.md');
+  assert.ok(content.includes('experience'), 'brief.md: experience detection missing — Phase 74 must wire experience classification');
+  assert.ok(
+    !content.includes('promise_statement'),
+    'brief.md: promise_statement field found but Phase 75 (BREF extensions) is not yet implemented'
+  );
+  assert.ok(
+    !content.includes('vibe_contract'),
+    'brief.md: vibe_contract field found but Phase 75 (BREF extensions) is not yet implemented'
+  );
+});
+```
+
+**What to replace it with:**
+```javascript
+test('brief.md has experience detection and BREF extension fields (Phase 75 complete)', () => {
+  const content = readWorkflow('workflows/brief.md');
+  assert.ok(content.includes('experience'), 'brief.md: experience detection missing');
+  assert.ok(
+    content.includes('Promise Statement'),
+    'brief.md: Promise Statement section missing — Phase 75 (BREF-01) not implemented'
+  );
+  assert.ok(
+    content.includes('Vibe Contract'),
+    'brief.md: Vibe Contract section missing — Phase 75 (BREF-02) not implemented'
+  );
+  assert.ok(
+    content.includes('Audience Archetype'),
+    'brief.md: Audience Archetype section missing — Phase 75 (BREF-03) not implemented'
+  );
+  assert.ok(
+    content.includes('Venue Constraints'),
+    'brief.md: Venue Constraints section missing — Phase 75 (BREF-04) not implemented'
+  );
+  assert.ok(
+    content.includes('Repeatability Intent'),
+    'brief.md: Repeatability Intent section missing — Phase 75 (BREF-05) not implemented'
+  );
+});
+```
+
+**Note:** The test.todo() markers for BREF-01 through BREF-05 in the `Pending phases` describe block (lines 251-256) should also be converted to real tests or removed, since they are no longer pending after Phase 75. They can be moved to `tests/phase-75/brief-extensions.test.mjs` as the canonical BREF tests. The `Pending phases` describe block covering BREF-01 through BREF-05 should remain as `test.todo()` ONLY until Phase 75 ships — at Phase 75 ship time these become live tests in the phase-75 suite.
+
+### Pattern 5: Regression Test Structure
 
 **What:** `tests/phase-75/brief-extensions.test.mjs` — Nyquist structural assertions verifying the five new sections are present in brief.md and that non-experience product type sections are NOT contaminated.
 
-**When to use:** Written in Wave 0 before any workflow modifications.
+**When to use:** Written in Wave 0 before any workflow modifications. Expected to FAIL until brief.md is updated (that is the Wave 0 contract).
 
 **Example:**
 
@@ -184,8 +238,6 @@ describe('BREF-01: promise statement section in brief.md', () => {
   test('brief.md contains Promise Statement section generation instruction', () => {
     const content = readFileSync(join(ROOT, 'workflows/brief.md'), 'utf8');
     assert.ok(content.includes('Promise Statement'), 'brief.md missing Promise Statement section');
-    assert.ok(content.includes('promise statement') || content.includes('Promise Statement'),
-      'brief.md missing promise statement generation logic');
   });
 });
 
@@ -209,8 +261,14 @@ describe('BREF-04: venue constraints section in brief.md', () => {
   test('brief.md contains Venue Constraints section generation instruction', () => {
     const content = readFileSync(join(ROOT, 'workflows/brief.md'), 'utf8');
     assert.ok(content.includes('Venue Constraints'), 'brief.md missing Venue Constraints section');
-    assert.ok(content.includes('Curfew') || content.includes('curfew'), 'brief.md missing curfew field');
-    assert.ok(content.includes('Noise limits') || content.includes('noise limits'), 'brief.md missing noise limits field');
+    assert.ok(
+      content.includes('Curfew') || content.includes('curfew'),
+      'brief.md missing curfew field'
+    );
+    assert.ok(
+      content.includes('Noise limits') || content.includes('noise limits'),
+      'brief.md missing noise limits field'
+    );
   });
 });
 
@@ -218,27 +276,30 @@ describe('BREF-05: repeatability intent section in brief.md', () => {
   test('brief.md contains Repeatability Intent section generation instruction', () => {
     const content = readFileSync(join(ROOT, 'workflows/brief.md'), 'utf8');
     assert.ok(content.includes('Repeatability Intent'), 'brief.md missing Repeatability Intent section');
-    assert.ok(content.includes('one-off') || content.includes('series'), 'brief.md missing one-off/series field');
+    assert.ok(
+      content.includes('one-off') || content.includes('series'),
+      'brief.md missing one-off/series field'
+    );
   });
 });
 
-describe('Cross-type regression: non-experience sections untouched', () => {
-  test('experience sections are guarded by product_type conditional', () => {
+describe('Cross-type regression: experience sections guarded by product_type conditional', () => {
+  test('experience sections appear after a product_type == experience guard', () => {
     const content = readFileSync(join(ROOT, 'workflows/brief.md'), 'utf8');
-    // The five experience sections must appear AFTER a product_type == experience guard
     const promiseIdx = content.indexOf('Promise Statement');
-    const experienceGuardIdx = content.indexOf('product_type == "experience"') !== -1
-      ? content.indexOf('product_type == "experience"')
-      : content.indexOf("product_type === 'experience'");
+    const guardIdx =
+      content.indexOf('product_type == "experience"') !== -1
+        ? content.indexOf('product_type == "experience"')
+        : content.indexOf("product_type === 'experience'");
     assert.ok(promiseIdx !== -1, 'Promise Statement section not found');
-    assert.ok(experienceGuardIdx !== -1, 'No experience product_type guard found in brief.md');
+    assert.ok(guardIdx !== -1, 'No experience product_type guard found in brief.md');
     assert.ok(
-      experienceGuardIdx < promiseIdx,
+      guardIdx < promiseIdx,
       'Experience guard must appear before Promise Statement section'
     );
   });
 
-  test('brief.md still contains VERIFY WITH LOCAL AUTHORITY in venue constraints', () => {
+  test('brief.md contains VERIFY WITH LOCAL AUTHORITY in venue constraints', () => {
     const content = readFileSync(join(ROOT, 'workflows/brief.md'), 'utf8');
     assert.ok(
       content.includes('VERIFY WITH LOCAL AUTHORITY'),
@@ -253,8 +314,9 @@ describe('Cross-type regression: non-experience sections untouched', () => {
 - **Experience sections outside the guard:** Adding `## Promise Statement` to the COMMON section list (before the `product_type == "experience"` check) causes it to appear in software/hardware/hybrid briefs. Every experience-specific section MUST be inside the conditional block.
 - **Hard-failing on thin PROJECT.md context:** If PROJECT.md has no event description, brief.md should not halt. Use `[PROVIDE: ...]` markers. Halting makes the skill useless for users who run it before fully specifying their project.
 - **Forgetting the template sync:** `templates/design-brief.md` is the output structure reference. If brief.md Step 5 generates `## Promise Statement` but the template doesn't show it, there's a schema inconsistency that confuses downstream phases.
-- **Adding `Sub-type` as a section of the brief:** Sub-type is already written to the manifest and DESIGN-STATE.md Quick Reference in Step 7 (Phase 74). It does NOT need to be a separate `## Sub-type` section in the brief body — that would be redundant. Sub-type belongs only in the `## Product Type` Design Constraints table row and in the manifest.
-- **Inline disclaimer at the file level instead of field level:** The `[VERIFY WITH LOCAL AUTHORITY]` tag must appear on the same line as each specific regulatory value in `## Venue Constraints`, per `references/experience-disclaimer.md`. Grouping disclaimers at the bottom of the section violates the established pattern.
+- **Forgetting the Phase 82 test update:** `tests/phase-82/milestone-completion.test.mjs` has negative assertions that will break. This is not optional — it is a mandatory file modification for Phase 75.
+- **Adding `Sub-type` as a separate brief section:** Sub-type is already written to the manifest and DESIGN-STATE.md Quick Reference in Step 7 (Phase 74). It does NOT need a standalone `## Sub-type` section in the brief body — that is redundant. Sub-type belongs only in the `## Product Type` Design Constraints table row.
+- **Inline disclaimer at the file level instead of field level:** The `[VERIFY WITH LOCAL AUTHORITY]` tag must appear on the same line as each specific regulatory value in `## Venue Constraints`, per `references/experience-disclaimer.md` line 14-15.
 
 ---
 
@@ -281,11 +343,21 @@ describe('Cross-type regression: non-experience sections untouched', () => {
 
 **How to avoid:** The product_type conditional guard MUST syntactically precede all five experience section generation instructions. The test `cross-type regression: experience sections guarded by product_type conditional` catches this structurally.
 
-**Warning signs:** Running the regression test and seeing `experienceGuardIdx < promiseIdx` fail. Alternatively, manually generating a brief for a software product and seeing `## Promise Statement` appear in the output.
+**Warning signs:** Running the regression test and seeing `guardIdx < promiseIdx` fail. Alternatively, manually generating a brief for a software product and seeing `## Promise Statement` appear in the output.
 
-### Pitfall 2: Venue Constraints Without Disclaimers
+### Pitfall 2: Phase 82 Test Suite Breaks After Phase 75 Implementation
 
-**What goes wrong:** The `## Venue Constraints` section generates numerical values (capacity, dB limits, egress widths) without the `[VERIFY WITH LOCAL AUTHORITY]` inline tag.
+**What goes wrong:** `tests/phase-82/milestone-completion.test.mjs` lines 229-243 contains negative assertions that currently PASS because Phase 75 is not yet implemented. After Phase 75 adds `Promise Statement` and `Vibe Contract` to brief.md, these assertions will FAIL — breaking the Phase 82 test suite and reversing previously-green coverage.
+
+**Why it happens:** Phase 82 was written ahead of Phase 75 and deliberately coded negative assertions as a "not yet implemented" gate. This is a known pending test debt documented in STATE.md.
+
+**How to avoid:** Phase 75 MUST edit `tests/phase-82/milestone-completion.test.mjs` to replace the negative assertions (lines 229-243) with positive ones confirming the five BREF fields exist. This is a mandatory file modification, not optional cleanup.
+
+**Warning signs:** Running `node --test tests/phase-82/milestone-completion.test.mjs` after Phase 75 workflow edits and seeing failures in the `brief.md has experience detection` test.
+
+### Pitfall 3: Venue Constraints Without Disclaimers
+
+**What goes wrong:** The `## Venue Constraints` section generates numerical values (capacity, dB limits) without the `[VERIFY WITH LOCAL AUTHORITY]` inline tag.
 
 **Why it happens:** The disclaimer reference file exists (`references/experience-disclaimer.md`) but its usage guidance (inline per value, not grouped at section end) is not followed in the generation instructions.
 
@@ -293,27 +365,27 @@ describe('Cross-type regression: non-experience sections untouched', () => {
 
 **Warning signs:** Generating an experience brief and seeing a Capacity or Curfew value without the disclaimer tag.
 
-### Pitfall 3: Template/Workflow Desync
+### Pitfall 4: Template/Workflow Desync
 
-**What goes wrong:** `workflows/brief.md` is updated to generate the five new sections, but `templates/design-brief.md` still shows only software/hardware/hybrid in the Product Type line. The template is the schema reference; downstream phases read it.
+**What goes wrong:** `workflows/brief.md` is updated to generate the five new sections, but `templates/design-brief.md` still shows only software/hardware/hybrid in the Product Type line.
 
 **Why it happens:** Two files to update, easy to miss the second one.
 
-**How to avoid:** The planner must include `templates/design-brief.md` in the same task that modifies brief.md Step 5. One task, two files, atomic commit.
+**How to avoid:** The planner must include `templates/design-brief.md` in the same task that modifies brief.md Step 5.
 
 **Warning signs:** `templates/design-brief.md` still contains `**Type:** {software | hardware | hybrid}` after Phase 75.
 
-### Pitfall 4: Sub-type Section Added as a Separate Brief Section
+### Pitfall 5: Sub-type Section Added as a Separate Brief Section
 
 **What goes wrong:** A `## Sub-type` section or `## Experience Sub-type` section is added to the brief body, duplicating what Phase 74 already writes to `| Sub-type |` in DESIGN-STATE.md Quick Reference and `experienceSubType` in the manifest.
 
 **Why it happens:** Natural to think "if there are 5 new sections, maybe sub-type is a 6th."
 
-**How to avoid:** Sub-type is captured as a Design Constraints table row within `## Product Type` (one line) and in DESIGN-STATE/manifest (already implemented in Phase 74). It is NOT a standalone section. The requirements BREF-01 through BREF-05 enumerate exactly five fields — sub-type is not among them.
+**How to avoid:** Sub-type is captured as a Design Constraints table row within `## Product Type` (one line) and in DESIGN-STATE/manifest (already implemented in Phase 74). It is NOT a standalone section. BREF-01 through BREF-05 enumerate exactly five fields — sub-type is not among them.
 
 **Warning signs:** Brief body contains `## Sub-type` or `## Experience Sub-type` as a top-level heading.
 
-### Pitfall 5: Software Brief Byte-Identity Broken
+### Pitfall 6: Software Brief Byte-Identity Broken
 
 **What goes wrong:** The success criteria requires "Running `/pde:brief` for a software product produces no new fields — existing output is byte-identical to pre-milestone baseline." A change to the common section generation logic (not the experience-only block) breaks this.
 
@@ -331,18 +403,18 @@ Verified patterns from direct codebase inspection:
 
 ### Exact Insertion Location in brief.md Step 5
 
-The five experience sections go AFTER the existing `## Scope Boundaries` instruction block, which ends at approximately line 410 of the current brief.md. The block to add:
+The current brief.md Step 5 ends at approximately line 411 (the footer block). The five experience sections go AFTER the existing `## Scope Boundaries` instruction block, which ends at approximately line 404. The block to add begins immediately after line 404:
 
 ```markdown
-<!-- Source: brief.md Step 5 — experience-specific section generation, Phase 75 -->
-**If `product_type == "experience"`**, write these five additional sections after `## Scope Boundaries`:
+<!-- Experience product type — Phase 75: experience-specific sections -->
+**If `product_type == "experience"`**, after writing `## Scope Boundaries`, write these five additional sections:
 
 [five section definitions as documented in Pattern 1]
 ```
 
 ### Experience Design Constraints Block (brief.md Step 5, `## Product Type` section)
 
-Insert after the existing `For 'hybrid' type, include BOTH software AND hardware...` clause:
+Current state at lines 306-321: software, hardware, and hybrid clauses exist. Insert the experience clause after the hybrid clause (after line 321):
 
 ```markdown
 For `experience` type, the Design Constraints table MUST cover:
@@ -353,8 +425,11 @@ For `experience` type, the Design Constraints table MUST cover:
 - Sub-type (single-night | multi-day | recurring-series | installation | hybrid-event) — detected in Step 4
 ```
 
+Also update line 296 from `**Type:** {software | hardware | hybrid}` to `**Type:** {software | hardware | hybrid | experience}`.
+
 ### design-brief.md Template Update
 
+Current at `templates/design-brief.md` line 19:
 ```markdown
 <!-- BEFORE -->
 **Type:** {software | hardware | hybrid}
@@ -363,7 +438,7 @@ For `experience` type, the Design Constraints table MUST cover:
 **Type:** {software | hardware | hybrid | experience}
 ```
 
-And add experience section stubs at the end of the template (after Scope Boundaries):
+Add experience section stubs at the end of the template (after Scope Boundaries):
 
 ```markdown
 <!-- Experience product type only — omit for software, hardware, hybrid -->
@@ -405,6 +480,10 @@ And add experience section stubs at the end of the template (after Scope Boundar
 **Template mode:** enabled | disabled
 ```
 
+### Phase 82 Test Update (Mandatory)
+
+`tests/phase-82/milestone-completion.test.mjs` lines 229-243. Replace the negative assertion test with positive assertions. See Pattern 4 above for the exact replacement text.
+
 ### Regression Test Running
 
 ```bash
@@ -414,8 +493,11 @@ node --test tests/phase-75/brief-extensions.test.mjs
 # After implementation: run to confirm all BREF requirements pass
 node --test tests/phase-75/brief-extensions.test.mjs
 
-# Always run Phase 74 smoke matrix to confirm no regression
+# Confirm Phase 74 regression not introduced
 node --test tests/phase-74/experience-regression.test.mjs
+
+# Confirm Phase 82 milestone test still passes after updating the negative assertions
+node --test tests/phase-82/milestone-completion.test.mjs
 ```
 
 ---
@@ -428,6 +510,7 @@ node --test tests/phase-74/experience-regression.test.mjs
 | `**Type:** {software \| hardware \| hybrid}` | `**Type:** {software \| hardware \| hybrid \| experience}` | Phase 75 | Brief correctly names experience type in Design Constraints output |
 | No venue constraints in briefs | `## Venue Constraints` table in experience briefs | Phase 75 | Capacity feeds spatial token density in Phase 76; curfew feeds handoff in Phase 81 |
 | No repeatability concept in PDE | `## Repeatability Intent` drives template mode in REPT-01/REPT-02 | Phase 75 | Foundation for series identity system in future milestones |
+| Phase 82 negative assertions guard "not yet implemented" state | Phase 82 positive assertions confirm BREF fields present | Phase 75 | Phase 82 test suite converted from guard to verification |
 
 **Pattern confirmed unchanged:** The `manifest-set-top-level experienceSubType` command and Sub-type row in DESIGN-STATE.md Quick Reference were added in Phase 74. Phase 75 does NOT re-implement these — they already exist. Phase 75 only extends the BRF artifact content (the `.md` brief file body).
 
@@ -435,22 +518,16 @@ node --test tests/phase-74/experience-regression.test.mjs
 
 ## Open Questions
 
-1. **Interaction model for "prompts for" in the success criteria**
-   - What we know: brief.md generates content from PROJECT.md synthesis — it does not run an interactive form wizard. The existing brief generation for all 9+ sections is non-interactive.
-   - What's unclear: Whether "prompts for" in the success criteria means (a) the generated brief contains prompts/placeholders for the user to fill in when PROJECT.md context is thin, or (b) the skill literally asks the user interactive questions before generating.
-   - Recommendation: Interpret as (a) — synthesis with `[PROVIDE: ...]` markers. This is consistent with every other section in the brief and with the `--dry-run` / `--force` flag model. Interactive prompting would break flag-driven workflows and the non-interactive `autonomous: true` execution model.
-   - Confidence: HIGH — no other section in brief.md uses interactive input; PROJECT.md is the canonical input model.
-
-2. **Whether `## Audience Archetype` replaces or supplements `## Target Users`**
+1. **Whether `## Audience Archetype` replaces or supplements `## Target Users`**
    - What we know: `## Target Users` is a common section generated for ALL product types (personas, JTBD). Audience archetype is an experience-specific concept. These overlap but are not identical — personas focus on individual user psychology, while audience archetype describes crowd-level composition.
-   - What's unclear: Should experience briefs have BOTH `## Target Users` (individual promoter/attendee personas) AND `## Audience Archetype` (crowd composition), or should `## Audience Archetype` replace `## Target Users`?
-   - Recommendation: Keep BOTH. `## Target Users` remains a common section (includes the promoter persona as primary, and the attendee persona as secondary). `## Audience Archetype` is an ADDITIONAL experience-only section that describes the crowd at an aggregate level — this feeds Phase 76 spatial token density calculations, which operate on crowd-level data, not individual personas.
+   - Recommendation: Keep BOTH. `## Target Users` remains a common section. `## Audience Archetype` is an ADDITIONAL experience-only section describing the crowd at aggregate level — this feeds Phase 76 spatial token density calculations, which operate on crowd-level data, not individual personas.
    - Confidence: MEDIUM — reasonable inference from how downstream phases consume brief data; not explicitly specified in REQUIREMENTS.md.
 
-3. **`[PROVIDE: ...]` marker standardization**
+2. **`[PROVIDE: ...]` marker standardization**
    - What we know: No existing brief section currently uses a `[PROVIDE: ...]` marker pattern. This is a new pattern introduced for experience-specific fields.
    - What's unclear: Whether a standard marker already exists in any PDE reference file that Phase 75 should reuse.
    - Recommendation: Introduce `[PROVIDE: ...]` as the standard thin-context placeholder marker for Phase 75. It is self-documenting and visually distinct from `[VERIFY WITH LOCAL AUTHORITY]` (which is a regulatory disclaimer, not a user input request).
+   - Confidence: HIGH — confirmed no existing `[PROVIDE:]` pattern in codebase inspection.
 
 ---
 
@@ -463,30 +540,33 @@ node --test tests/phase-74/experience-regression.test.mjs
 | Framework | Node.js built-in `node:test` (Node.js 18+) |
 | Config file | None — tests are standalone .mjs files |
 | Quick run command | `node --test tests/phase-75/brief-extensions.test.mjs` |
-| Full suite command | `node --test tests/phase-75/*.mjs && node --test tests/phase-74/experience-regression.test.mjs` |
+| Full suite command | `node --test tests/phase-75/brief-extensions.test.mjs && node --test tests/phase-74/experience-regression.test.mjs && node --test tests/phase-82/milestone-completion.test.mjs` |
 
 ### Phase Requirements → Test Map
 
 | Req ID | Behavior | Test Type | Automated Command | File Exists? |
 |--------|----------|-----------|-------------------|-------------|
-| BREF-01 | brief.md generates `## Promise Statement` for experience type | structural | `node --test tests/phase-75/brief-extensions.test.mjs` | Wave 0 |
-| BREF-02 | brief.md generates `## Vibe Contract` with emotional arc fields | structural | `node --test tests/phase-75/brief-extensions.test.mjs` | Wave 0 |
-| BREF-03 | brief.md generates `## Audience Archetype` with mobility needs field | structural | `node --test tests/phase-75/brief-extensions.test.mjs` | Wave 0 |
-| BREF-04 | brief.md generates `## Venue Constraints` with curfew, noise limits | structural | `node --test tests/phase-75/brief-extensions.test.mjs` | Wave 0 |
-| BREF-05 | brief.md generates `## Repeatability Intent` with one-off/series field | structural | `node --test tests/phase-75/brief-extensions.test.mjs` | Wave 0 |
-| Cross-type | Experience sections guarded by product_type conditional | structural | `node --test tests/phase-75/brief-extensions.test.mjs` | Wave 0 |
-| Cross-type | `[VERIFY WITH LOCAL AUTHORITY]` present in venue constraints section | structural | `node --test tests/phase-75/brief-extensions.test.mjs` | Wave 0 |
+| BREF-01 | brief.md generates `## Promise Statement` for experience type | structural | `node --test tests/phase-75/brief-extensions.test.mjs` | Wave 0 gap |
+| BREF-02 | brief.md generates `## Vibe Contract` with emotional arc fields | structural | `node --test tests/phase-75/brief-extensions.test.mjs` | Wave 0 gap |
+| BREF-03 | brief.md generates `## Audience Archetype` with mobility needs field | structural | `node --test tests/phase-75/brief-extensions.test.mjs` | Wave 0 gap |
+| BREF-04 | brief.md generates `## Venue Constraints` with curfew, noise limits | structural | `node --test tests/phase-75/brief-extensions.test.mjs` | Wave 0 gap |
+| BREF-05 | brief.md generates `## Repeatability Intent` with one-off/series field | structural | `node --test tests/phase-75/brief-extensions.test.mjs` | Wave 0 gap |
+| Cross-type | Experience sections guarded by product_type conditional | structural | `node --test tests/phase-75/brief-extensions.test.mjs` | Wave 0 gap |
+| Cross-type | `[VERIFY WITH LOCAL AUTHORITY]` present in venue constraints | structural | `node --test tests/phase-75/brief-extensions.test.mjs` | Wave 0 gap |
 | Regression | Phase 74 smoke matrix still passes (no regression) | structural | `node --test tests/phase-74/experience-regression.test.mjs` | Exists (Phase 74) |
+| Phase 82 compat | Phase 82 milestone test still passes after BREF negative assertions updated | structural | `node --test tests/phase-82/milestone-completion.test.mjs` | Exists (needs edit) |
 
 ### Sampling Rate
 
 - **Per task commit:** `node --test tests/phase-75/brief-extensions.test.mjs`
-- **Per wave merge:** `node --test tests/phase-75/*.mjs && node --test tests/phase-74/experience-regression.test.mjs`
-- **Phase gate:** Both test suites green before `/gsd:verify-work`
+- **Per wave merge:** `node --test tests/phase-75/brief-extensions.test.mjs && node --test tests/phase-74/experience-regression.test.mjs && node --test tests/phase-82/milestone-completion.test.mjs`
+- **Phase gate:** All three test suites green before `/gsd:verify-work`
 
 ### Wave 0 Gaps
 
 - [ ] `tests/phase-75/brief-extensions.test.mjs` — covers BREF-01 through BREF-05 plus cross-type regression assertions; must be written BEFORE any workflow edits
+
+*(Existing test infrastructure: `tests/phase-74/experience-regression.test.mjs` covers FNDX baseline. `tests/phase-82/milestone-completion.test.mjs` covers milestone state — requires Phase 75 edit to remove negative BREF assertions.)*
 
 ---
 
@@ -494,17 +574,21 @@ node --test tests/phase-74/experience-regression.test.mjs
 
 These findings answer the "what I don't know that I don't know" question:
 
-1. **The `## Product Type` section in brief.md Step 5 currently reads `**Type:** {software | hardware | hybrid}` — it does NOT include `experience`.** This must be fixed in Phase 75. The design-brief.md template has the same gap. Fixing only brief.md's five new sections without fixing the Product Type line leaves experience type incorrectly documented in every generated brief.
+1. **The `## Product Type` section in brief.md Step 5 currently reads `**Type:** {software | hardware | hybrid}` — it does NOT include `experience`.** This must be fixed in Phase 75. The design-brief.md template (line 19) has the same gap. Fixing only brief.md's five new sections without fixing the Product Type line leaves experience type incorrectly documented in every generated brief.
 
 2. **Brief.md generates from PROJECT.md context — it does NOT interactively ask users for field values.** The success criteria phrase "prompts for" means the generated brief contains structured placeholders when source data is insufficient. No interactive input flow is built anywhere in the existing skill.
 
-3. **The five new sections belong AFTER `## Scope Boundaries` in Step 5, guarded by a single `IF product_type == "experience"` conditional.** This is the minimum-change approach. The common section sequence must not be reordered.
+3. **The five new sections belong AFTER `## Scope Boundaries` in Step 5 (post line ~404), guarded by a single `IF product_type == "experience"` conditional.** This is the minimum-change approach. The common section sequence must not be reordered.
 
-4. **`[VERIFY WITH LOCAL AUTHORITY]` must appear inline per regulatory value in `## Venue Constraints`, not grouped at the section end.** This is specified in `references/experience-disclaimer.md` which was wired into critique.md and handoff.md in Phase 74. Phase 75 must honor the same inline requirement when generating the venue constraints table.
+4. **`[VERIFY WITH LOCAL AUTHORITY]` must appear inline per regulatory value in `## Venue Constraints`, not grouped at the section end.** Specified in `references/experience-disclaimer.md` lines 14-15.
 
 5. **Sub-type is already fully handled by Phase 74** (manifest field, DESIGN-STATE Quick Reference row, brief.md Step 7 write). Phase 75 does NOT re-implement sub-type storage. Sub-type appears in the `## Product Type` Design Constraints table as ONE row — that's its only new presence in the brief body.
 
-6. **Downstream consumers (flows.md, system.md) read from `BRF-brief-v*.md` by Glob.** They extract `Product type from the brief frontmatter or Product Type section` (confirmed at flows.md line 68). Phase 76 reads `PRODUCT_TYPE` from `**Type:**` line. The brief's `## Product Type` section MUST correctly show `experience` for downstream to branch correctly.
+6. **`tests/phase-82/milestone-completion.test.mjs` lines 229-243 contains NEGATIVE assertions** that verify Phase 75 has NOT been implemented. These currently pass and will break when Phase 75 ships. Updating this file is a MANDATORY part of Phase 75 — it is not optional cleanup.
+
+7. **Phase 82 test suite currently has 17 passing tests + 19 todo markers.** After Phase 75 edits, it must have at minimum 19 passing tests (2 negative assertions converted to 6 positive ones = net +4) and 14 remaining todo markers (the 5 BREF todos removed, converted to real tests in phase-75 suite). Alternatively, all 19 todos remain untouched and only the negative assertions in the existing non-todo test are updated — this is the simpler approach that avoids disrupting the todo structure.
+
+8. **Downstream consumers (flows.md, system.md) extract product type from the brief's `**Type:**` line.** Phase 76 reads `PRODUCT_TYPE` from this line. The brief's `## Product Type` section MUST correctly show `experience` for downstream to branch correctly.
 
 ---
 
@@ -512,15 +596,13 @@ These findings answer the "what I don't know that I don't know" question:
 
 ### Primary (HIGH confidence)
 
-- `workflows/brief.md` (direct codebase inspection, 2026-03-21) — Step 4 detection logic (lines 170-224); Step 5 section generation instructions (lines 227-413); Step 7 manifest write (lines 446-528); anti-patterns (lines 553-561); complete understanding of the synthesis-from-PROJECT.md model
-- `workflows/flows.md` (direct codebase inspection, 2026-03-21) — lines 52-73 confirm how brief is consumed: `extract product type from the brief frontmatter or Product Type section`; Phase 74 experience stub at line 72
-- `workflows/system.md` (direct codebase inspection, 2026-03-21) — lines 59-88 confirm PRODUCT_TYPE extraction from brief `**Type:**` line; Phase 74 stub at line 71
+- `workflows/brief.md` (direct codebase inspection, 2026-03-21) — Step 4 detection logic (lines 170-224); Step 5 section generation instructions (lines 227-413); Step 7 manifest write (lines 446-528); anti-patterns (lines 553-561); confirmed complete absence of all five BREF section names; confirmed `**Type:** {software | hardware | hybrid}` missing experience on line 296
+- `tests/phase-82/milestone-completion.test.mjs` (direct codebase inspection, 2026-03-21) — lines 229-243 confirmed: negative assertions for `promise_statement` and `vibe_contract`; lines 251-256 confirmed: 5 BREF test.todo() markers; current test state 17 pass / 19 todo / 0 fail
+- `tests/phase-74/experience-regression.test.mjs` (direct codebase inspection, 2026-03-21) — confirmed test patterns, ROOT resolution, describe/test structure; Phase 75 tests follow identical pattern; current state 7/7 pass
+- `references/experience-disclaimer.md` (direct codebase inspection, 2026-03-21) — confirmed inline-per-value disclaimer requirement at lines 14-15; `consumers` section confirms critique.md and handoff.md usage; brief.md is NOT yet listed as a consumer (Phase 75 adds it)
 - `templates/design-brief.md` (direct codebase inspection, 2026-03-21) — confirmed `**Type:** {software | hardware | hybrid}` (line 19) missing `experience`; confirmed no experience sections in template
 - `templates/design-state-root.md` (direct codebase inspection, 2026-03-21) — confirmed `Sub-type` row already exists (Phase 74 implementation); no Phase 75 changes needed to this file
-- `references/experience-disclaimer.md` (direct codebase inspection, 2026-03-21) — confirmed inline-per-value disclaimer requirement
-- `tests/phase-74/experience-regression.test.mjs` (direct codebase inspection, 2026-03-21) — confirmed test patterns, ROOT resolution, describe/test structure; Phase 75 tests follow identical pattern
-- `.planning/phases/74-*/74-01-PLAN.md` (direct inspection, 2026-03-21) — confirmed experienceSubType manifest write already implemented; DESIGN-STATE Sub-type row already implemented
-- `.planning/phases/74-*/74-02-SUMMARY.md` (direct inspection, 2026-03-21) — confirmed Phase 74 complete, all stubs in place, no regressions
+- `.planning/phases/74-*/74-01-PLAN.md` and `74-01-SUMMARY.md` (direct inspection, 2026-03-21) — confirmed experienceSubType manifest write already implemented; DESIGN-STATE Sub-type row already implemented; Phase 74 complete with 0 deviations
 
 ### Secondary (MEDIUM confidence)
 
@@ -538,8 +620,8 @@ These findings answer the "what I don't know that I don't know" question:
 **Confidence breakdown:**
 
 - Standard stack: HIGH — `node:test` is the established pattern across 6+ phases; no new tools
-- Architecture: HIGH — fully derivable from direct codebase inspection; software/hardware/hybrid precedent is the exact model
-- Pitfalls: HIGH — all five pitfalls derived from actual codebase gaps (confirmed by inspection) and prior phase patterns; not speculative
+- Architecture: HIGH — fully derivable from direct codebase inspection; software/hardware/hybrid precedent is the exact model; Phase 82 test conflict confirmed by running the test suite
+- Pitfalls: HIGH — all six pitfalls derived from actual codebase gaps (confirmed by inspection) and prior phase patterns; Pitfall 2 (Phase 82 test break) confirmed by reading the test file and verifying it currently passes
 
 **Research date:** 2026-03-21
 **Valid until:** 2026-04-21 (stable domain — no external dependencies; codebase is the reference)
