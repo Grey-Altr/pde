@@ -55,7 +55,7 @@ Halt on error. On success, display: `Step 1/7: Design directories initialized.`
 
 ### Step 2/7: Check prerequisites and discover wireframes
 
-This step has six sub-sections executed in order.
+This step has seven sub-sections executed in order.
 
 #### 2a. Check for design brief (soft dependency)
 
@@ -119,6 +119,7 @@ IF both available:
 For each wireframe file in WIREFRAME_FILES:
 - Use the Read tool to read the HTML file content
 - Extract fidelity from the `pde-layout--{fidelity}` class on the `<body>` element (values: lofi, midfi, hifi)
+- **Stitch fidelity fallback:** If the current file starts with `STH-` (Stitch-generated) and no `pde-layout--{fidelity}` class is found on the body element: default fidelity to `hifi`. Stitch always generates hi-fi quality output and does not use PDE scaffold classes. Log: `  STH-{slug}: no pde-layout class — defaulting to hifi fidelity (Stitch-generated).`
 - If mixed fidelity detected across files: note in report frontmatter Mode field as "full (mixed fidelity: lofi/hifi)" etc.
 - Store per-file fidelity as FIDELITY_MAP for severity calibration in Step 4
 
@@ -135,6 +136,31 @@ Use the Glob tool to check for existing `CRT-critique-v*.md` in `.planning/desig
 - If no existing reports: set VERSION = 1.
 
 Display: `Step 2/7: {N} wireframe(s) discovered at {fidelity} fidelity. Critique v{VERSION} will be generated.`
+
+#### 2g. Classify artifacts by source (Stitch vs Claude)
+
+Read the design manifest:
+
+```bash
+MANIFEST=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-read)
+if [[ "$MANIFEST" == @file:* ]]; then MANIFEST=$(cat "${MANIFEST#@file:}"); fi
+```
+
+Parse the JSON output. For each file path in WIREFRAME_FILES:
+- Extract the artifact code from the filename stem (e.g., `STH-login.html` -> code `STH-login`)
+- Look up `manifest.artifacts["STH-login"].source` in the parsed JSON
+- If `source === "stitch"`: add code to STITCH_ARTIFACTS list; note paired PNG path as the same stem with `.png` extension in the same directory (e.g., `STH-login.png`)
+
+If manifest-read returns null or fails: SET STITCH_ARTIFACTS = []. Log: `Warning: Could not read design manifest -- Stitch artifact detection skipped.`
+
+If WIREFRAME_FILES contains `STH-*.html` files but the manifest entry has no `source` field: treat as non-Stitch (conservative -- avoids false suppression).
+
+SET STITCH_ARTIFACTS = [list of artifact codes where source === "stitch"]
+
+If STITCH_ARTIFACTS is non-empty:
+  Display: `Step 2/7: {N} Stitch artifact(s) detected: {comma-separated slug list}. Stitch-aware evaluation mode active.`
+Else:
+  Display: `Step 2/7: No Stitch artifacts detected. Standard evaluation mode.`
 
 ---
 
