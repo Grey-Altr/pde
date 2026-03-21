@@ -111,7 +111,7 @@ Any user can go from idea to shipped product through a single platform that hand
 - **Tech stack:** Node.js (CommonJS), Claude Code plugin API, markdown-based state management, MCP protocol (HTTP/SSE/stdio transports)
 - **Distribution:** Claude Code plugin via GitHub; marketplace registration pending
 - **Architecture:** skills (slash commands) → workflows → agents → templates → references → bin scripts → config; event infrastructure (hooks → event-bus → NDJSON → dashboard/archiver)
-- **Design pipeline:** 13 skills (recommend, competitive, opportunity, ideate, brief, system, flows, wireframe, critique, iterate, mockup, hig, handoff) + build orchestrator, DESIGN-STATE.md tracking, design-manifest.json artifact registry (13 coverage flags, pass-through-all pattern)
+- **Design pipeline:** 13 skills (recommend, competitive, opportunity, ideate, brief, system, flows, wireframe, critique, iterate, mockup, hig, handoff) + build orchestrator, DESIGN-STATE.md tracking, design-manifest.json artifact registry (14 coverage flags, pass-through-all pattern); wireframe and mockup support `--use-stitch` flag for Stitch MCP generation with consent gates, annotation injection, 10s fallback, and local artifact caching (STH-{slug}.html/png)
 - **Observability:** PdeEventBus (EventEmitter + setImmediate dispatch), session-scoped NDJSON in /tmp, Claude Code hooks (SubagentStart/Stop, PostToolUse, SessionStart/End), semantic workflow events (phase/wave/plan), tmux 6-pane dashboard, archive-session.cjs summaries in .planning/logs/
 - **Quality infrastructure:** Awwwards 4-dimension rubric, 3 quality reference files (motion-design, composition-typography, quality-standards), protected-files mechanism, 3-agent self-improvement fleet, skill builder with validation gate
 - **MCP integration layer:** mcp-bridge.cjs central adapter with TOOL_MAP (46 entries), APPROVED_SERVERS (6 services incl. Google Stitch), probe/degrade contracts, connection persistence (.planning/mcp-connections.json), write-back confirmation gates, Stitch quota tracking (Standard 350/mo, Experimental 50/mo) with lazy monthly reset
@@ -182,4 +182,4 @@ Any user can go from idea to shipped product through a single platform that hand
 | QUOTA-03 split across Phase 65/66 | Phase 65 provides detection signal; Phase 66 provides fallback routing (WFR-06) | ✓ Good — clean infrastructure/consumer separation |
 
 ---
-*Last updated: 2026-03-20 — Phase 65 complete: Google Stitch registered as 6th MCP server with quota tracking infrastructure*
+*Last updated: 2026-03-21 — Phase 66 complete: wireframe and mockup --use-stitch pipelines with consent, annotation, fallback, and 65 Nyquist tests*
