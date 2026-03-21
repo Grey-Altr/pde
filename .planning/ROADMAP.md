@@ -200,7 +200,10 @@ Full details: .planning/milestones/v0.10-ROADMAP.md
   3. The cross-type regression smoke matrix (`experience-regression.test.mjs`) passes for all 4 product types against the 3 critical shared pipeline paths
   4. Sub-types are stored as `experienceSubType` metadata in the manifest, not as separate workflow files — confirmed by absence of new workflow files
   5. A mandatory disclaimer block template exists in references/ and is loaded by the critique and handoff workflows
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 74-01-PLAN.md -- Regression test, experience detection in brief.md, manifest schema updates
+- [ ] 74-02-PLAN.md -- Branch stubs in 13 downstream workflows, disclaimer block, design.cjs update
 
 ### Phase 75: Brief Extensions
 **Goal**: An experience brief captures the five physical design inputs — promise statement, vibe contract, audience archetype, venue constraints, and repeatability intent — that feed all downstream artifact generation
@@ -306,7 +309,7 @@ Full details: .planning/milestones/v0.10-ROADMAP.md
 | 58-63 | v0.8 | 13/13 | Complete | 2026-03-20 |
 | 64-69 | v0.9 | 12/12 | Complete | 2026-03-21 |
 | 70-73 | v0.10 | 8/8 | Complete | 2026-03-21 |
-| 74. Foundation and Regression Infrastructure | v0.11 | 0/TBD | Not started | - |
+| 74. Foundation and Regression Infrastructure | v0.11 | 0/2 | Not started | - |
 | 75. Brief Extensions | v0.11 | 0/TBD | Not started | - |
 | 76. Experience Design Token Architecture | v0.11 | 0/TBD | Not started | - |
 | 77. Flow Diagrams | v0.11 | 0/TBD | Not started | - |
