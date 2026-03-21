@@ -1,10 +1,11 @@
 ---
 phase: 80
 slug: print-collateral
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: validated
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-21
+validated: 2026-03-21
 ---
 
 # Phase 80 — Validation Strategy
@@ -38,10 +39,10 @@ created: 2026-03-21
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 80-01-01 | 01 | 1 | PRNT-01, PRNT-02, PRNT-04 | unit | `node --test tests/phase-80/print-collateral.test.mjs` | ❌ W0 | ⬜ pending |
-| 80-01-02 | 01 | 1 | PRNT-01, PRNT-02, PRNT-04 | unit | `node --test tests/phase-80/print-collateral.test.mjs` | ❌ W0 | ⬜ pending |
-| 80-02-01 | 02 | 2 | PRNT-03 | unit | `node --test tests/phase-80/print-collateral.test.mjs` | ❌ W0 | ⬜ pending |
-| 80-02-02 | 02 | 2 | PRNT-04 | manual | Visual inspection of composition quality | N/A | ⬜ pending |
+| 80-01-01 | 01 | 1 | PRNT-01, PRNT-02, PRNT-04 | unit | `node --test tests/phase-80/print-collateral.test.mjs` | ✅ | ✅ green |
+| 80-01-02 | 01 | 1 | PRNT-01, PRNT-02, PRNT-04 | unit | `node --test tests/phase-80/print-collateral.test.mjs` | ✅ | ✅ green |
+| 80-02-01 | 02 | 2 | PRNT-03 | unit | `node --test tests/phase-80/print-collateral.test.mjs` | ✅ | ✅ green |
+| 80-02-02 | 02 | 2 | PRNT-04 | manual | Visual inspection of composition quality | N/A | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -49,9 +50,9 @@ created: 2026-03-21
 
 ## Wave 0 Requirements
 
-- [ ] `tests/phase-80/print-collateral.test.mjs` — unified test file for all PRNT requirements (FLY @page, bleed, CMYK, SIT {{variable}} slots, prepress disclaimer, PRG multi-page)
+- [x] `tests/phase-80/print-collateral.test.mjs` — unified test file for all PRNT requirements (FLY @page, bleed, CMYK, SIT {{variable}} slots, prepress disclaimer, PRG multi-page) — 23 tests, all green
 
-*Wave 0 is Plan 01 Task 1 — creates test file with 16 assertions in red state.*
+*Wave 0 completed by Plan 01 Task 1. Extended by Plan 02 Task 1 (7 PRNT-03 tests).*
 
 ---
 
@@ -65,11 +66,24 @@ created: 2026-03-21
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 5s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 5s (~54ms actual)
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-03-21
+
+---
+
+## Validation Audit 2026-03-21
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+| Total automated tests | 23 |
+| Total manual checks | 1 |
+| All tests passing | ✅ |
