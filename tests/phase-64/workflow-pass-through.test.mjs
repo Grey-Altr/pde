@@ -4,7 +4,7 @@
  *
  * Tests: All 12 workflow files include hasStitchWireframes in their
  * manifest-set-top-level designCoverage call. brief.md is not contaminated.
- * design.cjs self-test passes. No hasStitchWireframes is set to true.
+ * design.cjs self-test passes. hasStitchWireframes activation state reflects v0.9 Phase 66 behavior.
  */
 
 import { test } from 'node:test';
@@ -83,23 +83,33 @@ test('brief.md does not contain hasStitchWireframes (untouched by Phase 64)', ()
   );
 });
 
-test('no workflow or JSON file sets hasStitchWireframes to true (Phase 64 is schema extension only)', () => {
-  const allFiles = [
-    ...WORKFLOW_FILES,
+test('hasStitchWireframes activation reflects v0.9 behavior (wireframe.md may set true when Stitch active)', () => {
+  // Phase 64 originally asserted hasStitchWireframes was never true.
+  // v0.9 Phase 66 legitimately activated the flag in wireframe.md when --use-stitch is passed.
+  // The Phase 64 invariant to preserve: all 12 workflow files INCLUDE the field.
+  // The activation state (true/false) is controlled by v0.9 wireframe.md logic.
+  for (const relPath of WORKFLOW_FILES) {
+    const content = readWorkflow(relPath);
+    assert.ok(
+      content.includes('hasStitchWireframes'),
+      `${relPath}: must still include hasStitchWireframes field`
+    );
+  }
+  // JSON manifest files still have false as default — this is correct
+  const jsonFiles = [
     'templates/design-manifest.json',
     '.planning/design/design-manifest.json',
     '.planning/pressure-test/fixture-greenfield/design/design-manifest.json',
     '.planning/pressure-test/fixture-partial/design/design-manifest.json',
     '.planning/pressure-test/fixture-rerun/design/design-manifest.json',
   ];
-
-  for (const relPath of allFiles) {
+  for (const relPath of jsonFiles) {
     const content = readFileSync(join(ROOT, relPath), 'utf-8');
-    // Match literal true value — exclude placeholder patterns like {current} and {current_hasStitchWireframes}
-    const trueMatch = content.match(/"hasStitchWireframes"\s*:\s*true/);
-    assert.ok(
-      !trueMatch,
-      `${relPath}: hasStitchWireframes must not be set to true in Phase 64`
+    const manifest = JSON.parse(content);
+    assert.strictEqual(
+      manifest.designCoverage.hasStitchWireframes,
+      false,
+      `${relPath}: JSON manifest default should remain false`
     );
   }
 });
