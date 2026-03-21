@@ -1,9 +1,9 @@
 ---
 phase: 71
 slug: suggestion-engine
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: validated
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-21
 ---
 
@@ -38,12 +38,12 @@ created: 2026-03-21
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 71-01-01 | 01 | 1 | ENGN-01 | unit | `node hooks/tests/verify-phase-71.cjs` | ❌ W0 | ⬜ pending |
-| 71-01-02 | 01 | 1 | ENGN-02 | integration | `node hooks/tests/verify-phase-71.cjs` | ❌ W0 | ⬜ pending |
-| 71-01-03 | 01 | 1 | ENGN-03 | unit | `node hooks/tests/verify-phase-71.cjs` | ❌ W0 | ⬜ pending |
-| 71-01-04 | 01 | 1 | ENGN-04 | unit | `node hooks/tests/verify-phase-71.cjs` | ❌ W0 | ⬜ pending |
-| 71-01-05 | 01 | 1 | ENGN-05 | unit | `node hooks/tests/verify-phase-71.cjs` | ❌ W0 | ⬜ pending |
-| 71-01-06 | 01 | 1 | ENGN-06 | unit | `node hooks/tests/verify-phase-71.cjs` | ❌ W0 | ⬜ pending |
+| 71-01-01 | 01 | 1 | ENGN-01 | unit | `node hooks/tests/verify-phase-71.cjs` | ✅ | ✅ green |
+| 71-01-02 | 01 | 1 | ENGN-02 | integration | `node hooks/tests/verify-phase-71.cjs` | ✅ | ✅ green |
+| 71-01-03 | 01 | 1 | ENGN-03 | unit | `node hooks/tests/verify-phase-71.cjs` | ✅ | ✅ green |
+| 71-01-04 | 01 | 1 | ENGN-04 | unit | `node hooks/tests/verify-phase-71.cjs` | ✅ | ✅ green |
+| 71-01-05 | 01 | 1 | ENGN-05 | unit | `node hooks/tests/verify-phase-71.cjs` | ✅ | ✅ green |
+| 71-01-06 | 01 | 1 | ENGN-06 | unit | `node hooks/tests/verify-phase-71.cjs` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -51,8 +51,8 @@ created: 2026-03-21
 
 ## Wave 0 Requirements
 
-- [ ] `hooks/tests/verify-phase-71.cjs` — test file covering ENGN-01 through ENGN-06 with fixture-based unit tests
-- [ ] Fixture data for STATE.md, ROADMAP.md, DESIGN-STATE.md, and design-manifest.json
+- [x] `hooks/tests/verify-phase-71.cjs` — test file covering ENGN-01 through ENGN-06 with fixture-based unit tests
+- [x] Fixture data for STATE.md, ROADMAP.md, DESIGN-STATE.md, and design-manifest.json (inline in test file)
 
 *Existing infrastructure (Node.js assert, manual runner pattern from Phase 70) covers framework needs.*
 
@@ -66,11 +66,23 @@ created: 2026-03-21
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 2s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 2s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-03-21
+
+---
+
+## Validation Audit 2026-03-21
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+All 6 ENGN requirements covered by 17 automated tests in `hooks/tests/verify-phase-71.cjs`. 17/17 passing. No gaps.
