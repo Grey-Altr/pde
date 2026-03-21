@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.11
 milestone_name: Experience Product Type
 status: unknown
-stopped_at: Completed 80-01-PLAN.md
-last_updated: "2026-03-21T19:48:50.821Z"
+stopped_at: Completed 80-02-PLAN.md
+last_updated: "2026-03-21T19:53:27.870Z"
 progress:
   total_phases: 9
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 6
-  completed_plans: 5
+  completed_plans: 6
 ---
 
 # Project State
@@ -64,6 +64,7 @@ Key architectural constraints locked for this milestone:
 - [Phase 80-01]: Bleed zone faked via ::before pseudo-element (inset: -3mm); @page bleed descriptor not browser-implemented
 - [Phase 80-01]: Instagram formats use fixed px + transform:scale, never @page — screen-only artifacts
 - [Phase 80-01]: SIT gated strictly on experienceSubType === recurring-series; hasPrintCollateral is 15th coverage flag
+- [Phase 80-print-collateral]: PRG uses @page schedule landscape for schedule grid legibility; GENERATE_PRG flag mirrors GENERATE_SIT pattern
 
 ### Phase Ordering Rationale
 
@@ -88,8 +89,8 @@ Key architectural constraints locked for this milestone:
 
 ## Session Continuity
 
-Last session: 2026-03-21T19:48:50.817Z
-Stopped at: Completed 80-01-PLAN.md
+Last session: 2026-03-21T19:53:27.867Z
+Stopped at: Completed 80-02-PLAN.md
 Resume file: None
 
 Next action: Execute Phase 75 (experience design system token generation)

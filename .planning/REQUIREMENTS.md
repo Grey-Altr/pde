@@ -79,7 +79,7 @@ Requirements for Experience Product Type milestone. Each maps to roadmap phases.
 
 - [x] **PRNT-01**: Event flyer generated as print-ready HTML at standard dimensions (A5, A4, Instagram square/story)
 - [x] **PRNT-02**: Series identity template generated with {{variable}} slots for recurring events
-- [ ] **PRNT-03**: Festival program generated as multi-page HTML (schedule grid, artist bios, map, sponsors)
+- [x] **PRNT-03**: Festival program generated as multi-page HTML (schedule grid, artist bios, map, sponsors)
 - [x] **PRNT-04**: All print artifacts follow Awwwards-level composition (focal point, negative space, type hierarchy, max 2-3 typefaces)
 
 ## Future Requirements
@@ -159,7 +159,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | HDOF-06 | Phase 81 | Pending |
 | PRNT-01 | Phase 80 | Complete |
 | PRNT-02 | Phase 80 | Complete |
-| PRNT-03 | Phase 80 | Pending |
+| PRNT-03 | Phase 80 | Complete |
 | PRNT-04 | Phase 80 | Complete |
 
 **Coverage:**
