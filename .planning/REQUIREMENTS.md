@@ -16,11 +16,11 @@ Requirements for Experience Product Type milestone. Each maps to roadmap phases.
 
 ### Brief Extensions
 
-- [ ] **BREF-01**: Experience brief captures promise statement (one sentence an attendee tells a friend)
-- [ ] **BREF-02**: Experience brief captures vibe contract (emotional arc with peak timing, energy level, aesthetic register)
-- [ ] **BREF-03**: Experience brief captures audience archetype (crowd composition, mobility needs, group size, energy profile)
-- [ ] **BREF-04**: Experience brief captures venue constraints (capacity, curfew, noise limits, load-in windows, fixed infrastructure)
-- [ ] **BREF-05**: Experience brief captures repeatability intent (one-off vs series with cadence)
+- [x] **BREF-01**: Experience brief captures promise statement (one sentence an attendee tells a friend)
+- [x] **BREF-02**: Experience brief captures vibe contract (emotional arc with peak timing, energy level, aesthetic register)
+- [x] **BREF-03**: Experience brief captures audience archetype (crowd composition, mobility needs, group size, energy profile)
+- [x] **BREF-04**: Experience brief captures venue constraints (capacity, curfew, noise limits, load-in windows, fixed infrastructure)
+- [x] **BREF-05**: Experience brief captures repeatability intent (one-off vs series with cadence)
 
 ### Design System
 
@@ -117,11 +117,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FNDX-02 | Phase 74 | Complete |
 | FNDX-03 | Phase 74 | Complete |
 | FNDX-04 | Phase 74 | Complete |
-| BREF-01 | Phase 75 | Pending |
-| BREF-02 | Phase 75 | Pending |
-| BREF-03 | Phase 75 | Pending |
-| BREF-04 | Phase 75 | Pending |
-| BREF-05 | Phase 75 | Pending |
+| BREF-01 | Phase 75 | Complete |
+| BREF-02 | Phase 75 | Complete |
+| BREF-03 | Phase 75 | Complete |
+| BREF-04 | Phase 75 | Complete |
+| BREF-05 | Phase 75 | Complete |
 | DSYS-01 | Phase 76 | Pending |
 | DSYS-02 | Phase 76 | Pending |
 | DSYS-03 | Phase 76 | Pending |

@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.11
 milestone_name: Experience Product Type
 status: unknown
-stopped_at: Completed 82-02-PLAN.md
-last_updated: "2026-03-21T21:22:00.573Z"
+stopped_at: Completed 75-01-PLAN.md
+last_updated: "2026-03-21T21:51:48.912Z"
 progress:
   total_phases: 9
   completed_phases: 5
-  total_plans: 10
-  completed_plans: 10
+  total_plans: 12
+  completed_plans: 11
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 82 — integration-validation-and-regression-audit
+**Current focus:** Phase 75 — brief-extensions
 
 ## Current Position
 
-Phase: 82 (integration-validation-and-regression-audit) — COMPLETE
-Plan: 2 of 2 (all plans complete)
+Phase: 75 (brief-extensions) — EXECUTING
+Plan: 1 of 2
 
 ## Performance Metrics
 
@@ -73,6 +73,9 @@ Key architectural constraints locked for this milestone:
 - [Phase 82]: wireframe.md experience keyword is 'FLY artifact' not GENERATE_FLY — that constant was never defined in wireframe.md
 - [Phase 82]: 4 fixture JSON manifests required hasPrintCollateral/hasProductionBible fields added to match 16-field canonical schema — added as auto-fix Rule 2
 - [Phase 82]: 19 test.todo() markers map 1:1 to pending requirement IDs (BREF-01 through WIRE-03) — directly executable when phases 75-78 ship
+- [Phase 75]: Wave 0 TDD strategy: tests written and committed red before workflow edits — validates pre-state and creates unambiguous pass/fail contract
+- [Phase 75]: Experience sections grouped in single product_type == "experience" guard block after Scope Boundaries — simpler, more grep-friendly than per-section guards
+- [Phase 75]: Phase 82 negative BREF assertions replaced with positive assertions in same commit as workflow edits — keeps milestone regression suite accurate immediately
 
 ### Phase Ordering Rationale
 
@@ -97,8 +100,8 @@ Key architectural constraints locked for this milestone:
 
 ## Session Continuity
 
-Last session: 2026-03-21T21:17:07.528Z
-Stopped at: Completed 82-02-PLAN.md
+Last session: 2026-03-21T21:51:43.338Z
+Stopped at: Completed 75-01-PLAN.md
 Resume file: None
 
 Next action: Execute Phase 75 (experience design system token generation)
