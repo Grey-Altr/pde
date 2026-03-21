@@ -182,7 +182,7 @@ Full details: .planning/milestones/v0.10-ROADMAP.md
 - [x] **Phase 75: Brief Extensions** — Five new brief fields capturing the physical design contract (promise statement, vibe contract, audience archetype, venue constraints, repeatability intent) (completed 2026-03-21)
 - [x] **Phase 76: Experience Design Token Architecture** — SYS-experience-tokens.json with sonic, lighting, spatial, atmospheric, wayfinding, and brand coherence token categories (completed 2026-03-21)
 - [x] **Phase 77: Flow Diagrams** — Temporal, spatial, and social flow dimensions; spaces inventory JSON feeding downstream floor plan (completed 2026-03-21)
-- [ ] **Phase 78: Wireframe Stage Extensions** — Floor plan (FLP) and timeline (TML) artifact types; FPL/TML manifest registration
+- [x] **Phase 78: Wireframe Stage Extensions** — Floor plan (FLP) and timeline (TML) artifact types; FPL/TML manifest registration (completed 2026-03-21)
 - [x] **Phase 79: Critique and HIG Extensions** — Seven event-specific critique perspectives; physical interface guidelines replacing WCAG checks; regulatory disclaimer enforcement (completed 2026-03-21)
 - [x] **Phase 80: Print Collateral** — Event flyer (FLY), series identity template, festival program (PRG); Awwwards-level print composition; CSS @page print spec (completed 2026-03-21)
 - [x] **Phase 81: Handoff — Production Bible** — Advance document, run sheet, staffing plan, budget framework, post-event template, print spec output; BIB artifact; hybrid-event dual-surface output (completed 2026-03-21)
@@ -337,7 +337,7 @@ Plans:
 | 75. Brief Extensions | 2/2 | Complete    | 2026-03-21 | - |
 | 76. Experience Design Token Architecture | 2/2 | Complete    | 2026-03-21 | - |
 | 77. Flow Diagrams | 2/2 | Complete    | 2026-03-21 | - |
-| 78. Wireframe Stage Extensions | 1/2 | In Progress|  | - |
+| 78. Wireframe Stage Extensions | 2/2 | Complete   | 2026-03-21 | - |
 | 79. Critique and HIG Extensions | 2/2 | Complete    | 2026-03-21 | - |
 | 80. Print Collateral | 2/2 | Complete    | 2026-03-21 | - |
 | 81. Handoff — Production Bible | 2/2 | Complete    | 2026-03-21 | - |
