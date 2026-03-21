@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.11
 milestone_name: Experience Product Type
-status: executing
-stopped_at: "Completed 74-02-PLAN.md"
-last_updated: "2026-03-21T10:29:00Z"
+status: unknown
+stopped_at: Completed 79-01-PLAN.md
+last_updated: "2026-03-21T11:38:17.493Z"
 progress:
   total_phases: 9
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 4
+  completed_plans: 3
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-21)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 74 — foundation-and-regression-infrastructure
+**Current focus:** Phase 79 — critique-and-hig-extensions
 
 ## Current Position
 
-Phase: 74 (foundation-and-regression-infrastructure) — COMPLETE
-Plan: 2 of 2 (complete)
+Phase: 79 (critique-and-hig-extensions) — EXECUTING
+Plan: 1 of 2
 
 ## Performance Metrics
 
@@ -40,11 +40,13 @@ Plan: 2 of 2 (complete)
 Decisions are logged in PROJECT.md Key Decisions table.
 
 **Phase 74 Plan 01 decisions (2026-03-21):**
+
 - Experience classification precedes hybrid in brief.md chain — experience + software signals resolve to hybrid-event sub-type, not hybrid product type
 - experienceSubType written as null for non-experience products (null = sentinel, not omission)
 - Regression smoke matrix written before workflow edits (Wave 0 strategy)
 
 **Phase 74 Plan 02 decisions (2026-03-21):**
+
 - Experience stubs are comment-only placeholders with phase-forward references — no actual experience behavior until Phase 75+
 - Disclaimer wired into critique.md and handoff.md required_reading in Phase 74 even though consumed in Phases 79 and 81 — makes linkage visible to grep from Phase 74 forward
 - physical domain added to DOMAIN_DIRS in Phase 74 as non-breaking additive change (ahead of Phase 80)
@@ -56,6 +58,8 @@ Key architectural constraints locked for this milestone:
 - All experience behavior lives as conditional blocks in existing workflow files — no new workflow files (preserves --from stage resumption)
 - Every regulatory value in critique and handoff output must carry [VERIFY WITH LOCAL AUTHORITY] inline tag — established in Phase 74 disclaimer block
 - Print artifacts are framed as composition reference guides, not production print files — "print-ready" phrase prohibited without prepress disclaimer
+- [Phase 79]: Experience gate in critique.md placed before Perspective 1 (before per-wireframe loop) not at stub line — ensures experience products skip all four software perspectives
+- [Phase 79]: FLP floor plan is hard prerequisite for experience critique (HALT if absent); TML timeline is soft dependency (warning only)
 
 ### Phase Ordering Rationale
 
@@ -80,8 +84,8 @@ Key architectural constraints locked for this milestone:
 
 ## Session Continuity
 
-Last session: 2026-03-21
-Stopped at: Completed 74-02-PLAN.md
+Last session: 2026-03-21T11:38:17.491Z
+Stopped at: Completed 79-01-PLAN.md
 Resume file: None
 
 Next action: Execute Phase 75 (experience design system token generation)

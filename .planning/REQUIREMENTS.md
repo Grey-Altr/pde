@@ -47,14 +47,14 @@ Requirements for Experience Product Type milestone. Each maps to roadmap phases.
 
 ### Critique
 
-- [ ] **CRIT-01**: Safety critique perspective checks crush risk, emergency egress time, medical coverage ratio, fire safety
-- [ ] **CRIT-02**: Accessibility critique perspective checks step-free access, BSL, quiet/sensory zones, wheelchair platforms
-- [ ] **CRIT-03**: Operations critique perspective checks bar capacity, changeover realism, cancellation contingency
-- [ ] **CRIT-04**: Sustainability critique perspective checks reusable materials, transport options, food waste, power source
-- [ ] **CRIT-05**: Licensing/legal critique perspective checks noise curfew, alcohol hours, public liability
-- [ ] **CRIT-06**: Financial critique perspective checks break-even ticket count, partial-capacity scenarios
-- [ ] **CRIT-07**: Community critique perspective checks local scene contribution, artist inclusion, neighborhood impact
-- [ ] **CRIT-08**: All regulatory values include [VERIFY WITH LOCAL AUTHORITY] disclaimer
+- [x] **CRIT-01**: Safety critique perspective checks crush risk, emergency egress time, medical coverage ratio, fire safety
+- [x] **CRIT-02**: Accessibility critique perspective checks step-free access, BSL, quiet/sensory zones, wheelchair platforms
+- [x] **CRIT-03**: Operations critique perspective checks bar capacity, changeover realism, cancellation contingency
+- [x] **CRIT-04**: Sustainability critique perspective checks reusable materials, transport options, food waste, power source
+- [x] **CRIT-05**: Licensing/legal critique perspective checks noise curfew, alcohol hours, public liability
+- [x] **CRIT-06**: Financial critique perspective checks break-even ticket count, partial-capacity scenarios
+- [x] **CRIT-07**: Community critique perspective checks local scene contribution, artist inclusion, neighborhood impact
+- [x] **CRIT-08**: All regulatory values include [VERIFY WITH LOCAL AUTHORITY] disclaimer
 
 ### HIG — Physical Interface Guidelines
 
@@ -136,14 +136,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 | WIRE-01 | Phase 78 | Pending |
 | WIRE-02 | Phase 78 | Pending |
 | WIRE-03 | Phase 78 | Pending |
-| CRIT-01 | Phase 79 | Pending |
-| CRIT-02 | Phase 79 | Pending |
-| CRIT-03 | Phase 79 | Pending |
-| CRIT-04 | Phase 79 | Pending |
-| CRIT-05 | Phase 79 | Pending |
-| CRIT-06 | Phase 79 | Pending |
-| CRIT-07 | Phase 79 | Pending |
-| CRIT-08 | Phase 79 | Pending |
+| CRIT-01 | Phase 79 | Complete |
+| CRIT-02 | Phase 79 | Complete |
+| CRIT-03 | Phase 79 | Complete |
+| CRIT-04 | Phase 79 | Complete |
+| CRIT-05 | Phase 79 | Complete |
+| CRIT-06 | Phase 79 | Complete |
+| CRIT-07 | Phase 79 | Complete |
+| CRIT-08 | Phase 79 | Complete |
 | PHIG-01 | Phase 79 | Pending |
 | PHIG-02 | Phase 79 | Pending |
 | PHIG-03 | Phase 79 | Pending |

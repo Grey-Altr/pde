@@ -317,7 +317,7 @@ Plans:
 | 76. Experience Design Token Architecture | v0.11 | 0/TBD | Not started | - |
 | 77. Flow Diagrams | v0.11 | 0/TBD | Not started | - |
 | 78. Wireframe Stage Extensions | v0.11 | 0/TBD | Not started | - |
-| 79. Critique and HIG Extensions | v0.11 | 0/2 | Not started | - |
+| 79. Critique and HIG Extensions | 1/2 | In Progress|  | - |
 | 80. Print Collateral | v0.11 | 0/TBD | Not started | - |
 | 81. Handoff — Production Bible | v0.11 | 0/TBD | Not started | - |
 | 82. Integration Validation and Regression Audit | v0.11 | 0/TBD | Not started | - |
