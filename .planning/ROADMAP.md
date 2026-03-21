@@ -251,7 +251,7 @@ Plans:
 | 58-63 | v0.8 | 13/13 | Complete | 2026-03-20 |
 | 64 | v0.9 | Complete    | 2026-03-20 | 2026-03-20 |
 | 65 | v0.9 | 2/2 | Complete | 2026-03-20 |
-| 66 | 3/3 | Complete   | 2026-03-21 | - |
+| 66 | 3/3 | Complete    | 2026-03-21 | - |
 | 67 | v0.9 | 0/TBD | Not started | - |
 | 68 | v0.9 | 0/TBD | Not started | - |
 | 69 | v0.9 | 0/TBD | Not started | - |
