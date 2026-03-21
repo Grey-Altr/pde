@@ -33,10 +33,10 @@
 
 ### Dashboard Integration
 
-- [ ] **DASH-01**: Suggestion pane (Pane 7) added to build_full_layout() only — build_minimal_layout() unchanged
-- [ ] **DASH-02**: Pane displays ranked suggestion list with ANSI formatting, passively and without alerts/beeps/modals
-- [ ] **DASH-03**: Zero-state fallback content displayed when no phase is active ("Waiting for PDE to start a phase...")
-- [ ] **DASH-04**: Adaptive layout degradation preserved — existing 6→4→3→2 pane model not broken by Pane 7 addition
+- [x] **DASH-01**: Suggestion pane (Pane 7) added to build_full_layout() only — build_minimal_layout() unchanged
+- [x] **DASH-02**: Pane displays ranked suggestion list with ANSI formatting, passively and without alerts/beeps/modals
+- [x] **DASH-03**: Zero-state fallback content displayed when no phase is active ("Waiting for PDE to start a phase...")
+- [x] **DASH-04**: Adaptive layout degradation preserved — existing 6→4→3→2 pane model not broken by Pane 7 addition
 - [ ] **DASH-05**: /pde:suggestions CLI command provides non-tmux access to current suggestion list via pde-tools.cjs
 - [ ] **DASH-06**: monitor.md workflow documentation updated for 7-pane layout description
 
@@ -85,10 +85,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CONT-04 | Phase 72 | Complete |
 | CONT-05 | Phase 72 | Complete |
 | CONT-06 | Phase 72 | Complete |
-| DASH-01 | Phase 73 | Pending |
-| DASH-02 | Phase 73 | Pending |
-| DASH-03 | Phase 73 | Pending |
-| DASH-04 | Phase 73 | Pending |
+| DASH-01 | Phase 73 | Complete |
+| DASH-02 | Phase 73 | Complete |
+| DASH-03 | Phase 73 | Complete |
+| DASH-04 | Phase 73 | Complete |
 | DASH-05 | Phase 73 | Pending |
 | DASH-06 | Phase 73 | Pending |
 
