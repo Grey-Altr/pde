@@ -132,7 +132,8 @@ test('ENGN-04: next-phase prep from ROADMAP.md fixture', () => {
 test('ENGN-05: completed artifact paths in suggestions', () => {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pde-test-'));
   const planningDir = path.join(tmpDir, '.planning');
-  fs.mkdirSync(planningDir, { recursive: true });
+  const designDir = path.join(planningDir, 'design');
+  fs.mkdirSync(designDir, { recursive: true });
   const manifest = {
     artifacts: {
       wireframe: {
@@ -143,7 +144,8 @@ test('ENGN-05: completed artifact paths in suggestions', () => {
       }
     }
   };
-  fs.writeFileSync(path.join(tmpDir, 'design-manifest.json'), JSON.stringify(manifest), 'utf-8');
+  // readManifest looks in .planning/design/design-manifest.json
+  fs.writeFileSync(path.join(designDir, 'design-manifest.json'), JSON.stringify(manifest), 'utf-8');
   fs.writeFileSync(path.join(planningDir, 'STATE.md'), '---\nstatus: executing\n---\n\n# State\n\n### Blockers/Concerns\n\n(None)\n', 'utf-8');
   fs.writeFileSync(path.join(planningDir, 'ROADMAP.md'), '## v0.10 Milestone\n\n- [ ] **Phase 72: suggestion catalog** — catalog\n', 'utf-8');
   const output = generateSuggestions({ cwd: tmpDir, event: { event_type: 'plan_started' } });
