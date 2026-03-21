@@ -2,8 +2,8 @@
 phase: 67
 slug: ideation-visual-divergence
 status: draft
-nyquist_compliant: false
-wave_0_complete: false
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-20
 ---
 
@@ -17,20 +17,20 @@ created: 2026-03-20
 
 | Property | Value |
 |----------|-------|
-| **Framework** | jest 29.x (existing project test infrastructure) |
-| **Config file** | jest.config.js (existing) |
-| **Quick run command** | `npx jest --testPathPattern="ideate" --no-coverage` |
-| **Full suite command** | `npx jest --no-coverage` |
-| **Estimated runtime** | ~15 seconds |
+| **Framework** | node:test (built-in Node.js test runner, matching Phase 66 pattern) |
+| **Config file** | none — uses node --test directly |
+| **Quick run command** | `node --test tests/phase-67/*.test.mjs` |
+| **Full suite command** | `node --test tests/phase-67/*.test.mjs` |
+| **Estimated runtime** | ~5 seconds |
 
 ---
 
 ## Sampling Rate
 
-- **After every task commit:** Run `npx jest --testPathPattern="ideate" --no-coverage`
-- **After every plan wave:** Run `npx jest --no-coverage`
+- **After every task commit:** Run `node --test tests/phase-67/*.test.mjs`
+- **After every plan wave:** Run `node --test tests/phase-67/*.test.mjs`
 - **Before `/gsd:verify-work`:** Full suite must be green
-- **Max feedback latency:** 15 seconds
+- **Max feedback latency:** 5 seconds
 
 ---
 
@@ -38,11 +38,12 @@ created: 2026-03-20
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 67-01-01 | 01 | 1 | IDT-01 | unit | `npx jest --testPathPattern="batch-consent"` | W0 | pending |
-| 67-01-02 | 01 | 1 | IDT-02 | unit | `npx jest --testPathPattern="ideate-stitch"` | W0 | pending |
-| 67-01-03 | 01 | 1 | IDT-03 | unit | `npx jest --testPathPattern="visual-distinct"` | W0 | pending |
-| 67-01-04 | 01 | 1 | IDT-04 | unit | `npx jest --testPathPattern="partial-batch"` | W0 | pending |
-| 67-01-05 | 01 | 1 | EFF-03 | unit | `npx jest --testPathPattern="convergence-surface"` | W0 | pending |
+| 67-01-01 | 01 | 1 | IDT-01, IDT-02, IDT-03, IDT-04, EFF-03 | structural grep | `grep -c '4-STITCH' workflows/ideate.md` | n/a | pending |
+| 67-02-01 | 02 | 2 | IDT-01 | file-parse | `node --test tests/phase-67/diverge-stitch-flag.test.mjs` | W2 | pending |
+| 67-02-02 | 02 | 2 | IDT-02 | file-parse | `node --test tests/phase-67/stitch-png-persist.test.mjs` | W2 | pending |
+| 67-02-03 | 02 | 2 | IDT-03 | file-parse | `node --test tests/phase-67/visual-distinctness.test.mjs` | W2 | pending |
+| 67-02-04 | 02 | 2 | IDT-04 | file-parse | `node --test tests/phase-67/quota-partial-batch.test.mjs` | W2 | pending |
+| 67-02-05 | 02 | 2 | EFF-03 | file-parse | `node --test tests/phase-67/batch-efficiency.test.mjs` | W2 | pending |
 
 *Status: pending / green / red / flaky*
 
@@ -50,10 +51,7 @@ created: 2026-03-20
 
 ## Wave 0 Requirements
 
-- [ ] Test stubs for batch-consent, ideate-stitch, visual-distinct, partial-batch, convergence-surface
-- [ ] Shared fixtures for Stitch MCP mock responses and quota state
-
-*If none: "Existing infrastructure covers all phase requirements."*
+Existing infrastructure covers all phase requirements. Plan 01 uses grep-based structural verification. Plan 02 creates all test files as part of Wave 2 execution.
 
 ---
 
@@ -69,11 +67,11 @@ created: 2026-03-20
 
 ## Validation Sign-Off
 
-- [ ] All tasks have automated verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 15s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have automated verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 5s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-03-20
