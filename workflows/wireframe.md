@@ -147,7 +147,8 @@ Use the Glob tool to check for `.planning/design/strategy/BRF-brief-v*.md`. Sort
 
 Store as PRODUCT_NAME, PRODUCT_TYPE.
 
-<!-- Experience product type — Phase 74 stub: floor plan (FLP) and timeline (TML) artifacts are added in Phase 78. Current behavior: proceed with software wireframe path as temporary fallback for experience product type. NEVER produce floor plans or timeline wireframes from this stub. -->
+<!-- PRODUCT_TYPE == "experience" activates Step 4-EXP: floor plan and timeline wireframes instead of software wireframes. -->
+<!-- Experience product type — Phase 74 architecture: floor plan (FLP) and timeline (TML) wireframes added in Phase 78. See Step 4-EXP experience block below. -->
 
 <!-- Phase 80 — Print Collateral: FLY (event flyer) and SIT (series identity template) -->
 <!-- Depends on: PRODUCT_TYPE === "experience" from Step 2e brief read -->
@@ -287,6 +288,167 @@ Attempt to call `mcp__stitch__list_projects` (the Stitch probe tool) with a 10-s
   Display: `  -> Stitch MCP: unavailable — falling back to Claude generation`
 
 Display: `Step 3/7: MCP probes complete. Sequential Thinking: {available | unavailable}. Playwright: {available | unavailable}. Stitch: {available | unavailable | not requested}.`
+
+---
+
+#### Step 4-EXP: Experience wireframe generation (experience products only)
+
+**IF `PRODUCT_TYPE == "experience"`:**
+
+Experience products generate a floor plan (FLP) and timeline (TML) instead of software wireframes. Skip Steps 4a through 4f (software path) and Step 4-STITCH entirely.
+
+**4-EXP-1. Read spaces-inventory.json (HARD prerequisite for FLP):**
+
+Use the Glob tool to check `.planning/design/ux/spaces-inventory.json`.
+
+- If **present**: load the file contents as `SPACES_INVENTORY`. Parse the JSON to extract `zones`, `venueCapacity`, `bottlenecks`, and `emergencyEgress` arrays.
+- If **absent**: HALT with error:
+  ```
+  HALT: spaces-inventory.json not found.
+  Floor plan generation requires zone data from /pde:flows.
+  Run /pde:flows first, then retry /pde:wireframe.
+  ```
+
+**4-EXP-2. Read TFL temporal flow (SOFT prerequisite for TML):**
+
+Use the Glob tool to check `.planning/design/ux/TFL-temporal-flow-v*.md`. Use the highest version number if multiple exist.
+
+- If **present**: load contents as `TFL_CONTENT`. Extract temporal arc stages and timing data for gantt chart population.
+- If **absent**: emit WARNING: `Warning: TFL temporal flow not found. Using brief temporal data as fallback for timeline generation.` Use brief Venue Constraints (doors, curfew) and Vibe Contract (peak timing) as fallback.
+
+**4-EXP-3. Generate FLP floor plan HTML (WIRE-01):**
+
+Generate a self-contained HTML file with inline SVG. The file must open at `file://` without a server — NO external dependencies (no CDN, no images, no fonts).
+
+Output file: `.planning/design/ux/wireframes/FLP-floor-plan-v1.html`
+
+**HTML structure:**
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FLP — {EVENT_NAME} — Floor Plan (Schematic)</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, sans-serif; background: #f5f5f5; padding: 24px; }
+    h1 { font-size: 18px; margin-bottom: 8px; }
+    .schematic-disclaimer {
+      background: #fff8dc; border: 1px solid #e0c060; border-radius: 4px;
+      padding: 8px 12px; font-size: 12px; margin-bottom: 16px; max-width: 840px;
+    }
+    .floor-plan-container { background: white; padding: 16px; display: inline-block; }
+    svg { display: block; }
+  </style>
+</head>
+<body>
+  <h1>{EVENT_NAME} — Floor Plan</h1>
+  <aside class="schematic-disclaimer">
+    <strong>SCHEMATIC ONLY.</strong> Not to scale. Zone boundaries, dimensions, and
+    infrastructure placements are illustrative. Verify all measurements against venue
+    technical drawings before production.
+  </aside>
+  <div class="floor-plan-container">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {WIDTH} {HEIGHT}"
+         width="{WIDTH}" height="{HEIGHT}" role="img"
+         aria-label="Floor plan schematic">
+      <title>{EVENT_NAME} Floor Plan Schematic</title>
+      <!-- Content generated from SPACES_INVENTORY -->
+    </svg>
+  </div>
+</body>
+</html>
+```
+
+**SVG content requirements (HARD MINIMUMS from success criteria):**
+
+- **Zone boundaries:** `<rect>` or `<polygon>` elements with `stroke="#334155" stroke-width="3"` (minimum stroke-width: 3 — NEVER thinner). Fill with semi-transparent color `rgba(R,G,B,0.15)`.
+- **Zone labels:** `<text>` elements with `font-size="16" font-weight="bold"` for zone names. Capacity annotations use `font-size="14"` (minimum font-size: 14 — NEVER smaller). Format: `Cap: {capacity}`.
+- **Flow arrows:** Use SVG `<defs><marker id="arrowhead">` pattern with `<line>` or `<path>` elements using `marker-end="url(#arrowhead)"`. Draw arrows between adjacent zones based on `adjacentTo` relationships in SPACES_INVENTORY.
+- **Infrastructure placement:** Rectangles with labels for stage, bar, toilets, medical, entry. Place based on zone types and mood (e.g., stage in "peak energy" zone).
+- **Accessibility routes:** Dashed lines `stroke="#16a34a" stroke-width="2" stroke-dasharray="8,4"` showing step-free paths.
+- **Emergency egress:** Red exit markers at edges based on `emergencyEgress` array. Use `fill="#dc2626"` rectangles with white "EXIT" text.
+- **Scale bar:** `<line>` element at bottom of SVG with text labels. Include "NOT TO SCALE" text.
+- **SCHEMATIC ONLY text in SVG:** `<text>` element: `<text x="{cx}" y="{bottom}" font-size="13" text-anchor="middle" fill="#94a3b8" font-style="italic">SCHEMATIC ONLY — NOT TO SCALE</text>`
+
+**Layout algorithm (Claude judgment):**
+1. Start SVG viewBox at 840x600. If zone count > 4, increase height by 100px per additional zone.
+2. Place largest-capacity zone (main floor) as central rect.
+3. Place adjacent zones around main floor based on `adjacentTo` relationships.
+4. Place entry/exit funnel zones near bottom edge.
+5. Place emergency egress markers at logical edges.
+
+**4-EXP-4. Generate TML timeline HTML (WIRE-02):**
+
+Generate a self-contained HTML file with Mermaid gantt chart. Uses CDN script tag for Mermaid rendering (internet required; raw gantt text visible as fallback).
+
+Output file: `.planning/design/ux/wireframes/TML-timeline-v1.html`
+
+**HTML structure:**
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TML — {EVENT_NAME} — Event Timeline</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+  <!-- Note: Mermaid CDN requires internet. Without connectivity, gantt text is visible as structured fallback. -->
+  <style>
+    body { font-family: system-ui, sans-serif; background: #f5f5f5; padding: 24px; max-width: 1200px; margin: 0 auto; }
+    h1 { font-size: 18px; margin-bottom: 16px; }
+    .energy-curve-container { background: white; padding: 16px; margin-bottom: 16px; border-radius: 4px; }
+    .gantt-container { background: white; padding: 16px; border-radius: 4px; }
+    .mermaid { display: block; }
+    .operational-note { font-size: 11px; color: #6b7280; margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <h1>{EVENT_NAME} — Event Timeline</h1>
+  <section class="energy-curve-container">
+    <h2 style="font-size:13px; color:#6b7280; margin-bottom:8px;">Energy Arc</h2>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 80" width="100%" height="80"
+         role="img" aria-label="Energy curve from arrival to departure">
+      <!-- Bezier curve derived from Vibe Contract peak timing -->
+      <!-- Stage labels: Arrival, Immersion, Peak, Comedown, Departure from TFL -->
+    </svg>
+  </section>
+  <section class="gantt-container">
+    <div class="mermaid">
+gantt
+    title {EVENT_NAME} — Operational Timeline
+    dateFormat HH:mm
+    axisFormat %H:%M
+    {sections generated from brief + TFL data}
+    </div>
+    <p class="operational-note">
+      Timeline derived from brief Venue Constraints and Vibe Contract.
+      [VERIFY WITH LOCAL AUTHORITY] for curfew and licensed hours compliance.
+    </p>
+  </section>
+  <script>
+    mermaid.initialize({ startOnLoad: true, theme: 'neutral', gantt: { barHeight: 20, fontSize: 12 } });
+  </script>
+</body>
+</html>
+```
+
+**Mermaid gantt requirements:**
+- Use `section` headers for parallel operational tracks: Load-in/Setup, Doors/Operations, Peak Programming, Load-out (minimum 3 sections).
+- Populate timing from brief Venue Constraints (doors, curfew, load-in) and Vibe Contract (peak timing).
+- Use `crit` tag for critical path items (headliner, curfew).
+- Limit to 20 entries maximum for legibility. Add comment noting multi-stage festivals may need multiple TML artifacts.
+
+**Energy curve requirements:**
+- Inline SVG (no CDN dependency) with `<path>` bezier curve for energy arc.
+- Map event time span (doors to curfew) to SVG viewBox width.
+- Place control points at TFL arc stage fractions (arrival low, immersion rising, peak high, comedown falling, departure low).
+- Add `<text>` labels at key points along the curve.
+
+**Jump to Step 5-EXP** (experience file write) — skip Steps 4a through 4f and Step 4-STITCH (software wireframe path).
 
 ---
 
@@ -1566,6 +1728,24 @@ Display per screen: `Step 4/7: Generated wireframe for {Screen Label} ({FIDELITY
 
 ### Step 5/7: Write output files
 
+#### Step 5-EXP: Experience wireframe file write (experience products only)
+
+**IF `PRODUCT_TYPE == "experience"`** (arriving from Step 4-EXP):
+
+1. Create the wireframes directory if it does not exist:
+   ```bash
+   mkdir -p .planning/design/ux/wireframes
+   ```
+
+2. Write FLP_HTML to `.planning/design/ux/wireframes/FLP-floor-plan-v1.html`
+3. Write TML_HTML to `.planning/design/ux/wireframes/TML-timeline-v1.html`
+
+Display: `Step 5-EXP: Wrote FLP-floor-plan-v1.html and TML-timeline-v1.html to .planning/design/ux/wireframes/`
+
+**Jump to Step 6** — skip software file write path.
+
+---
+
 #### 5a. Create wireframes directory
 
 Ensure `.planning/design/ux/wireframes/` exists:
@@ -1765,6 +1945,30 @@ node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update WFR status
 node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update WFR version 1
 ```
 
+#### 7c-exp. Experience wireframe manifest registration (experience products only)
+
+IF `PRODUCT_TYPE !== "experience"`: skip Step 7c-exp entirely.
+
+```bash
+# FLP artifact (experience floor plan)
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update FLP code FLP
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update FLP name "Floor Plan"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update FLP type experience-wireframe-floorplan
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update FLP domain ux
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update FLP path ".planning/design/ux/wireframes/FLP-floor-plan-v1.html"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update FLP status draft
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update FLP version 1
+
+# TML artifact (experience timeline)
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update TML code TML
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update TML name "Event Timeline"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update TML type experience-wireframe-timeline
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update TML domain ux
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update TML path ".planning/design/ux/wireframes/TML-timeline-v1.html"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update TML status draft
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update TML version 1
+```
+
 #### 7c-print. Print collateral manifest registration (experience products only)
 
 IF `PRODUCT_TYPE !== "experience"`: skip Step 7c-print entirely.
@@ -1808,7 +2012,7 @@ COV=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design coverage-check)
 if [[ "$COV" == @file:* ]]; then COV=$(cat "${COV#@file:}"); fi
 ```
 
-Parse the JSON output. Extract ALL fifteen current flag values: hasDesignSystem, hasWireframes, hasFlows, hasHardwareSpec, hasCritique, hasIterate, hasHandoff, hasIdeation, hasCompetitive, hasOpportunity, hasMockup, hasHigAudit, hasRecommendations, hasStitchWireframes, hasPrintCollateral. Default any absent field to `false`. Merge `hasWireframes: true` while preserving all other fourteen values. If any STH-{slug} artifacts were successfully persisted in Step 4-STITCH, also set `hasStitchWireframes: true`. If FLY print collateral was generated in Step 4g (PRODUCT_TYPE === "experience"), also set `hasPrintCollateral: true`. Then write the full merged fifteen-field object:
+Parse the JSON output. Extract ALL fifteen current flag values: hasDesignSystem, hasWireframes, hasFlows, hasHardwareSpec, hasCritique, hasIterate, hasHandoff, hasIdeation, hasCompetitive, hasOpportunity, hasMockup, hasHigAudit, hasRecommendations, hasStitchWireframes, hasPrintCollateral. Default any absent field to `false`. Merge `hasWireframes: true` while preserving all other fourteen values. If any STH-{slug} artifacts were successfully persisted in Step 4-STITCH, also set `hasStitchWireframes: true`. If FLY print collateral was generated in Step 4g (PRODUCT_TYPE === "experience"), also set `hasPrintCollateral: true`. If FLP/TML experience wireframes were generated in Step 4-EXP (PRODUCT_TYPE === "experience"), hasWireframes is already set to true by the standard merge. Then write the full merged fifteen-field object:
 
 ```bash
 # Standard run (no STH artifacts, non-experience product):

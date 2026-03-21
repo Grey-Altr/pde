@@ -326,8 +326,21 @@ describe('Phase 77 — experience flow diagrams (COMPLETE)', () => {
     assert.ok(content.includes('venueCapacity'), 'FLOW-04: venueCapacity schema field missing from flows.md');
   });
 
-  // Phase 78: WIRE — experience wireframes
-  test.todo('Phase 78: WIRE-01 — floor plan wireframe generated as SVG-in-HTML');
-  test.todo('Phase 78: WIRE-02 — timeline wireframe generated as gantt-style HTML');
-  test.todo('Phase 78: WIRE-03 — floor plan and timeline registered in manifest');
+  // Phase 78: WIRE — experience wireframes (COMPLETE)
+  test('Phase 78: WIRE-01 — floor plan wireframe generated as SVG-in-HTML', () => {
+    const content = readWorkflow('workflows/wireframe.md');
+    assert.ok(content.includes('FLP') || content.includes('floor plan'), 'WIRE-01: FLP floor plan generation missing from wireframe.md');
+    assert.ok(content.includes('PRODUCT_TYPE') && content.includes('experience'), 'WIRE-01: PRODUCT_TYPE experience guard missing from wireframe.md');
+    assert.ok(content.includes('SCHEMATIC ONLY') || content.includes('spaces-inventory.json'), 'WIRE-01: schematic disclaimer or spaces-inventory reference missing');
+  });
+  test('Phase 78: WIRE-02 — timeline wireframe generated as gantt-style HTML', () => {
+    const content = readWorkflow('workflows/wireframe.md');
+    assert.ok(content.includes('TML') || content.includes('timeline'), 'WIRE-02: TML timeline generation missing from wireframe.md');
+    assert.ok(content.includes('gantt') || content.includes('mermaid'), 'WIRE-02: gantt/mermaid chart reference missing from wireframe.md');
+  });
+  test('Phase 78: WIRE-03 — floor plan and timeline registered in manifest', () => {
+    const content = readWorkflow('workflows/wireframe.md');
+    assert.ok(content.includes('manifest-update FLP') || (content.includes('FLP') && content.includes('manifest')), 'WIRE-03: FLP manifest registration missing from wireframe.md');
+    assert.ok(content.includes('manifest-update TML') || (content.includes('TML') && content.includes('manifest')), 'WIRE-03: TML manifest registration missing from wireframe.md');
+  });
 });
