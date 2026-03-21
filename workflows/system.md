@@ -68,7 +68,7 @@ Use the Glob tool to search for `.planning/design/strategy/BRF-brief-v*.md`. Sor
 - If **brief found**: read the highest-version brief. Extract and record:
   - `PRODUCT_NAME` — from brief frontmatter or `# Design Brief` heading context
   - `PRODUCT_TYPE` — from `**Type:**` line in brief (software|hardware|hybrid|experience)
-  <!-- Experience product type: experience-specific design system extensions (SYS-experience-tokens.json) added in Phase 76. Phase 74 stub — proceed with software path as temporary fallback for experience product type. -->
+  <!-- Experience product type (Phase 74 architecture, Phase 76 implementation): experience-specific tokens generated in Step 5b — see PRODUCT_TYPE == "experience" block below. -->
   - `PLATFORM` — from `**Platform:**` line in brief (web|mobile|desktop|embedded|multi-platform)
   - `BRAND_COLORS` — from any brand color mentions (hex, oklch, rgb values listed in brief)
   - `TYPOGRAPHY_PREFS` — any font family preferences stated in brief
@@ -1736,6 +1736,101 @@ Use `templates/design-system.md` as the output structure. Replace all `{placehol
 - Fill Files Generated table with actual paths
 
 Display: `Step 5/7: All 12 artifacts written.`
+
+---
+
+#### Step 5b: Experience token file (experience products only)
+
+**If `PRODUCT_TYPE == "experience"`:**
+
+Read the five experience brief sections from the loaded brief file:
+
+- `VIBE_CONTRACT` — Emotional arc, peak timing, aesthetic register, energy level
+- `VENUE_CONSTRAINTS` — Capacity, curfew, noise limits, fixed infrastructure
+- `AUDIENCE_ARCHETYPE` — Crowd composition, mobility needs, group size, energy profile
+- `PROMISE_STATEMENT` — One-sentence attendee summary
+- `REPEATABILITY_INTENT` — One-off, recurring-series, or multi-day cadence
+
+Generate `SYS-experience-tokens.json` as a DTCG-compliant JSON file with 6 top-level category keys:
+`sonic`, `lighting`, `spatial`, `atmospheric`, `wayfinding`, `brand-coherence`.
+
+Total token count across all 6 categories MUST NOT exceed 30 leaf nodes (30-token cap).
+
+Each leaf node MUST have `$value`, `$type`, and `$description` fields per DTCG 2025.10.
+
+If brief fields contain `[PROVIDE: ...]` placeholders, propagate them verbatim as the `$value` string.
+
+**Token categories and fields:**
+
+**sonic** (5 tokens — derive from Vibe Contract energy level + Venue Constraints fixed infrastructure):
+- `bpm-range` (`$type`: string) — Target BPM corridor derived from vibe contract energy level
+- `genre-primary` (`$type`: string) — Primary genre from vibe contract aesthetic register
+- `volume-curve` (`$type`: string, values: gradual-ramp|drop-in|steady) — Volume progression
+- `system-spec` (`$type`: string) — Minimum PA specification from venue fixed infrastructure
+- `transition-strategy` (`$type`: string, values: beatmatch|silence|crossfade|live-segue) — DJ/act transition approach
+
+**lighting** (5 tokens — derive from Vibe Contract aesthetic register + Venue Constraints fixed infrastructure):
+- `zone-main-color` (`$type`: color, oklch) — Primary lighting hue for main floor
+- `intensity-curve` (`$type`: string, values: slow-build|flash-on|dawn-ramp) — Lighting intensity progression
+- `fixture-type-primary` (`$type`: string) — Primary fixture type from venue infrastructure
+- `peak-color` (`$type`: color, oklch) — Peak moment lighting color
+- `house-lights-protocol` (`$type`: string, values: full-off|safety-only|dim-wash) — House lights behavior
+
+**spatial** (5 tokens — derive from Audience Archetype crowd composition + Venue Constraints capacity):
+- `zone-count` (`$type`: number) — Number of distinct spatial zones
+- `main-floor-mood` (`$type`: string) — Primary floor spatial character
+- `density-target` (`$type`: number) — Target crowd density in people per sqm
+- `sightlines` (`$type`: string) — Sightline quality descriptor
+- `material-palette` (`$type`: string) — Primary material/surface palette
+
+**atmospheric** (5 tokens — derive from Venue Constraints fixed infrastructure + Vibe Contract aesthetic register):
+- `ventilation-type` (`$type`: string) — HVAC/ventilation approach
+- `indoor-outdoor` (`$type`: string, values: indoor|outdoor|hybrid) — Venue indoor/outdoor classification
+- `haze-level` (`$type`: string, values: none|light|heavy) — Atmospheric haze level
+- `temperature-target` (`$type`: string) — Target ambient temperature range
+- `air-movement` (`$type`: string) — Air circulation strategy
+
+**wayfinding** (5 tokens — derive from Audience Archetype mobility needs + Venue Constraints capacity):
+- `sign-hierarchy` (`$type`: string) — Signage hierarchy system description
+- `arrow-standard` (`$type`: string) — Arrow/icon standard for directional signage
+- `legibility-distance` (`$type`: string) — Required legibility distance for signs
+- `outdoor-contrast` (`$type`: string, values: day-bright|night-lit|mixed) — Contrast requirement for outdoor signage
+- `hierarchy-levels` (`$type`: number) — Number of wayfinding hierarchy levels
+
+**brand-coherence** (5 tokens — derive from Promise Statement + Vibe Contract aesthetic register):
+- `identity-thread` (`$type`: string) — Unifying visual/brand thread across all touchpoints
+- `tone-of-voice` (`$type`: string) — Brand communication tone
+- `sensory-signature` (`$type`: string) — Distinctive sensory brand element
+- `collateral-sequence` (`$type`: string) — Collateral touchpoint sequence (e.g., flyer → wristband → signage → merch)
+- `wristband-color` (`$type`: color, oklch) — Wristband accent color in oklch
+
+Write to: `.planning/design/visual/SYS-experience-tokens.json`
+
+Display: `  -> Created: visual/SYS-experience-tokens.json`
+
+**Register in manifest:**
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update SYS-EXP code SYS-EXP
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update SYS-EXP name "Experience Design Tokens"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update SYS-EXP type experience-tokens
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update SYS-EXP domain visual
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update SYS-EXP path ".planning/design/visual/SYS-experience-tokens.json"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update SYS-EXP status draft
+```
+
+**Generate CSS from experience token file:**
+
+```bash
+CSS_EXP=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design tokens-to-css ".planning/design/visual/SYS-experience-tokens.json" --raw)
+if [[ "$CSS_EXP" == @file:* ]]; then CSS_EXP=$(cat "${CSS_EXP#@file:}"); fi
+```
+
+Write `$CSS_EXP` output to `.planning/design/visual/SYS-experience-tokens.css`.
+
+Display: `  -> Created: visual/SYS-experience-tokens.css`
+
+**End experience token block.**
 
 ---
 

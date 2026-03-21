@@ -259,15 +259,47 @@ describe('Pending phases — Phase 74 stubs intact (phases 75-78 NOT YET IMPLEME
 // Pending phases — test.todo() markers for phases 75-78
 // ---------------------------------------------------------------------------
 
-describe('Pending phases — test.todo() markers for phases 75-78', () => {
-  // Phase 76: DSYS — experience design system tokens
-  test.todo('Phase 76: DSYS-01 — sonic design tokens generated');
-  test.todo('Phase 76: DSYS-02 — lighting design tokens generated');
-  test.todo('Phase 76: DSYS-03 — spatial design tokens generated');
-  test.todo('Phase 76: DSYS-04 — thermal/atmospheric tokens generated');
-  test.todo('Phase 76: DSYS-05 — wayfinding design tokens generated');
-  test.todo('Phase 76: DSYS-06 — brand coherence tokens generated');
-  test.todo('Phase 76: DSYS-07 — experience tokens in separate SYS-experience-tokens.json');
+describe('Phase 76 — experience design token architecture (COMPLETE)', () => {
+  test('system.md instructs generation of SYS-experience-tokens.json for experience products (DSYS-07)', () => {
+    const content = readWorkflow('workflows/system.md');
+    assert.ok(
+      content.includes('SYS-experience-tokens.json'),
+      'DSYS-07: system.md missing SYS-experience-tokens.json generation instruction'
+    );
+  });
+  test('system.md includes sonic token generation with bpm-range (DSYS-01)', () => {
+    const content = readWorkflow('workflows/system.md');
+    assert.ok(content.includes('sonic'), 'DSYS-01: sonic token category missing from system.md');
+    assert.ok(content.includes('bpm-range'), 'DSYS-01: bpm-range token missing from system.md');
+  });
+  test('system.md includes lighting token generation with zone-main-color (DSYS-02)', () => {
+    const content = readWorkflow('workflows/system.md');
+    assert.ok(content.includes('lighting'), 'DSYS-02: lighting token category missing from system.md');
+    assert.ok(content.includes('zone-main-color'), 'DSYS-02: zone-main-color token missing from system.md');
+  });
+  test('system.md includes spatial token generation with density-target (DSYS-03)', () => {
+    const content = readWorkflow('workflows/system.md');
+    assert.ok(content.includes('spatial'), 'DSYS-03: spatial token category missing from system.md');
+    assert.ok(content.includes('density-target'), 'DSYS-03: density-target token missing from system.md');
+  });
+  test('system.md includes atmospheric token generation with ventilation-type (DSYS-04)', () => {
+    const content = readWorkflow('workflows/system.md');
+    assert.ok(content.includes('atmospheric'), 'DSYS-04: atmospheric token category missing from system.md');
+    assert.ok(content.includes('ventilation-type'), 'DSYS-04: ventilation-type token missing from system.md');
+  });
+  test('system.md includes wayfinding token generation with sign-hierarchy (DSYS-05)', () => {
+    const content = readWorkflow('workflows/system.md');
+    assert.ok(content.includes('wayfinding'), 'DSYS-05: wayfinding token category missing from system.md');
+    assert.ok(content.includes('sign-hierarchy'), 'DSYS-05: sign-hierarchy token missing from system.md');
+  });
+  test('system.md includes brand-coherence token generation with identity-thread (DSYS-06)', () => {
+    const content = readWorkflow('workflows/system.md');
+    assert.ok(content.includes('brand-coherence'), 'DSYS-06: brand-coherence token category missing from system.md');
+    assert.ok(content.includes('identity-thread'), 'DSYS-06: identity-thread token missing from system.md');
+  });
+});
+
+describe('Pending phases — test.todo() markers for phases 77-78', () => {
 
   // Phase 77: FLOW — experience flow diagrams
   test.todo('Phase 77: FLOW-01 — temporal flow diagram generated');
