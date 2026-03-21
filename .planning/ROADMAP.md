@@ -197,7 +197,11 @@ Plans:
   4. Running `/pde:mockup --use-stitch` follows the same generate-fetch-persist-annotate pipeline and produces STH-{slug}-hifi.html with the same annotation and manifest pattern
   5. When Stitch MCP is unavailable or returns a failure within 10 seconds, the command falls back to Claude HTML/CSS generation with a user-visible message — no retry loops, no hard failure
   6. Running `/pde:critique` or `/pde:handoff` after a Stitch wireframe run reads the locally-cached STH artifacts rather than re-fetching from Stitch
-**Plans**: [To be planned]
+**Plans**: 3 plans
+Plans:
+- [ ] 66-01-PLAN.md — Add --use-stitch Stitch generation pipeline to wireframe.md with consent, annotation, fallback
+- [ ] 66-02-PLAN.md — Add --use-stitch Stitch generation pipeline to mockup.md mirroring wireframe pattern
+- [ ] 66-03-PLAN.md — Nyquist test suite covering all 14 Phase 66 requirements
 
 ### Phase 67: Ideation Visual Divergence
 **Goal**: Users running /pde:ideate --diverge receive Stitch-generated visual variant images alongside text concept descriptions, with quota checked before the batch starts and independent variants that are visually distinct from each other
@@ -247,7 +251,7 @@ Plans:
 | 58-63 | v0.8 | 13/13 | Complete | 2026-03-20 |
 | 64 | v0.9 | Complete    | 2026-03-20 | 2026-03-20 |
 | 65 | v0.9 | 2/2 | Complete | 2026-03-20 |
-| 66 | v0.9 | 0/TBD | Not started | - |
+| 66 | v0.9 | 0/3 | Not started | - |
 | 67 | v0.9 | 0/TBD | Not started | - |
 | 68 | v0.9 | 0/TBD | Not started | - |
 | 69 | v0.9 | 0/TBD | Not started | - |
