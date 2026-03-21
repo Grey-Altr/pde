@@ -11,7 +11,7 @@
 - [ ] **DLVR-02**: Hook handler produces zero stdout — all suggestion output written to /tmp/pde-suggestions-{sessionId}.md only
 - [ ] **DLVR-03**: Suggestion updates gated on meaningful PDE events (phase_started, phase_complete, plan_started) from NDJSON stream — not on every idle_prompt fire
 - [ ] **DLVR-04**: All suggestion state files written to /tmp/ — zero files in .planning/ from suggestion system (context-notes excluded, those are user-authored)
-- [ ] **DLVR-05**: Getting Started documentation updated with messageIdleNotifThresholdMs: 5000 recommendation for ~/.CLAUDE.json
+- [x] **DLVR-05**: Getting Started documentation updated with messageIdleNotifThresholdMs: 5000 recommendation for ~/.CLAUDE.json
 
 ### Suggestion Engine
 
@@ -72,7 +72,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DLVR-02 | Phase 70 | Pending |
 | DLVR-03 | Phase 70 | Pending |
 | DLVR-04 | Phase 70 | Pending |
-| DLVR-05 | Phase 70 | Pending |
+| DLVR-05 | Phase 70 | Complete |
 | ENGN-01 | Phase 71 | Pending |
 | ENGN-02 | Phase 71 | Pending |
 | ENGN-03 | Phase 71 | Pending |

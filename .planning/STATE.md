@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.10
 milestone_name: Idle Time Productivity
-status: ready_to_plan
-stopped_at: Roadmap created — 4 phases, 23 requirements mapped
-last_updated: "2026-03-20T00:00:00.000Z"
+status: unknown
+stopped_at: "Completed 70-02-PLAN.md"
+last_updated: "2026-03-21T05:46:00Z"
 progress:
   total_phases: 4
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 2
+  completed_plans: 1
 ---
 
 # Project State
@@ -23,21 +23,19 @@ See: .planning/PROJECT.md (updated 2026-03-20)
 
 ## Current Position
 
-Phase: 70 of 73 (Hook Integration and Delivery Architecture)
-Plan: — (not yet planned)
-Status: Ready to plan
-Last activity: 2026-03-20 — Roadmap created, 4 phases, 23/23 requirements mapped
-
-Progress: [░░░░░░░░░░] 0%
+Phase: 70 (Hook Integration and Delivery Architecture) — EXECUTING
+Plan: 2 of 2 (COMPLETE)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed (v0.10): 0
+
+- Total plans completed (v0.10): 1
 - Phases: 0/4
 - Timeline: Starting
 
 **Prior milestone reference:**
+
 - v0.9: 6 phases, 12 plans, 91 files, 76 commits (~6 hours)
 
 ## Accumulated Context
@@ -47,10 +45,16 @@ Progress: [░░░░░░░░░░] 0%
 Decisions are logged in PROJECT.md Key Decisions table.
 
 Key architectural constraints for this milestone:
+
 - Hook handler must produce zero stdout — all output to /tmp/ only
 - Suggestion generation: 2-second budget, zero LLM calls, max 3 synchronous file reads
 - All suggestion state in /tmp/ — zero files in .planning/ from suggestion system
 - Pane 7 added to build_full_layout() only — build_minimal_layout() unchanged
+
+### Completed Plan Decisions (70-02)
+
+- messageIdleNotifThresholdMs: 5000 documented in ~/.CLAUDE.json in Getting Started, section after "What's Next" and before "Command Cheat Sheet"
+- Explicitly named ~/.CLAUDE.json (not settings.json) to prevent misconfiguration — confirmed from GH issue #13922
 
 ### Pending Todos
 
@@ -62,8 +66,8 @@ Key architectural constraints for this milestone:
 
 ## Session Continuity
 
-Last session: 2026-03-20
-Stopped at: Roadmap created for v0.10 — ready to plan Phase 70
+Last session: 2026-03-21
+Stopped at: Completed 70-02-PLAN.md
 Resume file: None
 
-Next action: /pde:plan-phase 70
+Next action: /pde:execute-phase (Phase 70 complete — move to Phase 71)
