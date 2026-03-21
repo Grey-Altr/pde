@@ -41,9 +41,9 @@ Requirements for Experience Product Type milestone. Each maps to roadmap phases.
 
 ### Wireframe
 
-- [ ] **WIRE-01**: Floor plan wireframe generated as SVG-in-HTML with zone boundaries, capacity annotations, flow arrows, infrastructure placement, accessibility routes
-- [ ] **WIRE-02**: Timeline wireframe generated as gantt-style HTML with parallel tracks, operational beats, energy curve overlay
-- [ ] **WIRE-03**: Floor plan and timeline registered in design-manifest.json with FPL/TML artifact codes
+- [x] **WIRE-01**: Floor plan wireframe generated as SVG-in-HTML with zone boundaries, capacity annotations, flow arrows, infrastructure placement, accessibility routes
+- [x] **WIRE-02**: Timeline wireframe generated as gantt-style HTML with parallel tracks, operational beats, energy curve overlay
+- [x] **WIRE-03**: Floor plan and timeline registered in design-manifest.json with FPL/TML artifact codes
 
 ### Critique
 
@@ -133,9 +133,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FLOW-02 | Phase 77 | Complete |
 | FLOW-03 | Phase 77 | Complete |
 | FLOW-04 | Phase 77 | Complete |
-| WIRE-01 | Phase 78 | Pending |
-| WIRE-02 | Phase 78 | Pending |
-| WIRE-03 | Phase 78 | Pending |
+| WIRE-01 | Phase 78 | Complete |
+| WIRE-02 | Phase 78 | Complete |
+| WIRE-03 | Phase 78 | Complete |
 | CRIT-01 | Phase 79 | Complete |
 | CRIT-02 | Phase 79 | Complete |
 | CRIT-03 | Phase 79 | Complete |
