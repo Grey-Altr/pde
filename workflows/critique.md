@@ -259,6 +259,154 @@ Load evaluation references into context:
 
 If `--focused` flag present: evaluate only the named perspective(s). Valid values: ux, hierarchy, accessibility, business. Otherwise evaluate all four.
 
+#### Experience Product Type Gate
+
+Read PRODUCT_TYPE from design manifest:
+
+```bash
+MANIFEST=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-read)
+if [[ "$MANIFEST" == @file:* ]]; then MANIFEST=$(cat "${MANIFEST#@file:}"); fi
+```
+
+Parse `productType` from the JSON result.
+
+IF productType === "experience":
+
+  **Artifact detection — floor plan required (not wireframe HTML):**
+
+  Use the Glob tool to check for `.planning/design/ux/wireframes/FLP-floor-plan-v*.html`.
+  - If found: SET FLOOR_PLAN_ARTIFACT = path to highest version. SET EXPERIENCE_ARTIFACT_AVAILABLE = true.
+  - If not found: HALT with error:
+    ```
+    Error: No floor plan found for experience product critique.
+      /pde:critique for experience products requires the floor plan artifact (FLP).
+      Run /pde:wireframe first to generate the floor plan, then re-run /pde:critique.
+    ```
+
+  Use the Glob tool to check for `.planning/design/ux/wireframes/TML-timeline-v*.html`.
+  - If found: SET TIMELINE_ARTIFACT = path to highest version.
+  - If not found: Note in report frontmatter — "Timeline wireframe not found; critique evaluates floor plan only."
+
+  Load @references/experience-disclaimer.md into context before evaluating any perspective.
+
+  Apply seven experience-specific perspectives (in order). For EACH perspective, produce findings using the SAME table format as software perspectives:
+  | Severity | Effort | Location | Issue | Suggestion | Reference |
+  |----------|--------|----------|-------|------------|-----------|
+
+  Location field references floor plan zone names (e.g., "FLP > Main Stage Zone > West Egress").
+
+  #### Experience Perspective 1: Safety
+
+  Evaluate the floor plan against safety thresholds. Every numerical value cited MUST be
+  immediately followed by `[VERIFY WITH LOCAL AUTHORITY]`.
+
+  Checklist:
+  - Crush risk: crowd density in peak zones. Industry guidance: ≤ 4 persons/m² for comfortable;
+    > 6 persons/m² is dangerous [VERIFY WITH LOCAL AUTHORITY]. Read zone capacity annotations
+    from floor plan SVG.
+  - Emergency egress: distance from any point to nearest exit. Industry guidance: ≤ 45m to
+    nearest exit [VERIFY WITH LOCAL AUTHORITY]. Verify exit width against capacity.
+  - Medical coverage ratio: industry guidance 1 trained first aider per 100–250 attendees
+    [VERIFY WITH LOCAL AUTHORITY]. Check staffing plan if available.
+  - Fire safety: clear paths to fire exits, extinguisher placement, no obstructions in egress routes.
+    Evaluate from floor plan zone layout.
+
+  Finding format: same severity/effort/location/issue/suggestion/reference table.
+  Location field: reference floor plan zone name (e.g., "FLP > Main Stage Zone > West Egress").
+
+  #### Experience Perspective 2: Physical Accessibility
+
+  Note: This perspective covers physical/spatial accessibility for an event venue.
+  It does NOT apply WCAG criteria (no keyboard, focus, or screen reader findings here).
+
+  Checklist:
+  - Step-free access routes from entry to all primary zones (main stage, bar, toilets, first aid)
+  - BSL (British Sign Language) interpreter sightlines at performance areas
+  - Quiet/sensory zones: designated low-stimulation area with reduced sound and lighting
+  - Wheelchair viewing platforms: elevated or protected areas providing unobstructed sightlines
+  - Accessible toilet facilities: number and location relative to attendance
+
+  Finding format: same severity/effort/location/issue/suggestion/reference table.
+  Reference column: cite DDA 2010 (UK) or ADA (US) [VERIFY WITH LOCAL AUTHORITY] for
+  numerical ratios; cite best practice for sightlines and sensory zones.
+
+  #### Experience Perspective 3: Operations
+
+  Checklist:
+  - Bar capacity: serving points vs expected attendance. Industry guidance: 1 bar station per
+    75–100 attendees [VERIFY WITH LOCAL AUTHORITY]. Check against capacity annotation.
+  - Changeover realism: stage layout supports technical changeover time between acts per
+    the timeline wireframe (if available).
+  - Cancellation contingency: indoor backup or cancellation protocol documented in brief
+    or flows for outdoor events.
+  - Load-in/load-out: vehicle access paths on floor plan do not conflict with public egress.
+  - Staff briefing area: designated staff-only zone identifiable on floor plan.
+
+  #### Experience Perspective 4: Sustainability
+
+  Checklist:
+  - Reusable materials: signage, cups, and servingware noted as reusable or single-use.
+    Flag if single-use plastics are implied without mitigation note.
+  - Transport options: active transport provisions (cycle parking, shuttle drop-off, public
+    transit proximity) visible in venue context.
+  - Food waste management: food vendor zone placement and waste station placement on floor plan.
+  - Power source: generator vs grid connection. Generator implies higher emissions — flag if
+    no renewable energy note in brief.
+
+  No numerical regulatory values in this perspective — disclaimer tag not required for qualitative observations.
+
+  #### Experience Perspective 5: Licensing/Legal
+
+  Every numerical threshold MUST carry [VERIFY WITH LOCAL AUTHORITY].
+
+  Checklist:
+  - Noise curfew: if brief or flows reference curfew time, check floor plan for acoustic
+    zoning that supports curfew compliance (e.g., speaker orientation, barrier placement).
+    Industry guidance: outdoor events typically face 11pm–12am curfews in residential areas
+    [VERIFY WITH LOCAL AUTHORITY].
+  - Alcohol hours: check if licensed bar hours align with timeline wireframe (if available).
+    [VERIFY WITH LOCAL AUTHORITY] — alcohol licensing hours vary by jurisdiction and venue.
+  - Public liability: note if brief references public liability insurance coverage.
+    Minimum £5M PLI common for UK events [VERIFY WITH LOCAL AUTHORITY].
+  - Temporary structure permits: marquees, stages, and rigging typically require structural
+    engineer sign-off and permits [VERIFY WITH LOCAL AUTHORITY].
+
+  #### Experience Perspective 6: Financial
+
+  Numerical values are projections, not regulatory thresholds — [VERIFY WITH LOCAL AUTHORITY]
+  is not required for financial calculations, but financial projections should be labeled
+  as estimates only.
+
+  Checklist:
+  - Break-even ticket count: derive from brief if cost estimates and ticket price are present.
+    Example: if total cost is £10,000 and ticket price is £20, break-even is 500 tickets.
+    Flag if attendance capacity < break-even as Critical finding.
+  - Partial-capacity scenarios: evaluate floor plan viability at 60%, 80%, 100% capacity.
+    Check if floor plan zoning allows partial-capacity operation without exposed empty areas.
+  - Revenue diversification: identify revenue streams beyond ticket sales (bar, merch, sponsorship)
+    noted in brief or floor plan zone allocation.
+
+  #### Experience Perspective 7: Community
+
+  Qualitative perspective — no numerical regulatory values, no disclaimer tag required.
+
+  Checklist:
+  - Local scene contribution: does artist/performer lineup (from brief) include local/emerging acts?
+  - Artist inclusion: diversity of representation in lineup noted in brief.
+  - Neighborhood impact: load-in/out timing, noise, and pedestrian flow impact on surrounding area.
+    Cross-reference with noise curfew in Perspective 5.
+  - Local vendor sourcing: food/drink vendors noted as local in brief.
+
+  **Score calculation:** Same formula as software path (100 - penalties). All seven perspectives weighted equally (1.0x).
+
+  SKIP software perspectives (Perspectives 1-4: UX/Usability, Visual Hierarchy, Accessibility/WCAG, Business Alignment) entirely. Do NOT produce WCAG findings for experience products.
+
+  Proceed to Step 5/7 (write report).
+
+ELSE:
+
+  Proceed with existing software critique path (Perspectives 1-4 below). No experience-specific perspectives.
+
 For each wireframe file in WIREFRAME_FILES:
 
   Use the Read tool to read the wireframe HTML content.
@@ -396,8 +544,6 @@ For each wireframe file in WIREFRAME_FILES:
       - At midfi: color contrast findings are "minor" (placeholder colors still likely, but layout should use token references)
       - At hifi: color contrast failures are "major" or "critical" (real product colors applied)
     Tag: [Manual WCAG review -- install /pde:hig for enhanced accessibility audit]
-
-  <!-- Experience product type — Phase 74 stub: seven event-specific critique perspectives (safety, accessibility, operations, sustainability, licensing, financial, community) are added in Phase 79. Current behavior: proceed with software critique path as temporary fallback for experience product type. NEVER apply these software critique perspectives as final for experience products from this stub. -->
 
   #### Perspective 4: Business Alignment (weight 1.0x)
 
