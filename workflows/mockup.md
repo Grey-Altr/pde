@@ -244,6 +244,172 @@ Display: `Step 3/7: MCP probes complete. Playwright: {available | unavailable}. 
 
 ### Step 4/7: Generate hi-fi HTML/CSS mockups
 
+#### 4-STITCH. Stitch generation pipeline (when USE_STITCH is true)
+
+Skip this entire section when USE_STITCH is false. Jump directly to Step 4a (Claude generation).
+
+**4-STITCH-A: Pre-flight quota check**
+
+```bash
+node --input-type=module <<'EOF'
+import { createRequire } from 'module';
+const req = createRequire(import.meta.url);
+const { checkStitchQuota } = req(`${process.env.CLAUDE_PLUGIN_ROOT}/bin/lib/mcp-bridge.cjs`);
+const result = checkStitchQuota('standard');
+process.stdout.write(JSON.stringify(result));
+EOF
+```
+
+Parse result JSON. Handle by `reason`:
+- If `allowed: false` (reason: `quota_exhausted`): Display:
+  ```
+  Stitch quota exhausted (Standard: {used}/{limit} used this month).
+  Falling back to Claude HTML/CSS generation.
+  ```
+  SET USE_STITCH = false. Proceed with Claude generation (Step 4a).
+- If `reason === 'quota_warning'`: Display warning but continue:
+  ```
+  Warning: Stitch quota at {pct}% (Standard: {used}/{limit}). Proceeding with generation.
+  ```
+- If `reason === 'no_quota_configured'` or `reason === 'ok'`: Continue silently.
+
+**4-STITCH-B: Batch outbound consent (CONSENT-01, CONSENT-03, CONSENT-04)**
+
+Collect all screen slugs from SCREENS array. For each screen, build a one-line description: `{slug}: {screen label from wireframe filename or slug}`.
+
+AskUserQuestion with this exact template:
+```
+About to send design prompts to Google Stitch (stitch.withgoogle.com):
+
+  Screens ({count}):
+  {for each screen: "  - {slug}: {screen label}"}
+
+  What will be sent: A text description of each screen's hi-fi layout, visual style, and content.
+  Service: Google Stitch MCP (stitch.withgoogle.com)
+
+Approve sending these prompts to Stitch? (yes / no)
+```
+
+If user responds "no" or anything other than "yes":
+  Display: `Stitch generation cancelled by user. Proceeding with Claude HTML/CSS generation.`
+  SET USE_STITCH = false. Proceed with Claude generation (Step 4a).
+
+**4-STITCH-C: Generate screens via Stitch (per-screen loop)**
+
+For EACH screen in SCREENS:
+
+1. Build a Stitch prompt from screen context:
+   - Include: screen slug, label, product name, product type, key content areas
+   - Include: wireframe source context (if available), visual style guidance (hi-fi, design tokens)
+   - Do NOT include: PDE-internal references, annotation comments
+
+2. Call `stitch:generate-screen` (mapped via TOOL_MAP to `mcp__stitch__generate_screen_from_text`):
+   - Pass: prompt text, project context
+   - If the call fails or times out: SET this screen to STITCH_FAILED. Log:
+     ```
+     Warning: Stitch generation failed for screen "{slug}": {error message}.
+     This screen will use Claude HTML/CSS generation.
+     ```
+     Continue to next screen (do not abort entire batch).
+
+3. Capture `screenId` from the generate response. CRITICAL: Use this screenId for ALL subsequent calls. Do NOT call `stitch:list-screens` to look up the screen (confirmed list_screens state-sync bug).
+
+4. Fetch HTML via `stitch:fetch-screen-code` using the captured screenId.
+   Store result as STH_HTML_CONTENT (held in memory, NOT written to disk yet). (No PNG fetch for mockups — hi-fi HTML is sufficient.)
+
+5. **Annotation injection (EFF-05 — per-screen, immediately after fetch):**
+
+   Run inline annotation on STH_HTML_CONTENT:
+   ```bash
+   node --input-type=module <<'EOF'
+   import { createRequire } from 'module';
+   const req = createRequire(import.meta.url);
+   const html = process.env.STH_HTML_CONTENT;
+   const componentMap = [
+     ['<nav',     '<!-- @component: Navigation -->'],
+     ['<header',  '<!-- @component: Header -->'],
+     ['<main',    '<!-- @component: MainContent -->'],
+     ['<section', '<!-- @component: Section -->'],
+     ['<form',    '<!-- @component: Form -->'],
+   ];
+   let out = html;
+   let count = 0;
+   for (const [tag, comment] of componentMap) {
+     const re = new RegExp(`(${tag}[\\s>])`, 'g');
+     const before = out;
+     out = out.replace(re, `${comment}\n$1`);
+     if (out !== before) count++;
+   }
+   process.stdout.write(JSON.stringify({ html: out, count }));
+   EOF
+   ```
+   Count injected annotations. If count is 0: log warning `No semantic elements found for annotation in screen "{slug}". Annotations will be empty.`
+   Partial annotations accepted — inject what is found, log what is missing.
+   Set ANNOTATION_COUNT for this screen. Update STH_HTML_CONTENT with annotated result.
+
+6. **Inbound consent (CONSENT-02, CONSENT-03):**
+
+   Calculate HTML size in KB (STH_HTML_CONTENT.length / 1024, rounded to 1 decimal).
+
+   AskUserQuestion:
+   ```
+   Received from Google Stitch:
+     Screen: {slug}
+     HTML: STH-{slug}-hifi.html (~{size}KB)
+     Annotations injected: {ANNOTATION_COUNT} component markers
+     Target: .planning/design/ux/mockups/
+
+   Persist this file locally? (yes / no)
+   ```
+
+   If "no": Skip this screen's STH artifact. Log: `Skipping STH artifact for screen "{slug}" per user decision.` Continue to next screen.
+
+7. **Persist artifact (only after inbound consent):**
+   - Write annotated HTML to `.planning/design/ux/mockups/STH-{slug}-hifi.html`
+   - Log: `  -> Persisted STH-{slug}-hifi.html to ux/mockups/`
+
+8. **Increment quota after successful generation:**
+   ```bash
+   node --input-type=module <<'EOF'
+   import { createRequire } from 'module';
+   const req = createRequire(import.meta.url);
+   const { incrementStitchQuota } = req(`${process.env.CLAUDE_PLUGIN_ROOT}/bin/lib/mcp-bridge.cjs`);
+   const result = incrementStitchQuota('standard');
+   process.stdout.write(JSON.stringify(result));
+   EOF
+   ```
+   Call once per successfully persisted screen.
+
+9. **Per-screen manifest registration (STH artifact — one entry per screen):**
+   ```bash
+   node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-add-artifact STH-{slug}-hifi
+   node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update STH-{slug}-hifi code "STH-{slug}-hifi"
+   node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update STH-{slug}-hifi name "{Screen Label} (Stitch Mockup)"
+   node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update STH-{slug}-hifi type mockup
+   node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update STH-{slug}-hifi domain ux
+   node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update STH-{slug}-hifi path ".planning/design/ux/mockups/STH-{slug}-hifi.html"
+   node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update STH-{slug}-hifi status draft
+   node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update STH-{slug}-hifi version 1
+   node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update STH-{slug}-hifi source stitch
+   node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update STH-{slug}-hifi stitch_annotated true
+   ```
+
+End of per-screen loop.
+
+**4-STITCH-D: Fallback for failed screens**
+
+After the per-screen loop, check if any screens have STITCH_FAILED status.
+For each failed screen: add to FALLBACK_SCREENS list.
+If FALLBACK_SCREENS is non-empty:
+  Display: `{count} screen(s) failed Stitch generation. Generating with Claude HTML/CSS: {slug-list}`
+  These screens proceed through the standard Claude generation path (Step 4a-4b) below.
+
+If ALL screens succeeded via Stitch: skip Step 4a-4b entirely.
+
+<!-- End of Stitch branch. If USE_STITCH is false or FALLBACK_SCREENS is non-empty, continue with Claude generation below for applicable screens. -->
+
+---
+
 This is the core generation step. For EACH screen in the SCREENS array (from wireframes or derived from brief context):
 
 #### 4a. Read wireframe source and extract annotations
@@ -1172,6 +1338,12 @@ Domain: ux
 
 Use the Write or Edit tool as appropriate.
 
+If any STH-{slug}-hifi artifacts were persisted in Step 4-STITCH:
+  Add or update a row in the Artifact Index for each STH artifact:
+  ```
+  | STH-{slug}-hifi | mockups | stitch | {date} |
+  ```
+
 Display: `Step 6/7: UX DESIGN-STATE updated with MCK artifact entry.`
 
 ---
@@ -1289,6 +1461,8 @@ Tag: `[Not validated -- install Playwright MCP for automated browser testing]`
 | Elapsed time | {duration} |
 | Estimated tokens | ~{count} |
 | MCP enhancements | {Playwright MCP | none} |
+{If STH artifacts were created:}
+{| Stitch Mockups ({sth_count} screens) | .planning/design/ux/mockups/STH-*-hifi.html | Created (source: stitch) |}
 ```
 
 Display: `Step 7/7: Root DESIGN-STATE and manifest updated. hasMockup: true.`
