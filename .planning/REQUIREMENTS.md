@@ -58,13 +58,13 @@ Requirements for Experience Product Type milestone. Each maps to roadmap phases.
 
 ### HIG — Physical Interface Guidelines
 
-- [ ] **PHIG-01**: Wayfinding audit checks signage at decision points, low-light readability, multilingual support
-- [ ] **PHIG-02**: Acoustic zoning audit checks conversation-possible zones adjacent to high-volume areas
-- [ ] **PHIG-03**: Queue UX audit checks wait time communication, weather protection, skip-queue tiers
-- [ ] **PHIG-04**: Transaction speed audit checks bar order < 90s, entry processing < 30s per person targets
-- [ ] **PHIG-05**: Toilet ratio audit checks minimum 1:75 (female), 1:100 (male)
-- [ ] **PHIG-06**: Hydration audit checks free water points clearly signed
-- [ ] **PHIG-07**: First aid audit checks trained staff reachable within 2min from any point
+- [x] **PHIG-01**: Wayfinding audit checks signage at decision points, low-light readability, multilingual support
+- [x] **PHIG-02**: Acoustic zoning audit checks conversation-possible zones adjacent to high-volume areas
+- [x] **PHIG-03**: Queue UX audit checks wait time communication, weather protection, skip-queue tiers
+- [x] **PHIG-04**: Transaction speed audit checks bar order < 90s, entry processing < 30s per person targets
+- [x] **PHIG-05**: Toilet ratio audit checks minimum 1:75 (female), 1:100 (male)
+- [x] **PHIG-06**: Hydration audit checks free water points clearly signed
+- [x] **PHIG-07**: First aid audit checks trained staff reachable within 2min from any point
 
 ### Handoff — Production Bible
 
@@ -144,13 +144,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CRIT-06 | Phase 79 | Complete |
 | CRIT-07 | Phase 79 | Complete |
 | CRIT-08 | Phase 79 | Complete |
-| PHIG-01 | Phase 79 | Pending |
-| PHIG-02 | Phase 79 | Pending |
-| PHIG-03 | Phase 79 | Pending |
-| PHIG-04 | Phase 79 | Pending |
-| PHIG-05 | Phase 79 | Pending |
-| PHIG-06 | Phase 79 | Pending |
-| PHIG-07 | Phase 79 | Pending |
+| PHIG-01 | Phase 79 | Complete |
+| PHIG-02 | Phase 79 | Complete |
+| PHIG-03 | Phase 79 | Complete |
+| PHIG-04 | Phase 79 | Complete |
+| PHIG-05 | Phase 79 | Complete |
+| PHIG-06 | Phase 79 | Complete |
+| PHIG-07 | Phase 79 | Complete |
 | HDOF-01 | Phase 81 | Pending |
 | HDOF-02 | Phase 81 | Pending |
 | HDOF-03 | Phase 81 | Pending |

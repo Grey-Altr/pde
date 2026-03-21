@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.11
 milestone_name: Experience Product Type
 status: unknown
-stopped_at: Completed 79-01-PLAN.md
-last_updated: "2026-03-21T11:38:17.493Z"
+stopped_at: Completed 79-02-PLAN.md
+last_updated: "2026-03-21T11:44:04.056Z"
 progress:
   total_phases: 9
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 4
-  completed_plans: 3
+  completed_plans: 4
 ---
 
 # Project State
@@ -60,6 +60,7 @@ Key architectural constraints locked for this milestone:
 - Print artifacts are framed as composition reference guides, not production print files — "print-ready" phrase prohibited without prepress disclaimer
 - [Phase 79]: Experience gate in critique.md placed before Perspective 1 (before per-wireframe loop) not at stub line — ensures experience products skip all four software perspectives
 - [Phase 79]: FLP floor plan is hard prerequisite for experience critique (HALT if absent); TML timeline is soft dependency (warning only)
+- [Phase 79]: productType gate in hig.md Step 4 executes before --light check; physical-hig-audit manifest type for experience products; hasHigAudit flag name identical across all modes
 
 ### Phase Ordering Rationale
 
@@ -84,8 +85,8 @@ Key architectural constraints locked for this milestone:
 
 ## Session Continuity
 
-Last session: 2026-03-21T11:38:17.491Z
-Stopped at: Completed 79-01-PLAN.md
+Last session: 2026-03-21T11:44:04.054Z
+Stopped at: Completed 79-02-PLAN.md
 Resume file: None
 
 Next action: Execute Phase 75 (experience design system token generation)
