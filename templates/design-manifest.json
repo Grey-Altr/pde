@@ -4,7 +4,8 @@
   "schemaVersion": "1.0.0",
 
   "projectName": "string -- project name from design brief",
-  "productType": "software | hardware | hybrid",
+  "productType": "software | hardware | hybrid | experience",
+  "experienceSubType": "single-night | multi-day | recurring-series | installation | hybrid-event | null",
   "outputRoot": "string -- path to output directory (e.g., ./pde-output or .planning/design)",
   "mode": "standalone | pde-integrated",
   "generatedAt": "ISO 8601 timestamp -- when manifest was first created",

@@ -1,7 +1,8 @@
 {
   "schemaVersion": "1.0.0",
   "projectName": "string -- project name from design brief",
-  "productType": "software | hardware | hybrid",
+  "productType": "software | hardware | hybrid | experience",
+  "experienceSubType": null,
   "outputRoot": "string -- path to output directory (e.g., ./pde-output or .planning/design)",
   "mode": "standalone | pde-integrated",
   "generatedAt": "2026-03-15T21:12:48.050Z",

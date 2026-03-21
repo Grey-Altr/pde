@@ -1,6 +1,7 @@
 {
   "projectName": "Tide",
   "productType": "SaaS Platform",
+  "experienceSubType": null,
   "outputRoot": ".planning/design",
   "mode": "full",
   "version": 1,
