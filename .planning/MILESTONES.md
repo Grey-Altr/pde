@@ -1,5 +1,26 @@
 # Milestones
 
+## v0.9 Google Stitch Integration (Shipped: 2026-03-21)
+
+**Phases completed:** 6 phases, 12 plans
+**Commits:** 76 | **Files:** 91 | **LOC:** ~100,000
+**Timeline:** ~6 hours (2026-03-20 → 2026-03-21)
+**Git range:** feat(64-01): extend designCoverage schema → docs(v0.9): milestone audit
+**Nyquist tests:** 215 assertions, all green
+
+**Key accomplishments:**
+
+1. Stitch MCP integration: Registered Google Stitch as 6th approved MCP server in mcp-bridge.cjs with auth (STITCH_API_KEY), 10-entry TOOL_MAP with live verification gate (MCP-05), probe/degrade contracts, and quota tracking (Standard 350/mo, Experimental 50/mo with 80% warning threshold and auto-fallback)
+2. Wireframe + mockup pipeline: `--use-stitch` flag on `/pde:wireframe` and `/pde:mockup` with full generate-fetch-persist-annotate pipeline, consent gates, 10s timeout with Claude fallback, annotation injection (5 semantic HTML tags), and STH-{slug} artifact caching in design-manifest.json
+3. Visual divergence: `/pde:ideate --diverge` feeds concept descriptions to Stitch for 3-5 visual interpretations per concept, batch quota-aware with partial-batch fallback (uses remaining quota rather than hard stop), PNG storage alongside text-based ideation artifacts
+4. Critique comparison: `/pde:critique` detects Stitch-sourced artifacts via manifest `source: "stitch"`, suppresses DTCG token-format false positives (CRT-02), reads STH PNG screenshots for multimodal visual analysis (CRT-03), and appends conditional `## Stitch Comparison` delta reports as recommendations not failures
+5. Handoff pattern extraction: `/pde:handoff` Step 2l gates on `stitch_annotated: true`, Step 4b-stitch extracts `@component:` annotations via regex, Step 5b produces STITCH_COMPONENT_PATTERNS section with WFR+Stitch/Stitch-only/WFR-only source tags, Step 5c generates `STH_{Slug}_{Component}Props` TypeScript interfaces with inline hex-to-OKLCH conversion and `@verify` labels for Stitch-only components
+6. 215 Nyquist tests: Full structural regression suite across phases 65-69 using file-parse assertions (readFileSync + node:test), covering all 30 requirements with zero failures — provides regression safety net for future changes
+
+**Delivered:** Google Stitch AI UI design tool fully integrated into PDE's 13-stage design pipeline as an alternative rendering engine (wireframe/mockup), visual exploration tool (ideation divergence), critique comparator (multimodal analysis with token suppression), and pattern extraction source (handoff with TypeScript interface generation) — all with quota tracking, consent gates, graceful fallback to Claude HTML/CSS, and zero npm dependencies.
+
+---
+
 ## v0.8 Observability & Event Infrastructure (Shipped: 2026-03-20)
 
 **Phases completed:** 6 phases, 13 plans

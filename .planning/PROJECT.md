@@ -63,19 +63,17 @@ Any user can go from idea to shipped product through a single platform that hand
 - ✓ Token/cost metering with chars/4 heuristic, per-model pricing, context window utilization (~est. labels) — v0.8
 - ✓ Workflow instrumentation: semantic phase/wave/plan events enriching dashboard and session summaries — v0.8
 - ✓ Future-proof event schema with extensions field for downstream consumers — v0.8
+- ✓ Google Stitch MCP integration with auth, 10-entry tool map, live verification gate, probe/degrade contracts — v0.9
+- ✓ Stitch quota tracking (Standard 350/mo, Experimental 50/mo) with 80% warning, auto-fallback, health visibility — v0.9
+- ✓ `--use-stitch` flag on wireframe/mockup with generate-fetch-persist-annotate pipeline, consent gates, 10s fallback — v0.9
+- ✓ Ideation visual divergence via Stitch with batch consent, quota-aware partial-batch fallback — v0.9
+- ✓ Critique Stitch comparison with manifest detection, DTCG token suppression, multimodal PNG analysis — v0.9
+- ✓ Handoff Stitch pattern extraction with annotation gate, @component: extraction, hex-to-OKLCH TypeScript interfaces — v0.9
+- ✓ 215 Nyquist structural regression tests across all v0.9 phases — v0.9
 
 ### Active
 
-## Current Milestone: v0.9 Google Stitch Integration
-
-**Goal:** Integrate Google Stitch AI UI design tool into PDE's design pipeline as an alternative rendering engine, visual exploration tool, critique comparator, and pattern extraction source.
-
-**Target features:**
-- Stitch MCP server integration via mcp-bridge.cjs (6th approved server)
-- `--use-stitch` flag on `/pde:wireframe` and `/pde:mockup` for alternative rendering
-- Visual divergence during `/pde:ideate --diverge` via Stitch-generated variants
-- Stitch output comparison against design system tokens in `/pde:critique`
-- Pattern extraction from Stitch visuals feeding into `/pde:handoff`
+(No active milestone — run `/pde:new-milestone` to start next)
 
 ### Out of Scope
 
@@ -99,7 +97,8 @@ Any user can go from idea to shipped product through a single platform that hand
 
 ## Context
 
-- **Shipped v0.8** on 2026-03-20: ~192,000 LOC (JavaScript/Markdown/Shell), ~780 total commits
+- **Shipped v0.9** on 2026-03-21: ~100,000 LOC (JavaScript/Markdown/Shell), ~856 total commits, 215 Nyquist tests
+- **v0.9** shipped 2026-03-21: 91 files changed, 76 commits (Google Stitch integration across 5 pipeline skills)
 - **v0.1** shipped 2026-03-15: 303 files, ~60,000 LOC, 127 commits (GSD → PDE rebrand)
 - **v0.2** shipped 2026-03-16: 172 files changed, 135 commits (7-stage design pipeline)
 - **v0.3** shipped 2026-03-17: 84 files changed, 67 commits (6 advanced design skills, 13-stage pipeline)
@@ -179,7 +178,16 @@ Any user can go from idea to shipped product through a single platform that hand
 | Stitch stdio transport (not HTTP) | Claude Code silently drops custom headers (#7290, #17069); stdio via npx proxy is reliable | ✓ Good — avoids known Claude Code bug |
 | TOOL_MAP_VERIFY_REQUIRED markers | Tool names from community repos (MEDIUM confidence); live gate confirms at connect time | ✓ Good — MCP-05 verification deferred to connection, not build |
 | Lazy monthly quota reset | Read-time check vs stored reset_at date; no cron/background process needed | ✓ Good — zero-npm-dependency preserved |
+| Per-artifact Stitch detection (not per-project) | critique/handoff read `source: "stitch"` per-artifact from manifest, not `hasStitchWireframes` flag | ✓ Good — supports mixed WFR+Stitch projects |
+| Annotation injection before manifest registration | `stitch_annotated: true` only set after 5 semantic HTML tags injected | ✓ Good — downstream handoff can trust annotation presence |
+| DTCG token suppression per-artifact (not global) | SUPPRESS_TOKEN_FINDINGS flag set only for Stitch artifacts in critique | ✓ Good — WFR artifacts still get full token compliance checks |
+| Stitch Comparison as recommendations not findings | Stitch deviations excluded from Action List and DESIGN-STATE | ✓ Good — prevents blocking on tool limitations vs design intent |
+| hexToOklch inline function (zero npm) | Math.cbrt/Math.atan2 OKLab conversion embedded in handoff workflow | ✓ Good — zero-npm-dependency preserved, handles #rgb/#rrggbbaa/named colors |
+| Stitch-only components get @verify label | Human decision prompt rather than silent omission or auto-acceptance | ✓ Good — safe default for unvalidated components |
+| Stitch stdio transport (not HTTP) | Claude Code silently drops custom headers (#7290, #17069); stdio via npx proxy is reliable | ✓ Good — avoids known Claude Code bug |
+| TOOL_MAP_VERIFY_REQUIRED markers | Tool names from community repos (MEDIUM confidence); live gate confirms at connect time | ✓ Good — MCP-05 verification deferred to connection, not build |
+| Lazy monthly quota reset | Read-time check vs stored reset_at date; no cron/background process needed | ✓ Good — zero-npm-dependency preserved |
 | QUOTA-03 split across Phase 65/66 | Phase 65 provides detection signal; Phase 66 provides fallback routing (WFR-06) | ✓ Good — clean infrastructure/consumer separation |
 
 ---
-*Last updated: 2026-03-21 — Phase 69 complete: handoff Stitch pattern extraction with manifest detection gate, @component: annotation extraction, STITCH_COMPONENT_PATTERNS section, hex-to-OKLCH TypeScript interfaces with @verify labels — 215 Nyquist tests green*
+*Last updated: 2026-03-21 after v0.9 milestone — Google Stitch Integration shipped: MCP bridge, wireframe/mockup --use-stitch, ideation divergence, critique comparison, handoff pattern extraction — 30/30 requirements, 215 Nyquist tests, 6 phases complete*
