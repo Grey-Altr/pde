@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.11
 milestone_name: Experience Product Type
 status: unknown
-stopped_at: Completed 81-01-PLAN.md
-last_updated: "2026-03-21T20:29:27.744Z"
+stopped_at: Completed 81-02-PLAN.md
+last_updated: "2026-03-21T20:35:09.709Z"
 progress:
   total_phases: 9
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 8
-  completed_plans: 7
+  completed_plans: 8
 ---
 
 # Project State
@@ -68,6 +68,8 @@ Key architectural constraints locked for this milestone:
 - [Phase 81]: Four-pass BIB generation (Pass A-D) mandatory — single-pass truncates at staffing plan for venues above 500 capacity
 - [Phase 81]: HND_GENERATES_SOFTWARE = false for pure experience; = true only for hybrid-event — prevents software layer generation for single-night, multi-day, recurring-series, and installation sub-types
 - [Phase 81]: STACK.md bypass in Step 2a reads manifest before hard-stop — non-hybrid-event experience products skip STACK.md check (FRAMEWORK=none, TYPESCRIPT=false)
+- [Phase 81-02]: NEVER-guard language lives inline at Step 4i branch decision — not only in anti-patterns — providing defense-in-depth against product-type violations
+- [Phase 81-02]: SC-4 Nyquist test checks for affirmative BIB generation instructions (not word presence) allowing NEVER-guard prohibition text in software branch
 
 ### Phase Ordering Rationale
 
@@ -92,8 +94,8 @@ Key architectural constraints locked for this milestone:
 
 ## Session Continuity
 
-Last session: 2026-03-21T20:29:27.741Z
-Stopped at: Completed 81-01-PLAN.md
+Last session: 2026-03-21T20:35:09.706Z
+Stopped at: Completed 81-02-PLAN.md
 Resume file: None
 
 Next action: Execute Phase 75 (experience design system token generation)

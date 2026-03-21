@@ -185,7 +185,7 @@ Full details: .planning/milestones/v0.10-ROADMAP.md
 - [ ] **Phase 78: Wireframe Stage Extensions** — Floor plan (FLP) and timeline (TML) artifact types; FPL/TML manifest registration
 - [x] **Phase 79: Critique and HIG Extensions** — Seven event-specific critique perspectives; physical interface guidelines replacing WCAG checks; regulatory disclaimer enforcement (completed 2026-03-21)
 - [x] **Phase 80: Print Collateral** — Event flyer (FLY), series identity template, festival program (PRG); Awwwards-level print composition; CSS @page print spec (completed 2026-03-21)
-- [ ] **Phase 81: Handoff — Production Bible** — Advance document, run sheet, staffing plan, budget framework, post-event template, print spec output; BIB artifact; hybrid-event dual-surface output
+- [x] **Phase 81: Handoff — Production Bible** — Advance document, run sheet, staffing plan, budget framework, post-event template, print spec output; BIB artifact; hybrid-event dual-surface output (completed 2026-03-21)
 - [ ] **Phase 82: Integration Validation and Regression Audit** — Full cross-type regression run; sub-type coverage validation; 14 branch site assertions; milestone completion gate
 
 ## Phase Details
@@ -325,5 +325,5 @@ Plans:
 | 78. Wireframe Stage Extensions | v0.11 | 0/TBD | Not started | - |
 | 79. Critique and HIG Extensions | 2/2 | Complete    | 2026-03-21 | - |
 | 80. Print Collateral | 2/2 | Complete    | 2026-03-21 | - |
-| 81. Handoff — Production Bible | 1/2 | In Progress|  | - |
+| 81. Handoff — Production Bible | 2/2 | Complete   | 2026-03-21 | - |
 | 82. Integration Validation and Regression Audit | v0.11 | 0/TBD | Not started | - |
