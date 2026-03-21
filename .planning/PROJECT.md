@@ -198,5 +198,7 @@ Any user can go from idea to shipped product through a single platform that hand
 | Lazy monthly quota reset | Read-time check vs stored reset_at date; no cron/background process needed | ✓ Good — zero-npm-dependency preserved |
 | QUOTA-03 split across Phase 65/66 | Phase 65 provides detection signal; Phase 66 provides fallback routing (WFR-06) | ✓ Good — clean infrastructure/consumer separation |
 
+| Hook delivery architecture for idle suggestions | idle_prompt hook fires silently, /tmp/-only state, event gating, threshold docs | ✓ Good — zero stdout, NDJSON event gating, marker-based dedup |
+
 ---
-*Last updated: 2026-03-21 after v0.9 milestone — Google Stitch Integration shipped: MCP bridge, wireframe/mockup --use-stitch, ideation divergence, critique comparison, handoff pattern extraction — 30/30 requirements, 215 Nyquist tests, 6 phases complete*
+*Last updated: 2026-03-21 after Phase 70 — Hook Integration and Delivery Architecture: idle_prompt hook registered with async:true, idle-suggestions.cjs handler with event gating and /tmp/-only output, Getting Started threshold config documented*
