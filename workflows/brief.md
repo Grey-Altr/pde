@@ -120,6 +120,14 @@ Use the Glob tool to find `.planning/design/strategy/ANL-analyst-brief-v*.md`.
   Log: `"  -> No analyst artifact — continuing without analyst enrichment"`
   SET ANL_CONTEXT = null. Continue normally.
 
+**Context notes (NOTES):**
+Use the Glob tool to find `.planning/context-notes/*.md` files. Exclude `README.md` from results.
+- If found: Sort alphabetically, read each file from `.planning/context-notes/`. Concatenate content under `### {filename}` subheadings. Store as NOTES_CONTEXT for use in Step 5.
+  Log: `"  -> Context notes found: {N} file(s) from .planning/context-notes/ — enriching brief with user-authored domain knowledge"`
+- If not found:
+  Log: `"  -> No context notes found in .planning/context-notes/ — continuing without user-authored enrichment"`
+  SET NOTES_CONTEXT = null. Continue normally.
+
 ---
 
 ### Step 3/7: Probe MCP (Sequential Thinking)
@@ -250,6 +258,7 @@ When generating brief sections, incorporate upstream context as follows. If a co
 - **Constraints:** If IDT_CONTEXT is available, merge Brief Seed's Constraints table with PROJECT.md constraints.
 - **Unstated Requirements:** If ANL_CONTEXT is available, add analyst-surfaced requirements to the brief's requirements section, marked with provenance "[analyst-surfaced]". These supplement, not replace, PROJECT.md requirements.
 - **Assumptions & Risks:** If ANL_CONTEXT is available, add assumption risks to the Key Assumptions section with "[analyst-flagged]" provenance. Add edge cases to the Constraints section as boundary conditions.
+- **Domain Context:** If NOTES_CONTEXT is available, incorporate user-authored domain knowledge as supplementary context across all relevant sections. Context notes provide business rules, edge cases, and constraints that PROJECT.md may not contain. Treat them as high-confidence user-provided facts.
 
 Write the complete brief to `.planning/design/strategy/BRF-brief-v{N}.md` using the Write tool.
 
@@ -521,7 +530,7 @@ Display the final summary table (always the last output):
 | Elapsed time | {duration} |
 | Estimated tokens | ~{count} |
 | MCP enhancements | {comma-separated list of MCPs actually used, or "none"} |
-| Upstream context | {If any of IDT_CONTEXT, CMP_CONTEXT, OPP_CONTEXT, ANL_CONTEXT were found: list them as "IDT v{N} (ideation), CMP v{N} (competitive), OPP v{N} (opportunity), ANL v{N} (analyst)" for each found artifact, comma-separated. If none found: "none — using PROJECT.md only"} |
+| Upstream context | {If any of IDT_CONTEXT, CMP_CONTEXT, OPP_CONTEXT, ANL_CONTEXT, NOTES_CONTEXT were found: list them as "IDT v{N} (ideation), CMP v{N} (competitive), OPP v{N} (opportunity), ANL v{N} (analyst)" for each found artifact, and ", NOTES ({N} files)" when NOTES_CONTEXT is non-null, comma-separated. If none found: "none — using PROJECT.md only"} |
 ```
 
 ---

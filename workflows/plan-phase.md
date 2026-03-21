@@ -401,6 +401,22 @@ UAT_PATH=$(printf '%s\n' "$INIT" | jq -r '.uat_path // empty')
 CONTEXT_PATH=$(printf '%s\n' "$INIT" | jq -r '.context_path // empty')
 ```
 
+## 7.2. Probe Context Notes
+
+Soft probe — never halt. If `.planning/context-notes/` does not exist or has no `.md` files, skip silently.
+
+Use the Glob tool to find `.planning/context-notes/*.md` files. Exclude `README.md` from results.
+
+If matching files found:
+1. Sort alphabetically
+2. Read each file's content
+3. Build CONTEXT_NOTES_CONTENT by concatenating each file's content under a `### {filename}` subheading
+4. Log: `"  -> Context notes found: {N} file(s) from .planning/context-notes/ — will inject into planner prompt"`
+
+If no matching files (or directory absent):
+- SET CONTEXT_NOTES_CONTENT = "" (empty string). Continue silently.
+- Log: `"  -> No context notes found in .planning/context-notes/ — continuing without user-authored enrichment"`
+
 ## 7.5. Verify Nyquist Artifacts
 
 Skip if `nyquist_validation_enabled` is false OR `research_enabled` is false.
@@ -498,6 +514,16 @@ Planner prompt:
 - {UI_SPEC_PATH} (UI Design Contract — visual/interaction specs, if exists)
 - .planning/agent-memory/planner/memories.md (Agent memory — planning patterns from prior phases, if exists)
 </files_to_read>
+
+{If CONTEXT_NOTES_CONTENT is non-empty, include this block:}
+<context_notes>
+## Context Notes
+
+The user has authored the following domain knowledge notes. Honor these during planning —
+they represent business rules, edge cases, and constraints PDE cannot infer from code.
+
+{CONTEXT_NOTES_CONTENT}
+</context_notes>
 
 **Phase requirement IDs (every ID MUST appear in a plan's `requirements` field):** {phase_req_ids}
 
