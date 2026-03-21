@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.11
 milestone_name: Experience Product Type
 status: executing
-stopped_at: "Completed 74-01-PLAN.md"
-last_updated: "2026-03-21T10:22:00Z"
+stopped_at: "Completed 74-02-PLAN.md"
+last_updated: "2026-03-21T10:29:00Z"
 progress:
   total_phases: 9
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
+  completed_plans: 2
 ---
 
 # Project State
@@ -23,8 +23,8 @@ See: .planning/PROJECT.md (updated 2026-03-21)
 
 ## Current Position
 
-Phase: 74 (foundation-and-regression-infrastructure) — EXECUTING
-Plan: 2 of 2
+Phase: 74 (foundation-and-regression-infrastructure) — COMPLETE
+Plan: 2 of 2 (complete)
 
 ## Performance Metrics
 
@@ -43,6 +43,11 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - Experience classification precedes hybrid in brief.md chain — experience + software signals resolve to hybrid-event sub-type, not hybrid product type
 - experienceSubType written as null for non-experience products (null = sentinel, not omission)
 - Regression smoke matrix written before workflow edits (Wave 0 strategy)
+
+**Phase 74 Plan 02 decisions (2026-03-21):**
+- Experience stubs are comment-only placeholders with phase-forward references — no actual experience behavior until Phase 75+
+- Disclaimer wired into critique.md and handoff.md required_reading in Phase 74 even though consumed in Phases 79 and 81 — makes linkage visible to grep from Phase 74 forward
+- physical domain added to DOMAIN_DIRS in Phase 74 as non-breaking additive change (ahead of Phase 80)
 
 Key architectural constraints locked for this milestone:
 
@@ -76,7 +81,7 @@ Key architectural constraints locked for this milestone:
 ## Session Continuity
 
 Last session: 2026-03-21
-Stopped at: Completed 74-01-PLAN.md
+Stopped at: Completed 74-02-PLAN.md
 Resume file: None
 
-Next action: Execute 74-02-PLAN.md (experience branch stubs in 13 downstream workflows)
+Next action: Execute Phase 75 (experience design system token generation)

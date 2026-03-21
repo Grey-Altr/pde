@@ -10,7 +10,7 @@ Requirements for Experience Product Type milestone. Each maps to roadmap phases.
 ### Foundation & Detection
 
 - [x] **FNDX-01**: PDE detects "experience" product type from brief prompt with 5 sub-types (single-night, multi-day, recurring-series, installation, hybrid-event)
-- [ ] **FNDX-02**: All 14 pipeline workflow files updated with experience branch sites alongside existing software/hardware/hybrid conditionals
+- [x] **FNDX-02**: All 14 pipeline workflow files updated with experience branch sites alongside existing software/hardware/hybrid conditionals
 - [x] **FNDX-03**: Cross-type regression smoke matrix established covering all 4 product types x critical pipeline paths
 - [x] **FNDX-04**: Sub-types implemented as parametric prompt attributes (not pipeline branches) — locked as Key Decision
 
@@ -114,7 +114,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | FNDX-01 | Phase 74 | Complete |
-| FNDX-02 | Phase 74 | Pending |
+| FNDX-02 | Phase 74 | Complete |
 | FNDX-03 | Phase 74 | Complete |
 | FNDX-04 | Phase 74 | Complete |
 | BREF-01 | Phase 75 | Pending |
