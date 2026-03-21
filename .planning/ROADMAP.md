@@ -245,8 +245,8 @@ Plans:
   4. Running `/pde:flows` for a software product produces only the existing user flow diagram — no experience artifacts
 **Plans**: 2 plans
 Plans:
-- [ ] 75-01-PLAN.md — Wave 0 Nyquist tests + experience brief sections in brief.md and design-brief.md template (BREF-01 through BREF-05)
-- [ ] 75-02-PLAN.md — Phase 82 test update: flip negative BREF assertions to positive + cross-phase regression
+- [ ] 77-01-PLAN.md — Wave 0 Nyquist tests + experience flow diagrams in flows.md (FLOW-01 through FLOW-04)
+- [ ] 77-02-PLAN.md — Phase 82 test update: flip FLOW todo markers to positive assertions
 
 ### Phase 78: Wireframe Stage Extensions
 **Goal**: The wireframe stage generates a floor plan (FLP) and timeline (TML) artifact for experience products — both self-contained HTML files registered in the manifest under their artifact codes
@@ -336,7 +336,7 @@ Plans:
 | 74. Foundation and Regression Infrastructure | 2/2 | Complete    | 2026-03-21 | - |
 | 75. Brief Extensions | 2/2 | Complete    | 2026-03-21 | - |
 | 76. Experience Design Token Architecture | 2/2 | Complete    | 2026-03-21 | - |
-| 77. Flow Diagrams | v0.11 | 0/TBD | Not started | - |
+| 77. Flow Diagrams | v0.11 | 0/2 | Planned | - |
 | 78. Wireframe Stage Extensions | v0.11 | 0/TBD | Not started | - |
 | 79. Critique and HIG Extensions | 2/2 | Complete    | 2026-03-21 | - |
 | 80. Print Collateral | 2/2 | Complete    | 2026-03-21 | - |
