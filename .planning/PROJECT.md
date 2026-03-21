@@ -203,4 +203,7 @@ Any user can go from idea to shipped product through a single platform that hand
 | Hook delivery architecture for idle suggestions | idle_prompt hook fires silently, /tmp/-only state, event gating, threshold docs | ✓ Good — zero stdout, NDJSON event gating, marker-based dedup |
 
 ---
-*Last updated: 2026-03-21 after Phase 70 — Hook Integration and Delivery Architecture: idle_prompt hook registered with async:true, idle-suggestions.cjs handler with event gating and /tmp/-only output, Getting Started threshold config documented*
+| Suggestion catalog and context notes | Human-editable idle-catalog.md replaces hardcoded suggestions; context-notes/ injects domain knowledge into plan/brief workflows | ✓ Good — catalog is plain markdown, context notes are opt-in with README |
+
+---
+*Last updated: 2026-03-21 after Phase 72 — Suggestion Catalog and Content Layer: idle-catalog.md with 6 sections and 21 entries, catalog parser in suggestion engine, context-notes directory with workflow injection into plan-phase and brief*
