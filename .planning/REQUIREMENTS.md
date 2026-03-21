@@ -43,7 +43,7 @@ Requirements for Google Stitch Integration milestone. Each maps to roadmap phase
 - [x] **WFR-02**: Stitch-generated HTML fetched from download URL, persisted as STH-{slug}.html in .planning/design/ (separate namespace from WFR- artifacts)
 - [x] **WFR-03**: Annotation injection step adds <!-- @component: --> comments to Stitch HTML before manifest registration (required for downstream critique/handoff)
 - [x] **WFR-04**: design-manifest.json registers Stitch artifacts with source: "stitch" metadata for downstream stage awareness
-- [ ] **WFR-05**: /pde:mockup supports --use-stitch flag with same generate-fetch-persist-annotate pipeline
+- [x] **WFR-05**: /pde:mockup supports --use-stitch flag with same generate-fetch-persist-annotate pipeline
 - [x] **WFR-06**: Graceful degradation to Claude HTML/CSS when Stitch MCP is unavailable or quota exhausted
 
 ### Ideation Visual Divergence
@@ -113,7 +113,7 @@ Requirements for Google Stitch Integration milestone. Each maps to roadmap phase
 | WFR-02 | Phase 66 | Complete |
 | WFR-03 | Phase 66 | Complete |
 | WFR-04 | Phase 66 | Complete |
-| WFR-05 | Phase 66 | Pending |
+| WFR-05 | Phase 66 | Complete |
 | WFR-06 | Phase 66 | Complete |
 | IDT-01 | Phase 67 | Pending |
 | IDT-02 | Phase 67 | Pending |

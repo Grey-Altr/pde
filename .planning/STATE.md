@@ -1,15 +1,15 @@
 ---
-pde_state_version: 1.0
+gsd_state_version: 1.0
 milestone: v0.1
 milestone_name: milestone
 status: unknown
-stopped_at: "Completed 66-01-PLAN.md"
-last_updated: "2026-03-21T00:31:37Z"
+stopped_at: Completed 66-02-PLAN.md
+last_updated: "2026-03-21T00:39:27.760Z"
 progress:
   total_phases: 6
   completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
+  total_plans: 6
+  completed_plans: 5
 ---
 
 # Project State
@@ -79,6 +79,8 @@ Decisions are logged in PROJECT.md Key Decisions table.
 - [Phase 65]: UTC-based reset dates (Date.UTC) for quota monthly reset — prevents timezone edge cases at month boundaries
 - [Phase 65]: readStitchQuota returns null when quota unconfigured — lets callers distinguish unconfigured from zero usage
 - [Phase 65]: checkStitchQuota never writes to disk — only incrementStitchQuota writes; clean read/write separation
+- [Phase 66]: No PNG fetch in mockup Stitch branch — STH-{slug}-hifi.html HTML sufficient; stitch:fetch-screen-image deliberately omitted to keep mockup path simpler than wireframe
+- [Phase 66]: Artifact naming STH-{slug}-hifi distinguishes mockup Stitch artifacts from wireframe STH-{slug} — prevents path collision in design manifest
 
 ### Pending Todos
 
@@ -93,8 +95,8 @@ Decisions are logged in PROJECT.md Key Decisions table.
 
 ## Session Continuity
 
-Last session: 2026-03-21T00:31:37Z
-Stopped at: Completed 66-01-PLAN.md
-Resume file: .planning/phases/66-wireframe-mockup-stitch-integration/66-01-SUMMARY.md
+Last session: 2026-03-21T00:39:27.757Z
+Stopped at: Completed 66-02-PLAN.md
+Resume file: None
 
 Next action: Execute Phase 66 Plan 02 (mockup Stitch integration) or Phase 66 Plan 03 (Nyquist tests)
