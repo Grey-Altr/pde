@@ -361,7 +361,7 @@ For each slug in STITCH_ARTIFACTS (from Step 2l):
      Store as STITCH_COLORS[slug] = [{property, hexValue, componentName}]
      Only extract from CSS color properties (color, background-color, border-color, fill, stroke). Do NOT extract hex patterns from non-color contexts (data attributes, IDs, etc.).
 
-  4. Cross-reference with standard SCREEN_ANNOTATIONS[slug] to classify each component:
+  4. cross-reference with standard SCREEN_ANNOTATIONS[slug] to classify each component:
      - **WFR+Stitch**: Component name from @component: annotation semantically matches a component in SCREEN_ANNOTATIONS (use substring match — "Navigation" matches "SiteNavigation", "Form" matches "LoginForm")
      - **Stitch-only**: No semantic match found in SCREEN_ANNOTATIONS
      - **WFR-only**: Component in SCREEN_ANNOTATIONS has no @component: counterpart
@@ -972,7 +972,7 @@ NEVER do any of the following:
 <output>
 Files produced by /pde:handoff:
 
-- `.planning/design/handoff/HND-handoff-spec-v{N}.md` — complete implementation specification with Design Coverage Summary, Route Structure, Global Token Mappings, Shared Component APIs, Accessibility Overview, Motion System, Gap Analysis, Test Specs Overview, Per-Screen Detail Specs (with React/Vue/Svelte stubs), and conditional Hardware Handoff sections
+- `.planning/design/handoff/HND-handoff-spec-v{N}.md` — complete implementation specification with Design Coverage Summary, Route Structure, Global Token Mappings, Shared Component APIs, Accessibility Overview, Motion System, Gap Analysis, Test Specs Overview, Per-Screen Detail Specs (with React/Vue/Svelte stubs), conditional Hardware Handoff sections, and STITCH_COMPONENT_PATTERNS section (when Stitch artifacts are present)
 - `.planning/design/handoff/HND-types-v{N}.ts` — TypeScript interface declarations only: export interface declarations with JSDoc comments for all screen components and shared components, section headers as comments, no imports or runtime code
 - `.planning/design/handoff/DESIGN-STATE.md` — handoff domain state: HND artifact row in Artifact Index with upstream dependencies listed
 - `.planning/design/DESIGN-STATE.md` — root state updated: Pipeline Progress marks Handoff complete, Decision Log and Iteration History rows appended
