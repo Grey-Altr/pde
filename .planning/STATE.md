@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.10
 milestone_name: Idle Time Productivity
 status: unknown
-stopped_at: Completed 71-02-PLAN.md
-last_updated: "2026-03-21T06:51:38.489Z"
+stopped_at: Completed 72-02-PLAN.md
+last_updated: "2026-03-21T07:23:58.964Z"
 progress:
   total_phases: 4
-  completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
+  completed_phases: 3
+  total_plans: 6
+  completed_plans: 6
 ---
 
 # Project State
@@ -19,11 +19,11 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-20)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 71 — suggestion-engine
+**Current focus:** Phase 72 — suggestion-catalog-and-content-layer
 
 ## Current Position
 
-Phase: 71 (suggestion-engine) — EXECUTING
+Phase: 72 (suggestion-catalog-and-content-layer) — EXECUTING
 Plan: 2 of 2
 
 ## Performance Metrics
@@ -54,6 +54,10 @@ Key architectural constraints for this milestone:
 - [Phase 70]: MEANINGFUL_EVENTS = phase_started | phase_complete | plan_started — wave events excluded as too granular for suggestion triggers
 - [Phase 70]: Marker file idempotency via .last-event-ts prevents duplicate suggestion writes on repeat idle_prompt fires
 - [Phase 71]: No additional try/catch around generateSuggestions() — outer catch already swallows engine errors, preserving zero-exit-code contract
+- [Phase 72]: DESIGN-STATE items reclassified from category:review to category:think — per-item judgment calls are think-priority (3) per CONT-05 semantics
+- [Phase 72]: Catalog has 6 sections (not 7) — no review section; review category is exclusively for dynamically-generated artifact paths from design-manifest.json
+- [Phase 72]: Inject context-notes as <context_notes> XML block in plan-phase.md Step 8 planner prompt — after </files_to_read>, before Phase requirement IDs line
+- [Phase 72]: NOTES_CONTEXT placed last in brief.md Sub-step 2c — user-authored domain facts supplement PROJECT.md but are not a replacement
 
 ### Completed Plan Decisions (71-01)
 
@@ -77,8 +81,8 @@ Key architectural constraints for this milestone:
 
 ## Session Continuity
 
-Last session: 2026-03-21T06:48:26.535Z
-Stopped at: Completed 71-02-PLAN.md
+Last session: 2026-03-21T07:23:58.961Z
+Stopped at: Completed 72-02-PLAN.md
 Resume file: None
 
-Next action: Phase 71 complete — proceed to Phase 72 (suggestion catalog)
+Next action: Phase 72 Plan 01 complete — proceed to Phase 72 Plan 02 (context-notes directory and plan-phase workflow injection)

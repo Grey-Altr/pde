@@ -24,12 +24,12 @@
 
 ### Content & Knowledge Capture
 
-- [ ] **CONT-01**: Phase-keyed suggestion catalog (.planning/idle-catalog.md) with 6 phase categories × 3-5 suggestions each plus generic fallback section
-- [ ] **CONT-02**: Artifact review queue surfaces "new artifact ready for review" with specific file paths on phase_complete events
-- [ ] **CONT-03**: Domain knowledge externalization prompts displayed during agent processing with phase-specific questions the user can answer
-- [ ] **CONT-04**: User-authored context notes stored in .planning/context-notes/ directory, consumable by /pde:plan and /pde:brief in subsequent phases
-- [ ] **CONT-05**: Human-taste decision queue reads DESIGN-STATE.md for incomplete design choices and surfaces them as low-urgency decision prompts
-- [ ] **CONT-06**: Each suggestion labeled with expected time-to-complete and resumption cost category (low/medium/high)
+- [x] **CONT-01**: Phase-keyed suggestion catalog (.planning/idle-catalog.md) with 6 phase categories × 3-5 suggestions each plus generic fallback section
+- [x] **CONT-02**: Artifact review queue surfaces "new artifact ready for review" with specific file paths on phase_complete events
+- [x] **CONT-03**: Domain knowledge externalization prompts displayed during agent processing with phase-specific questions the user can answer
+- [x] **CONT-04**: User-authored context notes stored in .planning/context-notes/ directory, consumable by /pde:plan and /pde:brief in subsequent phases
+- [x] **CONT-05**: Human-taste decision queue reads DESIGN-STATE.md for incomplete design choices and surfaces them as low-urgency decision prompts
+- [x] **CONT-06**: Each suggestion labeled with expected time-to-complete and resumption cost category (low/medium/high)
 
 ### Dashboard Integration
 
@@ -79,12 +79,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | ENGN-04 | Phase 71 | Complete |
 | ENGN-05 | Phase 71 | Complete |
 | ENGN-06 | Phase 71 | Complete |
-| CONT-01 | Phase 72 | Pending |
-| CONT-02 | Phase 72 | Pending |
-| CONT-03 | Phase 72 | Pending |
-| CONT-04 | Phase 72 | Pending |
-| CONT-05 | Phase 72 | Pending |
-| CONT-06 | Phase 72 | Pending |
+| CONT-01 | Phase 72 | Complete |
+| CONT-02 | Phase 72 | Complete |
+| CONT-03 | Phase 72 | Complete |
+| CONT-04 | Phase 72 | Complete |
+| CONT-05 | Phase 72 | Complete |
+| CONT-06 | Phase 72 | Complete |
 | DASH-01 | Phase 73 | Pending |
 | DASH-02 | Phase 73 | Pending |
 | DASH-03 | Phase 73 | Pending |
