@@ -5,6 +5,9 @@ Map user journeys from the product brief as Mermaid flowchart diagrams per perso
 <required_reading>
 @references/skill-style-guide.md
 @references/mcp-integration.md
+@references/business-track.md
+@references/business-financial-disclaimer.md
+@references/launch-frameworks.md
 </required_reading>
 
 <flags>
@@ -147,6 +150,17 @@ Display: `Step 3/7: MCP probes complete. Sequential Thinking: {available | unava
 ### Step 4/7: Generate flow diagrams
 
 This is the core generation step. Claude synthesizes and generates all diagram content in memory before writing to files in Step 5.
+
+**Business mode detection (cached for Steps 4f, 4g, 5, and 7):**
+
+```bash
+BM=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-get-top-level businessMode 2>/dev/null)
+if [[ "$BM" == @file:* ]]; then BM=$(cat "${BM#@file:}"); fi
+BT=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-get-top-level businessTrack 2>/dev/null)
+if [[ "$BT" == @file:* ]]; then BT=$(cat "${BT#@file:}"); fi
+```
+
+Cache `$BM` and `$BT` for use in Steps 4f, 4g, 5, and 7.
 
 **IF `PRODUCT_TYPE == "experience"`:** skip Steps 4a through 4e (software path) and jump to Step 4-EXP below.
 
@@ -314,7 +328,11 @@ Build a `SPACES_INVENTORY` JSON object conforming to this exact schema:
 
 Zone data derives from the SFL spatial flow diagram zones. Capacity estimates from Venue Constraints; density targets from SYS-experience-tokens.json spatial category; mood from spatial tokens or Vibe Contract.
 
-After generating all four artifacts in memory, jump to Step 5-EXP.
+After generating all four experience artifacts in memory:
+
+**IF `$BM == "true"`:** proceed to Step 4f below (business artifacts apply to experience+business compositions too) before jumping to Step 5-EXP.
+
+**ELSE:** jump directly to Step 5-EXP.
 
 **End experience flow generation block.** Non-experience products skip this entire Step 4-EXP and proceed to Step 4a as before.
 
@@ -539,6 +557,124 @@ Display: `Step 4/7: Flow diagrams generated. {total journey count} journeys acro
 
 ---
 
+#### Step 4f: Service Blueprint generation (business mode only)
+
+**IF `$BM == "true"` AND `$BT` is not null:**
+
+Read `@references/launch-frameworks.md` for the canonical 5-lane service blueprint Mermaid template.
+Read `@references/business-track.md` for track depth thresholds (Service blueprint row).
+
+Generate a 5-lane service blueprint as a Mermaid `sequenceDiagram` held in memory. Use the EXACT participant declarations:
+
+```mermaid
+sequenceDiagram
+    participant C as Customer Actions
+    participant F as Frontstage
+    participant B as Backstage
+    participant S as Support Processes
+    participant E as Physical Evidence
+```
+
+Use `Note over C,E: [Stage Name]` to mark each journey stage (spanning ALL 5 participants — this represents the line of visibility divider). Between frontstage and backstage stages, insert `Note over C,E: LINE OF VISIBILITY`.
+
+**Track depth differentiation:**
+
+**IF `$BT == "solo_founder"`:**
+Generate single-product SBP:
+- 3-4 journey stages: Awareness, Onboarding, First Value, Retention
+- Each stage: `Note over C,E: [Stage]` + `C->>F:` + `F->>B:` + `B->>S:` + `Note over E:`
+- Core touchpoints only — no channel variants, no alt blocks
+- All financial references use `[YOUR_X]` placeholder format per `business-financial-disclaimer.md`
+
+**IF `$BT == "startup_team"`:**
+Generate multi-channel SBP:
+- 4-5 journey stages with channel branching
+- `alt` blocks within stages for web vs mobile vs email channels
+- Support Processes lane populated with tools (CRM, email platform, analytics)
+- Frontstage shows distinct touchpoints per channel
+- All financial references use `[YOUR_X]` placeholder format
+
+**IF `$BT == "product_leader"`:**
+Generate cross-functional SBP:
+- 5+ stages including stakeholder handoffs
+- Frontstage includes both user-facing and internal stakeholder interactions
+- Backstage includes organizational handoffs (team handoffs, department boundaries)
+- After the Mermaid diagram, add a supplementary Stakeholder Map table:
+  `| Role | Stage | Responsibility | Handoff To |`
+- All financial references use `[YOUR_X]` placeholder format
+
+SET flag: `SBP_CONTENT_GENERATED=true`
+
+Also generate a Stage Breakdown table (all tracks):
+```
+| Stage | Customer Action | Frontstage | Backstage | Support | Evidence |
+```
+
+**ELSE (`$BM != "true"`):** Skip silently. Set `SBP_CONTENT_GENERATED=false`. Continue to Step 4g.
+
+Display (if generated): `  -> Service blueprint generated ({stage_count} stages, {track} track depth)`
+
+---
+
+#### Step 4g: GTM Channel Flow generation (business mode only)
+
+**IF `$BM == "true"` AND `SBP_CONTENT_GENERATED == true`:**
+
+Generate a GTM channel flow as a Mermaid `flowchart LR` with three subgraph stages held in memory. Use self-contained subgraphs — connect ONLY at the subgraph level (`ACQ --> CONV --> RET`), NEVER link individual nodes across subgraph boundaries (this would override subgraph internal `direction TB`).
+
+Structure:
+
+```mermaid
+flowchart LR
+    subgraph ACQ["Acquisition"]
+        direction TB
+        A1["[Channel] [Priority: HIGH/MEDIUM/LOW]"]
+    end
+
+    subgraph CONV["Conversion"]
+        direction TB
+        C1["[Touchpoint]"]
+    end
+
+    subgraph RET["Retention"]
+        direction TB
+        R1["[Touchpoint]"]
+    end
+
+    ACQ -->|"funnel entry"| CONV
+    CONV -->|"activated"| RET
+```
+
+**Track depth differentiation:**
+
+**IF `$BT == "solo_founder"`:**
+- Acquisition: 3 channels (Content marketing [HIGH], Word-of-mouth [HIGH], Direct outreach [MEDIUM])
+- Conversion: 2 touchpoints (Landing page, Free trial/demo)
+- Retention: 2 touchpoints (Email sequence, Core feature adoption)
+
+**IF `$BT == "startup_team"`:**
+- Acquisition: 5+ channels with priority labels (Paid ads [HIGH], Content [HIGH], Referrals [MEDIUM], Product Hunt [MEDIUM], Partnerships [LOW])
+- Conversion: 4 touchpoints (Landing page, Free trial signup, Onboarding flow, First value milestone)
+- Retention: 3 touchpoints (Onboarding emails, Feature adoption nudges, Referral invite)
+
+**IF `$BT == "product_leader"`:**
+- Acquisition: 5+ channels with org ownership labels (Enterprise sales [HIGH], Inbound [HIGH], Partner channel [MEDIUM], ABM [MEDIUM], Events [LOW])
+- Conversion: 4 touchpoints (Procurement/legal review, Pilot, POC, Contract)
+- Retention: 3 touchpoints (CSM onboarding, QBR, Expansion opportunities)
+
+Also generate a Channel Priority Annotations table:
+```
+| Channel | Stage | Priority | Notes |
+```
+
+SET flag: `GTM_CONTENT_GENERATED=true`
+
+**ELSE:** Skip silently. Set `GTM_CONTENT_GENERATED=false`.
+
+Display (if generated): `  -> GTM channel flow generated ({channel_count} channels, {track} track depth)`
+
+---
+
 ### Step 5/7: Write output artifacts
 
 Write all files using the Write tool. Display confirmation after each file.
@@ -580,6 +716,93 @@ Write the full JSON object constructed in Step 4e.
 Display: `  -> Created: .planning/design/ux/FLW-screen-inventory.json ({size}) — {screen count} screens`
 
 Display: `Step 5/7: Flow artifacts written.`
+
+---
+
+#### Step 5-BIZ: Write business flow artifacts (business mode only)
+
+**IF `SBP_CONTENT_GENERATED == true`:**
+
+Write SBP artifact to `.planning/design/strategy/SBP-service-blueprint-v{N}.md` (N = same version as FLW artifact for this run, or v1 if first run).
+
+Include YAML frontmatter:
+```yaml
+---
+Generated: "{ISO 8601 date}"
+Skill: /pde:flows (SBP)
+Version: v{N}
+businessTrack: {solo_founder|startup_team|product_leader}
+dependsOn: FLW
+---
+```
+
+Sections in order:
+1. `# Service Blueprint: {product_name}`
+2. `## Blueprint Overview` — lane definitions table (5 rows: Customer Actions, Frontstage, Line of Visibility, Backstage, Support Processes, Physical Evidence) + line of visibility note
+3. `## Service Blueprint Diagram` — the Mermaid `sequenceDiagram` from Step 4f (all stages)
+4. `## Stage Breakdown` — the Stage Breakdown table from Step 4f
+5. `## Stakeholder Map` — product_leader track only (table from Step 4f)
+6. Footer: `---\n*Generated by /pde:flows (SBP) v{N} | {ISO date}*`
+
+**Post-write verification — no dollar amounts:**
+```bash
+if grep -qE '\$[0-9]' ".planning/design/strategy/SBP-service-blueprint-v${N}.md" 2>/dev/null; then
+  echo "ERROR: Dollar amount detected in SBP artifact. Use [YOUR_X] placeholders only."
+  grep -nE '\$[0-9]' ".planning/design/strategy/SBP-service-blueprint-v${N}.md"
+fi
+```
+
+Register SBP artifact in manifest (7 calls):
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update SBP code SBP
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update SBP name "Service Blueprint"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update SBP type service-blueprint
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update SBP domain strategy
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update SBP path ".planning/design/strategy/SBP-service-blueprint-v${N}.md"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update SBP status draft
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update SBP dependsOn '["FLW"]'
+```
+
+Display: `  -> Created: .planning/design/strategy/SBP-service-blueprint-v{N}.md`
+
+SET flag: `SBP_WRITTEN=true`
+
+**IF `GTM_CONTENT_GENERATED == true`:**
+
+Write GTM artifact to `.planning/design/strategy/GTM-channel-flow-v{N}.md`.
+
+Include YAML frontmatter:
+```yaml
+---
+Generated: "{ISO 8601 date}"
+Skill: /pde:flows (GTM)
+Version: v{N}
+businessTrack: {solo_founder|startup_team|product_leader}
+dependsOn: SBP
+---
+```
+
+Sections in order:
+1. `# GTM Channel Flow: {product_name}`
+2. `## Channel Strategy Overview` — channel list + priority table
+3. `## GTM Channel Flow Diagram` — the Mermaid `flowchart LR` from Step 4g
+4. `## Channel Priority Annotations` — the annotations table from Step 4g
+5. Footer: `---\n*Generated by /pde:flows (GTM) v{N} | {ISO date}*`
+
+Register GTM artifact in manifest (7 calls):
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update GTM code GTM
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update GTM name "GTM Channel Flow"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update GTM type gtm-channel-flow
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update GTM domain strategy
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update GTM path ".planning/design/strategy/GTM-channel-flow-v${N}.md"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update GTM status draft
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update GTM dependsOn '["SBP"]'
+```
+
+Display: `  -> Created: .planning/design/strategy/GTM-channel-flow-v{N}.md`
+
+**End Step 5-BIZ.** Continue to Step 5-EXP (experience products) or Step 6 (all others).
 
 ---
 
@@ -778,7 +1001,7 @@ COV=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design coverage-check)
 if [[ "$COV" == @file:* ]]; then COV=$(cat "${COV#@file:}"); fi
 ```
 
-Parse the JSON output to extract current flag values for ALL sixteen fields:
+Parse the JSON output to extract current flag values for ALL twenty fields:
 - `hasDesignSystem` — current value from COV output
 - `hasWireframes` — current value from COV output
 - `hasFlows` — (this skill sets to true)
@@ -795,11 +1018,15 @@ Parse the JSON output to extract current flag values for ALL sixteen fields:
 - `hasStitchWireframes` — current value from COV output (default false if absent)
 - `hasPrintCollateral` — current value from COV output (default false if absent)
 - `hasProductionBible` — current value from COV output (default false if absent)
+- `hasBusinessThesis` — current value from COV output (default false if absent)
+- `hasMarketLandscape` — current value from COV output (default false if absent)
+- `hasServiceBlueprint` — set to true if `SBP_WRITTEN == true`, else current value from COV output (default false if absent)
+- `hasLaunchKit` — current value from COV output (default false if absent)
 
-Merge `hasFlows: true` into the existing values, then write the full sixteen-field object (all flags must be present — default any absent field to `false`):
+Merge `hasFlows: true` (and `hasServiceBlueprint: true` if `SBP_WRITTEN == true`) into the existing values, then write the full twenty-field object (all flags must be present — default any absent field to `false`):
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":{current},"hasWireframes":{current},"hasFlows":true,"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":{current},"hasPrintCollateral":{current},"hasProductionBible":{current}}'
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":{current},"hasWireframes":{current},"hasFlows":true,"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":{current},"hasPrintCollateral":{current},"hasProductionBible":{current},"hasBusinessThesis":{current},"hasMarketLandscape":{current},"hasServiceBlueprint":{true if SBP_WRITTEN else current},"hasLaunchKit":{current}}'
 ```
 
 Display: `Step 7/7: Root DESIGN-STATE and manifest updated.`
