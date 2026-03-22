@@ -281,10 +281,9 @@ Plans:
   1. `/pde:system` in business mode produces an MKT artifact containing a positioning statement, tone of voice spectrum, and visual differentiation rationale
   2. The brand system token output extends existing DTCG output with a marketing-specific token group (brand voice, campaign palette variants) without clobbering existing token groups
   3. The positioning statement and tone of voice from the MKT artifact are referenced in the landing page wireframe and pitch deck content generated in Phase 89
-**Plans**: 2 plans
+**Plans**: 1 plan
 Plans:
-- [ ] 84-01-PLAN.md — Manifest schema extension + design.cjs launch dir + test scaffold
-- [ ] 84-02-PLAN.md — Business reference files (track, frameworks, financial/legal disclaimers)
+- [ ] 88-01-PLAN.md — Test scaffold, launch-frameworks Brand System section, system.md business brand steps (5c/5d), 20-field coverage upgrade, DESIGN-STATE wiring
 
 ### Phase 89: Wireframe Stage Launch Artifacts
 **Goal**: Users in business mode get three deployable launch artifacts — a Next.js-mapped landing page wireframe, a Stripe-compatible pricing config, and a track-appropriate pitch deck outline
@@ -395,7 +394,7 @@ Plans:
 | 85. Brief Extensions + Detection | 2/2 | Complete    | 2026-03-22 | - |
 | 86. Competitive + Opportunity Extensions | 2/2 | Complete    | 2026-03-22 | - |
 | 87. Flows Stage | 2/2 | Complete    | 2026-03-22 | - |
-| 88. Brand System | v0.12 | 0/TBD | Not started | - |
+| 88. Brand System | v0.12 | 0/1 | Not started | - |
 | 89. Wireframe Stage Launch Artifacts | v0.12 | 0/TBD | Not started | - |
 | 90. Critique + HIG Extensions | v0.12 | 0/TBD | Not started | - |
 | 91. Handoff — Launch Kit Assembly | v0.12 | 0/TBD | Not started | - |
