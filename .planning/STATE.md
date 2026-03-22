@@ -1,10 +1,10 @@
 ---
 gsd_state_version: 1.0
-milestone: (none)
-milestone_name: (none)
-status: milestone_complete
-stopped_at: v0.11 milestone archived
-last_updated: "2026-03-22T01:00:00.000Z"
+milestone: v0.12
+milestone_name: Business Product Type
+status: defining_requirements
+stopped_at: Defining requirements
+last_updated: "2026-03-22T02:00:00.000Z"
 progress:
   total_phases: 0
   completed_phases: 0
@@ -19,11 +19,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-22)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Planning next milestone
+**Current focus:** v0.12 Business Product Type — defining requirements
 
 ## Current Position
 
-No active milestone. Last shipped: v0.11 Experience Product Type (2026-03-22).
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-22 — Milestone v0.12 started
 
 ## Performance Metrics
 

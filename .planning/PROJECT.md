@@ -88,7 +88,17 @@ Any user can go from idea to shipped product through a single platform that hand
 
 ### Active
 
-(No active milestone — run `/pde:new-milestone` to start next)
+## Current Milestone: v0.12 Business Product Type
+
+**Goal:** Transform PDE from a product design engine into a venture design engine with a `business:` orthogonal dimension that layers on top of all existing product types.
+
+**Target features:**
+- `business:` orthogonal dimension composable with all product types (software, hardware, hybrid, experience)
+- Strategy-heavy pipeline adaptation (brief → business thesis, competitive → market landscape, opportunity → RICE business initiatives, flows → operational/service flows, system → brand system, wireframe → service blueprints)
+- Three user tracks: solo founder, startup team, product leader — adjusting depth, vocabulary, and output format
+- Executable launch kit artifacts: deployable landing page wireframe, Stripe pricing config spec, content calendar skeleton, investor outreach sequence, domain strategy
+- Full deployment scaffolding with human approval gates: Next.js landing page, Stripe via Marketplace, Resend email templates
+- Deployment via Vercel where possible with mandatory human review before any deployment stage
 
 ### Out of Scope
 
@@ -113,7 +123,8 @@ Any user can go from idea to shipped product through a single platform that hand
 ## Context
 
 - **Shipped v0.11** on 2026-03-22: ~245,000 LOC (JavaScript/Markdown/Shell), ~1,078 total commits
-- **Planned roadmap:** v0.12 Business Product Type → v0.13 AutoResearch → v0.14 WebMCP → v0.15 CLI-Anything → v0.16 Remote Dashboard → v0.17 Stakeholder Presentations → v1.0 Standalone CLI
+- **Active milestone:** v0.12 Business Product Type — venture design engine with business: orthogonal dimension, 3 user tracks, full deploy scaffolding
+- **Planned roadmap:** v0.13 AutoResearch → v0.14 WebMCP → v0.15 CLI-Anything → v0.16 Remote Dashboard → v0.17 Stakeholder Presentations → v1.0 Standalone CLI
 - **v0.11** shipped 2026-03-22: 112 files changed, 116 commits (experience product type: detection, brief, tokens, flows, wireframes, critique, HIG, print, handoff, 48 requirements)
 - **v0.10** shipped 2026-03-21: 107 files changed, 56 commits (idle-time productivity: suggestion engine, catalog, context notes, 7-pane dashboard)
 - **v0.9** shipped 2026-03-21: 91 files changed, 76 commits (Google Stitch integration across 5 pipeline skills)
@@ -214,4 +225,4 @@ Any user can go from idea to shipped product through a single platform that hand
 | Regulatory disclaimer as reusable reference block | `references/experience-disclaimer.md` loaded via `@references/` pattern in critique and handoff | ✓ Good — single source of truth for [VERIFY WITH LOCAL AUTHORITY] tag |
 | Cross-phase wiring fix (16-field designCoverage) | Audit found 10 workflows clobbering hasPrintCollateral/hasProductionBible; read-merge-write pattern must preserve all 16 fields | ✓ Good — all 10 workflows fixed, pipeline preserves flags end-to-end |
 | Token path alignment (visual/ not assets/) | system.md writes to visual/, wireframe.md was reading from assets/ — silent fallback masked the bug | ✓ Good — one-line fix, brand tokens now flow to print palette |
-*Last updated: 2026-03-22 after v0.11 milestone — Experience Product Type*
+*Last updated: 2026-03-22 after starting v0.12 milestone — Business Product Type*
