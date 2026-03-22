@@ -240,8 +240,8 @@ Plans:
   5. All financial content in the brief output uses structural placeholders only — no dollar amounts appear anywhere in the generated output
 **Plans**: 2 plans
 Plans:
-- [ ] 84-01-PLAN.md — Manifest schema extension + design.cjs launch dir + test scaffold
-- [ ] 84-02-PLAN.md — Business reference files (track, frameworks, financial/legal disclaimers)
+- [ ] 85-01-PLAN.md — Business detection, track selection, domain strategy, manifest writes
+- [ ] 85-02-PLAN.md — BTH thesis + LCV lean canvas artifact generation, 20-field coverage write
 
 ### Phase 86: Competitive + Opportunity Extensions
 **Goal**: Users with business mode active get market landscape sizing and competitive positioning alongside RICE scoring with business initiative framing
@@ -391,7 +391,7 @@ Plans:
 | 70-73 | v0.10 | 8/8 | Complete | 2026-03-21 |
 | 74-83 | v0.11 | 19/19 | Complete | 2026-03-22 |
 | 84. Foundation | 2/2 | Complete    | 2026-03-22 | - |
-| 85. Brief Extensions + Detection | v0.12 | 0/TBD | Not started | - |
+| 85. Brief Extensions + Detection | v0.12 | 0/2 | Not started | - |
 | 86. Competitive + Opportunity Extensions | v0.12 | 0/TBD | Not started | - |
 | 87. Flows Stage | v0.12 | 0/TBD | Not started | - |
 | 88. Brand System | v0.12 | 0/TBD | Not started | - |
