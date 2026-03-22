@@ -9,6 +9,8 @@ Generate a complete DTCG 2025.10 design token set from product brief context. Pr
 @references/typography.md
 @references/motion-design.md
 @references/composition-typography.md
+@references/business-track.md
+@references/launch-frameworks.md
 </required_reading>
 
 <flags>
@@ -69,6 +71,7 @@ Use the Glob tool to search for `.planning/design/strategy/BRF-brief-v*.md`. Sor
   - `PRODUCT_NAME` — from brief frontmatter or `# Design Brief` heading context
   - `PRODUCT_TYPE` — from `**Type:**` line in brief (software|hardware|hybrid|experience)
   <!-- Experience product type (Phase 74 architecture, Phase 76 implementation): experience-specific tokens generated in Step 5b — see PRODUCT_TYPE == "experience" block below. -->
+  <!-- Business product type (Phase 88): business brand system and marketing tokens generated in Steps 5c/5d — see businessMode == "true" block below. Step 5b (experience) and Steps 5c/5d (business) are independent conditional blocks — both run for business:experience compositions. -->
   - `PLATFORM` — from `**Platform:**` line in brief (web|mobile|desktop|embedded|multi-platform)
   - `BRAND_COLORS` — from any brand color mentions (hex, oklch, rgb values listed in brief)
   - `TYPOGRAPHY_PREFS` — any font family preferences stated in brief
@@ -1834,6 +1837,210 @@ Display: `  -> Created: visual/SYS-experience-tokens.css`
 
 ---
 
+#### Step 5c: Brand token generation (business mode only)
+
+BM=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-get-top-level businessMode 2>/dev/null)
+BT=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-get-top-level businessTrack 2>/dev/null)
+
+**IF `$BM == "true"`:** proceed to Steps 5c and 5d below before continuing to Step 6.
+
+**ELSE (`$BM != "true"`):** Skip silently. Set BRAND_TOKENS_GENERATED=false. Set MKT_WRITTEN=false. Continue to Step 6.
+
+---
+
+Generate `SYS-brand-tokens.json` as a DTCG 2025.10 compliant JSON file with 1 top-level category key: `brand-marketing`. Two sub-groups: `brand-voice` (5 tokens) and `campaign-palette-variants` (4 tokens). Total: 9 leaf nodes.
+
+Each leaf node MUST have `$value`, `$type`, and `$description` fields per DTCG 2025.10.
+
+**DTCG structure:**
+
+```json
+{
+  "brand-marketing": {
+    "$description": "Marketing-specific brand tokens. Extends SYS-tokens.json without modifying core design system categories.",
+    "brand-voice": {
+      "tone-primary": {
+        "$value": "[BRAND_VOICE_PRIMARY_DERIVED_FROM_UVP]",
+        "$type": "string",
+        "$description": "Primary tone descriptor derived from UVP and business thesis"
+      },
+      "tone-spectrum-warm": {
+        "$value": "[WARM_END_OF_TONE_SPECTRUM]",
+        "$type": "string",
+        "$description": "Warm/approachable end of the tone of voice spectrum"
+      },
+      "tone-spectrum-authoritative": {
+        "$value": "[AUTHORITATIVE_END_OF_TONE_SPECTRUM]",
+        "$type": "string",
+        "$description": "Authoritative/expert end of the tone of voice spectrum"
+      },
+      "positioning-statement": {
+        "$value": "[POSITIONING_STATEMENT_FROM_MKT_ARTIFACT]",
+        "$type": "string",
+        "$description": "Reference to MKT artifact positioning statement — for downstream consumption by wireframe and pitch deck"
+      },
+      "audience-voice-descriptor": {
+        "$value": "[HOW_AUDIENCE_TALKS_DERIVED_FROM_LEAN_CANVAS_CUSTOMER_SEGMENTS]",
+        "$type": "string",
+        "$description": "Language register of target audience — calibrates copy tone"
+      }
+    },
+    "campaign-palette-variants": {
+      "primary-campaign": {
+        "$value": "{color.primitive.primary.500}",
+        "$type": "color",
+        "$description": "Primary campaign color — references core design system primary via token alias"
+      },
+      "accent-campaign": {
+        "$value": "{color.harmony.analogous-warm.500}",
+        "$type": "color",
+        "$description": "Accent campaign color — warm harmony from design system"
+      },
+      "neutral-campaign": {
+        "$value": "{color.primitive.neutral.100}",
+        "$type": "color",
+        "$description": "Campaign background neutral — light surface from design system"
+      },
+      "cta-campaign": {
+        "$value": "{color.semantic.action}",
+        "$type": "color",
+        "$description": "Campaign CTA color — semantic action alias from design system"
+      }
+    }
+  }
+}
+```
+
+**CRITICAL:** Campaign palette variant `$value` fields use `{token.path}` alias syntax pointing into `SYS-tokens.json` categories — never raw oklch values. This ensures they inherit dark mode overrides and stay coherent with the core palette.
+
+**CRITICAL:** Derive `brand-voice` token `$value` fields from the loaded brief's `## Domain Strategy` section (which contains brand positioning seeds from BRIEF-05). The `$value` strings above are STRUCTURAL PLACEHOLDERS — the agent fills them with content derived from the brief context at generation time.
+
+Write to: `.planning/design/visual/SYS-brand-tokens.json`
+
+Display: `  -> Created: visual/SYS-brand-tokens.json`
+
+**Generate CSS custom properties from brand tokens:**
+
+```bash
+CSS_BRAND=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design tokens-to-css ".planning/design/visual/SYS-brand-tokens.json" --raw)
+if [[ "$CSS_BRAND" == @file:* ]]; then CSS_BRAND=$(cat "${CSS_BRAND#@file:}"); fi
+```
+
+Write `$CSS_BRAND` to `.planning/design/visual/SYS-brand-tokens.css`
+
+Display: `  -> Created: visual/SYS-brand-tokens.css`
+
+**Register brand tokens in manifest:**
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update SYS-BRAND code SYS-BRAND
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update SYS-BRAND name "Brand Marketing Tokens"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update SYS-BRAND type brand-tokens
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update SYS-BRAND domain visual
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update SYS-BRAND path ".planning/design/visual/SYS-brand-tokens.json"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update SYS-BRAND status draft
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update SYS-BRAND dependsOn '["SYS","BRF","BTH"]'
+```
+
+Set BRAND_TOKENS_GENERATED=true.
+
+---
+
+#### Step 5d: MKT brand system artifact (business mode only)
+
+**IF `$BM == "true"` AND BRAND_TOKENS_GENERATED == true:**
+
+Read the brief's `## Domain Strategy` section for brand positioning seeds (project name, category, audience descriptor, brand personality seeds). Also read BTH artifact sections (Problem, Solution, Market, Unfair Advantage) and LCV UVP box from the brief context loaded in Step 2.
+
+Generate the MKT artifact at `.planning/design/strategy/MKT-brand-system-v{N}.md` using the template from `@references/launch-frameworks.md` `## Brand System` section.
+
+The MKT artifact content follows this structure:
+
+```markdown
+---
+artifact: MKT-brand-system
+version: v{N}
+Skill: /pde:system (MKT)
+businessTrack: {$BT}
+dependsOn: BRF, BTH, LCV
+---
+
+# Brand & Marketing System
+
+*Generated by /pde:system (business mode) v{N} | {ISO date}*
+
+## Positioning Statement
+
+For [target customer from LCV Customer Segments], [product name from BRF] is the [category from BTH Market] that [primary benefit from BTH Solution] because [unique differentiator from BTH Unfair Advantage + LCV UVP].
+
+## Tone of Voice Spectrum
+
+| Dimension | Warm End | Authoritative End | Primary Position |
+|-----------|----------|-------------------|-----------------|
+| Formality | Conversational | Professional | [position derived from audience archetype] |
+| Energy | Calm | Dynamic | [position derived from product category] |
+| Expertise | Accessible | Expert | [position derived from businessTrack — solo_founder leans Accessible, product_leader leans Expert] |
+| Personality | Playful | Serious | [position derived from brand personality seeds] |
+
+**Primary tone descriptor:** [Single most important voice characteristic]
+**Secondary tone descriptor:** [Supporting voice characteristic]
+**Voice to avoid:** [Tone that would undermine brand positioning]
+
+## Visual Differentiation Rationale
+
+**Category visual conventions:** [What competitors in this space typically look like — derive from CMP competitive positioning matrix if available]
+**Our differentiation:** [How visual choices deliberately depart from category conventions]
+**Primary palette role:** [How the design system's primary color supports brand positioning]
+**Typography personality:** [How typeface selection reinforces brand character]
+
+## Brand Voice Examples
+
+*Track-depth controlled: solo_founder = 2 examples, startup_team = 4 examples, product_leader = 6 examples*
+
+| Context | Avoid | Prefer |
+|---------|-------|--------|
+| Headline | [generic category language] | [differentiating brand language] |
+| CTA | [commodity phrasing] | [brand-specific action language] |
+
+## Downstream References
+
+- Landing page wireframe (Phase 89): Use Positioning Statement for hero headline framing, Tone of Voice for CTA and feature copy
+- Pitch deck (Phase 89): Use Positioning Statement for solution slide, Visual Differentiation for competition slide
+
+---
+*Generated by /pde:system (MKT) v{N} | {ISO date}*
+```
+
+**Financial content check (mandatory):**
+
+```bash
+if grep -qE '\$[0-9]' ".planning/design/strategy/MKT-brand-system-v${N}.md" 2>/dev/null; then
+  echo "ERROR: Dollar amount detected in MKT artifact. Use [YOUR_X] placeholders only."
+  grep -nE '\$[0-9]' ".planning/design/strategy/MKT-brand-system-v${N}.md"
+  exit 1
+fi
+```
+
+Display: `  -> Created: strategy/MKT-brand-system-v{N}.md`
+
+**Register MKT artifact in manifest:**
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update MKT code MKT
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update MKT name "Brand Marketing System"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update MKT type brand-system
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update MKT domain strategy
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update MKT path ".planning/design/strategy/MKT-brand-system-v${N}.md"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update MKT status draft
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update MKT dependsOn '["BRF","BTH","LCV"]'
+```
+
+Set MKT_WRITTEN=true.
+
+**ELSE:** Set MKT_WRITTEN=false. Skip silently.
+
+---
+
 ### Step 6/7: Update visual domain DESIGN-STATE
 
 Use the Glob tool to check if `.planning/design/visual/DESIGN-STATE.md` exists.
@@ -1910,6 +2117,30 @@ Read the current root DESIGN-STATE.md, then apply these four updates using the E
    | SYS-tokens.json | v{N} | Created by /pde:system | {YYYY-MM-DD} |
    ```
 
+**IF `MKT_WRITTEN == true`:**
+
+Add MKT row to root DESIGN-STATE.md (inside the existing write lock window):
+
+1. **Cross-Domain Dependency Map** — add MKT row:
+   ```
+   | MKT | strategy | BRF,BTH | current |
+   ```
+
+2. **Quick Reference section** — add row:
+   ```
+   | Brand System | v{N} |
+   ```
+
+3. **Decision Log** — append entry:
+   ```
+   | MKT | brand system generated, {businessTrack} track | {YYYY-MM-DD} |
+   ```
+
+4. **Iteration History** — append entry:
+   ```
+   | MKT-brand-system-v{N}.md | v{N} | Created by /pde:system | {YYYY-MM-DD} |
+   ```
+
 **ALWAYS release write lock, even if an error occurred during state update above:**
 
 ```bash
@@ -1935,14 +2166,14 @@ First read current coverage state:
 node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design coverage-check
 ```
 
-Parse the JSON output from coverage-check. Extract ALL sixteen current flag values: `hasDesignSystem`, `hasWireframes`, `hasFlows`, `hasHardwareSpec`, `hasCritique`, `hasIterate`, `hasHandoff`, `hasIdeation`, `hasCompetitive`, `hasOpportunity`, `hasMockup`, `hasHigAudit`, `hasRecommendations`, `hasStitchWireframes`, `hasPrintCollateral`, `hasProductionBible`. Default any absent field to `false`. Merge `hasDesignSystem: true` while preserving all other fifteen values. Then write the full merged sixteen-field object:
+Parse the JSON output from coverage-check. Extract ALL twenty current flag values: `hasDesignSystem`, `hasWireframes`, `hasFlows`, `hasHardwareSpec`, `hasCritique`, `hasIterate`, `hasHandoff`, `hasIdeation`, `hasCompetitive`, `hasOpportunity`, `hasMockup`, `hasHigAudit`, `hasRecommendations`, `hasStitchWireframes`, `hasPrintCollateral`, `hasProductionBible`, `hasBusinessThesis`, `hasMarketLandscape`, `hasServiceBlueprint`, `hasLaunchKit`. Default any absent field to `false`. Merge `hasDesignSystem: true` while preserving all other nineteen values. Then write the full merged twenty-field object:
 
 Then write the full merged object back:
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":true,"hasWireframes":{current},"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":{current},"hasPrintCollateral":{current},"hasProductionBible":{current}}'
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":true,"hasWireframes":{current},"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":{current},"hasPrintCollateral":{current},"hasProductionBible":{current},"hasBusinessThesis":{current},"hasMarketLandscape":{current},"hasServiceBlueprint":{current},"hasLaunchKit":{current}}'
 ```
 
-Use the actual values read from coverage-check — do not hardcode false for fields that may have been set by other skills. The key invariant: `manifest-set-top-level` performs FLAT key assignment, so `designCoverage` must be set as the FULL sixteen-field JSON object every time. All 16 fields: hasDesignSystem, hasWireframes, hasFlows, hasHardwareSpec, hasCritique, hasIterate, hasHandoff, hasIdeation, hasCompetitive, hasOpportunity, hasMockup, hasHigAudit, hasRecommendations, hasStitchWireframes, hasPrintCollateral, hasProductionBible.
+Use the actual values read from coverage-check — do not hardcode false for fields that may have been set by other skills. The key invariant: `manifest-set-top-level` performs FLAT key assignment, so `designCoverage` must be set as the FULL twenty-field JSON object every time. All 20 fields: hasDesignSystem, hasWireframes, hasFlows, hasHardwareSpec, hasCritique, hasIterate, hasHandoff, hasIdeation, hasCompetitive, hasOpportunity, hasMockup, hasHigAudit, hasRecommendations, hasStitchWireframes, hasPrintCollateral, hasProductionBible, hasBusinessThesis, hasMarketLandscape, hasServiceBlueprint, hasLaunchKit.
 
 Display: `Step 7/7: Root DESIGN-STATE and manifest updated.`
 
@@ -1991,6 +2222,7 @@ Display the final summary table (always the last output):
 | Property | Value |
 |----------|-------|
 | Files created | visual/SYS-tokens.json, visual/SYS-colors.css, visual/SYS-typography.css, visual/SYS-spacing.css, visual/SYS-shadows.css, visual/SYS-borders.css, visual/SYS-motion.css, visual/SYS-components.css, visual/SYS-utilities.css, assets/tokens.css, visual/SYS-preview.html, visual/SYS-usage-guide.md (12 files) |
+| Files created (business mode) | visual/SYS-brand-tokens.json, visual/SYS-brand-tokens.css, strategy/MKT-brand-system-v{N}.md |
 | Files modified | .planning/design/DESIGN-STATE.md, .planning/design/visual/DESIGN-STATE.md, .planning/design/design-manifest.json |
 | Next suggested skill | /pde:wireframe or /pde:flows |
 | Elapsed time | {duration} |
@@ -2011,6 +2243,9 @@ Display the final summary table (always the last output):
 - ALWAYS release the write lock even if an error occurs during root DESIGN-STATE.md updates. The lock has a 60s TTL but releasing immediately prevents blocking other skills.
 - ALWAYS include `$type` on EVERY DTCG leaf node. W3C 2025.10 requires leaf-level `$type`. Omitting it breaks token tooling and Style Dictionary transforms.
 - NEVER set `hasBrief` in `designCoverage`. The brief completion flag `hasBrief` is managed by `/pde:brief`. Only set `hasDesignSystem: true` and preserve all other existing flags from `coverage-check` output.
+- NEVER merge brand tokens into SYS-tokens.json. Write a separate SYS-brand-tokens.json file. The manifest-set-top-level command has no deep merge — writing a new root key into SYS-tokens.json risks corrupting all 7 existing categories.
+- NEVER use raw oklch values in campaign-palette-variants tokens. Campaign palette tokens MUST use {token.path} alias syntax pointing into SYS-tokens.json (e.g., {color.primitive.primary.500}). Raw values drift out of sync when the core system is regenerated.
+- NEVER use ELSE IF or ELSE branching between Step 5b (experience tokens) and Steps 5c/5d (business brand tokens). Both are independent conditional blocks — a business:experience composition must run BOTH.
 
 </process>
 
@@ -2030,4 +2265,7 @@ Display the final summary table (always the last output):
 - `.planning/design/visual/DESIGN-STATE.md` — Visual domain state (created if absent, SYS row added)
 - `.planning/design/DESIGN-STATE.md` — Root state updated (Cross-Domain Map, Quick Reference, Decision Log, Iteration History)
 - `.planning/design/design-manifest.json` — Manifest updated with SYS artifact entry and designCoverage flag
+- `.planning/design/visual/SYS-brand-tokens.json` — DTCG brand marketing token extension (business mode only)
+- `.planning/design/visual/SYS-brand-tokens.css` — CSS custom properties from brand tokens (business mode only)
+- `.planning/design/strategy/MKT-brand-system-v{N}.md` — Brand marketing system artifact (business mode only)
 </output>
