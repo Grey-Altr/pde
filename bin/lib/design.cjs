@@ -14,7 +14,7 @@ const { output, error } = require('./core.cjs');
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const DOMAIN_DIRS = ['assets', 'strategy', 'ux', 'ux/mockups', 'visual', 'review', 'handoff', 'hardware', 'physical'];
+const DOMAIN_DIRS = ['assets', 'strategy', 'ux', 'ux/mockups', 'visual', 'review', 'handoff', 'hardware', 'physical', 'launch'];
 const WRITE_LOCK_TTL_MS = 60000;
 
 // ─── stripCommentKeys ─────────────────────────────────────────────────────────
@@ -385,7 +385,7 @@ function runSelfTest() {
     assert.ok(fs.existsSync(path.join(tmpDir, '.planning', 'design')));
   });
 
-  check('creates all 9 domain subdirectories (including ux/mockups, physical)', () => {
+  check('creates all 10 domain subdirectories (including ux/mockups, physical, launch)', () => {
     for (const domain of DOMAIN_DIRS) {
       assert.ok(
         fs.existsSync(path.join(tmpDir, '.planning', 'design', domain)),
