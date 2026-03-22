@@ -4,7 +4,7 @@ milestone: v0.12
 milestone_name: Business Product Type
 status: unknown
 stopped_at: Completed 87-02-PLAN.md — SBP/GTM strategy DESIGN-STATE rows added to flows.md Step 7, all 10 Nyquist tests pass
-last_updated: "2026-03-22T16:45:24.953Z"
+last_updated: "2026-03-22T16:49:20.150Z"
 progress:
   total_phases: 11
   completed_phases: 4

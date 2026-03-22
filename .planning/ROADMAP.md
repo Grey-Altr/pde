@@ -394,7 +394,7 @@ Plans:
 | 84. Foundation | 2/2 | Complete    | 2026-03-22 | - |
 | 85. Brief Extensions + Detection | 2/2 | Complete    | 2026-03-22 | - |
 | 86. Competitive + Opportunity Extensions | 2/2 | Complete    | 2026-03-22 | - |
-| 87. Flows Stage | 2/2 | Complete   | 2026-03-22 | - |
+| 87. Flows Stage | 2/2 | Complete    | 2026-03-22 | - |
 | 88. Brand System | v0.12 | 0/TBD | Not started | - |
 | 89. Wireframe Stage Launch Artifacts | v0.12 | 0/TBD | Not started | - |
 | 90. Critique + HIG Extensions | v0.12 | 0/TBD | Not started | - |
