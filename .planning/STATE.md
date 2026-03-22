@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.12
 milestone_name: Business Product Type
 status: unknown
-stopped_at: Completed 85-02-PLAN.md — BTH/LCV generation + 20-field designCoverage write added to brief.md
-last_updated: "2026-03-22T15:17:38.111Z"
+stopped_at: Completed 86-02-PLAN.md — opportunity.md business initiative framing + 20-field designCoverage write
+last_updated: "2026-03-22T16:03:05.687Z"
 progress:
   total_phases: 11
   completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
+  total_plans: 6
+  completed_plans: 5
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-22)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 85 — brief-extensions-detection
+**Current focus:** Phase 86 — competitive-opportunity-extensions
 
 ## Current Position
 
-Phase: 85 (brief-extensions-detection) — EXECUTING
-Plan: 1 of 2
+Phase: 86 (competitive-opportunity-extensions) — COMPLETE
+Plan: 2 of 2
 
 ## Performance Metrics
 
@@ -42,6 +42,7 @@ Plan: 1 of 2
 | 84-02 | 1 | 3 tasks | 4 min |
 | Phase 85 P01 | 8 | 2 tasks | 2 files |
 | Phase 85 P02 | 5 | 2 tasks | 2 files |
+| Phase 86 P02 | 3 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -68,6 +69,8 @@ Recent decisions affecting v0.12:
 - [Phase 85]: 20-field coverage write placed after businessMode/businessTrack manifest writes — single write prevents partial-write field erasure
 - [Phase 85]: LCV skips if BTH generation failed — prevents dangling artifact with no thesis anchor
 - [Phase 85]: coverage-check read before writing designCoverage — preserves existing flags, hasBusinessThesis hardcoded true for business mode
+- [Phase 86]: [86-02] Business Initiative Framing placed at end of Step 4 with BUSINESS_FRAMING_GENERATED flag gating Step 5 inclusion — preserves step count at 7
+- [Phase 86]: [86-02] opportunity.md 20-field designCoverage write replaces 16-field version in-place — no migration needed, consistent with Phase 85 brief.md pattern
 
 ### Pending Todos
 
@@ -80,8 +83,8 @@ Recent decisions affecting v0.12:
 
 ## Session Continuity
 
-Last session: 2026-03-22T15:13:56.003Z
-Stopped at: Completed 85-02-PLAN.md — BTH/LCV generation + 20-field designCoverage write added to brief.md
+Last session: 2026-03-22T16:03:05.684Z
+Stopped at: Completed 86-02-PLAN.md — opportunity.md business initiative framing + 20-field designCoverage write
 Resume file: None
 
 Next action: Execute Phase 85 (Brief Skill)
