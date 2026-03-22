@@ -38,10 +38,10 @@ created: 2026-03-22
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 86-01-01 | 01 | 1 | MRKT-01, MRKT-02, MRKT-04, MRKT-05 | structural | `node --test .planning/phases/86-competitive-opportunity-extensions/tests/test-competitive-mls.cjs` | ❌ W0 | ⬜ pending |
-| 86-01-02 | 01 | 1 | MRKT-01, MRKT-02, MRKT-04, MRKT-05 | structural | `node --test .planning/phases/86-competitive-opportunity-extensions/tests/test-competitive-mls.cjs` | ❌ W0 | ⬜ pending |
-| 86-02-01 | 02 | 1 | MRKT-03 | structural | `node --test .planning/phases/86-competitive-opportunity-extensions/tests/test-opportunity-rice.cjs` | ❌ W0 | ⬜ pending |
-| 86-02-02 | 02 | 1 | MRKT-03 | structural | `node --test .planning/phases/86-competitive-opportunity-extensions/tests/test-opportunity-rice.cjs` | ❌ W0 | ⬜ pending |
+| 86-01-01 | 01 | 1 | MRKT-01, MRKT-02, MRKT-04, MRKT-05 | structural | `node --test .planning/phases/86-competitive-opportunity-extensions/tests/test-competitive-mls.cjs` | ✅ | ✅ green |
+| 86-01-02 | 01 | 1 | MRKT-01, MRKT-02, MRKT-04, MRKT-05 | structural | `node --test .planning/phases/86-competitive-opportunity-extensions/tests/test-competitive-mls.cjs` | ✅ | ✅ green |
+| 86-02-01 | 02 | 1 | MRKT-03 | structural | `node --test .planning/phases/86-competitive-opportunity-extensions/tests/test-opportunity-rice.cjs` | ✅ | ✅ green |
+| 86-02-02 | 02 | 1 | MRKT-03 | structural | `node --test .planning/phases/86-competitive-opportunity-extensions/tests/test-opportunity-rice.cjs` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -49,8 +49,8 @@ created: 2026-03-22
 
 ## Wave 0 Requirements
 
-- [ ] `.planning/phases/86-competitive-opportunity-extensions/tests/test-competitive-mls.cjs` — structural tests for MRKT-01, MRKT-02, MRKT-04, MRKT-05 (created by Plan 86-01, Task 1)
-- [ ] `.planning/phases/86-competitive-opportunity-extensions/tests/test-opportunity-rice.cjs` — structural tests for MRKT-03 (created by Plan 86-02, Task 1)
+- [x] `.planning/phases/86-competitive-opportunity-extensions/tests/test-competitive-mls.cjs` — 17 structural tests for MRKT-01, MRKT-02, MRKT-04, MRKT-05 (17/17 pass)
+- [x] `.planning/phases/86-competitive-opportunity-extensions/tests/test-opportunity-rice.cjs` — 12 structural tests for MRKT-03 (12/12 pass)
 
 *Existing test infrastructure covers framework needs — no new framework install required.*
 
@@ -66,11 +66,22 @@ created: 2026-03-22
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 5s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 5s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-03-22
+
+## Validation Audit 2026-03-22
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+| Total tests | 29 |
+| Pass | 29 |
+| Fail | 0 |
