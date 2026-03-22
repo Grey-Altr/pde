@@ -134,71 +134,71 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FOUND-01 | — | Pending |
-| FOUND-02 | — | Pending |
-| FOUND-03 | — | Pending |
-| FOUND-04 | — | Pending |
-| FOUND-05 | — | Pending |
-| FOUND-06 | — | Pending |
-| FOUND-07 | — | Pending |
-| BRIEF-01 | — | Pending |
-| BRIEF-02 | — | Pending |
-| BRIEF-03 | — | Pending |
-| BRIEF-04 | — | Pending |
-| BRIEF-05 | — | Pending |
-| BRIEF-06 | — | Pending |
-| BRIEF-07 | — | Pending |
-| MRKT-01 | — | Pending |
-| MRKT-02 | — | Pending |
-| MRKT-03 | — | Pending |
-| MRKT-04 | — | Pending |
-| MRKT-05 | — | Pending |
-| OPS-01 | — | Pending |
-| OPS-02 | — | Pending |
-| OPS-03 | — | Pending |
-| OPS-04 | — | Pending |
-| BRAND-01 | — | Pending |
-| BRAND-02 | — | Pending |
-| BRAND-03 | — | Pending |
-| LAUNCH-01 | — | Pending |
-| LAUNCH-02 | — | Pending |
-| LAUNCH-03 | — | Pending |
-| LAUNCH-04 | — | Pending |
-| LAUNCH-05 | — | Pending |
-| LAUNCH-06 | — | Pending |
-| QUAL-01 | — | Pending |
-| QUAL-02 | — | Pending |
-| QUAL-03 | — | Pending |
-| QUAL-04 | — | Pending |
-| KIT-01 | — | Pending |
-| KIT-02 | — | Pending |
-| KIT-03 | — | Pending |
-| KIT-04 | — | Pending |
-| KIT-05 | — | Pending |
-| KIT-06 | — | Pending |
-| DEPLOY-01 | — | Pending |
-| DEPLOY-02 | — | Pending |
-| DEPLOY-03 | — | Pending |
-| DEPLOY-04 | — | Pending |
-| DEPLOY-05 | — | Pending |
-| DEPLOY-06 | — | Pending |
-| DEPLOY-07 | — | Pending |
-| DEPLOY-08 | — | Pending |
-| DEPLOY-09 | — | Pending |
-| INTG-01 | — | Pending |
-| INTG-02 | — | Pending |
-| INTG-03 | — | Pending |
-| INTG-04 | — | Pending |
-| INTG-05 | — | Pending |
-| INTG-06 | — | Pending |
-| INTG-07 | — | Pending |
-| INTG-08 | — | Pending |
+| FOUND-01 | 84 | Pending |
+| FOUND-02 | 84 | Pending |
+| FOUND-03 | 84 | Pending |
+| FOUND-04 | 84 | Pending |
+| FOUND-05 | 84 | Pending |
+| FOUND-06 | 84 | Pending |
+| FOUND-07 | 84 | Pending |
+| BRIEF-01 | 85 | Pending |
+| BRIEF-02 | 85 | Pending |
+| BRIEF-03 | 85 | Pending |
+| BRIEF-04 | 85 | Pending |
+| BRIEF-05 | 85 | Pending |
+| BRIEF-06 | 85 | Pending |
+| BRIEF-07 | 85 | Pending |
+| MRKT-01 | 86 | Pending |
+| MRKT-02 | 86 | Pending |
+| MRKT-03 | 86 | Pending |
+| MRKT-04 | 86 | Pending |
+| MRKT-05 | 86 | Pending |
+| OPS-01 | 87 | Pending |
+| OPS-02 | 87 | Pending |
+| OPS-03 | 87 | Pending |
+| OPS-04 | 87 | Pending |
+| BRAND-01 | 88 | Pending |
+| BRAND-02 | 88 | Pending |
+| BRAND-03 | 88 | Pending |
+| LAUNCH-01 | 89 | Pending |
+| LAUNCH-02 | 89 | Pending |
+| LAUNCH-03 | 89 | Pending |
+| LAUNCH-04 | 89 | Pending |
+| LAUNCH-05 | 89 | Pending |
+| LAUNCH-06 | 89 | Pending |
+| QUAL-01 | 90 | Pending |
+| QUAL-02 | 90 | Pending |
+| QUAL-03 | 90 | Pending |
+| QUAL-04 | 90 | Pending |
+| KIT-01 | 91 | Pending |
+| KIT-02 | 91 | Pending |
+| KIT-03 | 91 | Pending |
+| KIT-04 | 91 | Pending |
+| KIT-05 | 91 | Pending |
+| KIT-06 | 91 | Pending |
+| DEPLOY-01 | 92 | Pending |
+| DEPLOY-02 | 92 | Pending |
+| DEPLOY-03 | 92 | Pending |
+| DEPLOY-04 | 92 | Pending |
+| DEPLOY-05 | 92 | Pending |
+| DEPLOY-06 | 92 | Pending |
+| DEPLOY-07 | 92 | Pending |
+| DEPLOY-08 | 92 | Pending |
+| DEPLOY-09 | 92 | Pending |
+| INTG-01 | 93 | Pending |
+| INTG-08 | 93 | Pending |
+| INTG-02 | 94 | Pending |
+| INTG-03 | 94 | Pending |
+| INTG-04 | 94 | Pending |
+| INTG-05 | 94 | Pending |
+| INTG-06 | 94 | Pending |
+| INTG-07 | 94 | Pending |
 
 **Coverage:**
-- v0.12 requirements: 55 total
-- Mapped to phases: 0
-- Unmapped: 55
+- v0.12 requirements: 59 total
+- Mapped to phases: 59
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-22*
-*Last updated: 2026-03-22 after initial definition*
+*Last updated: 2026-03-22 after roadmap creation — all 59 requirements mapped to phases 84-94*
