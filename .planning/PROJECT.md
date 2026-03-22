@@ -85,6 +85,13 @@ Any user can go from idea to shipped product through a single platform that hand
 - ✓ Production bible (BIB) handoff: advance document, run sheet, staffing plan, budget framework, post-event template, print spec — v0.11
 - ✓ 16-field designCoverage schema across all pipeline workflows, zero cross-phase flag clobber — v0.11
 - ✓ 48 requirements, 162 Nyquist tests, zero software/hardware/hybrid regressions — v0.11
+- ✓ Foundation: manifest schema 16→20 fields (businessMode, businessTrack, hasBusinessThesis, hasLeanCanvas), launch/ dir, business reference files (tracks, frameworks, disclaimers) — v0.12
+- ✓ Business intent detection with 5-category signal taxonomy (model/market/launch/metrics/positioning), 3+ signals / 2+ categories threshold — v0.12
+- ✓ Track selection prompt (solo_founder / startup_team / product_leader) with --force/--dry-run/--quick flag handling — v0.12
+- ✓ BTH (business thesis) artifact in strategy/ with problem, solution, market, unfair-advantage sections — v0.12
+- ✓ LCV (lean canvas) artifact with all 9 boxes and validated/assumed/unknown hypothesis status marking — v0.12
+- ✓ Domain Strategy section in BRF with [YOUR_X] financial placeholders and post-write dollar-amount grep enforcement — v0.12
+- ✓ 20-field designCoverage write pattern (first workflow to use full Phase 84 schema) — v0.12
 
 ### Active
 
@@ -225,4 +232,7 @@ Any user can go from idea to shipped product through a single platform that hand
 | Regulatory disclaimer as reusable reference block | `references/experience-disclaimer.md` loaded via `@references/` pattern in critique and handoff | ✓ Good — single source of truth for [VERIFY WITH LOCAL AUTHORITY] tag |
 | Cross-phase wiring fix (16-field designCoverage) | Audit found 10 workflows clobbering hasPrintCollateral/hasProductionBible; read-merge-write pattern must preserve all 16 fields | ✓ Good — all 10 workflows fixed, pipeline preserves flags end-to-end |
 | Token path alignment (visual/ not assets/) | system.md writes to visual/, wireframe.md was reading from assets/ — silent fallback masked the bug | ✓ Good — one-line fix, brand tokens now flow to print palette |
-*Last updated: 2026-03-22 after Phase 84 — Foundation (manifest schema 16→20 fields, launch/ dir, 4 business reference files)*
+| Business detection threshold (3+ signals, 2+ categories) | Prevents over-triggering on pure software projects while catching genuine business intent | ✓ Good — 5-category taxonomy with category diversity requirement |
+| BTH→LCV dependency chain (skip, don't halt) | If BTH generation fails, LCV is skipped with warning rather than halting entire brief run | ✓ Good — graceful degradation preserves non-business brief output |
+| 20-field designCoverage write (not copy 16-field pattern) | Phase 84 added 4 fields; copying opportunity.md's 16-field pattern silently drops them | ✓ Good — canonical order from manifest template |
+*Last updated: 2026-03-22 after Phase 85 — Brief Extensions + Detection (business detection, track selection, BTH/LCV generation, 20-field coverage)*
