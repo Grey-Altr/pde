@@ -114,6 +114,11 @@ Any user can go from idea to shipped product through a single platform that hand
 - ✓ Step 7b-lkt manifest registration (21 manifest-update calls for LKT/CNT/OTR), DESIGN-STATE rows, hasLaunchKit coverage flag — v0.12
 - ✓ DPD-gated investor outreach (3-email sequence skipped if no pitch deck), structural placeholder enforcement (KIT-06) — v0.12
 - ✓ handoff.md upgraded from 16→20 designCoverage fields across purpose, Step 7c, anti-patterns, and output sections — v0.12
+- ✓ Deploy skill (Stage 14): workflows/deploy.md (942 lines, 6 steps) with 4 mandatory human approval gates before any external write — v0.12
+- ✓ Next.js 16.2.1 + Stripe v20 + Resend 6.9.4 + Tailwind v4 scaffold generation consuming LDP/STR/OTR artifacts — v0.12
+- ✓ Vercel CLI deployment via `npx vercel --prod --no-wait --yes` with `vercel whoami` pre-check — v0.12
+- ✓ /pde:deploy slash command + Stage 14 wired into build.md STAGES table with businessMode gate — v0.12
+- ✓ deploy-manifest.json tracking with `review_required: true` per artifact, .planning/deploy-staging/ directory isolation — v0.12
 
 ### Active
 
