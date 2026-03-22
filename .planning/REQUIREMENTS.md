@@ -38,7 +38,7 @@ Requirements for the business product type milestone. Each maps to roadmap phase
 ### Operational Design
 
 - [x] **OPS-01**: `flows.md` produces SBP (Service Blueprint) artifact as 5-lane Mermaid sequence diagram (customer actions, frontstage, line of visibility, backstage, support processes)
-- [ ] **OPS-02**: GTM channel flow artifact produced as acquisition → conversion → retention Mermaid flowchart with channel priority annotations
+- [x] **OPS-02**: GTM channel flow artifact produced as acquisition → conversion → retention Mermaid flowchart with channel priority annotations
 - [x] **OPS-03**: `hasServiceBlueprint` coverage flag set in designCoverage after SBP artifact creation
 - [x] **OPS-04**: Service blueprint and GTM flow depth adapt per `businessTrack` (solo: single-product flow, startup: multi-channel, leader: cross-functional)
 
@@ -154,7 +154,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MRKT-04 | 86 | Complete |
 | MRKT-05 | 86 | Complete |
 | OPS-01 | 87 | Complete |
-| OPS-02 | 87 | Pending |
+| OPS-02 | 87 | Complete |
 | OPS-03 | 87 | Complete |
 | OPS-04 | 87 | Complete |
 | BRAND-01 | 88 | Pending |

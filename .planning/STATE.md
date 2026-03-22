@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.12
 milestone_name: Business Product Type
 status: unknown
-stopped_at: Completed 87-01-PLAN.md — SBP/GTM generation added to flows.md, 10/10 Nyquist tests pass
-last_updated: "2026-03-22T16:40:15.428Z"
+stopped_at: Completed 87-02-PLAN.md — SBP/GTM strategy DESIGN-STATE rows added to flows.md Step 7, all 10 Nyquist tests pass
+last_updated: "2026-03-22T16:45:24.953Z"
 progress:
   total_phases: 11
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 8
-  completed_plans: 7
+  completed_plans: 8
 ---
 
 # Project State
@@ -45,6 +45,7 @@ Plan: 1 of 2
 | Phase 86 P02 | 3 | 2 tasks | 2 files |
 | Phase 86 P01 | 297 | 2 tasks | 2 files |
 | Phase 87-flows-stage P01 | 3 | 2 tasks | 2 files |
+| Phase 87 P02 | 4 | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -78,6 +79,8 @@ Recent decisions affecting v0.12:
 - [Phase 87-flows-stage]: Steps 4f/4g inserted as sub-steps of Step 4 — step count stays at 7, consistent with Phase 85 and 86 patterns
 - [Phase 87-flows-stage]: SBP domain is strategy/ (not ux/) — service blueprints are business strategy artifacts, not UX artifacts
 - [Phase 87-flows-stage]: 20-field designCoverage upgraded in Plan 01 (not deferred to Plan 02) — OPS-03 complete, reduces Plan 02 scope
+- [Phase 87]: SBP DESIGN-STATE rows added under IF SBP_WRITTEN guard — consistent with competitive.md IF MLS_WRITTEN pattern
+- [Phase 87]: GTM DESIGN-STATE rows in separate conditional block (not nested under SBP) — cleaner separation since GTM_CONTENT_GENERATED already implies SBP was written
 
 ### Pending Todos
 
@@ -90,8 +93,8 @@ Recent decisions affecting v0.12:
 
 ## Session Continuity
 
-Last session: 2026-03-22T16:40:15.425Z
-Stopped at: Completed 87-01-PLAN.md — SBP/GTM generation added to flows.md, 10/10 Nyquist tests pass
+Last session: 2026-03-22T16:45:24.950Z
+Stopped at: Completed 87-02-PLAN.md — SBP/GTM strategy DESIGN-STATE rows added to flows.md Step 7, all 10 Nyquist tests pass
 Resume file: None
 
 Next action: Execute Phase 85 (Brief Skill)
