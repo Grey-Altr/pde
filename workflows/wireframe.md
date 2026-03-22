@@ -522,6 +522,218 @@ LDP_WRITTEN=true
 
 ---
 
+#### Step 4i: STR Stripe pricing config generation (business mode only)
+
+IF `$BM != "true"`: skip Step 4i entirely.
+
+**Read upstream artifacts for pricing structure (soft dependencies):**
+
+1. **LCV lean canvas artifact (Phase 85):**
+   - If LCV_FILE was read in Step 4h: reuse. Else glob: `ls .planning/design/strategy/LCV-lean-canvas-v*.md 2>/dev/null | tail -1`
+   - Extract box 9 (Revenue Streams): revenue model type, tier names, billing frequency signals.
+   - Extract box 8 (Cost Structure): for product_leader ROI context.
+   - If absent: use track-default tier structure.
+
+2. **MLS market landscape artifact (Phase 86):**
+   ```bash
+   MLS_FILE=$(ls .planning/design/strategy/MLS-market-landscape-v*.md 2>/dev/null | tail -1)
+   ```
+   - If present: extract competitive pricing structure cues (number of tiers typical in category, free trial conventions).
+   - If absent: use track defaults only.
+
+**Determine tier structure from LCV revenue streams and businessTrack:**
+
+Revenue model signal parsing for `checkout_mode`:
+- LCV contains "monthly", "subscription", "SaaS", "recurring" -> `"subscription"`
+- LCV contains "one-time", "purchase", "license fee", "template", "course" -> `"payment"`
+- LCV contains "freemium", "free tier" -> `"subscription"` with `unit_amount: 0` free tier
+- No signal -> default `"subscription"`
+
+Track-default tier counts (when LCV box 9 is status `unknown` or absent):
+- `solo_founder`: 2 tiers (Free tier with unit_amount: 0, Pro tier with `"[YOUR_PRICE_IN_CENTS]"`)
+- `startup_team`: 3 marketing tiers with 4 price entries (Starter monthly, Pro monthly, Pro annual, Enterprise annual), `trial_period_days: "[YOUR_TRIAL_DAYS]"` on Starter and Pro
+- `product_leader`: 2 tiers (Team annual, Enterprise annual with `"contact_sales": "true"` metadata)
+
+If LCV has explicit tier names (e.g., "Hobbyist, Creator, Agency"), use those as price nicknames instead of generic placeholders.
+
+**Generate STR artifact:**
+
+Write `.planning/design/launch/STR-stripe-pricing-v${N}.json` following the Pricing Config Schema in `references/launch-frameworks.md`.
+
+The JSON structure:
+```json
+{
+  "product": {
+    "name": "[YOUR_PRODUCT_NAME]",
+    "description": "[YOUR_PRODUCT_DESCRIPTION]",
+    "metadata": {}
+  },
+  "prices": [
+    // Track-specific tier entries per the mapping above
+    // Each entry: nickname, currency: "usd", unit_amount: "[YOUR_PRICE_IN_CENTS]" (NEVER an integer except 0 for free tier),
+    // recurring: { interval, interval_count: 1 }, lookup_key, trial_period_days
+  ],
+  "checkout_mode": "[subscription|payment per LCV signal detection]",
+  "_meta": {
+    "_note": "This field is for human guidance only. Skip when constructing Stripe API calls.",
+    "track": "{$BT}",
+    "tier_rationale": "[Track-specific rationale]",
+    "stripe_key_env_var": "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
+    "stripe_key_format": "pk_test_REPLACE_WITH_YOUR_KEY",
+    "competitive_positioning": "[YOUR_POSITIONING_RELATIVE_TO_MARKET: premium/market-rate/undercut]",
+    "positioning_note": "Set unit_amount values relative to your competitive positioning. See MLS artifact for category pricing conventions."
+  }
+}
+```
+
+**CRITICAL INVARIANTS:**
+- `unit_amount` is ALWAYS the string `"[YOUR_PRICE_IN_CENTS]"` — NEVER an integer (exception: `0` for free tier is allowed)
+- All `lookup_key` values use `"[YOUR_LOOKUP_KEY_{TIER}]"` format
+- Annual variant lookup keys append `_ANNUAL` suffix
+- No live Stripe keys anywhere — `_meta.stripe_key_format` shows `pk_test_REPLACE_WITH_YOUR_KEY`
+
+**Financial validation check after write:**
+```bash
+if grep -qE '"unit_amount": [1-9]' ".planning/design/launch/STR-stripe-pricing-v${N}.json" 2>/dev/null; then
+  echo "ERROR: Numeric unit_amount detected in STR artifact. Use \"[YOUR_PRICE_IN_CENTS]\" string placeholder only."
+  grep -nE '"unit_amount": [1-9]' ".planning/design/launch/STR-stripe-pricing-v${N}.json"
+  exit 1
+fi
+```
+
+Note: The grep pattern is `[1-9]` not `[0-9]` because `unit_amount: 0` for free tiers IS valid.
+
+Display: `Step 4/7 (4i): Generated STR Stripe pricing config — {tier_count} tiers, {checkout_mode} mode, {businessTrack} track.`
+
+STR_WRITTEN=true
+
+---
+
+#### Step 4j: DPD pitch deck outline generation (business mode only)
+
+IF `$BM != "true"`: skip Step 4j entirely.
+
+**Determine deck format from businessTrack:**
+
+```
+IF $BT == "solo_founder":
+  DECK_FORMAT="yc_10"
+  DECK_SLIDE_COUNT=10
+ELIF $BT == "startup_team":
+  # Check for funding context signals in BTH/BRF content
+  BTH_FILE=$(ls .planning/design/strategy/BTH-business-thesis-v*.md 2>/dev/null | tail -1)
+  BRF_FILE=$(ls .planning/design/strategy/BRF-*.md 2>/dev/null | tail -1)
+  FUNDING_SIGNALS=false
+  if [BTH or BRF contains "seed", "Series A", "investors", "fundraising", "pre-seed", "investor presentation", "raise", "cap table", "term sheet"]:
+    FUNDING_SIGNALS=true
+  fi
+  if FUNDING_SIGNALS == true:
+    DECK_FORMAT="sequoia_13"
+    DECK_SLIDE_COUNT=13
+  else:
+    DECK_FORMAT="yc_10"
+    DECK_SLIDE_COUNT=10
+  fi
+ELIF $BT == "product_leader":
+  DECK_FORMAT="internal_business_case"
+  DECK_SLIDE_COUNT=13
+ELSE:
+  DECK_FORMAT="yc_10"
+  DECK_SLIDE_COUNT=10
+```
+
+**Read upstream artifacts for slide content sources:**
+- BTH (business thesis): problem, solution, unfair advantage, market timing
+- LCV (lean canvas): 9 boxes, especially box 1 (Problem), box 2 (Solution), box 3 (UVP), box 5 (Customer Segments), box 6 (Key Metrics), box 9 (Revenue Streams)
+- MLS (market landscape): TAM/SAM/SOM sizing, competitive positioning
+- CMP (competitive analysis): positioning matrix
+- GTM (channel flow): acquisition/conversion/retention channels
+- MKT (brand system): positioning statement for slide framing
+- BRF (brief): product description, team info
+
+All are soft dependencies. If absent, use `[YOUR_X]` placeholders.
+
+**Generate DPD artifact:**
+
+Write `.planning/design/launch/DPD-pitch-deck-outline-v${N}.md` with:
+
+- **YAML frontmatter:** artifact: DPD-pitch-deck-outline, version: v{N}, skill: /pde:wireframe (DPD), businessTrack: {$BT}, deckFormat: {DECK_FORMAT}, slideCount: {DECK_SLIDE_COUNT}, fundingContextDetected: {true/false} (startup_team only), dependsOn: BTH, LCV, MLS, CMP, GTM, MKT, BRF, generatedAt: {ISO date}
+
+- **Title:** `# Pitch Deck Outline — {format name}` (e.g., "YC 10-Slide Format", "Sequoia 13-Slide Format", "Internal Business Case")
+- **Subtitle:** `*Generated by /pde:wireframe (business mode) v{N} | {date}*` + `*Track: {$BT} | Format: {DECK_FORMAT} | Deck: {DECK_SLIDE_COUNT} slides*`
+
+- **Per-slide sections** using this exact schema per slide:
+  ```
+  ## Slide {N} - {Title}
+  {*(Track substitution note if applicable)*}
+
+  **Source:** {artifact code(s) and section/box references}
+  **Key question:** {from launch-frameworks.md format table}
+  **Content prompts:**
+  - {2-4 bullet points with [YOUR_X] placeholders for financial/sensitive values}
+  - {[VERIFY FINANCIAL ASSUMPTIONS] prefix on any financial content prompt}
+
+  **Coherence anchor (QUAL-02):** {only on Solution and Traction slides}
+  ```
+
+**Slide order by format:**
+
+YC 10-Slide (solo_founder, startup_team without funding signals):
+1. Problem (BTH problem, LCV box 1)
+2. Solution (BTH solution, LCV box 2/3) — include Coherence anchor: `LCV.box3.UVP = [YOUR_UVP]`
+3. Market Size (MLS TAM/SAM/SOM)
+4. Product (BRF product description)
+5. Business Model (LCV box 9, STR plan names)
+6. Traction (LCV box 6 Key Metrics) — include Coherence anchor: `LCV.box6.metrics = [YOUR_METRIC_1], [YOUR_METRIC_2]`
+7. Go-to-Market (GTM channel flow)
+8. Competition (CMP positioning matrix)
+9. Team (BRF team section)
+10. Ask (BRF funding goals) — all financial values as `[YOUR_X]` placeholders
+
+Sequoia 13-Slide (startup_team with funding signals):
+1. Purpose/Mission (BTH + MKT positioning)
+2. Problem
+3. Solution — Coherence anchor
+4. Market Size
+5. Why Now (BTH market timing)
+6. Product
+7. Business Model
+8. Traction — Coherence anchor
+9. Financials (3-year projection table, ALL values `[YOUR_X]`) — `[VERIFY FINANCIAL ASSUMPTIONS]` on every row
+10. Go-to-Market
+11. Competition
+12. Team
+13. Ask
++ Appendix slides A1-A5 (Detailed Financial Projections, Product Roadmap, Team Bios, Technical Architecture, Market Research Data)
+
+Internal Business Case 13-Slide (product_leader):
+Same as Sequoia 13 with two substitutions:
+- Slide 12: "Team" -> "Resource Requirements" (headcount, budget envelope `[YOUR_BUDGET_ENVELOPE]`, systems required per SBP backstage lane)
+- Slide 13: "Ask" -> "Initiative ROI" (expected return `[YOUR_ROI_TARGET]`, payback period `[YOUR_PAYBACK_PERIOD]`, NPV `[YOUR_NPV_3Y]`, primary OKR `[YOUR_SUCCESS_METRIC]`)
+- Slide 11: "Competition" -> "Build-vs-Buy Analysis" (alternatives considered: make/buy/partner options)
+- Vocabulary per business-track.md: "P&L impact", "key accounts", "go-to-market", "market alternatives", "monetization strategy"
+- No appendix for product_leader
+
+**Financial content rules:**
+- ALL dollar amounts use `[YOUR_X]` format
+- ALL financial slides/rows prefixed with `[VERIFY FINANCIAL ASSUMPTIONS]`
+- No `$` followed by a digit anywhere in the file
+
+**Post-write validation:**
+```bash
+if grep -qE '\$[0-9]' ".planning/design/launch/DPD-pitch-deck-outline-v${N}.md" 2>/dev/null; then
+  echo "ERROR: Dollar amount detected in DPD artifact. All financial values must use [YOUR_X] placeholders."
+  grep -nE '\$[0-9]' ".planning/design/launch/DPD-pitch-deck-outline-v${N}.md"
+  exit 1
+fi
+```
+
+Display: `Step 4/7 (4j): Generated DPD pitch deck outline — {DECK_SLIDE_COUNT} slides, {DECK_FORMAT} format, {businessTrack} track.`
+
+DPD_WRITTEN=true
+
+---
+
 ### Step 4/7: Generate wireframe HTML per screen
 
 #### 4-STITCH. Stitch generation pipeline (when USE_STITCH is true)
@@ -2074,6 +2286,88 @@ node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update PRG path "
 node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update PRG status draft
 node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update PRG version 1
 ```
+
+#### 7e-launch. Launch artifact manifest registration and DESIGN-STATE wiring (business mode only)
+
+IF `$BM != "true"` OR (`LDP_WRITTEN != true` AND `STR_WRITTEN != true` AND `DPD_WRITTEN != true`): skip Step 7e-launch entirely.
+
+**Manifest registration (inside existing lock window from Step 7a):**
+
+IF LDP_WRITTEN == true:
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update LDP code LDP
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update LDP name "Landing Page Spec"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update LDP type landing-page-spec
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update LDP domain launch
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update LDP path ".planning/design/launch/LDP-landing-page-v${N}.md"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update LDP status draft
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update LDP dependsOn '["BRF","MKT","GTM","LCV"]'
+```
+
+IF STR_WRITTEN == true:
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update STR code STR
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update STR name "Stripe Pricing Config"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update STR type pricing-config
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update STR domain launch
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update STR path ".planning/design/launch/STR-stripe-pricing-v${N}.json"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update STR status draft
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update STR dependsOn '["LCV","MLS"]'
+```
+
+IF DPD_WRITTEN == true:
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update DPD code DPD
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update DPD name "Pitch Deck Outline"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update DPD type pitch-deck-outline
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update DPD domain launch
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update DPD path ".planning/design/launch/DPD-pitch-deck-outline-v${N}.md"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update DPD status draft
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update DPD dependsOn '["BTH","LCV","MLS","MKT"]'
+```
+
+**DESIGN-STATE updates (inside same lock window — do NOT acquire a new lock):**
+
+Read `.planning/design/DESIGN-STATE.md` using the Read tool, then apply updates:
+
+IF LDP_WRITTEN == true:
+1. **Cross-Domain Dependency Map** — add LDP row:
+   ```
+   | LDP | launch | BRF,MKT,GTM,LCV | current |
+   ```
+
+IF STR_WRITTEN == true:
+2. **Cross-Domain Dependency Map** — add STR row:
+   ```
+   | STR | launch | LCV,MLS | current |
+   ```
+
+IF DPD_WRITTEN == true:
+3. **Cross-Domain Dependency Map** — add DPD row:
+   ```
+   | DPD | launch | BTH,LCV,MLS,MKT | current |
+   ```
+
+4. **Quick Reference section** — add rows for each written artifact:
+   ```
+   | Landing Page Spec | v{N} |
+   | Stripe Pricing Config | v{N} |
+   | Pitch Deck Outline | v{N} |
+   ```
+
+5. **Decision Log** — append single combined entry:
+   ```
+   | LDP,STR,DPD | launch artifacts generated, {businessTrack} track | {YYYY-MM-DD} |
+   ```
+
+6. **Iteration History** — append entry:
+   ```
+   | LDP,STR,DPD | v{N} | Created by /pde:wireframe (business mode) | {YYYY-MM-DD} |
+   ```
+
+Display: `Step 7/7 (7e-launch): Registered {count} launch artifacts in manifest and DESIGN-STATE.`
+
+---
 
 #### 7d. Coverage flag (CRITICAL — read-before-set to prevent clobber)
 
