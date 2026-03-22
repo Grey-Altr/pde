@@ -225,4 +225,4 @@ Any user can go from idea to shipped product through a single platform that hand
 | Regulatory disclaimer as reusable reference block | `references/experience-disclaimer.md` loaded via `@references/` pattern in critique and handoff | ✓ Good — single source of truth for [VERIFY WITH LOCAL AUTHORITY] tag |
 | Cross-phase wiring fix (16-field designCoverage) | Audit found 10 workflows clobbering hasPrintCollateral/hasProductionBible; read-merge-write pattern must preserve all 16 fields | ✓ Good — all 10 workflows fixed, pipeline preserves flags end-to-end |
 | Token path alignment (visual/ not assets/) | system.md writes to visual/, wireframe.md was reading from assets/ — silent fallback masked the bug | ✓ Good — one-line fix, brand tokens now flow to print palette |
-*Last updated: 2026-03-22 after starting v0.12 milestone — Business Product Type*
+*Last updated: 2026-03-22 after Phase 84 — Foundation (manifest schema 16→20 fields, launch/ dir, 4 business reference files)*
