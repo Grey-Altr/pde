@@ -942,6 +942,37 @@ Read the current root DESIGN-STATE.md using the Read tool, then apply the follow
    | FLW-flows-v{N}.md | v{N} | Created by /pde:flows | {YYYY-MM-DD} |
    ```
 
+**IF `SBP_WRITTEN == true`:**
+
+5. **Cross-Domain Dependency Map** — add SBP row if not already present:
+   ```
+   | SBP | strategy | FLW | current |
+   ```
+
+6. **Quick Reference section** — add SBP row:
+   ```
+   | Service Blueprint | v{N} |
+   ```
+
+7. **Decision Log** — append entry:
+   ```
+   | SBP | service blueprint generated, {stage_count} stages, {track} track | {YYYY-MM-DD} |
+   ```
+
+8. **Iteration History** — append entry:
+   ```
+   | SBP-service-blueprint-v{N}.md | v{N} | Created by /pde:flows (SBP) | {YYYY-MM-DD} |
+   ```
+
+**IF `GTM_CONTENT_GENERATED == true`:**
+
+Append GTM rows to each of the four sections above:
+
+- Cross-Domain: `| GTM | strategy | SBP | current |`
+- Quick Reference: `| GTM Channel Flow | v{N} |`
+- Decision Log: `| GTM | GTM channel flow generated, {channel_count} channels | {YYYY-MM-DD} |`
+- Iteration History: `| GTM-channel-flow-v{N}.md | v{N} | Created by /pde:flows (GTM) | {YYYY-MM-DD} |`
+
 **ALWAYS release write lock, even if an error occurred during the state update above:**
 
 ```bash
@@ -991,6 +1022,8 @@ node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update SOC status
 ```
 
 Do NOT register the FLW artifact for experience products.
+
+**IF `PRODUCT_TYPE == "experience"` AND `$BM == "true"`:** Also register SBP and GTM artifacts (from Step 5-BIZ) using the same 7-call pattern above. Experience+business compositions produce both experience flow artifacts AND business flow artifacts.
 
 **Set coverage flag (CRITICAL: preserve existing flags):**
 
