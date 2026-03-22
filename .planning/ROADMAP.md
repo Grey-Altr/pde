@@ -200,7 +200,7 @@ Full details: .planning/milestones/v0.11-ROADMAP.md
 **Phase Numbering:** Integer phases (84, 85, 86...) — planned milestone work
 
 - [x] **Phase 84: Foundation** — Manifest schema extension, launch/ directory, and all business reference files (completed 2026-03-22)
-- [ ] **Phase 85: Brief Extensions + Detection** — Business mode detection, track selection, thesis and lean canvas generation
+- [x] **Phase 85: Brief Extensions + Detection** — Business mode detection, track selection, thesis and lean canvas generation (completed 2026-03-22)
 - [ ] **Phase 86: Competitive + Opportunity Extensions** — Market landscape, positioning matrix, business RICE scoring
 - [ ] **Phase 87: Flows Stage** — Service blueprint and GTM channel flow artifacts
 - [ ] **Phase 88: Brand System** — Marketing brand system with positioning statement and tone of voice
@@ -391,7 +391,7 @@ Plans:
 | 70-73 | v0.10 | 8/8 | Complete | 2026-03-21 |
 | 74-83 | v0.11 | 19/19 | Complete | 2026-03-22 |
 | 84. Foundation | 2/2 | Complete    | 2026-03-22 | - |
-| 85. Brief Extensions + Detection | 1/2 | In Progress|  | - |
+| 85. Brief Extensions + Detection | 2/2 | Complete   | 2026-03-22 | - |
 | 86. Competitive + Opportunity Extensions | v0.12 | 0/TBD | Not started | - |
 | 87. Flows Stage | v0.12 | 0/TBD | Not started | - |
 | 88. Brand System | v0.12 | 0/TBD | Not started | - |

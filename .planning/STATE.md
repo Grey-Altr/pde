@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.12
 milestone_name: Business Product Type
 status: unknown
-stopped_at: Completed 85-01-PLAN.md — business intent detection + track selection + Domain Strategy + manifest writes added to brief.md
-last_updated: "2026-03-22T15:08:08.492Z"
+stopped_at: Completed 85-02-PLAN.md — BTH/LCV generation + 20-field designCoverage write added to brief.md
+last_updated: "2026-03-22T15:13:56.006Z"
 progress:
   total_phases: 11
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 4
-  completed_plans: 3
+  completed_plans: 4
 ---
 
 # Project State
@@ -41,6 +41,7 @@ Plan: 1 of 2
 | 84-01 | 1 | 3 tasks | 3 min |
 | 84-02 | 1 | 3 tasks | 4 min |
 | Phase 85 P01 | 8 | 2 tasks | 2 files |
+| Phase 85 P02 | 5 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -63,6 +64,10 @@ Recent decisions affecting v0.12:
 - [Phase 85]: Business detection inserted as sub-section of Step 4 rather than new step — keeps step count at 7 and preserves existing Step 4 display line
 - [Phase 85]: Domain Strategy section placed after experience-only sections so it composes correctly for both experience and non-experience product types
 - [Phase 85]: Track selection uses interactive prompt by default; --force and --quick skip it — consistent with existing --force version-increment semantics in brief.md
+- [Phase 85]: Steps 5b/5c inserted between Domain Strategy and Step 5/7 display — keeps step count at 7, avoids renumbering
+- [Phase 85]: 20-field coverage write placed after businessMode/businessTrack manifest writes — single write prevents partial-write field erasure
+- [Phase 85]: LCV skips if BTH generation failed — prevents dangling artifact with no thesis anchor
+- [Phase 85]: coverage-check read before writing designCoverage — preserves existing flags, hasBusinessThesis hardcoded true for business mode
 
 ### Pending Todos
 
@@ -75,8 +80,8 @@ Recent decisions affecting v0.12:
 
 ## Session Continuity
 
-Last session: 2026-03-22T15:08:08.489Z
-Stopped at: Completed 85-01-PLAN.md — business intent detection + track selection + Domain Strategy + manifest writes added to brief.md
+Last session: 2026-03-22T15:13:56.003Z
+Stopped at: Completed 85-02-PLAN.md — BTH/LCV generation + 20-field designCoverage write added to brief.md
 Resume file: None
 
 Next action: Execute Phase 85 (Brief Skill)

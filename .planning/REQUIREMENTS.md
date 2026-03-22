@@ -21,10 +21,10 @@ Requirements for the business product type milestone. Each maps to roadmap phase
 
 - [x] **BRIEF-01**: `brief.md` detects business intent from project description keyword signals and sets `businessMode: true` in manifest
 - [x] **BRIEF-02**: User track selection (solo_founder / startup_team / product_leader) stored as `businessTrack` in manifest, with track-specific vocabulary and depth applied downstream
-- [ ] **BRIEF-03**: Business thesis statement generated as BTH artifact in `strategy/` directory with structured problem/solution/market/unfair-advantage framing
-- [ ] **BRIEF-04**: Lean Canvas generated as 9-box structured output with confidence levels per hypothesis (validated/assumed/unknown) — anchored to BTH artifact
+- [x] **BRIEF-03**: Business thesis statement generated as BTH artifact in `strategy/` directory with structured problem/solution/market/unfair-advantage framing
+- [x] **BRIEF-04**: Lean Canvas generated as 9-box structured output with confidence levels per hypothesis (validated/assumed/unknown) — anchored to BTH artifact
 - [x] **BRIEF-05**: Domain strategy capture (naming, domain availability notes, brand positioning seeds) included in brief output for downstream brand system consumption
-- [ ] **BRIEF-06**: `hasBusinessThesis` coverage flag set in designCoverage after BTH artifact creation
+- [x] **BRIEF-06**: `hasBusinessThesis` coverage flag set in designCoverage after BTH artifact creation
 - [x] **BRIEF-07**: Financial content in brief uses structural placeholders only per `business-financial-disclaimer.md` — no dollar amounts generated
 
 ### Market Analysis
@@ -143,10 +143,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FOUND-07 | 84 | Complete |
 | BRIEF-01 | 85 | Complete |
 | BRIEF-02 | 85 | Complete |
-| BRIEF-03 | 85 | Pending |
-| BRIEF-04 | 85 | Pending |
+| BRIEF-03 | 85 | Complete |
+| BRIEF-04 | 85 | Complete |
 | BRIEF-05 | 85 | Complete |
-| BRIEF-06 | 85 | Pending |
+| BRIEF-06 | 85 | Complete |
 | BRIEF-07 | 85 | Complete |
 | MRKT-01 | 86 | Pending |
 | MRKT-02 | 86 | Pending |
