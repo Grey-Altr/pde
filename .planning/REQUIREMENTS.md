@@ -43,7 +43,7 @@ Requirements for Experience Product Type milestone. Each maps to roadmap phases.
 
 - [x] **WIRE-01**: Floor plan wireframe generated as SVG-in-HTML with zone boundaries, capacity annotations, flow arrows, infrastructure placement, accessibility routes
 - [x] **WIRE-02**: Timeline wireframe generated as gantt-style HTML with parallel tracks, operational beats, energy curve overlay
-- [x] **WIRE-03**: Floor plan and timeline registered in design-manifest.json with FPL/TML artifact codes
+- [x] **WIRE-03**: Floor plan and timeline registered in design-manifest.json with FLP/TML artifact codes
 
 ### Critique
 
@@ -127,7 +127,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DSYS-03 | Phase 76 | Complete |
 | DSYS-04 | Phase 76 | Complete |
 | DSYS-05 | Phase 76 | Complete |
-| DSYS-06 | Phase 76 | Complete |
+| DSYS-06 | Phase 76, Phase 83 | Pending |
 | DSYS-07 | Phase 76 | Complete |
 | FLOW-01 | Phase 77 | Complete |
 | FLOW-02 | Phase 77 | Complete |
@@ -156,11 +156,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | HDOF-03 | Phase 81 | Complete |
 | HDOF-04 | Phase 81 | Complete |
 | HDOF-05 | Phase 81 | Complete |
-| HDOF-06 | Phase 81 | Complete |
+| HDOF-06 | Phase 81, Phase 83 | Pending |
 | PRNT-01 | Phase 80 | Complete |
 | PRNT-02 | Phase 80 | Complete |
 | PRNT-03 | Phase 80 | Complete |
-| PRNT-04 | Phase 80 | Complete |
+| PRNT-04 | Phase 80, Phase 83 | Pending |
 
 **Coverage:**
 - v0.11 requirements: 48 total (note: initial estimate was 47; actual count is 48 across 9 categories)

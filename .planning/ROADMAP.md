@@ -12,7 +12,7 @@
 - ✅ **v0.8 Observability & Event Infrastructure** — Phases 58-63 (shipped 2026-03-20)
 - ✅ **v0.9 Google Stitch Integration** — Phases 64-69 (shipped 2026-03-21)
 - ✅ **v0.10 Idle Time Productivity** — Phases 70-73 (shipped 2026-03-21)
-- 🚧 **v0.11 Experience Product Type** — Phases 74-82 (in progress)
+- 🚧 **v0.11 Experience Product Type** — Phases 74-83 (in progress)
 
 ## Phases
 
@@ -187,6 +187,7 @@ Full details: .planning/milestones/v0.10-ROADMAP.md
 - [x] **Phase 80: Print Collateral** — Event flyer (FLY), series identity template, festival program (PRG); Awwwards-level print composition; CSS @page print spec (completed 2026-03-21)
 - [x] **Phase 81: Handoff — Production Bible** — Advance document, run sheet, staffing plan, budget framework, post-event template, print spec output; BIB artifact; hybrid-event dual-surface output (completed 2026-03-21)
 - [x] **Phase 82: Integration Validation and Regression Audit** — Full cross-type regression run; sub-type coverage validation; 14 branch site assertions; milestone completion gate (completed 2026-03-21)
+- [ ] **Phase 83: Cross-Phase Wiring Fixes** — Fix designCoverage 16-field schema across 10 workflows, align token path, fix FPL typo (gap closure)
 
 ## Phase Details
 
@@ -319,6 +320,18 @@ Plans:
 - [ ] 82-01-PLAN.md -- Fix Phase 64 test drift + regression matrix (SC-1, SC-3, SC-4)
 - [ ] 82-02-PLAN.md -- Milestone completion audit + full suite gate (SC-2)
 
+### Phase 83: Cross-Phase Wiring Fixes
+**Goal**: Fix designCoverage field clobber across 10 workflows (14/15→16 fields), align SYS-experience-tokens.json read path in wireframe.md, and correct FPL→FLP documentation typo — closing all 3 audit gaps from v0.11-MILESTONE-AUDIT.md
+**Depends on**: Phase 82
+**Requirements**: HDOF-06, DSYS-06, PRNT-04
+**Gap Closure**: Closes gaps from v0.11 milestone audit
+**Success Criteria** (what must be TRUE):
+  1. All 14 pipeline workflow files that write `designCoverage` use the 16-field schema (including `hasPrintCollateral` and `hasProductionBible`)
+  2. `wireframe.md` reads `SYS-experience-tokens.json` from `.planning/design/visual/` (matching where `system.md` writes it)
+  3. REQUIREMENTS.md uses artifact code `FLP` (not `FPL`) for WIRE-03
+  4. Running the full experience pipeline (wireframe → critique → hig → handoff) preserves `hasPrintCollateral: true` through all stages
+**Plans**: 0 plans
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -342,3 +355,4 @@ Plans:
 | 80. Print Collateral | 2/2 | Complete    | 2026-03-21 | - |
 | 81. Handoff — Production Bible | 2/2 | Complete    | 2026-03-21 | - |
 | 82. Integration Validation and Regression Audit | 2/2 | Complete    | 2026-03-21 | - |
+| 83. Cross-Phase Wiring Fixes | 0/0 | Not started | - | - |
