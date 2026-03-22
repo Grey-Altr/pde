@@ -4,7 +4,7 @@ milestone: v0.12
 milestone_name: Business Product Type
 status: unknown
 stopped_at: Completed 85-02-PLAN.md — BTH/LCV generation + 20-field designCoverage write added to brief.md
-last_updated: "2026-03-22T15:13:56.006Z"
+last_updated: "2026-03-22T15:17:38.111Z"
 progress:
   total_phases: 11
   completed_phases: 2
