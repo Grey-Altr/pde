@@ -59,10 +59,10 @@ Requirements for the business product type milestone. Each maps to roadmap phase
 
 ### Quality Review
 
-- [ ] **QUAL-01**: `critique.md` adds 4 business critique perspectives: unit economics viability, GTM-ICP fit, pricing psychology, investor readiness
-- [ ] **QUAL-02**: Pitch coherence cross-check: lean canvas UVP matches pitch deck solution slide, canvas key metrics match traction slide
-- [ ] **QUAL-03**: `hig.md` adds business communications HIG section: pitch deck readability, email cadence, content calendar structure guidelines
-- [ ] **QUAL-04**: Business critique findings classified as standard severity levels (critical/major/minor/info) consistent with existing critique output
+- [x] **QUAL-01**: `critique.md` adds 4 business critique perspectives: unit economics viability, GTM-ICP fit, pricing psychology, investor readiness
+- [x] **QUAL-02**: Pitch coherence cross-check: lean canvas UVP matches pitch deck solution slide, canvas key metrics match traction slide
+- [x] **QUAL-03**: `hig.md` adds business communications HIG section: pitch deck readability, email cadence, content calendar structure guidelines
+- [x] **QUAL-04**: Business critique findings classified as standard severity levels (critical/major/minor/info) consistent with existing critique output
 
 ### Launch Kit Assembly
 
@@ -166,10 +166,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | LAUNCH-04 | 89 | Complete |
 | LAUNCH-05 | 89 | Complete |
 | LAUNCH-06 | 89 | Complete |
-| QUAL-01 | 90 | Pending |
-| QUAL-02 | 90 | Pending |
-| QUAL-03 | 90 | Pending |
-| QUAL-04 | 90 | Pending |
+| QUAL-01 | 90 | Complete |
+| QUAL-02 | 90 | Complete |
+| QUAL-03 | 90 | Complete |
+| QUAL-04 | 90 | Complete |
 | KIT-01 | 91 | Pending |
 | KIT-02 | 91 | Pending |
 | KIT-03 | 91 | Pending |

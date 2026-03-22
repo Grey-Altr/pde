@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.12
 milestone_name: Business Product Type
-status: unknown
-stopped_at: Completed 89-02-PLAN.md — wireframe.md STR/DPD artifact generation + DESIGN-STATE wiring, 11/11 Nyquist tests GREEN
-last_updated: "2026-03-22T18:42:01.075Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 90-02-PLAN.md — hig.md business communications HIG + 20-field coverage, 24/24 Nyquist tests GREEN
+last_updated: "2026-03-22T20:22:37.491Z"
 progress:
   total_phases: 11
-  completed_phases: 6
-  total_plans: 11
-  completed_plans: 11
+  completed_phases: 7
+  total_plans: 13
+  completed_plans: 13
 ---
 
 # Project State
@@ -19,11 +19,11 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-22)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 89 — wireframe-stage-launch-artifacts
+**Current focus:** Phase 90 — critique-hig-extensions
 
 ## Current Position
 
-Phase: 89 (wireframe-stage-launch-artifacts) — EXECUTING
+Phase: 90 (critique-hig-extensions) — EXECUTING
 Plan: 2 of 2
 
 ## Performance Metrics
@@ -48,6 +48,8 @@ Plan: 2 of 2
 | Phase 87 P02 | 4 | 1 tasks | 1 files |
 | Phase 88-brand-system P01 | 3 | 2 tasks | 3 files |
 | Phase 89 P02 | 8 | 2 tasks | 1 files |
+| Phase 90 P01 | 5 | 2 tasks | 2 files |
+| Phase 90-critique-hig-extensions P02 | 8 | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -93,6 +95,10 @@ Recent decisions affecting v0.12:
 - [Phase 89]: STR unit_amount always string '[YOUR_PRICE_IN_CENTS]' — grep [1-9] pattern (not [0-9]) allows unit_amount:0 for free tiers
 - [Phase 89]: Step 7e-launch reuses existing Step 7a lock window — no second lock-acquire pde-wireframe introduced
 - [Phase 89]: DPD funding signal detection defaults to yc_10 when BTH/BRF absent — safe degradation for startup_team track
+- [Phase 90]: Step 4-BUSINESS is INDEPENDENT IF block inside ELSE clause — not ELSE IF from experience gate, preventing business perspectives from running on experience products
+- [Phase 90]: Business composite denominator 9.5 = sum of all 8 perspective weights (1.5+1.0+1.5+1.0+1.0+1.0+1.5+1.0) in critique.md business mode
+- [Phase 90-02]: LIGHT_MODE check is FIRST guard in Step 4-BUSINESS (before BM check) — defense-in-depth prevents business HIG running in --light critique delegation mode
+- [Phase 90-02]: OTR and CNT absent = note-and-continue in hig.md — Phase 91 handoff artifacts don't exist at Phase 90 run time; graceful degradation not halt
 
 ### Pending Todos
 
@@ -105,8 +111,8 @@ Recent decisions affecting v0.12:
 
 ## Session Continuity
 
-Last session: 2026-03-22T18:37:52.560Z
-Stopped at: Completed 89-02-PLAN.md — wireframe.md STR/DPD artifact generation + DESIGN-STATE wiring, 11/11 Nyquist tests GREEN
+Last session: 2026-03-22T20:22:37.488Z
+Stopped at: Completed 90-02-PLAN.md — hig.md business communications HIG + 20-field coverage, 24/24 Nyquist tests GREEN
 Resume file: None
 
 Next action: Execute Phase 85 (Brief Skill)

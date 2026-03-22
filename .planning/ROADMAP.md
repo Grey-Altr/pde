@@ -205,7 +205,7 @@ Full details: .planning/milestones/v0.11-ROADMAP.md
 - [x] **Phase 87: Flows Stage** — Service blueprint and GTM channel flow artifacts (completed 2026-03-22)
 - [x] **Phase 88: Brand System** — Marketing brand system with positioning statement and tone of voice (completed 2026-03-22)
 - [x] **Phase 89: Wireframe Stage Launch Artifacts** — Landing page wireframe, Stripe pricing config, pitch deck outline (completed 2026-03-22)
-- [ ] **Phase 90: Critique + HIG Extensions** — Business critique perspectives and business communications HIG
+- [x] **Phase 90: Critique + HIG Extensions** — Business critique perspectives and business communications HIG (completed 2026-03-22)
 - [ ] **Phase 91: Handoff — Launch Kit Assembly** — Launch kit manifest, content calendar, email sequence artifacts
 - [ ] **Phase 92: Deploy Skill** — Stage 14 with four approval-gated deployment actions and /pde:deploy command
 - [ ] **Phase 93: designCoverage Clobber Audit + Secondary Workflow Stubs** — 20-field pass-through audit across all 14 workflows; recommend/iterate/mockup guard stubs
@@ -310,8 +310,8 @@ Plans:
   4. Business critique findings use the standard severity levels (critical/major/minor/info) — no new severity formats introduced
 **Plans**: 2 plans
 Plans:
-- [ ] 90-01-PLAN.md — Test scaffold, business critique perspectives (4), pitch coherence cross-check, 20-field coverage in critique.md
-- [ ] 90-02-PLAN.md — Business communications HIG (3 domains), 20-field coverage upgrade in hig.md
+- [x] 90-01-PLAN.md — Test scaffold, business critique perspectives (4), pitch coherence cross-check, 20-field coverage in critique.md
+- [x] 90-02-PLAN.md — Business communications HIG (3 domains), 20-field coverage upgrade in hig.md
 
 ### Phase 91: Handoff — Launch Kit Assembly
 **Goal**: Users in business mode receive a complete, assembled launch kit with all upstream business artifacts catalogued, a 30-day content calendar, and Resend-compatible email sequences
@@ -395,7 +395,7 @@ Plans:
 | 87. Flows Stage | 2/2 | Complete    | 2026-03-22 | - |
 | 88. Brand System | 1/1 | Complete    | 2026-03-22 | - |
 | 89. Wireframe Stage Launch Artifacts | 2/2 | Complete    | 2026-03-22 | - |
-| 90. Critique + HIG Extensions | v0.12 | 0/2 | Not started | - |
+| 90. Critique + HIG Extensions | v0.12 | 2/2 | Complete   | 2026-03-22 |
 | 91. Handoff — Launch Kit Assembly | v0.12 | 0/TBD | Not started | - |
 | 92. Deploy Skill | v0.12 | 0/TBD | Not started | - |
 | 93. designCoverage Audit + Stubs | v0.12 | 0/TBD | Not started | - |
