@@ -1,10 +1,11 @@
 ---
 phase: 74
 slug: foundation-and-regression-infrastructure
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: approved
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-21
+verified: 2026-03-21
 ---
 
 # Phase 74 — Validation Strategy
@@ -38,11 +39,11 @@ created: 2026-03-21
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 74-01-01 | 01 | 0 | FNDX-01, FNDX-02, FNDX-03, FNDX-04 | structural | `node --test tests/phase-74/experience-regression.test.mjs` | W0 | pending |
-| 74-02-01 | 02 | 1 | FNDX-01 | structural | `node --test tests/phase-74/experience-regression.test.mjs` | W0 dep | pending |
-| 74-02-02 | 02 | 1 | FNDX-02 | structural | `node --test tests/phase-74/experience-regression.test.mjs` | W0 dep | pending |
-| 74-03-01 | 03 | 2 | FNDX-04 | structural | `node --test tests/phase-74/experience-regression.test.mjs` | W0 dep | pending |
-| 74-03-02 | 03 | 2 | FNDX-02 | structural | `grep -rn "experience-disclaimer" workflows/` | manual | pending |
+| 74-01-01 | 01 | 0 | FNDX-01, FNDX-02, FNDX-03, FNDX-04 | structural | `node --test tests/phase-74/experience-regression.test.mjs` | yes | green |
+| 74-02-01 | 02 | 1 | FNDX-01 | structural | `node --test tests/phase-74/experience-regression.test.mjs` | yes | green |
+| 74-02-02 | 02 | 1 | FNDX-02 | structural | `node --test tests/phase-74/experience-regression.test.mjs` | yes | green |
+| 74-03-01 | 03 | 2 | FNDX-04 | structural | `node --test tests/phase-74/experience-regression.test.mjs` | yes | green |
+| 74-03-02 | 03 | 2 | FNDX-02 | structural | `grep -rn "experience-disclaimer" workflows/` | yes | green |
 
 *Status: pending · green · red · flaky*
 
@@ -50,7 +51,7 @@ created: 2026-03-21
 
 ## Wave 0 Requirements
 
-- [ ] `tests/phase-74/experience-regression.test.mjs` — smoke matrix covering FNDX-01 (detection), FNDX-02 (branch sites), FNDX-03 (cross-type regression), FNDX-04 (sub-type metadata only)
+- [x] `tests/phase-74/experience-regression.test.mjs` — smoke matrix covering FNDX-01 (detection), FNDX-02 (branch sites), FNDX-03 (cross-type regression), FNDX-04 (sub-type metadata only)
 
 *Wave 0 test must exist BEFORE any workflow edits — its failing state on clean repo verifies the pre-state.*
 
@@ -66,11 +67,11 @@ created: 2026-03-21
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 2s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 2s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved — 2026-03-21 (7/7 tests pass, 4 suites: FNDX-01 3/3, FNDX-02 1/1, FNDX-03 2/2, FNDX-04 1/1)
