@@ -96,6 +96,14 @@ Any user can go from idea to shipped product through a single platform that hand
 - ✓ GTM channel flow (acquisition → conversion → retention) with channel priority annotations — v0.12
 - ✓ hasServiceBlueprint conditional coverage flag in 20-field designCoverage write — v0.12
 - ✓ SBP/GTM output depth adapts per businessTrack (solo/startup/leader) — v0.12
+- ✓ MKT (Brand/Marketing System) artifact with positioning statement, tone of voice spectrum, visual differentiation — v0.12
+- ✓ Brand system tokens: marketing-specific DTCG group (brand voice, campaign palette variants) — v0.12
+- ✓ LDP landing page wireframe spec with Next.js component mapping (hero, features, pricing, CTA, footer) — v0.12
+- ✓ STR Stripe pricing config with placeholder-only financial values, track-default tier structures — v0.12
+- ✓ DPD pitch deck outline with YC/Sequoia/internal business case format, QUAL-02 coherence anchors — v0.12
+- ✓ Launch artifact cross-references: LDP reads MKT brand tokens + GTM flow; STR reads LCV revenue streams + MLS competitive pricing — v0.12
+- ✓ All launch artifacts in `.planning/design/launch/` with manifest registration and DESIGN-STATE wiring — v0.12
+- ✓ 20-field designCoverage write pattern in wireframe.md (hasLaunchKit flag) — v0.12
 
 ### Active
 
@@ -134,6 +142,7 @@ Any user can go from idea to shipped product through a single platform that hand
 ## Context
 
 - **Shipped v0.11** on 2026-03-22: ~245,000 LOC (JavaScript/Markdown/Shell), ~1,078 total commits
+- **v0.12 progress:** Phases 84-89 complete (foundation, brief, competitive, flows, brand, wireframe launch artifacts); Phases 90-94 remaining (critique, handoff, deploy, integration)
 - **Active milestone:** v0.12 Business Product Type — venture design engine with business: orthogonal dimension, 3 user tracks, full deploy scaffolding
 - **Planned roadmap:** v0.13 AutoResearch → v0.14 WebMCP → v0.15 CLI-Anything → v0.16 Remote Dashboard → v0.17 Stakeholder Presentations → v1.0 Standalone CLI
 - **v0.11** shipped 2026-03-22: 112 files changed, 116 commits (experience product type: detection, brief, tokens, flows, wireframes, critique, HIG, print, handoff, 48 requirements)
@@ -239,4 +248,4 @@ Any user can go from idea to shipped product through a single platform that hand
 | Business detection threshold (3+ signals, 2+ categories) | Prevents over-triggering on pure software projects while catching genuine business intent | ✓ Good — 5-category taxonomy with category diversity requirement |
 | BTH→LCV dependency chain (skip, don't halt) | If BTH generation fails, LCV is skipped with warning rather than halting entire brief run | ✓ Good — graceful degradation preserves non-business brief output |
 | 20-field designCoverage write (not copy 16-field pattern) | Phase 84 added 4 fields; copying opportunity.md's 16-field pattern silently drops them | ✓ Good — canonical order from manifest template |
-*Last updated: 2026-03-22 after Phase 88 — Brand System (MKT artifact with positioning/tone/differentiation, SYS-brand-tokens.json DTCG extension, system.md 20-field coverage upgrade, launch-frameworks Brand System section)*
+*Last updated: 2026-03-22 after Phase 89 — Wireframe Stage Launch Artifacts (LDP landing page spec, STR Stripe pricing config, DPD pitch deck outline, 20-field designCoverage in wireframe.md, 11/11 Nyquist tests)*
