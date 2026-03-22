@@ -223,7 +223,10 @@ Full details: .planning/milestones/v0.11-ROADMAP.md
   3. `references/business-track.md` exists with concrete vocabulary, depth thresholds, and artifact format differences for all three tracks — a workflow author reading it knows exactly how to branch
   4. `references/launch-frameworks.md` exists with complete artifact templates for lean canvas, pitch deck slides, service blueprint lanes, and pricing config schema
   5. `references/business-financial-disclaimer.md` and `references/business-legal-disclaimer.md` exist with unambiguous placeholder patterns — no dollar amounts, no generated legal documents, every financial field is `[YOUR_X]` format
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 84-01-PLAN.md — Manifest schema extension + design.cjs launch dir + test scaffold
+- [ ] 84-02-PLAN.md — Business reference files (track, frameworks, financial/legal disclaimers)
 
 ### Phase 85: Brief Extensions + Detection
 **Goal**: Users can describe a business idea and have PDE detect business intent, select their track, and generate a business thesis with lean canvas
@@ -235,7 +238,10 @@ Full details: .planning/milestones/v0.11-ROADMAP.md
   3. A BTH artifact (business thesis) appears in `strategy/` with problem, solution, market, and unfair-advantage sections
   4. A lean canvas artifact appears with all 9 boxes populated and each hypothesis marked validated/assumed/unknown
   5. All financial content in the brief output uses structural placeholders only — no dollar amounts appear anywhere in the generated output
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 84-01-PLAN.md — Manifest schema extension + design.cjs launch dir + test scaffold
+- [ ] 84-02-PLAN.md — Business reference files (track, frameworks, financial/legal disclaimers)
 
 ### Phase 86: Competitive + Opportunity Extensions
 **Goal**: Users with business mode active get market landscape sizing and competitive positioning alongside RICE scoring with business initiative framing
@@ -247,7 +253,10 @@ Full details: .planning/milestones/v0.11-ROADMAP.md
   3. `/pde:opportunity` extends RICE scoring with business initiative framing including unit economics structural inputs (LTV formula, CAC ceiling, payback period at 3 churn scenarios) as placeholders
   4. `hasMarketLandscape` is set to true in designCoverage after the MLS artifact is created
   5. Market landscape output depth visibly differs between solo_founder (1-page summary), startup_team (competitive deep-dive), and product_leader (build-vs-buy analysis) tracks
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 84-01-PLAN.md — Manifest schema extension + design.cjs launch dir + test scaffold
+- [ ] 84-02-PLAN.md — Business reference files (track, frameworks, financial/legal disclaimers)
 
 ### Phase 87: Flows Stage
 **Goal**: Users in business mode get operational design artifacts — a 5-lane service blueprint and GTM channel flow — that anchor content calendar and email sequence generation downstream
@@ -258,7 +267,10 @@ Full details: .planning/milestones/v0.11-ROADMAP.md
   2. A GTM channel flow artifact appears as an acquisition → conversion → retention Mermaid flowchart with channel priority annotations
   3. `hasServiceBlueprint` is set to true in designCoverage after the SBP artifact is created
   4. Service blueprint and GTM flow output depth visibly adapts per businessTrack (solo: single-product, startup: multi-channel, leader: cross-functional)
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 84-01-PLAN.md — Manifest schema extension + design.cjs launch dir + test scaffold
+- [ ] 84-02-PLAN.md — Business reference files (track, frameworks, financial/legal disclaimers)
 
 ### Phase 88: Brand System
 **Goal**: Users in business mode get a brand and marketing positioning system that feeds brand tokens into the landing page wireframe and pitch deck
@@ -268,7 +280,10 @@ Full details: .planning/milestones/v0.11-ROADMAP.md
   1. `/pde:system` in business mode produces an MKT artifact containing a positioning statement, tone of voice spectrum, and visual differentiation rationale
   2. The brand system token output extends existing DTCG output with a marketing-specific token group (brand voice, campaign palette variants) without clobbering existing token groups
   3. The positioning statement and tone of voice from the MKT artifact are referenced in the landing page wireframe and pitch deck content generated in Phase 89
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 84-01-PLAN.md — Manifest schema extension + design.cjs launch dir + test scaffold
+- [ ] 84-02-PLAN.md — Business reference files (track, frameworks, financial/legal disclaimers)
 
 ### Phase 89: Wireframe Stage Launch Artifacts
 **Goal**: Users in business mode get three deployable launch artifacts — a Next.js-mapped landing page wireframe, a Stripe-compatible pricing config, and a track-appropriate pitch deck outline
@@ -280,7 +295,10 @@ Full details: .planning/milestones/v0.11-ROADMAP.md
   3. A pitch deck outline appears in YC/Sequoia format with track-appropriate depth (solo: 10 slides, startup: 12-15 slides, leader: internal business case format)
   4. Landing page wireframe content references brand tokens from Phase 88 and GTM copy framing from Phase 87
   5. All launch artifacts are stored in `.planning/design/launch/` — not in `ux/` or `visual/`
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 84-01-PLAN.md — Manifest schema extension + design.cjs launch dir + test scaffold
+- [ ] 84-02-PLAN.md — Business reference files (track, frameworks, financial/legal disclaimers)
 
 ### Phase 90: Critique + HIG Extensions
 **Goal**: Users in business mode get four business-specific critique perspectives and business communications guidelines that review pitch coherence, pricing psychology, and investor readiness
@@ -291,7 +309,10 @@ Full details: .planning/milestones/v0.11-ROADMAP.md
   2. Critique output includes a pitch coherence cross-check verifying that lean canvas UVP matches pitch deck solution slide and canvas key metrics match traction slide
   3. `/pde:hig` in business mode adds a business communications section covering pitch deck readability, email cadence, and content calendar structure guidelines
   4. Business critique findings use the standard severity levels (critical/major/minor/info) — no new severity formats introduced
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 84-01-PLAN.md — Manifest schema extension + design.cjs launch dir + test scaffold
+- [ ] 84-02-PLAN.md — Business reference files (track, frameworks, financial/legal disclaimers)
 
 ### Phase 91: Handoff — Launch Kit Assembly
 **Goal**: Users in business mode receive a complete, assembled launch kit with all upstream business artifacts catalogued, a 30-day content calendar, and Resend-compatible email sequences
@@ -304,7 +325,10 @@ Full details: .planning/milestones/v0.11-ROADMAP.md
   4. Domain strategy notes captured during the brief phase are consolidated into the launch kit
   5. `hasLaunchKit` is set to true in designCoverage after LKT creation — this flag gates the deploy stage
   6. All email sequence content uses structural personalization placeholders — no specific company names, partner references, or investor firm names appear in any generated email
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 84-01-PLAN.md — Manifest schema extension + design.cjs launch dir + test scaffold
+- [ ] 84-02-PLAN.md — Business reference files (track, frameworks, financial/legal disclaimers)
 
 ### Phase 92: Deploy Skill
 **Goal**: Users in business mode can generate a deployable Next.js landing page scaffold, Stripe config, and Resend email templates — with mandatory human approval gates before every external write — and initiate a Vercel deployment that returns a URL without blocking the session
@@ -318,7 +342,10 @@ Full details: .planning/milestones/v0.11-ROADMAP.md
   5. Vercel deployment completes via `npx vercel --prod --no-wait` and returns a deployment URL without blocking the Claude Code session
   6. All deployment artifacts are stored in `.planning/deploy-staging/` with a generated `.gitignore` entry — never in `.planning/design/`
   7. `deploy-manifest.json` tracks all deployment artifact statuses with `review_required: true` per artifact
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 84-01-PLAN.md — Manifest schema extension + design.cjs launch dir + test scaffold
+- [ ] 84-02-PLAN.md — Business reference files (track, frameworks, financial/legal disclaimers)
 
 ### Phase 93: designCoverage Clobber Audit + Secondary Workflow Stubs
 **Goal**: Every workflow that writes designCoverage includes all 20 fields in its write call, and all remaining workflows (recommend, iterate, mockup) have business-mode guard stubs
@@ -328,7 +355,10 @@ Full details: .planning/milestones/v0.11-ROADMAP.md
   1. Every designCoverage-writing workflow includes all 20 fields when writing the coverage object — a grep across all workflows confirms the field count
   2. `businessTrack` branching appears in every workflow where `businessMode` branching appears — `grep -rn "businessTrack" workflows/` hit count matches `grep -rn "businessMode" workflows/` hit count
   3. `recommend.md`, `iterate.md`, and `mockup.md` each contain a `<!-- Business product type -->` conditional stub (the same guard pattern used in v0.11 for experience stubs)
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 84-01-PLAN.md — Manifest schema extension + design.cjs launch dir + test scaffold
+- [ ] 84-02-PLAN.md — Business reference files (track, frameworks, financial/legal disclaimers)
 
 ### Phase 94: Nyquist Regression Tests
 **Goal**: The complete v0.12 integration is verified: non-business product types are byte-identical to pre-v0.12 baselines, business compositions produce correct artifact sets, and the deploy approval gates halt on decline
@@ -340,7 +370,10 @@ Full details: .planning/milestones/v0.11-ROADMAP.md
   3. `business:hardware` and `business:experience` compositions each produce both their type-specific and business-specific artifacts without collision
   4. The deploy workflow halts at each approval gate without proceeding when the user declines — no partial deployment occurs on any decline
   5. Nyquist structural assertions cover all composition cases and all 20 designCoverage fields across modified workflows
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 84-01-PLAN.md — Manifest schema extension + design.cjs launch dir + test scaffold
+- [ ] 84-02-PLAN.md — Business reference files (track, frameworks, financial/legal disclaimers)
 
 ## Progress
 
@@ -357,7 +390,7 @@ Full details: .planning/milestones/v0.11-ROADMAP.md
 | 64-69 | v0.9 | 12/12 | Complete | 2026-03-21 |
 | 70-73 | v0.10 | 8/8 | Complete | 2026-03-21 |
 | 74-83 | v0.11 | 19/19 | Complete | 2026-03-22 |
-| 84. Foundation | v0.12 | 0/TBD | Not started | - |
+| 84. Foundation | v0.12 | 0/2 | In progress | - |
 | 85. Brief Extensions + Detection | v0.12 | 0/TBD | Not started | - |
 | 86. Competitive + Opportunity Extensions | v0.12 | 0/TBD | Not started | - |
 | 87. Flows Stage | v0.12 | 0/TBD | Not started | - |
