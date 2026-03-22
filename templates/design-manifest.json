@@ -6,6 +6,8 @@
   "projectName": "string -- project name from design brief",
   "productType": "software | hardware | hybrid | experience",
   "experienceSubType": "single-night | multi-day | recurring-series | installation | hybrid-event | null",
+  "businessMode": false,
+  "businessTrack": "solo_founder | startup_team | product_leader | null",
   "outputRoot": "string -- path to output directory (e.g., ./pde-output or .planning/design)",
   "mode": "standalone | pde-integrated",
   "generatedAt": "ISO 8601 timestamp -- when manifest was first created",
@@ -122,6 +124,10 @@
     "hasRecommendations": false,
     "hasStitchWireframes": false,
     "hasPrintCollateral": false,
-    "hasProductionBible": false
+    "hasProductionBible": false,
+    "hasBusinessThesis": false,
+    "hasMarketLandscape": false,
+    "hasServiceBlueprint": false,
+    "hasLaunchKit": false
   }
 }
