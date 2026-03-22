@@ -1,17 +1,17 @@
 # Project Research Summary
 
-**Project:** PDE v0.11 — Experience Product Type
-**Domain:** Extension of the existing 13-stage PDE design pipeline to support events, festivals, installations, and recurring series as a first-class product type
-**Researched:** 2026-03-21
+**Project:** PDE v0.12 — Business Product Type (Venture Design Engine)
+**Domain:** Orthogonal `business:` dimension added to existing multi-type design pipeline
+**Researched:** 2026-03-22
 **Confidence:** HIGH
 
 ## Executive Summary
 
-PDE v0.11 adds an `experience` product type to the existing pipeline, joining `software`, `hardware`, and `hybrid`. An experience product is defined by time, space, and bodies rather than screens — the design deliverables shift from component specs and TypeScript interfaces to floor plans, running orders, and production bibles. Research confirms that every required capability (SVG floor plans, Mermaid gantt timelines, print-spec HTML collateral, multi-sensory DTCG token extensions, structured production documents) is implementable using technologies already in the pipeline: inline SVG, CSS `@page`, existing Mermaid rendering, and the existing DTCG JSON structure. No new npm packages are required.
+PDE v0.12 introduces the `business:` dimension as an orthogonal modifier that layers on top of all four existing product types (software, hardware, hybrid, experience) rather than replacing any of them. The key architectural insight driving all decisions: a business:software project is still a software project — it runs the same 13-stage design pipeline and produces all the same design artifacts, plus business-specific outputs. The dimension is implemented via a `businessMode` boolean flag in `design-manifest.json` alongside a `businessTrack` field (solo_founder / startup_team / product_leader), not as a new `productType` enum value. This composability is non-negotiable — encoding business mode as a fourth product type would break existing pipelines and destroy the orthogonal design goal. The analogy to v0.11 is instructive but limited: where `experience:` added exclusive branches that replaced software paths, `business:` adds conditional sections that augment all existing paths simultaneously.
 
-The recommended implementation strategy follows the established `hardware` branching pattern: add a conditional `ELSE IF experience` block within each of the 8 affected workflow files, driven by a canonical `product_type: "experience"` string stored in the brief and design-manifest.json. Five sub-types (single-night, multi-day, recurring-series, installation, hybrid-event) are metadata attributes, not structural branches — they inform prompt content, not code paths. This decision is load-bearing and must be locked in Phase 1. The six new artifact codes (FLP, TML, FLY, POS, PRG, BIB) follow existing naming conventions and register in the manifest under the existing artifact schema.
+The recommended approach treats the business pipeline as a 14-stage extension: stages 1-13 run as before with business-mode conditional blocks added inside each workflow, and a new Stage 14 (`deploy.md`) is appended exclusively when `businessMode === true`. The stack additions are scoped entirely to generated project scaffolds — the plugin itself adds zero new npm packages, preserving the zero-npm-deps-at-plugin-root constraint. Generated landing pages use Next.js 16.2.1 + Tailwind v4 + Stripe v20 + Resend 6.9.4 + Vercel CLI, all current as of 2026-03-22 and verified against official sources. The deploy skill produces a deployable Next.js scaffold, Stripe config (test-mode defaults), and Resend email templates — making PDE a venture design engine that generates launchable artifacts, not just design specifications.
 
-The dominant risk is not technical but architectural: experience extensions touch every workflow file simultaneously, creating multiple cross-type regression opportunities. The most critical mitigations are establishing a smoke matrix regression test in Phase 1 (covering all four product types against every affected workflow) and separating experience DTCG tokens into a standalone `SYS-experience-tokens.json` file rather than merging them into the existing 7-category token structure. Without these two guard rails, the milestone will silently break existing software/hardware/hybrid projects and produce over-specified token files that are operationally useless.
+The primary risks are three architectural time bombs that must be defused before any workflow is authored: (1) inadvertently encoding business mode as a peer product type rather than an orthogonal dimension — recovery cost is HIGH (full rewrite of all 14 workflows); (2) LLM-generated financial and legal content that appears authoritative but is hallucinated — requiring hard guardrails (structural placeholders only, never dollar amounts, mandatory disclaimer reference files); (3) the `designCoverage` pass-through clobber pattern that caused 10 regression bugs in v0.11 — the same mechanism applies when adding 4 new coverage flags to the existing 16-field object. All three require preventive architecture decisions in Phase 1 before implementation begins.
 
 ---
 
@@ -19,171 +19,180 @@ The dominant risk is not technical but architectural: experience extensions touc
 
 ### Recommended Stack
 
-No new packages are required. All five new capability areas use established PDE formats extended for physical design. Inline SVG inside self-contained HTML files handles floor plans — the same pattern proven by `WFR-*.html` wireframes. Mermaid `gantt` with `dateFormat HH:mm` handles running orders — the same Mermaid render path already used for flowcharts. CSS `@page` with physical `mm` units handles print-spec flyers and posters via browser print-to-PDF. DTCG 2025.10 JSON extended with custom category names handles multi-sensory design tokens — the existing `tokens-to-css` command iterates all categories generically, so new category names produce CSS custom properties automatically.
+See `.planning/research/STACK.md` for full detail, complete schemas, and alternatives considered.
 
-The only infrastructure changes required are: add `'physical'` to the `DOMAIN_DIRS` array in `design.cjs`, add `experienceSubType` to `templates/design-manifest.json`, add experience signals to Step 4 of `workflows/brief.md`, and add two new reference files (`references/experience-hig.md`, `references/experience-tokens.md`). All new behavior lives as conditional blocks inside existing workflow files.
+The plugin itself adds no npm packages. All new dependencies live in generated project scaffolds only. This preserves the zero-npm-deps-at-plugin-root constraint without exception.
 
-**Core technologies:**
-- Inline SVG in self-contained HTML: floor plan and spatial zone artifacts (FLP) — `viewBox="0 0 1000 750"` abstract coordinate system, no SVG library needed, LLM generates source directly
-- Mermaid `gantt` with `dateFormat HH:mm`: timeline/running order artifacts (TML) — reuses existing Mermaid render path, time-of-day scheduling via `axisFormat %H:%M`
-- CSS `@page` with `mm` units: print-ready flyer and poster artifacts (FLY, POS, PRG) — Chrome/Edge honor `@page size` for print-to-PDF; browser is the renderer, no Puppeteer or WeasyPrint needed
-- DTCG 2025.10 JSON with custom category names: sonic, lighting, spatial, atmospheric, print token categories — zero parser changes required; `tokens-to-css` is already a generic category iterator
-- Markdown (structured): production bible, run sheet, staffing plan, advance document (BIB) — matches existing HND handoff document pattern exactly
+**Core technologies (generated scaffold only):**
+- Next.js 16.2.1 (App Router, Turbopack default, React 19.2): landing page scaffold — canonical Vercel-deployed React app; Server Actions replace /api/ routes for email capture and Stripe checkout, eliminating a separate API layer
+- Stripe Node SDK `stripe@20.4.1` + `@stripe/stripe-js@8.11.0`: payment infrastructure — v20 requires Node.js 18+ (Vercel default runtime is 20); server SDK in Server Actions, client SDK for Stripe Elements if needed
+- Resend `resend@6.9.4` + React Email `react-email@5.2.9`: transactional email — native TypeScript API, `resend.emails.send()` accepts React component directly, free tier (3,000 emails/month) covers launch volumes
+- Tailwind CSS `^4.0`: zero-config CSS plugin (`@import "tailwindcss"` in global CSS, no config file required), Turbopack-compatible
+- Vercel CLI (`npx vercel --prod --no-wait`): deployment orchestration — `--no-wait` returns deployment URL immediately without blocking the session; used via npx so no global install required
+- `@stripe/mcp@0.2.5` (optional): Stripe product/price management via MCP — added to APPROVED_SERVERS only as explicit opt-in with consent gate, not by default
 
-See `.planning/research/STACK.md` for complete token schemas, SVG coordinate strategy, print bleed handling, and sub-type-specific artifact matrix.
+**Artifact format note:** No dominant JSON schema standard exists for BMC or service blueprints in developer contexts. PDE defines its own formats (BIZ-canvas JSON, BIZ-thesis markdown, SBP-blueprint markdown, STR-pricing JSON, LKT-launch-kit JSON) following the same philosophy as `design-manifest.json` — structured JSON for machine consumption, markdown for human readability. No external tooling is required to parse or consume these formats.
 
 ### Expected Features
 
-Experience product type practitioners expect a complete pipeline from creative brief through operational handoff. The most expected deliverable — by far — is the floor plan wireframe. Its absence signals an incomplete pipeline to any event producer. After floor plan: the production bible (the equivalent of the TypeScript handoff), run sheet, staffing plan, event flyer, and safety critique perspective.
+See `.planning/research/FEATURES.md` for full competitor analysis, feature dependency graph, and prioritization matrix.
 
-**Must have (table stakes) — v0.11 launch:**
-- Experience sub-type detection (5 sub-types: single-night, multi-day, recurring-series, installation, hybrid-event) — gates all downstream differentiation
-- Brief extensions: promise statement, vibe contract, audience archetype, venue constraints, repeatability intent — foundational inputs for all physical artifact generation
-- Temporal flow diagram — event equivalent of a user flow; required before run sheet can be generated
-- Spatial flow diagram — required input for floor plan layout; cannot generate credible spatial design without it
-- Floor plan wireframe (FLP artifact) — the single most expected deliverable; absence signals an incomplete pipeline
-- Timeline wireframe (TML artifact) — production schedule visualization; pairs with run sheet in handoff
-- Production bible / advance document (BIB artifact) — experience equivalent of TypeScript handoff; the completion artifact
-- Run sheet — required by every professional production team; component of production bible
-- Staffing plan — required operational deliverable; component of production bible
-- Safety critique perspective — non-optional for physical experiences with liability implications
-- Event flyer artifact (FLY) as print-spec HTML — first deliverable any event planner creates; absence signals incomplete pipeline
-- Wayfinding design tokens — required for any multi-zone event
+**Must have for v0.12 (P1 — table stakes, without these `business:` is not credible):**
+- Business thesis statement in brief — foundational anchor; without it, pitch deck and lean canvas are disconnected from each other
+- Lean Canvas generation in brief (9-box, confidence level per hypothesis: validated/assumed/unknown) — universal founder artifact; every accelerator and startup program uses this
+- User track selection (solo_founder / startup_team / product_leader) — without track adaptation, all users receive wrong output depth and format; this flag is cross-cutting, read by every stage
+- Market landscape with TAM/SAM/SOM in competitive stage — hard dependency for the pitch deck market slide
+- Service blueprint in flows stage (5-lane Mermaid sequence: customer actions, frontstage, line of visibility, backstage, support) — business-mode equivalent of user flows
+- GTM channel flow in flows stage (acquisition → conversion → retention funnel) — backbone for content calendar and email sequence
+- Landing page wireframe in deployable-spec format (structured with Next.js component mapping) — single most expected launch kit deliverable
+- Pricing configuration spec (Stripe-compatible: product names, price amounts, billing intervals, trial periods) — gates both landing page pricing section and Stripe deployment scaffold
+- Pitch deck outline YC/Sequoia format (10-slide default, expandable to 13) — required for investor and product leader tracks
+- Business critique perspectives (unit economics, GTM-ICP fit, pricing psychology, investor readiness)
+- Content calendar skeleton (30-day pre-launch / launch / post-launch schedule with content category slots)
+- Email sequence spec (onboarding 5-7 emails + investor outreach 3 emails; trigger/delay/CTA format, Resend-compatible)
+- Deploy skill with human approval gates (Stage 14) — the terminal stage that makes PDE a venture design engine; Next.js + Stripe + Resend + Vercel stack, mandatory approval gates at every external write
 
-**Should have (competitive differentiators) — v0.11.x:**
-- Vibe contract design system (sonic, lighting, atmospheric token extensions) — no other design tool connects emotional brief to design system
-- Physical HIG (wayfinding legibility, queue UX, toilet ratio, hydration, first aid proximity) — unique to PDE
-- Operations and sustainability critique perspectives — extends critique advantage to physical events
-- Budget framework in handoff — structured line item generation from brief scale and sub-type
-- Post-event review template — tailored to specific event design decisions; useful for recurring series
+**Should have after validation (P2 — differentiators, v0.12.x):**
+- Pitch coherence check (lean canvas UVP vs pitch deck solution, canvas key metrics vs traction slide) — unique cross-stage consistency check no standalone generator can do
+- Unit economics derivation from pricing spec (LTV formula, CAC ceiling, payback period at 3 churn scenarios)
+- GTM channel flow → content calendar → email sequence coherence wiring (channel priorities dictate calendar slots and email trigger timing)
+- Business model → service blueprint alignment critique (revenue model vs support infrastructure check)
+- Investor email sequence gated on pitch deck completion (emails reference specific slides)
 
-**Defer (v0.12+ or future iterations):**
-- Series identity template artifact — requires repeatability flag to be tested first; architecturally significant
-- Festival program artifact (PRG) — composite document requiring multiple upstream artifacts
-- Repeatability-aware `{{variable}}` template generation across all stages — architectural mode switch; defer until single-run pipeline is stable
-- Licensing/financial critique perspective — requires careful scoping to avoid harmful legal advice
+**Defer to v0.13+:**
+- Multi-product-type business overlay (business:experience, business:hardware) — validate software-mode first
+- Product leader OKR framing layer (deep enterprise vocabulary calibration across all stages)
+- Repeatability / series launch template mode (architecturally significant; parallel to experience's repeatability flag)
 
-See `.planning/research/FEATURES.md` for full competitor analysis, feature dependency graph, and MVP definition.
+**Anti-features — never implement in v0.12:**
+- Autonomous deployment without approval gates — every external write is irreversible; approval gates are architectural, not optional
+- Full financial model / P&L generation — structural placeholders only; dollar amounts are a liability risk
+- Legal document generation (ToS, Privacy Policy) — legal checklist and service recommendations only
+- Live market research data fetching — violates offline-capable design model; methodology guide and placeholder slots instead
+- Multi-provider email integration — Resend only; the email sequence spec artifact is provider-agnostic for manual import
 
 ### Architecture Approach
 
-The architecture is purely additive: conditional blocks within existing workflow files, two new reference files, and minor template modifications. The established `hardware` branching pattern in `handoff.md` is the template for every experience extension. No new workflow files are created (which would break `--from` stage resumption), no directory structure is added beyond the `physical` domain directory, and no architectural components are restructured. Sub-types are metadata attributes, not structural branches — they calibrate prompt content within the single `ELSE IF experience` code path.
+See `.planning/research/ARCHITECTURE.md` for complete component inventory, data flow diagrams, anti-patterns, and suggested build order.
 
-**Major components affected:**
+The business layer is purely additive. `businessMode` is an orthogonal boolean flag set by `brief.md` alongside the existing `productType` field. All downstream workflows read both fields independently using the pattern: evaluate `productType` for type-specific logic first, then evaluate `businessMode` for business overlays. Business overlays append to, never replace, type-specific sections. A new Stage 14 (`deploy.md`) is conditionally appended to the build orchestrator pipeline only when `businessMode === true`.
 
-1. `workflows/brief.md` (MODIFIED) — add experience signal detection in Step 4, add venue constraints, vibe contract, and sub-type fields in Step 5
-2. `workflows/flows.md` (MODIFIED) — add temporal, spatial, and social flow dimensions when experience type detected
-3. `workflows/system.md` (MODIFIED) — generate `SYS-experience-tokens.json` alongside existing token file when experience type detected; separate file, never merged
-4. `workflows/wireframe.md` (MODIFIED) — emit FLP (floor plan) and TML (timeline) artifact codes for experience products
-5. `workflows/critique.md` (MODIFIED) — add safety, operations, and sustainability perspectives
-6. `workflows/hig.md` (MODIFIED) — replace WCAG/digital checks with physical interface guidelines (wayfinding, acoustic zones, queue UX, ratios)
-7. `workflows/handoff.md` (MODIFIED) — emit production bible sections instead of software component APIs
-8. `references/experience-hig.md` (NEW) — physical HIG reference library loaded via existing `@references/` pattern
-9. `references/experience-tokens.md` (NEW) — sonic/lighting/spatial/atmospheric token schemas and examples
+**Major components:**
+1. `design-manifest.json` template (MODIFIED) — adds `businessMode: false` and `businessTrack: null` top-level fields; `designCoverage` grows from 16 to 20 fields (adding `hasBusinessThesis`, `hasMarketLandscape`, `hasServiceBlueprint`, `hasLaunchKit`)
+2. `workflows/brief.md` (MODIFIED) — central detection point; sets `businessMode`, `businessTrack`, writes BTH artifact, sets `hasBusinessThesis`; all 12 downstream workflow gates depend on this
+3. `workflows/deploy.md` (NEW) — Stage 14, only when `businessMode === true`; four mandatory approval gates (Next.js scaffold, Stripe config write, Resend template stubs, Vercel deploy)
+4. `references/business-track.md` (NEW) — single source of truth for track vocabulary, depth, and artifact format differences across solo/startup/leader tracks; loaded via `@references/` by all workflows
+5. `references/launch-frameworks.md` (NEW) — business artifact templates analogous to `experience-disclaimer.md`
+6. 13 existing workflow files (MODIFIED) — each gains a `<!-- Business product type -->` conditional block; estimated additions range from 5 lines (iterate/mockup guard stubs) to 200 lines (wireframe.md)
+7. `bin/lib/design.cjs` (MODIFIED) — adds `launch/` to `ensure-dirs` directory creation list (3 lines)
 
-See `.planning/research/ARCHITECTURE.md` for complete dispatch pattern, all 5 architectural patterns, and the sub-type calibration map.
+**New artifact directory:** `launch/` under `.planning/design/` holds all deployable artifacts (LKT, LDP, STR, CNT, OTR) separate from design specifications in `ux/` and `visual/`. The isolation prevents confusion between design artifacts and executable launch artifacts, and makes the deploy workflow's file discovery predictable.
+
+**New artifact codes:** BTH (Business Thesis, strategy/), MLS (Market Landscape, strategy/), MKT (Brand/Marketing System, visual/), SBP (Service Blueprint, ux/), LKT (Launch Kit, launch/), LDP (Landing Page Wireframe, launch/), STR (Stripe Pricing Config, launch/), CNT (Content Calendar, launch/), OTR (Outreach Sequence, launch/)
 
 ### Critical Pitfalls
 
-Research identified 8 pitfalls across pipeline integration, token architecture, artifact quality, and LLM safety. The top 5 requiring proactive mitigation:
+See `.planning/research/PITFALLS.md` for full warning signs, recovery strategies, and pitfall-to-phase mapping.
 
-1. **Default-else regression (CRITICAL)** — adding `ELSE IF experience` to every workflow branch risks silently removing the `software` fallback default. The final `ELSE` in every chain must remain a software default, never an error state. Audit all 14 branch sites with `grep -rn "software|hardware|hybrid" workflows/` before writing any new code. Address in Phase 1.
+1. **Orthogonal dimension encoded as productType enum value** — writing `IF software ... ELSE IF business` collapses the orthogonal dimension into sequential logic; a business:software project triggers the business branch and loses all software-specific logic. Represent as composite flag pair (`businessMode` boolean + `businessTrack`) in manifest. Recovery cost if discovered after all 14 workflows are written: HIGH (full rewrite). Address in Phase 1 before any workflow is authored.
 
-2. **Token schema pollution (CRITICAL)** — experience token categories must live in a separate `SYS-experience-tokens.json`, never merged into the existing 7-category `SYS-tokens.json`. The existing `tokens-to-css` transformer skips unknown categories silently. Separate file architecture must be established in Phase 3 before any experience tokens are authored.
+2. **LLM financial and legal hallucination** — LLMs generate plausible-looking financial projections with confident-sounding numbers that are ungrounded in the user's actual cost structure. Every financial artifact section must use structural placeholders (`[YOUR_MONTHLY_BURN]`), never dollar amounts. TAM/SAM/SOM must cite user-provided sources only — if no source is in the brief, the output must be `[TAM: Source required — PDE cannot estimate this]`. Investor outreach must never name specific firms or partners. Prevent via `references/business-financial-disclaimer.md` and `references/business-legal-disclaimer.md` created in Phase 1 before any launch kit workflow is authored.
 
-3. **SVG floor plan illegibility (HIGH)** — LLM-generated SVG passes XML validation but produces operationally useless output: 6px labels, 0.5px walls, uniformly-sized zones regardless of stated capacity. Mitigate with a mandatory coordinate system (`1 SVG unit = 0.1m`, `viewBox="0 0 1500 1000"`), minimum stroke/font values, scale bar elements, and an explicit "SCHEMATIC ONLY" disclaimer text element. Address in Phase 5.
+3. **designCoverage pass-through clobber (20-field version of v0.11's 16-field bug)** — v0.11's Phase 83 found 10 workflows clobbering flags set by earlier phases by writing partial `designCoverage` objects. v0.12 adds 4 new flags making it 20 fields; every one of the 14 coverage-writing workflows must include all 20 fields in their write calls. Prevent by updating the manifest template before any workflow is authored. Dedicate an isolated audit phase to verify all 14 workflows include the new pass-through fields.
 
-4. **Print color space mismatch (HIGH)** — OKLCH colors used throughout PDE have no lossless CMYK equivalent; high-chroma event branding colors flatten severely when converted. Never use the phrase "print-ready" without a mandatory prepress disclaimer. Include a CMYK approximation table in the design system output. Frame all print artifacts as "composition reference guides, not production print files." Address in Phase 7.
+4. **Deployment artifacts without approval gates** — Stripe config with live keys, Vercel deployments, and Resend emails are irreversible external writes with financial consequences. Every deployment action must halt with a `[HUMAN APPROVAL REQUIRED]` prompt listing exactly what will be written/deployed. Stripe config must default to test-mode placeholder keys (`pk_test_REPLACE_WITH_YOUR_KEY`). `.planning/deploy-staging/` must have a `.gitignore` entry by default.
 
-5. **LLM safety and licensing hallucination (HIGH)** — production bibles and safety critique perspectives will confidently assert jurisdiction-specific regulations that are outdated, jurisdiction-wrong, or invented. Every regulatory value must carry a `[VERIFY WITH LOCAL AUTHORITY]` inline tag. Replace specific regulatory thresholds with industry guidance ranges. Reframe safety critique from "applicable regulations" to "questions to verify with your AHJ." Define the mandatory disclaimer block in Phase 1. Address in Phases 8 and 9.
-
-See `.planning/research/PITFALLS.md` for Pitfalls 6-8 (sub-type scope creep, missing cross-type regression tests, multi-sensory token overload) with full warning signs and avoidance strategies.
+5. **User track branching inconsistency across workflows** — track adaptation applied in `brief.md` but missed in `competitive.md` or `flows.md` produces incoherent artifacts (product leader brief fed into solo-founder-depth competitive analysis). Verify: `grep -rn "businessTrack" workflows/` hit count must match `grep -rn "businessMode" workflows/` hit count. DESIGN-STATE.md Quick Reference must include a `business:` row with both mode and track values.
 
 ---
 
 ## Implications for Roadmap
 
-Based on research, the dependency chain drives phase order. Brief extensions gate everything. Floor plan gates safety critique, physical HIG, and advance document. Experience token architecture must precede token generation. Cross-type regression testing must be established before any workflow changes are made.
+Based on combined research, the architecture document's 14-phase suggested build order reflects the true dependency chain. The ordering is non-negotiable: manifest schema before workflows, reference files before workflows, brief before downstream stages, deploy (Stage 14) after handoff (Stage 13), audit phase after all workflow modifications.
 
-### Phase 1: Foundation and Regression Infrastructure
-**Rationale:** Every downstream phase modifies existing workflow files. Without a cross-type regression safety net, each modification can silently break software/hardware/hybrid projects. This phase is the mandatory guard before any pipeline changes. It also locks the two irreversible architecture decisions: sub-types as metadata (not branches) and experience tokens in a separate file.
-**Delivers:** `experience` added to the `productType` enum in brief and manifest; sub-type detection in brief Step 4; `experience-regression.test.mjs` smoke matrix covering all 4 product types against 3 critical shared paths; mandatory disclaimer block template; Key Decisions recorded in PROJECT.md (sub-type architecture, token separation architecture)
-**Addresses:** Sub-type detection (FEATURES.md table stakes); repeatability intent flag (FEATURES.md table stakes)
-**Avoids:** Default-else regression (Pitfall 1), sub-type scope creep (Pitfall 6), missing regression tests (Pitfall 7)
+### Phase 1: Foundation — Manifest Schema + Reference Files
+**Rationale:** All downstream phases read `businessMode`, `businessTrack`, and the 20-field `designCoverage` from the manifest. Authoring any workflow before the manifest template is updated guarantees the coverage clobber bug. The disclaimer reference files (`business-financial-disclaimer.md`, `business-legal-disclaimer.md`) must exist before any financial or legal content template is authored. Architecture decisions made here (composite flag vs enum, `launch/` directory isolation) cannot be changed without cascading rework.
+**Delivers:** Updated `design-manifest.json` template (20 coverage fields, `businessMode: false`, `businessTrack: null`), `bin/lib/design.cjs` with `launch/` in `ensure-dirs`, `references/business-track.md`, `references/launch-frameworks.md`, `references/business-financial-disclaimer.md`, `references/business-legal-disclaimer.md`
+**Avoids:** designCoverage clobber (Pitfall 3), orthogonal dimension model error (Pitfall 1), financial hallucination (Pitfall 2)
 
-### Phase 2: Brief Extensions
-**Rationale:** All downstream artifact generation requires structured brief data — venue constraints, vibe contract, audience archetype, repeatability intent. These are the physical design equivalents of software brief fields and must exist before any pipeline stage runs for experience products.
-**Delivers:** Venue constraints capture (capacity, indoor/outdoor, ceiling height, power, infrastructure), promise statement and vibe contract fields, audience archetype extensions (mobility needs, energy profile), repeatability intent flag with series cadence, `Sub-type` row in DESIGN-STATE.md Quick Reference
-**Addresses:** All brief extension table stakes (FEATURES.md); experience sub-type dispatch pattern (ARCHITECTURE.md Pattern 1 and 2)
-**Avoids:** Incomplete brief data causing floor plan generation with fictitious venue constraints
+### Phase 2: Brief Extensions + Business Mode Detection
+**Rationale:** `brief.md` is the system's detection point — it sets `businessMode`, `businessTrack`, writes the BTH artifact, and flags `hasBusinessThesis`. All 12 downstream workflows gate on `businessMode` read from the manifest. Brief must be complete before any downstream workflow can be authored against real behavior. Financial content guardrails are also applied here first since the brief stage originates the initial financial framing.
+**Delivers:** Updated `workflows/brief.md` (business signal detection, track detection, 5 business sections including business thesis + lean canvas + domain strategy captures, BTH artifact, manifest writes), lean canvas generation with 9-box confidence-level output, business thesis structured output
+**Uses:** `references/business-track.md` (track vocabulary), `references/business-financial-disclaimer.md` (financial placeholder pattern)
+**Avoids:** Track branching inconsistency (Pitfall 5), financial hallucination in early-stage outputs (Pitfall 2)
 
-### Phase 3: Experience Design Token Architecture
-**Rationale:** Design tokens must be established before wireframe, critique, or handoff stages that consume them. The separate-file architecture decision is irreversible — retrofitting after downstream stages are written is the most expensive rework possible.
-**Delivers:** `SYS-experience-tokens.json` with sonic (2 entries max), lighting (3 entries max), spatial (3 entries max), atmospheric (reference-only), print, and wayfinding categories; separate `SYS-experience-tokens.css` generated by an `--experience` flag on `tokens-to-css`; token count assertion (30 entries max); wayfinding token categories in system stage
-**Addresses:** Wayfinding design tokens (FEATURES.md table stakes); vibe contract design system (FEATURES.md differentiator); multi-sensory token extensions (STACK.md)
-**Avoids:** Token schema pollution (Pitfall 2), multi-sensory token overload (Pitfall 8)
+### Phase 3: Competitive + Opportunity Stage Extensions
+**Rationale:** Market landscape (TAM/SAM/SOM) is a hard dependency of the pitch deck market slide. Business RICE prioritization extends the existing opportunity skill. Both stages read `businessMode` set by Phase 2. Self-contained modifications with no new file dependencies beyond Phase 1 reference files.
+**Delivers:** Updated `workflows/competitive.md` (MLS market landscape path, competitive positioning matrix), updated `workflows/opportunity.md` (business initiative RICE scoring, unit economics framework), MLS artifact, market positioning 2x2 matrix (Mermaid quadrant or ASCII)
+**Addresses:** Market landscape with TAM/SAM/SOM (table stakes), competitor landscape with positioning matrix (table stakes), business model RICE prioritization (table stakes)
 
-### Phase 4: Flow Diagrams (Temporal and Spatial)
-**Rationale:** Temporal and spatial flow diagrams are dependencies of the floor plan wireframe, timeline wireframe, and production bible. Floor plan generation without a spatial flow diagram produces layout without design rationale. Run sheet generation without a temporal flow diagram produces timing without structure.
-**Delivers:** Temporal flow diagram (Mermaid gantt or sequence showing attendee journey arcs), spatial flow diagram (Mermaid flowchart with zone nodes and crowd pressure annotations), both registered as flow artifacts in manifest
-**Addresses:** Temporal flow and spatial flow table stakes (FEATURES.md); flow diagram dependency on floor plan (FEATURES.md dependency graph)
-**Avoids:** Floor plan generated without spatial design rationale
+### Phase 4: Flows Stage (Service Blueprint + GTM Channel Flow)
+**Rationale:** Service blueprint and GTM channel flow are direct dependencies of the handoff content calendar and email sequence. The flows stage reads the BTH artifact from Phase 2 for business context. GTM channel selection becomes the backbone for Phase 8 handoff artifacts.
+**Delivers:** Updated `workflows/flows.md` (service blueprint path + GTM channel flow path), SBP artifact (5-lane Mermaid sequence diagram), GTM channel flow artifact (acquisition → conversion → retention Mermaid flowchart)
+**Addresses:** Operational flow diagram / service blueprint (table stakes), GTM channel flow (table stakes)
 
-### Phase 5: Wireframe Stage Extensions — Floor Plan and Timeline
-**Rationale:** Floor plan is the single most expected deliverable. It gates safety critique, physical HIG, and advance document. Timeline wireframe pairs with run sheet in handoff. Both must exist before handoff stage can produce a complete production bible.
-**Delivers:** FLP artifact (self-contained HTML with inline SVG, `viewBox="0 0 1500 1000"`, 1 SVG unit = 0.1m, mandatory scale bar, "SCHEMATIC ONLY" disclaimer, minimum stroke-width=3/font-size=14 rules, zone sizing proportional to venue capacity); TML artifact (Markdown with Mermaid gantt, `dateFormat HH:mm`, multi-section for multi-stage events)
-**Addresses:** Floor plan wireframe and timeline wireframe table stakes (FEATURES.md); all FLP/TML artifact code specifications (STACK.md)
-**Avoids:** SVG floor plan illegibility (Pitfall 3); coordinate system decisions locked here and not retrofittable
+### Phase 5: System Stage (Brand System + Marketing Positioning)
+**Rationale:** Brand system tokens and positioning are required by the landing page wireframe (Phase 6) — DTCG tokens flow into landing page component styles. The brand positioning statement and tone of voice define the visual differentiation rationale for the pitch deck. The system stage is parallel to flows (no dependency between them) but must precede wireframe.
+**Delivers:** Updated `workflows/system.md` (brand system + marketing positioning sections), MKT-brand-system artifact (positioning statement, tone of voice spectrum, visual differentiation note)
+**Addresses:** Brand system with business positioning (table stakes)
 
-### Phase 6: Critique and HIG Extensions
-**Rationale:** Safety critique and physical HIG can only run after the floor plan exists. They are review stages, not generation stages — they require upstream artifacts to evaluate. HIG for experience products replaces WCAG checks entirely with physical interface guidelines.
-**Delivers:** Safety critique perspective (exit path clearance, crowd density per zone, first aid proximity, toilet ratio, accessible routing); physical HIG replacing WCAG when experience type detected (wayfinding legibility, acoustic zoning, queue UX, toilet ratio EN 16747, hydration provision, first aid coverage, accessible routes); permits and licensing checklist (questions, not compliance assertions)
-**Addresses:** Safety critique perspective table stake (FEATURES.md); physical HIG differentiator (FEATURES.md); HIG replacement pattern (ARCHITECTURE.md Pattern 4)
-**Avoids:** LLM regulatory hallucination (Pitfall 5) — every regulatory value carries `[VERIFY WITH LOCAL AUTHORITY]` tag
+### Phase 6: Wireframe Stage (Landing Page + Pricing Config + Pitch Deck)
+**Rationale:** The wireframe stage is the highest-complexity phase — it produces three new artifacts (landing page wireframe in deployable-spec format, Stripe-compatible pricing config, pitch deck outline) that are depended on by critique, handoff, and deploy. It requires brand tokens (Phase 5), GTM flow (Phase 4), and market landscape (Phase 3). The pricing config is a hard dependency of Stripe deployment scaffolding in Phase 9 and of the landing page pricing section.
+**Delivers:** Updated `workflows/wireframe.md` (SBP + LDP + STR-pricing + pitch deck paths), LDP artifact (deployable-spec landing page wireframe with Next.js component mapping), STR-pricing artifact (Stripe-compatible pricing config spec), pitch deck outline (YC 10-slide format with track-specific depth), SBP artifact registered from flows stage
+**Addresses:** Landing page wireframe (table stakes), pricing configuration spec (table stakes), pitch deck structure (table stakes), service blueprint (table stakes)
+**Avoids:** Launch artifacts stored in ux/ or visual/ (Architecture Anti-Pattern 2)
 
-### Phase 7: Print Collateral Artifacts
-**Rationale:** Event flyer is table stakes — its absence signals an incomplete pipeline to practitioners. Print artifacts require design tokens from Phase 3 and brand color decisions. This phase is isolated because print color space handling (CMYK approximation, prepress disclaimer) requires dedicated scope definition before any print artifact is authored.
-**Delivers:** FLY artifact (self-contained HTML with CSS `@page { size: 210mm 297mm }`, bleed zone as dashed CSS border, safe zone at 5mm, CMYK approximation table, mandatory prepress disclaimer); POS artifact (A3 portrait); `physical` domain directory extension in `design.cjs`
-**Addresses:** Event flyer artifact table stake (FEATURES.md); print spec output table stake (FEATURES.md); CSS `@page` and OKLCH-to-CMYK approach (STACK.md)
-**Avoids:** Print color space mismatch (Pitfall 4) — "print-ready" phrase never used without disclaimer; scope established before workflow is authored
+### Phase 7: Critique + HIG Stage Extensions
+**Rationale:** Business critique perspectives (unit economics, GTM-ICP fit, pricing psychology, investor readiness) require upstream artifacts — especially pitch deck and pricing config. HIG business communications section is a lower-complexity addition in the same phase. Both are review stages, not generation stages.
+**Delivers:** Updated `workflows/critique.md` (business alignment perspective, unit economics review, pitch coherence cross-check hooks), updated `workflows/hig.md` (business communications HIG — pitch deck readability, email cadence, content calendar structure)
+**Addresses:** Business critique perspectives (table stakes), pitch coherence check (P2 differentiator setup)
 
-### Phase 8: Handoff — Production Bible
-**Rationale:** Production bible is a composite document that aggregates outputs from all upstream stages. It is the completion artifact for the experience pipeline — equivalent to the TypeScript interface handoff for software products. It must be generated last because it references floor plan, timeline, run sheet, staffing plan, and HIG checklist.
-**Delivers:** BIB artifact (structured markdown with: Event Overview, Venue and Site Plan, Schedule and Running Order, Staffing Plan, Artist Advance template, Technical Rider Summary, Budget Outline framework, Health and Safety with `[VERIFY WITH LOCAL AUTHORITY]` tags throughout, Sustainability Notes, Post-Event Review Template); run sheet as structured markdown table (time, duration, activity, owner, technical cue, contingency columns); staffing plan as role matrix derived from brief scale
-**Addresses:** Production bible, run sheet, staffing plan, budget framework, post-event review template (FEATURES.md); BIB artifact generation approach (STACK.md); handoff replacement pattern (ARCHITECTURE.md)
-**Avoids:** LLM regulatory hallucination (Pitfall 5) — disclaimer block from Phase 1 injected into every safety and licensing section
+### Phase 8: Handoff Stage (Launch Kit Assembly)
+**Rationale:** Handoff assembles the complete launch kit from all upstream business artifacts. It requires BTH, MLS, LDP, SBP, STR-pricing all registered in the manifest. Content calendar derives from GTM channel flow (Phase 4). Email sequence spec is Resend-compatible; the investor outreach sequence references pitch deck slides. This sets `hasLaunchKit: true` which gates the deploy stage.
+**Delivers:** Updated `workflows/handoff.md` (launch kit assembly path), LKT artifact (assembled launch kit manifest with all artifact paths and statuses), CNT-calendar artifact (30-day pre-launch / launch / post-launch skeleton), OTR-outreach artifact (email sequence specs for onboarding + investor outreach), domain strategy notes
+**Addresses:** Content calendar skeleton (table stakes), email sequence spec (table stakes), domain and brand identity strategy (table stakes)
 
-### Phase 9: Integration Validation and Regression Audit
-**Rationale:** All 8 affected workflows have been modified. A full cross-type regression run is required to confirm that software, hardware, and hybrid project outputs are byte-identical to pre-milestone baselines, and that experience projects produce the full artifact set for each sub-type.
-**Delivers:** Full smoke matrix pass (all 4 product types against all affected workflows); sub-type coverage validation (one project per sub-type exercised); regression assertions for all 14 branch sites; updated skill registry confirming no new workflow files were added
-**Addresses:** Cross-type regression test coverage (Pitfall 7); default-else regression verification (Pitfall 1)
-**Avoids:** Silent regression of software/hardware/hybrid behavior discovered by users post-release
+### Phase 9: Deploy Skill (New Stage 14)
+**Rationale:** Deploy is the terminal stage, depending on the complete launch kit from Phase 8 (`hasLaunchKit: true`). It introduces the most novel architectural element in PDE's history — writing files outside `.planning/` and invoking external CLIs — and carries the highest side-effect risk. Mandatory approval gates at every external write are architecturally enforced, not optional.
+**Delivers:** New `workflows/deploy.md` (four approval-gated stages: Next.js scaffold, Stripe config, Resend templates, Vercel deploy), new `commands/deploy.md` (`/pde:deploy` slash command entry point), updated `workflows/build.md` (Stage 14 conditional on `businessMode === true`), Next.js landing page scaffold at `.planning/launch/landing-page/` (generated `package.json` with pinned versions, `app/layout.tsx`, `app/page.tsx`, `app/actions.ts`, Stripe webhook handler, React Email templates, `.env.example`)
+**Uses:** Stack — Next.js 16.2.1, `stripe@20.4.1`, `resend@6.9.4`, `react-email@5.2.9`, Tailwind v4, `vercel --prod --no-wait`
+**Avoids:** Autonomous deployment (Anti-Feature), live Stripe keys in generated scaffolding (Security Mistake), Vercel deployment blocking Claude session (use `--no-wait`)
+
+### Phase 10: Secondary Workflow Modifications
+**Rationale:** Remaining workflow modifications are lower-complexity additions with no cross-phase dependencies. `recommend.md` gains a business tool category. `iterate.md` and `mockup.md` receive guard stubs only (same 5-line comment pattern as v0.11 experience stubs).
+**Delivers:** Updated `workflows/recommend.md` (business tool category: Stripe MCP, Resend MCP, analytics), updated `workflows/iterate.md` (guard stub), updated `workflows/mockup.md` (guard stub)
+
+### Phase 11: designCoverage Clobber Audit (All 14 Workflows)
+**Rationale:** Isolated audit phase following the v0.11 Phase 83 precedent exactly. Every workflow that writes `designCoverage` must be verified to include all 20 fields in its write call. This regression surface is invisible until a full pipeline run — isolating the audit in its own phase ensures scope is clearly bounded, complete, and verifiable.
+**Delivers:** All 14 designCoverage-writing workflows verified to include all 20 fields in their write blocks (~56 lines modified across 14 files). Nyquist assertion added: field count in every designCoverage write must equal 20.
+**Avoids:** designCoverage clobber (Pitfall 3) — identical prevention to v0.11 Phase 83
+
+### Phase 12: Nyquist Regression Tests + Full Pipeline Validation
+**Rationale:** Terminal validation phase. Four composition cases must be verified: non-business software project produces byte-identical manifest to pre-v0.12 baseline; business:software project produces software artifacts AND business artifacts (not one or the other); business:hardware composes correctly; deploy workflow halts at each approval gate without proceeding on "no".
+**Delivers:** Nyquist regression assertions covering all four composition cases, verified non-regression of existing product types (software/hardware/hybrid/experience), approval gate halt verification for deploy workflow
 
 ### Phase Ordering Rationale
 
-- Phase 1 before everything: regression infrastructure cannot be retrofitted; architecture decisions made here cannot be changed without cascading rework
-- Phase 2 before Phase 3: token generation is parametrized by brief data (venue capacity drives spatial tokens, vibe drives lighting palette); tokens authored without brief data are fiction
-- Phase 3 before Phase 4: flow diagrams consume design tokens for zone color annotations; token file must exist
-- Phase 4 before Phase 5: floor plan requires spatial flow as layout rationale; timeline requires temporal flow as schedule structure
-- Phase 5 before Phase 6: critique and HIG require the floor plan to evaluate; no layout means no safety review
-- Phase 6 before Phase 8: HIG checklist is a required section of the production bible; HIG must be complete before BIB is assembled
-- Phase 7 before Phase 8: flyer artifacts are referenced in the production bible handoff; print spec section requires them to exist
-- Phase 9 last: all modifications complete before regression validation runs
+- Phase 1 before everything: manifest schema and disclaimer reference files cannot be retrofitted; the 20-field designCoverage template must exist before any workflow author knows how many fields to include
+- Phase 2 before all downstream: `businessMode` and `businessTrack` must be set in the manifest before any downstream workflow can be tested against real behavior; detection is the dependency of everything
+- The artifact dependency chain (brief → competitive → flows → system → wireframe → critique → handoff → deploy) directly dictates workflow implementation phases 2-9
+- Phase 11 (audit) isolated after all workflow modifications: scope must be bounded; auditing as you go risks missing workflows that aren't written yet
+- Phase 12 (Nyquist) last: validates the complete integrated system; cannot run meaningfully until all modifications are complete
 
 ### Research Flags
 
-Phases likely needing deeper research during planning:
-- **Phase 5 (Floor Plan and Timeline):** SVG spatial reasoning quality is an open empirical question — the coordinate system and constraint rules from PITFALLS.md reduce the risk but cannot eliminate LLM spatial generation variance. Recommend generating 2-3 example floor plans before committing to the prompt architecture.
-- **Phase 7 (Print Collateral):** CSS `@page` browser compatibility varies (Chrome reliable, Firefox partial, Safari partial). Test print-to-PDF output in Chrome against A4 and A3 sizes before finalizing the artifact specification. CMYK approximation table implementation needs concrete design.
-- **Phase 8 (Production Bible):** Composite document assembly from multiple upstream artifacts is the most complex handoff workflow in the pipeline. Aggregation logic needs explicit workflow design before implementation.
+Phases likely needing deeper research or careful judgment during planning:
 
-Phases with well-documented patterns (skip research-phase):
-- **Phase 1 (Regression Infrastructure):** Established testing patterns; smoke matrix structure clearly defined in PITFALLS.md
-- **Phase 2 (Brief Extensions):** Follows existing brief extension pattern from hardware type; field additions are additive
-- **Phase 3 (Token Architecture):** DTCG 2025.10 spec verified; separate-file approach architecturally clear; token schemas fully specified in STACK.md
-- **Phase 4 (Flow Diagrams):** Mermaid gantt and flowchart patterns established; extends existing flows skill
-- **Phase 6 (Critique and HIG):** Physical HIG standards well-documented in PITFALLS.md and FEATURES.md; replacement pattern (ARCHITECTURE.md Pattern 4) is clear
-- **Phase 9 (Integration Validation):** Standard regression validation; no new research needed
+- **Phase 9 (Deploy Skill):** Novel architectural territory — first PDE workflow that writes files outside `.planning/` and invokes external CLIs. Vercel CLI behavior with `--no-wait`, approval gate UX sequencing, and Next.js App Router scaffold structure need validation against the official `vercel-labs/agent-skills` source before implementation. Recommend generating a test scaffold before committing to the full workflow prompt architecture.
+- **Phase 6 (Wireframe — Pitch Deck):** YC vs Sequoia format differences and track-specific depth variations (solo: 10 slides, startup: 12-15 slides with team/financial sections, product_leader: internal business case format with OKR framing) add branching complexity. The exact slide structure per track must be specified in `references/launch-frameworks.md` (Phase 1) before Phase 6 authors interpret depth independently.
+- **Phase 2 (Brief — Financial Guardrail Calibration):** The line between "structural placeholder" and "helpful estimate" requires deliberate judgment. The financial disclaimer pattern established in Phase 1 must be concrete and unambiguous so Phase 2 authors do not interpret it loosely.
+
+Phases with standard, well-documented patterns (can proceed without additional research):
+
+- **Phase 1 (Manifest Schema):** Mechanical extension of existing 16-field schema; zero architectural uncertainty; direct precedent in v0.11 schema extension
+- **Phase 3 (Competitive + Opportunity):** Both extend existing skills with patterns directly established in v0.11; TAM/SAM/SOM methodology and RICE business adaptation are well-documented
+- **Phase 5 (System Stage):** Brand positioning section is additive to existing token generation; clear scope, no novel patterns
+- **Phase 11 (designCoverage Audit):** Mechanical audit following identical v0.11 Phase 83 process; procedure is fully documented in ARCHITECTURE.md
 
 ---
 
@@ -191,51 +200,57 @@ Phases with well-documented patterns (skip research-phase):
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | All technologies verified against MDN, Mermaid docs, DTCG 2025.10 spec, and direct codebase inspection. No npm packages involved — all capabilities confirmed native to existing pipeline. Browser compatibility for CSS `@page` documented with specific caveats. |
-| Features | MEDIUM-HIGH | Table stakes verified against AllSeated, Social Tables, Cvent, Prismm feature sets and industry production documents. Differentiators inferred from PDE pipeline capabilities. Physical design standards (ESA, ADA, EAA) verified from authoritative sources. Sub-type feature scope is well-reasoned but not empirically validated against practitioner workflows. |
-| Architecture | HIGH | Fully derivable from direct codebase inspection of all 14 pipeline branch sites. Hardware branching pattern is proven precedent. Sub-type-as-metadata decision is well-justified. Separate token file approach addresses a confirmed `tokens-to-css` limitation. |
-| Pitfalls | HIGH (integration) / MEDIUM (LLM quality) | Pipeline integration pitfalls grounded in direct codebase inspection with specific branch site enumeration. SVG floor plan and print color space pitfalls are fundamental technical constraints. LLM regulatory hallucination risk is well-documented in general but cannot be quantified for specific output quality. |
+| Stack | HIGH | Next.js 16.2.1, Vercel CLI `--no-wait` pattern, Resend Server Action pattern all verified against official docs. Package versions (Stripe SDK, React Email, Resend) are MEDIUM confidence — confirmed via npm search results as of 2026-03-22; re-verify at Phase 9 implementation since npm packages are frequently updated. Stripe embeddable pricing table web component pattern is HIGH confidence (official docs). |
+| Features | MEDIUM-HIGH | Table stakes verified against Lean Canvas (Ash Maurya), Business Model Canvas (Osterwalder/Pigneur), YC/Sequoia pitch frameworks, and Stripe Atlas guides. Feature prioritization and track depth estimates are inferred from methodology literature and PDE pipeline capabilities, not empirical user research. P1 feature set is solid; P2/P3 boundaries are provisional and should be validated once the core pipeline is working. |
+| Architecture | HIGH | Grounded in direct codebase inspection of v0.11 experience type as the direct implementation precedent. Orthogonal flag pattern, designCoverage 16-field pass-through, and experience conditional block patterns all directly verified. The key distinction (orthogonal modifier vs additive type) is well-established through the codebase analysis and the v0.11 post-mortem on designCoverage clobber. |
+| Pitfalls | HIGH (pipeline integration) / MEDIUM (external services) | Pipeline integration risks (clobber bug, orthogonal dimension model, track branching) are HIGH confidence grounded in v0.11 Phase 83 post-mortem and direct codebase inspection. Financial/legal hallucination risks are MEDIUM confidence from 2025 legal/AI research sources. Stripe/Vercel/Resend integration pitfalls are MEDIUM confidence from official docs and community reports — real-world CLI behavior in Claude Code context needs empirical testing. |
 
 **Overall confidence:** HIGH
 
 ### Gaps to Address
 
-- **SVG spatial generation quality:** Research establishes the constraint framework but cannot predict actual LLM output quality for floor plans. Validate with example generation early in Phase 5 before finalizing prompt architecture. If quality is insufficient, fall back to template-based floor plan generation with LLM filling zone labels only.
-- **CMYK approximation implementation:** The approach (hex fallback with sRGB annotation) is defined but how the approximation table is generated without npm packages needs concrete design. Resolve during Phase 3 when token schema is finalized — hex approximations for OKLCH brand colors can be documented inline in the token file.
-- **Multi-stage festival timeline legibility:** Mermaid gantt with many parallel sections becomes illegible above ~20 items. For multi-day festivals with 4+ stages, one gantt per stage produces multiple TML artifacts per event. Manifest artifact naming convention for multi-stage events needs explicit design in Phase 4.
-- **Hybrid-event dual-surface output:** The hybrid-event sub-type produces both software API handoff and production bible. How the handoff skill outputs both in a single pass — and how the manifest registers both artifact sets — needs explicit design. Research identifies the requirement; implementation design is deferred to Phase 8 planning.
+- **User track depth thresholds:** The architecture specifies that solo founder artifacts are "1-2 pages" and product leader artifacts are "5-8 pages" — but the exact section counts and line count ranges per track are not defined in the research. These must be specified in `references/business-track.md` during Phase 1. If each downstream workflow author interprets "solo depth" independently, track consistency breaks silently.
+
+- **Stripe pricing config API compatibility:** The BIZ-pricing JSON schema (STACK.md) specifies current Stripe API object structure as of 2026-03-22. Verify against the live Stripe API reference when Phase 9 begins — Stripe APIs evolve and the schema fields (`checkout_mode`, `lookup_key`, `recurring.interval`) should be re-confirmed at implementation time.
+
+- **Human approval gate UX definition:** The deploy workflow requires four distinct approval gates. The exact prompt format (what the user sees, what constitutes valid approval, what timeout behavior applies) is specified at a high level in ARCHITECTURE.md but needs concrete UX definition before Phase 9 implementation. The existing VAL-03 pattern from MCP integrations provides a starting point.
+
+- **business:experience composition scope:** FEATURES.md defers `business:experience` to v0.13+, but ARCHITECTURE.md's Nyquist tests include verifying the composition works. This tension should be resolved during roadmap planning — either add explicit Phase 12 validation for the business:experience case or explicitly narrow Phase 12 scope to business:software and business:hardware only.
+
+- **Lean Canvas confidence-level tracking:** The research specifies a `confidence: "validated | assumed | unknown"` field per Lean Canvas box. How this confidence level is updated through subsequent pipeline stages (particularly via the iterate skill in business mode) needs design — the research identifies this as a differentiator but the update mechanism is underspecified.
 
 ---
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- MDN Web Docs: CSS `@page` — `size` property, physical units, `@media print`, confirmed `bleed`/`marks` not implemented (fetched 2026-03-21)
-- MDN Web Docs: `device-cmyk()` — confirmed no browser support (fetched 2026-03-21)
-- Mermaid documentation: Gantt diagrams (`dateFormat`, `axisFormat`, sections, milestones) and Timeline type limitations (fetched 2026-03-21)
-- DTCG Format Module 2025.10 — confirmed arbitrary category names allowed; only `$type` and `$value` constrained (verified 2026-03-21)
-- `bin/lib/design.cjs` (direct codebase inspection) — `DOMAIN_DIRS` array, `ensure-dirs`, `tokens-to-css` generic category iteration
-- `templates/design-manifest.json` (direct codebase inspection) — `designCoverage` flags schema, artifact code pattern, `productType` enum values
-- `workflows/brief.md`, `workflows/system.md`, `workflows/handoff.md` (direct codebase inspection) — product type branch sites, hardware conditional pattern
-- Event Safety Alliance — crowd management, egress, and safety standards (authoritative industry body)
-- IBM Event Design: signage and wayfinding — primary/secondary/tertiary sign hierarchy, legibility standards
+- Next.js 16.2.1 official blog post (nextjs.org/blog/next-16-2) — version, Turbopack default, React 19.2, Server Actions pattern
+- Vercel agent-skills repo (vercel-labs/agent-skills/skills/deploy-to-vercel/SKILL.md) — human approval gate pattern, `vercel --prod --no-wait` behavior
+- Vercel Docs (vercel.com/docs/cli/deploy) — `--no-wait` flag, deployment URL return
+- Stripe Docs (docs.stripe.com/payments/checkout/pricing-table) — embeddable pricing table web component, no React required
+- Resend Docs (resend.com/docs/send-with-nextjs) — Server Action pattern, `resend.emails.send()` with React Email component
+- Stripe Dev Blog (stripe.dev/blog/avoiding-test-mode-tangles-with-stripe-sandboxes) — test mode isolation pattern, sandbox strategy
+- Stripe Docs (docs.stripe.com/keys) — API key security, test vs live mode defaults
+- Nielsen Norman Group (nngroup.com/articles/service-blueprinting-faq) — 5-swimlane service blueprint standard (customer actions, frontstage, line of visibility, backstage, support)
+- Osterwalder & Pigneur, Business Model Generation — 9-block BMC schema (original source)
+- Ash Maurya, Running Lean — Lean Canvas 9-box framework with confidence-level annotation pattern
+- Direct codebase inspection: all 14 v0.11 workflow files, `design-manifest.json` template, `bin/lib/design.cjs`, `PROJECT.md` v0.11 key decisions, v0.11 Phase 83 designCoverage clobber post-mortem
 
 ### Secondary (MEDIUM confidence)
-- AllSeated/Prismm, Social Tables/Cvent — floor plan, seating chart, and operations feature sets
-- Canva and Figma official docs — 3mm bleed standard, PDF/X export, CMYK handling, standard flyer sizes
-- Asana, SpotMe — run of show structure and operational column conventions
-- Ticket Fairy — festival production guides, advance documents, site maps, vibe and moodboard frameworks
-- Festival and Event Production resource site — industry-standard production document types
-- vFairs, Monday.com — event budget line item categories, contingency fund conventions (10-15%)
-- North American Signs, IBM Event Design — wayfinding best practices and sign hierarchy
-- Sara Soueidan: SVG Coordinate Systems — `viewBox`, abstract coordinate system pattern
+- npm registry search results (2026-03-22): `stripe@20.4.1`, `@stripe/stripe-js@8.11.0`, `resend@6.9.4`, `react-email@5.2.9`, `@stripe/mcp@0.2.5` — confirmed as current versions
+- BizTech Magazine (2025) — LLM hallucination rates exceeding 15% in financial contexts (biztechmagazine.com)
+- techandmedialaw.com (2025) — AI hallucination liability, disclaimers rarely eliminate liability when user reasonably relies on content
+- danielrosslawfirm.com (2025) — AI contracts, waiver and limitation of liability provisions for AI tools
+- moldstud.com — common Stripe payment processing mistakes in developer implementations
+- vercel.com/kb/guide/ai-agents — AI agent deployment patterns on Vercel
+- Y Combinator startup pitch deck format — 10-slide standard (problem/solution/market/product/business model/traction/GTM/competition/team/ask)
+- Sequoia Capital pitch deck format — 13-slide variant
+- WebSearch verification: no dominant JSON schema standard for BMC in developer tools (confirmed across multiple sources)
 
 ### Tertiary (LOW confidence)
-- SaaSworthy feature comparison (AllSeated vs Social Tables) — general feature parity claims
-- Grand Tents — festival tent layout and crowd flow zoning (practitioner blog)
-- BitterSweet Creative — event branding guidelines and sensory experience design
+- toksta.com Resend review (2025) — community review of Resend deliverability and Next.js integration quality
+- baytechconsulting.com — hidden dangers of AI hallucinations in financial services (general framing)
 
 ---
-
-*Research completed: 2026-03-21*
+*Research completed: 2026-03-22*
 *Ready for roadmap: yes*

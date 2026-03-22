@@ -1,869 +1,522 @@
 # Architecture Research
 
-**Domain:** Experience product type extension — integrating event/festival/installation pipelines into PDE's existing design pipeline architecture
-**Researched:** 2026-03-21
-**Confidence:** HIGH — fully derivable from direct codebase inspection of all 13 pipeline skills; no external dependencies required
+**Domain:** Business product type integration — PDE v0.12
+**Researched:** 2026-03-22
+**Confidence:** HIGH (based on direct codebase analysis of v0.11 experience type as the direct precedent)
 
 ---
 
-> **Scope note:** This file covers ONLY the v0.11 experience product type milestone. Existing PDE architecture
-> (event bus, tmux dashboard, workflow engine, state model, Stitch integration) is documented in PROJECT.md.
-> Every component described is either additive (new files) or a targeted extension within existing workflow files.
-> No architectural restructuring. No new directories beyond what follows the established pattern.
+> **Scope note:** This file covers the v0.12 business product type milestone ONLY.
+> Existing PDE architecture (event bus, tmux dashboard, workflow engine, state model, Stitch integration) is documented in PROJECT.md.
+> The v0.11 experience type implementation is the primary architectural precedent for all patterns used here.
 
 ---
 
 ## Standard Architecture
 
-### How Product Type Flows Through the Pipeline
-
-The existing dispatch pattern is already proven for `hardware` vs `software` branching. The `experience` type integrates using the same mechanism — a canonical lowercase string read from the brief, stored in DESIGN-STATE and design-manifest.json, and consulted by downstream skills via a conditional block in each skill's prerequisite step.
+### System Overview
 
 ```
-┌───────────────────────────────────────────────────────────────────────────┐
-│                     Project Context Layer                                  │
-│   .planning/PROJECT.md — experience signals detected by /pde:brief        │
-└──────────────────────────────┬────────────────────────────────────────────┘
-                               │ Step 4/7 product type detection
-                               ▼
-┌───────────────────────────────────────────────────────────────────────────┐
-│   DESIGN-STATE.md Quick Reference + design-manifest.json productType      │
-│   "experience"  ← canonical string (joins: software | hardware | hybrid)  │
-│   "sub_type": "single-night | multi-day | recurring-series |              │
-│               installation | hybrid-event"  ← NEW manifest field          │
-└──────────────────────────────┬────────────────────────────────────────────┘
-                               │ read by each downstream skill
-         ┌─────────────────────┼───────────────────────────────┐
-         ▼                     ▼                               ▼
-┌─────────────┐       ┌──────────────────┐          ┌────────────────────┐
-│  /pde:flows │       │  /pde:system     │          │  /pde:wireframe    │
-│  temporal + │       │  sonic + lighting│          │  floor plan +      │
-│  spatial +  │       │  spatial + brand │          │  timeline wireframe│
-│  social dims│       │  palettes        │          │  (new artifact     │
-│             │       │                  │          │   types)           │
-└──────┬──────┘       └────────┬─────────┘          └────────┬───────────┘
-       │                       │                             │
-       ▼                       ▼                             ▼
-┌─────────────┐       ┌──────────────────┐          ┌────────────────────┐
-│  /pde:      │       │  /pde:hig        │          │  /pde:handoff      │
-│  critique   │       │  physical HIG:   │          │  production bible  │
-│  safety +   │       │  wayfinding +    │          │  run sheet +       │
-│  operations │       │  acoustic zones  │          │  staffing plan     │
-│  + community│       │  + queue UX      │          │                    │
-└─────────────┘       └──────────────────┘          └────────────────────┘
+┌──────────────────────────────────────────────────────────────────────┐
+│                       Skills Layer (slash commands)                   │
+│  /pde:brief  /pde:competitive  /pde:flows  /pde:wireframe  ...       │
+│  + NEW: /pde:deploy (launch scaffolding with human approval gates)   │
+├──────────────────────────────────────────────────────────────────────┤
+│                   Workflow Engine (14 .md workflow files)             │
+│                                                                       │
+│  EXISTING (conditional blocks added)       NEW                       │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐  ┌──────────────────────┐  │
+│  │ brief.md │ │competit. │ │ flows.md │  │  deploy.md           │  │
+│  │ +BIZ blk │ │ +BIZ blk │ │ +BIZ blk │  │  (launch scaffold)   │  │
+│  └──────────┘ └──────────┘ └──────────┘  └──────────────────────┘  │
+│  ┌──────────┐ ┌──────────┐ ┌──────────┐                             │
+│  │system.md │ │wirfrm.md │ │ handoff  │                             │
+│  │ +BIZ blk │ │ +BIZ blk │ │ +BIZ blk │                             │
+│  └──────────┘ └──────────┘ └──────────┘                             │
+├──────────────────────────────────────────────────────────────────────┤
+│                     State Layer (.planning/design/)                   │
+│  ┌───────────────────────────┐  ┌────────────────────────────────┐  │
+│  │   design-manifest.json    │  │       DESIGN-STATE.md          │  │
+│  │                           │  │                                │  │
+│  │  productType: "software"  │  │  Quick Reference table         │  │
+│  │  businessMode: true/false │  │  + business: [on/off] row      │  │
+│  │  businessTrack: "solo"    │  │  Artifact Index (all codes)    │  │
+│  │  designCoverage: {        │  └────────────────────────────────┘  │
+│  │    ...16 existing flags.. │                                       │
+│  │    hasBusinessThesis: bool│  (NEW coverage flags added to the    │
+│  │    hasMarketLandscape:bool│   existing 16-field object — total   │
+│  │    hasServiceBlueprint:   │   becomes 20 fields)                 │
+│  │    hasLaunchKit: bool     │                                       │
+│  │  }                        │                                       │
+│  └───────────────────────────┘                                       │
+├──────────────────────────────────────────────────────────────────────┤
+│                  Artifact Storage (.planning/design/)                 │
+│  ┌──────────────────────────────────────────────────────────────┐   │
+│  │  strategy/    ux/             visual/        launch/ (NEW)   │   │
+│  │  BRF-*        FLW-* (ops)     SYS-brand-*    LKT-launchkit-*│   │
+│  │  BTH-*        SBP-*           MKT-market-*   LDP-landing-*  │   │
+│  │  MLS-*                                       STR-pricing-*  │   │
+│  │                                              CNT-calendar-* │   │
+│  │                                              OTR-outreach-* │   │
+│  └──────────────────────────────────────────────────────────────┘   │
+└──────────────────────────────────────────────────────────────────────┘
 ```
-
-### The Dispatch Pattern (Existing, Extended)
-
-Every skill follows the same dispatch pattern, already proven by the `hardware` conditional in `/pde:handoff` Step 4i and the `software`/`hardware` constraint tables in `/pde:brief`:
-
-```
-Within each skill's prerequisite step:
-
-PRODUCT_TYPE = read from brief's "**Type:**" line (or manifest productType)
-
-IF PRODUCT_TYPE is "experience":
-  EXPERIENCE_SUB_TYPE = read from brief's "**Sub-type:**" line
-  [load experience-specific behavior for this skill]
-ELSE:
-  [existing software/hardware/hybrid behavior unchanged]
-```
-
-No skill restructuring is needed. The conditional is additive within the existing step structure.
-
----
-
-## System Overview
 
 ### Component Responsibilities
 
-| Component | Responsibility | Status |
-|-----------|---------------|--------|
-| `workflows/brief.md` Step 4/7 | Detect experience signals, resolve sub-type | MODIFIED |
-| `workflows/brief.md` Step 5/7 | Add experience Design Constraints table, venue/vibe fields | MODIFIED |
-| `workflows/flows.md` Step 4+ | Add temporal/spatial/social flow dimensions when experience | MODIFIED |
-| `workflows/system.md` Step 4+ | Add sonic/lighting/spatial/thermal token categories when experience | MODIFIED |
-| `workflows/wireframe.md` Step 4+ | Emit FPL (floor plan) and TML (timeline) artifact codes when experience | MODIFIED |
-| `workflows/critique.md` Step 4+ | Add experience perspectives to critique pass | MODIFIED |
-| `workflows/hig.md` Step 4+ | Replace WCAG/digital HIG with physical interface guidelines when experience | MODIFIED |
-| `workflows/handoff.md` Step 4+ | Emit production bible sections instead of software component APIs | MODIFIED |
-| `templates/design-manifest.json` | Add `experienceSubType` field, new artifact codes | MODIFIED |
-| `templates/design-state-root.md` | Add `Sub-type` row to Quick Reference | MODIFIED |
-| `references/experience-hig.md` | Physical HIG reference: wayfinding, acoustic zoning, queue UX | NEW |
-| `references/experience-tokens.md` | Sonic/lighting/spatial token category schemas | NEW |
-| `commands/build.md` | Add `flyer` and `print` stages to pipeline (optional, configurable) | MODIFIED |
-
-**Unchanged components:** `pde-tools.cjs`, `bin/`, `mcp-bridge.cjs`, all hook infrastructure, `templates/design-state-domain.md`, all non-design workflows.
+| Component | Responsibility | New vs Modified |
+|-----------|----------------|-----------------|
+| `design-manifest.json` (template) | Registry for artifacts + coverage flags | MODIFIED — add `businessMode`, `businessTrack` top-level fields; add 4 new coverage flags to `designCoverage` |
+| `workflows/brief.md` | Product type detection + brief sections | MODIFIED — add `business:` signal detection, 5 business sections, write `businessMode`/`businessTrack` to manifest |
+| `workflows/competitive.md` | Competitive analysis | MODIFIED — add market landscape path when `businessMode === true` |
+| `workflows/opportunity.md` | RICE scoring | MODIFIED — add business initiative scoring when `businessMode === true` |
+| `workflows/flows.md` | User journey mapping | MODIFIED — add operational and service flow paths when `businessMode === true` |
+| `workflows/system.md` | Design system + brand tokens | MODIFIED — add brand/marketing system sections when `businessMode === true` |
+| `workflows/wireframe.md` | Wireframe generation | MODIFIED — add service blueprint (SBP) + landing page (LDP) paths when `businessMode === true` |
+| `workflows/handoff.md` | Implementation handoff | MODIFIED — add launch kit (LKT) assembly when `businessMode === true` |
+| `workflows/critique.md` | Design critique | MODIFIED — add business alignment perspective when `businessMode === true` |
+| `workflows/iterate.md` | Design iteration | MODIFIED — guard stub (same pattern as v0.11 experience stubs) |
+| `workflows/mockup.md` | Hi-fi mockup | MODIFIED — guard stub (same pattern as v0.11 experience stubs) |
+| `workflows/hig.md` | Interface guidelines | MODIFIED — add business communications HIG when `businessMode === true` |
+| `workflows/recommend.md` | Tool discovery | MODIFIED — add business tool category (Stripe MCP, Resend MCP, analytics) when `businessMode === true` |
+| `workflows/build.md` | Pipeline orchestrator | MODIFIED — add `deploy` as Stage 14 when `businessMode === true` |
+| `workflows/deploy.md` | Deployment scaffolding | NEW — Next.js landing page, Stripe config, Resend templates, Vercel deploy with approval gates |
+| `references/business-track.md` | Track definitions (solo/startup/leader) | NEW — shared reference loaded by all business-mode workflows |
+| `references/launch-frameworks.md` | Lean canvas, GTM templates, investor narrative | NEW — business artifact templates analogous to `experience-disclaimer.md` |
+| `commands/deploy.md` | `/pde:deploy` slash command entry point | NEW — follows existing command bootstrap pattern |
+| `templates/design-manifest.json` | Schema template | MODIFIED — add new top-level fields and 4 new coverage flags |
+| `bin/lib/design.cjs` | Coverage check + manifest ops | MODIFIED — add `launch/` to `ensure-dirs` directory creation list (3 lines) |
 
 ---
 
-## Recommended Project Structure (Changes Only)
+## Recommended Project Structure
+
+The `business:` layer adds to the existing `.planning/design/` tree without restructuring it:
 
 ```
-workflows/
-├── brief.md          # MODIFIED: +experience signals, +sub-type detection, +venue constraints
-├── flows.md          # MODIFIED: +temporal/spatial/social flow dimensions
-├── system.md         # MODIFIED: +sonic/lighting/spatial/thermal token categories
-├── wireframe.md      # MODIFIED: +floor plan (FPL) and timeline (TML) artifact types
-├── critique.md       # MODIFIED: +7 experience perspectives
-├── hig.md            # MODIFIED: +physical HIG mode when experience type detected
-├── handoff.md        # MODIFIED: +production bible output sections
-└── [all other workflows unchanged]
-
-references/
-├── experience-hig.md        # NEW: physical HIG reference library (wayfinding, acoustic, queue, ratios)
-├── experience-tokens.md     # NEW: sonic/lighting/spatial/thermal token schemas + examples
-└── [all other references unchanged]
-
-templates/
-├── design-manifest.json     # MODIFIED: +experienceSubType field, +FPL/TML artifact code examples
-└── design-state-root.md     # MODIFIED: +Sub-type row in Quick Reference
+.planning/design/
+├── strategy/
+│   ├── BRF-brief-v{N}.md              (existing — gains 5 business sections)
+│   ├── BTH-thesis-v{N}.md             (NEW — business thesis artifact)
+│   ├── MLS-market-landscape-v{N}.md   (NEW — market landscape from competitive)
+│   └── ANL-analyst-brief-v*.md        (existing)
+├── ux/
+│   ├── FLW-flows-v{N}.md              (existing — gains operational/service flow sections)
+│   ├── SBP-blueprint-v{N}.md          (NEW — service blueprint from wireframe)
+│   └── screen-inventory.json          (existing)
+├── visual/
+│   ├── SYS-tokens-v*.json             (existing)
+│   └── MKT-brand-system-v{N}.md       (NEW — marketing brand system from system.md)
+└── launch/                             (NEW directory — created by ensure-dirs)
+    ├── LKT-launchkit-v{N}.md          (NEW — assembled launch kit)
+    ├── LDP-landing-v{N}.html          (NEW — deployable landing page wireframe)
+    ├── STR-pricing-v{N}.json          (NEW — Stripe pricing config spec)
+    ├── CNT-calendar-v{N}.md           (NEW — content calendar skeleton)
+    └── OTR-outreach-v{N}.md           (NEW — investor/customer outreach sequence)
 ```
 
 ### Structure Rationale
 
-- **No new workflow files** — all experience behavior lives inside existing skill workflows as conditional branches, following the hardware pattern. New workflow files would fragment the pipeline and break the `--from` resumption logic in `build.md`.
-- **Two new reference files** — `experience-hig.md` and `experience-tokens.md` keep the core workflow files lean. Reference files are loaded via `@references/` pattern already used by `interaction-patterns.md`, `wcag-baseline.md`, etc.
-- **Manifest template modified, not forked** — `design-manifest.json` is the single schema for all product types. Adding `experienceSubType` at the root level (alongside `productType`) follows the existing `productType` precedent.
+- **strategy/BTH and MLS:** Business thesis and market landscape are strategy-layer outputs. They belong alongside BRF (brief) and CMP (competitive) artifacts — not in a new top-level directory. The artifact code prefix (BTH, MLS) follows the same 3-letter convention as all other artifact codes.
+- **ux/SBP:** Service blueprints are a UX discipline output — they map service delivery flows the same way FLW maps user journeys. The `ux/` domain is the correct home.
+- **visual/MKT:** Marketing brand system sits adjacent to the design system tokens it extends. It is a visual-layer artifact.
+- **launch/:** Launch kit artifacts are fundamentally different from design artifacts — they are executable, deployable files, not design specifications. Isolating them in `launch/` prevents confusion with `ux/` and `visual/` domains and makes the deploy workflow's file reading predictable. The `deploy.md` workflow knows to look in `launch/` for every file it processes.
+- **No new top-level sibling to `.planning/design/`:** The business layer composes with the existing design pipeline. It does not fork it. All artifacts stay under `.planning/design/` to keep manifest paths relative and consistent.
 
 ---
 
 ## Architectural Patterns
 
-### Pattern 1: Product-Type Conditional Block Within Existing Step
+### Pattern 1: Orthogonal Dimension via Manifest Flag
 
-This is the foundational pattern for the entire milestone. Every experience extension uses it.
+**What:** `businessMode` is a boolean top-level field in `design-manifest.json`, set by `brief.md` during Step 4 (product type detection). All downstream workflows read `businessMode` from the manifest at the start of execution. This is separate from `productType` — a project can be `productType: "software"` AND `businessMode: true`. The dimension is additive, not replacing.
 
-**What:** Inside a skill's existing step (not a new step), add `IF PRODUCT_TYPE is "experience"` blocks that add experience behavior before or instead of the default behavior. The step count and step headers remain unchanged.
+**When to use:** Every workflow that needs to branch for business-specific behavior reads `businessMode` from the manifest, not from the brief document. This gives workflows a single authoritative source.
 
-**When to use:** Every affected skill. This is the only permitted dispatch mechanism — do not create `experience-brief.md`, `experience-flows.md`, etc. as parallel files.
-
-**Trade-offs:** Keeps each skill as a single file (simpler for users, maintainers, and the build orchestrator). The workflow file grows longer, but each section is clearly labelled. The alternative (parallel experience files) would break `--from` stage resumption, double the skill count in `skill-registry.md`, and create a maintenance split-brain.
-
-**Example (from existing hardware pattern in handoff.md, Step 4i):**
+**Implementation pattern (consistent across all 14 workflows):**
 ```
-Based on PRODUCT_TYPE:
-- "software":    include software component API sections, omit hardware sections
-- "hardware":    include Hardware Handoff sections, omit software component APIs
-- "hybrid":      include both
-- "experience":  include Production Bible sections, omit software component APIs
-                 (flyer/print artifacts registered separately under FLY/PRT codes)
-```
+Read manifest early in Step 2 (prerequisites):
+  businessMode = manifest.businessMode ?? false
+  businessTrack = manifest.businessTrack ?? "solo"
 
-### Pattern 2: Sub-type Dispatch for Experience Variants
+...existing workflow steps unchanged...
 
-**What:** After detecting `product_type = "experience"`, detect the sub-type from further signal matching. Sub-type informs intensity of physical constraints, not structural branching — all five sub-types produce the same artifact types, with different content emphasis.
-
-**When to use:** Within the brief (detection) and flows/system/critique (content calibration). Sub-type is NOT used for structural if/else branching within skills — it enriches generation prompts.
-
-**Sub-types and their key calibration differences:**
-```
-single-night:    temporal flow = single linear arc; staffing = minimal; venue = one space
-multi-day:       temporal flow = repeated arcs; staffing = shift model; venue = persistent infrastructure
-recurring-series: temporal flow = template + variants; identity = series coherence critical
-installation:    temporal flow = open-ended / visitor-paced; spatial flow = primary; no run sheet
-hybrid-event:    physical + digital flows both present; handoff includes both software API + run sheet
+<!-- Business product type — Phase N: [description] -->
+IF businessMode === true:
+  → execute business-specific path or additional sections
+  → vocabulary and depth determined by businessTrack
+ELSE:
+  → skip (no output for non-business projects)
+<!-- End business product type block -->
 ```
 
-**Trade-offs:** Sub-type as prompt calibration (not structural branching) prevents exponential branch count. Five sub-types × 8 stages would be 40 branches if structural — instead it's 8 conditional blocks with sub-type-aware generation guidance.
+**Why not a new `productType` value:** Experience type demonstrated that adding a new productType creates exclusive branches — experience products bypass software wireframes entirely. Business is orthogonal: a software product being launched still needs wireframes AND a service blueprint. Using `productType = "business"` would force either/or logic where both/and is correct. `businessMode` preserves both.
 
-### Pattern 3: New Artifact Codes Without New Coverage Flags
+**Confidence:** HIGH — matches the existing `experienceSubType` metadata pattern and the `SUPPRESS_TOKEN_FINDINGS` per-artifact flag pattern from critique.md.
 
-**What:** New experience artifact types (FPL = floor plan, TML = timeline, FLY = flyer, PRT = print collateral) are registered in `design-manifest.json` under `artifacts` using the existing schema. No new `hasFloorPlan`, `hasTimeline` boolean flags are added to `designCoverage`.
+### Pattern 2: Track-Aware Vocabulary via Single Reference File
 
-**When to use:** Any new artifact type. The pattern is established: `artifacts.BRF` presence signals brief exists — not `designCoverage.hasBrief`. Floor plan presence is signalled by `artifacts.FPL` existence.
+**What:** `references/business-track.md` defines how each of the three user tracks differs in vocabulary, output depth, and artifact format. Workflows load this reference via `@references/business-track.md` in `<required_reading>` blocks. The `businessTrack` field from the manifest selects the applicable register.
 
-**Trade-offs:** `designCoverage` boolean flags exist for the build orchestrator's stage-completion checks. FPL and TML are sub-artifacts of the wireframe stage — the orchestrator should check `hasWireframes`, not `hasFloorPlan` separately. New top-level `designCoverage` flags are only warranted for stages that appear in the pipeline `STAGES` table in `build.md`. FPL/TML are not new stages — they are outputs of the existing wireframe stage for experience products.
-
-**Exception:** `hasPrintCollateral` may be warranted as a coverage flag if `flyer` becomes its own stage in `build.md`. This is a build-order decision deferred to milestone planning.
-
-### Pattern 4: HIG Replacement Pattern (Physical vs Digital)
-
-**What:** When `PRODUCT_TYPE is "experience"`, the `/pde:hig` skill replaces WCAG/digital-platform checks with physical interface guideline checks. The step structure (7 steps) is preserved; Step 4 content is swapped.
-
-**When to use:** Only for `/pde:hig`. Other skills add experience content alongside existing content — HIG replaces because digital guidelines are inapplicable to physical spaces.
-
-**What the physical HIG covers (loaded from `references/experience-hig.md`):**
-- Wayfinding legibility (signage size at distance, contrast, icon universality)
-- Acoustic zoning (dB separation between zones, hearing-loop provision)
-- Queue UX (wait time communication, shade, hydration proximity)
-- Transaction speed (bar/merch: target <90s per transaction)
-- Toilet ratio (EN 16747 or local code: typically 1 per 75 females, 1 per 100 males + 1 accessible per 150)
-- Hydration provision (1 free water point per 500 attendees)
-- First aid coverage (1 responder per 1000 attendees; placement within 3min walk)
-- Accessibility routes (continuous accessible path, ramp gradients, rest areas)
-
-**HIG `--light` mode for critique delegation:** When `--light` flag is present and product type is experience, the abbreviated check set covers: wayfinding contrast, accessible route continuity, first aid placement, toilet ratio compliance, hydration access. These five map structurally to the 5 mandatory digital checks in light mode.
-
-**Trade-offs:** Physical HIG guidelines are less automatable than WCAG — PDE cannot run an accessibility checker on a floor plan. The HIG skill produces analysis and recommendations rather than automated audit results. This is appropriate: the skill is a reasoning exercise, not a tool invocation.
-
-### Pattern 5: Floor Plan as Wireframe Variant
-
-**What:** The wireframe skill produces HTML wireframes for digital screens. For experience products, it additionally produces floor plan visualizations (FPL artifact code) and timeline wireframes (TML artifact code). These are HTML artifacts following the same file-based output pattern — one HTML file per space, registered in the manifest.
-
-**Implementation approach:** Floor plans are SVG-in-HTML layouts using the same tokens.css (spatial token values like `--space-*` for grid units representing meters). Not raster images — the same HTML-based approach used for screen wireframes, adapted to spatial layout rather than UI layout.
-
-**Artifact naming:**
+**Track resolution in brief.md Step 4:**
 ```
-FPL-{venue-area}-v{N}.html    → floor plan for a named venue area
-TML-timeline-v{N}.html        → event timeline / schedule wireframe
-FLY-flyer-v{N}.html           → event flyer (for print PDF export)
+Track signals detected after businessMode = true is set:
+  "solo": "solo", "indie", "solo founder", "one person", "bootstrapped", "side project"
+  "startup": "startup", "seed", "early stage", "founding team", "co-founder", "pre-seed"
+  "leader": "product leader", "PM", "head of product", "enterprise", "director", "VP"
+  default: "solo" if ambiguous or no signals
 ```
 
-**Manifest entries follow existing WFR pattern:**
-```json
-"FPL-main-stage": {
-  "code": "FPL-main-stage",
-  "name": "Main Stage Floor Plan",
-  "type": "floor-plan",
-  "domain": "ux",
-  "path": "ux/wireframes/FPL-main-stage-v1.html",
-  "status": "draft",
-  "version": 1,
-  "dependsOn": ["FLW-main", "SYS"]
-}
+**Track effects on output:**
+
+| Track | Vocabulary | Artifact Depth | Key Format |
+|-------|-----------|---------------|------------|
+| solo | Plain English, lean | Essentials only, 1-pagers | Skimmable, action-focused |
+| startup | Standard startup language | Full artifacts, investor-ready | Deck-compatible, metric-forward |
+| leader | Enterprise / product language | Executive summary + detail | Board-ready, stakeholder-formatted |
+
+The reference file defines concrete vocabulary substitutions (e.g., "revenue goal" vs "ARR target" vs "P&L impact") and section depth tables so workflows do not need to hard-code track logic.
+
+### Pattern 3: New Coverage Flags Follow the 16-Field Pass-Through Contract
+
+**What:** Four new boolean flags are added to the `designCoverage` object in `design-manifest.json`, growing it from 16 to 20 fields. Every workflow that writes `designCoverage` must read all 20 fields first, then write the full merged object with only its own flag flipped. The pass-through pattern is identical to the existing behavior — only the field count grows.
+
+**New flags:**
+- `hasBusinessThesis` — set by `brief.md` when BTH artifact is written
+- `hasMarketLandscape` — set by `competitive.md` when MLS artifact is written
+- `hasServiceBlueprint` — set by `wireframe.md` when SBP artifact is written
+- `hasLaunchKit` — set by `handoff.md` when LKT artifact is assembled
+
+**Critical constraint:** All 14 existing workflows that write `designCoverage` must be updated to include the 4 new flags in their write objects (as `{current}` pass-through). This is the cross-cutting audit analogous to v0.11 Phase 83 which found 10 broken workflows clobbering `hasPrintCollateral` and `hasProductionBible`.
+
+**Example updated write call (brief.md setting hasBusinessThesis):**
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage \
+  '{"hasDesignSystem":{current},"hasWireframes":{current},"hasFlows":{current},
+    "hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},
+    "hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":{current},
+    "hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},
+    "hasRecommendations":{current},"hasStitchWireframes":{current},
+    "hasPrintCollateral":{current},"hasProductionBible":{current},
+    "hasBusinessThesis":true,"hasMarketLandscape":{current},
+    "hasServiceBlueprint":{current},"hasLaunchKit":{current}}'
 ```
 
-### Pattern 6: Critique Perspective Extension
+### Pattern 4: Deploy Workflow as Guarded New Skill
 
-**What:** The existing critique runs 4 perspectives (UX/usability, visual hierarchy, accessibility, business alignment). For experience products, 7 additional perspectives are added. The skill's `--focused "perspective"` flag must support the new perspective names.
+**What:** `workflows/deploy.md` is a new workflow file — not a modification of handoff. It is only invocable when `businessMode === true`. The build orchestrator conditionally adds a `deploy` stage at index 14 only for business-mode projects.
 
-**New perspectives (experience-only):**
+**Guard in build.md:**
 ```
-safety          — crowd density, evacuation routes, hazard identification
-accessibility   — physical (replaces digital WCAG) — routes, hearing loops, rest areas
-operations      — staffing coverage, logistics, run-of-show feasibility
-sustainability  — waste management, energy, travel impact
-licensing       — noise permits, alcohol licensing, capacity limits
-financial       — budget margin, contingency, revenue projection sanity
-community       — neighborhood impact, local partnerships, legacy
+After reading manifest in Step 1:
+  businessMode = manifest.businessMode ?? false
+
+STAGES definition:
+  Stages 1-13: unchanged (recommend through handoff)
+  IF businessMode === true:
+    Stage 14: deploy | pde:deploy | coverage | hasLaunchKit
+  ELSE:
+    STAGES ends at index 13
 ```
 
-**Weighting:** The existing 4 perspectives have defined weights (UX: 1.5x, Visual: 1.0x, Accessibility: 1.5x, Business: 1.0x). Experience perspectives use a flatter weighting: Safety: 2.0x, Accessibility (physical): 1.5x, Operations: 1.5x, Licensing: 1.5x, Financial: 1.0x, Sustainability: 1.0x, Community: 1.0x. Safety is weighted 2.0x because safety issues block the event entirely.
+**Human approval gates (mandatory, every external write):**
 
-**Stitch integration note:** Critique's Stitch comparison behavior (`## Stitch Comparison` section, `source: "stitch"` manifest check) applies to floor plan HTML artifacts the same way it applies to screen wireframe HTML. No new Stitch logic needed — existing per-artifact detection handles it.
+Deploy workflow must halt before any action that writes outside `.planning/` or calls an external CLI:
+
+| Gate Point | What User Sees | CLI Call |
+|-----------|----------------|----------|
+| Next.js scaffold | File list to be created, target directory | User types "yes" or "no" |
+| Stripe config write | Full JSON to be written | User types "yes" or "no" |
+| Resend template stubs | Template content preview | User types "yes" or "no" |
+| `vercel --dry-run` | Dry run output shown | No approval — display only |
+| `vercel deploy` | Dry run output + "Deploy now?" | User types "yes" or "no" |
+
+This follows the VAL-03 write-back confirmation gate pattern from the MCP integration layer. Halt on "no" at any gate — do not proceed to the next step.
 
 ---
 
 ## Data Flow
 
-### Experience Product Type Through Pipeline
+### Business Mode Activation Flow
 
 ```
-User runs /pde:brief
+User writes PROJECT.md with business signals
     ↓
-Step 4/7: Signal detection (NEW experience signal set)
-    experience signals: event, festival, installation, venue, capacity, attendees,
-    run-of-show, backstage, front-of-house, production, PA, stage, set, programme,
-    ticket, gateline, lineup, artist, performer, sponsor, volunteer, site map,
-    floor plan, acoustic zone, wayfinding, hydration, first aid, crowd, egress,
-    physical space, dB, watts, lux, queue, merchandise, bar, catering
+/pde:brief Step 4: detect product type (existing) + business mode (new)
     ↓
-product_type = "experience"
-sub_type = one of: single-night | multi-day | recurring-series | installation | hybrid-event
+manifest-set-top-level productType {type}          (existing behavior)
+manifest-set-top-level businessMode true            (NEW)
+manifest-set-top-level businessTrack "solo"         (NEW)
     ↓
-Written to:
-    - BRF-brief-v{N}.md: "**Type:** experience", "**Sub-type:** {sub_type}"
-    - DESIGN-STATE.md Quick Reference: "| Product Type | experience |", "| Sub-type | {sub_type} |"
-    - design-manifest.json: productType: "experience", experienceSubType: "{sub_type}"
+Step 5: write BRF artifact with 5 business sections (NEW conditional block)
     ↓
-/pde:flows reads product_type from brief
-    IF experience:
-      Generate temporal flow (arrival → peak → exit arc)
-      Generate spatial flow (site-wide movement patterns, zone-to-zone transitions)
-      Generate social flow (group formation, interaction touchpoints)
-      FLW-screen-inventory.json entries use "space" not "screen" for key name
-      (e.g., "entry-gateline", "main-stage-area", "food-court", "backstage")
+Step 7: set designCoverage with hasBusinessThesis: true (NEW in merged object)
     ↓
-/pde:system reads product_type from brief
-    IF experience:
-      Add token categories: sonic, lighting, spatial, thermal/atmospheric, brand-palettes
-      Sonic: --sonic-stage-db-max, --sonic-separation-db-min, --sonic-hearing-loop-db
-      Lighting: --lighting-stage-lux, --lighting-wayfinding-lux, --lighting-emergency-lux
-      Spatial: --spatial-unit (1 grid unit = 1m), --spatial-density-comfortable, --spatial-density-max
-      Thermal: --thermal-indoor-target, --thermal-outdoor-shade-target
-      Brand palettes: series identity palette alongside standard color tokens
-    ↓
-/pde:wireframe reads product_type from brief + FLW-screen-inventory.json
-    IF experience:
-      For each entry in screen-inventory.json with type "space":
-        Generate FPL-{space-slug}-v{N}.html (SVG floor plan in HTML)
-      Generate TML-timeline-v{N}.html (event timeline visualization)
-      Standard screen wireframes also generated IF sub_type is "hybrid-event"
-    ↓
-/pde:critique reads product_type from brief
-    IF experience:
-      Run 7 experience perspectives (safety, accessibility-physical, operations,
-      sustainability, licensing, financial, community)
-      Action List format identical — findings feed /pde:iterate unchanged
-    ↓
-/pde:hig reads product_type from brief
-    IF experience:
-      Replace WCAG/digital HIG with physical HIG from references/experience-hig.md
-      Audit floor plan artifacts (FPL-*.html) rather than screen wireframes
-      Light mode: 5 physical checks (wayfinding, accessible route, first aid, toilet ratio, hydration)
-    ↓
-/pde:handoff reads product_type from brief
-    IF experience:
-      Omit: software component APIs, TypeScript interfaces, route architecture
-      Emit: production bible sections
-        - Advance Document (permits, insurance, vendor contracts checklist)
-        - Run Sheet (hour-by-hour timeline with owner per action)
-        - Staffing Plan (role × headcount × shift × area)
-        - Budget Template (cost categories with contingency model)
-        - Post-Event Template (debrief structure, metrics capture, legacy report)
-      IF sub_type is "hybrid-event":
-        ALSO emit software component APIs for the digital layer
+All downstream workflows read manifest → businessMode gate activates
 ```
 
-### State Propagation: DESIGN-STATE + Manifest
-
-The `experienceSubType` field in `design-manifest.json` enables downstream skills to calibrate without re-parsing the brief:
+### Business Pipeline Data Flow
 
 ```
-design-manifest.json (root fields):
-  productType: "experience"
-  experienceSubType: "multi-day"
-
-DESIGN-STATE.md Quick Reference:
-  | Product Type | experience |
-  | Sub-type     | multi-day  |
-
-BRF-brief-v{N}.md Product Type section:
-  **Type:** experience
-  **Sub-type:** multi-day
-  **Venue:** [venue name + capacity]
-  **Repeatability:** annual
+BRF-brief (businessThesis, targetMarket, revenueModel, businessTrack)
+    ↓
+competitive.md (businessMode=true → MLS path)
+  → MLS-market-landscape (TAM/SAM/SOM, competitive map, business RICE)
+  → designCoverage.hasMarketLandscape = true
+    ↓
+opportunity.md (businessMode=true → business initiative scoring)
+  → OPP artifact gains business initiative rows alongside standard RICE
+    ↓
+flows.md (businessMode=true → Step 4-BIZ operational + service flows)
+  → FLW artifact gains operational journey + customer lifecycle sections
+  → designCoverage.hasFlows = true (existing flag, extended content)
+    ↓
+system.md (businessMode=true → brand + marketing system sections)
+  → MKT-brand-system (positioning, messaging hierarchy, voice/tone)
+  → designCoverage.hasDesignSystem = true (existing flag, extended content)
+    ↓
+wireframe.md (businessMode=true → Step 4-BIZ service blueprint + landing page)
+  → LDP-landing-v{N}.html (deployable landing page wireframe)
+  → SBP-blueprint-v{N}.md (service blueprint)
+  → designCoverage.hasWireframes = true, hasServiceBlueprint = true
+    ↓
+critique.md (businessMode=true → business alignment perspective added)
+  → CRT artifact gains business alignment section
+    ↓
+handoff.md (businessMode=true → Step 7-BIZ launch kit assembly)
+  → LKT-launchkit-v{N}.md (assembled: thesis + market + pricing + calendar + outreach)
+  → STR-pricing-v{N}.json, CNT-calendar-v{N}.md, OTR-outreach-v{N}.md
+  → designCoverage.hasLaunchKit = true
+    ↓
+deploy.md (NEW Stage 14, businessMode=true only)
+  → Human approval → Next.js scaffold
+  → Human approval → Stripe config write
+  → Human approval → Resend template stubs
+  → vercel --dry-run → Human approval → vercel deploy
+  → artifacts.DEPLOY registered in manifest with deployment URL
 ```
 
-Each skill reads `productType` from the brief (not from the manifest) to maintain the existing pattern where skills treat the brief as the authoritative source and the manifest as the registry.
+### How business: Composes With All Product Types
+
+```
+productType = "software"    businessMode = false  →  Standard 13-stage pipeline (unchanged)
+productType = "software"    businessMode = true   →  13-stage software path + Stage 14 deploy
+productType = "hardware"    businessMode = true   →  13-stage hardware path + Stage 14 deploy
+productType = "hybrid"      businessMode = true   →  13-stage hybrid path + Stage 14 deploy
+productType = "experience"  businessMode = false  →  13-stage experience path (v0.11, unchanged)
+productType = "experience"  businessMode = true   →  13-stage experience path + Stage 14 deploy
+```
+
+The business layer is purely additive. The experience type's exclusive branches (FLP replaces WFR, BIB replaces HND for non-hybrid-event) are unaffected. Business-mode adds conditional sections inside existing workflows and appends Stage 14 to the pipeline — it never replaces existing stages.
 
 ---
 
-## Integration Points for All 8 Affected Pipeline Stages
+## New vs Modified File Inventory
 
-### Stage 1: Brief (`/pde:brief`) — Detection + Foundation
+### New Files
 
-**Integration point:** Step 4/7 (product type detection) + Step 5/7 (brief content generation)
+| File | Purpose | Why New |
+|------|---------|---------|
+| `workflows/deploy.md` | Launch scaffolding with human approval gates | No existing workflow handles filesystem scaffolding outside `.planning/` or CLI deployment |
+| `commands/deploy.md` | `/pde:deploy` slash command entry point | New user-facing command following existing command bootstrap pattern |
+| `references/business-track.md` | Track vocabulary and depth definitions for solo/startup/leader | Shared reference for all 14+ workflows — avoids duplicating track logic in each workflow |
+| `references/launch-frameworks.md` | Lean canvas, GTM templates, investor narrative templates | Business artifact template library analogous to `experience-disclaimer.md` |
 
-**New vs modified:**
-- MODIFIED: Step 4 signal list — add experience keyword set
-- MODIFIED: Step 4 classification logic — add `experience` branch (precedes software default)
-- MODIFIED: Step 4 platform detection — add `physical` platform variant
-- MODIFIED: Step 5 Design Constraints table — add experience constraint rows when type=experience
-- MODIFIED: Step 5 Product Type section — add Sub-type, Venue Constraints, Repeatability Intent fields
-- MODIFIED: Step 5 new brief sections (experience-only): Promise Statement, Audience Archetype, Vibe Contract
-- MODIFIED: Step 7 manifest-set-top-level — add `experienceSubType` manifest field write
-- MODIFIED: DESIGN-STATE Quick Reference — add `Sub-type` row
+### Modified Files
 
-**New experience signals (added to Step 4 detection):**
-```
-event, festival, installation, live performance, concert, venue, capacity, attendees,
-run-of-show, front-of-house, FOH, BOH, backstage, production, PA system, stage, set design,
-programme, lineup, artist, performer, act, sponsor, volunteer, site map, floor plan,
-acoustic zone, wayfinding, hydration station, first aid, crowd management, egress,
-ticket, gateline, wristband, laminate, merchandise, bar, catering, dB, watts, lux,
-crowd flow, ingress, site plan, temporary structure, marquee, tent
-```
-
-**Classification logic change:**
-```
-IF experience signals present AND NOT dominated by software signals:
-  product_type = "experience"
-  Detect sub_type from:
-    single-night: "one night", "one-day", "24h", "evening event", single date
-    multi-day: "weekend", "multi-day", "festival" (3+ days implied), numbered days
-    recurring-series: "monthly", "quarterly", "series", "season", "weekly"
-    installation: "installation", "exhibition", "gallery", "open-ended", "visitor-led"
-    hybrid-event: both experience AND software signals present with digital product layer
-ELSE IF both software AND hardware signals are present:
-  product_type = "hybrid"
-...
-```
-
-Experience detection precedes the hybrid check because experience + software signals (ticketing app, digital display) should resolve to `hybrid-event` sub-type rather than `hybrid` product type.
-
-**New brief sections (experience-only, added after Product Type):**
-```markdown
-## Promise Statement
-[One sentence: the emotional or transformative promise made to attendees]
-
-## Audience Archetype
-[Primary audience profile: age, values, context, prior experience with this type of event]
-
-## Vibe Contract
-[3-5 adjectives defining the intended atmosphere, with one counter-adjective to avoid]
-
-## Venue Constraints
-| Constraint | Value |
-|------------|-------|
-| Venue type | indoor / outdoor / hybrid / touring |
-| Capacity   | [number] |
-| Curfew     | [time] |
-| Noise permit | [dB limit if known] |
-| Accessibility compliance | [local code] |
-
-## Repeatability Intent
-[Single occurrence / recurring series / touring production — affects design system longevity]
-```
+| File | Modification | Estimated Scope |
+|------|-------------|-----------------|
+| `workflows/brief.md` | Step 4: add business signal detection + track detection; Step 5: add 5 business sections (gated); Step 7: set `businessMode`, `businessTrack`, `hasBusinessThesis` in manifest | ~100 lines added |
+| `workflows/competitive.md` | Context routing: read `businessMode`; output: add MLS market landscape path | ~80 lines added |
+| `workflows/opportunity.md` | Add business initiative RICE scoring path when `businessMode === true` | ~60 lines added |
+| `workflows/flows.md` | Add Step 4-BIZ block for operational and service flows (parallel to Step 4-EXP pattern) | ~150 lines added |
+| `workflows/system.md` | Add Step N-BIZ for brand system + marketing messaging sections | ~80 lines added |
+| `workflows/wireframe.md` | Add SBP (service blueprint) and LDP (landing page) generation paths (parallel to FLP/TML for experience) | ~200 lines added |
+| `workflows/critique.md` | Add business alignment perspective section when `businessMode === true` | ~50 lines added |
+| `workflows/handoff.md` | Add Step 7-BIZ launch kit assembly (LKT, STR, CNT, OTR artifacts) | ~150 lines added |
+| `workflows/hig.md` | Add business communications HIG when `businessMode === true` | ~40 lines added |
+| `workflows/recommend.md` | Add business tool category (Stripe MCP, Resend MCP, analytics tools) | ~40 lines added |
+| `workflows/iterate.md` | Add guard stub (same 5-line comment pattern as v0.11 experience stubs) | ~5 lines added |
+| `workflows/mockup.md` | Add guard stub (same 5-line comment pattern as v0.11 experience stubs) | ~5 lines added |
+| `workflows/build.md` | Add conditional Stage 14 (deploy) when `businessMode === true`; read manifest earlier | ~30 lines added |
+| `templates/design-manifest.json` | Add `businessMode: false`, `businessTrack: null` top-level fields; add 4 new `designCoverage` flags | ~10 lines modified |
+| `bin/lib/design.cjs` | Add `launch/` to the `ensure-dirs` directory creation list | ~3 lines modified |
+| **All 14 designCoverage-writing workflows** | Add 4 new flags to every `manifest-set-top-level designCoverage` call (as `{current}` pass-through) | ~4 lines per workflow = ~56 lines total across the audit phase |
 
 ---
 
-### Stage 2: Flows (`/pde:flows`) — Spatial + Temporal + Social Dimensions
+## Integration Points
 
-**Integration point:** Steps 4-6 (flow generation and screen inventory)
+### Business Signal Detection (brief.md Step 4)
 
-**New vs modified:**
-- MODIFIED: Step 4 flow generation — add three experience flow dimensions
-- MODIFIED: Step 5 screen inventory JSON — `"type": "space"` entries alongside `"type": "screen"` for digital screens (hybrid-event only)
-- MODIFIED: Step 6 DESIGN-STATE update — note experience flow types in decision log
+New signal set added to the existing software/hardware/experience classification block. Detection is orthogonal — `businessMode` is set independently of `productType`:
 
-**Three experience flow dimensions:**
+```
+Business signals: "launch", "go-to-market", "GTM", "revenue model", "pricing",
+  "investor", "fundraising", "seed", "Series A", "pitch deck", "venture",
+  "startup", "founder", "bootstrapped", "SaaS pricing", "market fit", "PMF",
+  "customer acquisition", "CAC", "LTV", "churn", "runway", "MRR", "ARR",
+  "business model", "monetization", "subscription", "freemium", "enterprise sales",
+  "go live", "launch date", "pre-launch", "waitlist", "landing page", "domain"
 
-1. **Temporal flow** — The narrative arc across time:
-   - Arrival window (gates open → peak density)
-   - Programme spine (headline acts, set changes, intervals)
-   - Exit arc (end → venue clear, including late-stayers)
-   - For recurring-series: template arc that repeats per instance
+IF business signals present:
+  SET businessMode = true
+  DETECT businessTrack from secondary signals (solo/startup/leader)
+  SET businessTrack = detected track or "solo" default
+ELSE:
+  SET businessMode = false
+  SET businessTrack = null
+```
 
-2. **Spatial flow** — Movement through physical space:
-   - Entry/exit nodes (gatelines, emergency exits)
-   - Zone topology (stage areas, food/bar, toilets, first aid, merch)
-   - Pinch points (narrow corridors, bottleneck predictions at capacity)
-   - Accessible routes (separate from general circulation)
+This runs AFTER the existing software/hardware/experience classification. Both axes are independently detected.
 
-3. **Social flow** — Group formation and touchpoints:
-   - Solo, pair, small group, large group journey variants
-   - Meeting points and wayfinding for groups who split
-   - Social interaction zones (areas designed for congregation vs. through-traffic)
+### Manifest Top-Level Fields Added
 
-**FLW-screen-inventory.json for experience (space entries):**
 ```json
 {
-  "spaces": [
-    {
-      "slug": "entry-gateline",
-      "name": "Entry Gateline",
-      "type": "space",
-      "zone": "entry",
-      "capacity": 500,
-      "accessible": true,
-      "flows": ["arrival-flow", "egress-flow"]
-    },
-    {
-      "slug": "main-stage-area",
-      "name": "Main Stage Area",
-      "type": "space",
-      "zone": "performance",
-      "capacity": 3000,
-      "accessible": true,
-      "flows": ["general-flow"]
-    }
-  ],
-  "screens": []
+  "productType": "software | hardware | hybrid | experience",
+  "experienceSubType": "single-night | multi-day | recurring-series | installation | hybrid-event | null",
+  "businessMode": false,
+  "businessTrack": "solo | startup | leader | null"
 }
 ```
 
-The `screens` array is empty for pure experience products; populated for hybrid-event sub-type.
+`businessMode` defaults to `false` in the manifest template. All existing projects that lack the field read it as `false` (via `?? false` null-coalescing in workflows) — no migration needed.
 
----
-
-### Stage 3: Design System (`/pde:system`) — New Token Categories
-
-**Integration point:** Step 4/7 (token generation), Step 5/7 (CSS derivation)
-
-**New vs modified:**
-- MODIFIED: Step 4 — add 5 new token categories when product_type=experience
-- MODIFIED: Step 5 — emit CSS for new categories under `/* experience tokens */` comment block
-- NEW reference file: `references/experience-tokens.md`
-
-**New token categories (experience-only, added after standard 7 categories):**
+### designCoverage Schema Evolution (16 → 20 fields)
 
 ```json
-"sonic": {
-  "stage": { "db-max": { "$value": 103, "$type": "number", "$description": "Max SPL at main stage (dB)" } },
-  "separation": { "db-min": { "$value": 15, "$type": "number", "$description": "Min dB separation between zones" } },
-  "hearing-loop": { "db": { "$value": 65, "$type": "number", "$description": "Hearing loop target level" } }
-},
-"lighting": {
-  "stage": { "lux": { "$value": 800, "$type": "number" } },
-  "wayfinding": { "lux": { "$value": 50, "$type": "number" } },
-  "emergency": { "lux": { "$value": 1, "$type": "number", "$description": "Emergency route minimum" } },
-  "ambient": { "lux": { "$value": 20, "$type": "number" } }
-},
-"spatial": {
-  "unit": { "$value": "1m", "$type": "dimension", "$description": "Floor plan grid unit" },
-  "density": {
-    "comfortable": { "$value": 0.5, "$type": "number", "$description": "m² per person (comfortable)" },
-    "max": { "$value": 0.25, "$type": "number", "$description": "m² per person (maximum)" }
-  }
-},
-"thermal": {
-  "indoor-target": { "$value": 18, "$type": "number", "$description": "°C indoor comfort target" },
-  "outdoor-shade-target": { "$value": 24, "$type": "number", "$description": "°C outdoor shade target" }
-},
-"brand-palette": {
-  "_description": "Series identity palette — colour system for recurring brand across multiple events",
-  "series-primary": { "$value": "oklch(55% 0.18 270)", "$type": "color" },
-  "series-secondary": { "$value": "oklch(80% 0.12 45)", "$type": "color" },
-  "series-accent": { "$value": "oklch(65% 0.22 150)", "$type": "color" }
+{
+  "_comment": "v0.12 adds 4 new flags at the bottom. All 20 must be preserved in every write.",
+  "hasDesignSystem": false,
+  "hasWireframes": false,
+  "hasFlows": false,
+  "hasHardwareSpec": false,
+  "hasCritique": false,
+  "hasIterate": false,
+  "hasHandoff": false,
+  "hasIdeation": false,
+  "hasCompetitive": false,
+  "hasOpportunity": false,
+  "hasMockup": false,
+  "hasHigAudit": false,
+  "hasRecommendations": false,
+  "hasStitchWireframes": false,
+  "hasPrintCollateral": false,
+  "hasProductionBible": false,
+  "hasBusinessThesis": false,
+  "hasMarketLandscape": false,
+  "hasServiceBlueprint": false,
+  "hasLaunchKit": false
 }
 ```
 
-These values are defaults — the brief's explicit color preferences and venue constraints override them via INPUT_PATH logic.
-
----
-
-### Stage 4: Wireframe (`/pde:wireframe`) — Floor Plan + Timeline Artifacts
-
-**Integration point:** Steps 2-5 (screen list, fidelity, generation)
-
-**New vs modified:**
-- MODIFIED: Step 2a — accept "spaces" entries in FLW-screen-inventory.json as wireframe targets
-- MODIFIED: Step 3/4/5 — generate FPL-*.html (floor plan) and TML-timeline.html when product_type=experience
-- MODIFIED: Step 6/7 — register FPL and TML artifact codes in manifest
-
-**Floor plan generation approach:**
-- Output: self-contained HTML with inline SVG floor plan
-- Grid: spatial token `--spatial-unit` defines the coordinate system (1 unit = 1m)
-- Zones drawn as labeled rectangles with capacity annotations
-- Accessible routes shown as dashed lines
-- Pinch points highlighted (red border)
-- Three states (as existing wireframe convention): default (normal operation), peak (at capacity), egress (exit scenario)
-- File naming: `FPL-{space-slug}-v{N}.html`
-- `--use-stitch` flag: routes to Stitch MCP for floor plan generation (same consent + fallback pattern as existing wireframe Stitch path)
-
-**Timeline wireframe:**
-- Output: self-contained HTML with horizontal timeline visualization
-- Shows: programme spine, set changes, logistics windows, staffing shift boundaries
-- Three fidelity levels parallel existing lofi/midfi/hifi:
-  - lofi: boxes on a line, text labels only
-  - midfi: colored zones, capacity annotations
-  - hifi: brand tokens applied, print-ready layout
-- File naming: `TML-timeline-v{N}.html`
-
-**Manifest registration (new artifact codes):**
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update FPL-{slug} code FPL-{slug}
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update FPL-{slug} type floor-plan
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update TML type timeline
-```
-
----
-
-### Stage 5: Critique (`/pde:critique`) — Experience Perspectives
-
-**Integration point:** Step 4/7 (perspective evaluation)
-
-**New vs modified:**
-- MODIFIED: Step 4 — add 7 experience perspectives when product_type=experience
-- MODIFIED: `--focused` flag valid values — add new perspective names
-- MODIFIED: scoring — experience perspectives use experience-specific weighting
-
-**Experience perspective structure (follows existing CRT-critique output format):**
-
-```markdown
-## Perspective 5 — Safety [Weight: 2.0x]
-
-### Findings
-
-| Finding | Severity | Recommendation |
-|---------|----------|----------------|
-| No designated emergency assembly point visible on floor plan | critical | Add clearly marked assembly points outside main crowd zones |
-| Egress route width insufficient at 2m for 3000-capacity area | major | Minimum 1m egress per 250 capacity — widen to 12m or add egress points |
-
-### What Works
-
-[Safety-positive design decisions from floor plan that should be preserved]
-
-### Action List
-
-- [ ] SAF-01: Mark emergency assembly points on FPL-main-stage
-- [ ] SAF-02: Widen north egress route or add secondary egress
-```
-
-**Perspective list for `--focused` flag:**
-```
-safety, accessibility, operations, sustainability, licensing, financial, community
-```
-
-The existing `ux`, `hierarchy`, `accessibility` (digital), `business` perspectives are suppressed for pure experience products; `accessibility` is replaced by the physical accessibility perspective. For hybrid-event sub-type, both digital and physical accessibility perspectives run.
-
-**Stitch comparison (`## Stitch Comparison`) applies to FPL artifacts** — if a Stitch-generated floor plan exists (`source: "stitch"` in manifest), critique appends a comparison section noting spatial differences between Stitch rendering and design intent. DTCG token suppression applies to FPL Stitch artifacts (same mechanism as WFR Stitch, no new logic).
-
----
-
-### Stage 6: HIG (`/pde:hig`) — Physical Interface Guidelines
-
-**Integration point:** Step 4/7 (criterion evaluation) and Step 2/7 (artifact detection)
-
-**New vs modified:**
-- MODIFIED: Step 2 artifact detection — accept FPL-*.html and TML-*.html as auditable artifacts
-- MODIFIED: Step 4 criterion set — replace WCAG/digital HIG with physical HIG when experience
-- NEW reference file: `references/experience-hig.md`
-
-**Physical HIG criterion set (loaded from `references/experience-hig.md`):**
-
-| Criterion | Standard | Method |
-|-----------|----------|--------|
-| Wayfinding legibility | Signage readable at 10m: min 10cm letter height | Analyse floor plan text label sizes vs spatial scale |
-| Accessible route continuity | Unbroken accessible path from entry to all zones | Trace path on FPL, flag any breaks |
-| Acoustic zone separation | Min 15dB separation between adjacent zones | Check --sonic-separation-db-min token vs zone arrangement |
-| Queue wait-time communication | Queue length → wait time displays at 5min+ queues | Check gateline and bar queue designs for signage |
-| Toilet provision ratio | EN 16747: 1:75 female, 1:100 male, 1:150 accessible | Calculate from brief capacity + venue constraints |
-| Hydration provision | 1 free water point per 500 attendees | Count FPL hydration markers vs capacity |
-| First aid coverage | 1 responder per 1000; within 3min walk any point | Analyse FPL first aid placement geometry |
-| Emergency egress | 1m egress width per 250 capacity; signed to 10m | Analyse FPL egress route widths vs capacity token |
-
-**Light mode (5 checks for critique delegation, matching digital HIG light mode structure):**
-1. Wayfinding contrast (legibility at distance)
-2. Accessible route continuity (unbroken path)
-3. First aid placement (within 3min walk)
-4. Toilet ratio (within 10% of code)
-5. Hydration access (1 per 500 — present/absent)
-
-**`--platform` flag behaviour for experience:** Physical HIG has no platform variants (no `--platform ios` equivalent). The flag is ignored when product_type=experience. Log: `-> Physical HIG mode: --platform flag ignored for experience product type`.
-
----
-
-### Stage 7: Handoff (`/pde:handoff`) — Production Bible
-
-**Integration point:** Step 4/7 (content generation, Step 4i productType conditional)
-
-**New vs modified:**
-- MODIFIED: Step 2c (brief reading) — extract experience fields: sub_type, venue constraints, capacity, repeatability
-- MODIFIED: Step 4i productType conditional — add `"experience"` branch
-- MODIFIED: Step 5 output structure — production bible sections replace software component APIs
-- MODIFIED: Step 7 manifest — register HND artifact with `type: "production-bible"` instead of `type: "handoff-spec"`
-
-**Experience handoff output structure:**
-
-```markdown
----
-Skill: /pde:handoff (HND)
-Product Type: "experience"
-Experience Sub-type: "{sub_type}"
----
-
-# Production Bible: {Event Name}
-
-## 1. Advance Document
-<!-- Checklist of pre-event tasks with deadlines and owners -->
-### Permits & Licensing
-| Permit | Lead Time | Owner | Status |
-...
-### Insurance
-### Vendor Contracts
-### Risk Assessment
-
-## 2. Run Sheet
-<!-- Hour-by-hour event day timeline -->
-| Time | Action | Owner | Notes |
-...
-
-## 3. Staffing Plan
-<!-- Role × headcount × shift × zone assignment -->
-| Role | Headcount | Shift | Zone | Notes |
-...
-
-## 4. Budget Template
-| Category | Estimated | Actual | Variance | Notes |
-...
-### Contingency Model
-10% on total production costs (standard for first-time events)
-15% on technical production (equipment hire risk)
-
-## 5. Post-Event Template
-### Metrics to Capture
-### Debrief Structure
-### Legacy Report Outline
-```
-
-**For hybrid-event sub-type:** Sections 1-5 above PLUS the full software handoff (`HND-handoff-spec-v{N}.md` and `HND-types-v{N}.ts`) for the digital layer. Two output files are produced.
-
-**STACK.md dependency for hybrid-event:** `/pde:handoff` hard-requires STACK.md for software component API generation. For pure experience products (non-hybrid), STACK.md is not required. The Step 2a STACK.md check becomes conditional:
-```
-IF PRODUCT_TYPE is "experience" AND experienceSubType is NOT "hybrid-event":
-  SKIP STACK.md check — production bible does not require framework detection
-  Set FRAMEWORK = "none", TYPESCRIPT = false
-ELSE:
-  [existing STACK.md hard-requirement logic unchanged]
-```
-
----
-
-### Stage 8: Print Collateral (`/pde:flyer` — new skill)
-
-**Integration point:** New command + workflow file (not a modification of an existing stage)
-
-**New vs modified:**
-- NEW: `commands/flyer.md` — `/pde:flyer` slash command
-- NEW: `workflows/flyer.md` — flyer and print collateral generation workflow
-- MODIFIED: `workflows/build.md` — add `flyer` and `print` stages to STAGES table (after handoff)
-- MODIFIED: `templates/design-manifest.json` — add FLY/PRT artifact code examples
-- MODIFIED: `templates/design-state-root.md` — add print collateral coverage awareness
-
-**Why a new skill (not folded into wireframe or handoff):** Print collateral has its own fidelity arc (lofi sketch → midfi layout → hifi production-ready), its own version lifecycle, and its own downstream consumer (printers, social media). Folding it into wireframe would blur the screen/spatial/print artifact separation. Folding it into handoff would make handoff non-terminating (print needs critique and iterate loops of its own).
-
-**Artifacts produced by /pde:flyer:**
-- `FLY-event-flyer-v{N}.html` — single-event flyer (A5/A4/square variants via CSS media)
-- `FLY-series-identity-v{N}.html` — series identity template (recurring-series sub-type only)
-- `PRT-programme-v{N}.html` — festival programme/schedule (multi-day sub-type)
-
-**Build pipeline stages (modified STAGES table in build.md):**
-```
-| 14 | flyer | pde:flyer | coverage | hasPrintCollateral |
-```
-
-The flyer stage is experience-only. Build orchestrator skips it for software/hardware/hybrid product types via coverage check + product type gate.
-
----
-
-## Build Order
-
-Dependencies flow strictly in one direction through the pipeline. The experience extensions do not introduce cycles.
-
-```
-Phase 1: Signal detection infrastructure
-  WHAT: Add experience keyword set + sub-type detection to /pde:brief Step 4
-        Add experienceSubType field to design-manifest.json template
-        Add Sub-type row to design-state-root.md template
-  WHY FIRST: All downstream skills read product_type and sub_type from the brief
-             and manifest. Nothing can be built without the detection foundation.
-  DELIVERABLE: /pde:brief correctly detects and classifies experience products
-
-Phase 2: Reference files
-  WHAT: Create references/experience-hig.md (physical HIG criteria)
-        Create references/experience-tokens.md (sonic/lighting/spatial/thermal schemas)
-  WHY SECOND: /pde:hig and /pde:system load these via @references/ at runtime.
-              They must exist before the skills that reference them.
-  DELIVERABLE: Two new reference files; no workflow changes yet
-
-Phase 3: Brief content extensions (depends on Phase 1)
-  WHAT: Add experience sections to /pde:brief Step 5 output
-        (Promise Statement, Audience Archetype, Vibe Contract, Venue Constraints,
-        Repeatability Intent)
-  WHY THIRD: Brief provides the content that flows → system → wireframe → critique
-             → hig → handoff all consume. Experience sections must be generated
-             before downstream skills try to read them.
-  DELIVERABLE: /pde:brief produces complete experience brief when type=experience
-
-Phase 4: Flows extensions (depends on Phase 3)
-  WHAT: Add temporal/spatial/social flow dimensions to /pde:flows
-        Update FLW-screen-inventory.json schema with "spaces" array
-  WHY FOURTH: Wireframe reads the screen inventory. Space entries must exist
-              before wireframe tries to generate floor plans.
-  DELIVERABLE: /pde:flows produces three-dimensional experience flows + space inventory
-
-Phase 5: Design system extensions (depends on Phase 3, parallel with Phase 4)
-  WHAT: Add 5 new token categories to /pde:system generation step
-  WHY: System and flows are independent — system reads brief only, not flows.
-       Can build in parallel with Phase 4.
-  DELIVERABLE: /pde:system emits sonic/lighting/spatial/thermal/brand-palette tokens
-
-Phase 6: Wireframe extensions (depends on Phases 4 + 5)
-  WHAT: Add FPL (floor plan) and TML (timeline) artifact generation to /pde:wireframe
-        Register FPL/TML artifact codes in manifest
-  WHY SIXTH: Wireframe reads screen-inventory.json (Phase 4) and tokens.css (Phase 5).
-             Both must exist before floor plan generation.
-  DELIVERABLE: /pde:wireframe produces HTML floor plans and timeline wireframes
-
-Phase 7: Critique extensions (depends on Phase 6)
-  WHAT: Add 7 experience perspectives to /pde:critique
-        Update --focused flag valid values
-  WHY SEVENTH: Critique reads wireframe artifacts including FPL and TML.
-               Floor plans must exist before they can be critiqued.
-  DELIVERABLE: /pde:critique runs experience perspectives on floor plans + timelines
-
-Phase 8: HIG extensions (depends on Phase 2 + Phase 6)
-  WHAT: Update /pde:hig to accept FPL artifacts and run physical HIG criteria
-        Load references/experience-hig.md
-        Add --light mode physical checks
-  WHY EIGHTH: HIG audits artifacts. References must exist (Phase 2).
-              Floor plans must exist (Phase 6).
-  DELIVERABLE: /pde:hig produces physical HIG audit for experience products
-
-Phase 9: Handoff extensions (depends on Phase 3)
-  WHAT: Add production bible output to /pde:handoff Step 4i experience branch
-        Make STACK.md check conditional for non-hybrid experience types
-  WHY NINTH: Handoff reads brief (Phase 3) for venue/capacity/repeatability fields.
-             Can build once brief content extensions are stable.
-  DELIVERABLE: /pde:handoff produces production bible for experience products
-
-Phase 10: Print collateral skill (depends on Phases 3 + 6)
-  WHAT: Create commands/flyer.md, workflows/flyer.md
-        Add flyer stage to build.md STAGES table
-        Add FLY/PRT artifact codes to manifest template
-  WHY LAST: New skill has most moving parts (new command, workflow, stages entry).
-            Build after core pipeline extensions are stable.
-  DELIVERABLE: /pde:flyer produces event flyer, series identity, programme artifacts
-```
-
-**Parallelisable pairs:**
-- Phase 4 and Phase 5 can build in parallel (both depend on Phase 3, not on each other)
-- Phase 7, Phase 8, Phase 9 can build in parallel once Phase 6 is complete
+### New Artifact Codes
+
+| Code | Artifact | Producer | Coverage Flag | Storage Path |
+|------|----------|----------|---------------|-------------|
+| `BTH` | Business Thesis | `brief.md` | `hasBusinessThesis` | `strategy/BTH-thesis-v{N}.md` |
+| `MLS` | Market Landscape | `competitive.md` | `hasMarketLandscape` | `strategy/MLS-market-landscape-v{N}.md` |
+| `MKT` | Brand/Marketing System | `system.md` | (child of `hasDesignSystem`) | `visual/MKT-brand-system-v{N}.md` |
+| `SBP` | Service Blueprint | `wireframe.md` | `hasServiceBlueprint` | `ux/SBP-blueprint-v{N}.md` |
+| `LKT` | Launch Kit | `handoff.md` | `hasLaunchKit` | `launch/LKT-launchkit-v{N}.md` |
+| `LDP` | Landing Page Wireframe | `wireframe.md` | (child of `hasWireframes`) | `launch/LDP-landing-v{N}.html` |
+| `STR` | Stripe Pricing Config | `handoff.md` | (child of `hasLaunchKit`) | `launch/STR-pricing-v{N}.json` |
+| `CNT` | Content Calendar | `handoff.md` | (child of `hasLaunchKit`) | `launch/CNT-calendar-v{N}.md` |
+| `OTR` | Outreach Sequence | `handoff.md` | (child of `hasLaunchKit`) | `launch/OTR-outreach-v{N}.md` |
+| `DEPLOY` | Deployment Record | `deploy.md` | (no coverage flag) | manifest only |
+
+**Coverage flag assignment rationale:** Only artifacts that represent a significant design category get their own coverage flag. Child artifacts (LDP, STR, CNT, OTR, MKT) are subcomponents of their parent category's flag. This follows the same principle as how `hasWireframes` covers all WFR-{slug} artifacts without a separate flag per screen.
+
+### External Services (deploy.md only)
+
+| Service | Integration Pattern | Approval Gate |
+|---------|---------------------|---------------|
+| Vercel | `vercel` CLI via Bash tool — dry-run first, deploy on approval | Hard gate before `vercel deploy` |
+| Next.js | File scaffolding via Write tool to project directory outside `.planning/` | Hard gate showing full file list |
+| Stripe | Config spec written to `STR-pricing-v{N}.json` — no live Stripe API calls | Hard gate before writing |
+| Resend | Template stubs written as markdown files — no live API calls | Hard gate before writing |
+
+No new MCP server registrations are required for deploy.md. Stripe and Resend are write-side config generation only — no read-side API calls in the pipeline.
 
 ---
 
 ## Anti-Patterns
 
-### Anti-Pattern 1: Parallel Experience Skill Files
+### Anti-Pattern 1: Treating business: as a New productType Value
 
-**What people do:** Create `workflows/experience-brief.md`, `workflows/experience-flows.md`, etc. as separate files that handle experience logic.
+**What people do:** Add `"business"` as a valid value for `productType` in brief detection.
+**Why it's wrong:** A business-mode project is still software, hardware, hybrid, or experience at the product design layer. Setting `productType = "business"` would force exclusive branches throughout all 14 workflows (what wireframes does a "business" product get?), break the experience type's exclusive-branch system, and destroy the composability goal entirely.
+**Do this instead:** Use `businessMode: true` as an orthogonal flag alongside the existing `productType`. The manifest holds both. Workflows read both independently.
 
-**Why it's wrong:** The build orchestrator (`build.md`) maps stage names to skill commands — one stage, one skill. Parallel files would require either a new stage name (breaking `--from` resumption) or conditional file loading (not supported by the `@workflows/` reference pattern). The `skill-registry.md` would double in size. Maintenance becomes a split-brain — two files per stage, one of which is always wrong.
+### Anti-Pattern 2: Storing Launch Kit Artifacts Under ux/ or visual/
 
-**Do this instead:** Use product-type conditional blocks inside the existing skill workflow, following the hardware pattern established in `handoff.md` Step 4i and `brief.md` Step 5.
+**What people do:** Store `LDP-landing-v1.html` under `ux/` alongside wireframes, or `STR-pricing.json` under `visual/`.
+**Why it's wrong:** Launch kit artifacts are pre-deployment executables, not design specifications. Mixing them into `ux/` confuses the handoff consumer (which reads `ux/` for component specs) and makes the deploy workflow's file discovery non-deterministic.
+**Do this instead:** Use a dedicated `launch/` directory. The `design ensure-dirs` command creates it. All launch artifact paths are predictably `launch/{CODE}-{slug}-v{N}.{ext}`.
 
-### Anti-Pattern 2: New designCoverage Flags for Sub-Artifacts
+### Anti-Pattern 3: Clobbering the 20-Field designCoverage Object
 
-**What people do:** Add `hasFloorPlan: false`, `hasTimeline: false`, `hasSeries Identity: false` boolean flags to the `designCoverage` object in `design-manifest.json`.
+**What people do:** Write only the new flag when updating coverage (e.g., `{"hasBusinessThesis": true}` omitting all 19 other fields).
+**Why it's wrong:** `manifest-set-top-level designCoverage` replaces the ENTIRE object. Any field not included reverts to absent (treated as `false`). This is the exact cross-phase clobber bug that caused v0.11 Phase 83 to find 10 broken workflows.
+**Do this instead:** Always run `coverage-check` first, parse all 20 current values, write the full 20-field merged object.
 
-**Why it's wrong:** `designCoverage` flags exist for stage-level checks by the build orchestrator. Floor plans are sub-artifacts of the wireframe stage, not new stages. Adding flags for sub-artifacts bloats the coverage object, confuses the orchestrator's stage-completion logic, and creates flags that never get set (because no skill sets `hasFloorPlan` — the wireframe skill sets `hasWireframes`).
+### Anti-Pattern 4: Auto-Deploying Without Human Approval Gates
 
-**Do this instead:** Register FPL and TML as entries in `artifacts` (the manifest's per-artifact registry). Use `artifacts.FPL` existence as the signal, not a boolean flag. Only add a new `designCoverage` flag if the artifact type becomes a dedicated build pipeline stage.
+**What people do:** Wire `vercel deploy` as an automatic step after scaffolding completes.
+**Why it's wrong:** Deployment is irreversible and potentially billing-relevant. It can expose unfinished code publicly. PDE has always required user consent for external writes (VAL-03 pattern from MCP integrations). Deployment is higher-stakes than a Linear ticket write.
+**Do this instead:** Show the user exactly what will be deployed (file list, project name, domain), run `vercel --dry-run`, present output for review, require explicit "yes" confirmation before `vercel deploy`. Halt on "no" or timeout.
 
-### Anti-Pattern 3: Replacing Brief Detection with a Manual Flag
+### Anti-Pattern 5: Adding businessMode Stage at the Wrong Pipeline Position
 
-**What people do:** Add `--type experience` as a required flag to `/pde:brief`, bypassing signal detection.
+**What people do:** Insert a `business-thesis` stage as Stage 1 in build.md (before brief), reasoning that business framing should come first.
+**Why it's wrong:** The business thesis IS generated inside `brief.md` Step 5 — it reads upstream IDT/CMP/OPP context and PROJECT.md to synthesize it. Extracting it as a pre-brief stage breaks the upstream context injection chain and the `--from brief` resume path.
+**Do this instead:** Business thesis sections live inside `brief.md` Step 5, gated on `businessMode === true`. The BTH artifact is registered in the manifest by brief's Step 7. The deploy stage goes at position 14 (after handoff), not at the beginning.
 
-**Why it's wrong:** Manual type flags eliminate the auto-detection that makes PDE usable without configuration. Users would need to know to pass `--type experience` before running brief, breaking the self-service model. Signal detection is how PDE learns what kind of project it's dealing with — it must work automatically.
+### Anti-Pattern 6: Skipping the Coverage Clobber Audit Phase
 
-**Do this instead:** Extend the existing signal detection with experience keywords. If the detection is ambiguous (mixed signals), use Sequential Thinking MCP to resolve — the same pattern used for ambiguous software/hardware classification. The detection must be automatic.
+**What people do:** Add the 4 new flags to the template and the 3-4 primary-producer workflows, then skip auditing the other 10 workflows that also write `designCoverage`.
+**Why it's wrong:** Any workflow that writes `designCoverage` without including the 4 new flags will silently zero them out. A user who runs `brief` (sets `hasBusinessThesis: true`), then runs `flows` (writes coverage without the new flags), will find `hasBusinessThesis` reset to absent. The build orchestrator won't detect this because it reads coverage at the start of the pipeline, not between stages.
+**Do this instead:** Dedicate a phase to auditing all 14 workflows, update each one to include the 4 new pass-through fields, write Nyquist tests that verify the flag count.
 
-### Anti-Pattern 4: Storing Venue Constraints in DESIGN-STATE Only
+---
 
-**What people do:** Write venue capacity, curfew, and noise permit limits only to DESIGN-STATE.md Quick Reference, not to the brief artifact.
+## Suggested Build Order
 
-**Why it's wrong:** DESIGN-STATE.md is the live pipeline state file — it's updated by every skill run and is a volatile source of truth. The brief (`BRF-brief-v{N}.md`) is the stable artifact that downstream skills (flows, system, wireframe, hig, handoff) read as authoritative context. If venue constraints live only in DESIGN-STATE, they disappear when DESIGN-STATE is regenerated or if a skill reads the brief without checking DESIGN-STATE.
+Based on architectural dependency chain derived from v0.11 precedent:
 
-**Do this instead:** Write venue constraints to the brief (`## Venue Constraints` section) as the primary record. Write a summary to DESIGN-STATE Quick Reference as a navigation shortcut (derived from the brief, not the authoritative source).
-
-### Anti-Pattern 5: Physical HIG as WCAG Extension
-
-**What people do:** Add venue/physical criteria as additional WCAG checks within the existing digital HIG criterion table.
-
-**Why it's wrong:** WCAG criteria are numbered (1.1.1, 1.4.3, etc.) and digital-only. Adding physical criteria as additional numbered items creates a confusing hybrid that fails both physical and digital users. More practically: the light mode "5 mandatory checks" count becomes wrong, the criterion routing logic (`WCAG_CRITERIA_LIST`) would need physical items interleaved with digital ones, and WCAG audit tools (Axe) would be invoked against floor plan HTML and produce meaningless results.
-
-**Do this instead:** Replace the criterion set entirely when product_type=experience. The 7-step HIG structure is preserved, but Step 4 criterion list is swapped from `references/wcag-baseline.md` + `references/interaction-patterns.md` to `references/experience-hig.md`. Light mode picks the top 5 physical criteria by safety severity, matching the existing 5-check count.
+| Phase | Files | Rationale |
+|-------|-------|-----------|
+| 1 | `templates/design-manifest.json`, `bin/lib/design.cjs` | Schema and ensure-dirs must land first — all subsequent phases depend on manifest reading new fields without crashing. `launch/` directory must exist before any artifact tries to write there. |
+| 2 | `references/business-track.md`, `references/launch-frameworks.md` | Reference files before any workflow that loads them (same precedent: `experience-disclaimer.md` created before being `@` referenced). |
+| 3 | `workflows/brief.md`, `commands/brief.md` N/A (brief has no separate command) | Central: brief sets `businessMode` + `businessTrack` + `hasBusinessThesis` in manifest. All downstream gates depend on this. |
+| 4 | `workflows/competitive.md` | Depends on brief (`businessMode` set). MLS is soft-consumed by handoff. |
+| 5 | `workflows/opportunity.md` | Depends on brief + competitive. Business RICE needs MLS market data as soft input. |
+| 6 | `workflows/flows.md` | Depends on brief. Operational flows need BTH for business context, MLS for market framing. |
+| 7 | `workflows/system.md` | Depends on brief. Brand system is parallel to token generation. |
+| 8 | `workflows/wireframe.md` | Depends on flows (service flows inform blueprint) + system (brand tokens inform LDP). |
+| 9 | `workflows/critique.md`, `workflows/hig.md` | Depend on wireframe (SBP + LDP are the artifacts being critiqued). |
+| 10 | `workflows/handoff.md` | Assembles all upstream business artifacts into LKT. Depends on: BTH, MLS, LDP, SBP artifacts being registered in manifest. |
+| 11 | `commands/deploy.md`, `workflows/deploy.md` | New skill. Depends on LKT artifact from handoff. `build.md` Stage 14 added in this phase. |
+| 12 | `workflows/recommend.md`, `workflows/iterate.md`, `workflows/mockup.md` | Lower-priority additions. iterate + mockup are guard stubs only. recommend adds a tool category. |
+| 13 | Coverage clobber audit — all 14 designCoverage-writing workflows | Analogous to v0.11 Phase 83. Isolated phase so regression surface is clearly bounded. |
+| 14 | Nyquist regression tests | Verify: non-business projects unaffected, business + software compose correctly, business + experience compose correctly (most complex case), deploy workflow halts at each approval gate. |
 
 ---
 
 ## Sources
 
-- `workflows/brief.md` — product type detection pattern (signal sets, classification logic, manifest writes), v0.11 integration design target
-- `workflows/handoff.md` Step 4i — hardware/hybrid conditional block (the template for all experience conditional blocks)
-- `workflows/hig.md` — `--light` mode structure (5 mandatory checks pattern), platform flag resolution
-- `workflows/critique.md` — perspective weighting, `--focused` flag, Action List format, Stitch comparison integration
-- `workflows/wireframe.md` — artifact code registration pattern, Stitch path (`--use-stitch`), FPL/TML file naming derivation
-- `workflows/flows.md` — screen inventory JSON schema (basis for "spaces" extension)
-- `workflows/system.md` — DTCG token category structure (basis for sonic/lighting/spatial extension)
-- `workflows/build.md` — STAGES table, stage-completion check method (coverage vs glob), `--from` resumption logic
-- `templates/design-manifest.json` — artifact schema, designCoverage flags, artifact code pattern
-- `templates/design-state-root.md` — Quick Reference table structure
-- `.planning/PROJECT.md` — v0.11 milestone goals, experience sub-types, per-stage target features, existing architecture constraints
+- Direct codebase analysis — HIGH confidence:
+  - `workflows/brief.md` — product type detection, upstream context injection, manifest write pattern
+  - `workflows/flows.md`, `wireframe.md`, `critique.md`, `hig.md`, `mockup.md`, `iterate.md` — experience type conditional block patterns
+  - `workflows/handoff.md` — experience BIB assembly, coverage write pattern, STACK.md bypass for non-software types
+  - `workflows/competitive.md`, `opportunity.md`, `recommend.md` — experience stub patterns
+  - `workflows/build.md` — STAGES table, coverage check pattern, conditional stage logic
+  - `templates/design-manifest.json` — 16-field designCoverage schema, top-level field conventions, artifact code conventions
+  - `bin/lib/design.cjs` — `cmdManifestSetTopLevel`, `cmdCoverageCheck`, `cmdArtifactPath`, `ensure-dirs` implementation
+  - `references/strategy-frameworks.md` — existing TAM/SAM/SOM, Porter's Five Forces, RICE (relevant to business content scope)
+  - `.planning/PROJECT.md` — v0.12 milestone requirements, v0.11 precedents, key decisions log
 
 ---
-
-*Architecture research for: PDE v0.11 — Experience Product Type Integration*
-*Researched: 2026-03-21*
+*Architecture research for: PDE v0.12 — Business Product Type Integration*
+*Researched: 2026-03-22*

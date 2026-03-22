@@ -1,338 +1,301 @@
 # Pitfalls Research
 
-**Domain:** Adding "experience" product type to existing multi-type design pipeline (PDE v0.11)
-**Researched:** 2026-03-21
-**Confidence:** HIGH for pipeline integration pitfalls (grounded in direct codebase inspection of all 14 workflow branch sites); MEDIUM for LLM safety/licensing accuracy claims (cross-referenced WebSearch findings with known hallucination patterns); MEDIUM for SVG floor plan and print color space claims (fundamental technical constraints, not PDE-specific)
+**Domain:** Adding "business:" orthogonal product type dimension to existing multi-type design pipeline (PDE v0.12)
+**Researched:** 2026-03-22
+**Confidence:** HIGH for pipeline integration and regression risks (grounded in direct v0.11 experience type implementation and codebase inspection); HIGH for LLM financial/legal content risks (cross-referenced multiple 2025 legal and AI risk sources); MEDIUM for deployment scaffolding pitfalls (Stripe/Vercel/Resend patterns from official docs and community reports); MEDIUM for user-track branching pitfalls (inferred from feature-branching literature and v0.11 experience type pattern)
 
 ---
 
 ## Critical Pitfalls
 
-### Pitfall 1: Default-Else Regression — Existing Types Silently Fall Into Experience Branch
+### Pitfall 1: Orthogonal Dimension Means Every Existing Workflow Has Two New Branch Sites, Not One
 
 **What goes wrong:**
-Every workflow that handles product type branching uses a chain like `IF software ... ELSE IF hardware ... ELSE IF hybrid ...`. Adding `experience` to that chain requires inserting a new branch without accidentally making it the new catch-all or erasing the existing default. If the final `ELSE` is converted to `ELSE IF experience` — a natural refactor — the implicit software default disappears. Any unclassified project or any project whose brief lacks a Product Type field will fall through to an error state or to experience logic applied to a software project.
+The experience type (v0.11) was purely additive — it added conditional blocks to existing workflows with a single `IF experience` gate per workflow. The `business:` dimension is orthogonal: it combines with all existing product types (business:software, business:hardware, business:hybrid, business:experience) and with all three user tracks (solo founder, startup team, product leader). This creates a 4×3 = 12 output configuration space. Every workflow that previously had one branch point now has two nested branch points. Developers who treat `business:` as a fourth product type (parallel to software/hardware/hybrid) will build a wrong model and produce software/hardware/hybrid regressions on every business: project.
 
 **Why it happens:**
-The brief detection step in `brief.md` (Step 4/7) currently resolves to exactly one of three canonical strings: `software`, `hardware`, `hybrid`. All downstream consumers read that string and branch. Adding a fourth value requires updating every branch site. Developers typically update the detection step correctly but miss one or two downstream consumers, or they place `ELSE IF experience` after `ELSE IF hybrid` and inadvertently remove the fallback default.
+The natural pattern from v0.11 is `ELSE IF business`. But `business:` is a modifier layer, not a peer. If a developer writes `IF software ... ELSE IF hardware ... ELSE IF hybrid ... ELSE IF experience ... ELSE IF business` they've collapsed the orthogonal dimension into a sequential one. A business:software project will fail to trigger the software branch and instead trigger the business branch, losing all software-specific logic.
 
 **How to avoid:**
-- Before writing any new code, audit every `product_type` branch site across all 14 workflows. Known sites confirmed by codebase inspection: `brief.md` (Step 4, Step 7 frontmatter), `system.md` (Step 3 color fallback), `wireframe.md` (Step 3 CSS defaults), `handoff.md` (Steps 4i hardware sections, Step 2b coverage parse, Step 11 hardware section gate), `flows.md`, `hig.md`, `critique.md`. Run `grep -rn "software\|hardware\|hybrid" workflows/` to find all sites.
-- At every branch site, the required pattern is: `IF software ... ELSE IF hardware ... ELSE IF hybrid ... ELSE IF experience ... ELSE [default to software, never error]`. The final ELSE must remain a software fallback.
-- Update `design-manifest.json` template's `productType` comment field from `"software | hardware | hybrid"` to `"software | hardware | hybrid | experience"` in the same commit that adds detection. This is a sentinel — if the template still reads 3 values, the update is incomplete.
-- Write two Nyquist regression assertions: (1) a project with no detectable product type signals defaults to `software`, not an error; (2) `experience`-type tokens never appear in a software project's manifest.
+- Represent the dimension as a composite flag pair: `product_type` (software/hardware/hybrid/experience) + `business_mode` (boolean or null). Never merge them into a single enum value.
+- At every pipeline branch site, the required evaluation order is: (1) evaluate `product_type` for type-specific logic, (2) evaluate `business_mode` for business overlays. Business overlays append to, never replace, type-specific sections.
+- Store `business_mode: true` and `user_track: "solo_founder|startup_team|product_leader"` as separate fields in `design-manifest.json`, not encoded in `productType`.
+- Audit all 14 workflow files before writing new code. Use `grep -rn "product_type\|productType" workflows/` to find every branch site. Count exact number of sites so you know when you've updated all of them.
+- Write Nyquist regression assertion: a business:software project produces software-type artifacts (component APIs, TypeScript interfaces) PLUS business-type artifacts (business thesis, pricing config). Not one or the other.
 
 **Warning signs:**
-- An existing software project brief run through the updated pipeline produces experience-specific output (floor plan placeholder, vibe contract section, sonic token references).
-- A project with no product type signals throws an error rather than defaulting to software.
-- The DESIGN-STATE.md Quick Reference `| Product Type |` row shows `experience` for a project that was classified as software before the milestone.
-- Running `grep -rn "product_type === 'experience'" workflows/` returns hits in more files than anticipated.
+- A business:software project produces a production bible (BIB) artifact — that is an experience-type artifact that should never appear here.
+- A plain software project re-run after the milestone loses its component API section in handoff.
+- `design-manifest.json` has a `productType` field value of `"business"` — this is the wrong model. Business mode is a boolean flag, not a type.
+- `grep -rn "business" workflows/` returns hits that replace rather than augment software/hardware/hybrid sections.
 
 **Phase to address:**
-Phase 1 (product type detection extension in `brief.md`). All branch sites in downstream workflows must be updated in the same phase — not split across phases. The pattern "add detection in Phase 1, update consumers in Phase 5" creates a window where the pipeline is in a broken state and tests will not catch it.
+Phase 1 (detection architecture). The data model decision — composite flag pair vs. merged enum — must be made before a single workflow file is touched. Retrofitting from merged enum to composite flags after 10 workflows are written is a full rewrite.
 
 ---
 
-### Pitfall 2: Token Schema Pollution — Experience Token Categories Corrupt the Existing DTCG Tree
+### Pitfall 2: LLM-Generated Financial Projections Are Legally and Operationally Dangerous Without Hard Guardrails
 
 **What goes wrong:**
-The existing `system.md` DTCG tree has exactly 7 top-level categories: `color`, `typography`, `spacing`, `shadow`, `border`, `motion`, `component`. Adding experience token categories (sonic, lighting, spatial, thermal/atmospheric) as additional top-level keys inside `SYS-tokens.json` will not cause JSON errors, but will silently break the `tokens-to-css` CLI transformer in `pde-tools.cjs`, which walks known category keys and skips unrecognized ones. Unknown categories produce incomplete CSS with no error or warning. More critically, if experience tokens share key names with existing categories (e.g., extending `color` with a `lighting` sub-tree), the merge silently overrides software color semantics.
+The launch kit includes financial projections (runway estimates, TAM sizing, unit economics, pricing tier recommendations). LLMs generate plausible-looking financial artifacts with confidence. In a 2025 benchmark study, hallucination rates across LLMs exceeded 15% in financial contexts — and the problem is not random errors but systematically confident wrong numbers. A solo founder who takes the LLM's "18-month runway at $15k/month burn" and presents it to investors or uses it for hiring decisions has been actively harmed by PDE. Liability attaches to the platform that produced the artifact, not just the model. Legal analysis from 2025 confirms that disclaimers rarely eliminate liability when a user reasonably relies on AI-generated financial content.
 
 **Why it happens:**
-The DTCG 2025.10 spec (which reached stable status October 2025) explicitly allows `$extensions` for custom data. Developers reasonably assume adding new top-level keys is safe because the spec says tools should ignore what they don't understand. PDE's `tokens-to-css` transformer is not a generic DTCG tool — it is a hardcoded walker of the 7 known categories. Unknown keys are skipped, not flagged. The Figma MCP integration additionally drops `$extensions` on round-trip export — confirmed behavior per DTCG Community Group reports.
+LLMs are trained on startup playbook content, VC pitch decks, and business school material. They pattern-match convincingly to realistic numbers without any grounding in the user's actual cost structure, market, or geography. The model does not know the user's COGS, headcount, or sales cycle. It fills those gaps with "typical" values from training data, which may be years stale and market-specific to US SaaS 2021-2023 conditions.
 
 **How to avoid:**
-- Experience token categories belong in a separate `SYS-experience-tokens.json` file alongside the existing `SYS-tokens.json`, never merged into it. A matching `SYS-experience-tokens.css` is generated separately.
-- For any experience metadata that must coexist with the main token file (e.g., to survive Figma import), use DTCG `$extensions` with reverse-domain notation: `"com.pde.experience.sonic"`. This avoids collision with both existing PDE keys and future DTCG spec additions.
-- Update `tokens-to-css` to accept an `--experience` flag that processes the separate experience token file instead of modifying the core 7-category transformer.
-- Gate experience token generation behind `product_type === "experience"`. Experience tokens must never be generated for software, hardware, or hybrid projects.
-- Add Nyquist assertion: running `pde-tools.cjs design tokens-to-css` on a software project after the milestone produces byte-identical CSS to the pre-milestone baseline.
+- Financial projections must be framed as templates with explicit input slots, not filled-in numbers. Output structure: `[YOUR_MONTHLY_BURN]`, `[YOUR_ARR_GOAL]`, `[YOUR_CUSTOMER_ACQ_COST]`. The model populates structure and formula, never values.
+- Every financial artifact section must carry a mandatory inline disclaimer (not just in a footer): `REQUIRES HUMAN INPUT: Values above are structural placeholders. Do not present to investors or use for financial planning without replacing all bracketed fields with verified actuals.`
+- TAM/SAM/SOM sizing must cite the user's stated market (from brief), never invent market sizes from training data. If no market data is in the brief, the output must be: `[TAM: Source and size required — PDE cannot estimate this for your market]`.
+- Add a `financial_projections_reviewed` boolean field to `design-manifest.json`, defaulting to `false`. Include this in the readiness gate check — a launch kit with `financial_projections_reviewed: false` produces a CONCERNS-level readiness flag, not a PASS.
+- Reference the existing `experience-disclaimer.md` pattern from v0.11. Create a parallel `business-financial-disclaimer.md` reference block loaded into all financial artifact sections via `@references/` injection.
 
 **Warning signs:**
-- `pde-tools.cjs design tokens-to-css` on an experience project produces CSS with fewer variables than expected and no error message.
-- A software project re-run through system skill after the milestone produces a token file with sonic, lighting, or thermal keys.
-- Figma MCP sync of an experience project discards experience token categories on export with no warning.
-- The `SYS-tokens.json` template in `templates/` has more than 7 top-level category keys after the milestone.
+- Financial projection output contains actual dollar amounts (e.g., "$180,000 annual runway") rather than structural placeholders.
+- TAM section states a specific market size (e.g., "$4.2B addressable market") without citing a user-provided source.
+- The investor outreach sequence contains specific investor names or firm names — these are hallucinated.
+- The launch kit passes readiness gate with no financial review flag present.
 
 **Phase to address:**
-Phase 3 (design system extensions). The separate-file architecture must be established before any experience token categories are authored. The architecture decision made here propagates to handoff, Figma sync, and critique — retrofitting to separate files after those workflows are written is the most expensive possible rework.
+Phase 2 (business brief extensions). Financial content guardrails must be defined in the brief workflow before the launch kit phase authors any financial templates. If Phase 2 does not establish the placeholder-only pattern, every subsequent phase that touches financial content will need retrofitting.
 
 ---
 
-### Pitfall 3: SVG Floor Plan Illegibility — Plans Pass Validation but Are Operationally Useless
+### Pitfall 3: Deployment Scaffolding With Real Infrastructure Code Creates Irreversible Side Effects Without Approval Gates
 
 **What goes wrong:**
-LLM-generated SVG floor plans will produce structurally valid XML that looks like a floor plan but is unusable for actual event operations: zone labels at 6px font-size (invisible at print resolution), walls at 0.5px stroke (disappears at 100% zoom in print preview), a "1:100" scale label with no relationship to the actual SVG coordinate system, and zones (stage, FOH, catering, toilets) sized uniformly as equal rectangles regardless of stated venue capacity. The output passes a `xmllint` validation. It fails any operational review.
+PDE will generate and potentially deploy: Next.js landing page code, Stripe pricing configuration, and Resend email templates. Unlike design artifacts (which are markdown/JSON files in `.planning/`), these are executable artifacts with real-world effects. A Stripe pricing config written with live keys instead of test keys results in real charges. A Resend template deployed to a production domain sends real emails. A Next.js deployment to Vercel creates a public URL immediately. The requirement states "mandatory human review before any deployment stage" but that gate is only effective if it is structurally enforced — not just mentioned in workflow prose.
 
 **Why it happens:**
-SVG generation is a text task — the model emits `<rect>` and `<text>` tags without spatial reasoning grounded in architectural constraints. The model optimizes for "does this look like a floor plan in the rendered output" not "is this useful for a production manager." There is no training signal connecting SVG coordinate values to real-world spatial relationships: the model does not know how large a stage needs to be relative to an FOH mix position at a 1200-person venue, or that fire egress paths must be drawn proportionally wider than decorative pathways.
+PDE's existing write-back confirmation gates (established in v0.5, VAL-03) apply to external tool writes via MCP. Deployment scaffolding is different: PDE generates local code files, and the human is expected to run deployment commands. The gap is that PDE cannot distinguish between "here is scaffolding code for you to review" and "here is code ready to deploy." Without an explicit artifact-state model for deployment artifacts, a user who is in flow may run the deployment command immediately without triggering the intended review step.
 
 **How to avoid:**
-- Establish a fixed SVG coordinate system in the wireframe workflow prompt: 1 SVG unit = 0.1m, canonical viewBox `0 0 1500 1000` (150m × 100m maximum). This is explicit and mandatory, not a suggestion.
-- Mandate minimum stroke and font values: walls at `stroke-width="3"`, zone borders at `stroke-width="1.5"`, all text labels at `font-size="14"` minimum.
-- Require a scale bar element: `<line x1="50" y1="950" x2="150" y2="950" stroke="black" stroke-width="2"/>` with a `<text>10m</text>` label (100 SVG units = 10m per the coordinate system above).
-- Scope the artifact explicitly as a "zone layout schematic" not a "scale architectural drawing." Include a mandatory SVG `<text>` disclaimer element: content `SCHEMATIC ONLY — not to scale — verify dimensions with venue`.
-- Read venue capacity from the brief extension fields (venue_capacity, stage_dimensions, venue_dimensions) to constrain zone proportions: stage zone must occupy at least 15% of total viewBox area for venues over 500 capacity.
-- Do not attempt realistic egress path geometry. Label egress paths as named zones ("Emergency Exit A") without attempting to draw egress route widths to scale.
+- Every deployment artifact (Next.js files, Stripe config, Resend templates) must be written to a staging directory (`.planning/deploy-staging/`) not to project root or src/. The workflow must explicitly instruct: "Do not move files from `.planning/deploy-staging/` to your project directory until you have reviewed them."
+- Create a `deploy-manifest.json` in `.planning/deploy-staging/` with `review_required: true`, `stripe_mode: "test"` (default), and a checklist of required human steps before deployment. PDE never sets `stripe_mode: "live"` — that requires explicit human modification.
+- Stripe config generation must default to test mode keys with placeholder values (`pk_test_REPLACE_WITH_YOUR_KEY`, `sk_test_REPLACE_WITH_YOUR_KEY`). Comment in the config file: `# DO NOT REPLACE WITH LIVE KEYS UNTIL YOU HAVE TESTED IN TEST MODE`.
+- The deployment phase workflow must present a blocking approval prompt (using existing `[HUMAN APPROVAL REQUIRED]` pattern from v0.5) that lists all files in `.planning/deploy-staging/` and requires explicit acknowledgment before proceeding.
+- Leverage the existing readiness gate pattern: a `deploy_staging_reviewed` flag in design-manifest must be `true` before any deployment instruction is given.
+- Vercel deployment commands in workflow prose must be in a clearly marked `## Deploy (Human Action Required)` section with no automation — these are instructions for the human, not commands PDE executes.
 
 **Warning signs:**
-- Floor plan SVG contains no `<line>` element with a scale bar label.
-- Stage area `<rect>` is smaller than the toilet block `<rect>`.
-- Font-size attributes below 12 on any visible text element.
-- Zone widths are uniform (all `<rect>` elements have identical `width` attributes) regardless of stated venue capacity.
-- No disclaimer text element present in the SVG output.
-- viewBox dimensions do not correspond to the venue size stated in the brief.
+- Workflow prose says "run `vercel deploy`" without first presenting a review checklist.
+- Stripe config files appear in project root or `src/` rather than `.planning/deploy-staging/`.
+- Stripe config file contains environment variable references (`process.env.STRIPE_SECRET_KEY`) without a corresponding note that the key must be in test mode during initial setup.
+- Deploy workflow does not check for `deploy_staging_reviewed` flag before proceeding.
 
 **Phase to address:**
-Phase 5 (wireframe stage extensions — floor plan artifact). The coordinate system, minimum stroke/font rules, and zone-sizing conventions must be embedded in the workflow prompt before any floor plan generation is attempted. Coordinate system decisions are not retrofittable: existing floor plans become inconsistent with new ones if the convention changes mid-milestone.
+Phase 5 or 6 (deployment scaffolding). The deploy-staging directory pattern and manifest structure must be established in the earliest deployment phase. The pattern is non-negotiable: no deployment artifact ever leaves `.planning/deploy-staging/` without an explicit human action.
 
 ---
 
-### Pitfall 4: Print Artifact Color Space Mismatch — HTML/CSS Flyers Are Presented as Print-Ready
+### Pitfall 4: Three User Tracks Create Artifact Divergence That Breaks Downstream Phases Expecting a Single Input Format
 
 **What goes wrong:**
-PDE's mockup and wireframe skills produce HTML/CSS artifacts using RGB and OKLCH color values derived from the DTCG token system. Event flyers and festival programs targeting commercial printing require CMYK color values, 3mm bleed areas, crop marks, and PDF/X-1a or PDF/X-4 format. Generating a "print-ready" flyer as HTML/CSS with OKLCH token references produces an artifact that looks correct on screen and prints incorrectly. High-chroma OKLCH colors — electric blues, vivid greens, hot pinks common in event branding — have no CMYK equivalent and flatten to dull analogues when converted. The color gamut gap is significant: CMYK delivers approximately 16,000 shades versus over 16 million in RGB.
+The three user tracks (solo founder, startup team, product leader) produce artifacts with different depth, vocabulary, and format. A solo founder business brief is terse with minimal sections; a product leader brief has stakeholder alignment matrices and executive summary sections. Every downstream phase (competitive landscape, opportunity scoring, flows, wireframes, handoff) must read from the brief. If track branching is applied inconsistently — present in brief.md but absent in competitive.md — a product leader brief will feed into a solo-founder-depth competitive analysis, producing an artifact that is incoherent for its intended audience.
 
 **Why it happens:**
-PDE's design system is built for screen output using OKLCH, a perceptually uniform color space optimized for digital rendering. Reusing those tokens for print artifacts assumes RGB-to-CMYK conversion is lossless, which it is not. PDE has no print color pipeline and no mechanism to declare CMYK equivalents of OKLCH values. The system skill does not generate an ICC profile. Calling the HTML artifact "print-ready" misrepresents its nature to users who may send it directly to a commercial printer.
+Track branching is easy to implement in brief.md (the generation point) and easy to forget in competitive.md, opportunity.md, flows.md (the consumption points). The v0.11 experience type had the same surface area problem (14 workflow files), but experience artifacts were additive sections. User-track branching changes the depth and vocabulary of existing sections — a subtler and harder-to-detect inconsistency.
 
 **How to avoid:**
-- Scope all print artifacts explicitly as "print layout reference guides" in the workflow output, not "production print files." The exact phrase "print-ready" must not appear in any output artifact without an accompanying disclaimer.
-- Include a mandatory CMYK approximation table in the design system output for experience projects: for each brand color token, provide the nearest CMYK equivalent using a lookup table. Document this as an approximation without ICC profile validation, not a specification.
-- Add a bleed and margin guide to the HTML layout: a 3mm bleed zone as a dashed border CSS element, safe zone at 5mm from edge, crop mark overlays as SVG elements. These are guides for the designer, not production values.
-- Include in the production bible handoff section: "All print artifacts require professional prepress review and conversion to PDF/X-1a or PDF/X-4 format before sending to commercial printer. PDE print layouts are composition references, not press-ready files."
-- Never claim `PDF/X-1a` or `PDF/X-4` output capability. PDE cannot produce ICC-profile-embedded PDFs.
+- Store `user_track` in `design-manifest.json` alongside `product_type` and `business_mode`. Every downstream workflow that reads the manifest must read all three fields.
+- Define track expectations explicitly before implementing: solo founder = 1-2 page artifacts, startup team = 3-5 page artifacts with team roles sections, product leader = 5-8 page artifacts with organizational framing. These are structural constraints, not style preferences.
+- In each workflow, track branching must affect vocabulary AND depth: not just word choice but section count. A solo founder competitive analysis has 3 competitors, 2 paragraphs each. A product leader competitive analysis has 8 competitors with scoring matrices. These are not the same artifact with different words.
+- Write Nyquist assertions for artifact length ranges per track: a solo founder brief must be under X lines, a product leader brief must be over Y lines. Catch mismatches at test time, not demo time.
+- Add `user_track` to the DESIGN-STATE.md Quick Reference row alongside Product Type. If it's not visible in DESIGN-STATE, downstream phases will miss it.
 
 **Warning signs:**
-- A flyer template uses high-chroma OKLCH values (chroma > 0.2) without a CMYK approximation in the design system documentation.
-- No bleed or crop mark indicators present in the print layout HTML.
-- The handoff artifact description includes "print-ready" without a prepress disclaimer.
-- The production bible contains no statement directing users to professional prepress conversion.
+- A product leader brief run through competitive.md produces a 2-paragraph per competitor output identical to solo founder depth.
+- A solo founder brief produces a competitive analysis with stakeholder impact matrices — sections that are irrelevant and confusing for a solo operator.
+- `user_track` is present in `design-manifest.json` but absent from the DESIGN-STATE.md Quick Reference section.
+- Running `grep -rn "user_track" workflows/` returns fewer hits than `grep -rn "business_mode" workflows/` — consumption is incomplete.
 
 **Phase to address:**
-Phase 7 (flyer and print collateral). The scope boundary — "layout reference with CMYK approximations, not production print file" — must be written into the phase requirements before any print artifact workflow is authored. The scope boundary is load-bearing: without it, the natural tendency is to claim full print-production fidelity, which is technically impossible for this pipeline.
+Phase 1 (business brief extensions and detection). `user_track` must be read from brief and stored in manifest before any downstream phase author writes their workflow. Otherwise, each downstream phase author will invent their own interpretation of "solo founder depth" inconsistently.
 
 ---
 
-### Pitfall 5: LLM Safety and Licensing Hallucination — Production Bible Contains Dangerous Inaccuracies
+### Pitfall 5: Investor Outreach and Legal Considerations Sections Expose PDE to Impersonation and Advice-of-Counsel Risk
 
 **What goes wrong:**
-The production bible (advance document, run sheet, staffing plan) and the critique stage safety and licensing perspectives will contain jurisdiction-specific regulations that the model states confidently but which are outdated, jurisdiction-wrong, or invented. Examples: asserting a specific first-aid station count per 1000 attendees as a regulatory fact (invented ratio with no universal legal basis), citing fire egress widths in centimeters that apply to one state or country but not another, specifying a noise ordinance dB limit at the property line from the wrong jurisdiction. A production team relying on these figures without independent verification risks non-compliance with actual local requirements.
+The launch kit includes an "investor outreach sequence" and "legal considerations." LLMs will generate named investor firms ("Andreessen Horowitz typically invests at $2M minimum"), specific legal structures ("Delaware C-Corp is required for institutional investors"), and regulatory requirements that may be jurisdiction-specific or simply wrong. A user who relies on named investor targeting based on LLM-generated outreach has been misinformed. A user who relies on legal structure recommendations without consulting a lawyer has taken on legal risk, potentially choosing a structure incompatible with their tax situation, jurisdiction, or co-founder agreement.
 
 **Why it happens:**
-Event safety regulations are jurisdiction-specific (municipal fire codes, county zoning, state liquor licensing, EPA and local noise ordinances, ADA requirements), updated frequently, and unevenly represented in LLM training data. The model cannot know which jurisdiction applies to the event unless explicitly told, and even when told, may apply training data from a different jurisdiction if the target jurisdiction is underrepresented. Unlike web development standards (which are stable and universal), event permitting law varies significantly between cities within the same country. The model has no way to signal this uncertainty internally — it presents jurisdiction-specific facts at the same confidence level as universal facts.
+LLMs are trained on startup playbook content that discusses specific investors and legal structures confidently. The model cannot know the user's jurisdiction, tax situation, or investor relationships. It fills in "standard" advice that may be correct for a US SaaS startup in 2021 and completely wrong for a UK-based hardware company in 2026.
 
 **How to avoid:**
-- Every section of the critique safety perspective and production bible that touches regulations must include a section-level disclaimer: "Regulatory requirements vary significantly by jurisdiction. Verify all occupancy limits, egress widths, noise ordinances, alcohol licensing, and safety ratios with your local authority having jurisdiction (AHJ) before finalizing."
-- Replace specific numerical regulatory thresholds with industry guidance ranges labeled as such: instead of "1 toilet per 100 attendees (required)", write "Industry guidance ranges: 1 toilet per 75-150 attendees depending on event duration and alcohol service — verify with local health authority."
-- Frame the critique safety perspective as "questions to verify with your AHJ" not "here are the applicable regulations." Every regulatory claim is a question: "Has the venue fire marshal confirmed maximum occupancy for this layout?" not "Maximum occupancy is N persons per fire code."
-- Add a mandatory `[VERIFY WITH LOCAL AUTHORITY]` inline tag to every numerical value in the production bible that derives from regulatory requirements.
-- Include a "Regulatory Verification Checklist" section in the production bible structured as a to-do list of questions (not a statement of compliance): fire marshal occupancy confirmation, noise ordinance check, liquor license verification, temporary food permit, etc.
+- Investor outreach section must be a template with structural guidance (email length, cadence, personalization approach) but never specific firm names or partner names. If the model generates firm names, the workflow prompt must explicitly prohibit it: "Do not name specific investor firms or partners. Provide structural guidance only."
+- Legal considerations section must carry a mandatory section header: `## Legal Considerations (Structural Guidance Only — Not Legal Advice)` with a required first paragraph: `The following reflects general patterns observed in startup formation. It is not legal advice. Consult a qualified attorney in your jurisdiction before making entity structure, equity, or intellectual property decisions.`
+- Create `business-legal-disclaimer.md` in references/, parallel to `experience-disclaimer.md`, loaded via `@references/` injection. This is a single-source-of-truth disclaimer that cannot be accidentally omitted.
+- The prompt for investor outreach must include: "Do not suggest specific investors, firms, check sizes, or thesis statements. You do not have current information about investor portfolio or appetite. Provide structural guidance on outreach format and sequencing only."
+- Add a `legal_sections_reviewed` flag to deploy-manifest.json alongside `financial_projections_reviewed`. Both must be `true` before the launch kit is marked complete.
 
 **Warning signs:**
-- Production bible states a specific maximum occupancy as a bare fact without citing the venue's certificate of occupancy.
-- Critique safety perspective references specific regulation codes (e.g., "NFPA 101 Section 7.3") without a jurisdiction and AHJ-verification qualifier.
-- Staffing plan specifies a "legally required" security-to-attendee ratio without jurisdiction qualifier.
-- No disclaimer text appears anywhere in any safety-adjacent section of the production bible or critique report.
-- The advance document contains a "Compliance Status: COMPLIANT" assertion generated by the model.
+- Investor outreach section contains firm names like "Y Combinator", "a16z", or specific partner names.
+- Legal considerations section recommends a specific entity structure ("You should form a Delaware C-Corp") without the mandatory jurisdiction disclaimer.
+- `business-legal-disclaimer.md` does not exist in references/ — the disclaimer is embedded only in workflow prose and will drift.
+- Legal section heading does not include "(Structural Guidance Only — Not Legal Advice)".
 
 **Phase to address:**
-Phase 8 (critique stage experience perspectives) and Phase 9 (handoff production bible). Both phases must begin with a mandatory disclaimer architecture — a reusable disclaimer block template that is injected into every safety and licensing section. This is not optional polish; it is a liability mitigation requirement. Define the disclaimer block in Phase 1 (brief extensions) so it is available to all downstream phases.
+Phase 3 or 4 (launch kit authoring). Before writing any launch kit workflow, establish the reference disclaimer files. The pattern is identical to v0.11 `experience-disclaimer.md` — do not reinvent it.
 
 ---
 
-### Pitfall 6: Sub-Type Scope Creep — Five Sub-Types Become Five Separate Pipeline Branches
+### Pitfall 6: Business Overlays Applied to Existing Pipeline Stages Cause designCoverage Flag Clobber
 
 **What goes wrong:**
-The five sub-types (single-night, multi-day, recurring-series, installation, hybrid-event) begin as classification metadata in the brief but evolve into separate pipeline branches as each phase developer reasons about differences. "Multi-day events need a per-day timeline wireframe" becomes a new branch. "Recurring-series events need a series identity template in handoff" becomes another. "Installation events need a different floor plan orientation" becomes a third. By Phase 5, each sub-type has unique conditional logic in flows, wireframe, and handoff. The test matrix is 5× larger than anticipated, and the pipeline has 40+ sub-type-specific branch points that must all be kept consistent.
+v0.11 shipped with a hard-won fix for the 16-field `designCoverage` read-merge-write pattern after discovering that 10 workflows were clobbering flags set by earlier phases. The `business:` dimension adds new coverage fields (`hasBusinessThesis`, `hasPricingConfig`, `hasLaunchKit`, `hasDeployStaging`) that downstream phases must preserve. If any workflow reads `designCoverage`, writes its own fields, and uses a partial write pattern, it will zero out adjacent fields set by business-mode phases. This regression is invisible until a full pipeline run is attempted.
 
 **Why it happens:**
-Sub-type differences are real and meaningful, but they can be handled through parametric variation (one prompt template with a `sub_type` field that adjusts specific sentences) rather than separate pipeline branches. The instinct to make differences explicit in code is correct in isolation but wrong at scale: 5 sub-types × 8 pipeline stages = 40 branch points to maintain. Each subsequent milestone that touches these workflows inherits this complexity.
+The pass-through-all pattern (read all 16 fields, set only your own, write all 16 back) was established after the v0.11 regression — it is not the natural coding pattern. A developer writing a new workflow from scratch will naturally write only the fields they know about. If the `designCoverage` template in templates/ is not updated to include the new business fields before Phase 1 development begins, every Phase 1 workflow will be written against an incomplete template.
 
 **How to avoid:**
-- Lock in the architecture decision in Phase 1: sub-types are metadata attributes on the `experience` product type, not separate product types. The sub-type is stored as `sub_type` in the brief frontmatter but the pipeline has exactly one `experience` branch in every workflow — not five.
-- Drive sub-type variation through parametric prompt strings, not conditional branches. The flows workflow for experience type reads the `sub_type` field and adjusts the temporal dimension prompt with a single conditional sentence insertion — one prompt path, not two.
-- Cap sub-type branching at the brief stage. Every workflow after brief reads `product_type: experience` and `sub_type: [value]` and uses one unified experience path with sub-type-aware parametric sections.
-- Document the complete sub-type influence map explicitly and treat it as a closed list: `single-night` — `repeatability_intent` field only; `multi-day` — adds per-day sections to timeline wireframe; `recurring-series` — adds series identity template to handoff; `installation` — changes floor plan orientation (landscape) and removes run sheet; `hybrid-event` — adds digital flow dimensions alongside physical flow. This is the complete list.
+- Before any v0.12 workflow is authored, update `design-manifest.json` template's `designCoverage` object to include all new business-mode fields with `false` defaults. This is the sentinel — if the template has 16 fields, the update is incomplete for v0.12.
+- Document the exact count of `designCoverage` fields after adding business fields. Write it in the workflow template header comment: `# designCoverage has N fields — read all N, set only yours, write all N back.`
+- Add Nyquist regression assertions: after a full pipeline run on a business:software project, all 16 original fields retain their pre-business values AND all new business fields are set. Specifically test that `hasHandoff: true` (set by handoff.md) is not clobbered by a business-phase workflow that runs after handoff in the pipeline.
+- The business pipeline phases that adapt existing stages (brief → business thesis, competitive → market landscape) must not modify existing stage coverage flags. They augment the artifact but use their own coverage flags.
 
 **Warning signs:**
-- Any workflow file other than `brief.md` contains `IF sub_type === "installation"` or equivalent conditional branches.
-- The wireframe stage has multiple floor plan prompt paths differentiated by sub-type.
-- The handoff stage contains sub-type-specific section generation blocks beyond the documented complete list.
-- Test count for experience product type exceeds 2× the test count added for any prior product type in a single milestone.
-- A phase plan introduces a new sub-type distinction not on the documented complete list.
+- After a full business:software pipeline run, `hasHandoff` in `design-manifest.json` is `false` when it should be `true`.
+- `design-manifest.json` template in templates/ has exactly 16 coverage fields after milestone begins — it was not updated to include business fields.
+- A workflow file's designCoverage write block does not include all N coverage fields — it writes a subset.
+- Running a software project through the updated pipeline produces a manifest with `hasBusinessThesis: false` even though the business brief phase ran.
 
 **Phase to address:**
-Phase 1 (product type detection and brief extensions). The sub-type architecture decision must be made and recorded as a Key Decision in PROJECT.md in Phase 1. If deferred, each subsequent phase makes local sub-type branching decisions that become globally inconsistent and unmaintainable.
-
----
-
-### Pitfall 7: Cross-Product-Type Regression Tests Are Missing — Experience Tests Are Only Additive
-
-**What goes wrong:**
-The test suite grows by 40+ new assertions for experience-type behavior. None of them test that software/hardware/hybrid behavior is unchanged. A developer updates the experience branch in `handoff.md` and accidentally removes the `ELSE` default that routes hardware projects to their BOM Export section. The error is not caught by the experience-type tests (which pass), not caught by the positive-path hardware tests (which are not run post-milestone), and is discovered by a user six weeks later. The regression is real but the test suite shows green.
-
-**Why it happens:**
-Additive testing is the natural mode for new features: write tests that verify the new behavior exists. Regression testing for existing behavior requires deliberately thinking about what could break — which requires understanding the old code paths well enough to know which ones are at risk. Developers adding experience-specific assertions focus on proving the new behavior, not disproving breakage of old behavior.
-
-**How to avoid:**
-- For every new conditional branch added to an existing workflow, write a minimum of 3 cross-type assertions: (1) existing type X does not get experience output; (2) the new experience type gets expected output; (3) the default fallback (no product type detected) still produces software output. These three assertions per branch are more valuable than 10 experience-only positive assertions.
-- Create a single smoke matrix test file `experience-regression.test.mjs` that covers all 4 product types against the 3 most critical shared paths: brief detection produces correct `productType` field; system skill produces correct token file count per type; handoff skill produces correct sections per type. This matrix test is the regression guard for the entire milestone.
-- Apply the pass-through-all coverage pattern to experience: every skill that reads coverage flags must pass through new experience-specific flags (`hasFloorPlan`, `hasProductionBible`, `hasEventFlyer`) without overwriting or omitting them. New flags not in the pass-through-all pattern of an existing skill will be silently zeroed out.
-- Run the smoke matrix test at the end of every phase, not just at milestone completion.
-
-**Warning signs:**
-- Phase test files contain experience-type positive assertions with no complementary software-type negative assertions.
-- The test suite reports zero failures after Phase 3 but running a software project through the system skill manually produces experience token category keys.
-- Coverage flags `hasFloorPlan` or `hasProductionBible` appear in a software project's `design-manifest.json`.
-- The smoke matrix test file does not exist by the end of Phase 1.
-
-**Phase to address:**
-Phase 1 (establish smoke matrix test architecture). The cross-type regression test strategy and smoke matrix file must be created in Phase 1 — not written as a final validation step at milestone completion. Each subsequent phase appends cross-type assertions to the existing matrix.
-
----
-
-### Pitfall 8: Multi-Sensory Token Overload — Experience Design System Becomes a Specification Document
-
-**What goes wrong:**
-A sonic + lighting + spatial + thermal token set sounds comprehensive. In practice, the model will generate 60-120 additional token entries: sonic BPM tempo ranges, reverb time constants in seconds, color temperature in Kelvin for 8 distinct lighting zones, lux levels for wayfinding vs. stage wash, thermal humidity targets per area type, HVAC capacity formulas. The resulting `SYS-experience-tokens.json` is a multi-sensory specification document, not a design system. No design tool reads sonic BPM or thermal humidity as tokens. The critique stage evaluates token compliance metrics against these entries and produces nonsense output (APCA contrast ratios applied to reverb time constants). The handoff stage references "see design system for complete sonic specification" but the sound engineer has no way to open a JSON file.
-
-**Why it happens:**
-The multi-sensory design space is large. The experience brief includes sonic, lighting, spatial, and thermal dimensions, each with legitimate design parameters. Without explicit scope constraints in the workflow prompt, the model fills every dimension comprehensively, optimizing for apparent completeness rather than artifact usefulness. The academic literature on multi-sensory architecture covers dozens of controllable dimensions — the model has seen this literature.
-
-**How to avoid:**
-- Limit experience design system tokens to the actionable subset: tokens that inform a physical artifact (floor plan annotations, flyer color palette, wayfinding signage palette) or a vendor brief (lighting color temperature range, target SPL). Exclude tokens with no physical artifact expression.
-- Define hard entry limits per experience token category in the system.md workflow prompt: `color` — brand palette + 2 zone variants (10 entries max); `lighting` — 3 entries max (color temp range, zones description, intensity guidance); `sonic` — 2 entries max (target SPL and genre tempo guidance); `spatial` — 3 entries max (zone labels). Total experience tokens: 30 entries maximum.
-- Frame sonic and thermal tokens as "vendor brief parameters" not "design system values." They belong as plain-text sections in the production bible, not as DTCG leaf nodes.
-- Add a clarity check assertion to the system skill experience branch: total experience-specific token entries must not exceed 30. Generation exceeding 30 entries is a scope violation.
-
-**Warning signs:**
-- `SYS-experience-tokens.json` contains more than 50 token entries.
-- Token entries include values like `"reverb.time.stage": { "$value": "1.2s", "$type": "duration" }`.
-- The critique stage outputs APCA contrast ratio violations for sonic or thermal tokens.
-- The handoff production bible references the token file for a vendor who cannot interpret JSON.
-
-**Phase to address:**
-Phase 3 (design system extensions). Token category scope limits must be defined in the workflow prompt before generation begins — not discovered through iteration after an oversized token file is already in place.
+Phase 1 (manifest schema update). The designCoverage schema must be extended before any workflow is authored. Identical to the v0.11 discipline of "branch stubs before content."
 
 ---
 
 ## Technical Debt Patterns
 
+Shortcuts that seem reasonable but create long-term problems.
+
 | Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
 |----------|-------------------|----------------|-----------------|
-| Add `experience` to `productType` enum in brief detection only, update downstream consumers "in the next phase" | Faster Phase 1 | Pipeline in broken state between phases; tests pass in isolation but fail in integration | Never — branch site updates are atomic with detection changes |
-| Merge experience tokens into `SYS-tokens.json` alongside the existing 7 categories | Single-file simplicity | Breaks `tokens-to-css` transformer silently; corrupts software project runs; Figma sync drops experience tokens on export | Never |
-| Write sub-type conditional branches per workflow rather than parametric prompt strings | Explicit, readable sub-type logic | 5 sub-types × 8 stages = 40 branches; each new sub-type or stage addition multiplies this | Never at this milestone scale |
-| Write only positive-path experience tests without cross-type regression guards | Faster test authoring | Silent regressions in software/hardware flows found only by users post-ship | Only acceptable if a manual regression smoke test is documented, run, and recorded in RECONCILIATION.md before ship |
-| Describe print artifacts as "print-ready" without CMYK approximations or disclaimers | Better output marketing copy | Users send HTML to printer; colors shift; trust is damaged and not recoverable without a support workflow | Never — always scope as "layout reference" |
-| Include specific regulatory ratios or capacity limits as stated facts in the production bible | More specific, apparently more actionable output | Jurisdiction mismatch creates real operational risk; users rely on wrong numbers without knowing to verify | Never without an inline `[VERIFY WITH LOCAL AUTHORITY]` tag on every numerical value |
+| Encode business mode in productType enum ("business:software") | Simpler detection, single field to read | Every existing branch site breaks because they compare against "software" not "business:software"; N regressions at once | Never — composite flag is mandatory |
+| Hardcode user track defaults ("solo founder") for non-business projects | Simplifies conditional logic | Non-business projects silently acquire track vocabulary in their artifacts; regression surfaces only in full pipeline run | Never — `user_track` must be null for non-business projects |
+| Write financial projections with realistic numbers "as examples" | Output feels more complete and useful | Users treat examples as recommendations; legal risk if user relies on hallucinated numbers | Never — structural placeholders only |
+| Put deploy-staging files directly in project src/ for convenience | One fewer directory for user to manage | Real code next to design artifacts with no review gate; high risk of accidental deployment | Never — staging isolation is the safety mechanism |
+| Reuse experience-disclaimer.md for all business disclaimers | Fewer reference files to maintain | Disclaimer text is wrong for financial/legal context; mixing event safety and financial advice disclaimers is confusing | Never — create separate business-financial-disclaimer.md and business-legal-disclaimer.md |
+| Skip user_track in workflows that "don't seem relevant" | Faster implementation | Track consistency breaks; product leader runs through a solo-founder-depth wireframe phase | Never — all 14 workflows must read user_track when business_mode is true |
 
 ---
 
 ## Integration Gotchas
 
+Common mistakes when connecting to external services in the business product type context.
+
 | Integration | Common Mistake | Correct Approach |
 |-------------|----------------|------------------|
-| `pde-tools.cjs design manifest-set-top-level productType experience` | Calling this command without updating the template schema comment | Update `templates/design-manifest.json` `productType` field comment to include `experience` in the same commit; downstream tools that validate against the template will otherwise reject the new value |
-| Figma MCP DTCG export for experience tokens | Including experience tokens in the main `SYS-tokens.json` file that Figma sync reads | Keep experience tokens in `SYS-experience-tokens.json`; document in handoff that experience tokens do not round-trip through Figma and must be maintained in PDE manually |
-| DESIGN-STATE.md coverage flags pass-through | Adding `hasFloorPlan` and `hasProductionBible` as new coverage flags without updating the pass-through-all pattern in every existing skill | Run `grep -rn "coverage-check\|designCoverage" workflows/` to find every skill that reads coverage; each must be updated to pass through the new flags |
-| DESIGN-STATE.md `\| Product Type \|` row updates | Existing skills that update this row via regex may not recognize `experience` as valid and overwrite it with `software` | Audit every skill that writes to DESIGN-STATE.md Quick Reference table and add `experience` to any validation regex or conditional |
-| Google Stitch for floor plan generation | Attempting `--use-stitch` on the floor plan wireframe artifact | Stitch is a UI screen tool; requesting event floor plans via Stitch produces screen mockups, not spatial schematics. Floor plans must be generated as inline SVG by the model directly. Document Stitch exclusion explicitly in the wireframe workflow for experience type. |
-| Critique stage DTCG token compliance checks | Running the standard DTCG token compliance checker against experience-specific token files | Experience tokens in `SYS-experience-tokens.json` are not DTCG standard types (sonic, thermal); the compliance checker must skip this file or the critique will produce invalid findings |
+| Stripe | Generating config with live key placeholders or references to `STRIPE_SECRET_KEY` without test-mode-first instruction | Config must default to test mode with `pk_test_REPLACE_WITH_YOUR_KEY` and include a comment block requiring test-mode validation before any live key substitution |
+| Vercel | Treating deployment as a PDE-automated step | All Vercel deployment commands go in a `## Deploy (Human Action Required)` section with no automation; PDE generates the `vercel.json` config, not the deployment |
+| Resend | Generating templates that assume production domain domain verification is complete | Templates must include setup checklist: domain verification, DKIM configuration, test send to verified address before production use |
+| Stripe Webhooks | Generating webhook handler code without signature verification | Every webhook handler scaffold must include `stripe.webhooks.constructEvent()` signature verification — raw `req.body` processing is a security vulnerability |
+| Vercel Environment Variables | Writing environment variable names in code without a `.env.example` file | Every deployment scaffold must include `.env.example` with all required variables and safe placeholder values |
 
 ---
 
 ## Performance Traps
 
+Patterns that work at small scale but fail as the business feature set grows.
+
 | Trap | Symptoms | Prevention | When It Breaks |
 |------|----------|------------|----------------|
-| Generating the full production bible (advance document + run sheet + staffing plan + budget) in a single prompt | Token budget exceeded mid-generation; handoff output is truncated at the staffing plan section | Split production bible into 4 separate generation calls, each writing its own artifact; aggregate paths into the manifest | Any venue with >500 capacity; budget templates alone reach 2000+ tokens of tabular content |
-| Generating a multi-day event timeline wireframe as a single SVG | SVG file exceeds 50KB; the model loses spatial coherence for later days; zones are inconsistently sized across days | Generate one timeline SVG per event day and aggregate as a multi-file compound artifact | Any event with 3+ days and more than 8 distinct programming zones |
-| Running all 7 critique perspectives (safety, accessibility, operations, sustainability, licensing, financial, community) in a single pass | Perspectives 5-7 contain generic, non-domain-specific findings; the model exhausts its domain-specific knowledge by perspective 4 | Run safety and licensing perspectives separately from aesthetic and community perspectives; 2-pass critique for experience type | All experience projects — the domain breadth always exceeds single-pass quality |
-| Floor plan SVG with full zone detail labels for 12+ zones | SVG becomes illegible at A3 print size; labels overlap when rendered at 150% zoom | Use zone codes (S1, FOH, C1, T1, E1) on the floor plan diagram with a separate reference legend table in the wireframe markdown file | Any venue with more than 8 distinct zones |
+| Embedding user_track branching in workflow prose as if/else narrative | Works for 3 tracks, readable | Adding a 4th track requires editing every workflow; no structural enforcement | Immediately on any track addition |
+| Storing business artifacts in .planning/design/ alongside design artifacts | No structural separation, easy to find | Business artifacts (pitch decks, investor sequences) mixed with wireframes and tokens; no clear handoff boundary | When a user exports or shares design artifacts and accidentally includes business-sensitive content |
+| Generating investor outreach as a single monolithic document | Simple to produce | Cannot update cadence or individual emails independently; user must edit entire document for minor changes | When user needs to track outreach state — the document doesn't support it |
+| Financial projections in prose format | Easier to generate than structured format | Cannot feed into spreadsheet tools; user must manually extract numbers | First time user opens the projection in a spreadsheet |
 
 ---
 
 ## Security Mistakes
 
+Domain-specific security issues beyond general web security.
+
 | Mistake | Risk | Prevention |
 |---------|------|------------|
-| Production bible includes specific vendor names and pricing sourced from LLM training data | LLM-hallucinated vendor details presented as real; users contact non-existent vendors or rely on fabricated pricing in budget planning | Never generate specific vendor names or pricing in production bible templates; use placeholder categories ("preferred AV vendor — obtain 3 quotes", "catering partner TBD") with explicit "populate from actual quotes" instructions |
-| Floor plan presented without disclaimer for emergency egress planning | Emergency services or venue managers given schematic geometry that does not reflect actual egress route dimensions; safety hazard in an emergency | Every floor plan SVG must contain a mandatory disclaimer text element: "SCHEMATIC ONLY — not for emergency planning or regulatory submissions without professional architectural review" |
-| Regulatory compliance numbers stated without jurisdiction in critique or production bible | Non-compliant event because production team relied on rules from the wrong jurisdiction | Every regulatory figure must be tagged `[JURISDICTION-SPECIFIC — verify with AHJ]` inline; never present a number as a universal regulatory fact |
+| Stripe secret key referenced in frontend Next.js code | Live key exposed in browser, enables unauthorized charges against user's Stripe account | All Stripe secret key references must be in server-side files only (API routes, server components); PDE scaffold must include a comment flagging any secret key reference in a client-side file |
+| Investor outreach sequence stored in .planning/ without gitignore entry | Sensitive business strategy committed to public repo | business-specific `.planning/business/` subdirectory with a `.gitignore` entry generated in Phase 1 |
+| Financial projections with actual numbers committed to public repo | Competitive intelligence and fundraising strategy exposed | business-legal-disclaimer.md must note that `.planning/business/` should not be committed to public repositories |
+| Resend API key in generated code | Email sending capability exposed | Same server-side only rule as Stripe; PDE scaffold must never put API keys in client components |
+| Deploy staging files committed before review | Incomplete or insecure code deployed | `.planning/deploy-staging/` must have a `.gitignore` entry by default; only user explicitly removes it when ready |
 
 ---
 
 ## UX Pitfalls
 
+Common user experience mistakes specific to the business product type dimension.
+
 | Pitfall | User Impact | Better Approach |
 |---------|-------------|-----------------|
-| Pipeline fails silently when `experience` sub-type value is not in the allowed set | User runs `/pde:build --from brief` with a custom sub-type and gets software-default output with no error; discovers the problem at wireframe stage when no floor plan appears | Add sub-type validation to brief Step 4: if `sub_type` is present but not in the 5-value allowed set, emit a WARNING in DESIGN-STATE.md and halt with a descriptive error listing valid values |
-| Experience-type critique applies software HIG audit criteria | Safety and operations perspectives produce digital-product findings ("ensure sufficient touch target size", "keyboard navigation is missing") that are accurate for software but irrelevant for a physical event | Explicitly gate the HIG audit perspective by product type: for experience type, suppress digital interface criteria and substitute physical interface guidelines (wayfinding legibility at 5m, queue UX, transaction speed, toilet ratio) |
-| Production bible run sheet uses bare time values without timezone | A run sheet that says "16:00 stage check" without timezone is unusable for events with international crew or for multi-venue events | All run sheet timestamps must include a venue timezone label; capture `venue_timezone` as a required field in the brief extension alongside `venue_name` and `venue_location` |
-| Floor plan and timeline wireframe exist as disconnected artifacts | User generates a floor plan for Phase 1 of a multi-day event but the timeline wireframe covers the full event; zones are inconsistent between the two artifacts | Wireframe stage for experience type must treat floor plan and timeline as a compound artifact: the timeline references zone codes from the floor plan; both are registered under a single compound artifact code |
+| Presenting all three user tracks as a menu choice at pipeline start | User doesn't know which track to choose; paralysis or wrong choice | Auto-detect track from brief signals: solo operator + no team mentions = solo founder; team size mentioned = startup team; existing product + revenue mentioned = product leader. Confirm with one-line prompt, not a menu |
+| Generating a complete launch kit in one phase without intermediate review gates | User overwhelmed by volume; no natural checkpoint to course-correct | Phase the launch kit: business thesis first, then pricing config, then outreach sequence. Each phase ends with a review checkpoint before proceeding |
+| Using the same vocabulary ("your team", "your stakeholders") across all user tracks | Solo founders feel the tool isn't for them | Solo founder track uses "you" exclusively. Startup team track uses "your team". Product leader track uses "your organization" and "your stakeholders" |
+| Outputting pitch deck content as a slide-by-slide prose list | Users cannot use it directly; must manually create slides | Output as slide titles with bullet points in a format that maps directly to presentation tools; include explicit slide count recommendation per investor type |
 
 ---
 
 ## "Looks Done But Isn't" Checklist
 
-- [ ] **Product type detection complete:** `experience` added to `brief.md` detection — verify all 14 downstream workflows handle the 4th value, not just `brief.md`. Run `grep -rn "software\|hardware\|hybrid" workflows/` and confirm every site has been updated.
-- [ ] **Design manifest schema updated:** `productType` comment includes `experience` — verify `pde-tools.cjs design manifest-set-top-level productType experience` executes without validation error.
-- [ ] **Token file separation:** Experience tokens in a separate file — verify running `pde-tools.cjs design tokens-to-css` on a software project after the milestone produces byte-identical CSS output to the pre-milestone baseline.
-- [ ] **Pass-through-all coverage pattern extended:** New flags `hasFloorPlan`, `hasProductionBible`, `hasEventFlyer` pass through all existing skills — verify a software project run through the full pipeline has none of these flags set in `design-manifest.json`.
-- [ ] **Safety disclaimers in production bible:** All regulatory sections include `[VERIFY WITH LOCAL AUTHORITY]` — verify no bare numerical regulatory value appears in any handoff template without this tag.
-- [ ] **Sub-type branching locked to brief stage:** No sub-type conditionals in workflows beyond `brief.md` — run `grep -rn "sub_type" workflows/` and confirm results are limited to `brief.md` and parametric prompt strings in `flows.md` and `wireframe.md`.
-- [ ] **Print scope disclaimer present:** Flyer and print artifact output includes "layout reference, not production print file" — verify "print-ready" does not appear in any artifact description without an accompanying disclaimer.
-- [ ] **Smoke matrix test exists and passes:** `experience-regression.test.mjs` covers 4 product types × 3 critical paths — confirm the file exists and is included in the milestone acceptance test gate.
-- [ ] **DESIGN-STATE `| Product Type |` row updated:** Run a brief with experience signals and confirm DESIGN-STATE shows `experience`, not `software`.
-- [ ] **Stitch exclusion for floor plans documented:** Verify the wireframe workflow prompt for experience type explicitly states floor plan artifacts are not eligible for `--use-stitch` generation.
-- [ ] **SVG floor plan has scale bar:** Verify every generated floor plan SVG contains a scale bar element and disclaimer text element before the wireframe phase is marked complete.
-- [ ] **Production bible generation split across 4 calls:** Verify the handoff workflow for experience type generates advance document, run sheet, staffing plan, and budget template as separate sequential generation steps, not as a single prompt.
+Things that appear complete but are missing critical pieces in the business product type implementation.
+
+- [ ] **Business mode detection:** Often missing `user_track` storage in manifest — verify manifest has `business_mode`, `user_track`, and all new coverage fields after Phase 1
+- [ ] **Financial projections:** Often appears complete when it contains filled-in numbers — verify all financial artifact sections use structural placeholders, not values
+- [ ] **Deploy staging isolation:** Often looks correct when staging files are in the right directory — verify `.planning/deploy-staging/` has a `.gitignore` entry and `deploy-manifest.json` has `review_required: true`
+- [ ] **Legal disclaimer injection:** Often missing from investor outreach section even when present in financial projections — verify `business-legal-disclaimer.md` is loaded via `@references/` in every applicable section, not copy-pasted
+- [ ] **Regression test coverage:** Often looks complete when all new workflows pass — verify existing software/hardware/hybrid projects produce byte-identical manifests to pre-v0.12 baseline
+- [ ] **User track consistency:** Often complete in brief.md but missing in competitive.md or opportunity.md — verify `grep -rn "user_track" workflows/` returns a hit in every workflow that has business_mode branching
+- [ ] **Stripe webhook security:** Generated webhook handler often missing signature verification — verify `stripe.webhooks.constructEvent()` is present in every generated handler scaffold
+- [ ] **designCoverage field count:** Often set with only new business fields — verify that each workflow's designCoverage write block contains all original 16 fields plus all new business fields
+- [ ] **Non-business project regression:** Often not tested after business features ship — run a full software pipeline run after v0.12 milestone and verify DESIGN-STATE.md contains no business-mode fields for a non-business project
 
 ---
 
 ## Recovery Strategies
 
+When pitfalls occur despite prevention, how to recover.
+
 | Pitfall | Recovery Cost | Recovery Steps |
 |---------|---------------|----------------|
-| Default-else regression discovered post-ship | HIGH | Audit all 14 workflow branch sites; patch each; re-run full Nyquist test suite; re-ship affected files; affected user projects must re-run brief to regenerate correct `productType` field — existing brief artifacts are not automatically corrected |
-| Token schema pollution (experience tokens merged into `SYS-tokens.json`) | HIGH | Create separate `SYS-experience-tokens.json` architecture; update `tokens-to-css`; update all consumers; every experience project that ran system skill must re-run it to get clean token separation |
-| Sub-type branch explosion discovered mid-milestone | MEDIUM | Consolidate sub-type branches into parametric prompt strings; delete branch-specific workflow variants; rewrite affected test assertions; expect 2-3 day delay per affected phase |
-| Production bible regulatory inaccuracy discovered by user post-ship | MEDIUM | Add disclaimer architecture in a patch release; previously generated documents cannot be retracted; issue communication about required AHJ verification for all regulatory values |
-| Floor plan SVG coordinate system inconsistency (wrong system used in early phases) | MEDIUM | Update coordinate system constants in wireframe workflow; all previously generated floor plans must be regenerated by users; coordinate system change is not backward-compatible |
-| Print artifact sent to commercial printer directly (no CMYK conversion) | LOW (for PDE) | Add scope disclaimer in a patch; not a code regression; ensure CMYK approximations section is added to the design system output for experience projects in the same patch |
+| Orthogonal dimension encoded as enum (wrong model) | HIGH | Audit all 14 workflows for `productType === "business"` patterns; replace with composite flag reads; update manifest schema; re-run all regression tests |
+| Financial artifact contains hallucinated numbers | LOW (pre-ship) / HIGH (post-ship) | Add placeholder enforcement to workflow prompt; add Nyquist assertion for absence of dollar amounts in financial sections; if post-ship, add immediate errata notice to all generated launch kits |
+| Live Stripe keys in generated scaffolding | HIGH | Immediate: add `.gitignore` entry for deploy-staging; audit all generated configs for live key references; rotate any exposed keys; add test-mode enforcement to workflow prompt |
+| designCoverage clobber discovered in full pipeline run | MEDIUM | Identify which workflow is the clobber source via manifest field-by-field diff before/after each phase; apply read-merge-write fix to offending workflow; add Nyquist assertion for full pipeline field preservation |
+| User track branching inconsistent across workflows | MEDIUM | Run pipeline for all three tracks, diff artifact depths; identify workflows with missing track branching; retrofit; add Nyquist assertions for artifact length ranges per track |
+| Investor firm names in outreach sequence | LOW | Add explicit prohibition to workflow prompt; search existing generated artifacts for known firm names and redact; add Nyquist assertion for absence of known firm names |
 
 ---
 
 ## Pitfall-to-Phase Mapping
 
+How roadmap phases should address these pitfalls.
+
 | Pitfall | Prevention Phase | Verification |
 |---------|------------------|--------------|
-| Default-else regression (Pitfall 1) | Phase 1: Product type detection extension | All 14 workflow branch sites updated; smoke matrix test passes for all 4 product types; default fallback produces `software`, not error |
-| Token schema pollution (Pitfall 2) | Phase 3: Design system extensions | `pde-tools.cjs design tokens-to-css` on a software project produces identical CSS to pre-milestone baseline; experience tokens in separate file |
-| SVG floor plan illegibility (Pitfall 3) | Phase 5: Wireframe stage extensions | Generated floor plan SVG contains scale bar element, minimum 14px font-size, disclaimer text element, and viewBox dimensions corresponding to brief venue size |
-| Print artifact color space mismatch (Pitfall 4) | Phase 7: Flyer and print collateral | Handoff section contains CMYK approximation table; "print-ready" does not appear without disclaimer; output described as "layout reference" |
-| LLM safety/licensing hallucination (Pitfall 5) | Phase 8: Critique experience perspectives + Phase 9: Handoff production bible | Every numerical regulatory value tagged `[VERIFY WITH LOCAL AUTHORITY]`; no bare regulatory facts; AHJ verification checklist present in production bible |
-| Sub-type scope creep (Pitfall 6) | Phase 1: Brief extensions (decision locked here) | `grep -rn "sub_type" workflows/` returns results only in `brief.md` and parametric prompt strings — zero conditional branch blocks outside `brief.md` |
-| Cross-type regression testing gap (Pitfall 7) | Phase 1: Smoke matrix test established | `experience-regression.test.mjs` exists and covers 4 product types × 3 paths; run as part of pre-ship acceptance gate for every subsequent phase |
-| Multi-sensory token overload (Pitfall 8) | Phase 3: Design system extensions | `SYS-experience-tokens.json` contains 30 entries or fewer; no reverb, humidity, or non-artifact-expressible token types present; critique stage does not attempt APCA compliance checks on experience-specific tokens |
+| Orthogonal dimension model (composite flag vs enum) | Phase 1 (detection + manifest schema) | Nyquist: business:software project produces software artifacts AND business artifacts, not one or the other |
+| Financial projection hallucination | Phase 2 (business brief) + financial template authoring phase | Nyquist: no dollar amounts in financial artifact sections; all values are structural placeholders |
+| Deployment artifact review gate bypass | Earliest deployment scaffolding phase | Nyquist: deploy-staging/ contains deploy-manifest.json with review_required: true; no Stripe config outside deploy-staging/ |
+| User track branching inconsistency | Phase 1 (track detection) + verified in each downstream phase | Nyquist: grep count of user_track hits matches expected workflow count; artifact line count varies by track |
+| Investor firm name hallucination | Launch kit authoring phase | Nyquist: investor section contains no known firm names from a fixed blocklist |
+| Legal disclaimer omission | Phase 2 (reference file creation) | Nyquist: business-legal-disclaimer.md and business-financial-disclaimer.md exist in references/ before any launch kit workflow is authored |
+| designCoverage clobber | Phase 1 (manifest template update) | Nyquist: full pipeline run on business:software project preserves all 16 original coverage fields |
+| Stripe live key in scaffold | Deployment scaffolding phase | Nyquist: no file in deploy-staging/ contains "sk_live_" or "rk_live_" string literals |
+| Regression on existing product types | Final validation phase | Nyquist: existing software/hardware/hybrid test fixtures produce identical manifests before and after v0.12 |
 
 ---
 
 ## Sources
 
-- PDE codebase inspection: `workflows/brief.md` (Step 4/7 product type detection, allowed values: `software | hardware | hybrid`), `workflows/system.md` (7-category DTCG structure, `tokens-to-css` dependency), `workflows/handoff.md` (Steps 4i, 2b, 11 hardware section gating), `workflows/wireframe.md` (Step 3 CSS default fallback), `workflows/critique.md`, `workflows/flows.md`, `bin/lib/design.cjs` (`cmdCoverageCheck`, `designCoverage` field), `templates/design-manifest.json` (schema structure, `productType` field), `bin/pde-tools.cjs` (manifest commands) — HIGH confidence: direct codebase evidence
-- DTCG 2025.10 specification stable release: https://www.w3.org/community/design-tokens/2025/10/28/design-tokens-specification-reaches-first-stable-version/ — confirmed `$extensions` support and Figma export behavior (MEDIUM confidence: community group announcement; Figma behavior based on reported tool status)
-- `$extensions` namespace behavior: https://www.alwaystwisted.com/articles/understanding-extensions-in-the-design-tokens-spec — reverse-domain notation recommendation (MEDIUM confidence: single source, consistent with spec intent)
-- AI hallucination in event planning: https://sched.com/blog/ai-event-planning-pitfalls/ — vendor hallucination and fabricated fact patterns (MEDIUM confidence: domain-specific, consistent with known LLM behavior)
-- CMYK vs RGB gamut gap: https://www.dusted.com/insights/rgb-vs-cmyk-colour-spaces-explained and https://ironmarkusa.com/cmyk-vs-rgb-whats-the-difference/ — 16M vs 16K shade differential; PDF/X format requirements (HIGH confidence: multiple independent sources, fundamental color science)
-- Event licensing jurisdiction variation: https://www.venuesnyc.com/blog/permits-licenses-required-for-events-in-NYC and https://diamondevent.com/blog/utah-event-permits-and-regulations/ — illustrative examples of jurisdiction-specific requirements and variation (MEDIUM confidence: illustrative, not exhaustive)
-- AI document generation accuracy cycles: https://www.mindstudio.ai/blog/building-ai-powered-documentation-systems-manufacturing — 3-5 review cycles required; right-first-time rates 5-20% for production documents (MEDIUM confidence: manufacturing domain extrapolated to event production documents)
-- Feature flag testing matrix complexity: https://testrigor.com/blog/feature-flags-how-to-test/ — permutation explosion per conditional flag (MEDIUM confidence: illustrative of pattern)
-- SVG floor plan coordinate conventions: https://visual-integrity.com/svg-floor-plan/ and Home Assistant floorplan community guidance — general SVG floor plan conventions (LOW confidence: no event-venue-specific SVG standard exists; coordinate system recommendations are PDE-specific design decisions)
+- Codebase inspection: v0.11 experience type implementation patterns (branch site audit, designCoverage clobber post-mortem, regulatory disclaimer reference file architecture) — HIGH confidence
+- [LLM Hallucinations: What Are the Implications for Financial Institutions? | BizTech Magazine](https://biztechmagazine.com/article/2025/08/llm-hallucinations-what-are-implications-financial-institutions) — MEDIUM confidence
+- [AI Hallucination Liability: Legal Exposure For Startups In 2025](https://techandmedialaw.com/ai-hallucination-liability/) — MEDIUM confidence
+- [AI Contracts: Waivers and Limitations of Liability | DR&A Law Firm](https://danielrosslawfirm.com/2025/07/28/ai-and-contracts-why-you-need-waiver-and-limitation-of-liability-provisions-for-ai-tools/) — MEDIUM confidence
+- [Common Mistakes Developers Make When Using Stripe Payment Processing | Moldstud](https://moldstud.com/articles/p-common-mistakes-developers-make-when-using-stripe-payment-processing-avoid-these-pitfalls) — MEDIUM confidence
+- [Avoiding test mode tangles with Stripe Sandboxes | Stripe Dev Blog](https://stripe.dev/blog/avoiding-test-mode-tangles-with-stripe-sandboxes) — HIGH confidence (official source)
+- [API keys | Stripe Documentation](https://docs.stripe.com/keys) — HIGH confidence (official source)
+- [AI Agents on Vercel | Vercel Knowledge Base](https://vercel.com/kb/guide/ai-agents) — MEDIUM confidence
+- [Resend Review 2025 | Toksta](https://www.toksta.com/products/resend) — LOW confidence (community review)
+- [Hidden Dangers of AI Hallucinations in Financial Services | Baytech Consulting](https://www.baytechconsulting.com/blog/hidden-dangers-of-ai-hallucinations-in-financial-services) — MEDIUM confidence
+- v0.11 KEY DECISIONS table: experience sub-types, designCoverage 16-field schema, cross-phase wiring fix, regulatory disclaimer reference block pattern — HIGH confidence (direct project history)
 
 ---
-
-*Pitfalls research for: PDE v0.11 Experience Product Type — adding new product type to existing multi-type design pipeline*
-*Researched: 2026-03-21*
+*Pitfalls research for: PDE v0.12 Business Product Type orthogonal dimension*
+*Researched: 2026-03-22*
