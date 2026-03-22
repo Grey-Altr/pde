@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.12
 milestone_name: Business Product Type
 status: unknown
-stopped_at: "Completed 84-02-PLAN.md — 4 business reference files created (business-track, launch-frameworks, financial/legal disclaimers)"
-last_updated: "2026-03-22T14:25:26.923Z"
+stopped_at: Completed 85-01-PLAN.md — business intent detection + track selection + Domain Strategy + manifest writes added to brief.md
+last_updated: "2026-03-22T15:08:08.492Z"
 progress:
   total_phases: 11
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 4
+  completed_plans: 3
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-22)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 84 — foundation
+**Current focus:** Phase 85 — brief-extensions-detection
 
 ## Current Position
 
-Phase: 84 (foundation) — COMPLETE
-Plan: 2 of 2 — COMPLETE
+Phase: 85 (brief-extensions-detection) — EXECUTING
+Plan: 1 of 2
 
 ## Performance Metrics
 
@@ -40,6 +40,7 @@ Plan: 2 of 2 — COMPLETE
 |-------|-------|-------|----------|
 | 84-01 | 1 | 3 tasks | 3 min |
 | 84-02 | 1 | 3 tasks | 4 min |
+| Phase 85 P01 | 8 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -59,6 +60,9 @@ Recent decisions affecting v0.12:
 - [84-01] launch/ appended as 10th DOMAIN_DIRS element — 9 existing dirs unchanged
 - [84-02] Legal Checklist Format placed after Prohibited Patterns section — FOUND-07 test requires Terms of Service/Privacy Policy not appear before that section header
 - [84-02] Financial disclaimer uses descriptive anti-pattern language, not literal dollar examples — avoids $[digit] pattern prohibition
+- [Phase 85]: Business detection inserted as sub-section of Step 4 rather than new step — keeps step count at 7 and preserves existing Step 4 display line
+- [Phase 85]: Domain Strategy section placed after experience-only sections so it composes correctly for both experience and non-experience product types
+- [Phase 85]: Track selection uses interactive prompt by default; --force and --quick skip it — consistent with existing --force version-increment semantics in brief.md
 
 ### Pending Todos
 
@@ -71,8 +75,8 @@ Recent decisions affecting v0.12:
 
 ## Session Continuity
 
-Last session: 2026-03-22
-Stopped at: "Completed 84-02-PLAN.md — 4 business reference files created (business-track, launch-frameworks, financial/legal disclaimers)"
+Last session: 2026-03-22T15:08:08.489Z
+Stopped at: Completed 85-01-PLAN.md — business intent detection + track selection + Domain Strategy + manifest writes added to brief.md
 Resume file: None
 
 Next action: Execute Phase 85 (Brief Skill)

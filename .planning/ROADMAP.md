@@ -391,7 +391,7 @@ Plans:
 | 70-73 | v0.10 | 8/8 | Complete | 2026-03-21 |
 | 74-83 | v0.11 | 19/19 | Complete | 2026-03-22 |
 | 84. Foundation | 2/2 | Complete    | 2026-03-22 | - |
-| 85. Brief Extensions + Detection | v0.12 | 0/2 | Not started | - |
+| 85. Brief Extensions + Detection | 1/2 | In Progress|  | - |
 | 86. Competitive + Opportunity Extensions | v0.12 | 0/TBD | Not started | - |
 | 87. Flows Stage | v0.12 | 0/TBD | Not started | - |
 | 88. Brand System | v0.12 | 0/TBD | Not started | - |
