@@ -1,0 +1,28 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-03-22T18:46:26.996Z",
+  "phase": "89",
+  "phase_name": "wireframe-stage-launch-artifacts",
+  "phase_dir": ".planning/phases/89-wireframe-stage-launch-artifacts",
+  "plan": 2,
+  "task": 2,
+  "total_tasks": 4,
+  "status": "complete",
+  "completed_tasks": [
+    {"id": 1, "name": "89-01-T1: Nyquist test scaffold + LDP schema in launch-frameworks.md", "status": "done", "commit": "40b94e0"},
+    {"id": 2, "name": "89-01-T2: wireframe.md businessMode detection, LDP generation, 20-field coverage", "status": "done", "commit": "5724ec5"},
+    {"id": 3, "name": "89-02-T1: STR/DPD launch artifact generation + DESIGN-STATE wiring", "status": "done", "commit": "18f6ea9"},
+    {"id": 4, "name": "89-02-T2: SUMMARY + state updates", "status": "done", "commit": "349e766"}
+  ],
+  "remaining_tasks": [],
+  "blockers": [],
+  "human_actions_pending": [],
+  "decisions": [
+    {"decision": "LDP uses 7-property section blocks with [MKT:]/[GTM:]/[LCV:] source tags for cross-references", "rationale": "Deployable-spec format matches what v0/AI agents need to implement without follow-up questions", "phase": "89"},
+    {"decision": "STR uses JSON with _meta block for non-API guidance; unit_amount: 0 for free tiers", "rationale": "Stripe API compatibility while keeping financial disclaimers; zero is not a prohibited financial value", "phase": "89"},
+    {"decision": "DPD embeds QUAL-02 coherence anchors on Solution and Traction slides", "rationale": "Phase 90 critique.md reads these markers for cross-check validation", "phase": "89"}
+  ],
+  "uncommitted_files": [".planning/phases/88-brand-system/88-01-SUMMARY.md"],
+  "next_action": "Run /gsd:discuss-phase 90 --auto to begin Phase 90: Critique + HIG Extensions",
+  "context_notes": "Phase 89 fully complete — all 6 LAUNCH requirements satisfied, 11/11 Nyquist tests green, verification passed 9/9 must-haves. History was rebased to scrub a Stripe test key from 89-RESEARCH.md (GitHub push protection caught it). Next phase (90) adds 4 business critique perspectives and business communications HIG section to critique.md and hig.md."
+}
