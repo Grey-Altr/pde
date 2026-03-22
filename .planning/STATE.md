@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.12
 milestone_name: Business Product Type
 status: unknown
-stopped_at: Completed 87-02-PLAN.md — SBP/GTM strategy DESIGN-STATE rows added to flows.md Step 7, all 10 Nyquist tests pass
-last_updated: "2026-03-22T16:49:20.150Z"
+stopped_at: Completed 88-01-PLAN.md — brand system Steps 5c/5d added to system.md, all 8 Nyquist tests green
+last_updated: "2026-03-22T17:30:24.089Z"
 progress:
   total_phases: 11
-  completed_phases: 4
-  total_plans: 8
-  completed_plans: 8
+  completed_phases: 5
+  total_plans: 9
+  completed_plans: 9
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-22)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 87 — flows-stage
+**Current focus:** Phase 88 — brand-system
 
 ## Current Position
 
-Phase: 87 (flows-stage) — EXECUTING
-Plan: 1 of 2
+Phase: 88 (brand-system) — EXECUTING
+Plan: 1 of 1
 
 ## Performance Metrics
 
@@ -46,6 +46,7 @@ Plan: 1 of 2
 | Phase 86 P01 | 297 | 2 tasks | 2 files |
 | Phase 87-flows-stage P01 | 3 | 2 tasks | 2 files |
 | Phase 87 P02 | 4 | 1 tasks | 1 files |
+| Phase 88-brand-system P01 | 3 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -81,6 +82,9 @@ Recent decisions affecting v0.12:
 - [Phase 87-flows-stage]: 20-field designCoverage upgraded in Plan 01 (not deferred to Plan 02) — OPS-03 complete, reduces Plan 02 scope
 - [Phase 87]: SBP DESIGN-STATE rows added under IF SBP_WRITTEN guard — consistent with competitive.md IF MLS_WRITTEN pattern
 - [Phase 87]: GTM DESIGN-STATE rows in separate conditional block (not nested under SBP) — cleaner separation since GTM_CONTENT_GENERATED already implies SBP was written
+- [Phase 88-brand-system]: Steps 5c/5d are INDEPENDENT conditional blocks (not ELSE IF from 5b) — business:experience compositions run both experience and business brand token generation
+- [Phase 88-brand-system]: SYS-brand-tokens.json is separate from SYS-tokens.json — manifest-set-top-level flat key assignment risks corrupting all 7 existing categories if merged
+- [Phase 88-brand-system]: Campaign palette variant tokens use {token.path} alias syntax into SYS-tokens.json — raw oklch values drift when core system is regenerated
 
 ### Pending Todos
 
@@ -93,8 +97,8 @@ Recent decisions affecting v0.12:
 
 ## Session Continuity
 
-Last session: 2026-03-22T16:45:24.950Z
-Stopped at: Completed 87-02-PLAN.md — SBP/GTM strategy DESIGN-STATE rows added to flows.md Step 7, all 10 Nyquist tests pass
+Last session: 2026-03-22T17:30:24.086Z
+Stopped at: Completed 88-01-PLAN.md — brand system Steps 5c/5d added to system.md, all 8 Nyquist tests green
 Resume file: None
 
 Next action: Execute Phase 85 (Brief Skill)

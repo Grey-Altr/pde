@@ -44,9 +44,9 @@ Requirements for the business product type milestone. Each maps to roadmap phase
 
 ### Brand & Visual
 
-- [ ] **BRAND-01**: `system.md` produces MKT (Brand/Marketing System) artifact with positioning statement, tone of voice spectrum, and visual differentiation rationale
-- [ ] **BRAND-02**: Brand system tokens extend existing DTCG output with marketing-specific token group (brand voice, campaign palette variants)
-- [ ] **BRAND-03**: Positioning statement and tone of voice feed downstream into landing page wireframe and pitch deck content
+- [x] **BRAND-01**: `system.md` produces MKT (Brand/Marketing System) artifact with positioning statement, tone of voice spectrum, and visual differentiation rationale
+- [x] **BRAND-02**: Brand system tokens extend existing DTCG output with marketing-specific token group (brand voice, campaign palette variants)
+- [x] **BRAND-03**: Positioning statement and tone of voice feed downstream into landing page wireframe and pitch deck content
 
 ### Launch Artifacts
 
@@ -157,9 +157,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | OPS-02 | 87 | Complete |
 | OPS-03 | 87 | Complete |
 | OPS-04 | 87 | Complete |
-| BRAND-01 | 88 | Pending |
-| BRAND-02 | 88 | Pending |
-| BRAND-03 | 88 | Pending |
+| BRAND-01 | 88 | Complete |
+| BRAND-02 | 88 | Complete |
+| BRAND-03 | 88 | Complete |
 | LAUNCH-01 | 89 | Pending |
 | LAUNCH-02 | 89 | Pending |
 | LAUNCH-03 | 89 | Pending |
