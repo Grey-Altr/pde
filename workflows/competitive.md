@@ -544,17 +544,17 @@ COV=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design coverage-check)
 if [[ "$COV" == @file:* ]]; then COV=$(cat "${COV#@file:}"); fi
 ```
 
-Parse the JSON result. Extract all 14 flags (default absent flags to `false`):
-- `hasDesignSystem`, `hasWireframes`, `hasFlows`, `hasHardwareSpec`, `hasCritique`, `hasIterate`, `hasHandoff`, `hasIdeation`, `hasCompetitive`, `hasOpportunity`, `hasMockup`, `hasHigAudit`, `hasRecommendations`, `hasStitchWireframes`
+Parse the JSON result. Extract all 16 flags (default absent flags to `false`):
+- `hasDesignSystem`, `hasWireframes`, `hasFlows`, `hasHardwareSpec`, `hasCritique`, `hasIterate`, `hasHandoff`, `hasIdeation`, `hasCompetitive`, `hasOpportunity`, `hasMockup`, `hasHigAudit`, `hasRecommendations`, `hasStitchWireframes`, `hasPrintCollateral`, `hasProductionBible`
 
-Then write the FULL 14-field JSON, setting `hasCompetitive` to `true` and passing all other flags through unchanged:
+Then write the FULL 16-field JSON, setting `hasCompetitive` to `true` and passing all other flags through unchanged:
 
 ```bash
 node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage \
-  '{"hasDesignSystem":{current},"hasWireframes":{current},"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":true,"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":{current}}'
+  '{"hasDesignSystem":{current},"hasWireframes":{current},"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":true,"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":{current},"hasPrintCollateral":{current},"hasProductionBible":{current}}'
 ```
 
-**IMPORTANT:** Replace each `{current}` placeholder with the actual boolean value read from coverage-check. NEVER use dot-notation for this field. ALWAYS write all 14 fields. The canonical field order is: hasDesignSystem, hasWireframes, hasFlows, hasHardwareSpec, hasCritique, hasIterate, hasHandoff, hasIdeation, hasCompetitive, hasOpportunity, hasMockup, hasHigAudit, hasRecommendations, hasStitchWireframes.
+**IMPORTANT:** Replace each `{current}` placeholder with the actual boolean value read from coverage-check. NEVER use dot-notation for this field. ALWAYS write all 16 fields. The canonical field order is: hasDesignSystem, hasWireframes, hasFlows, hasHardwareSpec, hasCritique, hasIterate, hasHandoff, hasIdeation, hasCompetitive, hasOpportunity, hasMockup, hasHigAudit, hasRecommendations, hasStitchWireframes, hasPrintCollateral, hasProductionBible.
 
 Display: `Step 7/7: Root DESIGN-STATE and manifest updated. hasCompetitive: true.`
 
@@ -584,7 +584,7 @@ Display the final summary table (always the last output):
 - NEVER omit confidence labels from competitor claims. EVERY factual claim about a competitor MUST have a `[confirmed]`, `[inferred]`, or `[unverified]` label. Unlabeled claims leave users without signal about data quality.
 - NEVER hard-fail when WebSearch MCP is unavailable. The skill MUST complete with training knowledge alone. WebSearch is an enhancement, not a requirement. Treat its absence as a graceful degradation.
 - NEVER write Opportunity Highlights as prose or as a flat list. The section MUST use the structured numbered-list format with Source, Estimated reach, and Competitive advantage sub-fields on each entry. `/pde:opportunity` parses this structure — prose breaks the downstream contract.
-- NEVER skip coverage-check before writing designCoverage. Always read existing flags and pass them all through. Writing only `{"hasCompetitive":true}` will erase the other 12 flags.
+- NEVER skip coverage-check before writing designCoverage. Always read existing flags and pass them all through. Writing only `{"hasCompetitive":true}` will erase the other 15 flags.
 - NEVER use dot-notation with `manifest-set-top-level` (e.g., `manifest-set-top-level designCoverage.hasCompetitive true` is WRONG). Always pass the full JSON object.
 - NEVER skip Porter's Five Forces in standard or deep mode. Only --quick mode omits Porter's. Standard and deep users need the industry dynamics analysis.
 - NEVER overwrite an existing versioned CMP artifact. Always increment version (v1 → v2 → v3).

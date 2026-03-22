@@ -684,17 +684,17 @@ COV=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design coverage-check)
 if [[ "$COV" == @file:* ]]; then COV=$(cat "${COV#@file:}"); fi
 ```
 
-Parse the JSON result. Extract all 14 flags (default absent flags to `false`):
-- Canonical 14-field order: `hasDesignSystem`, `hasWireframes`, `hasFlows`, `hasHardwareSpec`, `hasCritique`, `hasIterate`, `hasHandoff`, `hasIdeation`, `hasCompetitive`, `hasOpportunity`, `hasMockup`, `hasHigAudit`, `hasRecommendations`, `hasStitchWireframes`
+Parse the JSON result. Extract all 16 flags (default absent flags to `false`):
+- Canonical 16-field order: `hasDesignSystem`, `hasWireframes`, `hasFlows`, `hasHardwareSpec`, `hasCritique`, `hasIterate`, `hasHandoff`, `hasIdeation`, `hasCompetitive`, `hasOpportunity`, `hasMockup`, `hasHigAudit`, `hasRecommendations`, `hasStitchWireframes`, `hasPrintCollateral`, `hasProductionBible`
 
-Then write the FULL 14-field JSON, setting `hasIdeation` to `true` and passing all other flags through unchanged:
+Then write the FULL 16-field JSON, setting `hasIdeation` to `true` and passing all other flags through unchanged:
 
 ```bash
 node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage \
-  '{"hasDesignSystem":{current},"hasWireframes":{current},"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":{current},"hasIdeation":true,"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":{current}}'
+  '{"hasDesignSystem":{current},"hasWireframes":{current},"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":{current},"hasIdeation":true,"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":{current},"hasPrintCollateral":{current},"hasProductionBible":{current}}'
 ```
 
-**IMPORTANT:** Replace each `{current}` placeholder with the actual boolean value read from coverage-check. NEVER use dot-notation for this field. ALWAYS write all 14 fields. The canonical field order is: hasDesignSystem, hasWireframes, hasFlows, hasHardwareSpec, hasCritique, hasIterate, hasHandoff, hasIdeation, hasCompetitive, hasOpportunity, hasMockup, hasHigAudit, hasRecommendations, hasStitchWireframes.
+**IMPORTANT:** Replace each `{current}` placeholder with the actual boolean value read from coverage-check. NEVER use dot-notation for this field. ALWAYS write all 16 fields. The canonical field order is: hasDesignSystem, hasWireframes, hasFlows, hasHardwareSpec, hasCritique, hasIterate, hasHandoff, hasIdeation, hasCompetitive, hasOpportunity, hasMockup, hasHigAudit, hasRecommendations, hasStitchWireframes, hasPrintCollateral, hasProductionBible.
 
 Display: `Step 7/7: Root DESIGN-STATE and manifest updated. hasIdeation: true.`
 
@@ -727,7 +727,7 @@ Display the final summary table (always the last output):
 - NEVER include evaluative language in diverge output. Banned words: "best", "recommended", "superior", "most promising", "strongest", "optimal", "ideal", "preferred". These words collapse the diverge pass into premature convergence.
 - NEVER skip writing the intermediate IDT artifact between diverge and converge. The file MUST transition from `Status: diverge-complete` to `Status: ideation-complete` — this two-write pattern is the audit trail of the two-pass structure.
 - NEVER omit the ## Brief Seed section. /pde:brief parses this section by exact heading. If the heading is absent or misspelled, the downstream consumption contract is broken.
-- NEVER use dot-notation for designCoverage. Always write full 13-field JSON via pass-through-all. Writing `{"hasIdeation":true}` alone erases the other 12 flags.
+- NEVER use dot-notation for designCoverage. Always write full 15-field JSON via pass-through-all. Writing `{"hasIdeation":true}` alone erases the other 15 flags.
 - NEVER skip coverage-check before writing designCoverage. Always read existing flags and pass them all through.
 - ALWAYS release write lock even on error. The lock has a 60s TTL but releasing immediately prevents blocking other skills.
 - NEVER present fewer than 5 directions in the diverge pass. The minimum 5 constraint prevents premature narrowing. If the problem space is rich, generate more.

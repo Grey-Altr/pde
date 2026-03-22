@@ -562,7 +562,7 @@ COV=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design coverage-check)
 if [[ "$COV" == @file:* ]]; then COV=$(cat "${COV#@file:}"); fi
 ```
 
-Parse the JSON result. Extract all 14 fields, defaulting any absent field to `false`:
+Parse the JSON result. Extract all 16 fields, defaulting any absent field to `false`:
 
 | Field (in canonical order) | Default |
 |----------------------------|---------|
@@ -580,17 +580,19 @@ Parse the JSON result. Extract all 14 fields, defaulting any absent field to `fa
 | hasHigAudit | false |
 | hasRecommendations | **true** (this skill sets this flag) |
 | hasStitchWireframes | false |
+| hasPrintCollateral | false |
+| hasProductionBible | false |
 
-Then write the full 14-field JSON in canonical order (preserving all existing flag values, setting hasRecommendations to true):
+Then write the full 16-field JSON in canonical order (preserving all existing flag values, setting hasRecommendations to true):
 
 ```bash
 node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage \
-  '{"hasDesignSystem":{current_hasDesignSystem},"hasWireframes":{current_hasWireframes},"hasFlows":{current_hasFlows},"hasHardwareSpec":{current_hasHardwareSpec},"hasCritique":{current_hasCritique},"hasIterate":{current_hasIterate},"hasHandoff":{current_hasHandoff},"hasIdeation":{current_hasIdeation},"hasCompetitive":{current_hasCompetitive},"hasOpportunity":{current_hasOpportunity},"hasMockup":{current_hasMockup},"hasHigAudit":{current_hasHigAudit},"hasRecommendations":true,"hasStitchWireframes":{current_hasStitchWireframes}}'
+  '{"hasDesignSystem":{current_hasDesignSystem},"hasWireframes":{current_hasWireframes},"hasFlows":{current_hasFlows},"hasHardwareSpec":{current_hasHardwareSpec},"hasCritique":{current_hasCritique},"hasIterate":{current_hasIterate},"hasHandoff":{current_hasHandoff},"hasIdeation":{current_hasIdeation},"hasCompetitive":{current_hasCompetitive},"hasOpportunity":{current_hasOpportunity},"hasMockup":{current_hasMockup},"hasHigAudit":{current_hasHigAudit},"hasRecommendations":true,"hasStitchWireframes":{current_hasStitchWireframes},"hasPrintCollateral":{current_hasPrintCollateral},"hasProductionBible":{current_hasProductionBible}}'
 ```
 
 Replace each `{current_*}` placeholder with the actual value read from `coverage-check` (or `false` if the field was absent).
 
-IMPORTANT: Never use dot-notation (e.g., `designCoverage.hasRecommendations`) with `manifest-set-top-level`. Always pass the complete 14-field JSON object.
+IMPORTANT: Never use dot-notation (e.g., `designCoverage.hasRecommendations`) with `manifest-set-top-level`. Always pass the complete 16-field JSON object.
 
 Display: `Step 7/7: Root DESIGN-STATE and manifest updated. Coverage flag hasRecommendations set to true.`
 
@@ -619,7 +621,7 @@ Display the final summary table (always the last output):
 
 - NEVER reference `ecosystem-catalog.json` as a file to read — it does not exist in the codebase. The inline catalog in Step 4c IS the catalog.
 - NEVER hard-fail when mcp-compass or WebSearch MCP are unavailable — the inline catalog always produces valid output.
-- NEVER skip `coverage-check` before writing `designCoverage` — always read all 13 existing flags first, then pass the full merged JSON to `manifest-set-top-level`.
+- NEVER skip `coverage-check` before writing `designCoverage` — always read all 15 existing flags first, then pass the full merged JSON to `manifest-set-top-level`.
 - NEVER use dot-notation with `manifest-set-top-level` (e.g., `designCoverage.hasRecommendations true`) — always pass the complete JSON object.
 - NEVER use `hasRecommend` as the coverage flag name — the canonical name is `hasRecommendations`.
 - NEVER write to root DESIGN-STATE.md without first acquiring the write lock via `pde-tools.cjs design lock-acquire`. ALWAYS release the lock even on error.

@@ -789,17 +789,17 @@ COV=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design coverage-check)
 if [[ "$COV" == @file:* ]]; then COV=$(cat "${COV#@file:}"); fi
 ```
 
-Parse the JSON result. Extract ALL 14 current coverage flag values (default absent fields to `false`):
-- `hasDesignSystem`, `hasWireframes`, `hasFlows`, `hasHardwareSpec`, `hasCritique`, `hasIterate`, `hasHandoff`, `hasIdeation`, `hasCompetitive`, `hasOpportunity`, `hasMockup`, `hasHigAudit`, `hasRecommendations`, `hasStitchWireframes`
+Parse the JSON result. Extract ALL 16 current coverage flag values (default absent fields to `false`):
+- `hasDesignSystem`, `hasWireframes`, `hasFlows`, `hasHardwareSpec`, `hasCritique`, `hasIterate`, `hasHandoff`, `hasIdeation`, `hasCompetitive`, `hasOpportunity`, `hasMockup`, `hasHigAudit`, `hasRecommendations`, `hasStitchWireframes`, `hasPrintCollateral`, `hasProductionBible`
 
-Then write the FULL 14-field JSON, setting `hasHigAudit` to `true` and passing all other flags through unchanged:
+Then write the FULL 16-field JSON, setting `hasHigAudit` to `true` and passing all other flags through unchanged:
 
 ```bash
 node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage \
-  '{"hasDesignSystem":{current},"hasWireframes":{current},"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":true,"hasRecommendations":{current},"hasStitchWireframes":{current}}'
+  '{"hasDesignSystem":{current},"hasWireframes":{current},"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":true,"hasRecommendations":{current},"hasStitchWireframes":{current},"hasPrintCollateral":{current},"hasProductionBible":{current}}'
 ```
 
-**IMPORTANT:** Replace each `{current}` placeholder with the actual boolean value read from coverage-check. NEVER use dot-notation. ALWAYS write all 14 fields. Canonical field order: hasDesignSystem, hasWireframes, hasFlows, hasHardwareSpec, hasCritique, hasIterate, hasHandoff, hasIdeation, hasCompetitive, hasOpportunity, hasMockup, hasHigAudit, hasRecommendations, hasStitchWireframes.
+**IMPORTANT:** Replace each `{current}` placeholder with the actual boolean value read from coverage-check. NEVER use dot-notation. ALWAYS write all 16 fields. Canonical field order: hasDesignSystem, hasWireframes, hasFlows, hasHardwareSpec, hasCritique, hasIterate, hasHandoff, hasIdeation, hasCompetitive, hasOpportunity, hasMockup, hasHigAudit, hasRecommendations, hasStitchWireframes, hasPrintCollateral, hasProductionBible.
 
 Display: `Step 7/7: Root DESIGN-STATE and manifest updated. hasHigAudit: true.`
 
@@ -837,7 +837,7 @@ Display the final summary table (always the last output):
 - NEVER hard-fail when Axe MCP unavailable (manual checklist fallback is sufficient)
 - NEVER skip coverage-check before writing designCoverage
 - NEVER use dot-notation with manifest-set-top-level (always pass full JSON object)
-- NEVER write only hasHigAudit to designCoverage — always pass all 13 fields
+- NEVER write only hasHigAudit to designCoverage — always pass all 15 fields
 - Coverage flag name is `hasHigAudit` (not hasHIG, not hasHig, not hasHIGAudit)
 - NEVER hard-fail when auditable artifact is absent — HALT with clear error message pointing to prerequisite skill
 - ALWAYS release write lock (Step 7 lock-release) even if an error occurs during root DESIGN-STATE updates

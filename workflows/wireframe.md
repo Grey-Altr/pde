@@ -158,7 +158,7 @@ Store as PRODUCT_NAME, PRODUCT_TYPE.
 
 IF `PRODUCT_TYPE !== "experience"`: skip Step 2h entirely.
 
-Use the Glob tool to check for `.planning/design/assets/SYS-experience-tokens.json`.
+Use the Glob tool to check for `.planning/design/visual/SYS-experience-tokens.json`.
 
 - If **absent**: set `PRINT_TOKENS_AVAILABLE = false`. Define fallback palette:
   ```javascript
@@ -2012,17 +2012,17 @@ COV=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design coverage-check)
 if [[ "$COV" == @file:* ]]; then COV=$(cat "${COV#@file:}"); fi
 ```
 
-Parse the JSON output. Extract ALL fifteen current flag values: hasDesignSystem, hasWireframes, hasFlows, hasHardwareSpec, hasCritique, hasIterate, hasHandoff, hasIdeation, hasCompetitive, hasOpportunity, hasMockup, hasHigAudit, hasRecommendations, hasStitchWireframes, hasPrintCollateral. Default any absent field to `false`. Merge `hasWireframes: true` while preserving all other fourteen values. If any STH-{slug} artifacts were successfully persisted in Step 4-STITCH, also set `hasStitchWireframes: true`. If FLY print collateral was generated in Step 4g (PRODUCT_TYPE === "experience"), also set `hasPrintCollateral: true`. If FLP/TML experience wireframes were generated in Step 4-EXP (PRODUCT_TYPE === "experience"), hasWireframes is already set to true by the standard merge. Then write the full merged fifteen-field object:
+Parse the JSON output. Extract ALL sixteen current flag values: hasDesignSystem, hasWireframes, hasFlows, hasHardwareSpec, hasCritique, hasIterate, hasHandoff, hasIdeation, hasCompetitive, hasOpportunity, hasMockup, hasHigAudit, hasRecommendations, hasStitchWireframes, hasPrintCollateral, hasProductionBible. Default any absent field to `false`. Merge `hasWireframes: true` while preserving all other fifteen values. If any STH-{slug} artifacts were successfully persisted in Step 4-STITCH, also set `hasStitchWireframes: true`. If FLY print collateral was generated in Step 4g (PRODUCT_TYPE === "experience"), also set `hasPrintCollateral: true`. If FLP/TML experience wireframes were generated in Step 4-EXP (PRODUCT_TYPE === "experience"), hasWireframes is already set to true by the standard merge. Then write the full merged sixteen-field object:
 
 ```bash
 # Standard run (no STH artifacts, non-experience product):
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":{current},"hasWireframes":true,"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":{current},"hasPrintCollateral":{current}}'
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":{current},"hasWireframes":true,"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":{current},"hasPrintCollateral":{current},"hasProductionBible":{current}}'
 
 # --use-stitch run (STH artifacts persisted — set hasStitchWireframes: true):
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":{current},"hasWireframes":true,"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":true,"hasPrintCollateral":{current}}'
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":{current},"hasWireframes":true,"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":true,"hasPrintCollateral":{current},"hasProductionBible":{current}}'
 
 # Experience product run (print collateral generated — set hasPrintCollateral: true):
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":{current},"hasWireframes":true,"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":{current},"hasPrintCollateral":true}'
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":{current},"hasWireframes":true,"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":{current},"hasPrintCollateral":true,"hasProductionBible":{current}}'
 ```
 
 #### 7e. Release lock

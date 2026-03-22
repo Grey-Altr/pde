@@ -466,18 +466,18 @@ COV=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design coverage-check)
 if [[ "$COV" == @file:* ]]; then COV=$(cat "${COV#@file:}"); fi
 ```
 
-Parse the JSON result. Extract all 14 flags (default absent flags to `false`):
+Parse the JSON result. Extract all 16 flags (default absent flags to `false`):
 
-- Canonical 14-field order: `hasDesignSystem`, `hasWireframes`, `hasFlows`, `hasHardwareSpec`, `hasCritique`, `hasIterate`, `hasHandoff`, `hasIdeation`, `hasCompetitive`, `hasOpportunity`, `hasMockup`, `hasHigAudit`, `hasRecommendations`, `hasStitchWireframes`
+- Canonical 16-field order: `hasDesignSystem`, `hasWireframes`, `hasFlows`, `hasHardwareSpec`, `hasCritique`, `hasIterate`, `hasHandoff`, `hasIdeation`, `hasCompetitive`, `hasOpportunity`, `hasMockup`, `hasHigAudit`, `hasRecommendations`, `hasStitchWireframes`, `hasPrintCollateral`, `hasProductionBible`
 
-Then write the FULL 14-field JSON, setting `hasOpportunity` to `true` and passing all other flags through unchanged:
+Then write the FULL 16-field JSON, setting `hasOpportunity` to `true` and passing all other flags through unchanged:
 
 ```bash
 node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage \
-  '{"hasDesignSystem":{current},"hasWireframes":{current},"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":true,"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":{current}}'
+  '{"hasDesignSystem":{current},"hasWireframes":{current},"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":true,"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":{current},"hasPrintCollateral":{current},"hasProductionBible":{current}}'
 ```
 
-**IMPORTANT:** Replace each `{current}` placeholder with the actual boolean value read from coverage-check. NEVER use dot-notation for this field. ALWAYS write all 14 fields. The canonical field order is: hasDesignSystem, hasWireframes, hasFlows, hasHardwareSpec, hasCritique, hasIterate, hasHandoff, hasIdeation, hasCompetitive, hasOpportunity, hasMockup, hasHigAudit, hasRecommendations, hasStitchWireframes.
+**IMPORTANT:** Replace each `{current}` placeholder with the actual boolean value read from coverage-check. NEVER use dot-notation for this field. ALWAYS write all 16 fields. The canonical field order is: hasDesignSystem, hasWireframes, hasFlows, hasHardwareSpec, hasCritique, hasIterate, hasHandoff, hasIdeation, hasCompetitive, hasOpportunity, hasMockup, hasHigAudit, hasRecommendations, hasStitchWireframes, hasPrintCollateral, hasProductionBible.
 
 Display: `Step 7/7: Root DESIGN-STATE and manifest updated. hasOpportunity: true.`
 
@@ -504,7 +504,7 @@ Display the final summary table (always the last output):
 
 ## Anti-Patterns (Guard Against)
 
-- NEVER skip coverage-check before writing designCoverage. Always read existing flags and pass them all through. Writing only `{"hasOpportunity":true}` will erase the other 12 flags.
+- NEVER skip coverage-check before writing designCoverage. Always read existing flags and pass them all through. Writing only `{"hasOpportunity":true}` will erase the other 15 flags.
 - NEVER use dot-notation with `manifest-set-top-level` (e.g., `manifest-set-top-level designCoverage.hasOpportunity true` is WRONG). Always pass the full JSON object.
 - NEVER show only score changes in sensitivity analysis — must show rank changes for ALL candidates per scenario (not just the one being varied).
 - NEVER hard-fail when Sequential Thinking MCP is unavailable. The skill MUST complete with standard scoring. Sequential Thinking is an enhancement, not a requirement.

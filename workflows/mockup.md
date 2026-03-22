@@ -1422,17 +1422,17 @@ COV=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design coverage-check)
 if [[ "$COV" == @file:* ]]; then COV=$(cat "${COV#@file:}"); fi
 ```
 
-Parse the JSON result. Extract all 14 flags. Default any absent flag to `false`:
-- `hasDesignSystem`, `hasWireframes`, `hasFlows`, `hasHardwareSpec`, `hasCritique`, `hasIterate`, `hasHandoff`, `hasIdeation`, `hasCompetitive`, `hasOpportunity`, `hasMockup`, `hasHigAudit`, `hasRecommendations`, `hasStitchWireframes`
+Parse the JSON result. Extract all 16 flags. Default any absent flag to `false`:
+- `hasDesignSystem`, `hasWireframes`, `hasFlows`, `hasHardwareSpec`, `hasCritique`, `hasIterate`, `hasHandoff`, `hasIdeation`, `hasCompetitive`, `hasOpportunity`, `hasMockup`, `hasHigAudit`, `hasRecommendations`, `hasStitchWireframes`, `hasPrintCollateral`, `hasProductionBible`
 
-Then write the FULL 14-field JSON, setting `hasMockup` to `true` and passing all other flags through unchanged:
+Then write the FULL 16-field JSON, setting `hasMockup` to `true` and passing all other flags through unchanged:
 
 ```bash
 node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage \
-  '{"hasDesignSystem":{current},"hasWireframes":{current},"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":true,"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":{current}}'
+  '{"hasDesignSystem":{current},"hasWireframes":{current},"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":true,"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":{current},"hasPrintCollateral":{current},"hasProductionBible":{current}}'
 ```
 
-**IMPORTANT:** Replace each `{current}` placeholder with the actual boolean value read from coverage-check. NEVER use dot-notation for this field. ALWAYS write all 14 fields. Canonical field order: hasDesignSystem, hasWireframes, hasFlows, hasHardwareSpec, hasCritique, hasIterate, hasHandoff, hasIdeation, hasCompetitive, hasOpportunity, hasMockup, hasHigAudit, hasRecommendations, hasStitchWireframes.
+**IMPORTANT:** Replace each `{current}` placeholder with the actual boolean value read from coverage-check. NEVER use dot-notation for this field. ALWAYS write all 16 fields. Canonical field order: hasDesignSystem, hasWireframes, hasFlows, hasHardwareSpec, hasCritique, hasIterate, hasHandoff, hasIdeation, hasCompetitive, hasOpportunity, hasMockup, hasHigAudit, hasRecommendations, hasStitchWireframes, hasPrintCollateral, hasProductionBible.
 
 #### 7f. Optional Playwright validation
 
@@ -1477,7 +1477,7 @@ Display: `Step 7/7: Root DESIGN-STATE and manifest updated. hasMockup: true.`
 - **Never reference mockup.js or mockup.css** in any link or script tag. These files do not exist. All styles are inline `<style>` block per MOCK-01.
 - **Never skip wireframe annotation preservation.** Every `<!-- WIREFRAME-ANNOTATION: ... -->` comment from the source wireframe MUST appear in the mockup HTML at the corresponding location. MOCK-03 traceability depends on this.
 - **Never omit WIREFRAME-SOURCE comment in `<head>`.** This comment establishes the version link between wireframe and mockup. Format: `<!-- WIREFRAME-SOURCE: wireframe-{screen}-v{N}.html | Generated: {date} -->`. Omit only if no source wireframe exists.
-- **Never skip coverage-check before writing designCoverage.** Always read existing flags and pass all 13 through. Writing only `{"hasMockup":true}` will erase the other 12 flags.
+- **Never skip coverage-check before writing designCoverage.** Always read existing flags and pass all 15 through. Writing only `{"hasMockup":true}` will erase the other 15 flags.
 - **Never use dot-notation with `manifest-set-top-level`** (e.g., `manifest-set-top-level designCoverage.hasMockup true` is WRONG). Always pass the full JSON object.
 - **Never hard-fail when wireframes are absent.** Wireframes are a soft dependency. Emit the warning and continue generating from brief/flows context.
 - **Never write to root DESIGN-STATE.md without first acquiring the write lock** via `pde-tools.cjs design lock-acquire pde-mockup`. Writing without the lock risks concurrent write corruption.
