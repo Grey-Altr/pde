@@ -239,4 +239,4 @@ Any user can go from idea to shipped product through a single platform that hand
 | Business detection threshold (3+ signals, 2+ categories) | Prevents over-triggering on pure software projects while catching genuine business intent | ✓ Good — 5-category taxonomy with category diversity requirement |
 | BTH→LCV dependency chain (skip, don't halt) | If BTH generation fails, LCV is skipped with warning rather than halting entire brief run | ✓ Good — graceful degradation preserves non-business brief output |
 | 20-field designCoverage write (not copy 16-field pattern) | Phase 84 added 4 fields; copying opportunity.md's 16-field pattern silently drops them | ✓ Good — canonical order from manifest template |
-*Last updated: 2026-03-22 after Phase 87 — Flows Stage (5-lane SBP service blueprint, GTM channel flow, hasServiceBlueprint coverage, track-depth adaptation, strategy DESIGN-STATE wiring)*
+*Last updated: 2026-03-22 after Phase 88 — Brand System (MKT artifact with positioning/tone/differentiation, SYS-brand-tokens.json DTCG extension, system.md 20-field coverage upgrade, launch-frameworks Brand System section)*
