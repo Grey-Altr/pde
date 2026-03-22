@@ -272,7 +272,6 @@ Plans:
 - [ ] 87-01-PLAN.md — Test scaffold + SBP service blueprint + GTM channel flow generation in flows.md
 - [ ] 87-02-PLAN.md — 20-field designCoverage upgrade + strategy DESIGN-STATE wiring
 
-
 ### Phase 88: Brand System
 **Goal**: Users in business mode get a brand and marketing positioning system that feeds brand tokens into the landing page wireframe and pitch deck
 **Depends on**: Phase 85
@@ -311,8 +310,8 @@ Plans:
   4. Business critique findings use the standard severity levels (critical/major/minor/info) — no new severity formats introduced
 **Plans**: 2 plans
 Plans:
-- [ ] 89-01-PLAN.md — Test scaffold, LDP schema in launch-frameworks.md, businessMode detection, LDP generation, 20-field coverage
-- [ ] 84-02-PLAN.md — Business reference files (track, frameworks, financial/legal disclaimers)
+- [ ] 90-01-PLAN.md — Test scaffold, business critique perspectives (4), pitch coherence cross-check, 20-field coverage in critique.md
+- [ ] 90-02-PLAN.md — Business communications HIG (3 domains), 20-field coverage upgrade in hig.md
 
 ### Phase 91: Handoff — Launch Kit Assembly
 **Goal**: Users in business mode receive a complete, assembled launch kit with all upstream business artifacts catalogued, a 30-day content calendar, and Resend-compatible email sequences
@@ -396,7 +395,7 @@ Plans:
 | 87. Flows Stage | 2/2 | Complete    | 2026-03-22 | - |
 | 88. Brand System | 1/1 | Complete    | 2026-03-22 | - |
 | 89. Wireframe Stage Launch Artifacts | 2/2 | Complete    | 2026-03-22 | - |
-| 90. Critique + HIG Extensions | v0.12 | 0/TBD | Not started | - |
+| 90. Critique + HIG Extensions | v0.12 | 0/2 | Not started | - |
 | 91. Handoff — Launch Kit Assembly | v0.12 | 0/TBD | Not started | - |
 | 92. Deploy Skill | v0.12 | 0/TBD | Not started | - |
 | 93. designCoverage Audit + Stubs | v0.12 | 0/TBD | Not started | - |
