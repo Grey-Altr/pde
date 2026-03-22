@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.12
 milestone_name: Business Product Type
 status: Ready to plan
-stopped_at: Completed 91-02-PLAN.md — handoff.md Step 7b-lkt manifest registration + business anti-patterns + output section, 21/21 Nyquist tests GREEN
-last_updated: "2026-03-22T21:22:23.008Z"
+stopped_at: Completed 92-02-PLAN.md — commands/deploy.md slash command + build.md Stage 14 deploy gate, 21/21 Nyquist tests GREEN
+last_updated: "2026-03-22T22:43:34.497Z"
 progress:
   total_phases: 11
-  completed_phases: 8
-  total_plans: 15
-  completed_plans: 15
+  completed_phases: 9
+  total_plans: 17
+  completed_plans: 17
 ---
 
 # Project State
@@ -19,11 +19,11 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-22)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 90 — critique-hig-extensions
+**Current focus:** Phase 92 — deploy-skill
 
 ## Current Position
 
-Phase: 92
+Phase: 93
 Plan: Not started
 
 ## Performance Metrics
@@ -50,6 +50,8 @@ Plan: Not started
 | Phase 89 P02 | 8 | 2 tasks | 1 files |
 | Phase 90 P01 | 5 | 2 tasks | 2 files |
 | Phase 90-critique-hig-extensions P02 | 8 | 1 tasks | 1 files |
+| Phase 92 P01 | 4 | 2 tasks | 2 files |
+| Phase 92 P02 | 2 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -102,6 +104,12 @@ Recent decisions affecting v0.12:
 - [Phase 91-02]: Step 7b-lkt is independent IF block (not ELSE IF from 7b-bib) — business:experience compositions execute both BIB and LKT/CNT/OTR registration paths
 - [Phase 91-02]: Dual manifest registration intentional — Step 5e registers during file write, Step 7b-lkt re-registers in Step 7 manifest update phase (mirrors BIB pattern)
 - [Phase 91-02]: Step 7d business mode summary appends rows additively (not replacing experience table) — composed with independent IF blocks
+- [Phase 92]: deploy.md uses Write-tool-direct scaffold generation (not create-next-app) — offline-capable, idempotent, version-pinnable from LDP spec
+- [Phase 92]: Four approval gates in deploy.md are non-resumable — declining any gate halts clean with no partial state, user must re-run /pde:deploy to restart
+- [Phase 92]: deploy-manifest.json is standalone in .planning/deploy-staging/ (not registered in design-manifest.json) — deploy-staging is a separate artifact domain from design/
+- [Phase 92]: commands/deploy.md uses no MCP tools — deploy workflow does not invoke external services directly
+- [Phase 92]: Stage 14 businessMode gate reads BM once in Step 2/4 consistent with single-read pattern (anti-pattern #7)
+- [Phase 92]: TOTAL = count(STAGES) automatically handles 13→14 expansion — zero numeric literal changes
 
 ### Pending Todos
 
@@ -114,8 +122,8 @@ Recent decisions affecting v0.12:
 
 ## Session Continuity
 
-Last session: 2026-03-22T21:16:30Z
-Stopped at: Completed 91-02-PLAN.md — handoff.md Step 7b-lkt manifest registration + business anti-patterns + output section, 21/21 Nyquist tests GREEN
+Last session: 2026-03-22T22:39:56.534Z
+Stopped at: Completed 92-02-PLAN.md — commands/deploy.md slash command + build.md Stage 14 deploy gate, 21/21 Nyquist tests GREEN
 Resume file: None
 
 Next action: Execute Phase 92 (Deploy Skill)

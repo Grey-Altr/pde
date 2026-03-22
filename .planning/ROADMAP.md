@@ -207,7 +207,7 @@ Full details: .planning/milestones/v0.11-ROADMAP.md
 - [x] **Phase 89: Wireframe Stage Launch Artifacts** — Landing page wireframe, Stripe pricing config, pitch deck outline (completed 2026-03-22)
 - [x] **Phase 90: Critique + HIG Extensions** — Business critique perspectives and business communications HIG (completed 2026-03-22)
 - [x] **Phase 91: Handoff — Launch Kit Assembly** — Launch kit manifest, content calendar, email sequence artifacts (completed 2026-03-22)
-- [ ] **Phase 92: Deploy Skill** — Stage 14 with four approval-gated deployment actions and /pde:deploy command
+- [x] **Phase 92: Deploy Skill** — Stage 14 with four approval-gated deployment actions and /pde:deploy command (completed 2026-03-22)
 - [ ] **Phase 93: designCoverage Clobber Audit + Secondary Workflow Stubs** — 20-field pass-through audit across all 14 workflows; recommend/iterate/mockup guard stubs
 - [ ] **Phase 94: Nyquist Regression Tests** — Composition case validation and non-regression verification
 
@@ -343,7 +343,7 @@ Plans:
   7. `deploy-manifest.json` tracks all deployment artifact statuses with `review_required: true` per artifact
 **Plans**: 2 plans
 Plans:
-- [ ] 92-01-PLAN.md — Test scaffold + workflows/deploy.md (Stage 14 workflow with 4 approval gates, scaffold generation, Vercel deploy)
+- [x] 92-01-PLAN.md — Test scaffold + workflows/deploy.md (Stage 14 workflow with 4 approval gates, scaffold generation, Vercel deploy)
 - [ ] 92-02-PLAN.md — commands/deploy.md slash command + build.md Stage 14 STAGES entry with businessMode gate
 
 ### Phase 93: designCoverage Clobber Audit + Secondary Workflow Stubs
@@ -397,6 +397,6 @@ Plans:
 | 89. Wireframe Stage Launch Artifacts | 2/2 | Complete    | 2026-03-22 | - |
 | 90. Critique + HIG Extensions | v0.12 | 2/2 | Complete    | 2026-03-22 |
 | 91. Handoff — Launch Kit Assembly | v0.12 | 2/2 | Complete    | 2026-03-22 |
-| 92. Deploy Skill | v0.12 | 0/TBD | Not started | - |
+| 92. Deploy Skill | v0.12 | 1/2 | Complete    | 2026-03-22 |
 | 93. designCoverage Audit + Stubs | v0.12 | 0/TBD | Not started | - |
 | 94. Nyquist Regression Tests | v0.12 | 0/TBD | Not started | - |
