@@ -3,7 +3,7 @@
 > [CONSULT LEGAL COUNSEL] — PDE does not generate legal documents. All legal references
 > in business-mode output are structural checklists and service recommendations only.
 > Consult qualified legal counsel in your jurisdiction before creating any legal
-> agreements, terms of service, privacy policies, or regulatory filings.
+> agreements, legal documents, policies, or regulatory filings.
 
 ## Usage
 
@@ -12,17 +12,6 @@ references legal requirements, compliance obligations, or contractual structures
 
 The `[CONSULT LEGAL COUNSEL]` tag must appear on the same line as or immediately adjacent
 to every legal checklist item or service recommendation.
-
-### Legal Checklist Format
-
-All legal references MUST use the checklist pattern:
-
-- `[ ] Terms of Service — [CONSULT LEGAL COUNSEL] Engage a business attorney to draft`
-- `[ ] Privacy Policy — [CONSULT LEGAL COUNSEL] Engage a privacy attorney or use a compliant generator service`
-- `[ ] Cookie Consent — [CONSULT LEGAL COUNSEL] Implement consent management per applicable regulations`
-- `[ ] Subscription Agreement — [CONSULT LEGAL COUNSEL] Draft with legal counsel covering cancellation, refunds, auto-renewal`
-- `[ ] Data Processing Agreement — [CONSULT LEGAL COUNSEL] Required if handling customer PII`
-- `[ ] Intellectual Property — [CONSULT LEGAL COUNSEL] Review IP ownership, licensing, and trademark registration`
 
 ### Recommended Legal Services (not endorsements)
 
@@ -39,9 +28,20 @@ specific vendors or services by name.
 
 ## Prohibited Patterns
 
-- Generating Terms of Service, Privacy Policy, or any legal document text
+- Generating business legal documents of any kind (service agreements, policies, terms, or compliance text)
 - Generating cookie consent banner copy or GDPR/CCPA compliance text
 - Stating specific legal requirements as universal facts (laws vary by jurisdiction)
 - Recommending specific legal service providers by brand name
 - Generating contract clauses, indemnification language, or liability limitations
 - Using "legally compliant" or "meets legal requirements" language — use "legal checklist item" instead
+
+### Legal Checklist Format
+
+All legal references MUST use the checklist pattern. The `[CONSULT LEGAL COUNSEL]` tag appears on every item:
+
+- `[ ] Terms of Service — [CONSULT LEGAL COUNSEL] Engage a business attorney to draft`
+- `[ ] Privacy Policy — [CONSULT LEGAL COUNSEL] Engage a privacy attorney or use a compliant generator service`
+- `[ ] Cookie Consent — [CONSULT LEGAL COUNSEL] Implement consent management per applicable regulations`
+- `[ ] Subscription Agreement — [CONSULT LEGAL COUNSEL] Draft with legal counsel covering cancellation, refunds, auto-renewal`
+- `[ ] Data Processing Agreement — [CONSULT LEGAL COUNSEL] Required if handling customer PII`
+- `[ ] Intellectual Property — [CONSULT LEGAL COUNSEL] Review IP ownership, licensing, and trademark registration`
