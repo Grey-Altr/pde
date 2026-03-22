@@ -104,6 +104,12 @@ Any user can go from idea to shipped product through a single platform that hand
 - ✓ Launch artifact cross-references: LDP reads MKT brand tokens + GTM flow; STR reads LCV revenue streams + MLS competitive pricing — v0.12
 - ✓ All launch artifacts in `.planning/design/launch/` with manifest registration and DESIGN-STATE wiring — v0.12
 - ✓ 20-field designCoverage write pattern in wireframe.md (hasLaunchKit flag) — v0.12
+- ✓ Four business critique perspectives in critique.md: unit economics viability, GTM-ICP fit, pricing psychology, investor readiness — v0.12
+- ✓ Pitch coherence cross-check: LCV UVP ↔ DPD solution slide, LCV key metrics ↔ DPD traction slide via coherence anchors — v0.12
+- ✓ Business communications HIG section: pitch deck readability, email cadence structure, content calendar structure — v0.12
+- ✓ Composite score formula updated to 9.5 denominator (8 perspectives) in business mode — v0.12
+- ✓ 20-field designCoverage write in both critique.md and hig.md (hasBusinessThesis, hasMarketLandscape, hasServiceBlueprint, hasLaunchKit) — v0.12
+- ✓ 24 Nyquist tests for QUAL-01/02/03/04 + INTG-02 — all GREEN — v0.12
 
 ### Active
 
@@ -142,7 +148,7 @@ Any user can go from idea to shipped product through a single platform that hand
 ## Context
 
 - **Shipped v0.11** on 2026-03-22: ~245,000 LOC (JavaScript/Markdown/Shell), ~1,078 total commits
-- **v0.12 progress:** Phases 84-89 complete (foundation, brief, competitive, flows, brand, wireframe launch artifacts); Phases 90-94 remaining (critique, handoff, deploy, integration)
+- **v0.12 progress:** Phases 84-90 complete (foundation, brief, competitive, flows, brand, wireframe launch artifacts, critique+HIG extensions); Phases 91-94 remaining (handoff, deploy, integration)
 - **Active milestone:** v0.12 Business Product Type — venture design engine with business: orthogonal dimension, 3 user tracks, full deploy scaffolding
 - **Planned roadmap:** v0.13 AutoResearch → v0.14 WebMCP → v0.15 CLI-Anything → v0.16 Remote Dashboard → v0.17 Stakeholder Presentations → v1.0 Standalone CLI
 - **v0.11** shipped 2026-03-22: 112 files changed, 116 commits (experience product type: detection, brief, tokens, flows, wireframes, critique, HIG, print, handoff, 48 requirements)
