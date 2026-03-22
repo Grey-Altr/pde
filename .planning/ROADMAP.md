@@ -326,8 +326,8 @@ Plans:
   6. All email sequence content uses structural personalization placeholders — no specific company names, partner references, or investor firm names appear in any generated email
 **Plans**: 2 plans
 Plans:
-- [ ] 89-01-PLAN.md — Test scaffold, LDP schema in launch-frameworks.md, businessMode detection, LDP generation, 20-field coverage
-- [ ] 84-02-PLAN.md — Business reference files (track, frameworks, financial/legal disclaimers)
+- [ ] 91-01-PLAN.md — Test scaffold, business artifact discovery (4k), LKT/CNT/OTR synthesis (4l/4m), file writes (5e)
+- [ ] 91-02-PLAN.md — Manifest registration (7b-lkt), 20-field designCoverage upgrade (7c), purpose/anti-patterns/output updates
 
 ### Phase 92: Deploy Skill
 **Goal**: Users in business mode can generate a deployable Next.js landing page scaffold, Stripe config, and Resend email templates — with mandatory human approval gates before every external write — and initiate a Vercel deployment that returns a URL without blocking the session
@@ -396,7 +396,7 @@ Plans:
 | 88. Brand System | 1/1 | Complete    | 2026-03-22 | - |
 | 89. Wireframe Stage Launch Artifacts | 2/2 | Complete    | 2026-03-22 | - |
 | 90. Critique + HIG Extensions | v0.12 | 2/2 | Complete    | 2026-03-22 |
-| 91. Handoff — Launch Kit Assembly | v0.12 | 0/TBD | Not started | - |
+| 91. Handoff — Launch Kit Assembly | v0.12 | 0/2 | Not started | - |
 | 92. Deploy Skill | v0.12 | 0/TBD | Not started | - |
 | 93. designCoverage Audit + Stubs | v0.12 | 0/TBD | Not started | - |
 | 94. Nyquist Regression Tests | v0.12 | 0/TBD | Not started | - |
