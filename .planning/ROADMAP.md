@@ -225,7 +225,7 @@ Full details: .planning/milestones/v0.11-ROADMAP.md
   5. `references/business-financial-disclaimer.md` and `references/business-legal-disclaimer.md` exist with unambiguous placeholder patterns — no dollar amounts, no generated legal documents, every financial field is `[YOUR_X]` format
 **Plans**: 2 plans
 Plans:
-- [ ] 84-01-PLAN.md — Manifest schema extension + design.cjs launch dir + test scaffold
+- [ ] 89-01-PLAN.md — Test scaffold, LDP schema in launch-frameworks.md, businessMode detection, LDP generation, 20-field coverage
 - [ ] 84-02-PLAN.md — Business reference files (track, frameworks, financial/legal disclaimers)
 
 ### Phase 85: Brief Extensions + Detection
@@ -297,8 +297,8 @@ Plans:
   5. All launch artifacts are stored in `.planning/design/launch/` — not in `ux/` or `visual/`
 **Plans**: 2 plans
 Plans:
-- [ ] 84-01-PLAN.md — Manifest schema extension + design.cjs launch dir + test scaffold
-- [ ] 84-02-PLAN.md — Business reference files (track, frameworks, financial/legal disclaimers)
+- [ ] 89-01-PLAN.md — Test scaffold, LDP schema in launch-frameworks.md, businessMode detection, LDP generation, 20-field coverage
+- [ ] 89-02-PLAN.md — STR Stripe pricing config, DPD pitch deck outline, DESIGN-STATE wiring + manifest registration
 
 ### Phase 90: Critique + HIG Extensions
 **Goal**: Users in business mode get four business-specific critique perspectives and business communications guidelines that review pitch coherence, pricing psychology, and investor readiness
@@ -311,7 +311,7 @@ Plans:
   4. Business critique findings use the standard severity levels (critical/major/minor/info) — no new severity formats introduced
 **Plans**: 2 plans
 Plans:
-- [ ] 84-01-PLAN.md — Manifest schema extension + design.cjs launch dir + test scaffold
+- [ ] 89-01-PLAN.md — Test scaffold, LDP schema in launch-frameworks.md, businessMode detection, LDP generation, 20-field coverage
 - [ ] 84-02-PLAN.md — Business reference files (track, frameworks, financial/legal disclaimers)
 
 ### Phase 91: Handoff — Launch Kit Assembly
@@ -327,7 +327,7 @@ Plans:
   6. All email sequence content uses structural personalization placeholders — no specific company names, partner references, or investor firm names appear in any generated email
 **Plans**: 2 plans
 Plans:
-- [ ] 84-01-PLAN.md — Manifest schema extension + design.cjs launch dir + test scaffold
+- [ ] 89-01-PLAN.md — Test scaffold, LDP schema in launch-frameworks.md, businessMode detection, LDP generation, 20-field coverage
 - [ ] 84-02-PLAN.md — Business reference files (track, frameworks, financial/legal disclaimers)
 
 ### Phase 92: Deploy Skill
@@ -344,7 +344,7 @@ Plans:
   7. `deploy-manifest.json` tracks all deployment artifact statuses with `review_required: true` per artifact
 **Plans**: 2 plans
 Plans:
-- [ ] 84-01-PLAN.md — Manifest schema extension + design.cjs launch dir + test scaffold
+- [ ] 89-01-PLAN.md — Test scaffold, LDP schema in launch-frameworks.md, businessMode detection, LDP generation, 20-field coverage
 - [ ] 84-02-PLAN.md — Business reference files (track, frameworks, financial/legal disclaimers)
 
 ### Phase 93: designCoverage Clobber Audit + Secondary Workflow Stubs
@@ -357,7 +357,7 @@ Plans:
   3. `recommend.md`, `iterate.md`, and `mockup.md` each contain a `<!-- Business product type -->` conditional stub (the same guard pattern used in v0.11 for experience stubs)
 **Plans**: 2 plans
 Plans:
-- [ ] 84-01-PLAN.md — Manifest schema extension + design.cjs launch dir + test scaffold
+- [ ] 89-01-PLAN.md — Test scaffold, LDP schema in launch-frameworks.md, businessMode detection, LDP generation, 20-field coverage
 - [ ] 84-02-PLAN.md — Business reference files (track, frameworks, financial/legal disclaimers)
 
 ### Phase 94: Nyquist Regression Tests
@@ -372,7 +372,7 @@ Plans:
   5. Nyquist structural assertions cover all composition cases and all 20 designCoverage fields across modified workflows
 **Plans**: 2 plans
 Plans:
-- [ ] 84-01-PLAN.md — Manifest schema extension + design.cjs launch dir + test scaffold
+- [ ] 89-01-PLAN.md — Test scaffold, LDP schema in launch-frameworks.md, businessMode detection, LDP generation, 20-field coverage
 - [ ] 84-02-PLAN.md — Business reference files (track, frameworks, financial/legal disclaimers)
 
 ## Progress
@@ -395,7 +395,7 @@ Plans:
 | 86. Competitive + Opportunity Extensions | 2/2 | Complete    | 2026-03-22 | - |
 | 87. Flows Stage | 2/2 | Complete    | 2026-03-22 | - |
 | 88. Brand System | 1/1 | Complete    | 2026-03-22 | - |
-| 89. Wireframe Stage Launch Artifacts | v0.12 | 0/TBD | Not started | - |
+| 89. Wireframe Stage Launch Artifacts | v0.12 | 0/2 | Not started | - |
 | 90. Critique + HIG Extensions | v0.12 | 0/TBD | Not started | - |
 | 91. Handoff — Launch Kit Assembly | v0.12 | 0/TBD | Not started | - |
 | 92. Deploy Skill | v0.12 | 0/TBD | Not started | - |
