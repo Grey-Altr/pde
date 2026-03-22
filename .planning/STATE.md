@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.12
 milestone_name: Business Product Type
-status: Ready to plan
-stopped_at: Completed 90-02-PLAN.md — hig.md business communications HIG + 20-field coverage, 24/24 Nyquist tests GREEN
-last_updated: "2026-03-22T20:27:03.486Z"
+status: executing
+stopped_at: Completed 91-02-PLAN.md — handoff.md Step 7b-lkt manifest registration + business anti-patterns + output section, 21/21 Nyquist tests GREEN
+last_updated: "2026-03-22T21:16:30Z"
 progress:
   total_phases: 11
   completed_phases: 7
-  total_plans: 13
-  completed_plans: 13
+  total_plans: 15
+  completed_plans: 15
 ---
 
 # Project State
@@ -23,8 +23,8 @@ See: .planning/PROJECT.md (updated 2026-03-22)
 
 ## Current Position
 
-Phase: 91
-Plan: Not started
+Phase: 91 (handoff-launch-kit-assembly) — COMPLETE
+Plan: 2 of 2
 
 ## Performance Metrics
 
@@ -99,6 +99,9 @@ Recent decisions affecting v0.12:
 - [Phase 90]: Business composite denominator 9.5 = sum of all 8 perspective weights (1.5+1.0+1.5+1.0+1.0+1.0+1.5+1.0) in critique.md business mode
 - [Phase 90-02]: LIGHT_MODE check is FIRST guard in Step 4-BUSINESS (before BM check) — defense-in-depth prevents business HIG running in --light critique delegation mode
 - [Phase 90-02]: OTR and CNT absent = note-and-continue in hig.md — Phase 91 handoff artifacts don't exist at Phase 90 run time; graceful degradation not halt
+- [Phase 91-02]: Step 7b-lkt is independent IF block (not ELSE IF from 7b-bib) — business:experience compositions execute both BIB and LKT/CNT/OTR registration paths
+- [Phase 91-02]: Dual manifest registration intentional — Step 5e registers during file write, Step 7b-lkt re-registers in Step 7 manifest update phase (mirrors BIB pattern)
+- [Phase 91-02]: Step 7d business mode summary appends rows additively (not replacing experience table) — composed with independent IF blocks
 
 ### Pending Todos
 
@@ -111,8 +114,8 @@ Recent decisions affecting v0.12:
 
 ## Session Continuity
 
-Last session: 2026-03-22T20:22:37.488Z
-Stopped at: Completed 90-02-PLAN.md — hig.md business communications HIG + 20-field coverage, 24/24 Nyquist tests GREEN
+Last session: 2026-03-22T21:16:30Z
+Stopped at: Completed 91-02-PLAN.md — handoff.md Step 7b-lkt manifest registration + business anti-patterns + output section, 21/21 Nyquist tests GREEN
 Resume file: None
 
-Next action: Execute Phase 85 (Brief Skill)
+Next action: Execute Phase 92 (Deploy Skill)

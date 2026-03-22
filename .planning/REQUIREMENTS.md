@@ -66,12 +66,12 @@ Requirements for the business product type milestone. Each maps to roadmap phase
 
 ### Launch Kit Assembly
 
-- [ ] **KIT-01**: `handoff.md` assembles LKT (Launch Kit) manifest artifact listing all business artifacts with paths, statuses, and deployment readiness flags
-- [ ] **KIT-02**: CNT (Content Calendar) artifact produced as 30-day pre-launch / launch / post-launch skeleton with content category slots derived from GTM channel priorities
-- [ ] **KIT-03**: OTR (Outreach/Email Sequence) artifact produced with onboarding sequence (5-7 emails, trigger/delay/CTA format, Resend-compatible) and investor outreach sequence (3 emails, gated on pitch deck completion)
-- [ ] **KIT-04**: Domain strategy notes consolidated from brief capture into launch kit
-- [ ] **KIT-05**: `hasLaunchKit` coverage flag set in designCoverage after LKT artifact creation — gates deploy stage
-- [ ] **KIT-06**: Email sequence uses structural placeholders for personalization fields — never generates specific company names or partner references
+- [x] **KIT-01**: `handoff.md` assembles LKT (Launch Kit) manifest artifact listing all business artifacts with paths, statuses, and deployment readiness flags
+- [x] **KIT-02**: CNT (Content Calendar) artifact produced as 30-day pre-launch / launch / post-launch skeleton with content category slots derived from GTM channel priorities
+- [x] **KIT-03**: OTR (Outreach/Email Sequence) artifact produced with onboarding sequence (5-7 emails, trigger/delay/CTA format, Resend-compatible) and investor outreach sequence (3 emails, gated on pitch deck completion)
+- [x] **KIT-04**: Domain strategy notes consolidated from brief capture into launch kit
+- [x] **KIT-05**: `hasLaunchKit` coverage flag set in designCoverage after LKT artifact creation — gates deploy stage
+- [x] **KIT-06**: Email sequence uses structural placeholders for personalization fields — never generates specific company names or partner references
 
 ### Deployment
 
@@ -170,12 +170,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | QUAL-02 | 90 | Complete |
 | QUAL-03 | 90 | Complete |
 | QUAL-04 | 90 | Complete |
-| KIT-01 | 91 | Pending |
-| KIT-02 | 91 | Pending |
-| KIT-03 | 91 | Pending |
-| KIT-04 | 91 | Pending |
-| KIT-05 | 91 | Pending |
-| KIT-06 | 91 | Pending |
+| KIT-01 | 91 | Complete |
+| KIT-02 | 91 | Complete |
+| KIT-03 | 91 | Complete |
+| KIT-04 | 91 | Complete |
+| KIT-05 | 91 | Complete |
+| KIT-06 | 91 | Complete |
 | DEPLOY-01 | 92 | Pending |
 | DEPLOY-02 | 92 | Pending |
 | DEPLOY-03 | 92 | Pending |

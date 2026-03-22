@@ -206,7 +206,7 @@ Full details: .planning/milestones/v0.11-ROADMAP.md
 - [x] **Phase 88: Brand System** — Marketing brand system with positioning statement and tone of voice (completed 2026-03-22)
 - [x] **Phase 89: Wireframe Stage Launch Artifacts** — Landing page wireframe, Stripe pricing config, pitch deck outline (completed 2026-03-22)
 - [x] **Phase 90: Critique + HIG Extensions** — Business critique perspectives and business communications HIG (completed 2026-03-22)
-- [ ] **Phase 91: Handoff — Launch Kit Assembly** — Launch kit manifest, content calendar, email sequence artifacts
+- [x] **Phase 91: Handoff — Launch Kit Assembly** — Launch kit manifest, content calendar, email sequence artifacts (completed 2026-03-22)
 - [ ] **Phase 92: Deploy Skill** — Stage 14 with four approval-gated deployment actions and /pde:deploy command
 - [ ] **Phase 93: designCoverage Clobber Audit + Secondary Workflow Stubs** — 20-field pass-through audit across all 14 workflows; recommend/iterate/mockup guard stubs
 - [ ] **Phase 94: Nyquist Regression Tests** — Composition case validation and non-regression verification
@@ -326,8 +326,8 @@ Plans:
   6. All email sequence content uses structural personalization placeholders — no specific company names, partner references, or investor firm names appear in any generated email
 **Plans**: 2 plans
 Plans:
-- [ ] 91-01-PLAN.md — Test scaffold, business artifact discovery (4k), LKT/CNT/OTR synthesis (4l/4m), file writes (5e)
-- [ ] 91-02-PLAN.md — Manifest registration (7b-lkt), 20-field designCoverage upgrade (7c), purpose/anti-patterns/output updates
+- [x] 91-01-PLAN.md — Test scaffold, business artifact discovery (4k), LKT/CNT/OTR synthesis (4l/4m), file writes (5e)
+- [x] 91-02-PLAN.md — Manifest registration (7b-lkt), 20-field designCoverage upgrade (7c), purpose/anti-patterns/output updates
 
 ### Phase 92: Deploy Skill
 **Goal**: Users in business mode can generate a deployable Next.js landing page scaffold, Stripe config, and Resend email templates — with mandatory human approval gates before every external write — and initiate a Vercel deployment that returns a URL without blocking the session
@@ -396,7 +396,7 @@ Plans:
 | 88. Brand System | 1/1 | Complete    | 2026-03-22 | - |
 | 89. Wireframe Stage Launch Artifacts | 2/2 | Complete    | 2026-03-22 | - |
 | 90. Critique + HIG Extensions | v0.12 | 2/2 | Complete    | 2026-03-22 |
-| 91. Handoff — Launch Kit Assembly | v0.12 | 0/2 | Not started | - |
+| 91. Handoff — Launch Kit Assembly | v0.12 | 2/2 | Complete | 2026-03-22 |
 | 92. Deploy Skill | v0.12 | 0/TBD | Not started | - |
 | 93. designCoverage Audit + Stubs | v0.12 | 0/TBD | Not started | - |
 | 94. Nyquist Regression Tests | v0.12 | 0/TBD | Not started | - |
