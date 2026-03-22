@@ -269,8 +269,9 @@ Plans:
   4. Service blueprint and GTM flow output depth visibly adapts per businessTrack (solo: single-product, startup: multi-channel, leader: cross-functional)
 **Plans**: 2 plans
 Plans:
-- [ ] 84-01-PLAN.md — Manifest schema extension + design.cjs launch dir + test scaffold
-- [ ] 84-02-PLAN.md — Business reference files (track, frameworks, financial/legal disclaimers)
+- [ ] 87-01-PLAN.md — Test scaffold + SBP service blueprint + GTM channel flow generation in flows.md
+- [ ] 87-02-PLAN.md — 20-field designCoverage upgrade + strategy DESIGN-STATE wiring
+
 
 ### Phase 88: Brand System
 **Goal**: Users in business mode get a brand and marketing positioning system that feeds brand tokens into the landing page wireframe and pitch deck
@@ -393,7 +394,7 @@ Plans:
 | 84. Foundation | 2/2 | Complete    | 2026-03-22 | - |
 | 85. Brief Extensions + Detection | 2/2 | Complete    | 2026-03-22 | - |
 | 86. Competitive + Opportunity Extensions | 2/2 | Complete    | 2026-03-22 | - |
-| 87. Flows Stage | v0.12 | 0/TBD | Not started | - |
+| 87. Flows Stage | v0.12 | 0/2 | In progress | - |
 | 88. Brand System | v0.12 | 0/TBD | Not started | - |
 | 89. Wireframe Stage Launch Artifacts | v0.12 | 0/TBD | Not started | - |
 | 90. Critique + HIG Extensions | v0.12 | 0/TBD | Not started | - |
