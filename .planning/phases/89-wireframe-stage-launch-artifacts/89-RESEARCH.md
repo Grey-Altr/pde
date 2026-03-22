@@ -1126,3 +1126,514 @@ New findings from this deep-dive:
 | [Stripe API Keys](https://docs.stripe.com/keys) | HIGH | `pk_test_` and `sk_test_` prefix format; placeholder format in Stripe documentation examples |
 | [Stripe Recurring Pricing Models](https://docs.stripe.com/products-prices/pricing-models) | HIGH | Flat rate, per-seat, tiered, usage-based model taxonomy |
 | [Stripe Per-Seat Pricing](https://docs.stripe.com/subscriptions/pricing-models/per-seat-pricing) | MEDIUM | `recurring.usage_type=licensed` for per-seat; `quantity` per subscription |
+
+---
+
+## Deep Dive: Landing Page Wireframe Spec (LDP)
+
+**Research date:** 2026-03-22
+**Confidence:** HIGH (internal project sources) / MEDIUM (external SaaS landing page patterns, verified against multiple sources)
+
+---
+
+### Standard SaaS Landing Page Anatomy
+
+Current best practices (verified against multiple sources including MagicUI, KlientBoost, Fibr AI, and Default.com 2025-2026 content):
+
+#### Canonical Section Order
+
+| Position | Section Name | Component Name | Funnel Stage | Primary Goal |
+|----------|-------------|----------------|-------------|-------------|
+| 1 | Navigation Bar | `SiteNav` | Pre-funnel | Wayfinding, brand recognition |
+| 2 | Hero | `HeroSection` | Acquisition / Awareness | Headline clarity, primary CTA trigger |
+| 3 | Social Proof Bar | `LogoBar` | Acquisition / Trust | Overcome skepticism immediately after hero |
+| 4 | Problem / Pain Point | `ProblemStatement` | Awareness / Consideration | Establish resonance, validate the pain |
+| 5 | Solution / Features | `FeaturesGrid` | Consideration | Show capability, map features to pain |
+| 6 | How It Works | `HowItWorks` | Consideration | Reduce comprehension friction |
+| 7 | Testimonials | `TestimonialsBlock` | Consideration / Decision | Social proof at the decision moment |
+| 8 | Pricing | `PricingTable` | Decision | Transparent offering, tier comparison |
+| 9 | FAQ | `FAQAccordion` | Decision | Handle objections before CTA |
+| 10 | Final CTA Banner | `CTABanner` | Decision / Conversion | Last conversion nudge |
+| 11 | Footer | `SiteFooter` | Post-conversion / Legal | Legal compliance, secondary navigation |
+
+**Key insight from research:** Social proof appears TWICE — once early (LogoBar below hero, trust signal before scrolling) and once mid-page (Testimonials before pricing). 2025-2026 best practice specifically places a small social proof signal within or directly below the hero: "Join 5,000 subscribers..." or a logo bar.
+
+#### Track-Specific Section Depth
+
+| Section | solo_founder | startup_team | product_leader |
+|---------|-------------|--------------|----------------|
+| `SiteNav` | Logo + 1 CTA | Logo + 3 links + CTA | Logo + 4 links + "Request Demo" |
+| `HeroSection` | Headline + sub + 1 CTA | Headline + sub + 2 CTAs (primary + secondary) | Headline + sub + "Book a Demo" CTA |
+| `LogoBar` | Optional (omit if no customers yet) | 5-8 customer logos | Client logos or analyst badges |
+| `ProblemStatement` | Optional — merge into Hero sub if brief | 2-3 pain points with descriptors | Executive-framing problem block |
+| `FeaturesGrid` | 3 features (top 3 from BTH solution block) | 6 features, 3-column grid | 4 features + ROI callouts |
+| `HowItWorks` | 3-step numbered flow | 4-step illustrated flow | Pilot/onboarding process flow |
+| `TestimonialsBlock` | 1-2 quotes | 3-4 quotes + company + role | Case study summaries with metrics |
+| `PricingTable` | 2 tiers, middle highlighted | 3 tiers, middle highlighted + toggle | 2 tiers (Team/Enterprise) + "Contact Sales" |
+| `FAQAccordion` | 4-5 questions | 6-8 questions | 6-8 questions with enterprise/security focus |
+| `CTABanner` | 1 CTA | 2 CTAs (primary + "Watch Demo") | "Book a Demo" only |
+| `SiteFooter` | Privacy + Terms + contact | Full footer with columns | Full footer + compliance badges |
+
+**solo_founder minimal MVP variant (LAUNCH-01 minimum viable spec):** Hero + FeaturesGrid + PricingTable + CTABanner + SiteFooter (5 sections). This is the floor — always generate at minimum these 5 for any track.
+
+---
+
+### Next.js Component Architecture for Marketing Pages
+
+**Verified against:** Next.js official docs (route groups), makerkit.dev App Router guide, Zignuts Next.js landing page layouts article.
+
+#### Route Group Pattern (HIGH confidence — from official Next.js docs)
+
+Marketing/landing pages should use an App Router route group that excludes URL segments:
+
+```
+app/
+├── (marketing)/                     # Route group — no URL prefix added
+│   ├── layout.tsx                   # Marketing layout: nav + footer wrappers
+│   ├── page.tsx                     # Home/landing page → URL: /
+│   ├── pricing/
+│   │   └── page.tsx                 # Pricing page → URL: /pricing
+│   └── (legal)/
+│       ├── privacy-policy/
+│       │   └── page.tsx             # → URL: /privacy-policy
+│       └── terms-of-service/
+│           └── page.tsx
+├── (app)/                           # Authenticated app routes
+│   └── dashboard/
+└── _components/                     # App-wide shared components
+```
+
+**Why `(marketing)` route group:** Marketing pages share a layout (nav + footer) without adding `/marketing/` to the URL. Pages remain at `/`, `/pricing`, `/privacy-policy`. The group layout handles the `SiteNav` and `SiteFooter` wrappers once — landing page `page.tsx` only assembles the section sequence.
+
+#### Component Granularity Decision
+
+**One component per section** is the correct abstraction level for a landing page. Finer-grained sub-components (e.g., `FeatureCard` inside `FeaturesGrid`) are implementation details — the spec names the section-level component. Each section component:
+- Has its own TypeScript props interface
+- Maps to one file in `_components/` or a collocated `components/` folder
+- Is Server Component by default (no `'use client'` unless interactive — forms, tabs, FAQ toggle)
+
+**Which sections need `'use client'`:**
+
+| Component | Server or Client | Reason |
+|-----------|-----------------|--------|
+| `HeroSection` | Server | Static content, no interactivity |
+| `LogoBar` | Server | Static logos |
+| `ProblemStatement` | Server | Static copy |
+| `FeaturesGrid` | Server | Static grid |
+| `HowItWorks` | Server | Static steps |
+| `TestimonialsBlock` | Server | Static quotes (if no carousel) |
+| `PricingTable` | Client | Monthly/yearly toggle is interactive |
+| `FAQAccordion` | Client | Expand/collapse is interactive |
+| `CTABanner` | Server | Static copy + link |
+| `SiteNav` | Client | Mobile menu toggle is interactive |
+| `SiteFooter` | Server | Static links |
+
+#### Props Interface Pattern (TypeScript)
+
+Each section component receives a typed props interface. The LDP artifact spec defines the props in prose format — a developer scaffolding from the spec creates the TypeScript interfaces directly.
+
+**Canonical pattern (from research, MEDIUM confidence):**
+
+```typescript
+// HeroSection — always Server Component
+interface HeroSectionProps {
+  headline: string;
+  subheadline: string;
+  ctaText: string;
+  ctaHref: string;
+  socialProofBadge?: string;  // e.g., "Trusted by 500+ teams"
+}
+
+// PricingTable — Client Component (interactive toggle)
+interface PricingTableProps {
+  plans: PricingPlan[];
+  highlightedPlan: string;
+  billingToggle?: boolean;  // show monthly/yearly toggle
+}
+
+interface PricingPlan {
+  name: string;
+  price: string;             // Always a display string, never a number in spec
+  interval: 'month' | 'year';
+  features: string[];
+  ctaText: string;
+  ctaHref: string;
+  highlighted?: boolean;
+}
+```
+
+**Key principle:** The LDP spec specifies _slot content_ (what goes in each prop) using content placeholders derived from upstream artifacts. It does NOT specify Tailwind classes, colors, or styling — those come from DTCG tokens (below).
+
+---
+
+### Brand Token to Component Prop Mapping Pattern
+
+The LDP artifact is a SPEC, not code. It cannot directly reference CSS custom properties — it describes WHAT each component should express, and WHICH token group governs that expression. The downstream implementer (developer or v0 agent) maps spec references to actual token values.
+
+#### The Three-Level Mapping
+
+```
+SYS-brand-tokens.json (DTCG) → CSS Custom Properties → Component Prop Spec
+         (token source)              (implementation)         (LDP artifact)
+```
+
+The LDP artifact spec uses the MIDDLE layer as its reference point — it names the DTCG token path that the implementation should consume, without specifying the CSS class.
+
+#### Token Reference Format in LDP Spec
+
+In the LDP artifact, brand token references use this format in component specs:
+
+```markdown
+**Brand tokens:**
+- Voice: `brand-marketing.brand-voice.tone-primary`
+- Primary color: `brand-marketing.campaign-palette-variants.primary-campaign`
+- CTA color: `brand-marketing.campaign-palette-variants.cta-campaign`
+- Accent: `brand-marketing.campaign-palette-variants.accent-campaign`
+```
+
+**What these token paths mean (from Phase 88 DTCG structure):**
+
+| Token Path | Type | Meaning | Maps to |
+|-----------|------|---------|---------|
+| `brand-marketing.brand-voice.tone-primary` | string | Primary tone descriptor from MKT artifact | Copy register for all text in this section |
+| `brand-marketing.brand-voice.positioning-statement` | string | Geoffrey Moore positioning statement | Hero headline framing direction |
+| `brand-marketing.brand-voice.audience-voice-descriptor` | string | How the audience talks | CTA language register |
+| `brand-marketing.campaign-palette-variants.primary-campaign` | color | Aliases `color.primitive.primary.500` | Section primary color / background |
+| `brand-marketing.campaign-palette-variants.accent-campaign` | color | Aliases `color.harmony.analogous-warm.500` | Feature icons, highlights |
+| `brand-marketing.campaign-palette-variants.cta-campaign` | color | Aliases `color.semantic.action` | CTA button color |
+| `brand-marketing.campaign-palette-variants.neutral-campaign` | color | Aliases `color.primitive.neutral.100` | Section backgrounds |
+
+#### Voice Token as Copy Register, Not CSS
+
+The `brand-voice` tokens are string-typed — they are NOT CSS values. In the LDP spec they serve as **copy register instructions**: they tell the implementer (or AI code agent) what the brand's voice should sound like when writing the actual content for each slot. This is unique to this project's token architecture.
+
+**Example in spec:**
+
+```markdown
+## Hero Section
+
+**Component:** `HeroSection`
+**Copy register:** `brand-marketing.brand-voice.tone-primary` — [value from MKT artifact, e.g., "Confident and direct"]
+**Headline source:** Positioning statement from `brand-marketing.brand-voice.positioning-statement`
+  → Derive: "[Primary benefit because unique differentiator]" — NOT the full Geoffrey Moore sentence
+**Subheadline source:** GTM acquisition channel first touchpoint message (from GTM artifact acquisition subgraph)
+**CTA text source:** `brand-marketing.brand-voice.audience-voice-descriptor` + MKT Brand Voice CTA example
+  → Avoid: commodity phrasing ("Get Started", "Sign Up")
+  → Prefer: brand-specific action language from MKT artifact Brand Voice Examples table
+```
+
+This means a developer or v0 agent reading the LDP artifact knows: (1) what the voice register should feel like, (2) where to get the actual copy content, (3) which color tokens to apply. The spec is self-contained — no additional reference hunting needed.
+
+---
+
+### GTM Stage to Landing Page Section Mapping
+
+Phase 87's GTM artifact uses three subgraph stages: Acquisition → Conversion → Retention. The landing page sections map to these stages as follows:
+
+#### Stage Mapping Table
+
+| GTM Stage | GTM Artifact Node | Landing Page Section | Section Role |
+|-----------|------------------|---------------------|-------------|
+| **Acquisition** | Channel nodes (content marketing, paid ads, referral) | `HeroSection` | First impression from channel-referred visitor; headline must match channel message |
+| **Acquisition** | Channel nodes | `LogoBar` | Trust confirmation immediately after channel ad / referral link |
+| **Acquisition** | Landing Page node (in CONV subgraph) | `ProblemStatement` | Problem resonance for the visitor who "just arrived" — still in awareness mode |
+| **Conversion** | Landing Page node | `FeaturesGrid`, `HowItWorks` | Demonstrates solution fit — visitor is evaluating |
+| **Conversion** | Onboarding Flow node | `TestimonialsBlock`, `PricingTable` | Social proof + pricing for the visitor ready to decide |
+| **Conversion** | First Value Moment node | `PricingTable` CTA, `CTABanner` | The actual conversion action — sign up or start trial |
+| **Retention** | Email Sequence node | `SiteFooter` email capture (optional) | Post-conversion retention entry point |
+| **Retention** | Feature Adoption node | "See [product name] in action" secondary CTA | Optional: links to demo or video |
+
+#### Copy Framing per GTM Stage
+
+The GTM artifact's channel priority annotations (HIGH/MEDIUM/LOW) also drive the hero section's headline framing:
+
+- If GTM acquisition shows "Content marketing [Priority: HIGH]" → hero headline uses educational/discovery framing
+- If GTM acquisition shows "Paid ads [Priority: HIGH]" → hero headline uses direct response framing (problem-solution)
+- If GTM acquisition shows "Word of mouth [Priority: HIGH]" → hero headline uses social proof framing ("The tool that [peer group] uses to...")
+
+**How this wires into the LDP spec:**
+
+```markdown
+## Hero Section — GTM Alignment
+
+**Primary channel (from GTM artifact ACQ subgraph, highest priority node):** [channel name]
+**Channel framing approach:** [direct response | educational | social proof]
+**Headline direction:**
+  - Direct response: Lead with problem or outcome ("Stop losing [pain point]. Start [benefit].")
+  - Educational: Lead with insight ("Most [audience] don't realize [insight].")
+  - Social proof: Lead with peer adoption ("[N] [audience] already use [product] to [benefit].")
+```
+
+---
+
+### Deployable-Spec Format Definition
+
+A "deployable spec" in the context of this project means: a markdown artifact structured with enough precision that a developer or AI code agent (v0, Claude Code) can scaffold the implementation WITHOUT asking follow-up questions about component names, props, content slots, or responsive behavior.
+
+**What makes a spec "deployable"** (from v0 prompting research — how-to-prompt-v0.vercel.com):
+
+1. **Component names are explicit** — not "a hero section" but `HeroSection` with TypeScript interface
+2. **Content slots are populated** — each prop slot has either a real value or a clearly-labeled placeholder with a source reference
+3. **Responsive behavior is declared** — layout at mobile vs desktop is specified (e.g., "single column mobile, 3-column grid desktop")
+4. **Interactive elements are flagged** — which components need `'use client'` is declared
+5. **Token references are named** — which DTCG token group governs the section's visual style
+6. **Route is specified** — which Next.js file path this component lives in
+7. **Dependencies are explicit** — if a section depends on another artifact (e.g., pricing section depends on STR artifact), that dependency is named
+
+**What a deployable spec does NOT include:**
+
+- Tailwind CSS classes (implementation detail)
+- Raw oklch color values (use token aliases)
+- Full TypeScript interface code (implementation detail — the spec names the props, developer writes the interface)
+- Animation specs (out of scope — Phase 89 is a spec artifact, not a design system extension)
+
+#### Deployable Spec Section Block Template
+
+This is the canonical block format for each section in the LDP artifact. Add to `references/launch-frameworks.md` as part of the `## Landing Page Wireframe Spec` section:
+
+```markdown
+## [Section Name]
+
+**Component:** `[ComponentName]`
+**Next.js path:** `app/(marketing)/_components/[component-name].tsx`
+**Server/Client:** [Server Component | Client Component — reason]
+**Responsive layout:**
+  - Mobile: [layout description, e.g., single column, stacked]
+  - Tablet (≥768px): [layout description]
+  - Desktop (≥1280px): [layout description, e.g., 3-column grid]
+
+**Props:**
+- `[propName]` (`[type]`): [content slot — value or `[PLACEHOLDER_SOURCE]`]
+- `[propName]` (`[type][]`): Array of — [describe each array item's fields]
+
+**Content slots:**
+- `[slot name]`: Derived from [upstream artifact + section], value: `[content or placeholder]`
+
+**Brand tokens:**
+- `brand-marketing.campaign-palette-variants.[token-name]` — [role in this section]
+
+**GTM stage:** [Acquisition | Conversion | Retention] — [how this section serves the GTM funnel]
+
+**Copy register:** `brand-marketing.brand-voice.tone-primary` — [copy instruction for implementer]
+```
+
+---
+
+### Track-Specific LDP Depth Table
+
+| Spec Property | solo_founder | startup_team | product_leader |
+|--------------|-------------|--------------|----------------|
+| Sections included | Hero, Features, Pricing, CTA, Footer (5 min) | All 11 sections | All 11 sections, adapted vocab |
+| `LogoBar` | Omit if no customers. Include placeholder: `[YOUR_CUSTOMER_LOGOS — add when available]` | Required: 5-8 logo slots | Required: Client logos or analyst/industry badges |
+| `ProblemStatement` | Optional — may fold into Hero subheadline | Full section: 2-3 pain points with descriptors | Executive framing: "Organizations struggle with [problem]" |
+| `FeaturesGrid` | 3 features, simple card layout | 6 features, 3-col grid with icons | 4 features + outcome/ROI callout per feature |
+| `HowItWorks` | 3-step numbered list | 4-step with visual per step | Pilot/procurement/POC flow (3-4 steps, enterprise language) |
+| `TestimonialsBlock` | 1-2 quotes with name/role | 3-4 quotes + company name + role | Case study mini-format: problem → solution → metric |
+| `PricingTable` | 2 tiers; no toggle (simplicity) | 3 tiers; monthly/yearly toggle | 2 tiers (Team/Enterprise) + "Contact Sales" for Enterprise |
+| `FAQAccordion` | 4-5 questions | 6-8 questions | 6-8 questions; include security, compliance, procurement FAQs |
+| `CTABanner` | Single CTA | Primary CTA + "Watch Demo" secondary | "Book a Demo" as sole CTA |
+| `SiteFooter` | Minimal: Privacy Policy + Terms + email | Full column footer | Full footer + ISO/SOC/compliance badge area |
+| Vocabulary | Plain English, no jargon | Startup-standard: ARR, ICP, onboarding, activation | Executive: go-to-market, ROI, procurement, enterprise |
+| CTA language | "Start for free" / direct action | "Start your free trial" / "See it in action" | "Request a demo" / "Talk to sales" |
+
+**product_leader landing page caveat:** The "landing page" for product_leader may be an internal product microsite, an executive portal, or a departmental product page rather than a public SaaS marketing page. The same section structure applies but vocabulary, proof points, and CTA mechanics shift to internal enterprise context. The LDP spec should note the audience: `audience: [external/public | internal/enterprise]` in the artifact frontmatter.
+
+---
+
+### Cross-Reference Patterns in the LDP Artifact
+
+The LDP artifact is the most upstream-dependent of the three Phase 89 artifacts — it draws from four other artifacts. The spec makes each cross-reference explicit so it can degrade gracefully if an upstream artifact is absent.
+
+#### Upstream Reference Contract
+
+| Upstream Artifact | Path | What LDP Draws From | Fallback if Absent |
+|------------------|------|--------------------|--------------------|
+| MKT brand system | `.planning/design/strategy/MKT-brand-system-v{N}.md` | Positioning statement (hero headline framing), tone of voice (copy register), Brand Voice Examples (CTA language) | BRF Domain Strategy section — use verbatim positioning language from brief |
+| GTM channel flow | `.planning/design/strategy/GTM-channel-flow-v{N}.md` | ACQ subgraph highest-priority channel (hero framing approach), CONV nodes (section ordering emphasis) | Default to "content marketing" framing — educational hero headline direction |
+| LCV lean canvas | `.planning/design/strategy/LCV-lean-canvas-v{N}.md` | Box 5 (Customer Segments → audience language), Box 3 (UVP → features grid content), Box 7 (Channels → corroborates GTM channel priorities) | BRF problem/solution section — extract audience and benefit language |
+| STR pricing config | `.planning/design/launch/STR-stripe-pricing-v{N}.json` | Plan names and tier count (pricing section structure) | Default 2-tier structure with `[YOUR_PLAN_NAME]` placeholders |
+
+#### Reference Syntax in LDP Spec
+
+Each content slot in the LDP artifact uses a reference tag format that explicitly names the source:
+
+```markdown
+**Headline:** `[MKT: positioning-statement → primary benefit clause]`
+  → Example derivation: "For [LCV.box5 customer segment], [product] [MKT.primary-benefit]"
+  → Do not copy the full Geoffrey Moore sentence — extract the benefit clause only
+
+**Subheadline:** `[GTM: ACQ-highest-priority-channel message → awareness touchpoint copy]`
+  → This is the message the visitor just saw in the acquisition channel; match the register
+
+**Features list:**
+  - Feature 1: `[LCV: box2 solution item 1]` — `[BTH: solution feature 1 description]`
+  - Feature 2: `[LCV: box2 solution item 2]` — `[BTH: solution feature 2 description]`
+  - Feature 3: `[LCV: box2 solution item 3]` — `[BTH: solution feature 3 description]`
+
+**CTA text:** `[MKT: brand-voice-examples.CTA.prefer column]`
+  → Avoid: `[MKT: brand-voice-examples.CTA.avoid column]`
+```
+
+#### Downstream Reference Contract (who reads LDP)
+
+| Downstream Consumer | What It Reads | When |
+|--------------------|--------------|------|
+| Phase 92 deploy skill | Full LDP spec — component names, paths, props, responsive layout | When scaffolding Next.js landing page files |
+| v0 / AI code agent | Component spec blocks — component name, props, content slots, token references | When generating landing page section code on demand |
+| DPD pitch deck (Phase 89) | Hero section headline (slide 4 Product / slide 2 Solution headline) | DPD generation within same wireframe.md run |
+| Phase 91 handoff.md | LDP artifact code + path (registered in manifest) | When assembling launch kit |
+
+---
+
+### LDP Artifact Code Examples (Markdown Spec Snippets)
+
+These examples show what the actual LDP output artifact looks like. They are the canonical spec format to add to `references/launch-frameworks.md`.
+
+#### Example: Full LDP Spec Header Block
+
+```markdown
+---
+artifact: LDP-landing-page
+version: v1
+skill: /pde:wireframe (LDP)
+businessTrack: startup_team
+audience: external/public
+dependsOn: BRF, MKT, GTM, LCV, STR
+generatedAt: 2026-03-22T00:00:00Z
+---
+
+# Landing Page Wireframe — Deployable Spec
+
+*Generated by /pde:wireframe (business mode) v1 | 2026-03-22*
+
+## Section Map
+
+| Position | Section | Component | Next.js Path | GTM Stage | Server/Client |
+|----------|---------|-----------|-------------|-----------|--------------|
+| 1 | Navigation Bar | `SiteNav` | `app/(marketing)/layout.tsx` | Pre-funnel | Client |
+| 2 | Hero | `HeroSection` | `app/(marketing)/_components/hero-section.tsx` | Acquisition | Server |
+| 3 | Social Proof Bar | `LogoBar` | `app/(marketing)/_components/logo-bar.tsx` | Acquisition | Server |
+| 4 | Problem | `ProblemStatement` | `app/(marketing)/_components/problem-statement.tsx` | Awareness | Server |
+| 5 | Features | `FeaturesGrid` | `app/(marketing)/_components/features-grid.tsx` | Consideration | Server |
+| 6 | How It Works | `HowItWorks` | `app/(marketing)/_components/how-it-works.tsx` | Consideration | Server |
+| 7 | Testimonials | `TestimonialsBlock` | `app/(marketing)/_components/testimonials-block.tsx` | Decision | Server |
+| 8 | Pricing | `PricingTable` | `app/(marketing)/_components/pricing-table.tsx` | Decision | Client |
+| 9 | FAQ | `FAQAccordion` | `app/(marketing)/_components/faq-accordion.tsx` | Decision | Client |
+| 10 | CTA Banner | `CTABanner` | `app/(marketing)/_components/cta-banner.tsx` | Conversion | Server |
+| 11 | Footer | `SiteFooter` | `app/(marketing)/layout.tsx` | Post-conversion | Server |
+```
+
+#### Example: Hero Section Spec Block (startup_team track)
+
+```markdown
+## Hero Section
+
+**Component:** `HeroSection`
+**Next.js path:** `app/(marketing)/_components/hero-section.tsx`
+**Server/Client:** Server Component
+**Responsive layout:**
+  - Mobile: Single column, stacked; CTA button full-width
+  - Tablet (≥768px): Single column, centered; CTA button auto-width
+  - Desktop (≥1280px): Two-column split (copy left, product screenshot right)
+
+**Props:**
+- `headline` (`string`): `[MKT: positioning-statement → primary benefit clause]`
+- `subheadline` (`string`): `[GTM: ACQ-highest-priority-channel → first acquisition touchpoint message]`
+- `ctaPrimaryText` (`string`): `[MKT: brand-voice-examples.CTA.prefer]` — avoid: `[MKT: brand-voice-examples.CTA.avoid]`
+- `ctaPrimaryHref` (`string`): `#pricing` (anchors to PricingTable on same page)
+- `ctaSecondaryText` (`string`): "Watch a demo" — optional, omit for solo_founder track
+- `ctaSecondaryHref` (`string`): `[YOUR_DEMO_URL]`
+- `socialProofBadge` (`string`): `[YOUR_SOCIAL_PROOF_BADGE e.g. "Trusted by 500+ teams"]` — omit if no data yet
+
+**Brand tokens:**
+- `brand-marketing.campaign-palette-variants.primary-campaign` — hero background gradient or accent
+- `brand-marketing.campaign-palette-variants.cta-campaign` — primary CTA button color
+- `brand-marketing.brand-voice.tone-primary` — copy register for headline and sub
+
+**GTM stage:** Acquisition — visitor arriving from channel. Headline must match channel message register.
+**Copy register:** `[MKT: tone-primary]` — e.g., "Confident and direct" means lead with outcome, not features.
+```
+
+#### Example: Pricing Section Spec Block (startup_team track)
+
+```markdown
+## Pricing Section
+
+**Component:** `PricingTable`
+**Next.js path:** `app/(marketing)/_components/pricing-table.tsx`
+**Server/Client:** Client Component (monthly/yearly toggle is interactive)
+**Responsive layout:**
+  - Mobile: Single column, stacked cards
+  - Tablet (≥768px): Two-column, Starter + Pro highlighted
+  - Desktop (≥1280px): Three-column grid, Pro card visually elevated
+
+**Props:**
+- `plans` (`PricingPlan[]`): Derived from STR artifact `prices` array — use `nickname` as plan name
+  - Plan 1: `[YOUR_PLAN_NAME e.g. Starter]` — features: `[LCV: box2 solution items 1-3 as feature bullets]`
+  - Plan 2: `[YOUR_PLAN_NAME e.g. Pro]` — highlighted: true — features: `[LCV: box2 solution items 1-5 + LCV box4 unfair advantage]`
+  - Plan 3: `[YOUR_PLAN_NAME e.g. Enterprise]` — features: all Pro features + "Dedicated support" + "Custom integrations"
+- `highlightedPlan` (`string`): `[YOUR_PLAN_NAME e.g. Pro]` — middle tier per best practice
+- `billingToggle` (`boolean`): `true` — show monthly/yearly toggle
+- `annualDiscount` (`string`): `[YOUR_ANNUAL_DISCOUNT_LABEL e.g. "Save 20%"]` — display label only, no dollar amount
+
+**[VERIFY FINANCIAL ASSUMPTIONS]** All price display values reference `[YOUR_PRICE_IN_CENTS]` from STR artifact.
+  → Price display in UI: `$[YOUR_PRICE]` / month — never populate with a number here.
+
+**Brand tokens:**
+- `brand-marketing.campaign-palette-variants.cta-campaign` — highlighted plan CTA button
+- `brand-marketing.campaign-palette-variants.neutral-campaign` — non-highlighted plan card background
+
+**GTM stage:** Decision — visitor is evaluating purchase. Pricing transparency is the primary conversion lever.
+```
+
+#### Example: solo_founder Minimal Spec (5-section floor)
+
+```markdown
+---
+artifact: LDP-landing-page
+version: v1
+skill: /pde:wireframe (LDP)
+businessTrack: solo_founder
+audience: external/public
+dependsOn: BRF, MKT, GTM, LCV, STR
+---
+
+# Landing Page Wireframe — Deployable Spec
+
+*Generated by /pde:wireframe (business mode) v1 | {date}*
+
+## Section Map
+
+| Position | Section | Component | Next.js Path | GTM Stage | Server/Client |
+|----------|---------|-----------|-------------|-----------|--------------|
+| 1 | Navigation Bar | `SiteNav` | `app/(marketing)/layout.tsx` | Pre-funnel | Client |
+| 2 | Hero | `HeroSection` | `app/(marketing)/_components/hero-section.tsx` | Acquisition | Server |
+| 3 | Features | `FeaturesGrid` | `app/(marketing)/_components/features-grid.tsx` | Consideration | Server |
+| 4 | Pricing | `PricingTable` | `app/(marketing)/_components/pricing-table.tsx` | Decision | Client |
+| 5 | CTA Banner | `CTABanner` | `app/(marketing)/_components/cta-banner.tsx` | Conversion | Server |
+| 6 | Footer | `SiteFooter` | `app/(marketing)/layout.tsx` | Post-conversion | Server |
+
+*solo_founder track: 5 core sections. LogoBar omitted (no customers yet — add [YOUR_CUSTOMER_LOGOS] when available). ProblemStatement folded into Hero subheadline. HowItWorks omitted (features grid serves this function). TestimonialsBlock omitted (add [YOUR_TESTIMONIALS] when available). FAQAccordion omitted.*
+```
+
+---
+
+### Additional Sources for Deep Dive
+
+#### Primary (HIGH confidence)
+- `.planning/phases/88-brand-system/88-RESEARCH.md` — DTCG brand token paths (`brand-marketing.brand-voice.*`, `brand-marketing.campaign-palette-variants.*`), MKT artifact section structure (Positioning Statement, Tone of Voice, Brand Voice Examples, Downstream References)
+- `.planning/phases/87-flows-stage/87-RESEARCH.md` — GTM subgraph structure (ACQ/CONV/RET with priority labels), track depth table for GTM channels
+- `references/launch-frameworks.md` — Brand System section (Geoffrey Moore format, Tone of Voice Spectrum), existing LDP schema (Pattern 2 block above)
+- `references/business-track.md` — Depth Thresholds table, Vocabulary Substitutions table, Artifact Format Differences per track
+
+#### Secondary (MEDIUM confidence — web research, cross-verified)
+- [MagicUI: 7 SaaS Landing Page Best Practices 2025](https://magicui.design/blog/saas-landing-page-best-practices) — Canonical section order, social proof placement, CTA best practices
+- [KlientBoost: 51 High-Converting SaaS Landing Pages 2025](https://www.klientboost.com/landing-pages/saas-landing-page/) — 3-tier pricing middle-highlight pattern, dual social proof placement
+- [Fibr.ai: 20 Best SaaS Landing Pages 2026 Best Practices](https://fibr.ai/landing-page/saas-landing-pages) — 2026 patterns: outcome-driven messaging, specific metrics in social proof
+- [makerkit.dev: Next.js App Router Project Structure](https://makerkit.dev/blog/tutorials/nextjs-app-router-project-structure) — `(marketing)` route group pattern, `_components/` colocation, Server vs Client component split for landing pages
+- [Vercel: How to Prompt v0](https://vercel.com/blog/how-to-prompt-v0) — Deployable spec definition: component names + props + constraints → fewer iterations; specificity reduces back-and-forth
+- [Zignuts: Next.js Landing Page Layouts](https://www.zignuts.com/blog/nextjs-landing-page-layouts) — Per-section component pattern, Tailwind component libraries for marketing sites
+- [Default.com: SaaS Landing Page Design and Buyer Intent](https://www.default.com/post/saas-landing-page-design) — GTM funnel → landing page section alignment framework
+
+#### Tertiary (LOW confidence — not independently verified)
+None identified. All claims above are cross-referenced against at least two sources or confirmed against project source files.
