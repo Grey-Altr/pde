@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A full professional product design and development platform delivered as a Claude Code plugin. PDE takes users from raw idea to shipped product through AI-assisted research, design, planning, coding, testing, and deployment. Includes a complete 13-stage design pipeline (recommend → competitive → opportunity → ideate → brief → system → flows → wireframe → critique → iterate → mockup → hig → handoff) orchestrable via a single `/pde:build` command. Features a self-improvement fleet that audits, validates, and elevates its own output quality against Awwwards-level standards. Integrates with external development tools (GitHub, Linear, Jira, Figma, Pencil) via MCP for bidirectional sync of requirements, design tokens, and work items. Implements advanced workflow methodology with story-file sharding, acceptance-criteria-first planning, post-execution reconciliation, readiness gating, per-task tracking, and persistent agent memory. Automated pipeline verification validates research claims against the codebase, detects cross-phase dependencies, surfaces edge cases with BDD AC generation, and verifies integration points — all wired as automatic gates in the planning and readiness workflows. Real-time observability via structured event infrastructure with NDJSON event bus, persistent 7-pane tmux monitoring dashboard (`/pde:monitor`) with idle-time suggestion display, automatic session history summaries, and token/cost estimation. Guided idle-time productivity system delivers phase-aware suggestions during agent processing with user-authored context notes flowing into planning workflows — zero npm dependencies.
+A full professional product design and development platform delivered as a Claude Code plugin. PDE takes users from raw idea to shipped product through AI-assisted research, design, planning, coding, testing, and deployment. Includes a complete 13-stage design pipeline (recommend → competitive → opportunity → ideate → brief → system → flows → wireframe → critique → iterate → mockup → hig → handoff) orchestrable via a single `/pde:build` command. Supports multiple product types — software, hardware, hybrid, and experience (events, festivals, installations) — with type-specific artifacts: physical design tokens (sonic, lighting, spatial, atmospheric, wayfinding, brand coherence), floor plan and timeline wireframes, event-specific safety/accessibility critique, physical interface guidelines, print collateral (flyers, programs, series identity), and production bible handoff. Features a self-improvement fleet that audits, validates, and elevates its own output quality against Awwwards-level standards. Integrates with external development tools (GitHub, Linear, Jira, Figma, Pencil) via MCP for bidirectional sync of requirements, design tokens, and work items. Implements advanced workflow methodology with story-file sharding, acceptance-criteria-first planning, post-execution reconciliation, readiness gating, per-task tracking, and persistent agent memory. Automated pipeline verification validates research claims against the codebase, detects cross-phase dependencies, surfaces edge cases with BDD AC generation, and verifies integration points — all wired as automatic gates in the planning and readiness workflows. Real-time observability via structured event infrastructure with NDJSON event bus, persistent 7-pane tmux monitoring dashboard (`/pde:monitor`) with idle-time suggestion display, automatic session history summaries, and token/cost estimation. Guided idle-time productivity system delivers phase-aware suggestions during agent processing with user-authored context notes flowing into planning workflows — zero npm dependencies.
 
 ## Core Value
 
@@ -75,40 +75,26 @@ Any user can go from idea to shipped product through a single platform that hand
 - ✓ Human-editable suggestion catalog with 6 phase categories, DESIGN-STATE incomplete-item extraction, time/cost labels — v0.10
 - ✓ User-authored context notes (.planning/context-notes/) injected into plan-phase and brief workflows — v0.10
 - ✓ 7-pane tmux dashboard with Pane 7 (suggestions), /pde:suggestions CLI, adaptive degradation preserved — v0.10
+- ✓ Experience product type detection with 5 sub-types, conditional blocks in all 14 pipeline workflows — v0.11
+- ✓ Experience brief extensions (promise statement, vibe contract, audience archetype, venue constraints, repeatability intent) — v0.11
+- ✓ Physical design token architecture: SYS-experience-tokens.json with 6 categories (sonic, lighting, spatial, atmospheric, wayfinding, brand coherence) — v0.11
+- ✓ Experience flow dimensions (temporal, spatial, social) with spaces-inventory.json for floor plan consumption — v0.11
+- ✓ Floor plan (FLP) and timeline (TML) wireframe artifacts for experience products — v0.11
+- ✓ Seven event-specific critique perspectives + seven physical interface guidelines with regulatory disclaimers — v0.11
+- ✓ Print collateral: event flyer (FLY), series identity template (SIT), festival program (PRG) with Awwwards composition — v0.11
+- ✓ Production bible (BIB) handoff: advance document, run sheet, staffing plan, budget framework, post-event template, print spec — v0.11
+- ✓ 16-field designCoverage schema across all pipeline workflows, zero cross-phase flag clobber — v0.11
+- ✓ 48 requirements, 162 Nyquist tests, zero software/hardware/hybrid regressions — v0.11
 
 ### Active
 
-- Phase 74 complete: Experience product type structurally integrated — detection in brief.md (48 signals, 5 sub-types), branch stubs in all 14 pipeline workflows, regression smoke matrix (7/7 pass), experienceSubType manifest field, regulatory disclaimer block — v0.11
-- Phase 79 complete: Critique and HIG extensions — critique.md has 7 experience-specific perspectives (safety, accessibility, operations, sustainability, licensing/legal, financial, community), hig.md has 7 physical interface guideline domains (wayfinding, acoustic zoning, queue UX, transaction speed, toilet ratio, hydration, first aid), all with inline `[VERIFY WITH LOCAL AUTHORITY]` regulatory disclaimers, 20 Nyquist tests passing — v0.11
-- Phase 80 complete: Print collateral — wireframe.md generates FLY event flyer (A5/A4/Instagram variants, CMYK tables, prepress disclaimers), SIT series identity template ({{variable}} slots, recurring-series gate), PRG festival program (5-page multi-day, schedule grid, artist bios, venue map, sponsors), Awwwards composition annotations, 23 Nyquist tests passing — v0.11
-- Phase 81 complete: Handoff production bible — handoff.md assembles six-section BIB artifact (advance document, run sheet, staffing plan, budget framework, post-event template, print spec output) via four-pass generation, Step 2a STACK.md bypass for pure experience products, explicit NEVER-guards on software/hardware/hybrid branches, hybrid-event dual-surface output (BIB + HND), 16-flag manifest coverage, 72 Nyquist tests passing — v0.11
-- Phase 82 complete: Integration validation and regression audit — milestone gate 162 pass / 0 fail / 19 todo (exit 0), Phase 64 test drift fixed (14→16 fields, hasStitchWireframes relaxed), regression-matrix.test.mjs confirms SC-1 (software paths preserved), SC-3 (zero new workflow files), SC-4 (13 skills operational), milestone-completion.test.mjs confirms SC-2 (4 completed phases verified, 19 todo markers for phases 75-78) — v0.11
-- Phase 83 complete: Cross-phase wiring fixes — 10 workflow files updated from 14/15-field to 16-field designCoverage schema (hasPrintCollateral + hasProductionBible preserved through full pipeline), wireframe.md token path corrected from design/assets/ to design/visual/ for SYS-experience-tokens.json, FPL typo confirmed already resolved, 5 new tests + 42 regression tests GREEN — v0.11
-- Phase 75 complete: Brief extensions — five experience-specific brief sections (promise statement, vibe contract, audience archetype, venue constraints, repeatability intent) in workflows/brief.md with product_type guard, design-brief.md template synced with experience type enum, Phase 82 BREF todo markers flipped to positive assertions (todo count 19→14), 8 Nyquist tests passing — v0.11
-- Phase 76 complete: Experience design token architecture — system.md Step 5b conditional generates SYS-experience-tokens.json with 6 physical-domain categories (sonic, lighting, spatial, atmospheric, wayfinding, brand-coherence), 5 tokens each under 30-token cap in DTCG format, CSS conversion via tokens-to-css, SYS-EXP manifest registration, base SYS-tokens.json isolation preserved, 10 Nyquist tests passing — v0.11
-- Phase 77 complete: Flow diagrams — flows.md Step 4-EXP conditional generates TFL (8-stage temporal arc), SFL (spatial crowd flow with bottleneck/emergency annotations), SOC (social dynamics) Mermaid diagrams plus spaces-inventory.json (zone/capacity/adjacency schema) for experience products, mutual exclusion with software FLW path, manifest registration for TFL/SFL/SOC with 16-field coverage merge, Phase 82 FLOW todo markers flipped (todo count 14→3), 11 Nyquist tests passing — v0.11
-- Phase 78 complete: Wireframe stage extensions — wireframe.md Step 4-EXP generates FLP floor plan (inline SVG with zone boundaries, capacity annotations, flow arrows, infrastructure placement, accessibility routes, scale bar, "SCHEMATIC ONLY" disclaimer, font-size≥14/stroke-width≥3 minimums) and TML timeline (Mermaid gantt with parallel operational tracks, energy curve SVG overlay), reads spaces-inventory.json (HALT if missing), registers FLP/TML in design-manifest.json via manifest-update, Phase 82 WIRE todo markers flipped (todo count 3→0), 13 Nyquist tests passing — v0.11
-
-## Current Milestone: v0.11 Experience Product Type
-
-**Goal:** Extend PDE's product type detection to support "experience" products (events, festivals, installations) with physical design artifacts across all pipeline stages.
-
-**Target features:**
-- Product type detection for `experience` with 5 sub-types (single-night, multi-day, recurring-series, installation, hybrid-event)
-- Brief stage extensions (promise statement, audience archetype, vibe contract, venue constraints, repeatability intent)
-- Flows stage extensions (temporal, spatial, social flow dimensions)
-- Design system extensions (sonic, lighting, spatial, thermal/atmospheric, brand palettes)
-- Wireframe stage new artifact types (floor plan, timeline wireframe)
-- Critique stage event-specific perspectives (safety, accessibility, operations, sustainability, licensing, financial, community)
-- HIG stage physical interface guidelines (wayfinding, acoustic zoning, queue UX, transaction speed, toilet ratio, hydration, first aid)
-- Handoff stage production bible (advance document, run sheet, staffing plan, budget, post-event template)
-- Flyer & print collateral as first-class design artifacts (event flyer, series identity template, festival program)
+(No active milestone — run `/pde:new-milestone` to start next)
 
 ### Out of Scope
 
 - Multi-AI-provider support (Gemini CLI, OpenCode, Codex) — candidate for future milestone
 - Standalone CLI distribution independent of Claude Code — post-v2
-- Multi-product-type support (hardware, content, non-software) — post-v2
+- Multi-product-type support (content, non-software beyond current 4 types) — post-v2
 - Maintenance/analytics/feedback loops — post-v2
 - Real-time collaborative editing — conflicts with file-based state model
 - In-tool web dashboard / UI — markdown files are the dashboard
@@ -126,8 +112,9 @@ Any user can go from idea to shipped product through a single platform that hand
 
 ## Context
 
-- **Shipped v0.10** on 2026-03-21: ~109,000 LOC (JavaScript/Markdown/Shell), ~962 total commits
-- **Planned roadmap:** v0.11 Experience Product Type → v0.12 Business Product Type → v0.13 AutoResearch → v0.14 WebMCP → v0.15 CLI-Anything → v0.16 Remote Dashboard → v0.17 Stakeholder Presentations → v1.0 Standalone CLI
+- **Shipped v0.11** on 2026-03-22: ~245,000 LOC (JavaScript/Markdown/Shell), ~1,078 total commits
+- **Planned roadmap:** v0.12 Business Product Type → v0.13 AutoResearch → v0.14 WebMCP → v0.15 CLI-Anything → v0.16 Remote Dashboard → v0.17 Stakeholder Presentations → v1.0 Standalone CLI
+- **v0.11** shipped 2026-03-22: 112 files changed, 116 commits (experience product type: detection, brief, tokens, flows, wireframes, critique, HIG, print, handoff, 48 requirements)
 - **v0.10** shipped 2026-03-21: 107 files changed, 56 commits (idle-time productivity: suggestion engine, catalog, context notes, 7-pane dashboard)
 - **v0.9** shipped 2026-03-21: 91 files changed, 76 commits (Google Stitch integration across 5 pipeline skills)
 - **v0.1** shipped 2026-03-15: 303 files, ~60,000 LOC, 127 commits (GSD → PDE rebrand)
@@ -141,7 +128,7 @@ Any user can go from idea to shipped product through a single platform that hand
 - **Tech stack:** Node.js (CommonJS), Claude Code plugin API, markdown-based state management, MCP protocol (HTTP/SSE/stdio transports)
 - **Distribution:** Claude Code plugin via GitHub; marketplace registration pending
 - **Architecture:** skills (slash commands) → workflows → agents → templates → references → bin scripts → config; event infrastructure (hooks → event-bus → NDJSON → dashboard/archiver)
-- **Design pipeline:** 13 skills (recommend, competitive, opportunity, ideate, brief, system, flows, wireframe, critique, iterate, mockup, hig, handoff) + build orchestrator, DESIGN-STATE.md tracking, design-manifest.json artifact registry (14 coverage flags, pass-through-all pattern); wireframe and mockup support `--use-stitch` flag for Stitch MCP generation with consent gates, annotation injection, 10s fallback, and local artifact caching (STH-{slug}.html/png); critique detects Stitch-sourced artifacts via manifest `source: "stitch"`, suppresses DTCG token-format false positives, reads STH PNG screenshots for multimodal visual analysis, and appends conditional `## Stitch Comparison` delta reports with token compliance percentages; handoff detects `stitch_annotated: true` in manifest (Step 2l), extracts `@component:` annotations from Stitch HTML (Step 4b-stitch), produces STITCH_COMPONENT_PATTERNS section with WFR+Stitch/Stitch-only/WFR-only source tags (Step 5b), generates `STH_{Slug}_{Component}Props` TypeScript interfaces with inline hex-to-OKLCH conversion and `@verify` labels for Stitch-only components (Step 5c)
+- **Design pipeline:** 13 skills (recommend, competitive, opportunity, ideate, brief, system, flows, wireframe, critique, iterate, mockup, hig, handoff) + build orchestrator, DESIGN-STATE.md tracking, design-manifest.json artifact registry (16 coverage flags, pass-through-all pattern); experience products add FLP/TML/FLY/SIT/PRG/BIB artifacts, SYS-experience-tokens.json, spaces-inventory.json, and 7 event-specific critique perspectives + 7 physical interface guidelines; wireframe and mockup support `--use-stitch` flag for Stitch MCP generation with consent gates, annotation injection, 10s fallback, and local artifact caching (STH-{slug}.html/png); critique detects Stitch-sourced artifacts via manifest `source: "stitch"`, suppresses DTCG token-format false positives, reads STH PNG screenshots for multimodal visual analysis, and appends conditional `## Stitch Comparison` delta reports with token compliance percentages; handoff detects `stitch_annotated: true` in manifest (Step 2l), extracts `@component:` annotations from Stitch HTML (Step 4b-stitch), produces STITCH_COMPONENT_PATTERNS section with WFR+Stitch/Stitch-only/WFR-only source tags (Step 5b), generates `STH_{Slug}_{Component}Props` TypeScript interfaces with inline hex-to-OKLCH conversion and `@verify` labels for Stitch-only components (Step 5c)
 - **Observability:** PdeEventBus (EventEmitter + setImmediate dispatch), session-scoped NDJSON in /tmp, Claude Code hooks (SubagentStart/Stop, PostToolUse, SessionStart/End, Notification/idle_prompt), semantic workflow events (phase/wave/plan), tmux 7-pane dashboard (agent activity, pipeline progress, file changes, log stream, token/cost, context window, suggestions), archive-session.cjs summaries in .planning/logs/
 - **Idle-time productivity:** idle-suggestions.cjs engine with phase classification, blocker prioritization, artifact-fed targeting; idle-catalog.md with 6 phase categories; context-notes/ directory injected into plan-phase and brief workflows; pane-suggestions.sh polling display; /pde:suggestions CLI command
 - **Quality infrastructure:** Awwwards 4-dimension rubric, 3 quality reference files (motion-design, composition-typography, quality-standards), protected-files mechanism, 3-agent self-improvement fleet, skill builder with validation gate
@@ -227,4 +214,4 @@ Any user can go from idea to shipped product through a single platform that hand
 | Regulatory disclaimer as reusable reference block | `references/experience-disclaimer.md` loaded via `@references/` pattern in critique and handoff | ✓ Good — single source of truth for [VERIFY WITH LOCAL AUTHORITY] tag |
 | Cross-phase wiring fix (16-field designCoverage) | Audit found 10 workflows clobbering hasPrintCollateral/hasProductionBible; read-merge-write pattern must preserve all 16 fields | ✓ Good — all 10 workflows fixed, pipeline preserves flags end-to-end |
 | Token path alignment (visual/ not assets/) | system.md writes to visual/, wireframe.md was reading from assets/ — silent fallback masked the bug | ✓ Good — one-line fix, brand tokens now flow to print palette |
-*Last updated: 2026-03-22 after Phase 83 complete — Cross-Phase Wiring Fixes*
+*Last updated: 2026-03-22 after v0.11 milestone — Experience Product Type*

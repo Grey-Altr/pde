@@ -1,5 +1,26 @@
 # Milestones
 
+## v0.11 Experience Product Type (Shipped: 2026-03-22)
+
+**Phases completed:** 10 phases, 19 plans
+**Commits:** 116 | **Files:** 112 | **LOC:** ~245,000
+**Timeline:** ~15 hours (2026-03-21)
+**Git range:** docs: start milestone v0.11 → docs(v0.11): Nyquist validation
+**Nyquist tests:** 162 pass / 0 fail across all phases
+
+**Key accomplishments:**
+
+1. Experience product type detection: 48 keyword signals, 5 sub-types (single-night, multi-day, recurring-series, installation, hybrid-event), conditional blocks in all 14 pipeline workflows with zero new workflow files — sub-types as manifest metadata, not pipeline branches
+2. Experience brief extensions: Five physical design inputs (promise statement, vibe contract, audience archetype, venue constraints, repeatability intent) feeding all downstream artifact generation
+3. Physical design token architecture: SYS-experience-tokens.json with 6 categories (sonic, lighting, spatial, atmospheric, wayfinding, brand coherence) in DTCG format, 30-token cap, isolated from base SYS-tokens.json
+4. Experience flow dimensions and wireframe artifacts: Temporal/spatial/social flow diagrams with spaces-inventory.json, floor plan (FLP) as inline SVG with zone boundaries and accessibility routes, timeline (TML) as Mermaid gantt with energy curve overlay
+5. Event-specific critique and physical interface guidelines: 7 critique perspectives (safety, accessibility, operations, sustainability, licensing/legal, financial, community) + 7 HIG domains (wayfinding, acoustic zoning, queue UX, transaction speed, toilet ratio, hydration, first aid) — all regulatory values carry [VERIFY WITH LOCAL AUTHORITY] disclaimer
+6. Print collateral and production bible: Event flyer (FLY) with A5/A4/Instagram variants and CMYK tables, series identity template (SIT), festival program (PRG), plus six-section production bible (BIB) handoff with advance document, run sheet, staffing plan, budget framework, post-event template, and print spec — Awwwards-level composition standards throughout
+
+**Delivered:** The "experience" product type — events, festivals, and installations as first-class PDE citizens — with physical design tokens, spatial/temporal flow diagrams, floor plan and timeline wireframes, event-specific safety and accessibility critique, physical interface guidelines, print collateral (flyers, programs, series identity), and a complete production bible handoff — all integrated as conditional blocks in the existing 13-stage pipeline with 48 requirements satisfied, 162 Nyquist tests, and zero regressions across software/hardware/hybrid product types.
+
+---
+
 ## v0.10 Idle Time Productivity (Shipped: 2026-03-21)
 
 **Phases completed:** 4 phases, 8 plans

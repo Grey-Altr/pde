@@ -462,6 +462,53 @@ Google Stitch AI UI design tool fully integrated into PDE's 13-stage design pipe
 
 ---
 
+## Milestone: v0.11 — Experience Product Type
+
+**Shipped:** 2026-03-22
+**Phases:** 10 | **Plans:** 19 | **Commits:** 116
+
+### What Was Built
+- Experience product type detection with 5 sub-types across all 14 pipeline workflows
+- Five experience brief sections (promise, vibe, audience, venue, repeatability)
+- Physical design tokens (SYS-experience-tokens.json) with 6 sensory categories
+- Temporal/spatial/social flow diagrams + spaces-inventory.json
+- Floor plan (FLP) and timeline (TML) wireframe artifacts
+- Seven event critique perspectives + seven physical interface guidelines
+- Print collateral: event flyer, series identity template, festival program
+- Production bible handoff: advance document, run sheet, staffing plan, budget, post-event, print spec
+- Cross-phase wiring: 16-field designCoverage schema across all workflows
+
+### What Worked
+- **Wave 0 TDD strategy** — writing failing tests before workflow edits created unambiguous pass/fail contracts. Every phase followed the pattern: red tests → workflow edits → green tests. Made regression detection trivial.
+- **Sub-types as metadata** — storing experience sub-types as manifest metadata (not pipeline branches) kept the architecture simple. 8 conditional branch points vs estimated 40 if structural.
+- **Phase 82 milestone gate** — having a dedicated validation phase that runs the full regression matrix before milestone close caught 3 integration gaps that Phase 83 then fixed.
+- **Regulatory disclaimer as shared reference** — single `experience-disclaimer.md` file loaded by both critique and handoff prevented drift between safety assertions.
+- **Parallel phase ordering** — Phase 80 (print) depended on Phase 76 (tokens), not Phase 79 (critique), allowing print and critique/HIG to execute independently.
+
+### What Was Inefficient
+- **designCoverage field clobber** — 10 workflows were writing 14-15 field schemas when the canonical schema had grown to 16 fields. Took a dedicated Phase 83 to fix. Root cause: pass-through-all pattern not enforced by tooling, only by convention.
+- **Token path mismatch** — system.md wrote to `visual/`, wireframe.md read from `assets/`. Silent fallback masked the bug until the audit. Could have been caught earlier with integration tests that trace file paths end-to-end.
+- **Milestone audit found gaps after all phases "complete"** — the audit correctly identified 3 cross-phase integration issues. Suggests the per-phase verifier doesn't check downstream consumption of its outputs.
+
+### Patterns Established
+- **Experience products as conditional blocks** — no new workflow files; all behavior lives in existing skills with product_type guards
+- **16-field designCoverage read-merge-write** — workflows must read existing coverage, merge their flag, write back all 16 fields
+- **Regulatory disclaimer pattern** — any regulatory assertion in design output carries `[VERIFY WITH LOCAL AUTHORITY]` tag loaded from shared reference
+- **Four-pass BIB generation** — production bible uses Pass A-D for large venue capacity (>500)
+- **NEVER-guard defense-in-depth** — explicit prohibition language at branch decision points, not just in anti-patterns section
+
+### Key Lessons
+- Per-phase verification is necessary but insufficient — need cross-phase integration verification that traces artifacts through the pipeline
+- Convention-based schema enforcement (pass-through-all) needs tooling backup (schema validator) — human adherence degrades as field count grows
+- Silent fallbacks mask real bugs — wireframe.md's graceful degradation when token file is missing hid the path mismatch
+
+### Cost Observations
+- Model mix: ~70% sonnet, ~25% opus, ~5% haiku (via balanced profile)
+- Sessions: ~3 sessions across ~15 hours
+- Notable: 48 requirements satisfied in 116 commits — highest requirement-to-commit density of any milestone
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -478,6 +525,7 @@ Google Stitch AI UI design tool fully integrated into PDE's 13-stage design pipe
 | v0.8 | 80 | 6 | Observability — event bus, tmux dashboard, session archival, token metering, workflow instrumentation |
 | v0.9 | 76 | 6 | Google Stitch — AI UI generation across 5 pipeline skills, quota tracking, consent gates |
 | v0.10 | 56 | 4 | Idle-time productivity — suggestion engine, catalog, context notes, 7-pane dashboard |
+| v0.11 | 116 | 10 | Experience product type — detection, tokens, flows, wireframes, critique, HIG, print, handoff |
 
 ### Cumulative Quality
 
@@ -493,3 +541,4 @@ Google Stitch AI UI design tool fully integrated into PDE's 13-stage design pipe
 | v0.8 | 26/26 | 100% | 1 (phase 63, audit-driven) | 6/6 Nyquist compliant |
 | v0.9 | 30/30 | 100% | 0 | 215 |
 | v0.10 | 23/23 | 100% | 0 | 39 (4 suites) |
+| v0.11 | 48/48 | 100% | 1 (phase 83, audit-driven) | 162 (10 suites) |
