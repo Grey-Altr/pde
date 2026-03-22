@@ -220,6 +220,68 @@ Track-depth controlled:
 
 ---
 
+## Landing Page Wireframe Spec
+
+Landing page deployable spec format for Phase 89 wireframe.md LDP artifact. Consumed by Phase 92 deploy skill to scaffold Next.js landing page.
+
+**Artifact code:** LDP
+**File path:** `.planning/design/launch/LDP-landing-page-v{N}.md`
+**Domain:** launch
+
+### Section Block Template
+
+Each LDP section uses this canonical format. Populate content slots from upstream artifacts (MKT, GTM, LCV, SYS-brand-tokens.json).
+
+```
+## [Section Name]
+
+| Field | Value |
+|-------|-------|
+| Component | [ComponentName] |
+| Next.js path | app/(marketing)/_components/[component-name].tsx |
+| Server/Client | Server Component | Client Component |
+| Responsive layout | mobile: [layout] / tablet: [layout] / desktop: [layout] |
+| Props | { [propName]: "[content slot value]", ... } |
+| Brand tokens | brand-marketing.campaign-palette-variants.[variant] / brand-marketing.brand-voice.[key] |
+| GTM stage | ACQ | ACT | RET | REF (acquisition / activation / retention / referral) |
+| Copy register | [tone and framing instruction derived from MKT Tone of Voice Spectrum] |
+```
+
+### Section Map
+
+Full 11-section landing page component set. SiteNav and SiteFooter use the marketing layout file; all others are inline section components.
+
+| # | Component | Next.js path | Server/Client |
+|---|-----------|-------------|---------------|
+| 1 | SiteNav | app/(marketing)/layout.tsx | Client Component (sticky nav, mobile hamburger) |
+| 2 | HeroSection | app/(marketing)/_components/hero-section.tsx | Server Component |
+| 3 | LogoBar | app/(marketing)/_components/logo-bar.tsx | Server Component |
+| 4 | ProblemStatement | app/(marketing)/_components/problem-statement.tsx | Server Component |
+| 5 | FeaturesGrid | app/(marketing)/_components/features-grid.tsx | Server Component |
+| 6 | HowItWorks | app/(marketing)/_components/how-it-works.tsx | Server Component |
+| 7 | TestimonialsBlock | app/(marketing)/_components/testimonials-block.tsx | Client Component (carousel) |
+| 8 | PricingTable | app/(marketing)/_components/pricing-table.tsx | Client Component (plan toggle) |
+| 9 | FAQAccordion | app/(marketing)/_components/faq-accordion.tsx | Client Component (expand/collapse) |
+| 10 | CTABanner | app/(marketing)/_components/cta-banner.tsx | Server Component |
+| 11 | SiteFooter | app/(marketing)/layout.tsx | Server Component |
+
+### Track Depth Table
+
+Minimum sections required per businessTrack. All 11 sections are available to any track; depth table sets the floor.
+
+| businessTrack | Minimum Sections | Required Components | Notes |
+|--------------|-----------------|--------------------|----|
+| solo_founder | 5 | HeroSection, FeaturesGrid, PricingTable, CTABanner, SiteFooter | Core conversion flow; SiteNav always included via layout |
+| startup_team | 11 (all) | All 11 sections | Full investor-grade landing page |
+| product_leader | 11 (all) | All 11 sections, adapted vocabulary | "Enterprise" pricing language; testimonials → case studies; CTA → "Request Demo" |
+
+### Consumers
+
+- `workflows/wireframe.md` (Phase 89) — LDP artifact generation in Step 4h
+- `workflows/deploy.md` (Phase 92) — scaffolds Next.js landing page from LDP spec
+
+---
+
 ## Consumers
 
 - `workflows/brief.md` — Phase 85: lean canvas generation
