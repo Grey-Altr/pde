@@ -4,7 +4,7 @@ milestone: v0.12
 milestone_name: Business Product Type
 status: unknown
 stopped_at: Completed 86-01-PLAN.md — MLS artifact + Mermaid quadrant + 20-field coverage added to competitive.md
-last_updated: "2026-03-22T16:04:11.226Z"
+last_updated: "2026-03-22T16:07:11.551Z"
 progress:
   total_phases: 11
   completed_phases: 3
