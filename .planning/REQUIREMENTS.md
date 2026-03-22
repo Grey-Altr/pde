@@ -12,10 +12,10 @@ Requirements for the business product type milestone. Each maps to roadmap phase
 - [x] **FOUND-01**: Manifest schema extended with `businessMode: false` and `businessTrack: null` top-level fields in design-manifest.json template
 - [x] **FOUND-02**: designCoverage schema grows from 16 to 20 fields with `hasBusinessThesis`, `hasMarketLandscape`, `hasServiceBlueprint`, `hasLaunchKit`
 - [x] **FOUND-03**: `launch/` subdirectory added to `.planning/design/` via `ensure-dirs` in design.cjs
-- [ ] **FOUND-04**: `references/business-track.md` created with track vocabulary, depth thresholds, and artifact format differences for solo_founder/startup_team/product_leader
-- [ ] **FOUND-05**: `references/launch-frameworks.md` created with business artifact templates (lean canvas, pitch deck slides, service blueprint lanes, pricing config schema)
-- [ ] **FOUND-06**: `references/business-financial-disclaimer.md` created with structural placeholder patterns — never dollar amounts, always `[YOUR_X]` format
-- [ ] **FOUND-07**: `references/business-legal-disclaimer.md` created with legal checklist pattern — service recommendations only, never generated legal documents
+- [x] **FOUND-04**: `references/business-track.md` created with track vocabulary, depth thresholds, and artifact format differences for solo_founder/startup_team/product_leader
+- [x] **FOUND-05**: `references/launch-frameworks.md` created with business artifact templates (lean canvas, pitch deck slides, service blueprint lanes, pricing config schema)
+- [x] **FOUND-06**: `references/business-financial-disclaimer.md` created with structural placeholder patterns — never dollar amounts, always `[YOUR_X]` format
+- [x] **FOUND-07**: `references/business-legal-disclaimer.md` created with legal checklist pattern — service recommendations only, never generated legal documents
 
 ### Detection & Brief
 
@@ -137,10 +137,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FOUND-01 | 84 | Complete |
 | FOUND-02 | 84 | Complete |
 | FOUND-03 | 84 | Complete |
-| FOUND-04 | 84 | Pending |
-| FOUND-05 | 84 | Pending |
-| FOUND-06 | 84 | Pending |
-| FOUND-07 | 84 | Pending |
+| FOUND-04 | 84 | Complete |
+| FOUND-05 | 84 | Complete |
+| FOUND-06 | 84 | Complete |
+| FOUND-07 | 84 | Complete |
 | BRIEF-01 | 85 | Pending |
 | BRIEF-02 | 85 | Pending |
 | BRIEF-03 | 85 | Pending |

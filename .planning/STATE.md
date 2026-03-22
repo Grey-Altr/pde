@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.12
 milestone_name: Business Product Type
 status: in-progress
-stopped_at: "Completed 84-01-PLAN.md — manifest schema extended, launch/ dir added, test scaffold created"
-last_updated: "2026-03-22T14:20:20.660Z"
+stopped_at: "Completed 84-02-PLAN.md — 4 business reference files created (business-track, launch-frameworks, financial/legal disclaimers)"
+last_updated: "2026-03-22T14:21:00Z"
 progress:
   total_phases: 11
   completed_phases: 0
   total_plans: 2
-  completed_plans: 1
+  completed_plans: 2
 ---
 
 # Project State
@@ -23,8 +23,8 @@ See: .planning/PROJECT.md (updated 2026-03-22)
 
 ## Current Position
 
-Phase: 84 (foundation) — EXECUTING
-Plan: 2 of 2
+Phase: 84 (foundation) — COMPLETE
+Plan: 2 of 2 — COMPLETE
 
 ## Performance Metrics
 
@@ -39,6 +39,7 @@ Plan: 2 of 2
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 84-01 | 1 | 3 tasks | 3 min |
+| 84-02 | 1 | 3 tasks | 4 min |
 
 ## Accumulated Context
 
@@ -56,6 +57,8 @@ Recent decisions affecting v0.12:
 - [84-01] businessTrack uses pipe-separated string comment pattern consistent with experienceSubType
 - [84-01] 4 new designCoverage fields appended after hasProductionBible to preserve all 16 existing field positions
 - [84-01] launch/ appended as 10th DOMAIN_DIRS element — 9 existing dirs unchanged
+- [84-02] Legal Checklist Format placed after Prohibited Patterns section — FOUND-07 test requires Terms of Service/Privacy Policy not appear before that section header
+- [84-02] Financial disclaimer uses descriptive anti-pattern language, not literal dollar examples — avoids $[digit] pattern prohibition
 
 ### Pending Todos
 
@@ -69,7 +72,7 @@ Recent decisions affecting v0.12:
 ## Session Continuity
 
 Last session: 2026-03-22
-Stopped at: "Completed 84-01-PLAN.md — manifest schema extended, launch/ dir added, test scaffold created"
+Stopped at: "Completed 84-02-PLAN.md — 4 business reference files created (business-track, launch-frameworks, financial/legal disclaimers)"
 Resume file: None
 
-Next action: Execute 84-02-PLAN.md
+Next action: Execute Phase 85 (Brief Skill)
