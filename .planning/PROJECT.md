@@ -110,6 +110,10 @@ Any user can go from idea to shipped product through a single platform that hand
 - ✓ Composite score formula updated to 9.5 denominator (8 perspectives) in business mode — v0.12
 - ✓ 20-field designCoverage write in both critique.md and hig.md (hasBusinessThesis, hasMarketLandscape, hasServiceBlueprint, hasLaunchKit) — v0.12
 - ✓ 24 Nyquist tests for QUAL-01/02/03/04 + INTG-02 — all GREEN — v0.12
+- ✓ Launch kit assembly in handoff.md: LKT manifest (11 upstream business artifacts catalogued with status/readiness), CNT 30-day content calendar, OTR Resend-compatible email sequences — v0.12
+- ✓ Step 7b-lkt manifest registration (21 manifest-update calls for LKT/CNT/OTR), DESIGN-STATE rows, hasLaunchKit coverage flag — v0.12
+- ✓ DPD-gated investor outreach (3-email sequence skipped if no pitch deck), structural placeholder enforcement (KIT-06) — v0.12
+- ✓ handoff.md upgraded from 16→20 designCoverage fields across purpose, Step 7c, anti-patterns, and output sections — v0.12
 
 ### Active
 
