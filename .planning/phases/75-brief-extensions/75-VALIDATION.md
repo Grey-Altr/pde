@@ -1,9 +1,9 @@
 ---
 phase: 75
 slug: brief-extensions
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: approved
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-21
 ---
 
@@ -38,11 +38,11 @@ created: 2026-03-21
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 75-01-01 | 01 | 1 | BREF-01 | unit | `npm test -- --grep "experience brief"` | ❌ W0 | ⬜ pending |
-| 75-01-02 | 01 | 1 | BREF-02 | unit | `npm test -- --grep "brief fields"` | ❌ W0 | ⬜ pending |
-| 75-01-03 | 01 | 1 | BREF-03 | unit | `npm test -- --grep "software brief"` | ❌ W0 | ⬜ pending |
-| 75-01-04 | 01 | 1 | BREF-04 | unit | `npm test -- --grep "design-state"` | ❌ W0 | ⬜ pending |
-| 75-01-05 | 01 | 1 | BREF-05 | unit | `npm test -- --grep "sub-type"` | ❌ W0 | ⬜ pending |
+| 75-01-01 | 01 | 1 | BREF-01 | unit | `node --test tests/phase-75/brief-extensions.test.mjs` | ✅ | ✅ green |
+| 75-01-02 | 01 | 1 | BREF-02 | unit | `node --test tests/phase-75/brief-extensions.test.mjs` | ✅ | ✅ green |
+| 75-01-03 | 01 | 1 | BREF-03 | unit | `node --test tests/phase-75/brief-extensions.test.mjs` | ✅ | ✅ green |
+| 75-01-04 | 01 | 1 | BREF-04 | unit | `node --test tests/phase-75/brief-extensions.test.mjs` | ✅ | ✅ green |
+| 75-01-05 | 01 | 1 | BREF-05 | unit | `node --test tests/phase-75/brief-extensions.test.mjs` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -50,9 +50,9 @@ created: 2026-03-21
 
 ## Wave 0 Requirements
 
-- [ ] Test stubs for BREF-01 through BREF-05 — experience brief field prompting and output
-- [ ] Test stubs for software brief regression — byte-identical output check
-- [ ] Test stubs for DESIGN-STATE.md Sub-type row population
+- [x] Test stubs for BREF-01 through BREF-05 — experience brief field prompting and output
+- [x] Test stubs for software brief regression — byte-identical output check
+- [x] Test stubs for DESIGN-STATE.md Sub-type row population
 
 *If none: "Existing infrastructure covers all phase requirements."*
 
@@ -70,11 +70,11 @@ created: 2026-03-21
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 15s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 15s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved — 2026-03-21 (nyquist-auditor: 8/8 tests pass, BREF-01 through BREF-05 all green)

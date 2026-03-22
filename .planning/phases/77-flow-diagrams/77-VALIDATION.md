@@ -1,9 +1,9 @@
 ---
 phase: 77
 slug: flow-diagrams
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: approved
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-21
 ---
 
@@ -38,12 +38,12 @@ created: 2026-03-21
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 77-01-01 | 01 | 0 | FLOW-01 | unit | `node --test tests/experience-flows.test.mjs` | W0 | pending |
-| 77-01-02 | 01 | 1 | FLOW-01 | unit | `node --test tests/experience-flows.test.mjs` | W0 | pending |
-| 77-01-03 | 01 | 1 | FLOW-02 | unit | `node --test tests/experience-flows.test.mjs` | W0 | pending |
-| 77-01-04 | 01 | 1 | FLOW-03 | unit | `node --test tests/experience-flows.test.mjs` | W0 | pending |
-| 77-02-01 | 02 | 1 | FLOW-04 | integration | `node --test tests/experience-regression.test.mjs` | W0 | pending |
-| 77-02-02 | 02 | 1 | FLOW-01 | integration | `node --test tests/manifest-schema.test.mjs` | existing | pending |
+| 77-01-01 | 01 | 0 | FLOW-01 | unit | `node --test tests/phase-77/experience-flows.test.mjs` | yes | green |
+| 77-01-02 | 01 | 1 | FLOW-01 | unit | `node --test tests/phase-77/experience-flows.test.mjs` | yes | green |
+| 77-01-03 | 01 | 1 | FLOW-02 | unit | `node --test tests/phase-77/experience-flows.test.mjs` | yes | green |
+| 77-01-04 | 01 | 1 | FLOW-03 | unit | `node --test tests/phase-77/experience-flows.test.mjs` | yes | green |
+| 77-02-01 | 02 | 1 | FLOW-04 | unit | `node --test tests/phase-77/experience-flows.test.mjs` | yes | green |
+| 77-02-02 | 02 | 1 | FLOW-01 | unit | `node --test tests/phase-77/experience-flows.test.mjs` | yes | green |
 
 *Status: pending · green · red · flaky*
 
@@ -51,8 +51,8 @@ created: 2026-03-21
 
 ## Wave 0 Requirements
 
-- [ ] `tests/experience-flows.test.mjs` — stubs for FLOW-01, FLOW-02, FLOW-03, FLOW-04
-- [ ] Shared fixtures for experience product type detection
+- [x] `tests/phase-77/experience-flows.test.mjs` — stubs for FLOW-01, FLOW-02, FLOW-03, FLOW-04
+- [x] Shared fixtures for experience product type detection
 
 *Existing infrastructure covers regression and manifest schema requirements.*
 
@@ -68,11 +68,11 @@ created: 2026-03-21
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 5s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 5s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved — 2026-03-21 (11/11 assertions green, all FLOW-01 through FLOW-04 covered)

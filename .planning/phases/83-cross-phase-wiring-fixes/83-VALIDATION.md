@@ -1,9 +1,9 @@
 ---
 phase: 83
 slug: cross-phase-wiring-fixes
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: approved
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-21
 ---
 
@@ -38,10 +38,10 @@ created: 2026-03-21
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 83-01-01 | 01 | 1 | HDOF-06 | grep + test | `grep -c 'hasPrintCollateral' skills/*/SKILL.md` | existing | pending |
-| 83-01-02 | 01 | 1 | HDOF-06 | grep + test | `grep -c 'hasProductionBible' skills/*/SKILL.md` | existing | pending |
-| 83-01-03 | 01 | 1 | DSYS-06 | grep | `grep 'design/visual/SYS-experience-tokens' skills/wireframe/SKILL.md` | existing | pending |
-| 83-01-04 | 01 | 1 | PRNT-04 | grep | `grep 'FLP' .planning/REQUIREMENTS.md` | existing | pending |
+| 83-01-01 | 01 | 1 | HDOF-06 | node:test | `node --test tests/phase-83/wiring-fixes.test.mjs` | existing | green |
+| 83-01-02 | 01 | 1 | HDOF-06 | node:test | `node --test tests/phase-83/wiring-fixes.test.mjs` | existing | green |
+| 83-01-03 | 01 | 1 | DSYS-06 | node:test | `node --test tests/phase-83/wiring-fixes.test.mjs` | existing | green |
+| 83-01-04 | 01 | 1 | PRNT-04 | node:test | `node --test tests/phase-83/wiring-fixes.test.mjs` | existing | green |
 
 *Status: pending / green / red / flaky*
 
@@ -63,11 +63,11 @@ created: 2026-03-21
 
 ## Validation Sign-Off
 
-- [ ] All tasks have automated verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 2s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have automated verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 2s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved — 5/5 tests pass, all 3 requirements covered, 2026-03-21

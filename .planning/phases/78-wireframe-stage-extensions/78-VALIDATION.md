@@ -1,10 +1,11 @@
 ---
 phase: 78
 slug: wireframe-stage-extensions
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: approved
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-21
+approved: 2026-03-21
 ---
 
 # Phase 78 — Validation Strategy
@@ -38,11 +39,11 @@ created: 2026-03-21
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 78-01-01 | 01 | 0 | WIRE-01 | unit (structural) | `node --test tests/phase-78/wireframe-stage-extensions.test.mjs 2>&1` | ❌ W0 | ⬜ pending |
-| 78-01-02 | 01 | 0 | WIRE-01 | unit (structural) | same | ❌ W0 | ⬜ pending |
-| 78-01-03 | 01 | 0 | WIRE-02 | unit (structural) | same | ❌ W0 | ⬜ pending |
-| 78-01-04 | 01 | 0 | WIRE-03 | unit (structural) | same | ❌ W0 | ⬜ pending |
-| 78-01-05 | 01 | 0 | Isolation | unit (ordering) | same | ❌ W0 | ⬜ pending |
+| 78-01-01 | 01 | 0 | WIRE-01 | unit (structural) | `node --test tests/phase-78/wireframe-stage-extensions.test.mjs 2>&1` | ✅ | ✅ green |
+| 78-01-02 | 01 | 0 | WIRE-01 | unit (structural) | same | ✅ | ✅ green |
+| 78-01-03 | 01 | 0 | WIRE-02 | unit (structural) | same | ✅ | ✅ green |
+| 78-01-04 | 01 | 0 | WIRE-03 | unit (structural) | same | ✅ | ✅ green |
+| 78-01-05 | 01 | 0 | Isolation | unit (ordering) | same | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -50,8 +51,8 @@ created: 2026-03-21
 
 ## Wave 0 Requirements
 
-- [ ] `tests/phase-78/wireframe-stage-extensions.test.mjs` — stubs for WIRE-01, WIRE-02, WIRE-03, isolation checks
-- [ ] Phase 82 `tests/milestone-completion.test.mjs` already has test.todo markers for WIRE-01/02/03 — converted to passing tests alongside wireframe.md edits
+- [x] `tests/phase-78/wireframe-stage-extensions.test.mjs` — 13 assertions for WIRE-01, WIRE-02, WIRE-03, isolation checks — all passing
+- [x] Phase 82 `tests/milestone-completion.test.mjs` — WIRE-01/02/03 todo markers converted to positive passing assertions (0 todo markers remain)
 
 *Existing Phase 82 milestone tests provide cross-phase regression coverage.*
 
@@ -68,11 +69,11 @@ created: 2026-03-21
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 5s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 5s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved — 2026-03-21 — 13/13 tests pass, 0 failures, 0 todo markers
