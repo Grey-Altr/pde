@@ -50,6 +50,8 @@ ELSE:
 @references/skill-style-guide.md
 @references/mcp-integration.md
 @references/strategy-frameworks.md
+@references/business-track.md
+@references/business-financial-disclaimer.md
 </required_reading>
 
 <flags>
@@ -213,6 +215,17 @@ Display: `Step 3/7: MCP probes complete. Sequential Thinking: {available|unavail
 
 ### Step 4/7: Interactive RICE scoring with design extensions
 
+**Business Mode Detection:**
+
+Before beginning scoring, read business mode status from manifest:
+
+```bash
+BM=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-get-top-level businessMode 2>/dev/null)
+BT=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-get-top-level businessTrack 2>/dev/null)
+```
+
+Cache `$BM` and `$BT` for use after RICE scoring and in Step 5 artifact write.
+
 For each confirmed candidate, collect the following 7 dimensions interactively:
 
 1. **Reach:** "Reach: How many users affected in one quarter?" → Accept integer (e.g., 1000)
@@ -310,6 +323,58 @@ Next: {candidate names}
 Later: {candidate names}
 ```
 
+**Business Initiative Framing (business mode only):**
+
+IF businessMode == true:
+
+After RICE scoring and bucket assignment, generate a Business Initiative Framing section that contextualizes opportunities through unit economics.
+
+**All financial values MUST use structural placeholders per @references/business-financial-disclaimer.md. NEVER generate specific dollar amounts.**
+
+Generate the following content (this will be included in the OPP artifact in Step 5):
+
+## Business Initiative Framing
+*(Generated when businessMode = true)*
+
+> [VERIFY FINANCIAL ASSUMPTIONS] — All unit economics below are structural placeholders.
+> Replace [YOUR_X] values with your own researched figures before financial modeling.
+
+### Core Unit Economics Inputs
+
+| Metric | Formula | Placeholder Value |
+|--------|---------|-------------------|
+| Customer Lifetime Value (LTV) | (ARPU x Gross Margin) / Churn Rate | ([YOUR_ARPU] x [YOUR_GROSS_MARGIN]) / [YOUR_CHURN_RATE] [VERIFY FINANCIAL ASSUMPTIONS] |
+| CAC Ceiling | LTV / [YOUR_LTV_CAC_RATIO_TARGET] | [YOUR_CAC_CEILING] [VERIFY FINANCIAL ASSUMPTIONS] |
+| Payback Period | CAC / (Monthly Revenue per Customer x Gross Margin) | [YOUR_PAYBACK_PERIOD] months [VERIFY FINANCIAL ASSUMPTIONS] |
+
+### Payback Period at 3 Churn Scenarios
+
+| Churn Scenario | Monthly Churn | LTV Impact | Payback Period |
+|----------------|--------------|-----------|----------------|
+| Optimistic | [YOUR_CHURN_RATE_LOW] | [YOUR_LTV_HIGH] [VERIFY FINANCIAL ASSUMPTIONS] | [YOUR_PAYBACK_OPTIMISTIC] months |
+| Base Case | [YOUR_CHURN_RATE_BASE] | [YOUR_LTV_BASE] [VERIFY FINANCIAL ASSUMPTIONS] | [YOUR_PAYBACK_BASE] months |
+| Pessimistic | [YOUR_CHURN_RATE_HIGH] | [YOUR_LTV_LOW] [VERIFY FINANCIAL ASSUMPTIONS] | [YOUR_PAYBACK_PESSIMISTIC] months |
+
+**Standard SaaS benchmarks (for calibration only — do not use as your numbers):**
+- Healthy LTV/CAC ratio: 3:1 or higher
+- Target payback period: < 12 months (B2C), < 18 months (B2B)
+- Gross margin target: 70%+ (SaaS)
+
+### RICE Score Business Context
+
+| RICE Dimension | Standard Interpretation | Business Initiative Lens |
+|---------------|------------------------|--------------------------|
+| Reach | Users affected per quarter | [YOUR_ICP_SEGMENT_SIZE] potential customers |
+| Impact | Per-user value delta | Revenue impact per account x LTV multiplier |
+| Confidence | Data quality level | Higher if supported by pricing validation data |
+| Effort | Person-months | Include GTM effort (sales cycles, onboarding) for business initiatives |
+
+Set flag: `BUSINESS_FRAMING_GENERATED=true`
+
+ELSE (businessMode != true):
+  Skip silently. Display nothing. Continue to next step.
+  Set flag: `BUSINESS_FRAMING_GENERATED=false`
+
 Display: `Step 4/7: RICE scoring complete. {N} candidates scored. Sensitivity analysis: {included|skipped}.`
 
 ---
@@ -347,9 +412,11 @@ Enhanced By: "{Sequential Thinking MCP if used, or 'none'}"
    - Next: Score in top 60% OR depends on Now items
    - Later: Remaining items AND fragile items from sensitivity analysis; re-evaluate quarterly
    ```
-8. `## Scenario Models` — one subsection per sensitivity scenario with rank-change table and finding narrative (omit if --quick)
-9. `## Assumptions and Caveats` — key assumptions underlying the scores, data quality notes
-10. `## Version History` — version table with date, changes, candidate count; Score Changes table (for v2+)
+8. IF businessMode == true AND BUSINESS_FRAMING_GENERATED == true:
+   `## Business Initiative Framing` — the full unit economics content generated in Step 4 (Core Unit Economics Inputs table, Payback Period at 3 Churn Scenarios table, RICE Score Business Context table)
+9. `## Scenario Models` — one subsection per sensitivity scenario with rank-change table and finding narrative (omit if --quick)
+10. `## Assumptions and Caveats` — key assumptions underlying the scores, data quality notes
+11. `## Version History` — version table with date, changes, candidate count; Score Changes table (for v2+)
 
 **Footer:**
 
@@ -466,18 +533,18 @@ COV=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design coverage-check)
 if [[ "$COV" == @file:* ]]; then COV=$(cat "${COV#@file:}"); fi
 ```
 
-Parse the JSON result. Extract all 16 flags (default absent flags to `false`):
+Parse the JSON result. Extract all 20 flags (default absent flags to `false`):
 
-- Canonical 16-field order: `hasDesignSystem`, `hasWireframes`, `hasFlows`, `hasHardwareSpec`, `hasCritique`, `hasIterate`, `hasHandoff`, `hasIdeation`, `hasCompetitive`, `hasOpportunity`, `hasMockup`, `hasHigAudit`, `hasRecommendations`, `hasStitchWireframes`, `hasPrintCollateral`, `hasProductionBible`
+- `hasDesignSystem`, `hasWireframes`, `hasFlows`, `hasHardwareSpec`, `hasCritique`, `hasIterate`, `hasHandoff`, `hasIdeation`, `hasCompetitive`, `hasOpportunity`, `hasMockup`, `hasHigAudit`, `hasRecommendations`, `hasStitchWireframes`, `hasPrintCollateral`, `hasProductionBible`, `hasBusinessThesis`, `hasMarketLandscape`, `hasServiceBlueprint`, `hasLaunchKit`
 
-Then write the FULL 16-field JSON, setting `hasOpportunity` to `true` and passing all other flags through unchanged:
+Then write the FULL 20-field JSON, setting `hasOpportunity` to `true` and passing all other flags through unchanged:
 
 ```bash
 node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage \
-  '{"hasDesignSystem":{current},"hasWireframes":{current},"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":true,"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":{current},"hasPrintCollateral":{current},"hasProductionBible":{current}}'
+  '{"hasDesignSystem":{current},"hasWireframes":{current},"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":true,"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":{current},"hasPrintCollateral":{current},"hasProductionBible":{current},"hasBusinessThesis":{current},"hasMarketLandscape":{current},"hasServiceBlueprint":{current},"hasLaunchKit":{current}}'
 ```
 
-**IMPORTANT:** Replace each `{current}` placeholder with the actual boolean value read from coverage-check. NEVER use dot-notation for this field. ALWAYS write all 16 fields. The canonical field order is: hasDesignSystem, hasWireframes, hasFlows, hasHardwareSpec, hasCritique, hasIterate, hasHandoff, hasIdeation, hasCompetitive, hasOpportunity, hasMockup, hasHigAudit, hasRecommendations, hasStitchWireframes, hasPrintCollateral, hasProductionBible.
+**IMPORTANT:** Replace each `{current}` placeholder with the actual boolean value read from coverage-check. NEVER use dot-notation for this field. ALWAYS write all 20 fields. The canonical field order is: hasDesignSystem, hasWireframes, hasFlows, hasHardwareSpec, hasCritique, hasIterate, hasHandoff, hasIdeation, hasCompetitive, hasOpportunity, hasMockup, hasHigAudit, hasRecommendations, hasStitchWireframes, hasPrintCollateral, hasProductionBible, hasBusinessThesis, hasMarketLandscape, hasServiceBlueprint, hasLaunchKit.
 
 Display: `Step 7/7: Root DESIGN-STATE and manifest updated. hasOpportunity: true.`
 
@@ -504,7 +571,7 @@ Display the final summary table (always the last output):
 
 ## Anti-Patterns (Guard Against)
 
-- NEVER skip coverage-check before writing designCoverage. Always read existing flags and pass them all through. Writing only `{"hasOpportunity":true}` will erase the other 15 flags.
+- NEVER skip coverage-check before writing designCoverage. Always read existing flags and pass them all through. Writing only `{"hasOpportunity":true}` will erase the other 19 flags.
 - NEVER use dot-notation with `manifest-set-top-level` (e.g., `manifest-set-top-level designCoverage.hasOpportunity true` is WRONG). Always pass the full JSON object.
 - NEVER show only score changes in sensitivity analysis — must show rank changes for ALL candidates per scenario (not just the one being varied).
 - NEVER hard-fail when Sequential Thinking MCP is unavailable. The skill MUST complete with standard scoring. Sequential Thinking is an enhancement, not a requirement.
@@ -512,6 +579,9 @@ Display the final summary table (always the last output):
 - NEVER write to root DESIGN-STATE.md without first acquiring the write lock via `pde-tools.cjs design lock-acquire`. ALWAYS release the lock even if an error occurs.
 - NEVER overwrite an existing versioned OPP artifact. Always increment version (v1 → v2 → v3).
 - Sensitivity scenarios MUST recompute ALL candidates (not just the one being varied) to produce correct rank deltas. Rank change is relative to the full re-ranked list, not a simple score comparison.
+- NEVER generate specific dollar amounts in the Business Initiative Framing section. Use [YOUR_X] [VERIFY FINANCIAL ASSUMPTIONS] format for all financial values.
+- NEVER include the Business Initiative Framing section when businessMode is false. The BUSINESS_FRAMING_GENERATED flag must gate both the Step 4 generation AND the Step 5 artifact section inclusion.
+- NEVER write designCoverage with fewer than 20 fields. The 16-field version is a regression from Phase 84. Always include hasBusinessThesis, hasMarketLandscape, hasServiceBlueprint, hasLaunchKit alongside the original 16 fields.
 
 </process>
 
