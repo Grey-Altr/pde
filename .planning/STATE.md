@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.12
 milestone_name: Business Product Type
 status: unknown
-stopped_at: Completed 86-01-PLAN.md — MLS artifact + Mermaid quadrant + 20-field coverage added to competitive.md
-last_updated: "2026-03-22T16:07:11.551Z"
+stopped_at: Completed 87-01-PLAN.md — SBP/GTM generation added to flows.md, 10/10 Nyquist tests pass
+last_updated: "2026-03-22T16:40:15.428Z"
 progress:
   total_phases: 11
   completed_phases: 3
-  total_plans: 6
-  completed_plans: 6
+  total_plans: 8
+  completed_plans: 7
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-22)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 86 — competitive-opportunity-extensions
+**Current focus:** Phase 87 — flows-stage
 
 ## Current Position
 
-Phase: 86 (competitive-opportunity-extensions) — COMPLETE
-Plan: 2 of 2
+Phase: 87 (flows-stage) — EXECUTING
+Plan: 1 of 2
 
 ## Performance Metrics
 
@@ -44,6 +44,7 @@ Plan: 2 of 2
 | Phase 85 P02 | 5 | 2 tasks | 2 files |
 | Phase 86 P02 | 3 | 2 tasks | 2 files |
 | Phase 86 P01 | 297 | 2 tasks | 2 files |
+| Phase 87-flows-stage P01 | 3 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -74,6 +75,9 @@ Recent decisions affecting v0.12:
 - [Phase 86]: [86-02] opportunity.md 20-field designCoverage write replaces 16-field version in-place — no migration needed, consistent with Phase 85 brief.md pattern
 - [Phase 86]: MLS artifact is SEPARATE from CMP artifact — MLS-market-landscape-v{N}.md not embedded in CMP; locked versioning (MLS version always equals CMP version)
 - [Phase 86]: designCoverage upgraded from 16 to 20 fields in competitive.md; MLS_WRITTEN flag gates hasMarketLandscape coverage field
+- [Phase 87-flows-stage]: Steps 4f/4g inserted as sub-steps of Step 4 — step count stays at 7, consistent with Phase 85 and 86 patterns
+- [Phase 87-flows-stage]: SBP domain is strategy/ (not ux/) — service blueprints are business strategy artifacts, not UX artifacts
+- [Phase 87-flows-stage]: 20-field designCoverage upgraded in Plan 01 (not deferred to Plan 02) — OPS-03 complete, reduces Plan 02 scope
 
 ### Pending Todos
 
@@ -86,8 +90,8 @@ Recent decisions affecting v0.12:
 
 ## Session Continuity
 
-Last session: 2026-03-22T16:04:11.220Z
-Stopped at: Completed 86-01-PLAN.md — MLS artifact + Mermaid quadrant + 20-field coverage added to competitive.md
+Last session: 2026-03-22T16:40:15.425Z
+Stopped at: Completed 87-01-PLAN.md — SBP/GTM generation added to flows.md, 10/10 Nyquist tests pass
 Resume file: None
 
 Next action: Execute Phase 85 (Brief Skill)
