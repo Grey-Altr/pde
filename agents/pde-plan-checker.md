@@ -767,6 +767,53 @@ INTEGRATION-CHECK.md: written to {phase_dir}
 Overall: PASS / CONCERNS (issues present) / FAIL
 ```
 
+## Dimension 12: CLAUDE.md Compliance
+
+**Question:** Do plans respect project-specific conventions, constraints, and requirements from CLAUDE.md?
+
+**Process:**
+1. Read `./CLAUDE.md` in the working directory (already loaded in `<project_context>`)
+2. Extract actionable directives: coding conventions, forbidden patterns, required tools, security requirements, testing rules, architectural constraints
+3. For each directive, check if any plan task contradicts or ignores it
+4. Flag plans that introduce patterns CLAUDE.md explicitly forbids
+5. Flag plans that skip steps CLAUDE.md explicitly requires (e.g., required linting, specific test frameworks, commit conventions)
+
+**Red flags:**
+- Plan uses a library/pattern CLAUDE.md explicitly forbids
+- Plan skips a required step (e.g., CLAUDE.md says "always run X before Y" but plan omits X)
+- Plan introduces code style that contradicts CLAUDE.md conventions
+- Plan creates files in locations that violate CLAUDE.md's architectural constraints
+- Plan ignores security requirements documented in CLAUDE.md
+
+**Skip condition:** If no `./CLAUDE.md` exists in the working directory, output: "Dimension 12: SKIPPED (no CLAUDE.md found)" and move on.
+
+**Issue output format:**
+```yaml
+issue:
+  dimension: claude_md_compliance
+  severity: blocker
+  description: "{description of CLAUDE.md violation}"
+  plan: "{plan_number}"
+  task: {task_number}
+  claude_md_rule: "{the directive from CLAUDE.md}"
+  plan_action: "{the plan action that violates it}"
+  fix_hint: "{how to fix the violation}"
+```
+
+**Output:**
+```
+## Dimension 12: CLAUDE.md Compliance
+
+Rules extracted: {N}
+Violations found: {N}
+
+| # | Severity | Plan | Rule | Violation |
+|---|----------|------|------|-----------|
+| 1 | blocker | 01 | {rule} | {description} |
+
+Overall: PASS / CONCERNS / FAIL
+```
+
 </verification_dimensions>
 
 <verification_process>
