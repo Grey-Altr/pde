@@ -1393,6 +1393,55 @@ IF PRODUCT_TYPE is "experience":
   Decision Log row: `| BIB | production bible v{BIB_VERSION} generated, experience sub-type: {experienceSubType} | {YYYY-MM-DD} |`
   Iteration History row: `| BIB-{event-slug}-v{BIB_VERSION}.md | v{BIB_VERSION} | Created by /pde:handoff | {YYYY-MM-DD} |`
 
+#### 7b-lkt. Register LKT/CNT/OTR artifacts in manifest (business mode only)
+
+IF LKT_GENERATED is NOT true: SKIP Step 7b-lkt entirely. LKT/CNT/OTR artifacts are only registered for business mode runs. Non-business products must never reach this step.
+
+IF LKT_GENERATED is true:
+
+Register LKT artifact (7 calls):
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update LKT code LKT
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update LKT name "Launch Kit Manifest"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update LKT type launch-kit
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update LKT domain launch
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update LKT path ".planning/design/launch/"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update LKT status complete
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update LKT version ${LKT_VERSION}
+```
+
+Register CNT artifact (7 calls):
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update CNT code CNT
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update CNT name "Content Calendar"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update CNT type content-calendar
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update CNT domain launch
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update CNT path ".planning/design/launch/"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update CNT status complete
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update CNT version ${CNT_VERSION}
+```
+
+Register OTR artifact (7 calls):
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update OTR code OTR
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update OTR name "Outreach Sequences"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update OTR type outreach-sequences
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update OTR domain launch
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update OTR path ".planning/design/launch/"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update OTR status complete
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update OTR version ${OTR_VERSION}
+```
+
+Display: `Step 7/7 (7b-lkt): LKT, CNT, OTR registered in manifest.`
+
+Also update Step 7a DESIGN-STATE.md for business mode products — add rows under IF LKT_GENERATED guard:
+
+```
+| LKT | Launch Kit Manifest | /pde:handoff | complete | v{LKT_VERSION} | none | BTH,LCV,CMP,MLS,OPP,SBP,GTM,MKT,LDP,STR,DPD | {YYYY-MM-DD} |
+| CNT | Content Calendar | /pde:handoff | complete | v{CNT_VERSION} | none | GTM | {YYYY-MM-DD} |
+| OTR | Outreach Sequences | /pde:handoff | complete | v{OTR_VERSION} | none | BTH,MKT,DPD | {YYYY-MM-DD} |
+```
+
 #### 7c. Set coverage flag (CRITICAL — read-before-set to prevent clobber)
 
 ```bash
@@ -1465,6 +1514,16 @@ IF PRODUCT_TYPE is "experience":
 IF PRODUCT_TYPE is NOT "experience":
   Display: `Step 7/7: Manifest updated. Coverage: hasHandoff = true. Done.`
 
+IF `$BM == "true"`:
+  Append to summary table:
+  | Launch Kit | .planning/design/launch/LKT-launch-kit-v{LKT_VERSION}.md |
+  | Content Calendar | .planning/design/launch/CNT-content-calendar-v{CNT_VERSION}.md |
+  | Outreach Sequences | .planning/design/launch/OTR-outreach-sequences-v{OTR_VERSION}.md |
+  | Business Track | {$BT} |
+  | Artifacts Catalogued | {BUSINESS_ARTIFACT_COUNT}/11 |
+
+  Display: `Step 7/7: Manifest updated. Coverage: hasHandoff = true, hasLaunchKit = true. Done.`
+
 ---
 
 ## Anti-Patterns
@@ -1503,6 +1562,14 @@ NEVER do any of the following:
 
 - **Skip software handoff for hybrid-event:** When experienceSubType is "hybrid-event", BOTH the production bible AND the software handoff spec must be generated. The hybrid-event is the ONLY experience sub-type that produces HND-handoff-spec and HND-types files alongside the BIB document. Omitting the software handoff for hybrid-event leaves the digital ticketing/app layer without implementation specs.
 
+- **Generate LKT/CNT/OTR for non-business products:** Steps 4k, 4l, 4m, 5e, and 7b-lkt are gated on `$BM == "true"`. Non-business products (businessMode false or absent) must NEVER generate launch kit artifacts. The independent IF block pattern (not ELSE IF from experience/hardware gates) ensures business:experience compositions run both paths correctly.
+
+- **Use real company names in OTR email sequences:** All email content must use structural placeholders (`[YOUR_PRODUCT_NAME]`, `[YOUR_COMPANY_NAME]`, `[YOUR_FROM_ADDRESS]`). Never extract actual names from the brief for email body content.
+
+- **Generate investor outreach without pitch deck:** The investor outreach sequence (3 emails) in OTR is gated on DPD artifact availability. If DPD-pitch-deck is not found via Glob, emit a note and skip investor sequence generation.
+
+- **Re-acquire write lock in Step 5e:** Step 5e runs under the existing lock from Step 5a. Do NOT call lock-acquire again — this will deadlock. The lock window covers Steps 5b through 5e, with 5d (release) always running last.
+
 </process>
 
 <output>
@@ -1513,4 +1580,7 @@ Files produced by /pde:handoff:
 - `.planning/design/handoff/DESIGN-STATE.md` — handoff domain state: HND artifact row in Artifact Index with upstream dependencies listed
 - `.planning/design/DESIGN-STATE.md` — root state updated: Pipeline Progress marks Handoff complete, Decision Log and Iteration History rows appended
 - `.planning/design/design-manifest.json` — manifest updated with HND artifact entry and hasHandoff: true in designCoverage (all 20 fields preserved via read-before-set); business mode additionally registers LKT, CNT, OTR artifacts and sets hasLaunchKit: true
+- `.planning/design/launch/LKT-launch-kit-v{N}.md` — launch kit manifest with artifact registry, deployment readiness, and domain strategy (business mode only)
+- `.planning/design/launch/CNT-content-calendar-v{N}.md` — 30-day pre-launch/launch/post-launch content calendar skeleton (business mode only)
+- `.planning/design/launch/OTR-outreach-sequences-v{N}.md` — Resend-compatible onboarding and investor outreach email sequences (business mode only)
 </output>
