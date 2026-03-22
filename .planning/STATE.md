@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.12
 milestone_name: Business Product Type
-status: ready_to_plan
-stopped_at: Roadmap created — ready to plan Phase 84
-last_updated: "2026-03-22T02:00:00.000Z"
+status: in-progress
+stopped_at: "Completed 84-01-PLAN.md — manifest schema extended, launch/ dir added, test scaffold created"
+last_updated: "2026-03-22T14:20:20.660Z"
 progress:
   total_phases: 11
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 2
+  completed_plans: 1
 ---
 
 # Project State
@@ -19,16 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-22)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** v0.12 Business Product Type — Phase 84: Foundation
+**Current focus:** Phase 84 — foundation
 
 ## Current Position
 
-Phase: 84 of 94 (Foundation)
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-03-22 — Roadmap created for v0.12
-
-Progress: [░░░░░░░░░░] 0%
+Phase: 84 (foundation) — EXECUTING
+Plan: 2 of 2
 
 ## Performance Metrics
 
@@ -42,7 +38,7 @@ Progress: [░░░░░░░░░░] 0%
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
+| 84-01 | 1 | 3 tasks | 3 min |
 
 ## Accumulated Context
 
@@ -51,10 +47,15 @@ Progress: [░░░░░░░░░░] 0%
 Decisions are logged in PROJECT.md Key Decisions table.
 
 Recent decisions affecting v0.12:
+
 - business: is orthogonal boolean flag (`businessMode` + `businessTrack`) not a new productType enum value — prevents 14-workflow rewrite if discovered late
 - Financial and legal content always uses structural placeholders — disclaimer reference files created in Phase 84 before any workflow is authored
 - designCoverage grows from 16 to 20 fields — manifest template updated in Phase 84 before any workflow author can write partial coverage objects
 - Phase 93 absorbs recommend/iterate/mockup guard stubs alongside INTG-01/INTG-08 audit — no orphan requirements
+- [84-01] businessMode is boolean false not string — matches manifest schema convention for boolean flags
+- [84-01] businessTrack uses pipe-separated string comment pattern consistent with experienceSubType
+- [84-01] 4 new designCoverage fields appended after hasProductionBible to preserve all 16 existing field positions
+- [84-01] launch/ appended as 10th DOMAIN_DIRS element — 9 existing dirs unchanged
 
 ### Pending Todos
 
@@ -68,7 +69,7 @@ Recent decisions affecting v0.12:
 ## Session Continuity
 
 Last session: 2026-03-22
-Stopped at: v0.12 roadmap created — 11 phases (84-94), 59 requirements mapped
+Stopped at: "Completed 84-01-PLAN.md — manifest schema extended, launch/ dir added, test scaffold created"
 Resume file: None
 
-Next action: `/pde:plan-phase 84`
+Next action: Execute 84-02-PLAN.md

@@ -390,7 +390,7 @@ Plans:
 | 64-69 | v0.9 | 12/12 | Complete | 2026-03-21 |
 | 70-73 | v0.10 | 8/8 | Complete | 2026-03-21 |
 | 74-83 | v0.11 | 19/19 | Complete | 2026-03-22 |
-| 84. Foundation | v0.12 | 0/2 | In progress | - |
+| 84. Foundation | 1/2 | In Progress|  | - |
 | 85. Brief Extensions + Detection | v0.12 | 0/TBD | Not started | - |
 | 86. Competitive + Opportunity Extensions | v0.12 | 0/TBD | Not started | - |
 | 87. Flows Stage | v0.12 | 0/TBD | Not started | - |
