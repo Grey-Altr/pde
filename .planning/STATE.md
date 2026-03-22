@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.12
 milestone_name: Business Product Type
 status: unknown
-stopped_at: Completed 89-01-PLAN.md — wireframe.md businessMode detection + LDP generation + 20-field designCoverage upgrade, 7/11 Nyquist tests green
-last_updated: "2026-03-22T18:48:00.000Z"
+stopped_at: Completed 89-02-PLAN.md — wireframe.md STR/DPD artifact generation + DESIGN-STATE wiring, 11/11 Nyquist tests GREEN
+last_updated: "2026-03-22T18:37:52.563Z"
 progress:
   total_phases: 11
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 11
-  completed_plans: 10
+  completed_plans: 11
 ---
 
 # Project State
@@ -47,6 +47,7 @@ Plan: 2 of 2
 | Phase 87-flows-stage P01 | 3 | 2 tasks | 2 files |
 | Phase 87 P02 | 4 | 1 tasks | 1 files |
 | Phase 88-brand-system P01 | 3 | 2 tasks | 3 files |
+| Phase 89 P02 | 8 | 2 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -89,6 +90,9 @@ Recent decisions affecting v0.12:
 - [Phase 89-wireframe 01]: LDP artifact routes to launch/ directory (not ux/) — consistent with LAUNCH-06 and Phase 84 domain routing decisions
 - [Phase 89-wireframe 01]: hasLaunchKit passes through current value in wireframe.md — that flag is owned by Phase 91 handoff.md
 - [Phase 89-wireframe 01]: LAUNCH-06 Nyquist test checks all 3 launch/ paths in one assertion — remains RED until Plan 02 adds STR and DPD
+- [Phase 89]: STR unit_amount always string '[YOUR_PRICE_IN_CENTS]' — grep [1-9] pattern (not [0-9]) allows unit_amount:0 for free tiers
+- [Phase 89]: Step 7e-launch reuses existing Step 7a lock window — no second lock-acquire pde-wireframe introduced
+- [Phase 89]: DPD funding signal detection defaults to yc_10 when BTH/BRF absent — safe degradation for startup_team track
 
 ### Pending Todos
 
@@ -101,8 +105,8 @@ Recent decisions affecting v0.12:
 
 ## Session Continuity
 
-Last session: 2026-03-22T18:48:00.000Z
-Stopped at: Completed 89-01-PLAN.md — wireframe.md businessMode detection + LDP generation + 20-field designCoverage upgrade, 7/11 Nyquist tests green
+Last session: 2026-03-22T18:37:52.560Z
+Stopped at: Completed 89-02-PLAN.md — wireframe.md STR/DPD artifact generation + DESIGN-STATE wiring, 11/11 Nyquist tests GREEN
 Resume file: None
 
 Next action: Execute Phase 85 (Brief Skill)

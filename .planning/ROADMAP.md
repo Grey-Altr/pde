@@ -204,7 +204,7 @@ Full details: .planning/milestones/v0.11-ROADMAP.md
 - [x] **Phase 86: Competitive + Opportunity Extensions** — Market landscape, positioning matrix, business RICE scoring (completed 2026-03-22)
 - [x] **Phase 87: Flows Stage** — Service blueprint and GTM channel flow artifacts (completed 2026-03-22)
 - [x] **Phase 88: Brand System** — Marketing brand system with positioning statement and tone of voice (completed 2026-03-22)
-- [ ] **Phase 89: Wireframe Stage Launch Artifacts** — Landing page wireframe, Stripe pricing config, pitch deck outline
+- [x] **Phase 89: Wireframe Stage Launch Artifacts** — Landing page wireframe, Stripe pricing config, pitch deck outline (completed 2026-03-22)
 - [ ] **Phase 90: Critique + HIG Extensions** — Business critique perspectives and business communications HIG
 - [ ] **Phase 91: Handoff — Launch Kit Assembly** — Launch kit manifest, content calendar, email sequence artifacts
 - [ ] **Phase 92: Deploy Skill** — Stage 14 with four approval-gated deployment actions and /pde:deploy command
@@ -395,7 +395,7 @@ Plans:
 | 86. Competitive + Opportunity Extensions | 2/2 | Complete    | 2026-03-22 | - |
 | 87. Flows Stage | 2/2 | Complete    | 2026-03-22 | - |
 | 88. Brand System | 1/1 | Complete    | 2026-03-22 | - |
-| 89. Wireframe Stage Launch Artifacts | 1/2 | In Progress|  | - |
+| 89. Wireframe Stage Launch Artifacts | 2/2 | Complete   | 2026-03-22 | - |
 | 90. Critique + HIG Extensions | v0.12 | 0/TBD | Not started | - |
 | 91. Handoff — Launch Kit Assembly | v0.12 | 0/TBD | Not started | - |
 | 92. Deploy Skill | v0.12 | 0/TBD | Not started | - |

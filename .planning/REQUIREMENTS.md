@@ -51,10 +51,10 @@ Requirements for the business product type milestone. Each maps to roadmap phase
 ### Launch Artifacts
 
 - [x] **LAUNCH-01**: `wireframe.md` produces LDP (Landing Page) artifact in deployable-spec format with Next.js component mapping (hero, features, pricing, CTA, footer sections)
-- [ ] **LAUNCH-02**: STR (Stripe Pricing Config) artifact generated with Stripe-compatible schema (product names, price amounts as placeholders, billing intervals, trial periods, checkout mode)
-- [ ] **LAUNCH-03**: Pitch deck outline generated in YC/Sequoia format (10-slide default, expandable to 13) with track-specific depth (solo: 10 slides, startup: 12-15, leader: internal business case format)
+- [x] **LAUNCH-02**: STR (Stripe Pricing Config) artifact generated with Stripe-compatible schema (product names, price amounts as placeholders, billing intervals, trial periods, checkout mode)
+- [x] **LAUNCH-03**: Pitch deck outline generated in YC/Sequoia format (10-slide default, expandable to 13) with track-specific depth (solo: 10 slides, startup: 12-15, leader: internal business case format)
 - [x] **LAUNCH-04**: Landing page wireframe consumes brand system tokens (Phase 5) and GTM flow (Phase 4) for copy framing
-- [ ] **LAUNCH-05**: Pricing config references Lean Canvas revenue streams block and competitive pricing landscape
+- [x] **LAUNCH-05**: Pricing config references Lean Canvas revenue streams block and competitive pricing landscape
 - [x] **LAUNCH-06**: All launch artifacts stored in `.planning/design/launch/` directory, not in `ux/` or `visual/`
 
 ### Quality Review
@@ -161,10 +161,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | BRAND-02 | 88 | Complete |
 | BRAND-03 | 88 | Complete |
 | LAUNCH-01 | 89 | Complete |
-| LAUNCH-02 | 89 | Pending |
-| LAUNCH-03 | 89 | Pending |
+| LAUNCH-02 | 89 | Complete |
+| LAUNCH-03 | 89 | Complete |
 | LAUNCH-04 | 89 | Complete |
-| LAUNCH-05 | 89 | Pending |
+| LAUNCH-05 | 89 | Complete |
 | LAUNCH-06 | 89 | Complete |
 | QUAL-01 | 90 | Pending |
 | QUAL-02 | 90 | Pending |
