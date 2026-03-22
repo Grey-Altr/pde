@@ -17,10 +17,10 @@ created: 2026-03-22
 
 | Property | Value |
 |----------|-------|
-| **Framework** | bash + grep assertions (Nyquist shell tests) |
-| **Config file** | `.planning/phases/89-wireframe-stage-launch-artifacts/tests/` |
-| **Quick run command** | `bash .planning/phases/89-wireframe-stage-launch-artifacts/tests/run-tests.sh` |
-| **Full suite command** | `bash .planning/phases/89-wireframe-stage-launch-artifacts/tests/run-tests.sh` |
+| **Framework** | node:test (Node.js built-in test runner) |
+| **Config file** | `.planning/phases/89-wireframe-stage-launch-artifacts/tests/test-wireframe-launch.cjs` |
+| **Quick run command** | `node --test .planning/phases/89-wireframe-stage-launch-artifacts/tests/test-wireframe-launch.cjs` |
+| **Full suite command** | `node --test .planning/phases/89-wireframe-stage-launch-artifacts/tests/test-wireframe-launch.cjs` |
 | **Estimated runtime** | ~5 seconds |
 
 ---
@@ -54,13 +54,7 @@ created: 2026-03-22
 
 ## Wave 0 Requirements
 
-- [ ] `tests/run-tests.sh` — test runner scaffold
-- [ ] `tests/test-launch-01-ldp.sh` — LDP artifact structure assertions
-- [ ] `tests/test-launch-02-str.sh` — STR artifact structure assertions
-- [ ] `tests/test-launch-03-dpd.sh` — DPD artifact structure assertions
-- [ ] `tests/test-launch-04-cross-refs.sh` — brand token and GTM cross-reference assertions
-- [ ] `tests/test-launch-05-pricing-refs.sh` — LCV and competitive pricing reference assertions
-- [ ] `tests/test-launch-06-directory.sh` — launch/ directory routing assertion
+- [ ] `tests/test-wireframe-launch.cjs` — unified Nyquist test file covering LAUNCH-01 through LAUNCH-06 (businessMode detection, LDP/STR/DPD artifact structure, cross-references, directory routing, 20-field designCoverage)
 
 *Existing infrastructure covers designCoverage 20-field pattern from Phases 85-88.*
 
