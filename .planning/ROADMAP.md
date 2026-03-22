@@ -343,8 +343,8 @@ Plans:
   7. `deploy-manifest.json` tracks all deployment artifact statuses with `review_required: true` per artifact
 **Plans**: 2 plans
 Plans:
-- [ ] 89-01-PLAN.md — Test scaffold, LDP schema in launch-frameworks.md, businessMode detection, LDP generation, 20-field coverage
-- [ ] 84-02-PLAN.md — Business reference files (track, frameworks, financial/legal disclaimers)
+- [ ] 92-01-PLAN.md — Test scaffold + workflows/deploy.md (Stage 14 workflow with 4 approval gates, scaffold generation, Vercel deploy)
+- [ ] 92-02-PLAN.md — commands/deploy.md slash command + build.md Stage 14 STAGES entry with businessMode gate
 
 ### Phase 93: designCoverage Clobber Audit + Secondary Workflow Stubs
 **Goal**: Every workflow that writes designCoverage includes all 20 fields in its write call, and all remaining workflows (recommend, iterate, mockup) have business-mode guard stubs
