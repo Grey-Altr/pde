@@ -193,7 +193,7 @@ Full details: .planning/milestones/v0.11-ROADMAP.md
 
 ---
 
-### 🚧 v0.12 Business Product Type (In Progress)
+### v0.12 Business Product Type (In Progress)
 
 **Milestone Goal:** Transform PDE into a venture design engine by adding a `business:` orthogonal dimension that layers on top of all existing product types — producing executable launch artifacts (landing page, Stripe config, content calendar, email sequences) through a 14-stage pipeline with mandatory human approval gates at every deployment step.
 
@@ -255,8 +255,8 @@ Plans:
   5. Market landscape output depth visibly differs between solo_founder (1-page summary), startup_team (competitive deep-dive), and product_leader (build-vs-buy analysis) tracks
 **Plans**: 2 plans
 Plans:
-- [ ] 84-01-PLAN.md — Manifest schema extension + design.cjs launch dir + test scaffold
-- [ ] 84-02-PLAN.md — Business reference files (track, frameworks, financial/legal disclaimers)
+- [ ] 86-01-PLAN.md — MLS artifact, Mermaid quadrant chart, track depth, 20-field coverage in competitive.md
+- [ ] 86-02-PLAN.md — Business initiative framing with unit economics in opportunity.md
 
 ### Phase 87: Flows Stage
 **Goal**: Users in business mode get operational design artifacts — a 5-lane service blueprint and GTM channel flow — that anchor content calendar and email sequence generation downstream
@@ -392,7 +392,7 @@ Plans:
 | 74-83 | v0.11 | 19/19 | Complete | 2026-03-22 |
 | 84. Foundation | 2/2 | Complete    | 2026-03-22 | - |
 | 85. Brief Extensions + Detection | 2/2 | Complete    | 2026-03-22 | - |
-| 86. Competitive + Opportunity Extensions | v0.12 | 0/TBD | Not started | - |
+| 86. Competitive + Opportunity Extensions | v0.12 | 0/2 | Not started | - |
 | 87. Flows Stage | v0.12 | 0/TBD | Not started | - |
 | 88. Brand System | v0.12 | 0/TBD | Not started | - |
 | 89. Wireframe Stage Launch Artifacts | v0.12 | 0/TBD | Not started | - |
