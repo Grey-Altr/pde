@@ -56,6 +56,8 @@ ELSE:
 @references/skill-style-guide.md
 @references/mcp-integration.md
 @references/strategy-frameworks.md
+@references/business-track.md
+@references/business-financial-disclaimer.md
 </required_reading>
 
 <flags>
@@ -227,6 +229,19 @@ This is the core logic of the skill. Apply confidence labels to EVERY factual co
 
 ---
 
+**Business Mode Detection:**
+
+Before beginning analysis, read business mode status from manifest:
+
+```bash
+BM=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-get-top-level businessMode 2>/dev/null)
+BT=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-get-top-level businessTrack 2>/dev/null)
+```
+
+Cache `$BM` and `$BT` for use in Steps 4i, 4j, 5, and 7.
+
+---
+
 **CONFIDENCE LABELS (apply to EVERY factual competitor claim throughout Step 4):**
 
 ```
@@ -352,6 +367,96 @@ Based on gap analysis and positioning maps, produce priority-ordered strategic r
 - Impact estimate: High / Med / Low
 - Rationale (why this matters competitively)
 
+#### 4i. Market Landscape Sizing (business mode only)
+
+IF businessMode == true AND businessTrack is not null:
+
+Generate a TAM/SAM/SOM market landscape sizing section. This content will be written to a SEPARATE MLS artifact (not inside the CMP artifact).
+
+**All market sizing values MUST use structural placeholders per @references/business-financial-disclaimer.md. NEVER generate specific dollar amounts for TAM, SAM, or SOM.**
+
+IF businessTrack == "solo_founder":
+  Generate a 1-page summary format:
+  - Simple 3-row TAM/SAM/SOM table with [YOUR_TAM_SIZE], [YOUR_SAM_SIZE], [YOUR_SOM_SIZE] placeholders
+  - Each row has: Market Level, Definition (1 sentence), Size Estimate (placeholder), Sources ([Source required])
+  - 1 paragraph of qualitative market trend context (no dollar amounts)
+  - Bottom-up methodology note: [YOUR_UNIT_PRICE] x [YOUR_ADDRESSABLE_USERS] = SOM baseline
+  - Limit to 3 competing tools in analysis context
+
+IF businessTrack == "startup_team":
+  Generate a competitive deep-dive format:
+  - Full TAM/SAM/SOM table with methodology columns (top-down AND bottom-up)
+  - Each row has: Market Level, Definition, Size Estimate ([YOUR_X] [VERIFY FINANCIAL ASSUMPTIONS]), Methodology, Sources ([Source required])
+  - Top-down methodology section: Industry total -> segment filter -> geographic scope -> product category
+  - Bottom-up methodology section: [YOUR_UNIT_PRICE] x [YOUR_ADDRESSABLE_USERS] = SOM, extrapolate to SAM/TAM
+  - Reconciliation note: "Credible investor presentations show both approaches"
+  - Market trend context with segment analysis (no dollar amounts)
+  - 5-8 competitors in competitive landscape context
+
+IF businessTrack == "product_leader":
+  Generate a build-vs-buy analysis format:
+  - Full TAM/SAM/SOM table (same as startup_team depth)
+  - Build vs. Buy Decision Matrix table:
+    | Alternative | Category | Core Capability | Integration Effort | TCO [VERIFY FINANCIAL ASSUMPTIONS] | Differentiating? |
+    Rows for each major competitor + "Build in-house" row
+    TCO values use [YOUR_TCO_VENDOR_X] placeholders
+  - Recommendation Framework:
+    "Build when: Core to competitive differentiation AND in-house expertise exists AND long-term maintenance cost < vendor TCO"
+    "Buy when: Commodity capability AND vendor roadmap aligns AND integration < build cost"
+  - Initiative ROI Placeholder table:
+    | Metric | Value |
+    Expected ROI: [YOUR_INITIATIVE_ROI] [VERIFY FINANCIAL ASSUMPTIONS]
+    Payback Period: [YOUR_PAYBACK_PERIOD] months [VERIFY FINANCIAL ASSUMPTIONS]
+    P&L Impact: [YOUR_PL_IMPACT] [VERIFY FINANCIAL ASSUMPTIONS]
+    Success Metric: [YOUR_OKR_METRIC]
+  - 8+ market alternatives in stakeholder vocabulary, OKR framing
+
+Set flag: `MLS_CONTENT_GENERATED=true`
+
+ELSE (businessMode != true):
+  Skip silently. Display nothing. Continue to next step.
+  Set flag: `MLS_CONTENT_GENERATED=false`
+
+#### 4j. Competitive Positioning Matrix — Mermaid quadrant chart (business mode only)
+
+IF businessMode == true AND MLS_CONTENT_GENERATED == true:
+
+Generate a Mermaid `quadrantChart` using the SAME axis pairs already determined in Step 4d (do not select new axes).
+
+**Coordinate normalization:** Divide the 0-10 SVG scores from Step 4d by 10 to get 0-1 Mermaid coordinates: `mermaid_coord = svg_score / 10`.
+
+**Exact Mermaid syntax (verified against official docs):**
+
+```mermaid
+quadrantChart
+    title Competitive Positioning: {product_name}
+    x-axis {Low Axis Label} --> {High Axis Label}
+    y-axis {Low Axis Label} --> {High Axis Label}
+    quadrant-1 {top-right label}
+    quadrant-2 {top-left label}
+    quadrant-3 {bottom-left label}
+    quadrant-4 {bottom-right label}
+    Our Product: [{x/10}, {y/10}] radius: 14, color: #2563eb
+    {Competitor A}: [{x/10}, {y/10}]
+    {Competitor B}: [{x/10}, {y/10}]
+```
+
+**Quadrant layout:** quadrant-1=top-right, quadrant-2=top-left, quadrant-3=bottom-left, quadrant-4=bottom-right.
+
+**Number of competitors on chart by track:**
+- solo_founder: 3 competitors (minimal labeling)
+- startup_team: 5-8 competitors (quadrant interpretation per segment)
+- product_leader: 8+ competitors (stakeholder vocabulary)
+
+After the Mermaid chart, include a **Differentiation Analysis** section interpreting:
+- Which quadrant "Our Product" occupies and why
+- Whitespace opportunities (empty or sparse quadrants)
+- Competitive cluster analysis (where competitors group)
+- Strategic positioning recommendation
+
+ELSE:
+  Skip silently. Continue to next step.
+
 Display: `Step 4/7: Competitive analysis complete. {N} competitors analyzed, {M} gaps identified.`
 
 ---
@@ -439,6 +544,53 @@ Include at least 3 Opportunity Highlights (more for deep scope). Each entry must
 
 Use the Write tool to create the artifact.
 
+**MLS Artifact Write (business mode only):**
+
+IF businessMode == true AND MLS_CONTENT_GENERATED == true:
+
+Write the market landscape analysis to `.planning/design/strategy/MLS-market-landscape-v{N}.md` where {N} matches the CMP version number (locked versioning — MLS version always equals CMP version).
+
+**YAML Frontmatter:**
+```yaml
+---
+Generated: "{ISO 8601 date}"
+Skill: /pde:competitive (MLS)
+Version: v{N}
+businessTrack: {solo_founder|startup_team|product_leader}
+dependsOn: CMP
+---
+```
+
+**Sections in order:**
+1. `# Market Landscape Sizing: {product_name}`
+2. `## TAM/SAM/SOM Overview` — the content generated in Step 4i
+3. `## Competitive Positioning Matrix` — the Mermaid quadrantChart from Step 4j
+4. `## Differentiation Analysis` — per-quadrant interpretation from Step 4j
+
+**Post-write verification (MANDATORY):**
+```bash
+if grep -qE '\$[0-9]' ".planning/design/strategy/MLS-market-landscape-v${N}.md" 2>/dev/null; then
+  echo "ERROR: Dollar amount detected in MLS artifact. Use [YOUR_X] placeholders only."
+  grep -nE '\$[0-9]' ".planning/design/strategy/MLS-market-landscape-v${N}.md"
+fi
+```
+
+**Register MLS artifact in manifest (7 calls):**
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update MLS name "Market Landscape Sizing"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update MLS type market-landscape
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update MLS domain strategy
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update MLS path ".planning/design/strategy/MLS-market-landscape-v{N}.md"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update MLS status draft
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update MLS version {N}
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update MLS dependsOn '["CMP"]'
+```
+
+Set flag: `MLS_WRITTEN=true`
+
+ELSE:
+  Set flag: `MLS_WRITTEN=false`
+
 Display:
 ```
 Step 5/7: Competitive artifact written.
@@ -467,6 +619,11 @@ The CMP row format:
 ```
 | CMP | Competitive Landscape Analysis | /pde:competitive | draft | v{N} | {comma-separated MCP names used, or "none"} | -- | {YYYY-MM-DD} |
 ```
+
+IF MLS_WRITTEN == true:
+  Add MLS entry to strategy domain DESIGN-STATE.md alongside CMP entry:
+  - Cross-Domain Dependency Map: `| MLS | Market Landscape Sizing | v{N} | CMP |`
+  - Iteration History: `| MLS | v{N} | Business market landscape sizing |`
 
 Display: `Step 6/7: Strategy DESIGN-STATE.md updated with CMP artifact entry.`
 
@@ -544,17 +701,19 @@ COV=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design coverage-check)
 if [[ "$COV" == @file:* ]]; then COV=$(cat "${COV#@file:}"); fi
 ```
 
-Parse the JSON result. Extract all 16 flags (default absent flags to `false`):
-- `hasDesignSystem`, `hasWireframes`, `hasFlows`, `hasHardwareSpec`, `hasCritique`, `hasIterate`, `hasHandoff`, `hasIdeation`, `hasCompetitive`, `hasOpportunity`, `hasMockup`, `hasHigAudit`, `hasRecommendations`, `hasStitchWireframes`, `hasPrintCollateral`, `hasProductionBible`
+Parse the JSON result. Extract all 20 flags (default absent flags to `false`):
+- `hasDesignSystem`, `hasWireframes`, `hasFlows`, `hasHardwareSpec`, `hasCritique`, `hasIterate`, `hasHandoff`, `hasIdeation`, `hasCompetitive`, `hasOpportunity`, `hasMockup`, `hasHigAudit`, `hasRecommendations`, `hasStitchWireframes`, `hasPrintCollateral`, `hasProductionBible`, `hasBusinessThesis`, `hasMarketLandscape`, `hasServiceBlueprint`, `hasLaunchKit`
 
-Then write the FULL 16-field JSON, setting `hasCompetitive` to `true` and passing all other flags through unchanged:
+Then write the FULL 20-field JSON, setting `hasCompetitive` to `true`, setting `hasMarketLandscape` to `true` if MLS_WRITTEN == true (else pass through current value), and passing all other flags through unchanged:
 
 ```bash
 node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage \
-  '{"hasDesignSystem":{current},"hasWireframes":{current},"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":true,"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":{current},"hasPrintCollateral":{current},"hasProductionBible":{current}}'
+  '{"hasDesignSystem":{current},"hasWireframes":{current},"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":true,"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":{current},"hasPrintCollateral":{current},"hasProductionBible":{current},"hasBusinessThesis":{current},"hasMarketLandscape":{MLS_WRITTEN_VALUE},"hasServiceBlueprint":{current},"hasLaunchKit":{current}}'
 ```
 
-**IMPORTANT:** Replace each `{current}` placeholder with the actual boolean value read from coverage-check. NEVER use dot-notation for this field. ALWAYS write all 16 fields. The canonical field order is: hasDesignSystem, hasWireframes, hasFlows, hasHardwareSpec, hasCritique, hasIterate, hasHandoff, hasIdeation, hasCompetitive, hasOpportunity, hasMockup, hasHigAudit, hasRecommendations, hasStitchWireframes, hasPrintCollateral, hasProductionBible.
+Where `{MLS_WRITTEN_VALUE}` is: `true` if MLS_WRITTEN == true, else pass through the current value from coverage-check.
+
+**IMPORTANT:** Replace each `{current}` placeholder with the actual boolean value read from coverage-check. NEVER use dot-notation for this field. ALWAYS write all 20 fields. The canonical field order is: hasDesignSystem, hasWireframes, hasFlows, hasHardwareSpec, hasCritique, hasIterate, hasHandoff, hasIdeation, hasCompetitive, hasOpportunity, hasMockup, hasHigAudit, hasRecommendations, hasStitchWireframes, hasPrintCollateral, hasProductionBible, hasBusinessThesis, hasMarketLandscape, hasServiceBlueprint, hasLaunchKit.
 
 Display: `Step 7/7: Root DESIGN-STATE and manifest updated. hasCompetitive: true.`
 
@@ -569,7 +728,7 @@ Display the final summary table (always the last output):
 
 | Property | Value |
 |----------|-------|
-| Files created | .planning/design/strategy/CMP-competitive-v{N}.md (Markdown, {size}), .planning/design/strategy/DESIGN-STATE.md (Markdown, {size}) |
+| Files created | .planning/design/strategy/CMP-competitive-v{N}.md (Markdown, {size}), .planning/design/strategy/DESIGN-STATE.md (Markdown, {size}){, .planning/design/strategy/MLS-market-landscape-v{N}.md if businessMode} |
 | Files modified | .planning/design/DESIGN-STATE.md, .planning/design/design-manifest.json |
 | Next suggested skill | /pde:opportunity |
 | Elapsed time | {duration} |
@@ -590,6 +749,10 @@ Display the final summary table (always the last output):
 - NEVER overwrite an existing versioned CMP artifact. Always increment version (v1 → v2 → v3).
 - NEVER write to root DESIGN-STATE.md without first acquiring the write lock via `pde-tools.cjs design lock-acquire`. Writing without the lock risks concurrent write corruption.
 - ALWAYS release the write lock (Step 7 lock-release) even if an error occurs during root DESIGN-STATE.md updates. The lock has a 60s TTL but releasing immediately prevents blocking other skills.
+- NEVER insert MLS content inside the CMP artifact. MLS is a SEPARATE artifact file (MLS-market-landscape-v{N}.md). CMP and MLS have different lifecycles.
+- NEVER generate specific dollar amounts for TAM, SAM, or SOM. Use [YOUR_TAM_SIZE] [Source required] for every sizing cell. Post-write verification bash check is MANDATORY.
+- NEVER write designCoverage with fewer than 20 fields. The 16-field version is a regression from Phase 84. Always include hasBusinessThesis, hasMarketLandscape, hasServiceBlueprint, hasLaunchKit alongside the original 16 fields.
+- NEVER create MLS artifact when businessMode is false. The MLS_WRITTEN flag must gate both the artifact write AND the manifest registration AND the designCoverage hasMarketLandscape value.
 
 </process>
 
