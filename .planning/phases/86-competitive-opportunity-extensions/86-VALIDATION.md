@@ -17,17 +17,17 @@ created: 2026-03-22
 
 | Property | Value |
 |----------|-------|
-| **Framework** | jest 29.x (existing) |
-| **Config file** | `tests/jest.config.js` |
-| **Quick run command** | `npm test -- --testPathPattern="MRKT"` |
+| **Framework** | node:test (built-in Node.js test runner) |
+| **Config file** | none — inline test files |
+| **Quick run command** | `node --test .planning/phases/86-competitive-opportunity-extensions/tests/test-competitive-mls.cjs .planning/phases/86-competitive-opportunity-extensions/tests/test-opportunity-rice.cjs` |
 | **Full suite command** | `npm test` |
-| **Estimated runtime** | ~15 seconds |
+| **Estimated runtime** | ~5 seconds |
 
 ---
 
 ## Sampling Rate
 
-- **After every task commit:** Run `npm test -- --testPathPattern="MRKT"`
+- **After every task commit:** Run `node --test .planning/phases/86-competitive-opportunity-extensions/tests/`
 - **After every plan wave:** Run `npm test`
 - **Before `/gsd:verify-work`:** Full suite must be green
 - **Max feedback latency:** 15 seconds
@@ -38,11 +38,10 @@ created: 2026-03-22
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 86-01-01 | 01 | 1 | MRKT-01 | unit | `npm test -- --testPathPattern="MRKT-01"` | ❌ W0 | ⬜ pending |
-| 86-01-02 | 01 | 1 | MRKT-02 | unit | `npm test -- --testPathPattern="MRKT-02"` | ❌ W0 | ⬜ pending |
-| 86-01-03 | 01 | 1 | MRKT-04 | unit | `npm test -- --testPathPattern="MRKT-04"` | ❌ W0 | ⬜ pending |
-| 86-01-04 | 01 | 1 | MRKT-05 | unit | `npm test -- --testPathPattern="MRKT-05"` | ❌ W0 | ⬜ pending |
-| 86-02-01 | 02 | 1 | MRKT-03 | unit | `npm test -- --testPathPattern="MRKT-03"` | ❌ W0 | ⬜ pending |
+| 86-01-01 | 01 | 1 | MRKT-01, MRKT-02, MRKT-04, MRKT-05 | structural | `node --test .planning/phases/86-competitive-opportunity-extensions/tests/test-competitive-mls.cjs` | ❌ W0 | ⬜ pending |
+| 86-01-02 | 01 | 1 | MRKT-01, MRKT-02, MRKT-04, MRKT-05 | structural | `node --test .planning/phases/86-competitive-opportunity-extensions/tests/test-competitive-mls.cjs` | ❌ W0 | ⬜ pending |
+| 86-02-01 | 02 | 1 | MRKT-03 | structural | `node --test .planning/phases/86-competitive-opportunity-extensions/tests/test-opportunity-rice.cjs` | ❌ W0 | ⬜ pending |
+| 86-02-02 | 02 | 1 | MRKT-03 | structural | `node --test .planning/phases/86-competitive-opportunity-extensions/tests/test-opportunity-rice.cjs` | ❌ W0 | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -50,8 +49,8 @@ created: 2026-03-22
 
 ## Wave 0 Requirements
 
-- [ ] `tests/phase-86-mrkt.test.js` — stubs for MRKT-01 through MRKT-05
-- [ ] Test fixtures for business-mode manifest states (businessMode true/false, all 3 tracks)
+- [ ] `.planning/phases/86-competitive-opportunity-extensions/tests/test-competitive-mls.cjs` — structural tests for MRKT-01, MRKT-02, MRKT-04, MRKT-05 (created by Plan 86-01, Task 1)
+- [ ] `.planning/phases/86-competitive-opportunity-extensions/tests/test-opportunity-rice.cjs` — structural tests for MRKT-03 (created by Plan 86-02, Task 1)
 
 *Existing test infrastructure covers framework needs — no new framework install required.*
 
@@ -71,7 +70,7 @@ created: 2026-03-22
 - [ ] Sampling continuity: no 3 consecutive tasks without automated verify
 - [ ] Wave 0 covers all MISSING references
 - [ ] No watch-mode flags
-- [ ] Feedback latency < 15s
+- [ ] Feedback latency < 5s
 - [ ] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** pending
