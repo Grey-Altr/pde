@@ -187,7 +187,7 @@ Full details: .planning/milestones/v0.10-ROADMAP.md
 - [x] **Phase 80: Print Collateral** — Event flyer (FLY), series identity template, festival program (PRG); Awwwards-level print composition; CSS @page print spec (completed 2026-03-21)
 - [x] **Phase 81: Handoff — Production Bible** — Advance document, run sheet, staffing plan, budget framework, post-event template, print spec output; BIB artifact; hybrid-event dual-surface output (completed 2026-03-21)
 - [x] **Phase 82: Integration Validation and Regression Audit** — Full cross-type regression run; sub-type coverage validation; 14 branch site assertions; milestone completion gate (completed 2026-03-21)
-- [ ] **Phase 83: Cross-Phase Wiring Fixes** — Fix designCoverage 16-field schema across 10 workflows, align token path, fix FPL typo (gap closure)
+- [x] **Phase 83: Cross-Phase Wiring Fixes** — Fix designCoverage 16-field schema across 10 workflows, align token path, fix FPL typo (gap closure) (completed 2026-03-22)
 
 ## Phase Details
 
@@ -357,4 +357,4 @@ Plans:
 | 80. Print Collateral | 2/2 | Complete    | 2026-03-21 | - |
 | 81. Handoff — Production Bible | 2/2 | Complete    | 2026-03-21 | - |
 | 82. Integration Validation and Regression Audit | 2/2 | Complete    | 2026-03-21 | - |
-| 83. Cross-Phase Wiring Fixes | 0/1 | Not started | - | - |
+| 83. Cross-Phase Wiring Fixes | 1/1 | Complete   | 2026-03-22 | - |

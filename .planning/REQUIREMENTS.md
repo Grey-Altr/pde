@@ -127,7 +127,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DSYS-03 | Phase 76 | Complete |
 | DSYS-04 | Phase 76 | Complete |
 | DSYS-05 | Phase 76 | Complete |
-| DSYS-06 | Phase 76, Phase 83 | Pending |
+| DSYS-06 | Phase 76, Phase 83 | Complete |
 | DSYS-07 | Phase 76 | Complete |
 | FLOW-01 | Phase 77 | Complete |
 | FLOW-02 | Phase 77 | Complete |
@@ -156,11 +156,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | HDOF-03 | Phase 81 | Complete |
 | HDOF-04 | Phase 81 | Complete |
 | HDOF-05 | Phase 81 | Complete |
-| HDOF-06 | Phase 81, Phase 83 | Pending |
+| HDOF-06 | Phase 81, Phase 83 | Complete |
 | PRNT-01 | Phase 80 | Complete |
 | PRNT-02 | Phase 80 | Complete |
 | PRNT-03 | Phase 80 | Complete |
-| PRNT-04 | Phase 80, Phase 83 | Pending |
+| PRNT-04 | Phase 80, Phase 83 | Complete |
 
 **Coverage:**
 - v0.11 requirements: 48 total (note: initial estimate was 47; actual count is 48 across 9 categories)
