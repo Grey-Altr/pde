@@ -1637,3 +1637,454 @@ dependsOn: BRF, MKT, GTM, LCV, STR
 
 #### Tertiary (LOW confidence — not independently verified)
 None identified. All claims above are cross-referenced against at least two sources or confirmed against project source files.
+
+---
+
+## Deep Dive: Pitch Deck Outline (DPD)
+
+**Deep-dive researched:** 2026-03-22
+**Research questions answered:** YC format, Sequoia format, slide-to-artifact mapping, track-specific structures, financial placeholders, pitch coherence, DPD artifact format
+
+---
+
+### YC Deck Format (Current Verified Structure)
+
+**Source confidence:** MEDIUM — official YC library pages returned JavaScript-heavy responses that could not be fully parsed; structure verified against multiple third-party analyses of YC-successful decks and YC's own published guidance fragments. Core 10-slide structure is consistent across all sources.
+
+The canonical YC pitch deck is **10 slides**, optimized for fast reading. YC's core philosophy: one idea per slide, large fonts, white background, clarity over completeness.
+
+| Slide # | Title | Key Question | Content Focus |
+|---------|-------|-------------|---------------|
+| 1 | Problem | What pain exists and who has it? | Top 1-2 problems with P.A.I.N. framing (Problem, Audience, Impact, Non-obvious insight) |
+| 2 | Solution | What do you do? | Value proposition in plain language — not feature list |
+| 3 | Market Size | How big is the opportunity? | TAM/SAM/SOM with bottom-up calculation |
+| 4 | Product | How does it work? | Screenshot or flow — show, don't describe |
+| 5 | Business Model | How do you make money? | Revenue streams and pricing structure |
+| 6 | Traction | What have you proven? | Quantitative metrics: users, revenue, growth rate, retention |
+| 7 | Go-to-Market | How do you reach customers? | Acquisition channels and customer acquisition strategy |
+| 8 | Competition | How are you different? | 3-4 competitors, differentiation axis |
+| 9 | Team | Why you? | Relevant experience; 3 people max on main deck |
+| 10 | Ask | What do you need? | Funding amount, use of funds, milestones and runway |
+
+**Key YC distinctions from Sequoia:**
+- No dedicated "Company Purpose / Mission" slide (embedded in Problem or Title)
+- No dedicated "Why Now" slide (embedded in Market or Problem narrative)
+- No dedicated "Financials" slide in the base 10 (may be included as Slide 9.5 or in appendix at seed stage)
+- Traction comes before Market (slide 6 vs slide 3) in some YC-advised orderings — sequence above reflects the most common verified order
+- Ask is the closing slide, not a penultimate one
+
+**What to cut for solo_founder (vs startup_team):**
+- Team depth: mention yourself briefly, no bios slide
+- Financials: skip entirely at solo/pre-revenue stage (no stub needed if no traction to anchor projections)
+- Appendix: not needed for solo track
+
+---
+
+### Sequoia Deck Format (Current Verified Structure)
+
+**Source confidence:** MEDIUM-HIGH — Sequoia's original "business plan" template is widely reproduced and cross-verified. The 10-core-plus-cover-and-vision structure is consistent across Alejandro Cremades, PitchBuilder, and SlideWorks analyses.
+
+The Sequoia format is **10 core content slides**, often presented as 12 total with a title cover and closing vision slide. The key differentiator from YC is the explicit "Company Purpose" opener and "Why Now" slide.
+
+| Slide # | Title | Key Question |
+|---------|-------|-------------|
+| 1 | Company Purpose | One sentence: why does this company exist? |
+| 2 | Problem | Customer pain — how is it addressed today? |
+| 3 | Solution | Value proposition + use cases + product positioning |
+| 4 | Why Now | What trend/shift makes this the right moment? |
+| 5 | Market Size | TAM (top-down), SAM (bottoms-up), SOM — profile target customer |
+| 6 | Competition / Alternatives | Direct and indirect competitors + competitive advantage |
+| 7 | Product | Features, demo, product roadmap direction |
+| 8 | Business Model | Revenue generation, business cycle from product to payment |
+| 9 | Team | Founders + key hires + relevant experience |
+| 10 | Financials | Historical metrics or 12-36 month projections |
+| (11) | Vision | Five-year outcome if everything succeeds — closing slide |
+
+**Sequoia 13-slide expansion as used by this project (from `references/launch-frameworks.md`):**
+
+The project's locked format inserts three additional slides into the YC-10 base:
+1. **Purpose/Mission** — before Problem (becomes slide 1)
+2. **Why Now** — after Market Size (becomes slide 5)
+3. **Financials** — after Traction (becomes slide 9)
+
+Final locked order: Purpose/Mission → Problem → Solution → Market Size → Why Now → Product → Business Model → Traction → Financials → Go-to-Market → Competition → Team → Ask
+
+This is the authoritative order from `references/launch-frameworks.md` and supersedes the external Sequoia research above.
+
+---
+
+### Slide-to-Artifact Content Mapping Table
+
+This table maps every DPD slide (in the Sequoia 13-slide order, which is the superset) to its upstream PDE artifact source. YC 10-slide is a subset: omit Purpose/Mission, Why Now, and Financials.
+
+| Slide (Sequoia 13) | YC 10 Equiv | Primary Source Artifact | Field/Section | Secondary Source |
+|-------------------|-------------|------------------------|---------------|-----------------|
+| 1. Purpose/Mission | — (YC omits) | BTH | Problem statement opening + unfair advantage | MKT positioning statement |
+| 2. Problem | 1 | BTH | Problem section (top 3 problems) | LCV box 1 (Problem), status annotation |
+| 3. Solution | 2 | BTH | Solution section | LCV box 2 (Solution), LCV box 3 (UVP) |
+| 4. Market Size | 3 | MLS | TAM/SAM/SOM sizing (from Phase 86) | LCV box 5 (Customer Segments) |
+| 5. Why Now | — (YC omits) | BTH | Market timing section | MLS market trend signals |
+| 6. Product | 4 | BRF | Product description / feature list | WFR wireframe artifact (if present) |
+| 7. Business Model | 5 | LCV | Box 9 (Revenue Streams) | STR artifact plan names |
+| 8. Traction | 6 | LCV | Box 6 (Key Metrics), status: validated/assumed/unknown | BRF traction signals |
+| 9. Financials | — (YC omits) | LCV | Box 7 (Channels), Box 8 (Cost Structure) | STR pricing structure — all values MUST be placeholders |
+| 10. Go-to-Market | 7 | GTM | GTM channel flow (Phase 87) — acquisition/conversion/retention subgraphs | LCV box 7 (Channels) |
+| 11. Competition | 8 | CMP | Competitive positioning matrix (Phase 86, Mermaid quadrant) | MLS market landscape |
+| 12. Team | 9 | BRF | Team/founder section | BTH unfair advantage (relevant experience) |
+| 13. Ask | 10 | BRF | Funding goals / next milestones | LCV box 8 (Cost Structure) — PLACEHOLDER only |
+
+**QUAL-02 coherence anchors (consumed by Phase 90 critique):**
+
+Two specific cross-references must be surfaced in the DPD artifact for Phase 90's critique to validate:
+1. **Solution slide (Slide 3) ↔ LCV UVP (box 3):** The solution slide derives from BTH solution section. Phase 90 checks that this matches LCV box 3 (UVP). The DPD must include a `**Coherence note:**` in the Solution slide section: `"UVP source: LCV box 3 [YOUR_UVP] — Phase 90 critique verifies this matches BTH solution framing"`.
+2. **Traction slide (Slide 8) ↔ LCV Key Metrics (box 6):** The traction slide derives from LCV box 6. The DPD must include a `**Coherence note:**` in the Traction slide section: `"Key metrics source: LCV box 6 [YOUR_METRIC_1], [YOUR_METRIC_2] — Phase 90 critique verifies these match traction narrative"`.
+
+These notes are not validation logic — they are content markers that Phase 90's `critique.md` QUAL-02 check reads to perform the cross-check. The DPD artifact enables the check; Phase 90 performs it.
+
+---
+
+### Track-Specific Deck Structures
+
+#### solo_founder — YC 10-Slide
+
+**Slide count:** 10
+**Format:** YC 10-slide (exact order above)
+**What is cut vs startup_team:**
+- No Purpose/Mission slide
+- No Why Now slide
+- No Financials slide
+- Team slide is brief (self-description only, no bios)
+- Ask slide is simplified: milestone-focused, not dollar-amount-focused
+
+**Vocabulary per `references/business-track.md`:**
+- "customers" not "ICP"
+- "revenue goal" not "ARR target"
+- "you" not "your team"
+- Plain English throughout — no investor jargon
+
+**Depth constraint:** Traction slide must not be empty even for pre-revenue. Use: customer discovery evidence (interviews, letters of intent), launch date, any user count. Mark LCV status annotations (`validated/assumed/unknown`) to frame the confidence level honestly.
+
+---
+
+#### startup_team — YC 10 (default) or Sequoia 13 (funding-context expansion)
+
+**Default slide count:** 10 (YC format)
+**Expanded slide count:** 13 (Sequoia format, triggered by funding signals)
+
+**Funding signal detection:** Scan BRF and BTH for: `seed`, `Series A`, `investors`, `fundraising`, `pre-seed`, `investor presentation`, `raise`, `cap table`, `term sheet`. If any signals present → use Sequoia 13. If absent → default YC 10.
+
+**Extra slides in Sequoia expansion (vs YC 10):**
+1. **Purpose/Mission** (new slide 1): Derives from BTH problem opening + MKT positioning statement. Frames the company's reason to exist — not product pitch, not market size.
+2. **Why Now** (new slide 5, after Market Size): Derives from BTH — specifically any timing/urgency signals, regulatory shifts, or technology unlock language in the business thesis. If BTH has no explicit "why now" content, prompt with: `[YOUR_WHY_NOW — derive from market timing signals in BTH or market trend observations in MLS]`.
+3. **Financials** (new slide 9, after Traction): Structural placeholder only — see Financial Slide section below.
+
+**Vocabulary:** Startup terminology expected: ARR, MRR, CAC, LTV, churn, ICP, PMF, burn rate, runway. Investor-facing framing throughout.
+
+---
+
+#### product_leader — Internal Business Case Format
+
+**Slide count:** 13 (Sequoia 13 base with two substitutions)
+**Format source:** `references/launch-frameworks.md` Product Leader Internal Business Case Format
+
+**NOT an investor deck.** The product_leader format is an executive proposal for internal organizational buy-in. The audience is a VP, C-suite, or board — not an external VC.
+
+**Two substitutions from Sequoia 13:**
+- Slide 12: "Team" → **"Resource Requirements"**: What headcount, budget, and systems are required?
+- Slide 13: "Ask" → **"Initiative ROI"**: Expected return, payback period, and success metric (all placeholders)
+
+**Internal business case format characteristics (from web research, MEDIUM confidence):**
+- Executive summary framing at top (slide 1 is Purpose/Mission reframed as "Executive Summary")
+- OKR vocabulary for metrics and success: objectives, key results, P&L impact
+- Build-vs-buy framing for competition slide (Slide 11): instead of "competitors", frame as "alternatives considered" with make/buy/partner options
+- Risk assessment implicit in Resource Requirements and Initiative ROI slides
+- Financial metrics: NPV, IRR, payback period, ROI (all as placeholders — never populated values)
+- Strategic alignment to company OKRs is the key selling point, not market opportunity alone
+
+**Full internal business case slide order:**
+
+| Slide # | Title | Internal Framing |
+|---------|-------|-----------------|
+| 1 | Executive Summary | Purpose/Mission reframed as initiative summary for executives |
+| 2 | Problem | Customer/organizational pain — same BTH source as investor deck |
+| 3 | Solution | Value proposition — same BTH source |
+| 4 | Market Size | Opportunity sizing — framed as "addressable opportunity" or "P&L impact potential" |
+| 5 | Why Now | Strategic timing — regulatory, technology, or competitive urgency |
+| 6 | Product | Current state + roadmap direction |
+| 7 | Business Model | Revenue model / monetization strategy / packaging |
+| 8 | Traction | Validated learning, design partner evidence, pilot results |
+| 9 | Financials | Structural placeholder — 3-year projection table (all [YOUR_X]) |
+| 10 | Go-to-Market | GTM channel flow — framed as "launch plan" |
+| 11 | Build-vs-Buy Analysis | Competition reframed: alternatives considered, make/buy/partner decision |
+| 12 | Resource Requirements | Headcount, budget envelope, systems required (all placeholders) |
+| 13 | Initiative ROI | Expected return, payback period, success metric in OKR format (all placeholders) |
+
+---
+
+### Internal Business Case Format — Additional Detail
+
+**Source confidence:** MEDIUM — derived from web research cross-checked with McKinsey/BCG consulting formats and enterprise PM practice; consistent across multiple sources.
+
+A product leader internal business case differs from an investor pitch in four key ways:
+
+1. **Audience is organizational, not financial.** Investors ask "will this return capital?"; executives ask "does this fit strategy and is it the right use of our resources?". Every slide should connect to the organization's OKRs or strategic priorities.
+
+2. **Risk is explicit, not hidden.** Include risk identification in the Resource Requirements slide. Show that risks were considered — executives distrust proposals that have no risk section.
+
+3. **Alternatives section is mandatory.** The build-vs-buy analysis (Slide 11 substitute for Competition) demonstrates analytical rigor. Shows you considered options before proposing this path.
+
+4. **Two-to-four page rule applied to slides.** Product leader decks should be densely informative but not padded. 13 slides is the maximum — each slide earns its place.
+
+**Vocabulary for product_leader per `references/business-track.md`:**
+- "P&L impact" not "revenue goal"
+- "key accounts" / "target segments" not "customers"
+- "go-to-market" not "launch"
+- "market alternatives" / "build-vs-buy" not "competitors"
+- "monetization strategy" / "packaging" not "pricing"
+- "your organization" / "stakeholders" not "your team"
+
+---
+
+### Financial Slide Placeholder Patterns
+
+**Constraint:** `references/business-financial-disclaimer.md` prohibits specific dollar amounts. The DPD artifact MUST use structural placeholders throughout.
+
+**Financial slide (Slide 9) recommended structure — three variants by track:**
+
+**solo_founder:** Omit financial slide entirely. If traction exists, integrate key metrics into Traction slide (Slide 6) with `[Source required]` annotation.
+
+**startup_team:** Include a 3-year projection table with structural skeleton only:
+
+```markdown
+## Slide 9 — Financials
+
+**Source:** LCV box 8 (Cost Structure), LCV box 9 (Revenue Streams), STR pricing structure
+**Key question:** What is the historical performance and forward trajectory?
+**Content prompts:**
+- [VERIFY FINANCIAL ASSUMPTIONS] 3-year projection table framework:
+
+| Metric | Year 1 | Year 2 | Year 3 |
+|--------|--------|--------|--------|
+| Revenue | [YOUR_Y1_REVENUE] | [YOUR_Y2_REVENUE] | [YOUR_Y3_REVENUE] |
+| COGS | [YOUR_Y1_COGS] | [YOUR_Y2_COGS] | [YOUR_Y3_COGS] |
+| Gross Margin | [YOUR_Y1_GROSS_MARGIN] | [YOUR_Y2_GROSS_MARGIN] | [YOUR_Y3_GROSS_MARGIN] |
+| OpEx | [YOUR_Y1_OPEX] | [YOUR_Y2_OPEX] | [YOUR_Y3_OPEX] |
+| EBITDA | [YOUR_Y1_EBITDA] | [YOUR_Y2_EBITDA] | [YOUR_Y3_EBITDA] |
+
+- Key assumptions: [YOUR_ARR_TARGET] ARR by Year 2, [YOUR_CAC_CEILING] CAC ceiling, [YOUR_LTV_ESTIMATE] LTV estimate
+- Current runway: [YOUR_RUNWAY_MONTHS] months at current burn
+```
+
+**product_leader:** Include NPV/IRR/payback period framing in the Initiative ROI slide (Slide 13 substitute):
+
+```markdown
+## Slide 13 — Initiative ROI
+
+**Source:** LCV revenue streams, MLS market sizing, business-financial-disclaimer.md
+**Key question:** What is the expected return, payback period, and success metric?
+**Content prompts:**
+- [VERIFY FINANCIAL ASSUMPTIONS] Financial impact: [YOUR_ROI_TARGET] expected return
+- [VERIFY FINANCIAL ASSUMPTIONS] Payback period: [YOUR_PAYBACK_PERIOD] at [YOUR_CHURN_SCENARIO] churn scenario
+- [VERIFY FINANCIAL ASSUMPTIONS] NPV at 3 years: [YOUR_NPV_3Y]
+- Primary OKR: [YOUR_SUCCESS_METRIC] — framed as "Key Result" in organizational OKR structure
+- Secondary success indicator: [YOUR_SECONDARY_METRIC]
+```
+
+**Validation check for DPD artifact:** After DPD is written, the workflow must check that no dollar signs followed by numbers appear in the file:
+
+```bash
+if grep -qE '\$[0-9]' ".planning/design/launch/DPD-pitch-deck-outline-v${N}.md" 2>/dev/null; then
+  echo "ERROR: Dollar amount detected in DPD artifact. All financial values must use [YOUR_X] placeholders."
+  grep -nE '\$[0-9]' ".planning/design/launch/DPD-pitch-deck-outline-v${N}.md"
+  exit 1
+fi
+```
+
+---
+
+### Pitch Coherence Validation Points
+
+**Context:** QUAL-02 belongs to Phase 90 (critique), not Phase 89. The DPD artifact must be *structured* to enable Phase 90's cross-check. The DPD does not perform validation — it exposes the content markers that make validation possible.
+
+**Two mandatory coherence anchors in DPD:**
+
+**Anchor 1 — Solution ↔ UVP:**
+Every DPD Solution slide (Slide 3) must end with:
+```markdown
+**Coherence anchor (QUAL-02):** `LCV.box3.UVP = [YOUR_UVP]` — Phase 90 critique verifies this matches the solution framing above
+```
+
+**Anchor 2 — Traction ↔ Key Metrics:**
+Every DPD Traction slide (Slide 8 in Sequoia 13, Slide 6 in YC 10) must end with:
+```markdown
+**Coherence anchor (QUAL-02):** `LCV.box6.metrics = [YOUR_METRIC_1], [YOUR_METRIC_2]` — Phase 90 critique verifies these match traction narrative above
+```
+
+**Why this design:** Phase 90's critique.md will grep for `Coherence anchor (QUAL-02)` in the DPD artifact, extract the LCV references, and compare them to the actual LCV artifact content. This is a machine-readable cross-reference, not human commentary. The format must be exact — `**Coherence anchor (QUAL-02):**` — for Phase 90 structural assertions to detect it.
+
+**Additional coherence signals the DPD should expose (MEDIUM confidence — no locked requirement for these yet, but useful for Phase 90):**
+- Competition slide: reference the CMP artifact's quadrant position for the product
+- Market Size slide: reference the MLS TAM/SAM/SOM values (as placeholders with `[Source required]` annotations)
+- Go-to-Market slide: explicitly cross-reference the GTM artifact path
+
+---
+
+### Appendix Slides for startup_team Track
+
+When `startup_team` uses the Sequoia 13-slide format, the DPD should include an appendix section after Slide 13. Appendix slides are not numbered; they are labeled A1, A2, etc.
+
+**Standard appendix content for startup_team:**
+
+| Label | Title | Content Source | Purpose |
+|-------|-------|---------------|---------|
+| A1 | Detailed Financial Projections | LCV boxes 8/9, STR pricing | Extended 3-year table with assumptions — investor due diligence |
+| A2 | Product Roadmap | BRF feature list | Q1-Q4 roadmap skeleton with `[YOUR_MILESTONE_QN]` placeholders |
+| A3 | Team Bios | BRF team section | Full founder bios with logos/links — expand from 3-line Team slide |
+| A4 | Technical Architecture | BRF product description | System diagram or tech stack — for technical investors |
+| A5 | Market Research Data | MLS market landscape | Supporting data tables for TAM/SAM/SOM claims with `[Source required]` |
+
+**Generation rule:** Appendix slides ONLY generated for `startup_team` with Sequoia 13 format (i.e., funding signals detected). Not generated for YC 10. Not generated for solo_founder or product_leader.
+
+---
+
+### DPD Artifact Format Recommendation
+
+**Recommendation:** Structured markdown outline with per-slide metadata blocks, NOT flat prose.
+
+**Rationale:** The DPD is consumed by three downstream actors:
+1. The human building the actual presentation — needs content prompts and source attribution
+2. Phase 90 critique — needs machine-readable coherence anchors (`QUAL-02`)
+3. Phase 91 handoff — needs artifact metadata for the LKT manifest
+
+A flat markdown outline satisfies (1) but fails (2) and (3). A structured per-slide format with explicit metadata fields satisfies all three.
+
+**Recommended per-slide schema:**
+
+```markdown
+## Slide {N} — {Title}
+{*(Track substitution note if applicable — e.g., "Replaces 'Team' slide from Sequoia 13")*}
+
+**Source:** {artifact code(s) and section/box references}
+**Key question:** {verbatim from launch-frameworks.md format table}
+**Content prompts:**
+- {2-4 bullet points guiding content, using [YOUR_X] placeholders for financial/sensitive values}
+- {[VERIFY FINANCIAL ASSUMPTIONS] prefix on any financial content prompt}
+
+**Coherence anchor (QUAL-02):** {only on Solution and Traction slides — see format above}
+```
+
+**DPD artifact file-level header:**
+
+```markdown
+---
+artifact: DPD-pitch-deck-outline
+version: v{N}
+skill: /pde:wireframe (DPD)
+businessTrack: {solo_founder|startup_team|product_leader}
+deckFormat: {yc_10|sequoia_13|internal_business_case}
+slideCount: {10|13}
+fundingContextDetected: {true|false}  # startup_team only
+dependsOn: BTH, LCV, MLS, CMP, GTM, MKT, BRF
+generatedAt: {ISO date}
+---
+```
+
+**Full example — first 3 slides of the YC 10-slide format (solo_founder track):**
+
+```markdown
+---
+artifact: DPD-pitch-deck-outline
+version: v1
+skill: /pde:wireframe (DPD)
+businessTrack: solo_founder
+deckFormat: yc_10
+slideCount: 10
+fundingContextDetected: false
+dependsOn: BTH, LCV, MLS, CMP, GTM, MKT, BRF
+generatedAt: 2026-03-22
+---
+
+# Pitch Deck Outline — YC 10-Slide Format
+
+*Generated by /pde:wireframe (business mode) v1 | 2026-03-22*
+*Track: solo_founder | Format: YC 10-slide | Deck: 10 slides*
+
+---
+
+## Slide 1 — Problem
+
+**Source:** BTH problem section, LCV box 1 (Problem, status: [validated/assumed/unknown])
+**Key question:** What pain exists and who has it?
+**Content prompts:**
+- State the top 1-2 problems from LCV box 1 — use the status annotation (validated/assumed/unknown) to frame confidence honestly
+- Describe who has the problem using LCV box 5 (Customer Segments) language — avoid "ICP", use plain English
+- Quantify the pain with a `[Source required]` data point, or use `[YOUR_EVIDENCE]` if no source is available
+
+---
+
+## Slide 2 — Solution
+
+**Source:** BTH solution section, LCV box 2 (Solution), LCV box 3 (UVP)
+**Key question:** What do you do?
+**Content prompts:**
+- State the solution in one sentence — plain English, not feature list
+- Show value proposition in P-A-R format (Problem → Action → Result)
+- Use the MKT positioning statement as a cross-reference: "For [customer], [product] is the [category] that [primary benefit] because [unique differentiator]"
+
+**Coherence anchor (QUAL-02):** `LCV.box3.UVP = [YOUR_UVP]` — Phase 90 critique verifies this matches the solution framing above
+
+---
+
+## Slide 3 — Market Size
+
+**Source:** MLS TAM/SAM/SOM (Phase 86), LCV box 5 (Customer Segments)
+**Key question:** How big is the opportunity (TAM/SAM/SOM)?
+**Content prompts:**
+- TAM: [YOUR_TAM_SIZE] `[Source required]` — top-down total addressable market
+- SAM: [YOUR_SAM_SIZE] `[Source required]` — serviceable addressable market (bottoms-up)
+- SOM: [YOUR_SOM_SIZE] `[Source required]` — realistic 3-year capture target
+- Profile the target customer using LCV box 5 language
+```
+
+---
+
+### DPD Artifact Format — Additional Design Notes
+
+**Flat vs structured tradeoff:** The per-slide schema adds ~6 lines per slide overhead vs flat prose. For a 10-slide deck this is 60 lines; for 13-slide it is 78 lines. This overhead is justified because:
+- Coherence anchors cannot be embedded in free prose reliably
+- Source attribution per slide prevents content drift during editing
+- YAML frontmatter enables Phase 91 handoff.md to parse metadata without reading all slides
+
+**What NOT to include in DPD:**
+- Actual presentation design guidance (fonts, colors, layout) — that is the human's job with the brand system tokens
+- Slide count justification prose — the format table in launch-frameworks.md is canonical
+- Dollar amounts in any form — `$`, specific numbers, "approximately $X"
+- Company name references in slide content — use `[YOUR_PRODUCT_NAME]` from BRF
+- Partner or customer names — use `[YOUR_DESIGN_PARTNER]` placeholders
+
+**File length estimate by track:**
+- solo_founder YC 10-slide: ~120-150 lines
+- startup_team YC 10-slide: ~120-150 lines
+- startup_team Sequoia 13-slide + appendix: ~200-240 lines
+- product_leader internal business case 13-slide: ~200-240 lines
+
+---
+
+### Deep Dive Sources
+
+#### Primary (HIGH confidence)
+- `references/launch-frameworks.md` — locked pitch deck formats (YC 10, Sequoia 13, internal business case); format tables are authoritative for this project
+- `references/business-track.md` — track depth thresholds, vocabulary substitutions; product_leader pitch deck = internal business case format confirmed
+- `.planning/REQUIREMENTS.md` — QUAL-02 definition: "lean canvas UVP matches pitch deck solution slide, canvas key metrics match traction slide" — confirmed this is a Phase 90 critique requirement, NOT a Phase 89 DPD requirement; DPD must only expose coherence anchors
+- `.planning/ROADMAP.md` Phase 90 — "Critique output includes a pitch coherence cross-check verifying that lean canvas UVP matches pitch deck solution slide and canvas key metrics match traction slide"
+
+#### Secondary (MEDIUM confidence)
+- YC Library (https://www.ycombinator.com/library/2u-how-to-build-your-seed-round-pitch-deck) — page JS-heavy, content not parseable, but title confirms seed deck guidance exists; structure corroborated by Leland analysis
+- https://www.joinleland.com/library/a/y-combinator-pitch-deck — YC 10-slide order confirmed: P.A.I.N. framework for Problem, Market, Business Model, Traction, Competition, Team, Ask; no "Why Now" in YC base format
+- https://alejandrocremades.com/sequoia-capital-pitch-deck-template/ — Sequoia 10-core-slide canonical order verified: Company Purpose → Problem → Solution → Why Now → Market Potential → Competition → Business Model → Team → Financials → Vision
+- https://pitchbuilder.io/blogs/news/what-is-the-sequoia-pitch-deck-model — 12-slide Sequoia variant (with title + end cover) confirmed; canonical content consistent with Alejandro Cremades source
+- https://www.capitaly.vc/blog/appendix-slides-in-the-pitch-deck — appendix slide topics verified: detailed financials, market research, product roadmap, technical architecture, customer testimonials, partnership agreements, legal information, detailed marketing plan, advisory board, risk analysis
+
+#### Tertiary (LOW confidence)
+- General web research on internal business case format — sections from Smartsheet, Slideworks, ittoolkit cross-referenced; McKinsey/BCG enterprise PM format patterns; consistent with product_leader vocabulary from business-track.md
+
