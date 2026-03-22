@@ -7,6 +7,10 @@ Generate browser-viewable HTML/CSS wireframes for each screen in the flow invent
 @references/mcp-integration.md
 @references/web-modern-css.md
 @references/composition-typography.md
+@references/business-track.md
+@references/business-financial-disclaimer.md
+@references/business-legal-disclaimer.md
+@references/launch-frameworks.md
 </required_reading>
 
 <flags>
@@ -146,6 +150,17 @@ Use the Glob tool to check for `.planning/design/strategy/BRF-brief-v*.md`. Sort
 - If found: extract product name, product type, key features, personas.
 
 Store as PRODUCT_NAME, PRODUCT_TYPE.
+
+<!-- Business product type — Phase 89 architecture: LDP landing page spec, STR Stripe pricing config, DPD pitch deck outline. -->
+<!-- Depends on: businessMode === true from design-manifest.json -->
+
+Read businessMode and businessTrack from manifest:
+```bash
+BM=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-get-top-level businessMode 2>/dev/null)
+BT=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-get-top-level businessTrack 2>/dev/null)
+```
+
+Store as `$BM` (string "true"/"false") and `$BT` (string "solo_founder"/"startup_team"/"product_leader"). These are consumed by Steps 4h, 4i, 4j, and 7e-launch.
 
 <!-- PRODUCT_TYPE == "experience" activates Step 4-EXP: floor plan and timeline wireframes instead of software wireframes. -->
 <!-- Experience product type — Phase 74 architecture: floor plan (FLP) and timeline (TML) wireframes added in Phase 78. See Step 4-EXP experience block below. -->
@@ -449,6 +464,61 @@ gantt
 - Add `<text>` labels at key points along the curve.
 
 **Jump to Step 5-EXP** (experience file write) — skip Steps 4a through 4f and Step 4-STITCH (software wireframe path).
+
+---
+
+#### Step 4h: LDP landing page spec generation (business mode only)
+
+IF `$BM != "true"`: skip Step 4h entirely.
+
+**Read upstream artifacts (soft dependencies — degrade gracefully if absent):**
+
+1. **MKT brand system artifact (Phase 88):**
+   ```bash
+   MKT_FILE=$(ls .planning/design/strategy/MKT-brand-system-v*.md 2>/dev/null | tail -1)
+   ```
+   - If present: extract Positioning Statement, Tone of Voice spectrum, Brand Voice Examples (CTA prefer/avoid).
+   - If absent: emit warning: `"Warning: MKT brand system artifact not found. LDP hero content derived from BRF Domain Strategy section. Run /pde:system in business mode for richer brand-aligned copy framing."` Set `MKT_AVAILABLE=false`.
+
+2. **GTM channel flow artifact (Phase 87):**
+   ```bash
+   GTM_FILE=$(ls .planning/design/strategy/GTM-channel-flow-v*.md 2>/dev/null | tail -1)
+   ```
+   - If present: extract ACQ subgraph highest-priority channel node and channel framing approach (direct response / educational / social proof).
+   - If absent: emit warning. Default to "content marketing" framing — educational hero headline direction.
+
+3. **LCV lean canvas artifact (Phase 85):**
+   ```bash
+   LCV_FILE=$(ls .planning/design/strategy/LCV-lean-canvas-v*.md 2>/dev/null | tail -1)
+   ```
+   - If present: extract box 2 (Solution — features), box 3 (UVP), box 5 (Customer Segments), box 9 (Revenue Streams).
+   - If absent: emit warning. Derive features and audience from BRF product description.
+
+4. **SYS-brand-tokens.json (Phase 88):**
+   ```bash
+   BRAND_TOKENS_FILE=$(ls .planning/design/visual/SYS-brand-tokens.json 2>/dev/null | tail -1)
+   ```
+   - If present: reference `brand-marketing.campaign-palette-variants.*` and `brand-marketing.brand-voice.*` token paths in LDP spec.
+   - If absent: omit brand token references from LDP spec. Add note: `[Run /pde:system in business mode for brand token integration]`.
+
+**Generate LDP artifact:**
+
+Write `.planning/design/launch/LDP-landing-page-v${N}.md` where `${N}` is the wireframe version number from Step 2d.
+
+The LDP artifact follows the Landing Page Wireframe Spec template in `references/launch-frameworks.md`:
+
+- **Frontmatter:** artifact: LDP-landing-page, version: v{N}, skill: /pde:wireframe (LDP), businessTrack: {$BT}, audience: external/public (or internal/enterprise for product_leader), dependsOn: BRF, MKT, GTM, LCV, STR
+- **Section Map table:** Track-depth-aware — solo_founder gets 5 core sections (HeroSection, FeaturesGrid, PricingTable, CTABanner, SiteFooter), startup_team gets all 11 sections, product_leader gets all 11 with adapted vocabulary per `references/business-track.md`
+- **Per-section spec blocks:** Each section uses the Section Block Template from `references/launch-frameworks.md`: Component name, Next.js path (`app/(marketing)/_components/[component-name].tsx`), Server/Client designation, Responsive layout (mobile/tablet/desktop), Props with content slot values derived from upstream artifacts, Brand token references (`brand-marketing.campaign-palette-variants.*`, `brand-marketing.brand-voice.*`), GTM stage mapping, Copy register instruction
+- **Hero section:** Headline derived from MKT positioning statement (primary benefit clause, NOT full Geoffrey Moore sentence). Subheadline from GTM ACQ highest-priority channel message. CTA text from MKT Brand Voice CTA example (avoid commodity phrasing). If MKT absent: derive from BRF Domain Strategy section.
+- **Features section:** Features array derived from BTH solution block top 3-4 features (solo_founder: 3, startup_team: 6, product_leader: 4 with ROI callouts). Content sourced from LCV box 2 (Solution).
+- **Pricing section:** Plan names reference STR artifact nicknames. Price display values: `[YOUR_PRICE]` — never populate with dollar amounts. Include `[VERIFY FINANCIAL ASSUMPTIONS]` tag.
+- **Footer section:** Legal checklist items from `references/business-legal-disclaimer.md` — Terms of Service, Privacy Policy, Cookie Consent with `[CONSULT LEGAL COUNSEL]` tags.
+- **Upstream References block:** List all 4 upstream artifact paths with description of what was consumed from each.
+
+Display: `Step 4/7 (4h): Generated LDP landing page spec — {section_count} sections, {businessTrack} track.`
+
+LDP_WRITTEN=true
 
 ---
 
@@ -2012,17 +2082,17 @@ COV=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design coverage-check)
 if [[ "$COV" == @file:* ]]; then COV=$(cat "${COV#@file:}"); fi
 ```
 
-Parse the JSON output. Extract ALL sixteen current flag values: hasDesignSystem, hasWireframes, hasFlows, hasHardwareSpec, hasCritique, hasIterate, hasHandoff, hasIdeation, hasCompetitive, hasOpportunity, hasMockup, hasHigAudit, hasRecommendations, hasStitchWireframes, hasPrintCollateral, hasProductionBible. Default any absent field to `false`. Merge `hasWireframes: true` while preserving all other fifteen values. If any STH-{slug} artifacts were successfully persisted in Step 4-STITCH, also set `hasStitchWireframes: true`. If FLY print collateral was generated in Step 4g (PRODUCT_TYPE === "experience"), also set `hasPrintCollateral: true`. If FLP/TML experience wireframes were generated in Step 4-EXP (PRODUCT_TYPE === "experience"), hasWireframes is already set to true by the standard merge. Then write the full merged sixteen-field object:
+Parse the JSON output. Extract ALL twenty current flag values: hasDesignSystem, hasWireframes, hasFlows, hasHardwareSpec, hasCritique, hasIterate, hasHandoff, hasIdeation, hasCompetitive, hasOpportunity, hasMockup, hasHigAudit, hasRecommendations, hasStitchWireframes, hasPrintCollateral, hasProductionBible, hasBusinessThesis, hasMarketLandscape, hasServiceBlueprint, hasLaunchKit. Default any absent field to `false`. Merge `hasWireframes: true` while preserving all other nineteen values. If any STH-{slug} artifacts were successfully persisted in Step 4-STITCH, also set `hasStitchWireframes: true`. If FLY print collateral was generated in Step 4g (PRODUCT_TYPE === "experience"), also set `hasPrintCollateral: true`. If FLP/TML experience wireframes were generated in Step 4-EXP (PRODUCT_TYPE === "experience"), hasWireframes is already set to true by the standard merge. Then write the full merged twenty-field object:
 
 ```bash
 # Standard run (no STH artifacts, non-experience product):
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":{current},"hasWireframes":true,"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":{current},"hasPrintCollateral":{current},"hasProductionBible":{current}}'
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":{current},"hasWireframes":true,"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":{current},"hasPrintCollateral":{current},"hasProductionBible":{current},"hasBusinessThesis":{current},"hasMarketLandscape":{current},"hasServiceBlueprint":{current},"hasLaunchKit":{current}}'
 
 # --use-stitch run (STH artifacts persisted — set hasStitchWireframes: true):
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":{current},"hasWireframes":true,"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":true,"hasPrintCollateral":{current},"hasProductionBible":{current}}'
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":{current},"hasWireframes":true,"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":true,"hasPrintCollateral":{current},"hasProductionBible":{current},"hasBusinessThesis":{current},"hasMarketLandscape":{current},"hasServiceBlueprint":{current},"hasLaunchKit":{current}}'
 
 # Experience product run (print collateral generated — set hasPrintCollateral: true):
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":{current},"hasWireframes":true,"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":{current},"hasPrintCollateral":true,"hasProductionBible":{current}}'
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":{current},"hasWireframes":true,"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":{current},"hasPrintCollateral":true,"hasProductionBible":{current},"hasBusinessThesis":{current},"hasMarketLandscape":{current},"hasServiceBlueprint":{current},"hasLaunchKit":{current}}'
 ```
 
 #### 7e. Release lock
