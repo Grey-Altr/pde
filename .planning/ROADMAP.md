@@ -330,7 +330,9 @@ Plans:
   2. `wireframe.md` reads `SYS-experience-tokens.json` from `.planning/design/visual/` (matching where `system.md` writes it)
   3. REQUIREMENTS.md uses artifact code `FLP` (not `FPL`) for WIRE-03
   4. Running the full experience pipeline (wireframe → critique → hig → handoff) preserves `hasPrintCollateral: true` through all stages
-**Plans**: 0 plans
+**Plans**: 1 plan
+Plans:
+- [ ] 83-01-PLAN.md — TDD test + 16-field designCoverage fix across 10 workflows + token path alignment
 
 ## Progress
 
@@ -355,4 +357,4 @@ Plans:
 | 80. Print Collateral | 2/2 | Complete    | 2026-03-21 | - |
 | 81. Handoff — Production Bible | 2/2 | Complete    | 2026-03-21 | - |
 | 82. Integration Validation and Regression Audit | 2/2 | Complete    | 2026-03-21 | - |
-| 83. Cross-Phase Wiring Fixes | 0/0 | Not started | - | - |
+| 83. Cross-Phase Wiring Fixes | 0/1 | Not started | - | - |
