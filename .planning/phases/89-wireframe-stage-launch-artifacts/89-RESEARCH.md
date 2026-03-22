@@ -720,3 +720,409 @@ None — all research was performed against project source files with direct evi
 
 **Research date:** 2026-03-22
 **Valid until:** 2026-04-22 (stable internal tooling, no external dependencies)
+
+---
+
+## Deep Dive: Stripe Pricing Configuration (STR)
+
+**Researched:** 2026-03-22
+**Sources:** Stripe official docs (docs.stripe.com) — HIGH confidence
+**Scope:** Stripe API schema verification, billing model mapping, placeholder conventions, test key format, LCV→tier mapping, competitive positioning, STR format recommendation
+
+---
+
+### Current Stripe API Schema
+
+All field documentation verified against Stripe official API reference as of 2026-03-22.
+
+#### Product Object — Required and Optional Fields
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `name` | string | YES | "Meant to be displayable to the customer" — maps to product/tier name |
+| `description` | string | no | Long-form explanation; used for own rendering purposes |
+| `metadata` | object | no | Key-value pairs; good for tagging product type, track, version |
+| `url` | string | no | Publicly accessible product page URL |
+| `marketing_features` | array | no | Up to 15 feature strings; used by Stripe's pricing table embed |
+| `statement_descriptor` | string | no | Max 22 chars; appears on customer bank statements |
+| `unit_label` | string | no | Max 12 chars; shown on receipts (e.g., "seat", "user", "request") |
+| `active` | boolean | no | Defaults to `true` |
+| `default_price_data` | object | no | Inline price creation at product creation time |
+
+**For STR artifact:** Only `name`, `description`, and `metadata` are relevant as placeholders. `marketing_features` is optional enhancement for `startup_team` and `product_leader` tracks.
+
+#### Price Object — Required and Optional Fields
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `currency` | string (ISO 4217) | YES | Lowercase 3-letter code (e.g., `"usd"`) |
+| `product` | string | YES (or `product_data`) | Existing Product ID, OR use `product_data` for inline creation |
+| `unit_amount` | integer (cents) | Conditionally required | Required for `per_unit` billing_scheme. NOT required for tiered or custom_unit_amount |
+| `unit_amount_decimal` | string | no | Decimal alternative when sub-cent precision needed |
+| `billing_scheme` | enum | no | `"per_unit"` (default) or `"tiered"` |
+| `recurring` | object | no (required for subscriptions) | Omit for one-time payments |
+| `recurring.interval` | enum | required if recurring present | `"day"`, `"week"`, `"month"`, `"year"` |
+| `recurring.interval_count` | integer | no | Defaults to 1; set to 12 for annual-only billing |
+| `recurring.usage_type` | enum | no | `"licensed"` (default, flat-rate) or `"metered"` (usage-based) |
+| `nickname` | string | no | Internal label; shown in Stripe dashboard |
+| `lookup_key` | string | no | Up to 200 chars; enables price lookup by key instead of ID |
+| `trial_period_days` | integer | no | Days of free trial; max 730 (2 years) |
+| `tax_behavior` | enum | no | `"inclusive"`, `"exclusive"`, or `"unspecified"` |
+| `tiers` | array | required if `billing_scheme=tiered` | Unit count brackets with per-unit cost per bracket |
+| `tiers_mode` | enum | required if `billing_scheme=tiered` | `"graduated"` or `"volume"` |
+| `metadata` | object | no | Key-value storage |
+
+**Critical finding:** In Stripe's actual API, `unit_amount` is an integer (cents). The STR artifact MUST use the string placeholder `"[YOUR_PRICE_IN_CENTS]"` — never an integer. This intentionally produces a non-API-ready JSON until the user replaces the placeholder. The financial disclaimer in `references/business-financial-disclaimer.md` requires this. The downstream deploy skill (Phase 93+) reads plan names and structure from STR; it does not auto-provision Stripe Products.
+
+**`currency` field:** Unlike `unit_amount`, the `currency` field is not a financial value — it is a structural field specifying the payment currency. The STR artifact sets `"currency": "usd"` as a concrete default. If the project operates in a non-USD market, the user must replace this. The financial disclaimer only prohibits specific dollar amounts, not currency codes.
+
+#### Checkout Session — Key Fields
+
+| Field | Type | Required | Notes |
+|-------|------|----------|-------|
+| `mode` | enum | YES | `"payment"` (one-time), `"subscription"` (recurring), `"setup"` (save card) |
+| `line_items` | array | YES for payment/subscription | Each item: `price` (ID) + `quantity` (integer); max 20 recurring + 20 one-time per session |
+| `success_url` | string | YES | Redirect URL after successful checkout |
+| `cancel_url` | string | YES (except embedded mode) | Redirect URL when customer cancels |
+| `subscription_data.trial_period_days` | integer | no | Free trial length in days; max 730 |
+| `payment_method_collection` | enum | no | `"always"` (default) or `"if_required"` — use `if_required` for free trials without card capture |
+
+**`checkout_mode` field in STR artifact:** Maps directly to Checkout Session `mode`. Use `"subscription"` for recurring SaaS models (most business-mode products). Use `"payment"` only when LCV revenue streams explicitly describes one-time payment.
+
+**`trial_period_days` in STR vs Checkout Session:** The STR artifact stores `trial_period_days` at the price level (not nested under `subscription_data`). When the deploy skill (Phase 93+) reads the STR artifact to provision a Checkout Session, it must move this value to `subscription_data.trial_period_days` in the session payload. Note this in the STR artifact as a comment.
+
+---
+
+### Billing Model Coverage Per Track
+
+Stripe supports five primary billing models. The STR artifact template must cover the appropriate subset for each track. Full usage-based and tiered billing (requiring `billing_scheme=tiered`, `tiers[]`, `recurring.usage_type=metered`) are not appropriate for the STR artifact — they require live event ingestion infrastructure that is far outside the launch artifact scope.
+
+| Billing Model | Stripe Fields | solo_founder | startup_team | product_leader |
+|---------------|--------------|--------------|--------------|----------------|
+| One-time payment | `unit_amount`, no `recurring` | Supported (digital products, templates) | Rare | Rare |
+| Recurring monthly | `recurring.interval=month` | Primary model | Primary model | Secondary |
+| Recurring annual | `recurring.interval=year` | Optional (annual variant) | Standard add-on | Primary (enterprise) |
+| Per-seat | `recurring.usage_type=licensed`, `quantity` per subscription | Not in STR | Optional for startup_team | Optional for product_leader |
+| Metered / usage-based | `recurring.usage_type=metered`, `meter` field | Out of scope | Out of scope | Out of scope |
+| Tiered (graduated/volume) | `billing_scheme=tiered`, `tiers[]` | Out of scope | Out of scope | Out of scope |
+
+**Rationale for scope limits:** Metered and tiered billing require backend infrastructure (usage event ingestion, meter creation) that is not a launch artifact concern. These models are appropriate for Phase 93+ (deploy skill), not Phase 89 (wireframe stage). If LCV revenue streams mentions usage-based pricing, the STR artifact should include a comment placeholder noting that metered billing requires additional backend setup.
+
+**Checkout mode defaults by track:**
+
+| Track | Default `checkout_mode` | Condition to change |
+|-------|------------------------|---------------------|
+| `solo_founder` | `"subscription"` | Change to `"payment"` only if LCV revenue streams explicitly says one-time |
+| `startup_team` | `"subscription"` | Always subscription — investor-ready ARR story requires recurring revenue |
+| `product_leader` | `"subscription"` | Always subscription — P&L impact framing requires recurring MRR/ARR |
+
+---
+
+### Placeholder Convention Patterns
+
+All monetary values MUST use `[YOUR_X]` format per `references/business-financial-disclaimer.md`. The following table maps each STR field to its correct placeholder handling:
+
+| STR Field | Placeholder Approach | Example | Rationale |
+|-----------|---------------------|---------|-----------|
+| `unit_amount` | String placeholder — ALWAYS | `"[YOUR_PRICE_IN_CENTS]"` | Financial prohibition; structural only |
+| `currency` | Concrete value — always `"usd"` | `"usd"` | Not a financial value; structural/technical |
+| `product.name` | Descriptive string placeholder | `"[YOUR_PRODUCT_NAME]"` | No dollar amount involved |
+| `product.description` | Descriptive string placeholder | `"[YOUR_PRODUCT_DESCRIPTION]"` | No dollar amount involved |
+| `prices[].nickname` | Descriptive from LCV revenue streams | `"Starter"` or `"[YOUR_PLAN_NAME e.g. Starter]"` | May be concrete if LCV has named tiers |
+| `prices[].lookup_key` | Structured placeholder | `"[YOUR_LOOKUP_KEY_STARTER]"` | Must be unique per price |
+| `trial_period_days` | `null` or integer placeholder | `null` or `"[YOUR_TRIAL_DAYS]"` | Use `null` when LCV is silent on trials; use integer string if LCV mentions a specific trial |
+| `recurring.interval` | Concrete — `"month"` or `"year"` | `"month"` | Technical routing — not a financial value |
+| `recurring.interval_count` | Concrete integer | `1` | Technical — always 1 for standard billing |
+| `checkout_mode` | Concrete — `"subscription"` or `"payment"` | `"subscription"` | Technical routing — not financial |
+
+**Naming pattern for plan nicknames:** When LCV revenue streams box 9 is status `unknown` (no tier names provided), use the generic placeholder format: `"[YOUR_PLAN_NAME e.g. Starter]"`. When LCV provides named tiers (e.g., "Hobbyist, Creator, Agency"), use those names directly — they are not financial values.
+
+**Annual billing variant lookup key convention:** Append `_ANNUAL` suffix. Examples:
+- Monthly Starter: `"[YOUR_LOOKUP_KEY_STARTER]"`
+- Annual Starter: `"[YOUR_LOOKUP_KEY_STARTER_ANNUAL]"`
+- Monthly Pro: `"[YOUR_LOOKUP_KEY_PRO]"`
+- Annual Pro: `"[YOUR_LOOKUP_KEY_PRO_ANNUAL]"`
+
+**Currency placeholder question:** The `currency` field should be `"usd"` as a concrete default, not `"[YOUR_CURRENCY]"`. The financial disclaimer prohibits dollar amounts, not currency codes. Using `"usd"` is not a financial value claim. If the project signals a non-USD market (e.g., UK, EU, APAC signals in BRF), the STR generation step should emit a WARNING: "Currency defaulted to USD — verify against your Stripe account's supported currencies."
+
+---
+
+### Stripe Test Key Format
+
+**Verified against Stripe official docs (docs.stripe.com/keys):**
+
+| Key Type | Format | Example from official docs |
+|----------|--------|---------------------------|
+| Publishable test key | `pk_test_...` | `pk_test_REPLACE_WITH_YOUR_KEY` |
+| Secret test key | `sk_test_...` | `sk_test_REPLACE_WITH_YOUR_KEY` |
+| Publishable live key | `pk_live_...` | (never in code) |
+| Secret live key | `sk_live_...` | (never in code; never in STR artifact) |
+
+**STR artifact placeholder pattern:** The STR artifact does NOT include API keys — keys belong in environment variables (`.env.local`), not in a design planning artifact. However, the STR artifact SHOULD include a `_meta.integration_notes` field with guidance:
+
+```json
+"_meta": {
+  "stripe_key_env_var": "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
+  "stripe_key_format": "pk_test_REPLACE_WITH_YOUR_KEY (test) / pk_live_REPLACE_WITH_YOUR_KEY (live)",
+  "note": "Never commit API keys to version control. Set via .env.local or Vercel environment variables."
+}
+```
+
+This `_meta` field is non-standard (Stripe ignores unknown top-level fields when the JSON is used to provision via API), but serves as human-readable integration guidance within the artifact file.
+
+---
+
+### LCV Revenue Streams to Pricing Tier Mapping
+
+The Lean Canvas (LCV artifact, box 9) Revenue Streams box maps to STR tiers as follows:
+
+| LCV Box 9 State | STR Generation Behavior |
+|----------------|------------------------|
+| `status: validated`, named tiers present | Use LCV tier names directly as price nicknames; derive `checkout_mode` from revenue model type |
+| `status: assumed`, revenue model described (e.g., "monthly subscription") | Use descriptive placeholder names matching the assumed model; set `checkout_mode` accordingly |
+| `status: unknown`, no tier structure | Apply track-default tier count and generic placeholders |
+| LCV mentions "freemium" | Add a free tier entry with `unit_amount: 0` (this IS a concrete integer — zero cost is not a prohibited financial value) |
+| LCV mentions "annual discount" | Add annual billing variant entries with `_ANNUAL` lookup key suffix |
+| LCV mentions "enterprise / custom pricing" | Add enterprise tier with `unit_amount: "[YOUR_PRICE_IN_CENTS]"` and `"contact_sales": true` in metadata |
+
+**Revenue model signal parsing for `checkout_mode`:**
+
+| LCV Revenue Streams Signal | `checkout_mode` |
+|---------------------------|----------------|
+| "monthly", "subscription", "SaaS", "recurring" | `"subscription"` |
+| "one-time", "purchase", "license fee", "template", "course" | `"payment"` |
+| "freemium", "free tier + paid upgrade" | `"subscription"` (free tier uses `unit_amount: 0`) |
+| No signal | Default to `"subscription"` |
+
+---
+
+### Competitive Pricing Positioning
+
+Phase 86 produces the MLS (Market Landscape) artifact in `.planning/design/strategy/MLS-market-landscape-v{N}.md`. The STR artifact reads this for tier structure cues, not for specific dollar amounts.
+
+**What the STR step reads from MLS:**
+
+| MLS Data Point | How STR Uses It |
+|---------------|----------------|
+| Number of pricing tiers typical in category | Informs default tier count (if LCV is silent) |
+| Competitor tier names (Starter/Pro/Enterprise, Free/Hobby/Business) | Suggests naming conventions for plan nicknames |
+| Pricing model category convention (seat-based, usage-based, flat-rate) | Confirms appropriate `billing_scheme` and `recurring.usage_type` |
+| Free trial conventions (standard in category or not) | Informs `trial_period_days` default (null vs integer placeholder) |
+
+**What the STR step does NOT use from MLS:** Specific dollar amounts from competitor pricing. The MLS artifact itself uses `[Source required]` for unverified market sizing figures (per Phase 86 design). STR must not infer unit prices from competitor data — that would violate the financial prohibition.
+
+**Positioning signal in STR artifact `_meta`:** The STR artifact includes a `_meta.competitive_positioning` comment field (non-functional for Stripe API) that the user can populate:
+
+```json
+"_meta": {
+  "competitive_positioning": "[YOUR_POSITIONING_RELATIVE_TO_MARKET: premium/market-rate/undercut]",
+  "positioning_note": "Set unit_amount values relative to your competitive positioning. See MLS artifact for category pricing conventions."
+}
+```
+
+---
+
+### Track-Specific Tier Defaults
+
+These defaults apply when LCV box 9 is status `unknown`. When LCV has explicit tier content, follow LCV over these defaults.
+
+#### solo_founder — 2 tiers (Free/Paid or Starter/Pro)
+
+**Rationale:** Solo founders typically launch with a simple binary model: free (to build audience/validate) and paid (core product). Three tiers adds marketing complexity without PMF evidence.
+
+```json
+{
+  "product": {
+    "name": "[YOUR_PRODUCT_NAME]",
+    "description": "[YOUR_PRODUCT_DESCRIPTION]",
+    "metadata": {}
+  },
+  "prices": [
+    {
+      "nickname": "[YOUR_PLAN_NAME e.g. Free]",
+      "currency": "usd",
+      "unit_amount": 0,
+      "lookup_key": "[YOUR_LOOKUP_KEY_FREE]",
+      "trial_period_days": null
+    },
+    {
+      "nickname": "[YOUR_PLAN_NAME e.g. Pro]",
+      "currency": "usd",
+      "unit_amount": "[YOUR_PRICE_IN_CENTS]",
+      "recurring": { "interval": "month", "interval_count": 1 },
+      "lookup_key": "[YOUR_LOOKUP_KEY_PRO]",
+      "trial_period_days": null
+    }
+  ],
+  "checkout_mode": "subscription",
+  "_meta": {
+    "track": "solo_founder",
+    "tier_rationale": "2-tier free/paid model. Replace [YOUR_PRICE_IN_CENTS] with your monthly price in cents (e.g., 900 for $9.00). [VERIFY FINANCIAL ASSUMPTIONS]",
+    "stripe_key_env_var": "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
+    "stripe_key_format": "pk_test_REPLACE_WITH_YOUR_KEY"
+  }
+}
+```
+
+**Note on `unit_amount: 0` for free tier:** Zero is a concrete integer, not a financial assertion. This is structurally correct and not prohibited by the financial disclaimer. Free tiers with `unit_amount: 0` are a standard Stripe pattern for freemium.
+
+#### startup_team — 3 tiers (Starter/Pro/Enterprise) with annual variants
+
+**Rationale:** Startup teams need a pricing ladder that demonstrates CAC recovery and LTV growth for investors. Three tiers is the standard SaaS positioning (accessible entry, main monetization, high-value enterprise). Annual variants are included because ARR storytelling requires visible annual commitment option.
+
+```json
+{
+  "product": {
+    "name": "[YOUR_PRODUCT_NAME]",
+    "description": "[YOUR_PRODUCT_DESCRIPTION]",
+    "metadata": {}
+  },
+  "prices": [
+    {
+      "nickname": "[YOUR_PLAN_NAME e.g. Starter]",
+      "currency": "usd",
+      "unit_amount": "[YOUR_PRICE_IN_CENTS]",
+      "recurring": { "interval": "month", "interval_count": 1 },
+      "lookup_key": "[YOUR_LOOKUP_KEY_STARTER]",
+      "trial_period_days": "[YOUR_TRIAL_DAYS]"
+    },
+    {
+      "nickname": "[YOUR_PLAN_NAME e.g. Pro]",
+      "currency": "usd",
+      "unit_amount": "[YOUR_PRICE_IN_CENTS]",
+      "recurring": { "interval": "month", "interval_count": 1 },
+      "lookup_key": "[YOUR_LOOKUP_KEY_PRO]",
+      "trial_period_days": "[YOUR_TRIAL_DAYS]"
+    },
+    {
+      "nickname": "[YOUR_PLAN_NAME e.g. Pro Annual]",
+      "currency": "usd",
+      "unit_amount": "[YOUR_PRICE_IN_CENTS]",
+      "recurring": { "interval": "year", "interval_count": 1 },
+      "lookup_key": "[YOUR_LOOKUP_KEY_PRO_ANNUAL]",
+      "trial_period_days": null
+    },
+    {
+      "nickname": "[YOUR_PLAN_NAME e.g. Enterprise]",
+      "currency": "usd",
+      "unit_amount": "[YOUR_PRICE_IN_CENTS]",
+      "recurring": { "interval": "year", "interval_count": 1 },
+      "lookup_key": "[YOUR_LOOKUP_KEY_ENTERPRISE]",
+      "trial_period_days": null,
+      "metadata": { "contact_sales": "true" }
+    }
+  ],
+  "checkout_mode": "subscription",
+  "_meta": {
+    "track": "startup_team",
+    "tier_rationale": "3-tier Starter/Pro/Enterprise model with annual Pro variant. [VERIFY FINANCIAL ASSUMPTIONS] Replace all [YOUR_PRICE_IN_CENTS] with actual amounts in cents before Stripe provisioning.",
+    "stripe_key_env_var": "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
+    "stripe_key_format": "pk_test_REPLACE_WITH_YOUR_KEY",
+    "competitive_positioning": "[YOUR_POSITIONING_RELATIVE_TO_MARKET: premium/market-rate/undercut]"
+  }
+}
+```
+
+#### product_leader — 2 tiers (Team/Enterprise) with annual emphasis
+
+**Rationale:** Product leaders operate within an organization selling to enterprise buyers. Pricing is typically annual-only, seat-based or flat enterprise license. Self-serve "Starter" tiers are irrelevant. Two tiers with annual billing emphasis matches the P&L vocabulary of the track.
+
+```json
+{
+  "product": {
+    "name": "[YOUR_PRODUCT_NAME]",
+    "description": "[YOUR_PRODUCT_DESCRIPTION]",
+    "metadata": {}
+  },
+  "prices": [
+    {
+      "nickname": "[YOUR_PLAN_NAME e.g. Team]",
+      "currency": "usd",
+      "unit_amount": "[YOUR_PRICE_IN_CENTS]",
+      "recurring": { "interval": "year", "interval_count": 1 },
+      "lookup_key": "[YOUR_LOOKUP_KEY_TEAM_ANNUAL]",
+      "trial_period_days": null
+    },
+    {
+      "nickname": "[YOUR_PLAN_NAME e.g. Enterprise]",
+      "currency": "usd",
+      "unit_amount": "[YOUR_PRICE_IN_CENTS]",
+      "recurring": { "interval": "year", "interval_count": 1 },
+      "lookup_key": "[YOUR_LOOKUP_KEY_ENTERPRISE_ANNUAL]",
+      "trial_period_days": null,
+      "metadata": { "contact_sales": "true" }
+    }
+  ],
+  "checkout_mode": "subscription",
+  "_meta": {
+    "track": "product_leader",
+    "tier_rationale": "2-tier Team/Enterprise model with annual billing. [VERIFY FINANCIAL ASSUMPTIONS] Enterprise tier typically requires sales-assisted pricing — set contact_sales metadata accordingly.",
+    "stripe_key_env_var": "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
+    "stripe_key_format": "pk_test_REPLACE_WITH_YOUR_KEY",
+    "packaging_note": "Align with your organization P&L model. See MLS artifact for market packaging conventions."
+  }
+}
+```
+
+---
+
+### STR Artifact Format Recommendation
+
+**Format: JSON (`.json` extension) — confirmed correct.**
+
+This was already locked in the existing research as `.planning/design/launch/STR-stripe-pricing-v{N}.json`. The deep-dive confirms this choice is correct for the following reasons:
+
+| Criterion | JSON | YAML | Markdown with embedded JSON |
+|-----------|------|------|----------------------------|
+| Stripe API compatibility | Direct — the JSON can be adapted for API calls | Requires conversion | Requires extraction |
+| Human readability | Moderate — field names are self-describing | Higher | Highest |
+| Phase 93+ deploy skill consumption | Direct `JSON.parse()` | Requires `js-yaml` | Requires regex extraction |
+| Validation (financial check) | `grep -qE '"unit_amount": [0-9]'` works directly | Requires YAML parser | More complex |
+| Existing project convention | Already in launch-frameworks.md as JSON | Not used elsewhere for artifacts | Not used for machine-readable artifacts |
+
+**`_meta` field:** The `_meta` top-level key is non-standard for Stripe's API but serves as embedded documentation within the artifact. When the deploy skill (Phase 93+) reads the STR artifact, it must skip `_meta` when constructing Stripe API calls. Include this note in the `_meta` block itself:
+
+```json
+"_meta": {
+  "_note": "This field is for human guidance only. Skip when constructing Stripe API calls.",
+  ...
+}
+```
+
+**Versioning:** `STR-stripe-pricing-v{N}.json` where `{N}` matches the wireframe version number. This is already locked in the existing research.
+
+**Connection to existing `references/launch-frameworks.md` schema:** The Pricing Config Schema in launch-frameworks.md (lines 134-156) shows the base single-tier template. The deep-dive additions (track-specific tier counts, `_meta` field, `unit_amount: 0` for free tiers, annual variants) extend but do not contradict that schema. The launch-frameworks.md Pricing Config Schema section needs no updates — the extension logic lives in wireframe.md Step 4i as conditional instruction prose.
+
+---
+
+### Summary of Additions to Existing Research
+
+The existing research (lines 1-722) correctly establishes:
+- STR artifact code, path, domain (all confirmed correct)
+- `unit_amount` must be string placeholder (confirmed by API schema: it IS an integer in Stripe's API, meaning the placeholder is intentionally non-API-ready)
+- `checkout_mode` routing for subscription vs payment (confirmed)
+- Multi-tier pricing pattern (confirmed and extended)
+- Track-default tier counts (2/3/2 — confirmed appropriate)
+
+New findings from this deep-dive:
+- `currency: "usd"` is a concrete default (not a placeholder) — not a financial value
+- `unit_amount: 0` for free tiers is a valid concrete integer — zero cost is not prohibited
+- `trial_period_days` in STR price object maps to `subscription_data.trial_period_days` in Checkout Session — deploy skill (Phase 93+) must handle this translation
+- Annual billing variants should use `_ANNUAL` lookup key suffix (naming convention clarified)
+- `_meta` field pattern for integration notes, competitive positioning, key format guidance
+- `startup_team` default includes 4 price entries (Starter monthly + Pro monthly + Pro annual + Enterprise annual) not 3 — the "3 tiers" is marketing tiers, but the JSON has 4 price objects
+- `product_leader` enterprise tier uses `"contact_sales": "true"` in metadata, annual billing only
+
+---
+
+### Deep Dive Sources
+
+| Source | Confidence | What Was Verified |
+|--------|-----------|-------------------|
+| [Stripe Create a Price — API Reference](https://docs.stripe.com/api/prices/create) | HIGH | All Price fields, types, required/optional status, `unit_amount` type (integer), `billing_scheme` enum values, `recurring` sub-fields |
+| [Stripe Create a Product — API Reference](https://docs.stripe.com/api/products/create) | HIGH | Product fields, `name` as only required field, `marketing_features`, `metadata` |
+| [Stripe Checkout Session — API Reference](https://docs.stripe.com/api/checkout/sessions/create) | HIGH | `mode` enum values, `line_items` structure, `subscription_data.trial_period_days` |
+| [Stripe Configure free trials](https://docs.stripe.com/payments/checkout/free-trials) | HIGH | `subscription_data.trial_period_days` placement in Checkout Session, max 730 days, `payment_method_collection=if_required` |
+| [Stripe API Keys](https://docs.stripe.com/keys) | HIGH | `pk_test_` and `sk_test_` prefix format; placeholder format in Stripe documentation examples |
+| [Stripe Recurring Pricing Models](https://docs.stripe.com/products-prices/pricing-models) | HIGH | Flat rate, per-seat, tiered, usage-based model taxonomy |
+| [Stripe Per-Seat Pricing](https://docs.stripe.com/subscriptions/pricing-models/per-seat-pricing) | MEDIUM | `recurring.usage_type=licensed` for per-seat; `quantity` per subscription |
