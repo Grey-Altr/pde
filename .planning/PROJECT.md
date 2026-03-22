@@ -92,6 +92,10 @@ Any user can go from idea to shipped product through a single platform that hand
 - ✓ LCV (lean canvas) artifact with all 9 boxes and validated/assumed/unknown hypothesis status marking — v0.12
 - ✓ Domain Strategy section in BRF with [YOUR_X] financial placeholders and post-write dollar-amount grep enforcement — v0.12
 - ✓ 20-field designCoverage write pattern (first workflow to use full Phase 84 schema) — v0.12
+- ✓ Service blueprint (SBP) 5-lane Mermaid sequence diagram in flows.md business mode — v0.12
+- ✓ GTM channel flow (acquisition → conversion → retention) with channel priority annotations — v0.12
+- ✓ hasServiceBlueprint conditional coverage flag in 20-field designCoverage write — v0.12
+- ✓ SBP/GTM output depth adapts per businessTrack (solo/startup/leader) — v0.12
 
 ### Active
 
@@ -235,4 +239,4 @@ Any user can go from idea to shipped product through a single platform that hand
 | Business detection threshold (3+ signals, 2+ categories) | Prevents over-triggering on pure software projects while catching genuine business intent | ✓ Good — 5-category taxonomy with category diversity requirement |
 | BTH→LCV dependency chain (skip, don't halt) | If BTH generation fails, LCV is skipped with warning rather than halting entire brief run | ✓ Good — graceful degradation preserves non-business brief output |
 | 20-field designCoverage write (not copy 16-field pattern) | Phase 84 added 4 fields; copying opportunity.md's 16-field pattern silently drops them | ✓ Good — canonical order from manifest template |
-*Last updated: 2026-03-22 after Phase 86 — Competitive + Opportunity Extensions (MLS artifact with TAM/SAM/SOM, Mermaid quadrant chart, RICE business initiative framing, 20-field designCoverage in both workflows)*
+*Last updated: 2026-03-22 after Phase 87 — Flows Stage (5-lane SBP service blueprint, GTM channel flow, hasServiceBlueprint coverage, track-depth adaptation, strategy DESIGN-STATE wiring)*
