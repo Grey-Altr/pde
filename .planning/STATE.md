@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.12
 milestone_name: Business Product Type
 status: unknown
-stopped_at: Completed 88-01-PLAN.md — brand system Steps 5c/5d added to system.md, all 8 Nyquist tests green
-last_updated: "2026-03-22T17:33:36.640Z"
+stopped_at: Completed 89-01-PLAN.md — wireframe.md businessMode detection + LDP generation + 20-field designCoverage upgrade, 7/11 Nyquist tests green
+last_updated: "2026-03-22T18:48:00.000Z"
 progress:
   total_phases: 11
   completed_phases: 5
-  total_plans: 9
-  completed_plans: 9
+  total_plans: 11
+  completed_plans: 10
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-22)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 88 — brand-system
+**Current focus:** Phase 89 — wireframe-stage-launch-artifacts
 
 ## Current Position
 
-Phase: 88 (brand-system) — EXECUTING
-Plan: 1 of 1
+Phase: 89 (wireframe-stage-launch-artifacts) — EXECUTING
+Plan: 2 of 2
 
 ## Performance Metrics
 
@@ -85,6 +85,10 @@ Recent decisions affecting v0.12:
 - [Phase 88-brand-system]: Steps 5c/5d are INDEPENDENT conditional blocks (not ELSE IF from 5b) — business:experience compositions run both experience and business brand token generation
 - [Phase 88-brand-system]: SYS-brand-tokens.json is separate from SYS-tokens.json — manifest-set-top-level flat key assignment risks corrupting all 7 existing categories if merged
 - [Phase 88-brand-system]: Campaign palette variant tokens use {token.path} alias syntax into SYS-tokens.json — raw oklch values drift when core system is regenerated
+- [Phase 89-wireframe 01]: Step 4h is an independent IF block (not ELSE IF from 4-EXP) — business:experience products run both EXP wireframe and LDP spec generation
+- [Phase 89-wireframe 01]: LDP artifact routes to launch/ directory (not ux/) — consistent with LAUNCH-06 and Phase 84 domain routing decisions
+- [Phase 89-wireframe 01]: hasLaunchKit passes through current value in wireframe.md — that flag is owned by Phase 91 handoff.md
+- [Phase 89-wireframe 01]: LAUNCH-06 Nyquist test checks all 3 launch/ paths in one assertion — remains RED until Plan 02 adds STR and DPD
 
 ### Pending Todos
 
@@ -97,8 +101,8 @@ Recent decisions affecting v0.12:
 
 ## Session Continuity
 
-Last session: 2026-03-22T17:30:24.086Z
-Stopped at: Completed 88-01-PLAN.md — brand system Steps 5c/5d added to system.md, all 8 Nyquist tests green
+Last session: 2026-03-22T18:48:00.000Z
+Stopped at: Completed 89-01-PLAN.md — wireframe.md businessMode detection + LDP generation + 20-field designCoverage upgrade, 7/11 Nyquist tests green
 Resume file: None
 
 Next action: Execute Phase 85 (Brief Skill)
