@@ -5,6 +5,9 @@ Generate a structured product design brief from PROJECT.md context. Produces BRF
 <required_reading>
 @references/skill-style-guide.md
 @references/mcp-integration.md
+@references/business-track.md
+@references/launch-frameworks.md
+@references/business-financial-disclaimer.md
 </required_reading>
 
 <flags>
@@ -221,6 +224,82 @@ Step 4/7: Product type detected.
   -> Platform: {platform}
   -> Signals found: {comma-separated list of key signals}
 ```
+
+#### Business Intent Detection (BRIEF-01)
+
+After product_type detection, scan PROJECT.md content for business-specific signals:
+
+BUSINESS_SIGNAL_COUNT = 0
+BUSINESS_CATEGORIES_HIT = set()
+
+Check each category against PROJECT.md content (case-insensitive):
+  Model signals: "business model", "revenue", "monetize", "SaaS", "subscription", "pricing", "freemium", "B2B", "B2C"
+    -> if any found: BUSINESS_SIGNAL_COUNT += count of matches, add "model" to BUSINESS_CATEGORIES_HIT
+  Market signals: "go-to-market", "GTM", "acquisition", "churn", "LTV", "CAC", "market fit", "target market"
+    -> if any found: BUSINESS_SIGNAL_COUNT += count of matches, add "market" to BUSINESS_CATEGORIES_HIT
+  Launch signals: "startup", "found", "venture", "bootstrap", "seed", "funding", "investor", "pitch deck"
+    -> if any found: BUSINESS_SIGNAL_COUNT += count of matches, add "launch" to BUSINESS_CATEGORIES_HIT
+  Metrics signals: "ARR", "MRR", "burn rate", "runway", "unit economics", "profit", "margin"
+    -> if any found: BUSINESS_SIGNAL_COUNT += count of matches, add "metrics" to BUSINESS_CATEGORIES_HIT
+  Positioning signals: "competitive advantage", "differentiation", "unfair advantage", "market position"
+    -> if any found: BUSINESS_SIGNAL_COUNT += count of matches, add "positioning" to BUSINESS_CATEGORIES_HIT
+
+Classification logic:
+IF BUSINESS_SIGNAL_COUNT >= 3 AND len(BUSINESS_CATEGORIES_HIT) >= 2:
+  SET businessMode = true
+ELSE IF strong single signal found (exact phrase match for "business model", "revenue model", "go-to-market strategy"):
+  SET businessMode = true
+ELSE IF SEQUENTIAL_THINKING_AVAILABLE AND BUSINESS_SIGNAL_COUNT == 2 AND len(BUSINESS_CATEGORIES_HIT) == 1:
+  Use Sequential Thinking to analyze: "Is the primary intent of this project description business design (requires business model, market strategy, or financial planning artifacts) or product/software design? Business signals found: {list}. Content: {first 300 chars}. Return: BUSINESS_INTENT or PRODUCT_INTENT with rationale."
+  SET businessMode = result == "BUSINESS_INTENT"
+ELSE:
+  SET businessMode = false
+
+Default: businessMode = false when signals are absent or below threshold.
+
+#### Track Detection (BRIEF-02)
+
+IF businessMode == true:
+
+  Scan PROJECT.md content for track signals (check in this order — most specific first):
+
+  product_leader signals: "product leader", "PM", "head of product", "enterprise", "director", "VP", "product manager"
+  startup_team signals: "startup", "seed", "early stage", "founding team", "co-founder", "pre-seed", "Series A"
+  solo_founder signals: "solo", "indie", "solo founder", "one person", "bootstrapped", "side project", "just me"
+
+  Default: solo_founder when no track signals detected or signals are ambiguous.
+
+  **Track selection prompt (interactive):**
+
+  IF --force OR --quick is present in $ARGUMENTS:
+    Use auto-detected track without prompting. Log:
+    `  -> --force mode: using detected track {track} without confirmation prompt.`
+  ELSE IF --dry-run is present:
+    Display: `  -> Business track: {detected_track} (dry-run — no prompt)`
+    (Do not prompt — dry-run halts after Step 4)
+  ELSE:
+    Present to user:
+    ```
+    Business intent detected. Select your track:
+
+      1. solo_founder — individual builder or bootstrapped maker
+      2. startup_team — early-stage startup with co-founders or investors
+      3. product_leader — PM or product director within an organization
+
+    Detected from your description: {detected_track}
+    Press Enter to confirm or type 1/2/3 to change.
+    ```
+    Store user-confirmed value as businessTrack.
+
+ELSE (businessMode == false):
+  SET businessTrack = null
+
+Display (appended to Step 4 output):
+```
+  -> Business mode: {true/false}. Track: {businessTrack or N/A}.
+```
+
+IF --dry-run: Display business detection results and HALT (do not proceed to Step 5). Include in dry-run output: `Business mode: {value}, Track: {value}`.
 
 ---
 
@@ -456,6 +535,27 @@ Derive from sub_type signals: `recurring-series` → series type. `single-night`
 
 <!-- End experience-only sections -->
 
+#### Domain Strategy Section (BRIEF-05)
+
+IF businessMode == true, append this section to the BRF artifact content AFTER `## Scope Boundaries` (and after any experience-type sections if product_type == "experience"):
+
+```markdown
+## Domain Strategy
+*(Generated when businessMode = true)*
+
+**Naming Direction:**
+[2-3 candidate naming directions derived from the UVP — descriptive, evocative, or coined word approaches. No dollar amounts. No specific pricing references.]
+
+**Domain Availability Notes:**
+[YOUR_DOMAIN_NAME].com — [verify availability]
+[Placeholder notes — user must verify actual domain availability before proceeding]
+
+**Brand Positioning Seeds:**
+[3-5 positioning phrases derived from UVP and competitive differentiation for downstream brand system consumption in Phase 88. Qualitative language only — no dollar amounts, no specific revenue targets.]
+```
+
+**Financial placeholder enforcement (BRIEF-07):** The Domain Strategy section must use qualitative language only. Brand positioning seeds must NOT contain dollar amounts, specific percentages, or revenue targets. If any financial context is needed, use `[YOUR_X]` format from `@references/business-financial-disclaimer.md`.
+
 **Footer:**
 ```markdown
 ---
@@ -579,6 +679,27 @@ node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level pro
 node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level experienceSubType {sub_type_or_null}
 ```
 
+#### Business Mode Manifest Writes
+
+Write businessMode and businessTrack to manifest (always — even when false/null):
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level businessMode {businessMode_value}
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level businessTrack {businessTrack_value_or_null}
+```
+
+Where {businessMode_value} is the literal `true` or `false` determined in Step 4, and {businessTrack_value_or_null} is the confirmed track string (e.g., `solo_founder`) or `null`.
+
+**Financial content verification (BRIEF-07):** After writing the BRF artifact in Step 5, verify no dollar amounts leaked into the Domain Strategy section:
+
+```bash
+if grep -qE '\$[0-9]' ".planning/design/strategy/BRF-brief-v${N}.md" 2>/dev/null; then
+  echo "WARNING: Dollar amount detected in BRF artifact. Financial content must use [YOUR_X] placeholders per @references/business-financial-disclaimer.md."
+  echo "Offending lines:"
+  grep -nE '\$[0-9]' ".planning/design/strategy/BRF-brief-v${N}.md"
+fi
+```
+
 Display: `Step 7/7: Root DESIGN-STATE and manifest updated.`
 
 ---
@@ -601,6 +722,11 @@ Display the final summary table (always the last output):
 | Upstream context | {If any of IDT_CONTEXT, CMP_CONTEXT, OPP_CONTEXT, ANL_CONTEXT, NOTES_CONTEXT were found: list them as "IDT v{N} (ideation), CMP v{N} (competitive), OPP v{N} (opportunity), ANL v{N} (analyst)" for each found artifact, and ", NOTES ({N} files)" when NOTES_CONTEXT is non-null, comma-separated. If none found: "none — using PROJECT.md only"} |
 ```
 
+IF businessMode == true, add to summary table:
+```
+| Business mode | {businessMode} — track: {businessTrack} |
+```
+
 ---
 
 ## Anti-Patterns (Guard Against)
@@ -620,4 +746,8 @@ Display the final summary table (always the last output):
 - `.planning/design/strategy/DESIGN-STATE.md` — strategy domain state (created if absent)
 - `.planning/design/DESIGN-STATE.md` — root state updated (Cross-Domain Map, Quick Reference, Decision Log, Iteration History)
 - `.planning/design/design-manifest.json` — manifest updated with BRF artifact entry
+
+When businessMode = true, the following additional files are created in Plan 02:
+- `.planning/design/strategy/BTH-thesis-v{N}.md` — Business thesis
+- `.planning/design/strategy/LCV-lean-canvas-v{N}.md` — Lean canvas
 </output>
