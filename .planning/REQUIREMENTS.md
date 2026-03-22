@@ -29,11 +29,11 @@ Requirements for the business product type milestone. Each maps to roadmap phase
 
 ### Market Analysis
 
-- [ ] **MRKT-01**: `competitive.md` produces MLS (Market Landscape) artifact with TAM/SAM/SOM sizing (user-provided sources only, `[Source required]` when absent)
-- [ ] **MRKT-02**: Competitive positioning matrix generated as 2x2 quadrant diagram (Mermaid or ASCII) with differentiation analysis
+- [x] **MRKT-01**: `competitive.md` produces MLS (Market Landscape) artifact with TAM/SAM/SOM sizing (user-provided sources only, `[Source required]` when absent)
+- [x] **MRKT-02**: Competitive positioning matrix generated as 2x2 quadrant diagram (Mermaid or ASCII) with differentiation analysis
 - [x] **MRKT-03**: `opportunity.md` extends RICE scoring with business initiative framing — unit economics inputs (LTV formula, CAC ceiling, payback period at 3 churn scenarios) as structural placeholders
-- [ ] **MRKT-04**: `hasMarketLandscape` coverage flag set in designCoverage after MLS artifact creation
-- [ ] **MRKT-05**: Market landscape content adapts depth per `businessTrack` (solo: 1-page summary, startup: competitive deep-dive, leader: build-vs-buy analysis)
+- [x] **MRKT-04**: `hasMarketLandscape` coverage flag set in designCoverage after MLS artifact creation
+- [x] **MRKT-05**: Market landscape content adapts depth per `businessTrack` (solo: 1-page summary, startup: competitive deep-dive, leader: build-vs-buy analysis)
 
 ### Operational Design
 
@@ -148,11 +148,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | BRIEF-05 | 85 | Complete |
 | BRIEF-06 | 85 | Complete |
 | BRIEF-07 | 85 | Complete |
-| MRKT-01 | 86 | Pending |
-| MRKT-02 | 86 | Pending |
+| MRKT-01 | 86 | Complete |
+| MRKT-02 | 86 | Complete |
 | MRKT-03 | 86 | Complete |
-| MRKT-04 | 86 | Pending |
-| MRKT-05 | 86 | Pending |
+| MRKT-04 | 86 | Complete |
+| MRKT-05 | 86 | Complete |
 | OPS-01 | 87 | Pending |
 | OPS-02 | 87 | Pending |
 | OPS-03 | 87 | Pending |

@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.12
 milestone_name: Business Product Type
 status: unknown
-stopped_at: Completed 86-02-PLAN.md — opportunity.md business initiative framing + 20-field designCoverage write
-last_updated: "2026-03-22T16:03:05.687Z"
+stopped_at: Completed 86-01-PLAN.md — MLS artifact + Mermaid quadrant + 20-field coverage added to competitive.md
+last_updated: "2026-03-22T16:04:11.226Z"
 progress:
   total_phases: 11
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 6
-  completed_plans: 5
+  completed_plans: 6
 ---
 
 # Project State
@@ -43,6 +43,7 @@ Plan: 2 of 2
 | Phase 85 P01 | 8 | 2 tasks | 2 files |
 | Phase 85 P02 | 5 | 2 tasks | 2 files |
 | Phase 86 P02 | 3 | 2 tasks | 2 files |
+| Phase 86 P01 | 297 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -71,6 +72,8 @@ Recent decisions affecting v0.12:
 - [Phase 85]: coverage-check read before writing designCoverage — preserves existing flags, hasBusinessThesis hardcoded true for business mode
 - [Phase 86]: [86-02] Business Initiative Framing placed at end of Step 4 with BUSINESS_FRAMING_GENERATED flag gating Step 5 inclusion — preserves step count at 7
 - [Phase 86]: [86-02] opportunity.md 20-field designCoverage write replaces 16-field version in-place — no migration needed, consistent with Phase 85 brief.md pattern
+- [Phase 86]: MLS artifact is SEPARATE from CMP artifact — MLS-market-landscape-v{N}.md not embedded in CMP; locked versioning (MLS version always equals CMP version)
+- [Phase 86]: designCoverage upgraded from 16 to 20 fields in competitive.md; MLS_WRITTEN flag gates hasMarketLandscape coverage field
 
 ### Pending Todos
 
@@ -83,8 +86,8 @@ Recent decisions affecting v0.12:
 
 ## Session Continuity
 
-Last session: 2026-03-22T16:03:05.684Z
-Stopped at: Completed 86-02-PLAN.md — opportunity.md business initiative framing + 20-field designCoverage write
+Last session: 2026-03-22T16:04:11.220Z
+Stopped at: Completed 86-01-PLAN.md — MLS artifact + Mermaid quadrant + 20-field coverage added to competitive.md
 Resume file: None
 
 Next action: Execute Phase 85 (Brief Skill)
