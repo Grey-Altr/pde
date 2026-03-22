@@ -1,7 +1,7 @@
 <purpose>
 Thin orchestrator that reads designCoverage from the design manifest, determines which of the TOTAL design stages are complete, skips them, and invokes each remaining stage in canonical order via flat Skill() calls. Adds no skill logic — all behavior lives in individual skill workflows. Supports verification gates between stages (interactive mode) and auto-continue (yolo mode). Resumes from last complete stage after interruption or crash.
 
-Pipeline order: recommend → competitive → opportunity → ideate → brief → system → flows → wireframe → critique → iterate → mockup → hig → handoff
+Pipeline order: recommend → competitive → opportunity → ideate → brief → system → flows → wireframe → critique → iterate → mockup → hig → handoff → deploy (businessMode only)
 
 <!-- Experience product type — Phase 74 stub: the experience type follows the same stage progression as software. No new pipeline stages are added in Phase 74. Experience-specific stage behavior (floor plan at wireframe stage, production bible at handoff stage) is added in Phases 77-81. The --from stage names above remain valid for all product types including experience. -->
 </purpose>
@@ -13,7 +13,7 @@ Pipeline order: recommend → competitive → opportunity → ideate → brief �
 <flags>
 | Flag           | Description                                                                                                 |
 |----------------|-------------------------------------------------------------------------------------------------------------|
-| --from {stage} | Start pipeline at named stage, skipping all preceding stages. Valid names: recommend, competitive, opportunity, ideate, brief, system, flows, wireframe, critique, iterate, mockup, hig, handoff |
+| --from {stage} | Start pipeline at named stage, skipping all preceding stages. Valid names: recommend, competitive, opportunity, ideate, brief, system, flows, wireframe, critique, iterate, mockup, hig, handoff, deploy |
 | --dry-run      | Show pipeline status (complete/pending/skipped per stage) without executing.                                |
 | --quick        | Forwarded to sub-skills as passthrough arg (faster output mode).                                            |
 | --verbose      | Forwarded to sub-skills as passthrough arg (detailed output mode).                                          |
@@ -41,6 +41,7 @@ Define the ordered STAGES list (defined once; all counts derived from this list)
 | 11    | mockup      | pde:mockup      | coverage      | hasMockup                                                     |
 | 12    | hig         | pde:hig         | coverage      | hasHigAudit                                                   |
 | 13    | handoff     | pde:handoff     | coverage      | hasHandoff                                                    |
+| 14    | deploy      | pde:deploy      | coverage      | hasDeployStaging (businessMode gate)                          |
 
 `TOTAL = count(STAGES)` — used everywhere instead of any numeric literal.
 
@@ -71,7 +72,7 @@ fi
 If FROM_STAGE is set:
   Look up FROM_STAGE in the STAGES list name column (case-sensitive match)
   If not found:
-    Display error: "Unknown stage '{FROM_STAGE}'. Valid stages: recommend, competitive, opportunity, ideate, brief, system, flows, wireframe, critique, iterate, mockup, hig, handoff"
+    Display error: "Unknown stage '{FROM_STAGE}'. Valid stages: recommend, competitive, opportunity, ideate, brief, system, flows, wireframe, critique, iterate, mockup, hig, handoff, deploy"
     HALT (error)
   Set FROM_INDEX = matched stage index (1-based)
 
@@ -107,6 +108,13 @@ Parse the JSON result. Extract these fields (all boolean, default false if absen
 - `hasMockup` — Stage 11 complete flag
 - `hasHigAudit` — Stage 12 complete flag
 - `hasHandoff` — Stage 13 complete flag
+- `hasDeployStaging` — Stage 14 complete flag (only checked if businessMode === true)
+
+Read businessMode from the manifest:
+```bash
+BM=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-get-top-level businessMode 2>/dev/null)
+if [[ "$BM" == @file:* ]]; then BM=$(cat "${BM#@file:}"); fi
+```
 
 Check brief completion via Glob on `.planning/design/strategy/BRF-brief-v*.md`. If any file is found, BRIEF_DONE = true. If no files found, BRIEF_DONE = false.
 
@@ -131,7 +139,13 @@ Build the stage status table (TOTAL stages). For each stage, status is:
 | 10/{TOTAL}       | /pde:iterate     | hasIterate                                     | complete / pending / skipped   |
 | 11/{TOTAL}       | /pde:mockup      | hasMockup                                      | complete / pending / skipped   |
 | 12/{TOTAL}       | /pde:hig         | hasHigAudit                                    | complete / pending / skipped   |
-| {TOTAL}/{TOTAL}  | /pde:handoff     | hasHandoff                                     | complete / pending / skipped   |
+| 13/{TOTAL}       | /pde:handoff     | hasHandoff                                     | complete / pending / skipped   |
+| {TOTAL}/{TOTAL}  | /pde:deploy      | hasDeployStaging (businessMode gate)           | complete / pending / skipped (non-business project) |
+
+Stage 14 status determination:
+- If $BM != "true": Stage 14 status = "skipped (non-business project)"
+- If $BM == "true" and hasDeployStaging == true: Stage 14 status = "complete"
+- If $BM == "true" and hasDeployStaging != true: Stage 14 status = "pending"
 
 Display the table with actual status for each stage.
 
@@ -182,6 +196,20 @@ Invoke each skill using the flat Skill() invocation pattern. Do not use the Task
 - Stage 11/{TOTAL}: `Skill(skill="pde:mockup", args="${PASSTHROUGH_ARGS}")`
 - Stage 12/{TOTAL}: `Skill(skill="pde:hig", args="${PASSTHROUGH_ARGS}")`
 - Stage 13/{TOTAL}: `Skill(skill="pde:handoff", args="${PASSTHROUGH_ARGS}")`
+- Stage 14/{TOTAL}: businessMode gate applies (see below)
+
+**Stage 14 (deploy) special handling:**
+
+Before invoking Stage 14, check $BM (read in Step 2/4):
+- If $BM != "true":
+  - Display: `Stage 14/{TOTAL}: /pde:deploy -- skipped (non-business project)`
+  - Continue (no Skill invocation)
+- If $BM == "true" and Stage 14 is pending:
+  - Display: `Stage 14/{TOTAL}: Running /pde:deploy...`
+  - Invoke: `Skill(skill="pde:deploy", args="${PASSTHROUGH_ARGS}")`
+  - After Skill returns, display: `Stage 14/{TOTAL}: /pde:deploy -- done.`
+- If $BM == "true" and Stage 14 is already complete:
+  - Display: `Stage 14/{TOTAL}: /pde:deploy -- skipped (complete)`
 
 Note: `pde:hig` receives NO `--light` flag. PASSTHROUGH_ARGS contains only --quick/--verbose/--force. HIG runs in full standalone mode from the pipeline.
 
@@ -225,7 +253,8 @@ Pipeline summary:
   Stage 10/{TOTAL}: /pde:iterate    -- done
   Stage 11/{TOTAL}: /pde:mockup     -- done
   Stage 12/{TOTAL}: /pde:hig        -- done
-  Stage {TOTAL}/{TOTAL}: /pde:handoff -- done
+  Stage 13/{TOTAL}: /pde:handoff    -- done
+  Stage {TOTAL}/{TOTAL}: /pde:deploy -- done (or: skipped (non-business project))
 ```
 
 Display: `Design artifacts are in .planning/design/. Run /pde:handoff --verbose to review the implementation spec.`
