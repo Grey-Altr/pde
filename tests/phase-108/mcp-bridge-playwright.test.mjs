@@ -53,14 +53,14 @@ describe('PLAY-01: APPROVED_SERVERS playwright entry', () => {
 });
 
 describe('PLAY-02: TOOL_MAP playwright entries', () => {
-  test('TOOL_MAP has exactly 10 playwright:* entries', () => {
+  test('TOOL_MAP has exactly 11 playwright:* entries', () => {
     const playwrightKeys = Object.keys(TOOL_MAP).filter(k => k.startsWith('playwright:'));
-    assert.strictEqual(playwrightKeys.length, 10, `Expected 10 playwright:* entries, got ${playwrightKeys.length}: ${playwrightKeys.join(', ')}`);
+    assert.strictEqual(playwrightKeys.length, 11, `Expected 11 playwright:* entries, got ${playwrightKeys.length}: ${playwrightKeys.join(', ')}`);
   });
 
-  test('Total TOOL_MAP count is 56', () => {
+  test('Total TOOL_MAP count is 57', () => {
     const keys = Object.keys(TOOL_MAP);
-    assert.strictEqual(keys.length, 56, `Expected 56 TOOL_MAP entries (46 existing + 10 Playwright), got ${keys.length}: ${keys.join(', ')}`);
+    assert.strictEqual(keys.length, 57, `Expected 57 TOOL_MAP entries (46 existing + 11 Playwright), got ${keys.length}: ${keys.join(', ')}`);
   });
 
   test('TOOL_MAP["playwright:probe"] === "mcp__playwright__browser_snapshot"', () => {
@@ -205,8 +205,8 @@ describe('PLAY-07: TOOL_MAP_VERIFY_REQUIRED markers in source', () => {
 
     assert.strictEqual(
       playwrightToolMapLines.length,
-      10,
-      `Expected 10 playwright:* TOOL_MAP lines in source, found ${playwrightToolMapLines.length}`
+      11,
+      `Expected 11 playwright:* TOOL_MAP lines in source, found ${playwrightToolMapLines.length}`
     );
 
     for (const line of playwrightToolMapLines) {

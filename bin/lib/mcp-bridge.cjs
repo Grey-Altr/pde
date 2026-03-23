@@ -169,6 +169,7 @@ const TOOL_MAP = {
   'playwright:evaluate':   'mcp__playwright__browser_evaluate',        // TOOL_MAP_VERIFY_REQUIRED
   'playwright:pdf':        'mcp__playwright__browser_pdf_save',        // TOOL_MAP_VERIFY_REQUIRED
   'playwright:close':      'mcp__playwright__browser_close',           // TOOL_MAP_VERIFY_REQUIRED
+  'playwright:resize':     'mcp__playwright__browser_resize',           // TOOL_MAP_VERIFY_REQUIRED
 };
 
 // ─── Per-server auth instructions ─────────────────────────────────────────────
