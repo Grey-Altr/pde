@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.13
 milestone_name: AutoResearch
-status: Ready to execute
-stopped_at: Completed 99-01-PLAN.md
-last_updated: "2026-03-23T08:48:03.612Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 99-02-PLAN.md — all 14 workflow files annotated with LOCKED/OPTIMIZABLE markers
+last_updated: "2026-03-23T09:01:15.061Z"
 progress:
   total_phases: 9
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 1
+  completed_plans: 2
 ---
 
 # Project State
@@ -43,6 +43,7 @@ Plan: 2 of 2
 ## Accumulated Context
 
 | Phase 99 P01 | 8 | 2 tasks | 2 files |
+| Phase 99 P02 | 35 | 2 tasks | 14 files |
 
 ### Decisions
 
@@ -60,6 +61,8 @@ Recent decisions affecting v0.13 planning:
 - [Phase 99]: experiment-boundaries.md is self-protecting — listed in its own protected_files so no agent/experiment can remove boundary definition
 - [Phase 99]: Default policy is LOCKED (not OPTIMIZABLE) for unannotated files — prevents silent full-optimization
 - [Phase 99]: protected_files in experiment-boundaries.md is superset of protected-files.json — two independent protection layers
+- [Phase 99]: LOCKED/OPTIMIZABLE markers at section level (not file level) — interleaved patterns supported for multi-step flows like ideate.md
+- [Phase 99]: deploy.md Step 3 (scaffold guidance) is OPTIMIZABLE; Step 4 (Vercel deployment verification) is LOCKED — deploy verification is infrastructure not prose
 
 ### Pending Todos
 
@@ -73,8 +76,8 @@ Recent decisions affecting v0.13 planning:
 
 ## Session Continuity
 
-Last session: 2026-03-23T08:48:03.608Z
-Stopped at: Completed 99-01-PLAN.md
+Last session: 2026-03-23T09:01:15.058Z
+Stopped at: Completed 99-02-PLAN.md — all 14 workflow files annotated with LOCKED/OPTIMIZABLE markers
 Resume file: None
 
 Next action: /pde:plan-phase 99

@@ -221,7 +221,7 @@ Full details: .planning/milestones/v0.12-ROADMAP.md
 
 ## Phase Summary
 
-- [ ] **Phase 99: Safety Boundaries** - Immutability reference and section-level locked/optimizable markers across all experiment-eligible workflows
+- [x] **Phase 99: Safety Boundaries** - Immutability reference and section-level locked/optimizable markers across all experiment-eligible workflows (completed 2026-03-23)
 - [ ] **Phase 100: Git State Machine** - `experiment.cjs` module with commit-candidate/tag/reset/promote state machine and 6 pde-tools subcommands
 - [ ] **Phase 101: Experiment Schema & State Directory** - `experiment.md` file format, `.planning/experiments/` directory structure, config defaults, experiment phase type
 - [ ] **Phase 102: Mutation Agent & Metric Evaluation** - `pde-experiment-runner` agent with Haiku-first model selection, diff-based context, token tracking, and boundary enforcement
@@ -246,7 +246,7 @@ Full details: .planning/milestones/v0.12-ROADMAP.md
 
 Plans:
 - [x] 99-01-PLAN.md — Create experiment-boundaries reference and update protected-files.json
-- [ ] 99-02-PLAN.md — Add LOCKED/OPTIMIZABLE markers to 14 experiment-eligible workflow files
+- [x] 99-02-PLAN.md — Add LOCKED/OPTIMIZABLE markers to 14 experiment-eligible workflow files
 
 ### Phase 100: Git State Machine
 **Goal**: A reliable git state machine exists as a standalone CJS module that can commit experiment candidates, tag best results, and reset to baseline without touching regular planning commits
@@ -382,7 +382,7 @@ Phases execute in numeric order: 99 → 100 → 101 → 102 → 103 → 104 → 
 | 70-73 | v0.10 | 8/8 | Complete | 2026-03-21 |
 | 74-83 | v0.11 | 19/19 | Complete | 2026-03-22 |
 | 84-98 | v0.12 | 24/24 | Complete | 2026-03-23 |
-| 99. Safety Boundaries | v0.13 | 1/2 | In Progress|  |
+| 99. Safety Boundaries | v0.13 | 2/2 | Complete   | 2026-03-23 |
 | 100. Git State Machine | v0.13 | 0/TBD | Not started | - |
 | 101. Experiment Schema & State Directory | v0.13 | 0/TBD | Not started | - |
 | 102. Mutation Agent & Metric Evaluation | v0.13 | 0/TBD | Not started | - |
