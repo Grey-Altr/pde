@@ -235,7 +235,7 @@ Full details: .planning/milestones/v0.12-ROADMAP.md
 
 **Milestone Goal:** Give PDE browser capabilities via Playwright MCP and exploit them to create visual AutoResearch experiments that optimize all 14 design skills against visual, accessibility, and structural metrics derived from actual browser rendering.
 
-- [ ] **Phase 108: Playwright MCP Infrastructure** — Register Playwright as 7th APPROVED_SERVER with stdio transport, TOOL_MAP, probe/degrade
+- [x] **Phase 108: Playwright MCP Infrastructure** — Register Playwright as 7th APPROVED_SERVER with stdio transport, TOOL_MAP, probe/degrade
 - [ ] **Phase 109: Wireframe + Mockup Screenshots** — Capture wireframe and mockup HTML screenshots via Playwright MCP
 - [ ] **Phase 110: Critique A11y + Deploy Smoke Test** — Browser-based accessibility tree for critique, post-deploy smoke testing
 - [ ] **Phase 111: Visual Metric Scripts** — 5 metric scripts (DOM structure, a11y, contrast, responsive, Mermaid) following _evalMetric contract
@@ -257,7 +257,7 @@ Full details: .planning/milestones/v0.12-ROADMAP.md
   2. Probe detects Playwright availability and all workflows degrade gracefully when it is not installed
   3. TOOL_MAP entries resolve to actual Playwright tool names (live-verified, not assumed)
   4. mcp-integration.md documents Playwright setup with `--headless` and `--allow-unrestricted-file-access` flags
-**Plans**: TBD
+**Plans**: 2/2 complete (108-01: mcp-bridge.cjs registration; 108-02: mcp-integration.md documentation)
 
 ### Phase 109: Wireframe + Mockup Screenshots
 **Goal**: Users get automatic screenshots of wireframe and mockup HTML artifacts for visual reference and downstream metrics
@@ -375,4 +375,4 @@ Full details: .planning/milestones/v0.12-ROADMAP.md
 | v0.11 | 74-83 | 19/19 | Complete | 2026-03-22 |
 | v0.12 | 84-98 | 24/24 | Complete | 2026-03-23 |
 | v0.13 | 99-107 | 15/15 | Complete | 2026-03-23 |
-| v0.14 | 108-117 | 0/TBD | Not started | - |
+| v0.14 | 108-117 | 2/TBD | In progress | - |
