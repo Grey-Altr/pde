@@ -41,9 +41,9 @@ Requirements for the AutoResearch milestone. Each maps to roadmap phases.
 
 ### Self-Improvement & Skill Optimization
 
-- [ ] **SELF-01**: Self-improvement preset: pre-configured experiment targeting PDE's own workflow files with Nyquist assertion pass count as regression guard
-- [ ] **SELF-02**: `/pde:optimize --self` mode auto-discovers PDE workflow files eligible for optimization based on OPTIMIZABLE markers
-- [ ] **SELF-03**: Skill optimization mode: `/pde:optimize --skill {name}` targets a specific skill's SKILL.md and workflow files with skill-specific eval (e.g., skill test suite, pressure test score)
+- [x] **SELF-01**: Self-improvement preset: pre-configured experiment targeting PDE's own workflow files with Nyquist assertion pass count as regression guard
+- [x] **SELF-02**: `/pde:optimize --self` mode auto-discovers PDE workflow files eligible for optimization based on OPTIMIZABLE markers
+- [x] **SELF-03**: Skill optimization mode: `/pde:optimize --skill {name}` targets a specific skill's SKILL.md and workflow files with skill-specific eval (e.g., skill test suite, pressure test score)
 - [x] **SELF-04**: After experiment completes, promotion step generates a diff summary and requires user approval before merging experiment branch back to main
 - [x] **SELF-05**: Experiment REPORT.md generated at completion: iterations run, improvements kept, best metric achieved, files modified, diff summary
 - [x] **SELF-06**: Experiment runner uses minimal context window — only experiment.md, target file(s), last N iteration results, and metric output are loaded per iteration (no full project context)
@@ -141,12 +141,12 @@ Which phases cover which requirements.
 | CMD-04 | Phase 103 | Complete |
 | SELF-04 | Phase 103 | Complete |
 | SELF-05 | Phase 103 | Complete |
-| SELF-01 | Phase 104 | Pending |
-| SELF-02 | Phase 104 | Pending |
-| SELF-03 | Phase 104 | Pending |
-| RSRCH-01 | Phase 105 | Pending |
-| RSRCH-02 | Phase 105 | Pending |
-| RSRCH-03 | Phase 105 | Pending |
+| SELF-01 | Phase 104 | Complete |
+| SELF-02 | Phase 104 | Complete |
+| SELF-03 | Phase 104 | Complete |
+| RSRCH-01 | Phase 105 | Complete |
+| RSRCH-02 | Phase 105 | Complete |
+| RSRCH-03 | Phase 105 | Complete |
 | OBS-01 | Phase 106 | Pending |
 | OBS-02 | Phase 106 | Pending |
 | INTG-01 | Phase 107 | Pending |

@@ -4,12 +4,12 @@ milestone: v0.13
 milestone_name: AutoResearch
 status: Phase complete — ready for verification
 stopped_at: Completed 105-01-PLAN.md
-last_updated: "2026-03-23T13:12:00Z"
+last_updated: "2026-03-23T13:09:16.447Z"
 progress:
   total_phases: 9
-  completed_phases: 5
-  total_plans: 11
-  completed_plans: 10
+  completed_phases: 6
+  total_plans: 12
+  completed_plans: 11
 ---
 
 # Project State
@@ -19,11 +19,11 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-23)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 105 — Researcher Empirical Mode (complete)
+**Current focus:** Phase 105 — Researcher Empirical Mode
 
 ## Current Position
 
-Phase: 105 (Researcher Empirical Mode) — COMPLETE
+Phase: 105 (Researcher Empirical Mode) — EXECUTING
 Plan: 1 of 1
 
 ## Performance Metrics
@@ -52,7 +52,8 @@ Plan: 1 of 1
 | Phase 102 P02 | 35 | 2 tasks | 7 files |
 | Phase 103 P01 | 18min | 2 tasks | 6 files |
 | Phase 103 P02 | 25 | 2 tasks | 9 files |
-| Phase 105 P01 | 8min | 1 tasks | 4 files |
+| Phase 104-self-improvement-presets P01 | 12min | 1 tasks | 5 files |
+| Phase 105 P01 | 8 | 1 tasks | 4 files |
 
 ### Decisions
 
@@ -90,6 +91,7 @@ Recent decisions affecting v0.13 planning:
 - [Phase 103]: Plan 01 executed as prerequisite in same session as Plan 02 — experiment-report.cjs, pde-experiment-runner-sonnet.md, and pde-tools subcommands created before Plan 02 artifacts
 - [Phase 103]: Config merge pattern: experiment.md overrides only iteration/time budgets; consecutive_failure_limit, no_progress_limit, cost_estimate_enabled are always read from config.json (global safety policy)
 - [Phase 103]: consecutiveViolations tracked separately from consecutiveFailures — violations drive model escalation; consecutiveFailures drives BREAK-03; distinct failure dimensions
+- [Phase 104-self-improvement-presets]: nyquist-metric.cjs always exits 0 — pass count is the metric, non-zero exit causes CRASH in _evalMetric
 - [Phase 105]: Empirical mode is additive (researcher always produces RESEARCH.md; --empirical adds try_candidates on top)
 - [Phase 105]: 2-keyword threshold for auto-routing prevents over-triggering on phases that mention optimization tangentially
 - [Phase 105]: Experiments Attempted section is a placeholder written by researcher; optimize workflow fills outcomes after running candidates
@@ -106,8 +108,8 @@ Recent decisions affecting v0.13 planning:
 
 ## Session Continuity
 
-Last session: 2026-03-23T13:12:00Z
+Last session: 2026-03-23T13:09:16.444Z
 Stopped at: Completed 105-01-PLAN.md
 Resume file: None
 
-Next action: /pde:execute-phase 106
+Next action: /pde:plan-phase 99

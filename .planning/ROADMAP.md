@@ -226,8 +226,8 @@ Full details: .planning/milestones/v0.12-ROADMAP.md
 - [x] **Phase 101: Experiment Schema & State Directory** - `experiment.md` file format, `.planning/experiments/` directory structure, config defaults, experiment phase type (completed 2026-03-23)
 - [x] **Phase 102: Mutation Agent & Metric Evaluation** - `pde-experiment-runner` agent with Haiku-first model selection, diff-based context, token tracking, and boundary enforcement (completed 2026-03-23)
 - [x] **Phase 103: Orchestrator, Command & Circuit Breakers** - `workflows/optimize.md` full loop, `/pde:optimize` command, all 5 circuit breakers, cost estimate gate, REPORT.md (completed 2026-03-23)
-- [ ] **Phase 104: Self-Improvement Presets** - `--self` and `--skill` modes, OPTIMIZABLE autodiscovery, self-improvement preset configuration
-- [x] **Phase 105: Researcher Empirical Mode** - `pde-phase-researcher` empirical flag, research-phase routing, "Experiments Attempted" RESEARCH.md section (completed 2026-03-23)
+- [x] **Phase 104: Self-Improvement Presets** - `--self` and `--skill` modes, OPTIMIZABLE autodiscovery, self-improvement preset configuration (completed 2026-03-23)
+- [ ] **Phase 105: Researcher Empirical Mode** - `pde-phase-researcher` empirical flag, research-phase routing, "Experiments Attempted" RESEARCH.md section
 - [ ] **Phase 106: Observability & Event Bus** - 6 experiment event types on NDJSON bus, tmux dashboard experiment pane
 - [ ] **Phase 107: Nyquist Coverage** - Structural tests for boundary enforcement, circuit breakers, reset behavior, zero regression for existing workflows
 
@@ -333,10 +333,10 @@ Plans:
   1. `pde-phase-researcher` accepts an `--empirical` flag that switches it from desk-research mode to candidate-generation-and-measurement mode
   2. `workflows/research-phase.md` automatically routes to empirical mode when the phase CONTEXT.md or ROADMAP goal contains optimization or experimentation keywords
   3. RESEARCH.md produced in empirical mode includes an "Experiments Attempted" section listing each candidate tried, the metric measured, and the outcome (kept/discarded/crashed)
-**Plans**: 2 plans
+**Plans**: 1 plan
 
 Plans:
-- [ ] 105-01: Add empirical mode to pde-phase-researcher and research-phase.md routing
+- [ ] 105-01-PLAN.md — Add empirical mode to pde-phase-researcher and auto-routing to research-phase.md
 
 ### Phase 106: Observability & Event Bus
 **Goal**: Experiment progress is visible in real time — the NDJSON event bus carries experiment lifecycle events and the tmux dashboard shows the current iteration, best metric, and budget remaining
@@ -388,7 +388,7 @@ Phases execute in numeric order: 99 → 100 → 101 → 102 → 103 → 104 → 
 | 101. Experiment Schema & State Directory | v0.13 | 0/2 | Complete    | 2026-03-23 |
 | 102. Mutation Agent & Metric Evaluation | v0.13 | 1/2 | Complete    | 2026-03-23 |
 | 103. Orchestrator, Command & Circuit Breakers | v0.13 | 1/2 | Complete    | 2026-03-23 |
-| 104. Self-Improvement Presets | v0.13 | 0/1 | Not started | - |
-| 105. Researcher Empirical Mode | v0.13 | 1/1 | Complete    | 2026-03-23 |
+| 104. Self-Improvement Presets | v0.13 | 0/1 | Complete    | 2026-03-23 |
+| 105. Researcher Empirical Mode | v0.13 | 0/1 | Planned    |  |
 | 106. Observability & Event Bus | v0.13 | 0/TBD | Not started | - |
 | 107. Nyquist Coverage | v0.13 | 0/TBD | Not started | - |
