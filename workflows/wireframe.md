@@ -2118,9 +2118,70 @@ Write `.planning/design/ux/wireframes/index.html` with the following content:
 </html>
 ```
 
-#### 5d. Playwright MCP validation (optional enhancement)
+#### 5d. Playwright MCP screenshot capture (optional enhancement)
 
-If PLAYWRIGHT_AVAILABLE is true AND `--no-playwright` is not set: attempt to open `index.html` using a Playwright MCP tool call for screenshot validation. If unavailable or if the attempt fails: skip silently. Add `[Not validated — install Playwright MCP for automated browser testing]` to the output summary.
+If PLAYWRIGHT_AVAILABLE is true AND `--no-playwright` is not set:
+
+**Pre-loop setup:**
+
+1. Create screenshots directory:
+   ```bash
+   mkdir -p .planning/design/ux/wireframes/screenshots/
+   ```
+
+2. Resolve Playwright tool names via bridge:
+   ```bash
+   node --input-type=module <<'EOF'
+   import { createRequire } from 'module';
+   const req = createRequire(import.meta.url);
+   const b = req(`${process.env.CLAUDE_PLUGIN_ROOT}/bin/lib/mcp-bridge.cjs`);
+   let resizeToolName = '', navigateToolName = '', screenshotToolName = '', closeToolName = '';
+   try {
+     resizeToolName     = b.call('playwright:resize',     { width: 1280, height: 800 }).toolName;
+     navigateToolName   = b.call('playwright:navigate',   { url: 'about:blank' }).toolName;
+     screenshotToolName = b.call('playwright:screenshot',  {}).toolName;
+     closeToolName      = b.call('playwright:close',       {}).toolName;
+   } catch (err) {
+     resizeToolName = navigateToolName = screenshotToolName = closeToolName = '';
+   }
+   process.stdout.write(JSON.stringify({ resizeToolName, navigateToolName, screenshotToolName, closeToolName }) + '\n');
+   EOF
+   ```
+
+3. If any tool name resolved to empty string (bridge lookup failed), skip screenshot capture entirely. Log: `[Playwright screenshots skipped — bridge lookup failed]` and continue to Step 5/7 display.
+
+**Per-file screenshot loop:**
+
+Iterate over the list of generated HTML files: `index.html` + each `WFR-{slug}.html` file generated in this batch.
+
+For each file in the list:
+
+1. **Resize viewport** — Call `{resizeToolName}` with `{ width: 1280, height: 800 }` (resize before each navigate because `browser_close` resets the context)
+2. **Construct file:// URL** — Build absolute path and percent-encode spaces:
+   ```bash
+   node --input-type=module <<'EOF'
+   import { resolve } from 'path';
+   const root = process.env.CLAUDE_PLUGIN_ROOT;
+   const htmlFile = '{CURRENT_FILE}';  // e.g., 'index.html' or 'WFR-login.html'
+   const absPath = resolve(root, '.planning/design/ux/wireframes', htmlFile);
+   const fileUrl = 'file://' + absPath.replace(/ /g, '%20');
+   process.stdout.write(JSON.stringify({ fileUrl, htmlFile }) + '\n');
+   EOF
+   ```
+3. **Navigate** — Call `{navigateToolName}` with `{ url: <fileUrl> }`
+4. **Screenshot** — Call `{screenshotToolName}` with `{ filename: '.planning/design/ux/wireframes/screenshots/{slug}.png', type: 'png' }` where `{slug}` is the filename without extension (e.g., `index`, `WFR-login`)
+5. **Close** — Call `{closeToolName}` to end the browser context
+6. Log: `  -> Screenshot: .planning/design/ux/wireframes/screenshots/{slug}.png`
+
+**After loop:**
+
+Log: `  -> Screenshots saved to .planning/design/ux/wireframes/screenshots/`
+Tag output with: `[Validated by Playwright MCP — {count} screenshots captured at 1280x800]`
+
+**If PLAYWRIGHT_AVAILABLE is false OR `--no-playwright` is set:**
+
+Skip all screenshot capture. Log: `[Not validated — install Playwright MCP for automated browser testing]`
+No error, no failure — workflow continues normally.
 
 Display: `Step 5/7: Wrote {count} wireframe file(s) + index.html to ux/wireframes/.`
 
