@@ -223,10 +223,9 @@ Full details: .planning/milestones/v0.11-ROADMAP.md
   3. `references/business-track.md` exists with concrete vocabulary, depth thresholds, and artifact format differences for all three tracks — a workflow author reading it knows exactly how to branch
   4. `references/launch-frameworks.md` exists with complete artifact templates for lean canvas, pitch deck slides, service blueprint lanes, and pricing config schema
   5. `references/business-financial-disclaimer.md` and `references/business-legal-disclaimer.md` exist with unambiguous placeholder patterns — no dollar amounts, no generated legal documents, every financial field is `[YOUR_X]` format
-**Plans**: 2 plans
+**Plans**: 1 plan
 Plans:
-- [ ] 89-01-PLAN.md — Test scaffold, LDP schema in launch-frameworks.md, businessMode detection, LDP generation, 20-field coverage
-- [ ] 84-02-PLAN.md — Business reference files (track, frameworks, financial/legal disclaimers)
+- [ ] 94-01-PLAN.md — Regression matrix test file (INTG-02 through INTG-07) + full suite validation
 
 ### Phase 85: Brief Extensions + Detection
 **Goal**: Users can describe a business idea and have PDE detect business intent, select their track, and generate a business thesis with lean canvas
@@ -238,7 +237,7 @@ Plans:
   3. A BTH artifact (business thesis) appears in `strategy/` with problem, solution, market, and unfair-advantage sections
   4. A lean canvas artifact appears with all 9 boxes populated and each hypothesis marked validated/assumed/unknown
   5. All financial content in the brief output uses structural placeholders only — no dollar amounts appear anywhere in the generated output
-**Plans**: 2 plans
+**Plans**: 1 plan
 Plans:
 - [ ] 85-01-PLAN.md — Business detection, track selection, domain strategy, manifest writes
 - [ ] 85-02-PLAN.md — BTH thesis + LCV lean canvas artifact generation, 20-field coverage write
@@ -253,7 +252,7 @@ Plans:
   3. `/pde:opportunity` extends RICE scoring with business initiative framing including unit economics structural inputs (LTV formula, CAC ceiling, payback period at 3 churn scenarios) as placeholders
   4. `hasMarketLandscape` is set to true in designCoverage after the MLS artifact is created
   5. Market landscape output depth visibly differs between solo_founder (1-page summary), startup_team (competitive deep-dive), and product_leader (build-vs-buy analysis) tracks
-**Plans**: 2 plans
+**Plans**: 1 plan
 Plans:
 - [ ] 86-01-PLAN.md — MLS artifact, Mermaid quadrant chart, track depth, 20-field coverage in competitive.md
 - [ ] 86-02-PLAN.md — Business initiative framing with unit economics in opportunity.md
@@ -267,7 +266,7 @@ Plans:
   2. A GTM channel flow artifact appears as an acquisition → conversion → retention Mermaid flowchart with channel priority annotations
   3. `hasServiceBlueprint` is set to true in designCoverage after the SBP artifact is created
   4. Service blueprint and GTM flow output depth visibly adapts per businessTrack (solo: single-product, startup: multi-channel, leader: cross-functional)
-**Plans**: 2 plans
+**Plans**: 1 plan
 Plans:
 - [ ] 87-01-PLAN.md — Test scaffold + SBP service blueprint + GTM channel flow generation in flows.md
 - [ ] 87-02-PLAN.md — 20-field designCoverage upgrade + strategy DESIGN-STATE wiring
@@ -294,9 +293,9 @@ Plans:
   3. A pitch deck outline appears in YC/Sequoia format with track-appropriate depth (solo: 10 slides, startup: 12-15 slides, leader: internal business case format)
   4. Landing page wireframe content references brand tokens from Phase 88 and GTM copy framing from Phase 87
   5. All launch artifacts are stored in `.planning/design/launch/` — not in `ux/` or `visual/`
-**Plans**: 2 plans
+**Plans**: 1 plan
 Plans:
-- [ ] 89-01-PLAN.md — Test scaffold, LDP schema in launch-frameworks.md, businessMode detection, LDP generation, 20-field coverage
+- [ ] 94-01-PLAN.md — Regression matrix test file (INTG-02 through INTG-07) + full suite validation
 - [ ] 89-02-PLAN.md — STR Stripe pricing config, DPD pitch deck outline, DESIGN-STATE wiring + manifest registration
 
 ### Phase 90: Critique + HIG Extensions
@@ -308,7 +307,7 @@ Plans:
   2. Critique output includes a pitch coherence cross-check verifying that lean canvas UVP matches pitch deck solution slide and canvas key metrics match traction slide
   3. `/pde:hig` in business mode adds a business communications section covering pitch deck readability, email cadence, and content calendar structure guidelines
   4. Business critique findings use the standard severity levels (critical/major/minor/info) — no new severity formats introduced
-**Plans**: 2 plans
+**Plans**: 1 plan
 Plans:
 - [x] 90-01-PLAN.md — Test scaffold, business critique perspectives (4), pitch coherence cross-check, 20-field coverage in critique.md
 - [x] 90-02-PLAN.md — Business communications HIG (3 domains), 20-field coverage upgrade in hig.md
@@ -324,7 +323,7 @@ Plans:
   4. Domain strategy notes captured during the brief phase are consolidated into the launch kit
   5. `hasLaunchKit` is set to true in designCoverage after LKT creation — this flag gates the deploy stage
   6. All email sequence content uses structural personalization placeholders — no specific company names, partner references, or investor firm names appear in any generated email
-**Plans**: 2 plans
+**Plans**: 1 plan
 Plans:
 - [x] 91-01-PLAN.md — Test scaffold, business artifact discovery (4k), LKT/CNT/OTR synthesis (4l/4m), file writes (5e)
 - [x] 91-02-PLAN.md — Manifest registration (7b-lkt), 20-field designCoverage upgrade (7c), purpose/anti-patterns/output updates
@@ -341,7 +340,7 @@ Plans:
   5. Vercel deployment completes via `npx vercel --prod --no-wait` and returns a deployment URL without blocking the Claude Code session
   6. All deployment artifacts are stored in `.planning/deploy-staging/` with a generated `.gitignore` entry — never in `.planning/design/`
   7. `deploy-manifest.json` tracks all deployment artifact statuses with `review_required: true` per artifact
-**Plans**: 2 plans
+**Plans**: 1 plan
 Plans:
 - [x] 92-01-PLAN.md — Test scaffold + workflows/deploy.md (Stage 14 workflow with 4 approval gates, scaffold generation, Vercel deploy)
 - [ ] 92-02-PLAN.md — commands/deploy.md slash command + build.md Stage 14 STAGES entry with businessMode gate
@@ -354,7 +353,7 @@ Plans:
   1. Every designCoverage-writing workflow includes all 20 fields when writing the coverage object — a grep across all workflows confirms the field count
   2. `businessTrack` branching appears in every workflow where `businessMode` branching appears — `grep -rn "businessTrack" workflows/` hit count matches `grep -rn "businessMode" workflows/` hit count
   3. `recommend.md`, `iterate.md`, and `mockup.md` each contain a `<!-- Business product type -->` conditional stub (the same guard pattern used in v0.11 for experience stubs)
-**Plans**: 2 plans
+**Plans**: 1 plan
 Plans:
 - [x] 93-01-PLAN.md — Test scaffold + recommend.md and iterate.md 20-field fix + business stubs
 - [ ] 93-02-PLAN.md — mockup.md and ideate.md 20-field fix + mockup business stub
@@ -369,10 +368,9 @@ Plans:
   3. `business:hardware` and `business:experience` compositions each produce both their type-specific and business-specific artifacts without collision
   4. The deploy workflow halts at each approval gate without proceeding when the user declines — no partial deployment occurs on any decline
   5. Nyquist structural assertions cover all composition cases and all 20 designCoverage fields across modified workflows
-**Plans**: 2 plans
+**Plans**: 1 plan
 Plans:
-- [ ] 89-01-PLAN.md — Test scaffold, LDP schema in launch-frameworks.md, businessMode detection, LDP generation, 20-field coverage
-- [ ] 84-02-PLAN.md — Business reference files (track, frameworks, financial/legal disclaimers)
+- [ ] 94-01-PLAN.md — Regression matrix test file (INTG-02 through INTG-07) + full suite validation
 
 ## Progress
 
