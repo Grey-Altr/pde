@@ -3,6 +3,8 @@
  *
  * Tests for _checkModifiedFiles in bin/lib/experiment-runner.cjs.
  * Each test creates a temp git repo to simulate real modified files.
+ * The agent calls check-boundaries BEFORE committing (after Edit tool),
+ * so tests use staged/unstaged changes, not committed changes.
  */
 
 import { describe, it } from 'node:test';
@@ -54,10 +56,8 @@ describe('_checkModifiedFiles — boundary enforcement', () => {
   it('returns valid:true when modified files all in mutable_files list', () => {
     const dir = makeRepo();
     try {
-      // Stage a file that is in mutable_files
-      fs.writeFileSync(path.join(dir, 'target.md'), 'changed', 'utf-8');
-      execSync('git add target.md', { cwd: dir, stdio: 'pipe' });
-      execSync('git commit -m "experiment: change"', { cwd: dir, stdio: 'pipe' });
+      // Modify a file (unstaged) -- agent uses Edit tool which leaves changes unstaged
+      fs.writeFileSync(path.join(dir, 'target.md'), 'changed content', 'utf-8');
 
       const result = _checkModifiedFiles(dir, ['target.md', 'other.md']);
       assert.equal(result.valid, true);
@@ -72,10 +72,8 @@ describe('_checkModifiedFiles — boundary enforcement', () => {
   it('returns valid:false when modified file NOT in mutable_files list', () => {
     const dir = makeRepo();
     try {
-      // Stage a file that is NOT in mutable_files
+      // Modify a file that is NOT in mutable_files
       fs.writeFileSync(path.join(dir, 'bad-file.txt'), 'changed', 'utf-8');
-      execSync('git add bad-file.txt', { cwd: dir, stdio: 'pipe' });
-      execSync('git commit -m "experiment: change"', { cwd: dir, stdio: 'pipe' });
 
       const result = _checkModifiedFiles(dir, ['allowed.md']);
       assert.equal(result.valid, false);
@@ -88,11 +86,11 @@ describe('_checkModifiedFiles — boundary enforcement', () => {
   it('returns valid:false when no files modified (empty diff)', () => {
     const dir = makeRepo();
     try {
-      // No commits since baseline -- diff should be empty
+      // No changes since baseline -- both staged and unstaged diffs are empty
       const result = _checkModifiedFiles(dir, ['allowed.md']);
       assert.equal(result.valid, false);
       assert.ok(result.violations.length > 0, 'should have violations');
-      assert.ok(result.violations.some(v => v.includes('no files modified') || v.includes('No files')));
+      assert.ok(result.violations.some(v => v.includes('no files modified')));
     } finally {
       cleanup(dir);
     }
