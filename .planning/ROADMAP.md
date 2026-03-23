@@ -258,11 +258,11 @@ Plans:
   3. Experiment commits never appear in the main branch git log — they exist only on the experiment branch until explicitly promoted
   4. `EXPERIMENT-BEST.json` is written after each kept iteration and can be used to resume an interrupted experiment session
   5. All 6 pde-tools experiment subcommands (`init`, `commit`, `reset`, `promote`, `status`, `cleanup`) are dispatched correctly and produce structured output
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 100-01: Implement experiment.cjs git state machine module
-- [ ] 100-02: Wire 6 experiment subcommands into pde-tools.cjs dispatch
+- [ ] 100-01-PLAN.md — Implement experiment.cjs git state machine module
+- [ ] 100-02-PLAN.md — Wire 6 experiment subcommands into pde-tools.cjs dispatch
 
 ### Phase 101: Experiment Schema & State Directory
 **Goal**: The experiment file format, state directory structure, config defaults, and experiment phase type are fully defined so that an operator can declare an experiment and know exactly where results will appear
@@ -382,7 +382,7 @@ Phases execute in numeric order: 99 → 100 → 101 → 102 → 103 → 104 → 
 | 70-73 | v0.10 | 8/8 | Complete | 2026-03-21 |
 | 74-83 | v0.11 | 19/19 | Complete | 2026-03-22 |
 | 84-98 | v0.12 | 24/24 | Complete | 2026-03-23 |
-| 99. Safety Boundaries | v0.13 | 2/2 | Complete   | 2026-03-23 |
+| 99. Safety Boundaries | v0.13 | 2/2 | Complete    | 2026-03-23 |
 | 100. Git State Machine | v0.13 | 0/TBD | Not started | - |
 | 101. Experiment Schema & State Directory | v0.13 | 0/TBD | Not started | - |
 | 102. Mutation Agent & Metric Evaluation | v0.13 | 0/TBD | Not started | - |
