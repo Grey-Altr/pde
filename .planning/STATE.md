@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.14
 milestone_name: Visual AutoResearch
-status: Ready to plan
-stopped_at: Completed 113-02-PLAN.md
-last_updated: "2026-03-23T22:53:42.051Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 114-02-PLAN.md
+last_updated: "2026-03-23T23:50:36.202Z"
 progress:
   total_phases: 10
   completed_phases: 6
-  total_plans: 13
-  completed_plans: 13
+  total_plans: 15
+  completed_plans: 14
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-23)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 113 — cross-skill-pipeline-iterate-effectiveness
+**Current focus:** Phase 114 — visual-regression-circuit-breaker
 
 ## Current Position
 
-Phase: 114
-Plan: Not started
+Phase: 114 (visual-regression-circuit-breaker) — EXECUTING
+Plan: 2 of 2
 
 ## Performance Metrics
 
@@ -49,6 +49,8 @@ Plan: Not started
 | Phase 112 P02 | 5 | 2 tasks | 14 files |
 | Phase 113-01 P01 | 139 | 3 tasks | 4 files |
 | Phase 113 P02 | 150 | 2 tasks | 4 files |
+| Phase 114 P01 | 272 | 2 tasks | 5 files |
+| Phase 114-visual-regression-circuit-breaker P02 | 6 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -88,6 +90,11 @@ Recent decisions affecting v0.14 planning:
 - [Phase 113]: PIPE-03 upstream isolation: compare metric_delta across brief.md vs system.md pipeline templates using same verify command for apples-to-apples attribution
 - [Phase 113]: iterate-effectiveness-metric uses dom-metric.cjs via spawnSync in fixture mode — avoids Playwright dependency for Phase 113 testing
 - [Phase 113]: ITER-04 convergence speed is post-hoc analysis from JSONL history, not a separate metric output from iterate-effectiveness-metric.cjs
+- [Phase 114]: AND gate regression detection: hash change alone is not a regression — metric must also worsen to fire circuit breaker
+- [Phase 114]: visual_regression_guard defaults to false when absent — optional field, not in REQUIRED_FIELDS (backward compatible)
+- [Phase 114]: captureAndStoreBaseline fully non-fatal — returns null on any error, never throws (graceful Playwright degradation)
+- [Phase 114-visual-regression-circuit-breaker]: Playwright availability probe uses pde-tools mcp-probe subcommand in optimize.md — avoids require() in workflow prose which fails workflow sandbox validator
+- [Phase 114-visual-regression-circuit-breaker]: BREAK-05 capture saves to current-screenshot.png (not baseline) — baseline only advances on KEEP, preserving AND-gate regression detection semantics
 
 ### Pending Todos
 
@@ -101,8 +108,8 @@ Recent decisions affecting v0.14 planning:
 
 ## Session Continuity
 
-Last session: 2026-03-23T22:49:33.641Z
-Stopped at: Completed 113-02-PLAN.md
+Last session: 2026-03-23T23:50:36.199Z
+Stopped at: Completed 114-02-PLAN.md
 Resume file: None
 
 Next action: /pde:plan-phase 109 (Wireframe Screenshot Capture)

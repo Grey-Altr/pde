@@ -339,9 +339,9 @@ Plans:
   2. After mutation, if visual regression is detected (e.g., new a11y violation), the mutation is rejected via git reset
   3. Regression threshold is configurable in experiment.md (default: any new a11y violation = regression)
   4. Visual regression circuit breaker integrates with existing consecutive_failure_limit and no_progress_limit infrastructure
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 Plans:
-- [ ] 114-01-PLAN.md — visual-regression.cjs library + experiment-schema.cjs extension + Nyquist tests (VRCB-01..04)
+- [x] 114-01-PLAN.md — visual-regression.cjs library + experiment-schema.cjs extension + Nyquist tests (VRCB-01..04)
 - [ ] 114-02-PLAN.md — optimize.md BREAK-05 wiring + VRCB-05 integration tests
 
 ### Phase 115: Multi-Candidate Experiments

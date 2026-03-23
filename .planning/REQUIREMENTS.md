@@ -58,40 +58,40 @@ Requirements for v0.14 Visual AutoResearch. Each maps to roadmap phases.
 
 ### Experiment Templates (EXP)
 
-- [ ] **EXP-01**: experiment.md templates for wireframe skill optimization (mutate wireframe.md prose → measure DOM structure + a11y + contrast)
-- [ ] **EXP-02**: experiment.md templates for mockup skill optimization (mutate mockup.md prose → measure visual quality metrics)
-- [ ] **EXP-03**: experiment.md templates for critique skill optimization (mutate critique.md → measure finding quality against known-defective wireframes)
-- [ ] **EXP-04**: experiment.md templates for system skill optimization (mutate system.md → measure token WCAG contrast compliance in rendered output)
-- [ ] **EXP-05**: experiment.md templates for brief skill optimization (mutate brief.md → measure downstream wireframe quality as proxy metric)
-- [ ] **EXP-06**: experiment.md templates for flows skill optimization (mutate flows.md → measure Mermaid readability + diagram completeness)
-- [ ] **EXP-07**: experiment.md templates for iterate skill optimization (mutate iterate.md → measure before/after visual delta improvement)
-- [ ] **EXP-08**: experiment.md templates for hig skill optimization (mutate hig.md → measure a11y finding detection rate)
-- [ ] **EXP-09**: experiment.md templates for handoff skill optimization (mutate handoff.md → measure TypeScript interface completeness vs rendered component count)
-- [ ] **EXP-10**: experiment.md templates for recommend/competitive/opportunity/ideate skills (text-metric experiments using existing Nyquist, no browser required)
-- [ ] **EXP-11**: Each template specifies mutable_files, verify_command, target_metric, search_space, iteration_budget per experiment-schema.cjs contract
-- [ ] **EXP-12**: All 14 eligible design skills have at least one experiment template
+- [x] **EXP-01**: experiment.md templates for wireframe skill optimization (mutate wireframe.md prose → measure DOM structure + a11y + contrast)
+- [x] **EXP-02**: experiment.md templates for mockup skill optimization (mutate mockup.md prose → measure visual quality metrics)
+- [x] **EXP-03**: experiment.md templates for critique skill optimization (mutate critique.md → measure finding quality against known-defective wireframes)
+- [x] **EXP-04**: experiment.md templates for system skill optimization (mutate system.md → measure token WCAG contrast compliance in rendered output)
+- [x] **EXP-05**: experiment.md templates for brief skill optimization (mutate brief.md → measure downstream wireframe quality as proxy metric)
+- [x] **EXP-06**: experiment.md templates for flows skill optimization (mutate flows.md → measure Mermaid readability + diagram completeness)
+- [x] **EXP-07**: experiment.md templates for iterate skill optimization (mutate iterate.md → measure before/after visual delta improvement)
+- [x] **EXP-08**: experiment.md templates for hig skill optimization (mutate hig.md → measure a11y finding detection rate)
+- [x] **EXP-09**: experiment.md templates for handoff skill optimization (mutate handoff.md → measure TypeScript interface completeness vs rendered component count)
+- [x] **EXP-10**: experiment.md templates for recommend/competitive/opportunity/ideate skills (text-metric experiments using existing Nyquist, no browser required)
+- [x] **EXP-11**: Each template specifies mutable_files, verify_command, target_metric, search_space, iteration_budget per experiment-schema.cjs contract
+- [x] **EXP-12**: All 14 eligible design skills have at least one experiment template
 
 ### Cross-Skill Pipeline Experiments (PIPE)
 
-- [ ] **PIPE-01**: Pipeline experiment measures upstream prose change impact on downstream visual output (e.g., brief.md change → wireframe visual delta)
-- [ ] **PIPE-02**: Pipeline experiment runs full skill chain (brief → system → wireframe) with browser metrics at terminal stage
-- [ ] **PIPE-03**: Pipeline experiment isolates which upstream skill change produced the largest downstream improvement
-- [ ] **PIPE-04**: Pipeline experiment templates define multi-stage verify commands chaining skill invocations
+- [x] **PIPE-01**: Pipeline experiment measures upstream prose change impact on downstream visual output (e.g., brief.md change → wireframe visual delta)
+- [x] **PIPE-02**: Pipeline experiment runs full skill chain (brief → system → wireframe) with browser metrics at terminal stage
+- [x] **PIPE-03**: Pipeline experiment isolates which upstream skill change produced the largest downstream improvement
+- [x] **PIPE-04**: Pipeline experiment templates define multi-stage verify commands chaining skill invocations
 
 ### Iterate Effectiveness (ITER)
 
-- [ ] **ITER-01**: Before/after screenshot capture around /pde:iterate invocations
-- [ ] **ITER-02**: Visual delta measurement between pre-iterate and post-iterate wireframes
-- [ ] **ITER-03**: Iterate experiment template mutates iterate.md prose → measures improvement magnitude per iteration cycle
-- [ ] **ITER-04**: Iterate effectiveness metric tracks convergence speed (iterations-to-stable)
+- [x] **ITER-01**: Before/after screenshot capture around /pde:iterate invocations
+- [x] **ITER-02**: Visual delta measurement between pre-iterate and post-iterate wireframes
+- [x] **ITER-03**: Iterate experiment template mutates iterate.md prose → measures improvement magnitude per iteration cycle
+- [x] **ITER-04**: Iterate effectiveness metric tracks convergence speed (iterations-to-stable)
 
 ### Visual Regression Circuit Breaker (VRCB)
 
-- [ ] **VRCB-01**: Visual regression circuit breaker prevents cosmetic regressions during optimization
-- [ ] **VRCB-02**: Before each experiment iteration, baseline screenshots captured
-- [ ] **VRCB-03**: After mutation, screenshots compared — if visual regression detected, mutation is rejected (git reset)
-- [ ] **VRCB-04**: Regression threshold configurable in experiment.md (default: any new a11y violation = regression)
-- [ ] **VRCB-05**: Integrates with existing circuit breaker infrastructure (consecutive_failure_limit, no_progress_limit)
+- [x] **VRCB-01**: Visual regression circuit breaker prevents cosmetic regressions during optimization
+- [x] **VRCB-02**: Before each experiment iteration, baseline screenshots captured
+- [x] **VRCB-03**: After mutation, screenshots compared — if visual regression detected, mutation is rejected (git reset)
+- [x] **VRCB-04**: Regression threshold configurable in experiment.md (default: any new a11y violation = regression)
+- [x] **VRCB-05**: Integrates with existing circuit breaker infrastructure (consecutive_failure_limit, no_progress_limit)
 
 ### Multi-Candidate Experiments (MULTI)
 
@@ -195,31 +195,31 @@ Requirements for v0.14 Visual AutoResearch. Each maps to roadmap phases.
 | VIS-05 | Phase 111 | Complete |
 | VIS-06 | Phase 111 | Complete |
 | VIS-07 | Phase 111 | Complete |
-| EXP-01 | Phase 112 | Pending |
-| EXP-02 | Phase 112 | Pending |
-| EXP-03 | Phase 112 | Pending |
-| EXP-04 | Phase 112 | Pending |
-| EXP-05 | Phase 112 | Pending |
-| EXP-06 | Phase 112 | Pending |
-| EXP-07 | Phase 112 | Pending |
-| EXP-08 | Phase 112 | Pending |
-| EXP-09 | Phase 112 | Pending |
-| EXP-10 | Phase 112 | Pending |
-| EXP-11 | Phase 112 | Pending |
-| EXP-12 | Phase 112 | Pending |
-| PIPE-01 | Phase 113 | Pending |
-| PIPE-02 | Phase 113 | Pending |
-| PIPE-03 | Phase 113 | Pending |
-| PIPE-04 | Phase 113 | Pending |
-| ITER-01 | Phase 113 | Pending |
-| ITER-02 | Phase 113 | Pending |
-| ITER-03 | Phase 113 | Pending |
-| ITER-04 | Phase 113 | Pending |
-| VRCB-01 | Phase 114 | Pending |
-| VRCB-02 | Phase 114 | Pending |
-| VRCB-03 | Phase 114 | Pending |
-| VRCB-04 | Phase 114 | Pending |
-| VRCB-05 | Phase 114 | Pending |
+| EXP-01 | Phase 112 | Complete |
+| EXP-02 | Phase 112 | Complete |
+| EXP-03 | Phase 112 | Complete |
+| EXP-04 | Phase 112 | Complete |
+| EXP-05 | Phase 112 | Complete |
+| EXP-06 | Phase 112 | Complete |
+| EXP-07 | Phase 112 | Complete |
+| EXP-08 | Phase 112 | Complete |
+| EXP-09 | Phase 112 | Complete |
+| EXP-10 | Phase 112 | Complete |
+| EXP-11 | Phase 112 | Complete |
+| EXP-12 | Phase 112 | Complete |
+| PIPE-01 | Phase 113 | Complete |
+| PIPE-02 | Phase 113 | Complete |
+| PIPE-03 | Phase 113 | Complete |
+| PIPE-04 | Phase 113 | Complete |
+| ITER-01 | Phase 113 | Complete |
+| ITER-02 | Phase 113 | Complete |
+| ITER-03 | Phase 113 | Complete |
+| ITER-04 | Phase 113 | Complete |
+| VRCB-01 | Phase 114 | Complete |
+| VRCB-02 | Phase 114 | Complete |
+| VRCB-03 | Phase 114 | Complete |
+| VRCB-04 | Phase 114 | Complete |
+| VRCB-05 | Phase 114 | Complete |
 | MULTI-01 | Phase 115 | Pending |
 | MULTI-02 | Phase 115 | Pending |
 | MULTI-03 | Phase 115 | Pending |
