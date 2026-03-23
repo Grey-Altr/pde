@@ -208,7 +208,7 @@ Full details: .planning/milestones/v0.11-ROADMAP.md
 - [x] **Phase 90: Critique + HIG Extensions** — Business critique perspectives and business communications HIG (completed 2026-03-22)
 - [x] **Phase 91: Handoff — Launch Kit Assembly** — Launch kit manifest, content calendar, email sequence artifacts (completed 2026-03-22)
 - [x] **Phase 92: Deploy Skill** — Stage 14 with four approval-gated deployment actions and /pde:deploy command (completed 2026-03-22)
-- [ ] **Phase 93: designCoverage Clobber Audit + Secondary Workflow Stubs** — 20-field pass-through audit across all 14 workflows; recommend/iterate/mockup guard stubs
+- [x] **Phase 93: designCoverage Clobber Audit + Secondary Workflow Stubs** — 20-field pass-through audit across all 14 workflows; recommend/iterate/mockup guard stubs (completed 2026-03-23)
 - [ ] **Phase 94: Nyquist Regression Tests** — Composition case validation and non-regression verification
 
 ## Phase Details
@@ -398,5 +398,5 @@ Plans:
 | 90. Critique + HIG Extensions | v0.12 | 2/2 | Complete    | 2026-03-22 |
 | 91. Handoff — Launch Kit Assembly | v0.12 | 2/2 | Complete    | 2026-03-22 |
 | 92. Deploy Skill | v0.12 | 1/2 | Complete    | 2026-03-22 |
-| 93. designCoverage Audit + Stubs | v0.12 | 1/2 | In Progress|  |
+| 93. designCoverage Audit + Stubs | v0.12 | 1/2 | Complete    | 2026-03-23 |
 | 94. Nyquist Regression Tests | v0.12 | 0/TBD | Not started | - |
