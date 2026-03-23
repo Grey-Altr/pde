@@ -22,6 +22,11 @@ const VALID_CONFIG_KEYS = new Set([
   'planning.commit_docs', 'planning.search_gitignored',
   'monitoring.enabled', // Phase 58: event infrastructure — enable/disable NDJSON event log
   'monitoring.session_id', // Phase 58: current session UUID for scoped log file naming
+  'experiment_defaults.iteration_budget', // Phase 101: override experiment iteration budget
+  'experiment_defaults.time_budget_minutes', // Phase 101: override experiment time budget
+  'experiment_defaults.consecutive_failure_limit', // Phase 101: override consecutive failure limit
+  'experiment_defaults.no_progress_limit', // Phase 101: override no-progress limit
+  'experiment_defaults.cost_estimate_enabled', // Phase 101: enable/disable cost estimation
 ]);
 
 const CONFIG_KEY_SUGGESTIONS = {
