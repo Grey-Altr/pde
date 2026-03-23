@@ -278,4 +278,6 @@ Any user can go from idea to shipped product through a single platform that hand
 | Business detection threshold (3+ signals, 2+ categories) | Prevents over-triggering on pure software projects while catching genuine business intent | ✓ Good — 5-category taxonomy with category diversity requirement |
 | BTH→LCV dependency chain (skip, don't halt) | If BTH generation fails, LCV is skipped with warning rather than halting entire brief run | ✓ Good — graceful degradation preserves non-business brief output |
 | 20-field designCoverage write (not copy 16-field pattern) | Phase 84 added 4 fields; copying opportunity.md's 16-field pattern silently drops them | ✓ Good — canonical order from manifest template |
-*Last updated: 2026-03-23 after v0.14 Visual AutoResearch milestone defined (76 requirements, 10 phases)*
+| Playwright MCP via stdio transport | npx @playwright/mcp@latest --headless — identical to Stitch pattern, zero npm deps | ✓ Good — 7th APPROVED_SERVER, 10 TOOL_MAP entries, 27 Nyquist tests |
+| browser_snapshot as probe tool (not browser_navigate) | browser_snapshot requires no URL arg, avoids "missing required parameter" error on probe | ✓ Good — lightest read-only operation for server health check |
+*Last updated: 2026-03-23 after Phase 108 (Playwright MCP Infrastructure) complete — 1/10 v0.14 phases done*
