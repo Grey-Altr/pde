@@ -240,7 +240,7 @@ Full details: .planning/milestones/v0.12-ROADMAP.md
 - [x] **Phase 110: Critique A11y + Deploy Smoke Test** — Browser-based accessibility tree for critique, post-deploy smoke testing (completed 2026-03-23)
 - [x] **Phase 111: Visual Metric Scripts** — 5 metric scripts (DOM structure, a11y, contrast, responsive, Mermaid) following _evalMetric contract (completed 2026-03-23)
 - [x] **Phase 112: Experiment Templates** — AutoResearch experiment templates for all 14 eligible design skills with browser-backed verify (completed 2026-03-23)
-- [ ] **Phase 113: Cross-Skill Pipeline + Iterate Effectiveness** — Pipeline experiments measuring upstream-to-downstream visual impact, iterate before/after delta
+- [x] **Phase 113: Cross-Skill Pipeline + Iterate Effectiveness** — Pipeline experiments measuring upstream-to-downstream visual impact, iterate before/after delta (completed 2026-03-23)
 - [ ] **Phase 114: Visual Regression Circuit Breaker** — Prevent cosmetic regressions during optimization with screenshot-based before/after comparison
 - [ ] **Phase 115: Multi-Candidate Experiments** — A/B variant testing with best-of-N selection in experiment loop
 - [ ] **Phase 116: Pressure Test + Meta-Optimization + Ideation + Brief Reference** — Visual pressure test dimension, strategy self-calibration, ideation visual scoring, reference screenshot capture
@@ -325,9 +325,9 @@ Plans:
   2. Pipeline experiments isolate which upstream skill produced the largest downstream visual improvement
   3. Iterate experiments capture before/after screenshots around each `/pde:iterate` invocation and measure the visual delta
   4. Iterate effectiveness metric tracks convergence speed (iterations until visual improvement plateaus)
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 Plans:
-- [ ] 113-01-PLAN.md — Pipeline experiment templates (brief-to-wireframe + upstream isolation) + Nyquist tests
+- [x] 113-01-PLAN.md — Pipeline experiment templates (brief-to-wireframe + upstream isolation) + Nyquist tests
 - [ ] 113-02-PLAN.md — iterate-effectiveness-metric.cjs + iterate-effectiveness template + Nyquist tests
 
 ### Phase 114: Visual Regression Circuit Breaker

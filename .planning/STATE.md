@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.14
 milestone_name: Visual AutoResearch
 status: Ready to plan
-stopped_at: Completed 112-02-PLAN.md
-last_updated: "2026-03-23T22:06:48.462Z"
+stopped_at: Completed 113-02-PLAN.md
+last_updated: "2026-03-23T22:53:42.051Z"
 progress:
   total_phases: 10
-  completed_phases: 5
-  total_plans: 11
-  completed_plans: 11
+  completed_phases: 6
+  total_plans: 13
+  completed_plans: 13
 ---
 
 # Project State
@@ -19,11 +19,11 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-23)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 112 — experiment-templates
+**Current focus:** Phase 113 — cross-skill-pipeline-iterate-effectiveness
 
 ## Current Position
 
-Phase: 113
+Phase: 114
 Plan: Not started
 
 ## Performance Metrics
@@ -47,6 +47,8 @@ Plan: Not started
 | Phase 111 P01 | 277 | 2 tasks | 10 files |
 | Phase 112 P01 | 133 | 2 tasks | 9 files |
 | Phase 112 P02 | 5 | 2 tasks | 14 files |
+| Phase 113-01 P01 | 139 | 3 tasks | 4 files |
+| Phase 113 P02 | 150 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -82,6 +84,10 @@ Recent decisions affecting v0.14 planning:
 - [Phase 112]: brief.md uses dom-metric.cjs on fixture as Phase 112 proxy — full brief-to-wireframe pipeline measurement deferred to Phase 113
 - [Phase 112]: All 13 design skill experiment templates use direction: max — consistent metric direction enables KEEP/DISCARD logic in experiment runner without direction-specific handling
 - [Phase 112]: critique.md uses nyquist-metric.cjs not a11y fixture — Nyquist pass count is safer proxy for text critique quality than a11y score on a reference HTML fixture
+- [Phase 113]: pipeline-brief-wireframe-metric.cjs uses fixture mode in Phase 113 — Stage 1 is passthrough; future phases replace with live pde-tools.cjs invocations
+- [Phase 113]: PIPE-03 upstream isolation: compare metric_delta across brief.md vs system.md pipeline templates using same verify command for apples-to-apples attribution
+- [Phase 113]: iterate-effectiveness-metric uses dom-metric.cjs via spawnSync in fixture mode — avoids Playwright dependency for Phase 113 testing
+- [Phase 113]: ITER-04 convergence speed is post-hoc analysis from JSONL history, not a separate metric output from iterate-effectiveness-metric.cjs
 
 ### Pending Todos
 
@@ -95,8 +101,8 @@ Recent decisions affecting v0.14 planning:
 
 ## Session Continuity
 
-Last session: 2026-03-23T21:50:16.595Z
-Stopped at: Completed 112-02-PLAN.md
+Last session: 2026-03-23T22:49:33.641Z
+Stopped at: Completed 113-02-PLAN.md
 Resume file: None
 
 Next action: /pde:plan-phase 109 (Wireframe Screenshot Capture)
