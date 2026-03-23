@@ -268,10 +268,10 @@ Full details: .planning/milestones/v0.12-ROADMAP.md
   2. Running `/pde:mockup` produces PNG screenshots of all generated mockup HTML files in `screenshots/` subdirectory
   3. Multi-page wireframes (index.html + screen-*.html) each get individual screenshots at 1280x800 viewport
   4. `--no-playwright` flag skips screenshot capture without error (existing degradation path preserved)
-**Plans:** 2/2 plans complete
+**Plans:** 2 plans
 Plans:
-- [ ] 108-01-PLAN.md — Register Playwright in mcp-bridge.cjs (APPROVED_SERVERS + TOOL_MAP + AUTH_INSTRUCTIONS + Nyquist tests)
-- [ ] 108-02-PLAN.md — Update mcp-integration.md docs + MCP-08 live verification gate
+- [ ] 109-01-PLAN.md — TOOL_MAP resize entry + Nyquist tests + wireframe.md Step 5d screenshot capture loop
+- [ ] 109-02-PLAN.md — mockup.md Step 7f screenshot capture loop
 
 ### Phase 110: Critique A11y + Deploy Smoke Test
 **Goal**: Critique accessibility perspective has real browser AOM data, and deployed sites get automated smoke verification
@@ -402,4 +402,4 @@ Plans:
 | v0.11 | 74-83 | 19/19 | Complete | 2026-03-22 |
 | v0.12 | 84-98 | 24/24 | Complete | 2026-03-23 |
 | v0.13 | 99-107 | 15/15 | Complete | 2026-03-23 |
-| v0.14 | 108-117 | 2/TBD | In progress | - |
+| v0.14 | 108-117 | 2/4 | In progress | - |
