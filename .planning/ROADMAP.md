@@ -13,7 +13,7 @@
 - ✅ **v0.9 Google Stitch Integration** — Phases 64-69 (shipped 2026-03-21)
 - ✅ **v0.10 Idle Time Productivity** — Phases 70-73 (shipped 2026-03-21)
 - ✅ **v0.11 Experience Product Type** — Phases 74-83 (shipped 2026-03-22)
-- 🚧 **v0.12 Business Product Type** — Phases 84-95 (in progress)
+- 🚧 **v0.12 Business Product Type** — Phases 84-97 (in progress)
 
 ## Phases
 
@@ -212,6 +212,7 @@ Full details: .planning/milestones/v0.11-ROADMAP.md
 - [x] **Phase 94: Nyquist Regression Tests** — Composition case validation and non-regression verification (completed 2026-03-23)
 - [x] **Phase 95: Integration Wiring Fixes** — Close 6 requirement gaps, 3 integration gaps, and 3 broken flows from milestone audit (completed 2026-03-23)
 - [x] **Phase 96: 21-Field Cascade Fix** — Fix test assertion and 4 secondary workflow designCoverage writes to include hasDeployStaging as 21st field (completed 2026-03-23)
+- [ ] **Phase 97: Consumer Glob Mismatch Fixes** — Fix 5 remaining glob mismatches in deploy.md, handoff.md, and critique.md (STR/DPD/GTM stems and extensions)
 
 ## Phase Details
 
@@ -404,6 +405,23 @@ Plans:
 Plans:
 - [x] 96-01-PLAN.md — Fix test assertion (20→21) + add hasDeployStaging to 4 secondary workflows
 
+### Phase 97: Consumer Glob Mismatch Fixes
+**Goal**: Fix all 5 remaining glob pattern mismatches between producer and consumer workflows — deploy.md, handoff.md, and critique.md each glob for artifact filenames that don't match what the producer actually writes
+**Depends on**: Phase 96
+**Requirements**: LAUNCH-02, DEPLOY-03, KIT-01, KIT-02, KIT-03, OPS-02, QUAL-01
+**Gap Closure**: Closes GAP-1 through GAP-5 from v0.12-MILESTONE-AUDIT.md; repairs Deploy E2E flow
+**Success Criteria** (what must be TRUE):
+  1. `deploy.md` globs `STR-stripe-pricing-v*.json` (not `.md`) — deploy preflight no longer halts on STR artifact
+  2. `handoff.md` globs `STR-stripe-pricing-v*` (not `STR-stripe-config-v*`) — LKT manifest discovers STR correctly
+  3. `handoff.md` globs `DPD-pitch-deck-outline-v*` (not `DPD-pitch-deck-v*`) — investor OTR sequence no longer silently skipped
+  4. `handoff.md` globs `GTM-channel-flow-v*` (not `GTM-gtm-flow-v*`) — CNT calendar gets GTM channel priorities
+  5. `critique.md` globs `STR-stripe-pricing-v*` (not `STR-stripe-pricing-config-v*`) — BIZ-3 pricing perspective reads STR data
+  6. E2E `/pde:build business:software` flow completes through deploy preflight without glob misses
+  7. All 7 previously-gap requirements (LAUNCH-02, DEPLOY-03, KIT-01, KIT-02, KIT-03, OPS-02, QUAL-01) re-verified as satisfied
+**Plans**: 1 plan
+Plans:
+- [ ] 97-01-PLAN.md — Fix 5 glob mismatches in deploy.md, handoff.md, and critique.md
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -432,3 +450,4 @@ Plans:
 | 94. Nyquist Regression Tests | v0.12 | 0/1 | Complete    | 2026-03-23 |
 | 95. Integration Wiring Fixes | v0.12 | 0/1 | Complete    | 2026-03-23 |
 | 96. 21-Field Cascade Fix | v0.12 | 1/1 | Complete    | 2026-03-23 |
+| 97. Consumer Glob Mismatch Fixes | v0.12 | 0/1 | Pending | - |
