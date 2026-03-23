@@ -170,7 +170,7 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const { error } = require('./lib/core.cjs');
+const { error, output } = require('./lib/core.cjs');
 const state = require('./lib/state.cjs');
 const phase = require('./lib/phase.cjs');
 const roadmap = require('./lib/roadmap.cjs');
@@ -838,7 +838,7 @@ async function main() {
       const slugIdx = args.indexOf('--slug');
       const slug = slugIdx !== -1 ? args[slugIdx + 1] : undefined;
       if (!slug && subcommand !== 'ensure-dirs' && subcommand !== 'patch-config') {
-        error('--slug SLUG required. Available subcommands: init, commit, reset, promote, status, cleanup, ensure-dirs, patch-config');
+        error('--slug SLUG required. Available subcommands: init, commit, reset, promote, status, cleanup, ensure-dirs, patch-config, check-boundaries, eval-metric, write-row');
       }
       if (subcommand === 'init') {
         experiment.cmdExperimentInit(cwd, slug, raw);
@@ -865,8 +865,61 @@ async function main() {
       } else if (subcommand === 'patch-config') {
         const schema = require('./lib/experiment-schema.cjs');
         schema.cmdPatchExperimentConfig(cwd, raw);
+      } else if (subcommand === 'check-boundaries') {
+        const runner = require('./lib/experiment-runner.cjs');
+        const schema = require('./lib/experiment-schema.cjs');
+        const expPath = path.join(cwd, '.planning', 'experiments', slug, 'experiment.md');
+        const parsed = schema.parseExperimentFile(expPath);
+        if (!parsed.valid) {
+          error(parsed.errors.join('; '));
+        }
+        const result = runner._checkModifiedFiles(cwd, parsed.mutable_files);
+        output(result, raw);
+      } else if (subcommand === 'eval-metric') {
+        const runner = require('./lib/experiment-runner.cjs');
+        const schema = require('./lib/experiment-schema.cjs');
+        const expPath = path.join(cwd, '.planning', 'experiments', slug, 'experiment.md');
+        const parsed = schema.parseExperimentFile(expPath);
+        if (!parsed.valid) {
+          error(parsed.errors.join('; '));
+        }
+        const evalResult = runner._evalMetric(cwd, parsed.verify, 30000);
+        if (evalResult.status === 'CRASH') {
+          output({ ...evalResult, decision: 'CRASH', metric_delta: 0 }, raw);
+        } else {
+          // Read bestMetric from EXPERIMENT-BEST.json
+          let bestMetric = null;
+          try {
+            const bestJsonPath = path.join(cwd, '.planning', 'experiments', slug, 'EXPERIMENT-BEST.json');
+            const bestState = JSON.parse(fs.readFileSync(bestJsonPath, 'utf-8'));
+            bestMetric = bestState.bestMetric !== undefined ? bestState.bestMetric : null;
+          } catch { /* no state yet — first iteration */ }
+          const decision = runner._compareMetric(evalResult.metric_value, bestMetric, parsed.direction);
+          const metricDelta = bestMetric !== null ? evalResult.metric_value - bestMetric : 0;
+          output({ ...evalResult, decision, metric_delta: metricDelta }, raw);
+        }
+      } else if (subcommand === 'write-row') {
+        const runner = require('./lib/experiment-runner.cjs');
+        const iterIdx = args.indexOf('--iteration');
+        const metricValIdx = args.indexOf('--metric_value');
+        const metricDeltaIdx = args.indexOf('--metric_delta');
+        const statusIdx = args.indexOf('--status');
+        const descIdx = args.indexOf('--description');
+        const tokensIdx = args.indexOf('--tokens_used');
+        const commitIdx = args.indexOf('--commit');
+        const rowData = {
+          iteration: iterIdx !== -1 ? parseInt(args[iterIdx + 1], 10) : 0,
+          metric_value: metricValIdx !== -1 ? parseFloat(args[metricValIdx + 1]) : null,
+          metric_delta: metricDeltaIdx !== -1 ? parseFloat(args[metricDeltaIdx + 1]) : null,
+          status: statusIdx !== -1 ? args[statusIdx + 1] : null,
+          description: descIdx !== -1 ? args[descIdx + 1] : '',
+          tokens_used: tokensIdx !== -1 ? parseInt(args[tokensIdx + 1], 10) : null,
+          commit: commitIdx !== -1 ? args[commitIdx + 1] : null,
+        };
+        const row = runner._writeJsonlRow(cwd, slug, rowData);
+        output(row, raw);
       } else {
-        error('Unknown experiment subcommand. Available: init, commit, reset, promote, status, cleanup, ensure-dirs, patch-config');
+        error('Unknown experiment subcommand. Available: init, commit, reset, promote, status, cleanup, ensure-dirs, patch-config, check-boundaries, eval-metric, write-row');
       }
       break;
     }
