@@ -241,7 +241,7 @@ Full details: .planning/milestones/v0.12-ROADMAP.md
 - [x] **Phase 111: Visual Metric Scripts** — 5 metric scripts (DOM structure, a11y, contrast, responsive, Mermaid) following _evalMetric contract (completed 2026-03-23)
 - [x] **Phase 112: Experiment Templates** — AutoResearch experiment templates for all 14 eligible design skills with browser-backed verify (completed 2026-03-23)
 - [x] **Phase 113: Cross-Skill Pipeline + Iterate Effectiveness** — Pipeline experiments measuring upstream-to-downstream visual impact, iterate before/after delta (completed 2026-03-23)
-- [ ] **Phase 114: Visual Regression Circuit Breaker** — Prevent cosmetic regressions during optimization with screenshot-based before/after comparison
+- [x] **Phase 114: Visual Regression Circuit Breaker** — Prevent cosmetic regressions during optimization with screenshot-based before/after comparison (completed 2026-03-23)
 - [ ] **Phase 115: Multi-Candidate Experiments** — A/B variant testing with best-of-N selection in experiment loop
 - [ ] **Phase 116: Pressure Test + Meta-Optimization + Ideation + Brief Reference** — Visual pressure test dimension, strategy self-calibration, ideation visual scoring, reference screenshot capture
 - [ ] **Phase 117: Integration & Nyquist** — Structural regression tests for all v0.14 requirements, zero v0.13 regressions
@@ -339,7 +339,7 @@ Plans:
   2. After mutation, if visual regression is detected (e.g., new a11y violation), the mutation is rejected via git reset
   3. Regression threshold is configurable in experiment.md (default: any new a11y violation = regression)
   4. Visual regression circuit breaker integrates with existing consecutive_failure_limit and no_progress_limit infrastructure
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 Plans:
 - [x] 114-01-PLAN.md — visual-regression.cjs library + experiment-schema.cjs extension + Nyquist tests (VRCB-01..04)
 - [ ] 114-02-PLAN.md — optimize.md BREAK-05 wiring + VRCB-05 integration tests
