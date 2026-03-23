@@ -257,7 +257,10 @@ Full details: .planning/milestones/v0.12-ROADMAP.md
   2. Probe detects Playwright availability and all workflows degrade gracefully when it is not installed
   3. TOOL_MAP entries resolve to actual Playwright tool names (live-verified, not assumed)
   4. mcp-integration.md documents Playwright setup with `--headless` and `--allow-unrestricted-file-access` flags
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 108-01-PLAN.md — Register Playwright in mcp-bridge.cjs (APPROVED_SERVERS + TOOL_MAP + AUTH_INSTRUCTIONS + Nyquist tests)
+- [ ] 108-02-PLAN.md — Update mcp-integration.md docs + MCP-08 live verification gate
 
 ### Phase 109: Wireframe + Mockup Screenshots
 **Goal**: Users get automatic screenshots of wireframe and mockup HTML artifacts for visual reference and downstream metrics
@@ -268,7 +271,10 @@ Full details: .planning/milestones/v0.12-ROADMAP.md
   2. Running `/pde:mockup` produces PNG screenshots of all generated mockup HTML files in `screenshots/` subdirectory
   3. Multi-page wireframes (index.html + screen-*.html) each get individual screenshots at 1280x800 viewport
   4. `--no-playwright` flag skips screenshot capture without error (existing degradation path preserved)
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 108-01-PLAN.md — Register Playwright in mcp-bridge.cjs (APPROVED_SERVERS + TOOL_MAP + AUTH_INSTRUCTIONS + Nyquist tests)
+- [ ] 108-02-PLAN.md — Update mcp-integration.md docs + MCP-08 live verification gate
 
 ### Phase 110: Critique A11y + Deploy Smoke Test
 **Goal**: Critique accessibility perspective has real browser AOM data, and deployed sites get automated smoke verification
@@ -280,7 +286,10 @@ Full details: .planning/milestones/v0.12-ROADMAP.md
   3. When neither Playwright nor Axe is available, critique falls back to manual WCAG checklist without error
   4. After a successful deploy, PDE navigates to the deploy URL, captures a screenshot, and verifies expected sections from LDP spec
   5. Deploy smoke test retries with exponential backoff when the build is still in progress
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 108-01-PLAN.md — Register Playwright in mcp-bridge.cjs (APPROVED_SERVERS + TOOL_MAP + AUTH_INSTRUCTIONS + Nyquist tests)
+- [ ] 108-02-PLAN.md — Update mcp-integration.md docs + MCP-08 live verification gate
 
 ### Phase 111: Visual Metric Scripts
 **Goal**: AutoResearch experiments can measure visual quality of rendered HTML through 5 standardized metric scripts
@@ -291,7 +300,10 @@ Full details: .planning/milestones/v0.12-ROADMAP.md
   2. All 5 scripts exit 0 and return score 0 when Playwright MCP is unavailable (graceful degradation, not crash)
   3. Responsive compliance metric captures and compares layout at mobile (375px), tablet (768px), and desktop (1280px) breakpoints
   4. All scripts are timeout-safe (no hanging when browser operations stall)
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 108-01-PLAN.md — Register Playwright in mcp-bridge.cjs (APPROVED_SERVERS + TOOL_MAP + AUTH_INSTRUCTIONS + Nyquist tests)
+- [ ] 108-02-PLAN.md — Update mcp-integration.md docs + MCP-08 live verification gate
 
 ### Phase 112: Experiment Templates
 **Goal**: Every eligible design skill has an AutoResearch experiment template with browser-backed verification
@@ -302,7 +314,10 @@ Full details: .planning/milestones/v0.12-ROADMAP.md
   2. Browser-backed skills (wireframe, mockup, system, flows, critique, hig, iterate, handoff, brief) use visual metric scripts in their verify commands
   3. Non-browser skills (recommend, competitive, opportunity, ideate) use existing Nyquist text metrics
   4. Each template specifies mutable_files, verify_command, target_metric, search_space, and iteration_budget per experiment-schema.cjs contract
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 108-01-PLAN.md — Register Playwright in mcp-bridge.cjs (APPROVED_SERVERS + TOOL_MAP + AUTH_INSTRUCTIONS + Nyquist tests)
+- [ ] 108-02-PLAN.md — Update mcp-integration.md docs + MCP-08 live verification gate
 
 ### Phase 113: Cross-Skill Pipeline + Iterate Effectiveness
 **Goal**: Experiments can measure how upstream prose changes propagate to downstream visual quality, and iterate improvement magnitude is quantified
@@ -313,7 +328,10 @@ Full details: .planning/milestones/v0.12-ROADMAP.md
   2. Pipeline experiments isolate which upstream skill produced the largest downstream visual improvement
   3. Iterate experiments capture before/after screenshots around each `/pde:iterate` invocation and measure the visual delta
   4. Iterate effectiveness metric tracks convergence speed (iterations until visual improvement plateaus)
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 108-01-PLAN.md — Register Playwright in mcp-bridge.cjs (APPROVED_SERVERS + TOOL_MAP + AUTH_INSTRUCTIONS + Nyquist tests)
+- [ ] 108-02-PLAN.md — Update mcp-integration.md docs + MCP-08 live verification gate
 
 ### Phase 114: Visual Regression Circuit Breaker
 **Goal**: AutoResearch optimization never makes visual quality worse -- regressions are detected and rejected automatically
@@ -324,7 +342,10 @@ Full details: .planning/milestones/v0.12-ROADMAP.md
   2. After mutation, if visual regression is detected (e.g., new a11y violation), the mutation is rejected via git reset
   3. Regression threshold is configurable in experiment.md (default: any new a11y violation = regression)
   4. Visual regression circuit breaker integrates with existing consecutive_failure_limit and no_progress_limit infrastructure
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 108-01-PLAN.md — Register Playwright in mcp-bridge.cjs (APPROVED_SERVERS + TOOL_MAP + AUTH_INSTRUCTIONS + Nyquist tests)
+- [ ] 108-02-PLAN.md — Update mcp-integration.md docs + MCP-08 live verification gate
 
 ### Phase 115: Multi-Candidate Experiments
 **Goal**: Experiment iterations can generate and evaluate multiple variants simultaneously, selecting the best one
@@ -335,7 +356,10 @@ Full details: .planning/milestones/v0.12-ROADMAP.md
   2. Best candidate is promoted (git commit) and others are discarded
   3. Candidate count is configurable in experiment.md
   4. Multi-candidate mode works within the existing orchestrator loop from Phase 103
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 108-01-PLAN.md — Register Playwright in mcp-bridge.cjs (APPROVED_SERVERS + TOOL_MAP + AUTH_INSTRUCTIONS + Nyquist tests)
+- [ ] 108-02-PLAN.md — Update mcp-integration.md docs + MCP-08 live verification gate
 
 ### Phase 116: Pressure Test + Meta-Optimization + Ideation + Brief Reference
 **Goal**: Four independent enhancements exploiting browser capabilities -- visual pressure testing, self-calibrating mutation strategies, ideation visual diversity scoring, and live reference screenshot capture
@@ -347,7 +371,10 @@ Full details: .planning/milestones/v0.12-ROADMAP.md
   3. Ideation divergence is scored by screenshot variance across generated concepts -- higher visual diversity = higher quality score
   4. `/pde:brief` can capture live product screenshots from user-provided URLs as reference material available to downstream skills
   5. All four capabilities degrade gracefully when Playwright is unavailable (text-only fallback)
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 108-01-PLAN.md — Register Playwright in mcp-bridge.cjs (APPROVED_SERVERS + TOOL_MAP + AUTH_INSTRUCTIONS + Nyquist tests)
+- [ ] 108-02-PLAN.md — Update mcp-integration.md docs + MCP-08 live verification gate
 
 ### Phase 117: Integration & Nyquist
 **Goal**: All v0.14 features validated with structural regression tests and zero regressions against existing test suite
@@ -356,7 +383,10 @@ Full details: .planning/milestones/v0.12-ROADMAP.md
 **Success Criteria** (what must be TRUE):
   1. Nyquist structural tests exist for all 76 v0.14 requirements
   2. All existing v0.13 Nyquist tests (1216 assertions) continue to pass with zero regressions
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 108-01-PLAN.md — Register Playwright in mcp-bridge.cjs (APPROVED_SERVERS + TOOL_MAP + AUTH_INSTRUCTIONS + Nyquist tests)
+- [ ] 108-02-PLAN.md — Update mcp-integration.md docs + MCP-08 live verification gate
 
 ## Progress
 
