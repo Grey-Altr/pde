@@ -9,13 +9,13 @@ Requirements for v0.14 Visual AutoResearch. Each maps to roadmap phases.
 
 ### Playwright Infrastructure (PLAY)
 
-- [ ] **PLAY-01**: Playwright registered as 7th APPROVED_SERVER in mcp-bridge.cjs with stdio transport and headless mode
-- [ ] **PLAY-02**: ~10 TOOL_MAP entries for canonical Playwright tool names (VERIFY_REQUIRED markers)
-- [ ] **PLAY-03**: AUTH_INSTRUCTIONS entry with `claude mcp add playwright` install command including `--headless` and `--allow-unrestricted-file-access` flags
-- [ ] **PLAY-04**: Live tool name verification confirms mcp__playwright__* prefix matches actual registered names
-- [ ] **PLAY-05**: Probe/degrade contract — graceful fallback when Playwright MCP not installed
+- [x] **PLAY-01**: Playwright registered as 7th APPROVED_SERVER in mcp-bridge.cjs with stdio transport and headless mode
+- [x] **PLAY-02**: ~10 TOOL_MAP entries for canonical Playwright tool names (VERIFY_REQUIRED markers)
+- [x] **PLAY-03**: AUTH_INSTRUCTIONS entry with `claude mcp add playwright` install command including `--headless` and `--allow-unrestricted-file-access` flags
+- [x] **PLAY-04**: Live tool name verification confirms mcp__playwright__* prefix matches actual registered names
+- [x] **PLAY-05**: Probe/degrade contract — graceful fallback when Playwright MCP not installed
 - [ ] **PLAY-06**: mcp-integration.md updated with Playwright enhancement recipe and 7-server probe/degrade table
-- [ ] **PLAY-07**: `--allow-unrestricted-file-access` flag documented for file:// wireframe/mockup access
+- [x] **PLAY-07**: `--allow-unrestricted-file-access` flag documented for file:// wireframe/mockup access
 
 ### Wireframe Screenshots (WFR)
 
@@ -164,13 +164,13 @@ Requirements for v0.14 Visual AutoResearch. Each maps to roadmap phases.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PLAY-01 | Phase 108 | Pending |
-| PLAY-02 | Phase 108 | Pending |
-| PLAY-03 | Phase 108 | Pending |
-| PLAY-04 | Phase 108 | Pending |
-| PLAY-05 | Phase 108 | Pending |
+| PLAY-01 | Phase 108 | Complete |
+| PLAY-02 | Phase 108 | Complete |
+| PLAY-03 | Phase 108 | Complete |
+| PLAY-04 | Phase 108 | Complete |
+| PLAY-05 | Phase 108 | Complete |
 | PLAY-06 | Phase 108 | Pending |
-| PLAY-07 | Phase 108 | Pending |
+| PLAY-07 | Phase 108 | Complete |
 | WFR-01 | Phase 109 | Pending |
 | WFR-02 | Phase 109 | Pending |
 | WFR-03 | Phase 109 | Pending |

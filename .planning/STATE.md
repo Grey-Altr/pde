@@ -19,7 +19,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-23)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** v0.14 Visual AutoResearch — roadmap created, ready for Phase 108 planning
+**Current focus:** Phase 108 — Playwright MCP Infrastructure
 
 ## Current Position
 
@@ -45,6 +45,8 @@ Progress: [█░░░░░░░░░] 3%
 | 108 | 2 | ~25 min | ~12 min |
 
 ## Accumulated Context
+
+| Phase 108 P01 | 15 | 2 tasks | 6 files |
 
 ### Decisions
 

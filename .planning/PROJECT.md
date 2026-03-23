@@ -127,19 +127,26 @@ Any user can go from idea to shipped product through a single platform that hand
 
 ### Active
 
-## Current Milestone: v0.14 WebMCP
+## Current Milestone: v0.14 Visual AutoResearch
 
-**Goal:** Give PDE browser capabilities via Playwright MCP, expose PDE planning state as an MCP server, and implement W3C WebMCP adapter for early-mover browser-agent interop.
+**Goal:** Give PDE browser capabilities via Playwright MCP AND immediately exploit those capabilities to create a new class of AutoResearch experiments that optimize all 14 design skills against visual, accessibility, and structural metrics derived from actual browser rendering. Transforms AutoResearch from text-quality optimization (Nyquist pass counts) to full visual-design optimization.
 
 **Target features:**
 - Playwright MCP as 7th APPROVED_SERVER in mcp-bridge.cjs (stdio transport, zero npm deps, headless mode)
-- Wireframe screenshot capture (filling existing Step 5d stub in wireframe.md)
-- Mockup screenshot capture for visual reference
+- Wireframe + mockup screenshot capture (filling existing Step 5d stub in wireframe.md)
 - Critique accessibility tree from browser_snapshot (AOM data for a11y perspective)
 - Deploy smoke testing (post-deploy navigation + screenshot verification)
-- PDE-as-MCP-server — expose planning state (PROJECT.md, ROADMAP.md, phases, design artifacts) via standard MCP protocol
-- W3C WebMCP adapter — navigator.modelContext registration for PDE tools, enabling browser-based AI consumers
-- Graceful degradation throughout (probe/degrade contracts, --no-playwright flag)
+- 5 visual metric scripts (DOM structure, a11y violations, WCAG contrast, responsive compliance, Mermaid readability) following _evalMetric contract
+- Experiment templates for all 14 eligible design skills with browser-backed verify commands
+- Cross-skill pipeline experiments measuring upstream prose changes by downstream visual impact
+- Iterate effectiveness experiments with before/after visual delta measurement
+- Visual regression circuit breaker preventing cosmetic regressions during optimization
+- Multi-candidate experiment mode (A/B variant testing, best-of-N selection)
+- Pressure test visual dimension (browser rendering quality alongside Awwwards text rubric)
+- Meta-optimization: experiment runner self-calibrating its own mutation strategies
+- Ideation visual divergence scoring (measuring concept diversity via screenshot variance)
+- Brief reference capture from live product screenshots
+- Graceful degradation throughout (probe/degrade contracts, all metrics return 0 when Playwright unavailable)
 
 ### Out of Scope
 
@@ -166,8 +173,8 @@ Any user can go from idea to shipped product through a single platform that hand
 - **Shipped v0.12** on 2026-03-23: business product type with venture design engine — 15 phases, 24 plans, 59 requirements, 235 Nyquist assertions, 141 commits, zero tech debt
 - **Shipped v0.11** on 2026-03-22: ~245,000 LOC (JavaScript/Markdown/Shell), ~1,078 total commits
 - **Shipped v0.13** on 2026-03-23: 9 phases, 15 plans (AutoResearch: safety boundaries, git state machine, experiment schema, mutation agent, orchestrator, circuit breakers, self-improvement presets, researcher empirical mode, observability)
-- **Active milestone:** v0.14 WebMCP — browser automation via Playwright MCP, PDE-as-MCP-server, W3C WebMCP adapter
-- **Planned roadmap:** v0.13 AutoResearch → v0.14 WebMCP → v0.15 CLI-Anything → v0.16 Remote Dashboard → v0.17 Stakeholder Presentations → v1.0 Standalone CLI
+- **Active milestone:** v0.14 Visual AutoResearch — Playwright MCP browser automation + 19 AutoResearch experiment types with visual/a11y/structural metrics (10 phases, 76 requirements)
+- **Planned roadmap:** v0.13 AutoResearch → v0.14 Visual AutoResearch → v0.15 CLI-Anything → v0.16 Remote Dashboard → v0.17 Stakeholder Presentations → v1.0 Standalone CLI
 - **v0.11** shipped 2026-03-22: 112 files changed, 116 commits (experience product type: detection, brief, tokens, flows, wireframes, critique, HIG, print, handoff, 48 requirements)
 - **v0.10** shipped 2026-03-21: 107 files changed, 56 commits (idle-time productivity: suggestion engine, catalog, context notes, 7-pane dashboard)
 - **v0.9** shipped 2026-03-21: 91 files changed, 76 commits (Google Stitch integration across 5 pipeline skills)
@@ -271,4 +278,4 @@ Any user can go from idea to shipped product through a single platform that hand
 | Business detection threshold (3+ signals, 2+ categories) | Prevents over-triggering on pure software projects while catching genuine business intent | ✓ Good — 5-category taxonomy with category diversity requirement |
 | BTH→LCV dependency chain (skip, don't halt) | If BTH generation fails, LCV is skipped with warning rather than halting entire brief run | ✓ Good — graceful degradation preserves non-business brief output |
 | 20-field designCoverage write (not copy 16-field pattern) | Phase 84 added 4 fields; copying opportunity.md's 16-field pattern silently drops them | ✓ Good — canonical order from manifest template |
-*Last updated: 2026-03-23 after v0.14 WebMCP milestone started*
+*Last updated: 2026-03-23 after v0.14 Visual AutoResearch milestone defined (76 requirements, 10 phases)*
