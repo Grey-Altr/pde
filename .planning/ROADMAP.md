@@ -227,7 +227,7 @@ Full details: .planning/milestones/v0.12-ROADMAP.md
 - [x] **Phase 102: Mutation Agent & Metric Evaluation** - `pde-experiment-runner` agent with Haiku-first model selection, diff-based context, token tracking, and boundary enforcement (completed 2026-03-23)
 - [x] **Phase 103: Orchestrator, Command & Circuit Breakers** - `workflows/optimize.md` full loop, `/pde:optimize` command, all 5 circuit breakers, cost estimate gate, REPORT.md (completed 2026-03-23)
 - [x] **Phase 104: Self-Improvement Presets** - `--self` and `--skill` modes, OPTIMIZABLE autodiscovery, self-improvement preset configuration (completed 2026-03-23)
-- [ ] **Phase 105: Researcher Empirical Mode** - `pde-phase-researcher` empirical flag, research-phase routing, "Experiments Attempted" RESEARCH.md section
+- [x] **Phase 105: Researcher Empirical Mode** - `pde-phase-researcher` empirical flag, research-phase routing, "Experiments Attempted" RESEARCH.md section (completed 2026-03-23)
 - [ ] **Phase 106: Observability & Event Bus** - 6 experiment event types on NDJSON bus, tmux dashboard experiment pane
 - [ ] **Phase 107: Nyquist Coverage** - Structural tests for boundary enforcement, circuit breakers, reset behavior, zero regression for existing workflows
 
@@ -345,10 +345,10 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. Six experiment event types are emitted on the NDJSON event bus during a live run: `experiment.start`, `experiment.iteration`, `experiment.keep`, `experiment.discard`, `experiment.crash`, `experiment.complete` — each with structured fields (slug, iteration, metric_value, status)
   2. The tmux dashboard displays a dedicated experiment pane showing current iteration number, best metric value, keep/discard ratio, and estimated remaining budget — updating in real time during an active run
-**Plans**: 2 plans
+**Plans**: 1 plan
 
 Plans:
-- [ ] 106-01: Add experiment event types to event-bus.cjs and experiment pane to tmux dashboard
+- [ ] 106-01-PLAN.md — Add experiment event emissions to optimize.md, create experiment pane, wire dashboard
 
 ### Phase 107: Nyquist Coverage
 **Goal**: The experiment infrastructure has structural regression tests that verify safety constraints fire correctly, and existing PDE workflows are confirmed unaffected when no experiment is active
@@ -389,6 +389,6 @@ Phases execute in numeric order: 99 → 100 → 101 → 102 → 103 → 104 → 
 | 102. Mutation Agent & Metric Evaluation | v0.13 | 1/2 | Complete    | 2026-03-23 |
 | 103. Orchestrator, Command & Circuit Breakers | v0.13 | 1/2 | Complete    | 2026-03-23 |
 | 104. Self-Improvement Presets | v0.13 | 0/1 | Complete    | 2026-03-23 |
-| 105. Researcher Empirical Mode | v0.13 | 0/1 | Planned    |  |
-| 106. Observability & Event Bus | v0.13 | 0/TBD | Not started | - |
+| 105. Researcher Empirical Mode | v0.13 | 0/1 | Complete    | 2026-03-23 |
+| 106. Observability & Event Bus | v0.13 | 0/1 | Not started | - |
 | 107. Nyquist Coverage | v0.13 | 0/TBD | Not started | - |
