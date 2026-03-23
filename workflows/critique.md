@@ -809,7 +809,7 @@ Use the EXACT finding format from the existing critique.md Step 4: `| {severity}
 **Evaluation sources:**
 - DPD artifact (`.planning/design/launch/DPD-pitch-deck-outline-v*.md`) — slide-by-slide narrative
 - LCV artifact — business model completeness (all 9 boxes)
-- BTH artifact (`.planning/design/strategy/BTH-business-thesis-v*.md`) — problem/solution/market/unfair-advantage
+- BTH artifact (`.planning/design/strategy/BTH-thesis-v*.md`) — problem/solution/market/unfair-advantage
 
 **Checklist:**
 - Problem clarity: Does the DPD problem slide articulate a specific, measurable pain? Flag vague problem statements.
@@ -1224,7 +1224,7 @@ if [[ "$COV" == @file:* ]]; then COV=$(cat "${COV#@file:}"); fi
 Parse the JSON output from coverage-check. Extract ALL TWENTY current flag values (default absent fields to `false`): hasDesignSystem, hasWireframes, hasFlows, hasHardwareSpec, hasCritique, hasIterate, hasHandoff, hasIdeation, hasCompetitive, hasOpportunity, hasMockup, hasHigAudit, hasRecommendations, hasStitchWireframes, hasPrintCollateral, hasProductionBible, hasBusinessThesis, hasMarketLandscape, hasServiceBlueprint, hasLaunchKit. Merge `hasCritique: true` while preserving all other nineteen values. Then write the full merged twenty-field object:
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":{current},"hasWireframes":{current},"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":true,"hasIterate":{current},"hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":{current},"hasPrintCollateral":{current},"hasProductionBible":{current},"hasBusinessThesis":{current},"hasMarketLandscape":{current},"hasServiceBlueprint":{current},"hasLaunchKit":{current}}'
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":{current},"hasWireframes":{current},"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":true,"hasIterate":{current},"hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":{current},"hasPrintCollateral":{current},"hasProductionBible":{current},"hasBusinessThesis":{current},"hasMarketLandscape":{current},"hasServiceBlueprint":{current},"hasLaunchKit":{current},"hasDeployStaging":{current}}'
 ```
 
 #### 7d. Output summary table (per skill-style-guide.md)

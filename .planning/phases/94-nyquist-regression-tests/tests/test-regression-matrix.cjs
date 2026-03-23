@@ -19,13 +19,13 @@ const path = require('node:path');
 
 const ROOT = path.resolve(__dirname, '..', '..', '..', '..');
 
-const TWENTY_FIELDS = [
+const TWENTY_ONE_FIELDS = [
   'hasDesignSystem', 'hasWireframes', 'hasFlows', 'hasHardwareSpec',
   'hasCritique', 'hasIterate', 'hasHandoff', 'hasIdeation',
   'hasCompetitive', 'hasOpportunity', 'hasMockup', 'hasHigAudit',
   'hasRecommendations', 'hasStitchWireframes', 'hasPrintCollateral',
   'hasProductionBible', 'hasBusinessThesis', 'hasMarketLandscape',
-  'hasServiceBlueprint', 'hasLaunchKit'
+  'hasServiceBlueprint', 'hasLaunchKit', 'hasDeployStaging'
 ];
 
 function readWorkflow(name) {
@@ -142,10 +142,10 @@ describe('INTG-03: business:software composition produces both WFR and LDP artif
 // INTG-04: business:hardware composition — hardware + business coexist
 // ---------------------------------------------------------------------------
 describe('INTG-04: business:hardware composition — hasHardwareSpec and business artifacts coexist', () => {
-  it('TWENTY_FIELDS array includes hasHardwareSpec (hardware coverage field exists)', () => {
+  it('TWENTY_ONE_FIELDS array includes hasHardwareSpec (hardware coverage field exists)', () => {
     assert.ok(
-      TWENTY_FIELDS.includes('hasHardwareSpec'),
-      'TWENTY_FIELDS must include hasHardwareSpec — hardware coverage field must be in the canonical 20-field list'
+      TWENTY_ONE_FIELDS.includes('hasHardwareSpec'),
+      'TWENTY_ONE_FIELDS must include hasHardwareSpec — hardware coverage field must be in the canonical 21-field list'
     );
   });
 
@@ -288,18 +288,120 @@ const V012_COVERAGE_WRITERS = [
   'critique.md',
   'hig.md',
   'handoff.md',
-  'system.md'
+  'system.md',
+  'deploy.md'
 ];
 
-describe('INTG-07: all v0.12 coverage-writing workflows contain all 20 designCoverage fields', () => {
+describe('INTG-07: all v0.12 coverage-writing workflows contain all 21 designCoverage fields', () => {
   for (const filename of V012_COVERAGE_WRITERS) {
-    it(`${filename} contains all 20 designCoverage field names`, () => {
+    it(`${filename} contains all 21 designCoverage field names`, () => {
       const content = readWorkflow(filename);
-      const missing = TWENTY_FIELDS.filter(f => !content.includes(f));
+      const missing = TWENTY_ONE_FIELDS.filter(f => !content.includes(f));
       assert.ok(
         missing.length === 0,
         `${filename} is missing designCoverage fields: ${missing.join(', ')}`
       );
     });
   }
+});
+
+// ---------------------------------------------------------------------------
+// Phase 95: integration wiring fix assertions
+// ---------------------------------------------------------------------------
+describe('Phase 95: integration wiring fixes verified', () => {
+  it('deploy.md globs OTR-outreach-sequences (not OTR-outreach-v)', () => {
+    const content = readWorkflow('deploy.md');
+    assert.ok(
+      content.includes('OTR-outreach-sequences-v'),
+      'deploy.md must glob OTR-outreach-sequences-v*.md (matching handoff.md producer)'
+    );
+    assert.ok(
+      !content.includes('OTR-outreach-v*.md'),
+      'deploy.md must NOT contain old glob OTR-outreach-v*.md'
+    );
+  });
+
+  it('handoff.md globs BTH-thesis (not BTH-business-thesis)', () => {
+    const content = readWorkflow('handoff.md');
+    assert.ok(
+      content.includes('BTH-thesis-v'),
+      'handoff.md must glob BTH-thesis-v*.md (matching brief.md producer)'
+    );
+    assert.ok(
+      !content.includes('BTH-business-thesis'),
+      'handoff.md must NOT contain old glob BTH-business-thesis'
+    );
+  });
+
+  it('wireframe.md globs BTH-thesis (not BTH-business-thesis)', () => {
+    const content = readWorkflow('wireframe.md');
+    assert.ok(
+      content.includes('BTH-thesis-v'),
+      'wireframe.md must glob BTH-thesis-v*.md (matching brief.md producer)'
+    );
+    assert.ok(
+      !content.includes('BTH-business-thesis'),
+      'wireframe.md must NOT contain old glob BTH-business-thesis'
+    );
+  });
+
+  it('critique.md references BTH-thesis (not BTH-business-thesis)', () => {
+    const content = readWorkflow('critique.md');
+    assert.ok(
+      content.includes('BTH-thesis-v'),
+      'critique.md must reference BTH-thesis-v*.md (matching brief.md producer)'
+    );
+    assert.ok(
+      !content.includes('BTH-business-thesis'),
+      'critique.md must NOT contain old reference BTH-business-thesis'
+    );
+  });
+
+  it('deploy.md references BTH-thesis (not BTH-business-thesis)', () => {
+    const content = readWorkflow('deploy.md');
+    assert.ok(
+      !content.includes('BTH-business-thesis'),
+      'deploy.md must NOT contain old reference BTH-business-thesis'
+    );
+  });
+
+  it('handoff.md required_reading includes business-track.md', () => {
+    const content = readWorkflow('handoff.md');
+    assert.ok(
+      content.includes('business-track.md'),
+      'handoff.md required_reading must include business-track.md'
+    );
+  });
+
+  it('handoff.md required_reading includes launch-frameworks.md', () => {
+    const content = readWorkflow('handoff.md');
+    assert.ok(
+      content.includes('launch-frameworks.md'),
+      'handoff.md required_reading must include launch-frameworks.md'
+    );
+  });
+
+  it('handoff.md required_reading includes business-financial-disclaimer.md', () => {
+    const content = readWorkflow('handoff.md');
+    assert.ok(
+      content.includes('business-financial-disclaimer.md'),
+      'handoff.md required_reading must include business-financial-disclaimer.md'
+    );
+  });
+
+  it('handoff.md required_reading includes business-legal-disclaimer.md', () => {
+    const content = readWorkflow('handoff.md');
+    assert.ok(
+      content.includes('business-legal-disclaimer.md'),
+      'handoff.md required_reading must include business-legal-disclaimer.md'
+    );
+  });
+
+  it('deploy.md contains hasDeployStaging coverage write', () => {
+    const content = readWorkflow('deploy.md');
+    assert.ok(
+      content.includes('hasDeployStaging'),
+      'deploy.md must contain hasDeployStaging coverage write'
+    );
+  });
 });

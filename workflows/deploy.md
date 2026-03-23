@@ -114,7 +114,7 @@ LDP_FILE=$(ls .planning/design/launch/LDP-landing-page-v*.md 2>/dev/null | sort 
 STR_FILE=$(ls .planning/design/launch/STR-stripe-pricing-v*.md 2>/dev/null | sort -V | tail -1)
 
 # Find latest OTR artifact
-OTR_FILE=$(ls .planning/design/launch/OTR-outreach-v*.md 2>/dev/null | sort -V | tail -1)
+OTR_FILE=$(ls .planning/design/launch/OTR-outreach-sequences-v*.md 2>/dev/null | sort -V | tail -1)
 ```
 
 If `$LDP_FILE` is empty:
@@ -147,7 +147,7 @@ If `$OTR_FILE` is empty:
 ```
 Required artifact not found: OTR-outreach
 
-Expected: .planning/design/launch/OTR-outreach-v{N}.md
+Expected: .planning/design/launch/OTR-outreach-sequences-v{N}.md
 Run /pde:handoff to generate the OTR artifact.
 ```
 
@@ -416,7 +416,7 @@ export default function FeaturesGrid() {
   return (
     <section className="features">
       <h2>[YOUR_FEATURES_HEADLINE]</h2>
-      {/* TODO: Map your features from .planning/design/strategy/BTH-business-thesis-v1.md */}
+      {/* TODO: Map your features from .planning/design/strategy/BTH-thesis-v1.md */}
       <div className="grid">[YOUR_FEATURES]</div>
     </section>
   )
@@ -821,6 +821,25 @@ HALT.
 If `$DEPLOY_EXIT == 0`:
 
 Store `$DEPLOY_URL` for the manifest. Display: `Step 4/6: Vercel deployment queued. URL: ${DEPLOY_URL}`
+
+**Write hasDeployStaging coverage flag:**
+
+Read current coverage state:
+```bash
+COV=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design coverage-check)
+if [[ "$COV" == @file:* ]]; then COV=$(cat "${COV#@file:}"); fi
+```
+
+Parse all 21 field values from COV JSON output (default absent fields to false). Then write the complete 21-field coverage object:
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage \
+  '{"hasDesignSystem":ACTUAL,"hasWireframes":ACTUAL,"hasFlows":ACTUAL,"hasHardwareSpec":ACTUAL,"hasCritique":ACTUAL,"hasIterate":ACTUAL,"hasHandoff":ACTUAL,"hasIdeation":ACTUAL,"hasCompetitive":ACTUAL,"hasOpportunity":ACTUAL,"hasMockup":ACTUAL,"hasHigAudit":ACTUAL,"hasRecommendations":ACTUAL,"hasStitchWireframes":ACTUAL,"hasPrintCollateral":ACTUAL,"hasProductionBible":ACTUAL,"hasBusinessThesis":ACTUAL,"hasMarketLandscape":ACTUAL,"hasServiceBlueprint":ACTUAL,"hasLaunchKit":ACTUAL,"hasDeployStaging":true}'
+```
+
+Where each ACTUAL is replaced with the literal `true` or `false` value read from the parsed coverage. `hasDeployStaging` is hardcoded to `true` — this is the flag deploy.md owns. All other 20 fields use their current values.
+
+**CRITICAL:** This write MUST be inside the `if $DEPLOY_EXIT == 0:` success path (after Gate 4 success), NOT before Gate 4 or at the start of Step 5. The flag should only be set when deploy actually succeeded.
 
 ---
 

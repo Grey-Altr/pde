@@ -128,6 +128,7 @@
     "hasBusinessThesis": false,
     "hasMarketLandscape": false,
     "hasServiceBlueprint": false,
-    "hasLaunchKit": false
+    "hasLaunchKit": false,
+    "hasDeployStaging": false
   }
 }

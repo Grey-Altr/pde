@@ -886,14 +886,14 @@ Construct the complete 20-field JSON string. Replace each field with its ACTUAL 
 
 ```bash
 node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage \
-  '{"hasDesignSystem":ACTUAL,"hasWireframes":ACTUAL,"hasFlows":ACTUAL,"hasHardwareSpec":ACTUAL,"hasCritique":ACTUAL,"hasIterate":ACTUAL,"hasHandoff":ACTUAL,"hasIdeation":ACTUAL,"hasCompetitive":ACTUAL,"hasOpportunity":ACTUAL,"hasMockup":ACTUAL,"hasHigAudit":ACTUAL,"hasRecommendations":ACTUAL,"hasStitchWireframes":ACTUAL,"hasPrintCollateral":ACTUAL,"hasProductionBible":ACTUAL,"hasBusinessThesis":true,"hasMarketLandscape":ACTUAL,"hasServiceBlueprint":ACTUAL,"hasLaunchKit":ACTUAL}'
+  '{"hasDesignSystem":ACTUAL,"hasWireframes":ACTUAL,"hasFlows":ACTUAL,"hasHardwareSpec":ACTUAL,"hasCritique":ACTUAL,"hasIterate":ACTUAL,"hasHandoff":ACTUAL,"hasIdeation":ACTUAL,"hasCompetitive":ACTUAL,"hasOpportunity":ACTUAL,"hasMockup":ACTUAL,"hasHigAudit":ACTUAL,"hasRecommendations":ACTUAL,"hasStitchWireframes":ACTUAL,"hasPrintCollateral":ACTUAL,"hasProductionBible":ACTUAL,"hasBusinessThesis":true,"hasMarketLandscape":ACTUAL,"hasServiceBlueprint":ACTUAL,"hasLaunchKit":ACTUAL,"hasDeployStaging":ACTUAL}'
 ```
 
 Where each ACTUAL is replaced with the literal `true` or `false` value read from the parsed coverage. The `hasBusinessThesis` field is hardcoded to `true` because the BTH artifact was just created.
 
-**CRITICAL:** This write MUST include all 20 fields. Writing fewer fields erases the omitted ones. Do NOT copy the 16-field pattern from other workflows (opportunity.md, hig.md, etc.) — those are outdated and will be fixed in Phase 93.
+**CRITICAL:** This write MUST include all 21 fields. Writing fewer fields erases the omitted ones. Do NOT copy the 16-field or 20-field pattern from other workflows — those are outdated.
 
-IF businessMode == false: Still run the coverage-check and write, but pass through all existing values unchanged (do not set hasBusinessThesis to true). This ensures the 20-field format is maintained even for non-business projects.
+IF businessMode == false: Still run the coverage-check and write, but pass through all existing values unchanged (do not set hasBusinessThesis to true). This ensures the 21-field format is maintained even for non-business projects.
 
 **Financial content verification (BRIEF-07):** After writing the BRF artifact in Step 5, verify no dollar amounts leaked into the Domain Strategy section:
 
