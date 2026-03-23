@@ -198,6 +198,37 @@ Attempt to call `mcp__sequential-thinking__think` with a simple test prompt `"An
   - If retry succeeds: `SEQUENTIAL_THINKING_AVAILABLE = true`
   - If retry fails: `SEQUENTIAL_THINKING_AVAILABLE = false`. Log: `  -> Sequential Thinking MCP: unavailable (continuing without)`
 
+#### 3b. Playwright AOM probe (if not skipped by flags above)
+
+Probe Playwright MCP for AOM accessibility snapshot capability:
+
+```javascript
+node --input-type=module <<'EOF'
+import { createRequire } from 'module';
+const req = createRequire(import.meta.url);
+const b = req(`${process.env.CLAUDE_PLUGIN_ROOT}/bin/lib/mcp-bridge.cjs`);
+let snapshotToolName = '';
+try {
+  snapshotToolName = b.call('playwright:snapshot', {}).toolName;
+} catch (err) { snapshotToolName = ''; }
+process.stdout.write(JSON.stringify({ snapshotToolName }) + '\n');
+EOF
+```
+
+- If snapshotToolName is non-empty: SET PLAYWRIGHT_A11Y_AVAILABLE = true. Log: `  -> Playwright AOM: available`
+- If snapshotToolName is empty string: SET PLAYWRIGHT_A11Y_AVAILABLE = false. Log: `  -> Playwright AOM: unavailable (continuing without)`
+
+IF PLAYWRIGHT_A11Y_AVAILABLE AND WIREFRAME_FILES is non-empty (HTML artifacts exist):
+  Navigate to the first wireframe HTML file using the bridge pattern from wireframe.md Step 5d:
+    1. Resolve navigateToolName via b.call('playwright:navigate', { url: 'about:blank' }).toolName
+    2. Navigate to file:// URL of first wireframe (use encodeURI for spaces)
+    3. Call {snapshotToolName} to capture AOM tree
+    4. Store result as AOM_DATA (YAML text)
+  Log: `  -> AOM tree captured ({line_count} lines)`
+ELSE IF PLAYWRIGHT_A11Y_AVAILABLE AND no HTML artifacts:
+  SET PLAYWRIGHT_A11Y_AVAILABLE = false
+  Log: `  -> Playwright AOM: no HTML artifacts to analyze`
+
 **If `--dry-run` flag is active:** Display planned critique scope and HALT. Do not proceed to Step 4:
 
 ```
@@ -212,10 +243,11 @@ Wireframes ({count}): {comma-separated file list}
 Fidelity: {detected fidelity or "mixed"}
 Perspectives: {all four or focused list}
 Sequential Thinking MCP: {available | unavailable}
+Playwright AOM: {available | unavailable}
 Accessibility: delegated to /pde:hig --light (Axe MCP handled by HIG skill)
 ```
 
-Display: `Step 3/7: MCP probes complete. Sequential Thinking: {yes|no}.`
+Display: `Step 3/7: MCP probes complete. Sequential Thinking: {yes|no}. AOM: {yes|no}.`
 
 ---
 
@@ -541,13 +573,59 @@ For each wireframe file in WIREFRAME_FILES:
 
   #### Perspective 3: Accessibility (weight 1.5x)
 
-  IF `workflows/hig.md` exists (check with Glob):
+  **AOM-based structural analysis (if PLAYWRIGHT_A11Y_AVAILABLE):**
+
+  Parse AOM_DATA YAML text for structural accessibility issues:
+
+  LANDMARKS = scan for lines matching `- banner`, `- main`, `- navigation`, `- complementary`, `- contentinfo`, `- region`, `- search`
+  MISSING_LANDMARKS = {banner, main, contentinfo} MINUS set(LANDMARKS)
+  For each missing landmark: finding with severity=major, criterion=ARIA landmark roles
+
+  HEADINGS = scan for lines matching `heading "{text}" [level={N}]`
+  HIERARCHY_ISSUES = []
+  - If first heading level != 1: "First heading is h{N}, expected h1"
+  - If any level jump > 1 (e.g., h1 -> h3): "Heading level skip: h{prev} -> h{curr}"
+  - If multiple h1 elements: "Multiple h1 headings ({count})"
+  For each hierarchy issue: finding with severity=major, criterion=WCAG 1.3.1
+
+  UNLABELED = scan for lines matching `- (button|link|textbox|combobox|checkbox|radio) ""`
+  For each unlabeled control: finding with severity=critical, criterion=WCAG 4.1.2
+
+  **Merge strategy based on availability:**
+
+  IF PLAYWRIGHT_A11Y_AVAILABLE AND AXE_AVAILABLE (via /pde:hig --light):
+    Section title: "Accessibility Findings (AOM + Axe)"
+    Combine AOM structural findings (landmarks, headings, UNLABELED) with Axe WCAG violations
+    Table format:
+      | Source | Severity | Issue | Criterion |
+      | AOM    | ...      | ...   | ...       |
+      | Axe    | ...      | ...   | ...       |
+    Tag: [Enhanced by Playwright AOM + Axe MCP]
+
     Load @workflows/hig.md with --light in $ARGUMENTS context
-    Execute only the --light abbreviated pipeline (5 mandatory checks: color contrast 1.4.3, focus visibility 2.4.11, touch targets 2.5.8, form labels, heading hierarchy)
+    Execute the --light abbreviated pipeline
+    Embed returned findings with Source=Axe in the combined table
+
+  IF PLAYWRIGHT_A11Y_AVAILABLE AND NOT AXE_AVAILABLE:
+    Section title: "Accessibility Findings (AOM)"
+    Include AOM structural findings only
+    Tag: [Enhanced by Playwright AOM -- install a11y MCP for WCAG violation scan]
+
+    IF workflows/hig.md exists:
+      Load @workflows/hig.md with --light --no-axe in $ARGUMENTS context
+      Embed HIG manual checks alongside AOM findings
+    ELSE:
+      Fall back to manual WCAG checklist from @references/wcag-baseline.md
+
+  IF NOT PLAYWRIGHT_A11Y_AVAILABLE AND AXE_AVAILABLE:
+    (Existing behavior preserved)
+    Load @workflows/hig.md with --light in $ARGUMENTS context
+    Execute the --light abbreviated pipeline (5 mandatory checks: color contrast 1.4.3, focus visibility 2.4.11, touch targets 2.5.8, form labels, heading hierarchy)
     The HIG workflow will apply fidelity calibration automatically based on artifact fidelity level
     Embed returned findings directly as Accessibility perspective findings
     Tag: [HIG skill -- /pde:hig --light]
-  ELSE (fallback -- workflows/hig.md not found):
+
+  IF neither PLAYWRIGHT_A11Y_AVAILABLE nor AXE_AVAILABLE:
     Fall back to manual WCAG checklist:
     - Load @references/wcag-baseline.md
     - Check: Color contrast (WCAG 1.4.3), Focus visibility (2.4.11), Touch targets (2.5.8), Form labels, Heading hierarchy
@@ -555,7 +633,7 @@ For each wireframe file in WIREFRAME_FILES:
       - At lofi: color contrast findings are severity "nit" (placeholder colors only — not real product colors)
       - At midfi: color contrast findings are "minor" (placeholder colors still likely, but layout should use token references)
       - At hifi: color contrast failures are "major" or "critical" (real product colors applied)
-    Tag: [Manual WCAG review -- install /pde:hig for enhanced accessibility audit]
+    Tag: [Manual accessibility review -- install Playwright MCP + a11y MCP for automated analysis]
 
   #### Perspective 4: Business Alignment (weight 1.0x)
 
