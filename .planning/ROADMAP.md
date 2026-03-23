@@ -236,7 +236,7 @@ Full details: .planning/milestones/v0.12-ROADMAP.md
 **Milestone Goal:** Give PDE browser capabilities via Playwright MCP and exploit them to create visual AutoResearch experiments that optimize all 14 design skills against visual, accessibility, and structural metrics derived from actual browser rendering.
 
 - [x] **Phase 108: Playwright MCP Infrastructure** — Register Playwright as 7th APPROVED_SERVER with stdio transport, TOOL_MAP, probe/degrade
-- [ ] **Phase 109: Wireframe + Mockup Screenshots** — Capture wireframe and mockup HTML screenshots via Playwright MCP
+- [x] **Phase 109: Wireframe + Mockup Screenshots** — Capture wireframe and mockup HTML screenshots via Playwright MCP (completed 2026-03-23)
 - [ ] **Phase 110: Critique A11y + Deploy Smoke Test** — Browser-based accessibility tree for critique, post-deploy smoke testing
 - [ ] **Phase 111: Visual Metric Scripts** — 5 metric scripts (DOM structure, a11y, contrast, responsive, Mermaid) following _evalMetric contract
 - [ ] **Phase 112: Experiment Templates** — AutoResearch experiment templates for all 14 eligible design skills with browser-backed verify
@@ -268,10 +268,10 @@ Full details: .planning/milestones/v0.12-ROADMAP.md
   2. Running `/pde:mockup` produces PNG screenshots of all generated mockup HTML files in `screenshots/` subdirectory
   3. Multi-page wireframes (index.html + screen-*.html) each get individual screenshots at 1280x800 viewport
   4. `--no-playwright` flag skips screenshot capture without error (existing degradation path preserved)
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 Plans:
 - [x] 109-01-PLAN.md — TOOL_MAP resize entry + Nyquist tests + wireframe.md Step 5d screenshot capture loop
-- [ ] 109-02-PLAN.md — mockup.md Step 7f screenshot capture loop
+- [x] 109-02-PLAN.md — mockup.md Step 7f screenshot capture loop
 
 ### Phase 110: Critique A11y + Deploy Smoke Test
 **Goal**: Critique accessibility perspective has real browser AOM data, and deployed sites get automated smoke verification
