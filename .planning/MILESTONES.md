@@ -1,5 +1,38 @@
 # Milestones
 
+## v0.12 Business Product Type (Shipped: 2026-03-23)
+
+**Phases completed:** 15 phases, 24 plans, 46 tasks
+
+**Key accomplishments:**
+
+- Manifest schema extended with businessMode/businessTrack fields and launch/ directory added to design pipeline — Wave 0 test scaffold covers all 7 FOUND requirements
+- Four business reference files creating single-source-of-truth for track branching (solo_founder/startup_team/product_leader), lean canvas + pitch deck + service blueprint + Stripe pricing templates, and financial/legal guardrails with placeholder enforcement
+- Business intent detection in brief.md via 5-category signal taxonomy (3+/2+ threshold), interactive track selection with solo_founder/startup_team/product_leader, conditional Domain Strategy section in BRF output, and businessMode/businessTrack manifest writes
+- Business Thesis and Lean Canvas artifact generation added to brief.md, with 9-box lean canvas schema, confidence status rules, financial placeholders, manifest registration with dependsOn chaining, and 20-field designCoverage write using coverage-check read pattern.
+- competitive.md extended with MLS artifact generation (TAM/SAM/SOM placeholders), Mermaid quadrantChart positioning matrix, three-track market depth differentiation, and 20-field designCoverage write; 17/17 structural tests pass
+- opportunity.md extended with businessMode-gated RICE unit economics framing (LTV, CAC ceiling, payback at 3 churn scenarios) and 20-field designCoverage write — all 12 structural tests pass
+- 5-lane SBP service blueprint and GTM channel flow generation added to flows.md with businessMode detection, track depth branching, strategy/ artifact writes, and 20-field designCoverage upgrade — all 10 Nyquist tests pass
+- Strategy DESIGN-STATE update instructions added to flows.md Step 7 — SBP and GTM artifact rows now wired into Cross-Domain Dependency Map, Quick Reference, Decision Log, and Iteration History under conditional guards
+- Business brand system added to system.md: Steps 5c/5d generate SYS-brand-tokens.json (DTCG brand-marketing group) and MKT-brand-system artifact with Geoffrey Moore positioning, tone of voice spectrum, and visual differentiation rationale when businessMode==true
+- wireframe.md businessMode detection + LDP landing page spec generation (Next.js 11-section map) + 20-field designCoverage upgrade + LDP schema in launch-frameworks.md
+- wireframe.md STR Stripe pricing config (Step 4i with LCV/MLS cross-refs) + DPD pitch deck outline (Step 4j with YC/Sequoia/Internal Business Case track branching) + Step 7e-launch DESIGN-STATE wiring for all three launch artifacts, 11/11 Nyquist tests GREEN
+- critique.md extended with 4 business perspectives, pitch coherence cross-check, business composite formula (denominator 9.5), and 20-field designCoverage write
+- hig.md business communications HIG section with 3 domain checks (pitch deck readability, email cadence, content calendar) gated on LIGHT_MODE + businessMode, plus 20-field designCoverage write — all 24/24 Nyquist tests GREEN
+- handoff.md extended with Steps 4k-4m and 5e: 11-artifact LKT manifest, 30-day CNT calendar, and Resend-compatible OTR email sequences assembled in business mode with DPD-gated investor outreach and full 20-field designCoverage
+- handoff.md Step 7b-lkt manifest registration for LKT/CNT/OTR, 4 business anti-patterns, output section entries, Step 7d summary extension — 21/21 Nyquist GREEN
+- Stage 14 deploy workflow (workflows/deploy.md) with 4 approval-gated Next.js/Stripe/Resend scaffold generation and non-blocking Vercel CLI deployment — 19/21 Nyquist tests GREEN
+- `/pde:deploy` slash command and Stage 14 wiring in build.md with businessMode conditional gate — 21/21 Nyquist tests GREEN
+- 20-field designCoverage clobber regression fixed in recommend.md and iterate.md, preventing hasLaunchKit destruction when /pde:recommend or /pde:iterate runs after business-mode handoff
+- 20-field designCoverage clobber regression fixed in mockup.md and ideate.md, completing the INTG-01 audit across all 4 regression workflows with all 11 Nyquist tests GREEN
+- 35-assertion CJS regression matrix validating v0.12 business mode composition isolation, deploy approval gates, and 20-field designCoverage across all 9 coverage-writing workflows — 224/224 full suite GREEN
+- Closed 6 requirement gaps: OTR/BTH glob fixes, 21-field designCoverage with hasDeployStaging, handoff required_reading with 4 business refs
+- test-foundation.cjs:
+- 6 line-level glob fixes across 3 consumer workflows so deploy.md, handoff.md, and critique.md discover STR/DPD/GTM artifacts by their actual producer filenames — closing all 5 v0.12 audit gaps with 235/235 Nyquist tests passing
+- 7 tech debt closures: LDP glob -spec stem removed in critique.md BIZ-3 and 6 workflow prose sections updated from "20 fields" to "21 fields" with hasDeployStaging — all 235/235 Nyquist tests remain GREEN
+
+---
+
 ## v0.11 Experience Product Type (Shipped: 2026-03-22)
 
 **Phases completed:** 10 phases, 19 plans

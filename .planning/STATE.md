@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v0.12
 milestone_name: Business Product Type
-status: Milestone complete
+status: v0.12 milestone complete
 stopped_at: Completed 98-01-PLAN.md — 7 prose drift fixes (LDP glob + 6 field count prose), 235/235 Nyquist tests GREEN
-last_updated: "2026-03-23T07:26:19.373Z"
+last_updated: "2026-03-23T07:32:49.484Z"
 progress:
   total_phases: 15
   completed_phases: 15

@@ -13,7 +13,7 @@
 - ✅ **v0.9 Google Stitch Integration** — Phases 64-69 (shipped 2026-03-21)
 - ✅ **v0.10 Idle Time Productivity** — Phases 70-73 (shipped 2026-03-21)
 - ✅ **v0.11 Experience Product Type** — Phases 74-83 (shipped 2026-03-22)
-- 🚧 **v0.12 Business Product Type** — Phases 84-97 (in progress)
+- ✅ **v0.12 Business Product Type** — Phases 84-98 (shipped 2026-03-23)
 
 ## Phases
 
@@ -191,250 +191,30 @@ Full details: .planning/milestones/v0.11-ROADMAP.md
 
 </details>
 
----
+<details>
+<summary>✅ v0.12 Business Product Type (Phases 84-98) — SHIPPED 2026-03-23</summary>
 
-### v0.12 Business Product Type (In Progress)
+- [x] Phase 84: Foundation (2/2 plans) — completed 2026-03-22
+- [x] Phase 85: Brief Extensions + Detection (2/2 plans) — completed 2026-03-22
+- [x] Phase 86: Competitive + Opportunity Extensions (2/2 plans) — completed 2026-03-22
+- [x] Phase 87: Flows Stage (2/2 plans) — completed 2026-03-22
+- [x] Phase 88: Brand System (1/1 plan) — completed 2026-03-22
+- [x] Phase 89: Wireframe Stage Launch Artifacts (2/2 plans) — completed 2026-03-22
+- [x] Phase 90: Critique + HIG Extensions (2/2 plans) — completed 2026-03-22
+- [x] Phase 91: Handoff Launch Kit Assembly (2/2 plans) — completed 2026-03-22
+- [x] Phase 92: Deploy Skill (2/2 plans) — completed 2026-03-22
+- [x] Phase 93: designCoverage Clobber Audit (2/2 plans) — completed 2026-03-23
+- [x] Phase 94: Nyquist Regression Tests (1/1 plan) — completed 2026-03-23
+- [x] Phase 95: Integration Wiring Fixes (1/1 plan) — completed 2026-03-23
+- [x] Phase 96: 21-Field Cascade Fix (1/1 plan) — completed 2026-03-23
+- [x] Phase 97: Consumer Glob Mismatch Fixes (1/1 plan) — completed 2026-03-23
+- [x] Phase 98: Prose Drift & LDP Glob Fix (1/1 plan) — completed 2026-03-23
 
-**Milestone Goal:** Transform PDE into a venture design engine by adding a `business:` orthogonal dimension that layers on top of all existing product types — producing executable launch artifacts (landing page, Stripe config, content calendar, email sequences) through a 14-stage pipeline with mandatory human approval gates at every deployment step.
+Full details: .planning/milestones/v0.12-ROADMAP.md
 
-**Phase Numbering:** Integer phases (84, 85, 86...) — planned milestone work
+</details>
 
-- [x] **Phase 84: Foundation** — Manifest schema extension, launch/ directory, and all business reference files (completed 2026-03-22)
-- [x] **Phase 85: Brief Extensions + Detection** — Business mode detection, track selection, thesis and lean canvas generation (completed 2026-03-22)
-- [x] **Phase 86: Competitive + Opportunity Extensions** — Market landscape, positioning matrix, business RICE scoring (completed 2026-03-22)
-- [x] **Phase 87: Flows Stage** — Service blueprint and GTM channel flow artifacts (completed 2026-03-22)
-- [x] **Phase 88: Brand System** — Marketing brand system with positioning statement and tone of voice (completed 2026-03-22)
-- [x] **Phase 89: Wireframe Stage Launch Artifacts** — Landing page wireframe, Stripe pricing config, pitch deck outline (completed 2026-03-22)
-- [x] **Phase 90: Critique + HIG Extensions** — Business critique perspectives and business communications HIG (completed 2026-03-22)
-- [x] **Phase 91: Handoff — Launch Kit Assembly** — Launch kit manifest, content calendar, email sequence artifacts (completed 2026-03-22)
-- [x] **Phase 92: Deploy Skill** — Stage 14 with four approval-gated deployment actions and /pde:deploy command (completed 2026-03-22)
-- [x] **Phase 93: designCoverage Clobber Audit + Secondary Workflow Stubs** — 20-field pass-through audit across all 14 workflows; recommend/iterate/mockup guard stubs (completed 2026-03-23)
-- [x] **Phase 94: Nyquist Regression Tests** — Composition case validation and non-regression verification (completed 2026-03-23)
-- [x] **Phase 95: Integration Wiring Fixes** — Close 6 requirement gaps, 3 integration gaps, and 3 broken flows from milestone audit (completed 2026-03-23)
-- [x] **Phase 96: 21-Field Cascade Fix** — Fix test assertion and 4 secondary workflow designCoverage writes to include hasDeployStaging as 21st field (completed 2026-03-23)
-- [x] **Phase 97: Consumer Glob Mismatch Fixes** — Fix 5 remaining glob mismatches in deploy.md, handoff.md, and critique.md (STR/DPD/GTM stems and extensions) (completed 2026-03-23)
-- [x] **Phase 98: Prose Drift & LDP Glob Fix** — Fix stale LDP glob stem in critique.md and update 6 stale "20 fields" prose references to "21 fields" across 6 workflows (completed 2026-03-23)
-
-## Phase Details
-
-### Phase 84: Foundation
-**Goal**: The shared infrastructure that every business-mode workflow depends on exists and is correct before any workflow is authored
-**Depends on**: Phase 83 (v0.11 complete)
-**Requirements**: FOUND-01, FOUND-02, FOUND-03, FOUND-04, FOUND-05, FOUND-06, FOUND-07
-**Success Criteria** (what must be TRUE):
-  1. `design-manifest.json` template contains `businessMode: false` and `businessTrack: null` top-level fields alongside all 20 designCoverage fields
-  2. `.planning/design/launch/` directory is created by `ensure-dirs` in design.cjs when a new project is initialized
-  3. `references/business-track.md` exists with concrete vocabulary, depth thresholds, and artifact format differences for all three tracks — a workflow author reading it knows exactly how to branch
-  4. `references/launch-frameworks.md` exists with complete artifact templates for lean canvas, pitch deck slides, service blueprint lanes, and pricing config schema
-  5. `references/business-financial-disclaimer.md` and `references/business-legal-disclaimer.md` exist with unambiguous placeholder patterns — no dollar amounts, no generated legal documents, every financial field is `[YOUR_X]` format
-**Plans**: 1 plan
-Plans:
-- [ ] 94-01-PLAN.md — Regression matrix test file (INTG-02 through INTG-07) + full suite validation
-
-### Phase 85: Brief Extensions + Detection
-**Goal**: Users can describe a business idea and have PDE detect business intent, select their track, and generate a business thesis with lean canvas
-**Depends on**: Phase 84
-**Requirements**: BRIEF-01, BRIEF-02, BRIEF-03, BRIEF-04, BRIEF-05, BRIEF-06, BRIEF-07
-**Success Criteria** (what must be TRUE):
-  1. Running `/pde:brief` on a project description containing business intent signals results in `businessMode: true` written to `design-manifest.json`
-  2. User is prompted to select a track (solo_founder / startup_team / product_leader) and `businessTrack` is stored in the manifest
-  3. A BTH artifact (business thesis) appears in `strategy/` with problem, solution, market, and unfair-advantage sections
-  4. A lean canvas artifact appears with all 9 boxes populated and each hypothesis marked validated/assumed/unknown
-  5. All financial content in the brief output uses structural placeholders only — no dollar amounts appear anywhere in the generated output
-**Plans**: 1 plan
-Plans:
-- [ ] 85-01-PLAN.md — Business detection, track selection, domain strategy, manifest writes
-- [ ] 85-02-PLAN.md — BTH thesis + LCV lean canvas artifact generation, 20-field coverage write
-
-### Phase 86: Competitive + Opportunity Extensions
-**Goal**: Users with business mode active get market landscape sizing and competitive positioning alongside RICE scoring with business initiative framing
-**Depends on**: Phase 85
-**Requirements**: MRKT-01, MRKT-02, MRKT-03, MRKT-04, MRKT-05
-**Success Criteria** (what must be TRUE):
-  1. `/pde:competitive` produces an MLS artifact containing TAM/SAM/SOM sizing with `[Source required]` placeholders wherever user-provided sources are absent
-  2. A competitive positioning 2x2 matrix (Mermaid quadrant or ASCII) appears in the competitive output with differentiation analysis
-  3. `/pde:opportunity` extends RICE scoring with business initiative framing including unit economics structural inputs (LTV formula, CAC ceiling, payback period at 3 churn scenarios) as placeholders
-  4. `hasMarketLandscape` is set to true in designCoverage after the MLS artifact is created
-  5. Market landscape output depth visibly differs between solo_founder (1-page summary), startup_team (competitive deep-dive), and product_leader (build-vs-buy analysis) tracks
-**Plans**: 1 plan
-Plans:
-- [ ] 86-01-PLAN.md — MLS artifact, Mermaid quadrant chart, track depth, 20-field coverage in competitive.md
-- [ ] 86-02-PLAN.md — Business initiative framing with unit economics in opportunity.md
-
-### Phase 87: Flows Stage
-**Goal**: Users in business mode get operational design artifacts — a 5-lane service blueprint and GTM channel flow — that anchor content calendar and email sequence generation downstream
-**Depends on**: Phase 85
-**Requirements**: OPS-01, OPS-02, OPS-03, OPS-04
-**Success Criteria** (what must be TRUE):
-  1. `/pde:flows` in business mode produces an SBP artifact as a 5-lane Mermaid sequence diagram with customer actions, frontstage, line of visibility, backstage, and support processes lanes
-  2. A GTM channel flow artifact appears as an acquisition → conversion → retention Mermaid flowchart with channel priority annotations
-  3. `hasServiceBlueprint` is set to true in designCoverage after the SBP artifact is created
-  4. Service blueprint and GTM flow output depth visibly adapts per businessTrack (solo: single-product, startup: multi-channel, leader: cross-functional)
-**Plans**: 1 plan
-Plans:
-- [ ] 87-01-PLAN.md — Test scaffold + SBP service blueprint + GTM channel flow generation in flows.md
-- [ ] 87-02-PLAN.md — 20-field designCoverage upgrade + strategy DESIGN-STATE wiring
-
-### Phase 88: Brand System
-**Goal**: Users in business mode get a brand and marketing positioning system that feeds brand tokens into the landing page wireframe and pitch deck
-**Depends on**: Phase 85
-**Requirements**: BRAND-01, BRAND-02, BRAND-03
-**Success Criteria** (what must be TRUE):
-  1. `/pde:system` in business mode produces an MKT artifact containing a positioning statement, tone of voice spectrum, and visual differentiation rationale
-  2. The brand system token output extends existing DTCG output with a marketing-specific token group (brand voice, campaign palette variants) without clobbering existing token groups
-  3. The positioning statement and tone of voice from the MKT artifact are referenced in the landing page wireframe and pitch deck content generated in Phase 89
-**Plans**: 1 plan
-Plans:
-- [ ] 88-01-PLAN.md — Test scaffold, launch-frameworks Brand System section, system.md business brand steps (5c/5d), 20-field coverage upgrade, DESIGN-STATE wiring
-
-### Phase 89: Wireframe Stage Launch Artifacts
-**Goal**: Users in business mode get three deployable launch artifacts — a Next.js-mapped landing page wireframe, a Stripe-compatible pricing config, and a track-appropriate pitch deck outline
-**Depends on**: Phase 86, Phase 87, Phase 88
-**Requirements**: LAUNCH-01, LAUNCH-02, LAUNCH-03, LAUNCH-04, LAUNCH-05, LAUNCH-06
-**Success Criteria** (what must be TRUE):
-  1. `/pde:wireframe` in business mode produces an LDP artifact in deployable-spec format with explicit Next.js component mapping for hero, features, pricing, CTA, and footer sections
-  2. An STR artifact appears with Stripe-compatible schema (product names as placeholders, billing intervals, trial periods, checkout mode) — no live keys, no real dollar amounts
-  3. A pitch deck outline appears in YC/Sequoia format with track-appropriate depth (solo: 10 slides, startup: 12-15 slides, leader: internal business case format)
-  4. Landing page wireframe content references brand tokens from Phase 88 and GTM copy framing from Phase 87
-  5. All launch artifacts are stored in `.planning/design/launch/` — not in `ux/` or `visual/`
-**Plans**: 1 plan
-Plans:
-- [ ] 94-01-PLAN.md — Regression matrix test file (INTG-02 through INTG-07) + full suite validation
-- [ ] 89-02-PLAN.md — STR Stripe pricing config, DPD pitch deck outline, DESIGN-STATE wiring + manifest registration
-
-### Phase 90: Critique + HIG Extensions
-**Goal**: Users in business mode get four business-specific critique perspectives and business communications guidelines that review pitch coherence, pricing psychology, and investor readiness
-**Depends on**: Phase 89
-**Requirements**: QUAL-01, QUAL-02, QUAL-03, QUAL-04
-**Success Criteria** (what must be TRUE):
-  1. `/pde:critique` in business mode adds four business critique perspectives: unit economics viability, GTM-ICP fit, pricing psychology, and investor readiness
-  2. Critique output includes a pitch coherence cross-check verifying that lean canvas UVP matches pitch deck solution slide and canvas key metrics match traction slide
-  3. `/pde:hig` in business mode adds a business communications section covering pitch deck readability, email cadence, and content calendar structure guidelines
-  4. Business critique findings use the standard severity levels (critical/major/minor/info) — no new severity formats introduced
-**Plans**: 1 plan
-Plans:
-- [x] 90-01-PLAN.md — Test scaffold, business critique perspectives (4), pitch coherence cross-check, 20-field coverage in critique.md
-- [x] 90-02-PLAN.md — Business communications HIG (3 domains), 20-field coverage upgrade in hig.md
-
-### Phase 91: Handoff — Launch Kit Assembly
-**Goal**: Users in business mode receive a complete, assembled launch kit with all upstream business artifacts catalogued, a 30-day content calendar, and Resend-compatible email sequences
-**Depends on**: Phase 90
-**Requirements**: KIT-01, KIT-02, KIT-03, KIT-04, KIT-05, KIT-06
-**Success Criteria** (what must be TRUE):
-  1. `/pde:handoff` in business mode produces an LKT manifest artifact listing all business artifact paths, statuses, and deployment readiness flags
-  2. A CNT artifact appears as a 30-day pre-launch / launch / post-launch content calendar skeleton with content category slots derived from GTM channel priorities
-  3. An OTR artifact appears with an onboarding sequence (5-7 emails in trigger/delay/CTA format) and an investor outreach sequence (3 emails gated on pitch deck completion) in Resend-compatible format
-  4. Domain strategy notes captured during the brief phase are consolidated into the launch kit
-  5. `hasLaunchKit` is set to true in designCoverage after LKT creation — this flag gates the deploy stage
-  6. All email sequence content uses structural personalization placeholders — no specific company names, partner references, or investor firm names appear in any generated email
-**Plans**: 1 plan
-Plans:
-- [x] 91-01-PLAN.md — Test scaffold, business artifact discovery (4k), LKT/CNT/OTR synthesis (4l/4m), file writes (5e)
-- [x] 91-02-PLAN.md — Manifest registration (7b-lkt), 20-field designCoverage upgrade (7c), purpose/anti-patterns/output updates
-
-### Phase 92: Deploy Skill
-**Goal**: Users in business mode can generate a deployable Next.js landing page scaffold, Stripe config, and Resend email templates — with mandatory human approval gates before every external write — and initiate a Vercel deployment that returns a URL without blocking the session
-**Depends on**: Phase 91
-**Requirements**: DEPLOY-01, DEPLOY-02, DEPLOY-03, DEPLOY-04, DEPLOY-05, DEPLOY-06, DEPLOY-07, DEPLOY-08, DEPLOY-09
-**Success Criteria** (what must be TRUE):
-  1. `/pde:deploy` exists as a slash command entry point for Stage 14 and is conditionally appended to `/pde:build` only when `businessMode === true`
-  2. Four explicit human approval gates appear in sequence — before Next.js scaffold write, before Stripe config write, before Resend template generation, and before Vercel deploy — and declining any gate halts execution without partial deployment
-  3. A Next.js landing page scaffold appears at `.planning/deploy-staging/landing-page/` with pinned versions (Next.js 16.2.1, Stripe v20, Resend 6.9.4, Tailwind v4) consuming the LDP wireframe spec
-  4. Stripe config always contains test-mode placeholder keys (`pk_test_REPLACE_WITH_YOUR_KEY`) — no live keys appear anywhere in generated output
-  5. Vercel deployment completes via `npx vercel --prod --no-wait` and returns a deployment URL without blocking the Claude Code session
-  6. All deployment artifacts are stored in `.planning/deploy-staging/` with a generated `.gitignore` entry — never in `.planning/design/`
-  7. `deploy-manifest.json` tracks all deployment artifact statuses with `review_required: true` per artifact
-**Plans**: 1 plan
-Plans:
-- [x] 92-01-PLAN.md — Test scaffold + workflows/deploy.md (Stage 14 workflow with 4 approval gates, scaffold generation, Vercel deploy)
-- [ ] 92-02-PLAN.md — commands/deploy.md slash command + build.md Stage 14 STAGES entry with businessMode gate
-
-### Phase 93: designCoverage Clobber Audit + Secondary Workflow Stubs
-**Goal**: Every workflow that writes designCoverage includes all 20 fields in its write call, and all remaining workflows (recommend, iterate, mockup) have business-mode guard stubs
-**Depends on**: Phase 92
-**Requirements**: INTG-01, INTG-08
-**Success Criteria** (what must be TRUE):
-  1. Every designCoverage-writing workflow includes all 20 fields when writing the coverage object — a grep across all workflows confirms the field count
-  2. `businessTrack` branching appears in every workflow where `businessMode` branching appears — `grep -rn "businessTrack" workflows/` hit count matches `grep -rn "businessMode" workflows/` hit count
-  3. `recommend.md`, `iterate.md`, and `mockup.md` each contain a `<!-- Business product type -->` conditional stub (the same guard pattern used in v0.11 for experience stubs)
-**Plans**: 1 plan
-Plans:
-- [x] 93-01-PLAN.md — Test scaffold + recommend.md and iterate.md 20-field fix + business stubs
-- [ ] 93-02-PLAN.md — mockup.md and ideate.md 20-field fix + mockup business stub
-
-### Phase 94: Nyquist Regression Tests
-**Goal**: The complete v0.12 integration is verified: non-business product types are byte-identical to pre-v0.12 baselines, business compositions produce correct artifact sets, and the deploy approval gates halt on decline
-**Depends on**: Phase 93
-**Requirements**: INTG-02, INTG-03, INTG-04, INTG-05, INTG-06, INTG-07
-**Success Criteria** (what must be TRUE):
-  1. A software project with `businessMode: false` produces byte-identical manifest output to the pre-v0.12 baseline — no new fields, no flag changes
-  2. A `business:software` composition run produces both software-specific artifacts and all business-specific artifacts in a single pipeline execution
-  3. `business:hardware` and `business:experience` compositions each produce both their type-specific and business-specific artifacts without collision
-  4. The deploy workflow halts at each approval gate without proceeding when the user declines — no partial deployment occurs on any decline
-  5. Nyquist structural assertions cover all composition cases and all 20 designCoverage fields across modified workflows
-**Plans**: 1 plan
-Plans:
-- [ ] 94-01-PLAN.md — Regression matrix test file (INTG-02 through INTG-07) + full suite validation
-
-### Phase 95: Integration Wiring Fixes
-**Goal**: Close all 6 requirement gaps, 3 integration gaps, and 3 broken E2E flows identified by the v0.12 milestone audit — OTR glob mismatch blocking deploy, BTH glob mismatch corrupting LKT manifest, hasDeployStaging flag never written, and missing handoff required_reading
-**Depends on**: Phase 94
-**Requirements**: BRIEF-03, KIT-01, KIT-03, DEPLOY-04, DEPLOY-06, DEPLOY-09
-**Gap Closure**: Closes all gaps from v0.12-MILESTONE-AUDIT.md
-**Success Criteria** (what must be TRUE):
-  1. `deploy.md` globs `OTR-outreach-sequences-v*.md` (not `OTR-outreach-v*.md`) — deploy preflight no longer halts on OTR artifact
-  2. `handoff.md`, `wireframe.md`, and `critique.md` glob `BTH-thesis-v*.md` (not `BTH-business-thesis-v*.md`) — BTH artifact discovered correctly in LKT manifest
-  3. `deploy.md` writes `hasDeployStaging: true` to `design-manifest.json` designCoverage after Gate 4 completes — Stage 14 no longer permanently pending
-  4. `handoff.md` required_reading block includes business-track.md, launch-frameworks.md, business-financial-disclaimer.md, business-legal-disclaimer.md
-  5. E2E `/pde:build business:software` flow completes through deploy preflight without glob misses
-  6. All 6 previously-gap requirements (BRIEF-03, KIT-01, KIT-03, DEPLOY-04, DEPLOY-06, DEPLOY-09) re-verified as satisfied
-**Plans**: 1 plan
-Plans:
-- [ ] 95-01-PLAN.md — OTR glob fix, BTH glob fix, hasDeployStaging flag write, handoff required_reading
-
-### Phase 96: 21-Field Cascade Fix
-**Goal**: Every designCoverage write and test assertion reflects all 21 fields including hasDeployStaging — eliminates the last 2 requirement gaps and 2 integration gaps from the v0.12 audit
-**Depends on**: Phase 95
-**Requirements**: FOUND-02, INTG-01
-**Gap Closure**: Closes remaining gaps from v0.12-MILESTONE-AUDIT.md
-**Success Criteria** (what must be TRUE):
-  1. `test-foundation.cjs` FOUND-02 subtest asserts exactly 21 designCoverage fields (not 20)
-  2. `recommend.md`, `ideate.md`, `iterate.md`, `mockup.md` each include `hasDeployStaging` in their designCoverage write (21 fields total)
-  3. Full Nyquist suite passes 235/235 (no FOUND-02 failure)
-  4. `--from` re-run after deploy no longer clobbers `hasDeployStaging` flag
-**Plans**: 1 plan
-Plans:
-- [x] 96-01-PLAN.md — Fix test assertion (20→21) + add hasDeployStaging to 4 secondary workflows
-
-### Phase 97: Consumer Glob Mismatch Fixes
-**Goal**: Fix all 5 remaining glob pattern mismatches between producer and consumer workflows — deploy.md, handoff.md, and critique.md each glob for artifact filenames that don't match what the producer actually writes
-**Depends on**: Phase 96
-**Requirements**: LAUNCH-02, DEPLOY-03, KIT-01, KIT-02, KIT-03, OPS-02, QUAL-01
-**Gap Closure**: Closes GAP-1 through GAP-5 from v0.12-MILESTONE-AUDIT.md; repairs Deploy E2E flow
-**Success Criteria** (what must be TRUE):
-  1. `deploy.md` globs `STR-stripe-pricing-v*.json` (not `.md`) — deploy preflight no longer halts on STR artifact
-  2. `handoff.md` globs `STR-stripe-pricing-v*` (not `STR-stripe-config-v*`) — LKT manifest discovers STR correctly
-  3. `handoff.md` globs `DPD-pitch-deck-outline-v*` (not `DPD-pitch-deck-v*`) — investor OTR sequence no longer silently skipped
-  4. `handoff.md` globs `GTM-channel-flow-v*` (not `GTM-gtm-flow-v*`) — CNT calendar gets GTM channel priorities
-  5. `critique.md` globs `STR-stripe-pricing-v*` (not `STR-stripe-pricing-config-v*`) — BIZ-3 pricing perspective reads STR data
-  6. E2E `/pde:build business:software` flow completes through deploy preflight without glob misses
-  7. All 7 previously-gap requirements (LAUNCH-02, DEPLOY-03, KIT-01, KIT-02, KIT-03, OPS-02, QUAL-01) re-verified as satisfied
-**Plans**: 1 plan
-Plans:
-- [x] 97-01-PLAN.md — Fix 5 glob mismatches in deploy.md, handoff.md, and critique.md
-
-### Phase 98: Prose Drift & LDP Glob Fix
-**Goal**: Fix stale LDP glob stem in critique.md BIZ-3 evaluation source and update 6 stale "20 fields" prose references to "21 fields" — all runtime write commands are already correct, only prose descriptions lag
-**Depends on**: Phase 97
-**Requirements**: QUAL-01 (LDP glob fix), INTG-01 (prose accuracy), FOUND-02 (field count accuracy)
-**Gap Closure**: Closes 1 integration gap and 6 tech debt items from v0.12-MILESTONE-AUDIT.md
-**Success Criteria** (what must be TRUE):
-  1. `critique.md` line 796 globs `LDP-landing-page-v*.md` (not `LDP-landing-page-spec-v*`) — BIZ-3 pricing evaluation finds LDP artifact
-  2. All 6 workflow anti-pattern/prose sections say "21 fields" (not "20 fields"): competitive.md, opportunity.md, system.md, critique.md, hig.md, handoff.md
-  3. 235/235 Nyquist tests still GREEN after changes
-**Plans**: 1 plan
-Plans:
-- [x] 98-01-PLAN.md — Fix LDP glob and 6 stale "20 fields" prose references
+_Phase details archived to .planning/milestones/v0.12-ROADMAP.md_
 
 ## Progress
 
@@ -451,17 +231,4 @@ Plans:
 | 64-69 | v0.9 | 12/12 | Complete | 2026-03-21 |
 | 70-73 | v0.10 | 8/8 | Complete | 2026-03-21 |
 | 74-83 | v0.11 | 19/19 | Complete | 2026-03-22 |
-| 84. Foundation | 2/2 | Complete    | 2026-03-22 | - |
-| 85. Brief Extensions + Detection | 2/2 | Complete    | 2026-03-22 | - |
-| 86. Competitive + Opportunity Extensions | 2/2 | Complete    | 2026-03-22 | - |
-| 87. Flows Stage | 2/2 | Complete    | 2026-03-22 | - |
-| 88. Brand System | 1/1 | Complete    | 2026-03-22 | - |
-| 89. Wireframe Stage Launch Artifacts | 2/2 | Complete    | 2026-03-22 | - |
-| 90. Critique + HIG Extensions | v0.12 | 2/2 | Complete    | 2026-03-22 |
-| 91. Handoff — Launch Kit Assembly | v0.12 | 2/2 | Complete    | 2026-03-22 |
-| 92. Deploy Skill | v0.12 | 1/2 | Complete    | 2026-03-22 |
-| 93. designCoverage Audit + Stubs | v0.12 | 1/2 | Complete    | 2026-03-23 |
-| 94. Nyquist Regression Tests | v0.12 | 0/1 | Complete    | 2026-03-23 |
-| 95. Integration Wiring Fixes | v0.12 | 0/1 | Complete    | 2026-03-23 |
-| 96. 21-Field Cascade Fix | v0.12 | 1/1 | Complete    | 2026-03-23 |
-| 97. Consumer Glob Mismatch Fixes | v0.12 | 1/1 | Complete    | 2026-03-23 |
+| 84-98 | v0.12 | 24/24 | Complete | 2026-03-23 |

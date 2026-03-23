@@ -127,17 +127,7 @@ Any user can go from idea to shipped product through a single platform that hand
 
 ### Active
 
-## Current Milestone: v0.12 Business Product Type
-
-**Goal:** Transform PDE from a product design engine into a venture design engine with a `business:` orthogonal dimension that layers on top of all existing product types.
-
-**Target features:**
-- `business:` orthogonal dimension composable with all product types (software, hardware, hybrid, experience)
-- Strategy-heavy pipeline adaptation (brief → business thesis, competitive → market landscape, opportunity → RICE business initiatives, flows → operational/service flows, system → brand system, wireframe → service blueprints)
-- Three user tracks: solo founder, startup team, product leader — adjusting depth, vocabulary, and output format
-- Executable launch kit artifacts: deployable landing page wireframe, Stripe pricing config spec, content calendar skeleton, investor outreach sequence, domain strategy
-- Full deployment scaffolding with human approval gates: Next.js landing page, Stripe via Marketplace, Resend email templates
-- Deployment via Vercel where possible with mandatory human review before any deployment stage
+(Next milestone requirements to be defined via `/gsd:new-milestone`)
 
 ### Out of Scope
 
@@ -161,9 +151,9 @@ Any user can go from idea to shipped product through a single platform that hand
 
 ## Context
 
+- **Shipped v0.12** on 2026-03-23: business product type with venture design engine — 15 phases, 24 plans, 59 requirements, 235 Nyquist assertions, 141 commits, zero tech debt
 - **Shipped v0.11** on 2026-03-22: ~245,000 LOC (JavaScript/Markdown/Shell), ~1,078 total commits
-- **v0.12 complete:** Phases 84-97 shipped 2026-03-23 — business product type with venture design engine, 3 user tracks, deploy scaffolding, integration wiring fixes, consumer glob fixes, 235/235 Nyquist assertions GREEN
-- **Active milestone:** v0.12 Business Product Type — COMPLETE, ready for milestone archival
+- **Next milestone:** TBD — run `/gsd:new-milestone` to begin
 - **Planned roadmap:** v0.13 AutoResearch → v0.14 WebMCP → v0.15 CLI-Anything → v0.16 Remote Dashboard → v0.17 Stakeholder Presentations → v1.0 Standalone CLI
 - **v0.11** shipped 2026-03-22: 112 files changed, 116 commits (experience product type: detection, brief, tokens, flows, wireframes, critique, HIG, print, handoff, 48 requirements)
 - **v0.10** shipped 2026-03-21: 107 files changed, 56 commits (idle-time productivity: suggestion engine, catalog, context notes, 7-pane dashboard)
@@ -268,4 +258,4 @@ Any user can go from idea to shipped product through a single platform that hand
 | Business detection threshold (3+ signals, 2+ categories) | Prevents over-triggering on pure software projects while catching genuine business intent | ✓ Good — 5-category taxonomy with category diversity requirement |
 | BTH→LCV dependency chain (skip, don't halt) | If BTH generation fails, LCV is skipped with warning rather than halting entire brief run | ✓ Good — graceful degradation preserves non-business brief output |
 | 20-field designCoverage write (not copy 16-field pattern) | Phase 84 added 4 fields; copying opportunity.md's 16-field pattern silently drops them | ✓ Good — canonical order from manifest template |
-*Last updated: 2026-03-23 after Phase 98 — Prose Drift & LDP Glob Fix (all tech debt from v0.12 audit closed, 235/235 Nyquist GREEN, milestone ready for archival)*
+*Last updated: 2026-03-23 after v0.12 milestone completion — Business Product Type shipped*
