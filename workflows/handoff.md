@@ -1453,7 +1453,7 @@ COV=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design coverage-check)
 if [[ "$COV" == @file:* ]]; then COV=$(cat "${COV#@file:}"); fi
 ```
 
-Parse the JSON output from coverage-check. Extract ALL twenty current flag values: `hasDesignSystem`, `hasWireframes`, `hasFlows`, `hasHardwareSpec`, `hasCritique`, `hasIterate`, `hasHandoff`, `hasIdeation`, `hasCompetitive`, `hasOpportunity`, `hasMockup`, `hasHigAudit`, `hasRecommendations`, `hasStitchWireframes`, `hasPrintCollateral`, `hasProductionBible`, `hasBusinessThesis`, `hasMarketLandscape`, `hasServiceBlueprint`, `hasLaunchKit`. Default any absent field to `false`.
+Parse the JSON output from coverage-check. Extract ALL twenty-one current flag values: `hasDesignSystem`, `hasWireframes`, `hasFlows`, `hasHardwareSpec`, `hasCritique`, `hasIterate`, `hasHandoff`, `hasIdeation`, `hasCompetitive`, `hasOpportunity`, `hasMockup`, `hasHigAudit`, `hasRecommendations`, `hasStitchWireframes`, `hasPrintCollateral`, `hasProductionBible`, `hasBusinessThesis`, `hasMarketLandscape`, `hasServiceBlueprint`, `hasLaunchKit`, `hasDeployStaging`. Default any absent field to `false`.
 
 IF PRODUCT_TYPE is "experience": merge `hasProductionBible: true` (and `hasHandoff: true` only if hybrid-event), preserve all other eighteen values. Then write the full merged twenty-field object:
 

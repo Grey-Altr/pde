@@ -751,7 +751,7 @@ Display the final summary table (always the last output):
 - ALWAYS release the write lock (Step 7 lock-release) even if an error occurs during root DESIGN-STATE.md updates. The lock has a 60s TTL but releasing immediately prevents blocking other skills.
 - NEVER insert MLS content inside the CMP artifact. MLS is a SEPARATE artifact file (MLS-market-landscape-v{N}.md). CMP and MLS have different lifecycles.
 - NEVER generate specific dollar amounts for TAM, SAM, or SOM. Use [YOUR_TAM_SIZE] [Source required] for every sizing cell. Post-write verification bash check is MANDATORY.
-- NEVER write designCoverage with fewer than 20 fields. The 16-field version is a regression from Phase 84. Always include hasBusinessThesis, hasMarketLandscape, hasServiceBlueprint, hasLaunchKit alongside the original 16 fields.
+- NEVER write designCoverage with fewer than 21 fields. The 16-field version is a regression from Phase 84. Always include hasBusinessThesis, hasMarketLandscape, hasServiceBlueprint, hasLaunchKit, hasDeployStaging alongside the original 16 fields.
 - NEVER create MLS artifact when businessMode is false. The MLS_WRITTEN flag must gate both the artifact write AND the manifest registration AND the designCoverage hasMarketLandscape value.
 
 </process>

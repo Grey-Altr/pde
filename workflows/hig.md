@@ -850,12 +850,12 @@ COV=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design coverage-check)
 if [[ "$COV" == @file:* ]]; then COV=$(cat "${COV#@file:}"); fi
 ```
 
-Parse the JSON result. Extract ALL TWENTY current coverage flag values (default absent fields to `false`):
-- `hasDesignSystem`, `hasWireframes`, `hasFlows`, `hasHardwareSpec`, `hasCritique`, `hasIterate`, `hasHandoff`, `hasIdeation`, `hasCompetitive`, `hasOpportunity`, `hasMockup`, `hasHigAudit`, `hasRecommendations`, `hasStitchWireframes`, `hasPrintCollateral`, `hasProductionBible`, `hasBusinessThesis`, `hasMarketLandscape`, `hasServiceBlueprint`, `hasLaunchKit`
+Parse the JSON result. Extract ALL TWENTY-ONE current coverage flag values (default absent fields to `false`):
+- `hasDesignSystem`, `hasWireframes`, `hasFlows`, `hasHardwareSpec`, `hasCritique`, `hasIterate`, `hasHandoff`, `hasIdeation`, `hasCompetitive`, `hasOpportunity`, `hasMockup`, `hasHigAudit`, `hasRecommendations`, `hasStitchWireframes`, `hasPrintCollateral`, `hasProductionBible`, `hasBusinessThesis`, `hasMarketLandscape`, `hasServiceBlueprint`, `hasLaunchKit`, `hasDeployStaging`
 
-Set `hasHigAudit: true`, pass all 19 other fields through with their current values.
+Set `hasHigAudit: true`, pass all 20 other fields through with their current values.
 
-Then write the FULL 20-field JSON, setting `hasHigAudit` to `true` and passing all other flags through unchanged:
+Then write the FULL 21-field JSON, setting `hasHigAudit` to `true` and passing all other flags through unchanged:
 
 ```bash
 node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage \

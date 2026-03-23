@@ -581,7 +581,7 @@ Display the final summary table (always the last output):
 - Sensitivity scenarios MUST recompute ALL candidates (not just the one being varied) to produce correct rank deltas. Rank change is relative to the full re-ranked list, not a simple score comparison.
 - NEVER generate specific dollar amounts in the Business Initiative Framing section. Use [YOUR_X] [VERIFY FINANCIAL ASSUMPTIONS] format for all financial values.
 - NEVER include the Business Initiative Framing section when businessMode is false. The BUSINESS_FRAMING_GENERATED flag must gate both the Step 4 generation AND the Step 5 artifact section inclusion.
-- NEVER write designCoverage with fewer than 20 fields. The 16-field version is a regression from Phase 84. Always include hasBusinessThesis, hasMarketLandscape, hasServiceBlueprint, hasLaunchKit alongside the original 16 fields.
+- NEVER write designCoverage with fewer than 21 fields. The 16-field version is a regression from Phase 84. Always include hasBusinessThesis, hasMarketLandscape, hasServiceBlueprint, hasLaunchKit, hasDeployStaging alongside the original 16 fields.
 
 </process>
 
