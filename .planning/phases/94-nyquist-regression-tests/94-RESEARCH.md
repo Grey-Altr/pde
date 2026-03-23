@@ -612,3 +612,499 @@ This section captures confirmed string markers to use in test assertions (all ve
 
 **Research date:** 2026-03-23
 **Valid until:** 2026-04-22 (stable — workflow files don't change between research and planning in this project)
+
+---
+
+## Deep-Dive Area 1: Composition Matrix — Full Artifact Mapping
+
+**Investigation date:** 2026-03-22
+**Source:** Direct grep of brief.md (959 lines), flows.md (1120 lines), wireframe.md (2464 lines), handoff.md (1586 lines), system.md (2271 lines), critique.md (1280 lines), hig.md, competitive.md, opportunity.md
+
+### Complete Artifact Production Matrix
+
+Each row represents what artifacts a specific workflow produces, per composition case. "pass-through" means the workflow writes the field with its current value (not setting it to true).
+
+#### brief.md
+| Composition | Artifacts Produced | Coverage Flags Set to true | Notes |
+|-------------|-------------------|---------------------------|-------|
+| Non-business software | BRF | none of the 4 new fields | hasBusinessThesis: current (pass-through) |
+| business:software | BRF, BTH, LCV | hasBusinessThesis | BTH at line ~570, LCV after BTH |
+| business:hardware | BRF, BTH, LCV | hasBusinessThesis | Same business path; productType written to manifest |
+| business:experience | BRF, BTH, LCV | hasBusinessThesis | experience sections in BRF + business sections in BRF are independent |
+
+Key structural proof: `businessMode == false` guard at line ~294 skips Step 5b entirely. `manifest-set-top-level businessMode` always writes the value (true or false) — so non-business projects get `businessMode: false` in manifest, not absent.
+
+#### flows.md
+| Composition | Artifacts Produced | Coverage Flags Set to true | Notes |
+|-------------|-------------------|---------------------------|-------|
+| Non-business software | FLW | hasFlows | hasServiceBlueprint: current (pass-through) |
+| business:software | FLW, SBP, GTM | hasFlows, hasServiceBlueprint | SBP gated on `$BM == "true"` |
+| business:hardware | FLW, SBP, GTM | hasFlows, hasServiceBlueprint | Same business path as software |
+| business:experience | TFL, SFL, SOC, SBP, GTM | hasFlows, hasServiceBlueprint | TFL/SFL/SOC via Step 4-EXP, SBP/GTM via Step 5-BIZ (independent blocks, NOT ELSE IF) |
+
+Independence proof in flows.md: Step 4-EXP (experience block) ends at line 337 with "End experience flow generation block." The `$BM == "true"` check for SBP at line 157 is a completely separate subsequent block. Line 1026: "Experience+business compositions produce both experience flow artifacts AND business flow artifacts."
+
+#### wireframe.md
+| Composition | Artifacts Produced | Coverage Flags Set to true | Notes |
+|-------------|-------------------|---------------------------|-------|
+| Non-business software | WFR (HTML per screen) | hasWireframes | hasStitchWireframes if --use-stitch |
+| business:software | WFR, LDP, STR, DPD | hasWireframes | LDP/STR/DPD in Step 4h/4i (independent IF businessMode block) |
+| business:hardware | WFR, LDP, STR, DPD | hasWireframes | Same business additions; no hardware-specific wireframe artifacts |
+| business:experience | FLP, TML, LDP, STR, DPD | hasWireframes, hasPrintCollateral (FLY via Phase 80) | FLP/TML via Step 4-EXP (skip Steps 4a-4f); LDP/STR/DPD in Step 4h/4i |
+
+Critical: wireframe.md Step 4-EXP jumps to "Step 5-EXP" after experience wireframes, but Step 4h (business artifacts) is reached regardless — it is NOT inside an ELSE branch from Step 4-EXP.
+
+#### system.md
+| Composition | Artifacts Produced | Coverage Flags Set to true | Notes |
+|-------------|-------------------|---------------------------|-------|
+| Non-business software | SYS-brand-tokens.json, assets/tokens.css | hasDesignSystem | No experience or business tokens |
+| business:software | SYS-brand-tokens.json, SYS-brand-marketing.json, MKT | hasDesignSystem | Steps 5c/5d produce business brand tokens |
+| business:hardware | SYS-brand-tokens.json, SYS-brand-marketing.json, MKT | hasDesignSystem | Same as software |
+| business:experience | SYS-experience-tokens.json, SYS-brand-tokens.json, SYS-brand-marketing.json, MKT | hasDesignSystem | Step 5b (experience) AND Steps 5c/5d (business) both run — system.md line 74 comment explicitly states this |
+
+Independence proof: system.md line 74 comment: "Step 5b (experience) and Steps 5c/5d (business) are independent conditional blocks — both run for business:experience compositions." Line 2248 CRITICAL rule: "NEVER use ELSE IF or ELSE branching between Step 5b and Steps 5c/5d."
+
+#### handoff.md
+| Composition | Artifacts Produced | Coverage Flags Set to true | Notes |
+|-------------|-------------------|---------------------------|-------|
+| Non-business software | HND spec, HND types.ts | hasHandoff | No BIB, no LKT |
+| business:software | HND spec, HND types.ts, LKT, CNT, OTR | hasHandoff, hasLaunchKit | LKT/CNT/OTR gated on `$BM == "true"` — independent IF block |
+| business:hardware | HND spec (with Hardware Handoff sections), LKT, CNT, OTR | hasHandoff, hasLaunchKit | Software component APIs omitted; Hardware Handoff sections included; BIB NOT generated |
+| business:experience | BIB (production bible), LKT, CNT, OTR | hasProductionBible, hasLaunchKit | HND software spec skipped (HND_GENERATES_SOFTWARE = false for non-hybrid-event). BIB gated: `IF PRODUCT_TYPE is "experience"` — SEPARATE guard from `$BM == "true"` |
+
+Independence proof: handoff.md line 1565: "The independent IF block pattern (not ELSE IF from experience/hardware gates) ensures business:experience compositions run both paths correctly."
+
+#### critique.md
+| Composition | Artifacts Produced | Coverage Flags Set to true | Notes |
+|-------------|-------------------|---------------------------|-------|
+| Non-business software | CRT critique report | hasCritique | 4 software perspectives only |
+| business:software | CRT critique report (8 perspectives) | hasCritique | 4 additional business perspectives when businessMode == true |
+| business:hardware | CRT critique report (7 perspectives) | hasCritique | Experience perspectives replaced with hardware-specific when productType == experience? No — critique.md hardware path uses software perspectives for hardware products |
+| business:experience | CRT critique report (7 experience perspectives + 4 business) | hasCritique | Experience products use 7 experience-specific perspectives; businessMode adds 4 more |
+
+#### hig.md
+| Composition | Artifacts Produced | Coverage Flags Set to true | Notes |
+|-------------|-------------------|---------------------------|-------|
+| Non-business | HIG audit report | hasHigAudit | Standard HIG sections |
+| business:* | HIG audit report + business communications section | hasHigAudit | Business communications HIG section added when businessMode == true |
+
+### Collision Risk Analysis
+
+The following potential collision risks were investigated:
+
+1. **BIB (Production Bible) vs HND (Handoff Spec):** No collision. BIB is only generated for experience products; HND is only generated for non-experience products (and for hybrid-event both are generated but to separate artifact codes). Guard: `PRODUCT_TYPE is NOT "experience": SKIP this entire BIB generation block` at handoff.md line ~861.
+
+2. **hasProductionBible vs hasHandoff:** No collision for non-hybrid-event experience products. Experience products set `hasProductionBible: true` and do NOT set `hasHandoff: true` (HND_GENERATES_SOFTWARE = false). Hybrid-event sets both. Non-experience sets `hasHandoff: true` and never sets `hasProductionBible: true`.
+
+3. **LDP artifact (wireframe.md) vs LDP consumption (deploy.md):** No collision. wireframe.md WRITES LDP to `.planning/design/launch/LDP-landing-page-v{N}.md`. deploy.md READS that file as upstream input. Different phases, no overwrite risk.
+
+4. **SBP written by flows.md vs SBP coverage flag:** No collision. flows.md is the sole writer of SBP artifact and the sole setter of `hasServiceBlueprint: true`. No other workflow sets SBP to true independently.
+
+5. **hasPrintCollateral:** Set by wireframe.md (FLY event flyer, Phase 80) for experience products only. Set by handoff.md never (handoff sets hasProductionBible). No collision.
+
+6. **hasMarketLandscape:** Set by competitive.md (MLS market landscape) when businessMode == true. Passed through by all other workflows. No collision — single writer.
+
+---
+
+## Deep-Dive Area 2: Deploy Gate Mechanism — Full Architecture
+
+**Investigation date:** 2026-03-22
+**Source:** Direct read of workflows/deploy.md (942 lines) — full gate structure verified
+
+### Gate Architecture Overview
+
+deploy.md structures approval gates across Steps 3/6 (Gates 1-3) and 4/6 (Gate 4). Each gate uses `AskUserQuestion` with two options: "Proceed" and "Halt -- stop deployment". If user selects "Halt", an explicit message is displayed and HALT is called. Gates are NOT resumable — declining any gate requires re-running `/pde:deploy` from the beginning.
+
+Important pre-gate behavior: Before any gate is reached, deploy.md has three pre-gate halts (non-approval):
+- businessMode must be "true" (line 30-41) — automatic halt if non-business project
+- hasLaunchKit must be "true" (line 58-73) — automatic halt if launch kit not assembled (unless --force)
+- Collision detection for existing deploy-staging (line 77-99) — uses AskUserQuestion but is NOT a numbered gate
+
+### Complete Gate-by-Gate Documentation
+
+#### Gate 1/4 — Next.js Landing Page Scaffold
+
+**What it deploys:** Next.js 16.2.1 App Router scaffold to `.planning/deploy-staging/landing-page/`
+
+**Approval prompt (exact):**
+```
+"Approval Gate 1/4 — Next.js Landing Page Scaffold\n\n
+About to generate Next.js 16.2.1 App Router scaffold at:\n
+  .planning/deploy-staging/landing-page/\n\n
+Pinned versions:\n
+  - Next.js 16.2.1\n
+  - Tailwind v4 (4.2.2)\n
+  - Stripe v20 (20.4.1)\n
+  - Resend 6.9.4\n\n
+Components from LDP spec:\n
+  ${LDP_SECTIONS}\n\n
+All content uses [YOUR_X] structural placeholders — no live data generated.\n\nProceed?"
+```
+
+**Options:** `["Proceed", "Halt -- stop deployment"]`
+
+**On decline (halt message, lines 179-183):**
+```
+Deploy halted at Gate 1/4. No files written.
+Re-run /pde:deploy to restart from the beginning.
+```
+
+**On proceed:** Writes `.planning/deploy-staging/.gitignore` then generates all Next.js scaffold files including `package.json`, `next.config.ts`, `tsconfig.json`, `postcss.config.mjs`, `app/globals.css`, `app/layout.tsx`, marketing components, etc.
+
+**Display after success:** `Step 3/6 (Gate 1/4): Next.js 16.2.1 landing page scaffold written to .planning/deploy-staging/landing-page/`
+
+#### Gate 2/4 — Stripe Pricing Config
+
+**What it deploys:** Stripe pricing config JSON to `.planning/deploy-staging/stripe/stripe-config.json`
+
+**Approval prompt (exact):**
+```
+"Approval Gate 2/4 — Stripe Pricing Config\n\n
+About to generate Stripe pricing config at:\n
+  .planning/deploy-staging/stripe/stripe-config.json\n\n
+Key: pk_test_REPLACE_WITH_YOUR_KEY (test mode only — never live keys)\n
+Pricing tiers from STR spec:\n
+  ${STR_TIERS}\n\n
+All prices use [YOUR_PRICE_IN_CENTS] placeholders — no real amounts generated.\n\nProceed?"
+```
+
+**Options:** `["Proceed", "Halt -- stop deployment"]`
+
+**On decline (halt message, lines 545-549):**
+```
+Deploy halted at Gate 2/4.
+Landing page scaffold was written but Stripe config was not generated.
+Re-run /pde:deploy to restart from the beginning.
+```
+
+**On proceed:** Writes `stripe-config.json` and `stripe-setup.md` with Stripe Dashboard instructions.
+
+**Display after success:** `Step 3/6 (Gate 2/4): Stripe pricing config written to .planning/deploy-staging/stripe/`
+
+#### Gate 3/4 — Resend Email Templates
+
+**What it deploys:** React Email template stubs to `.planning/deploy-staging/email/emails/`
+
+**Approval prompt (exact):**
+```
+"Approval Gate 3/4 — Resend Email Templates\n\n
+About to generate React Email template stubs at:\n
+  .planning/deploy-staging/email/emails/\n\n
+Using: @react-email/components 1.0.10\n
+OTR email sequences from artifact:\n
+  ${OTR_EMAILS}\n\n
+All personalization fields use [YOUR_X] placeholders.\n
+No company names, partner references, or investor firm names are generated.\n\nProceed?"
+```
+
+**Options:** `["Proceed", "Halt -- stop deployment"]`
+
+**On decline (halt message, lines 629-633):**
+```
+Deploy halted at Gate 3/4.
+Landing page scaffold and Stripe config were written.
+Email templates were not generated.
+Re-run /pde:deploy to restart from the beginning.
+```
+
+**On proceed:** Writes email template TSX stubs for onboarding sequence and investor outreach sequence.
+
+**Display after success:** `Step 3/6 (Gate 3/4): React Email template stubs written to .planning/deploy-staging/email/emails/`
+
+#### Gate 4/4 — Vercel Deploy
+
+**What it deploys:** Triggers `npx vercel --prod --no-wait --yes` — an actual external network operation
+
+**Pre-check:** `npx vercel whoami` — halts if not authenticated (lines 763-777, NOT counted as a gate)
+
+**Approval prompt (exact):**
+```
+"Approval Gate 4/4 — Vercel Deployment\n\n
+Authenticated as: ${VERCEL_AUTH}\n\n
+About to deploy:\n
+  .planning/deploy-staging/landing-page/ → Vercel production\n\n
+Command:\n
+  npx vercel --prod --no-wait --yes\n\n
+This queues a deployment and returns a URL immediately without waiting\n
+for the build to complete. Check Vercel dashboard for build status.\n\nProceed?"
+```
+
+**Options:** `["Proceed", "Halt -- stop deployment"]`
+
+**On decline (halt message, lines 786-793):**
+```
+Deploy halted at Gate 4/4.
+All scaffolds have been generated but the Vercel deployment was not triggered.
+
+To deploy manually:
+  cd .planning/deploy-staging/landing-page/
+  npx vercel --prod
+
+Or re-run /pde:deploy to go through the gates again.
+```
+
+**On proceed:** Runs the Vercel CLI command. On failure, halts with error output. On success, stores `$DEPLOY_URL` for manifest.
+
+### Structural Test Markers for INTG-06
+
+These are the exact strings tests can assert on:
+
+| Assertion | String | Location in file |
+|-----------|--------|-----------------|
+| All 4 gates present | `Gate 1/4`, `Gate 2/4`, `Gate 3/4`, `Gate 4/4` | Lines 171, 536, 620, 754 |
+| Halt option text | `Halt -- stop deployment` | Options arrays at each gate |
+| Gate 1 halt message | `Deploy halted at Gate 1/4` | Line 180 |
+| Gate 2 halt message | `Deploy halted at Gate 2/4` | Line 545 |
+| Gate 3 halt message | `Deploy halted at Gate 3/4` | Line 629 |
+| Gate 4 halt message | `Deploy halted at Gate 4/4` | Line 786 |
+| No-skip enforcement | `NEVER skip an approval gate` | Line 926 |
+| Stage 14 identity | `Stage 14` | Lines 2, 13 |
+| Business gate | `manifest-get-top-level businessMode` | Line 26 |
+
+### How to Test "Halt on Decline" Without Running a Deployment
+
+The structural test approach: verify that after each "Halt -- stop deployment" option block, the explicit halt message appears AND the word HALT appears on its own line. This is sufficient structural proof that the workflow instruction is to stop execution — the HALT keyword is the PDE convention for "stop this workflow execution."
+
+For ordering, assert `indexOf('Gate 1/4') < indexOf('Gate 2/4') < indexOf('Gate 3/4') < indexOf('Gate 4/4')` — this proves no gate is placed after a later gate's content (which would indicate fallthrough risk).
+
+For per-gate halt message coverage: all 4 specific `Deploy halted at Gate {N}/4` strings must be present. Phase 92's test only asserts Gates 1/4 and 4/4 labels and "Halt" string — Phase 94 adds Gates 2/4 and 3/4 halt messages.
+
+---
+
+## Deep-Dive Area 3: designCoverage 20 Fields — Complete Canonical Mapping
+
+**Investigation date:** 2026-03-22
+**Source:** Direct inspection of templates/design-manifest.json (Phase 84), test-foundation.cjs (Phase 84 — canonical EXISTING_16 / NEW_4 split), test-clobber-audit.cjs (Phase 93 — canonical TWENTY_FIELDS array), all 9 V012 workflows
+
+### Canonical Field Definitions
+
+**Original 16 fields (pre-v0.12, existed in v0.11 and earlier):**
+
+| Field | Set by | What it tracks |
+|-------|--------|----------------|
+| hasDesignSystem | system.md | Design tokens (SYS artifact) generated |
+| hasWireframes | wireframe.md | Wireframe HTML files (WFR artifacts) generated |
+| hasFlows | flows.md | Flow diagrams (FLW artifact or TFL/SFL/SOC for experience) generated |
+| hasHardwareSpec | hig.md | Hardware Interface Guidelines audit completed |
+| hasCritique | critique.md | Design critique (CRT artifact) completed |
+| hasIterate | iterate.md | Iteration changelog (ITR artifact) created |
+| hasHandoff | handoff.md | Handoff spec (HND artifacts) generated |
+| hasIdeation | ideate.md | Ideation document (IDE artifact) created |
+| hasCompetitive | competitive.md | Competitive analysis (CPT artifact) completed |
+| hasOpportunity | opportunity.md | Opportunity assessment (OPP artifact) created |
+| hasMockup | mockup.md | Visual mockup (MCK artifact) created |
+| hasHigAudit | hig.md | HIG audit report (HIG artifact) completed |
+| hasRecommendations | recommend.md | Recommendations (REC artifact) generated |
+| hasStitchWireframes | wireframe.md | Wireframes generated via Google Stitch MCP path |
+| hasPrintCollateral | wireframe.md | Print collateral (FLY/SIT artifacts) for experience products |
+| hasProductionBible | handoff.md | Production bible (BIB artifact) for experience products |
+
+**4 New fields added in v0.12 (Phase 84):**
+
+| Field | Set by | What it tracks |
+|-------|--------|----------------|
+| hasBusinessThesis | brief.md | Business Thesis (BTH artifact) + Lean Canvas (LCV artifact) generated |
+| hasMarketLandscape | competitive.md | Market Landscape (MLS artifact) generated (business mode only) |
+| hasServiceBlueprint | flows.md | Service Blueprint (SBP artifact) generated (business mode only) |
+| hasLaunchKit | handoff.md | Launch Kit (LKT + CNT + OTR artifacts) assembled (business mode only) |
+
+### Original 16 vs New 4 Split (Authoritative Source)
+
+From test-foundation.cjs (Phase 84), describe block `FOUND-02`:
+
+```javascript
+const EXISTING_16 = [
+  'hasDesignSystem', 'hasWireframes', 'hasFlows', 'hasHardwareSpec',
+  'hasCritique', 'hasIterate', 'hasHandoff', 'hasIdeation',
+  'hasCompetitive', 'hasOpportunity', 'hasMockup', 'hasHigAudit',
+  'hasRecommendations', 'hasStitchWireframes', 'hasPrintCollateral', 'hasProductionBible'
+];
+const NEW_4 = [
+  'hasBusinessThesis', 'hasMarketLandscape', 'hasServiceBlueprint', 'hasLaunchKit'
+];
+```
+
+The Phase 84 test additionally verifies that the 4 new fields appear AFTER `hasProductionBible` in the manifest JSON (ordering constraint). This ordering is preserved in all 9 V012 workflows' designCoverage write commands.
+
+### Per-Workflow Field Presence Audit
+
+All 9 V012 workflows were checked for presence of all 4 new fields (via grep count). Results:
+
+| Workflow | hasBusinessThesis | hasMarketLandscape | hasServiceBlueprint | hasLaunchKit | All 4 present? |
+|----------|-------------------|--------------------|---------------------|--------------|----------------|
+| brief.md | 4 | 1 | 1 | 1 | YES |
+| competitive.md | 4 | 6 | 4 | 4 | YES |
+| opportunity.md | 4 | 4 | 4 | 4 | YES |
+| flows.md | 2 | 2 | 3 | 2 | YES |
+| wireframe.md | 4 | 4 | 4 | 4 | YES |
+| critique.md | 2 | 2 | 2 | 2 | YES |
+| hig.md | 3 | 3 | 3 | 3 | YES |
+| handoff.md | 6 | 6 | 6 | 9 | YES |
+| system.md | 3 | 3 | 3 | 3 | YES |
+
+**All 9 workflows confirmed: all 4 new v0.12 fields present in every workflow.** Zero gaps found.
+
+The minimum count of 1 for brief.md's `hasMarketLandscape`, `hasServiceBlueprint`, and `hasLaunchKit` is expected — brief.md is not the setter of those fields; it passes them through as `{current}` in the coverage write. The field name must appear at least once in the write command, which it does.
+
+### Full 20-Field designCoverage Write Command Verification
+
+Each workflow's `manifest-set-top-level designCoverage` call was verified to include all 20 fields. Representative verified commands:
+
+**brief.md (line ~889):**
+```
+'{"hasDesignSystem":ACTUAL,"hasWireframes":ACTUAL,"hasFlows":ACTUAL,"hasHardwareSpec":ACTUAL,
+"hasCritique":ACTUAL,"hasIterate":ACTUAL,"hasHandoff":ACTUAL,"hasIdeation":ACTUAL,
+"hasCompetitive":ACTUAL,"hasOpportunity":ACTUAL,"hasMockup":ACTUAL,"hasHigAudit":ACTUAL,
+"hasRecommendations":ACTUAL,"hasStitchWireframes":ACTUAL,"hasPrintCollateral":ACTUAL,
+"hasProductionBible":ACTUAL,"hasBusinessThesis":true,"hasMarketLandscape":ACTUAL,
+"hasServiceBlueprint":ACTUAL,"hasLaunchKit":ACTUAL}'
+```
+
+**critique.md (line 1227):**
+```
+'{"hasDesignSystem":{current},"hasWireframes":{current},"hasFlows":{current},"hasHardwareSpec":{current},
+"hasCritique":true,"hasIterate":{current},"hasHandoff":{current},"hasIdeation":{current},
+"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},
+"hasRecommendations":{current},"hasStitchWireframes":{current},"hasPrintCollateral":{current},
+"hasProductionBible":{current},"hasBusinessThesis":{current},"hasMarketLandscape":{current},
+"hasServiceBlueprint":{current},"hasLaunchKit":{current}}'
+```
+
+**hig.md (line 862):**
+```
+'{"hasDesignSystem":{current},"hasWireframes":{current},"hasFlows":{current},"hasHardwareSpec":{current},
+"hasCritique":{current},"hasIterate":{current},"hasHandoff":{current},"hasIdeation":{current},
+"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":true,
+"hasRecommendations":{current},"hasStitchWireframes":{current},"hasPrintCollateral":{current},
+"hasProductionBible":{current},"hasBusinessThesis":{current},"hasMarketLandscape":{current},
+"hasServiceBlueprint":{current},"hasLaunchKit":{current}}'
+```
+
+**flows.md (line 1062):**
+```
+'{"hasDesignSystem":{current},"hasWireframes":{current},"hasFlows":true,"hasHardwareSpec":{current},
+"hasCritique":{current},"hasIterate":{current},"hasHandoff":{current},"hasIdeation":{current},
+"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},
+"hasRecommendations":{current},"hasStitchWireframes":{current},"hasPrintCollateral":{current},
+"hasProductionBible":{current},"hasBusinessThesis":{current},"hasMarketLandscape":{current},
+"hasServiceBlueprint":{true if SBP_WRITTEN else current},"hasLaunchKit":{current}}'
+```
+
+Note: flows.md uses a conditional expression `{true if SBP_WRITTEN else current}` for hasServiceBlueprint — this is the correct pattern, not a literal. The test checks that the field name `hasServiceBlueprint` appears in the file, not that it is always set to true.
+
+### Workflows NOT in V012_COVERAGE_WRITERS That Also Write designCoverage
+
+These workflows were confirmed to write designCoverage but were updated in Phase 93 (not Phase 84-91):
+
+| Workflow | Updated In | All 4 New Fields? |
+|----------|------------|-------------------|
+| recommend.md | Phase 93 | YES (confirmed GREEN by test-clobber-audit.cjs) |
+| iterate.md | Phase 93 | YES (confirmed GREEN by test-clobber-audit.cjs) |
+| mockup.md | Phase 93 | YES (confirmed GREEN by test-clobber-audit.cjs) |
+| ideate.md | Phase 93 | YES (confirmed GREEN by test-clobber-audit.cjs) |
+
+Phase 94 V012_COVERAGE_WRITERS list should cover the 9 core v0.12 modified workflows. The Phase 93 test covers the 4 clobber-audit workflows. No overlap needed.
+
+---
+
+## Deep-Dive Area 4: Existing Test Patterns — Representative Files
+
+**Investigation date:** 2026-03-22
+**Source:** Direct read of 5 representative test files across phases 84-93
+
+### File 1: test-foundation.cjs (Phase 84) — 21 assertions
+
+**Path:** `.planning/phases/84-foundation/tests/test-foundation.cjs`
+
+**Imports and boilerplate:**
+```javascript
+'use strict';
+const { describe, it } = require('node:test');
+const assert = require('node:assert/strict');  // NOTE: uses /strict variant (only Phase 84)
+const fs = require('node:fs');
+const path = require('node:path');
+const PROJECT_ROOT = path.resolve(__dirname, '..', '..', '..', '..');
+```
+
+**Key structural patterns:**
+- Reads JSON file and parses it: `JSON.parse(fs.readFileSync(manifestPath, 'utf-8'))`
+- Uses `assert.strictEqual(keys.length, 20, ...)` for exact count
+- Uses `assert.ok(pos > posOther, ...)` for ordering (indexOf-based)
+- Uses `content.match(/DOMAIN_DIRS\s*=\s*\[[\s\S]*?'launch'[\s\S]*?\]/)` for regex pattern check
+- Loops over array for multi-field presence: `for (const field of NEW_4) { assert.ok(...) }`
+- Variable naming: `PROJECT_ROOT` (vs all other tests which use `ROOT`)
+
+**Notable difference from later tests:** Uses `require('node:assert/strict')` — all later tests (85-93) use `require('node:assert')`. Phase 94 should use `require('node:assert')` to match Phase 93.
+
+### File 2: test-brief-artifacts.cjs (Phase 85) — tests BTH/LCV artifact markers
+
+**Path:** `.planning/phases/85-brief-extensions-detection/tests/test-brief-artifacts.cjs`
+
+**Key structural patterns:**
+- Reads single file at module top: `const briefContent = fs.readFileSync(path.join(ROOT, 'workflows', 'brief.md'), 'utf-8');`
+- Uses `const ROOT = path.resolve(__dirname, '..', '..', '..', '..');`
+- Uses `require('node:assert')` (non-strict)
+- Multiple `describe` blocks per requirement (BRIEF-03, BRIEF-04, BRIEF-06)
+- Combines string includes in single `it()`: `const hasProb = ... && hasSol && ...` then `assert.ok(all, message)`
+- Tests for specific markdown section headers: `briefContent.includes('## Problem')`
+
+### File 3: test-wireframe-launch.cjs (Phase 89) — 11 assertions
+
+**Path:** `.planning/phases/89-wireframe-stage-launch-artifacts/tests/test-wireframe-launch.cjs`
+
+**Key structural patterns:**
+- Reads TWO files at module top: `wireframeContent` and `frameworksContent` (references/launch-frameworks.md)
+- `const ROOT = path.resolve(__dirname, '..', '..', '..', '..');` — standard pattern
+- Tests for multiple patterns in single `it()` when they're part of the same requirement step:
+  ```javascript
+  assert.ok(wireframeContent.includes('HeroSection'), '...');
+  assert.ok(wireframeContent.includes('FeaturesGrid'), '...');
+  // etc — multiple asserts in one it() block for same requirement
+  ```
+- Tests that something contains AND something else: uses `&&` in single assert for co-presence
+- Negative assertion (absence): `!content.includes(...)` not used here; uses different approach
+
+### File 4: test-deploy-skill.cjs (Phase 92) — 21 assertions
+
+**Path:** `.planning/phases/92-deploy-skill/tests/test-deploy-skill.cjs`
+
+**Key structural patterns:**
+- Uses graceful fallback reads (try/catch) for three files — deploy.md, build.md, commands/deploy.md
+- `const ROOT = path.resolve(__dirname, '..', '..', '..', '..');`
+- Tests string.match for frequency count: `(deployContent.match(/deploy-staging/g) || []).length`
+- `assert.ok(count > 5, ...)` — frequency-based assertion
+- `fs.existsSync(path.join(ROOT, ...))` — file existence check
+- Groups tests by requirement code (DEPLOY-01 through DEPLOY-09), one `describe` per requirement
+
+**The pattern Phase 94 should follow most closely:** test-deploy-skill.cjs and test-clobber-audit.cjs are the two most recent and directly relevant test files for Phase 94.
+
+### File 5: test-clobber-audit.cjs (Phase 93) — 11 assertions
+
+**Path:** `.planning/phases/93-designcoverage-clobber-audit-secondary-workflow-stubs/tests/test-clobber-audit.cjs`
+
+**Key structural patterns:**
+- `readWorkflow(name)` helper function: `return fs.readFileSync(path.join(ROOT, 'workflows', name), 'utf-8');`
+- TWENTY_FIELDS array declared at module top (canonical source for Phase 94 to copy verbatim)
+- Each workflow gets its own `describe` block with content read inside: `const content = readWorkflow('recommend.md');`
+- Two tests per workflow: (1) TWENTY_FIELDS filter check, (2) absence of stale string
+- Unicode escape for em dash: `'<!-- Business product type \u2014 Phase 93 stub'`
+- Uses `require('node:assert')` (non-strict)
+
+### Common Shared Utility: None
+
+There are NO shared test utilities in `bin/` or a shared test helpers file. Every test file is self-contained and duplicates the TWENTY_FIELDS array and ROOT path resolution. This is intentional — each phase test is an independent artifact. Phase 94 should follow this pattern and NOT create a shared utility.
+
+### Summary: Phase 94 Test File Recipe
+
+Based on analysis of all 5 representative files, Phase 94 `test-regression-matrix.cjs` should:
+
+1. **Header:** `'use strict';` followed by JSDoc comment block
+2. **Imports:** `require('node:test')`, `require('node:assert')` (not /strict), `require('node:fs')`, `require('node:path')`
+3. **ROOT:** `const ROOT = path.resolve(__dirname, '..', '..', '..', '..');`
+4. **TWENTY_FIELDS:** Declare at module top, copy verbatim from test-clobber-audit.cjs
+5. **File reads:** At module top for files used across multiple describe blocks; inside describe for single-describe files
+6. **readWorkflow helper (optional):** Can use the test-clobber-audit.cjs pattern for the INTG-07 loop
+7. **One describe per INTG requirement:** INTG-02 through INTG-07
+8. **Ordering assertions:** Use `indexOf` + `assert.ok(a < b, ...)` pattern from test-foundation.cjs
+9. **TWENTY_FIELDS assertions:** Use `.filter(f => !content.includes(f))` pattern from test-clobber-audit.cjs
+10. **No try/catch:** All target files exist; direct readFileSync is correct for Phase 94
