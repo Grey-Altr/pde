@@ -225,7 +225,7 @@ Full details: .planning/milestones/v0.12-ROADMAP.md
 - [x] **Phase 100: Git State Machine** - `experiment.cjs` module with commit-candidate/tag/reset/promote state machine and 6 pde-tools subcommands (completed 2026-03-23)
 - [x] **Phase 101: Experiment Schema & State Directory** - `experiment.md` file format, `.planning/experiments/` directory structure, config defaults, experiment phase type (completed 2026-03-23)
 - [x] **Phase 102: Mutation Agent & Metric Evaluation** - `pde-experiment-runner` agent with Haiku-first model selection, diff-based context, token tracking, and boundary enforcement (completed 2026-03-23)
-- [ ] **Phase 103: Orchestrator, Command & Circuit Breakers** - `workflows/optimize.md` full loop, `/pde:optimize` command, all 5 circuit breakers, cost estimate gate, REPORT.md
+- [x] **Phase 103: Orchestrator, Command & Circuit Breakers** - `workflows/optimize.md` full loop, `/pde:optimize` command, all 5 circuit breakers, cost estimate gate, REPORT.md (completed 2026-03-23)
 - [ ] **Phase 104: Self-Improvement Presets** - `--self` and `--skill` modes, OPTIMIZABLE autodiscovery, self-improvement preset configuration
 - [ ] **Phase 105: Researcher Empirical Mode** - `pde-phase-researcher` empirical flag, research-phase routing, "Experiments Attempted" RESEARCH.md section
 - [ ] **Phase 106: Observability & Event Bus** - 6 experiment event types on NDJSON bus, tmux dashboard experiment pane
@@ -320,10 +320,10 @@ Plans:
   1. `/pde:optimize --self` auto-discovers workflow files containing `<!-- OPTIMIZABLE -->` markers and constructs the mutable file list without requiring manual specification
   2. `/pde:optimize --skill {name}` targets the named skill's SKILL.md and associated workflow files, using the skill-specific test suite or pressure test score as the evaluation metric
   3. A pre-configured self-improvement experiment preset exists that uses Nyquist assertion pass count as the regression guard, ensuring PDE cannot optimize itself into a broken state
-**Plans**: 2 plans
+**Plans**: 1 plan
 
 Plans:
-- [ ] 104-01: Implement --self and --skill preset modes with OPTIMIZABLE autodiscovery
+- [ ] 104-01-PLAN.md — Create nyquist-metric.cjs helper and implement --self/--skill preset resolution in optimize.md Step 1
 
 ### Phase 105: Researcher Empirical Mode
 **Goal**: The research agent can validate hypotheses by trying them against a metric rather than only doing desk research — producing richer RESEARCH.md artifacts for optimization-focused phases
@@ -387,8 +387,8 @@ Phases execute in numeric order: 99 → 100 → 101 → 102 → 103 → 104 → 
 | 100. Git State Machine | v0.13 | 2/2 | Complete    | 2026-03-23 |
 | 101. Experiment Schema & State Directory | v0.13 | 0/2 | Complete    | 2026-03-23 |
 | 102. Mutation Agent & Metric Evaluation | v0.13 | 1/2 | Complete    | 2026-03-23 |
-| 103. Orchestrator, Command & Circuit Breakers | v0.13 | 1/2 | In Progress|  |
-| 104. Self-Improvement Presets | v0.13 | 0/TBD | Not started | - |
+| 103. Orchestrator, Command & Circuit Breakers | v0.13 | 1/2 | Complete    | 2026-03-23 |
+| 104. Self-Improvement Presets | v0.13 | 0/1 | Not started | - |
 | 105. Researcher Empirical Mode | v0.13 | 0/TBD | Not started | - |
 | 106. Observability & Event Bus | v0.13 | 0/TBD | Not started | - |
 | 107. Nyquist Coverage | v0.13 | 0/TBD | Not started | - |
