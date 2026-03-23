@@ -284,20 +284,33 @@ When unavailable:
 **Purpose:** Browser automation for screenshot capture, responsive validation, link testing, interaction testing.
 **Package:** `@playwright/mcp@latest`
 **Transport:** stdio (via npx)
-**Install:** `claude mcp add playwright -- npx @playwright/mcp@latest`
+**Install:** `claude mcp add playwright -- npx @playwright/mcp@latest --headless --allow-unrestricted-file-access`
 **Stability:** STABLE
 
 #### Probe
 
 ```
-Attempt: browser_navigate to about:blank
+Attempt: mcp__playwright__browser_snapshot
 Result:
-  - Navigation succeeds: PLAYWRIGHT_AVAILABLE = true
+  - Snapshot succeeds: PLAYWRIGHT_AVAILABLE = true
   - Tool not found or browser launch fails: PLAYWRIGHT_AVAILABLE = false
 ```
 
 **Timeout:** 30 seconds
 **Retry:** 0 (degrade immediately -- browser operations vary in duration)
+
+#### Flags
+
+| Flag | Purpose | Required By |
+|------|---------|-------------|
+| `--headless` | Prevents visible browser windows during autonomous execution | All phases (108+) |
+| `--allow-unrestricted-file-access` | Enables file:// URL navigation for local wireframe/mockup HTML | Phases 109, 110, 111 |
+
+**Note:** The `--` separator before `npx` is critical. Without it, `--headless` and `--allow-unrestricted-file-access` are parsed by `claude mcp add` instead of being passed to the Playwright server process.
+
+**file:// URL encoding:** The project directory contains a space ("Platform Development Engine"). When passing file:// URLs to browser_navigate, encode the space as `%20`: `file:///Users/.../Platform%20Development%20Engine/.planning/...`
+
+**Version fallback:** If `@playwright/mcp@latest` produces "No such tool available" errors, pin to `@playwright/mcp@0.0.41`.
 
 #### Enhancement Recipes
 
@@ -692,11 +705,13 @@ Different MCP data has different freshness requirements.
 
 | Issue | Cause | Fix |
 |-------|-------|-----|
-| Tool not found | MCP not installed | `claude mcp add playwright -- npx @playwright/mcp@latest` |
+| Tool not found | MCP not installed | `claude mcp add playwright -- npx @playwright/mcp@latest --headless --allow-unrestricted-file-access` |
 | Browser launch fails | Chromium not downloaded | Run `npx playwright install chromium` |
 | Screenshot blank | Page not fully loaded | Playwright waits for load event; may need longer for complex pages |
 | Navigation timeout | Invalid file path or broken HTML | Check generated HTML opens manually. Report skill bug if HTML is broken |
 | Accessibility tree empty | Page has no semantic HTML | This IS the finding -- report as accessibility issue |
+| file:// navigation fails | --allow-unrestricted-file-access missing | Add flag to install: `claude mcp add playwright -- npx @playwright/mcp@latest --headless --allow-unrestricted-file-access` |
+| "No such tool available" | Version incompatibility | Pin version: `npx @playwright/mcp@0.0.41` instead of `@latest` |
 
 ### Axe a11y MCP (a11y-mcp)
 
@@ -741,8 +756,8 @@ claude mcp add sequential-thinking -- npx -y @modelcontextprotocol/server-sequen
 # Figma (HTTP transport -- special):
 claude mcp add --transport http figma https://mcp.figma.com/mcp
 
-# Playwright:
-claude mcp add playwright -- npx @playwright/mcp@latest
+# Playwright (headless + file:// access):
+claude mcp add playwright -- npx @playwright/mcp@latest --headless --allow-unrestricted-file-access
 
 # Axe a11y (open source, free):
 claude mcp add a11y -- npx -y a11y-mcp
@@ -762,7 +777,7 @@ claude mcp add context7 -- npx -y @upstash/context7-mcp@latest
 | Superpowers | STABLE | stdio | 2026-03-11 | Local install, well-tested |
 | Sequential Thinking | STABLE | stdio | 2026-03-11 | Official MCP SDK example server |
 | Figma MCP | STABLE | HTTP | 2026-03-11 | Official Figma server, HTTP transport |
-| Playwright MCP | STABLE | stdio | 2026-03-11 | Official Microsoft, actively maintained |
+| Playwright MCP | STABLE | stdio | 2026-03-23 | Official Microsoft; Phase 108 registered as 7th APPROVED_SERVER |
 | Axe a11y (a11y-mcp) | STABLE | stdio | 2026-03-11 | Open source, wraps axe-core |
 | Context7 | STABLE | stdio | 2026-03-11 | Already installed globally |
 | Reference MCP (PDE) | STABLE | stdio | 2026-03-11 | Custom, bundled with PDE-OS |
