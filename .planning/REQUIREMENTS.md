@@ -10,7 +10,7 @@ Requirements for the business product type milestone. Each maps to roadmap phase
 ### Foundation
 
 - [x] **FOUND-01**: Manifest schema extended with `businessMode: false` and `businessTrack: null` top-level fields in design-manifest.json template
-- [ ] **FOUND-02**: designCoverage schema grows from 16 to 20 fields with `hasBusinessThesis`, `hasMarketLandscape`, `hasServiceBlueprint`, `hasLaunchKit`
+- [x] **FOUND-02**: designCoverage schema grows from 16 to 20 fields with `hasBusinessThesis`, `hasMarketLandscape`, `hasServiceBlueprint`, `hasLaunchKit`
 - [x] **FOUND-03**: `launch/` subdirectory added to `.planning/design/` via `ensure-dirs` in design.cjs
 - [x] **FOUND-04**: `references/business-track.md` created with track vocabulary, depth thresholds, and artifact format differences for solo_founder/startup_team/product_leader
 - [x] **FOUND-05**: `references/launch-frameworks.md` created with business artifact templates (lean canvas, pitch deck slides, service blueprint lanes, pricing config schema)
@@ -87,7 +87,7 @@ Requirements for the business product type milestone. Each maps to roadmap phase
 
 ### Pipeline Integrity
 
-- [ ] **INTG-01**: All 14+ designCoverage-writing workflows verified to include all 20 fields in their write calls (pass-through-all pattern preserved)
+- [x] **INTG-01**: All 14+ designCoverage-writing workflows verified to include all 20 fields in their write calls (pass-through-all pattern preserved)
 - [x] **INTG-02**: Non-business product types (software, hardware, hybrid, experience) produce byte-identical manifest output to pre-v0.12 baseline when `businessMode === false`
 - [x] **INTG-03**: `business:software` composition produces both software-specific and business-specific artifacts in single pipeline run
 - [x] **INTG-04**: `business:hardware` composition produces both hardware-specific and business-specific artifacts in single pipeline run
@@ -135,7 +135,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | FOUND-01 | 84 | Complete |
-| FOUND-02 | 96 | Pending |
+| FOUND-02 | 96 | Complete |
 | FOUND-03 | 84 | Complete |
 | FOUND-04 | 84 | Complete |
 | FOUND-05 | 84 | Complete |
@@ -185,7 +185,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DEPLOY-07 | 92 | Complete |
 | DEPLOY-08 | 92 | Complete |
 | DEPLOY-09 | 95 | Complete |
-| INTG-01 | 96 | Pending |
+| INTG-01 | 96 | Complete |
 | INTG-08 | 93 | Complete |
 | INTG-02 | 94 | Complete |
 | INTG-03 | 94 | Complete |
