@@ -123,6 +123,7 @@ Any user can go from idea to shipped product through a single platform that hand
 - ✓ 21-field designCoverage schema (hasDeployStaging) across all 10 coverage-writing workflows — v0.12
 - ✓ 21-field cascade fix: test assertion (20→21), hasDeployStaging in 4 secondary workflows (recommend, ideate, iterate, mockup), clobber-audit updated — v0.12
 - ✓ Consumer glob mismatch fixes: 5 remaining producer→consumer glob mismatches fixed (STR extension .md→.json in deploy.md, STR/DPD/GTM stem corrections in handoff.md, STR stem fix in critique.md), Deploy E2E flow repaired — v0.12
+- ✓ Prose drift cleanup: LDP glob stem fixed in critique.md BIZ-3, all stale "20 fields" prose updated to "21 fields" across 9 workflow files, hasDeployStaging added to all prose field lists — v0.12
 
 ### Active
 
@@ -267,4 +268,4 @@ Any user can go from idea to shipped product through a single platform that hand
 | Business detection threshold (3+ signals, 2+ categories) | Prevents over-triggering on pure software projects while catching genuine business intent | ✓ Good — 5-category taxonomy with category diversity requirement |
 | BTH→LCV dependency chain (skip, don't halt) | If BTH generation fails, LCV is skipped with warning rather than halting entire brief run | ✓ Good — graceful degradation preserves non-business brief output |
 | 20-field designCoverage write (not copy 16-field pattern) | Phase 84 added 4 fields; copying opportunity.md's 16-field pattern silently drops them | ✓ Good — canonical order from manifest template |
-*Last updated: 2026-03-23 after Phase 97 — Consumer Glob Mismatch Fixes (5 GAPs closed, 235/235 Nyquist GREEN, Deploy E2E flow repaired, all 59 v0.12 requirements satisfied)*
+*Last updated: 2026-03-23 after Phase 98 — Prose Drift & LDP Glob Fix (all tech debt from v0.12 audit closed, 235/235 Nyquist GREEN, milestone ready for archival)*
