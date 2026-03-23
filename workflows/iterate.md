@@ -8,6 +8,7 @@ Critique-driven iteration of wireframes. Reads the latest CRT-critique-v{N}.md, 
 </required_reading>
 
 <!-- Experience product type — Phase 74 stub: experience iteration targets floor plan revisions (FLP), run-of-show updates (TML), and signage adjustments rather than wireframe HTML. Added in Phase 79 after critique experience perspectives are established. Current behavior: proceed with wireframe iteration path as temporary fallback for experience product type. NEVER apply wireframe iteration to experience floor plans from this stub. -->
+<!-- Business product type — Phase 93 stub: business product iteration targets lean canvas hypothesis updates, pitch deck slide revisions, and service blueprint lane adjustments rather than wireframe HTML. Business-specific iteration path added in a future phase. Current behavior: proceed with wireframe iteration path as temporary fallback for business product type. -->
 
 <flags>
 ## Supported Flags
@@ -449,10 +450,10 @@ COV=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design coverage-check)
 if [[ "$COV" == @file:* ]]; then COV=$(cat "${COV#@file:}"); fi
 ```
 
-Parse the JSON output from coverage-check. Extract ALL sixteen current flag values: `hasDesignSystem`, `hasWireframes`, `hasFlows`, `hasHardwareSpec`, `hasCritique`, `hasIterate`, `hasHandoff`, `hasIdeation`, `hasCompetitive`, `hasOpportunity`, `hasMockup`, `hasHigAudit`, `hasRecommendations`, `hasStitchWireframes`, `hasPrintCollateral`, `hasProductionBible`. Default any absent field to `false`. Merge `hasIterate: true` while preserving all other fifteen values. Then write the full merged sixteen-field object:
+Parse the JSON output from coverage-check. Extract ALL twenty current flag values: `hasDesignSystem`, `hasWireframes`, `hasFlows`, `hasHardwareSpec`, `hasCritique`, `hasIterate`, `hasHandoff`, `hasIdeation`, `hasCompetitive`, `hasOpportunity`, `hasMockup`, `hasHigAudit`, `hasRecommendations`, `hasStitchWireframes`, `hasPrintCollateral`, `hasProductionBible`, `hasBusinessThesis`, `hasMarketLandscape`, `hasServiceBlueprint`, `hasLaunchKit`. Default any absent field to `false`. Merge `hasIterate: true` while preserving all other nineteen values. Then write the full merged twenty-field object:
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":{current},"hasWireframes":{current},"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":true,"hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":{current},"hasPrintCollateral":{current},"hasProductionBible":{current}}'
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":{current},"hasWireframes":{current},"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":true,"hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":{current},"hasPrintCollateral":{current},"hasProductionBible":{current},"hasBusinessThesis":{current},"hasMarketLandscape":{current},"hasServiceBlueprint":{current},"hasLaunchKit":{current}}'
 ```
 
 Replace each `{current}` with the actual value read from coverage-check output (true or false).

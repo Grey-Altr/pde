@@ -197,6 +197,7 @@ From STACK.md (if available): confirmed stack components to refine matching.
 Derive a **project profile** with these fields:
 - `product_type`: software / hardware / hybrid / experience
 <!-- Experience product type — Phase 74 stub: recommendations apply to experience tooling (venue management software, event production tools, crowd management systems, ticketing platforms). Experience-specific tool recommendations added in subsequent phases. Current behavior: proceed with software tool recommendation path as temporary fallback for experience product type. -->
+<!-- Business product type — Phase 93 stub: business product recommendations include GTM tools, Stripe/Resend integrations, landing page builders, and investor deck tooling. Business-specific tool recommendations added in a future phase after launch artifact patterns are established. Current behavior: proceed with software tool recommendation path as temporary fallback for business product type. -->
 - `primary_language`: TypeScript / JavaScript / Python / Go / Rust / etc.
 - `framework`: React / Vue / Next.js / Express / FastAPI / etc. (or "unknown")
 - `database`: PostgreSQL / MySQL / MongoDB / SQLite / Redis / etc. (or "none detected")
@@ -562,7 +563,7 @@ COV=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design coverage-check)
 if [[ "$COV" == @file:* ]]; then COV=$(cat "${COV#@file:}"); fi
 ```
 
-Parse the JSON result. Extract all 16 fields, defaulting any absent field to `false`:
+Parse the JSON result. Extract all 20 fields, defaulting any absent field to `false`:
 
 | Field (in canonical order) | Default |
 |----------------------------|---------|
@@ -582,17 +583,21 @@ Parse the JSON result. Extract all 16 fields, defaulting any absent field to `fa
 | hasStitchWireframes | false |
 | hasPrintCollateral | false |
 | hasProductionBible | false |
+| hasBusinessThesis | false |
+| hasMarketLandscape | false |
+| hasServiceBlueprint | false |
+| hasLaunchKit | false |
 
-Then write the full 16-field JSON in canonical order (preserving all existing flag values, setting hasRecommendations to true):
+Then write the full 20-field JSON in canonical order (preserving all existing flag values, setting hasRecommendations to true):
 
 ```bash
 node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage \
-  '{"hasDesignSystem":{current_hasDesignSystem},"hasWireframes":{current_hasWireframes},"hasFlows":{current_hasFlows},"hasHardwareSpec":{current_hasHardwareSpec},"hasCritique":{current_hasCritique},"hasIterate":{current_hasIterate},"hasHandoff":{current_hasHandoff},"hasIdeation":{current_hasIdeation},"hasCompetitive":{current_hasCompetitive},"hasOpportunity":{current_hasOpportunity},"hasMockup":{current_hasMockup},"hasHigAudit":{current_hasHigAudit},"hasRecommendations":true,"hasStitchWireframes":{current_hasStitchWireframes},"hasPrintCollateral":{current_hasPrintCollateral},"hasProductionBible":{current_hasProductionBible}}'
+  '{"hasDesignSystem":{current_hasDesignSystem},"hasWireframes":{current_hasWireframes},"hasFlows":{current_hasFlows},"hasHardwareSpec":{current_hasHardwareSpec},"hasCritique":{current_hasCritique},"hasIterate":{current_hasIterate},"hasHandoff":{current_hasHandoff},"hasIdeation":{current_hasIdeation},"hasCompetitive":{current_hasCompetitive},"hasOpportunity":{current_hasOpportunity},"hasMockup":{current_hasMockup},"hasHigAudit":{current_hasHigAudit},"hasRecommendations":true,"hasStitchWireframes":{current_hasStitchWireframes},"hasPrintCollateral":{current_hasPrintCollateral},"hasProductionBible":{current_hasProductionBible},"hasBusinessThesis":{current_hasBusinessThesis},"hasMarketLandscape":{current_hasMarketLandscape},"hasServiceBlueprint":{current_hasServiceBlueprint},"hasLaunchKit":{current_hasLaunchKit}}'
 ```
 
 Replace each `{current_*}` placeholder with the actual value read from `coverage-check` (or `false` if the field was absent).
 
-IMPORTANT: Never use dot-notation (e.g., `designCoverage.hasRecommendations`) with `manifest-set-top-level`. Always pass the complete 16-field JSON object.
+IMPORTANT: Never use dot-notation (e.g., `designCoverage.hasRecommendations`) with `manifest-set-top-level`. Always pass the complete 20-field JSON object.
 
 Display: `Step 7/7: Root DESIGN-STATE and manifest updated. Coverage flag hasRecommendations set to true.`
 
