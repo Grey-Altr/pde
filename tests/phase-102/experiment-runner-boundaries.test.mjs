@@ -2,7 +2,7 @@
  * experiment-runner-boundaries.test.mjs
  *
  * Tests for _checkModifiedFiles in experiment-runner.cjs.
- * Uses a tmpDir with git init to simulate modified files.
+ * Uses a tmpDir with git init to simulate modified files (staged, not committed).
  */
 
 import { test } from 'node:test';
@@ -46,10 +46,10 @@ function cleanup(dir) {
 test('_checkModifiedFiles: all modified files in mutable_files list -> valid: true', () => {
   const dir = makeRepo();
   try {
+    // Modify and stage a file (do NOT commit — _checkModifiedFiles checks working tree vs HEAD)
     fs.mkdirSync(path.join(dir, 'workflows'), { recursive: true });
     fs.writeFileSync(path.join(dir, 'workflows', 'brief.md'), 'changed', 'utf-8');
     execSync('git add workflows/brief.md', { cwd: dir, stdio: 'pipe' });
-    execSync('git commit -m "experiment(test): change brief"', { cwd: dir, stdio: 'pipe' });
 
     const result = runner._checkModifiedFiles(dir, ['workflows/brief.md']);
     assert.equal(result.valid, true, 'Should be valid when modified files are all in mutable list');
@@ -64,12 +64,11 @@ test('_checkModifiedFiles: all modified files in mutable_files list -> valid: tr
 test('_checkModifiedFiles: modified file NOT in mutable_files -> valid: false with violation', () => {
   const dir = makeRepo();
   try {
+    // Modify and stage brief.md, but mutable_files only allows flows.md
     fs.mkdirSync(path.join(dir, 'workflows'), { recursive: true });
     fs.writeFileSync(path.join(dir, 'workflows', 'brief.md'), 'changed', 'utf-8');
     execSync('git add workflows/brief.md', { cwd: dir, stdio: 'pipe' });
-    execSync('git commit -m "experiment(test): change brief"', { cwd: dir, stdio: 'pipe' });
 
-    // mutable_files only allows 'workflows/flows.md', NOT brief.md
     const result = runner._checkModifiedFiles(dir, ['workflows/flows.md']);
     assert.equal(result.valid, false, 'Should be invalid when modified file not in mutable list');
     assert.ok(result.violations.some(v => v.includes('workflows/brief.md')), 'violations should include brief.md');
@@ -82,7 +81,7 @@ test('_checkModifiedFiles: modified file NOT in mutable_files -> valid: false wi
 test('_checkModifiedFiles: no files modified (empty diff) -> valid: false', () => {
   const dir = makeRepo();
   try {
-    // No changes since last commit
+    // No changes — working tree is clean
     const result = runner._checkModifiedFiles(dir, ['workflows/brief.md']);
     assert.equal(result.valid, false, 'Should be invalid when no files modified');
     assert.ok(result.violations.some(v => v.includes('no files modified')), 'violations should mention "no files modified"');
