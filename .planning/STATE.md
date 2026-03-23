@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.13
 milestone_name: AutoResearch
 status: Phase complete — ready for verification
-stopped_at: Completed 101-01-PLAN.md
-last_updated: "2026-03-23T10:41:01.614Z"
+stopped_at: Completed 102-02-PLAN.md
+last_updated: "2026-03-23T11:29:45.119Z"
 progress:
   total_phases: 9
-  completed_phases: 2
-  total_plans: 6
-  completed_plans: 4
+  completed_phases: 3
+  total_plans: 8
+  completed_plans: 7
 ---
 
 # Project State
@@ -19,11 +19,11 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-23)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 101 — Experiment Schema & State Directory
+**Current focus:** Phase 102 — Mutation Agent & Metric Evaluation
 
 ## Current Position
 
-Phase: 101 (Experiment Schema & State Directory) — EXECUTING
+Phase: 102 (Mutation Agent & Metric Evaluation) — EXECUTING
 Plan: 2 of 2
 
 ## Performance Metrics
@@ -48,6 +48,8 @@ Plan: 2 of 2
 | Phase 100 P02 | 12min | 1 tasks | 2 files |
 | Phase 101 P02 | 58 | 1 tasks | 1 files |
 | Phase 101-experiment-schema-state-directory P01 | 15 | 2 tasks | 7 files |
+| Phase 102 P01 | 7min | 1 tasks | 7 files |
+| Phase 102 P02 | 35 | 2 tasks | 7 files |
 
 ### Decisions
 
@@ -74,6 +76,12 @@ Recent decisions affecting v0.13 planning:
 - [Phase 101]: experiment-schema.cjs as NEW module (not extending experiment.cjs) — 300-line ceiling enforcement per PITFALLS research
 - [Phase 101]: JSONL_ROW_FIELDS as Object.freeze() constant — Phase 102 imports rather than hardcodes field names (EXEC-05 contract)
 - [Phase 101]: extractFrontmatter from frontmatter.cjs for experiment.md parsing (not parseFrontmatter in experiment.cjs which is experiment-boundaries.md-specific)
+- [Phase 102]: git diff --name-only HEAD detects staged+unstaged changes vs HEAD; tests stage files (not commit) for pre-commit boundary check simulation
+- [Phase 102]: timeout detection in _evalMetric uses proc.signal check (SIGTERM/SIGKILL) first, falls back to proc.error.code === ETIMEDOUT
+- [Phase 102]: import output from core.cjs in pde-tools.cjs -- only error was imported; new runner subcommands call output() directly
+- [Phase 102]: Read EXPERIMENT-BEST.json directly (JSON.parse) in eval-metric dispatch -- readBest is not exported from experiment.cjs
+- [Phase 102]: shell:true in spawnSync for _evalMetric -- real verify commands need shell features; whitespace-split breaks quoted args
+- [Phase 102]: git status --porcelain for _checkModifiedFiles -- detects untracked new files that git diff misses
 
 ### Pending Todos
 
@@ -87,8 +95,8 @@ Recent decisions affecting v0.13 planning:
 
 ## Session Continuity
 
-Last session: 2026-03-23T10:41:01.610Z
-Stopped at: Completed 101-01-PLAN.md
+Last session: 2026-03-23T11:29:45.116Z
+Stopped at: Completed 102-02-PLAN.md
 Resume file: None
 
 Next action: /pde:plan-phase 99

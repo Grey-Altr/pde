@@ -33,9 +33,9 @@ Requirements for the AutoResearch milestone. Each maps to roadmap phases.
 ### Experiment Definition & Execution
 
 - [x] **EXEC-01**: `experiment.md` file format: YAML frontmatter (metric name, direction min/max, verify command, mutable files, immutable files, budget) + markdown prose (search space description, constraints, stopping rationale)
-- [ ] **EXEC-02**: `pde-experiment-runner` agent type created — reads experiment.md, makes one atomic change per iteration, returns structured JSON (iteration, metric_value, metric_delta, status, description)
-- [ ] **EXEC-03**: Experiment runner enforces file boundaries: pre-commit hook validates only mutable files were modified, rejects commit and retries if boundary violated
-- [ ] **EXEC-04**: Metric evaluation runs the verify command via `spawnSync` with configurable timeout (default 30s) — three outcomes: KEEP (metric improved), DISCARD (metric regressed), CRASH (eval harness error)
+- [x] **EXEC-02**: `pde-experiment-runner` agent type created — reads experiment.md, makes one atomic change per iteration, returns structured JSON (iteration, metric_value, metric_delta, status, description)
+- [x] **EXEC-03**: Experiment runner enforces file boundaries: pre-commit hook validates only mutable files were modified, rejects commit and retries if boundary violated
+- [x] **EXEC-04**: Metric evaluation runs the verify command via `spawnSync` with configurable timeout (default 30s) — three outcomes: KEEP (metric improved), DISCARD (metric regressed), CRASH (eval harness error)
 - [x] **EXEC-05**: JSONL results log at `.planning/experiments/{slug}/results.jsonl` — each row: `{id, iteration, ts, commit, metric_value, metric_delta, status, description}`
 - [x] **EXEC-06**: Experiment state directory at `.planning/experiments/{slug}/` with experiment.md copy, results.jsonl, EXPERIMENT-BEST.json, and final REPORT.md
 
@@ -46,10 +46,10 @@ Requirements for the AutoResearch milestone. Each maps to roadmap phases.
 - [ ] **SELF-03**: Skill optimization mode: `/pde:optimize --skill {name}` targets a specific skill's SKILL.md and workflow files with skill-specific eval (e.g., skill test suite, pressure test score)
 - [ ] **SELF-04**: After experiment completes, promotion step generates a diff summary and requires user approval before merging experiment branch back to main
 - [ ] **SELF-05**: Experiment REPORT.md generated at completion: iterations run, improvements kept, best metric achieved, files modified, diff summary
-- [ ] **SELF-06**: Experiment runner uses minimal context window — only experiment.md, target file(s), last N iteration results, and metric output are loaded per iteration (no full project context)
-- [ ] **SELF-07**: Haiku-first model selection: experiment runner defaults to haiku for mutation attempts, escalates to sonnet only when haiku produces 3+ consecutive boundary violations or crashes
-- [ ] **SELF-08**: Diff-based context: after iteration 1, runner receives only the diff of the current best vs baseline (not the full file) to minimize token consumption
-- [ ] **SELF-09**: Token usage tracked per experiment in results.jsonl — each row includes `tokens_used` field; REPORT.md includes total token cost and cost-per-improvement ratio
+- [x] **SELF-06**: Experiment runner uses minimal context window — only experiment.md, target file(s), last N iteration results, and metric output are loaded per iteration (no full project context)
+- [x] **SELF-07**: Haiku-first model selection: experiment runner defaults to haiku for mutation attempts, escalates to sonnet only when haiku produces 3+ consecutive boundary violations or crashes
+- [x] **SELF-08**: Diff-based context: after iteration 1, runner receives only the diff of the current best vs baseline (not the full file) to minimize token consumption
+- [x] **SELF-09**: Token usage tracked per experiment in results.jsonl — each row includes `tokens_used` field; REPORT.md includes total token cost and cost-per-improvement ratio
 
 ### Command & Orchestration
 
@@ -124,13 +124,13 @@ Which phases cover which requirements.
 | CMD-03 | Phase 101 | Complete |
 | OBS-03 | Phase 101 | Complete |
 | OBS-04 | Phase 101 | Complete |
-| EXEC-02 | Phase 102 | Pending |
-| EXEC-03 | Phase 102 | Pending |
-| EXEC-04 | Phase 102 | Pending |
-| SELF-06 | Phase 102 | Pending |
-| SELF-07 | Phase 102 | Pending |
-| SELF-08 | Phase 102 | Pending |
-| SELF-09 | Phase 102 | Pending |
+| EXEC-02 | Phase 102 | Complete |
+| EXEC-03 | Phase 102 | Complete |
+| EXEC-04 | Phase 102 | Complete |
+| SELF-06 | Phase 102 | Complete |
+| SELF-07 | Phase 102 | Complete |
+| SELF-08 | Phase 102 | Complete |
+| SELF-09 | Phase 102 | Complete |
 | BREAK-01 | Phase 103 | Pending |
 | BREAK-02 | Phase 103 | Pending |
 | BREAK-03 | Phase 103 | Pending |
