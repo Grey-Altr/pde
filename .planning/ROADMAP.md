@@ -215,14 +215,14 @@ Full details: .planning/milestones/v0.12-ROADMAP.md
 
 </details>
 
-### 🚧 v0.13 AutoResearch (In Progress)
+### v0.13 AutoResearch (In Progress)
 
 **Milestone Goal:** Add an autonomous experiment loop primitive that lets PDE optimize its own workflows and agents — modify code, run, measure a single metric, keep improvements, discard regressions, repeat.
 
 ## Phase Summary
 
 - [x] **Phase 99: Safety Boundaries** - Immutability reference and section-level locked/optimizable markers across all experiment-eligible workflows (completed 2026-03-23)
-- [ ] **Phase 100: Git State Machine** - `experiment.cjs` module with commit-candidate/tag/reset/promote state machine and 6 pde-tools subcommands
+- [x] **Phase 100: Git State Machine** - `experiment.cjs` module with commit-candidate/tag/reset/promote state machine and 6 pde-tools subcommands (completed 2026-03-23)
 - [ ] **Phase 101: Experiment Schema & State Directory** - `experiment.md` file format, `.planning/experiments/` directory structure, config defaults, experiment phase type
 - [ ] **Phase 102: Mutation Agent & Metric Evaluation** - `pde-experiment-runner` agent with Haiku-first model selection, diff-based context, token tracking, and boundary enforcement
 - [ ] **Phase 103: Orchestrator, Command & Circuit Breakers** - `workflows/optimize.md` full loop, `/pde:optimize` command, all 5 circuit breakers, cost estimate gate, REPORT.md
@@ -261,8 +261,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 100-01-PLAN.md — Implement experiment.cjs git state machine module
-- [ ] 100-02-PLAN.md — Wire 6 experiment subcommands into pde-tools.cjs dispatch
+- [x] 100-01-PLAN.md — Implement experiment.cjs git state machine module
+- [x] 100-02-PLAN.md — Wire 6 experiment subcommands into pde-tools.cjs dispatch
 
 ### Phase 101: Experiment Schema & State Directory
 **Goal**: The experiment file format, state directory structure, config defaults, and experiment phase type are fully defined so that an operator can declare an experiment and know exactly where results will appear
@@ -273,10 +273,11 @@ Plans:
   2. `.planning/experiments/{slug}/` directory is created by ensure-dirs at startup, and contains the expected subdirectory structure (experiment.md copy, results.jsonl, EXPERIMENT-BEST.json placeholder)
   3. `config.json` contains an `experiment_defaults` block with default iteration budget, time budget, consecutive-failure limit, no-progress limit, and cost-estimate toggle
   4. ROADMAP.md experiment phase type entries are recognized by downstream plan-phase tooling (target metric, search space, and budget fields are present)
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 101-01: Define experiment.md schema, state directory structure, and config defaults
+- [ ] 101-01-PLAN.md — Create experiment-schema.cjs module, experiment.md template, and full test coverage
+- [ ] 101-02-PLAN.md — Document experiment phase type format reference for ROADMAP.md
 
 ### Phase 102: Mutation Agent & Metric Evaluation
 **Goal**: An experiment runner agent can apply one atomic change per iteration, evaluate a deterministic metric, and return a structured result — while consuming the minimum possible tokens
@@ -383,8 +384,8 @@ Phases execute in numeric order: 99 → 100 → 101 → 102 → 103 → 104 → 
 | 74-83 | v0.11 | 19/19 | Complete | 2026-03-22 |
 | 84-98 | v0.12 | 24/24 | Complete | 2026-03-23 |
 | 99. Safety Boundaries | v0.13 | 2/2 | Complete    | 2026-03-23 |
-| 100. Git State Machine | v0.13 | 0/TBD | Not started | - |
-| 101. Experiment Schema & State Directory | v0.13 | 0/TBD | Not started | - |
+| 100. Git State Machine | v0.13 | 2/2 | Complete    | 2026-03-23 |
+| 101. Experiment Schema & State Directory | v0.13 | 0/2 | Not started | - |
 | 102. Mutation Agent & Metric Evaluation | v0.13 | 0/TBD | Not started | - |
 | 103. Orchestrator, Command & Circuit Breakers | v0.13 | 0/TBD | Not started | - |
 | 104. Self-Improvement Presets | v0.13 | 0/TBD | Not started | - |
