@@ -1,3 +1,4 @@
+<!-- LOCKED: purpose, required_reading, flags, process header, init steps, prerequisites, MCP probe -->
 <purpose>
 Run structured competitive landscape analysis producing a CMP-competitive-v{N}.md artifact with competitor profiles, feature comparison matrix, SVG positioning map, Porter's Five Forces analysis, pricing analysis, gap analysis, and differentiation recommendations. Every factual claim carries a confidence label. The Opportunity Highlights section is the key downstream contract — consumed by /pde:opportunity as candidate input.
 </purpose>
@@ -222,7 +223,9 @@ If not disabled via flags, attempt to call `mcp__sequential-thinking__think` wit
 Display: `Step 3/7: MCP probes complete. WebSearch: {available|unavailable}. Sequential Thinking: {available|unavailable}.`
 
 ---
+<!-- /LOCKED -->
 
+<!-- OPTIMIZABLE: competitive analysis guidance, comparison framing, analysis structure, output prose -->
 ### Step 4/7: Competitive analysis
 
 This is the core logic of the skill. Apply confidence labels to EVERY factual competitor claim throughout this step.
@@ -460,7 +463,9 @@ ELSE:
 Display: `Step 4/7: Competitive analysis complete. {N} competitors analyzed, {M} gaps identified.`
 
 ---
+<!-- /OPTIMIZABLE -->
 
+<!-- LOCKED: artifact writes, CMP artifact code, MLS artifact, DESIGN-STATE updates, hasCompetitive coverage write, manifest registration -->
 ### Step 5/7: Write competitive artifact
 
 Write the competitive analysis to `.planning/design/strategy/CMP-competitive-v{N}.md`.
@@ -753,6 +758,7 @@ Display the final summary table (always the last output):
 - NEVER generate specific dollar amounts for TAM, SAM, or SOM. Use [YOUR_TAM_SIZE] [Source required] for every sizing cell. Post-write verification bash check is MANDATORY.
 - NEVER write designCoverage with fewer than 21 fields. The 16-field version is a regression from Phase 84. Always include hasBusinessThesis, hasMarketLandscape, hasServiceBlueprint, hasLaunchKit, hasDeployStaging alongside the original 16 fields.
 - NEVER create MLS artifact when businessMode is false. The MLS_WRITTEN flag must gate both the artifact write AND the manifest registration AND the designCoverage hasMarketLandscape value.
+<!-- /LOCKED -->
 
 </process>
 

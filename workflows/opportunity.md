@@ -1,3 +1,4 @@
+<!-- LOCKED: purpose, skill_code, required_reading, flags, process header, init steps, prerequisites, MCP probe -->
 <purpose>
 Score feature opportunities using the RICE framework (Reach, Impact, Confidence, Effort) with PDE design extensions (UX Differentiation, Accessibility Impact, Design System Leverage). Reads competitive artifact gaps as candidate input when available. Produces OPP-opportunity-v{N}.md in .planning/design/strategy/. Consumed by /pde:ideate (Phase 27) for concept scoring.
 </purpose>
@@ -212,7 +213,9 @@ Note: WebSearch and mcp-compass are NOT used for opportunity scoring. Only Seque
 Display: `Step 3/7: MCP probes complete. Sequential Thinking: {available|unavailable}.`
 
 ---
+<!-- /LOCKED -->
 
+<!-- OPTIMIZABLE: opportunity framing, RICE scoring guidance, analysis structure, candidate evaluation prose -->
 ### Step 4/7: Interactive RICE scoring with design extensions
 
 **Business Mode Detection:**
@@ -378,7 +381,9 @@ ELSE (businessMode != true):
 Display: `Step 4/7: RICE scoring complete. {N} candidates scored. Sensitivity analysis: {included|skipped}.`
 
 ---
+<!-- /OPTIMIZABLE -->
 
+<!-- LOCKED: artifact writes, OPP artifact code, DESIGN-STATE updates, hasOpportunity coverage write, manifest registration -->
 ### Step 5/7: Write opportunity artifact
 
 Use the template structure from `templates/opportunity-evaluation.md`. Write to `.planning/design/strategy/OPP-opportunity-v{N}.md` using the Write tool.
@@ -582,6 +587,7 @@ Display the final summary table (always the last output):
 - NEVER generate specific dollar amounts in the Business Initiative Framing section. Use [YOUR_X] [VERIFY FINANCIAL ASSUMPTIONS] format for all financial values.
 - NEVER include the Business Initiative Framing section when businessMode is false. The BUSINESS_FRAMING_GENERATED flag must gate both the Step 4 generation AND the Step 5 artifact section inclusion.
 - NEVER write designCoverage with fewer than 21 fields. The 16-field version is a regression from Phase 84. Always include hasBusinessThesis, hasMarketLandscape, hasServiceBlueprint, hasLaunchKit, hasDeployStaging alongside the original 16 fields.
+<!-- /LOCKED -->
 
 </process>
 
