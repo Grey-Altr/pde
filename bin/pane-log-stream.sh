@@ -41,6 +41,11 @@ tail -F "${NDJSON}" 2>/dev/null | while IFS= read -r line; do
       # Magenta — pipeline progress events (Phase 62)
       printf '\033[35m[%s] %s\033[0m\n' "$ts" "$event_type"
       ;;
+    experiment.*)
+      # Cyan — experiment lifecycle events (Phase 106)
+      slug=$(echo "$line" | jq -r '.slug // ""' 2>/dev/null)
+      printf '\033[36m[%s] %-20s %s\033[0m\n' "$ts" "$event_type" "$slug"
+      ;;
     *)
       # Default gray for unknown event types — forward-compatible
       printf '\033[90m[%s] %s\033[0m\n' "$ts" "$event_type"

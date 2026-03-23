@@ -240,7 +240,7 @@ Display: "Experiment branch initialized: experiment/{slug}"
 
 Emit `experiment.start` event:
 ```bash
-node bin/pde-tools.cjs event-emit experiment.start '{"slug":"{slug}","iteration":0,"metric_value":null,"best_metric":null,"status":"","budget_used":0,"budget_total":{iterationBudget}}'
+node bin/pde-tools.cjs event-emit experiment.start '{"slug":"{slug}","iteration":0,"metric_value":null,"best_metric":null,"status":"","budget_used":0,"budget_total":{iterationBudget}}' 2>/dev/null || true
 ```
 </step>
 
@@ -325,19 +325,19 @@ LOOP (while haltReason is null):
   **g2.** Emit per-iteration and outcome events based on status:
   - Always emit `experiment.iteration`:
     ```bash
-    node bin/pde-tools.cjs event-emit experiment.iteration '{"slug":"{slug}","iteration":{currentIteration},"metric_value":{metric_value},"best_metric":{bestMetricSoFar},"status":"{status}","budget_used":{currentIteration},"budget_total":{iterationBudget}}'
+    node bin/pde-tools.cjs event-emit experiment.iteration '{"slug":"{slug}","iteration":{currentIteration},"metric_value":{metric_value},"best_metric":{bestMetricSoFar},"status":"{status}","budget_used":{currentIteration},"budget_total":{iterationBudget}}' 2>/dev/null || true
     ```
   - If status === "KEEP": emit `experiment.keep`:
     ```bash
-    node bin/pde-tools.cjs event-emit experiment.keep '{"slug":"{slug}","iteration":{currentIteration},"metric_value":{metric_value},"best_metric":{metric_value},"status":"KEEP","budget_used":{currentIteration},"budget_total":{iterationBudget}}'
+    node bin/pde-tools.cjs event-emit experiment.keep '{"slug":"{slug}","iteration":{currentIteration},"metric_value":{metric_value},"best_metric":{metric_value},"status":"KEEP","budget_used":{currentIteration},"budget_total":{iterationBudget}}' 2>/dev/null || true
     ```
   - If status === "DISCARD": emit `experiment.discard`:
     ```bash
-    node bin/pde-tools.cjs event-emit experiment.discard '{"slug":"{slug}","iteration":{currentIteration},"metric_value":{metric_value},"best_metric":{bestMetricSoFar},"status":"DISCARD","budget_used":{currentIteration},"budget_total":{iterationBudget}}'
+    node bin/pde-tools.cjs event-emit experiment.discard '{"slug":"{slug}","iteration":{currentIteration},"metric_value":{metric_value},"best_metric":{bestMetricSoFar},"status":"DISCARD","budget_used":{currentIteration},"budget_total":{iterationBudget}}' 2>/dev/null || true
     ```
   - If status === "CRASH" or status === "BOUNDARY_VIOLATION": emit `experiment.crash`:
     ```bash
-    node bin/pde-tools.cjs event-emit experiment.crash '{"slug":"{slug}","iteration":{currentIteration},"metric_value":null,"best_metric":{bestMetricSoFar},"status":"{status}","budget_used":{currentIteration},"budget_total":{iterationBudget}}'
+    node bin/pde-tools.cjs event-emit experiment.crash '{"slug":"{slug}","iteration":{currentIteration},"metric_value":null,"best_metric":{bestMetricSoFar},"status":"{status}","budget_used":{currentIteration},"budget_total":{iterationBudget}}' 2>/dev/null || true
     ```
 
   **h.** Update loop state counters based on status:
@@ -379,7 +379,7 @@ END LOOP
 
 After the loop exits (haltReason is set or loop condition is false), emit `experiment.complete`:
 ```bash
-node bin/pde-tools.cjs event-emit experiment.complete '{"slug":"{slug}","iteration":{currentIteration},"metric_value":null,"best_metric":{bestMetricSoFar},"status":"complete","budget_used":{currentIteration},"budget_total":{iterationBudget}}'
+node bin/pde-tools.cjs event-emit experiment.complete '{"slug":"{slug}","iteration":{currentIteration},"metric_value":null,"best_metric":{bestMetricSoFar},"status":"complete","budget_used":{currentIteration},"budget_total":{iterationBudget}}' 2>/dev/null || true
 ```
 </step>
 
