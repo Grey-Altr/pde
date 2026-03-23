@@ -383,14 +383,139 @@ All edit targets are surgical — single-line string replacements or small array
 
 ---
 
+## Deep Dive
+
+### 1. INTG-07 Secondary Workflow Coverage Gap
+
+**Finding:** INTG-07 in `test-regression-matrix.cjs` explicitly tests only 10 primary workflows listed in `V012_COVERAGE_WRITERS` (lines 282–293). The 4 secondary workflows (recommend, ideate, iterate, mockup) are absent from this list. The TWENTY_ONE_FIELDS constant at lines 22–29 is already correct with all 21 fields — the gap is in the list of workflows being checked, not the field list itself.
+
+**Root cause of the gap:** Phase 93 created a separate test file (`test-clobber-audit.cjs`) specifically for INTG-01 covering the 4 secondary workflows. That test file uses `TWENTY_FIELDS` (20 fields — line 24–31), not `TWENTY_ONE_FIELDS`. The Phase 93 clobber test is currently GREEN (11/11 PASS) because it only checks for 20 fields, which all 4 workflows contain. It does NOT check for `hasDeployStaging` because the 20-field array doesn't include it.
+
+**Structural decision:** There are two independent test files covering different aspects of the same invariant:
+- `test-clobber-audit.cjs` — Phase 93 test, covers secondary workflows, 20-field array (stale)
+- `test-regression-matrix.cjs` INTG-07 — covers primary workflows, 21-field array (current)
+
+Phase 96 should update `test-clobber-audit.cjs` to use `TWENTY_ONE_FIELDS` (adding `hasDeployStaging`) OR expand `V012_COVERAGE_WRITERS` in `test-regression-matrix.cjs` to include the 4 secondary workflows. Both approaches close the structural gap. Expanding `V012_COVERAGE_WRITERS` is preferred — it consolidates coverage in one file and eliminates the stale `TWENTY_FIELDS` constant in `test-clobber-audit.cjs`.
+
+**Confidence:** HIGH — verified by direct read of both test files.
+
+---
+
+### 2. Full Field Enumeration Audit — Complete Writer Map
+
+A full audit of all files that call `manifest-set-top-level designCoverage` across the entire codebase (excluding worktrees) reveals exactly 14 unique write locations across 10 workflow files:
+
+| Workflow | Writes Count | Has hasDeployStaging? |
+|----------|-------------|----------------------|
+| `brief.md` | 1 (line 888) | YES (confirmed GREEN in INTG-07) |
+| `competitive.md` | 1 (line 710) | YES (confirmed GREEN in INTG-07) |
+| `critique.md` | 1 (line 1227) | YES (confirmed GREEN in INTG-07) |
+| `deploy.md` | 1 (line 836) | YES — writes `true` (confirmed GREEN) |
+| `flows.md` | 1 (line 1062) | YES (confirmed GREEN in INTG-07) |
+| `handoff.md` | 4 (lines 1462/1465/1468/1471) | YES all 4 (confirmed GREEN in INTG-07) |
+| `hig.md` | 1 (line 861) | YES (confirmed GREEN in INTG-07) |
+| `opportunity.md` | 1 (line 543) | YES (confirmed GREEN in INTG-07) |
+| `system.md` | 1 (line 2173) | YES (confirmed GREEN in INTG-07) |
+| `wireframe.md` | 3 (lines 2383/2386/2389) | YES all 3 (confirmed GREEN in INTG-07) |
+| `ideate.md` | 1 (line 693) | **NO — missing** |
+| `iterate.md` | 1 (line 456) | **NO — missing** |
+| `mockup.md` | 1 (line 1433) | **NO — missing** |
+| `recommend.md` | 1 (line 594) | **NO — missing** |
+
+**Key finding:** The gap is exactly the 4 secondary workflows identified by the milestone audit. No other files are missing the field. The Phase 95 commit `e038559` deliberately updated 11 files (all primary workflows + deploy + brief + template) but the 4 secondary workflows were not listed in that commit's changed files. This was the omission.
+
+**Additional readers (no write):** `build.md` reads `hasDeployStaging` as the Stage 14 complete flag (line 111); `pressure-test.md` does NOT read `hasDeployStaging` — its coverage check table at line 184 only lists 12 flags (excludes deploy stage). This means `pressure-test.md` would not surface a clobbered `hasDeployStaging`. `build.md` is the only consumer that gates behavior on this field.
+
+**Confidence:** HIGH — verified by exhaustive grep across all workflow files.
+
+---
+
+### 3. --from Flag Clobber Mechanism — Exact Code Path
+
+**How `--from` works:** The `--from` flag is parsed exclusively in `build.md`'s Step 1. It sets `FROM_INDEX` (a 1-based stage number). In Step 3, for every stage with `index < FROM_INDEX`, the orchestrator displays "skipped (--from {FROM_STAGE})" and continues without invoking the skill. Stages at or after `FROM_INDEX` run normally.
+
+**Critical finding: --from is a full overwrite trigger, not a merge.** When `build --from recommend` is used and `hasDeployStaging` is already `true` in the manifest:
+1. The orchestrator reads coverage once at Step 2 — at this point `hasDeployStaging: true`
+2. Stages 1–0 are "skipped" (none, since `recommend` is Stage 1)
+3. Stage 1 (`/pde:recommend`) runs. It calls `coverage-check` independently, reads `hasDeployStaging: true`, substitutes `{current_hasDeployStaging}` — BUT the 20-field write omits `hasDeployStaging` entirely, so the value is never written
+4. The resulting `manifest-set-top-level designCoverage` call writes a 20-field object that does not include `hasDeployStaging`, causing the manifest's `designCoverage` object to lose the field
+
+**Anti-pattern #10 in build.md** explicitly states: "NEVER forward --from or --dry-run to sub-skills via PASSTHROUGH_ARGS. Both are orchestrator-only flags." This confirms that `--from` is NOT forwarded — it only affects the orchestrator's skip logic, not the sub-skill's behavior.
+
+**The fix is a full-overwrite fix, not a merge:** There is no mechanism to make the write into a merge. The correct fix is exactly what was identified: add `hasDeployStaging` to each of the 4 secondary workflow JSON blobs so the pass-through-all pattern includes all 21 fields. A merge-based approach would require changing `manifest-set-top-level` in `design.cjs` (line 264: `manifest[field] = value`) to use `Object.assign`, which is out of scope and unnecessary given the established pattern.
+
+**Confidence:** HIGH — verified by reading `build.md` lines 64–178 and `design.cjs` lines 256–267.
+
+---
+
+### 4. Historical Pattern — How hasLaunchKit Was Added
+
+**git history finding:** The commit `d5f1706` (feat(84-01)) added `hasBusinessThesis`, `hasMarketLandscape`, `hasServiceBlueprint`, and `hasLaunchKit` as fields 17–20. That commit changed ONLY `templates/design-manifest.json` (1 file, 7 insertions). It did NOT update any workflows at all.
+
+**The cascade fix pattern:** The actual workflow updates to include the 4 new fields (fields 17–20) were done in Phase 93 (`7349955`, `f98a261`, `2d9b1b4`, `77c84dc`) — multiple commits months later. This is the same systemic pattern: field added to template first, workflows updated later (or missed). Phase 95 committed the same mistake: `e038559` added `hasDeployStaging` to 11 files but missed the 4 secondary workflows.
+
+**Pattern for hasDeployStaging (Phase 95, commit `e038559`):** That commit changed 11 files — template + 10 primary workflows. The commit message explicitly listed the 11 files and noted each change. The 4 secondary workflows were not mentioned, not changed. This is not an oversight in documentation — those 4 files were genuinely omitted.
+
+**Conclusion: This is a systemic issue.** Every time a new field is added to designCoverage, there is a high risk that the 4 secondary workflows are missed. The primary workflows are protected by INTG-07; the secondary workflows have no equivalent automated guard. Phase 96 must close this structural gap by adding the secondary workflows to INTG-07 (or expanding `test-clobber-audit.cjs` to use 21 fields).
+
+**Confidence:** HIGH — verified by `git show e038559`, `git show d5f1706`, and Phase 93 commit sequence.
+
+---
+
+### 5. Defensive Measures — Field Count Validation at Write Time
+
+**Current state:** There is NO validation in `cmdManifestSetTopLevel` (`design.cjs` line 256–267) that checks how many fields are in the `designCoverage` JSON value before writing it. The function does a bare assignment (`manifest[field] = value`) with no schema enforcement.
+
+**Why this matters:** A workflow can write a 20-field or even a 16-field object with no error. The write succeeds silently. The only detection path is:
+1. INTG-07 (structural text search — catches it at test time if the workflow file is in the writers list)
+2. FOUND-02 (counts fields in the template — catches template regression, not workflow regression)
+3. Manual `coverage-check` + count (runtime detection)
+
+**Recommendation for Phase 96:** Phase 96 should add a defensive assertion to `test-clobber-audit.cjs` (or INTG-07) that verifies the secondary workflow text blobs contain all 21 field names. This is a structural test, not a runtime validation. Runtime validation in `design.cjs` would be a larger change that is out of scope.
+
+**What Phase 96 should NOT do:** Add a field-count check to `cmdManifestSetTopLevel` in `design.cjs`. That would require parsing the JSON value, adding schema validation logic, and potentially breaking workflows that legitimately write partial objects for other top-level fields. The correct boundary is workflow instructions (text) + structural tests (Nyquist).
+
+**Confidence:** HIGH — verified by reading `design.cjs` lines 256–267 and both test files.
+
+---
+
+### 6. Other Consumers of designCoverage — Downstream Impact Map
+
+**All consumers of `coverage-check` output:**
+
+| Consumer | Type | Reads hasDeployStaging? | Impact if field missing |
+|----------|------|------------------------|-------------------------|
+| `build.md` | Orchestrator | YES (Stage 14 gate, line 111) | Stage 14 shows "pending" instead of "complete" — incorrect pipeline resume |
+| `pressure-test.md` | Audit tool | NO (12-flag table at line 184 excludes deploy) | Not affected — pressure-test doesn't check hasDeployStaging |
+| `deploy.md` | Workflow | YES (reads `hasLaunchKit` as gate check, line 55) | Not a consumer of hasDeployStaging during its own execution |
+| `handoff.md` | Workflow | NO (reads subset: lines 121–125 read only 13 flags) | Not affected by missing hasDeployStaging |
+
+**The fix does NOT break any downstream consumers:**
+- `build.md` is the only file that gates behavior on `hasDeployStaging`. After the fix, the 4 secondary workflows will pass through `hasDeployStaging` (whether `true` or `false`) on every write. A `build --from recommend` after deploy will now correctly preserve `hasDeployStaging: true`.
+- `pressure-test.md` does not check `hasDeployStaging` and does not write it — no change needed.
+- The test files check workflow text content, not runtime behavior — adding `hasDeployStaging` to the 4 workflow blobs will make both INTG-01 (clobber-audit) and an expanded INTG-07 GREEN.
+
+**Note on `critique.md`:** The critique.md prose at line 1224 says "Extract ALL TWENTY current flag values" and lists only 20 fields. The JSON blob at line 1227 already contains all 21 fields including `hasDeployStaging`. This is a prose inconsistency (says 20, writes 21) but is a minor documentation debt — not a functional bug. The Phase 95 commit updated the JSON but not the prose. This is an optional fix alongside the primary Phase 96 changes.
+
+**Confidence:** HIGH — verified by reading `build.md` lines 99–148, `pressure-test.md` lines 165–197, `handoff.md` lines 121–125, and `critique.md` line 1224.
+
+---
+
 ## Sources
 
 ### Primary (HIGH confidence)
 
 - Direct file reads — `templates/design-manifest.json` (21 fields confirmed), `test-foundation.cjs` (20-field assertion confirmed failing at line 127), `test-regression-matrix.cjs` (TWENTY_ONE_FIELDS constant + INTG-07 coverage scope confirmed)
+- Direct file reads — `test-clobber-audit.cjs` (TWENTY_FIELDS 20-field array — stale, not updated in Phase 95)
+- Direct file reads — `design.cjs` lines 256–267 (cmdManifestSetTopLevel: bare assignment, no schema validation)
+- Direct file reads — `build.md` lines 52–285 (--from parsing, Stage 14 gate, anti-pattern #10)
 - Direct test run — `node --test test-foundation.cjs` → 18 PASS, 1 FAIL (FOUND-02 count assertion)
 - Direct test run — `node --test test-regression-matrix.cjs` → 46/46 PASS
+- Direct test run — `node --test test-clobber-audit.cjs` → 11/11 PASS (passes on 20-field check, does not test for hasDeployStaging)
 - `v0.12-MILESTONE-AUDIT.md` — exact line numbers, fix descriptions, and impact scope documented
+- `git show e038559` — Phase 95 commit changed 11 files, secondary workflows absent
+- `git show d5f1706` — Phase 84 added 4 business fields only to template, same pattern as Phase 95
+- Exhaustive grep of all `manifest-set-top-level designCoverage` calls in `workflows/` — 14 write locations, 4 missing hasDeployStaging
 
 ### Secondary (MEDIUM confidence)
 
@@ -410,6 +535,7 @@ All edit targets are surgical — single-line string replacements or small array
 - Architecture: HIGH — pass-through-all pattern fully verified across all 5 affected files
 - Pitfalls: HIGH — directly observed from test output, audit document, and workflow content
 - Validation: HIGH — test commands verified to run and produce expected output
+- Deep dive findings: HIGH — all 6 deep dive questions answered from direct source reads
 
 **Research date:** 2026-03-22
 **Valid until:** Stable — no external dependencies; only stale if schema changes again
