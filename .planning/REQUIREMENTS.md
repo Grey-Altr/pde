@@ -27,24 +27,24 @@ Requirements for v0.14 Visual AutoResearch. Each maps to roadmap phases.
 
 ### Mockup Screenshots (MOK)
 
-- [ ] **MOK-01**: mockup.md captures screenshots of generated mockup HTML files via Playwright MCP
-- [ ] **MOK-02**: Screenshots saved to `.planning/design/ux/mockups/screenshots/`
-- [ ] **MOK-03**: `--no-playwright` degradation path (mockup workflow completes without screenshots)
+- [x] **MOK-01**: mockup.md captures screenshots of generated mockup HTML files via Playwright MCP
+- [x] **MOK-02**: Screenshots saved to `.planning/design/ux/mockups/screenshots/`
+- [x] **MOK-03**: `--no-playwright` degradation path (mockup workflow completes without screenshots)
 
 ### Critique A11y Integration (A11Y)
 
-- [ ] **A11Y-01**: critique.md accessibility perspective uses browser_snapshot for AOM tree when Playwright available
-- [ ] **A11Y-02**: AOM tree analyzed for missing landmarks, unlabeled controls, heading hierarchy issues
-- [ ] **A11Y-03**: Browser a11y data merges with Axe MCP results when both available
-- [ ] **A11Y-04**: Falls back to manual WCAG checklist when neither Playwright nor Axe available
+- [x] **A11Y-01**: critique.md accessibility perspective uses browser_snapshot for AOM tree when Playwright available
+- [x] **A11Y-02**: AOM tree analyzed for missing landmarks, unlabeled controls, heading hierarchy issues
+- [x] **A11Y-03**: Browser a11y data merges with Axe MCP results when both available
+- [x] **A11Y-04**: Falls back to manual WCAG checklist when neither Playwright nor Axe available
 
 ### Deploy Smoke Test (DEP)
 
-- [ ] **DEP-01**: deploy.md adds post-deploy smoke test after Gate 4/4 success
-- [ ] **DEP-02**: Navigates to $DEPLOY_URL, captures screenshot and accessibility snapshot
-- [ ] **DEP-03**: Verifies expected sections present (hero, pricing, CTA from LDP spec)
-- [ ] **DEP-04**: Retry with exponential backoff (3 attempts, 10s/20s/40s) for builds still in progress
-- [ ] **DEP-05**: Pass/fail results logged to deploy-manifest.json with screenshot path
+- [x] **DEP-01**: deploy.md adds post-deploy smoke test after Gate 4/4 success
+- [x] **DEP-02**: Navigates to $DEPLOY_URL, captures screenshot and accessibility snapshot
+- [x] **DEP-03**: Verifies expected sections present (hero, pricing, CTA from LDP spec)
+- [x] **DEP-04**: Retry with exponential backoff (3 attempts, 10s/20s/40s) for builds still in progress
+- [x] **DEP-05**: Pass/fail results logged to deploy-manifest.json with screenshot path
 
 ### Visual Metric Scripts (VIS)
 
@@ -176,18 +176,18 @@ Requirements for v0.14 Visual AutoResearch. Each maps to roadmap phases.
 | WFR-03 | Phase 109 | Complete |
 | WFR-04 | Phase 109 | Complete |
 | WFR-05 | Phase 109 | Complete |
-| MOK-01 | Phase 109 | Pending |
-| MOK-02 | Phase 109 | Pending |
-| MOK-03 | Phase 109 | Pending |
-| A11Y-01 | Phase 110 | Pending |
-| A11Y-02 | Phase 110 | Pending |
-| A11Y-03 | Phase 110 | Pending |
-| A11Y-04 | Phase 110 | Pending |
-| DEP-01 | Phase 110 | Pending |
-| DEP-02 | Phase 110 | Pending |
-| DEP-03 | Phase 110 | Pending |
-| DEP-04 | Phase 110 | Pending |
-| DEP-05 | Phase 110 | Pending |
+| MOK-01 | Phase 109 | Complete |
+| MOK-02 | Phase 109 | Complete |
+| MOK-03 | Phase 109 | Complete |
+| A11Y-01 | Phase 110 | Complete |
+| A11Y-02 | Phase 110 | Complete |
+| A11Y-03 | Phase 110 | Complete |
+| A11Y-04 | Phase 110 | Complete |
+| DEP-01 | Phase 110 | Complete |
+| DEP-02 | Phase 110 | Complete |
+| DEP-03 | Phase 110 | Complete |
+| DEP-04 | Phase 110 | Complete |
+| DEP-05 | Phase 110 | Complete |
 | VIS-01 | Phase 111 | Pending |
 | VIS-02 | Phase 111 | Pending |
 | VIS-03 | Phase 111 | Pending |

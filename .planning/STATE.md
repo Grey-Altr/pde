@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.14
 milestone_name: Visual AutoResearch
-status: Ready to plan
-stopped_at: Completed 109-02-PLAN.md
-last_updated: "2026-03-23T19:08:21.421Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 110-02-PLAN.md
+last_updated: "2026-03-23T20:11:33.384Z"
 progress:
   total_phases: 10
   completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
+  total_plans: 6
+  completed_plans: 5
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-23)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 109 — wireframe-mockup-screenshots
+**Current focus:** Phase 110 — Critique A11y + Deploy Smoke Test
 
 ## Current Position
 
-Phase: 110
-Plan: Not started
+Phase: 110 (Critique A11y + Deploy Smoke Test) — EXECUTING
+Plan: 2 of 2
 
 ## Performance Metrics
 
@@ -41,6 +41,8 @@ Plan: Not started
 | 108 | 2 | ~25 min | ~12 min |
 | Phase 109-wireframe-mockup-screenshots P01 | 112 | 2 tasks | 4 files |
 | Phase 109-wireframe-mockup-screenshots P02 | 5 | 1 tasks | 1 files |
+| Phase 110-critique-a11y-deploy-smoke-test P01 | 3 | 2 tasks | 2 files |
+| Phase 110 P02 | 2 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -63,6 +65,10 @@ Recent decisions affecting v0.14 planning:
 - [Phase 109-wireframe-mockup-screenshots]: MOK-01/MOK-02 tests intentionally RED at plan 01 end — Plan 02 expands mockup.md Step 7f
 - [Phase 109-02]: Use ux/mockups/screenshots/ not visual/mockups/screenshots/ — co-located with source HTML, consistent with wireframe pattern; requirements path appears to be a typo
 - [Phase 109-02]: Single 1280x800 viewport replaces old multi-breakpoint stub in mockup Step 7f — matches WFR-05 consistency; multi-breakpoint deferred to Phase 111 VIS-04
+- [Phase 110-critique-a11y-deploy-smoke-test]: AOM probe added as Step 3b — sets PLAYWRIGHT_A11Y_AVAILABLE flag for 4-way Perspective 3 merge logic (Playwright+Axe, Playwright-only, Axe-only, neither)
+- [Phase 110-critique-a11y-deploy-smoke-test]: critique.md Perspective 3 preserves existing HIG --light delegation as the AXE_AVAILABLE branch — no behavior change when Playwright unavailable
+- [Phase 110]: Smoke test is informational-only — deploy failure does NOT halt workflow
+- [Phase 110]: BACKOFF_DELAYS=[10,20,40]s with 3-attempt cap prevents blocking slow Vercel builds
 
 ### Pending Todos
 
@@ -76,8 +82,8 @@ Recent decisions affecting v0.14 planning:
 
 ## Session Continuity
 
-Last session: 2026-03-23T19:05:25.498Z
-Stopped at: Completed 109-02-PLAN.md
+Last session: 2026-03-23T20:11:33.381Z
+Stopped at: Completed 110-02-PLAN.md
 Resume file: None
 
 Next action: /pde:plan-phase 109 (Wireframe Screenshot Capture)
