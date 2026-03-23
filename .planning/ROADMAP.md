@@ -210,6 +210,7 @@ Full details: .planning/milestones/v0.11-ROADMAP.md
 - [x] **Phase 92: Deploy Skill** — Stage 14 with four approval-gated deployment actions and /pde:deploy command (completed 2026-03-22)
 - [x] **Phase 93: designCoverage Clobber Audit + Secondary Workflow Stubs** — 20-field pass-through audit across all 14 workflows; recommend/iterate/mockup guard stubs (completed 2026-03-23)
 - [x] **Phase 94: Nyquist Regression Tests** — Composition case validation and non-regression verification (completed 2026-03-23)
+- [ ] **Phase 95: Integration Wiring Fixes** — Close 6 requirement gaps, 3 integration gaps, and 3 broken flows from milestone audit
 
 ## Phase Details
 
@@ -372,6 +373,22 @@ Plans:
 Plans:
 - [ ] 94-01-PLAN.md — Regression matrix test file (INTG-02 through INTG-07) + full suite validation
 
+### Phase 95: Integration Wiring Fixes
+**Goal**: Close all 6 requirement gaps, 3 integration gaps, and 3 broken E2E flows identified by the v0.12 milestone audit — OTR glob mismatch blocking deploy, BTH glob mismatch corrupting LKT manifest, hasDeployStaging flag never written, and missing handoff required_reading
+**Depends on**: Phase 94
+**Requirements**: BRIEF-03, KIT-01, KIT-03, DEPLOY-04, DEPLOY-06, DEPLOY-09
+**Gap Closure**: Closes all gaps from v0.12-MILESTONE-AUDIT.md
+**Success Criteria** (what must be TRUE):
+  1. `deploy.md` globs `OTR-outreach-sequences-v*.md` (not `OTR-outreach-v*.md`) — deploy preflight no longer halts on OTR artifact
+  2. `handoff.md`, `wireframe.md`, and `critique.md` glob `BTH-thesis-v*.md` (not `BTH-business-thesis-v*.md`) — BTH artifact discovered correctly in LKT manifest
+  3. `deploy.md` writes `hasDeployStaging: true` to `design-manifest.json` designCoverage after Gate 4 completes — Stage 14 no longer permanently pending
+  4. `handoff.md` required_reading block includes business-track.md, launch-frameworks.md, business-financial-disclaimer.md, business-legal-disclaimer.md
+  5. E2E `/pde:build business:software` flow completes through deploy preflight without glob misses
+  6. All 6 previously-gap requirements (BRIEF-03, KIT-01, KIT-03, DEPLOY-04, DEPLOY-06, DEPLOY-09) re-verified as satisfied
+**Plans**: 1 plan
+Plans:
+- [ ] 95-01-PLAN.md — OTR glob fix, BTH glob fix, hasDeployStaging flag write, handoff required_reading
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -398,3 +415,4 @@ Plans:
 | 92. Deploy Skill | v0.12 | 1/2 | Complete    | 2026-03-22 |
 | 93. designCoverage Audit + Stubs | v0.12 | 1/2 | Complete    | 2026-03-23 |
 | 94. Nyquist Regression Tests | v0.12 | 0/1 | Complete    | 2026-03-23 |
+| 95. Integration Wiring Fixes | v0.12 | 0/1 | Pending     | - |

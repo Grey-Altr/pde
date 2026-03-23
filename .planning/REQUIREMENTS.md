@@ -21,7 +21,7 @@ Requirements for the business product type milestone. Each maps to roadmap phase
 
 - [x] **BRIEF-01**: `brief.md` detects business intent from project description keyword signals and sets `businessMode: true` in manifest
 - [x] **BRIEF-02**: User track selection (solo_founder / startup_team / product_leader) stored as `businessTrack` in manifest, with track-specific vocabulary and depth applied downstream
-- [x] **BRIEF-03**: Business thesis statement generated as BTH artifact in `strategy/` directory with structured problem/solution/market/unfair-advantage framing
+- [ ] **BRIEF-03**: Business thesis statement generated as BTH artifact in `strategy/` directory with structured problem/solution/market/unfair-advantage framing
 - [x] **BRIEF-04**: Lean Canvas generated as 9-box structured output with confidence levels per hypothesis (validated/assumed/unknown) — anchored to BTH artifact
 - [x] **BRIEF-05**: Domain strategy capture (naming, domain availability notes, brand positioning seeds) included in brief output for downstream brand system consumption
 - [x] **BRIEF-06**: `hasBusinessThesis` coverage flag set in designCoverage after BTH artifact creation
@@ -66,9 +66,9 @@ Requirements for the business product type milestone. Each maps to roadmap phase
 
 ### Launch Kit Assembly
 
-- [x] **KIT-01**: `handoff.md` assembles LKT (Launch Kit) manifest artifact listing all business artifacts with paths, statuses, and deployment readiness flags
+- [ ] **KIT-01**: `handoff.md` assembles LKT (Launch Kit) manifest artifact listing all business artifacts with paths, statuses, and deployment readiness flags
 - [x] **KIT-02**: CNT (Content Calendar) artifact produced as 30-day pre-launch / launch / post-launch skeleton with content category slots derived from GTM channel priorities
-- [x] **KIT-03**: OTR (Outreach/Email Sequence) artifact produced with onboarding sequence (5-7 emails, trigger/delay/CTA format, Resend-compatible) and investor outreach sequence (3 emails, gated on pitch deck completion)
+- [ ] **KIT-03**: OTR (Outreach/Email Sequence) artifact produced with onboarding sequence (5-7 emails, trigger/delay/CTA format, Resend-compatible) and investor outreach sequence (3 emails, gated on pitch deck completion)
 - [x] **KIT-04**: Domain strategy notes consolidated from brief capture into launch kit
 - [x] **KIT-05**: `hasLaunchKit` coverage flag set in designCoverage after LKT artifact creation — gates deploy stage
 - [x] **KIT-06**: Email sequence uses structural placeholders for personalization fields — never generates specific company names or partner references
@@ -78,22 +78,22 @@ Requirements for the business product type milestone. Each maps to roadmap phase
 - [x] **DEPLOY-01**: New `workflows/deploy.md` created as Stage 14, conditionally appended to build orchestrator only when `businessMode === true`
 - [x] **DEPLOY-02**: Next.js landing page scaffold generated at `.planning/deploy-staging/landing-page/` with pinned versions (Next.js 16.2.1, Stripe v20, Resend 6.9.4, Tailwind v4), consuming LDP wireframe spec
 - [x] **DEPLOY-03**: Stripe pricing config scaffold generated with test-mode placeholder keys (`pk_test_REPLACE_WITH_YOUR_KEY`) — never live keys
-- [x] **DEPLOY-04**: Resend email template stubs generated from OTR sequence spec with React Email components
+- [ ] **DEPLOY-04**: Resend email template stubs generated from OTR sequence spec with React Email components
 - [x] **DEPLOY-05**: Vercel deployment invoked via `npx vercel --prod --no-wait` returning deployment URL without blocking session
-- [x] **DEPLOY-06**: Four mandatory human approval gates: (1) before Next.js scaffold write, (2) before Stripe config write, (3) before Resend template generation, (4) before Vercel deploy command
+- [ ] **DEPLOY-06**: Four mandatory human approval gates: (1) before Next.js scaffold write, (2) before Stripe config write, (3) before Resend template generation, (4) before Vercel deploy command
 - [x] **DEPLOY-07**: All deployment artifacts stored in `.planning/deploy-staging/` with generated `.gitignore` entry — never in `.planning/design/`
 - [x] **DEPLOY-08**: `/pde:deploy` slash command created as entry point for Stage 14
-- [x] **DEPLOY-09**: Deploy skill tracks deployment status in `deploy-manifest.json` with `review_required: true` per artifact
+- [ ] **DEPLOY-09**: Deploy skill tracks deployment status in `deploy-manifest.json` with `review_required: true` per artifact
 
 ### Pipeline Integrity
 
 - [x] **INTG-01**: All 14+ designCoverage-writing workflows verified to include all 20 fields in their write calls (pass-through-all pattern preserved)
-- [ ] **INTG-02**: Non-business product types (software, hardware, hybrid, experience) produce byte-identical manifest output to pre-v0.12 baseline when `businessMode === false`
-- [ ] **INTG-03**: `business:software` composition produces both software-specific and business-specific artifacts in single pipeline run
-- [ ] **INTG-04**: `business:hardware` composition produces both hardware-specific and business-specific artifacts in single pipeline run
-- [ ] **INTG-05**: `business:experience` composition produces both experience-specific and business-specific artifacts in single pipeline run
-- [ ] **INTG-06**: Deploy workflow halts at each approval gate without proceeding when user declines — no partial deployment
-- [ ] **INTG-07**: Nyquist regression tests cover all composition cases with structural assertions
+- [x] **INTG-02**: Non-business product types (software, hardware, hybrid, experience) produce byte-identical manifest output to pre-v0.12 baseline when `businessMode === false`
+- [x] **INTG-03**: `business:software` composition produces both software-specific and business-specific artifacts in single pipeline run
+- [x] **INTG-04**: `business:hardware` composition produces both hardware-specific and business-specific artifacts in single pipeline run
+- [x] **INTG-05**: `business:experience` composition produces both experience-specific and business-specific artifacts in single pipeline run
+- [x] **INTG-06**: Deploy workflow halts at each approval gate without proceeding when user declines — no partial deployment
+- [x] **INTG-07**: Nyquist regression tests cover all composition cases with structural assertions
 - [x] **INTG-08**: `businessTrack` branching consistency verified across all modified workflows — `grep -rn "businessTrack"` hit count matches `grep -rn "businessMode"` hit count in workflows/
 
 ## Future Requirements
@@ -143,7 +143,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FOUND-07 | 84 | Complete |
 | BRIEF-01 | 85 | Complete |
 | BRIEF-02 | 85 | Complete |
-| BRIEF-03 | 85 | Complete |
+| BRIEF-03 | 95 | Pending |
 | BRIEF-04 | 85 | Complete |
 | BRIEF-05 | 85 | Complete |
 | BRIEF-06 | 85 | Complete |
@@ -170,29 +170,29 @@ Which phases cover which requirements. Updated during roadmap creation.
 | QUAL-02 | 90 | Complete |
 | QUAL-03 | 90 | Complete |
 | QUAL-04 | 90 | Complete |
-| KIT-01 | 91 | Complete |
+| KIT-01 | 95 | Pending |
 | KIT-02 | 91 | Complete |
-| KIT-03 | 91 | Complete |
+| KIT-03 | 95 | Pending |
 | KIT-04 | 91 | Complete |
 | KIT-05 | 91 | Complete |
 | KIT-06 | 91 | Complete |
 | DEPLOY-01 | 92 | Complete |
 | DEPLOY-02 | 92 | Complete |
 | DEPLOY-03 | 92 | Complete |
-| DEPLOY-04 | 92 | Complete |
+| DEPLOY-04 | 95 | Pending |
 | DEPLOY-05 | 92 | Complete |
-| DEPLOY-06 | 92 | Complete |
+| DEPLOY-06 | 95 | Pending |
 | DEPLOY-07 | 92 | Complete |
 | DEPLOY-08 | 92 | Complete |
-| DEPLOY-09 | 92 | Complete |
+| DEPLOY-09 | 95 | Pending |
 | INTG-01 | 93 | Complete |
 | INTG-08 | 93 | Complete |
-| INTG-02 | 94 | Pending |
-| INTG-03 | 94 | Pending |
-| INTG-04 | 94 | Pending |
-| INTG-05 | 94 | Pending |
-| INTG-06 | 94 | Pending |
-| INTG-07 | 94 | Pending |
+| INTG-02 | 94 | Complete |
+| INTG-03 | 94 | Complete |
+| INTG-04 | 94 | Complete |
+| INTG-05 | 94 | Complete |
+| INTG-06 | 94 | Complete |
+| INTG-07 | 94 | Complete |
 
 **Coverage:**
 - v0.12 requirements: 59 total
@@ -201,4 +201,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-03-22*
-*Last updated: 2026-03-22 after roadmap creation — all 59 requirements mapped to phases 84-94*
+*Last updated: 2026-03-23 after gap closure planning — 53/59 satisfied, 6 reassigned to Phase 95 (BRIEF-03, KIT-01, KIT-03, DEPLOY-04, DEPLOY-06, DEPLOY-09)*
