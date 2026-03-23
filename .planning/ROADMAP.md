@@ -237,7 +237,7 @@ Full details: .planning/milestones/v0.12-ROADMAP.md
 
 - [x] **Phase 108: Playwright MCP Infrastructure** — Register Playwright as 7th APPROVED_SERVER with stdio transport, TOOL_MAP, probe/degrade
 - [x] **Phase 109: Wireframe + Mockup Screenshots** — Capture wireframe and mockup HTML screenshots via Playwright MCP (completed 2026-03-23)
-- [ ] **Phase 110: Critique A11y + Deploy Smoke Test** — Browser-based accessibility tree for critique, post-deploy smoke testing
+- [x] **Phase 110: Critique A11y + Deploy Smoke Test** — Browser-based accessibility tree for critique, post-deploy smoke testing (completed 2026-03-23)
 - [ ] **Phase 111: Visual Metric Scripts** — 5 metric scripts (DOM structure, a11y, contrast, responsive, Mermaid) following _evalMetric contract
 - [ ] **Phase 112: Experiment Templates** — AutoResearch experiment templates for all 14 eligible design skills with browser-backed verify
 - [ ] **Phase 113: Cross-Skill Pipeline + Iterate Effectiveness** — Pipeline experiments measuring upstream-to-downstream visual impact, iterate before/after delta
@@ -283,7 +283,7 @@ Plans:
   3. When neither Playwright nor Axe is available, critique falls back to manual WCAG checklist without error
   4. After a successful deploy, PDE navigates to the deploy URL, captures a screenshot, and verifies expected sections from LDP spec
   5. Deploy smoke test retries with exponential backoff when the build is still in progress
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 Plans:
 - [ ] 110-01-PLAN.md — Critique AOM probe + Perspective 3 AOM analysis (A11Y-01 through A11Y-04)
 - [x] 110-02-PLAN.md — Deploy post-deploy smoke test with backoff + manifest logging (DEP-01 through DEP-05)
