@@ -837,8 +837,8 @@ async function main() {
       const experiment = require('./lib/experiment.cjs');
       const slugIdx = args.indexOf('--slug');
       const slug = slugIdx !== -1 ? args[slugIdx + 1] : undefined;
-      if (!slug) {
-        error('--slug SLUG required. Available subcommands: init, commit, reset, promote, status, cleanup');
+      if (!slug && subcommand !== 'ensure-dirs' && subcommand !== 'patch-config') {
+        error('--slug SLUG required. Available subcommands: init, commit, reset, promote, status, cleanup, ensure-dirs, patch-config');
       }
       if (subcommand === 'init') {
         experiment.cmdExperimentInit(cwd, slug, raw);
@@ -859,8 +859,14 @@ async function main() {
         experiment.cmdExperimentStatus(cwd, slug, raw);
       } else if (subcommand === 'cleanup') {
         experiment.cmdExperimentCleanup(cwd, slug, raw);
+      } else if (subcommand === 'ensure-dirs') {
+        const schema = require('./lib/experiment-schema.cjs');
+        schema.cmdEnsureExperimentDirs(cwd, raw);
+      } else if (subcommand === 'patch-config') {
+        const schema = require('./lib/experiment-schema.cjs');
+        schema.cmdPatchExperimentConfig(cwd, raw);
       } else {
-        error('Unknown experiment subcommand. Available: init, commit, reset, promote, status, cleanup');
+        error('Unknown experiment subcommand. Available: init, commit, reset, promote, status, cleanup, ensure-dirs, patch-config');
       }
       break;
     }
