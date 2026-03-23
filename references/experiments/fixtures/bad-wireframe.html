@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Page</title>
+<style>
+body{margin:0;padding:0;background:#eee;}
+.box{display:block;padding:10px;margin:5px;background:#fff;}
+.top{background:#333;color:#fff;height:50px;padding:10px;}
+.mid{display:flex;}
+.left{width:200px;background:#ddd;padding:10px;}
+.content{flex:1;padding:10px;}
+.item{background:#f9f9f9;margin:5px;padding:8px;border:1px solid #ccc;}
+.btn{background:#555;color:#fff;padding:5px 10px;cursor:pointer;display:inline-block;}
+.input-box{width:200px;padding:5px;margin:3px;}
+.row{display:flex;gap:5px;flex-wrap:wrap;}
+.col{flex:1;background:#f0f0f0;padding:8px;}
+.footer-area{background:#333;color:#eee;padding:10px;height:40px;}
+</style>
+</head>
+<body>
+<div class="top">
+  <div style="font-size:18px;font-weight:bold;">Company Name</div>
+  <div style="float:right;">
+    <div style="display:inline-block;padding:5px;color:#fff;cursor:pointer;">Home</div>
+    <div style="display:inline-block;padding:5px;color:#fff;cursor:pointer;">Products</div>
+    <div style="display:inline-block;padding:5px;color:#fff;cursor:pointer;">About</div>
+    <div style="display:inline-block;padding:5px;color:#fff;cursor:pointer;">Contact</div>
+  </div>
+</div>
+<div class="mid">
+  <div class="left">
+    <div class="box">Category 1</div>
+    <div class="box">Category 2</div>
+    <div class="box">Category 3</div>
+    <div class="box">Category 4</div>
+    <div class="box">Category 5</div>
+  </div>
+  <div class="content">
+    <div style="font-size:22px;margin-bottom:10px;">Welcome to our page</div>
+    <div style="color:#666;margin-bottom:15px;">Find what you need using our platform</div>
+    <div class="row">
+      <div class="col">
+        <div style="font-size:14px;font-weight:bold;margin-bottom:5px;">Product A</div>
+        <div style="font-size:12px;color:#555;">Description of product A and its features.</div>
+        <div class="btn">View Details</div>
+      </div>
+      <div class="col">
+        <div style="font-size:14px;font-weight:bold;margin-bottom:5px;">Product B</div>
+        <div style="font-size:12px;color:#555;">Description of product B and its features.</div>
+        <div class="btn">View Details</div>
+      </div>
+      <div class="col">
+        <div style="font-size:14px;font-weight:bold;margin-bottom:5px;">Product C</div>
+        <div style="font-size:12px;color:#555;">Description of product C and its features.</div>
+        <div class="btn">View Details</div>
+      </div>
+    </div>
+    <div style="margin-top:20px;">
+      <div style="font-size:16px;font-weight:bold;margin-bottom:8px;">Sign Up</div>
+      <div>
+        <div style="margin-bottom:5px;">Name</div>
+        <div><input class="input-box" type="text" placeholder="Enter name"></div>
+      </div>
+      <div>
+        <div style="margin-bottom:5px;">Email</div>
+        <div><input class="input-box" type="text" placeholder="Enter email"></div>
+      </div>
+      <div class="btn" style="margin-top:10px;">Submit</div>
+    </div>
+    <div style="margin-top:20px;">
+      <div style="font-size:16px;font-weight:bold;margin-bottom:8px;">Latest Updates</div>
+      <div class="item">Update from 2026-01-15: New features added</div>
+      <div class="item">Update from 2026-01-10: Bug fixes</div>
+      <div class="item">Update from 2025-12-20: Performance improvements</div>
+    </div>
+  </div>
+</div>
+<div class="footer-area">
+  <div style="display:inline-block;margin-right:15px;">Privacy</div>
+  <div style="display:inline-block;margin-right:15px;">Terms</div>
+  <div style="display:inline-block;">Contact</div>
+  <div style="float:right;">© 2026 Company</div>
+</div>
+</body>
+</html>

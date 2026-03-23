@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>A11y Issues — Intentional Violations</title>
+  <style>
+    body { font-family: system-ui; margin: 1rem; }
+    header { background: #333; color: #fff; padding: 1rem; }
+    footer { background: #444; color: #eee; padding: 1rem; margin-top: 2rem; }
+    .card { border: 1px solid #ddd; padding: 1rem; margin: 1rem 0; }
+  </style>
+</head>
+<body>
+
+  <!-- Has header but NO <nav>, NO <main>, NO role="navigation" — missing landmarks -->
+  <header>
+    <span style="font-size: 24px; font-weight: bold;">Product Dashboard</span>
+  </header>
+
+  <!-- NO <main> or role="main" element — violation 1: missing main landmark -->
+
+  <div class="card">
+    <!-- Heading skip: h1 then directly to h3, no h2 — violation 2: heading hierarchy skip -->
+    <h1>Product Overview</h1>
+    <h3>Recent Activity</h3>
+    <!-- Expected: h2 between h1 and h3, skipping causes heading hierarchy violation -->
+
+    <p>View your recent product activity below.</p>
+
+    <!-- img without alt — violation 3: missing alt attribute -->
+    <img src="dashboard-chart.png" width="400" height="200">
+
+    <!-- img without alt — violation 4: another missing alt attribute -->
+    <img src="user-avatar.png" width="50" height="50">
+
+    <!-- Unlabeled input: input without associated label — violation 5: unlabeled control -->
+    <input type="text" placeholder="Search products...">
+
+    <!-- Button with empty text — violation 6: unlabeled button -->
+    <button></button>
+
+    <!-- Button with no accessible name via aria — violation 7: another empty button -->
+    <button>   </button>
+
+    <!-- Input without label: another unlabeled control — violation 8 -->
+    <input type="email" placeholder="Enter email">
+  </div>
+
+  <div class="card">
+    <!-- Another heading skip: jumping from h3 to further nesting without h2 — nested in context -->
+    <h3>Settings</h3>
+
+    <!-- Checkbox without label -->
+    <input type="checkbox" id="notifications">
+    <!-- Note: id exists but no <label for="notifications"> element -->
+
+    <!-- Select without label — violation -->
+    <select>
+      <option>Choose status</option>
+      <option value="active">Active</option>
+      <option value="inactive">Inactive</option>
+    </select>
+
+    <!-- img without alt in a decorative context (should have alt="" if decorative) -->
+    <img src="icon-warning.svg" width="16" height="16">
+  </div>
+
+  <!-- Has footer but NO <nav> anywhere — missing navigation landmark is already counted above -->
+  <footer>
+    <span>© 2026 Example Corp</span>
+  </footer>
+
+</body>
+</html>
