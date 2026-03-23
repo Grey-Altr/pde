@@ -122,6 +122,7 @@ Any user can go from idea to shipped product through a single platform that hand
 - ✓ Integration wiring fixes: OTR/BTH glob mismatches resolved, hasDeployStaging 21st designCoverage field, handoff required_reading expanded — v0.12
 - ✓ 21-field designCoverage schema (hasDeployStaging) across all 10 coverage-writing workflows — v0.12
 - ✓ 21-field cascade fix: test assertion (20→21), hasDeployStaging in 4 secondary workflows (recommend, ideate, iterate, mockup), clobber-audit updated — v0.12
+- ✓ Consumer glob mismatch fixes: 5 remaining producer→consumer glob mismatches fixed (STR extension .md→.json in deploy.md, STR/DPD/GTM stem corrections in handoff.md, STR stem fix in critique.md), Deploy E2E flow repaired — v0.12
 
 ### Active
 
@@ -160,7 +161,7 @@ Any user can go from idea to shipped product through a single platform that hand
 ## Context
 
 - **Shipped v0.11** on 2026-03-22: ~245,000 LOC (JavaScript/Markdown/Shell), ~1,078 total commits
-- **v0.12 complete:** Phases 84-95 shipped 2026-03-23 — business product type with venture design engine, 3 user tracks, deploy scaffolding, integration wiring fixes, 46/46 Nyquist assertions GREEN
+- **v0.12 complete:** Phases 84-97 shipped 2026-03-23 — business product type with venture design engine, 3 user tracks, deploy scaffolding, integration wiring fixes, consumer glob fixes, 235/235 Nyquist assertions GREEN
 - **Active milestone:** v0.12 Business Product Type — COMPLETE, ready for milestone archival
 - **Planned roadmap:** v0.13 AutoResearch → v0.14 WebMCP → v0.15 CLI-Anything → v0.16 Remote Dashboard → v0.17 Stakeholder Presentations → v1.0 Standalone CLI
 - **v0.11** shipped 2026-03-22: 112 files changed, 116 commits (experience product type: detection, brief, tokens, flows, wireframes, critique, HIG, print, handoff, 48 requirements)
@@ -266,4 +267,4 @@ Any user can go from idea to shipped product through a single platform that hand
 | Business detection threshold (3+ signals, 2+ categories) | Prevents over-triggering on pure software projects while catching genuine business intent | ✓ Good — 5-category taxonomy with category diversity requirement |
 | BTH→LCV dependency chain (skip, don't halt) | If BTH generation fails, LCV is skipped with warning rather than halting entire brief run | ✓ Good — graceful degradation preserves non-business brief output |
 | 20-field designCoverage write (not copy 16-field pattern) | Phase 84 added 4 fields; copying opportunity.md's 16-field pattern silently drops them | ✓ Good — canonical order from manifest template |
-*Last updated: 2026-03-23 after Phase 94 — Nyquist Regression Tests (35 new assertions, 224/224 full suite GREEN, all INTG-02 through INTG-07 verified, v0.12 milestone complete)*
+*Last updated: 2026-03-23 after Phase 97 — Consumer Glob Mismatch Fixes (5 GAPs closed, 235/235 Nyquist GREEN, Deploy E2E flow repaired, all 59 v0.12 requirements satisfied)*
