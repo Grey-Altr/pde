@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.12
 milestone_name: Business Product Type
-status: Ready to plan
-stopped_at: Completed 93-02-PLAN.md — mockup.md + ideate.md 20-field designCoverage fix, 11/11 Nyquist tests GREEN
-last_updated: "2026-03-23T02:35:20.062Z"
+status: Milestone complete
+stopped_at: Completed 94-01-PLAN.md — test-regression-matrix.cjs 35 assertions, 224/224 full CJS suite GREEN, INTG-02 through INTG-07 verified
+last_updated: "2026-03-23T03:15:36.080Z"
 progress:
   total_phases: 11
-  completed_phases: 10
-  total_plans: 19
-  completed_plans: 19
+  completed_phases: 11
+  total_plans: 20
+  completed_plans: 20
 ---
 
 # Project State
@@ -19,7 +19,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-22)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 93 — designcoverage-clobber-audit-secondary-workflow-stubs
+**Current focus:** Phase 94 — Nyquist Regression Tests
 
 ## Current Position
 
@@ -54,6 +54,7 @@ Plan: Not started
 | Phase 92 P02 | 2 | 2 tasks | 2 files |
 | Phase 93-designcoverage-clobber-audit-secondary-workflow-stubs P01 | 3 | 3 tasks | 3 files |
 | Phase 93 P02 | 2 | 2 tasks | 2 files |
+| Phase 94-nyquist-regression-tests P01 | 12 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -115,6 +116,8 @@ Recent decisions affecting v0.12:
 - [Phase 93-01]: INTG-08 implemented as per-file business stub presence checks, not global businessMode/businessTrack count equality — build.md 7-vs-0 gap is architectural
 - [Phase 93-01]: recommend.md uses per-field {current_hasFieldName} placeholders for 4 new fields; iterate.md uses generic {current} — each file preserves its existing naming convention
 - [Phase 93]: mockup.md and ideate.md use generic {current} placeholders for 4 new business coverage fields — consistent with each file's pre-existing convention
+- [Phase 94-nyquist-regression-tests]: BTH marker in brief.md is 'BTH-thesis' (artifact file path), not 'BTH-business-thesis' — direct grep verification before test authoring catches research doc drift
+- [Phase 94-nyquist-regression-tests]: Ordering assertions (indexOf gate < indexOf artifact) prove gating relationships without parsing workflow logic
 
 ### Pending Todos
 
@@ -127,8 +130,8 @@ Recent decisions affecting v0.12:
 
 ## Session Continuity
 
-Last session: 2026-03-23T02:31:19.811Z
-Stopped at: Completed 93-02-PLAN.md — mockup.md + ideate.md 20-field designCoverage fix, 11/11 Nyquist tests GREEN
+Last session: 2026-03-23T03:12:29.724Z
+Stopped at: Completed 94-01-PLAN.md — test-regression-matrix.cjs 35 assertions, 224/224 full CJS suite GREEN, INTG-02 through INTG-07 verified
 Resume file: None
 
 Next action: Execute Phase 92 (Deploy Skill)
