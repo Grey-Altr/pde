@@ -157,8 +157,8 @@ Any user can go from idea to shipped product through a single platform that hand
 ## Context
 
 - **Shipped v0.11** on 2026-03-22: ~245,000 LOC (JavaScript/Markdown/Shell), ~1,078 total commits
-- **v0.12 progress:** Phases 84-90 complete (foundation, brief, competitive, flows, brand, wireframe launch artifacts, critique+HIG extensions); Phases 91-94 remaining (handoff, deploy, integration)
-- **Active milestone:** v0.12 Business Product Type — venture design engine with business: orthogonal dimension, 3 user tracks, full deploy scaffolding
+- **v0.12 complete:** Phases 84-94 shipped 2026-03-23 — business product type with venture design engine, 3 user tracks, deploy scaffolding, 224/224 Nyquist assertions GREEN
+- **Active milestone:** v0.12 Business Product Type — COMPLETE, ready for milestone archival
 - **Planned roadmap:** v0.13 AutoResearch → v0.14 WebMCP → v0.15 CLI-Anything → v0.16 Remote Dashboard → v0.17 Stakeholder Presentations → v1.0 Standalone CLI
 - **v0.11** shipped 2026-03-22: 112 files changed, 116 commits (experience product type: detection, brief, tokens, flows, wireframes, critique, HIG, print, handoff, 48 requirements)
 - **v0.10** shipped 2026-03-21: 107 files changed, 56 commits (idle-time productivity: suggestion engine, catalog, context notes, 7-pane dashboard)
@@ -263,4 +263,4 @@ Any user can go from idea to shipped product through a single platform that hand
 | Business detection threshold (3+ signals, 2+ categories) | Prevents over-triggering on pure software projects while catching genuine business intent | ✓ Good — 5-category taxonomy with category diversity requirement |
 | BTH→LCV dependency chain (skip, don't halt) | If BTH generation fails, LCV is skipped with warning rather than halting entire brief run | ✓ Good — graceful degradation preserves non-business brief output |
 | 20-field designCoverage write (not copy 16-field pattern) | Phase 84 added 4 fields; copying opportunity.md's 16-field pattern silently drops them | ✓ Good — canonical order from manifest template |
-*Last updated: 2026-03-23 after Phase 93 — designCoverage Clobber Audit + Secondary Workflow Stubs (4 regression workflows fixed from 16→20 field writes, business stubs in recommend/iterate/mockup, 11/11 Nyquist GREEN, deploy.md clobber path eliminated)*
+*Last updated: 2026-03-23 after Phase 94 — Nyquist Regression Tests (35 new assertions, 224/224 full suite GREEN, all INTG-02 through INTG-07 verified, v0.12 milestone complete)*
