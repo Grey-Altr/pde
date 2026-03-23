@@ -356,7 +356,7 @@ Plans:
   3. `recommend.md`, `iterate.md`, and `mockup.md` each contain a `<!-- Business product type -->` conditional stub (the same guard pattern used in v0.11 for experience stubs)
 **Plans**: 2 plans
 Plans:
-- [ ] 93-01-PLAN.md — Test scaffold + recommend.md and iterate.md 20-field fix + business stubs
+- [x] 93-01-PLAN.md — Test scaffold + recommend.md and iterate.md 20-field fix + business stubs
 - [ ] 93-02-PLAN.md — mockup.md and ideate.md 20-field fix + mockup business stub
 
 ### Phase 94: Nyquist Regression Tests
@@ -398,5 +398,5 @@ Plans:
 | 90. Critique + HIG Extensions | v0.12 | 2/2 | Complete    | 2026-03-22 |
 | 91. Handoff — Launch Kit Assembly | v0.12 | 2/2 | Complete    | 2026-03-22 |
 | 92. Deploy Skill | v0.12 | 1/2 | Complete    | 2026-03-22 |
-| 93. designCoverage Audit + Stubs | v0.12 | 0/2 | Planned    |  |
+| 93. designCoverage Audit + Stubs | v0.12 | 1/2 | In Progress|  |
 | 94. Nyquist Regression Tests | v0.12 | 0/TBD | Not started | - |
