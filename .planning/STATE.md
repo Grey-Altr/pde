@@ -1,30 +1,32 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.12
-milestone_name: Business Product Type
-status: v0.12 milestone complete
-stopped_at: Completed 98-01-PLAN.md — 7 prose drift fixes (LDP glob + 6 field count prose), 235/235 Nyquist tests GREEN
-last_updated: "2026-03-23T07:32:49.484Z"
+milestone: v0.13
+milestone_name: AutoResearch
+status: Defining requirements
+stopped_at: ""
+last_updated: "2026-03-23T09:00:00.000Z"
 progress:
-  total_phases: 15
-  completed_phases: 15
-  total_plans: 24
-  completed_plans: 24
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-22)
+See: .planning/PROJECT.md (updated 2026-03-23)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 98 — prose-drift-ldp-glob-fix
+**Current focus:** Defining requirements for v0.13 AutoResearch
 
 ## Current Position
 
-Phase: 98
-Plan: Not started
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-23 — Milestone v0.13 started
 
 ## Performance Metrics
 
