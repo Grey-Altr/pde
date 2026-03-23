@@ -9,11 +9,11 @@ Requirements for the AutoResearch milestone. Each maps to roadmap phases.
 
 ### Git State Machine & Safety
 
-- [ ] **GIT-01**: `bin/lib/experiment.cjs` module implements commit-candidate / tag / reset-to-baseline / promote-best state machine using `execGit` from existing `core.cjs`
-- [ ] **GIT-02**: Experiment commits use `experiment({slug}):` prefix — `git reset --hard HEAD~1` fires ONLY on commits matching this prefix, never on `planning:` or regular commits
-- [ ] **GIT-03**: Experiments run in isolated git worktree (not main branch) — experiment commits never appear in main branch history until explicitly promoted
-- [ ] **GIT-04**: `EXPERIMENT-BEST.json` tracks the current best metric value, commit hash, and iteration number — enables session resumption
-- [ ] **GIT-05**: Six new `experiment` subcommands added to `pde-tools.cjs`: `init`, `commit`, `reset`, `promote`, `status`, `cleanup`
+- [x] **GIT-01**: `bin/lib/experiment.cjs` module implements commit-candidate / tag / reset-to-baseline / promote-best state machine using `execGit` from existing `core.cjs`
+- [x] **GIT-02**: Experiment commits use `experiment({slug}):` prefix — `git reset --hard HEAD~1` fires ONLY on commits matching this prefix, never on `planning:` or regular commits
+- [x] **GIT-03**: Experiments run in isolated git worktree (not main branch) — experiment commits never appear in main branch history until explicitly promoted
+- [x] **GIT-04**: `EXPERIMENT-BEST.json` tracks the current best metric value, commit hash, and iteration number — enables session resumption
+- [x] **GIT-05**: Six new `experiment` subcommands added to `pde-tools.cjs`: `init`, `commit`, `reset`, `promote`, `status`, `cleanup`
 
 ### Safety Boundaries
 
@@ -32,12 +32,12 @@ Requirements for the AutoResearch milestone. Each maps to roadmap phases.
 
 ### Experiment Definition & Execution
 
-- [ ] **EXEC-01**: `experiment.md` file format: YAML frontmatter (metric name, direction min/max, verify command, mutable files, immutable files, budget) + markdown prose (search space description, constraints, stopping rationale)
+- [x] **EXEC-01**: `experiment.md` file format: YAML frontmatter (metric name, direction min/max, verify command, mutable files, immutable files, budget) + markdown prose (search space description, constraints, stopping rationale)
 - [ ] **EXEC-02**: `pde-experiment-runner` agent type created — reads experiment.md, makes one atomic change per iteration, returns structured JSON (iteration, metric_value, metric_delta, status, description)
 - [ ] **EXEC-03**: Experiment runner enforces file boundaries: pre-commit hook validates only mutable files were modified, rejects commit and retries if boundary violated
 - [ ] **EXEC-04**: Metric evaluation runs the verify command via `spawnSync` with configurable timeout (default 30s) — three outcomes: KEEP (metric improved), DISCARD (metric regressed), CRASH (eval harness error)
-- [ ] **EXEC-05**: JSONL results log at `.planning/experiments/{slug}/results.jsonl` — each row: `{id, iteration, ts, commit, metric_value, metric_delta, status, description}`
-- [ ] **EXEC-06**: Experiment state directory at `.planning/experiments/{slug}/` with experiment.md copy, results.jsonl, EXPERIMENT-BEST.json, and final REPORT.md
+- [x] **EXEC-05**: JSONL results log at `.planning/experiments/{slug}/results.jsonl` — each row: `{id, iteration, ts, commit, metric_value, metric_delta, status, description}`
+- [x] **EXEC-06**: Experiment state directory at `.planning/experiments/{slug}/` with experiment.md copy, results.jsonl, EXPERIMENT-BEST.json, and final REPORT.md
 
 ### Self-Improvement & Skill Optimization
 
@@ -55,7 +55,7 @@ Requirements for the AutoResearch milestone. Each maps to roadmap phases.
 
 - [ ] **CMD-01**: `/pde:optimize` slash command created as entry point — accepts experiment.md path or `--self` / `--skill {name}` presets
 - [ ] **CMD-02**: `workflows/optimize.md` orchestrates the full loop: parse experiment.md → init worktree → baseline metric → loop (mutate → eval → keep/discard) → finalize → report → offer promotion
-- [ ] **CMD-03**: Experiment phase type recognized in ROADMAP.md — defined by target metric, search space, iteration budget, and keep/discard threshold
+- [x] **CMD-03**: Experiment phase type recognized in ROADMAP.md — defined by target metric, search space, iteration budget, and keep/discard threshold
 - [ ] **CMD-04**: Stopping conditions enforced in orchestrator: all 5 circuit breakers (BREAK-01..05) checked between iterations
 
 ### Researcher Augmentation
@@ -68,8 +68,8 @@ Requirements for the AutoResearch milestone. Each maps to roadmap phases.
 
 - [ ] **OBS-01**: Experiment lifecycle events emitted on NDJSON event bus: `experiment.start`, `experiment.iteration`, `experiment.keep`, `experiment.discard`, `experiment.crash`, `experiment.complete`
 - [ ] **OBS-02**: tmux dashboard gains experiment pane showing current iteration, best metric, keep/discard ratio, and estimated remaining budget
-- [ ] **OBS-03**: `.planning/experiments/` directory created by `ensure-dirs` in `design.cjs` (or equivalent setup path)
-- [ ] **OBS-04**: Experiment config template added to `.planning/config.json` with default budgets, thresholds, and cost estimate toggle
+- [x] **OBS-03**: `.planning/experiments/` directory created by `ensure-dirs` in `design.cjs` (or equivalent setup path)
+- [x] **OBS-04**: Experiment config template added to `.planning/config.json` with default budgets, thresholds, and cost estimate toggle
 
 ### Pipeline Integrity
 
@@ -113,17 +113,17 @@ Which phases cover which requirements.
 | SAFE-02 | Phase 99 | Complete |
 | SAFE-03 | Phase 99 | Complete |
 | SAFE-04 | Phase 99 | Complete |
-| GIT-01 | Phase 100 | Pending |
-| GIT-02 | Phase 100 | Pending |
-| GIT-03 | Phase 100 | Pending |
-| GIT-04 | Phase 100 | Pending |
-| GIT-05 | Phase 100 | Pending |
-| EXEC-01 | Phase 101 | Pending |
-| EXEC-05 | Phase 101 | Pending |
-| EXEC-06 | Phase 101 | Pending |
-| CMD-03 | Phase 101 | Pending |
-| OBS-03 | Phase 101 | Pending |
-| OBS-04 | Phase 101 | Pending |
+| GIT-01 | Phase 100 | Complete |
+| GIT-02 | Phase 100 | Complete |
+| GIT-03 | Phase 100 | Complete |
+| GIT-04 | Phase 100 | Complete |
+| GIT-05 | Phase 100 | Complete |
+| EXEC-01 | Phase 101 | Complete |
+| EXEC-05 | Phase 101 | Complete |
+| EXEC-06 | Phase 101 | Complete |
+| CMD-03 | Phase 101 | Complete |
+| OBS-03 | Phase 101 | Complete |
+| OBS-04 | Phase 101 | Complete |
 | EXEC-02 | Phase 102 | Pending |
 | EXEC-03 | Phase 102 | Pending |
 | EXEC-04 | Phase 102 | Pending |

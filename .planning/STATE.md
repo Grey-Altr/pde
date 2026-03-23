@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.13
 milestone_name: AutoResearch
 status: Phase complete — ready for verification
-stopped_at: Completed 99-02-PLAN.md — all 14 workflow files annotated with LOCKED/OPTIMIZABLE markers
-last_updated: "2026-03-23T09:01:15.061Z"
+stopped_at: Completed 101-01-PLAN.md
+last_updated: "2026-03-23T10:41:01.614Z"
 progress:
   total_phases: 9
-  completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  completed_phases: 2
+  total_plans: 6
+  completed_plans: 4
 ---
 
 # Project State
@@ -19,11 +19,11 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-23)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 99 — Safety Boundaries
+**Current focus:** Phase 101 — Experiment Schema & State Directory
 
 ## Current Position
 
-Phase: 99 (Safety Boundaries) — EXECUTING
+Phase: 101 (Experiment Schema & State Directory) — EXECUTING
 Plan: 2 of 2
 
 ## Performance Metrics
@@ -44,6 +44,10 @@ Plan: 2 of 2
 
 | Phase 99 P01 | 8 | 2 tasks | 2 files |
 | Phase 99 P02 | 35 | 2 tasks | 14 files |
+| Phase 100 P01 | 15 | 1 tasks | 2 files |
+| Phase 100 P02 | 12min | 1 tasks | 2 files |
+| Phase 101 P02 | 58 | 1 tasks | 1 files |
+| Phase 101-experiment-schema-state-directory P01 | 15 | 2 tasks | 7 files |
 
 ### Decisions
 
@@ -63,6 +67,13 @@ Recent decisions affecting v0.13 planning:
 - [Phase 99]: protected_files in experiment-boundaries.md is superset of protected-files.json — two independent protection layers
 - [Phase 99]: LOCKED/OPTIMIZABLE markers at section level (not file level) — interleaved patterns supported for multi-step flows like ideate.md
 - [Phase 99]: deploy.md Step 3 (scaffold guidance) is OPTIMIZABLE; Step 4 (Vercel deployment verification) is LOCKED — deploy verification is infrastructure not prose
+- [Phase 100]: Force checkout (-f) in _promote/_cleanup: EXPERIMENT-BEST.json has post-commit unstaged changes; reading state before branch switch makes -f safe with no data loss
+- [Phase 100]: Underscore helpers pattern for testability: cmd* wrappers call output()/error() causing process.exit; _* helpers return result objects — tests call _* directly
+- [Phase 100]: Slug-missing check fires before subcommand routing — produces unified error listing all 6 available subcommands for both missing and unknown subcommand cases
+- [Phase 101]: CMD-03 is a format convention document — four ROADMAP fields (Type, Target Metric, Search Space, Iteration Budget) recognized by field presence, not parser code changes
+- [Phase 101]: experiment-schema.cjs as NEW module (not extending experiment.cjs) — 300-line ceiling enforcement per PITFALLS research
+- [Phase 101]: JSONL_ROW_FIELDS as Object.freeze() constant — Phase 102 imports rather than hardcodes field names (EXEC-05 contract)
+- [Phase 101]: extractFrontmatter from frontmatter.cjs for experiment.md parsing (not parseFrontmatter in experiment.cjs which is experiment-boundaries.md-specific)
 
 ### Pending Todos
 
@@ -76,8 +87,8 @@ Recent decisions affecting v0.13 planning:
 
 ## Session Continuity
 
-Last session: 2026-03-23T09:01:15.058Z
-Stopped at: Completed 99-02-PLAN.md — all 14 workflow files annotated with LOCKED/OPTIMIZABLE markers
+Last session: 2026-03-23T10:41:01.610Z
+Stopped at: Completed 101-01-PLAN.md
 Resume file: None
 
 Next action: /pde:plan-phase 99
