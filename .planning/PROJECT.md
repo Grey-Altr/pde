@@ -129,6 +129,8 @@ Any user can go from idea to shipped product through a single platform that hand
 - ✓ Wireframe screenshot capture: wireframe.md Step 5d expanded to per-file loop (resize 1280x800 → navigate file:// → screenshot → close) with PLAYWRIGHT_AVAILABLE guard — v0.14
 - ✓ Mockup screenshot capture: mockup.md Step 7f expanded to per-file loop mirroring wireframe pattern, single 1280x800 viewport — v0.14
 - ✓ 52 Nyquist tests across Phases 108-109 (32 bridge + 20 screenshot) — all GREEN — v0.14
+- ✓ Visual regression circuit breaker: bin/lib/visual-regression.cjs (SHA-256 hash + metric delta AND-gate), BREAK-05 in optimize.md Step 7k, baseline capture in Step 6b, configurable via visual_regression_guard frontmatter — v0.14
+- ✓ 27 Nyquist tests for VRCB-01..05, zero regressions in existing experiment infrastructure — v0.14
 
 ### Active
 
@@ -178,7 +180,7 @@ Any user can go from idea to shipped product through a single platform that hand
 - **Shipped v0.12** on 2026-03-23: business product type with venture design engine — 15 phases, 24 plans, 59 requirements, 235 Nyquist assertions, 141 commits, zero tech debt
 - **Shipped v0.11** on 2026-03-22: ~245,000 LOC (JavaScript/Markdown/Shell), ~1,078 total commits
 - **Shipped v0.13** on 2026-03-23: 9 phases, 15 plans (AutoResearch: safety boundaries, git state machine, experiment schema, mutation agent, orchestrator, circuit breakers, self-improvement presets, researcher empirical mode, observability)
-- **Active milestone:** v0.14 Visual AutoResearch — Playwright MCP browser automation + 19 AutoResearch experiment types with visual/a11y/structural metrics (10 phases, 76 requirements). Phase 108 (Playwright MCP infra), Phase 109 (wireframe + mockup screenshots), Phase 110 (critique AOM a11y + deploy smoke test), Phase 111 (visual metric scripts), Phase 112 (experiment templates), and Phase 113 (cross-skill pipeline + iterate effectiveness) complete.
+- **Active milestone:** v0.14 Visual AutoResearch — Playwright MCP browser automation + 19 AutoResearch experiment types with visual/a11y/structural metrics (10 phases, 76 requirements). Phase 108 (Playwright MCP infra), Phase 109 (wireframe + mockup screenshots), Phase 110 (critique AOM a11y + deploy smoke test), Phase 111 (visual metric scripts), Phase 112 (experiment templates), Phase 113 (cross-skill pipeline + iterate effectiveness), and Phase 114 (visual regression circuit breaker) complete.
 - **Planned roadmap:** v0.13 AutoResearch → v0.14 Visual AutoResearch → v0.15 CLI-Anything → v0.16 Remote Dashboard → v0.17 Stakeholder Presentations → v1.0 Standalone CLI
 - **v0.11** shipped 2026-03-22: 112 files changed, 116 commits (experience product type: detection, brief, tokens, flows, wireframes, critique, HIG, print, handoff, 48 requirements)
 - **v0.10** shipped 2026-03-21: 107 files changed, 56 commits (idle-time productivity: suggestion engine, catalog, context notes, 7-pane dashboard)
@@ -285,4 +287,4 @@ Any user can go from idea to shipped product through a single platform that hand
 | 20-field designCoverage write (not copy 16-field pattern) | Phase 84 added 4 fields; copying opportunity.md's 16-field pattern silently drops them | ✓ Good — canonical order from manifest template |
 | Playwright MCP via stdio transport | npx @playwright/mcp@latest --headless — identical to Stitch pattern, zero npm deps | ✓ Good — 7th APPROVED_SERVER, 10 TOOL_MAP entries, 27 Nyquist tests |
 | browser_snapshot as probe tool (not browser_navigate) | browser_snapshot requires no URL arg, avoids "missing required parameter" error on probe | ✓ Good — lightest read-only operation for server health check |
-*Last updated: 2026-03-23 after Phase 113 (Cross-Skill Pipeline + Iterate Effectiveness) complete — 6/10 v0.14 phases done*
+*Last updated: 2026-03-23 after Phase 114 (Visual Regression Circuit Breaker) complete — 7/10 v0.14 phases done*
