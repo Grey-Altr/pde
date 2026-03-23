@@ -3,6 +3,7 @@ agents/pde-analyst.md,1e3020d3354a7da92b10c9c8013f7bc2c5aeac29c2fd5e3a54e0f64491
 agents/pde-design-quality-evaluator.md,c8d253e0fb98febac95050a53ef2507133b378f8928fcd794823e214a74b6c87,stock,2026-03-23
 agents/pde-experiment-runner-sonnet.md,bb8fa79072d8286a0432f9bdb9a907a8505882b7b21a35878d899bf7bc7f0157,stock,2026-03-23
 agents/pde-experiment-runner.md,f72000312dd67c41fcf0a263ec5ec3cfbc2f9ba333681d542863925386ea9bec,stock,2026-03-23
+agents/pde-phase-researcher.md,32748f9a9365de8f4bca9e5546379ae4f376b1b8e37f5af1458e81f7bfb5371d,stock,2026-03-23
 agents/pde-plan-checker.md,20566ef54e4532410d1f1149f5a222ff9572e4148fdff8a962c971d5dbb1520b,stock,2026-03-23
 agents/pde-pressure-test-evaluator.md,201be8d4d40edacef50cf07fcd601b6b0d24b6ca75f4955200fe6e4d9f8cdf9c,stock,2026-03-23
 agents/pde-quality-auditor.md,4f254a04a4a9fa4592a9a638518706a66d34c58fafff07ad0d0e3a53723137e7,stock,2026-03-23
@@ -14,7 +15,7 @@ bin/lib/commands.cjs,580de1d440af40d73b1702b774da879b8de0ba3b24723cfa1aa9b25c727
 bin/lib/config.cjs,c691456e840de178d52ff67cff926500dd20cc23d9cf969b7f475312d3a3c531,stock,2026-03-23
 bin/lib/core.cjs,149bb76c4ef55719bf8dad76060d2772228e7ad4c1661ca7087a31478d5998e6,stock,2026-03-23
 bin/lib/design.cjs,eeccc505b8e10ebb48d13fb93fb58d3d20cf1ec7c38c14af2e84bf5421743fc7,stock,2026-03-23
-bin/lib/event-bus.cjs,4884cbac35f8c5bcca903d7e2d791a4429e087ffd51fd8f3eca1a26bf2446fb4,stock,2026-03-23
+bin/lib/event-bus.cjs,833e7bcfa69035a87e81e29a40298dacfaa19cc392fa0397e5b3891c1cccec3a,stock,2026-03-23
 bin/lib/experiment-report.cjs,0a37c28ad0c5c06e0ac8d8267c2f86ae4042a7c218cc957236a71145eb7e89d1,stock,2026-03-23
 bin/lib/experiment-runner.cjs,13d1bb9e131a9dc2ac6d7fc12ab379bee943e48f0c0f2ee7610f55274fec65c4,stock,2026-03-23
 bin/lib/experiment-schema.cjs,9ac908aa9a18defb5fcf3da620fd3478c02010a78f1174fd67baf3a967945d48,stock,2026-03-23
@@ -181,7 +182,7 @@ workflows/new-milestone.md,098d28bada27de91ff27084bf620523d9c6734eab3ccaa007c25f
 workflows/new-project.md,6cf4cfdebf0e6e5321c0a8ee9731ba2ee0fc1f16334cf20a74f61ccaeb3f40a0,stock,2026-03-23
 workflows/node-repair.md,07a1628e5a1ff96bf8a90b49a9d9c3a0ef0b843aff79ffc0162c7b7026f6a61b,stock,2026-03-23
 workflows/opportunity.md,72a0ce8257d1caf4a3faf5e31aa434cacb4ebd807902a95b478ad68afe80d0be,stock,2026-03-23
-workflows/optimize.md,1fc88509166eda2d15d7a9a7f95bae84d2d486f39cebf6b195ff52dd096f5a39,stock,2026-03-23
+workflows/optimize.md,05198fb78ebb2729c27fb4693fd7aa58b1122a94403f10af5a20ca47b4552beb,stock,2026-03-23
 workflows/pause-work.md,516124dbd5a6d0ddb2904b944348133c2eafc42967de9682c88f100694e490c1,stock,2026-03-23
 workflows/pipeline-status.md,136ee7b55904855c703d4e5a3928f95e7de4048c0e8610703bf7303cf988e02d,stock,2026-03-23
 workflows/plan-milestone-gaps.md,08c247c35fa45fcc875e37b175da36fac919ef0653c2f1e80b3e6aad6db9050c,stock,2026-03-23
@@ -192,7 +193,7 @@ workflows/quick.md,0e33dac5778d14e63bcb448895cf280ade6384746973e6901d22bd24f5fda
 workflows/recommend.md,a709ec35552a964c037cf0217b3fccd1b73a9a0b92409f4940863327f6c1bc4c,stock,2026-03-23
 workflows/reconcile-phase.md,246c2348573b83c0ba6ec80c4fdb19a2406ca099c1a635b0ced30861236ec572,stock,2026-03-23
 workflows/remove-phase.md,da2e2b43e245b26be5c2ed79b576b7fa09be2e9cd7128ee60582224c5a1f88e3,stock,2026-03-23
-workflows/research-phase.md,12f04f9b7220c1191ad35ab281d05ef07d12eb5adf29c4419a4a8b5e6959c264,stock,2026-03-23
+workflows/research-phase.md,a60d09d2590301d11cb664b2e5b4f19d5ed673b6d49b9de351f994e1098bdf51,stock,2026-03-23
 workflows/resume-project.md,b5c5ce20c801ed51ad83b430015cfec1a69585c3b7ddf61a340d1ab241feb610,stock,2026-03-23
 workflows/settings.md,cddec7044beb5dde72a3087f8a629d58b9552ad34ef8617ebe951c7bc36576f2,stock,2026-03-23
 workflows/stats.md,c1539e22407ff0aec2554cf02e1280a53e13d7a60447d9f9fb14b800095ffaee,stock,2026-03-23

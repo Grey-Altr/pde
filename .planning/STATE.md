@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.13
 milestone_name: AutoResearch
 status: Phase complete — ready for verification
-stopped_at: Completed 105-01-PLAN.md
-last_updated: "2026-03-23T13:09:16.447Z"
+stopped_at: Completed 107-01-PLAN.md
+last_updated: "2026-03-23T14:13:21.077Z"
 progress:
   total_phases: 9
-  completed_phases: 6
-  total_plans: 12
-  completed_plans: 11
+  completed_phases: 8
+  total_plans: 15
+  completed_plans: 14
 ---
 
 # Project State
@@ -19,11 +19,11 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-23)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 105 — Researcher Empirical Mode
+**Current focus:** Phase 107 — Nyquist Coverage
 
 ## Current Position
 
-Phase: 105 (Researcher Empirical Mode) — EXECUTING
+Phase: 107 (Nyquist Coverage) — EXECUTING
 Plan: 1 of 1
 
 ## Performance Metrics
@@ -54,6 +54,9 @@ Plan: 1 of 1
 | Phase 103 P02 | 25 | 2 tasks | 9 files |
 | Phase 104-self-improvement-presets P01 | 12min | 1 tasks | 5 files |
 | Phase 105 P01 | 8 | 1 tasks | 4 files |
+| Phase 106 P01 | 144s | 4 tasks | 4 files |
+| Phase 106-observability-event-bus P02 | 2min | 2 tasks | 4 files |
+| Phase 107 P01 | 11 | 2 tasks | 6 files |
 
 ### Decisions
 
@@ -95,6 +98,13 @@ Recent decisions affecting v0.13 planning:
 - [Phase 105]: Empirical mode is additive (researcher always produces RESEARCH.md; --empirical adds try_candidates on top)
 - [Phase 105]: 2-keyword threshold for auto-routing prevents over-triggering on phases that mention optimization tangentially
 - [Phase 105]: Experiments Attempted section is a placeholder written by researcher; optimize workflow fills outcomes after running candidates
+- [Phase 106]: Reuse existing event-emit pde-tools subcommand for experiment events — avoids duplication, consistent with Phase 62 workflow instrumentation pattern
+- [Phase 106]: EXPERIMENT_EVENTS Object.freeze in event-bus.cjs — canonical string source for tests and downstream consumers
+- [Phase 106]: Emit both experiment.iteration and outcome event per iteration — supports two consumption patterns
+- [Phase 106-02]: Experiment.* case branch uses cyan same as subagent events but displays slug instead of agent_type
+- [Phase 107]: fileURLToPath required for ROOT path in tests — spaces in project path encode as %20, breaking spawnSync and fs.readFileSync
+- [Phase 107]: Helper scripts over node --eval for _evalMetric tests — spawnSync splits on whitespace without shell:true
+- [Phase 107]: LOCKED/OPTIMIZABLE markers use <!-- LOCKED: zone-name --> format with descriptive labels, not bare <!-- LOCKED -->
 
 ### Pending Todos
 
@@ -108,8 +118,8 @@ Recent decisions affecting v0.13 planning:
 
 ## Session Continuity
 
-Last session: 2026-03-23T13:09:16.444Z
-Stopped at: Completed 105-01-PLAN.md
+Last session: 2026-03-23T14:13:21.072Z
+Stopped at: Completed 107-01-PLAN.md
 Resume file: None
 
 Next action: /pde:plan-phase 99

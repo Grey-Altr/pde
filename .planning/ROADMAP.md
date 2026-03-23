@@ -392,4 +392,4 @@ Phases execute in numeric order: 99 → 100 → 101 → 102 → 103 → 104 → 
 | 104. Self-Improvement Presets | v0.13 | 0/1 | Complete    | 2026-03-23 |
 | 105. Researcher Empirical Mode | v0.13 | 0/1 | Complete    | 2026-03-23 |
 | 106. Observability & Event Bus | v0.13 | 1/2 | Complete    | 2026-03-23 |
-| 107. Nyquist Coverage | v0.13 | 0/1 | Not started | - |
+| 107. Nyquist Coverage | v0.13 | 0/1 | Planned    |  |

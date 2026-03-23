@@ -66,17 +66,17 @@ Requirements for the AutoResearch milestone. Each maps to roadmap phases.
 
 ### Observability & Integration
 
-- [ ] **OBS-01**: Experiment lifecycle events emitted on NDJSON event bus: `experiment.start`, `experiment.iteration`, `experiment.keep`, `experiment.discard`, `experiment.crash`, `experiment.complete`
-- [ ] **OBS-02**: tmux dashboard gains experiment pane showing current iteration, best metric, keep/discard ratio, and estimated remaining budget
+- [x] **OBS-01**: Experiment lifecycle events emitted on NDJSON event bus: `experiment.start`, `experiment.iteration`, `experiment.keep`, `experiment.discard`, `experiment.crash`, `experiment.complete`
+- [x] **OBS-02**: tmux dashboard gains experiment pane showing current iteration, best metric, keep/discard ratio, and estimated remaining budget
 - [x] **OBS-03**: `.planning/experiments/` directory created by `ensure-dirs` in `design.cjs` (or equivalent setup path)
 - [x] **OBS-04**: Experiment config template added to `.planning/config.json` with default budgets, thresholds, and cost estimate toggle
 
 ### Pipeline Integrity
 
-- [ ] **INTG-01**: Full Nyquist regression suite (235+ tests) runs as pipeline integrity check before any experiment commit is promoted to main
-- [ ] **INTG-02**: Experiment commits that pass the metric but fail Nyquist regression are automatically discarded (Nyquist is a hard floor, not the optimization target)
-- [ ] **INTG-03**: Existing PDE workflows produce byte-identical output when experiment infrastructure is present but no experiment is active (zero regression)
-- [ ] **INTG-04**: Nyquist tests cover experiment infrastructure: boundary enforcement, reset behavior, metric timeout, circuit breaker triggers
+- [x] **INTG-01**: Full Nyquist regression suite (235+ tests) runs as pipeline integrity check before any experiment commit is promoted to main
+- [x] **INTG-02**: Experiment commits that pass the metric but fail Nyquist regression are automatically discarded (Nyquist is a hard floor, not the optimization target)
+- [x] **INTG-03**: Existing PDE workflows produce byte-identical output when experiment infrastructure is present but no experiment is active (zero regression)
+- [x] **INTG-04**: Nyquist tests cover experiment infrastructure: boundary enforcement, reset behavior, metric timeout, circuit breaker triggers
 
 ## Future Requirements
 
@@ -147,12 +147,12 @@ Which phases cover which requirements.
 | RSRCH-01 | Phase 105 | Complete |
 | RSRCH-02 | Phase 105 | Complete |
 | RSRCH-03 | Phase 105 | Complete |
-| OBS-01 | Phase 106 | Pending |
-| OBS-02 | Phase 106 | Pending |
-| INTG-01 | Phase 107 | Pending |
-| INTG-02 | Phase 107 | Pending |
-| INTG-03 | Phase 107 | Pending |
-| INTG-04 | Phase 107 | Pending |
+| OBS-01 | Phase 106 | Complete |
+| OBS-02 | Phase 106 | Complete |
+| INTG-01 | Phase 107 | Complete |
+| INTG-02 | Phase 107 | Complete |
+| INTG-03 | Phase 107 | Complete |
+| INTG-04 | Phase 107 | Complete |
 
 **Coverage:**
 - v0.13 requirements: 44 total
