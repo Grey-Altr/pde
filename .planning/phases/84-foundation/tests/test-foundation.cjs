@@ -5,7 +5,7 @@
  *
  * Covers all 7 FOUND requirements:
  *   FOUND-01: businessMode + businessTrack in design-manifest.json
- *   FOUND-02: 20 designCoverage fields (16 existing + 4 new) in design-manifest.json
+ *   FOUND-02: 21 designCoverage fields (16 existing + 5 new) in design-manifest.json
  *   FOUND-03: 'launch' in DOMAIN_DIRS in bin/lib/design.cjs
  *   FOUND-04: references/business-track.md exists with expected content
  *   FOUND-05: references/launch-frameworks.md exists with expected content
@@ -65,15 +65,15 @@ describe('FOUND-01: businessMode and businessTrack in design-manifest.json', () 
 
 // ─── FOUND-02 ────────────────────────────────────────────────────────────────
 
-describe('FOUND-02: 20 designCoverage fields in design-manifest.json', () => {
+describe('FOUND-02: 21 designCoverage fields in design-manifest.json', () => {
   const EXISTING_16 = [
     'hasDesignSystem', 'hasWireframes', 'hasFlows', 'hasHardwareSpec',
     'hasCritique', 'hasIterate', 'hasHandoff', 'hasIdeation',
     'hasCompetitive', 'hasOpportunity', 'hasMockup', 'hasHigAudit',
     'hasRecommendations', 'hasStitchWireframes', 'hasPrintCollateral', 'hasProductionBible'
   ];
-  const NEW_4 = [
-    'hasBusinessThesis', 'hasMarketLandscape', 'hasServiceBlueprint', 'hasLaunchKit'
+  const NEW_5 = [
+    'hasBusinessThesis', 'hasMarketLandscape', 'hasServiceBlueprint', 'hasLaunchKit', 'hasDeployStaging'
   ];
 
   it('all 16 existing designCoverage field names appear in the manifest', () => {
@@ -88,11 +88,11 @@ describe('FOUND-02: 20 designCoverage fields in design-manifest.json', () => {
     }
   });
 
-  it('all 4 new designCoverage field names appear in the manifest', () => {
+  it('all 5 new designCoverage field names appear in the manifest', () => {
     const manifestPath = path.join(PROJECT_ROOT, 'templates', 'design-manifest.json');
     const content = fs.readFileSync(manifestPath, 'utf-8');
 
-    for (const field of NEW_4) {
+    for (const field of NEW_5) {
       assert.ok(
         content.includes(`"${field}"`),
         `designCoverage must contain new field: ${field}`
@@ -100,14 +100,14 @@ describe('FOUND-02: 20 designCoverage fields in design-manifest.json', () => {
     }
   });
 
-  it('4 new fields appear AFTER hasProductionBible in the file', () => {
+  it('5 new fields appear AFTER hasProductionBible in the file', () => {
     const manifestPath = path.join(PROJECT_ROOT, 'templates', 'design-manifest.json');
     const content = fs.readFileSync(manifestPath, 'utf-8');
 
     const posProductionBible = content.indexOf('"hasProductionBible"');
     assert.ok(posProductionBible !== -1, 'hasProductionBible must exist in manifest');
 
-    for (const field of NEW_4) {
+    for (const field of NEW_5) {
       const pos = content.indexOf(`"${field}"`);
       assert.ok(pos !== -1, `New field ${field} must exist in manifest`);
       assert.ok(
@@ -117,15 +117,15 @@ describe('FOUND-02: 20 designCoverage fields in design-manifest.json', () => {
     }
   });
 
-  it('designCoverage has exactly 20 non-comment fields', () => {
+  it('designCoverage has exactly 21 non-comment fields', () => {
     const manifestPath = path.join(PROJECT_ROOT, 'templates', 'design-manifest.json');
     const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf-8'));
 
     const coverageKeys = Object.keys(manifest.designCoverage).filter(k => k !== '_comment');
     assert.strictEqual(
       coverageKeys.length,
-      20,
-      `designCoverage must have exactly 20 fields, found: ${coverageKeys.length}`
+      21,
+      `designCoverage must have exactly 21 fields, found: ${coverageKeys.length}`
     );
   });
 });
