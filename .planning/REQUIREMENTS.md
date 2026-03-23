@@ -105,16 +105,60 @@ Explicitly excluded. Documented to prevent scope creep.
 
 ## Traceability
 
-Which phases cover which requirements. Updated during roadmap creation.
+Which phases cover which requirements.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (To be filled by roadmapper) | | |
+| SAFE-01 | Phase 99 | Pending |
+| SAFE-02 | Phase 99 | Pending |
+| SAFE-03 | Phase 99 | Pending |
+| SAFE-04 | Phase 99 | Pending |
+| GIT-01 | Phase 100 | Pending |
+| GIT-02 | Phase 100 | Pending |
+| GIT-03 | Phase 100 | Pending |
+| GIT-04 | Phase 100 | Pending |
+| GIT-05 | Phase 100 | Pending |
+| EXEC-01 | Phase 101 | Pending |
+| EXEC-05 | Phase 101 | Pending |
+| EXEC-06 | Phase 101 | Pending |
+| CMD-03 | Phase 101 | Pending |
+| OBS-03 | Phase 101 | Pending |
+| OBS-04 | Phase 101 | Pending |
+| EXEC-02 | Phase 102 | Pending |
+| EXEC-03 | Phase 102 | Pending |
+| EXEC-04 | Phase 102 | Pending |
+| SELF-06 | Phase 102 | Pending |
+| SELF-07 | Phase 102 | Pending |
+| SELF-08 | Phase 102 | Pending |
+| SELF-09 | Phase 102 | Pending |
+| BREAK-01 | Phase 103 | Pending |
+| BREAK-02 | Phase 103 | Pending |
+| BREAK-03 | Phase 103 | Pending |
+| BREAK-04 | Phase 103 | Pending |
+| BREAK-05 | Phase 103 | Pending |
+| CMD-01 | Phase 103 | Pending |
+| CMD-02 | Phase 103 | Pending |
+| CMD-04 | Phase 103 | Pending |
+| SELF-04 | Phase 103 | Pending |
+| SELF-05 | Phase 103 | Pending |
+| SELF-01 | Phase 104 | Pending |
+| SELF-02 | Phase 104 | Pending |
+| SELF-03 | Phase 104 | Pending |
+| RSRCH-01 | Phase 105 | Pending |
+| RSRCH-02 | Phase 105 | Pending |
+| RSRCH-03 | Phase 105 | Pending |
+| OBS-01 | Phase 106 | Pending |
+| OBS-02 | Phase 106 | Pending |
+| INTG-01 | Phase 107 | Pending |
+| INTG-02 | Phase 107 | Pending |
+| INTG-03 | Phase 107 | Pending |
+| INTG-04 | Phase 107 | Pending |
 
 **Coverage:**
 - v0.13 requirements: 44 total
-- Mapped to phases: 0 (pending roadmap)
-- Unmapped: 44
+- Mapped to phases: 44
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-23*
+*Traceability updated: 2026-03-23 (roadmap created)*
