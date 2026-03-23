@@ -4,6 +4,7 @@
     "references/skill-style-guide.md",
     "references/tooling-patterns.md",
     "references/model-profiles.md",
+    "references/experiment-boundaries.md",
     "workflows/improve.md",
     "bin/pde-tools.cjs",
     "bin/lib/model-profiles.cjs",
@@ -19,7 +20,9 @@
   ],
   "protected_directories": [
     "bin/",
-    ".claude/"
+    ".claude/",
+    "agents/",
+    "tests/"
   ],
   "allowed_write_directories": [
     ".planning/improvements/",
