@@ -262,6 +262,17 @@ If the eval returns `status: "CRASH"`:
 Store `baselineMetric` = metric_value from the eval result.
 
 Display: "Baseline metric: {baselineMetric}"
+
+**6b.** If the parsed experiment config has `visual_regression.enabled === true` AND `visual_regression.target` is not null:
+  - Check if Playwright MCP is available by running: `node bin/pde-tools.cjs mcp-probe --tool playwright:screenshot 2>/dev/null`
+  - If Playwright available:
+    - Call `captureAndStoreBaseline(cwd, slug, visual_regression.target)` from `bin/lib/visual-regression.cjs`
+    - Display: "Visual regression baseline captured for {visual_regression.target}"
+  - If Playwright not available:
+    - Display: "Visual regression guard enabled but Playwright unavailable — guard will be inactive this run."
+  - Store `visualRegressionGuard = true` and `visualRegressionTarget = visual_regression.target` in loop state.
+- Else:
+  - Store `visualRegressionGuard = false` in loop state.
 </step>
 
 <step name="step-7-iteration-loop">
@@ -345,6 +356,9 @@ LOOP (while haltReason is null):
     - `consecutiveFailures` = 0
     - `iterationsSinceImprovement` = 0
     - `consecutiveViolations` = 0
+    - If `visualRegressionGuard === true`:
+      - Copy `/tmp/pde-experiment-{slug}/current-screenshot.png` to `/tmp/pde-experiment-{slug}/baseline-screenshot.png`
+      - (The new KEEP result becomes the baseline for subsequent regression checks)
   - If status === "DISCARD":
     - `consecutiveFailures`++
     - `iterationsSinceImprovement`++
@@ -370,6 +384,14 @@ LOOP (while haltReason is null):
   2. BREAK-02 (time_budget): if elapsedMinutes >= timeBudget → haltReason = "time_budget"
   3. BREAK-03 (consecutive_failures): if consecutiveFailures >= consecutiveFailureLimit → haltReason = "consecutive_failures"
   4. BREAK-04 (no_progress): if iterationsSinceImprovement >= noProgressLimit → haltReason = "no_progress"
+  5. BREAK-05 (visual_regression): Only if `visualRegressionGuard === true` AND status is not "CRASH" AND status is not "BOUNDARY_VIOLATION":
+     - Capture current screenshot: call `captureAndStoreBaseline(cwd, slug, visualRegressionTarget)` from `bin/lib/visual-regression.cjs` but save to `/tmp/pde-experiment-{slug}/current-screenshot.png` instead of baseline
+     - Call `checkVisualRegression({ cwd, slug, currentScreenshotPath: '/tmp/pde-experiment-{slug}/current-screenshot.png', currentScore: metricValue, baselineScore: baselineMetric, direction })` from `bin/lib/visual-regression.cjs`
+     - If `result.fired === true`:
+       → haltReason = "visual_regression"
+       → Display: "Visual regression circuit breaker fired: {result.reason} (score delta: {result.scoreDelta})"
+       → Run: `node bin/pde-tools.cjs experiment reset --slug {slug}`
+     - If `visualRegressionGuard === true`, pass `screenshot_hash` and `baseline_hash` fields from the checkVisualRegression result to the JSONL row write. These are optional fields — null when guard is disabled.
 
   If any circuit breaker fires:
   - Display: "Circuit breaker fired: {haltReason} at iteration {currentIteration}"
