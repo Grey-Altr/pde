@@ -1,7 +1,7 @@
 /**
  * experiment-templates.test.mjs — Phase 112 Nyquist Coverage
  *
- * Validates that all 13 experiment templates exist in references/experiments/
+ * Validates that all 14 experiment templates exist in references/experiments/
  * and conform to the experiment-schema.cjs contract.
  *
  * Covers:
@@ -32,13 +32,13 @@ const EXPECTED_TEMPLATES = [
   'wireframe.md', 'mockup.md', 'system.md', 'flows.md',
   'critique.md', 'hig.md', 'iterate.md', 'handoff.md',
   'brief.md', 'recommend.md', 'competitive.md',
-  'opportunity.md', 'ideate.md',
+  'opportunity.md', 'ideate.md', 'deploy.md',
 ];
-// Note: deploy.md is experiment-eligible but not a design skill — 13 design skill templates, not 14
+// All 14 experiment-eligible design skill workflows from experiment-boundaries.md
 
 // ─── EXP-12: All templates exist ─────────────────────────────────────────────
 
-describe('EXP-12: all 13 design skill experiment templates exist', () => {
+describe('EXP-12: all 14 design skill experiment templates exist', () => {
   for (const name of EXPECTED_TEMPLATES) {
     it(`references/experiments/${name} exists`, () => {
       const fullPath = path.join(ROOT, 'references', 'experiments', name);
@@ -145,7 +145,7 @@ describe('EXP-10: browser-backed templates use visual metric scripts', () => {
 // ─── EXP-10: Non-browser templates use nyquist-metric.cjs ────────────────────
 
 describe('EXP-10: non-browser templates use nyquist-metric.cjs', () => {
-  const nyquistTemplates = ['recommend.md', 'competitive.md', 'opportunity.md', 'ideate.md', 'critique.md'];
+  const nyquistTemplates = ['recommend.md', 'competitive.md', 'opportunity.md', 'ideate.md', 'critique.md', 'deploy.md'];
   for (const name of nyquistTemplates) {
     it(`references/experiments/${name} verify command contains nyquist-metric.cjs`, () => {
       const content = fs.readFileSync(path.join(ROOT, 'references', 'experiments', name), 'utf-8');
