@@ -27,6 +27,7 @@ const JSONL_ROW_FIELDS = Object.freeze([
   'metric_delta',
   'status',
   'description',
+  'tokens_used',
 ]);
 
 // ─── Schema parsing ───────────────────────────────────────────────────────────

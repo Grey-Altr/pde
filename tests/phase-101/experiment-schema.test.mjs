@@ -54,9 +54,9 @@ test('JSONL_ROW_FIELDS is exported and frozen', () => {
   assert.ok(Object.isFrozen(schema.JSONL_ROW_FIELDS), 'JSONL_ROW_FIELDS should be frozen');
 });
 
-test('JSONL_ROW_FIELDS contains exactly the 8 required fields', () => {
-  const expected = ['id', 'iteration', 'ts', 'commit', 'metric_value', 'metric_delta', 'status', 'description'];
-  assert.deepEqual(schema.JSONL_ROW_FIELDS, expected, 'JSONL_ROW_FIELDS should contain exactly the 8 schema fields');
+test('JSONL_ROW_FIELDS contains exactly the 9 required fields', () => {
+  const expected = ['id', 'iteration', 'ts', 'commit', 'metric_value', 'metric_delta', 'status', 'description', 'tokens_used'];
+  assert.deepEqual(schema.JSONL_ROW_FIELDS, expected, 'JSONL_ROW_FIELDS should contain exactly the 9 schema fields');
 });
 
 // ─── parseExperimentFile tests ─────────────────────────────────────────────────
