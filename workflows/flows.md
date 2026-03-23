@@ -1056,10 +1056,10 @@ Parse the JSON output to extract current flag values for ALL twenty fields:
 - `hasServiceBlueprint` — set to true if `SBP_WRITTEN == true`, else current value from COV output (default false if absent)
 - `hasLaunchKit` — current value from COV output (default false if absent)
 
-Merge `hasFlows: true` (and `hasServiceBlueprint: true` if `SBP_WRITTEN == true`) into the existing values, then write the full twenty-field object (all flags must be present — default any absent field to `false`):
+Merge `hasFlows: true` (and `hasServiceBlueprint: true` if `SBP_WRITTEN == true`) into the existing values, then write the full twenty-one-field object (all flags must be present — default any absent field to `false`):
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":{current},"hasWireframes":{current},"hasFlows":true,"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":{current},"hasPrintCollateral":{current},"hasProductionBible":{current},"hasBusinessThesis":{current},"hasMarketLandscape":{current},"hasServiceBlueprint":{true if SBP_WRITTEN else current},"hasLaunchKit":{current}}'
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":{current},"hasWireframes":{current},"hasFlows":true,"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":{current},"hasPrintCollateral":{current},"hasProductionBible":{current},"hasBusinessThesis":{current},"hasMarketLandscape":{current},"hasServiceBlueprint":{true if SBP_WRITTEN else current},"hasLaunchKit":{current},"hasDeployStaging":{current}}'
 ```
 
 Display: `Step 7/7: Root DESIGN-STATE and manifest updated.`

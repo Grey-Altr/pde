@@ -822,6 +822,25 @@ If `$DEPLOY_EXIT == 0`:
 
 Store `$DEPLOY_URL` for the manifest. Display: `Step 4/6: Vercel deployment queued. URL: ${DEPLOY_URL}`
 
+**Write hasDeployStaging coverage flag:**
+
+Read current coverage state:
+```bash
+COV=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design coverage-check)
+if [[ "$COV" == @file:* ]]; then COV=$(cat "${COV#@file:}"); fi
+```
+
+Parse all 21 field values from COV JSON output (default absent fields to false). Then write the complete 21-field coverage object:
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage \
+  '{"hasDesignSystem":ACTUAL,"hasWireframes":ACTUAL,"hasFlows":ACTUAL,"hasHardwareSpec":ACTUAL,"hasCritique":ACTUAL,"hasIterate":ACTUAL,"hasHandoff":ACTUAL,"hasIdeation":ACTUAL,"hasCompetitive":ACTUAL,"hasOpportunity":ACTUAL,"hasMockup":ACTUAL,"hasHigAudit":ACTUAL,"hasRecommendations":ACTUAL,"hasStitchWireframes":ACTUAL,"hasPrintCollateral":ACTUAL,"hasProductionBible":ACTUAL,"hasBusinessThesis":ACTUAL,"hasMarketLandscape":ACTUAL,"hasServiceBlueprint":ACTUAL,"hasLaunchKit":ACTUAL,"hasDeployStaging":true}'
+```
+
+Where each ACTUAL is replaced with the literal `true` or `false` value read from the parsed coverage. `hasDeployStaging` is hardcoded to `true` — this is the flag deploy.md owns. All other 20 fields use their current values.
+
+**CRITICAL:** This write MUST be inside the `if $DEPLOY_EXIT == 0:` success path (after Gate 4 success), NOT before Gate 4 or at the start of Step 5. The flag should only be set when deploy actually succeeded.
+
 ---
 
 ### Step 5/6: Write deploy-manifest.json

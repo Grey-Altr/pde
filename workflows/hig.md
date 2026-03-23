@@ -323,6 +323,15 @@ ELSE:
 
   **Standard WCAG/HIG audit path (existing behavior for software/hardware/hybrid products):**
 
+  Business mode detection (read once, cache for use in Step 4-BUSINESS):
+
+  ```bash
+  BM=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-get-top-level businessMode 2>/dev/null)
+  if [[ "$BM" == @file:* ]]; then BM=$(cat "${BM#@file:}"); fi
+  BT=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-get-top-level businessTrack 2>/dev/null)
+  if [[ "$BT" == @file:* ]]; then BT=$(cat "${BT#@file:}"); fi
+  ```
+
 **IF --light mode (LIGHT_MODE=true):**
 
 Run ONLY these 5 mandatory checks:
@@ -602,6 +611,58 @@ Severity: minor for scale animations (brief untappable window < 150ms), major if
 
 ---
 
+---
+
+#### Step 4-BUSINESS: Business Communications HIG
+
+IF `$LIGHT_MODE == true`: skip this entire block. (Defense-in-depth: business communications MUST NOT run in --light mode, which is used by /pde:critique delegation.)
+
+IF `$BM != "true"`: skip this entire block.
+
+IF `$BM == "true"` AND `$LIGHT_MODE == false`:
+
+Load @references/business-track.md for track-specific expectations.
+
+##### Domain 1: Pitch Deck Readability
+
+Use Glob to find `.planning/design/launch/DPD-pitch-deck-outline-v*.md`. Take highest version.
+
+IF DPD absent: note "DPD pitch deck outline not yet generated; run /pde:wireframe in business mode to create." — do NOT halt.
+
+IF DPD present:
+- Check slide count against track format:
+  - solo_founder: expect ~10 slides (YC format)
+  - startup_team: expect 10-15 slides (YC or Sequoia depending on funding signal)
+  - product_leader: expect internal business case format
+- Check each slide headline/question is concise (< 12 words). Severity: minor if > 12 words.
+- Check solution slide contains UVP from LCV Box 3 (search for `LCV.box3.UVP` anchor). Severity: major if UVP absent from solution slide.
+
+##### Domain 2: Email Cadence Structure
+
+Use Glob to find `.planning/design/launch/OTR-email-sequence-v*.md`. Take highest version.
+
+IF OTR absent: note "OTR email sequence not yet generated; run /pde:handoff to create." — do NOT halt. Skip to Domain 3.
+
+IF OTR present:
+- Check onboarding email count matches track expectation:
+  - solo_founder: 5 emails
+  - startup_team: 5-7 emails
+  - product_leader: 7 emails
+  Severity: minor for count mismatch.
+- Check each email has trigger, delay, and CTA fields populated. Severity: major for missing CTA fields.
+
+##### Domain 3: Content Calendar Structure
+
+Use Glob to find `.planning/design/launch/CNT-content-calendar-v*.md`. Take highest version.
+
+IF CNT absent: note "CNT content calendar not yet generated; run /pde:handoff to create." — do NOT halt.
+
+IF CNT present:
+- Check 30-day skeleton with pre-launch, launch, and post-launch phases present. Severity: minor if any phase missing.
+- Check content slots derive from GTM channel priorities (look for GTM/channel references). Severity: major if no GTM cross-reference.
+
+---
+
 Display: `Step 4/7: Audit complete. {N} findings identified (critical: {c}, major: {m}, minor: {mi}, nit: {n}).`
 
 ---
@@ -789,17 +850,19 @@ COV=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design coverage-check)
 if [[ "$COV" == @file:* ]]; then COV=$(cat "${COV#@file:}"); fi
 ```
 
-Parse the JSON result. Extract ALL 16 current coverage flag values (default absent fields to `false`):
-- `hasDesignSystem`, `hasWireframes`, `hasFlows`, `hasHardwareSpec`, `hasCritique`, `hasIterate`, `hasHandoff`, `hasIdeation`, `hasCompetitive`, `hasOpportunity`, `hasMockup`, `hasHigAudit`, `hasRecommendations`, `hasStitchWireframes`, `hasPrintCollateral`, `hasProductionBible`
+Parse the JSON result. Extract ALL TWENTY current coverage flag values (default absent fields to `false`):
+- `hasDesignSystem`, `hasWireframes`, `hasFlows`, `hasHardwareSpec`, `hasCritique`, `hasIterate`, `hasHandoff`, `hasIdeation`, `hasCompetitive`, `hasOpportunity`, `hasMockup`, `hasHigAudit`, `hasRecommendations`, `hasStitchWireframes`, `hasPrintCollateral`, `hasProductionBible`, `hasBusinessThesis`, `hasMarketLandscape`, `hasServiceBlueprint`, `hasLaunchKit`
 
-Then write the FULL 16-field JSON, setting `hasHigAudit` to `true` and passing all other flags through unchanged:
+Set `hasHigAudit: true`, pass all 19 other fields through with their current values.
+
+Then write the FULL 20-field JSON, setting `hasHigAudit` to `true` and passing all other flags through unchanged:
 
 ```bash
 node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage \
-  '{"hasDesignSystem":{current},"hasWireframes":{current},"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":true,"hasRecommendations":{current},"hasStitchWireframes":{current},"hasPrintCollateral":{current},"hasProductionBible":{current}}'
+  '{"hasDesignSystem":{current},"hasWireframes":{current},"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":true,"hasRecommendations":{current},"hasStitchWireframes":{current},"hasPrintCollateral":{current},"hasProductionBible":{current},"hasBusinessThesis":{current},"hasMarketLandscape":{current},"hasServiceBlueprint":{current},"hasLaunchKit":{current},"hasDeployStaging":{current}}'
 ```
 
-**IMPORTANT:** Replace each `{current}` placeholder with the actual boolean value read from coverage-check. NEVER use dot-notation. ALWAYS write all 16 fields. Canonical field order: hasDesignSystem, hasWireframes, hasFlows, hasHardwareSpec, hasCritique, hasIterate, hasHandoff, hasIdeation, hasCompetitive, hasOpportunity, hasMockup, hasHigAudit, hasRecommendations, hasStitchWireframes, hasPrintCollateral, hasProductionBible.
+**IMPORTANT:** Replace each `{current}` placeholder with the actual boolean value read from coverage-check. NEVER use dot-notation. ALWAYS write all 21 fields. Canonical field order: hasDesignSystem, hasWireframes, hasFlows, hasHardwareSpec, hasCritique, hasIterate, hasHandoff, hasIdeation, hasCompetitive, hasOpportunity, hasMockup, hasHigAudit, hasRecommendations, hasStitchWireframes, hasPrintCollateral, hasProductionBible, hasBusinessThesis, hasMarketLandscape, hasServiceBlueprint, hasLaunchKit, hasDeployStaging.
 
 Display: `Step 7/7: Root DESIGN-STATE and manifest updated. hasHigAudit: true.`
 
@@ -837,7 +900,7 @@ Display the final summary table (always the last output):
 - NEVER hard-fail when Axe MCP unavailable (manual checklist fallback is sufficient)
 - NEVER skip coverage-check before writing designCoverage
 - NEVER use dot-notation with manifest-set-top-level (always pass full JSON object)
-- NEVER write only hasHigAudit to designCoverage — always pass all 15 fields
+- NEVER write only hasHigAudit to designCoverage — always pass all 19 other fields through (20 total)
 - Coverage flag name is `hasHigAudit` (not hasHIG, not hasHig, not hasHIGAudit)
 - NEVER hard-fail when auditable artifact is absent — HALT with clear error message pointing to prerequisite skill
 - ALWAYS release write lock (Step 7 lock-release) even if an error occurs during root DESIGN-STATE updates
