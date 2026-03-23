@@ -356,8 +356,8 @@ Plans:
   3. `recommend.md`, `iterate.md`, and `mockup.md` each contain a `<!-- Business product type -->` conditional stub (the same guard pattern used in v0.11 for experience stubs)
 **Plans**: 2 plans
 Plans:
-- [ ] 89-01-PLAN.md — Test scaffold, LDP schema in launch-frameworks.md, businessMode detection, LDP generation, 20-field coverage
-- [ ] 84-02-PLAN.md — Business reference files (track, frameworks, financial/legal disclaimers)
+- [ ] 93-01-PLAN.md — Test scaffold + recommend.md and iterate.md 20-field fix + business stubs
+- [ ] 93-02-PLAN.md — mockup.md and ideate.md 20-field fix + mockup business stub
 
 ### Phase 94: Nyquist Regression Tests
 **Goal**: The complete v0.12 integration is verified: non-business product types are byte-identical to pre-v0.12 baselines, business compositions produce correct artifact sets, and the deploy approval gates halt on decline
@@ -398,5 +398,5 @@ Plans:
 | 90. Critique + HIG Extensions | v0.12 | 2/2 | Complete    | 2026-03-22 |
 | 91. Handoff — Launch Kit Assembly | v0.12 | 2/2 | Complete    | 2026-03-22 |
 | 92. Deploy Skill | v0.12 | 1/2 | Complete    | 2026-03-22 |
-| 93. designCoverage Audit + Stubs | v0.12 | 0/TBD | Not started | - |
+| 93. designCoverage Audit + Stubs | v0.12 | 0/2 | Not started | - |
 | 94. Nyquist Regression Tests | v0.12 | 0/TBD | Not started | - |
