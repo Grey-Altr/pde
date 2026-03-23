@@ -268,7 +268,7 @@ Full details: .planning/milestones/v0.12-ROADMAP.md
   2. Running `/pde:mockup` produces PNG screenshots of all generated mockup HTML files in `screenshots/` subdirectory
   3. Multi-page wireframes (index.html + screen-*.html) each get individual screenshots at 1280x800 viewport
   4. `--no-playwright` flag skips screenshot capture without error (existing degradation path preserved)
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 Plans:
 - [ ] 108-01-PLAN.md — Register Playwright in mcp-bridge.cjs (APPROVED_SERVERS + TOOL_MAP + AUTH_INSTRUCTIONS + Nyquist tests)
 - [ ] 108-02-PLAN.md — Update mcp-integration.md docs + MCP-08 live verification gate
