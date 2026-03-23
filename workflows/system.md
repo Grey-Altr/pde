@@ -1,3 +1,4 @@
+<!-- LOCKED: purpose, required_reading, flags, process header, init steps, token schema -->
 <purpose>
 Generate a complete DTCG 2025.10 design token set from product brief context. Produces a canonical JSON token source and derived CSS custom properties across all 7 token categories (color, typography, spacing, shadows, borders, motion, components), a standalone browser-viewable preview page with light/dark toggle, and a markdown usage guide. All outputs are registered in DESIGN-STATE and the design manifest so downstream wireframe, critique, and handoff skills can locate and consume them.
 </purpose>
@@ -1234,7 +1235,9 @@ Example structure:
 Populate ALL values with the computed numbers from the generation steps above. Do not leave placeholder values in the final JSON.
 
 ---
+<!-- /LOCKED -->
 
+<!-- OPTIMIZABLE: token generation guidance, category ordering, design prose, output structure -->
 ### Step 5/7: Write output artifacts
 
 Write all 12 artifacts using the Write tool. Paths are relative to `.planning/design/` unless otherwise noted.
@@ -2040,7 +2043,9 @@ Set MKT_WRITTEN=true.
 **ELSE:** Set MKT_WRITTEN=false. Skip silently.
 
 ---
+<!-- /OPTIMIZABLE -->
 
+<!-- LOCKED: DESIGN-STATE updates, designCoverage write, manifest registration -->
 ### Step 6/7: Update visual domain DESIGN-STATE
 
 Use the Glob tool to check if `.planning/design/visual/DESIGN-STATE.md` exists.
@@ -2246,6 +2251,7 @@ Display the final summary table (always the last output):
 - NEVER merge brand tokens into SYS-tokens.json. Write a separate SYS-brand-tokens.json file. The manifest-set-top-level command has no deep merge — writing a new root key into SYS-tokens.json risks corrupting all 7 existing categories.
 - NEVER use raw oklch values in campaign-palette-variants tokens. Campaign palette tokens MUST use {token.path} alias syntax pointing into SYS-tokens.json (e.g., {color.primitive.primary.500}). Raw values drift out of sync when the core system is regenerated.
 - NEVER use ELSE IF or ELSE branching between Step 5b (experience tokens) and Steps 5c/5d (business brand tokens). Both are independent conditional blocks — a business:experience composition must run BOTH.
+<!-- /LOCKED -->
 
 </process>
 

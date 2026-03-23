@@ -1,3 +1,4 @@
+<!-- LOCKED: purpose, required_reading, flags, process header, init steps, prerequisites, MCP probe, Awwwards dimension weights -->
 <purpose>
 Multi-perspective design critique of wireframes grounded in the project's brief and flows. Evaluates from four perspectives (UX/usability, visual hierarchy, accessibility, business alignment) with weighted scoring (UX: 1.5x, Visual Hierarchy: 1.0x, Accessibility: 1.5x, Business Alignment: 1.0x). Produces versioned CRT-critique-v{N}.md in .planning/design/review/ with severity-rated findings (critical/major/minor/nit), concrete actionable recommendations, a mandatory "What Works" section preserving intentional design decisions, and an Action List for /pde:iterate consumption. Hard-blocks when both brief and flows are absent (CRT-02), warns and continues when only one prerequisite is missing. Registered in the design manifest under artifact code CRT with hasCritique coverage flag set via read-before-set pattern.
 </purpose>
@@ -449,7 +450,9 @@ For each wireframe file in WIREFRAME_FILES:
     SET HAS_PNG = false
 
   Display progress: `Step 4/7: Evaluating {screen_slug} ({N} of {total})...`
+<!-- /LOCKED -->
 
+<!-- OPTIMIZABLE: critique perspective ordering, evaluation guidance prose, rubric description text -->
   #### Perspective 1: UX / Usability (weight 1.5x)
 
   Evaluation frameworks:
@@ -615,7 +618,9 @@ Every finding produced in Step 4 MUST have ALL of the following:
 - **Weight:** Perspective weight (1.5x for UX and Accessibility, 1.0x for Visual Hierarchy and Business Alignment)
 
 ---
+<!-- /OPTIMIZABLE -->
 
+<!-- LOCKED: Awwwards dimension weights (Design 40%, Usability 30%, Creativity 20%, Content 10%), finding format, score calculation, artifact writes, designCoverage update -->
 #### Awwwards Dimension Mapping (apply to EVERY finding)
 
 For each finding identified in any perspective, map it to one Awwwards dimension using quality-standards.md:
@@ -1269,6 +1274,7 @@ NEVER do any of the following:
 - Produce findings without Reference field — every finding needs a grounding standard (Nielsen heuristic, WCAG criterion, Gestalt principle, etc.)
 - Apply hifi severity calibration to lofi wireframes — fidelity calibration table in Step 4 is mandatory
 - Omit the Action List for /pde:iterate section — the iterate skill reads this checklist to know what to address
+<!-- /LOCKED -->
 
 </process>
 

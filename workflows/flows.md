@@ -1,3 +1,4 @@
+<!-- LOCKED: purpose, required_reading, flags, process header, init steps, MCP probe -->
 <purpose>
 Map user journeys from the product brief as Mermaid flowchart diagrams per persona, and extract a machine-readable screen inventory that downstream wireframe consumption requires. Produces versioned flow documents with happy paths, decision branches, and error states per persona journey, plus a fixed-path JSON screen inventory that /pde:wireframe reads as its canonical screen list.
 </purpose>
@@ -146,7 +147,9 @@ Attempt to call `mcp__sequential-thinking__think` with test prompt `"Analyze the
 Display: `Step 3/7: MCP probes complete. Sequential Thinking: {available | unavailable}.`
 
 ---
+<!-- /LOCKED -->
 
+<!-- OPTIMIZABLE: flow diagram guidance, persona labeling, journey narration, diagram structure -->
 ### Step 4/7: Generate flow diagrams
 
 This is the core generation step. Claude synthesizes and generates all diagram content in memory before writing to files in Step 5.
@@ -674,7 +677,9 @@ SET flag: `GTM_CONTENT_GENERATED=true`
 Display (if generated): `  -> GTM channel flow generated ({channel_count} channels, {track} track depth)`
 
 ---
+<!-- /OPTIMIZABLE -->
 
+<!-- LOCKED: artifact writes, DESIGN-STATE updates, designCoverage write, manifest registration -->
 ### Step 5/7: Write output artifacts
 
 Write all files using the Write tool. Display confirmation after each file.
@@ -1104,6 +1109,7 @@ Display the final summary table as the last output of every run:
 | Files created | .planning/design/ux/TFL-temporal-flow-v1.md, .planning/design/ux/SFL-spatial-flow-v1.md, .planning/design/ux/SOC-social-flow-v1.md, .planning/design/ux/spaces-inventory.json, .planning/design/ux/DESIGN-STATE.md (if it does not exist) |
 | Files modified | .planning/design/DESIGN-STATE.md, .planning/design/design-manifest.json |
 | Next suggested skill | /pde:wireframe |
+<!-- /LOCKED -->
 
 </process>
 
