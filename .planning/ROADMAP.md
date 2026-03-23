@@ -223,7 +223,7 @@ Full details: .planning/milestones/v0.12-ROADMAP.md
 
 - [x] **Phase 99: Safety Boundaries** - Immutability reference and section-level locked/optimizable markers across all experiment-eligible workflows (completed 2026-03-23)
 - [x] **Phase 100: Git State Machine** - `experiment.cjs` module with commit-candidate/tag/reset/promote state machine and 6 pde-tools subcommands (completed 2026-03-23)
-- [ ] **Phase 101: Experiment Schema & State Directory** - `experiment.md` file format, `.planning/experiments/` directory structure, config defaults, experiment phase type
+- [x] **Phase 101: Experiment Schema & State Directory** - `experiment.md` file format, `.planning/experiments/` directory structure, config defaults, experiment phase type (completed 2026-03-23)
 - [ ] **Phase 102: Mutation Agent & Metric Evaluation** - `pde-experiment-runner` agent with Haiku-first model selection, diff-based context, token tracking, and boundary enforcement
 - [ ] **Phase 103: Orchestrator, Command & Circuit Breakers** - `workflows/optimize.md` full loop, `/pde:optimize` command, all 5 circuit breakers, cost estimate gate, REPORT.md
 - [ ] **Phase 104: Self-Improvement Presets** - `--self` and `--skill` modes, OPTIMIZABLE autodiscovery, self-improvement preset configuration
@@ -290,11 +290,11 @@ Plans:
   4. The runner defaults to Haiku for mutation attempts and only escalates to Sonnet after 3 consecutive boundary violations or crashes
   5. After iteration 1, the runner receives only the diff of current-best vs baseline rather than the full file, reducing per-iteration token consumption
   6. `results.jsonl` rows include a `tokens_used` field and REPORT.md includes total token cost and cost-per-improvement ratio
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 102-01: Create pde-experiment-runner agent with metric eval, boundary enforcement, and token efficiency
-- [ ] 102-02: Implement diff-based context and token tracking
+- [ ] 102-01-PLAN.md — Create experiment-runner.cjs library module with boundary check, metric eval, JSONL write, diff extraction
+- [ ] 102-02-PLAN.md — Create pde-experiment-runner agent and wire pde-tools subcommands
 
 ### Phase 103: Orchestrator, Command & Circuit Breakers
 **Goal**: The full experiment loop is orchestrated end-to-end — a user can invoke `/pde:optimize`, confirm the cost estimate, and the system iterates automatically with all stopping conditions enforced
@@ -385,8 +385,8 @@ Phases execute in numeric order: 99 → 100 → 101 → 102 → 103 → 104 → 
 | 84-98 | v0.12 | 24/24 | Complete | 2026-03-23 |
 | 99. Safety Boundaries | v0.13 | 2/2 | Complete    | 2026-03-23 |
 | 100. Git State Machine | v0.13 | 2/2 | Complete    | 2026-03-23 |
-| 101. Experiment Schema & State Directory | v0.13 | 0/2 | Planned    |  |
-| 102. Mutation Agent & Metric Evaluation | v0.13 | 0/TBD | Not started | - |
+| 101. Experiment Schema & State Directory | v0.13 | 0/2 | Complete    | 2026-03-23 |
+| 102. Mutation Agent & Metric Evaluation | v0.13 | 0/2 | Not started | - |
 | 103. Orchestrator, Command & Circuit Breakers | v0.13 | 0/TBD | Not started | - |
 | 104. Self-Improvement Presets | v0.13 | 0/TBD | Not started | - |
 | 105. Researcher Empirical Mode | v0.13 | 0/TBD | Not started | - |
