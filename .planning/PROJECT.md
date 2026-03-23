@@ -125,6 +125,11 @@ Any user can go from idea to shipped product through a single platform that hand
 - ✓ Consumer glob mismatch fixes: 5 remaining producer→consumer glob mismatches fixed (STR extension .md→.json in deploy.md, STR/DPD/GTM stem corrections in handoff.md, STR stem fix in critique.md), Deploy E2E flow repaired — v0.12
 - ✓ Prose drift cleanup: LDP glob stem fixed in critique.md BIZ-3, all stale "20 fields" prose updated to "21 fields" across 9 workflow files, hasDeployStaging added to all prose field lists — v0.12
 
+- ✓ Playwright MCP registered as 7th APPROVED_SERVER with 11 TOOL_MAP entries (navigate, screenshot, close, resize, snapshot, click, fill, evaluate, tabs, install, resize) — v0.14
+- ✓ Wireframe screenshot capture: wireframe.md Step 5d expanded to per-file loop (resize 1280x800 → navigate file:// → screenshot → close) with PLAYWRIGHT_AVAILABLE guard — v0.14
+- ✓ Mockup screenshot capture: mockup.md Step 7f expanded to per-file loop mirroring wireframe pattern, single 1280x800 viewport — v0.14
+- ✓ 52 Nyquist tests across Phases 108-109 (32 bridge + 20 screenshot) — all GREEN — v0.14
+
 ### Active
 
 ## Current Milestone: v0.14 Visual AutoResearch
@@ -173,7 +178,7 @@ Any user can go from idea to shipped product through a single platform that hand
 - **Shipped v0.12** on 2026-03-23: business product type with venture design engine — 15 phases, 24 plans, 59 requirements, 235 Nyquist assertions, 141 commits, zero tech debt
 - **Shipped v0.11** on 2026-03-22: ~245,000 LOC (JavaScript/Markdown/Shell), ~1,078 total commits
 - **Shipped v0.13** on 2026-03-23: 9 phases, 15 plans (AutoResearch: safety boundaries, git state machine, experiment schema, mutation agent, orchestrator, circuit breakers, self-improvement presets, researcher empirical mode, observability)
-- **Active milestone:** v0.14 Visual AutoResearch — Playwright MCP browser automation + 19 AutoResearch experiment types with visual/a11y/structural metrics (10 phases, 76 requirements)
+- **Active milestone:** v0.14 Visual AutoResearch — Playwright MCP browser automation + 19 AutoResearch experiment types with visual/a11y/structural metrics (10 phases, 76 requirements). Phase 108 (Playwright MCP infra) and Phase 109 (wireframe + mockup screenshots) complete.
 - **Planned roadmap:** v0.13 AutoResearch → v0.14 Visual AutoResearch → v0.15 CLI-Anything → v0.16 Remote Dashboard → v0.17 Stakeholder Presentations → v1.0 Standalone CLI
 - **v0.11** shipped 2026-03-22: 112 files changed, 116 commits (experience product type: detection, brief, tokens, flows, wireframes, critique, HIG, print, handoff, 48 requirements)
 - **v0.10** shipped 2026-03-21: 107 files changed, 56 commits (idle-time productivity: suggestion engine, catalog, context notes, 7-pane dashboard)
@@ -193,7 +198,7 @@ Any user can go from idea to shipped product through a single platform that hand
 - **Observability:** PdeEventBus (EventEmitter + setImmediate dispatch), session-scoped NDJSON in /tmp, Claude Code hooks (SubagentStart/Stop, PostToolUse, SessionStart/End, Notification/idle_prompt), semantic workflow events (phase/wave/plan), tmux 7-pane dashboard (agent activity, pipeline progress, file changes, log stream, token/cost, context window, suggestions), archive-session.cjs summaries in .planning/logs/
 - **Idle-time productivity:** idle-suggestions.cjs engine with phase classification, blocker prioritization, artifact-fed targeting; idle-catalog.md with 6 phase categories; context-notes/ directory injected into plan-phase and brief workflows; pane-suggestions.sh polling display; /pde:suggestions CLI command
 - **Quality infrastructure:** Awwwards 4-dimension rubric, 3 quality reference files (motion-design, composition-typography, quality-standards), protected-files mechanism, 3-agent self-improvement fleet, skill builder with validation gate
-- **MCP integration layer:** mcp-bridge.cjs central adapter with TOOL_MAP (46 entries), APPROVED_SERVERS (6 services incl. Google Stitch), probe/degrade contracts, connection persistence (.planning/mcp-connections.json), write-back confirmation gates, Stitch quota tracking (Standard 350/mo, Experimental 50/mo) with lazy monthly reset
+- **MCP integration layer:** mcp-bridge.cjs central adapter with TOOL_MAP (57 entries), APPROVED_SERVERS (7 services incl. Google Stitch, Playwright), probe/degrade contracts, connection persistence (.planning/mcp-connections.json), write-back confirmation gates, Stitch quota tracking (Standard 350/mo, Experimental 50/mo) with lazy monthly reset
 - **Workflow methodology:** story-file sharding (task-NNN.md), AC-first planning (AC-N verification gates), post-execution reconciliation (RECONCILIATION.md), readiness gate (PASS/CONCERNS/FAIL), per-task tracking (workflow-status.md), persistent agent memory (50-entry cap with archival), analyst persona interviews
 - **Pipeline verification:** Research validation agent (3-tier claim classification, codebase verification), plan checker Dimensions 9-11 (dependencies, edge cases, integration Mode A), readiness B4/B5 checks, run_integration_checks consuming all 4 artifact types
 - **Known tech debt:**
