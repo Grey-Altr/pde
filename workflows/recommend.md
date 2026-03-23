@@ -587,17 +587,18 @@ Parse the JSON result. Extract all 20 fields, defaulting any absent field to `fa
 | hasMarketLandscape | false |
 | hasServiceBlueprint | false |
 | hasLaunchKit | false |
+| hasDeployStaging | false |
 
-Then write the full 20-field JSON in canonical order (preserving all existing flag values, setting hasRecommendations to true):
+Then write the full 21-field JSON in canonical order (preserving all existing flag values, setting hasRecommendations to true):
 
 ```bash
 node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage \
-  '{"hasDesignSystem":{current_hasDesignSystem},"hasWireframes":{current_hasWireframes},"hasFlows":{current_hasFlows},"hasHardwareSpec":{current_hasHardwareSpec},"hasCritique":{current_hasCritique},"hasIterate":{current_hasIterate},"hasHandoff":{current_hasHandoff},"hasIdeation":{current_hasIdeation},"hasCompetitive":{current_hasCompetitive},"hasOpportunity":{current_hasOpportunity},"hasMockup":{current_hasMockup},"hasHigAudit":{current_hasHigAudit},"hasRecommendations":true,"hasStitchWireframes":{current_hasStitchWireframes},"hasPrintCollateral":{current_hasPrintCollateral},"hasProductionBible":{current_hasProductionBible},"hasBusinessThesis":{current_hasBusinessThesis},"hasMarketLandscape":{current_hasMarketLandscape},"hasServiceBlueprint":{current_hasServiceBlueprint},"hasLaunchKit":{current_hasLaunchKit}}'
+  '{"hasDesignSystem":{current_hasDesignSystem},"hasWireframes":{current_hasWireframes},"hasFlows":{current_hasFlows},"hasHardwareSpec":{current_hasHardwareSpec},"hasCritique":{current_hasCritique},"hasIterate":{current_hasIterate},"hasHandoff":{current_hasHandoff},"hasIdeation":{current_hasIdeation},"hasCompetitive":{current_hasCompetitive},"hasOpportunity":{current_hasOpportunity},"hasMockup":{current_hasMockup},"hasHigAudit":{current_hasHigAudit},"hasRecommendations":true,"hasStitchWireframes":{current_hasStitchWireframes},"hasPrintCollateral":{current_hasPrintCollateral},"hasProductionBible":{current_hasProductionBible},"hasBusinessThesis":{current_hasBusinessThesis},"hasMarketLandscape":{current_hasMarketLandscape},"hasServiceBlueprint":{current_hasServiceBlueprint},"hasLaunchKit":{current_hasLaunchKit},"hasDeployStaging":{current_hasDeployStaging}}'
 ```
 
 Replace each `{current_*}` placeholder with the actual value read from `coverage-check` (or `false` if the field was absent).
 
-IMPORTANT: Never use dot-notation (e.g., `designCoverage.hasRecommendations`) with `manifest-set-top-level`. Always pass the complete 20-field JSON object.
+IMPORTANT: Never use dot-notation (e.g., `designCoverage.hasRecommendations`) with `manifest-set-top-level`. Always pass the complete 21-field JSON object.
 
 Display: `Step 7/7: Root DESIGN-STATE and manifest updated. Coverage flag hasRecommendations set to true.`
 

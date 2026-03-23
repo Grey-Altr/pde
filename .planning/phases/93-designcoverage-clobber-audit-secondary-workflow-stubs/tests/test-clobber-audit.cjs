@@ -2,7 +2,7 @@
 /**
  * test-clobber-audit.cjs — Phase 93 structural validation tests
  *
- * INTG-01: All 4 regression workflows (recommend, iterate, mockup, ideate) write 20 designCoverage fields
+ * INTG-01: All 4 regression workflows (recommend, iterate, mockup, ideate) write 21 designCoverage fields
  * INTG-08: recommend.md, iterate.md, mockup.md each contain a Business product type stub comment
  *
  * NOTE on INTG-08: The requirement's "grep count matches" language describes the qualitative intent
@@ -21,13 +21,13 @@ const path = require('node:path');
 
 const ROOT = path.resolve(__dirname, '..', '..', '..', '..');
 
-const TWENTY_FIELDS = [
+const TWENTY_ONE_FIELDS = [
   'hasDesignSystem', 'hasWireframes', 'hasFlows', 'hasHardwareSpec',
   'hasCritique', 'hasIterate', 'hasHandoff', 'hasIdeation',
   'hasCompetitive', 'hasOpportunity', 'hasMockup', 'hasHigAudit',
   'hasRecommendations', 'hasStitchWireframes', 'hasPrintCollateral',
   'hasProductionBible', 'hasBusinessThesis', 'hasMarketLandscape',
-  'hasServiceBlueprint', 'hasLaunchKit'
+  'hasServiceBlueprint', 'hasLaunchKit', 'hasDeployStaging'
 ];
 
 function readWorkflow(name) {
@@ -35,10 +35,10 @@ function readWorkflow(name) {
 }
 
 // INTG-01: recommend.md
-describe('INTG-01: recommend.md has 20-field designCoverage write', () => {
+describe('INTG-01: recommend.md has 21-field designCoverage write', () => {
   const content = readWorkflow('recommend.md');
-  it('recommend.md contains all 20 designCoverage field names', () => {
-    const missing = TWENTY_FIELDS.filter(f => !content.includes(f));
+  it('recommend.md contains all 21 designCoverage field names', () => {
+    const missing = TWENTY_ONE_FIELDS.filter(f => !content.includes(f));
     assert.ok(missing.length === 0, `recommend.md missing designCoverage fields: ${missing.join(', ')}`);
   });
   it('recommend.md IMPORTANT note does not say "16 fields"', () => {
@@ -47,22 +47,22 @@ describe('INTG-01: recommend.md has 20-field designCoverage write', () => {
 });
 
 // INTG-01: iterate.md
-describe('INTG-01: iterate.md has 20-field designCoverage write', () => {
+describe('INTG-01: iterate.md has 21-field designCoverage write', () => {
   const content = readWorkflow('iterate.md');
-  it('iterate.md contains all 20 designCoverage field names', () => {
-    const missing = TWENTY_FIELDS.filter(f => !content.includes(f));
+  it('iterate.md contains all 21 designCoverage field names', () => {
+    const missing = TWENTY_ONE_FIELDS.filter(f => !content.includes(f));
     assert.ok(missing.length === 0, `iterate.md missing designCoverage fields: ${missing.join(', ')}`);
   });
   it('iterate.md does not say "ALL sixteen current flag values"', () => {
-    assert.ok(!content.includes('ALL sixteen'), 'iterate.md must not say "ALL sixteen" — update to twenty');
+    assert.ok(!content.includes('ALL sixteen'), 'iterate.md must not say "ALL sixteen" — update to twenty-one');
   });
 });
 
 // INTG-01: mockup.md
-describe('INTG-01: mockup.md has 20-field designCoverage write', () => {
+describe('INTG-01: mockup.md has 21-field designCoverage write', () => {
   const content = readWorkflow('mockup.md');
-  it('mockup.md contains all 20 designCoverage field names', () => {
-    const missing = TWENTY_FIELDS.filter(f => !content.includes(f));
+  it('mockup.md contains all 21 designCoverage field names', () => {
+    const missing = TWENTY_ONE_FIELDS.filter(f => !content.includes(f));
     assert.ok(missing.length === 0, `mockup.md missing designCoverage fields: ${missing.join(', ')}`);
   });
   it('mockup.md IMPORTANT does not say "ALWAYS write all 16 fields"', () => {
@@ -71,10 +71,10 @@ describe('INTG-01: mockup.md has 20-field designCoverage write', () => {
 });
 
 // INTG-01: ideate.md
-describe('INTG-01: ideate.md has 20-field designCoverage write', () => {
+describe('INTG-01: ideate.md has 21-field designCoverage write', () => {
   const content = readWorkflow('ideate.md');
-  it('ideate.md contains all 20 designCoverage field names', () => {
-    const missing = TWENTY_FIELDS.filter(f => !content.includes(f));
+  it('ideate.md contains all 21 designCoverage field names', () => {
+    const missing = TWENTY_ONE_FIELDS.filter(f => !content.includes(f));
     assert.ok(missing.length === 0, `ideate.md missing designCoverage fields: ${missing.join(', ')}`);
   });
   it('ideate.md IMPORTANT does not say "ALWAYS write all 16 fields"', () => {
