@@ -601,11 +601,11 @@ Use Glob to discover each upstream business artifact. For each, find the highest
 - MLS: Glob `.planning/design/strategy/MLS-market-landscape-v*.md` -> MLS_PATH, MLS_AVAILABLE
 - OPP: Glob `.planning/design/strategy/OPP-opportunity-v*.md` -> OPP_PATH, OPP_AVAILABLE
 - SBP: Glob `.planning/design/strategy/SBP-service-blueprint-v*.md` -> SBP_PATH, SBP_AVAILABLE
-- GTM: Glob `.planning/design/strategy/GTM-gtm-flow-v*.md` -> GTM_PATH, GTM_AVAILABLE
+- GTM: Glob `.planning/design/strategy/GTM-channel-flow-v*.md` -> GTM_PATH, GTM_AVAILABLE
 - MKT: Glob `.planning/design/strategy/MKT-brand-system-v*.md` -> MKT_PATH, MKT_AVAILABLE
 - LDP: Glob `.planning/design/launch/LDP-landing-page-v*.md` -> LDP_LAUNCH_PATH, LDP_LAUNCH_AVAILABLE
-- STR: Glob `.planning/design/launch/STR-stripe-config-v*.md` -> STR_PATH, STR_AVAILABLE
-- DPD: Glob `.planning/design/launch/DPD-pitch-deck-v*.md` -> DPD_PATH, DPD_AVAILABLE
+- STR: Glob `.planning/design/launch/STR-stripe-pricing-v*.json` -> STR_PATH, STR_AVAILABLE
+- DPD: Glob `.planning/design/launch/DPD-pitch-deck-outline-v*.md` -> DPD_PATH, DPD_AVAILABLE
 
 For each: status = "generated" if Glob returns a file, "missing" if Glob returns no results. Handle empty Glob results gracefully — never halt on missing upstream artifacts. The LKT manifest is designed to surface what is missing.
 
