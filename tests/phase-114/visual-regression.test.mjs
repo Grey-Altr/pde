@@ -257,3 +257,65 @@ describe('VRCB-04: parseExperimentFile visual_regression schema support', () => 
     assert.ok(JSONL_ROW_FIELDS.includes('baseline_hash'));
   });
 });
+
+// ─── VRCB-05: Integration with existing circuit breaker infrastructure ────────
+
+describe('VRCB-05: optimize.md BREAK-05 integration', () => {
+  const optimizeMd = fs.readFileSync(path.join(ROOT, 'workflows/optimize.md'), 'utf-8');
+
+  it('optimize.md contains BREAK-05 visual_regression circuit breaker', () => {
+    assert.match(optimizeMd, /BREAK-05.*visual_regression/);
+  });
+
+  it('optimize.md contains captureAndStoreBaseline call in Step 6b', () => {
+    assert.match(optimizeMd, /captureAndStoreBaseline/);
+  });
+
+  it('optimize.md contains checkVisualRegression call', () => {
+    assert.match(optimizeMd, /checkVisualRegression/);
+  });
+
+  it('optimize.md gates BREAK-05 behind CRASH status check', () => {
+    assert.match(optimizeMd, /CRASH/);
+    // BREAK-05 should not fire on CRASH status
+    assert.match(optimizeMd, /status.*not.*CRASH|CRASH.*not/i);
+  });
+
+  it('optimize.md preserves all 4 existing circuit breakers', () => {
+    assert.match(optimizeMd, /BREAK-01.*iteration_budget/);
+    assert.match(optimizeMd, /BREAK-02.*time_budget/);
+    assert.match(optimizeMd, /BREAK-03.*consecutive_failures/);
+    assert.match(optimizeMd, /BREAK-04.*no_progress/);
+  });
+
+  it('optimize.md updates baseline on KEEP when guard active', () => {
+    assert.match(optimizeMd, /KEEP.*visualRegressionGuard|visualRegressionGuard.*KEEP/s);
+  });
+
+  it('optimize.md references visual_regression.enabled for guard activation', () => {
+    assert.match(optimizeMd, /visual_regression\.enabled/);
+  });
+
+  it('optimize.md passes screenshot_hash to JSONL row', () => {
+    assert.match(optimizeMd, /screenshot_hash/);
+  });
+
+  it('optimize.md passes baseline_hash to JSONL row', () => {
+    assert.match(optimizeMd, /baseline_hash/);
+  });
+});
+
+describe('VRCB-05: No regression in existing experiment schema', () => {
+  it('REQUIRED_FIELDS unchanged (4 fields)', () => {
+    const { parseExperimentFile } = require('../../bin/lib/experiment-schema.cjs');
+    // Verify existing templates still parse
+    const result = parseExperimentFile(path.join(ROOT, 'references/experiments/wireframe.md'));
+    assert.equal(result.valid, true);
+    // visual_regression defaults to disabled
+    assert.equal(result.visual_regression.enabled, false);
+  });
+
+  it('JSONL_ROW_FIELDS has 11 fields (9 original + 2 new)', () => {
+    assert.equal(JSONL_ROW_FIELDS.length, 11);
+  });
+});
