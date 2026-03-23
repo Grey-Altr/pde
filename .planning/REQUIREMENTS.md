@@ -60,9 +60,9 @@ Requirements for the AutoResearch milestone. Each maps to roadmap phases.
 
 ### Researcher Augmentation
 
-- [ ] **RSRCH-01**: `pde-phase-researcher` agent gains `--empirical` flag — when set, researcher generates candidate modifications and tests them against a metric instead of doing desk research only
-- [ ] **RSRCH-02**: `research-phase.md` workflow routes to empirical mode when phase CONTEXT.md or ROADMAP goal contains optimization/experimentation keywords
-- [ ] **RSRCH-03**: Empirical research produces RESEARCH.md with "Experiments Attempted" section listing candidates tried, metrics measured, and outcomes
+- [x] **RSRCH-01**: `pde-phase-researcher` agent gains `--empirical` flag — when set, researcher generates candidate modifications and tests them against a metric instead of doing desk research only
+- [x] **RSRCH-02**: `research-phase.md` workflow routes to empirical mode when phase CONTEXT.md or ROADMAP goal contains optimization/experimentation keywords
+- [x] **RSRCH-03**: Empirical research produces RESEARCH.md with "Experiments Attempted" section listing candidates tried, metrics measured, and outcomes
 
 ### Observability & Integration
 
