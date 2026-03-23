@@ -200,4 +200,141 @@ describe('PIPE-04: pipeline metric wrapper chains multi-stage invocation', () =>
   }
 });
 
-// ITER-01..04 tests added by 113-02-PLAN.md
+// ─── ITER templates ──────────────────────────────────────────────────────────
+
+const ITER_TEMPLATES = ['iterate-effectiveness.md'];
+
+// ─── ITER-01/02: iterate-effectiveness-metric.cjs exists and degrades ────────
+
+describe('ITER-01/02: iterate-effectiveness-metric.cjs exists and degrades gracefully', () => {
+  const metricPath = path.join(ROOT, 'bin', 'iterate-effectiveness-metric.cjs');
+
+  it('bin/iterate-effectiveness-metric.cjs exists', () => {
+    assert.ok(
+      fs.existsSync(metricPath),
+      'bin/iterate-effectiveness-metric.cjs must exist'
+    );
+  });
+
+  it('bin/iterate-effectiveness-metric.cjs outputs 0 with no args (VIS-07 degradation)', () => {
+    const proc = spawnSync(
+      'node',
+      ['bin/iterate-effectiveness-metric.cjs'],
+      { cwd: ROOT, encoding: 'utf-8', timeout: 5000 }
+    );
+    assert.equal(proc.status, 0, 'metric must exit 0 with no args');
+    const lines = proc.stdout.split('\n').filter(l => l.trim() !== '');
+    assert.ok(lines.length > 0, 'metric must produce stdout output with no args');
+    const lastLine = lines[lines.length - 1];
+    assert.ok(
+      !isNaN(parseFloat(lastLine)),
+      `last stdout line must be numeric, got: "${lastLine}"`
+    );
+  });
+
+  it('bin/iterate-effectiveness-metric.cjs outputs numeric delta with fixture args', () => {
+    const proc = spawnSync(
+      'node',
+      [
+        'bin/iterate-effectiveness-metric.cjs',
+        '--fixture',
+        'references/experiments/fixtures/bad-wireframe.html',
+        'references/experiments/fixtures/good-wireframe.html',
+      ],
+      { cwd: ROOT, encoding: 'utf-8', timeout: 15000 }
+    );
+    assert.equal(proc.status, 0, 'metric must exit 0 with fixture args');
+    const lines = proc.stdout.split('\n').filter(l => l.trim() !== '');
+    assert.ok(lines.length > 0, 'metric must produce stdout output with fixture args');
+    const lastLine = lines[lines.length - 1];
+    assert.ok(
+      !isNaN(parseFloat(lastLine)),
+      `last stdout line must be a parseable number, got: "${lastLine}"`
+    );
+  });
+});
+
+// ─── ITER-03: iterate-effectiveness template exists and validates ─────────────
+
+describe('ITER-03: iterate-effectiveness template exists and validates', () => {
+  for (const name of ITER_TEMPLATES) {
+    const fullPath = path.join(ROOT, 'references', 'experiments', name);
+    let result;
+
+    it(`references/experiments/${name} exists`, () => {
+      assert.ok(
+        fs.existsSync(fullPath),
+        `references/experiments/${name} must exist`
+      );
+    });
+
+    it(`references/experiments/${name} passes parseExperimentFile() validation`, () => {
+      result = parseExperimentFile(fullPath);
+      assert.equal(result.valid, true, `${name} must be valid: ${JSON.stringify(result.errors || [])}`);
+    });
+
+    it(`references/experiments/${name} verify starts with 'node bin/'`, () => {
+      result = parseExperimentFile(fullPath);
+      assert.ok(
+        result.verify.startsWith('node bin/'),
+        `${name} verify must start with 'node bin/', got: "${result.verify}"`
+      );
+    });
+
+    it(`references/experiments/${name} direction is max`, () => {
+      result = parseExperimentFile(fullPath);
+      assert.equal(result.direction, 'max', `${name} direction must be 'max'`);
+    });
+
+    it(`references/experiments/${name} mutable_files start with 'workflows/'`, () => {
+      result = parseExperimentFile(fullPath);
+      for (const entry of result.mutable_files) {
+        assert.ok(
+          entry.startsWith('workflows/'),
+          `${name} mutable_files entry "${entry}" must start with 'workflows/'`
+        );
+      }
+    });
+  }
+});
+
+// ─── ITER-03: template uses iterate-effectiveness-metric.cjs ─────────────────
+
+describe('ITER-03: iterate-effectiveness template uses iterate-effectiveness-metric.cjs', () => {
+  it('references/experiments/iterate-effectiveness.md verify contains iterate-effectiveness-metric.cjs', () => {
+    const content = fs.readFileSync(
+      path.join(ROOT, 'references', 'experiments', 'iterate-effectiveness.md'),
+      'utf-8'
+    );
+    assert.ok(
+      content.includes('iterate-effectiveness-metric.cjs'),
+      'iterate-effectiveness.md verify must reference iterate-effectiveness-metric.cjs'
+    );
+  });
+});
+
+// ─── ITER-04: convergence speed documentation ─────────────────────────────────
+
+describe('ITER-04: iterate-effectiveness template documents convergence speed', () => {
+  it('references/experiments/iterate-effectiveness.md contains convergence speed section', () => {
+    const content = fs.readFileSync(
+      path.join(ROOT, 'references', 'experiments', 'iterate-effectiveness.md'),
+      'utf-8'
+    );
+    assert.ok(
+      content.includes('## Convergence Speed'),
+      'iterate-effectiveness.md must contain ## Convergence Speed section'
+    );
+  });
+
+  it('references/experiments/iterate-effectiveness.md mentions threshold', () => {
+    const content = fs.readFileSync(
+      path.join(ROOT, 'references', 'experiments', 'iterate-effectiveness.md'),
+      'utf-8'
+    );
+    assert.ok(
+      content.includes('2.0'),
+      'iterate-effectiveness.md must mention 2.0 threshold for convergence speed'
+    );
+  });
+});
