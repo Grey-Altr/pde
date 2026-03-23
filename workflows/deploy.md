@@ -111,7 +111,7 @@ Use Glob to find the latest versions of each upstream artifact:
 LDP_FILE=$(ls .planning/design/launch/LDP-landing-page-v*.md 2>/dev/null | sort -V | tail -1)
 
 # Find latest STR artifact
-STR_FILE=$(ls .planning/design/launch/STR-stripe-pricing-v*.md 2>/dev/null | sort -V | tail -1)
+STR_FILE=$(ls .planning/design/launch/STR-stripe-pricing-v*.json 2>/dev/null | sort -V | tail -1)
 
 # Find latest OTR artifact
 OTR_FILE=$(ls .planning/design/launch/OTR-outreach-sequences-v*.md 2>/dev/null | sort -V | tail -1)
@@ -136,7 +136,7 @@ If `$STR_FILE` is empty:
 ```
 Required artifact not found: STR-stripe-pricing
 
-Expected: .planning/design/launch/STR-stripe-pricing-v{N}.md
+Expected: .planning/design/launch/STR-stripe-pricing-v{N}.json
 Run /pde:wireframe to generate the STR artifact.
 ```
 

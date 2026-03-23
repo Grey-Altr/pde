@@ -762,7 +762,7 @@ Use the EXACT finding format from the existing critique.md Step 4: `| {severity}
 **Evaluation sources:**
 - LCV artifact (`.planning/design/strategy/LCV-lean-canvas-v*.md`) — Box 5 (Revenue Streams), Box 8 (Cost Structure)
 - BRF artifact (`.planning/design/strategy/BRF-brief-v*.md`) — Domain Strategy section for pricing signals
-- STR artifact (`.planning/design/launch/STR-stripe-pricing-config-v*.md`) — pricing tier structure
+- STR artifact (`.planning/design/launch/STR-stripe-pricing-v*.json`) — pricing tier structure
 
 **Checklist:**
 - Does the pricing UI (if present in wireframes) reflect the tier structure in STR?
