@@ -398,5 +398,5 @@ Plans:
 | 90. Critique + HIG Extensions | v0.12 | 2/2 | Complete    | 2026-03-22 |
 | 91. Handoff — Launch Kit Assembly | v0.12 | 2/2 | Complete    | 2026-03-22 |
 | 92. Deploy Skill | v0.12 | 1/2 | Complete    | 2026-03-22 |
-| 93. designCoverage Audit + Stubs | v0.12 | 0/2 | Not started | - |
+| 93. designCoverage Audit + Stubs | v0.12 | 0/2 | Planned    |  |
 | 94. Nyquist Regression Tests | v0.12 | 0/TBD | Not started | - |

@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v0.12
 milestone_name: Business Product Type
-status: Ready to plan
-stopped_at: Completed 92-02-PLAN.md — commands/deploy.md slash command + build.md Stage 14 deploy gate, 21/21 Nyquist tests GREEN
-last_updated: "2026-03-22T22:43:34.497Z"
+status: Ready to execute
+stopped_at: Completed 93-01-PLAN.md — recommend.md + iterate.md 20-field clobber fix + business stubs, 6/11 Nyquist tests GREEN
+last_updated: "2026-03-23T02:25:07.845Z"
 progress:
   total_phases: 11
   completed_phases: 9
-  total_plans: 17
+  total_plans: 19
   completed_plans: 17
 ---
 
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-22)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 92 — deploy-skill
+**Current focus:** Phase 93 — designcoverage-clobber-audit-secondary-workflow-stubs
 
 ## Current Position
 
-Phase: 93
-Plan: Not started
+Phase: 93 (designcoverage-clobber-audit-secondary-workflow-stubs) — EXECUTING
+Plan: 2 of 2
 
 ## Performance Metrics
 
@@ -52,6 +52,7 @@ Plan: Not started
 | Phase 90-critique-hig-extensions P02 | 8 | 1 tasks | 1 files |
 | Phase 92 P01 | 4 | 2 tasks | 2 files |
 | Phase 92 P02 | 2 | 2 tasks | 2 files |
+| Phase 93-designcoverage-clobber-audit-secondary-workflow-stubs P01 | 3 | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -110,6 +111,8 @@ Recent decisions affecting v0.12:
 - [Phase 92]: commands/deploy.md uses no MCP tools — deploy workflow does not invoke external services directly
 - [Phase 92]: Stage 14 businessMode gate reads BM once in Step 2/4 consistent with single-read pattern (anti-pattern #7)
 - [Phase 92]: TOTAL = count(STAGES) automatically handles 13→14 expansion — zero numeric literal changes
+- [Phase 93-01]: INTG-08 implemented as per-file business stub presence checks, not global businessMode/businessTrack count equality — build.md 7-vs-0 gap is architectural
+- [Phase 93-01]: recommend.md uses per-field {current_hasFieldName} placeholders for 4 new fields; iterate.md uses generic {current} — each file preserves its existing naming convention
 
 ### Pending Todos
 
@@ -122,8 +125,8 @@ Recent decisions affecting v0.12:
 
 ## Session Continuity
 
-Last session: 2026-03-22T22:39:56.534Z
-Stopped at: Completed 92-02-PLAN.md — commands/deploy.md slash command + build.md Stage 14 deploy gate, 21/21 Nyquist tests GREEN
+Last session: 2026-03-23T02:25:07.842Z
+Stopped at: Completed 93-01-PLAN.md — recommend.md + iterate.md 20-field clobber fix + business stubs, 6/11 Nyquist tests GREEN
 Resume file: None
 
 Next action: Execute Phase 92 (Deploy Skill)

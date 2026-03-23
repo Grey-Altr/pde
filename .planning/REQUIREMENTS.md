@@ -75,26 +75,26 @@ Requirements for the business product type milestone. Each maps to roadmap phase
 
 ### Deployment
 
-- [ ] **DEPLOY-01**: New `workflows/deploy.md` created as Stage 14, conditionally appended to build orchestrator only when `businessMode === true`
-- [ ] **DEPLOY-02**: Next.js landing page scaffold generated at `.planning/deploy-staging/landing-page/` with pinned versions (Next.js 16.2.1, Stripe v20, Resend 6.9.4, Tailwind v4), consuming LDP wireframe spec
-- [ ] **DEPLOY-03**: Stripe pricing config scaffold generated with test-mode placeholder keys (`pk_test_REPLACE_WITH_YOUR_KEY`) — never live keys
-- [ ] **DEPLOY-04**: Resend email template stubs generated from OTR sequence spec with React Email components
-- [ ] **DEPLOY-05**: Vercel deployment invoked via `npx vercel --prod --no-wait` returning deployment URL without blocking session
-- [ ] **DEPLOY-06**: Four mandatory human approval gates: (1) before Next.js scaffold write, (2) before Stripe config write, (3) before Resend template generation, (4) before Vercel deploy command
-- [ ] **DEPLOY-07**: All deployment artifacts stored in `.planning/deploy-staging/` with generated `.gitignore` entry — never in `.planning/design/`
-- [ ] **DEPLOY-08**: `/pde:deploy` slash command created as entry point for Stage 14
-- [ ] **DEPLOY-09**: Deploy skill tracks deployment status in `deploy-manifest.json` with `review_required: true` per artifact
+- [x] **DEPLOY-01**: New `workflows/deploy.md` created as Stage 14, conditionally appended to build orchestrator only when `businessMode === true`
+- [x] **DEPLOY-02**: Next.js landing page scaffold generated at `.planning/deploy-staging/landing-page/` with pinned versions (Next.js 16.2.1, Stripe v20, Resend 6.9.4, Tailwind v4), consuming LDP wireframe spec
+- [x] **DEPLOY-03**: Stripe pricing config scaffold generated with test-mode placeholder keys (`pk_test_REPLACE_WITH_YOUR_KEY`) — never live keys
+- [x] **DEPLOY-04**: Resend email template stubs generated from OTR sequence spec with React Email components
+- [x] **DEPLOY-05**: Vercel deployment invoked via `npx vercel --prod --no-wait` returning deployment URL without blocking session
+- [x] **DEPLOY-06**: Four mandatory human approval gates: (1) before Next.js scaffold write, (2) before Stripe config write, (3) before Resend template generation, (4) before Vercel deploy command
+- [x] **DEPLOY-07**: All deployment artifacts stored in `.planning/deploy-staging/` with generated `.gitignore` entry — never in `.planning/design/`
+- [x] **DEPLOY-08**: `/pde:deploy` slash command created as entry point for Stage 14
+- [x] **DEPLOY-09**: Deploy skill tracks deployment status in `deploy-manifest.json` with `review_required: true` per artifact
 
 ### Pipeline Integrity
 
-- [ ] **INTG-01**: All 14+ designCoverage-writing workflows verified to include all 20 fields in their write calls (pass-through-all pattern preserved)
+- [x] **INTG-01**: All 14+ designCoverage-writing workflows verified to include all 20 fields in their write calls (pass-through-all pattern preserved)
 - [ ] **INTG-02**: Non-business product types (software, hardware, hybrid, experience) produce byte-identical manifest output to pre-v0.12 baseline when `businessMode === false`
 - [ ] **INTG-03**: `business:software` composition produces both software-specific and business-specific artifacts in single pipeline run
 - [ ] **INTG-04**: `business:hardware` composition produces both hardware-specific and business-specific artifacts in single pipeline run
 - [ ] **INTG-05**: `business:experience` composition produces both experience-specific and business-specific artifacts in single pipeline run
 - [ ] **INTG-06**: Deploy workflow halts at each approval gate without proceeding when user declines — no partial deployment
 - [ ] **INTG-07**: Nyquist regression tests cover all composition cases with structural assertions
-- [ ] **INTG-08**: `businessTrack` branching consistency verified across all modified workflows — `grep -rn "businessTrack"` hit count matches `grep -rn "businessMode"` hit count in workflows/
+- [x] **INTG-08**: `businessTrack` branching consistency verified across all modified workflows — `grep -rn "businessTrack"` hit count matches `grep -rn "businessMode"` hit count in workflows/
 
 ## Future Requirements
 
@@ -176,17 +176,17 @@ Which phases cover which requirements. Updated during roadmap creation.
 | KIT-04 | 91 | Complete |
 | KIT-05 | 91 | Complete |
 | KIT-06 | 91 | Complete |
-| DEPLOY-01 | 92 | Pending |
-| DEPLOY-02 | 92 | Pending |
-| DEPLOY-03 | 92 | Pending |
-| DEPLOY-04 | 92 | Pending |
-| DEPLOY-05 | 92 | Pending |
-| DEPLOY-06 | 92 | Pending |
-| DEPLOY-07 | 92 | Pending |
-| DEPLOY-08 | 92 | Pending |
-| DEPLOY-09 | 92 | Pending |
-| INTG-01 | 93 | Pending |
-| INTG-08 | 93 | Pending |
+| DEPLOY-01 | 92 | Complete |
+| DEPLOY-02 | 92 | Complete |
+| DEPLOY-03 | 92 | Complete |
+| DEPLOY-04 | 92 | Complete |
+| DEPLOY-05 | 92 | Complete |
+| DEPLOY-06 | 92 | Complete |
+| DEPLOY-07 | 92 | Complete |
+| DEPLOY-08 | 92 | Complete |
+| DEPLOY-09 | 92 | Complete |
+| INTG-01 | 93 | Complete |
+| INTG-08 | 93 | Complete |
 | INTG-02 | 94 | Pending |
 | INTG-03 | 94 | Pending |
 | INTG-04 | 94 | Pending |
