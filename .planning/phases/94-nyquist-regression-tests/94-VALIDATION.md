@@ -1,10 +1,11 @@
 ---
 phase: 94
 slug: nyquist-regression-tests
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-22
+completed: 2026-03-22
 ---
 
 # Phase 94 — Validation Strategy
@@ -38,12 +39,12 @@ created: 2026-03-22
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 94-01-01 | 01 | 1 | INTG-02 | structural | `node --test tests/test-regression-matrix.cjs` | ❌ W0 | ⬜ pending |
-| 94-01-02 | 01 | 1 | INTG-03 | structural | `node --test tests/test-regression-matrix.cjs` | ❌ W0 | ⬜ pending |
-| 94-01-03 | 01 | 1 | INTG-04 | structural | `node --test tests/test-regression-matrix.cjs` | ❌ W0 | ⬜ pending |
-| 94-01-04 | 01 | 1 | INTG-05 | structural | `node --test tests/test-regression-matrix.cjs` | ❌ W0 | ⬜ pending |
-| 94-01-05 | 01 | 1 | INTG-06 | structural | `node --test tests/test-regression-matrix.cjs` | ❌ W0 | ⬜ pending |
-| 94-01-06 | 01 | 1 | INTG-07 | structural | `node --test tests/test-regression-matrix.cjs` | ❌ W0 | ⬜ pending |
+| 94-01-01 | 01 | 1 | INTG-02 | structural | `node --test tests/test-regression-matrix.cjs` | yes | GREEN |
+| 94-01-02 | 01 | 1 | INTG-03 | structural | `node --test tests/test-regression-matrix.cjs` | yes | GREEN |
+| 94-01-03 | 01 | 1 | INTG-04 | structural | `node --test tests/test-regression-matrix.cjs` | yes | GREEN |
+| 94-01-04 | 01 | 1 | INTG-05 | structural | `node --test tests/test-regression-matrix.cjs` | yes | GREEN |
+| 94-01-05 | 01 | 1 | INTG-06 | structural | `node --test tests/test-regression-matrix.cjs` | yes | GREEN |
+| 94-01-06 | 01 | 1 | INTG-07 | structural | `node --test tests/test-regression-matrix.cjs` | yes | GREEN |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -51,7 +52,7 @@ created: 2026-03-22
 
 ## Wave 0 Requirements
 
-- [ ] `.planning/phases/94-nyquist-regression-tests/tests/test-regression-matrix.cjs` — all INTG-02 through INTG-07 assertions
+- [x] `.planning/phases/94-nyquist-regression-tests/tests/test-regression-matrix.cjs` — all INTG-02 through INTG-07 assertions
 
 *Existing infrastructure covers all phase requirements — node:test is built-in.*
 
@@ -65,11 +66,11 @@ created: 2026-03-22
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 2s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 2s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** APPROVED
