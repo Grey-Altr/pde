@@ -147,6 +147,46 @@ test('PLAY-05: probe("playwright") returns probe_deferred', () => {
   );
 });
 
+describe('PLAY-06: mcp-integration.md updated with Playwright documentation', () => {
+  const mcpIntegrationPath = resolve(ROOT, 'references', 'mcp-integration.md');
+  const mcpIntegrationContent = readFileSync(mcpIntegrationPath, 'utf-8');
+
+  test('mcp-integration.md contains "--headless" flag', () => {
+    assert.ok(
+      mcpIntegrationContent.includes('--headless'),
+      'references/mcp-integration.md does not contain "--headless"'
+    );
+  });
+
+  test('mcp-integration.md contains "--allow-unrestricted-file-access" flag', () => {
+    assert.ok(
+      mcpIntegrationContent.includes('--allow-unrestricted-file-access'),
+      'references/mcp-integration.md does not contain "--allow-unrestricted-file-access"'
+    );
+  });
+
+  test('mcp-integration.md contains "browser_snapshot" (corrected probe tool)', () => {
+    assert.ok(
+      mcpIntegrationContent.includes('browser_snapshot'),
+      'references/mcp-integration.md does not contain "browser_snapshot"'
+    );
+  });
+
+  test('mcp-integration.md contains "#### Flags" subsection', () => {
+    assert.ok(
+      mcpIntegrationContent.includes('#### Flags'),
+      'references/mcp-integration.md does not contain "#### Flags" subsection'
+    );
+  });
+
+  test('mcp-integration.md scope line mentions "7 MCP servers"', () => {
+    assert.ok(
+      mcpIntegrationContent.includes('7 MCP servers'),
+      'references/mcp-integration.md scope line does not mention "7 MCP servers"'
+    );
+  });
+});
+
 describe('PLAY-07: TOOL_MAP_VERIFY_REQUIRED markers in source', () => {
   test('every playwright:* TOOL_MAP line in mcp-bridge.cjs source contains TOOL_MAP_VERIFY_REQUIRED comment', () => {
     const sourceFile = resolve(ROOT, 'bin', 'lib', 'mcp-bridge.cjs');

@@ -1,9 +1,9 @@
 ---
 phase: 108
 slug: playwright-mcp-infrastructure
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-23
 ---
 
@@ -38,13 +38,13 @@ created: 2026-03-23
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 108-01-01 | 01 | 1 | PLAY-01 | unit | `node --test tests/phase-108/mcp-bridge-playwright.test.mjs` | W0 | pending |
-| 108-01-02 | 01 | 1 | PLAY-02 | unit | same | W0 | pending |
-| 108-01-03 | 01 | 1 | PLAY-03 | unit | same | W0 | pending |
-| 108-01-04 | 01 | 1 | PLAY-04 | unit | same | W0 | pending |
-| 108-01-05 | 01 | 1 | PLAY-05 | unit | same | W0 | pending |
-| 108-01-06 | 01 | 1 | PLAY-06 | structural | same | W0 | pending |
-| 108-01-07 | 01 | 1 | PLAY-07 | unit | same | W0 | pending |
+| 108-01-01 | 01 | 1 | PLAY-01 | unit | `node --test tests/phase-108/mcp-bridge-playwright.test.mjs` | yes | green |
+| 108-01-02 | 01 | 1 | PLAY-02 | unit | same | yes | green |
+| 108-01-03 | 01 | 1 | PLAY-03 | unit | same | yes | green |
+| 108-01-04 | 01 | 1 | PLAY-04 | unit | same | yes | green |
+| 108-01-05 | 01 | 1 | PLAY-05 | unit | same | yes | green |
+| 108-01-06 | 01 | 1 | PLAY-06 | structural | same | yes | green |
+| 108-01-07 | 01 | 1 | PLAY-07 | unit | same | yes | green |
 
 *Status: pending / green / red / flaky*
 
@@ -52,7 +52,7 @@ created: 2026-03-23
 
 ## Wave 0 Requirements
 
-- [ ] `tests/phase-108/mcp-bridge-playwright.test.mjs` — structural assertions for PLAY-01 through PLAY-07
+- [x] `tests/phase-108/mcp-bridge-playwright.test.mjs` — structural assertions for PLAY-01 through PLAY-07 (32 tests, all green)
 
 *Existing infrastructure covers framework requirements — Node.js built-in test runner already in use across all phases.*
 
@@ -69,11 +69,11 @@ created: 2026-03-23
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 5s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 5s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** green — 32/32 tests passing (2026-03-23, nyquist auditor gap fill)
