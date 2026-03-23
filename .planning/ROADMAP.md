@@ -327,8 +327,8 @@ Plans:
   4. Iterate effectiveness metric tracks convergence speed (iterations until visual improvement plateaus)
 **Plans:** 2 plans
 Plans:
-- [ ] 108-01-PLAN.md — Register Playwright in mcp-bridge.cjs (APPROVED_SERVERS + TOOL_MAP + AUTH_INSTRUCTIONS + Nyquist tests)
-- [ ] 108-02-PLAN.md — Update mcp-integration.md docs + MCP-08 live verification gate
+- [ ] 113-01-PLAN.md — Pipeline experiment templates (brief-to-wireframe + upstream isolation) + Nyquist tests
+- [ ] 113-02-PLAN.md — iterate-effectiveness-metric.cjs + iterate-effectiveness template + Nyquist tests
 
 ### Phase 114: Visual Regression Circuit Breaker
 **Goal**: AutoResearch optimization never makes visual quality worse -- regressions are detected and rejected automatically
