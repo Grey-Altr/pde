@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.14
 milestone_name: Visual AutoResearch
 status: Ready to plan
-stopped_at: Completed 111-01-PLAN.md
-last_updated: "2026-03-23T21:10:08.079Z"
+stopped_at: Completed 112-02-PLAN.md
+last_updated: "2026-03-23T22:06:48.462Z"
 progress:
   total_phases: 10
-  completed_phases: 4
-  total_plans: 8
-  completed_plans: 8
+  completed_phases: 5
+  total_plans: 11
+  completed_plans: 11
 ---
 
 # Project State
@@ -19,11 +19,11 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-23)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 111 — visual-metric-scripts
+**Current focus:** Phase 112 — experiment-templates
 
 ## Current Position
 
-Phase: 112
+Phase: 113
 Plan: Not started
 
 ## Performance Metrics
@@ -45,6 +45,8 @@ Plan: Not started
 | Phase 110 P02 | 2 | 2 tasks | 2 files |
 | Phase 111 P02 | 175 | 2 tasks | 4 files |
 | Phase 111 P01 | 277 | 2 tasks | 10 files |
+| Phase 112 P01 | 133 | 2 tasks | 9 files |
+| Phase 112 P02 | 5 | 2 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -75,6 +77,11 @@ Recent decisions affecting v0.14 planning:
 - [Phase 111]: responsive-metric uses Promise.resolve().then() entry for async/await in CJS format
 - [Phase 111]: a11y-metric.cjs uses playwright:snapshot AOM tree not browser_evaluate — reflects what assistive technology sees (VIS-02)
 - [Phase 111]: contrast-metric.cjs score = pass count (elements passing AA) not a ratio — direction is max, compatible with experiment-runner DISCARD logic
+- [Phase 112]: All 9 experiment templates use direction: max — consistent with Phase 111 metric conventions (higher-is-better scores across all visual metrics)
+- [Phase 112]: critique.md uses nyquist-metric.cjs not a11y direction:min — nyquist tests directly validate critique structure/quality as a safer proxy
+- [Phase 112]: brief.md uses dom-metric.cjs on fixture as Phase 112 proxy — full brief-to-wireframe pipeline measurement deferred to Phase 113
+- [Phase 112]: All 13 design skill experiment templates use direction: max — consistent metric direction enables KEEP/DISCARD logic in experiment runner without direction-specific handling
+- [Phase 112]: critique.md uses nyquist-metric.cjs not a11y fixture — Nyquist pass count is safer proxy for text critique quality than a11y score on a reference HTML fixture
 
 ### Pending Todos
 
@@ -88,8 +95,8 @@ Recent decisions affecting v0.14 planning:
 
 ## Session Continuity
 
-Last session: 2026-03-23T21:04:21.975Z
-Stopped at: Completed 111-01-PLAN.md
+Last session: 2026-03-23T21:50:16.595Z
+Stopped at: Completed 112-02-PLAN.md
 Resume file: None
 
 Next action: /pde:plan-phase 109 (Wireframe Screenshot Capture)

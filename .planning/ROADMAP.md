@@ -239,7 +239,7 @@ Full details: .planning/milestones/v0.12-ROADMAP.md
 - [x] **Phase 109: Wireframe + Mockup Screenshots** — Capture wireframe and mockup HTML screenshots via Playwright MCP (completed 2026-03-23)
 - [x] **Phase 110: Critique A11y + Deploy Smoke Test** — Browser-based accessibility tree for critique, post-deploy smoke testing (completed 2026-03-23)
 - [x] **Phase 111: Visual Metric Scripts** — 5 metric scripts (DOM structure, a11y, contrast, responsive, Mermaid) following _evalMetric contract (completed 2026-03-23)
-- [ ] **Phase 112: Experiment Templates** — AutoResearch experiment templates for all 14 eligible design skills with browser-backed verify
+- [x] **Phase 112: Experiment Templates** — AutoResearch experiment templates for all 14 eligible design skills with browser-backed verify (completed 2026-03-23)
 - [ ] **Phase 113: Cross-Skill Pipeline + Iterate Effectiveness** — Pipeline experiments measuring upstream-to-downstream visual impact, iterate before/after delta
 - [ ] **Phase 114: Visual Regression Circuit Breaker** — Prevent cosmetic regressions during optimization with screenshot-based before/after comparison
 - [ ] **Phase 115: Multi-Candidate Experiments** — A/B variant testing with best-of-N selection in experiment loop
@@ -311,10 +311,10 @@ Plans:
   2. Browser-backed skills (wireframe, mockup, system, flows, critique, hig, iterate, handoff, brief) use visual metric scripts in their verify commands
   3. Non-browser skills (recommend, competitive, opportunity, ideate) use existing Nyquist text metrics
   4. Each template specifies mutable_files, verify_command, target_metric, search_space, and iteration_budget per experiment-schema.cjs contract
-**Plans:** 2 plans
+**Plans:** 3/3 plans complete
 Plans:
-- [ ] 112-01-PLAN.md — Browser-backed skill experiment templates (wireframe, mockup, system, flows, critique, hig, iterate, handoff, brief)
-- [ ] 112-02-PLAN.md — Non-browser skill templates (recommend, competitive, opportunity, ideate) + Nyquist validation tests
+- [x] 112-01-PLAN.md — Browser-backed skill experiment templates (wireframe, mockup, system, flows, critique, hig, iterate, handoff, brief)
+- [x] 112-02-PLAN.md — Non-browser skill templates (recommend, competitive, opportunity, ideate) + Nyquist validation tests
 
 ### Phase 113: Cross-Skill Pipeline + Iterate Effectiveness
 **Goal**: Experiments can measure how upstream prose changes propagate to downstream visual quality, and iterate improvement magnitude is quantified
