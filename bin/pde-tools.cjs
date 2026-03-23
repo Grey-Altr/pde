@@ -838,7 +838,7 @@ async function main() {
       const slugIdx = args.indexOf('--slug');
       const slug = slugIdx !== -1 ? args[slugIdx + 1] : undefined;
       if (!slug && subcommand !== 'ensure-dirs' && subcommand !== 'patch-config') {
-        error('--slug SLUG required. Available subcommands: init, commit, reset, promote, status, cleanup, ensure-dirs, patch-config, check-boundaries, eval-metric, write-row');
+        error('--slug SLUG required. Available subcommands: init, commit, reset, promote, status, cleanup, ensure-dirs, patch-config, check-boundaries, eval-metric, write-row, generate-report, diff-summary');
       }
       if (subcommand === 'init') {
         experiment.cmdExperimentInit(cwd, slug, raw);
@@ -918,8 +918,14 @@ async function main() {
         };
         const row = runner._writeJsonlRow(cwd, slug, rowData);
         output(row, raw);
+      } else if (subcommand === 'generate-report') {
+        const report = require('./lib/experiment-report.cjs');
+        report.generateReport(cwd, slug, raw);
+      } else if (subcommand === 'diff-summary') {
+        const report = require('./lib/experiment-report.cjs');
+        report._cmdDiffSummary(cwd, slug, raw);
       } else {
-        error('Unknown experiment subcommand. Available: init, commit, reset, promote, status, cleanup, ensure-dirs, patch-config, check-boundaries, eval-metric, write-row');
+        error('Unknown experiment subcommand. Available: init, commit, reset, promote, status, cleanup, ensure-dirs, patch-config, check-boundaries, eval-metric, write-row, generate-report, diff-summary');
       }
       break;
     }
