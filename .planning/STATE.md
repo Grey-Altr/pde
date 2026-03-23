@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.12
 milestone_name: Business Product Type
-status: Milestone complete
-stopped_at: "Completed 95-01-PLAN.md — integration wiring fixes: OTR/BTH glob fixes, 21-field designCoverage, handoff required_reading, 46/46 Nyquist tests GREEN"
-last_updated: "2026-03-23T04:27:29.440Z"
+status: Phase complete — ready for verification
+stopped_at: "Completed 96-01-PLAN.md — 21-field cascade fix: FOUND-02 test 20→21, hasDeployStaging in 4 secondary workflows, 76 Nyquist tests GREEN"
+last_updated: "2026-03-23T05:38:35.204Z"
 progress:
-  total_phases: 12
-  completed_phases: 12
-  total_plans: 21
-  completed_plans: 21
+  total_phases: 13
+  completed_phases: 13
+  total_plans: 22
+  completed_plans: 22
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-22)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 95 — integration-wiring-fixes
+**Current focus:** Phase 96 — 21-field-cascade-fix
 
 ## Current Position
 
-Phase: 95
-Plan: Not started
+Phase: 96 (21-field-cascade-fix) — EXECUTING
+Plan: 1 of 1
 
 ## Performance Metrics
 
@@ -56,6 +56,7 @@ Plan: Not started
 | Phase 93 P02 | 2 | 2 tasks | 2 files |
 | Phase 94-nyquist-regression-tests P01 | 12 | 2 tasks | 2 files |
 | Phase 95-integration-wiring-fixes P01 | 25 | 3 tasks | 12 files |
+| Phase 96 P01 | 8 | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -122,6 +123,8 @@ Recent decisions affecting v0.12:
 - [Phase 95-01]: OTR artifact filename is OTR-outreach-sequences-v*.md matching handoff.md producer output
 - [Phase 95-01]: BTH artifact filename is BTH-thesis-v*.md matching brief.md producer output — all 4 consumer workflows fixed
 - [Phase 95-01]: hasDeployStaging is 21st designCoverage field — deploy.md owns true write, 9 other workflows pass-through current
+- [Phase 96]: hasDeployStaging is always pass-through in secondary workflows — only deploy.md writes :true
+- [Phase 96]: TWENTY_ONE_FIELDS constant name in clobber audit test mirrors field count semantics explicitly
 
 ### Pending Todos
 
@@ -134,8 +137,8 @@ Recent decisions affecting v0.12:
 
 ## Session Continuity
 
-Last session: 2026-03-23T04:24:11.739Z
-Stopped at: Completed 95-01-PLAN.md — integration wiring fixes: OTR/BTH glob fixes, 21-field designCoverage, handoff required_reading, 46/46 Nyquist tests GREEN
+Last session: 2026-03-23T05:38:35.200Z
+Stopped at: Completed 96-01-PLAN.md — 21-field cascade fix: FOUND-02 test 20→21, hasDeployStaging in 4 secondary workflows, 76 Nyquist tests GREEN
 Resume file: None
 
 Next action: Execute Phase 92 (Deploy Skill)

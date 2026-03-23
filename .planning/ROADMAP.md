@@ -211,7 +211,7 @@ Full details: .planning/milestones/v0.11-ROADMAP.md
 - [x] **Phase 93: designCoverage Clobber Audit + Secondary Workflow Stubs** — 20-field pass-through audit across all 14 workflows; recommend/iterate/mockup guard stubs (completed 2026-03-23)
 - [x] **Phase 94: Nyquist Regression Tests** — Composition case validation and non-regression verification (completed 2026-03-23)
 - [x] **Phase 95: Integration Wiring Fixes** — Close 6 requirement gaps, 3 integration gaps, and 3 broken flows from milestone audit (completed 2026-03-23)
-- [ ] **Phase 96: 21-Field Cascade Fix** — Fix test assertion and 4 secondary workflow designCoverage writes to include hasDeployStaging as 21st field
+- [x] **Phase 96: 21-Field Cascade Fix** — Fix test assertion and 4 secondary workflow designCoverage writes to include hasDeployStaging as 21st field (completed 2026-03-23)
 
 ## Phase Details
 
@@ -402,7 +402,7 @@ Plans:
   4. `--from` re-run after deploy no longer clobbers `hasDeployStaging` flag
 **Plans**: 1 plan
 Plans:
-- [ ] 96-01-PLAN.md — Fix test assertion (20→21) + add hasDeployStaging to 4 secondary workflows
+- [x] 96-01-PLAN.md — Fix test assertion (20→21) + add hasDeployStaging to 4 secondary workflows
 
 ## Progress
 
@@ -431,4 +431,4 @@ Plans:
 | 93. designCoverage Audit + Stubs | v0.12 | 1/2 | Complete    | 2026-03-23 |
 | 94. Nyquist Regression Tests | v0.12 | 0/1 | Complete    | 2026-03-23 |
 | 95. Integration Wiring Fixes | v0.12 | 0/1 | Complete    | 2026-03-23 |
-| 96. 21-Field Cascade Fix | v0.12 | 0/1 | Pending | - |
+| 96. 21-Field Cascade Fix | v0.12 | 1/1 | Complete   | 2026-03-23 |
