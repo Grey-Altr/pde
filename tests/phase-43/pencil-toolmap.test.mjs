@@ -6,7 +6,7 @@
  * Also verifies bridge.probe('pencil') returns probe_deferred (not not_configured).
  * Also verifies APPROVED_SERVERS.pencil properties match Phase 43 research.
  *
- * Total TOOL_MAP entries: 36 (8 GitHub + 7 Linear + 7 Atlassian + 7 Figma + 7 Pencil)
+ * Total TOOL_MAP entries: 56 (8 GitHub + 7 Linear + 7 Atlassian + 7 Figma + 7 Pencil + 10 Stitch + 10 Playwright)
  */
 
 import { describe, it } from 'node:test';
@@ -20,12 +20,12 @@ const req = createRequire(import.meta.url);
 const bridge = req(path.resolve(__dirname, '../../bin/lib/mcp-bridge.cjs'));
 
 describe('PEN-01 — Pencil TOOL_MAP entries resolve via bridge.call()', () => {
-  it('TOOL_MAP contains exactly 36 total entries (8 GitHub + 7 Linear + 7 Atlassian + 7 Figma + 7 Pencil)', () => {
+  it('TOOL_MAP contains exactly 56 total entries (8 GitHub + 7 Linear + 7 Atlassian + 7 Figma + 7 Pencil + 10 Stitch + 10 Playwright)', () => {
     const keys = Object.keys(bridge.TOOL_MAP);
     assert.equal(
       keys.length,
-      36,
-      `Expected 36 TOOL_MAP entries, got ${keys.length}: ${keys.join(', ')}`
+      56,
+      `Expected 56 TOOL_MAP entries after Phase 108, got ${keys.length}: ${keys.join(', ')}`
     );
   });
 
