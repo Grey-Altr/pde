@@ -67,7 +67,7 @@ function safeAppendEvent(sessionId, envelope) {
 class PdeEventBus extends EventEmitter {
   constructor() {
     super();
-    this.setMaxListeners(20); // supports 6 dashboard panes + log + cost + context
+    this.setMaxListeners(20); // supports 8 dashboard panes + log + cost + context + experiment
   }
 
   /**
@@ -101,6 +101,30 @@ class PdeEventBus extends EventEmitter {
 
 const bus = new PdeEventBus();
 
+// ─── Experiment event type constants ──────────────────────────────────────────
+// Phase 106: OBS-01 — six experiment lifecycle event types
+
+/**
+ * EXPERIMENT_EVENTS — canonical event type strings for experiment lifecycle.
+ *
+ * All events carry:
+ *   slug         {string} — experiment slug
+ *   iteration    {number} — current iteration number (0 for start/complete)
+ *   metric_value {number|null} — current iteration metric value
+ *   best_metric  {number|null} — best metric value seen so far
+ *   status       {string} — KEEP | DISCARD | CRASH | (empty for start/complete)
+ *   budget_used  {number} — iterations consumed so far
+ *   budget_total {number} — iteration budget
+ */
+const EXPERIMENT_EVENTS = Object.freeze({
+  START:     'experiment.start',
+  ITERATION: 'experiment.iteration',
+  KEEP:      'experiment.keep',
+  DISCARD:   'experiment.discard',
+  CRASH:     'experiment.crash',
+  COMPLETE:  'experiment.complete',
+});
+
 // ─── Exports ──────────────────────────────────────────────────────────────────
 
-module.exports = { PdeEventBus, bus, generateSessionId, getSessionId, safeAppendEvent };
+module.exports = { PdeEventBus, bus, generateSessionId, getSessionId, safeAppendEvent, EXPERIMENT_EVENTS };
