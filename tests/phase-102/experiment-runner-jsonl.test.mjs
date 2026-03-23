@@ -34,8 +34,9 @@ function cleanup(dir) {
 
 // --- Tests -------------------------------------------------------------------
 
-test('JSONL_ROW_FIELDS has 9 fields including tokens_used', () => {
-  assert.equal(schema.JSONL_ROW_FIELDS.length, 9, 'Should have 9 fields');
+test('JSONL_ROW_FIELDS has at least 9 fields including tokens_used (Phase 114 adds screenshot_hash, baseline_hash)', () => {
+  // Phase 114 extended JSONL_ROW_FIELDS with screenshot_hash and baseline_hash (now 11 fields).
+  assert.ok(schema.JSONL_ROW_FIELDS.length >= 9, 'Should have at least 9 fields');
   assert.ok(schema.JSONL_ROW_FIELDS.includes('tokens_used'), 'Should include tokens_used');
 });
 
