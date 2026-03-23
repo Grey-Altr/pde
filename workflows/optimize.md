@@ -17,9 +17,129 @@ Parse $ARGUMENTS:
 - Check for `--skill <name>` flag
 - Check for `--dry-run` flag
 
-If `--self` or `--skill` was passed WITHOUT an explicit experiment.md path:
-- Display: "Preset mode (--self / --skill) is not yet implemented. Please provide an experiment.md path directly."
-- Abort.
+If `--self` flag is present AND no explicit experiment.md path was provided:
+
+  **--self Preset Resolution (SELF-01, SELF-02):**
+
+  1. Auto-discover mutable_files by running:
+     ```bash
+     grep -rl '<!-- OPTIMIZABLE -->' workflows/ | sort
+     ```
+
+  2. Cross-reference the discovered files against the 14 authorized files listed in the
+     "Experiment-Eligible Workflow Files" section of `references/experiment-boundaries.md`.
+     Use ONLY the intersection — never include a file that is not in the authorized list
+     even if it has an OPTIMIZABLE marker (guards against Pitfall 2 from RESEARCH.md).
+
+     The 14 authorized workflow files are:
+     - workflows/brief.md
+     - workflows/system.md
+     - workflows/flows.md
+     - workflows/ideate.md
+     - workflows/wireframe.md
+     - workflows/critique.md
+     - workflows/hig.md
+     - workflows/iterate.md
+     - workflows/recommend.md
+     - workflows/mockup.md
+     - workflows/competitive.md
+     - workflows/opportunity.md
+     - workflows/handoff.md
+     - workflows/deploy.md
+
+  3. Construct the preset experiment.md content with this frontmatter:
+     ```yaml
+     slug: pde-self-improve
+     metric: nyquist_pass_count
+     direction: max
+     verify: node bin/nyquist-metric.cjs
+     mutable_files:
+       - workflows/brief.md
+       - workflows/system.md
+       - workflows/flows.md
+       - workflows/ideate.md
+       - workflows/wireframe.md
+       - workflows/critique.md
+       - workflows/hig.md
+       - workflows/iterate.md
+       - workflows/recommend.md
+       - workflows/mockup.md
+       - workflows/competitive.md
+       - workflows/opportunity.md
+       - workflows/handoff.md
+       - workflows/deploy.md
+     immutable_files: []
+     iteration_budget: 20
+     time_budget_minutes: 60
+     ```
+
+  4. Include the search space prose section after the frontmatter:
+     ```markdown
+     ## Search Space
+
+     Optimize the prose guidance sections in the 14 OPTIMIZABLE design skill workflows.
+     Only content within `<!-- OPTIMIZABLE -->` markers is eligible for mutation.
+
+     ## Constraints
+
+     Only modify sections marked with `<!-- OPTIMIZABLE -->` markers.
+     Do NOT touch locked sections (init steps, schema writes, error message formats, MCP probe patterns).
+     Nyquist pass count baseline: ~1075 (full suite ~3.5s runtime — safely within 30s eval timeout).
+
+     ## Stopping Rationale
+
+     Halt when 5 consecutive iterations produce no improvement, or when 20 iterations are reached.
+     ```
+
+  5. Write the generated file to `/tmp/pde-self-improve-experiment.md` using the Write tool.
+
+  6. Set the experiment.md path to `/tmp/pde-self-improve-experiment.md` and continue to field validation below.
+
+If `--skill <name>` flag is present AND no explicit experiment.md path was provided:
+
+  **--skill Preset Resolution (SELF-03):**
+
+  1. Extract the skill name from the `--skill` argument value.
+
+  2. Validate the skill name against the known skills list — the 14 workflow names derived
+     from the authorized OPTIMIZABLE files:
+     `brief, system, flows, ideate, wireframe, critique, hig, iterate, recommend, mockup, competitive, opportunity, handoff, deploy`
+
+  3. If the skill name is NOT in the known list, abort with:
+     "Unknown skill '{name}'. Known skills: brief, system, flows, ideate, wireframe, critique, hig, iterate, recommend, mockup, competitive, opportunity, handoff, deploy"
+
+  4. Construct the preset experiment.md targeting `workflows/{name}.md` as the single mutable file:
+     ```yaml
+     slug: pde-skill-{name}
+     metric: nyquist_pass_count
+     direction: max
+     verify: node bin/nyquist-metric.cjs
+     mutable_files:
+       - workflows/{name}.md
+     immutable_files: []
+     iteration_budget: 20
+     time_budget_minutes: 30
+     ```
+
+  5. Include the search space prose:
+     ```markdown
+     ## Search Space
+
+     Optimize the prose guidance sections in `workflows/{name}.md`.
+     Only content within `<!-- OPTIMIZABLE -->` markers is eligible for mutation.
+
+     ## Constraints
+
+     Only modify sections marked with `<!-- OPTIMIZABLE -->` markers.
+
+     ## Stopping Rationale
+
+     Halt when 5 consecutive iterations produce no improvement, or when 20 iterations are reached.
+     ```
+
+  6. Write the generated file to `/tmp/pde-skill-{name}-experiment.md` using the Write tool.
+
+  7. Set the experiment.md path to `/tmp/pde-skill-{name}-experiment.md` and continue to field validation below.
 
 Read the experiment.md file using the Read tool. Extract the `slug` from frontmatter. Validate these required fields are present and non-empty:
 - `metric`
