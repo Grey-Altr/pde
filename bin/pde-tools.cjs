@@ -155,6 +155,14 @@
  *   init map-codebase                  All context for map-codebase workflow
  *   init progress                      All context for progress workflow
  *
+ * Experiment Operations:
+ *   experiment init --slug SLUG                           Initialize experiment branch + state file
+ *   experiment commit --slug SLUG --metric N --description TEXT  Commit candidate with metric
+ *   experiment reset --slug SLUG                          Roll back last experiment commit
+ *   experiment promote --slug SLUG                        Cherry-pick best commit onto main
+ *   experiment status --slug SLUG                         Show current experiment state
+ *   experiment cleanup --slug SLUG                        Delete experiment branch
+ *
  * Suggestions:
  *   suggestions                        Print current idle suggestions to stdout
  */
@@ -820,6 +828,39 @@ async function main() {
         process.stdout.write(content.trimEnd() + '\n');
       } catch {
         process.stdout.write('Waiting for PDE to start a phase. Suggestions will appear when a phase completes.\n');
+      }
+      break;
+    }
+
+    case 'experiment': {
+      const subcommand = args[1];
+      const experiment = require('./lib/experiment.cjs');
+      const slugIdx = args.indexOf('--slug');
+      const slug = slugIdx !== -1 ? args[slugIdx + 1] : undefined;
+      if (!slug) {
+        error('--slug SLUG required. Available subcommands: init, commit, reset, promote, status, cleanup');
+      }
+      if (subcommand === 'init') {
+        experiment.cmdExperimentInit(cwd, slug, raw);
+      } else if (subcommand === 'commit') {
+        const metricIdx = args.indexOf('--metric');
+        const descIdx = args.indexOf('--description');
+        const metric = metricIdx !== -1 ? parseFloat(args[metricIdx + 1]) : NaN;
+        const description = descIdx !== -1 ? args[descIdx + 1] : '';
+        if (isNaN(metric)) {
+          error('--metric NUMBER required for experiment commit');
+        }
+        experiment.cmdExperimentCommit(cwd, slug, metric, description, raw);
+      } else if (subcommand === 'reset') {
+        experiment.cmdExperimentReset(cwd, slug, raw);
+      } else if (subcommand === 'promote') {
+        experiment.cmdExperimentPromote(cwd, slug, raw);
+      } else if (subcommand === 'status') {
+        experiment.cmdExperimentStatus(cwd, slug, raw);
+      } else if (subcommand === 'cleanup') {
+        experiment.cmdExperimentCleanup(cwd, slug, raw);
+      } else {
+        error('Unknown experiment subcommand. Available: init, commit, reset, promote, status, cleanup');
       }
       break;
     }
