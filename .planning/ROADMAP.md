@@ -213,6 +213,7 @@ Full details: .planning/milestones/v0.11-ROADMAP.md
 - [x] **Phase 95: Integration Wiring Fixes** — Close 6 requirement gaps, 3 integration gaps, and 3 broken flows from milestone audit (completed 2026-03-23)
 - [x] **Phase 96: 21-Field Cascade Fix** — Fix test assertion and 4 secondary workflow designCoverage writes to include hasDeployStaging as 21st field (completed 2026-03-23)
 - [x] **Phase 97: Consumer Glob Mismatch Fixes** — Fix 5 remaining glob mismatches in deploy.md, handoff.md, and critique.md (STR/DPD/GTM stems and extensions) (completed 2026-03-23)
+- [ ] **Phase 98: Prose Drift & LDP Glob Fix** — Fix stale LDP glob stem in critique.md and update 6 stale "20 fields" prose references to "21 fields" across 6 workflows
 
 ## Phase Details
 
@@ -421,6 +422,19 @@ Plans:
 **Plans**: 1 plan
 Plans:
 - [x] 97-01-PLAN.md — Fix 5 glob mismatches in deploy.md, handoff.md, and critique.md
+
+### Phase 98: Prose Drift & LDP Glob Fix
+**Goal**: Fix stale LDP glob stem in critique.md BIZ-3 evaluation source and update 6 stale "20 fields" prose references to "21 fields" — all runtime write commands are already correct, only prose descriptions lag
+**Depends on**: Phase 97
+**Requirements**: QUAL-01 (LDP glob fix), INTG-01 (prose accuracy), FOUND-02 (field count accuracy)
+**Gap Closure**: Closes 1 integration gap and 6 tech debt items from v0.12-MILESTONE-AUDIT.md
+**Success Criteria** (what must be TRUE):
+  1. `critique.md` line 796 globs `LDP-landing-page-v*.md` (not `LDP-landing-page-spec-v*`) — BIZ-3 pricing evaluation finds LDP artifact
+  2. All 6 workflow anti-pattern/prose sections say "21 fields" (not "20 fields"): competitive.md, opportunity.md, system.md, critique.md, hig.md, handoff.md
+  3. 235/235 Nyquist tests still GREEN after changes
+**Plans**: 1 plan
+Plans:
+- [ ] 98-01-PLAN.md — Fix LDP glob and 6 stale "20 fields" prose references
 
 ## Progress
 
