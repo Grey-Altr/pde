@@ -48,13 +48,13 @@ Requirements for v0.14 Visual AutoResearch. Each maps to roadmap phases.
 
 ### Visual Metric Scripts (VIS)
 
-- [ ] **VIS-01**: DOM structure metric script — counts semantic elements (nav, main, article, section, header, footer), penalizes div-soup, follows _evalMetric contract (exit 0, stdout = numeric score)
-- [ ] **VIS-02**: A11y violations metric script — runs browser_snapshot AOM tree through rule checks (missing alt, unlabeled inputs, heading skip, missing landmarks), score = inverse violation count
-- [ ] **VIS-03**: WCAG contrast metric script — evaluates text/background contrast ratios via browser_evaluate, score based on AA pass rate
-- [ ] **VIS-04**: Responsive compliance metric script — screenshots at 3 breakpoints (mobile 375px, tablet 768px, desktop 1280px), measures layout shift/overflow/element visibility
-- [ ] **VIS-05**: Mermaid readability metric script — validates Mermaid syntax renders without error, measures node count, edge count, diagram dimensions
-- [ ] **VIS-06**: All 5 metric scripts follow _evalMetric contract (exit 0 always, stdout = numeric score, timeout-safe)
-- [ ] **VIS-07**: All metrics return 0 (not crash) when Playwright MCP is unavailable — graceful degradation
+- [x] **VIS-01**: DOM structure metric script — counts semantic elements (nav, main, article, section, header, footer), penalizes div-soup, follows _evalMetric contract (exit 0, stdout = numeric score)
+- [x] **VIS-02**: A11y violations metric script — runs browser_snapshot AOM tree through rule checks (missing alt, unlabeled inputs, heading skip, missing landmarks), score = inverse violation count
+- [x] **VIS-03**: WCAG contrast metric script — evaluates text/background contrast ratios via browser_evaluate, score based on AA pass rate
+- [x] **VIS-04**: Responsive compliance metric script — screenshots at 3 breakpoints (mobile 375px, tablet 768px, desktop 1280px), measures layout shift/overflow/element visibility
+- [x] **VIS-05**: Mermaid readability metric script — validates Mermaid syntax renders without error, measures node count, edge count, diagram dimensions
+- [x] **VIS-06**: All 5 metric scripts follow _evalMetric contract (exit 0 always, stdout = numeric score, timeout-safe)
+- [x] **VIS-07**: All metrics return 0 (not crash) when Playwright MCP is unavailable — graceful degradation
 
 ### Experiment Templates (EXP)
 
@@ -188,13 +188,13 @@ Requirements for v0.14 Visual AutoResearch. Each maps to roadmap phases.
 | DEP-03 | Phase 110 | Complete |
 | DEP-04 | Phase 110 | Complete |
 | DEP-05 | Phase 110 | Complete |
-| VIS-01 | Phase 111 | Pending |
-| VIS-02 | Phase 111 | Pending |
-| VIS-03 | Phase 111 | Pending |
-| VIS-04 | Phase 111 | Pending |
-| VIS-05 | Phase 111 | Pending |
-| VIS-06 | Phase 111 | Pending |
-| VIS-07 | Phase 111 | Pending |
+| VIS-01 | Phase 111 | Complete |
+| VIS-02 | Phase 111 | Complete |
+| VIS-03 | Phase 111 | Complete |
+| VIS-04 | Phase 111 | Complete |
+| VIS-05 | Phase 111 | Complete |
+| VIS-06 | Phase 111 | Complete |
+| VIS-07 | Phase 111 | Complete |
 | EXP-01 | Phase 112 | Pending |
 | EXP-02 | Phase 112 | Pending |
 | EXP-03 | Phase 112 | Pending |

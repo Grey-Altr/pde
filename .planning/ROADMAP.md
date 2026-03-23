@@ -238,7 +238,7 @@ Full details: .planning/milestones/v0.12-ROADMAP.md
 - [x] **Phase 108: Playwright MCP Infrastructure** — Register Playwright as 7th APPROVED_SERVER with stdio transport, TOOL_MAP, probe/degrade
 - [x] **Phase 109: Wireframe + Mockup Screenshots** — Capture wireframe and mockup HTML screenshots via Playwright MCP (completed 2026-03-23)
 - [x] **Phase 110: Critique A11y + Deploy Smoke Test** — Browser-based accessibility tree for critique, post-deploy smoke testing (completed 2026-03-23)
-- [ ] **Phase 111: Visual Metric Scripts** — 5 metric scripts (DOM structure, a11y, contrast, responsive, Mermaid) following _evalMetric contract
+- [x] **Phase 111: Visual Metric Scripts** — 5 metric scripts (DOM structure, a11y, contrast, responsive, Mermaid) following _evalMetric contract (completed 2026-03-23)
 - [ ] **Phase 112: Experiment Templates** — AutoResearch experiment templates for all 14 eligible design skills with browser-backed verify
 - [ ] **Phase 113: Cross-Skill Pipeline + Iterate Effectiveness** — Pipeline experiments measuring upstream-to-downstream visual impact, iterate before/after delta
 - [ ] **Phase 114: Visual Regression Circuit Breaker** — Prevent cosmetic regressions during optimization with screenshot-based before/after comparison
@@ -297,7 +297,7 @@ Plans:
   2. All 5 scripts exit 0 and return score 0 when Playwright MCP is unavailable (graceful degradation, not crash)
   3. Responsive compliance metric captures and compares layout at mobile (375px), tablet (768px), and desktop (1280px) breakpoints
   4. All scripts are timeout-safe (no hanging when browser operations stall)
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 Plans:
 - [ ] 111-01-PLAN.md — HTML fixtures + DOM/a11y/contrast metric scripts + Nyquist tests (VIS-01, VIS-02, VIS-03)
 - [ ] 111-02-PLAN.md — Responsive/Mermaid metric scripts + Nyquist tests (VIS-04, VIS-05)
