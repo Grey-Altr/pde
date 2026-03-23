@@ -224,7 +224,7 @@ Full details: .planning/milestones/v0.12-ROADMAP.md
 - [x] **Phase 99: Safety Boundaries** - Immutability reference and section-level locked/optimizable markers across all experiment-eligible workflows (completed 2026-03-23)
 - [x] **Phase 100: Git State Machine** - `experiment.cjs` module with commit-candidate/tag/reset/promote state machine and 6 pde-tools subcommands (completed 2026-03-23)
 - [x] **Phase 101: Experiment Schema & State Directory** - `experiment.md` file format, `.planning/experiments/` directory structure, config defaults, experiment phase type (completed 2026-03-23)
-- [ ] **Phase 102: Mutation Agent & Metric Evaluation** - `pde-experiment-runner` agent with Haiku-first model selection, diff-based context, token tracking, and boundary enforcement
+- [x] **Phase 102: Mutation Agent & Metric Evaluation** - `pde-experiment-runner` agent with Haiku-first model selection, diff-based context, token tracking, and boundary enforcement (completed 2026-03-23)
 - [ ] **Phase 103: Orchestrator, Command & Circuit Breakers** - `workflows/optimize.md` full loop, `/pde:optimize` command, all 5 circuit breakers, cost estimate gate, REPORT.md
 - [ ] **Phase 104: Self-Improvement Presets** - `--self` and `--skill` modes, OPTIMIZABLE autodiscovery, self-improvement preset configuration
 - [ ] **Phase 105: Researcher Empirical Mode** - `pde-phase-researcher` empirical flag, research-phase routing, "Experiments Attempted" RESEARCH.md section
@@ -306,11 +306,11 @@ Plans:
   3. After the loop completes, REPORT.md is generated listing iterations run, improvements kept, best metric achieved, files modified, and a diff summary of the best result vs baseline
   4. Promotion requires explicit user approval of the diff before the experiment branch is merged to main — declining cancels the merge and leaves the experiment branch intact
   5. A concurrency check at command startup detects active PDE sessions and warns the user before proceeding
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 103-01: Implement workflows/optimize.md with full iteration loop and circuit breakers
-- [ ] 103-02: Create commands/optimize.md entry point with cost gate and concurrency check
+- [ ] 103-01-PLAN.md — Create experiment-report.cjs with report generation, circuit breakers, cost estimate, and sonnet agent variant
+- [ ] 103-02-PLAN.md — Create commands/optimize.md and workflows/optimize.md with full loop orchestration
 
 ### Phase 104: Self-Improvement Presets
 **Goal**: Users can invoke PDE self-optimization with a single flag — the system auto-discovers eligible files, applies the correct eval harness, and produces an improvement or reports no gain
@@ -320,7 +320,7 @@ Plans:
   1. `/pde:optimize --self` auto-discovers workflow files containing `<!-- OPTIMIZABLE -->` markers and constructs the mutable file list without requiring manual specification
   2. `/pde:optimize --skill {name}` targets the named skill's SKILL.md and associated workflow files, using the skill-specific test suite or pressure test score as the evaluation metric
   3. A pre-configured self-improvement experiment preset exists that uses Nyquist assertion pass count as the regression guard, ensuring PDE cannot optimize itself into a broken state
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
 - [ ] 104-01: Implement --self and --skill preset modes with OPTIMIZABLE autodiscovery
@@ -333,7 +333,7 @@ Plans:
   1. `pde-phase-researcher` accepts an `--empirical` flag that switches it from desk-research mode to candidate-generation-and-measurement mode
   2. `workflows/research-phase.md` automatically routes to empirical mode when the phase CONTEXT.md or ROADMAP goal contains optimization or experimentation keywords
   3. RESEARCH.md produced in empirical mode includes an "Experiments Attempted" section listing each candidate tried, the metric measured, and the outcome (kept/discarded/crashed)
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
 - [ ] 105-01: Add empirical mode to pde-phase-researcher and research-phase.md routing
@@ -345,7 +345,7 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. Six experiment event types are emitted on the NDJSON event bus during a live run: `experiment.start`, `experiment.iteration`, `experiment.keep`, `experiment.discard`, `experiment.crash`, `experiment.complete` — each with structured fields (slug, iteration, metric_value, status)
   2. The tmux dashboard displays a dedicated experiment pane showing current iteration number, best metric value, keep/discard ratio, and estimated remaining budget — updating in real time during an active run
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
 - [ ] 106-01: Add experiment event types to event-bus.cjs and experiment pane to tmux dashboard
@@ -359,7 +359,7 @@ Plans:
   2. A Nyquist test verifies that an experiment commit passing the primary metric but failing Nyquist assertions is automatically discarded (Nyquist is a hard floor)
   3. Structural tests confirm: boundary check rejects out-of-bounds file modifications, no-progress breaker halts at exactly M iterations without improvement, consecutive-failure breaker halts at exactly K regressions, and experiment commits do not appear in main branch git log
   4. New Nyquist assertions cover all experiment infrastructure: boundary enforcement, reset behavior, metric timeout (CRASH outcome), and circuit breaker triggers — at minimum 20 new assertions
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
 - [ ] 107-01: Write Nyquist tests for experiment infrastructure and confirm zero regressions
@@ -386,8 +386,8 @@ Phases execute in numeric order: 99 → 100 → 101 → 102 → 103 → 104 → 
 | 99. Safety Boundaries | v0.13 | 2/2 | Complete    | 2026-03-23 |
 | 100. Git State Machine | v0.13 | 2/2 | Complete    | 2026-03-23 |
 | 101. Experiment Schema & State Directory | v0.13 | 0/2 | Complete    | 2026-03-23 |
-| 102. Mutation Agent & Metric Evaluation | v0.13 | 1/2 | In Progress|  |
-| 103. Orchestrator, Command & Circuit Breakers | v0.13 | 0/TBD | Not started | - |
+| 102. Mutation Agent & Metric Evaluation | v0.13 | 1/2 | Complete    | 2026-03-23 |
+| 103. Orchestrator, Command & Circuit Breakers | v0.13 | 0/2 | Not started | - |
 | 104. Self-Improvement Presets | v0.13 | 0/TBD | Not started | - |
 | 105. Researcher Empirical Mode | v0.13 | 0/TBD | Not started | - |
 | 106. Observability & Event Bus | v0.13 | 0/TBD | Not started | - |
