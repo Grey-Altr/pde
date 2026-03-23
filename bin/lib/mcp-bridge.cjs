@@ -74,13 +74,22 @@ const APPROVED_SERVERS = {
     probeTool: 'mcp__stitch__list_projects', // TOOL_MAP_VERIFY_REQUIRED — lightest read-only tool
     probeArgs: {},
   },
+  playwright: {
+    displayName: 'Playwright',
+    transport: 'stdio',
+    url: null,
+    installCmd: null, // Multi-flag: see AUTH_INSTRUCTIONS
+    probeTimeoutMs: 30000, // Browser launch can be slow on first use (~170MB Chromium download)
+    probeTool: 'mcp__playwright__browser_snapshot', // TOOL_MAP_VERIFY_REQUIRED — lightest read-only tool
+    probeArgs: {},
+  },
 };
 
 // ─── Canonical tool name map ──────────────────────────────────────────────────
 
 /**
  * TOOL_MAP maps PDE canonical tool names to raw MCP tool names.
- * Phases 40-44 populate this map — Phase 39 provides the scaffold only.
+ * Phases 40-44, 65, 108 populate this map — Phase 39 provides the scaffold only.
  *
  * Current entries:
  *   GitHub — Phase 40 (verified against github/github-mcp-server source 2026-03-18)
@@ -148,6 +157,18 @@ const TOOL_MAP = {
   'stitch:create-project':          'mcp__stitch__create_project',         // TOOL_MAP_VERIFY_REQUIRED
   'stitch:list-projects':           'mcp__stitch__list_projects',          // TOOL_MAP_VERIFY_REQUIRED
   'stitch:get-project':             'mcp__stitch__get_project',            // TOOL_MAP_VERIFY_REQUIRED
+
+  // Playwright — Phase 108 (MEDIUM confidence — tool names from official README + practitioner sources; MCP-08 live verification required before finalizing)
+  'playwright:probe':      'mcp__playwright__browser_snapshot',        // TOOL_MAP_VERIFY_REQUIRED
+  'playwright:navigate':   'mcp__playwright__browser_navigate',        // TOOL_MAP_VERIFY_REQUIRED
+  'playwright:screenshot': 'mcp__playwright__browser_take_screenshot', // TOOL_MAP_VERIFY_REQUIRED
+  'playwright:snapshot':   'mcp__playwright__browser_snapshot',        // TOOL_MAP_VERIFY_REQUIRED
+  'playwright:click':      'mcp__playwright__browser_click',           // TOOL_MAP_VERIFY_REQUIRED
+  'playwright:type':       'mcp__playwright__browser_type',            // TOOL_MAP_VERIFY_REQUIRED
+  'playwright:wait':       'mcp__playwright__browser_wait_for',        // TOOL_MAP_VERIFY_REQUIRED
+  'playwright:evaluate':   'mcp__playwright__browser_evaluate',        // TOOL_MAP_VERIFY_REQUIRED
+  'playwright:pdf':        'mcp__playwright__browser_pdf_save',        // TOOL_MAP_VERIFY_REQUIRED
+  'playwright:close':      'mcp__playwright__browser_close',           // TOOL_MAP_VERIFY_REQUIRED
 };
 
 // ─── Per-server auth instructions ─────────────────────────────────────────────
@@ -190,6 +211,13 @@ const AUTH_INSTRUCTIONS = {
     '5. Restart your terminal or run: source ~/.zshrc',
     '6. Register Stitch MCP server: claude mcp add stitch --transport stdio -- npx @_davideast/stitch-mcp proxy',
     '7. Return here and run /pde:connect stitch --confirm',
+  ],
+  playwright: [
+    '1. Run: claude mcp add playwright -- npx @playwright/mcp@latest --headless --allow-unrestricted-file-access',
+    '   (If tools show "No such tool available", pin version: npx @playwright/mcp@0.0.41 instead of @latest)',
+    '2. Verify Playwright appears in Claude Code MCP list: run /mcp in Claude Code',
+    '3. Chromium is downloaded automatically on first use (~170MB, one-time)',
+    '4. Return here and run /pde:connect playwright --confirm',
   ],
 };
 
