@@ -228,7 +228,7 @@ Full details: .planning/milestones/v0.12-ROADMAP.md
 - [x] **Phase 103: Orchestrator, Command & Circuit Breakers** - `workflows/optimize.md` full loop, `/pde:optimize` command, all 5 circuit breakers, cost estimate gate, REPORT.md (completed 2026-03-23)
 - [x] **Phase 104: Self-Improvement Presets** - `--self` and `--skill` modes, OPTIMIZABLE autodiscovery, self-improvement preset configuration (completed 2026-03-23)
 - [x] **Phase 105: Researcher Empirical Mode** - `pde-phase-researcher` empirical flag, research-phase routing, "Experiments Attempted" RESEARCH.md section (completed 2026-03-23)
-- [ ] **Phase 106: Observability & Event Bus** - 6 experiment event types on NDJSON bus, tmux dashboard experiment pane
+- [x] **Phase 106: Observability & Event Bus** - 6 experiment event types on NDJSON bus, tmux dashboard experiment pane (completed 2026-03-23)
 - [ ] **Phase 107: Nyquist Coverage** - Structural tests for boundary enforcement, circuit breakers, reset behavior, zero regression for existing workflows
 
 ## Phase Details
@@ -348,7 +348,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 106-01-PLAN.md — Add experiment event emissions to optimize.md, create experiment pane, wire dashboard
+- [x] 106-01-PLAN.md — Add experiment event emissions to optimize.md, create experiment pane, wire dashboard
 - [ ] 106-02-PLAN.md — Gap closure: log-stream coloring, error guards, structural tests
 
 ### Phase 107: Nyquist Coverage
@@ -360,10 +360,10 @@ Plans:
   2. A Nyquist test verifies that an experiment commit passing the primary metric but failing Nyquist assertions is automatically discarded (Nyquist is a hard floor)
   3. Structural tests confirm: boundary check rejects out-of-bounds file modifications, no-progress breaker halts at exactly M iterations without improvement, consecutive-failure breaker halts at exactly K regressions, and experiment commits do not appear in main branch git log
   4. New Nyquist assertions cover all experiment infrastructure: boundary enforcement, reset behavior, metric timeout (CRASH outcome), and circuit breaker triggers — at minimum 20 new assertions
-**Plans**: 2 plans
+**Plans**: 1 plan
 
 Plans:
-- [ ] 107-01: Write Nyquist tests for experiment infrastructure and confirm zero regressions
+- [ ] 107-01-PLAN.md — Add Nyquist pre-promote guard to optimize.md and write 20+ structural/behavioral tests
 
 ## Progress
 
@@ -391,5 +391,5 @@ Phases execute in numeric order: 99 → 100 → 101 → 102 → 103 → 104 → 
 | 103. Orchestrator, Command & Circuit Breakers | v0.13 | 1/2 | Complete    | 2026-03-23 |
 | 104. Self-Improvement Presets | v0.13 | 0/1 | Complete    | 2026-03-23 |
 | 105. Researcher Empirical Mode | v0.13 | 0/1 | Complete    | 2026-03-23 |
-| 106. Observability & Event Bus | v0.13 | 0/1 | Planned    |  |
-| 107. Nyquist Coverage | v0.13 | 0/TBD | Not started | - |
+| 106. Observability & Event Bus | v0.13 | 1/2 | Complete    | 2026-03-23 |
+| 107. Nyquist Coverage | v0.13 | 0/1 | Not started | - |
