@@ -285,8 +285,8 @@ Plans:
   5. Deploy smoke test retries with exponential backoff when the build is still in progress
 **Plans:** 2 plans
 Plans:
-- [ ] 108-01-PLAN.md — Register Playwright in mcp-bridge.cjs (APPROVED_SERVERS + TOOL_MAP + AUTH_INSTRUCTIONS + Nyquist tests)
-- [ ] 108-02-PLAN.md — Update mcp-integration.md docs + MCP-08 live verification gate
+- [ ] 110-01-PLAN.md — Critique AOM probe + Perspective 3 AOM analysis (A11Y-01 through A11Y-04)
+- [ ] 110-02-PLAN.md — Deploy post-deploy smoke test with backoff + manifest logging (DEP-01 through DEP-05)
 
 ### Phase 111: Visual Metric Scripts
 **Goal**: AutoResearch experiments can measure visual quality of rendered HTML through 5 standardized metric scripts
@@ -402,4 +402,4 @@ Plans:
 | v0.11 | 74-83 | 19/19 | Complete | 2026-03-22 |
 | v0.12 | 84-98 | 24/24 | Complete | 2026-03-23 |
 | v0.13 | 99-107 | 15/15 | Complete | 2026-03-23 |
-| v0.14 | 108-117 | 2/4 | In progress | - |
+| v0.14 | 108-117 | 4/6 | In progress | - |
