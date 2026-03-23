@@ -19,7 +19,7 @@ Check for flags in $ARGUMENTS before beginning: `--dry-run`, `--verbose`, `--for
 
 ---
 
-### Step 1/6: Initialize and verify prerequisites
+### Step 1/7: Initialize and verify prerequisites
 
 #### 1a. Read businessMode from manifest
 
@@ -99,11 +99,11 @@ Use AskUserQuestion with:
 
 If user selects "Cancel": Display `Deploy cancelled. Existing scaffold preserved at .planning/deploy-staging/.` HALT.
 
-Display: `Step 1/6: Prerequisites verified. businessMode: true, businessTrack: ${BT}.`
+Display: `Step 1/7: Prerequisites verified. businessMode: true, businessTrack: ${BT}.`
 
 ---
 
-### Step 2/6: Read upstream launch artifacts
+### Step 2/7: Read upstream launch artifacts
 
 Use Glob to find the latest versions of each upstream artifact:
 
@@ -161,13 +161,13 @@ Read each artifact using the Read tool. Extract:
 
 Store as `$LDP_SECTIONS`, `$STR_TIERS`, `$OTR_EMAILS` for use in scaffold generation.
 
-Display: `Step 2/6: Upstream artifacts loaded. LDP: ${LDP_FILE}, STR: ${STR_FILE}, OTR: ${OTR_FILE}.`
+Display: `Step 2/7: Upstream artifacts loaded. LDP: ${LDP_FILE}, STR: ${STR_FILE}, OTR: ${OTR_FILE}.`
 
 ---
 <!-- /LOCKED -->
 
 <!-- OPTIMIZABLE: scaffold generation guidance, checklist framing, code generation prompts -->
-### Step 3/6: Approval-gated scaffold generation
+### Step 3/7: Approval-gated scaffold generation
 
 This step contains Approval Gates 1/4, 2/4, and 3/4. Each gate is independent — declining any gate halts without partial rollback of previously written files.
 
@@ -534,7 +534,7 @@ npx vercel --prod
 > Check the Vercel dashboard for build status.
 ```
 
-Display: `Step 3/6 (Gate 1/4): Next.js 16.2.1 landing page scaffold written to .planning/deploy-staging/landing-page/`
+Display: `Step 3/7 (Gate 1/4): Next.js 16.2.1 landing page scaffold written to .planning/deploy-staging/landing-page/`
 
 #### Gate 2/4 — Stripe Pricing Config
 
@@ -618,7 +618,7 @@ STRIPE_SECRET_KEY=sk_live_YOUR_KEY
 \`\`\`
 ```
 
-Display: `Step 3/6 (Gate 2/4): Stripe pricing config written to .planning/deploy-staging/stripe/`
+Display: `Step 3/7 (Gate 2/4): Stripe pricing config written to .planning/deploy-staging/stripe/`
 
 #### Gate 3/4 — Resend Email Templates
 
@@ -748,13 +748,13 @@ Investor outreach sequence (from OTR artifact, gated on pitch deck completion):
 - `investor-03-update.tsx` — Progress update
 ````
 
-Display: `Step 3/6 (Gate 3/4): React Email template stubs written to .planning/deploy-staging/email/emails/`
+Display: `Step 3/7 (Gate 3/4): React Email template stubs written to .planning/deploy-staging/email/emails/`
 
 ---
 <!-- /OPTIMIZABLE -->
 
 <!-- LOCKED: Vercel deployment steps, coverage write, deploy-manifest.json, output summary -->
-### Step 4/6: Approval-gated Vercel deployment
+### Step 4/7: Approval-gated Vercel deployment
 
 #### Gate 4/4 — Vercel Deploy
 
@@ -825,7 +825,7 @@ HALT.
 
 If `$DEPLOY_EXIT == 0`:
 
-Store `$DEPLOY_URL` for the manifest. Display: `Step 4/6: Vercel deployment queued. URL: ${DEPLOY_URL}`
+Store `$DEPLOY_URL` for the manifest. Display: `Step 4/7: Vercel deployment queued. URL: ${DEPLOY_URL}`
 
 **Write hasDeployStaging coverage flag:**
 
@@ -848,7 +848,91 @@ Where each ACTUAL is replaced with the literal `true` or `false` value read from
 
 ---
 
-### Step 5/6: Write deploy-manifest.json
+### Step 5/7: Post-deploy smoke test
+
+Verify the deployed site renders expected LDP sections. This step is informational — a smoke test failure does NOT halt the deploy workflow (the Vercel deployment already succeeded in Step 4).
+
+#### 5a. Probe Playwright availability
+
+```
+node --input-type=module <<'EOF'
+import { createRequire } from 'module';
+const req = createRequire(import.meta.url);
+const b = req(`${process.env.CLAUDE_PLUGIN_ROOT}/bin/lib/mcp-bridge.cjs`);
+let navigateToolName = '', screenshotToolName = '', snapshotToolName = '';
+try {
+  navigateToolName   = b.call('playwright:navigate',   { url: 'about:blank' }).toolName;
+  screenshotToolName = b.call('playwright:screenshot',  {}).toolName;
+  snapshotToolName   = b.call('playwright:snapshot',    {}).toolName;
+} catch (err) {
+  navigateToolName = screenshotToolName = snapshotToolName = '';
+}
+process.stdout.write(JSON.stringify({ navigateToolName, screenshotToolName, snapshotToolName }) + '\n');
+EOF
+```
+
+IF any tool name is empty string:
+  SET SMOKE_PASS = "skipped"
+  SET SMOKE_ATTEMPTS = 0
+  Log: `Step 5/7: Smoke test skipped — Playwright MCP unavailable.`
+  Skip to Step 6/7.
+
+#### 5b. Exponential backoff retry loop
+
+```
+SMOKE_PASS = false
+SMOKE_ATTEMPTS = 0
+BACKOFF_DELAYS = [10, 20, 40]   # seconds between attempts
+SMOKE_SCREENSHOT_PATH = ".planning/deploy-staging/smoke-screenshot.png"
+
+FOR attempt = 1 to 3:
+  SMOKE_ATTEMPTS = attempt
+  Log: `  -> Smoke test attempt ${attempt}/3...`
+
+  Navigate to $DEPLOY_URL using {navigateToolName}
+  Call {snapshotToolName} to capture AOM tree → store as SMOKE_AOM
+
+  IF SMOKE_AOM contains meaningful content (not Vercel "building" page, not empty):
+    Call {screenshotToolName} → save to $SMOKE_SCREENSHOT_PATH
+
+    Parse SMOKE_AOM for expected sections:
+      Extract $LDP_SECTIONS (already loaded in Step 2 from LDP Section Map table)
+      Key sections to always verify: hero, pricing, CTA
+      For each section name in key sections:
+        Check if SMOKE_AOM contains a landmark, heading, or region with matching text (case-insensitive)
+
+    SET SECTION_RESULTS = [{section: name, found: true/false}, ...]
+    SET SECTIONS_FOUND = [names where found=true]
+    SET SECTIONS_MISSING = [names where found=false]
+
+    IF all key sections found:
+      SET SMOKE_PASS = true
+      Log: `  -> Smoke test PASS — all sections verified: ${SECTIONS_FOUND.join(', ')}`
+      BREAK
+    ELSE:
+      Log: `  -> Smoke test attempt ${attempt} — missing sections: ${SECTIONS_MISSING.join(', ')}`
+      IF attempt < 3:
+        Log: `     Retrying in ${BACKOFF_DELAYS[attempt-1]}s...`
+        sleep ${BACKOFF_DELAYS[attempt-1]}
+
+  ELSE (page not ready):
+    Log: `  -> Deploy not ready (build in progress)`
+    IF attempt < 3:
+      Log: `     Retrying in ${BACKOFF_DELAYS[attempt-1]}s...`
+      sleep ${BACKOFF_DELAYS[attempt-1]}
+
+IF NOT SMOKE_PASS AND SMOKE_PASS != "skipped":
+  Log: `  -> Smoke test FAIL after 3 attempts — deploy may still be building.`
+  Log: `     Check Vercel dashboard manually: ${DEPLOY_URL}`
+```
+
+Store SMOKE_PASS, SMOKE_ATTEMPTS, SMOKE_SCREENSHOT_PATH, SECTIONS_FOUND, SECTIONS_MISSING for manifest in Step 6.
+
+Display: `Step 5/7: Smoke test ${SMOKE_PASS ? 'passed' : 'failed'} (${SMOKE_ATTEMPTS} attempt(s)).`
+
+---
+
+### Step 6/7: Write deploy-manifest.json
 
 Write `.planning/deploy-staging/deploy-manifest.json` using the Write tool.
 
@@ -888,17 +972,25 @@ Generate the JSON with the following schema. All four artifact entries have `rev
       "deployment_url": "${DEPLOY_URL}",
       "review_required": true,
       "reviewed": false,
-      "notes": "Deployment in progress — check Vercel dashboard for build status. URL is live once the build completes."
+      "notes": "Deployment in progress — check Vercel dashboard for build status. URL is live once the build completes.",
+      "smoke_test": {
+        "status": "${SMOKE_PASS === true ? 'pass' : SMOKE_PASS === 'skipped' ? 'skipped' : 'fail'}",
+        "attempts": ${SMOKE_ATTEMPTS},
+        "screenshot_path": "${SMOKE_SCREENSHOT_PATH}",
+        "sections_found": ${JSON.stringify(SECTIONS_FOUND || [])},
+        "sections_missing": ${JSON.stringify(SECTIONS_MISSING || [])},
+        "timestamp": "${ISO8601_TIMESTAMP}"
+      }
     }
   }
 }
 ```
 
-Display: `Step 5/6: deploy-manifest.json written to .planning/deploy-staging/`
+Display: `Step 6/7: deploy-manifest.json written to .planning/deploy-staging/`
 
 ---
 
-### Step 6/6: Output summary
+### Step 7/7: Output summary
 
 Display a final summary:
 
@@ -928,6 +1020,10 @@ Generated Artifacts:
   ✓ Vercel deployment (queued)
       URL: ${DEPLOY_URL}
       review_required: true
+
+  ✓ Smoke test: ${SMOKE_PASS === true ? 'PASS' : SMOKE_PASS === 'skipped' ? 'SKIPPED (no Playwright)' : 'FAIL'}
+      ${SMOKE_PASS === true ? 'Sections verified: ' + SECTIONS_FOUND.join(', ') : ''}
+      ${SMOKE_PASS === 'skipped' ? '' : 'Screenshot: ' + SMOKE_SCREENSHOT_PATH}
 
 Manifest: .planning/deploy-staging/deploy-manifest.json
 
