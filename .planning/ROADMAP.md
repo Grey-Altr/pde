@@ -268,9 +268,9 @@ Full details: .planning/milestones/v0.12-ROADMAP.md
   2. Running `/pde:mockup` produces PNG screenshots of all generated mockup HTML files in `screenshots/` subdirectory
   3. Multi-page wireframes (index.html + screen-*.html) each get individual screenshots at 1280x800 viewport
   4. `--no-playwright` flag skips screenshot capture without error (existing degradation path preserved)
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 Plans:
-- [ ] 109-01-PLAN.md — TOOL_MAP resize entry + Nyquist tests + wireframe.md Step 5d screenshot capture loop
+- [x] 109-01-PLAN.md — TOOL_MAP resize entry + Nyquist tests + wireframe.md Step 5d screenshot capture loop
 - [ ] 109-02-PLAN.md — mockup.md Step 7f screenshot capture loop
 
 ### Phase 110: Critique A11y + Deploy Smoke Test

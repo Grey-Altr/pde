@@ -19,16 +19,16 @@ Requirements for v0.14 Visual AutoResearch. Each maps to roadmap phases.
 
 ### Wireframe Screenshots (WFR)
 
-- [ ] **WFR-01**: wireframe.md Step 5d wired to capture screenshots of each wireframe HTML via Playwright MCP
-- [ ] **WFR-02**: Screenshots saved to `.planning/design/ux/wireframes/screenshots/`
-- [ ] **WFR-03**: Multi-page wireframes handled (index.html + screen-*.html each screenshotted)
-- [ ] **WFR-04**: `--no-playwright` flag preserves existing degradation path (no screenshots, no error)
-- [ ] **WFR-05**: Viewport configured for consistent wireframe dimensions (1280x800 default)
+- [x] **WFR-01**: wireframe.md Step 5d wired to capture screenshots of each wireframe HTML via Playwright MCP
+- [x] **WFR-02**: Screenshots saved to `.planning/design/ux/wireframes/screenshots/`
+- [x] **WFR-03**: Multi-page wireframes handled (index.html + screen-*.html each screenshotted)
+- [x] **WFR-04**: `--no-playwright` flag preserves existing degradation path (no screenshots, no error)
+- [x] **WFR-05**: Viewport configured for consistent wireframe dimensions (1280x800 default)
 
 ### Mockup Screenshots (MOK)
 
 - [ ] **MOK-01**: mockup.md captures screenshots of generated mockup HTML files via Playwright MCP
-- [ ] **MOK-02**: Screenshots saved to `.planning/design/visual/mockups/screenshots/`
+- [ ] **MOK-02**: Screenshots saved to `.planning/design/ux/mockups/screenshots/`
 - [ ] **MOK-03**: `--no-playwright` degradation path (mockup workflow completes without screenshots)
 
 ### Critique A11y Integration (A11Y)
@@ -171,11 +171,11 @@ Requirements for v0.14 Visual AutoResearch. Each maps to roadmap phases.
 | PLAY-05 | Phase 108 | Complete |
 | PLAY-06 | Phase 108 | Pending |
 | PLAY-07 | Phase 108 | Complete |
-| WFR-01 | Phase 109 | Pending |
-| WFR-02 | Phase 109 | Pending |
-| WFR-03 | Phase 109 | Pending |
-| WFR-04 | Phase 109 | Pending |
-| WFR-05 | Phase 109 | Pending |
+| WFR-01 | Phase 109 | Complete |
+| WFR-02 | Phase 109 | Complete |
+| WFR-03 | Phase 109 | Complete |
+| WFR-04 | Phase 109 | Complete |
+| WFR-05 | Phase 109 | Complete |
 | MOK-01 | Phase 109 | Pending |
 | MOK-02 | Phase 109 | Pending |
 | MOK-03 | Phase 109 | Pending |
