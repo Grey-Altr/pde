@@ -900,7 +900,7 @@ Display the final summary table (always the last output):
 - NEVER hard-fail when Axe MCP unavailable (manual checklist fallback is sufficient)
 - NEVER skip coverage-check before writing designCoverage
 - NEVER use dot-notation with manifest-set-top-level (always pass full JSON object)
-- NEVER write only hasHigAudit to designCoverage — always pass all 19 other fields through (20 total)
+- NEVER write only hasHigAudit to designCoverage — always pass all 20 other fields through (21 total)
 - Coverage flag name is `hasHigAudit` (not hasHIG, not hasHig, not hasHIGAudit)
 - NEVER hard-fail when auditable artifact is absent — HALT with clear error message pointing to prerequisite skill
 - ALWAYS release write lock (Step 7 lock-release) even if an error occurs during root DESIGN-STATE updates

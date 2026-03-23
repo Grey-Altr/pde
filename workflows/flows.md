@@ -1034,7 +1034,7 @@ COV=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design coverage-check)
 if [[ "$COV" == @file:* ]]; then COV=$(cat "${COV#@file:}"); fi
 ```
 
-Parse the JSON output to extract current flag values for ALL twenty fields:
+Parse the JSON output to extract current flag values for ALL twenty-one fields:
 - `hasDesignSystem` — current value from COV output
 - `hasWireframes` — current value from COV output
 - `hasFlows` — (this skill sets to true)

@@ -1455,7 +1455,7 @@ if [[ "$COV" == @file:* ]]; then COV=$(cat "${COV#@file:}"); fi
 
 Parse the JSON output from coverage-check. Extract ALL twenty-one current flag values: `hasDesignSystem`, `hasWireframes`, `hasFlows`, `hasHardwareSpec`, `hasCritique`, `hasIterate`, `hasHandoff`, `hasIdeation`, `hasCompetitive`, `hasOpportunity`, `hasMockup`, `hasHigAudit`, `hasRecommendations`, `hasStitchWireframes`, `hasPrintCollateral`, `hasProductionBible`, `hasBusinessThesis`, `hasMarketLandscape`, `hasServiceBlueprint`, `hasLaunchKit`, `hasDeployStaging`. Default any absent field to `false`.
 
-IF PRODUCT_TYPE is "experience": merge `hasProductionBible: true` (and `hasHandoff: true` only if hybrid-event), preserve all other eighteen values. Then write the full merged twenty-field object:
+IF PRODUCT_TYPE is "experience": merge `hasProductionBible: true` (and `hasHandoff: true` only if hybrid-event), preserve all other nineteen values. Then write the full merged twenty-one-field object:
 
 ```bash
 # For experience products (non-hybrid-event):
@@ -1471,7 +1471,7 @@ node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level des
 node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":{current},"hasWireframes":{current},"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":true,"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":{current},"hasPrintCollateral":{current},"hasProductionBible":{current},"hasBusinessThesis":{current},"hasMarketLandscape":{current},"hasServiceBlueprint":{current},"hasLaunchKit":true,"hasDeployStaging":{current}}'
 ```
 
-IF `$BM == "true"` AND LKT_GENERATED is true: use the business mode variant (sets `hasLaunchKit: true`). Preserve all other nineteen values from the coverage-check read.
+IF `$BM == "true"` AND LKT_GENERATED is true: use the business mode variant (sets `hasLaunchKit: true`). Preserve all other twenty values from the coverage-check read.
 
 Replace each `{current}` with the actual value read from coverage-check output (true or false).
 
