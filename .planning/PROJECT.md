@@ -127,16 +127,19 @@ Any user can go from idea to shipped product through a single platform that hand
 
 ### Active
 
-## Current Milestone: v0.13 AutoResearch
+## Current Milestone: v0.14 WebMCP
 
-**Goal:** Add an autonomous experiment loop primitive that lets PDE optimize its own workflows and agents — modify code, run, measure a single metric, keep improvements, discard regressions, repeat.
+**Goal:** Give PDE browser capabilities via Playwright MCP, expose PDE planning state as an MCP server, and implement W3C WebMCP adapter for early-mover browser-agent interop.
 
 **Target features:**
-- `/pde:optimize` skill — experiment loop: define metric + search space + budget → agent iterates, git commit on improvement, git reset on regression
-- Research agent augmentation — pde-phase-researcher gains empirical testing mode for "try and measure" phases
-- Git exploratory commits — formalized commit/reset state machine with automatic rollback, distinct from regular atomic commits
-- Experiment phase type — new phase type with target metric, mutable/immutable file boundaries, time/iteration budget, keep/discard threshold
-- Self-improvement focus — primary use case is PDE optimizing its own workflows, agents, and prompt quality
+- Playwright MCP as 7th APPROVED_SERVER in mcp-bridge.cjs (stdio transport, zero npm deps, headless mode)
+- Wireframe screenshot capture (filling existing Step 5d stub in wireframe.md)
+- Mockup screenshot capture for visual reference
+- Critique accessibility tree from browser_snapshot (AOM data for a11y perspective)
+- Deploy smoke testing (post-deploy navigation + screenshot verification)
+- PDE-as-MCP-server — expose planning state (PROJECT.md, ROADMAP.md, phases, design artifacts) via standard MCP protocol
+- W3C WebMCP adapter — navigator.modelContext registration for PDE tools, enabling browser-based AI consumers
+- Graceful degradation throughout (probe/degrade contracts, --no-playwright flag)
 
 ### Out of Scope
 
@@ -162,7 +165,8 @@ Any user can go from idea to shipped product through a single platform that hand
 
 - **Shipped v0.12** on 2026-03-23: business product type with venture design engine — 15 phases, 24 plans, 59 requirements, 235 Nyquist assertions, 141 commits, zero tech debt
 - **Shipped v0.11** on 2026-03-22: ~245,000 LOC (JavaScript/Markdown/Shell), ~1,078 total commits
-- **Active milestone:** v0.13 AutoResearch — autonomous experiment loops for self-optimization
+- **Shipped v0.13** on 2026-03-23: 9 phases, 15 plans (AutoResearch: safety boundaries, git state machine, experiment schema, mutation agent, orchestrator, circuit breakers, self-improvement presets, researcher empirical mode, observability)
+- **Active milestone:** v0.14 WebMCP — browser automation via Playwright MCP, PDE-as-MCP-server, W3C WebMCP adapter
 - **Planned roadmap:** v0.13 AutoResearch → v0.14 WebMCP → v0.15 CLI-Anything → v0.16 Remote Dashboard → v0.17 Stakeholder Presentations → v1.0 Standalone CLI
 - **v0.11** shipped 2026-03-22: 112 files changed, 116 commits (experience product type: detection, brief, tokens, flows, wireframes, critique, HIG, print, handoff, 48 requirements)
 - **v0.10** shipped 2026-03-21: 107 files changed, 56 commits (idle-time productivity: suggestion engine, catalog, context notes, 7-pane dashboard)
@@ -267,4 +271,4 @@ Any user can go from idea to shipped product through a single platform that hand
 | Business detection threshold (3+ signals, 2+ categories) | Prevents over-triggering on pure software projects while catching genuine business intent | ✓ Good — 5-category taxonomy with category diversity requirement |
 | BTH→LCV dependency chain (skip, don't halt) | If BTH generation fails, LCV is skipped with warning rather than halting entire brief run | ✓ Good — graceful degradation preserves non-business brief output |
 | 20-field designCoverage write (not copy 16-field pattern) | Phase 84 added 4 fields; copying opportunity.md's 16-field pattern silently drops them | ✓ Good — canonical order from manifest template |
-*Last updated: 2026-03-23 after Phase 107 complete — Nyquist Coverage (62 new assertions, 1216 total tests, zero regressions) — v0.13 ALL PHASES COMPLETE*
+*Last updated: 2026-03-23 after v0.14 WebMCP milestone started*

@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.13
-milestone_name: AutoResearch
-status: Milestone complete
-stopped_at: Completed 107-01-PLAN.md
-last_updated: "2026-03-23T14:17:05.339Z"
+milestone: v0.14
+milestone_name: WebMCP
+status: Defining requirements
+stopped_at: null
+last_updated: "2026-03-23T20:00:00.000Z"
 progress:
-  total_phases: 9
-  completed_phases: 9
-  total_plans: 15
-  completed_plans: 15
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-23)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 107 — Nyquist Coverage
+**Current focus:** v0.14 WebMCP — defining requirements
 
 ## Current Position
 
-Phase: 107
-Plan: Not started
+Phase: Not started (defining requirements)
+Plan: —
 
 ## Performance Metrics
 
@@ -118,8 +118,8 @@ Recent decisions affecting v0.13 planning:
 
 ## Session Continuity
 
-Last session: 2026-03-23T14:13:21.072Z
-Stopped at: Completed 107-01-PLAN.md
+Last session: 2026-03-23T20:00:00.000Z
+Stopped at: Milestone v0.14 started — defining requirements
 Resume file: None
 
-Next action: /pde:plan-phase 99
+Next action: Define requirements → create roadmap
