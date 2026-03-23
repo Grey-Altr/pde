@@ -213,7 +213,7 @@ Full details: .planning/milestones/v0.11-ROADMAP.md
 - [x] **Phase 95: Integration Wiring Fixes** — Close 6 requirement gaps, 3 integration gaps, and 3 broken flows from milestone audit (completed 2026-03-23)
 - [x] **Phase 96: 21-Field Cascade Fix** — Fix test assertion and 4 secondary workflow designCoverage writes to include hasDeployStaging as 21st field (completed 2026-03-23)
 - [x] **Phase 97: Consumer Glob Mismatch Fixes** — Fix 5 remaining glob mismatches in deploy.md, handoff.md, and critique.md (STR/DPD/GTM stems and extensions) (completed 2026-03-23)
-- [ ] **Phase 98: Prose Drift & LDP Glob Fix** — Fix stale LDP glob stem in critique.md and update 6 stale "20 fields" prose references to "21 fields" across 6 workflows
+- [x] **Phase 98: Prose Drift & LDP Glob Fix** — Fix stale LDP glob stem in critique.md and update 6 stale "20 fields" prose references to "21 fields" across 6 workflows (completed 2026-03-23)
 
 ## Phase Details
 
@@ -434,7 +434,7 @@ Plans:
   3. 235/235 Nyquist tests still GREEN after changes
 **Plans**: 1 plan
 Plans:
-- [ ] 98-01-PLAN.md — Fix LDP glob and 6 stale "20 fields" prose references
+- [x] 98-01-PLAN.md — Fix LDP glob and 6 stale "20 fields" prose references
 
 ## Progress
 
