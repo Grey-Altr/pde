@@ -15,6 +15,7 @@
 - ✅ **v0.11 Experience Product Type** — Phases 74-83 (shipped 2026-03-22)
 - ✅ **v0.12 Business Product Type** — Phases 84-98 (shipped 2026-03-23)
 - ✅ **v0.13 AutoResearch** — Phases 99-107 (shipped 2026-03-23)
+- 🚧 **v0.14 Visual AutoResearch** — Phases 108-117 (in progress)
 
 ## Phases
 
@@ -230,6 +231,133 @@ Full details: .planning/milestones/v0.12-ROADMAP.md
 
 </details>
 
+### v0.14 Visual AutoResearch (Phases 108-117)
+
+**Milestone Goal:** Give PDE browser capabilities via Playwright MCP and exploit them to create visual AutoResearch experiments that optimize all 14 design skills against visual, accessibility, and structural metrics derived from actual browser rendering.
+
+- [ ] **Phase 108: Playwright MCP Infrastructure** — Register Playwright as 7th APPROVED_SERVER with stdio transport, TOOL_MAP, probe/degrade
+- [ ] **Phase 109: Wireframe + Mockup Screenshots** — Capture wireframe and mockup HTML screenshots via Playwright MCP
+- [ ] **Phase 110: Critique A11y + Deploy Smoke Test** — Browser-based accessibility tree for critique, post-deploy smoke testing
+- [ ] **Phase 111: Visual Metric Scripts** — 5 metric scripts (DOM structure, a11y, contrast, responsive, Mermaid) following _evalMetric contract
+- [ ] **Phase 112: Experiment Templates** — AutoResearch experiment templates for all 14 eligible design skills with browser-backed verify
+- [ ] **Phase 113: Cross-Skill Pipeline + Iterate Effectiveness** — Pipeline experiments measuring upstream-to-downstream visual impact, iterate before/after delta
+- [ ] **Phase 114: Visual Regression Circuit Breaker** — Prevent cosmetic regressions during optimization with screenshot-based before/after comparison
+- [ ] **Phase 115: Multi-Candidate Experiments** — A/B variant testing with best-of-N selection in experiment loop
+- [ ] **Phase 116: Pressure Test + Meta-Optimization + Ideation + Brief Reference** — Visual pressure test dimension, strategy self-calibration, ideation visual scoring, reference screenshot capture
+- [ ] **Phase 117: Integration & Nyquist** — Structural regression tests for all v0.14 requirements, zero v0.13 regressions
+
+## Phase Details
+
+### Phase 108: Playwright MCP Infrastructure
+**Goal**: PDE workflows can call Playwright browser tools through the existing MCP bridge with full probe/degrade safety
+**Depends on**: Phase 107 (v0.13 complete)
+**Requirements**: PLAY-01, PLAY-02, PLAY-03, PLAY-04, PLAY-05, PLAY-06, PLAY-07
+**Success Criteria** (what must be TRUE):
+  1. `claude mcp add playwright` installs the server and PDE recognizes it as the 7th approved server
+  2. Probe detects Playwright availability and all workflows degrade gracefully when it is not installed
+  3. TOOL_MAP entries resolve to actual Playwright tool names (live-verified, not assumed)
+  4. mcp-integration.md documents Playwright setup with `--headless` and `--allow-unrestricted-file-access` flags
+**Plans**: TBD
+
+### Phase 109: Wireframe + Mockup Screenshots
+**Goal**: Users get automatic screenshots of wireframe and mockup HTML artifacts for visual reference and downstream metrics
+**Depends on**: Phase 108
+**Requirements**: WFR-01, WFR-02, WFR-03, WFR-04, WFR-05, MOK-01, MOK-02, MOK-03
+**Success Criteria** (what must be TRUE):
+  1. Running `/pde:wireframe` produces PNG screenshots of all generated wireframe HTML files in `screenshots/` subdirectory
+  2. Running `/pde:mockup` produces PNG screenshots of all generated mockup HTML files in `screenshots/` subdirectory
+  3. Multi-page wireframes (index.html + screen-*.html) each get individual screenshots at 1280x800 viewport
+  4. `--no-playwright` flag skips screenshot capture without error (existing degradation path preserved)
+**Plans**: TBD
+
+### Phase 110: Critique A11y + Deploy Smoke Test
+**Goal**: Critique accessibility perspective has real browser AOM data, and deployed sites get automated smoke verification
+**Depends on**: Phase 108
+**Requirements**: A11Y-01, A11Y-02, A11Y-03, A11Y-04, DEP-01, DEP-02, DEP-03, DEP-04, DEP-05
+**Success Criteria** (what must be TRUE):
+  1. `/pde:critique` accessibility perspective reports landmarks, unlabeled controls, and heading hierarchy from actual browser AOM tree
+  2. When both Playwright and Axe MCP are available, critique merges both data sources into accessibility findings
+  3. When neither Playwright nor Axe is available, critique falls back to manual WCAG checklist without error
+  4. After a successful deploy, PDE navigates to the deploy URL, captures a screenshot, and verifies expected sections from LDP spec
+  5. Deploy smoke test retries with exponential backoff when the build is still in progress
+**Plans**: TBD
+
+### Phase 111: Visual Metric Scripts
+**Goal**: AutoResearch experiments can measure visual quality of rendered HTML through 5 standardized metric scripts
+**Depends on**: Phase 108
+**Requirements**: VIS-01, VIS-02, VIS-03, VIS-04, VIS-05, VIS-06, VIS-07
+**Success Criteria** (what must be TRUE):
+  1. Each of the 5 metric scripts (DOM structure, a11y violations, WCAG contrast, responsive compliance, Mermaid readability) produces a numeric score on stdout following _evalMetric contract
+  2. All 5 scripts exit 0 and return score 0 when Playwright MCP is unavailable (graceful degradation, not crash)
+  3. Responsive compliance metric captures and compares layout at mobile (375px), tablet (768px), and desktop (1280px) breakpoints
+  4. All scripts are timeout-safe (no hanging when browser operations stall)
+**Plans**: TBD
+
+### Phase 112: Experiment Templates
+**Goal**: Every eligible design skill has an AutoResearch experiment template with browser-backed verification
+**Depends on**: Phase 111
+**Requirements**: EXP-01, EXP-02, EXP-03, EXP-04, EXP-05, EXP-06, EXP-07, EXP-08, EXP-09, EXP-10, EXP-11, EXP-12
+**Success Criteria** (what must be TRUE):
+  1. All 14 eligible design skills (recommend through handoff) have at least one experiment template in experiment.md format
+  2. Browser-backed skills (wireframe, mockup, system, flows, critique, hig, iterate, handoff, brief) use visual metric scripts in their verify commands
+  3. Non-browser skills (recommend, competitive, opportunity, ideate) use existing Nyquist text metrics
+  4. Each template specifies mutable_files, verify_command, target_metric, search_space, and iteration_budget per experiment-schema.cjs contract
+**Plans**: TBD
+
+### Phase 113: Cross-Skill Pipeline + Iterate Effectiveness
+**Goal**: Experiments can measure how upstream prose changes propagate to downstream visual quality, and iterate improvement magnitude is quantified
+**Depends on**: Phase 112
+**Requirements**: PIPE-01, PIPE-02, PIPE-03, PIPE-04, ITER-01, ITER-02, ITER-03, ITER-04
+**Success Criteria** (what must be TRUE):
+  1. A pipeline experiment can mutate brief.md, run the chain through wireframe, and measure visual quality at the terminal stage
+  2. Pipeline experiments isolate which upstream skill produced the largest downstream visual improvement
+  3. Iterate experiments capture before/after screenshots around each `/pde:iterate` invocation and measure the visual delta
+  4. Iterate effectiveness metric tracks convergence speed (iterations until visual improvement plateaus)
+**Plans**: TBD
+
+### Phase 114: Visual Regression Circuit Breaker
+**Goal**: AutoResearch optimization never makes visual quality worse -- regressions are detected and rejected automatically
+**Depends on**: Phase 111
+**Requirements**: VRCB-01, VRCB-02, VRCB-03, VRCB-04, VRCB-05
+**Success Criteria** (what must be TRUE):
+  1. Before each experiment iteration, baseline screenshots are captured automatically
+  2. After mutation, if visual regression is detected (e.g., new a11y violation), the mutation is rejected via git reset
+  3. Regression threshold is configurable in experiment.md (default: any new a11y violation = regression)
+  4. Visual regression circuit breaker integrates with existing consecutive_failure_limit and no_progress_limit infrastructure
+**Plans**: TBD
+
+### Phase 115: Multi-Candidate Experiments
+**Goal**: Experiment iterations can generate and evaluate multiple variants simultaneously, selecting the best one
+**Depends on**: Phase 112
+**Requirements**: MULTI-01, MULTI-02, MULTI-03, MULTI-04, MULTI-05
+**Success Criteria** (what must be TRUE):
+  1. Multi-candidate mode generates N variants per iteration (default 3) and evaluates each independently
+  2. Best candidate is promoted (git commit) and others are discarded
+  3. Candidate count is configurable in experiment.md
+  4. Multi-candidate mode works within the existing orchestrator loop from Phase 103
+**Plans**: TBD
+
+### Phase 116: Pressure Test + Meta-Optimization + Ideation + Brief Reference
+**Goal**: Four independent enhancements exploiting browser capabilities -- visual pressure testing, self-calibrating mutation strategies, ideation visual diversity scoring, and live reference screenshot capture
+**Depends on**: Phase 111
+**Requirements**: PRES-01, PRES-02, PRES-03, PRES-04, META-01, META-02, META-03, META-04, IDT-01, IDT-02, IDT-03, IDT-04, BREF-01, BREF-02, BREF-03, BREF-04
+**Success Criteria** (what must be TRUE):
+  1. `/pde:pressure-test` scores visual quality (DOM structure, a11y, contrast) alongside existing Awwwards text rubric with combined weighting
+  2. Experiment runner reads historical JSONL data to weight mutation strategies toward approaches that have historically produced improvements
+  3. Ideation divergence is scored by screenshot variance across generated concepts -- higher visual diversity = higher quality score
+  4. `/pde:brief` can capture live product screenshots from user-provided URLs as reference material available to downstream skills
+  5. All four capabilities degrade gracefully when Playwright is unavailable (text-only fallback)
+**Plans**: TBD
+
+### Phase 117: Integration & Nyquist
+**Goal**: All v0.14 features validated with structural regression tests and zero regressions against existing test suite
+**Depends on**: Phase 116
+**Requirements**: INTG-01, INTG-02
+**Success Criteria** (what must be TRUE):
+  1. Nyquist structural tests exist for all 76 v0.14 requirements
+  2. All existing v0.13 Nyquist tests (1216 assertions) continue to pass with zero regressions
+**Plans**: TBD
+
 ## Progress
 
 | Milestone | Phases | Plans | Status | Completed |
@@ -247,3 +375,4 @@ Full details: .planning/milestones/v0.12-ROADMAP.md
 | v0.11 | 74-83 | 19/19 | Complete | 2026-03-22 |
 | v0.12 | 84-98 | 24/24 | Complete | 2026-03-23 |
 | v0.13 | 99-107 | 15/15 | Complete | 2026-03-23 |
+| v0.14 | 108-117 | 0/TBD | Not started | - |
