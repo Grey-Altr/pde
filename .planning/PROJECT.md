@@ -121,6 +121,7 @@ Any user can go from idea to shipped product through a single platform that hand
 - ✓ deploy-manifest.json tracking with `review_required: true` per artifact, .planning/deploy-staging/ directory isolation — v0.12
 - ✓ Integration wiring fixes: OTR/BTH glob mismatches resolved, hasDeployStaging 21st designCoverage field, handoff required_reading expanded — v0.12
 - ✓ 21-field designCoverage schema (hasDeployStaging) across all 10 coverage-writing workflows — v0.12
+- ✓ 21-field cascade fix: test assertion (20→21), hasDeployStaging in 4 secondary workflows (recommend, ideate, iterate, mockup), clobber-audit updated — v0.12
 
 ### Active
 
