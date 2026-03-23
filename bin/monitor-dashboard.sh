@@ -168,7 +168,7 @@ build_full_layout() {
   local ndjson="$2"
   local sugg_path="$3"
 
-  # Layout: 3 panes left column, 3 panes right column
+  # Layout: 4 panes left column, 4 panes right column
   # Capture initial pane (becomes "agent activity")
   P0=$(tmux display -t "${session}:0.0" -p '#{pane_id}')
 
@@ -182,13 +182,16 @@ build_full_layout() {
   P3=$(tmux split-window -v -dPF '#{pane_id}' -t "${session}:0.${P2}" -p 50)
 
   # Right column: log stream below pipeline progress
-  P4=$(tmux split-window -v -dPF '#{pane_id}' -t "${session}:0.${P1}" -p 66)
+  P4=$(tmux split-window -v -dPF '#{pane_id}' -t "${session}:0.${P1}" -p 75)
 
   # Right column: token meter below log stream
-  P5=$(tmux split-window -v -dPF '#{pane_id}' -t "${session}:0.${P4}" -p 50)
+  P5=$(tmux split-window -v -dPF '#{pane_id}' -t "${session}:0.${P4}" -p 66)
 
   # Right column: suggestions below token meter
   P6=$(tmux split-window -v -dPF '#{pane_id}' -t "${session}:0.${P5}" -p 50)
+
+  # Right column: experiment progress below suggestions (Pane 8, Phase 106)
+  P7=$(tmux split-window -v -dPF '#{pane_id}' -t "${session}:0.${P6}" -p 50)
 
   # Label each pane
   tmux select-pane -t "${P0}" -T "agent activity"
@@ -198,6 +201,7 @@ build_full_layout() {
   tmux select-pane -t "${P4}" -T "log stream"
   tmux select-pane -t "${P5}" -T "token / cost"
   tmux select-pane -t "${P6}" -T "suggestions"
+  tmux select-pane -t "${P7}" -T "experiment"
 
   # Start streaming processes in each pane
   tmux send-keys -t "${P0}" "bash '${PLUGIN_ROOT}/bin/pane-agent-activity.sh' '${ndjson}'" C-m
@@ -207,6 +211,7 @@ build_full_layout() {
   tmux send-keys -t "${P4}" "bash '${PLUGIN_ROOT}/bin/pane-log-stream.sh' '${ndjson}'" C-m
   tmux send-keys -t "${P5}" "bash '${PLUGIN_ROOT}/bin/pane-token-meter.sh' '${ndjson}'" C-m
   tmux send-keys -t "${P6}" "bash '${PLUGIN_ROOT}/bin/pane-suggestions.sh' '${sugg_path}'" C-m
+  tmux send-keys -t "${P7}" "bash '${PLUGIN_ROOT}/bin/pane-experiment.sh' '${ndjson}'" C-m
 }
 
 build_minimal_layout() {
