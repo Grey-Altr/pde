@@ -51,7 +51,7 @@ Requirements for the business product type milestone. Each maps to roadmap phase
 ### Launch Artifacts
 
 - [x] **LAUNCH-01**: `wireframe.md` produces LDP (Landing Page) artifact in deployable-spec format with Next.js component mapping (hero, features, pricing, CTA, footer sections)
-- [ ] **LAUNCH-02**: STR (Stripe Pricing Config) artifact generated with Stripe-compatible schema (product names, price amounts as placeholders, billing intervals, trial periods, checkout mode)
+- [x] **LAUNCH-02**: STR (Stripe Pricing Config) artifact generated with Stripe-compatible schema (product names, price amounts as placeholders, billing intervals, trial periods, checkout mode)
 - [x] **LAUNCH-03**: Pitch deck outline generated in YC/Sequoia format (10-slide default, expandable to 13) with track-specific depth (solo: 10 slides, startup: 12-15, leader: internal business case format)
 - [x] **LAUNCH-04**: Landing page wireframe consumes brand system tokens (Phase 5) and GTM flow (Phase 4) for copy framing
 - [x] **LAUNCH-05**: Pricing config references Lean Canvas revenue streams block and competitive pricing landscape
@@ -77,7 +77,7 @@ Requirements for the business product type milestone. Each maps to roadmap phase
 
 - [x] **DEPLOY-01**: New `workflows/deploy.md` created as Stage 14, conditionally appended to build orchestrator only when `businessMode === true`
 - [x] **DEPLOY-02**: Next.js landing page scaffold generated at `.planning/deploy-staging/landing-page/` with pinned versions (Next.js 16.2.1, Stripe v20, Resend 6.9.4, Tailwind v4), consuming LDP wireframe spec
-- [ ] **DEPLOY-03**: Stripe pricing config scaffold generated with test-mode placeholder keys (`pk_test_REPLACE_WITH_YOUR_KEY`) — never live keys
+- [x] **DEPLOY-03**: Stripe pricing config scaffold generated with test-mode placeholder keys (`pk_test_REPLACE_WITH_YOUR_KEY`) — never live keys
 - [x] **DEPLOY-04**: Resend email template stubs generated from OTR sequence spec with React Email components
 - [x] **DEPLOY-05**: Vercel deployment invoked via `npx vercel --prod --no-wait` returning deployment URL without blocking session
 - [x] **DEPLOY-06**: Four mandatory human approval gates: (1) before Next.js scaffold write, (2) before Stripe config write, (3) before Resend template generation, (4) before Vercel deploy command
@@ -154,31 +154,31 @@ Which phases cover which requirements. Updated during roadmap creation.
 | MRKT-04 | 86 | Complete |
 | MRKT-05 | 86 | Complete |
 | OPS-01 | 87 | Complete |
-| OPS-02 | 97 | Pending |
+| OPS-02 | 97 | Complete |
 | OPS-03 | 87 | Complete |
 | OPS-04 | 87 | Complete |
 | BRAND-01 | 88 | Complete |
 | BRAND-02 | 88 | Complete |
 | BRAND-03 | 88 | Complete |
 | LAUNCH-01 | 89 | Complete |
-| LAUNCH-02 | 97 | Pending |
+| LAUNCH-02 | 97 | Complete |
 | LAUNCH-03 | 89 | Complete |
 | LAUNCH-04 | 89 | Complete |
 | LAUNCH-05 | 89 | Complete |
 | LAUNCH-06 | 89 | Complete |
-| QUAL-01 | 97 | Pending |
+| QUAL-01 | 97 | Complete |
 | QUAL-02 | 90 | Complete |
 | QUAL-03 | 90 | Complete |
 | QUAL-04 | 90 | Complete |
-| KIT-01 | 97 | Pending |
-| KIT-02 | 97 | Pending |
-| KIT-03 | 97 | Pending |
+| KIT-01 | 97 | Complete |
+| KIT-02 | 97 | Complete |
+| KIT-03 | 97 | Complete |
 | KIT-04 | 91 | Complete |
 | KIT-05 | 91 | Complete |
 | KIT-06 | 91 | Complete |
 | DEPLOY-01 | 92 | Complete |
 | DEPLOY-02 | 92 | Complete |
-| DEPLOY-03 | 97 | Pending |
+| DEPLOY-03 | 97 | Complete |
 | DEPLOY-04 | 95 | Complete |
 | DEPLOY-05 | 92 | Complete |
 | DEPLOY-06 | 95 | Complete |

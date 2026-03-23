@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.12
 milestone_name: Business Product Type
-status: Milestone complete
-stopped_at: "Completed 96-01-PLAN.md — 21-field cascade fix: FOUND-02 test 20→21, hasDeployStaging in 4 secondary workflows, 76 Nyquist tests GREEN"
-last_updated: "2026-03-23T05:42:33.514Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 97-01-PLAN.md — 5 glob mismatch fixes (GAP-1 through GAP-5), 235/235 Nyquist tests GREEN
+last_updated: "2026-03-23T06:22:31.856Z"
 progress:
-  total_phases: 13
-  completed_phases: 13
-  total_plans: 22
-  completed_plans: 22
+  total_phases: 14
+  completed_phases: 14
+  total_plans: 23
+  completed_plans: 23
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-22)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 96 — 21-field-cascade-fix
+**Current focus:** Phase 97 — consumer-glob-mismatch-fixes
 
 ## Current Position
 
-Phase: 96
-Plan: Not started
+Phase: 97 (consumer-glob-mismatch-fixes) — EXECUTING
+Plan: 1 of 1
 
 ## Performance Metrics
 
@@ -57,6 +57,7 @@ Plan: Not started
 | Phase 94-nyquist-regression-tests P01 | 12 | 2 tasks | 2 files |
 | Phase 95-integration-wiring-fixes P01 | 25 | 3 tasks | 12 files |
 | Phase 96 P01 | 8 | 2 tasks | 6 files |
+| Phase 97 P01 | 1 | 3 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -125,6 +126,8 @@ Recent decisions affecting v0.12:
 - [Phase 95-01]: hasDeployStaging is 21st designCoverage field — deploy.md owns true write, 9 other workflows pass-through current
 - [Phase 96]: hasDeployStaging is always pass-through in secondary workflows — only deploy.md writes :true
 - [Phase 96]: TWENTY_ONE_FIELDS constant name in clobber audit test mirrors field count semantics explicitly
+- [Phase 97]: All 5 glob fixes applied on consumer side — producers (wireframe.md, flows.md) are correct
+- [Phase 97]: handoff.md line 1573 prose reference DPD-pitch-deck left unchanged — documentation not a glob
 
 ### Pending Todos
 
@@ -137,8 +140,8 @@ Recent decisions affecting v0.12:
 
 ## Session Continuity
 
-Last session: 2026-03-23T05:38:35.200Z
-Stopped at: Completed 96-01-PLAN.md — 21-field cascade fix: FOUND-02 test 20→21, hasDeployStaging in 4 secondary workflows, 76 Nyquist tests GREEN
+Last session: 2026-03-23T06:22:31.852Z
+Stopped at: Completed 97-01-PLAN.md — 5 glob mismatch fixes (GAP-1 through GAP-5), 235/235 Nyquist tests GREEN
 Resume file: None
 
 Next action: Execute Phase 92 (Deploy Skill)

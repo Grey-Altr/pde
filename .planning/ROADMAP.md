@@ -212,7 +212,7 @@ Full details: .planning/milestones/v0.11-ROADMAP.md
 - [x] **Phase 94: Nyquist Regression Tests** — Composition case validation and non-regression verification (completed 2026-03-23)
 - [x] **Phase 95: Integration Wiring Fixes** — Close 6 requirement gaps, 3 integration gaps, and 3 broken flows from milestone audit (completed 2026-03-23)
 - [x] **Phase 96: 21-Field Cascade Fix** — Fix test assertion and 4 secondary workflow designCoverage writes to include hasDeployStaging as 21st field (completed 2026-03-23)
-- [ ] **Phase 97: Consumer Glob Mismatch Fixes** — Fix 5 remaining glob mismatches in deploy.md, handoff.md, and critique.md (STR/DPD/GTM stems and extensions)
+- [x] **Phase 97: Consumer Glob Mismatch Fixes** — Fix 5 remaining glob mismatches in deploy.md, handoff.md, and critique.md (STR/DPD/GTM stems and extensions) (completed 2026-03-23)
 
 ## Phase Details
 
@@ -420,7 +420,7 @@ Plans:
   7. All 7 previously-gap requirements (LAUNCH-02, DEPLOY-03, KIT-01, KIT-02, KIT-03, OPS-02, QUAL-01) re-verified as satisfied
 **Plans**: 1 plan
 Plans:
-- [ ] 97-01-PLAN.md — Fix 5 glob mismatches in deploy.md, handoff.md, and critique.md
+- [x] 97-01-PLAN.md — Fix 5 glob mismatches in deploy.md, handoff.md, and critique.md
 
 ## Progress
 
@@ -450,4 +450,4 @@ Plans:
 | 94. Nyquist Regression Tests | v0.12 | 0/1 | Complete    | 2026-03-23 |
 | 95. Integration Wiring Fixes | v0.12 | 0/1 | Complete    | 2026-03-23 |
 | 96. 21-Field Cascade Fix | v0.12 | 1/1 | Complete    | 2026-03-23 |
-| 97. Consumer Glob Mismatch Fixes | v0.12 | 0/1 | Pending | - |
+| 97. Consumer Glob Mismatch Fixes | v0.12 | 1/1 | Complete   | 2026-03-23 |
