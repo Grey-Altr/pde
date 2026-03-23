@@ -1,3 +1,4 @@
+<!-- LOCKED: purpose, required_reading, process header, init steps, prerequisites, approval gates infrastructure -->
 <purpose>
 Generate deployable scaffold code from upstream launch artifacts (LDP, STR, OTR) with mandatory human approval gates before every external write. Stage 14 of the PDE design pipeline — conditionally executed ONLY when `businessMode === true`. Produces a Next.js 16.2.1 App Router landing page scaffold, a Stripe pricing config with test-mode keys, Resend-compatible React Email template stubs, and initiates a non-blocking Vercel deployment. All artifacts are staged in `.planning/deploy-staging/` and tracked in `deploy-manifest.json` with `review_required: true` per artifact.
 </purpose>
@@ -163,7 +164,9 @@ Store as `$LDP_SECTIONS`, `$STR_TIERS`, `$OTR_EMAILS` for use in scaffold genera
 Display: `Step 2/6: Upstream artifacts loaded. LDP: ${LDP_FILE}, STR: ${STR_FILE}, OTR: ${OTR_FILE}.`
 
 ---
+<!-- /LOCKED -->
 
+<!-- OPTIMIZABLE: scaffold generation guidance, checklist framing, code generation prompts -->
 ### Step 3/6: Approval-gated scaffold generation
 
 This step contains Approval Gates 1/4, 2/4, and 3/4. Each gate is independent — declining any gate halts without partial rollback of previously written files.
@@ -748,7 +751,9 @@ Investor outreach sequence (from OTR artifact, gated on pitch deck completion):
 Display: `Step 3/6 (Gate 3/4): React Email template stubs written to .planning/deploy-staging/email/emails/`
 
 ---
+<!-- /OPTIMIZABLE -->
 
+<!-- LOCKED: Vercel deployment steps, coverage write, deploy-manifest.json, output summary -->
 ### Step 4/6: Approval-gated Vercel deployment
 
 #### Gate 4/4 — Vercel Deploy
@@ -957,5 +962,6 @@ Note: .planning/deploy-staging/ is gitignored (contains placeholder keys).
 7. **NEVER generate dollar amounts.** All pricing values in generated scaffold code must use `[YOUR_PRICE_IN_CENTS]` format. The `unit_amount` field must always be a string placeholder, not a number.
 
 8. **NEVER generate specific company names, investor firm names, or partner references in email templates.** All email content fields must use `[YOUR_X]` structural placeholders. The only organization reference allowed is `[YOUR_COMPANY_NAME]`.
+<!-- /LOCKED -->
 
 </process>

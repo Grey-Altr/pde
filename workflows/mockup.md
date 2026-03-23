@@ -1,3 +1,4 @@
+<!-- LOCKED: purpose, skill_code, required_reading, flags, process header, init steps, prerequisites, MCP probe, Stitch integration contract -->
 <purpose>
 Generate hi-fi interactive HTML/CSS mockups from refined wireframes. Applies design tokens from tokens.css via a relative `<link>` tag, adds CSS-only interactive states (:hover, :focus-visible, :active, :checked pseudo-classes), and preserves wireframe annotations as HTML comments for handoff traceability. Produces per-screen mockup-{screen}.html files and a navigation index.html in .planning/design/ux/mockups/. Consumes wireframe HTML and design system tokens. Consumed by /pde:critique and /pde:handoff.
 </purpose>
@@ -411,9 +412,11 @@ If FALLBACK_SCREENS is non-empty:
 If ALL screens succeeded via Stitch: skip Step 4a-4b entirely.
 
 <!-- End of Stitch branch. If USE_STITCH is false or FALLBACK_SCREENS is non-empty, continue with Claude generation below for applicable screens. -->
+<!-- /LOCKED -->
 
 ---
 
+<!-- OPTIMIZABLE: mockup generation guidance, layer prompts, interactive state guidance, output structure -->
 This is the core generation step. For EACH screen in the SCREENS array (from wireframes or derived from brief context):
 
 #### 4a. Read wireframe source and extract annotations
@@ -1276,7 +1279,9 @@ Use the Write tool to write the index.html file.
 Display: `Step 4/7: Generated {N} mockup screen(s) + index.html.`
 
 ---
+<!-- /OPTIMIZABLE -->
 
+<!-- LOCKED: artifact writes, MCK artifact code, DESIGN-STATE updates, hasMockup coverage write, manifest registration -->
 ### Step 5/7: Write mockup specification artifact
 
 Write the mockup specification to `.planning/design/ux/mockups/MCK-mockup-spec-v{N}.md`.
@@ -1499,6 +1504,7 @@ Display: `Step 7/7: Root DESIGN-STATE and manifest updated. hasMockup: true.`
 - **Generic visual hook (hover color change):** Must be concept-specific, named with `<!-- VISUAL-HOOK: {name} -->`, and distinctive enough that it would NOT apply to a different product concept
 - **Missing variable font axis comment:** Document which axes the loaded font supports in a comment at the top of the `<style>` block
 - **`animation-timeline` BEFORE `animation` shorthand:** Shorthand resets animation-timeline to auto; always declare `animation-timeline` AFTER the `animation` shorthand
+<!-- /LOCKED -->
 
 </process>
 

@@ -1,3 +1,4 @@
+<!-- LOCKED: purpose, required_reading, flags, process header, init steps, prerequisites, MCP probe -->
 <purpose>
 Synthesize all upstream design pipeline artifacts (brief, flows, screen inventory, wireframes with annotations, design system tokens, critique reports, iteration changelogs) into two implementation-ready outputs: a versioned HND-handoff-spec-v{N}.md document and a HND-types-v{N}.ts TypeScript interface declarations file. Reads STACK.md as a hard dependency for framework and TypeScript alignment. Checks annotation completeness before TypeScript interface generation. In business mode: assembles LKT launch kit manifest, CNT 30-day content calendar, and OTR Resend-compatible email sequences from all upstream business artifacts. Registered in the design manifest under artifact code HND with hasHandoff coverage flag set via read-before-set pattern preserving all 20 designCoverage fields.
 </purpose>
@@ -322,7 +323,9 @@ Attempt to call `mcp__sequential-thinking__think` with a simple test prompt `"An
 Display: `Step 3/7: MCP probes complete. Sequential Thinking: {yes|no}.`
 
 ---
+<!-- /LOCKED -->
 
+<!-- OPTIMIZABLE: handoff narrative, developer guidance prose, TypeScript interface patterns, synthesis guidance -->
 ### Step 4/7: Synthesize artifacts into spec content
 
 This step reads all discovered artifacts and synthesizes them into structured content for writing. Work through each sub-section in order.
@@ -723,7 +726,9 @@ If not found (brief was generated before Phase 85 or domain section is absent): 
 Display: `Step 4/7 (4m): Domain strategy extracted from brief.`
 
 ---
+<!-- /OPTIMIZABLE -->
 
+<!-- LOCKED: HND artifact writes, artifact file paths, lock acquire/release, hasHandoff/hasProductionBible/hasLaunchKit coverage writes, manifest registration -->
 ### Step 5/7: Write output files with lock
 
 #### 5a. Acquire write-lock
@@ -1573,6 +1578,7 @@ NEVER do any of the following:
 - **Generate investor outreach without pitch deck:** The investor outreach sequence (3 emails) in OTR is gated on DPD artifact availability. If DPD-pitch-deck is not found via Glob, emit a note and skip investor sequence generation.
 
 - **Re-acquire write lock in Step 5e:** Step 5e runs under the existing lock from Step 5a. Do NOT call lock-acquire again — this will deadlock. The lock window covers Steps 5b through 5e, with 5d (release) always running last.
+<!-- /LOCKED -->
 
 </process>
 

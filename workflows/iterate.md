@@ -1,3 +1,4 @@
+<!-- LOCKED: purpose, required_reading, flags, process header, init steps, MCP probe -->
 <purpose>
 Critique-driven iteration of wireframes. Reads the latest CRT-critique-v{N}.md, applies open Action List findings as targeted edits to wireframe HTML (producing versioned WFR-{screen}-v{N}.html copies — originals NEVER overwritten), produces ITR-changelog-v{N}.md mapping each finding to applied or deferred status, updates critique report checkboxes and Resolved Findings table, updates ux/DESIGN-STATE.md Open Critique Items statuses, and (on run 3+) surfaces a convergence checklist with handoff recommendation. What Works items from the critique report are a read-only constraint — findings conflicting with What Works elements are deferred with documented reason.
 </purpose>
@@ -205,7 +206,9 @@ Attempt to call `mcp__sequential-thinking__think` with a simple test prompt `"An
 Display: `Step 3/7: MCP probes complete. Sequential Thinking: {yes|no}.`
 
 ---
+<!-- /LOCKED -->
 
+<!-- OPTIMIZABLE: iteration guidance, action list processing, finding application strategy -->
 ### Step 4/7: Apply findings to wireframes
 
 For each screen slug in AFFECTED_SCREENS:
@@ -263,7 +266,9 @@ For each screen slug in AFFECTED_SCREENS:
 Display per-screen progress: `Step 4/7: Applying findings to {screen_slug} ({N} of {total_screens})... {applied_count} applied, {deferred_count} deferred.`
 
 ---
+<!-- /OPTIMIZABLE -->
 
+<!-- LOCKED: artifact writes, lock acquisition/release, DESIGN-STATE updates, hasIterate coverage write, manifest registration -->
 ### Step 5/7: Write outputs with lock
 
 This step has five sub-sections executed in order.
@@ -546,6 +551,7 @@ NEVER do any of the following:
 - **Assume wireframe version and changelog version are synchronized:** Wireframe version counters (per-screen `WFR-{screen}-v{N}`) and changelog version counters (`ITR-changelog-v{N}`) are independent. Glob for both separately in Step 2e and 2f. Never assume they have the same N value.
 
 - **Write wireframe files for screens with zero applied findings:** Only write a versioned wireframe copy for screens where at least one finding was APPLIED. Writing an unchanged copy creates a spurious version increment with no real changes.
+<!-- /LOCKED -->
 
 </process>
 

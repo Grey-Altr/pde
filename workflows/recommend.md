@@ -1,3 +1,4 @@
+<!-- LOCKED: purpose, skill_code, required_reading, flags, process header, init steps, MCP probe -->
 <purpose>
 Discover and recommend MCP servers, tools, and integrations tailored to the user's project context. Reads PROJECT.md (required), REQUIREMENTS.md, package.json, and any STACK.md files to understand the tech stack, product goals, and existing tooling. Produces REC-recommendations-v{N}.md in .planning/design/strategy/ — a ranked, installation-ready artifact covering 7 MCP/tool categories. This skill is callable as a standalone command (/pde:recommend) and as a subroutine from /pde:ideate (Phase 27) via Skill() invocation. When invoked by the ideation skill, the recommendations artifact is used to surface tooling gaps relevant to new feature ideation. Writes the hasRecommendations coverage flag to design-manifest.json via the 13-field pass-through-all pattern.
 </purpose>
@@ -182,7 +183,9 @@ ELSE:
 Display: `Step 3/7: MCP probes complete. mcp-compass: {available|unavailable}. WebSearch: {available|unavailable}. Sequential Thinking: {available|unavailable}.`
 
 ---
+<!-- /LOCKED -->
 
+<!-- OPTIMIZABLE: recommendation framing, context analysis, catalog matching, output structure -->
 ### Step 4/7: Analyze project context and build recommendations
 
 This is the core logic of the skill. Extract project signals, then match against the inline catalog.
@@ -326,7 +329,9 @@ Sort recommendations within each category by relevance score (HIGH first, then M
 Display: `Step 4/7: Context analyzed. {N} recommendations compiled across {M} categories.`
 
 ---
+<!-- /OPTIMIZABLE -->
 
+<!-- LOCKED: artifact writes, DESIGN-STATE updates, hasRecommendations coverage write, manifest registration -->
 ### Step 5/7: Write recommendations artifact
 
 Use the Write tool to create `.planning/design/strategy/REC-recommendations-v{N}.md`.
@@ -633,6 +638,7 @@ Display the final summary table (always the last output):
 - NEVER write to root DESIGN-STATE.md without first acquiring the write lock via `pde-tools.cjs design lock-acquire`. ALWAYS release the lock even on error.
 - NEVER recommend tools already detected in `package.json` or `STACK.md` — exclude installed tools from the output.
 - NEVER overwrite an existing versioned REC artifact — always increment version (v1 → v2 → v3).
+<!-- /LOCKED -->
 
 </process>
 

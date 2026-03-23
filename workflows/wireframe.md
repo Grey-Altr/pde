@@ -1,3 +1,4 @@
+<!-- LOCKED: purpose, required_reading, flags, process header, init steps, prerequisites, MCP probe, artifact schema writes, Stitch integration contract -->
 <purpose>
 Generate browser-viewable HTML/CSS wireframes for each screen in the flow inventory at an explicitly controlled fidelity level (lofi, midfi, or hifi). Produces one self-contained HTML file per screen that opens in any browser via file:// with no server required, plus an index.html navigation page linking all screens. Wireframes consume design tokens from assets/tokens.css when available, include all three state variants (default, loading, error) with annotation comments for Phase 19 handoff consumption, and are registered in the design manifest under artifact code WFR.
 </purpose>
@@ -907,9 +908,11 @@ If FALLBACK_SCREENS is non-empty:
 If ALL screens succeeded via Stitch: skip Step 4a-4c entirely.
 
 <!-- End of Stitch branch. If USE_STITCH is false or FALLBACK_SCREENS is non-empty, continue with Claude generation below for applicable screens. -->
+<!-- /LOCKED -->
 
 ---
 
+<!-- OPTIMIZABLE: wireframe generation guidance, layout rules, annotation style, fidelity descriptions -->
 This is the core generation step. For EACH screen in SCREENS:
 
 #### 4a. Determine screen context
@@ -2005,9 +2008,11 @@ Save the generated PRG HTML content as `PRG_HTML`. Do NOT write the file yet —
 Display: `Step 4g: Print collateral generated — FLY artifact ready. {GENERATE_SIT ? "SIT series identity template ready." : "SIT skipped (experienceSubType not recurring-series)."} {GENERATE_PRG ? "PRG festival program ready." : "PRG skipped (experienceSubType not multi-day)."}`
 
 Display per screen: `Step 4/7: Generated wireframe for {Screen Label} ({FIDELITY}).`
+<!-- /OPTIMIZABLE -->
 
 ---
 
+<!-- LOCKED: file writes, DESIGN-STATE updates, designCoverage write, manifest registration -->
 ### Step 5/7: Write output files
 
 #### Step 5-EXP: Experience wireframe file write (experience products only)
@@ -2452,6 +2457,7 @@ NEVER do any of the following:
 - Show tablet layout as "same as desktop but narrower" — tablet must have a DISTINCT composition strategy
 - List priority numbering without weight factor explanation (must include " -- " followed by why)
 - Document mobile single-column collapse as the intentional asymmetry — asymmetry must be on the desktop layout's primary axis
+<!-- /LOCKED -->
 
 </process>
 

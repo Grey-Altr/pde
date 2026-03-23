@@ -1,3 +1,4 @@
+<!-- LOCKED: purpose, required_reading, flags, process header, init and infrastructure steps -->
 <purpose>
 Generate a structured product design brief from PROJECT.md context. Produces BRF-brief-v{N}.md in .planning/design/strategy/ covering problem statement, product type detection, personas, jobs-to-be-done, goals, constraints, and non-goals. Anchors all downstream design pipeline skills (flows, system, wireframe, critique, iterate, handoff) by establishing the canonical product context they all read.
 </purpose>
@@ -302,7 +303,9 @@ Display (appended to Step 4 output):
 IF --dry-run: Display business detection results and HALT (do not proceed to Step 5). Include in dry-run output: `Business mode: {value}, Track: {value}`.
 
 ---
+<!-- /LOCKED -->
 
+<!-- OPTIMIZABLE: brief synthesis — prose guidance, question phrasing, output structure -->
 ### Step 5/7: Synthesize brief content
 
 Using PROJECT.md content (and REQUIREMENTS.md if available), synthesize and write the complete brief.
@@ -745,7 +748,9 @@ Step 5/7: Brief written.
 ```
 
 ---
+<!-- /OPTIMIZABLE -->
 
+<!-- LOCKED: artifact writes, designCoverage update, manifest registration -->
 ### Step 6/7: Update strategy domain DESIGN-STATE
 
 Check if `.planning/design/strategy/DESIGN-STATE.md` exists using the Glob tool.
@@ -944,6 +949,7 @@ IF businessMode == true, add to summary table:
 - ALWAYS use the same canonical lowercase product type string (`software`, `hardware`, `hybrid`, or `experience`) in all three locations: brief frontmatter `Product Type` field, brief `## Product Type` section `**Type:**` line, and root DESIGN-STATE.md Quick Reference `| Product Type |` row. Inconsistent casing or abbreviations break downstream consumers.
 - ALWAYS release the write lock (Step 7 lock-release) even if an error occurs during root DESIGN-STATE.md updates. The lock has a 60s TTL but releasing immediately prevents blocking other skills.
 - NEVER add a `hasBrief` flag to design-manifest.json. Brief completion is tracked via the presence of `artifacts.BRF` in the manifest, not via a coverage flag. The manifest schema does not have a `hasBrief` field.
+<!-- /LOCKED -->
 
 </process>
 

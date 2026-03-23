@@ -1,3 +1,4 @@
+<!-- LOCKED: purpose, skill_code, required_reading, flags, process header, init steps, MCP probe -->
 <purpose>
 Run multi-phase diverge-converge ideation to explore product directions. Pass 1 (Diverge) generates minimum 5 distinct directions with zero evaluative language. Pass 2 (Converge) scores each direction for feasibility, goal alignment, and distinctiveness, producing an explicit recommended direction. At the diverge-converge checkpoint, /pde:recommend is invoked automatically via Skill() to surface tooling feasibility signals. The IDT artifact includes a ## Brief Seed section using the templates/brief-seed.md schema, enabling direct consumption by /pde:brief. Writes the hasIdeation coverage flag to design-manifest.json via the 13-field pass-through-all pattern.
 </purpose>
@@ -219,7 +220,9 @@ IF --diverge NOT in $ARGUMENTS:
 Display: `Step 3/7: MCP probes complete. Sequential Thinking: {available|unavailable}. Stitch visual divergence: {enabled|disabled}.`
 
 ---
+<!-- /LOCKED -->
 
+<!-- OPTIMIZABLE: ideation prompts, concept framing, direction generation, output structure -->
 ### Step 4/7: DIVERGE — Generate minimum 5 directions
 
 This is the core diverge pass. Generate minimum 5 distinct product directions based on PROJECT.md context and any loaded soft dependencies (CMP gaps, OPP opportunities, BRF personas).
@@ -450,7 +453,9 @@ Write updated IDT artifact back to disk (still Status: diverge-complete at this 
 Display: `Step 4-STITCH: Visual variants written to IDT artifact.`
 
 ---
+<!-- /OPTIMIZABLE -->
 
+<!-- LOCKED: recommend checkpoint, artifact writes, designCoverage update, manifest registration -->
 ### Step 5/7: Recommend checkpoint
 
 Invoke recommend at the diverge-converge transition to surface tooling feasibility signals:
@@ -468,7 +473,9 @@ After recommend completes:
 - Prepare a feasibility annotation for each direction: `"Feasibility note: {tool relevance summary or 'No specific tooling signal from recommend checkpoint'}"
 
 Display: `Step 5/7: Recommend checkpoint complete. REC artifact consumed. Feasibility annotations prepared.`
+<!-- /LOCKED -->
 
+<!-- OPTIMIZABLE: convergence scoring rubric descriptions, direction scoring guidance, output prose -->
 ---
 
 ### Step 6/7: CONVERGE — Score directions and recommend
@@ -565,6 +572,9 @@ ELSE:
 - {Additional recommended follow-up based on open questions from recommended direction}
 ```
 
+<!-- /OPTIMIZABLE -->
+
+<!-- LOCKED: IDT artifact write, DESIGN-STATE update, manifest registration -->
 **Update IDT artifact** — overwrite the intermediate file written in Step 4. The updated file changes Status from `diverge-complete` to `ideation-complete` and adds all converge sections:
 
 ```yaml
@@ -739,6 +749,7 @@ Display the final summary table (always the last output):
 - NEVER apply annotation injection to ideation PNGs. Annotation is for HTML artifacts consumed by handoff. PNGs have no DOM.
 - NEVER abort the entire ideation run due to partial Experimental quota or per-direction Stitch failure. Text-only fallback is always the correct behavior.
 - NEVER use inline CommonJS module loading in ESM workflow bash blocks. Always use the createRequire pattern (node --input-type=module with `import { createRequire } from 'module'`) to load mcp-bridge.cjs.
+<!-- /LOCKED -->
 
 </process>
 

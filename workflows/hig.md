@@ -1,3 +1,4 @@
+<!-- LOCKED: purpose, skill_code, required_reading, flags, process header, init steps, MCP probe -->
 <purpose>
 Audit design artifacts against WCAG 2.2 Level AA criteria and platform Human Interface Guidelines (Apple HIG, Material Design, Web). Produces severity-rated findings covering all ~56 WCAG 2.2 criteria in full mode, or 5 mandatory checks in --light mode for critique delegation. Full mode writes HIG-audit-v{N}.md to .planning/design/review/. Light mode returns inline findings only. Consumed by /pde:critique (--light) and /pde:iterate (full).
 </purpose>
@@ -320,7 +321,9 @@ Parse `productType` from the JSON result.
     Proceed to Step 5/7.
 
 ELSE:
+<!-- /LOCKED -->
 
+<!-- OPTIMIZABLE: HIG evaluation prose, WCAG guidance, platform-specific guidance, audit output structure -->
   **Standard WCAG/HIG audit path (existing behavior for software/hardware/hybrid products):**
 
   Business mode detection (read once, cache for use in Step 4-BUSINESS):
@@ -666,7 +669,9 @@ IF CNT present:
 Display: `Step 4/7: Audit complete. {N} findings identified (critical: {c}, major: {m}, minor: {mi}, nit: {n}).`
 
 ---
+<!-- /OPTIMIZABLE -->
 
+<!-- LOCKED: artifact writes, DESIGN-STATE updates, hasHigAudit coverage write, manifest registration -->
 ### Step 5/7: Write HIG audit artifact (SKIP if --light)
 
 **IMPORTANT: Skip this step entirely if LIGHT_MODE=true.**
@@ -904,6 +909,7 @@ Display the final summary table (always the last output):
 - Coverage flag name is `hasHigAudit` (not hasHIG, not hasHig, not hasHIGAudit)
 - NEVER hard-fail when auditable artifact is absent — HALT with clear error message pointing to prerequisite skill
 - ALWAYS release write lock (Step 7 lock-release) even if an error occurs during root DESIGN-STATE updates
+<!-- /LOCKED -->
 
 </process>
 
