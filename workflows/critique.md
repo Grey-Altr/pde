@@ -793,7 +793,7 @@ Use the EXACT finding format from the existing critique.md Step 4: `| {severity}
 
 **Evaluation sources:**
 - STR artifact — tier structure, tier count, feature gate placement
-- LDP artifact (`.planning/design/launch/LDP-landing-page-spec-v*.md`) — pricing table section
+- LDP artifact (`.planning/design/launch/LDP-landing-page-v*.md`) — pricing table section
 
 **Checklist:**
 - Anchoring: Is a high-price anchor tier present to make the target tier look reasonable?
