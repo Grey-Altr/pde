@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.13
 milestone_name: AutoResearch
 status: Phase complete — ready for verification
-stopped_at: Completed 102-02-PLAN.md
-last_updated: "2026-03-23T11:29:45.119Z"
+stopped_at: Completed 103-02-PLAN.md
+last_updated: "2026-03-23T12:20:40.236Z"
 progress:
   total_phases: 9
-  completed_phases: 3
-  total_plans: 8
-  completed_plans: 7
+  completed_phases: 4
+  total_plans: 10
+  completed_plans: 9
 ---
 
 # Project State
@@ -19,11 +19,11 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-23)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 102 — Mutation Agent & Metric Evaluation
+**Current focus:** Phase 103 — Orchestrator, Command & Circuit Breakers
 
 ## Current Position
 
-Phase: 102 (Mutation Agent & Metric Evaluation) — EXECUTING
+Phase: 103 (Orchestrator, Command & Circuit Breakers) — EXECUTING
 Plan: 2 of 2
 
 ## Performance Metrics
@@ -50,6 +50,8 @@ Plan: 2 of 2
 | Phase 101-experiment-schema-state-directory P01 | 15 | 2 tasks | 7 files |
 | Phase 102 P01 | 7min | 1 tasks | 7 files |
 | Phase 102 P02 | 35 | 2 tasks | 7 files |
+| Phase 103 P01 | 18min | 2 tasks | 6 files |
+| Phase 103 P02 | 25 | 2 tasks | 9 files |
 
 ### Decisions
 
@@ -82,6 +84,11 @@ Recent decisions affecting v0.13 planning:
 - [Phase 102]: Read EXPERIMENT-BEST.json directly (JSON.parse) in eval-metric dispatch -- readBest is not exported from experiment.cjs
 - [Phase 102]: shell:true in spawnSync for _evalMetric -- real verify commands need shell features; whitespace-split breaks quoted args
 - [Phase 102]: git status --porcelain for _checkModifiedFiles -- detects untracked new files that git diff misses
+- [Phase 103]: estimateCost returns raw token count not dollar cost — orchestrator applies model-specific pricing
+- [Phase 103]: cost_estimate circuit breaker deferred to orchestrator (Phase 103-02) — runtime token tracking not yet available; _estimateCost serves as planning-time utility
+- [Phase 103]: Plan 01 executed as prerequisite in same session as Plan 02 — experiment-report.cjs, pde-experiment-runner-sonnet.md, and pde-tools subcommands created before Plan 02 artifacts
+- [Phase 103]: Config merge pattern: experiment.md overrides only iteration/time budgets; consecutive_failure_limit, no_progress_limit, cost_estimate_enabled are always read from config.json (global safety policy)
+- [Phase 103]: consecutiveViolations tracked separately from consecutiveFailures — violations drive model escalation; consecutiveFailures drives BREAK-03; distinct failure dimensions
 
 ### Pending Todos
 
@@ -95,8 +102,8 @@ Recent decisions affecting v0.13 planning:
 
 ## Session Continuity
 
-Last session: 2026-03-23T11:29:45.116Z
-Stopped at: Completed 102-02-PLAN.md
+Last session: 2026-03-23T12:20:40.233Z
+Stopped at: Completed 103-02-PLAN.md
 Resume file: None
 
 Next action: /pde:plan-phase 99

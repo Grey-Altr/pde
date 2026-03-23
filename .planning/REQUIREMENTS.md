@@ -24,11 +24,11 @@ Requirements for the AutoResearch milestone. Each maps to roadmap phases.
 
 ### Circuit Breakers
 
-- [ ] **BREAK-01**: Iteration budget: experiment halts after N iterations (configurable, default 50)
-- [ ] **BREAK-02**: Time budget: experiment halts after T minutes (configurable, default 60)
-- [ ] **BREAK-03**: Consecutive failure limit: experiment halts after K consecutive regressions (default 5)
-- [ ] **BREAK-04**: No-progress detection: experiment halts if best metric hasn't improved in last M iterations (default 10)
-- [ ] **BREAK-05**: Cost estimate gate: experiment displays estimated token cost before starting, requires user confirmation above threshold
+- [x] **BREAK-01**: Iteration budget: experiment halts after N iterations (configurable, default 50)
+- [x] **BREAK-02**: Time budget: experiment halts after T minutes (configurable, default 60)
+- [x] **BREAK-03**: Consecutive failure limit: experiment halts after K consecutive regressions (default 5)
+- [x] **BREAK-04**: No-progress detection: experiment halts if best metric hasn't improved in last M iterations (default 10)
+- [x] **BREAK-05**: Cost estimate gate: experiment displays estimated token cost before starting, requires user confirmation above threshold
 
 ### Experiment Definition & Execution
 
@@ -44,8 +44,8 @@ Requirements for the AutoResearch milestone. Each maps to roadmap phases.
 - [ ] **SELF-01**: Self-improvement preset: pre-configured experiment targeting PDE's own workflow files with Nyquist assertion pass count as regression guard
 - [ ] **SELF-02**: `/pde:optimize --self` mode auto-discovers PDE workflow files eligible for optimization based on OPTIMIZABLE markers
 - [ ] **SELF-03**: Skill optimization mode: `/pde:optimize --skill {name}` targets a specific skill's SKILL.md and workflow files with skill-specific eval (e.g., skill test suite, pressure test score)
-- [ ] **SELF-04**: After experiment completes, promotion step generates a diff summary and requires user approval before merging experiment branch back to main
-- [ ] **SELF-05**: Experiment REPORT.md generated at completion: iterations run, improvements kept, best metric achieved, files modified, diff summary
+- [x] **SELF-04**: After experiment completes, promotion step generates a diff summary and requires user approval before merging experiment branch back to main
+- [x] **SELF-05**: Experiment REPORT.md generated at completion: iterations run, improvements kept, best metric achieved, files modified, diff summary
 - [x] **SELF-06**: Experiment runner uses minimal context window — only experiment.md, target file(s), last N iteration results, and metric output are loaded per iteration (no full project context)
 - [x] **SELF-07**: Haiku-first model selection: experiment runner defaults to haiku for mutation attempts, escalates to sonnet only when haiku produces 3+ consecutive boundary violations or crashes
 - [x] **SELF-08**: Diff-based context: after iteration 1, runner receives only the diff of the current best vs baseline (not the full file) to minimize token consumption
@@ -53,10 +53,10 @@ Requirements for the AutoResearch milestone. Each maps to roadmap phases.
 
 ### Command & Orchestration
 
-- [ ] **CMD-01**: `/pde:optimize` slash command created as entry point — accepts experiment.md path or `--self` / `--skill {name}` presets
-- [ ] **CMD-02**: `workflows/optimize.md` orchestrates the full loop: parse experiment.md → init worktree → baseline metric → loop (mutate → eval → keep/discard) → finalize → report → offer promotion
+- [x] **CMD-01**: `/pde:optimize` slash command created as entry point — accepts experiment.md path or `--self` / `--skill {name}` presets
+- [x] **CMD-02**: `workflows/optimize.md` orchestrates the full loop: parse experiment.md → init worktree → baseline metric → loop (mutate → eval → keep/discard) → finalize → report → offer promotion
 - [x] **CMD-03**: Experiment phase type recognized in ROADMAP.md — defined by target metric, search space, iteration budget, and keep/discard threshold
-- [ ] **CMD-04**: Stopping conditions enforced in orchestrator: all 5 circuit breakers (BREAK-01..05) checked between iterations
+- [x] **CMD-04**: Stopping conditions enforced in orchestrator: all 5 circuit breakers (BREAK-01..05) checked between iterations
 
 ### Researcher Augmentation
 
@@ -131,16 +131,16 @@ Which phases cover which requirements.
 | SELF-07 | Phase 102 | Complete |
 | SELF-08 | Phase 102 | Complete |
 | SELF-09 | Phase 102 | Complete |
-| BREAK-01 | Phase 103 | Pending |
-| BREAK-02 | Phase 103 | Pending |
-| BREAK-03 | Phase 103 | Pending |
-| BREAK-04 | Phase 103 | Pending |
-| BREAK-05 | Phase 103 | Pending |
-| CMD-01 | Phase 103 | Pending |
-| CMD-02 | Phase 103 | Pending |
-| CMD-04 | Phase 103 | Pending |
-| SELF-04 | Phase 103 | Pending |
-| SELF-05 | Phase 103 | Pending |
+| BREAK-01 | Phase 103 | Complete |
+| BREAK-02 | Phase 103 | Complete |
+| BREAK-03 | Phase 103 | Complete |
+| BREAK-04 | Phase 103 | Complete |
+| BREAK-05 | Phase 103 | Complete |
+| CMD-01 | Phase 103 | Complete |
+| CMD-02 | Phase 103 | Complete |
+| CMD-04 | Phase 103 | Complete |
+| SELF-04 | Phase 103 | Complete |
+| SELF-05 | Phase 103 | Complete |
 | SELF-01 | Phase 104 | Pending |
 | SELF-02 | Phase 104 | Pending |
 | SELF-03 | Phase 104 | Pending |
