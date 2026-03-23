@@ -431,4 +431,4 @@ Plans:
 | 93. designCoverage Audit + Stubs | v0.12 | 1/2 | Complete    | 2026-03-23 |
 | 94. Nyquist Regression Tests | v0.12 | 0/1 | Complete    | 2026-03-23 |
 | 95. Integration Wiring Fixes | v0.12 | 0/1 | Complete    | 2026-03-23 |
-| 96. 21-Field Cascade Fix | v0.12 | 1/1 | Complete   | 2026-03-23 |
+| 96. 21-Field Cascade Fix | v0.12 | 1/1 | Complete    | 2026-03-23 |
