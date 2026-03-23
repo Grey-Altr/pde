@@ -313,8 +313,8 @@ Plans:
   4. Each template specifies mutable_files, verify_command, target_metric, search_space, and iteration_budget per experiment-schema.cjs contract
 **Plans:** 2 plans
 Plans:
-- [ ] 108-01-PLAN.md — Register Playwright in mcp-bridge.cjs (APPROVED_SERVERS + TOOL_MAP + AUTH_INSTRUCTIONS + Nyquist tests)
-- [ ] 108-02-PLAN.md — Update mcp-integration.md docs + MCP-08 live verification gate
+- [ ] 112-01-PLAN.md — Browser-backed skill experiment templates (wireframe, mockup, system, flows, critique, hig, iterate, handoff, brief)
+- [ ] 112-02-PLAN.md — Non-browser skill templates (recommend, competitive, opportunity, ideate) + Nyquist validation tests
 
 ### Phase 113: Cross-Skill Pipeline + Iterate Effectiveness
 **Goal**: Experiments can measure how upstream prose changes propagate to downstream visual quality, and iterate improvement magnitude is quantified
