@@ -211,6 +211,7 @@ Full details: .planning/milestones/v0.11-ROADMAP.md
 - [x] **Phase 93: designCoverage Clobber Audit + Secondary Workflow Stubs** — 20-field pass-through audit across all 14 workflows; recommend/iterate/mockup guard stubs (completed 2026-03-23)
 - [x] **Phase 94: Nyquist Regression Tests** — Composition case validation and non-regression verification (completed 2026-03-23)
 - [x] **Phase 95: Integration Wiring Fixes** — Close 6 requirement gaps, 3 integration gaps, and 3 broken flows from milestone audit (completed 2026-03-23)
+- [ ] **Phase 96: 21-Field Cascade Fix** — Fix test assertion and 4 secondary workflow designCoverage writes to include hasDeployStaging as 21st field
 
 ## Phase Details
 
@@ -389,6 +390,20 @@ Plans:
 Plans:
 - [ ] 95-01-PLAN.md — OTR glob fix, BTH glob fix, hasDeployStaging flag write, handoff required_reading
 
+### Phase 96: 21-Field Cascade Fix
+**Goal**: Every designCoverage write and test assertion reflects all 21 fields including hasDeployStaging — eliminates the last 2 requirement gaps and 2 integration gaps from the v0.12 audit
+**Depends on**: Phase 95
+**Requirements**: FOUND-02, INTG-01
+**Gap Closure**: Closes remaining gaps from v0.12-MILESTONE-AUDIT.md
+**Success Criteria** (what must be TRUE):
+  1. `test-foundation.cjs` FOUND-02 subtest asserts exactly 21 designCoverage fields (not 20)
+  2. `recommend.md`, `ideate.md`, `iterate.md`, `mockup.md` each include `hasDeployStaging` in their designCoverage write (21 fields total)
+  3. Full Nyquist suite passes 235/235 (no FOUND-02 failure)
+  4. `--from` re-run after deploy no longer clobbers `hasDeployStaging` flag
+**Plans**: 1 plan
+Plans:
+- [ ] 96-01-PLAN.md — Fix test assertion (20→21) + add hasDeployStaging to 4 secondary workflows
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -416,3 +431,4 @@ Plans:
 | 93. designCoverage Audit + Stubs | v0.12 | 1/2 | Complete    | 2026-03-23 |
 | 94. Nyquist Regression Tests | v0.12 | 0/1 | Complete    | 2026-03-23 |
 | 95. Integration Wiring Fixes | v0.12 | 0/1 | Complete    | 2026-03-23 |
+| 96. 21-Field Cascade Fix | v0.12 | 0/1 | Pending | - |
