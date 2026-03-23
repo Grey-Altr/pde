@@ -28,6 +28,8 @@ const JSONL_ROW_FIELDS = Object.freeze([
   'status',
   'description',
   'tokens_used',
+  'screenshot_hash',
+  'baseline_hash',
 ]);
 
 // ─── Schema parsing ───────────────────────────────────────────────────────────
@@ -99,6 +101,10 @@ function parseExperimentFile(filePath) {
       minutes: timeBudgetMinutes,
     },
     slug: fm.slug || null,
+    visual_regression: {
+      enabled: fm.visual_regression_guard === 'true' || fm.visual_regression_guard === true,
+      target: fm.visual_regression_target || null,
+    },
   };
 }
 

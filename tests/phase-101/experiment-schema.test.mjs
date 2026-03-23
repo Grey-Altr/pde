@@ -54,9 +54,17 @@ test('JSONL_ROW_FIELDS is exported and frozen', () => {
   assert.ok(Object.isFrozen(schema.JSONL_ROW_FIELDS), 'JSONL_ROW_FIELDS should be frozen');
 });
 
-test('JSONL_ROW_FIELDS contains exactly the 9 required fields', () => {
-  const expected = ['id', 'iteration', 'ts', 'commit', 'metric_value', 'metric_delta', 'status', 'description', 'tokens_used'];
-  assert.deepEqual(schema.JSONL_ROW_FIELDS, expected, 'JSONL_ROW_FIELDS should contain exactly the 9 schema fields');
+test('JSONL_ROW_FIELDS contains all required fields including visual regression fields', () => {
+  // Phase 114 added screenshot_hash and baseline_hash to JSONL_ROW_FIELDS (11 fields total).
+  // The original 9 core fields must still be present (additive — not breaking).
+  const coreFields = ['id', 'iteration', 'ts', 'commit', 'metric_value', 'metric_delta', 'status', 'description', 'tokens_used'];
+  for (const field of coreFields) {
+    assert.ok(schema.JSONL_ROW_FIELDS.includes(field), `JSONL_ROW_FIELDS must include core field: ${field}`);
+  }
+  // Phase 114 visual regression fields
+  assert.ok(schema.JSONL_ROW_FIELDS.includes('screenshot_hash'), 'JSONL_ROW_FIELDS must include screenshot_hash (Phase 114)');
+  assert.ok(schema.JSONL_ROW_FIELDS.includes('baseline_hash'), 'JSONL_ROW_FIELDS must include baseline_hash (Phase 114)');
+  assert.ok(Object.isFrozen(schema.JSONL_ROW_FIELDS), 'JSONL_ROW_FIELDS should remain frozen');
 });
 
 // ─── parseExperimentFile tests ─────────────────────────────────────────────────
