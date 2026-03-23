@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.13
 milestone_name: AutoResearch
 status: Phase complete — ready for verification
-stopped_at: Completed 103-02-PLAN.md
-last_updated: "2026-03-23T12:20:40.236Z"
+stopped_at: Completed 105-01-PLAN.md
+last_updated: "2026-03-23T13:12:00Z"
 progress:
   total_phases: 9
-  completed_phases: 4
-  total_plans: 10
-  completed_plans: 9
+  completed_phases: 5
+  total_plans: 11
+  completed_plans: 10
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-23)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 103 — Orchestrator, Command & Circuit Breakers
+**Current focus:** Phase 105 — Researcher Empirical Mode (complete)
 
 ## Current Position
 
-Phase: 103 (Orchestrator, Command & Circuit Breakers) — EXECUTING
-Plan: 2 of 2
+Phase: 105 (Researcher Empirical Mode) — COMPLETE
+Plan: 1 of 1
 
 ## Performance Metrics
 
@@ -52,6 +52,7 @@ Plan: 2 of 2
 | Phase 102 P02 | 35 | 2 tasks | 7 files |
 | Phase 103 P01 | 18min | 2 tasks | 6 files |
 | Phase 103 P02 | 25 | 2 tasks | 9 files |
+| Phase 105 P01 | 8min | 1 tasks | 4 files |
 
 ### Decisions
 
@@ -89,6 +90,9 @@ Recent decisions affecting v0.13 planning:
 - [Phase 103]: Plan 01 executed as prerequisite in same session as Plan 02 — experiment-report.cjs, pde-experiment-runner-sonnet.md, and pde-tools subcommands created before Plan 02 artifacts
 - [Phase 103]: Config merge pattern: experiment.md overrides only iteration/time budgets; consecutive_failure_limit, no_progress_limit, cost_estimate_enabled are always read from config.json (global safety policy)
 - [Phase 103]: consecutiveViolations tracked separately from consecutiveFailures — violations drive model escalation; consecutiveFailures drives BREAK-03; distinct failure dimensions
+- [Phase 105]: Empirical mode is additive (researcher always produces RESEARCH.md; --empirical adds try_candidates on top)
+- [Phase 105]: 2-keyword threshold for auto-routing prevents over-triggering on phases that mention optimization tangentially
+- [Phase 105]: Experiments Attempted section is a placeholder written by researcher; optimize workflow fills outcomes after running candidates
 
 ### Pending Todos
 
@@ -102,8 +106,8 @@ Recent decisions affecting v0.13 planning:
 
 ## Session Continuity
 
-Last session: 2026-03-23T12:20:40.233Z
-Stopped at: Completed 103-02-PLAN.md
+Last session: 2026-03-23T13:12:00Z
+Stopped at: Completed 105-01-PLAN.md
 Resume file: None
 
-Next action: /pde:plan-phase 99
+Next action: /pde:execute-phase 106
