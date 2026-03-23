@@ -267,4 +267,4 @@ Any user can go from idea to shipped product through a single platform that hand
 | Business detection threshold (3+ signals, 2+ categories) | Prevents over-triggering on pure software projects while catching genuine business intent | ✓ Good — 5-category taxonomy with category diversity requirement |
 | BTH→LCV dependency chain (skip, don't halt) | If BTH generation fails, LCV is skipped with warning rather than halting entire brief run | ✓ Good — graceful degradation preserves non-business brief output |
 | 20-field designCoverage write (not copy 16-field pattern) | Phase 84 added 4 fields; copying opportunity.md's 16-field pattern silently drops them | ✓ Good — canonical order from manifest template |
-*Last updated: 2026-03-23 after Phase 106 complete — Observability & Event Bus (6 NDJSON event types, tmux experiment pane, 31 tests)*
+*Last updated: 2026-03-23 after Phase 107 complete — Nyquist Coverage (62 new assertions, 1216 total tests, zero regressions) — v0.13 ALL PHASES COMPLETE*
