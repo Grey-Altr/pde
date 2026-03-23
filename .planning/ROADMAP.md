@@ -299,8 +299,8 @@ Plans:
   4. All scripts are timeout-safe (no hanging when browser operations stall)
 **Plans:** 2 plans
 Plans:
-- [ ] 108-01-PLAN.md — Register Playwright in mcp-bridge.cjs (APPROVED_SERVERS + TOOL_MAP + AUTH_INSTRUCTIONS + Nyquist tests)
-- [ ] 108-02-PLAN.md — Update mcp-integration.md docs + MCP-08 live verification gate
+- [ ] 111-01-PLAN.md — HTML fixtures + DOM/a11y/contrast metric scripts + Nyquist tests (VIS-01, VIS-02, VIS-03)
+- [ ] 111-02-PLAN.md — Responsive/Mermaid metric scripts + Nyquist tests (VIS-04, VIS-05)
 
 ### Phase 112: Experiment Templates
 **Goal**: Every eligible design skill has an AutoResearch experiment template with browser-backed verification
@@ -402,4 +402,4 @@ Plans:
 | v0.11 | 74-83 | 19/19 | Complete | 2026-03-22 |
 | v0.12 | 84-98 | 24/24 | Complete | 2026-03-23 |
 | v0.13 | 99-107 | 15/15 | Complete | 2026-03-23 |
-| v0.14 | 108-117 | 4/6 | In progress | - |
+| v0.14 | 108-117 | 6/6 | In progress | - |
