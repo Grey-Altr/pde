@@ -17,10 +17,10 @@ Requirements for the AutoResearch milestone. Each maps to roadmap phases.
 
 ### Safety Boundaries
 
-- [ ] **SAFE-01**: `references/experiment-boundaries.md` defines locked zones (eval harness, core infrastructure, protected-files list) and optimizable zones (workflow prose, agent prompts, skill instructions)
+- [x] **SAFE-01**: `references/experiment-boundaries.md` defines locked zones (eval harness, core infrastructure, protected-files list) and optimizable zones (workflow prose, agent prompts, skill instructions)
 - [ ] **SAFE-02**: `<!-- LOCKED -->` / `<!-- OPTIMIZABLE -->` section-level markers added to experiment-eligible workflow files — experiment runner enforces these boundaries pre-commit
-- [ ] **SAFE-03**: Eval harness (Nyquist test files, Awwwards rubric references) is permanently immutable during experiments — added to protected-files list
-- [ ] **SAFE-04**: Mutable file list in experiment.md frontmatter is validated against boundaries before experiment starts — rejects experiments targeting locked files
+- [x] **SAFE-03**: Eval harness (Nyquist test files, Awwwards rubric references) is permanently immutable during experiments — added to protected-files list
+- [x] **SAFE-04**: Mutable file list in experiment.md frontmatter is validated against boundaries before experiment starts — rejects experiments targeting locked files
 
 ### Circuit Breakers
 
@@ -109,10 +109,10 @@ Which phases cover which requirements.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SAFE-01 | Phase 99 | Pending |
+| SAFE-01 | Phase 99 | Complete |
 | SAFE-02 | Phase 99 | Pending |
-| SAFE-03 | Phase 99 | Pending |
-| SAFE-04 | Phase 99 | Pending |
+| SAFE-03 | Phase 99 | Complete |
+| SAFE-04 | Phase 99 | Complete |
 | GIT-01 | Phase 100 | Pending |
 | GIT-02 | Phase 100 | Pending |
 | GIT-03 | Phase 100 | Pending |

@@ -245,7 +245,7 @@ Full details: .planning/milestones/v0.12-ROADMAP.md
 **Plans**: 2 plans
 
 Plans:
-- [ ] 99-01-PLAN.md — Create experiment-boundaries reference and update protected-files.json
+- [x] 99-01-PLAN.md — Create experiment-boundaries reference and update protected-files.json
 - [ ] 99-02-PLAN.md — Add LOCKED/OPTIMIZABLE markers to 14 experiment-eligible workflow files
 
 ### Phase 100: Git State Machine
@@ -382,7 +382,7 @@ Phases execute in numeric order: 99 → 100 → 101 → 102 → 103 → 104 → 
 | 70-73 | v0.10 | 8/8 | Complete | 2026-03-21 |
 | 74-83 | v0.11 | 19/19 | Complete | 2026-03-22 |
 | 84-98 | v0.12 | 24/24 | Complete | 2026-03-23 |
-| 99. Safety Boundaries | v0.13 | 0/2 | Not started | - |
+| 99. Safety Boundaries | v0.13 | 1/2 | In Progress|  |
 | 100. Git State Machine | v0.13 | 0/TBD | Not started | - |
 | 101. Experiment Schema & State Directory | v0.13 | 0/TBD | Not started | - |
 | 102. Mutation Agent & Metric Evaluation | v0.13 | 0/TBD | Not started | - |
