@@ -621,7 +621,7 @@ IF $BT == "solo_founder":
   DECK_SLIDE_COUNT=10
 ELIF $BT == "startup_team":
   # Check for funding context signals in BTH/BRF content
-  BTH_FILE=$(ls .planning/design/strategy/BTH-business-thesis-v*.md 2>/dev/null | tail -1)
+  BTH_FILE=$(ls .planning/design/strategy/BTH-thesis-v*.md 2>/dev/null | tail -1)
   BRF_FILE=$(ls .planning/design/strategy/BRF-*.md 2>/dev/null | tail -1)
   FUNDING_SIGNALS=false
   if [BTH or BRF contains "seed", "Series A", "investors", "fundraising", "pre-seed", "investor presentation", "raise", "cap table", "term sheet"]:

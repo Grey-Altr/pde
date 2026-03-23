@@ -1,5 +1,5 @@
 <purpose>
-Synthesize all upstream design pipeline artifacts (brief, flows, screen inventory, wireframes with annotations, design system tokens, critique reports, iteration changelogs) into two implementation-ready outputs: a versioned HND-handoff-spec-v{N}.md document and a HND-types-v{N}.ts TypeScript interface declarations file. Reads STACK.md as a hard dependency for framework and TypeScript alignment. Checks annotation completeness before TypeScript interface generation. Registered in the design manifest under artifact code HND with hasHandoff coverage flag set via read-before-set pattern preserving all 14 designCoverage fields.
+Synthesize all upstream design pipeline artifacts (brief, flows, screen inventory, wireframes with annotations, design system tokens, critique reports, iteration changelogs) into two implementation-ready outputs: a versioned HND-handoff-spec-v{N}.md document and a HND-types-v{N}.ts TypeScript interface declarations file. Reads STACK.md as a hard dependency for framework and TypeScript alignment. Checks annotation completeness before TypeScript interface generation. In business mode: assembles LKT launch kit manifest, CNT 30-day content calendar, and OTR Resend-compatible email sequences from all upstream business artifacts. Registered in the design manifest under artifact code HND with hasHandoff coverage flag set via read-before-set pattern preserving all 20 designCoverage fields.
 </purpose>
 
 <required_reading>
@@ -7,6 +7,10 @@ Synthesize all upstream design pipeline artifacts (brief, flows, screen inventor
 @references/mcp-integration.md
 @references/motion-design.md
 @references/experience-disclaimer.md
+@references/business-track.md
+@references/launch-frameworks.md
+@references/business-financial-disclaimer.md
+@references/business-legal-disclaimer.md
 </required_reading>
 
 <flags>
@@ -323,6 +327,17 @@ Display: `Step 3/7: MCP probes complete. Sequential Thinking: {yes|no}.`
 
 This step reads all discovered artifacts and synthesizes them into structured content for writing. Work through each sub-section in order.
 
+**Business mode detection (cached for Steps 4k, 4l, 4m, 5e, 7b-lkt, and 7c):**
+
+```bash
+BM=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-get-top-level businessMode 2>/dev/null)
+if [[ "$BM" == @file:* ]]; then BM=$(cat "${BM#@file:}"); fi
+BT=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-get-top-level businessTrack 2>/dev/null)
+if [[ "$BT" == @file:* ]]; then BT=$(cat "${BT#@file:}"); fi
+```
+
+Cache `$BM` and `$BT` for use in Steps 4k, 4l, 4m, 5e, 7b-lkt, and 7c.
+
 #### 4a. Load all discovered artifacts into memory
 
 Use the Read tool to load each discovered artifact into memory:
@@ -569,6 +584,143 @@ Based on PRODUCT_TYPE:
   7. Proceed to Step 5 BIB generation (four-pass split).
      IF HND_GENERATES_SOFTWARE is true (hybrid-event only): ALSO execute Steps 4b through 4h for the software layer, then proceed to Step 5 which generates BOTH BIB and HND outputs.
 - If PRODUCT_TYPE unavailable (default "software"): include software sections only
+
+#### 4k. Discover upstream business artifacts (business mode only)
+
+IF `$BM != "true"`: skip Step 4k entirely. Set all business artifact discovery flags to false. Set LKT_GENERATED=false.
+
+IF `$BM == "true"`:
+
+> Applies to all productTypes when businessMode is true, including experience+business compositions.
+
+Use Glob to discover each upstream business artifact. For each, find the highest versioned file:
+
+- BTH: Glob `.planning/design/strategy/BTH-thesis-v*.md` -> BTH_PATH, BTH_AVAILABLE (true/false)
+- LCV: Glob `.planning/design/strategy/LCV-lean-canvas-v*.md` -> LCV_PATH, LCV_AVAILABLE
+- CMP: Glob `.planning/design/strategy/CMP-competitive-v*.md` -> CMP_PATH, CMP_AVAILABLE
+- MLS: Glob `.planning/design/strategy/MLS-market-landscape-v*.md` -> MLS_PATH, MLS_AVAILABLE
+- OPP: Glob `.planning/design/strategy/OPP-opportunity-v*.md` -> OPP_PATH, OPP_AVAILABLE
+- SBP: Glob `.planning/design/strategy/SBP-service-blueprint-v*.md` -> SBP_PATH, SBP_AVAILABLE
+- GTM: Glob `.planning/design/strategy/GTM-gtm-flow-v*.md` -> GTM_PATH, GTM_AVAILABLE
+- MKT: Glob `.planning/design/strategy/MKT-brand-system-v*.md` -> MKT_PATH, MKT_AVAILABLE
+- LDP: Glob `.planning/design/launch/LDP-landing-page-v*.md` -> LDP_LAUNCH_PATH, LDP_LAUNCH_AVAILABLE
+- STR: Glob `.planning/design/launch/STR-stripe-config-v*.md` -> STR_PATH, STR_AVAILABLE
+- DPD: Glob `.planning/design/launch/DPD-pitch-deck-v*.md` -> DPD_PATH, DPD_AVAILABLE
+
+For each: status = "generated" if Glob returns a file, "missing" if Glob returns no results. Handle empty Glob results gracefully — never halt on missing upstream artifacts. The LKT manifest is designed to surface what is missing.
+
+Count available artifacts: BUSINESS_ARTIFACT_COUNT = number of artifacts with status "generated".
+
+Display: `Step 4/7 (4k): Business artifact discovery complete. {BUSINESS_ARTIFACT_COUNT}/11 artifacts found.`
+
+#### 4l. Synthesize launch kit content (business mode only)
+
+IF `$BM != "true"`: skip Step 4l entirely.
+
+IF `$BM == "true"`:
+
+Set LKT_GENERATED=true.
+
+**4l-i. LKT manifest content:**
+
+Build the LKT manifest artifact content with YAML frontmatter (artifact: LKT-launch-kit, version: v{N}, skill: /pde:handoff (LKT), businessTrack: {$BT}, generatedAt: {ISO date}) followed by:
+
+# Launch Kit Manifest: {project_name from manifest}
+
+## Artifact Registry
+
+| Code | Artifact Name | Path | Status | Deployment Ready |
+|------|--------------|------|--------|-----------------|
+| BTH | Business Thesis | {BTH_PATH or "not generated"} | {BTH_AVAILABLE ? "generated" : "missing"} | {BTH_AVAILABLE ? "yes" : "no"} |
+| LCV | Lean Canvas | {LCV_PATH or "not generated"} | {LCV_AVAILABLE ? "generated" : "missing"} | {LCV_AVAILABLE ? "yes" : "no"} |
+| CMP | Competitive Analysis | {CMP_PATH or "not generated"} | {CMP_AVAILABLE ? "generated" : "missing"} | {CMP_AVAILABLE ? "yes" : "no"} |
+| MLS | Market Landscape | {MLS_PATH or "not generated"} | {MLS_AVAILABLE ? "generated" : "missing"} | {MLS_AVAILABLE ? "yes" : "no"} |
+| OPP | Opportunity Scoring | {OPP_PATH or "not generated"} | {OPP_AVAILABLE ? "generated" : "missing"} | {OPP_AVAILABLE ? "yes" : "no"} |
+| SBP | Service Blueprint | {SBP_PATH or "not generated"} | {SBP_AVAILABLE ? "generated" : "missing"} | {SBP_AVAILABLE ? "yes" : "no"} |
+| GTM | Go-to-Market | {GTM_PATH or "not generated"} | {GTM_AVAILABLE ? "generated" : "missing"} | {GTM_AVAILABLE ? "yes" : "no"} |
+| MKT | Brand System | {MKT_PATH or "not generated"} | {MKT_AVAILABLE ? "generated" : "missing"} | {MKT_AVAILABLE ? "yes" : "no"} |
+| LDP | Landing Page Spec | {LDP_LAUNCH_PATH or "not generated"} | {LDP_LAUNCH_AVAILABLE ? "generated" : "missing"} | {LDP_LAUNCH_AVAILABLE ? "yes" : "no"} |
+| STR | Stripe Config | {STR_PATH or "not generated"} | {STR_AVAILABLE ? "generated" : "missing"} | {STR_AVAILABLE ? "yes" : "no"} |
+| DPD | Pitch Deck | {DPD_PATH or "not generated"} | {DPD_AVAILABLE ? "generated" : "missing"} | {DPD_AVAILABLE ? "yes" : "no"} |
+
+## Deployment Readiness Summary
+
+| Check | Status | Notes |
+|-------|--------|-------|
+| Landing page spec present | {LDP_LAUNCH_AVAILABLE ? "yes" : "no"} | Consumed by /pde:deploy Phase 92 |
+| Stripe config present | {STR_AVAILABLE ? "yes" : "no"} | Approval gate required before write |
+| Pitch deck present | {DPD_AVAILABLE ? "yes" : "no"} | Required for investor outreach sequence |
+| Domain strategy captured | {see Step 4m} | From BRF domain section |
+
+## Domain Strategy
+
+{Populated in Step 4m}
+
+**4l-ii. CNT content calendar content:**
+
+Build the CNT artifact with three phases using relative day offsets. If GTM_AVAILABLE is true, read the GTM artifact and extract channel priority annotations for channel slot names. If GTM is not available, use generic `[YOUR_PRIMARY_CHANNEL]` and `[YOUR_SECONDARY_CHANNEL]` placeholders and emit: "GTM artifact not found — content calendar uses placeholder channel slots. Run /pde:flows for channel-specific calendar."
+
+Structure the 30-day calendar as:
+- Phase 1: Pre-Launch (Days 1-14) — 5 entries covering teaser, behind-the-scenes, educational, social proof, launch announcement
+- Phase 2: Launch Week (Days 15-21) — 4 entries covering launch day, feature deep-dive, user testimonial, launch recap
+- Phase 3: Post-Launch (Days 22-30) — 4 entries covering onboarding nudge, case study, community building, growth milestone
+
+Each entry row: | Day | Channel | Content Type | Topic/Theme | CTA | Linked Artifact |
+
+All CTAs use `[YOUR_CTA_URL]` or `[YOUR_SIGNUP_URL]` format. Channel slots use `[YOUR_CHANNEL_1]`, `[YOUR_CHANNEL_2]` etc. or the actual channel names from GTM if available.
+
+Track depth for calendar density:
+- solo_founder: 10-12 entries (lean calendar)
+- startup_team: 13-15 entries (standard calendar)
+- product_leader: 15-18 entries (enterprise calendar with internal comms entries)
+
+**4l-iii. OTR outreach sequences content:**
+
+Build the OTR artifact with Resend-compatible spec tables.
+
+**Onboarding sequence** (track-dependent length):
+- solo_founder: 5 emails
+- startup_team: 5-7 emails
+- product_leader: 7 emails
+
+Each row: | # | Trigger | Delay | From | Subject | Body Summary | Primary CTA | Resend `tags` |
+
+ALL fields use structural placeholders:
+- From: `[YOUR_FROM_ADDRESS]`
+- Subject: uses `[YOUR_PRODUCT_NAME]`, `[YOUR_KEY_FEATURE]`, `[YOUR_QUICK_WIN]`
+- Body Summary: uses `[YOUR_PRODUCT_NAME]`, `[YOUR_COMPANY_NAME]`, `[YOUR_ACTION]`
+- CTA: uses `[YOUR_FIRST_CTA]`, `[YOUR_FEATURE_URL]`, `[YOUR_CTA_2]`, `[YOUR_REENGAGEMENT_CTA]`, `[YOUR_UPGRADE_OR_SHARE_CTA]`
+- Tags: `{sequence: "onboarding", step: "N"}`
+
+NEVER use actual company names, product names, or partner names from the brief. KIT-06 is a hard requirement.
+
+**Investor Outreach sequence** (3 emails, gated on DPD):
+
+IF DPD_AVAILABLE is false: emit note "Investor outreach sequence requires pitch deck (DPD artifact). Run /pde:wireframe first." Set INVESTOR_SEQUENCE_GENERATED=false. Skip investor table.
+
+IF DPD_AVAILABLE is true:
+Generate 3-email investor sequence. Each row: | # | Trigger | Delay | From | Subject | Body Summary | Primary CTA |
+- Email 1: manual send, day of outreach, problem+solution+traction pitch, deck review request
+- Email 2: +5 days after email 1, brief re-pitch + new signal, intro call request
+- Email 3: +7 days after email 2, final follow-up, connect on [YOUR_NETWORK]
+
+All use `[YOUR_FROM_ADDRESS]`, `[YOUR_PRODUCT_NAME]`, `[YOUR_PROBLEM_STATEMENT]`, `[YOUR_NETWORK]` placeholders.
+
+Display: `Step 4/7 (4l): Launch kit content synthesized. LKT manifest + CNT calendar + OTR sequences ready.`
+
+#### 4m. Extract domain strategy from brief (business mode only)
+
+IF `$BM != "true"`: skip Step 4m entirely.
+
+IF `$BM == "true"`:
+
+The brief artifact (BRF) loaded in Step 4a contains a domain strategy section (generated by Phase 85 BRIEF-05). Search BRIEF_CONTENT for a "Domain Strategy" heading or "domain" subsection.
+
+If found: extract the domain strategy text verbatim and insert it into the LKT manifest's "## Domain Strategy" section (replacing the placeholder from Step 4l).
+
+If not found (brief was generated before Phase 85 or domain section is absent): insert "Domain strategy not captured in brief. Re-run /pde:brief to generate domain naming and availability notes."
+
+Display: `Step 4/7 (4m): Domain strategy extracted from brief.`
 
 ---
 
@@ -1063,9 +1215,63 @@ function hexToOklch(hex) {
 
 Display: `Step 5/7 (5c): HND-types-v{HND_VERSION}.ts written.`
 
+#### 5e. Write launch kit artifacts (business mode only — under existing lock from Step 5a)
+
+IF `LKT_GENERATED != true`: skip Step 5e entirely.
+
+IF `LKT_GENERATED == true`:
+
+Determine versions via Glob (find highest existing version N, use N+1; if none exist, use v1):
+- LKT_VERSION from `.planning/design/launch/LKT-launch-kit-v*.md`
+- CNT_VERSION from `.planning/design/launch/CNT-content-calendar-v*.md`
+- OTR_VERSION from `.planning/design/launch/OTR-outreach-sequences-v*.md`
+
+Use the Write tool three times:
+1. `.planning/design/launch/LKT-launch-kit-v{LKT_VERSION}.md` — full launch kit manifest from Step 4l (with domain strategy from Step 4m merged into the "## Domain Strategy" section)
+2. `.planning/design/launch/CNT-content-calendar-v{CNT_VERSION}.md` — 30-day content calendar from Step 4l
+3. `.planning/design/launch/OTR-outreach-sequences-v{OTR_VERSION}.md` — email sequences from Step 4l
+
+After writing each file, register it in the design manifest using the 7-call pattern:
+
+```bash
+# LKT manifest registration
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update LKT code LKT
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update LKT name "Launch Kit Manifest"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update LKT type launch-kit
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update LKT domain launch
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update LKT path ".planning/design/launch/"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update LKT status complete
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update LKT version ${LKT_VERSION}
+
+# CNT calendar registration
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update CNT code CNT
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update CNT name "Content Calendar"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update CNT type content-calendar
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update CNT domain launch
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update CNT path ".planning/design/launch/"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update CNT status complete
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update CNT version ${CNT_VERSION}
+
+# OTR outreach registration
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update OTR code OTR
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update OTR name "Outreach Sequences"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update OTR type outreach-sequences
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update OTR domain launch
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update OTR path ".planning/design/launch/"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update OTR status complete
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update OTR version ${OTR_VERSION}
+```
+
+Display:
+`Step 5/7 (5e): LKT-launch-kit-v{LKT_VERSION}.md written.`
+`Step 5/7 (5e): CNT-content-calendar-v{CNT_VERSION}.md written.`
+`Step 5/7 (5e): OTR-outreach-sequences-v{OTR_VERSION}.md written.`
+
+IMPORTANT: Step 5e runs BEFORE Step 5d (lock release). The lock acquired in Step 5a covers all writes through 5e. Do NOT call lock-acquire again — the existing lock covers Steps 5b through 5e.
+
 #### 5d. Release write-lock
 
-**ALWAYS release, even if an error occurred:**
+**ALWAYS release, even if an error occurred during Steps 5b-5c-5e:**
 
 ```bash
 node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design lock-release
@@ -1191,6 +1397,55 @@ IF PRODUCT_TYPE is "experience":
   Decision Log row: `| BIB | production bible v{BIB_VERSION} generated, experience sub-type: {experienceSubType} | {YYYY-MM-DD} |`
   Iteration History row: `| BIB-{event-slug}-v{BIB_VERSION}.md | v{BIB_VERSION} | Created by /pde:handoff | {YYYY-MM-DD} |`
 
+#### 7b-lkt. Register LKT/CNT/OTR artifacts in manifest (business mode only)
+
+IF LKT_GENERATED is NOT true: SKIP Step 7b-lkt entirely. LKT/CNT/OTR artifacts are only registered for business mode runs. Non-business products must never reach this step.
+
+IF LKT_GENERATED is true:
+
+Register LKT artifact (7 calls):
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update LKT code LKT
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update LKT name "Launch Kit Manifest"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update LKT type launch-kit
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update LKT domain launch
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update LKT path ".planning/design/launch/"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update LKT status complete
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update LKT version ${LKT_VERSION}
+```
+
+Register CNT artifact (7 calls):
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update CNT code CNT
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update CNT name "Content Calendar"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update CNT type content-calendar
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update CNT domain launch
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update CNT path ".planning/design/launch/"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update CNT status complete
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update CNT version ${CNT_VERSION}
+```
+
+Register OTR artifact (7 calls):
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update OTR code OTR
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update OTR name "Outreach Sequences"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update OTR type outreach-sequences
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update OTR domain launch
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update OTR path ".planning/design/launch/"
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update OTR status complete
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-update OTR version ${OTR_VERSION}
+```
+
+Display: `Step 7/7 (7b-lkt): LKT, CNT, OTR registered in manifest.`
+
+Also update Step 7a DESIGN-STATE.md for business mode products — add rows under IF LKT_GENERATED guard:
+
+```
+| LKT | Launch Kit Manifest | /pde:handoff | complete | v{LKT_VERSION} | none | BTH,LCV,CMP,MLS,OPP,SBP,GTM,MKT,LDP,STR,DPD | {YYYY-MM-DD} |
+| CNT | Content Calendar | /pde:handoff | complete | v{CNT_VERSION} | none | GTM | {YYYY-MM-DD} |
+| OTR | Outreach Sequences | /pde:handoff | complete | v{OTR_VERSION} | none | BTH,MKT,DPD | {YYYY-MM-DD} |
+```
+
 #### 7c. Set coverage flag (CRITICAL — read-before-set to prevent clobber)
 
 ```bash
@@ -1198,20 +1453,25 @@ COV=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design coverage-check)
 if [[ "$COV" == @file:* ]]; then COV=$(cat "${COV#@file:}"); fi
 ```
 
-Parse the JSON output from coverage-check. Extract ALL sixteen current flag values: `hasDesignSystem`, `hasWireframes`, `hasFlows`, `hasHardwareSpec`, `hasCritique`, `hasIterate`, `hasHandoff`, `hasIdeation`, `hasCompetitive`, `hasOpportunity`, `hasMockup`, `hasHigAudit`, `hasRecommendations`, `hasStitchWireframes`, `hasPrintCollateral`, `hasProductionBible`. Default any absent field to `false`.
+Parse the JSON output from coverage-check. Extract ALL twenty current flag values: `hasDesignSystem`, `hasWireframes`, `hasFlows`, `hasHardwareSpec`, `hasCritique`, `hasIterate`, `hasHandoff`, `hasIdeation`, `hasCompetitive`, `hasOpportunity`, `hasMockup`, `hasHigAudit`, `hasRecommendations`, `hasStitchWireframes`, `hasPrintCollateral`, `hasProductionBible`, `hasBusinessThesis`, `hasMarketLandscape`, `hasServiceBlueprint`, `hasLaunchKit`. Default any absent field to `false`.
 
-IF PRODUCT_TYPE is "experience": merge `hasProductionBible: true` (and `hasHandoff: true` only if hybrid-event), preserve all other fourteen values. Then write the full merged sixteen-field object:
+IF PRODUCT_TYPE is "experience": merge `hasProductionBible: true` (and `hasHandoff: true` only if hybrid-event), preserve all other eighteen values. Then write the full merged twenty-field object:
 
 ```bash
-# For experience products:
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":{current},"hasWireframes":{current},"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":{current},"hasPrintCollateral":{current},"hasProductionBible":true}'
+# For experience products (non-hybrid-event):
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":{current},"hasWireframes":{current},"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":{current},"hasPrintCollateral":{current},"hasProductionBible":true,"hasBusinessThesis":{current},"hasMarketLandscape":{current},"hasServiceBlueprint":{current},"hasLaunchKit":{current}}'
 
 # For hybrid-event (both BIB and HND flags):
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":{current},"hasWireframes":{current},"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":true,"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":{current},"hasPrintCollateral":{current},"hasProductionBible":true}'
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":{current},"hasWireframes":{current},"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":true,"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":{current},"hasPrintCollateral":{current},"hasProductionBible":true,"hasBusinessThesis":{current},"hasMarketLandscape":{current},"hasServiceBlueprint":{current},"hasLaunchKit":{current}}'
 
-# For non-experience products (existing behavior, updated field count):
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":{current},"hasWireframes":{current},"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":true,"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":{current},"hasPrintCollateral":{current},"hasProductionBible":{current}}'
+# For non-experience, non-business products:
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":{current},"hasWireframes":{current},"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":true,"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":{current},"hasPrintCollateral":{current},"hasProductionBible":{current},"hasBusinessThesis":{current},"hasMarketLandscape":{current},"hasServiceBlueprint":{current},"hasLaunchKit":{current}}'
+
+# For business mode products (BM == "true", non-experience):
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":{current},"hasWireframes":{current},"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},"hasHandoff":true,"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":{current},"hasPrintCollateral":{current},"hasProductionBible":{current},"hasBusinessThesis":{current},"hasMarketLandscape":{current},"hasServiceBlueprint":{current},"hasLaunchKit":true}'
 ```
+
+IF `$BM == "true"` AND LKT_GENERATED is true: use the business mode variant (sets `hasLaunchKit: true`). Preserve all other nineteen values from the coverage-check read.
 
 Replace each `{current}` with the actual value read from coverage-check output (true or false).
 
@@ -1258,6 +1518,16 @@ IF PRODUCT_TYPE is "experience":
 IF PRODUCT_TYPE is NOT "experience":
   Display: `Step 7/7: Manifest updated. Coverage: hasHandoff = true. Done.`
 
+IF `$BM == "true"`:
+  Append to summary table:
+  | Launch Kit | .planning/design/launch/LKT-launch-kit-v{LKT_VERSION}.md |
+  | Content Calendar | .planning/design/launch/CNT-content-calendar-v{CNT_VERSION}.md |
+  | Outreach Sequences | .planning/design/launch/OTR-outreach-sequences-v{OTR_VERSION}.md |
+  | Business Track | {$BT} |
+  | Artifacts Catalogued | {BUSINESS_ARTIFACT_COUNT}/11 |
+
+  Display: `Step 7/7: Manifest updated. Coverage: hasHandoff = true, hasLaunchKit = true. Done.`
+
 ---
 
 ## Anti-Patterns
@@ -1268,7 +1538,7 @@ NEVER do any of the following:
 
 - **Use mechanical string matching for framework detection:** A sentence like "Unlike React, this project uses Vue 3" must detect Vue. Scan for explicit positive assertions, not incidental mentions of framework names.
 
-- **Skip coverage-check before setting designCoverage:** `manifest-set-top-level` replaces the ENTIRE designCoverage object. Reading coverage-check first and preserving all 13 fields (hasDesignSystem, hasWireframes, hasFlows, hasHardwareSpec, hasCritique, hasIterate, hasHandoff, hasIdeation, hasCompetitive, hasOpportunity, hasMockup, hasHigAudit, hasRecommendations) is mandatory to avoid clobbering flags set by other skills.
+- **Skip coverage-check before setting designCoverage:** `manifest-set-top-level` replaces the ENTIRE designCoverage object. Reading coverage-check first and preserving all 20 fields (hasDesignSystem, hasWireframes, hasFlows, hasHardwareSpec, hasCritique, hasIterate, hasHandoff, hasIdeation, hasCompetitive, hasOpportunity, hasMockup, hasHigAudit, hasRecommendations, hasStitchWireframes, hasPrintCollateral, hasProductionBible, hasBusinessThesis, hasMarketLandscape, hasServiceBlueprint, hasLaunchKit) is mandatory to avoid clobbering flags set by other skills.
 
 - **Include non-interface TypeScript in HND-types-v{N}.ts:** The types file must ONLY contain interface and type alias declarations. No exports default, no const, no imports, no JSX. This file is imported by engineers directly; any non-interface content breaks TypeScript compilation.
 
@@ -1296,6 +1566,14 @@ NEVER do any of the following:
 
 - **Skip software handoff for hybrid-event:** When experienceSubType is "hybrid-event", BOTH the production bible AND the software handoff spec must be generated. The hybrid-event is the ONLY experience sub-type that produces HND-handoff-spec and HND-types files alongside the BIB document. Omitting the software handoff for hybrid-event leaves the digital ticketing/app layer without implementation specs.
 
+- **Generate LKT/CNT/OTR for non-business products:** Steps 4k, 4l, 4m, 5e, and 7b-lkt are gated on `$BM == "true"`. Non-business products (businessMode false or absent) must NEVER generate launch kit artifacts. The independent IF block pattern (not ELSE IF from experience/hardware gates) ensures business:experience compositions run both paths correctly.
+
+- **Use real company names in OTR email sequences:** All email content must use structural placeholders (`[YOUR_PRODUCT_NAME]`, `[YOUR_COMPANY_NAME]`, `[YOUR_FROM_ADDRESS]`). Never extract actual names from the brief for email body content.
+
+- **Generate investor outreach without pitch deck:** The investor outreach sequence (3 emails) in OTR is gated on DPD artifact availability. If DPD-pitch-deck is not found via Glob, emit a note and skip investor sequence generation.
+
+- **Re-acquire write lock in Step 5e:** Step 5e runs under the existing lock from Step 5a. Do NOT call lock-acquire again — this will deadlock. The lock window covers Steps 5b through 5e, with 5d (release) always running last.
+
 </process>
 
 <output>
@@ -1305,5 +1583,8 @@ Files produced by /pde:handoff:
 - `.planning/design/handoff/HND-types-v{N}.ts` — TypeScript interface declarations only: export interface declarations with JSDoc comments for all screen components and shared components, section headers as comments, no imports or runtime code
 - `.planning/design/handoff/DESIGN-STATE.md` — handoff domain state: HND artifact row in Artifact Index with upstream dependencies listed
 - `.planning/design/DESIGN-STATE.md` — root state updated: Pipeline Progress marks Handoff complete, Decision Log and Iteration History rows appended
-- `.planning/design/design-manifest.json` — manifest updated with HND artifact entry and hasHandoff: true in designCoverage (all 13 fields preserved via read-before-set)
+- `.planning/design/design-manifest.json` — manifest updated with HND artifact entry and hasHandoff: true in designCoverage (all 20 fields preserved via read-before-set); business mode additionally registers LKT, CNT, OTR artifacts and sets hasLaunchKit: true
+- `.planning/design/launch/LKT-launch-kit-v{N}.md` — launch kit manifest with artifact registry, deployment readiness, and domain strategy (business mode only)
+- `.planning/design/launch/CNT-content-calendar-v{N}.md` — 30-day pre-launch/launch/post-launch content calendar skeleton (business mode only)
+- `.planning/design/launch/OTR-outreach-sequences-v{N}.md` — Resend-compatible onboarding and investor outreach email sequences (business mode only)
 </output>

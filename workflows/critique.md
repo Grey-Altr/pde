@@ -257,7 +257,7 @@ Load evaluation references into context:
 - `@references/wcag-baseline.md` — WCAG 2.2 Level A/AA criteria and POUR principles
 - `@templates/critique-report.md` — output format reference
 
-If `--focused` flag present: evaluate only the named perspective(s). Valid values: ux, hierarchy, accessibility, business. Otherwise evaluate all four.
+If `--focused` flag present: evaluate only the named perspective(s). Valid values: ux, hierarchy, accessibility, business. Otherwise evaluate all four. Note: in business mode (`$BM == "true"`), `--focused business` runs both Perspective 4 (Business Alignment) AND all 4 business perspectives (BIZ-1 through BIZ-4).
 
 #### Experience Product Type Gate
 
@@ -406,6 +406,15 @@ IF productType === "experience":
 ELSE:
 
   Proceed with existing software critique path (Perspectives 1-4 below). No experience-specific perspectives.
+
+  Business mode detection (read once, cache for use throughout Step 4-BUSINESS and Step 4-COHERENCE):
+
+  ```bash
+  BM=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-get-top-level businessMode 2>/dev/null)
+  if [[ "$BM" == @file:* ]]; then BM=$(cat "${BM#@file:}"); fi
+  BT=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-get-top-level businessTrack 2>/dev/null)
+  if [[ "$BT" == @file:* ]]; then BT=$(cat "${BT#@file:}"); fi
+  ```
 
 For each wireframe file in WIREFRAME_FILES:
 
@@ -728,6 +737,133 @@ IF no motion patterns present (common at lofi/midfi):
 
   IF HAS_PNG is false: Skip this section. All observations come from HTML source only (standard behavior).
 
+#### Step 4-BUSINESS: Business Mode Critique Extension
+
+IF `$BM != "true"`: skip this entire block. Continue to Step 4-COHERENCE.
+
+IF `$BM == "true"`:
+
+Load @references/business-track.md for track vocabulary and depth thresholds.
+Load @references/business-financial-disclaimer.md — ALL unit economics findings MUST use structural placeholders only. Never write dollar amounts.
+
+**Track depth guide:**
+- `solo_founder`: 2-3 findings per perspective (action-first, no jargon)
+- `startup_team`: 4-5 findings per perspective (investor vocabulary, metrics framing)
+- `product_leader`: 4-5 findings per perspective (P&L vocabulary, OKR framing, board-ready format)
+
+Render all business perspective findings in a separate `## Business Mode Findings` section in the critique report — NOT mixed into the existing Perspectives 1-4 findings table.
+
+Use the EXACT finding format from the existing critique.md Step 4: `| {severity} | {effort} | {location} | {issue} | {suggestion} | {reference} |`. Severity values: `critical`, `major`, `minor`, `nit` ONLY. Never use `info`.
+
+##### Business Perspective BIZ-1: Unit Economics Viability (weight 1.0x)
+
+**Purpose:** Evaluate whether the product's unit economics model (LTV, CAC, margins, burn) are coherently reflected in the wireframes and artifacts.
+
+**Evaluation sources:**
+- LCV artifact (`.planning/design/strategy/LCV-lean-canvas-v*.md`) — Box 5 (Revenue Streams), Box 8 (Cost Structure)
+- BRF artifact (`.planning/design/strategy/BRF-brief-v*.md`) — Domain Strategy section for pricing signals
+- STR artifact (`.planning/design/launch/STR-stripe-pricing-config-v*.md`) — pricing tier structure
+
+**Checklist:**
+- Does the pricing UI (if present in wireframes) reflect the tier structure in STR?
+- Is there a cost ceiling constraint documented in LCV Box 8? Flag if absent.
+- Does the value exchange presented in wireframes align with the revenue model in LCV Box 5?
+- Are there any screens that imply revenue flows (e.g., checkout, upgrade, paywall) without a corresponding model entry?
+
+**Financial disclaimer:** Per @references/business-financial-disclaimer.md — all unit economics findings MUST use structural placeholders only. Write "the LCV cost structure does not indicate a CAC ceiling — complete `[YOUR_CAC_CEILING]` in LCV Box 8" NOT "the CAC ceiling should be $200".
+
+##### Business Perspective BIZ-2: GTM-ICP Fit (weight 1.0x)
+
+**Purpose:** Evaluate whether the go-to-market channel strategy and ideal customer profile are coherently reflected in the wireframes.
+
+**Evaluation sources:**
+- GTM flow in FLW artifact (`.planning/design/ux/FLW-flows-v*.md`) — acquisition → conversion → retention channel priority
+- LCV artifact — Box 2 (Customer Segments), Box 4 (Channels)
+- BRF artifact — Personas section, product type constraints
+
+**Checklist:**
+- Do onboarding screens match the ICP's technical sophistication level (LCV Box 2)?
+- Does the conversion flow reflect the GTM channel priorities (e.g., if primary channel is SEO, is there clear organic-entry context in the landing or sign-up screens)?
+- Is the onboarding friction level appropriate for the ICP? (enterprise: high-touch onboarding acceptable; consumer: low-friction required)
+- Are acquisition-channel-specific CTAs present where GTM flow indicates they should be?
+
+##### Business Perspective BIZ-3: Pricing Psychology (weight 1.5x)
+
+**Purpose:** Evaluate pricing presentation against behavioral economics principles.
+
+**Evaluation sources:**
+- STR artifact — tier structure, tier count, feature gate placement
+- LDP artifact (`.planning/design/launch/LDP-landing-page-spec-v*.md`) — pricing table section
+
+**Checklist:**
+- Anchoring: Is a high-price anchor tier present to make the target tier look reasonable?
+- Decoy effect: Is there a "middle" tier positioned to drive tier-N selection?
+- Loss aversion: Are feature gates framed as what you LOSE on lower tier (not just what you gain on higher tier)?
+- Price-to-value clarity: Is the value proposition visible on the same screen as the price point?
+- Cognitive load: Does the pricing table have ≤ 3 tiers? More than 3 options typically reduces conversion.
+
+##### Business Perspective BIZ-4: Investor Readiness (weight 1.0x)
+
+**Purpose:** Evaluate whether the product design artifacts demonstrate a business that could be credibly presented to investors.
+
+**Evaluation sources:**
+- DPD artifact (`.planning/design/launch/DPD-pitch-deck-outline-v*.md`) — slide-by-slide narrative
+- LCV artifact — business model completeness (all 9 boxes)
+- BTH artifact (`.planning/design/strategy/BTH-thesis-v*.md`) — problem/solution/market/unfair-advantage
+
+**Checklist:**
+- Problem clarity: Does the DPD problem slide articulate a specific, measurable pain? Flag vague problem statements.
+- Solution differentiation: Is the solution slide distinct from competitor positioning (compare against MLS artifact if available)?
+- Market size: Is TAM/SAM/SOM present in DPD? Flag if absent (for startup_team and product_leader tracks).
+- Unfair advantage: Does BTH document a defensible advantage? Flag if absent or vague.
+- Traction signals: Does the DPD traction slide reference real metrics (even if placeholder), not just feature claims?
+
+Per @references/business-legal-disclaimer.md — reference only; legal checklist items in investor readiness must use [VERIFY WITH COUNSEL] tag for any securities/investment representation language.
+
+#### Step 4-COHERENCE: Pitch Coherence Cross-Check
+
+IF `$BM != "true"`: skip entirely. Continue to Step 5.
+
+IF `$BM == "true"`:
+
+  Use Glob to find: `.planning/design/strategy/LCV-lean-canvas-v*.md`
+  Sort by version number, take highest -> SET LCV_FILE.
+
+  Use Glob to find: `.planning/design/launch/DPD-pitch-deck-outline-v*.md`
+  Sort by version number, take highest -> SET DPD_FILE.
+
+  IF LCV_FILE is absent:
+    SET COHERENCE_AVAILABLE = false
+    Note in report: "Pitch coherence cross-check skipped: LCV lean canvas not found. Run /pde:brief in business mode first."
+
+  IF DPD_FILE is absent:
+    SET COHERENCE_AVAILABLE = false
+    Note in report: "Pitch coherence cross-check skipped: DPD pitch deck outline not found. Run /pde:wireframe in business mode first."
+
+  IF both present (COHERENCE_AVAILABLE = true):
+    Read LCV_FILE. Extract Box 3 (UVP) content.
+    Read DPD_FILE. Search for coherence anchors:
+
+    **Cross-check 1: LCV UVP ↔ DPD Solution slide**
+    Look for anchor: `LCV.box3.UVP =`
+    - If anchor contains `[YOUR_UVP]`: advisory — "UVP not yet customized in pitch deck. Fill in `LCV.box3.UVP` on the solution slide."
+    - If anchor has real content: compare against LCV Box 3 UVP text
+    - If anchor absent (older DPD without coherence anchors): search Solution slide for LCV UVP language
+    - Pass: UVP language appears in solution slide content
+    - Fail: no relationship between LCV UVP and solution slide — severity = major
+
+    **Cross-check 2: LCV Key Metrics ↔ DPD Traction slide**
+    Look for anchor: `LCV.box6.metrics =`
+    - If anchor contains `[YOUR_METRIC_1]`: advisory — "Key metrics not yet customized in pitch deck. Fill in `LCV.box6.metrics` on the traction slide."
+    - If anchor has real content: compare against LCV Box 6 metrics
+    - If anchor absent: search Traction slide for any metrics language from LCV Box 6
+    - Pass: metrics appear in traction slide
+    - Fail: no relationship — severity = major
+
+  Coherence findings appear in `## Pitch Coherence Cross-Check` section of the critique report.
+  Coherence findings are included in the Action List for /pde:iterate.
+  Coherence findings do NOT affect the composite score.
+
 ---
 
 ### Step 5/7: Write versioned critique report
@@ -765,13 +901,18 @@ Enhanced By: "{list of MCPs used, e.g., 'Sequential Thinking MCP, Axe MCP' or 'n
 ---
 ```
 
+When business mode is active (`$BM == "true"`), update the frontmatter `Groups Evaluated` field to include all 8 perspectives:
+```yaml
+Groups Evaluated: "UX/Usability, Visual Hierarchy, Accessibility, Business Alignment, Unit Economics Viability, GTM-ICP Fit, Pricing Psychology, Investor Readiness"
+```
+
 **Sections in order:**
 
 1. `# Critique Report: Wireframes v{VERSION} ({fidelity})`
 
 2. `## Summary Scorecard`
 
-   Table:
+   Standard (non-business mode) table:
    | Group | Score | Weight | Weighted |
    |-------|-------|--------|----------|
    | UX / Usability | {score}/100 | 1.5x | {score * 1.5} |
@@ -780,7 +921,23 @@ Enhanced By: "{list of MCPs used, e.g., 'Sequential Thinking MCP, Axe MCP' or 'n
    | Business Alignment | {score}/100 | 1.0x | {score * 1.0} |
    | **Composite** | | | **{composite_score}** |
 
-   Composite calculation: `(UX*1.5 + hierarchy*1.0 + a11y*1.5 + business*1.0) / 5.0`
+   Standard composite calculation: `(UX*1.5 + hierarchy*1.0 + a11y*1.5 + business*1.0) / 5.0`
+
+   IF `$BM == "true"`, extend the scorecard with 4 additional rows:
+   | Group | Score | Weight | Weighted |
+   |-------|-------|--------|----------|
+   | UX / Usability | {score}/100 | 1.5x | {score * 1.5} |
+   | Visual Hierarchy | {score}/100 | 1.0x | {score * 1.0} |
+   | Accessibility | {score}/100 | 1.5x | {score * 1.5} |
+   | Business Alignment | {score}/100 | 1.0x | {score * 1.0} |
+   | Unit Economics Viability | {score}/100 | 1.0x | {score * 1.0} |
+   | GTM-ICP Fit | {score}/100 | 1.0x | {score * 1.0} |
+   | Pricing Psychology | {score}/100 | 1.5x | {score * 1.5} |
+   | Investor Readiness | {score}/100 | 1.0x | {score * 1.0} |
+   | **Composite** | | | **{composite_score}** |
+
+   Business mode composite calculation: `(UX*1.5 + hierarchy*1.0 + a11y*1.5 + business*1.0 + unitEcon*1.0 + gtmIcp*1.0 + pricingPsych*1.5 + investorReady*1.0) / 9.5`
+   (Denominator 9.5 = sum of all 8 perspective weights: 1.5+1.0+1.5+1.0+1.0+1.0+1.5+1.0)
 
    Letter grade:
    - 90-100: A (handoff-ready)
@@ -821,7 +978,52 @@ Enhanced By: "{list of MCPs used, e.g., 'Sequential Thinking MCP, Axe MCP' or 'n
    - **Reference:** {standard or principle}
    ```
 
-6. `## Action List for /pde:iterate`
+6. `## Business Mode Findings` (conditional — only when `$BM == "true"`)
+
+   IF `$BM != "true"`: Skip this section entirely. The report proceeds from `## Detailed Findings by Perspective Group` directly to `## Action List for /pde:iterate`.
+
+   IF `$BM == "true"`:
+   A subsection for each of the 4 business perspectives evaluated:
+   ```
+   ### Unit Economics Viability (BIZ-1)
+
+   **Score:** {score}/100 | **Weight:** 1.0x
+   **Rationale:** {1-2 sentence scoring rationale}
+
+   **Finding {n}: {concise finding title}**
+   - **Location:** {artifact path or "LCV > Box N"}
+   - **Severity:** {critical|major|minor|nit} | **Effort:** {quick-fix|moderate|significant}
+   - **Issue:** {detailed description using structural placeholders only for financial values}
+   - **Suggestion:** {concrete fix}
+   - **Reference:** {business principle or framework}
+   ```
+
+   Repeat for GTM-ICP Fit (BIZ-2), Pricing Psychology (BIZ-3), Investor Readiness (BIZ-4).
+
+7. `## Pitch Coherence Cross-Check` (conditional — only when `$BM == "true"` AND LCV/DPD artifacts found)
+
+   IF `$BM != "true"`: Skip this section entirely.
+
+   IF `$BM == "true"` AND COHERENCE_AVAILABLE is false:
+   ```
+   ## Pitch Coherence Cross-Check
+
+   {Skip reason: missing LCV or DPD artifact with guidance to generate it}
+   ```
+
+   IF `$BM == "true"` AND COHERENCE_AVAILABLE is true:
+   ```
+   ## Pitch Coherence Cross-Check
+
+   Cross-check comparing LCV lean canvas with DPD pitch deck outline for narrative coherence.
+
+   | Check | Source | Target | Status | Finding |
+   |-------|--------|--------|--------|---------|
+   | UVP coherence | LCV Box 3 | DPD Solution slide | {pass/advisory/fail} | {observation or finding} |
+   | Metrics coherence | LCV Box 6 | DPD Traction slide | {pass/advisory/fail} | {observation or finding} |
+   ```
+
+8. `## Action List for /pde:iterate`
 
    Priority-ordered checkbox list for iterate consumption:
    ```
@@ -829,16 +1031,18 @@ Enhanced By: "{list of MCPs used, e.g., 'Sequential Thinking MCP, Axe MCP' or 'n
    ```
    Critical findings first, then major, then minor, then nits.
 
-   Only findings from the 4-perspective evaluation appear here. Stitch Comparison recommendations are NOT included in the Action List. Stitch token divergences are reconciled by /pde:handoff (Phase 69), not /pde:iterate.
+   Include findings from both the 4-perspective evaluation AND business perspectives (if $BM is true).
+   Include coherence findings from `## Pitch Coherence Cross-Check` (if any pass = fail).
+   Stitch Comparison recommendations are NOT included in the Action List. Stitch token divergences are reconciled by /pde:handoff (Phase 69), not /pde:iterate.
 
-7. `## Resolved Findings (Cumulative)`
+9. `## Resolved Findings (Cumulative)`
 
    Empty on first run. Populated by /pde:iterate on subsequent runs.
    ```
    *No resolved findings yet. Re-run /pde:critique after /pde:iterate to populate.*
    ```
 
-8. Footer:
+10. Footer:
    ```
    *Generated by PDE-OS /pde:critique | {date} | Mode: {mode} | Groups: {group_list}*
    {If HIG skill was used for Perspective 3: "[Accessibility by /pde:hig --light]"}
@@ -1017,10 +1221,10 @@ COV=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design coverage-check)
 if [[ "$COV" == @file:* ]]; then COV=$(cat "${COV#@file:}"); fi
 ```
 
-Parse the JSON output from coverage-check. Extract ALL sixteen current flag values: hasDesignSystem, hasWireframes, hasFlows, hasHardwareSpec, hasCritique, hasIterate, hasHandoff, hasIdeation, hasCompetitive, hasOpportunity, hasMockup, hasHigAudit, hasRecommendations, hasStitchWireframes, hasPrintCollateral, hasProductionBible. Default any absent field to `false`. Merge `hasCritique: true` while preserving all other fifteen values. Then write the full merged sixteen-field object:
+Parse the JSON output from coverage-check. Extract ALL TWENTY current flag values (default absent fields to `false`): hasDesignSystem, hasWireframes, hasFlows, hasHardwareSpec, hasCritique, hasIterate, hasHandoff, hasIdeation, hasCompetitive, hasOpportunity, hasMockup, hasHigAudit, hasRecommendations, hasStitchWireframes, hasPrintCollateral, hasProductionBible, hasBusinessThesis, hasMarketLandscape, hasServiceBlueprint, hasLaunchKit. Merge `hasCritique: true` while preserving all other nineteen values. Then write the full merged twenty-field object:
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":{current},"hasWireframes":{current},"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":true,"hasIterate":{current},"hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":{current},"hasPrintCollateral":{current},"hasProductionBible":{current}}'
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage '{"hasDesignSystem":{current},"hasWireframes":{current},"hasFlows":{current},"hasHardwareSpec":{current},"hasCritique":true,"hasIterate":{current},"hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":{current},"hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},"hasRecommendations":{current},"hasStitchWireframes":{current},"hasPrintCollateral":{current},"hasProductionBible":{current},"hasBusinessThesis":{current},"hasMarketLandscape":{current},"hasServiceBlueprint":{current},"hasLaunchKit":{current}}'
 ```
 
 #### 7d. Output summary table (per skill-style-guide.md)
