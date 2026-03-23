@@ -1,256 +1,192 @@
 # Project Research Summary
 
-**Project:** PDE v0.12 — Business Product Type (Venture Design Engine)
-**Domain:** Orthogonal `business:` dimension added to existing multi-type design pipeline
-**Researched:** 2026-03-22
-**Confidence:** HIGH
+**Project:** PDE v0.13 AutoResearch — Autonomous Experiment Loop
+**Domain:** Agentic self-optimization primitive — Karpathy-pattern experiment loop integrated into existing Claude Code plugin
+**Researched:** 2026-03-23
+**Confidence:** HIGH (Karpathy autoresearch repo verified; multiple independent implementations cross-referenced; PDE codebase analyzed directly; pitfall research grounded in alignment literature and post-mortems)
 
 ## Executive Summary
 
-PDE v0.12 introduces the `business:` dimension as an orthogonal modifier that layers on top of all four existing product types (software, hardware, hybrid, experience) rather than replacing any of them. The key architectural insight driving all decisions: a business:software project is still a software project — it runs the same 13-stage design pipeline and produces all the same design artifacts, plus business-specific outputs. The dimension is implemented via a `businessMode` boolean flag in `design-manifest.json` alongside a `businessTrack` field (solo_founder / startup_team / product_leader), not as a new `productType` enum value. This composability is non-negotiable — encoding business mode as a fourth product type would break existing pipelines and destroy the orthogonal design goal. The analogy to v0.11 is instructive but limited: where `experience:` added exclusive branches that replaced software paths, `business:` adds conditional sections that augment all existing paths simultaneously.
+PDE v0.13 adds an autonomous experiment loop — the Karpathy AutoResearch pattern — as a native primitive for self-optimizing PDE workflows. The pattern is well-established: loop over (propose hypothesis → commit speculatively → measure metric → keep if improved, reset if not → log result → repeat). The key insight is that the LLM agent is the optimizer, not a numerical algorithm — it reasons over experiment history to pick the next hypothesis, which makes it far more useful for prompt and workflow optimization than Bayesian search. The entire primitive requires zero new npm packages: it runs on Node.js built-ins, git CLI, and a new CJS module (`experiment.cjs`) that must stay under 300 lines.
 
-The recommended approach treats the business pipeline as a 14-stage extension: stages 1-13 run as before with business-mode conditional blocks added inside each workflow, and a new Stage 14 (`deploy.md`) is appended exclusively when `businessMode === true`. The stack additions are scoped entirely to generated project scaffolds — the plugin itself adds zero new npm packages, preserving the zero-npm-deps-at-plugin-root constraint. Generated landing pages use Next.js 16.2.1 + Tailwind v4 + Stripe v20 + Resend 6.9.4 + Vercel CLI, all current as of 2026-03-22 and verified against official sources. The deploy skill produces a deployable Next.js scaffold, Stripe config (test-mode defaults), and Resend email templates — making PDE a venture design engine that generates launchable artifacts, not just design specifications.
+The recommended implementation is an additive layering on existing PDE infrastructure. Four new files (command, workflow, agent, CJS module) and five small modifications to existing files (~80-100 total lines changed across existing files). The state model is a new `.planning/experiments/` directory alongside `.planning/phases/` — kept separate because experiments are not phases and must never be treated as incomplete phase work by roadmap tooling. The git state machine uses exploratory commits with `exp({slug}):` prefix and `git reset --hard` on regression — this is the single most dangerous component and must be built first, in isolation, before any agent uses it.
 
-The primary risks are three architectural time bombs that must be defused before any workflow is authored: (1) inadvertently encoding business mode as a peer product type rather than an orthogonal dimension — recovery cost is HIGH (full rewrite of all 14 workflows); (2) LLM-generated financial and legal content that appears authoritative but is hallucinated — requiring hard guardrails (structural placeholders only, never dollar amounts, mandatory disclaimer reference files); (3) the `designCoverage` pass-through clobber pattern that caused 10 regression bugs in v0.11 — the same mechanism applies when adding 4 new coverage flags to the existing 16-field object. All three require preventive architecture decisions in Phase 1 before implementation begins.
-
----
+The primary risks are all pre-identified with clear prevention strategies: git state corruption from running experiments on the wrong branch (prevent with branch isolation), metric gaming via Goodhart's Law (prevent with deterministic evaluation harnesses and human-review checkpoints), destructive optimization breaking downstream pipeline skills (prevent with full Nyquist regression check before any commit is promoted), and scope creep turning the experiment system into a parallel PDE (prevent with a hard 300-line ceiling on experiment infrastructure). Safety and stopping conditions are not optional post-MVP features — they must ship in the first experiment loop phase.
 
 ## Key Findings
 
 ### Recommended Stack
 
-See `.planning/research/STACK.md` for full detail, complete schemas, and alternatives considered.
+The stack decision is clear and simple: zero new npm packages. All experiment loop capabilities are implementable on Node.js 18+ built-ins (`child_process.spawnSync`, `fs.appendFileSync`, `crypto.randomUUID`) plus the git CLI that PDE already requires. The new CJS module (`experiment.cjs`) follows the established pattern of `event-bus.cjs` and other lib modules. This maintains PDE's zero-external-dependency constraint and keeps the entire addition auditable.
 
-The plugin itself adds no npm packages. All new dependencies live in generated project scaffolds only. This preserves the zero-npm-deps-at-plugin-root constraint without exception.
+**Core technologies:**
+- `child_process.spawnSync` (Node.js built-in): Run metric evaluation commands and git operations — safer than exec due to argument separation, same pattern already used for git in `pde-tools.cjs`
+- `fs.appendFileSync` (Node.js built-in): Append experiment result rows to `experiments.jsonl` — same pattern as `safeAppendEvent()` in `event-bus.cjs`
+- `crypto.randomUUID` (Node.js built-in): Generate stable experiment IDs — same as existing session ID generation
+- Git CLI (already required): Experiment state machine via `git reset --hard HEAD~1` and `git log --oneline --grep` — no new version requirement
+- `bin/lib/frontmatter.cjs` (existing): Parse `experiment.md` YAML frontmatter — same format already used for STATE.md and PLAN.md
 
-**Core technologies (generated scaffold only):**
-- Next.js 16.2.1 (App Router, Turbopack default, React 19.2): landing page scaffold — canonical Vercel-deployed React app; Server Actions replace /api/ routes for email capture and Stripe checkout, eliminating a separate API layer
-- Stripe Node SDK `stripe@20.4.1` + `@stripe/stripe-js@8.11.0`: payment infrastructure — v20 requires Node.js 18+ (Vercel default runtime is 20); server SDK in Server Actions, client SDK for Stripe Elements if needed
-- Resend `resend@6.9.4` + React Email `react-email@5.2.9`: transactional email — native TypeScript API, `resend.emails.send()` accepts React component directly, free tier (3,000 emails/month) covers launch volumes
-- Tailwind CSS `^4.0`: zero-config CSS plugin (`@import "tailwindcss"` in global CSS, no config file required), Turbopack-compatible
-- Vercel CLI (`npx vercel --prod --no-wait`): deployment orchestration — `--no-wait` returns deployment URL immediately without blocking the session; used via npx so no global install required
-- `@stripe/mcp@0.2.5` (optional): Stripe product/price management via MCP — added to APPROVED_SERVERS only as explicit opt-in with consent gate, not by default
-
-**Artifact format note:** No dominant JSON schema standard exists for BMC or service blueprints in developer contexts. PDE defines its own formats (BIZ-canvas JSON, BIZ-thesis markdown, SBP-blueprint markdown, STR-pricing JSON, LKT-launch-kit JSON) following the same philosophy as `design-manifest.json` — structured JSON for machine consumption, markdown for human readability. No external tooling is required to parse or consume these formats.
+Explicitly ruled out: MLflow/W&B/Comet (require external services), Bayesian optimization libraries (Claude IS the optimizer), DSPy/Ax (over-engineering for markdown workflow targets), git worktrees per iteration (worktree overhead; Claude Code has a confirmed `/ide` bug with worktrees as of March 2026), and parallel experiment execution (destroys causal attribution).
 
 ### Expected Features
 
-See `.planning/research/FEATURES.md` for full competitor analysis, feature dependency graph, and prioritization matrix.
+**Must have (P1 — loop cannot function without these):**
+- `/pde:optimize` slash command — entry point with explicit `--iterations N` budget (required arg, default 10, max 50)
+- `experiment.md` config file — YAML frontmatter + prose (metric, mutable/immutable file lists, eval command, budget, objective)
+- Git exploratory commit + `git reset --hard` state machine with `exp({slug}):` commit prefix
+- Baseline capture (iteration 0) — metric run before any modification
+- Append-only `experiments.jsonl` results log (iteration, commit hash, metric, delta, status, hypothesis)
+- Iteration budget enforcement — hard cap, no-progress circuit breaker at 5 consecutive non-improvements, consecutive-failure breaker at 3 regressions
+- Mutable/immutable file boundary enforcement — pre-commit check, explicit file paths only (no globs)
+- Readiness gate — validate eval harness runs, baseline is extractable, mutable boundary is non-empty, budget is set
+- Cost estimate gate — user confirmation before loop starts using PDE's chars/4 heuristic
 
-**Must have for v0.12 (P1 — table stakes, without these `business:` is not credible):**
-- Business thesis statement in brief — foundational anchor; without it, pitch deck and lean canvas are disconnected from each other
-- Lean Canvas generation in brief (9-box, confidence level per hypothesis: validated/assumed/unknown) — universal founder artifact; every accelerator and startup program uses this
-- User track selection (solo_founder / startup_team / product_leader) — without track adaptation, all users receive wrong output depth and format; this flag is cross-cutting, read by every stage
-- Market landscape with TAM/SAM/SOM in competitive stage — hard dependency for the pitch deck market slide
-- Service blueprint in flows stage (5-lane Mermaid sequence: customer actions, frontstage, line of visibility, backstage, support) — business-mode equivalent of user flows
-- GTM channel flow in flows stage (acquisition → conversion → retention funnel) — backbone for content calendar and email sequence
-- Landing page wireframe in deployable-spec format (structured with Next.js component mapping) — single most expected launch kit deliverable
-- Pricing configuration spec (Stripe-compatible: product names, price amounts, billing intervals, trial periods) — gates both landing page pricing section and Stripe deployment scaffold
-- Pitch deck outline YC/Sequoia format (10-slide default, expandable to 13) — required for investor and product leader tracks
-- Business critique perspectives (unit economics, GTM-ICP fit, pricing psychology, investor readiness)
-- Content calendar skeleton (30-day pre-launch / launch / post-launch schedule with content category slots)
-- Email sequence spec (onboarding 5-7 emails + investor outreach 3 emails; trigger/delay/CTA format, Resend-compatible)
-- Deploy skill with human approval gates (Stage 14) — the terminal stage that makes PDE a venture design engine; Next.js + Stripe + Resend + Vercel stack, mandatory approval gates at every external write
+**Should have (P2 — improves quality and usability, loop works without these):**
+- Nyquist as guard condition — dual-metric keep logic (primary metric improves AND Nyquist holds)
+- Awwwards rubric score extraction — domain-specific quality metric for PDE self-improvement
+- tmux dashboard experiment events — 6 event types for live progress visibility
+- Session resumability — `experiments.jsonl` + `experiment.md` persist across session breaks
+- Simplicity tie-breaking — line-count delta as KEEP signal when metric is equal
+- Human review checkpoint — pause after 5 consecutive automated keeps
 
-**Should have after validation (P2 — differentiators, v0.12.x):**
-- Pitch coherence check (lean canvas UVP vs pitch deck solution, canvas key metrics vs traction slide) — unique cross-stage consistency check no standalone generator can do
-- Unit economics derivation from pricing spec (LTV formula, CAC ceiling, payback period at 3 churn scenarios)
-- GTM channel flow → content calendar → email sequence coherence wiring (channel priorities dictate calendar slots and email trigger timing)
-- Business model → service blueprint alignment critique (revenue model vs support infrastructure check)
-- Investor email sequence gated on pitch deck completion (emails reference specific slides)
-
-**Defer to v0.13+:**
-- Multi-product-type business overlay (business:experience, business:hardware) — validate software-mode first
-- Product leader OKR framing layer (deep enterprise vocabulary calibration across all stages)
-- Repeatability / series launch template mode (architecturally significant; parallel to experience's repeatability flag)
-
-**Anti-features — never implement in v0.12:**
-- Autonomous deployment without approval gates — every external write is irreversible; approval gates are architectural, not optional
-- Full financial model / P&L generation — structural placeholders only; dollar amounts are a liability risk
-- Legal document generation (ToS, Privacy Policy) — legal checklist and service recommendations only
-- Live market research data fetching — violates offline-capable design model; methodology guide and placeholder slots instead
-- Multi-provider email integration — Resend only; the email sequence spec artifact is provider-agnostic for manual import
+**Defer to v2+:**
+- Research agent empirical mode — highest complexity, depends on loop primitive being stable first
+- Parallel experiments with worktree isolation — substantial complexity, serial is sufficient for PDE's use case
+- Population-based optimization — requires merge logic for multi-winner scenarios
+- Multi-metric Pareto optimization — scope creep risk; single primary metric with one guard is sufficient
 
 ### Architecture Approach
 
-See `.planning/research/ARCHITECTURE.md` for complete component inventory, data flow diagrams, anti-patterns, and suggested build order.
-
-The business layer is purely additive. `businessMode` is an orthogonal boolean flag set by `brief.md` alongside the existing `productType` field. All downstream workflows read both fields independently using the pattern: evaluate `productType` for type-specific logic first, then evaluate `businessMode` for business overlays. Business overlays append to, never replace, type-specific sections. A new Stage 14 (`deploy.md`) is conditionally appended to the build orchestrator pipeline only when `businessMode === true`.
+The experiment loop is a new vertical slice through the existing layer architecture: new slash command → new workflow orchestrator → new mutation subagent → new git state machine module → new state directory. Existing components are minimally modified (pde-tools.cjs dispatch +30 lines, pde-phase-researcher +40 lines additive, research-phase workflow +10 lines, event-bus +6 lines). The build order is strictly bottom-up: git state machine first, then mutation agent, then orchestrator + command, then researcher empirical mode, then event bus polish.
 
 **Major components:**
-1. `design-manifest.json` template (MODIFIED) — adds `businessMode: false` and `businessTrack: null` top-level fields; `designCoverage` grows from 16 to 20 fields (adding `hasBusinessThesis`, `hasMarketLandscape`, `hasServiceBlueprint`, `hasLaunchKit`)
-2. `workflows/brief.md` (MODIFIED) — central detection point; sets `businessMode`, `businessTrack`, writes BTH artifact, sets `hasBusinessThesis`; all 12 downstream workflow gates depend on this
-3. `workflows/deploy.md` (NEW) — Stage 14, only when `businessMode === true`; four mandatory approval gates (Next.js scaffold, Stripe config write, Resend template stubs, Vercel deploy)
-4. `references/business-track.md` (NEW) — single source of truth for track vocabulary, depth, and artifact format differences across solo/startup/leader tracks; loaded via `@references/` by all workflows
-5. `references/launch-frameworks.md` (NEW) — business artifact templates analogous to `experience-disclaimer.md`
-6. 13 existing workflow files (MODIFIED) — each gains a `<!-- Business product type -->` conditional block; estimated additions range from 5 lines (iterate/mockup guard stubs) to 200 lines (wireframe.md)
-7. `bin/lib/design.cjs` (MODIFIED) — adds `launch/` to `ensure-dirs` directory creation list (3 lines)
-
-**New artifact directory:** `launch/` under `.planning/design/` holds all deployable artifacts (LKT, LDP, STR, CNT, OTR) separate from design specifications in `ux/` and `visual/`. The isolation prevents confusion between design artifacts and executable launch artifacts, and makes the deploy workflow's file discovery predictable.
-
-**New artifact codes:** BTH (Business Thesis, strategy/), MLS (Market Landscape, strategy/), MKT (Brand/Marketing System, visual/), SBP (Service Blueprint, ux/), LKT (Launch Kit, launch/), LDP (Landing Page Wireframe, launch/), STR (Stripe Pricing Config, launch/), CNT (Content Calendar, launch/), OTR (Outreach Sequence, launch/)
+1. `bin/lib/experiment.cjs` — Git state machine: `commitCandidate`, `resetToBaseline`, `promoteBest`, boundary check. The lowest-level dependency; all other components call it.
+2. `agents/pde-experiment-runner.md` — Mutation + measurement subagent: applies one candidate change, runs metric command, returns structured JSON. Read-only for metric execution. Never writes SUMMARY.md.
+3. `workflows/optimize.md` — Experiment orchestrator: scaffolds EXPERIMENT.md, drives iteration loop, makes keep/discard decisions, finalizes result.
+4. `commands/optimize.md` — `/pde:optimize` slash command entry point: parses args, presents cost estimate, spawns optimize workflow.
+5. `.planning/experiments/{slug}/` — Isolated state: EXPERIMENT.md (spec), EXPERIMENT-LOG.ndjson (append-only results), EXPERIMENT-BEST.json (current best snapshot). Never inside `.planning/phases/` — roadmap tooling must not scan this directory.
 
 ### Critical Pitfalls
 
-See `.planning/research/PITFALLS.md` for full warning signs, recovery strategies, and pitfall-to-phase mapping.
+1. **Git state corruption from experiment commits on main branch** — The experiment loop's commit/reset state machine must never operate on the main working tree. Prevent with branch isolation: every `/pde:optimize` run operates on an `experiment/{slug}-{ts}` branch; experiment commits use `exp({slug}):` prefix; only the final squash-merge commit appears on main. Verify: `git log --oneline main` contains zero `exp():` commits after a complete run.
 
-1. **Orthogonal dimension encoded as productType enum value** — writing `IF software ... ELSE IF business` collapses the orthogonal dimension into sequential logic; a business:software project triggers the business branch and loses all software-specific logic. Represent as composite flag pair (`businessMode` boolean + `businessTrack`) in manifest. Recovery cost if discovered after all 14 workflows are written: HIGH (full rewrite). Address in Phase 1 before any workflow is authored.
+2. **Metric gaming via Goodhart's Law** — The agent will exploit any scalar metric within 20-30 iterations if it has no off switch. Prevent with: (a) deterministic eval harness only — no LLM-as-judge in the keep/discard gate, (b) Nyquist as a hard guard condition, (c) human review checkpoint at 5 consecutive automated keeps, (d) "suspiciously high gain" flag if metric improvement exceeds 2 standard deviations of historical variance.
 
-2. **LLM financial and legal hallucination** — LLMs generate plausible-looking financial projections with confident-sounding numbers that are ungrounded in the user's actual cost structure. Every financial artifact section must use structural placeholders (`[YOUR_MONTHLY_BURN]`), never dollar amounts. TAM/SAM/SOM must cite user-provided sources only — if no source is in the brief, the output must be `[TAM: Source required — PDE cannot estimate this]`. Investor outreach must never name specific firms or partners. Prevent via `references/business-financial-disclaimer.md` and `references/business-legal-disclaimer.md` created in Phase 1 before any launch kit workflow is authored.
+3. **Destructive optimization breaking downstream pipeline skills** — PDE is a 14-stage pipeline; local optimization of one workflow can break downstream consumers. Prevent with: pipeline integrity check (trimmed Nyquist subset covering optimization target + direct consumers) run before every KEEP decision. Full 235-assertion suite runs at experiment end before merge.
 
-3. **designCoverage pass-through clobber (20-field version of v0.11's 16-field bug)** — v0.11's Phase 83 found 10 workflows clobbering flags set by earlier phases by writing partial `designCoverage` objects. v0.12 adds 4 new flags making it 20 fields; every one of the 14 coverage-writing workflows must include all 20 fields in their write calls. Prevent by updating the manifest template before any workflow is authored. Dedicate an isolated audit phase to verify all 14 workflows include the new pass-through fields.
+4. **Runaway loop and resource exhaustion** — Hard iteration budget is mandatory, not optional. Implement: `--iterations N` (default 10, max 50), per-iteration time limit (default 5 min), no-progress breaker (5 consecutive non-improvements), consecutive-failure breaker (3 regressions). Cost estimate gate before loop starts.
 
-4. **Deployment artifacts without approval gates** — Stripe config with live keys, Vercel deployments, and Resend emails are irreversible external writes with financial consequences. Every deployment action must halt with a `[HUMAN APPROVAL REQUIRED]` prompt listing exactly what will be written/deployed. Stripe config must default to test-mode placeholder keys (`pk_test_REPLACE_WITH_YOUR_KEY`). `.planning/deploy-staging/` must have a `.gitignore` entry by default.
+5. **Scope creep turning AutoResearch into a parallel PDE** — Enforce a 300-line ceiling on all experiment infrastructure (experiment.cjs + new pde-tools dispatch blocks) combined. Any feature requiring a new bin script, new agent definition, or new config schema goes through a separate milestone phase. Check at every phase boundary.
 
-5. **User track branching inconsistency across workflows** — track adaptation applied in `brief.md` but missed in `competitive.md` or `flows.md` produces incoherent artifacts (product leader brief fed into solo-founder-depth competitive analysis). Verify: `grep -rn "businessTrack" workflows/` hit count must match `grep -rn "businessMode" workflows/` hit count. DESIGN-STATE.md Quick Reference must include a `business:` row with both mode and track values.
+6. **Safety boundary ambiguity at section level** — File-path immutability is insufficient; some workflow files are partially mutable (optimizable prose sections) with locked zones (inter-skill contracts, designCoverage write patterns). Mark locked zones with `<!-- LOCKED: experiment loop must not modify this section -->` and optimizable zones with `<!-- OPTIMIZABLE -->`. Section-level markers must be added to all experiment-eligible workflow files before any experiment runs.
 
----
+7. **Agent contention with active regular workflows** — Experiment loop must check for active PDE sessions (recent `phase:start` events in NDJSON bus) before starting. Shared state files (`design-manifest.json`, `DESIGN-STATE.md`, `workflow-status.md`) are always immutable for experiments. Experiment agents must not write to persistent agent memory pool.
 
 ## Implications for Roadmap
 
-Based on combined research, the architecture document's 14-phase suggested build order reflects the true dependency chain. The ordering is non-negotiable: manifest schema before workflows, reference files before workflows, brief before downstream stages, deploy (Stage 14) after handoff (Stage 13), audit phase after all workflow modifications.
+The build order is architecturally determined. The git state machine is the lowest-level dependency; nothing else can be tested without it. Each subsequent phase depends on the previous one being functional. Safety components (stopping conditions, boundary enforcement, cost estimate gate) are embedded throughout Phases 1-3, not deferred to a polish phase — PITFALLS research is unambiguous on this.
 
-### Phase 1: Foundation — Manifest Schema + Reference Files
-**Rationale:** All downstream phases read `businessMode`, `businessTrack`, and the 20-field `designCoverage` from the manifest. Authoring any workflow before the manifest template is updated guarantees the coverage clobber bug. The disclaimer reference files (`business-financial-disclaimer.md`, `business-legal-disclaimer.md`) must exist before any financial or legal content template is authored. Architecture decisions made here (composite flag vs enum, `launch/` directory isolation) cannot be changed without cascading rework.
-**Delivers:** Updated `design-manifest.json` template (20 coverage fields, `businessMode: false`, `businessTrack: null`), `bin/lib/design.cjs` with `launch/` in `ensure-dirs`, `references/business-track.md`, `references/launch-frameworks.md`, `references/business-financial-disclaimer.md`, `references/business-legal-disclaimer.md`
-**Avoids:** designCoverage clobber (Pitfall 3), orthogonal dimension model error (Pitfall 1), financial hallucination (Pitfall 2)
+### Phase 1: Git State Machine and Safety Boundaries
 
-### Phase 2: Brief Extensions + Business Mode Detection
-**Rationale:** `brief.md` is the system's detection point — it sets `businessMode`, `businessTrack`, writes the BTH artifact, and flags `hasBusinessThesis`. All 12 downstream workflows gate on `businessMode` read from the manifest. Brief must be complete before any downstream workflow can be authored against real behavior. Financial content guardrails are also applied here first since the brief stage originates the initial financial framing.
-**Delivers:** Updated `workflows/brief.md` (business signal detection, track detection, 5 business sections including business thesis + lean canvas + domain strategy captures, BTH artifact, manifest writes), lean canvas generation with 9-box confidence-level output, business thesis structured output
-**Uses:** `references/business-track.md` (track vocabulary), `references/business-financial-disclaimer.md` (financial placeholder pattern)
-**Avoids:** Track branching inconsistency (Pitfall 5), financial hallucination in early-stage outputs (Pitfall 2)
+**Rationale:** The exploratory commit/reset pattern is the most dangerous component and the dependency for all other phases. Building it first allows isolated testing before any agent interacts with it. Immutability boundaries — both file-path level and section level — must ship here. Retrofitting boundary enforcement after agents are wired is a full rewrite of the safety layer.
+**Delivers:** `bin/lib/experiment.cjs` (commitCandidate, resetToBaseline, promoteBest, boundary check); `experiment` and `metric` subcommands in `pde-tools.cjs`; `experiment.md` file schema; `.planning/experiments/` directory structure; `BOUNDARIES.md` with section-level locked zone markers added to all experiment-eligible workflow files.
+**Addresses:** P1 table-stakes features: git state machine, mutable/immutable boundary declaration, baseline capture.
+**Avoids:** Pitfall 1 (git corruption), Pitfall 3 (destructive optimization), Pitfall 6 (section-level boundary ambiguity).
+**Research flag:** Standard patterns — no deeper research needed. Git operations are well-understood; boundary check follows existing protected-files pattern from `pde-tools.cjs`.
 
-### Phase 3: Competitive + Opportunity Stage Extensions
-**Rationale:** Market landscape (TAM/SAM/SOM) is a hard dependency of the pitch deck market slide. Business RICE prioritization extends the existing opportunity skill. Both stages read `businessMode` set by Phase 2. Self-contained modifications with no new file dependencies beyond Phase 1 reference files.
-**Delivers:** Updated `workflows/competitive.md` (MLS market landscape path, competitive positioning matrix), updated `workflows/opportunity.md` (business initiative RICE scoring, unit economics framework), MLS artifact, market positioning 2x2 matrix (Mermaid quadrant or ASCII)
-**Addresses:** Market landscape with TAM/SAM/SOM (table stakes), competitor landscape with positioning matrix (table stakes), business model RICE prioritization (table stakes)
+### Phase 2: Mutation Subagent and Metric Evaluation
 
-### Phase 4: Flows Stage (Service Blueprint + GTM Channel Flow)
-**Rationale:** Service blueprint and GTM channel flow are direct dependencies of the handoff content calendar and email sequence. The flows stage reads the BTH artifact from Phase 2 for business context. GTM channel selection becomes the backbone for Phase 8 handoff artifacts.
-**Delivers:** Updated `workflows/flows.md` (service blueprint path + GTM channel flow path), SBP artifact (5-lane Mermaid sequence diagram), GTM channel flow artifact (acquisition → conversion → retention Mermaid flowchart)
-**Addresses:** Operational flow diagram / service blueprint (table stakes), GTM channel flow (table stakes)
+**Rationale:** The runner agent depends on Phase 1's tool commands. It can be built and tested independently before the orchestrator exists by invoking it directly. The metric-as-script pattern (deterministic shell command → numeric output) must be proven here before the orchestrator automates it.
+**Delivers:** `agents/pde-experiment-runner.md` (mutation + measurement subagent, read-only for metrics, returns structured JSON to orchestrator); `metric eval` command in pde-tools.cjs; timeout enforcement for metric scripts; section-level locked zone markers added to experiment-eligible workflow files (if not shipped in Phase 1).
+**Uses:** `experiment.cjs` from Phase 1.
+**Avoids:** Pitfall 2 (metric gaming — deterministic eval harness enforced, no LLM-as-judge), Pitfall 3 (boundary check runs before every commit).
+**Research flag:** Standard patterns — subagent architecture follows established `pde-research-validator` read-only pattern exactly.
 
-### Phase 5: System Stage (Brand System + Marketing Positioning)
-**Rationale:** Brand system tokens and positioning are required by the landing page wireframe (Phase 6) — DTCG tokens flow into landing page component styles. The brand positioning statement and tone of voice define the visual differentiation rationale for the pitch deck. The system stage is parallel to flows (no dependency between them) but must precede wireframe.
-**Delivers:** Updated `workflows/system.md` (brand system + marketing positioning sections), MKT-brand-system artifact (positioning statement, tone of voice spectrum, visual differentiation note)
-**Addresses:** Brand system with business positioning (table stakes)
+### Phase 3: Experiment Orchestrator, Command Entry Point, and Stopping Conditions
 
-### Phase 6: Wireframe Stage (Landing Page + Pricing Config + Pitch Deck)
-**Rationale:** The wireframe stage is the highest-complexity phase — it produces three new artifacts (landing page wireframe in deployable-spec format, Stripe-compatible pricing config, pitch deck outline) that are depended on by critique, handoff, and deploy. It requires brand tokens (Phase 5), GTM flow (Phase 4), and market landscape (Phase 3). The pricing config is a hard dependency of Stripe deployment scaffolding in Phase 9 and of the landing page pricing section.
-**Delivers:** Updated `workflows/wireframe.md` (SBP + LDP + STR-pricing + pitch deck paths), LDP artifact (deployable-spec landing page wireframe with Next.js component mapping), STR-pricing artifact (Stripe-compatible pricing config spec), pitch deck outline (YC 10-slide format with track-specific depth), SBP artifact registered from flows stage
-**Addresses:** Landing page wireframe (table stakes), pricing configuration spec (table stakes), pitch deck structure (table stakes), service blueprint (table stakes)
-**Avoids:** Launch artifacts stored in ux/ or visual/ (Architecture Anti-Pattern 2)
+**Rationale:** The orchestrator assembles the full iteration loop and depends on both Phase 1 (git state machine) and Phase 2 (runner agent). All stopping conditions and safety gates ship here — they are part of the loop, not post-MVP additions.
+**Delivers:** `workflows/optimize.md` (full iteration orchestrator: baseline capture, loop, keep/discard logic with Nyquist guard, budget enforcement, no-progress breaker, consecutive-failure breaker, finalization + results table); `commands/optimize.md` (`/pde:optimize` with cost estimate gate, `--iterations` argument, concurrency check); `EXPERIMENT-LOG.ndjson` results logging; human review checkpoint at 5 consecutive auto-keeps.
+**Implements:** All P1 features; readiness gate; concurrency guard (Pitfall 7 prevention).
+**Avoids:** Pitfall 4 (runaway loop — all circuit breakers ship here), Pitfall 7 (agent contention — concurrency check in command handler).
+**Research flag:** Standard patterns — orchestrator follows `autonomous.md` iteration loop and `execute-phase.md` subagent dispatch.
 
-### Phase 7: Critique + HIG Stage Extensions
-**Rationale:** Business critique perspectives (unit economics, GTM-ICP fit, pricing psychology, investor readiness) require upstream artifacts — especially pitch deck and pricing config. HIG business communications section is a lower-complexity addition in the same phase. Both are review stages, not generation stages.
-**Delivers:** Updated `workflows/critique.md` (business alignment perspective, unit economics review, pitch coherence cross-check hooks), updated `workflows/hig.md` (business communications HIG — pitch deck readability, email cadence, content calendar structure)
-**Addresses:** Business critique perspectives (table stakes), pitch coherence check (P2 differentiator setup)
+### Phase 4: Researcher Empirical Mode and Event Bus Integration
 
-### Phase 8: Handoff Stage (Launch Kit Assembly)
-**Rationale:** Handoff assembles the complete launch kit from all upstream business artifacts. It requires BTH, MLS, LDP, SBP, STR-pricing all registered in the manifest. Content calendar derives from GTM channel flow (Phase 4). Email sequence spec is Resend-compatible; the investor outreach sequence references pitch deck slides. This sets `hasLaunchKit: true` which gates the deploy stage.
-**Delivers:** Updated `workflows/handoff.md` (launch kit assembly path), LKT artifact (assembled launch kit manifest with all artifact paths and statuses), CNT-calendar artifact (30-day pre-launch / launch / post-launch skeleton), OTR-outreach artifact (email sequence specs for onboarding + investor outreach), domain strategy notes
-**Addresses:** Content calendar skeleton (table stakes), email sequence spec (table stakes), domain and brand identity strategy (table stakes)
+**Rationale:** Additive and decoupled. The basic loop is functional after Phase 3; empirical mode enriches it with researcher-generated candidates rather than requiring human-specified candidates. Event bus additions give tmux dashboard visibility. Both are independent of each other and of the loop's core correctness.
+**Delivers:** `pde-phase-researcher.md` updated with `--empirical` flag and `try_candidates` return block; `workflows/research-phase.md` routing for empirical flag; `event-bus.cjs` with 6 experiment event types; `config.json` template updated with `experiment_defaults` section; experiment events distinguished from regular workflow events in dashboard.
+**Avoids:** Experiment agents writing to shared persistent agent memory pool (Pitfall 7).
+**Research flag:** Needs brief research. The `try_candidates` schema must be validated against how the orchestrator will consume it. Mismatches between what the researcher produces and what the orchestrator iterates over are a likely integration bug source. Recommend a research-phase run examining the existing researcher return schema.
 
-### Phase 9: Deploy Skill (New Stage 14)
-**Rationale:** Deploy is the terminal stage, depending on the complete launch kit from Phase 8 (`hasLaunchKit: true`). It introduces the most novel architectural element in PDE's history — writing files outside `.planning/` and invoking external CLIs — and carries the highest side-effect risk. Mandatory approval gates at every external write are architecturally enforced, not optional.
-**Delivers:** New `workflows/deploy.md` (four approval-gated stages: Next.js scaffold, Stripe config, Resend templates, Vercel deploy), new `commands/deploy.md` (`/pde:deploy` slash command entry point), updated `workflows/build.md` (Stage 14 conditional on `businessMode === true`), Next.js landing page scaffold at `.planning/launch/landing-page/` (generated `package.json` with pinned versions, `app/layout.tsx`, `app/page.tsx`, `app/actions.ts`, Stripe webhook handler, React Email templates, `.env.example`)
-**Uses:** Stack — Next.js 16.2.1, `stripe@20.4.1`, `resend@6.9.4`, `react-email@5.2.9`, Tailwind v4, `vercel --prod --no-wait`
-**Avoids:** Autonomous deployment (Anti-Feature), live Stripe keys in generated scaffolding (Security Mistake), Vercel deployment blocking Claude session (use `--no-wait`)
+### Phase 5: Nyquist Tests for Experiment Infrastructure
 
-### Phase 10: Secondary Workflow Modifications
-**Rationale:** Remaining workflow modifications are lower-complexity additions with no cross-phase dependencies. `recommend.md` gains a business tool category. `iterate.md` and `mockup.md` receive guard stubs only (same 5-line comment pattern as v0.11 experience stubs).
-**Delivers:** Updated `workflows/recommend.md` (business tool category: Stripe MCP, Resend MCP, analytics), updated `workflows/iterate.md` (guard stub), updated `workflows/mockup.md` (guard stub)
-
-### Phase 11: designCoverage Clobber Audit (All 14 Workflows)
-**Rationale:** Isolated audit phase following the v0.11 Phase 83 precedent exactly. Every workflow that writes `designCoverage` must be verified to include all 20 fields in its write call. This regression surface is invisible until a full pipeline run — isolating the audit in its own phase ensures scope is clearly bounded, complete, and verifiable.
-**Delivers:** All 14 designCoverage-writing workflows verified to include all 20 fields in their write blocks (~56 lines modified across 14 files). Nyquist assertion added: field count in every designCoverage write must equal 20.
-**Avoids:** designCoverage clobber (Pitfall 3) — identical prevention to v0.11 Phase 83
-
-### Phase 12: Nyquist Regression Tests + Full Pipeline Validation
-**Rationale:** Terminal validation phase. Four composition cases must be verified: non-business software project produces byte-identical manifest to pre-v0.12 baseline; business:software project produces software artifacts AND business artifacts (not one or the other); business:hardware composes correctly; deploy workflow halts at each approval gate without proceeding on "no".
-**Delivers:** Nyquist regression assertions covering all four composition cases, verified non-regression of existing product types (software/hardware/hybrid/experience), approval gate halt verification for deploy workflow
+**Rationale:** Verification phase. After the complete loop is functional, regression tests confirm that experiment infrastructure does not disturb regular PDE operation and that all safety constraints actually fire as specified.
+**Delivers:** New Nyquist assertions covering: branch isolation (no experiment commits on main), boundary check rejection of out-of-bounds files, no-progress breaker termination at exactly N, consecutive-failure breaker termination at 3, shared state protection (design-manifest unchanged after experiment), RECONCILIATION.md cleanliness (single squash-merge commit on main), full 235-assertion regression suite passes after AutoResearch ships.
+**Avoids:** "Looks done but isn't" failure modes from PITFALLS.md checklist — each checklist item becomes a verifiable test.
+**Research flag:** Standard patterns — follows existing Nyquist test conventions.
 
 ### Phase Ordering Rationale
 
-- Phase 1 before everything: manifest schema and disclaimer reference files cannot be retrofitted; the 20-field designCoverage template must exist before any workflow author knows how many fields to include
-- Phase 2 before all downstream: `businessMode` and `businessTrack` must be set in the manifest before any downstream workflow can be tested against real behavior; detection is the dependency of everything
-- The artifact dependency chain (brief → competitive → flows → system → wireframe → critique → handoff → deploy) directly dictates workflow implementation phases 2-9
-- Phase 11 (audit) isolated after all workflow modifications: scope must be bounded; auditing as you go risks missing workflows that aren't written yet
-- Phase 12 (Nyquist) last: validates the complete integrated system; cannot run meaningfully until all modifications are complete
+- Phase 1 before Phase 2 because the runner depends on `experiment commit-candidate` tool commands existing.
+- Phase 2 before Phase 3 because the orchestrator spawns runner agents; testing the loop without a working runner conflates two failure modes.
+- Phase 3 before Phase 4 because empirical mode depends on the loop being functional — the researcher's `try_candidates` feed into the loop's iteration queue.
+- Phase 5 last because it tests the complete assembled system across all prior phases.
+- Safety components are embedded in Phases 1-3 rather than collected into a separate "safety phase." This is intentional: the PITFALLS research demonstrates that all seven critical pitfalls require prevention before the first experiment runs, not after.
 
 ### Research Flags
 
-Phases likely needing deeper research or careful judgment during planning:
+Phases likely needing deeper research during planning:
+- **Phase 4 (researcher empirical mode):** The `try_candidates` schema is novel and its contract with the orchestrator's iteration loop is not yet fully specified. A research-phase run examining the researcher's existing return format and the orchestrator's consumption pattern is recommended to prevent schema mismatch bugs.
 
-- **Phase 9 (Deploy Skill):** Novel architectural territory — first PDE workflow that writes files outside `.planning/` and invokes external CLIs. Vercel CLI behavior with `--no-wait`, approval gate UX sequencing, and Next.js App Router scaffold structure need validation against the official `vercel-labs/agent-skills` source before implementation. Recommend generating a test scaffold before committing to the full workflow prompt architecture.
-- **Phase 6 (Wireframe — Pitch Deck):** YC vs Sequoia format differences and track-specific depth variations (solo: 10 slides, startup: 12-15 slides with team/financial sections, product_leader: internal business case format with OKR framing) add branching complexity. The exact slide structure per track must be specified in `references/launch-frameworks.md` (Phase 1) before Phase 6 authors interpret depth independently.
-- **Phase 2 (Brief — Financial Guardrail Calibration):** The line between "structural placeholder" and "helpful estimate" requires deliberate judgment. The financial disclaimer pattern established in Phase 1 must be concrete and unambiguous so Phase 2 authors do not interpret it loosely.
-
-Phases with standard, well-documented patterns (can proceed without additional research):
-
-- **Phase 1 (Manifest Schema):** Mechanical extension of existing 16-field schema; zero architectural uncertainty; direct precedent in v0.11 schema extension
-- **Phase 3 (Competitive + Opportunity):** Both extend existing skills with patterns directly established in v0.11; TAM/SAM/SOM methodology and RICE business adaptation are well-documented
-- **Phase 5 (System Stage):** Brand positioning section is additive to existing token generation; clear scope, no novel patterns
-- **Phase 11 (designCoverage Audit):** Mechanical audit following identical v0.11 Phase 83 process; procedure is fully documented in ARCHITECTURE.md
-
----
+Phases with standard patterns (skip research-phase):
+- **Phase 1 (git state machine):** Git operations are well-understood. PDE's existing `execGit` + protected-files patterns provide the complete implementation template.
+- **Phase 2 (mutation subagent):** Follows `pde-research-validator` read-only subagent pattern exactly. No novel architecture.
+- **Phase 3 (orchestrator):** Follows `autonomous.md` iteration loop and `execute-phase.md` subagent dispatch patterns. Stopping conditions follow the circuit-breaker pattern described in PITFALLS.md with sufficient specificity to implement directly.
+- **Phase 5 (Nyquist tests):** Follows existing Nyquist test conventions; checklist in PITFALLS.md provides the test cases.
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | Next.js 16.2.1, Vercel CLI `--no-wait` pattern, Resend Server Action pattern all verified against official docs. Package versions (Stripe SDK, React Email, Resend) are MEDIUM confidence — confirmed via npm search results as of 2026-03-22; re-verify at Phase 9 implementation since npm packages are frequently updated. Stripe embeddable pricing table web component pattern is HIGH confidence (official docs). |
-| Features | MEDIUM-HIGH | Table stakes verified against Lean Canvas (Ash Maurya), Business Model Canvas (Osterwalder/Pigneur), YC/Sequoia pitch frameworks, and Stripe Atlas guides. Feature prioritization and track depth estimates are inferred from methodology literature and PDE pipeline capabilities, not empirical user research. P1 feature set is solid; P2/P3 boundaries are provisional and should be validated once the core pipeline is working. |
-| Architecture | HIGH | Grounded in direct codebase inspection of v0.11 experience type as the direct implementation precedent. Orthogonal flag pattern, designCoverage 16-field pass-through, and experience conditional block patterns all directly verified. The key distinction (orthogonal modifier vs additive type) is well-established through the codebase analysis and the v0.11 post-mortem on designCoverage clobber. |
-| Pitfalls | HIGH (pipeline integration) / MEDIUM (external services) | Pipeline integration risks (clobber bug, orthogonal dimension model, track branching) are HIGH confidence grounded in v0.11 Phase 83 post-mortem and direct codebase inspection. Financial/legal hallucination risks are MEDIUM confidence from 2025 legal/AI research sources. Stripe/Vercel/Resend integration pitfalls are MEDIUM confidence from official docs and community reports — real-world CLI behavior in Claude Code context needs empirical testing. |
+| Stack | HIGH | Zero new packages confirmed via direct codebase analysis and cross-referenced against Karpathy repo + 3 independent implementations. Node.js built-in usage follows proven PDE patterns in event-bus.cjs and pde-tools.cjs. |
+| Features | HIGH | Karpathy autoresearch verified; uditgoenka/autoresearch Claude skill verified; autoexp gist verified; Goodhart's Law pitfalls grounded in arxiv and OpenAI alignment literature. P1/P2/P3 distinction is well-grounded in dependency analysis. |
+| Architecture | HIGH | Based on direct codebase analysis of core.cjs, event-bus.cjs, pde-tools.cjs, pde-research-validator.md, execute-phase.md, and autonomous.md. All integration points verified against current source. |
+| Pitfalls | HIGH (critical pitfalls 1-7), MEDIUM (performance traps), LOW (long-run convergence) | Critical and safety pitfalls grounded in primary sources and direct codebase analysis. Performance trap specifics (Nyquist runtime at 3-5 min/iteration) are inferred estimates. Long-run convergence behavior has no PDE-specific experiment data yet. |
 
-**Overall confidence:** HIGH
+**Overall confidence:** HIGH for the core implementation plan. The build order, component boundaries, and safety constraints are well-supported by research. Areas of lower confidence (performance tuning, long-run behavior) are appropriate to discover empirically once the loop is functional.
 
 ### Gaps to Address
 
-- **User track depth thresholds:** The architecture specifies that solo founder artifacts are "1-2 pages" and product leader artifacts are "5-8 pages" — but the exact section counts and line count ranges per track are not defined in the research. These must be specified in `references/business-track.md` during Phase 1. If each downstream workflow author interprets "solo depth" independently, track consistency breaks silently.
+- **Worktree vs. branch isolation conflict:** PITFALLS.md recommends `git worktree add` per experiment run (Pitfall 1 prevention); STACK.md and ARCHITECTURE.md recommend branch isolation without worktrees due to the confirmed Claude Code `/ide` worktree bug (March 2026). This tension must be resolved in Phase 1 planning. Recommendation: use branch isolation rather than worktree, but explicitly verify in Phase 5 tests that branch isolation is sufficient to prevent RECONCILIATION.md contamination.
 
-- **Stripe pricing config API compatibility:** The BIZ-pricing JSON schema (STACK.md) specifies current Stripe API object structure as of 2026-03-22. Verify against the live Stripe API reference when Phase 9 begins — Stripe APIs evolve and the schema fields (`checkout_mode`, `lookup_key`, `recurring.interval`) should be re-confirmed at implementation time.
+- **Trimmed Nyquist subset composition:** PITFALLS.md recommends running a trimmed Nyquist subset per iteration (15-30 assertions covering the optimization target + direct consumers) rather than the full 235 (which takes 3-5 min/iteration, making a 20-iteration experiment last over an hour). The specific subset composition for each experiment profile is not yet defined. Address in Phase 2 or Phase 3 planning when the metric eval command is specified.
 
-- **Human approval gate UX definition:** The deploy workflow requires four distinct approval gates. The exact prompt format (what the user sees, what constitutes valid approval, what timeout behavior applies) is specified at a high level in ARCHITECTURE.md but needs concrete UX definition before Phase 9 implementation. The existing VAL-03 pattern from MCP integrations provides a starting point.
+- **Metric extraction reliability:** The `verify_extract` pattern (shell command output → `parseFloat()`) is simple but potentially brittle if test runner output format changes between Node.js versions. Phase 1 or Phase 2 should validate metric extraction against the actual output format of `node --test tests/nyquist/` to confirm it is stable.
 
-- **business:experience composition scope:** FEATURES.md defers `business:experience` to v0.13+, but ARCHITECTURE.md's Nyquist tests include verifying the composition works. This tension should be resolved during roadmap planning — either add explicit Phase 12 validation for the business:experience case or explicitly narrow Phase 12 scope to business:software and business:hardware only.
-
-- **Lean Canvas confidence-level tracking:** The research specifies a `confidence: "validated | assumed | unknown"` field per Lean Canvas box. How this confidence level is updated through subsequent pipeline stages (particularly via the iterate skill in business mode) needs design — the research identifies this as a differentiator but the update mechanism is underspecified.
-
----
+- **File naming inconsistency:** STACK.md uses lowercase `experiment.md`; ARCHITECTURE.md uses uppercase `EXPERIMENT.md`. Resolve in Phase 1 before the schema is finalized. Recommendation: follow PDE's existing convention where files created by agents are uppercase (PLAN.md, SUMMARY.md) and human-authored config files are lowercase (program.md analog = lowercase `experiment.md`).
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- Next.js 16.2.1 official blog post (nextjs.org/blog/next-16-2) — version, Turbopack default, React 19.2, Server Actions pattern
-- Vercel agent-skills repo (vercel-labs/agent-skills/skills/deploy-to-vercel/SKILL.md) — human approval gate pattern, `vercel --prod --no-wait` behavior
-- Vercel Docs (vercel.com/docs/cli/deploy) — `--no-wait` flag, deployment URL return
-- Stripe Docs (docs.stripe.com/payments/checkout/pricing-table) — embeddable pricing table web component, no React required
-- Resend Docs (resend.com/docs/send-with-nextjs) — Server Action pattern, `resend.emails.send()` with React Email component
-- Stripe Dev Blog (stripe.dev/blog/avoiding-test-mode-tangles-with-stripe-sandboxes) — test mode isolation pattern, sandbox strategy
-- Stripe Docs (docs.stripe.com/keys) — API key security, test vs live mode defaults
-- Nielsen Norman Group (nngroup.com/articles/service-blueprinting-faq) — 5-swimlane service blueprint standard (customer actions, frontstage, line of visibility, backstage, support)
-- Osterwalder & Pigneur, Business Model Generation — 9-block BMC schema (original source)
-- Ash Maurya, Running Lean — Lean Canvas 9-box framework with confidence-level annotation pattern
-- Direct codebase inspection: all 14 v0.11 workflow files, `design-manifest.json` template, `bin/lib/design.cjs`, `PROJECT.md` v0.11 key decisions, v0.11 Phase 83 designCoverage clobber post-mortem
+- `github.com/karpathy/autoresearch` (fetched via WebFetch, March 2026) — core loop pattern, program.md role, git keep/discard state machine
+- `github.com/karpathy/autoresearch/blob/master/program.md` (fetched via WebFetch) — mutable/immutable boundaries, stopping criteria, metric definition, agent instruction format
+- `github.com/uditgoenka/autoresearch` (fetched via WebFetch) — Claude Code skill generalization, 8-phase protocol, JSONL log schema, simplicity tie-breaking, guard conditions
+- `github.com/drivelineresearch/autoresearch-claude-code` (fetched via WebFetch) — pure skill implementation, plugin manifest pattern, JSONL vs TSV decision
+- `gist.github.com/adhishthite/16d8fd9076e85c033b75e187e8a6b94e` (fetched via WebFetch) — minimal 4-parameter API, single-file constraint, keep/discard logic
+- PDE codebase (read directly): `bin/lib/core.cjs`, `bin/lib/event-bus.cjs`, `bin/pde-tools.cjs`, `agents/pde-research-validator.md`, `workflows/execute-phase.md`, `workflows/autonomous.md`, `references/git-integration.md`, `.planning/PROJECT.md`
+- `arxiv.org/abs/2510.02840` (Take Goodhart Seriously) — metric gaming in optimization systems
+- `openai.com/index/measuring-goodharts-law/` — reward hacking under self-evaluation
 
 ### Secondary (MEDIUM confidence)
-- npm registry search results (2026-03-22): `stripe@20.4.1`, `@stripe/stripe-js@8.11.0`, `resend@6.9.4`, `react-email@5.2.9`, `@stripe/mcp@0.2.5` — confirmed as current versions
-- BizTech Magazine (2025) — LLM hallucination rates exceeding 15% in financial contexts (biztechmagazine.com)
-- techandmedialaw.com (2025) — AI hallucination liability, disclaimers rarely eliminate liability when user reasonably relies on content
-- danielrosslawfirm.com (2025) — AI contracts, waiver and limitation of liability provisions for AI tools
-- moldstud.com — common Stripe payment processing mistakes in developer implementations
-- vercel.com/kb/guide/ai-agents — AI agent deployment patterns on Vercel
-- Y Combinator startup pitch deck format — 10-slide standard (problem/solution/market/product/business model/traction/GTM/competition/team/ask)
-- Sequoia Capital pitch deck format — 13-slide variant
-- WebSearch verification: no dominant JSON schema standard for BMC in developer tools (confirmed across multiple sources)
+- VentureBeat / Fortune: Shopify CEO applied autoresearch — 53% faster rendering from 93 automated commits; confirms pattern generalizes beyond ML
+- The New Stack: metric gaming risk and Goodhart's Law framing for autonomous loops
+- WebSearch March 2026: Claude Code git worktree bug (multiple community reports) — reason to avoid worktrees for experiment isolation
+- WebSearch March 2026: DSPy TypeScript ports, MLflow.js — confirmed available but excluded as over-engineering
+- Adnan Masood (Medium, Jan 2026): Reward hacking taxonomy, proxy metric exploitation patterns
+- ISACA self-modifying AI analysis — scope creep and safety boundary pitfalls in meta-systems
 
 ### Tertiary (LOW confidence)
-- toksta.com Resend review (2025) — community review of Resend deliverability and Next.js integration quality
-- baytechconsulting.com — hidden dangers of AI hallucinations in financial services (general framing)
+- Long-run convergence behavior after 50+ iterations — no PDE-specific experiment data; inferred from Karpathy's reported "700 experiments over 2 days" scale results
 
 ---
-*Research completed: 2026-03-22*
+*Research completed: 2026-03-23*
 *Ready for roadmap: yes*

@@ -1,16 +1,67 @@
 # Stack Research
 
-**Domain:** Business product type — venture design engine additions to existing PDE platform (v0.12)
-**Researched:** 2026-03-22
-**Confidence:** HIGH for deployment stack (verified against official docs and npm); MEDIUM for artifact format conventions (no dominant JSON schema standard exists for BMC/service blueprints — PDE defines its own)
+**Domain:** Autonomous experiment loop — AutoResearch integration into existing PDE plugin (v0.13)
+**Researched:** 2026-03-23
+**Confidence:** HIGH for core loop pattern (Karpathy's pattern verified against official repo and multiple independent implementations); MEDIUM for metric tracking format conventions (no dominant standard — TSV/JSONL both work, verified against autoexp and uditgoenka/autoresearch implementations); LOW for any external experiment tracking libraries (none are needed — see What NOT to Add)
 
 ---
 
 ## Scope
 
-This document covers ONLY the net-new stack additions required for the v0.12 Business Product Type milestone. The existing PDE stack (Node.js CommonJS, DTCG 2025.10 JSON tokens, OKLCH CSS custom properties, HTML/CSS wireframes, Mermaid flowcharts, zero npm deps at plugin root, mcp-bridge.cjs, pde-tools.cjs) is validated and out of scope.
+This document covers ONLY the net-new stack additions required for the v0.13 AutoResearch milestone. The existing PDE stack is validated and out of scope:
 
-**Core verdict:** Three isolated npm dependency surfaces are required — the generated landing page scaffold (Next.js + Stripe + Resend + React Email), the deployment CLI (Vercel CLI), and optionally the Stripe MCP server for live product/price management. All three are scoped to user-deployed projects or one-time CLI invocations, never installed at the plugin root. The PDE plugin itself adds zero new npm packages.
+- Node.js CommonJS, zero npm deps at plugin root
+- `pde-tools.cjs` — atomic git commits, state management, file operations
+- `event-bus.cjs` — NDJSON event appends, session scoping
+- `mcp-bridge.cjs` — MCP probe/degrade/consent pattern
+- Markdown-based state management (`.planning/` directory)
+- 235 Nyquist structural regression tests (node:test runner)
+
+**Core verdict: zero new npm packages.** The AutoResearch pattern is a workflow primitive that runs on Node.js built-ins (`fs`, `child_process.spawnSync`, `crypto`) plus git CLI calls. All new capabilities are implemented as a new CJS module (`experiment-loop.cjs`) and markdown workflow files following existing PDE patterns. No external experiment tracking library is warranted.
+
+---
+
+## The Karpathy AutoResearch Pattern — What It Actually Is
+
+Before recommending stack, it is essential to understand what the pattern does and does not require.
+
+**The pattern (from `github.com/karpathy/autoresearch`, March 2026):**
+
+1. Define one quantifiable metric (direction: lower or higher is better)
+2. Define a fixed time/iteration budget per experiment
+3. Define one mutable file boundary (what the agent can modify)
+4. Define one immutable evaluation harness (what measures the metric)
+5. Loop forever (or N times):
+   a. Agent reads current state + results log + git history
+   b. Agent proposes one focused change (hypothesis)
+   c. Agent makes the change to the mutable file(s)
+   d. `git commit` the change (creates an immutable experiment record)
+   e. Run the evaluation harness command
+   f. Extract metric value from output
+   g. If improved: keep the commit (it stands)
+   h. If degraded: `git reset --hard HEAD~1` (discard the commit)
+   i. Append result row to `experiments.jsonl`
+   j. Repeat
+6. Human reviews results log and adjusts `program.md` (the agent's instruction file) to guide future iterations
+
+**What the pattern does NOT require:**
+
+- External experiment tracking service (MLflow, W&B, Comet)
+- Database
+- HTTP server
+- Python
+- GPU / ML dependencies
+- Any library beyond what already exists in PDE
+
+**What is genuinely novel for PDE:**
+
+- Formalized git state machine for experiment commits vs regular commits (different prefix, different rollback behavior)
+- Experiment definition file (analogous to `program.md` in Karpathy's repo)
+- Metric extraction from command output (shell command → numeric value)
+- Results log in an append-only JSONL format
+- Keep/discard decision logic in a CJS module
+- `/pde:optimize` slash command entry point
+- "Empirical testing mode" for the pde-phase-researcher agent
 
 ---
 
@@ -20,221 +71,158 @@ This document covers ONLY the net-new stack additions required for the v0.12 Bus
 
 | Technology | Version | Purpose | Why Recommended |
 |------------|---------|---------|-----------------|
-| Next.js | 16.2.1 (latest stable as of 2026-03-18) | Generated landing page scaffold | The standard for Vercel-deployed React apps. App Router is now the default, Server Actions replace `/api/` routes for form handling, Turbopack is the default bundler. PDE generates a `next.config.ts`, `app/` directory, and `package.json` as a deployable artifact — not installed in the plugin. Landing pages with pricing, email capture, and hero sections are the canonical Next.js use case. |
-| Stripe Node.js SDK | `stripe@20.4.1` (latest as of 2026-03-22) | Pricing config, payment intent, subscription lifecycle in generated landing page | Official Stripe SDK for Node.js/Next.js. Server Actions in Next.js 16 call `stripe.checkout.sessions.create()` directly — no `/api/checkout` route needed. v20 is the current major version with full TypeScript types and native async/await. Goes into the generated project's `package.json`, not the plugin. |
-| @stripe/stripe-js | `8.11.0` (latest as of 2026-03-22) | Client-side Stripe.js loading in generated landing page | The client-side companion to the server SDK. Loads Stripe.js securely, handles card element rendering. Required alongside the server SDK for embedded checkout or Stripe Elements integration. Generated into the landing page scaffold. |
-| Resend SDK | `resend@6.9.4` (latest as of 2026-03-22) | Transactional email sending from generated landing page | The standard for sending email from Next.js + Vercel. Co-created with React Email — native TypeScript API, `resend.emails.send()` accepts a React component directly. Generates a `RESEND_API_KEY` env var requirement documented in the PDE deployment checklist. Goes into the generated project's `package.json`. |
-| React Email | `react-email@5.2.9` + `@react-email/components` (latest as of 2026-03-22) | Email template component library for generated templates | The canonical React-based email builder. Renders to HTML that works across Gmail, Outlook, and Apple Mail. `npx react-email dev` provides a local preview server. PDE generates JSX email templates (welcome, investor update, launch announcement) as files in `emails/` within the landing page scaffold. Goes into the generated project's `package.json`. |
-| Vercel CLI | `vercel` (current stable, invoke via `npx vercel`) | Deployment orchestration with human approval gate | The only reliable programmatic deployment path for Vercel without requiring a git remote. `vercel --prod --no-wait` returns immediately with a deployment URL. PDE's deployment workflow wraps this with a mandatory human confirmation step before the CLI call — matching the pattern documented in `vercel-labs/agent-skills`. Invoked via `npx vercel` so no global install is required. |
+| Node.js `child_process.spawnSync` (built-in) | Node.js 18+ (already required) | Run experiment evaluation commands and git operations | `spawnSync` from `child_process` avoids shell injection by separating command from arguments — safer than `exec`. PDE already uses this pattern for git invocations. The experiment loop runs the verify command and git reset with `spawnSync('git', ['reset', '--hard', 'HEAD~1'])`. Zero new dependency. |
+| Node.js `fs` (built-in) | Node.js 18+ (already required) | Append experiment result rows to `experiments.jsonl` | Same pattern as `safeAppendEvent()` in `event-bus.cjs` — `fs.appendFileSync()` for the results log. Already proven in PDE's observability infrastructure. |
+| Node.js `crypto` (built-in) | Node.js 18+ (already required) | Generate experiment IDs (UUID v4) | Same as `randomUUID()` in `event-bus.cjs`. Each experiment gets a stable ID for the JSONL row and git commit message. |
+| Git CLI (already required) | Git 2.x+ (already assumed) | Experiment state machine: commit, reset, log inspection | Git is already the PDE state machine for atomic commits via `pde-tools.cjs commit`. The experiment loop needs two additional git operations: `git reset --hard HEAD~1` (discard regression) and `git log --oneline -N --grep` (read experiment history). No new git version requirement. |
 
-### Supporting Libraries: Generated Project Only
+### New Module: `experiment-loop.cjs`
 
-These go into the user's generated landing page `package.json`. PDE generates the scaffold files. None are installed in the plugin directory.
+The single new CJS module to create. It encapsulates the state machine logic and keeps experiment concerns isolated from the existing `pde-tools.cjs` command surface.
 
-| Library | Version | Purpose | When to Use |
-|---------|---------|---------|-------------|
-| `tailwindcss` | `^4.0` | Utility CSS for landing page | Tailwind v4 ships as a CSS plugin (no PostCSS config required in Next.js 16). Use for all generated landing page UI — hero, pricing table, social proof sections. Standard choice for Next.js landing pages in 2026. |
-| `@stripe/react-stripe-js` | `5.6.1` | React wrappers for Stripe Elements | Only needed if generating embedded card elements. For pricing tables using Stripe's hosted Checkout, this is optional — the embedded pricing table uses a script tag and web component, not React. Include only when the project requires custom card UI. |
-| `@vercel/analytics` | latest | Vercel web analytics in generated pages | Zero-config analytics available on all Vercel plans. Inject as `<Analytics />` component in the root layout. PDE generates this by default since founders need baseline traffic data from day one. |
-| `zod` | `^3.23` | Schema validation for Server Actions in generated landing page | Next.js 16 Server Actions validate form input server-side. Zod is the standard validation library for this pattern and has zero client-side bundle impact. PDE generates Zod schemas for email capture and waitlist forms. |
+| Module | Location | Purpose | Integration Point |
+|--------|----------|---------|-------------------|
+| `experiment-loop.cjs` | `bin/lib/experiment-loop.cjs` | Core experiment state machine: parse experiment definition, run verify command, extract metric, keep/discard decision, results log append | Imported by `pde-tools.cjs` for new `experiment` subcommands; also usable directly from workflow markdown files via `node bin/lib/experiment-loop.cjs` |
 
-### Stripe MCP Server (Optional Integration)
+**Responsibilities of `experiment-loop.cjs`:**
 
-| Integration | Version | Purpose | When to Use |
-|-------------|---------|---------|-------------|
-| `@stripe/mcp` | `0.2.5` (latest as of 2026-03-22) | Live Stripe product/price management via MCP | Add to `APPROVED_SERVERS` in `mcp-bridge.cjs` when the user wants to create Stripe products and prices interactively during the business pipeline. Allows PDE to generate a Stripe pricing config spec AND optionally provision the actual Stripe resources via MCP tool calls. Uses the same probe/degrade/consent gate pattern as existing MCP integrations. This is additive — the pricing config spec is always generated; MCP provisioning is an enhancement. |
+- Parse `experiment.md` (the PDE equivalent of Karpathy's `program.md`)
+- Validate: metric name, direction, verify command, mutable file list, budget (max iterations or max wall-clock seconds)
+- Execute one iteration: make change → commit → run verify → extract metric → keep or discard
+- Append result to `experiments.jsonl` (one JSON object per line, append-only)
+- Read experiment history for the agent's context (last N experiments, best metric so far)
+- Enforce protected-files boundary (cannot modify files in the immutable list)
+
+### New File Format: `experiment.md`
+
+The PDE equivalent of Karpathy's `program.md`. Human-authored. Defines the experiment space. The agent reads this before every iteration.
+
+```markdown
+---
+metric: pde_test_pass_rate
+metric_direction: higher
+verify_command: node --test tests/nyquist/
+verify_extract: grep "passing" | awk '{print $1}'
+mutable_files:
+  - workflows/critique.md
+  - workflows/iterate.md
+immutable_files:
+  - tests/nyquist/
+  - bin/pde-tools.cjs
+budget_iterations: 25
+budget_wall_clock_minutes: 120
+improvement_threshold: 0.01
+---
+
+## Experiment Objective
+
+Improve the critique workflow's output quality score on the Awwwards rubric
+without regressing the Nyquist test suite pass rate.
+
+## Search Space
+
+Focus on: critique perspective ordering, prompt specificity for APCA contrast
+guidance, motion token recommendations.
+
+## Stopping Criteria
+
+Stop when pass rate exceeds 95% or after budget_iterations, whichever comes first.
+Do NOT stop to ask the human during the loop. Report results at end.
+
+## Constraints
+
+Never modify the test files. Never change the metric extraction command.
+One focused change per iteration. Prefer simpler solutions over complex ones.
+```
+
+This file format is pure markdown with YAML frontmatter — exactly the same pattern as PDE's existing workflow files. No new parser needed; the existing `bin/lib/frontmatter.cjs` handles YAML frontmatter already.
+
+### New File Format: `experiments.jsonl`
+
+The results log. Append-only, one JSON object per line. Human-readable and machine-parseable.
+
+```json
+{"id":"uuid-v4","iteration":1,"ts":"ISO8601","commit":"abc1234","metric_value":93.2,"metric_delta":0,"status":"baseline","description":"Initial measurement"}
+{"id":"uuid-v4","iteration":2,"ts":"ISO8601","commit":"def5678","metric_value":94.1,"metric_delta":0.9,"status":"kept","description":"Reordered critique perspectives: contrast first"}
+{"id":"uuid-v4","iteration":3,"ts":"ISO8601","commit":"ghi9012","metric_value":92.8,"metric_delta":-1.3,"status":"discarded","description":"Added verbose APCA formula — regressed"}
+```
+
+Stored at `.planning/experiments/{slug}/experiments.jsonl`. The `slug` is derived from the experiment name in `experiment.md`.
+
+This format mirrors the existing `pde-session-{id}.ndjson` pattern in `event-bus.cjs` — same infrastructure philosophy, same append approach.
+
+### New `pde-tools.cjs` Subcommands
+
+Extend the existing `pde-tools.cjs` command surface with experiment operations:
+
+| Command | Description |
+|---------|-------------|
+| `experiment init <slug>` | Create `.planning/experiments/{slug}/` directory, validate `experiment.md` frontmatter |
+| `experiment status <slug>` | Read `experiments.jsonl`, output current best metric, iteration count, budget remaining |
+| `experiment history <slug> --last N` | Output last N experiment rows as JSON for agent context |
+| `experiment commit <slug> <message>` | Git commit with `experiment({slug}):` prefix — distinct from regular `planning:` commits |
+| `experiment discard` | `git reset --hard HEAD~1` — rollback last experiment commit |
+| `experiment append <slug> <json-row>` | Append one result row to `experiments.jsonl` (used by the loop agent) |
+
+These commands follow the exact same pattern as existing subcommands (`design manifest-update`, `tracking init`, `readiness check`) — they're case blocks in the `pde-tools.cjs` switch statement, each loading their module lazily.
 
 ---
 
-## Artifact Format Definitions (No External Standard)
+## Supporting Libraries: None Required
 
-No dominant JSON schema standard exists for business model canvas or service blueprint artifacts in a developer context. PDE defines its own formats, following the same philosophy as `design-manifest.json` and DTCG tokens: structured JSON for machine consumption, markdown for human readability.
+The research found multiple Node.js experiment tracking libraries (MLflow.js, various npm packages). None are needed.
 
-### Business Thesis Artifact (BIZ-thesis)
-
-Markdown document. Derived from the brief stage when `product_type === "business"`. Captures:
-- One-sentence venture thesis (what, for whom, why now)
-- Problem statement with evidence
-- Solution hypothesis
-- Unfair advantage / moat
-- Comparable companies with positioning delta
-- Stage of business (pre-product, pre-revenue, post-revenue)
-
-Format: Markdown with structured H2 sections. Stored at `.planning/design/strategy/BIZ-thesis-v{N}.md`.
-
-### Business Model Canvas Artifact (BIZ-canvas)
-
-JSON document following the 9-block Osterwalder framework. PDE defines the schema:
-
-```json
-{
-  "version": "1.0",
-  "product_type": "business",
-  "canvas_type": "lean" | "full",
-  "blocks": {
-    "value_proposition": { "primary": "string", "supporting": ["string"] },
-    "customer_segments": [{ "name": "string", "description": "string", "size": "string" }],
-    "channels": [{ "type": "string", "description": "string", "owned": true }],
-    "customer_relationships": [{ "type": "string", "description": "string" }],
-    "revenue_streams": [{ "name": "string", "model": "string", "estimated_arpu": "string" }],
-    "key_resources": [{ "type": "string", "description": "string" }],
-    "key_activities": ["string"],
-    "key_partnerships": [{ "partner": "string", "type": "string", "value": "string" }],
-    "cost_structure": [{ "item": "string", "type": "fixed | variable", "estimated": "string" }]
-  },
-  "generated_at": "ISO8601",
-  "track": "solo_founder | startup_team | product_leader"
-}
-```
-
-Stored at `.planning/design/strategy/BIZ-canvas-v{N}.json`. Also rendered as a Markdown summary for human review.
-
-### Market Landscape Artifact (BIZ-landscape)
-
-Structured markdown, replacing the competitive analysis artifact for `business:` dimension. Sections:
-- Market size (TAM / SAM / SOM with sourcing notes)
-- Competitive positioning grid (2x2 matrix rendered as ASCII or Mermaid quadrant)
-- Competitor profiles (same format as existing `CMP-*.md` but with business model analysis appended)
-- Market timing argument
-- Regulatory landscape (if applicable)
-
-Stored at `.planning/design/strategy/BIZ-landscape-v{N}.md`.
-
-### Service Blueprint Artifact (BIZ-blueprint)
-
-Markdown document with swimlane structure. UX service blueprints follow a 5-row swimlane standard (Nielsen Norman Group): customer actions, frontstage interactions, backstage interactions, support processes, physical evidence. PDE renders this as a Mermaid sequence diagram (for simple linear flows) or a structured markdown table (for multi-channel parallel flows).
-
-Format: Markdown. Stored at `.planning/design/ux/BIZ-blueprint-v{N}.md`.
-
-### Launch Kit Index (BIZ-launch-kit)
-
-JSON manifest listing all launch artifacts generated for the business track. Machine-readable. Consumed by the deployment workflow.
-
-```json
-{
-  "version": "1.0",
-  "generated_at": "ISO8601",
-  "track": "solo_founder | startup_team | product_leader",
-  "artifacts": {
-    "landing_page": { "path": "launch/landing-page/", "status": "generated | deployed", "url": null },
-    "pitch_deck": { "path": "launch/pitch-deck.md", "status": "generated" },
-    "pricing_config": { "path": "launch/stripe-pricing.json", "status": "generated | provisioned" },
-    "email_templates": [
-      { "name": "welcome", "path": "launch/emails/welcome.tsx", "status": "generated" },
-      { "name": "investor_outreach", "path": "launch/emails/investor-outreach.tsx", "status": "generated" }
-    ],
-    "content_calendar": { "path": "launch/content-calendar.md", "status": "generated" },
-    "investor_sequence": { "path": "launch/investor-outreach-sequence.md", "status": "generated" },
-    "operational_playbook": { "path": "launch/operational-playbook.md", "status": "generated" },
-    "domain_strategy": { "path": "launch/domain-strategy.md", "status": "generated" }
-  }
-}
-```
-
-Stored at `.planning/design/handoff/BIZ-launch-kit.json`.
-
-### Stripe Pricing Config Spec (BIZ-pricing)
-
-JSON document specifying the exact Stripe product/price configuration to create. Consumed by the deployment workflow for optional MCP provisioning or manual dashboard setup.
-
-```json
-{
-  "products": [
-    {
-      "name": "string",
-      "description": "string",
-      "prices": [
-        {
-          "nickname": "string",
-          "currency": "usd",
-          "unit_amount": 2900,
-          "recurring": { "interval": "month" } | null,
-          "lookup_key": "string"
-        }
-      ]
-    }
-  ],
-  "checkout_mode": "payment | subscription",
-  "success_url": "string",
-  "cancel_url": "string"
-}
-```
-
-Stored at `.planning/design/handoff/BIZ-pricing-v{N}.json` and copied to `launch/stripe-pricing.json` in the generated landing page scaffold.
+| Why Libraries Are Not Needed | What PDE Uses Instead |
+|------------------------------|----------------------|
+| MLflow / W&B / Comet require HTTP servers, databases, or external services | `experiments.jsonl` is zero-infra, file-based, and diffable |
+| Metric parsing libraries require schema definitions per-metric | `verify_command` in `experiment.md` already handles extraction via shell command output; `parseFloat()` on the extracted string is sufficient |
+| Experiment orchestration frameworks (Optuna, Ax) add optimization algorithms | The agent (Claude) is the optimizer — it reads history, reasons about what to try next, proposes the change. No Bayesian optimization library needed. |
+| TSV/CSV parsing libraries | PDE uses JSONL (chosen for consistency with existing NDJSON infrastructure). `JSON.parse()` is already in every PDE module. |
 
 ---
 
-## Generated Landing Page Scaffold Structure
+## Integration Points with Existing PDE Infrastructure
 
-PDE generates a deployable Next.js project at `.planning/launch/landing-page/`. The scaffold structure:
+These are the integration surfaces the experiment loop touches. No new npm packages required at any of them.
 
-```
-landing-page/
-  app/
-    layout.tsx          # Root layout with Analytics, font, metadata
-    page.tsx            # Hero + social proof + pricing table
-    actions.ts          # Server Actions: email capture, Stripe checkout session
-    api/
-      webhooks/
-        stripe/
-          route.ts      # Stripe webhook handler (signature verification)
-  emails/
-    welcome.tsx         # React Email welcome template
-    investor-outreach.tsx
-  public/               # Static assets
-  .env.example          # Documents required env vars
-  next.config.ts
-  package.json          # Generated with exact versions above
-  tailwind.config.ts    # (if needed — Tailwind v4 may not require this)
-  tsconfig.json
-  vercel.json           # { "framework": "nextjs" } — minimal config
-```
-
-The `package.json` is generated with pinned versions matching the versions in this document. The `.env.example` documents all required env vars:
-- `STRIPE_SECRET_KEY`
-- `STRIPE_WEBHOOK_SECRET`
-- `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`
-- `RESEND_API_KEY`
-- `RESEND_FROM_EMAIL`
+| Existing Infrastructure | How AutoResearch Integrates |
+|------------------------|----------------------------|
+| `pde-tools.cjs commit` | Experiment commits use a new prefix `experiment({slug}):` to distinguish from `planning:` commits. The existing commit logic is reused — only the message prefix changes. |
+| `event-bus.cjs` | Each experiment iteration emits a structured event (`experiment:iteration`, `experiment:kept`, `experiment:discarded`) to the existing NDJSON session log. The tmux dashboard Pane 1 (agent activity) and Pane 2 (pipeline progress) display experiment progress without any dashboard changes. |
+| `bin/lib/frontmatter.cjs` | Parse `experiment.md` YAML frontmatter. The existing frontmatter parser handles this — same format as STATE.md and PLAN.md frontmatter. |
+| `.planning/experiments/` | New directory alongside `.planning/design/` and `.planning/logs/`. No manifest registration needed — experiments are ephemeral optimization runs, not design artifacts. |
+| `idle-suggestions.cjs` | After an experiment run, the idle suggestion engine can surface "Review experiment results" when `experiments.jsonl` exists with recent activity. Low-priority integration — not required for v0.13 launch. |
+| Nyquist tests (`tests/nyquist/`) | Experiments that modify workflow files use the Nyquist test suite as their `verify_command`. The existing `node --test tests/nyquist/` is the correct evaluation harness for PDE self-optimization. |
+| Protected-files mechanism | `immutable_files` in `experiment.md` extends the existing protected-files concept. `experiment-loop.cjs` checks that proposed changes do not touch immutable paths before committing. |
 
 ---
 
-## Deployment Workflow Stack
+## Development Tools
 
-PDE's deployment workflow (the `/pde:deploy` command or equivalent) uses the Vercel CLI with a mandatory human approval gate. The pattern, derived from `vercel-labs/agent-skills`:
-
-1. Check if the landing page scaffold exists at `.planning/launch/landing-page/`
-2. Check if the directory is already linked to Vercel (`vercel inspect` or check `.vercel/project.json`)
-3. Present a deployment summary to the user: what will be deployed, which env vars are needed
-4. **PAUSE. Require explicit user confirmation before proceeding.**
-5. If not linked: run `vercel link` (interactive — hands off to user)
-6. If env vars missing: display the list from `.env.example` and instruct the user to set them via `vercel env add` or the Vercel dashboard
-7. After confirmation: run `npx vercel --prod --no-wait` — returns the deployment URL immediately
-8. Display the URL and next steps (webhook endpoint configuration for Stripe, DNS for custom domain)
-
-The `--no-wait` flag is essential: it prevents the Claude Code session from blocking on build completion (which can take 2-5 minutes). The deployment URL is returned immediately and displayed in the terminal.
+| Tool | Purpose | Notes |
+|------|---------|-------|
+| Git CLI (`git log --oneline --grep`) | Read experiment history for agent context | Already required by PDE. The experiment loop reads commits with `experiment({slug}):` prefix to build the "what has already been tried" context block. Invoked via `spawnSync('git', [...])` — no shell injection risk. |
+| `node --test` (built-in, Node.js 18+) | Run Nyquist regression suite as the evaluation harness | Already required for PDE's 235 regression tests. The primary verify command for PDE self-optimization experiments. |
 
 ---
 
 ## Installation
 
-The plugin itself installs nothing. All packages are in generated project scaffolds.
+The plugin itself installs nothing new. All experiment loop capabilities are implemented in:
+
+1. `bin/lib/experiment-loop.cjs` — new module, uses only Node.js built-ins
+2. New case blocks in `bin/pde-tools.cjs` — existing command dispatch pattern
+3. `commands/optimize.md` — new slash command
+4. `workflows/optimize.md` — new workflow markdown
 
 ```bash
-# PDE plugin: zero new npm packages at plugin root
-# (Same as v0.11 — no change to plugin-level dependencies)
+# PDE plugin v0.13: zero new npm packages
+# Same installation as v0.12
 
-# Generated landing page scaffold: installed by the user in their project
-# (PDE generates the package.json; user runs npm install in the generated directory)
-cd .planning/launch/landing-page/
-npm install
-
-# Dev dependencies in generated project
-npm install -D typescript @types/node @types/react @types/react-dom
-
-# Optional: Stripe CLI for local webhook testing (user's machine, not plugin)
-# brew install stripe/stripe-cli/stripe
-# stripe listen --forward-to localhost:3000/api/webhooks/stripe
+# The experiment loop runs entirely on:
+# - Node.js built-ins (fs, child_process.spawnSync, crypto, path, os)
+# - Git CLI (already required)
+# - node --test (already required for Nyquist)
 ```
 
 ---
@@ -243,12 +231,12 @@ npm install -D typescript @types/node @types/react @types/react-dom
 
 | Recommended | Alternative | When to Use Alternative |
 |-------------|-------------|-------------------------|
-| Next.js 16 App Router | Next.js 16 Pages Router | Never for new projects — Pages Router is in maintenance mode; App Router has been the recommended path since Next.js 13. Server Actions in App Router eliminate the need for separate API routes for form handling, which is exactly what landing page email capture and Stripe checkout need. |
-| Next.js 16 App Router | Remix / SvelteKit / Astro | If the user's team has strong Remix or Svelte expertise. For PDE-generated scaffolds, Next.js is the correct default: it is Vercel's own framework, has the most deployment integrations (Vercel Marketplace, Stripe, Resend), and the largest ecosystem of reference implementations. Astro is an option for purely static landing pages with no server logic — but Stripe webhooks and email capture require a server runtime. |
-| Resend + React Email | SendGrid / Postmark | Resend is the modern default for Next.js + Vercel projects. Its API design is simpler (no template IDs, no dashboard-configured templates — code is the template). React Email components render correctly in Gmail and Outlook, which is the primary requirement for transactional startup email. Use SendGrid or Postmark if the user already has an account there — Resend has a free tier (3,000 emails/month) suitable for early-stage launch. |
-| Stripe hosted Checkout + embedded pricing table | Stripe Elements (custom card UI) | Use Stripe Elements when the user explicitly needs custom card input styling embedded in the page. For most early-stage SaaS landing pages, the hosted Checkout provides adequate UX and requires zero client-side Stripe JavaScript beyond the pricing table web component. The PDE scaffold generates Stripe hosted Checkout by default; Elements can be added later. |
-| Vercel CLI (`npx vercel --prod`) | `@vercel/client` npm package | `@vercel/client` is the programmatic API for deployments, but it requires Node.js setup in a persistent process and is designed for CI/CD pipelines. The CLI is simpler for one-shot deployments from a development machine, which is PDE's use case. Use `@vercel/client` if PDE later builds a persistent deployment agent. |
-| BMC + thesis in markdown/JSON (PDE-defined) | External BMC SaaS tools (Miro, Creately, Visual Paradigm) | External tools require accounts, browser access, and export steps. PDE's strength is generating all artifacts as local files in `.planning/`. The BMC JSON is machine-readable for downstream pipeline stages (pricing → Stripe config, segments → email sequences). Miro/Creately add zero value over the PDE-generated formats for the AI-assisted workflow. |
+| `experiments.jsonl` (NDJSON append) | TSV (`results.tsv`) | TSV is what Karpathy's autoresearch uses — it is simpler and more diffable in git. PDE uses JSONL because: (1) consistent with the existing NDJSON event bus infrastructure, (2) JSON rows handle arbitrary metadata fields without schema migration, (3) `JSON.parse()` is already in every PDE module. Use TSV if building a standalone tool outside of PDE. |
+| `experiment.md` (YAML frontmatter + markdown) | Separate `experiment.json` config | JSON config works but is less human-editable and cannot contain prose (search space notes, constraints, stopping rationale). Karpathy's `program.md` demonstrates that prose instructions are essential — the agent reads them to reason about what to try next. Markdown with YAML frontmatter is the correct format for agent-readable + human-editable config. |
+| `experiment-loop.cjs` (new isolated module) | Inline logic in `pde-tools.cjs` | The existing `pde-tools.cjs` is already 500+ lines. Experiment loop logic (state machine, metric extraction, keep/discard decision) is cohesive and deserves its own module, following the same pattern as `event-bus.cjs`, `idle-suggestions.cjs`, etc. |
+| `git reset --hard HEAD~1` | `git revert HEAD` | `git revert` creates a new commit preserving history — right choice for public branches. Experiment branches are local and private; `git reset --hard` discards the experiment cleanly. This matches the autoexp pattern exactly. Experiment commits should use prefix `experiment({slug}):` so they are identifiable in the log even after discard. |
+| Claude as the optimizer (LLM reasoning) | Bayesian optimization / Optuna / Ax | External optimization libraries optimize numerical hyperparameters efficiently but cannot generate code changes, understand PDE's workflow structure, or reason about design tradeoffs. Claude's reasoning IS the optimization algorithm — this is the core insight of Karpathy's pattern. External optimizers add complexity without benefit for code/prompt optimization. |
+| Nyquist test suite as primary evaluation harness | Custom metric extraction script | PDE already has 235 structural regression tests as the canonical quality gate. Using `node --test tests/nyquist/` as the `verify_command` means experiments that degrade test pass rate are automatically discarded. This is the correct harness for PDE self-optimization. Custom metrics (Awwwards rubric score, critique quality) can be added as secondary verify commands in specific experiment definitions. |
 
 ---
 
@@ -256,79 +244,71 @@ npm install -D typescript @types/node @types/react @types/react-dom
 
 | Avoid | Why | Use Instead |
 |-------|-----|-------------|
-| Any npm package at plugin root for business features | Violates the zero-npm-deps-at-plugin-root constraint. All business pipeline logic is prompt-driven template generation — no library needed to generate a JSON business model canvas or a markdown pitch deck. | Template generation in workflow markdown files using the same pattern as all existing PDE skills |
-| `@stripe/react-stripe-js` in generated scaffold by default | Adds client-side complexity and bundle weight that most early-stage landing pages don't need. Stripe's embeddable pricing table (web component via script tag) handles the pricing display with zero React integration. | Embeddable pricing table web component; add `@stripe/react-stripe-js` only when explicitly requiring Stripe Elements for custom card UI |
-| Pitch deck as PPTX or PDF output | Generating binary formats requires npm packages (pptxgenjs, PDFKit) which violate zero-npm-deps at plugin root. Pitch decks in `.md` format are readable, editable, and convertible to any format by the user. | Markdown pitch deck with structured sections; users export to PDF or PPTX via Pandoc, Slides.com, or Canva import |
-| External CRM integration (HubSpot, Salesforce) for investor outreach | Adds OAuth flows, external API dependencies, and scope creep. The investor outreach sequence is a content artifact (email copy + cadence), not a CRM workflow. PDE's role is to generate the content; the user manages the sending. | Investor outreach sequence as structured markdown with email copy, timing, and instructions; user pastes into their email client or CRM |
-| Automatic DNS configuration | DNS changes require domain registrar access and have propagation delays. Any automation here creates unrecoverable state if something goes wrong. Vercel's dashboard DNS setup is 3 clicks — simpler than any programmatic alternative. | Document DNS steps in the deployment checklist with exact values from `vercel inspect` output |
-| Multi-cloud deployment targets (AWS Amplify, Railway, Render) | Vercel is the correct default for Next.js deployments — it is the same company, has zero-config detection, and the free tier handles launch-stage traffic. Supporting multiple deployment targets multiplies the deployment workflow surface with minimal user benefit. | Vercel exclusively; note in the deployment skill that the generated Next.js scaffold is portable to any platform if the user prefers |
-| Business plan financial modeling (revenue projections, unit economics calculations) | Requires domain-specific financial modeling that varies by business model and stage. PDE generates the budget framework structure and prompts; actual numbers are user-supplied. | Budget outline template in the operational playbook with formulas documented as prose, not computed values |
-| `@stripe/mcp` in APPROVED_SERVERS by default | MCP tool passthrough to subagents already has a documented constraint. The Stripe MCP server requires STRIPE_SECRET_KEY in scope — a high-privilege credential. Add to APPROVED_SERVERS only as an explicit opt-in with user consent, not automatically. | Generate the BIZ-pricing-vN.json spec first; offer MCP provisioning as an optional step with a clear consent gate |
+| MLflow, W&B, Comet, or any experiment tracking service | These require HTTP servers, databases, or external SaaS accounts. They solve the "hundreds of parallel GPU training runs" problem — not the "50 serial workflow optimization iterations overnight" problem. Zero-infra `experiments.jsonl` is sufficient and keeps PDE's zero-npm-deps constraint intact. | `experiments.jsonl` with `fs.appendFileSync()` — same pattern as `event-bus.cjs` |
+| Optuna, Ax, Hyperopt, or any Bayesian optimization library | PDE's optimization target is code and prompt quality — not numerical hyperparameter search. The LLM agent is the optimizer. Adding a numerical optimization library conflates ML hyperparameter tuning with code/prompt improvement. | Claude as the optimizer — it reads experiment history and proposes the next change based on reasoning |
+| Automatic branching to a separate git branch for experiments | Experiments on a separate branch cannot verify against the live codebase (workflows, tests, agents all on main). The experiment must modify main branch files and reset on failure — that is the entire point of the state machine. | `experiment({slug}):` commit prefix to distinguish experiment commits from planning commits in git log |
+| Parallel experiment execution | Karpathy's pattern deliberately runs experiments serially. Parallel experiments cannot isolate causality — if two changes land simultaneously, you cannot know which one caused improvement or regression. Serial is correct for causal attribution. Parallel would also require worktrees and concurrent file access — significant complexity for zero benefit in a session-based environment. | Serial loop with one change per iteration, full reset before next experiment |
+| LLM-as-judge for experiment metric scoring | Generic LLM evaluation scores are noisy and non-deterministic — running the same experiment twice gives different scores. The metric MUST be deterministic: test pass count, benchmark score, or a structured rubric with forced numeric output at temperature=0. PDE's Nyquist suite is deterministic. | Deterministic `verify_command` — a shell command producing a stable numeric output. For Awwwards-style quality scoring: rubric with integer scales (1-10), forced structured JSON output, judge runs at temperature=0. |
+| Continuous background optimization loop | PROJECT.md explicitly calls this out of scope: "Continuous background self-improvement loop — Claude Code is session-based; explicit invocations are correct." The experiment loop runs when `/pde:optimize` is invoked, not as a background process. | `/pde:optimize` as the explicit entry point; the loop runs within the session and stops when budget is exhausted or user interrupts |
+| Writing experiment results to `design-manifest.json` | Experiments are optimization runs, not design artifacts. The manifest tracks deliverables (wireframes, briefs, tokens). Experiments are ephemeral — their value is in the kept commits that improve the codebase. | `.planning/experiments/{slug}/experiments.jsonl` — isolated from the design artifact pipeline |
+| DSPy, Ax TypeScript framework, or prompt optimization frameworks | These frameworks require users to define programs as DSPy modules — a significant departure from PDE's markdown-workflow paradigm. The Karpathy pattern is simpler and more direct: agent proposes changes to workflow markdown files, runs tests, keeps improvements. | Direct agent modification of workflow markdown files with Nyquist tests as the evaluation harness |
+| Git worktrees for experiment isolation | Worktrees are for parallel agents working on different branches simultaneously. Experiment loops are serial by design. Worktrees add directory management overhead with zero benefit for the serial experiment pattern. Additionally, Claude Code's `/ide` command fails to recognize worktrees (reported bug, March 2026). | Single working directory; `experiment({slug}):` prefix identifies experiment commits in main branch history |
 
 ---
 
-## Stack Patterns by User Track
+## Stack Patterns by Experiment Type
 
-**If track is `solo_founder`:**
-- Generate lean BMC (fewer blocks, simplified vocabulary: "how you make money" not "revenue streams")
-- Landing page scaffold: single page, email capture CTA, one pricing tier or waitlist
-- Stripe config: single product, optional free tier
-- Email templates: welcome + update sequence (2-3 emails)
-- Pitch deck: 10-slide format (problem/solution/market/product/traction/team/ask)
-- Investor sequence: warm intro and cold outreach variant
-- Operational playbook: solo-operator format (no org chart, no team communication plan)
+**If optimizing PDE workflow quality (primary use case):**
+- Mutable: workflow markdown files (`workflows/*.md`)
+- Immutable: test files (`tests/nyquist/`), binary tools (`bin/*.cjs`)
+- Verify command: `node --test tests/nyquist/`
+- Metric: test pass count or pass percentage
+- Direction: higher is better
+- Budget: 20-30 iterations (sufficient for one overnight run at ~5 min/iteration)
 
-**If track is `startup_team`:**
-- Generate full BMC with all 9 blocks
-- Landing page scaffold: hero + features + social proof + pricing table + FAQ
-- Stripe config: 2-3 pricing tiers with annual/monthly toggle
-- Email templates: welcome, onboarding sequence, investor update
-- Pitch deck: 12-15 slides with team slide and financial projections section
-- Investor sequence: warm intro, cold outreach, investor update cadence
-- Operational playbook: team roles, communication rhythm, OKR template
+**If optimizing agent prompt quality:**
+- Mutable: agent system prompt markdown files (`agents/*.md`)
+- Immutable: test harnesses, workflow files being tested against
+- Verify command: a deterministic rubric evaluation script scoring agent output against the Awwwards rubric (integer 1-10 per dimension, summed), temperature=0
+- Metric: composite rubric score
+- Direction: higher is better
+- Budget: 10-15 iterations (agent prompt evaluation is slower than test suite runs)
 
-**If track is `product_leader`:**
-- Generate business thesis focused on internal business case framing (not external fundraising)
-- Landing page scaffold: internal tool launch page or product microsite
-- Stripe config: not always applicable — generate only if the product has an external pricing model
-- Email templates: internal announcement, stakeholder update
-- Pitch deck: internal business case format (not investor deck)
-- Investor sequence: not applicable — replace with stakeholder communication sequence
-- Operational playbook: product launch checklist, success metrics, rollback plan
+**If optimizing a user's external codebase (general use case):**
+- Mutable: user-specified files
+- Immutable: user-specified test suite
+- Verify command: user-specified benchmark command
+- Metric: user-specified (benchmark score, test pass rate, response time ms)
+- Direction: user-specified
+- Budget: user-specified (1-100 iterations)
 
 ---
 
 ## Version Compatibility
 
-| Package | Compatible With | Notes |
-|---------|-----------------|-------|
-| `next@16.2.1` | `react@19.2`, `react-dom@19.2` | Next.js 16.2 ships with React 19.2. Generated `package.json` pins `next@latest react@latest react-dom@latest`. Turbopack is the default bundler — no `--turbopack` flag needed. |
-| `stripe@20.4.1` | Node.js 18+ | Stripe Node SDK v20 requires Node.js 18+. Vercel's default runtime is Node.js 20. Compatible. |
-| `resend@6.9.4` | `react-email@5.2.9`, Next.js 16 Server Actions | Resend's `send()` method accepts a React element rendered by `@react-email/render`. The render step happens server-side in a Server Action or Route Handler — compatible with Next.js 16 App Router. |
-| `react-email@5.2.9` | React 19.2 | React Email v5 is compatible with React 19. The `react-email dev` preview server runs independently on a separate port — no conflict with Next.js dev server. |
-| `tailwindcss@^4.0` | Next.js 16 | Tailwind v4 works as a CSS plugin via `@import "tailwindcss"` in the global CSS file. No `tailwind.config.ts` required by default. Compatible with Turbopack. |
-| `@stripe/mcp@0.2.5` | `mcp-bridge.cjs` probe/degrade pattern | Stripe MCP server uses stdio transport — same transport as other MCP integrations in PDE. Probe/degrade contract applies: if `STRIPE_SECRET_KEY` is not set, MCP bridge degrades gracefully to the static pricing config spec output. |
+| Component | Version Requirement | Notes |
+|-----------|--------------------|----|
+| Node.js | 18+ (already required by PDE) | `child_process.spawnSync`, `fs.appendFileSync`, `crypto.randomUUID` — all available in Node.js 18. No new version requirement. |
+| Git | 2.x+ (already required by PDE) | `git reset --hard HEAD~1`, `git log --oneline --grep="experiment("` — standard Git 2.x operations. No new version requirement. |
+| `node:test` runner | Node.js 18+ (already required by PDE) | PDE's 235 Nyquist tests already run on `node --test`. The experiment loop uses this as the primary verify command for PDE self-optimization. |
 
 ---
 
 ## Sources
 
-- Next.js 16.2 official blog post: [nextjs.org/blog/next-16-2](https://nextjs.org/blog/next-16-2) — version 16.2.1, released 2026-03-18, Turbopack default, React 19.2, Server Function Logging, Adapters stable (HIGH confidence — official source, fetched 2026-03-22)
-- npm registry: `stripe@20.4.1` — 12 days ago (as of 2026-03-22), MEDIUM confidence (search result, npm page 403'd)
-- npm registry: `@stripe/stripe-js@8.11.0` — 3 days ago, MEDIUM confidence (search result)
-- npm registry: `@stripe/react-stripe-js@5.6.1` — 14 days ago, MEDIUM confidence (search result)
-- npm registry: `resend@6.9.4` — 5 days ago, MEDIUM confidence (search result)
-- npm registry: `react-email@5.2.9` — 16 days ago (as of 2026-03-22), MEDIUM confidence (search result)
-- npm registry: `@stripe/mcp@0.2.5` — confirmed from search results (MEDIUM confidence)
-- Stripe Docs: [Embeddable pricing table](https://docs.stripe.com/payments/checkout/pricing-table) — web component embed pattern, no React required (HIGH confidence — official docs)
-- Resend Docs: [Send with Next.js](https://resend.com/docs/send-with-nextjs) — Server Action pattern, `resend.emails.send()` with React Email component (HIGH confidence — official docs)
-- Vercel agent-skills repo: [deploy-to-vercel skill](https://github.com/vercel-labs/agent-skills/blob/main/skills/deploy-to-vercel/SKILL.md) — human approval gate pattern, `vercel --prod --no-wait`, env var discovery (HIGH confidence — official Vercel Labs source)
-- Vercel Docs: [CLI deploy](https://vercel.com/docs/cli/deploy) — `--no-wait` flag, deployment URL return (HIGH confidence — official docs)
-- Nielsen Norman Group: [Service Blueprinting FAQ](https://www.nngroup.com/articles/service-blueprinting-faq/) — 5-swimlane standard (customer actions, frontstage, backstage, support, physical evidence) (HIGH confidence — authoritative UX research source)
-- Osterwalder & Pigneur: Business Model Generation — 9-block BMC schema (HIGH confidence — original source, widely standardized)
-- WebSearch verified: no dominant JSON schema standard exists for BMC in developer tools (2026 search results confirm all BMC tooling uses proprietary formats) (MEDIUM confidence — absence of evidence, cross-referenced multiple sources)
+- `github.com/karpathy/autoresearch` — official repository, March 2026: core loop pattern, program.md role, 5-minute time budget, val_bpb metric, git keep/discard state machine (HIGH confidence — primary source, fetched via WebFetch)
+- `github.com/karpathy/autoresearch/blob/master/program.md` — mutable/immutable boundaries, stopping criteria, metric definition, agent operation loop — "Do NOT pause to ask the human if you should continue" (HIGH confidence — fetched via WebFetch)
+- `gist.github.com/adhishthite/16d8fd9076e85c033b75e187e8a6b94e` — autoexp generalized implementation: TSV zero-infra results tracking, `autoexp/<tag>` branch pattern, 4 prerequisites (metric, fast feedback, single file, immutable harness) (HIGH confidence — fetched via WebFetch)
+- `github.com/uditgoenka/autoresearch` — Claude Code skill implementation: JSONL results tracking (`autoresearch.jsonl`), git state machine (commit before verify, revert on failure), TSV columns (iteration, commit hash, metric value, delta, status, description), mechanical-only verification requirement (HIGH confidence — fetched via WebFetch)
+- `github.com/drivelineresearch/autoresearch-claude-code` — Claude Code plugin port: pure skill implementation (no MCP server), plugin manifest pattern, `autoresearch.jsonl` line-delimited JSON (HIGH confidence — fetched via WebFetch)
+- VentureBeat / Fortune: Shopify CEO applied autoresearch to templating engine — 53% faster rendering from 93 automated commits; confirms pattern generalizes beyond ML (MEDIUM confidence — secondary sources)
+- WebSearch March 2026: DSPy TypeScript ports (`ax-llm/ax`, `ruvnet/dspy.ts`) — confirmed available but explicitly excluded as over-engineering for PDE's use case (MEDIUM confidence — search results)
+- WebSearch March 2026: MLflow.js Node.js client — confirmed available but excluded as zero-infra JSONL is sufficient (MEDIUM confidence — search results)
+- WebSearch March 2026: Claude Code git worktree bug — `/ide` command fails to recognize worktrees (source: multiple community reports, March 2026) — reason to avoid worktrees for experiment isolation (MEDIUM confidence — search results)
+- PDE codebase `bin/lib/event-bus.cjs` — existing `safeAppendEvent()` with `fs.appendFileSync()` pattern, `randomUUID()` session ID — confirms zero-dependency NDJSON append is proven PDE infrastructure (HIGH confidence — read directly from codebase)
+- PDE codebase `bin/pde-tools.cjs` — existing `commit`, `tracking init`, `design manifest-update` subcommand patterns — confirms integration approach for new `experiment` subcommands (HIGH confidence — read directly from codebase)
 
 ---
 
-*Stack research for: PDE v0.12 Business Product Type — net-new stack additions only*
-*Researched: 2026-03-22*
+*Stack research for: PDE v0.13 AutoResearch — autonomous experiment loop additions only*
+*Researched: 2026-03-23*

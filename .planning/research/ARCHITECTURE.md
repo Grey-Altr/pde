@@ -1,313 +1,405 @@
 # Architecture Research
 
-**Domain:** Business product type integration — PDE v0.12
-**Researched:** 2026-03-22
-**Confidence:** HIGH (based on direct codebase analysis of v0.11 experience type as the direct precedent)
+**Domain:** Autonomous experiment loop integration — PDE v0.13 AutoResearch
+**Researched:** 2026-03-23
+**Confidence:** HIGH (based on direct codebase analysis; all integration points verified against current source)
 
 ---
 
-> **Scope note:** This file covers the v0.12 business product type milestone ONLY.
-> Existing PDE architecture (event bus, tmux dashboard, workflow engine, state model, Stitch integration) is documented in PROJECT.md.
-> The v0.11 experience type implementation is the primary architectural precedent for all patterns used here.
+> **Scope note:** This file covers only the v0.13 AutoResearch integration architecture.
+> The broader PDE architecture (event bus, tmux dashboard, workflow engine, state model, MCP layer)
+> is documented in PROJECT.md. The v0.12 business type and v0.4 self-improvement fleet are the
+> primary architectural precedents for patterns used here.
 
 ---
 
 ## Standard Architecture
 
-### System Overview
+### System Overview — Experiment Loop Integration
 
 ```
-┌──────────────────────────────────────────────────────────────────────┐
-│                       Skills Layer (slash commands)                   │
-│  /pde:brief  /pde:competitive  /pde:flows  /pde:wireframe  ...       │
-│  + NEW: /pde:deploy (launch scaffolding with human approval gates)   │
-├──────────────────────────────────────────────────────────────────────┤
-│                   Workflow Engine (14 .md workflow files)             │
-│                                                                       │
-│  EXISTING (conditional blocks added)       NEW                       │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐  ┌──────────────────────┐  │
-│  │ brief.md │ │competit. │ │ flows.md │  │  deploy.md           │  │
-│  │ +BIZ blk │ │ +BIZ blk │ │ +BIZ blk │  │  (launch scaffold)   │  │
-│  └──────────┘ └──────────┘ └──────────┘  └──────────────────────┘  │
-│  ┌──────────┐ ┌──────────┐ ┌──────────┐                             │
-│  │system.md │ │wirfrm.md │ │ handoff  │                             │
-│  │ +BIZ blk │ │ +BIZ blk │ │ +BIZ blk │                             │
-│  └──────────┘ └──────────┘ └──────────┘                             │
-├──────────────────────────────────────────────────────────────────────┤
-│                     State Layer (.planning/design/)                   │
-│  ┌───────────────────────────┐  ┌────────────────────────────────┐  │
-│  │   design-manifest.json    │  │       DESIGN-STATE.md          │  │
-│  │                           │  │                                │  │
-│  │  productType: "software"  │  │  Quick Reference table         │  │
-│  │  businessMode: true/false │  │  + business: [on/off] row      │  │
-│  │  businessTrack: "solo"    │  │  Artifact Index (all codes)    │  │
-│  │  designCoverage: {        │  └────────────────────────────────┘  │
-│  │    ...16 existing flags.. │                                       │
-│  │    hasBusinessThesis: bool│  (NEW coverage flags added to the    │
-│  │    hasMarketLandscape:bool│   existing 16-field object — total   │
-│  │    hasServiceBlueprint:   │   becomes 20 fields)                 │
-│  │    hasLaunchKit: bool     │                                       │
-│  │  }                        │                                       │
-│  └───────────────────────────┘                                       │
-├──────────────────────────────────────────────────────────────────────┤
-│                  Artifact Storage (.planning/design/)                 │
-│  ┌──────────────────────────────────────────────────────────────┐   │
-│  │  strategy/    ux/             visual/        launch/ (NEW)   │   │
-│  │  BRF-*        FLW-* (ops)     SYS-brand-*    LKT-launchkit-*│   │
-│  │  BTH-*        SBP-*           MKT-market-*   LDP-landing-*  │   │
-│  │  MLS-*                                       STR-pricing-*  │   │
-│  │                                              CNT-calendar-* │   │
-│  │                                              OTR-outreach-* │   │
-│  └──────────────────────────────────────────────────────────────┘   │
-└──────────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────────────────────────────────────────┐
+│                         Skills Layer (slash commands)                     │
+│                                                                           │
+│  EXISTING                               NEW                               │
+│  /pde:research-phase                    /pde:optimize                     │
+│  /pde:plan-phase (unmodified)           (experiment loop entry point)     │
+│  /pde:execute-phase (unmodified)                                          │
+├──────────────────────────────────────────────────────────────────────────┤
+│                    Workflow Engine (markdown workflow files)               │
+│                                                                           │
+│  EXISTING (unmodified)                  NEW                               │
+│  ┌──────────────────┐                  ┌──────────────────────────────┐  │
+│  │ execute-phase.md │                  │ optimize.md                  │  │
+│  │ research-phase.md│                  │ (experiment orchestrator)    │  │
+│  │ autonomous.md    │                  └──────────────────────────────┘  │
+│  └──────────────────┘                                                     │
+├──────────────────────────────────────────────────────────────────────────┤
+│                        Agent Layer (YAML frontmatter)                     │
+│                                                                           │
+│  EXISTING (unmodified)                  NEW                               │
+│  ┌────────────────────┐                ┌──────────────────────────────┐  │
+│  │ pde-phase-researcher│               │ pde-experiment-runner        │  │
+│  │ pde-executor        │               │ (mutate + measure subagent)  │  │
+│  │ pde-plan-checker    │               └──────────────────────────────┘  │
+│  └────────────────────┘                                                   │
+├──────────────────────────────────────────────────────────────────────────┤
+│                    Tool Layer (bin/pde-tools.cjs commands)                │
+│                                                                           │
+│  EXISTING (unmodified)                  NEW                               │
+│  commit, state load/update             experiment init/status            │
+│  roadmap get-phase                     experiment commit (tagged)        │
+│  design manifest-read                  experiment reset (to tag)         │
+│  tracking init/set-status              metric eval <file>                │
+├──────────────────────────────────────────────────────────────────────────┤
+│                     State Layer (.planning/)                               │
+│                                                                           │
+│  EXISTING (unmodified)                  NEW                               │
+│  STATE.md, ROADMAP.md                  .planning/experiments/            │
+│  phases/{N}-{slug}/                      {slug}-EXPERIMENT.md            │
+│  config.json                             {slug}-EXPERIMENT-LOG.ndjson    │
+│  design-manifest.json                    {slug}-EXPERIMENT-BEST.json     │
+└──────────────────────────────────────────────────────────────────────────┘
 ```
 
 ### Component Responsibilities
 
 | Component | Responsibility | New vs Modified |
-|-----------|----------------|-----------------|
-| `design-manifest.json` (template) | Registry for artifacts + coverage flags | MODIFIED — add `businessMode`, `businessTrack` top-level fields; add 4 new coverage flags to `designCoverage` |
-| `workflows/brief.md` | Product type detection + brief sections | MODIFIED — add `business:` signal detection, 5 business sections, write `businessMode`/`businessTrack` to manifest |
-| `workflows/competitive.md` | Competitive analysis | MODIFIED — add market landscape path when `businessMode === true` |
-| `workflows/opportunity.md` | RICE scoring | MODIFIED — add business initiative scoring when `businessMode === true` |
-| `workflows/flows.md` | User journey mapping | MODIFIED — add operational and service flow paths when `businessMode === true` |
-| `workflows/system.md` | Design system + brand tokens | MODIFIED — add brand/marketing system sections when `businessMode === true` |
-| `workflows/wireframe.md` | Wireframe generation | MODIFIED — add service blueprint (SBP) + landing page (LDP) paths when `businessMode === true` |
-| `workflows/handoff.md` | Implementation handoff | MODIFIED — add launch kit (LKT) assembly when `businessMode === true` |
-| `workflows/critique.md` | Design critique | MODIFIED — add business alignment perspective when `businessMode === true` |
-| `workflows/iterate.md` | Design iteration | MODIFIED — guard stub (same pattern as v0.11 experience stubs) |
-| `workflows/mockup.md` | Hi-fi mockup | MODIFIED — guard stub (same pattern as v0.11 experience stubs) |
-| `workflows/hig.md` | Interface guidelines | MODIFIED — add business communications HIG when `businessMode === true` |
-| `workflows/recommend.md` | Tool discovery | MODIFIED — add business tool category (Stripe MCP, Resend MCP, analytics) when `businessMode === true` |
-| `workflows/build.md` | Pipeline orchestrator | MODIFIED — add `deploy` as Stage 14 when `businessMode === true` |
-| `workflows/deploy.md` | Deployment scaffolding | NEW — Next.js landing page, Stripe config, Resend templates, Vercel deploy with approval gates |
-| `references/business-track.md` | Track definitions (solo/startup/leader) | NEW — shared reference loaded by all business-mode workflows |
-| `references/launch-frameworks.md` | Lean canvas, GTM templates, investor narrative | NEW — business artifact templates analogous to `experience-disclaimer.md` |
-| `commands/deploy.md` | `/pde:deploy` slash command entry point | NEW — follows existing command bootstrap pattern |
-| `templates/design-manifest.json` | Schema template | MODIFIED — add new top-level fields and 4 new coverage flags |
-| `bin/lib/design.cjs` | Coverage check + manifest ops | MODIFIED — add `launch/` to `ensure-dirs` directory creation list (3 lines) |
+|-----------|---------------|-----------------|
+| `commands/optimize.md` | `/pde:optimize` entry point — parse metric + search space + budget, spawn optimize workflow | NEW |
+| `workflows/optimize.md` | Experiment orchestrator — define spec, drive iteration loop, call runner, gate on keep/discard threshold | NEW |
+| `agents/pde-experiment-runner.md` | Mutation subagent — receives single candidate mutation, applies it to mutable files, runs metric script, returns structured JSON result | NEW |
+| `bin/lib/experiment.cjs` | State machine for exploratory commits — `init`, `commit-candidate`, `reset-to-baseline`, `promote-best` operations wrapping `execGit` from `core.cjs` | NEW |
+| `pde-tools.cjs` (dispatch) | Expose experiment subcommands as top-level CLI (`experiment init`, `experiment commit`, `experiment reset`, `metric eval`) | MODIFIED — ~30 lines |
+| `agents/pde-phase-researcher.md` | Gain `--empirical` mode flag: instead of returning RESEARCH.md, returns RESEARCH.md + `try_candidates: [...]` list for the optimize workflow to execute | MODIFIED — additive flag, ~40 lines |
+| `.planning/experiments/` | Persisted experiment state directory — one subdirectory per experiment run | NEW (dir) |
 
 ---
 
 ## Recommended Project Structure
 
-The `business:` layer adds to the existing `.planning/design/` tree without restructuring it:
+The experiment loop adds a single new state directory alongside the existing `.planning/phases/` tree:
 
 ```
-.planning/design/
-├── strategy/
-│   ├── BRF-brief-v{N}.md              (existing — gains 5 business sections)
-│   ├── BTH-thesis-v{N}.md             (NEW — business thesis artifact)
-│   ├── MLS-market-landscape-v{N}.md   (NEW — market landscape from competitive)
-│   └── ANL-analyst-brief-v*.md        (existing)
-├── ux/
-│   ├── FLW-flows-v{N}.md              (existing — gains operational/service flow sections)
-│   ├── SBP-blueprint-v{N}.md          (NEW — service blueprint from wireframe)
-│   └── screen-inventory.json          (existing)
-├── visual/
-│   ├── SYS-tokens-v*.json             (existing)
-│   └── MKT-brand-system-v{N}.md       (NEW — marketing brand system from system.md)
-└── launch/                             (NEW directory — created by ensure-dirs)
-    ├── LKT-launchkit-v{N}.md          (NEW — assembled launch kit)
-    ├── LDP-landing-v{N}.html          (NEW — deployable landing page wireframe)
-    ├── STR-pricing-v{N}.json          (NEW — Stripe pricing config spec)
-    ├── CNT-calendar-v{N}.md           (NEW — content calendar skeleton)
-    └── OTR-outreach-v{N}.md           (NEW — investor/customer outreach sequence)
+.planning/
+├── STATE.md                          (existing — unmodified)
+├── ROADMAP.md                        (existing — unmodified)
+├── config.json                       (existing — gains experiment_defaults section)
+├── phases/                           (existing — unmodified)
+│   └── {N}-{slug}/
+├── experiments/                      (NEW)
+│   └── {slug}/                       (one per /pde:optimize run)
+│       ├── EXPERIMENT.md             (spec: metric, search space, budget, mutable files)
+│       ├── EXPERIMENT-LOG.ndjson     (per-iteration results — append-only)
+│       └── EXPERIMENT-BEST.json      (current best candidate snapshot)
+└── design/                           (existing — unmodified)
+
+agents/
+├── pde-experiment-runner.md          (NEW — mutation + measurement subagent)
+└── pde-phase-researcher.md           (MODIFIED — --empirical flag)
+
+workflows/
+├── optimize.md                       (NEW — experiment orchestrator workflow)
+└── research-phase.md                 (MODIFIED — --empirical mode routing)
+
+commands/
+└── optimize.md                       (NEW — /pde:optimize slash command)
+
+bin/
+└── lib/
+    └── experiment.cjs                (NEW — git state machine for exploratory commits)
 ```
 
 ### Structure Rationale
 
-- **strategy/BTH and MLS:** Business thesis and market landscape are strategy-layer outputs. They belong alongside BRF (brief) and CMP (competitive) artifacts — not in a new top-level directory. The artifact code prefix (BTH, MLS) follows the same 3-letter convention as all other artifact codes.
-- **ux/SBP:** Service blueprints are a UX discipline output — they map service delivery flows the same way FLW maps user journeys. The `ux/` domain is the correct home.
-- **visual/MKT:** Marketing brand system sits adjacent to the design system tokens it extends. It is a visual-layer artifact.
-- **launch/:** Launch kit artifacts are fundamentally different from design artifacts — they are executable, deployable files, not design specifications. Isolating them in `launch/` prevents confusion with `ux/` and `visual/` domains and makes the deploy workflow's file reading predictable. The `deploy.md` workflow knows to look in `launch/` for every file it processes.
-- **No new top-level sibling to `.planning/design/`:** The business layer composes with the existing design pipeline. It does not fork it. All artifacts stay under `.planning/design/` to keep manifest paths relative and consistent.
+- **`.planning/experiments/` not inside `.planning/phases/`:** Experiments are not phases. They do not follow the phase lifecycle (PLAN.md → SUMMARY.md → VERIFICATION.md). A dedicated directory prevents the `roadmap analyze` and `phase complete` tooling from treating experiment state as incomplete phase work.
+- **Per-run subdirectory `{slug}/`:** Multiple experiments can run in sequence (optimize workflow A, then optimize workflow B). The slug is derived from the metric + timestamp (`{metric}-{date}`). Each run is self-contained.
+- **`EXPERIMENT-LOG.ndjson` as append-only:** Matches the NDJSON event bus pattern already established in v0.8. Each iteration writes one line — no locking needed for sequential experiments. The orchestrator reads the full log to compute trends and select the best candidate.
+- **`EXPERIMENT-BEST.json`:** Snapshot of the best git hash + metric score seen so far. Written atomically after each improvement. Allows recovery if a session ends mid-experiment — the next session can read EXPERIMENT-BEST.json and continue from the best-known state.
+- **`config.json` gains `experiment_defaults`:** Reuses the existing config pattern (already has `model_profile`, `commit_docs`, etc.). Adds: `experiment.max_iterations`, `experiment.improvement_threshold`, `experiment.protected_files_check`. No new config file needed.
 
 ---
 
 ## Architectural Patterns
 
-### Pattern 1: Orthogonal Dimension via Manifest Flag
+### Pattern 1: Exploratory Commit State Machine (commit / tag / reset)
 
-**What:** `businessMode` is a boolean top-level field in `design-manifest.json`, set by `brief.md` during Step 4 (product type detection). All downstream workflows read `businessMode` from the manifest at the start of execution. This is separate from `productType` — a project can be `productType: "software"` AND `businessMode: true`. The dimension is additive, not replacing.
+**What:** The experiment loop uses a two-tier git commit strategy. Normal PDE commits (`feat`, `fix`, `docs`) are permanent. Exploratory commits are tagged with `pde-exp/{slug}/{n}` and may be reset if the metric regresses. The `experiment.cjs` module wraps `execGit` from `core.cjs` to implement this.
 
-**When to use:** Every workflow that needs to branch for business-specific behavior reads `businessMode` from the manifest, not from the brief document. This gives workflows a single authoritative source.
+**When to use:** Every time the experiment runner applies a candidate mutation, before running the metric. If metric improves: tag is kept (promoted to permanent commit). If metric regresses: `git reset --hard {baseline-hash}` reverts all mutable file changes.
 
-**Implementation pattern (consistent across all 14 workflows):**
+**State machine transitions:**
+
 ```
-Read manifest early in Step 2 (prerequisites):
-  businessMode = manifest.businessMode ?? false
-  businessTrack = manifest.businessTrack ?? "solo"
-
-...existing workflow steps unchanged...
-
-<!-- Business product type — Phase N: [description] -->
-IF businessMode === true:
-  → execute business-specific path or additional sections
-  → vocabulary and depth determined by businessTrack
-ELSE:
-  → skip (no output for non-business projects)
-<!-- End business product type block -->
+BASELINE (known good hash, stored in EXPERIMENT.md)
+    ↓ experiment commit-candidate
+CANDIDATE (staged mutation, tagged pde-exp/{slug}/{n})
+    ↓ metric eval returns score
+    ├── score > (best_score + threshold)
+    │       → PROMOTE: amend tag to pde-exp/{slug}/{n}-KEPT, update EXPERIMENT-BEST.json
+    │         → new BASELINE = CANDIDATE hash
+    └── score <= (best_score + threshold)
+            → DISCARD: git reset --hard {baseline-hash}
+              → BASELINE unchanged
 ```
 
-**Why not a new `productType` value:** Experience type demonstrated that adding a new productType creates exclusive branches — experience products bypass software wireframes entirely. Business is orthogonal: a software product being launched still needs wireframes AND a service blueprint. Using `productType = "business"` would force either/or logic where both/and is correct. `businessMode` preserves both.
+**Critical constraint:** The state machine must verify that only `mutable_files` listed in EXPERIMENT.md are staged before any exploratory commit. Files in `immutable_boundaries` (see Pattern 3) must never be staged. The `experiment commit-candidate` command runs this check before committing.
 
-**Confidence:** HIGH — matches the existing `experienceSubType` metadata pattern and the `SUPPRESS_TOKEN_FINDINGS` per-artifact flag pattern from critique.md.
+**Implementation in `experiment.cjs`:**
+```javascript
+// Simplified — real impl adds boundary checks
+function commitCandidate(cwd, slug, n, message) {
+  const result = execGit(cwd, ['commit', '-m', `exp(${slug}): ${message}`]);
+  if (result.exitCode !== 0) return { ok: false, error: result.stderr };
+  execGit(cwd, ['tag', `pde-exp/${slug}/${n}`]);
+  return { ok: true, hash: execGit(cwd, ['rev-parse', 'HEAD']).stdout };
+}
 
-### Pattern 2: Track-Aware Vocabulary via Single Reference File
-
-**What:** `references/business-track.md` defines how each of the three user tracks differs in vocabulary, output depth, and artifact format. Workflows load this reference via `@references/business-track.md` in `<required_reading>` blocks. The `businessTrack` field from the manifest selects the applicable register.
-
-**Track resolution in brief.md Step 4:**
-```
-Track signals detected after businessMode = true is set:
-  "solo": "solo", "indie", "solo founder", "one person", "bootstrapped", "side project"
-  "startup": "startup", "seed", "early stage", "founding team", "co-founder", "pre-seed"
-  "leader": "product leader", "PM", "head of product", "enterprise", "director", "VP"
-  default: "solo" if ambiguous or no signals
-```
-
-**Track effects on output:**
-
-| Track | Vocabulary | Artifact Depth | Key Format |
-|-------|-----------|---------------|------------|
-| solo | Plain English, lean | Essentials only, 1-pagers | Skimmable, action-focused |
-| startup | Standard startup language | Full artifacts, investor-ready | Deck-compatible, metric-forward |
-| leader | Enterprise / product language | Executive summary + detail | Board-ready, stakeholder-formatted |
-
-The reference file defines concrete vocabulary substitutions (e.g., "revenue goal" vs "ARR target" vs "P&L impact") and section depth tables so workflows do not need to hard-code track logic.
-
-### Pattern 3: New Coverage Flags Follow the 16-Field Pass-Through Contract
-
-**What:** Four new boolean flags are added to the `designCoverage` object in `design-manifest.json`, growing it from 16 to 20 fields. Every workflow that writes `designCoverage` must read all 20 fields first, then write the full merged object with only its own flag flipped. The pass-through pattern is identical to the existing behavior — only the field count grows.
-
-**New flags:**
-- `hasBusinessThesis` — set by `brief.md` when BTH artifact is written
-- `hasMarketLandscape` — set by `competitive.md` when MLS artifact is written
-- `hasServiceBlueprint` — set by `wireframe.md` when SBP artifact is written
-- `hasLaunchKit` — set by `handoff.md` when LKT artifact is assembled
-
-**Critical constraint:** All 14 existing workflows that write `designCoverage` must be updated to include the 4 new flags in their write objects (as `{current}` pass-through). This is the cross-cutting audit analogous to v0.11 Phase 83 which found 10 broken workflows clobbering `hasPrintCollateral` and `hasProductionBible`.
-
-**Example updated write call (brief.md setting hasBusinessThesis):**
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level designCoverage \
-  '{"hasDesignSystem":{current},"hasWireframes":{current},"hasFlows":{current},
-    "hasHardwareSpec":{current},"hasCritique":{current},"hasIterate":{current},
-    "hasHandoff":{current},"hasIdeation":{current},"hasCompetitive":{current},
-    "hasOpportunity":{current},"hasMockup":{current},"hasHigAudit":{current},
-    "hasRecommendations":{current},"hasStitchWireframes":{current},
-    "hasPrintCollateral":{current},"hasProductionBible":{current},
-    "hasBusinessThesis":true,"hasMarketLandscape":{current},
-    "hasServiceBlueprint":{current},"hasLaunchKit":{current}}'
+function resetToBaseline(cwd, baselineHash) {
+  return execGit(cwd, ['reset', '--hard', baselineHash]);
+}
 ```
 
-### Pattern 4: Deploy Workflow as Guarded New Skill
+**Trade-offs:** Tags accumulate in the local repo. After experiment completion, `experiment cleanup` should delete `pde-exp/{slug}/*` tags. Tags are local-only (not pushed) so they don't pollute remotes.
 
-**What:** `workflows/deploy.md` is a new workflow file — not a modification of handoff. It is only invocable when `businessMode === true`. The build orchestrator conditionally adds a `deploy` stage at index 14 only for business-mode projects.
+### Pattern 2: Metric-as-Script (measure via shell, not LLM)
 
-**Guard in build.md:**
+**What:** The experiment metric is defined as a shell command or Node.js script that returns a numeric score to stdout. The experiment runner executes it via `Bash` tool and parses the output. The metric script is the single source of truth for improvement — no LLM judgment in the keep/discard decision.
+
+**When to use:** Every iteration. The metric command is stored in `EXPERIMENT.md` as a string (e.g., `node tests/quality-score.cjs`, `grep -c "VERIFIED" .planning/phases/99-*/RESEARCH-VALIDATION.md`). The runner executes it before and after mutation and compares.
+
+**Metric spec in EXPERIMENT.md:**
+```yaml
+metric:
+  command: "node tests/workflow-quality.cjs --phase 30 --score-only"
+  baseline_score: 72.4
+  improvement_threshold: 2.0    # minimum delta to keep (prevents noise promotions)
+  higher_is_better: true
+  timeout_seconds: 60
 ```
-After reading manifest in Step 1:
-  businessMode = manifest.businessMode ?? false
 
-STAGES definition:
-  Stages 1-13: unchanged (recommend through handoff)
-  IF businessMode === true:
-    Stage 14: deploy | pde:deploy | coverage | hasLaunchKit
-  ELSE:
-    STAGES ends at index 13
+**Why not LLM-as-judge:** LLM scoring is non-deterministic and cannot serve as a reliable keep/discard gate — the same output may score 72 or 79 on two calls. Shell scripts and test runners are deterministic. The v0.4 self-improvement fleet already uses this principle: Nyquist tests are the ground truth, not LLM opinion.
+
+**Existing precedent:** `tests/*.cjs` using `node:test` — already the PDE test convention. The metric script follows the same pattern.
+
+### Pattern 3: Mutable/Immutable File Boundary Enforcement
+
+**What:** The experiment spec declares which files the runner may modify (`mutable_files`) and which it must never touch (`immutable_boundaries`). The `experiment commit-candidate` command reads `EXPERIMENT.md`, diffs `git status`, and aborts if any staged file is not in the mutable list.
+
+**When to use:** Before every exploratory commit. This is the primary safety mechanism preventing experiments from corrupting PDE infrastructure files.
+
+**Boundary spec in EXPERIMENT.md:**
+```yaml
+mutable_files:
+  - "workflows/critique.md"
+  - "workflows/iterate.md"
+boundaries:
+  immutable:
+    - "bin/pde-tools.cjs"          # core tool — changes affect all phases
+    - "bin/lib/"                    # library modules
+    - ".planning/STATE.md"          # phase state
+    - ".planning/ROADMAP.md"        # phase structure
+    - "protected-files.json"        # PDE's own protected list
+    - "agents/"                     # all agent definitions (circular risk)
+    - "tests/"                      # test files (metric scripts must not change)
 ```
 
-**Human approval gates (mandatory, every external write):**
+**Relationship to `protected-files.json`:** PDE already has `protected-files.json` as a prompt-level enforcement mechanism. The experiment boundary check adds a pre-commit enforcement layer that is tool-verified (not prompt-only). The two mechanisms are complementary — `protected-files.json` prevents the agent from writing, the boundary check prevents exploratory commits from staging.
 
-Deploy workflow must halt before any action that writes outside `.planning/` or calls an external CLI:
+**Trade-offs:** The mutable list must be explicit — no globs. This is intentional: a typo in a glob that accidentally includes `bin/pde-tools.cjs` would be catastrophic. Explicit lists are auditable.
 
-| Gate Point | What User Sees | CLI Call |
-|-----------|----------------|----------|
-| Next.js scaffold | File list to be created, target directory | User types "yes" or "no" |
-| Stripe config write | Full JSON to be written | User types "yes" or "no" |
-| Resend template stubs | Template content preview | User types "yes" or "no" |
-| `vercel --dry-run` | Dry run output shown | No approval — display only |
-| `vercel deploy` | Dry run output + "Deploy now?" | User types "yes" or "no" |
+### Pattern 4: Researcher Empirical Mode (`--empirical` flag)
 
-This follows the VAL-03 write-back confirmation gate pattern from the MCP integration layer. Halt on "no" at any gate — do not proceed to the next step.
+**What:** `pde-phase-researcher` gains an `--empirical` flag. When set, instead of returning only a RESEARCH.md with implementation recommendations, the researcher also returns a `try_candidates` list — specific, bounded mutations to test in the experiment loop. Each candidate is a self-contained description of one change: which files, what to change, expected effect.
+
+**When to use:** Only when invoked from the optimize workflow. Standard `research-phase.md` invocations are unaffected.
+
+**Return structure (empirical mode only):**
+```json
+{
+  "status": "RESEARCH_COMPLETE",
+  "research_file": ".planning/phases/99-optimize/RESEARCH.md",
+  "try_candidates": [
+    {
+      "id": "C1",
+      "description": "Add explicit chain-of-thought prompt to critique Step 3",
+      "mutable_files": ["workflows/critique.md"],
+      "change_summary": "Insert 4-line reasoning scaffold before the scoring rubric",
+      "expected_delta": "+3 to +8 quality score points",
+      "confidence": "MEDIUM"
+    }
+  ]
+}
+```
+
+**Why modify researcher rather than add new agent:** The researcher already understands PDE's file structure, workflow patterns, and which changes are safe. Adding empirical mode reuses that domain knowledge. A new "candidate generator" agent would need to learn all the same context from scratch. The modification is additive — the researcher returns everything it always returned, plus the candidate list. No existing callers are affected because they ignore unknown fields.
 
 ---
 
-## Data Flow
+## Data Flow: Experiment Lifecycle End to End
 
-### Business Mode Activation Flow
-
-```
-User writes PROJECT.md with business signals
-    ↓
-/pde:brief Step 4: detect product type (existing) + business mode (new)
-    ↓
-manifest-set-top-level productType {type}          (existing behavior)
-manifest-set-top-level businessMode true            (NEW)
-manifest-set-top-level businessTrack "solo"         (NEW)
-    ↓
-Step 5: write BRF artifact with 5 business sections (NEW conditional block)
-    ↓
-Step 7: set designCoverage with hasBusinessThesis: true (NEW in merged object)
-    ↓
-All downstream workflows read manifest → businessMode gate activates
-```
-
-### Business Pipeline Data Flow
+### Invocation to First Candidate
 
 ```
-BRF-brief (businessThesis, targetMarket, revenueModel, businessTrack)
+User: /pde:optimize --metric "node tests/quality.cjs" \
+                    --target workflows/critique.md \
+                    --budget 8
     ↓
-competitive.md (businessMode=true → MLS path)
-  → MLS-market-landscape (TAM/SAM/SOM, competitive map, business RICE)
-  → designCoverage.hasMarketLandscape = true
+commands/optimize.md: parse args, resolve models, spawn optimize workflow
     ↓
-opportunity.md (businessMode=true → business initiative scoring)
-  → OPP artifact gains business initiative rows alongside standard RICE
+optimize.md Step 1: scaffold EXPERIMENT.md
+  → writes .planning/experiments/{slug}/EXPERIMENT.md
+  → stores: metric command, mutable_files, baseline_score (from first metric run),
+            improvement_threshold, max_iterations=8
+  → git commit "exp({slug}): initialize experiment baseline"
+  → stores baseline_hash in EXPERIMENT.md
     ↓
-flows.md (businessMode=true → Step 4-BIZ operational + service flows)
-  → FLW artifact gains operational journey + customer lifecycle sections
-  → designCoverage.hasFlows = true (existing flag, extended content)
+optimize.md Step 2: spawn pde-phase-researcher --empirical
+  → researcher reads mutable_files, reads metric spec
+  → returns RESEARCH.md + try_candidates list (C1..CN)
     ↓
-system.md (businessMode=true → brand + marketing system sections)
-  → MKT-brand-system (positioning, messaging hierarchy, voice/tone)
-  → designCoverage.hasDesignSystem = true (existing flag, extended content)
-    ↓
-wireframe.md (businessMode=true → Step 4-BIZ service blueprint + landing page)
-  → LDP-landing-v{N}.html (deployable landing page wireframe)
-  → SBP-blueprint-v{N}.md (service blueprint)
-  → designCoverage.hasWireframes = true, hasServiceBlueprint = true
-    ↓
-critique.md (businessMode=true → business alignment perspective added)
-  → CRT artifact gains business alignment section
-    ↓
-handoff.md (businessMode=true → Step 7-BIZ launch kit assembly)
-  → LKT-launchkit-v{N}.md (assembled: thesis + market + pricing + calendar + outreach)
-  → STR-pricing-v{N}.json, CNT-calendar-v{N}.md, OTR-outreach-v{N}.md
-  → designCoverage.hasLaunchKit = true
-    ↓
-deploy.md (NEW Stage 14, businessMode=true only)
-  → Human approval → Next.js scaffold
-  → Human approval → Stripe config write
-  → Human approval → Resend template stubs
-  → vercel --dry-run → Human approval → vercel deploy
-  → artifacts.DEPLOY registered in manifest with deployment URL
+optimize.md Step 3: enter iteration loop
 ```
 
-### How business: Composes With All Product Types
+### Iteration Loop (per candidate)
 
 ```
-productType = "software"    businessMode = false  →  Standard 13-stage pipeline (unchanged)
-productType = "software"    businessMode = true   →  13-stage software path + Stage 14 deploy
-productType = "hardware"    businessMode = true   →  13-stage hardware path + Stage 14 deploy
-productType = "hybrid"      businessMode = true   →  13-stage hybrid path + Stage 14 deploy
-productType = "experience"  businessMode = false  →  13-stage experience path (v0.11, unchanged)
-productType = "experience"  businessMode = true   →  13-stage experience path + Stage 14 deploy
+optimize.md: take next candidate Ci from try_candidates queue
+    ↓
+spawn pde-experiment-runner with:
+  - candidate spec (description, mutable_files, change_summary)
+  - experiment slug
+  - iteration number i
+  - baseline_hash (from EXPERIMENT.md)
+    ↓
+pde-experiment-runner:
+  Step 1: apply mutation to mutable_files (Write/Edit tool)
+  Step 2: node pde-tools.cjs experiment commit-candidate {slug} {i}
+    → boundary check: abort if staged files outside mutable list
+    → git commit -m "exp({slug}): {change_summary}"
+    → git tag pde-exp/{slug}/{i}
+    → returns: candidate_hash, ok/fail
+  Step 3: run metric command via Bash tool
+    → parse numeric score from stdout
+    → timeout enforced ({timeout_seconds} from spec)
+  Step 4: return structured JSON to optimize.md orchestrator:
+    {
+      "iteration": i,
+      "candidate_id": "C1",
+      "candidate_hash": "abc123",
+      "metric_score": 77.2,
+      "baseline_score": 72.4,
+      "delta": 4.8,
+      "status": "metric_collected"
+    }
+    ↓
+optimize.md: keep/discard decision
+    ├── delta > improvement_threshold (2.0)?
+    │     → KEEP: update EXPERIMENT-BEST.json, new baseline = candidate_hash
+    │       append EXPERIMENT-LOG.ndjson: {iteration, delta, decision: "KEEP", hash}
+    │       display: "Iteration {i}: KEPT +{delta} (score: {score})"
+    └── delta <= improvement_threshold?
+          → DISCARD: node pde-tools.cjs experiment reset {baseline_hash}
+            → git reset --hard {baseline_hash}
+            append EXPERIMENT-LOG.ndjson: {iteration, delta, decision: "DISCARD"}
+            display: "Iteration {i}: DISCARDED (delta {delta} < threshold {threshold})"
+    ↓
+Check budget: iterations_used < max_iterations AND try_candidates queue not empty?
+  → YES: spawn next pde-experiment-runner (next candidate)
+  → NO: finalize experiment
 ```
 
-The business layer is purely additive. The experience type's exclusive branches (FLP replaces WFR, BIB replaces HND for non-hybrid-event) are unaffected. Business-mode adds conditional sections inside existing workflows and appends Stage 14 to the pipeline — it never replaces existing stages.
+### Finalization
+
+```
+optimize.md Step 4: finalize
+    ↓
+Read EXPERIMENT-BEST.json: best_hash, best_score, best_candidate_id
+    ↓
+git checkout {best_hash} -- {mutable_files}   (if best_hash != HEAD)
+git commit -m "feat: promote best experiment candidate {best_candidate_id}
+               score {best_score} (+{best_delta} vs baseline)"
+    ↓
+experiment cleanup: delete pde-exp/{slug}/* tags
+    ↓
+append EXPERIMENT.md with ## Results section:
+  - iterations run
+  - improvements found (N)
+  - best candidate, score, delta
+  - promoted commit hash
+    ↓
+node pde-tools.cjs commit "exp({slug}): finalize experiment" \
+  --files .planning/experiments/{slug}/
+    ↓
+display summary table:
+  | Iteration | Candidate | Score | Delta | Decision |
+  |-----------|-----------|-------|-------|----------|
+  | 1         | C1        | 77.2  | +4.8  | KEPT     |
+  | 2         | C2        | 71.1  | -1.3  | DISCARDED|
+  ...
+  Best result: {score} (+{delta}) — committed as {hash}
+```
+
+---
+
+## Integration Points with Existing PDE Components
+
+### Touches vs Does Not Touch
+
+| Existing Component | Relationship | Modification |
+|-------------------|-------------|-------------|
+| `bin/lib/core.cjs` | `experiment.cjs` calls `execGit` from here | NOT modified — experiment.cjs imports it |
+| `bin/pde-tools.cjs` | Dispatch block gains `experiment` and `metric` subcommands | MODIFIED — ~30 lines in the case dispatch |
+| `agents/pde-executor.md` | Normal plan execution, not involved in experiments | NOT modified |
+| `agents/pde-phase-researcher.md` | Gains `--empirical` flag and `try_candidates` return field | MODIFIED — additive, ~40 lines |
+| `workflows/execute-phase.md` | Normal phase execution, not involved in experiments | NOT modified |
+| `workflows/research-phase.md` | Gains routing for `--empirical` flag to pass to researcher | MODIFIED — ~10 lines |
+| `bin/lib/event-bus.cjs` | Experiment events (`exp_iteration_started`, `exp_iteration_complete`) can be emitted for dashboard visibility | MODIFIED — add 2 event types |
+| `.planning/config.json` (schema) | Gains `experiment_defaults` section | MODIFIED — template updated |
+| `protected-files.json` | Read by experiment boundary checker but not modified | NOT modified |
+| `workflows/autonomous.md` | Not involved — experiments are explicit invocations, not autonomous phases | NOT modified |
+| `bin/lib/design.cjs` | Not involved | NOT modified |
+| MCP bridge layer | Not involved | NOT modified |
+
+### Agent Interaction Model
+
+The experiment runner is a distinct agent type from `pde-executor`. The distinction matters:
+
+| Capability | pde-executor | pde-experiment-runner |
+|-----------|-------------|----------------------|
+| Allowed tools | Read, Write, Edit, Bash, Glob, Grep | Read, Write, Edit, Bash (metric only), Glob, Grep |
+| Commits | Regular `feat/fix/docs` commits (permanent) | Exploratory commits via `pde-tools experiment commit-candidate` only |
+| Scope | Full plan file (all tasks) | Single candidate mutation (one bounded change) |
+| File boundaries | Protected-files.json (prompt enforcement) | EXPERIMENT.md `mutable_files` (tool-verified) |
+| Returns | SUMMARY.md written to disk | Structured JSON to orchestrator (does not write SUMMARY) |
+| Context model | Fresh context per plan (Pattern A from execute-plan.md) | Fresh context per iteration (same pattern, smaller scope) |
+
+The runner is explicitly READ-ONLY for metric execution. It runs `node tests/quality.cjs` via Bash but must not modify test files. This mirrors the `pde-research-validator` READ-ONLY constraint.
+
+### Git Layer Integration
+
+The experiment commit state machine integrates below the existing `pde-tools.cjs commit` wrapper:
+
+```
+Existing:
+  pde-tools.cjs commit <msg> --files f1 f2
+    → calls execGit(cwd, ['add', ...files])
+    → calls execGit(cwd, ['commit', '-m', msg])
+
+New (experiment.cjs):
+  experiment commit-candidate {slug} {n}
+    → reads EXPERIMENT.md for mutable_files list
+    → calls execGit(cwd, ['diff', '--cached', '--name-only'])
+    → validates staged files are subset of mutable_files
+    → calls execGit(cwd, ['commit', '-m', msg])
+    → calls execGit(cwd, ['tag', `pde-exp/${slug}/${n}`])
+
+  experiment reset {baseline-hash}
+    → calls execGit(cwd, ['reset', '--hard', baselineHash])
+    → DOES NOT call pde-tools.cjs commit (no commit on reset)
+```
+
+The two paths are independent — the experiment state machine never calls through `pde-tools.cjs commit` because it needs tag management and boundary checks that the existing commit wrapper does not have.
 
 ---
 
@@ -315,208 +407,112 @@ The business layer is purely additive. The experience type's exclusive branches 
 
 ### New Files
 
-| File | Purpose | Why New |
-|------|---------|---------|
-| `workflows/deploy.md` | Launch scaffolding with human approval gates | No existing workflow handles filesystem scaffolding outside `.planning/` or CLI deployment |
-| `commands/deploy.md` | `/pde:deploy` slash command entry point | New user-facing command following existing command bootstrap pattern |
-| `references/business-track.md` | Track vocabulary and depth definitions for solo/startup/leader | Shared reference for all 14+ workflows — avoids duplicating track logic in each workflow |
-| `references/launch-frameworks.md` | Lean canvas, GTM templates, investor narrative templates | Business artifact template library analogous to `experience-disclaimer.md` |
+| File | Purpose | Why New (Not Modified) |
+|------|---------|----------------------|
+| `commands/optimize.md` | `/pde:optimize` slash command entry point | New user-facing command — follows existing command bootstrap pattern |
+| `workflows/optimize.md` | Experiment orchestrator — full iteration loop | Too different from execute-phase to modify it; experiment lifecycle has distinct states (BASELINE, CANDIDATE, PROMOTE, DISCARD) not present in normal execution |
+| `agents/pde-experiment-runner.md` | Mutation + measurement subagent | Different tool permissions, different output format, different scope from pde-executor. Reusing pde-executor would require conditional logic that degrades both |
+| `bin/lib/experiment.cjs` | Git state machine for exploratory commits | The exploratory commit pattern (tag, reset, promote) is not supported by existing `core.cjs` execGit or the `commit` command in pde-tools.cjs. New module follows the established CJS lib pattern |
+| `.planning/experiments/` | Runtime experiment state storage | Experiments are not phases — they must not appear in roadmap analyze output or confuse phase tooling |
 
 ### Modified Files
 
 | File | Modification | Estimated Scope |
 |------|-------------|-----------------|
-| `workflows/brief.md` | Step 4: add business signal detection + track detection; Step 5: add 5 business sections (gated); Step 7: set `businessMode`, `businessTrack`, `hasBusinessThesis` in manifest | ~100 lines added |
-| `workflows/competitive.md` | Context routing: read `businessMode`; output: add MLS market landscape path | ~80 lines added |
-| `workflows/opportunity.md` | Add business initiative RICE scoring path when `businessMode === true` | ~60 lines added |
-| `workflows/flows.md` | Add Step 4-BIZ block for operational and service flows (parallel to Step 4-EXP pattern) | ~150 lines added |
-| `workflows/system.md` | Add Step N-BIZ for brand system + marketing messaging sections | ~80 lines added |
-| `workflows/wireframe.md` | Add SBP (service blueprint) and LDP (landing page) generation paths (parallel to FLP/TML for experience) | ~200 lines added |
-| `workflows/critique.md` | Add business alignment perspective section when `businessMode === true` | ~50 lines added |
-| `workflows/handoff.md` | Add Step 7-BIZ launch kit assembly (LKT, STR, CNT, OTR artifacts) | ~150 lines added |
-| `workflows/hig.md` | Add business communications HIG when `businessMode === true` | ~40 lines added |
-| `workflows/recommend.md` | Add business tool category (Stripe MCP, Resend MCP, analytics tools) | ~40 lines added |
-| `workflows/iterate.md` | Add guard stub (same 5-line comment pattern as v0.11 experience stubs) | ~5 lines added |
-| `workflows/mockup.md` | Add guard stub (same 5-line comment pattern as v0.11 experience stubs) | ~5 lines added |
-| `workflows/build.md` | Add conditional Stage 14 (deploy) when `businessMode === true`; read manifest earlier | ~30 lines added |
-| `templates/design-manifest.json` | Add `businessMode: false`, `businessTrack: null` top-level fields; add 4 new `designCoverage` flags | ~10 lines modified |
-| `bin/lib/design.cjs` | Add `launch/` to the `ensure-dirs` directory creation list | ~3 lines modified |
-| **All 14 designCoverage-writing workflows** | Add 4 new flags to every `manifest-set-top-level designCoverage` call (as `{current}` pass-through) | ~4 lines per workflow = ~56 lines total across the audit phase |
-
----
-
-## Integration Points
-
-### Business Signal Detection (brief.md Step 4)
-
-New signal set added to the existing software/hardware/experience classification block. Detection is orthogonal — `businessMode` is set independently of `productType`:
-
-```
-Business signals: "launch", "go-to-market", "GTM", "revenue model", "pricing",
-  "investor", "fundraising", "seed", "Series A", "pitch deck", "venture",
-  "startup", "founder", "bootstrapped", "SaaS pricing", "market fit", "PMF",
-  "customer acquisition", "CAC", "LTV", "churn", "runway", "MRR", "ARR",
-  "business model", "monetization", "subscription", "freemium", "enterprise sales",
-  "go live", "launch date", "pre-launch", "waitlist", "landing page", "domain"
-
-IF business signals present:
-  SET businessMode = true
-  DETECT businessTrack from secondary signals (solo/startup/leader)
-  SET businessTrack = detected track or "solo" default
-ELSE:
-  SET businessMode = false
-  SET businessTrack = null
-```
-
-This runs AFTER the existing software/hardware/experience classification. Both axes are independently detected.
-
-### Manifest Top-Level Fields Added
-
-```json
-{
-  "productType": "software | hardware | hybrid | experience",
-  "experienceSubType": "single-night | multi-day | recurring-series | installation | hybrid-event | null",
-  "businessMode": false,
-  "businessTrack": "solo | startup | leader | null"
-}
-```
-
-`businessMode` defaults to `false` in the manifest template. All existing projects that lack the field read it as `false` (via `?? false` null-coalescing in workflows) — no migration needed.
-
-### designCoverage Schema Evolution (16 → 20 fields)
-
-```json
-{
-  "_comment": "v0.12 adds 4 new flags at the bottom. All 20 must be preserved in every write.",
-  "hasDesignSystem": false,
-  "hasWireframes": false,
-  "hasFlows": false,
-  "hasHardwareSpec": false,
-  "hasCritique": false,
-  "hasIterate": false,
-  "hasHandoff": false,
-  "hasIdeation": false,
-  "hasCompetitive": false,
-  "hasOpportunity": false,
-  "hasMockup": false,
-  "hasHigAudit": false,
-  "hasRecommendations": false,
-  "hasStitchWireframes": false,
-  "hasPrintCollateral": false,
-  "hasProductionBible": false,
-  "hasBusinessThesis": false,
-  "hasMarketLandscape": false,
-  "hasServiceBlueprint": false,
-  "hasLaunchKit": false
-}
-```
-
-### New Artifact Codes
-
-| Code | Artifact | Producer | Coverage Flag | Storage Path |
-|------|----------|----------|---------------|-------------|
-| `BTH` | Business Thesis | `brief.md` | `hasBusinessThesis` | `strategy/BTH-thesis-v{N}.md` |
-| `MLS` | Market Landscape | `competitive.md` | `hasMarketLandscape` | `strategy/MLS-market-landscape-v{N}.md` |
-| `MKT` | Brand/Marketing System | `system.md` | (child of `hasDesignSystem`) | `visual/MKT-brand-system-v{N}.md` |
-| `SBP` | Service Blueprint | `wireframe.md` | `hasServiceBlueprint` | `ux/SBP-blueprint-v{N}.md` |
-| `LKT` | Launch Kit | `handoff.md` | `hasLaunchKit` | `launch/LKT-launchkit-v{N}.md` |
-| `LDP` | Landing Page Wireframe | `wireframe.md` | (child of `hasWireframes`) | `launch/LDP-landing-v{N}.html` |
-| `STR` | Stripe Pricing Config | `handoff.md` | (child of `hasLaunchKit`) | `launch/STR-pricing-v{N}.json` |
-| `CNT` | Content Calendar | `handoff.md` | (child of `hasLaunchKit`) | `launch/CNT-calendar-v{N}.md` |
-| `OTR` | Outreach Sequence | `handoff.md` | (child of `hasLaunchKit`) | `launch/OTR-outreach-v{N}.md` |
-| `DEPLOY` | Deployment Record | `deploy.md` | (no coverage flag) | manifest only |
-
-**Coverage flag assignment rationale:** Only artifacts that represent a significant design category get their own coverage flag. Child artifacts (LDP, STR, CNT, OTR, MKT) are subcomponents of their parent category's flag. This follows the same principle as how `hasWireframes` covers all WFR-{slug} artifacts without a separate flag per screen.
-
-### External Services (deploy.md only)
-
-| Service | Integration Pattern | Approval Gate |
-|---------|---------------------|---------------|
-| Vercel | `vercel` CLI via Bash tool — dry-run first, deploy on approval | Hard gate before `vercel deploy` |
-| Next.js | File scaffolding via Write tool to project directory outside `.planning/` | Hard gate showing full file list |
-| Stripe | Config spec written to `STR-pricing-v{N}.json` — no live Stripe API calls | Hard gate before writing |
-| Resend | Template stubs written as markdown files — no live API calls | Hard gate before writing |
-
-No new MCP server registrations are required for deploy.md. Stripe and Resend are write-side config generation only — no read-side API calls in the pipeline.
+| `bin/pde-tools.cjs` | Add `experiment` and `metric` subcommand dispatch blocks | ~30 lines |
+| `agents/pde-phase-researcher.md` | Add `--empirical` flag handling section + `try_candidates` return block in empirical mode | ~40 lines (additive) |
+| `workflows/research-phase.md` | Add `--empirical` flag detection + pass to researcher spawn | ~10 lines |
+| `bin/lib/event-bus.cjs` | Add `exp_iteration_started` and `exp_iteration_complete` event type constants | ~6 lines |
+| `.planning/config.json` template | Add `experiment_defaults` section with `max_iterations`, `improvement_threshold`, `protected_files_check` | ~8 lines |
 
 ---
 
 ## Anti-Patterns
 
-### Anti-Pattern 1: Treating business: as a New productType Value
+### Anti-Pattern 1: Using Regular `pde-tools commit` for Exploratory Commits
 
-**What people do:** Add `"business"` as a valid value for `productType` in brief detection.
-**Why it's wrong:** A business-mode project is still software, hardware, hybrid, or experience at the product design layer. Setting `productType = "business"` would force exclusive branches throughout all 14 workflows (what wireframes does a "business" product get?), break the experience type's exclusive-branch system, and destroy the composability goal entirely.
-**Do this instead:** Use `businessMode: true` as an orthogonal flag alongside the existing `productType`. The manifest holds both. Workflows read both independently.
+**What people do:** Route experiment commits through the existing `pde-tools.cjs commit` wrapper (same as task commits).
 
-### Anti-Pattern 2: Storing Launch Kit Artifacts Under ux/ or visual/
+**Why it's wrong:** Regular commits have no rollback mechanism and are not tagged. If a metric regresses, you cannot `git reset --hard` back to baseline without also discarding any non-experiment changes that happened to be committed nearby. The exploratory commit state machine exists precisely to create an isolated, reversible commit layer.
 
-**What people do:** Store `LDP-landing-v1.html` under `ux/` alongside wireframes, or `STR-pricing.json` under `visual/`.
-**Why it's wrong:** Launch kit artifacts are pre-deployment executables, not design specifications. Mixing them into `ux/` confuses the handoff consumer (which reads `ux/` for component specs) and makes the deploy workflow's file discovery non-deterministic.
-**Do this instead:** Use a dedicated `launch/` directory. The `design ensure-dirs` command creates it. All launch artifact paths are predictably `launch/{CODE}-{slug}-v{N}.{ext}`.
+**Do this instead:** Use `pde-tools experiment commit-candidate` exclusively for all experiment mutations. Never use `pde-tools commit` inside the experiment runner.
 
-### Anti-Pattern 3: Clobbering the 20-Field designCoverage Object
+### Anti-Pattern 2: LLM-as-Metric-Judge
 
-**What people do:** Write only the new flag when updating coverage (e.g., `{"hasBusinessThesis": true}` omitting all 19 other fields).
-**Why it's wrong:** `manifest-set-top-level designCoverage` replaces the ENTIRE object. Any field not included reverts to absent (treated as `false`). This is the exact cross-phase clobber bug that caused v0.11 Phase 83 to find 10 broken workflows.
-**Do this instead:** Always run `coverage-check` first, parse all 20 current values, write the full 20-field merged object.
+**What people do:** Ask Claude to "score" the mutated workflow file and use that score as the keep/discard signal.
 
-### Anti-Pattern 4: Auto-Deploying Without Human Approval Gates
+**Why it's wrong:** LLM scoring is non-deterministic. The same workflow text can score 72 on one call and 79 on the next. Basing keep/discard on a non-deterministic signal makes the experiment loop a random walk rather than an optimization. The v0.4 quality fleet demonstrated this: Nyquist test counts are reliable, "is this better" LLM ratings are not.
 
-**What people do:** Wire `vercel deploy` as an automatic step after scaffolding completes.
-**Why it's wrong:** Deployment is irreversible and potentially billing-relevant. It can expose unfinished code publicly. PDE has always required user consent for external writes (VAL-03 pattern from MCP integrations). Deployment is higher-stakes than a Linear ticket write.
-**Do this instead:** Show the user exactly what will be deployed (file list, project name, domain), run `vercel --dry-run`, present output for review, require explicit "yes" confirmation before `vercel deploy`. Halt on "no" or timeout.
+**Do this instead:** The metric command must be a deterministic script (`node tests/quality.cjs`, `grep -c VERIFIED`). LLM judgment belongs in the researcher's candidate generation phase (where non-determinism is acceptable) not in the keep/discard gate.
 
-### Anti-Pattern 5: Adding businessMode Stage at the Wrong Pipeline Position
+### Anti-Pattern 3: Placing Experiment State Inside `.planning/phases/`
 
-**What people do:** Insert a `business-thesis` stage as Stage 1 in build.md (before brief), reasoning that business framing should come first.
-**Why it's wrong:** The business thesis IS generated inside `brief.md` Step 5 — it reads upstream IDT/CMP/OPP context and PROJECT.md to synthesize it. Extracting it as a pre-brief stage breaks the upstream context injection chain and the `--from brief` resume path.
-**Do this instead:** Business thesis sections live inside `brief.md` Step 5, gated on `businessMode === true`. The BTH artifact is registered in the manifest by brief's Step 7. The deploy stage goes at position 14 (after handoff), not at the beginning.
+**What people do:** Store `EXPERIMENT.md` in a new phase directory (e.g., `.planning/phases/99-optimize/EXPERIMENT.md`).
 
-### Anti-Pattern 6: Skipping the Coverage Clobber Audit Phase
+**Why it's wrong:** `pde-tools roadmap analyze` scans `.planning/phases/` for all directories and checks if they have PLAN.md + SUMMARY.md. An experiment directory has neither. The analyzer will flag it as an incomplete phase, the readiness gate will fire, and `autonomous.md` will try to plan and execute it as a normal phase. The confusion propagates through every tool that iterates over phases.
 
-**What people do:** Add the 4 new flags to the template and the 3-4 primary-producer workflows, then skip auditing the other 10 workflows that also write `designCoverage`.
-**Why it's wrong:** Any workflow that writes `designCoverage` without including the 4 new flags will silently zero them out. A user who runs `brief` (sets `hasBusinessThesis: true`), then runs `flows` (writes coverage without the new flags), will find `hasBusinessThesis` reset to absent. The build orchestrator won't detect this because it reads coverage at the start of the pipeline, not between stages.
-**Do this instead:** Dedicate a phase to auditing all 14 workflows, update each one to include the 4 new pass-through fields, write Nyquist tests that verify the flag count.
+**Do this instead:** Use the dedicated `.planning/experiments/` directory, which exists outside the phase scanning path.
+
+### Anti-Pattern 4: Allowing Mutable File Globs in Experiment Spec
+
+**What people do:** Specify `mutable_files: ["workflows/*.md"]` in EXPERIMENT.md to give the runner flexibility.
+
+**Why it's wrong:** A glob boundary is unauditable at commit time. The `experiment commit-candidate` boundary check would need to expand the glob against the working tree — and a new file created by the runner that matches the glob would silently be included. The accidental modification of `workflows/build.md` or `workflows/deploy.md` would corrupt production workflows with no easy audit trail.
+
+**Do this instead:** Require explicit file paths in `mutable_files`. The optimize workflow should reject EXPERIMENT.md specs that contain globs or directory paths. If the experiment needs to touch multiple files, list each one explicitly.
+
+### Anti-Pattern 5: Running Experiments Inside Active Phase Execution
+
+**What people do:** Invoke `/pde:optimize` during an ongoing `execute-phase` run (from a checkpoint or nested Task call).
+
+**Why it's wrong:** The experiment loop performs `git reset --hard` operations. If a parent `execute-phase` has uncommitted changes in flight, a reset would destroy them. The experiment runner's `git reset --hard` is scoped to `baseline_hash` which predates any in-flight work.
+
+**Do this instead:** Experiments are standalone operations, not nested calls. The optimize workflow checks `git status` at the start and aborts if there are uncommitted changes outside the experiment's mutable files. The `/pde:optimize` command is safe to run between phases, not during them.
+
+---
+
+## Scalability Considerations
+
+The experiment loop is bounded by design. Scalability is not a primary concern, but budget exhaustion and session limits are:
+
+| Scale | Concern | Mitigation |
+|-------|---------|------------|
+| 8 iterations (default) | Session length — 8 runner spawns in one session | Each iteration is a fresh subagent. Total session cost is 8 × runner context. Default budget of 8 keeps total cost manageable. |
+| 20+ iterations | Context accumulation in orchestrator | Orchestrator reads only EXPERIMENT-BEST.json and EXPERIMENT-LOG.ndjson (NDJSON is append-only, read line count not full content). Orchestrator context stays flat. |
+| Multi-file mutations | Boundary complexity | Explicit mutable_files list must be validated at spec time. More files = more rollback surface. Recommend single-file experiments for first version. |
+| Long-running metric scripts | Timeout | `timeout_seconds` in spec. Runner kills metric process and returns `metric_timeout` status after deadline. |
 
 ---
 
 ## Suggested Build Order
 
-Based on architectural dependency chain derived from v0.11 precedent:
+Dependencies run from bottom up: the git state machine must exist before the runner, the runner before the orchestrator, the orchestrator before the command.
 
 | Phase | Files | Rationale |
 |-------|-------|-----------|
-| 1 | `templates/design-manifest.json`, `bin/lib/design.cjs` | Schema and ensure-dirs must land first — all subsequent phases depend on manifest reading new fields without crashing. `launch/` directory must exist before any artifact tries to write there. |
-| 2 | `references/business-track.md`, `references/launch-frameworks.md` | Reference files before any workflow that loads them (same precedent: `experience-disclaimer.md` created before being `@` referenced). |
-| 3 | `workflows/brief.md`, `commands/brief.md` N/A (brief has no separate command) | Central: brief sets `businessMode` + `businessTrack` + `hasBusinessThesis` in manifest. All downstream gates depend on this. |
-| 4 | `workflows/competitive.md` | Depends on brief (`businessMode` set). MLS is soft-consumed by handoff. |
-| 5 | `workflows/opportunity.md` | Depends on brief + competitive. Business RICE needs MLS market data as soft input. |
-| 6 | `workflows/flows.md` | Depends on brief. Operational flows need BTH for business context, MLS for market framing. |
-| 7 | `workflows/system.md` | Depends on brief. Brand system is parallel to token generation. |
-| 8 | `workflows/wireframe.md` | Depends on flows (service flows inform blueprint) + system (brand tokens inform LDP). |
-| 9 | `workflows/critique.md`, `workflows/hig.md` | Depend on wireframe (SBP + LDP are the artifacts being critiqued). |
-| 10 | `workflows/handoff.md` | Assembles all upstream business artifacts into LKT. Depends on: BTH, MLS, LDP, SBP artifacts being registered in manifest. |
-| 11 | `commands/deploy.md`, `workflows/deploy.md` | New skill. Depends on LKT artifact from handoff. `build.md` Stage 14 added in this phase. |
-| 12 | `workflows/recommend.md`, `workflows/iterate.md`, `workflows/mockup.md` | Lower-priority additions. iterate + mockup are guard stubs only. recommend adds a tool category. |
-| 13 | Coverage clobber audit — all 14 designCoverage-writing workflows | Analogous to v0.11 Phase 83. Isolated phase so regression surface is clearly bounded. |
-| 14 | Nyquist regression tests | Verify: non-business projects unaffected, business + software compose correctly, business + experience compose correctly (most complex case), deploy workflow halts at each approval gate. |
+| 1 | `bin/lib/experiment.cjs`, `pde-tools.cjs` dispatch additions | Git state machine is the lowest-level dependency. All other components call it. Build and test in isolation before agents exist. Analogous to how `event-bus.cjs` shipped in Phase 58 before any workflow consumed it. |
+| 2 | `agents/pde-experiment-runner.md` | Runner depends on `experiment commit-candidate` and `metric eval` from Phase 1. Can be defined before the orchestrator — it is a pure subagent with no awareness of the outer loop. |
+| 3 | `workflows/optimize.md`, `commands/optimize.md` | Orchestrator depends on runner (Phase 2) and git state machine (Phase 1). The command entry point is trivial (~20 lines) and ships in the same phase as the workflow. |
+| 4 | `agents/pde-phase-researcher.md` (empirical flag), `workflows/research-phase.md` routing | Empirical mode is additive and decoupled. The researcher can be modified after the loop is functional. This allows testing the basic commit/reset/metric loop without needing candidates from the researcher. |
+| 5 | Event bus additions, config template | Integration polish — emit experiment events to the tmux dashboard, add `experiment_defaults` to config template. Can ship in same phase as researcher modification or separately. |
+| 6 | Nyquist regression tests | Verify: non-experiment workflows unaffected, boundary check rejects out-of-bounds files, reset restores baseline, metric timeout is respected, protected files are never staged. |
 
 ---
 
 ## Sources
 
 - Direct codebase analysis — HIGH confidence:
-  - `workflows/brief.md` — product type detection, upstream context injection, manifest write pattern
-  - `workflows/flows.md`, `wireframe.md`, `critique.md`, `hig.md`, `mockup.md`, `iterate.md` — experience type conditional block patterns
-  - `workflows/handoff.md` — experience BIB assembly, coverage write pattern, STACK.md bypass for non-software types
-  - `workflows/competitive.md`, `opportunity.md`, `recommend.md` — experience stub patterns
-  - `workflows/build.md` — STAGES table, coverage check pattern, conditional stage logic
-  - `templates/design-manifest.json` — 16-field designCoverage schema, top-level field conventions, artifact code conventions
-  - `bin/lib/design.cjs` — `cmdManifestSetTopLevel`, `cmdCoverageCheck`, `cmdArtifactPath`, `ensure-dirs` implementation
-  - `references/strategy-frameworks.md` — existing TAM/SAM/SOM, Porter's Five Forces, RICE (relevant to business content scope)
-  - `.planning/PROJECT.md` — v0.12 milestone requirements, v0.11 precedents, key decisions log
+  - `bin/lib/core.cjs` — `execGit` function, `loadConfig` structure, CJS module conventions
+  - `bin/lib/event-bus.cjs` — NDJSON append pattern, session-scoped file naming, error swallowing contract
+  - `bin/pde-tools.cjs` — dispatch block pattern, subcommand registration convention, `@file:` large-payload pattern
+  - `agents/pde-research-validator.md` — read-only agent pattern, structured JSON return to orchestrator (not file write)
+  - `agents/pde-experiment-runner.md` (does not exist yet) — modeled on `pde-executor` + `pde-research-validator` hybrid pattern
+  - `workflows/execute-phase.md` — fresh-context-per-subagent Pattern A, agent tracking protocol
+  - `workflows/autonomous.md` — iteration loop structure, phase re-read after each cycle, blocker handling
+  - `references/git-integration.md` — commit format conventions, per-task commit principle, `git reset` usage in `complete-milestone.md`
+  - `.planning/PROJECT.md` — v0.13 target features, out-of-scope list, existing architecture summary, constraints
 
 ---
-*Architecture research for: PDE v0.12 — Business Product Type Integration*
-*Researched: 2026-03-22*
+
+*Architecture research for: PDE v0.13 — AutoResearch Experiment Loop Integration*
+*Researched: 2026-03-23*
