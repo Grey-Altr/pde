@@ -345,10 +345,11 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. Six experiment event types are emitted on the NDJSON event bus during a live run: `experiment.start`, `experiment.iteration`, `experiment.keep`, `experiment.discard`, `experiment.crash`, `experiment.complete` — each with structured fields (slug, iteration, metric_value, status)
   2. The tmux dashboard displays a dedicated experiment pane showing current iteration number, best metric value, keep/discard ratio, and estimated remaining budget — updating in real time during an active run
-**Plans**: 1 plan
+**Plans**: 2 plans
 
 Plans:
 - [ ] 106-01-PLAN.md — Add experiment event emissions to optimize.md, create experiment pane, wire dashboard
+- [ ] 106-02-PLAN.md — Gap closure: log-stream coloring, error guards, structural tests
 
 ### Phase 107: Nyquist Coverage
 **Goal**: The experiment infrastructure has structural regression tests that verify safety constraints fire correctly, and existing PDE workflows are confirmed unaffected when no experiment is active
@@ -390,5 +391,5 @@ Phases execute in numeric order: 99 → 100 → 101 → 102 → 103 → 104 → 
 | 103. Orchestrator, Command & Circuit Breakers | v0.13 | 1/2 | Complete    | 2026-03-23 |
 | 104. Self-Improvement Presets | v0.13 | 0/1 | Complete    | 2026-03-23 |
 | 105. Researcher Empirical Mode | v0.13 | 0/1 | Complete    | 2026-03-23 |
-| 106. Observability & Event Bus | v0.13 | 0/1 | Not started | - |
+| 106. Observability & Event Bus | v0.13 | 0/1 | Planned    |  |
 | 107. Nyquist Coverage | v0.13 | 0/TBD | Not started | - |
