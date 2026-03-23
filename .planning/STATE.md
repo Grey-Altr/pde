@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.12
 milestone_name: Business Product Type
-status: unknown
-stopped_at: Completed 89-02-PLAN.md — wireframe.md STR/DPD artifact generation + DESIGN-STATE wiring, 11/11 Nyquist tests GREEN
-last_updated: "2026-03-22T18:42:01.075Z"
+status: Milestone complete
+stopped_at: Completed 94-01-PLAN.md — test-regression-matrix.cjs 35 assertions, 224/224 full CJS suite GREEN, INTG-02 through INTG-07 verified
+last_updated: "2026-03-23T03:15:36.080Z"
 progress:
   total_phases: 11
-  completed_phases: 6
-  total_plans: 11
-  completed_plans: 11
+  completed_phases: 11
+  total_plans: 20
+  completed_plans: 20
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-22)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 89 — wireframe-stage-launch-artifacts
+**Current focus:** Phase 94 — Nyquist Regression Tests
 
 ## Current Position
 
-Phase: 89 (wireframe-stage-launch-artifacts) — EXECUTING
-Plan: 2 of 2
+Phase: 94
+Plan: Not started
 
 ## Performance Metrics
 
@@ -48,6 +48,13 @@ Plan: 2 of 2
 | Phase 87 P02 | 4 | 1 tasks | 1 files |
 | Phase 88-brand-system P01 | 3 | 2 tasks | 3 files |
 | Phase 89 P02 | 8 | 2 tasks | 1 files |
+| Phase 90 P01 | 5 | 2 tasks | 2 files |
+| Phase 90-critique-hig-extensions P02 | 8 | 1 tasks | 1 files |
+| Phase 92 P01 | 4 | 2 tasks | 2 files |
+| Phase 92 P02 | 2 | 2 tasks | 2 files |
+| Phase 93-designcoverage-clobber-audit-secondary-workflow-stubs P01 | 3 | 3 tasks | 3 files |
+| Phase 93 P02 | 2 | 2 tasks | 2 files |
+| Phase 94-nyquist-regression-tests P01 | 12 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -93,6 +100,24 @@ Recent decisions affecting v0.12:
 - [Phase 89]: STR unit_amount always string '[YOUR_PRICE_IN_CENTS]' — grep [1-9] pattern (not [0-9]) allows unit_amount:0 for free tiers
 - [Phase 89]: Step 7e-launch reuses existing Step 7a lock window — no second lock-acquire pde-wireframe introduced
 - [Phase 89]: DPD funding signal detection defaults to yc_10 when BTH/BRF absent — safe degradation for startup_team track
+- [Phase 90]: Step 4-BUSINESS is INDEPENDENT IF block inside ELSE clause — not ELSE IF from experience gate, preventing business perspectives from running on experience products
+- [Phase 90]: Business composite denominator 9.5 = sum of all 8 perspective weights (1.5+1.0+1.5+1.0+1.0+1.0+1.5+1.0) in critique.md business mode
+- [Phase 90-02]: LIGHT_MODE check is FIRST guard in Step 4-BUSINESS (before BM check) — defense-in-depth prevents business HIG running in --light critique delegation mode
+- [Phase 90-02]: OTR and CNT absent = note-and-continue in hig.md — Phase 91 handoff artifacts don't exist at Phase 90 run time; graceful degradation not halt
+- [Phase 91-02]: Step 7b-lkt is independent IF block (not ELSE IF from 7b-bib) — business:experience compositions execute both BIB and LKT/CNT/OTR registration paths
+- [Phase 91-02]: Dual manifest registration intentional — Step 5e registers during file write, Step 7b-lkt re-registers in Step 7 manifest update phase (mirrors BIB pattern)
+- [Phase 91-02]: Step 7d business mode summary appends rows additively (not replacing experience table) — composed with independent IF blocks
+- [Phase 92]: deploy.md uses Write-tool-direct scaffold generation (not create-next-app) — offline-capable, idempotent, version-pinnable from LDP spec
+- [Phase 92]: Four approval gates in deploy.md are non-resumable — declining any gate halts clean with no partial state, user must re-run /pde:deploy to restart
+- [Phase 92]: deploy-manifest.json is standalone in .planning/deploy-staging/ (not registered in design-manifest.json) — deploy-staging is a separate artifact domain from design/
+- [Phase 92]: commands/deploy.md uses no MCP tools — deploy workflow does not invoke external services directly
+- [Phase 92]: Stage 14 businessMode gate reads BM once in Step 2/4 consistent with single-read pattern (anti-pattern #7)
+- [Phase 92]: TOTAL = count(STAGES) automatically handles 13→14 expansion — zero numeric literal changes
+- [Phase 93-01]: INTG-08 implemented as per-file business stub presence checks, not global businessMode/businessTrack count equality — build.md 7-vs-0 gap is architectural
+- [Phase 93-01]: recommend.md uses per-field {current_hasFieldName} placeholders for 4 new fields; iterate.md uses generic {current} — each file preserves its existing naming convention
+- [Phase 93]: mockup.md and ideate.md use generic {current} placeholders for 4 new business coverage fields — consistent with each file's pre-existing convention
+- [Phase 94-nyquist-regression-tests]: BTH marker in brief.md is 'BTH-thesis' (artifact file path), not 'BTH-business-thesis' — direct grep verification before test authoring catches research doc drift
+- [Phase 94-nyquist-regression-tests]: Ordering assertions (indexOf gate < indexOf artifact) prove gating relationships without parsing workflow logic
 
 ### Pending Todos
 
@@ -105,8 +130,8 @@ Recent decisions affecting v0.12:
 
 ## Session Continuity
 
-Last session: 2026-03-22T18:37:52.560Z
-Stopped at: Completed 89-02-PLAN.md — wireframe.md STR/DPD artifact generation + DESIGN-STATE wiring, 11/11 Nyquist tests GREEN
+Last session: 2026-03-23T03:12:29.724Z
+Stopped at: Completed 94-01-PLAN.md — test-regression-matrix.cjs 35 assertions, 224/224 full CJS suite GREEN, INTG-02 through INTG-07 verified
 Resume file: None
 
-Next action: Execute Phase 85 (Brief Skill)
+Next action: Execute Phase 92 (Deploy Skill)
