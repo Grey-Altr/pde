@@ -341,8 +341,8 @@ Plans:
   4. Visual regression circuit breaker integrates with existing consecutive_failure_limit and no_progress_limit infrastructure
 **Plans:** 2 plans
 Plans:
-- [ ] 108-01-PLAN.md — Register Playwright in mcp-bridge.cjs (APPROVED_SERVERS + TOOL_MAP + AUTH_INSTRUCTIONS + Nyquist tests)
-- [ ] 108-02-PLAN.md — Update mcp-integration.md docs + MCP-08 live verification gate
+- [ ] 114-01-PLAN.md — visual-regression.cjs library + experiment-schema.cjs extension + Nyquist tests (VRCB-01..04)
+- [ ] 114-02-PLAN.md — optimize.md BREAK-05 wiring + VRCB-05 integration tests
 
 ### Phase 115: Multi-Candidate Experiments
 **Goal**: Experiment iterations can generate and evaluate multiple variants simultaneously, selecting the best one
