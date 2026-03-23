@@ -210,7 +210,7 @@ Full details: .planning/milestones/v0.11-ROADMAP.md
 - [x] **Phase 92: Deploy Skill** — Stage 14 with four approval-gated deployment actions and /pde:deploy command (completed 2026-03-22)
 - [x] **Phase 93: designCoverage Clobber Audit + Secondary Workflow Stubs** — 20-field pass-through audit across all 14 workflows; recommend/iterate/mockup guard stubs (completed 2026-03-23)
 - [x] **Phase 94: Nyquist Regression Tests** — Composition case validation and non-regression verification (completed 2026-03-23)
-- [ ] **Phase 95: Integration Wiring Fixes** — Close 6 requirement gaps, 3 integration gaps, and 3 broken flows from milestone audit
+- [x] **Phase 95: Integration Wiring Fixes** — Close 6 requirement gaps, 3 integration gaps, and 3 broken flows from milestone audit (completed 2026-03-23)
 
 ## Phase Details
 
@@ -415,4 +415,4 @@ Plans:
 | 92. Deploy Skill | v0.12 | 1/2 | Complete    | 2026-03-22 |
 | 93. designCoverage Audit + Stubs | v0.12 | 1/2 | Complete    | 2026-03-23 |
 | 94. Nyquist Regression Tests | v0.12 | 0/1 | Complete    | 2026-03-23 |
-| 95. Integration Wiring Fixes | v0.12 | 0/1 | Pending     | - |
+| 95. Integration Wiring Fixes | v0.12 | 0/1 | Complete    | 2026-03-23 |

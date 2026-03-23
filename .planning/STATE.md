@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.12
 milestone_name: Business Product Type
 status: Milestone complete
-stopped_at: Completed 94-01-PLAN.md — test-regression-matrix.cjs 35 assertions, 224/224 full CJS suite GREEN, INTG-02 through INTG-07 verified
-last_updated: "2026-03-23T03:15:36.080Z"
+stopped_at: "Completed 95-01-PLAN.md — integration wiring fixes: OTR/BTH glob fixes, 21-field designCoverage, handoff required_reading, 46/46 Nyquist tests GREEN"
+last_updated: "2026-03-23T04:27:29.440Z"
 progress:
-  total_phases: 11
-  completed_phases: 11
-  total_plans: 20
-  completed_plans: 20
+  total_phases: 12
+  completed_phases: 12
+  total_plans: 21
+  completed_plans: 21
 ---
 
 # Project State
@@ -19,11 +19,11 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-22)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 94 — Nyquist Regression Tests
+**Current focus:** Phase 95 — integration-wiring-fixes
 
 ## Current Position
 
-Phase: 94
+Phase: 95
 Plan: Not started
 
 ## Performance Metrics
@@ -55,6 +55,7 @@ Plan: Not started
 | Phase 93-designcoverage-clobber-audit-secondary-workflow-stubs P01 | 3 | 3 tasks | 3 files |
 | Phase 93 P02 | 2 | 2 tasks | 2 files |
 | Phase 94-nyquist-regression-tests P01 | 12 | 2 tasks | 2 files |
+| Phase 95-integration-wiring-fixes P01 | 25 | 3 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -118,6 +119,9 @@ Recent decisions affecting v0.12:
 - [Phase 93]: mockup.md and ideate.md use generic {current} placeholders for 4 new business coverage fields — consistent with each file's pre-existing convention
 - [Phase 94-nyquist-regression-tests]: BTH marker in brief.md is 'BTH-thesis' (artifact file path), not 'BTH-business-thesis' — direct grep verification before test authoring catches research doc drift
 - [Phase 94-nyquist-regression-tests]: Ordering assertions (indexOf gate < indexOf artifact) prove gating relationships without parsing workflow logic
+- [Phase 95-01]: OTR artifact filename is OTR-outreach-sequences-v*.md matching handoff.md producer output
+- [Phase 95-01]: BTH artifact filename is BTH-thesis-v*.md matching brief.md producer output — all 4 consumer workflows fixed
+- [Phase 95-01]: hasDeployStaging is 21st designCoverage field — deploy.md owns true write, 9 other workflows pass-through current
 
 ### Pending Todos
 
@@ -130,8 +134,8 @@ Recent decisions affecting v0.12:
 
 ## Session Continuity
 
-Last session: 2026-03-23T03:12:29.724Z
-Stopped at: Completed 94-01-PLAN.md — test-regression-matrix.cjs 35 assertions, 224/224 full CJS suite GREEN, INTG-02 through INTG-07 verified
+Last session: 2026-03-23T04:24:11.739Z
+Stopped at: Completed 95-01-PLAN.md — integration wiring fixes: OTR/BTH glob fixes, 21-field designCoverage, handoff required_reading, 46/46 Nyquist tests GREEN
 Resume file: None
 
 Next action: Execute Phase 92 (Deploy Skill)
