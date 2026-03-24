@@ -165,7 +165,7 @@ Full details: .planning/milestones/v0.14-ROADMAP.md
   3. `isStitchSource()` is called from handoff.md workflow instead of inline string comparison
   4. All 7 v0.15 Nyquist VALIDATION.md files promoted from draft to compliant
   5. All 14 v0.15 SUMMARY.md files have `requirements_completed` frontmatter populated
-**Plans:** 2/2 complete
+**Plans:** 2/2 plans complete
 
 Plans:
 - [x] 125-01-PLAN.md — Wire isStitchSource() in handoff.md + mark DIV-05/STH-02 complete
