@@ -26,7 +26,7 @@ Phases 119-125 delivered the unidirectional context generation pipeline: context
 - [x] **Phase 127: Reverse Parsers** - .mdc and SKILL.md/DESIGN.md reverse parsers with section-marker ownership (completed 2026-03-24)
 - [x] **Phase 128: Merge Engine and Conflict Resolution** - 3-way merge, conflict detection, configurable resolution policy (completed 2026-03-24)
 - [x] **Phase 129: Hook Integration** - Live mtime detection, CLI ingest command, session-start reconciliation (completed 2026-03-24)
-- [ ] **Phase 130: Antigravity Write-Back** - DESIGN.md value-only write-back, agent additions preservation, token state contract
+- [x] **Phase 130: Antigravity Write-Back** - DESIGN.md value-only write-back, agent additions preservation, token state contract (completed 2026-03-24)
 - [ ] **Phase 131: MCP Write Tools** - Four validated write tools behind --enable-writes flag
 - [ ] **Phase 132: Conflict UX and Generation Enhancements** - Audit trail, rollback, conflict commands, enhanced .mdc and SKILL.md output
 
@@ -107,8 +107,8 @@ Plans:
 **UI hint**: yes
 
 Plans:
-- [ ] 130-01-PLAN.md — hex-to-OKLCH conversion + DESIGN.md write-back to design-manifest.json + format-version marker (AGR-03, AGR-07)
-- [ ] 130-02-PLAN.md — Agent additions preservation in SKILL.md regeneration: read-before-write + AGENT-ADDITIONS marker (AGR-05)
+- [x] 130-01-PLAN.md — hex-to-OKLCH conversion + DESIGN.md write-back to design-manifest.json + format-version marker (AGR-03, AGR-07)
+- [x] 130-02-PLAN.md — Agent additions preservation in SKILL.md regeneration: read-before-write + AGENT-ADDITIONS marker (AGR-05)
 
 ### Phase 131: MCP Write Tools
 **Goal**: The MCP server exposes four validated write tools behind an --enable-writes flag that route all writes through pde-tools.cjs validation and call emitAll() post-write
@@ -144,6 +144,6 @@ Plans:
 | 127. Reverse Parsers | 2/2 | Complete    | 2026-03-24 |
 | 128. Merge Engine and Conflict Resolution | 2/2 | Complete    | 2026-03-24 |
 | 129. Hook Integration | 1/2 | Complete    | 2026-03-24 |
-| 130. Antigravity Write-Back | 0/2 | Planned    |  |
+| 130. Antigravity Write-Back | 2/2 | Complete   | 2026-03-24 |
 | 131. MCP Write Tools | 0/TBD | Not started | - |
 | 132. Conflict UX and Generation Enhancements | 0/TBD | Not started | - |

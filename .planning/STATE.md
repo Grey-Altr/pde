@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.16
 milestone_name: Multi-Editor Context Sync
-status: Ready to execute
-stopped_at: Completed 130-01-PLAN.md
-last_updated: "2026-03-24T21:04:42.022Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 130-02-PLAN.md
+last_updated: "2026-03-24T21:09:49.400Z"
 progress:
   total_phases: 7
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 10
-  completed_plans: 8
+  completed_plans: 10
 ---
 
 # Project State
@@ -66,6 +66,7 @@ Recent decisions affecting v0.16 implementation:
 - [Phase 129]: handleHookPayload calls ingestAll (not plain emitAll) when mtime changes detected; context-sync-session-start.cjs produces zero stdout per SessionStart contract
 - [Phase 130]: hexToOklch uses canonical OKLAB forward matrix matching inverse in oklchToHex for exact round-trip
 - [Phase 130]: pde-format-version: 1.0 inserted between sourceComment and # heading in both emitDesignMd branches (AGR-07)
+- [Phase 130-02]: AGENT_MARKER constant defined near WRITABLE_FIELDS; agentBlock extracted via indexOf not regex; never trim agentBlock; marker always emitted even on fresh generation
 
 ### Pending Todos
 
@@ -78,8 +79,8 @@ Recent decisions affecting v0.16 implementation:
 
 ## Session Continuity
 
-Last session: 2026-03-24T21:04:42.019Z
-Stopped at: Completed 130-01-PLAN.md
+Last session: 2026-03-24T21:09:49.396Z
+Stopped at: Completed 130-02-PLAN.md
 Resume with: /gsd:discuss-phase 127
 Resume file: None
 

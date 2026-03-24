@@ -23,7 +23,7 @@
 - [x] **AGR-02**: DESIGN.md reverse parser — extract hex color values from Color Palette section using pattern `- **Name** (#hex) -- role`; format version detection via `<!-- pde-format-version: 1.0 -->`; capture unknown sections as agentAdditions; lenient fallback for unknown versions
 - [x] **AGR-03**: DESIGN.md write-back — value-only DTCG update in design-manifest.json; update only $value field of color tokens; preserve $type, $description, $extensions, group hierarchy; hex-to-OKLCH reverse conversion with 4-decimal precision; log precision warnings >0.001 delta; recompute hash and emitAll() after write
 - [x] **AGR-04**: Shared token state contract — design-manifest.json is canonical source; DESIGN.md includes `<!-- SOURCE: design-manifest.json | DERIVE-ONLY -->` comment; emitDesignMd() never reads DESIGN.md as input; no code path writes manifest without merge engine
-- [ ] **AGR-05**: Agent-written SKILL.md additions preserved — emitAntigravitySkill() parses existing agentAdditions from current SKILL.md, regenerates PDE sections, appends agent block below `<!-- AGENT-ADDITIONS: DO NOT EDIT THIS LINE -->` marker
+- [x] **AGR-05**: Agent-written SKILL.md additions preserved — emitAntigravitySkill() parses existing agentAdditions from current SKILL.md, regenerates PDE sections, appends agent block below `<!-- AGENT-ADDITIONS: DO NOT EDIT THIS LINE -->` marker
 - [ ] **AGR-06**: Enhanced SKILL.md generation — Workflows section listing pipeline stages with completion status from DESIGN-STATE.md; full Constraints from PROJECT.md; exact DTCG token path; `<!-- pde-skill-version: 1.0 -->` format marker
 - [x] **AGR-07**: Enhanced DESIGN.md generation — `<!-- pde-format-version: 1.0 -->` format version marker for parser version detection; version incremented only on breaking changes
 
@@ -57,7 +57,7 @@
 | AGR-02 | Phase 127 | Complete |
 | AGR-03 | Phase 130 | Complete |
 | AGR-04 | Phase 128 | Complete |
-| AGR-05 | Phase 130 | Pending |
+| AGR-05 | Phase 130 | Complete |
 | AGR-06 | Phase 132 | Pending |
 | AGR-07 | Phase 130 | Complete |
 | INF-01 | Phase 131 | Pending |
