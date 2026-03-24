@@ -193,7 +193,10 @@ Plans:
   1. Handoff specs include @file annotations (@component:, @props:, @tokens:) that any editor can extract to locate related artifacts
   2. DTCG design tokens are converted to both Tailwind v4 @theme declarations and CSS custom properties
   3. Framework detection reads package.json and generates framework-appropriate component stubs (React + Tailwind as default, adapting to detected framework)
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 120-01-PLAN.md — TDD: artifact-format.cjs module with @file annotations, DTCG-to-Tailwind @theme, framework detection + stubs
+- [ ] 120-02-PLAN.md — Wire into handoff pipeline + human verification
 **UI hint**: yes
 
 ### Phase 121: MCP Server
@@ -262,4 +265,4 @@ Phases execute in numeric order: 118 -> 119 -> 120 -> 121 -> 122 -> 123 -> 124
 | v0.12 | 84-98 | 24/24 | Complete | 2026-03-23 |
 | v0.13 | 99-107 | 15/15 | Complete | 2026-03-23 |
 | v0.14 | 108-117 | 21/21 | Complete | 2026-03-24 |
-| v0.15 | 118-124 | 2/4 | In progress | - |
+| v0.15 | 118-124 | 2/6 | In progress | - |
