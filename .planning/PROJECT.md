@@ -221,11 +221,11 @@ Any user can go from idea to shipped product through a single platform that hand
   - 10 human verification items across Phases 58/59/61 (live hook auto-fire, dashboard E2E, real-time token display) — requires active tmux session to verify
 
 ## Constraints
+- Use hex color values from DESIGN.md, not raw OKLCH from token files
+- Follow typography hierarchy defined in DESIGN.md section 3
+- Spacing uses the base unit defined in DESIGN.md section 5
 
-- **Base**: Built on GSD codebase — same patterns, renamed
-- **Compatibility**: Must work as a Claude Code plugin
-- **State model**: File-based `.planning/` directory — no database, no server
-- **Zero npm deps at plugin root**: Any new dependencies go in isolated subdirectories
+Zero npm deps at plugin root**: Any new dependencies go in isolated subdirectories
 - **MCP security**: Verified-sources-only policy — only official MCP servers from approved vendors
 
 ## Key Decisions

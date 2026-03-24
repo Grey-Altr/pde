@@ -154,4 +154,4 @@ Plans:
 | 129. Hook Integration | 1/2 | Complete    | 2026-03-24 |
 | 130. Antigravity Write-Back | 2/2 | Complete    | 2026-03-24 |
 | 131. MCP Write Tools | 2/2 | Complete    | 2026-03-24 |
-| 132. Conflict UX and Generation Enhancements | 2/2 | Complete   | 2026-03-24 |
+| 132. Conflict UX and Generation Enhancements | 2/2 | Complete    | 2026-03-24 |
