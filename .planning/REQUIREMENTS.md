@@ -42,32 +42,32 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SYN-01 | TBD | Pending |
-| SYN-02 | TBD | Pending |
-| SYN-03 | TBD | Pending |
-| SYN-04 | TBD | Pending |
-| SYN-05 | TBD | Pending |
-| CUR-01 | TBD | Pending |
-| CUR-02 | TBD | Pending |
-| CUR-03 | TBD | Pending |
-| CUR-04 | TBD | Pending |
-| CUR-05 | TBD | Pending |
-| CUR-06 | TBD | Pending |
-| AGR-01 | TBD | Pending |
-| AGR-02 | TBD | Pending |
-| AGR-03 | TBD | Pending |
-| AGR-04 | TBD | Pending |
-| AGR-05 | TBD | Pending |
-| AGR-06 | TBD | Pending |
-| AGR-07 | TBD | Pending |
-| INF-01 | TBD | Pending |
-| INF-02 | TBD | Pending |
-| INF-03 | TBD | Pending |
-| INF-04 | TBD | Pending |
-| INF-05 | TBD | Pending |
-| INF-06 | TBD | Pending |
-| INF-07 | TBD | Pending |
-| INF-08 | TBD | Pending |
+| SYN-01 | Phase 126 | Pending |
+| SYN-02 | Phase 126 | Pending |
+| SYN-03 | Phase 126 | Pending |
+| SYN-04 | Phase 129 | Pending |
+| SYN-05 | Phase 129 | Pending |
+| CUR-01 | Phase 127 | Pending |
+| CUR-02 | Phase 127 | Pending |
+| CUR-03 | Phase 129 | Pending |
+| CUR-04 | Phase 128 | Pending |
+| CUR-05 | Phase 128 | Pending |
+| CUR-06 | Phase 132 | Pending |
+| AGR-01 | Phase 127 | Pending |
+| AGR-02 | Phase 127 | Pending |
+| AGR-03 | Phase 130 | Pending |
+| AGR-04 | Phase 128 | Pending |
+| AGR-05 | Phase 130 | Pending |
+| AGR-06 | Phase 132 | Pending |
+| AGR-07 | Phase 130 | Pending |
+| INF-01 | Phase 131 | Pending |
+| INF-02 | Phase 131 | Pending |
+| INF-03 | Phase 131 | Pending |
+| INF-04 | Phase 131 | Pending |
+| INF-05 | Phase 131 | Pending |
+| INF-06 | Phase 132 | Pending |
+| INF-07 | Phase 132 | Pending |
+| INF-08 | Phase 132 | Pending |
 
 ## Coverage
 
