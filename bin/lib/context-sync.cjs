@@ -484,6 +484,20 @@ function emitAgentsMd(ir, projectRoot) {
  * @param {object} opts - { description, globs, alwaysApply, body, header }
  */
 function writeMdcRule(rulesDir, filename, { description, globs, alwaysApply, body, header }) {
+  // CUR-06: Read existing file to preserve user content below PDE:END marker
+  const MDC_BEGIN = '<!-- PDE:BEGIN -->';
+  const MDC_END   = '<!-- PDE:END -->';
+  let userContent = '';
+  try {
+    const existing = fs.readFileSync(path.join(rulesDir, filename), 'utf-8');
+    const endIdx = existing.indexOf(MDC_END);
+    if (endIdx !== -1) {
+      userContent = existing.slice(endIdx + MDC_END.length);
+    }
+  } catch {
+    // File doesn't exist yet — no user content to preserve
+  }
+
   const parts = ['---'];
   parts.push(`description: ${description}`);
   if (globs) {
@@ -494,9 +508,17 @@ function writeMdcRule(rulesDir, filename, { description, globs, alwaysApply, bod
   parts.push('');
   parts.push(header);
   parts.push('');
+  parts.push(MDC_BEGIN);
+  parts.push('');
   parts.push(body);
+  parts.push(MDC_END);
 
-  const content = parts.join('\n');
+  let content = parts.join('\n');
+  // Append preserved user content (preserves exactly, no trim — matches AGENT_MARKER pattern)
+  if (userContent) {
+    content += userContent;
+  }
+
   fs.writeFileSync(path.join(rulesDir, filename), content, 'utf-8');
 }
 
@@ -532,7 +554,7 @@ function emitCursorRules(ir, projectRoot) {
     {
       filename: 'pde-design-tokens.mdc',
       description: 'PDE design token reference',
-      globs: '*.css,*.scss,*.tsx,*.jsx',
+      globs: '**.{css,scss,tsx,jsx,ts}',
       alwaysApply: false,
       body: [
         '## Design Tokens',
@@ -543,7 +565,7 @@ function emitCursorRules(ir, projectRoot) {
     {
       filename: 'pde-components.mdc',
       description: 'PDE component catalog',
-      globs: 'src/components/**',
+      globs: '**.{tsx,jsx,stories.tsx,test.tsx}',
       alwaysApply: false,
       body: [
         '## Component Catalog',
@@ -1980,7 +2002,7 @@ function cmdSyncRollback(cwd, args) {
 module.exports = {
   buildContextIR, emitAll, emitAgentsMd, emitCursorRules, emitCursorrules,
   emitGeminiMd, computeSourceHash, cmdContextSync, oklchToHex,
-  isStitchSource, emitAntigravitySkill, emitDesignMd,
+  isStitchSource, emitAntigravitySkill, emitDesignMd, writeMdcRule,
   writeStateFile, readStateFile, computeLoopBreak,
   parseMdcContent, parseSkillMd, parseDesignMd,
   mergePartialIR, appendConflictLog, readFieldPolicy, normalizeDesignTokensForComparison,

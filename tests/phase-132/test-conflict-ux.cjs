@@ -23,6 +23,10 @@ const {
   cmdSyncStatus,
   cmdSyncRollback,
   writeStateFile,
+  writeMdcRule,
+  emitCursorRules,
+  emitAntigravitySkill,
+  extractWorkflows,
 } = require('../../bin/lib/context-sync.cjs');
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -394,4 +398,172 @@ test("cmdSyncRollback shows max 20 snapshots when more exist", () => {
   // Count how many snapshot entries appear (each line with a timestamp)
   const timestampMatches = out.match(/2026-03-\d{2}/g) || [];
   assert.ok(timestampMatches.length <= 20, `should display at most 20 snapshots, got ${timestampMatches.length}`);
+});
+
+// ─── CUR-06: writeMdcRule PDE:BEGIN/END markers ───────────────────────────────
+
+test("CUR-06-1: writeMdcRule wraps body content between <!-- PDE:BEGIN --> and <!-- PDE:END --> markers", () => {
+  const baseDir = makeTmpDir();
+  const rulesDir = path.join(baseDir, '.cursor', 'rules');
+  fs.mkdirSync(rulesDir, { recursive: true });
+
+  writeMdcRule(rulesDir, 'test.mdc', {
+    description: 'Test rule',
+    globs: '*.ts',
+    alwaysApply: false,
+    body: '## Test Body\n\nSome content here',
+    header: '<!-- PDE-GENERATED | hash:abc | generated:2026-03-24 -->',
+  });
+
+  const content = fs.readFileSync(path.join(rulesDir, 'test.mdc'), 'utf-8');
+  assert.ok(content.includes('<!-- PDE:BEGIN -->'), 'should contain PDE:BEGIN marker');
+  assert.ok(content.includes('<!-- PDE:END -->'), 'should contain PDE:END marker');
+
+  const beginIdx = content.indexOf('<!-- PDE:BEGIN -->');
+  const endIdx = content.indexOf('<!-- PDE:END -->');
+  assert.ok(beginIdx < endIdx, 'PDE:BEGIN should appear before PDE:END');
+
+  const bodyInSection = content.slice(beginIdx + '<!-- PDE:BEGIN -->'.length, endIdx);
+  assert.ok(bodyInSection.includes('## Test Body'), 'body content should be between PDE:BEGIN and PDE:END');
+});
+
+test("CUR-06-2: writeMdcRule on fresh file produces correct structure without user content", () => {
+  const baseDir = makeTmpDir();
+  const rulesDir = path.join(baseDir, '.cursor', 'rules');
+  fs.mkdirSync(rulesDir, { recursive: true });
+
+  writeMdcRule(rulesDir, 'fresh.mdc', {
+    description: 'Fresh rule',
+    globs: '*.ts',
+    alwaysApply: false,
+    body: '## Fresh Body\n',
+    header: '<!-- PDE-GENERATED | hash:xyz | generated:2026-03-24 -->',
+  });
+
+  const content = fs.readFileSync(path.join(rulesDir, 'fresh.mdc'), 'utf-8');
+  assert.ok(content.includes('<!-- PDE:BEGIN -->'), 'fresh file should have PDE:BEGIN');
+  assert.ok(content.includes('<!-- PDE:END -->'), 'fresh file should have PDE:END');
+
+  // No extra content after PDE:END (no user content on fresh write)
+  const endIdx = content.indexOf('<!-- PDE:END -->');
+  const afterEnd = content.slice(endIdx + '<!-- PDE:END -->'.length);
+  // Should only be a newline (or empty) after PDE:END, not unexpected content
+  assert.ok(afterEnd.trim() === '', `fresh file should have no user content after PDE:END, got: "${afterEnd}"`);
+});
+
+test("CUR-06-3: writeMdcRule with existing file containing user content below PDE:END preserves that content exactly", () => {
+  const baseDir = makeTmpDir();
+  const rulesDir = path.join(baseDir, '.cursor', 'rules');
+  fs.mkdirSync(rulesDir, { recursive: true });
+  const filepath = path.join(rulesDir, 'existing.mdc');
+
+  // Write initial file
+  writeMdcRule(rulesDir, 'existing.mdc', {
+    description: 'Existing rule',
+    globs: '*.ts',
+    alwaysApply: false,
+    body: '## Body v1\n',
+    header: '<!-- PDE-GENERATED | hash:aaa | generated:2026-03-24 -->',
+  });
+
+  // Append user content after PDE:END
+  const initial = fs.readFileSync(filepath, 'utf-8');
+  const userAddition = '\n\n## My Custom Section\n\n- Custom rule 1\n- Custom rule 2\n';
+  fs.writeFileSync(filepath, initial + userAddition, 'utf-8');
+
+  // Regenerate with new body
+  writeMdcRule(rulesDir, 'existing.mdc', {
+    description: 'Existing rule',
+    globs: '*.ts',
+    alwaysApply: false,
+    body: '## Body v2 — updated\n',
+    header: '<!-- PDE-GENERATED | hash:bbb | generated:2026-03-24 -->',
+  });
+
+  const result = fs.readFileSync(filepath, 'utf-8');
+  assert.ok(result.includes('## Body v2 — updated'), 'body should be updated to v2');
+  assert.ok(!result.includes('## Body v1'), 'old body should be replaced');
+  assert.ok(result.includes('## My Custom Section'), 'user custom section should be preserved');
+  assert.ok(result.includes('Custom rule 1'), 'user content should be preserved exactly');
+});
+
+test("CUR-06-4: writeMdcRule round-trip preserves user content without doubling", () => {
+  const baseDir = makeTmpDir();
+  const rulesDir = path.join(baseDir, '.cursor', 'rules');
+  fs.mkdirSync(rulesDir, { recursive: true });
+  const filepath = path.join(rulesDir, 'roundtrip.mdc');
+
+  // First write
+  writeMdcRule(rulesDir, 'roundtrip.mdc', {
+    description: 'Roundtrip test',
+    globs: '*.tsx',
+    alwaysApply: false,
+    body: '## Design Tokens\n\ntoken-a: #fff\n',
+    header: '<!-- PDE-GENERATED | hash:111 | generated:2026-03-24 -->',
+  });
+
+  // Add user content
+  const v1 = fs.readFileSync(filepath, 'utf-8');
+  fs.writeFileSync(filepath, v1 + '\n<!-- user note: keep this -->\n', 'utf-8');
+
+  // Second regeneration
+  writeMdcRule(rulesDir, 'roundtrip.mdc', {
+    description: 'Roundtrip test',
+    globs: '*.tsx',
+    alwaysApply: false,
+    body: '## Design Tokens\n\ntoken-a: #fff\ntoken-b: #000\n',
+    header: '<!-- PDE-GENERATED | hash:222 | generated:2026-03-24 -->',
+  });
+
+  // Third regeneration (should not double user content)
+  writeMdcRule(rulesDir, 'roundtrip.mdc', {
+    description: 'Roundtrip test',
+    globs: '*.tsx',
+    alwaysApply: false,
+    body: '## Design Tokens\n\ntoken-a: #fff\ntoken-b: #000\ntoken-c: #123\n',
+    header: '<!-- PDE-GENERATED | hash:333 | generated:2026-03-24 -->',
+  });
+
+  const final = fs.readFileSync(filepath, 'utf-8');
+  const userNoteMatches = (final.match(/user note: keep this/g) || []).length;
+  assert.equal(userNoteMatches, 1, `user note should appear exactly once, got ${userNoteMatches}`);
+  assert.ok(final.includes('token-c: #123'), 'latest body should be present');
+});
+
+test("CUR-06-5: emitCursorRules produces pde-design-tokens.mdc with glob **.{css,scss,tsx,jsx,ts}", () => {
+  const baseDir = makeTmpDir();
+  const planningDir = makePlanningDir(baseDir);
+
+  const ir = {
+    projectName: 'Test', productType: 'web', techStack: 'React', projectSummary: 'Test',
+    designTokens: '## Tokens\n', componentCatalog: '', pipelineStatus: '', constraints: '',
+    sourceHash: 'a'.repeat(64), generatedAt: '2026-03-24T00:00:00.000Z',
+  };
+
+  emitCursorRules(ir, baseDir);
+
+  const tokensMdc = fs.readFileSync(path.join(baseDir, '.cursor', 'rules', 'pde-design-tokens.mdc'), 'utf-8');
+  assert.ok(
+    tokensMdc.includes('**.{css,scss,tsx,jsx,ts}'),
+    `pde-design-tokens.mdc glob should be **.{css,scss,tsx,jsx,ts}, got: ${tokensMdc.slice(0, 200)}`
+  );
+});
+
+test("CUR-06-6: emitCursorRules produces pde-components.mdc with glob **.{tsx,jsx,stories.tsx,test.tsx}", () => {
+  const baseDir = makeTmpDir();
+  const planningDir = makePlanningDir(baseDir);
+
+  const ir = {
+    projectName: 'Test', productType: 'web', techStack: 'React', projectSummary: 'Test',
+    designTokens: '', componentCatalog: '## Components\n', pipelineStatus: '', constraints: '',
+    sourceHash: 'b'.repeat(64), generatedAt: '2026-03-24T00:00:00.000Z',
+  };
+
+  emitCursorRules(ir, baseDir);
+
+  const componentsMdc = fs.readFileSync(path.join(baseDir, '.cursor', 'rules', 'pde-components.mdc'), 'utf-8');
+  assert.ok(
+    componentsMdc.includes('**.{tsx,jsx,stories.tsx,test.tsx}'),
+    `pde-components.mdc glob should be **.{tsx,jsx,stories.tsx,test.tsx}, got: ${componentsMdc.slice(0, 200)}`
+  );
 });
