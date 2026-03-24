@@ -1,191 +1,169 @@
 # Project Research Summary
 
-**Project:** PDE v0.13 AutoResearch — Autonomous Experiment Loop
-**Domain:** Agentic self-optimization primitive — Karpathy-pattern experiment loop integrated into existing Claude Code plugin
+**Project:** PDE v0.15 Multi-Editor Integration
+**Domain:** Multi-editor AI tool integration (MCP server, context generation, design bridge)
 **Researched:** 2026-03-23
-**Confidence:** HIGH (Karpathy autoresearch repo verified; multiple independent implementations cross-referenced; PDE codebase analyzed directly; pitfall research grounded in alignment literature and post-mortems)
+**Confidence:** MEDIUM-HIGH
 
 ## Executive Summary
 
-PDE v0.13 adds an autonomous experiment loop — the Karpathy AutoResearch pattern — as a native primitive for self-optimizing PDE workflows. The pattern is well-established: loop over (propose hypothesis → commit speculatively → measure metric → keep if improved, reset if not → log result → repeat). The key insight is that the LLM agent is the optimizer, not a numerical algorithm — it reasons over experiment history to pick the next hypothesis, which makes it far more useful for prompt and workflow optimization than Bayesian search. The entire primitive requires zero new npm packages: it runs on Node.js built-ins, git CLI, and a new CJS module (`experiment.cjs`) that must stay under 300 lines.
+PDE v0.15 extends the existing Claude Code plugin to expose its design pipeline state to three additional AI editors: Cursor, Google Antigravity, and Gemini CLI. The integration has two distinct tracks: (1) generating static context files that editors consume natively (`.cursor/rules/*.mdc`, `GEMINI.md`, `AGENTS.md`), and (2) a standalone MCP server (`npx pde-mcp-server`) that exposes PDE workflows as read-only query tools over stdio transport. Both tracks feed from the same `.planning/` state files through an intermediate representation pattern that decouples state reading from editor-specific formatting. The zero-npm-dependency constraint at the plugin root is preserved by isolating the MCP server in its own subdirectory with independent `package.json`.
 
-The recommended implementation is an additive layering on existing PDE infrastructure. Four new files (command, workflow, agent, CJS module) and five small modifications to existing files (~80-100 total lines changed across existing files). The state model is a new `.planning/experiments/` directory alongside `.planning/phases/` — kept separate because experiments are not phases and must never be treated as incomplete phase work by roadmap tooling. The git state machine uses exploratory commits with `exp({slug}):` prefix and `git reset --hard` on regression — this is the single most dangerous component and must be built first, in isolation, before any agent uses it.
+The recommended approach is to build context generation first (zero dependencies, immediate value), then Antigravity-specific context plus Stitch bridge (extends Phase 1 patterns with bidirectional design flow), then the MCP server (requires npm packaging), and finally divergence detection (independent, requires handoff artifacts). This ordering follows the dependency chain: context files prove the state-reading layer; the Stitch bridge extends Antigravity's context; the MCP server reuses the proven layer via subprocess delegation; divergence detection is independently scoped.
 
-The primary risks are all pre-identified with clear prevention strategies: git state corruption from running experiments on the wrong branch (prevent with branch isolation), metric gaming via Goodhart's Law (prevent with deterministic evaluation harnesses and human-review checkpoints), destructive optimization breaking downstream pipeline skills (prevent with full Nyquist regression check before any commit is promoted), and scope creep turning the experiment system into a parallel PDE (prevent with a hard 300-line ceiling on experiment infrastructure). Safety and stopping conditions are not optional post-MVP features — they must ship in the first experiment loop phase.
+The primary risks are: (1) accidentally exposing write tools in the MCP server, which would create a second write path bypassing PDE's validation infrastructure -- this must be enforced as a hard architectural constraint from Phase 1 design; (2) context file staleness, where generated files drift from PDE state within a single pipeline run -- mitigated by embedding source hashes and hook-driven regeneration; (3) dual Stitch integration paths (PDE's existing v0.9 path and Antigravity's native path) producing incompatible artifact representations -- mitigated by defining a canonical format both paths must produce. All three risks have clear prevention strategies documented in the pitfalls research.
 
 ## Key Findings
 
 ### Recommended Stack
 
-The stack decision is clear and simple: zero new npm packages. All experiment loop capabilities are implementable on Node.js 18+ built-ins (`child_process.spawnSync`, `fs.appendFileSync`, `crypto.randomUUID`) plus the git CLI that PDE already requires. The new CJS module (`experiment.cjs`) follows the established pattern of `event-bus.cjs` and other lib modules. This maintains PDE's zero-external-dependency constraint and keeps the entire addition auditable.
+The stack splits cleanly: context generators are zero-dependency CJS modules in `bin/lib/` using Node.js built-ins only, while the MCP server is an isolated TypeScript package using `@modelcontextprotocol/sdk` v1.27.1 and `zod` v3.25+. All editor context files are plain markdown with minimal formatting conventions (YAML frontmatter for Cursor `.mdc` only).
 
 **Core technologies:**
-- `child_process.spawnSync` (Node.js built-in): Run metric evaluation commands and git operations — safer than exec due to argument separation, same pattern already used for git in `pde-tools.cjs`
-- `fs.appendFileSync` (Node.js built-in): Append experiment result rows to `experiments.jsonl` — same pattern as `safeAppendEvent()` in `event-bus.cjs`
-- `crypto.randomUUID` (Node.js built-in): Generate stable experiment IDs — same as existing session ID generation
-- Git CLI (already required): Experiment state machine via `git reset --hard HEAD~1` and `git log --oneline --grep` — no new version requirement
-- `bin/lib/frontmatter.cjs` (existing): Parse `experiment.md` YAML frontmatter — same format already used for STATE.md and PLAN.md
+- **@modelcontextprotocol/sdk ^1.27.1**: MCP server implementation -- official TypeScript SDK, stdio transport, 12ms latency
+- **zod ^3.25.0**: MCP tool input validation -- required peer dependency of SDK
+- **TypeScript ^5.5**: MCP server compilation only -- ESM-only SDK requirement, does not affect plugin root
+- **Node.js built-ins (fs, path, crypto)**: Context generators, divergence detection, Stitch bridge -- zero npm deps
 
-Explicitly ruled out: MLflow/W&B/Comet (require external services), Bayesian optimization libraries (Claude IS the optimizer), DSPy/Ax (over-engineering for markdown workflow targets), git worktrees per iteration (worktree overhead; Claude Code has a confirmed `/ide` bug with worktrees as of March 2026), and parallel experiment execution (destroys causal attribution).
+**Critical version notes:** SDK uses zod/v4 compat layer, requiring zod 3.25+ (not older 3.x). Node 18+ required for ESM. MCP SDK v2 anticipated but v1.x is production-recommended with 6+ month support window.
 
 ### Expected Features
 
-**Must have (P1 — loop cannot function without these):**
-- `/pde:optimize` slash command — entry point with explicit `--iterations N` budget (required arg, default 10, max 50)
-- `experiment.md` config file — YAML frontmatter + prose (metric, mutable/immutable file lists, eval command, budget, objective)
-- Git exploratory commit + `git reset --hard` state machine with `exp({slug}):` commit prefix
-- Baseline capture (iteration 0) — metric run before any modification
-- Append-only `experiments.jsonl` results log (iteration, commit hash, metric, delta, status, hypothesis)
-- Iteration budget enforcement — hard cap, no-progress circuit breaker at 5 consecutive non-improvements, consecutive-failure breaker at 3 regressions
-- Mutable/immutable file boundary enforcement — pre-commit check, explicit file paths only (no globs)
-- Readiness gate — validate eval harness runs, baseline is extractable, mutable boundary is non-empty, budget is set
-- Cost estimate gate — user confirmation before loop starts using PDE's chars/4 heuristic
+**Must have (table stakes):**
+- `.cursor/rules/*.mdc` generation (Cursor is dominant AI IDE; multiple `.mdc` files with YAML frontmatter)
+- `GEMINI.md` generation (shared by Antigravity and Gemini CLI; hierarchical, plain markdown)
+- `AGENTS.md` generation (cross-tool standard read by all four editors)
+- MCP server with read-only PDE state tools (10 tools, well under Cursor's 40-tool cap)
+- Design token output as Tailwind v4 `@theme` config (editors need consumable tokens)
+- Handoff spec as `@file` annotations (component specs as inline references)
 
-**Should have (P2 — improves quality and usability, loop works without these):**
-- Nyquist as guard condition — dual-metric keep logic (primary metric improves AND Nyquist holds)
-- Awwwards rubric score extraction — domain-specific quality metric for PDE self-improvement
-- tmux dashboard experiment events — 6 event types for live progress visibility
-- Session resumability — `experiments.jsonl` + `experiment.md` persist across session breaks
-- Simplicity tie-breaking — line-count delta as KEEP signal when metric is equal
-- Human review checkpoint — pause after 5 consecutive automated keeps
+**Should have (differentiators):**
+- Stitch design bridge (bidirectional PDE-to-Antigravity artifact flow via existing v0.9 infrastructure)
+- Divergence detection (three-tier handoff spec vs code drift analysis)
+- Context sync engine with hook-driven auto-regeneration
+- Antigravity agent skills export (PDE workflows as invocable Antigravity skills)
+- Pipeline progress as MCP resource (passive context, not action)
 
-**Defer to v2+:**
-- Research agent empirical mode — highest complexity, depends on loop primitive being stable first
-- Parallel experiments with worktree isolation — substantial complexity, serial is sufficient for PDE's use case
-- Population-based optimization — requires merge logic for multi-winner scenarios
-- Multi-metric Pareto optimization — scope creep risk; single primary metric with one guard is sufficient
+**Defer (v2+):**
+- Multi-format artifact export beyond React+Tailwind (wait for demand signal)
+- Full TypeScript AST parsing for divergence detection (regex MVP first)
+- T3 behavioral divergence detection (runtime analysis, diminishing returns)
+- Individual pipeline stage skills for Antigravity (complexity exceeds initial value)
+- Bidirectional code-to-design sync (architecturally intractable)
 
 ### Architecture Approach
 
-The experiment loop is a new vertical slice through the existing layer architecture: new slash command → new workflow orchestrator → new mutation subagent → new git state machine module → new state directory. Existing components are minimally modified (pde-tools.cjs dispatch +30 lines, pde-phase-researcher +40 lines additive, research-phase workflow +10 lines, event-bus +6 lines). The build order is strictly bottom-up: git state machine first, then mutation agent, then orchestrator + command, then researcher empirical mode, then event bus polish.
+The architecture follows a layered emitter pattern: a shared context-sync engine reads `.planning/` state into an editor-agnostic intermediate representation (IR), which editor-specific emitters transform into target formats. The MCP server is a separate process that delegates to `pde-tools.cjs` via subprocess spawning (not direct module imports), preserving the single-entry-point pattern. The Stitch bridge reuses `mcp-bridge.cjs` probe/degrade contracts for graceful degradation when Stitch MCP is unavailable.
 
 **Major components:**
-1. `bin/lib/experiment.cjs` — Git state machine: `commitCandidate`, `resetToBaseline`, `promoteBest`, boundary check. The lowest-level dependency; all other components call it.
-2. `agents/pde-experiment-runner.md` — Mutation + measurement subagent: applies one candidate change, runs metric command, returns structured JSON. Read-only for metric execution. Never writes SUMMARY.md.
-3. `workflows/optimize.md` — Experiment orchestrator: scaffolds EXPERIMENT.md, drives iteration loop, makes keep/discard decisions, finalizes result.
-4. `commands/optimize.md` — `/pde:optimize` slash command entry point: parses args, presents cost estimate, spawns optimize workflow.
-5. `.planning/experiments/{slug}/` — Isolated state: EXPERIMENT.md (spec), EXPERIMENT-LOG.ndjson (append-only results), EXPERIMENT-BEST.json (current best snapshot). Never inside `.planning/phases/` — roadmap tooling must not scan this directory.
+1. **`bin/lib/context-sync.cjs`** -- IR builder reading `.planning/` state (foundation for all editors)
+2. **`bin/lib/context-emitters/{cursor,antigravity,gemini-cli}.cjs`** -- Format-specific file generators
+3. **`pde-mcp-server/`** -- Isolated npm package exposing 9-10 read-only MCP tools via stdio
+4. **`bin/lib/stitch-bridge.cjs`** -- Bidirectional artifact flow between PDE and Antigravity Stitch canvas
+5. **`bin/lib/divergence.cjs`** -- Heuristic handoff-vs-code drift detection (AST-free, ~85% accuracy)
 
 ### Critical Pitfalls
 
-1. **Git state corruption from experiment commits on main branch** — The experiment loop's commit/reset state machine must never operate on the main working tree. Prevent with branch isolation: every `/pde:optimize` run operates on an `experiment/{slug}-{ts}` branch; experiment commits use `exp({slug}):` prefix; only the final squash-merge commit appears on main. Verify: `git log --oneline main` contains zero `exp():` commits after a complete run.
+1. **Write tools in MCP server** -- Enforce read-only contract from Phase 1; grep all tool handlers for `fs.write*`; mark every tool description as "read-only" to prevent LLM hallucination of write capability. Recovery cost is HIGH (rewrite + breaking change).
 
-2. **Metric gaming via Goodhart's Law** — The agent will exploit any scalar metric within 20-30 iterations if it has no off switch. Prevent with: (a) deterministic eval harness only — no LLM-as-judge in the keep/discard gate, (b) Nyquist as a hard guard condition, (c) human review checkpoint at 5 consecutive automated keeps, (d) "suspiciously high gain" flag if metric improvement exceeds 2 standard deviations of historical variance.
+2. **Context file staleness** -- Embed generation timestamp and SHA-256 source hash in every generated file; hook-driven regeneration after pipeline skills; provide `/pde:sync-context` manual command. Ship hash tracking alongside initial generation, not after.
 
-3. **Destructive optimization breaking downstream pipeline skills** — PDE is a 14-stage pipeline; local optimization of one workflow can break downstream consumers. Prevent with: pipeline integrity check (trimmed Nyquist subset covering optimization target + direct consumers) run before every KEEP decision. Full 235-assertion suite runs at experiment end before merge.
+3. **Dual Stitch path divergence** -- Define canonical artifact format (PDE's `STH-{slug}.html` convention); Antigravity bridge converts to canonical format before manifest registration; unify quota tracking across both paths. Design in Phase 1, build in Phase 2.
 
-4. **Runaway loop and resource exhaustion** — Hard iteration budget is mandatory, not optional. Implement: `--iterations N` (default 10, max 50), per-iteration time limit (default 5 min), no-progress breaker (5 consecutive non-improvements), consecutive-failure breaker (3 regressions). Cost estimate gate before loop starts.
+4. **npx distribution breaking zero-dep constraint** -- MCP server must live in isolated subdirectory with own `package.json`; never reference from plugin root; pin SDK version explicitly; document Windows `cmd /c npx` workaround.
 
-5. **Scope creep turning AutoResearch into a parallel PDE** — Enforce a 300-line ceiling on all experiment infrastructure (experiment.cjs + new pde-tools dispatch blocks) combined. Any feature requiring a new bin script, new agent definition, or new config schema goes through a separate milestone phase. Check at every phase boundary.
-
-6. **Safety boundary ambiguity at section level** — File-path immutability is insufficient; some workflow files are partially mutable (optimizable prose sections) with locked zones (inter-skill contracts, designCoverage write patterns). Mark locked zones with `<!-- LOCKED: experiment loop must not modify this section -->` and optimizable zones with `<!-- OPTIMIZABLE -->`. Section-level markers must be added to all experiment-eligible workflow files before any experiment runs.
-
-7. **Agent contention with active regular workflows** — Experiment loop must check for active PDE sessions (recent `phase:start` events in NDJSON bus) before starting. Shared state files (`design-manifest.json`, `DESIGN-STATE.md`, `workflow-status.md`) are always immutable for experiments. Experiment agents must not write to persistent agent memory pool.
+5. **Divergence detection false positives** -- Start with high-confidence checks only (token values, interface signatures); report as CONCERNS severity, never FAIL; ship `.pde-divergence-ignore` mechanism alongside the detector; include confidence scores per finding.
 
 ## Implications for Roadmap
 
-The build order is architecturally determined. The git state machine is the lowest-level dependency; nothing else can be tested without it. Each subsequent phase depends on the previous one being functional. Safety components (stopping conditions, boundary enforcement, cost estimate gate) are embedded throughout Phases 1-3, not deferred to a polish phase — PITFALLS research is unambiguous on this.
+Based on research, suggested phase structure:
 
-### Phase 1: Git State Machine and Safety Boundaries
+### Phase 1: Context Sync Core
+**Rationale:** Zero dependencies, immediate value, foundation for all subsequent phases. The IR builder must exist before any editor-specific work begins. Cursor and Gemini CLI formats are well-documented (HIGH confidence).
+**Delivers:** `/pde:context-sync` command generating `.cursor/rules/*.mdc`, `GEMINI.md`, and `AGENTS.md` from PDE state; design token Tailwind v4 conversion; generation timestamp and source hash in every file.
+**Addresses:** All 6 table-stakes features from FEATURES.md (context files, token conversion, annotation format).
+**Avoids:** Context staleness pitfall (build hash tracking from day one). Anti-pattern of writing to user's AGENTS.md (write to GEMINI.md + `.agent/rules/pde-*` instead).
 
-**Rationale:** The exploratory commit/reset pattern is the most dangerous component and the dependency for all other phases. Building it first allows isolated testing before any agent interacts with it. Immutability boundaries — both file-path level and section level — must ship here. Retrofitting boundary enforcement after agents are wired is a full rewrite of the safety layer.
-**Delivers:** `bin/lib/experiment.cjs` (commitCandidate, resetToBaseline, promoteBest, boundary check); `experiment` and `metric` subcommands in `pde-tools.cjs`; `experiment.md` file schema; `.planning/experiments/` directory structure; `BOUNDARIES.md` with section-level locked zone markers added to all experiment-eligible workflow files.
-**Addresses:** P1 table-stakes features: git state machine, mutable/immutable boundary declaration, baseline capture.
-**Avoids:** Pitfall 1 (git corruption), Pitfall 3 (destructive optimization), Pitfall 6 (section-level boundary ambiguity).
-**Research flag:** Standard patterns — no deeper research needed. Git operations are well-understood; boundary check follows existing protected-files pattern from `pde-tools.cjs`.
+### Phase 2: Antigravity Context + Stitch Bridge
+**Rationale:** Antigravity emitter depends on the shared GEMINI.md format proven in Phase 1. Stitch bridge depends on existing mcp-bridge.cjs patterns and is Antigravity-specific. Grouping these delivers the full Antigravity experience.
+**Delivers:** Antigravity-specific `.agent/rules/` files, `DESIGN.md` generator (DTCG to Design DNA), bidirectional Stitch artifact flow, `.agent/skills/pde-design/` skill export.
+**Uses:** context-sync IR (Phase 1), mcp-bridge.cjs probe/degrade pattern (v0.9), Stitch MCP tools.
+**Avoids:** Dual Stitch path divergence (canonical format enforcement); quota tracking split (single shared counter).
 
-### Phase 2: Mutation Subagent and Metric Evaluation
+### Phase 3: Standalone MCP Server
+**Rationale:** MCP server depends on `pde-tools.cjs` commands being stable. Building after context sync proves the state-reading layer. The server is independently testable via MCP Inspector. Requires npm packaging/publishing infrastructure.
+**Delivers:** `npx pde-mcp-server` with 9-10 read-only tools, stdio transport, editor registration configs for Cursor/Antigravity/Gemini CLI.
+**Implements:** Subdirectory package isolation pattern; subprocess delegation to `pde-tools.cjs --raw`.
+**Avoids:** Write tool exposure (read-only contract enforced at tool definition layer); npx dependency pollution (isolated subdirectory); tool count explosion (budget of 10 tools, under Cursor's 40-tool cap).
 
-**Rationale:** The runner agent depends on Phase 1's tool commands. It can be built and tested independently before the orchestrator exists by invoking it directly. The metric-as-script pattern (deterministic shell command → numeric output) must be proven here before the orchestrator automates it.
-**Delivers:** `agents/pde-experiment-runner.md` (mutation + measurement subagent, read-only for metrics, returns structured JSON to orchestrator); `metric eval` command in pde-tools.cjs; timeout enforcement for metric scripts; section-level locked zone markers added to experiment-eligible workflow files (if not shipped in Phase 1).
-**Uses:** `experiment.cjs` from Phase 1.
-**Avoids:** Pitfall 2 (metric gaming — deterministic eval harness enforced, no LLM-as-judge), Pitfall 3 (boundary check runs before every commit).
-**Research flag:** Standard patterns — subagent architecture follows established `pde-research-validator` read-only pattern exactly.
+### Phase 4: Divergence Detection
+**Rationale:** Most independent feature -- no other v0.15 component depends on it. Requires handoff artifacts to exist. Heuristic approach is well-scoped but needs calibration against real codebases.
+**Delivers:** `/pde:divergence` command, three-tier detection (structural + content for MVP), `DIVERGENCE-REPORT.md`, `.pde-divergence-ignore` mechanism, confidence scores per finding.
+**Addresses:** Differentiator feature from FEATURES.md (catches spec-vs-code drift).
+**Avoids:** False positive trap (CONCERNS severity, confidence scores, ignore mechanism shipped alongside detector).
 
-### Phase 3: Experiment Orchestrator, Command Entry Point, and Stopping Conditions
-
-**Rationale:** The orchestrator assembles the full iteration loop and depends on both Phase 1 (git state machine) and Phase 2 (runner agent). All stopping conditions and safety gates ship here — they are part of the loop, not post-MVP additions.
-**Delivers:** `workflows/optimize.md` (full iteration orchestrator: baseline capture, loop, keep/discard logic with Nyquist guard, budget enforcement, no-progress breaker, consecutive-failure breaker, finalization + results table); `commands/optimize.md` (`/pde:optimize` with cost estimate gate, `--iterations` argument, concurrency check); `EXPERIMENT-LOG.ndjson` results logging; human review checkpoint at 5 consecutive auto-keeps.
-**Implements:** All P1 features; readiness gate; concurrency guard (Pitfall 7 prevention).
-**Avoids:** Pitfall 4 (runaway loop — all circuit breakers ship here), Pitfall 7 (agent contention — concurrency check in command handler).
-**Research flag:** Standard patterns — orchestrator follows `autonomous.md` iteration loop and `execute-phase.md` subagent dispatch.
-
-### Phase 4: Researcher Empirical Mode and Event Bus Integration
-
-**Rationale:** Additive and decoupled. The basic loop is functional after Phase 3; empirical mode enriches it with researcher-generated candidates rather than requiring human-specified candidates. Event bus additions give tmux dashboard visibility. Both are independent of each other and of the loop's core correctness.
-**Delivers:** `pde-phase-researcher.md` updated with `--empirical` flag and `try_candidates` return block; `workflows/research-phase.md` routing for empirical flag; `event-bus.cjs` with 6 experiment event types; `config.json` template updated with `experiment_defaults` section; experiment events distinguished from regular workflow events in dashboard.
-**Avoids:** Experiment agents writing to shared persistent agent memory pool (Pitfall 7).
-**Research flag:** Needs brief research. The `try_candidates` schema must be validated against how the orchestrator will consume it. Mismatches between what the researcher produces and what the orchestrator iterates over are a likely integration bug source. Recommend a research-phase run examining the existing researcher return schema.
-
-### Phase 5: Nyquist Tests for Experiment Infrastructure
-
-**Rationale:** Verification phase. After the complete loop is functional, regression tests confirm that experiment infrastructure does not disturb regular PDE operation and that all safety constraints actually fire as specified.
-**Delivers:** New Nyquist assertions covering: branch isolation (no experiment commits on main), boundary check rejection of out-of-bounds files, no-progress breaker termination at exactly N, consecutive-failure breaker termination at 3, shared state protection (design-manifest unchanged after experiment), RECONCILIATION.md cleanliness (single squash-merge commit on main), full 235-assertion regression suite passes after AutoResearch ships.
-**Avoids:** "Looks done but isn't" failure modes from PITFALLS.md checklist — each checklist item becomes a verifiable test.
-**Research flag:** Standard patterns — follows existing Nyquist test conventions.
+### Phase 5: Integration Testing + Cross-Editor Validation
+**Rationale:** End-to-end validation across all three target editors. Cannot run until all components exist. Validates the assumptions made in earlier phases about editor behavior.
+**Delivers:** Verified context consumption in Cursor, Antigravity, Gemini CLI; MCP server query validation; Stitch bridge round-trip; divergence accuracy calibration (<5 findings on a known-good codebase).
 
 ### Phase Ordering Rationale
 
-- Phase 1 before Phase 2 because the runner depends on `experiment commit-candidate` tool commands existing.
-- Phase 2 before Phase 3 because the orchestrator spawns runner agents; testing the loop without a working runner conflates two failure modes.
-- Phase 3 before Phase 4 because empirical mode depends on the loop being functional — the researcher's `try_candidates` feed into the loop's iteration queue.
-- Phase 5 last because it tests the complete assembled system across all prior phases.
-- Safety components are embedded in Phases 1-3 rather than collected into a separate "safety phase." This is intentional: the PITFALLS research demonstrates that all seven critical pitfalls require prevention before the first experiment runs, not after.
+- **Dependency chain drives order:** Context sync IR is the foundation (Phase 1) consumed by all downstream phases. Antigravity needs the GEMINI.md format proven first (Phase 2 after 1). MCP server needs stable `pde-tools.cjs` commands (Phase 3 after 1-2). Divergence is independent (Phase 4 can parallel Phase 3).
+- **Risk front-loading:** The two highest-risk pitfalls (write tool exposure, staleness) are addressed in Phases 1-3. The Stitch dual-path risk is contained in Phase 2 before the MCP server exposes Stitch state.
+- **Value delivery cadence:** Phase 1 delivers usable context files immediately. Each subsequent phase adds a distinct capability layer. Users get incremental value at each phase boundary.
 
 ### Research Flags
 
 Phases likely needing deeper research during planning:
-- **Phase 4 (researcher empirical mode):** The `try_candidates` schema is novel and its contract with the orchestrator's iteration loop is not yet fully specified. A research-phase run examining the researcher's existing return format and the orchestrator's consumption pattern is recommended to prevent schema mismatch bugs.
+- **Phase 2 (Antigravity + Stitch Bridge):** Antigravity's official docs are JS-rendered and partially unavailable; `DESIGN.md` format is reconstructed from community guides. The bidirectional Stitch flow has limited community post-mortem data. Recommend `/gsd:research-phase` before planning.
+- **Phase 3 (MCP Server):** npm publishing and npx distribution has platform-specific edge cases (Windows, NVM). The 73% failure rate for local MCP installations cited in distribution guides warrants investigation. Recommend targeted research on distribution strategy.
 
 Phases with standard patterns (skip research-phase):
-- **Phase 1 (git state machine):** Git operations are well-understood. PDE's existing `execGit` + protected-files patterns provide the complete implementation template.
-- **Phase 2 (mutation subagent):** Follows `pde-research-validator` read-only subagent pattern exactly. No novel architecture.
-- **Phase 3 (orchestrator):** Follows `autonomous.md` iteration loop and `execute-phase.md` subagent dispatch patterns. Stopping conditions follow the circuit-breaker pattern described in PITFALLS.md with sufficient specificity to implement directly.
-- **Phase 5 (Nyquist tests):** Follows existing Nyquist test conventions; checklist in PITFALLS.md provides the test cases.
+- **Phase 1 (Context Sync Core):** Cursor `.mdc` format is thoroughly documented. GEMINI.md spec is official. IR builder is a standard read-transform-write pattern. HIGH confidence, no additional research needed.
+- **Phase 4 (Divergence Detection):** Architecture drift detection literature is well-established (absence/divergence/convergence model). Heuristic approach is straightforward. Calibration happens during execution, not research.
+- **Phase 5 (Integration Testing):** Standard end-to-end validation. No research needed.
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | Zero new packages confirmed via direct codebase analysis and cross-referenced against Karpathy repo + 3 independent implementations. Node.js built-in usage follows proven PDE patterns in event-bus.cjs and pde-tools.cjs. |
-| Features | HIGH | Karpathy autoresearch verified; uditgoenka/autoresearch Claude skill verified; autoexp gist verified; Goodhart's Law pitfalls grounded in arxiv and OpenAI alignment literature. P1/P2/P3 distinction is well-grounded in dependency analysis. |
-| Architecture | HIGH | Based on direct codebase analysis of core.cjs, event-bus.cjs, pde-tools.cjs, pde-research-validator.md, execute-phase.md, and autonomous.md. All integration points verified against current source. |
-| Pitfalls | HIGH (critical pitfalls 1-7), MEDIUM (performance traps), LOW (long-run convergence) | Critical and safety pitfalls grounded in primary sources and direct codebase analysis. Performance trap specifics (Nyquist runtime at 3-5 min/iteration) are inferred estimates. Long-run convergence behavior has no PDE-specific experiment data yet. |
+| Stack | HIGH | MCP SDK is official, well-documented. Zod version constraint verified. Cursor .mdc format from official docs. |
+| Features | MEDIUM-HIGH | Table stakes well-defined. Antigravity features partially based on community guides (official docs JS-rendered). Stitch bridge data model inferred from codelab, not official API docs. |
+| Architecture | MEDIUM | IR pattern and emitter separation are sound. MCP server subprocess delegation is proven (matches Playwright MCP). Stitch bridge bidirectional flow is the least proven component. |
+| Pitfalls | HIGH | Grounded in MCP security specification, real exploit post-mortems, and PDE's own bug history (coverage flag corruption fixed 3 times in v0.11/v0.12/v0.14). |
 
-**Overall confidence:** HIGH for the core implementation plan. The build order, component boundaries, and safety constraints are well-supported by research. Areas of lower confidence (performance tuning, long-run behavior) are appropriate to discover empirically once the loop is functional.
+**Overall confidence:** MEDIUM-HIGH
 
 ### Gaps to Address
 
-- **Worktree vs. branch isolation conflict:** PITFALLS.md recommends `git worktree add` per experiment run (Pitfall 1 prevention); STACK.md and ARCHITECTURE.md recommend branch isolation without worktrees due to the confirmed Claude Code `/ide` worktree bug (March 2026). This tension must be resolved in Phase 1 planning. Recommendation: use branch isolation rather than worktree, but explicitly verify in Phase 5 tests that branch isolation is sufficient to prevent RECONCILIATION.md contamination.
-
-- **Trimmed Nyquist subset composition:** PITFALLS.md recommends running a trimmed Nyquist subset per iteration (15-30 assertions covering the optimization target + direct consumers) rather than the full 235 (which takes 3-5 min/iteration, making a 20-iteration experiment last over an hour). The specific subset composition for each experiment profile is not yet defined. Address in Phase 2 or Phase 3 planning when the metric eval command is specified.
-
-- **Metric extraction reliability:** The `verify_extract` pattern (shell command output → `parseFloat()`) is simple but potentially brittle if test runner output format changes between Node.js versions. Phase 1 or Phase 2 should validate metric extraction against the actual output format of `node --test tests/nyquist/` to confirm it is stable.
-
-- **File naming inconsistency:** STACK.md uses lowercase `experiment.md`; ARCHITECTURE.md uses uppercase `EXPERIMENT.md`. Resolve in Phase 1 before the schema is finalized. Recommendation: follow PDE's existing convention where files created by agents are uppercase (PLAN.md, SUMMARY.md) and human-authored config files are lowercase (program.md analog = lowercase `experiment.md`).
+- **Antigravity DESIGN.md format:** Reconstructed from community guides and Google Codelabs, not official specification. Validate during Phase 2 execution by testing against actual Antigravity workspace.
+- **Stitch quota unification:** Both PDE direct path and Antigravity bridge path consume the same Google Labs monthly quota, but the exact API call counting mechanism is not documented. May need empirical testing.
+- **Divergence detection calibration:** No PDE-specific drift detection data exists. The ~85% accuracy estimate for heuristic matching is extrapolated from similar tools, not measured. Phase 4 must include a calibration gate against real handoff specs.
+- **MCP SDK v2 migration path:** v2 is anticipated but not shipped. The research assumes v1.x stability for 6+ months. If v2 ships during v0.15 development, migration should be deferred to v0.16 unless v1.x is deprecated.
+- **Cursor 40-tool limit behavior:** Confirmed via community reports that exceeding the limit silently drops tools. The exact drop algorithm (FIFO, random, by server) is undocumented. PDE's 10-tool budget provides ample headroom but the behavior should be verified during Phase 5.
+- **AGENTS.md write policy conflict:** FEATURES.md recommends generating AGENTS.md; ARCHITECTURE.md says never touch it (user-authored). Recommendation: generate AGENTS.md only if it does not already exist, with a `<!-- PDE-GENERATED -->` marker. If user has their own AGENTS.md, PDE writes only to GEMINI.md and `.agent/rules/pde-*`.
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- `github.com/karpathy/autoresearch` (fetched via WebFetch, March 2026) — core loop pattern, program.md role, git keep/discard state machine
-- `github.com/karpathy/autoresearch/blob/master/program.md` (fetched via WebFetch) — mutable/immutable boundaries, stopping criteria, metric definition, agent instruction format
-- `github.com/uditgoenka/autoresearch` (fetched via WebFetch) — Claude Code skill generalization, 8-phase protocol, JSONL log schema, simplicity tie-breaking, guard conditions
-- `github.com/drivelineresearch/autoresearch-claude-code` (fetched via WebFetch) — pure skill implementation, plugin manifest pattern, JSONL vs TSV decision
-- `gist.github.com/adhishthite/16d8fd9076e85c033b75e187e8a6b94e` (fetched via WebFetch) — minimal 4-parameter API, single-file constraint, keep/discard logic
-- PDE codebase (read directly): `bin/lib/core.cjs`, `bin/lib/event-bus.cjs`, `bin/pde-tools.cjs`, `agents/pde-research-validator.md`, `workflows/execute-phase.md`, `workflows/autonomous.md`, `references/git-integration.md`, `.planning/PROJECT.md`
-- `arxiv.org/abs/2510.02840` (Take Goodhart Seriously) — metric gaming in optimization systems
-- `openai.com/index/measuring-goodharts-law/` — reward hacking under self-evaluation
+- [MCP TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk) -- server patterns, StdioServerTransport, version compatibility
+- [Cursor Rules Documentation](https://cursor.com/docs/context/rules) -- .mdc format, YAML frontmatter, rule types, AGENTS.md support
+- [Gemini CLI GEMINI.md Docs](https://geminicli.com/docs/cli/gemini-md/) -- hierarchical loading, @file imports, configurable filename
+- [MCP Security Best Practices](https://modelcontextprotocol.io/specification/draft/basic/security_best_practices) -- read/write separation, least privilege
+- [Architecture Drift Detection (ScienceDirect)](https://www.sciencedirect.com/science/article/pii/S0920548923000557) -- absence/divergence/convergence model
+- [Design-to-Code Antigravity+Stitch Codelab](https://codelabs.developers.google.com/design-to-code-with-antigravity-stitch) -- official Google workflow
 
 ### Secondary (MEDIUM confidence)
-- VentureBeat / Fortune: Shopify CEO applied autoresearch — 53% faster rendering from 93 automated commits; confirms pattern generalizes beyond ML
-- The New Stack: metric gaming risk and Goodhart's Law framing for autonomous loops
-- WebSearch March 2026: Claude Code git worktree bug (multiple community reports) — reason to avoid worktrees for experiment isolation
-- WebSearch March 2026: DSPy TypeScript ports, MLflow.js — confirmed available but excluded as over-engineering
-- Adnan Masood (Medium, Jan 2026): Reward hacking taxonomy, proxy metric exploitation patterns
-- ISACA self-modifying AI analysis — scope creep and safety boundary pitfalls in meta-systems
+- [Antigravity Rules Guide](https://antigravity.codes/blog/user-rules) -- AGENTS.md + GEMINI.md hierarchy, Skills format
+- [AGENTS.md Standard](https://agents.md/) -- cross-tool specification, 60K+ projects
+- [Cursor 40-Tool MCP Limit](https://forum.cursor.com/t/mcp-server-40-tool-limit-in-cursor-is-this-frustrating-your-workflow/81627) -- confirmed tool cap
+- [stitch-mcp GitHub](https://github.com/davideast/stitch-mcp) -- tool list, Stitch API patterns
+- [MCP Server Distribution Guide](https://www.speakeasy.com/mcp/distributing-mcp-servers) -- npx packaging best practices
+- [MCP Confused Deputy Analysis](https://securityboulevard.com/2026/03/mcp-servers-and-the-return-of-the-service-account-problem/) -- write tool exposure risks
 
 ### Tertiary (LOW confidence)
-- Long-run convergence behavior after 50+ iterations — no PDE-specific experiment data; inferred from Karpathy's reported "700 experiments over 2 days" scale results
+- [Antigravity AgentKit 2.0](https://www.geeky-gadgets.com/google-antigravity-agentkit-2026/) -- 16 agents, 40+ skills (third-party report, unverified)
+- Divergence detection accuracy estimates -- extrapolated from similar tools, no PDE-specific measurement
 
 ---
 *Research completed: 2026-03-23*

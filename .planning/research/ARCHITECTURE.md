@@ -1,518 +1,548 @@
-# Architecture Research
+# Architecture Research: Multi-Editor Integration
 
-**Domain:** Autonomous experiment loop integration — PDE v0.13 AutoResearch
+**Domain:** Multi-editor AI tool integration (Cursor, Google Antigravity, Gemini CLI)
 **Researched:** 2026-03-23
-**Confidence:** HIGH (based on direct codebase analysis; all integration points verified against current source)
+**Confidence:** MEDIUM (editor config formats verified; Antigravity official docs partially unavailable, supplemented by community guides)
 
----
-
-> **Scope note:** This file covers only the v0.13 AutoResearch integration architecture.
-> The broader PDE architecture (event bus, tmux dashboard, workflow engine, state model, MCP layer)
-> is documented in PROJECT.md. The v0.12 business type and v0.4 self-improvement fleet are the
-> primary architectural precedents for patterns used here.
-
----
-
-## Standard Architecture
-
-### System Overview — Experiment Loop Integration
+## System Overview
 
 ```
 ┌──────────────────────────────────────────────────────────────────────────┐
-│                         Skills Layer (slash commands)                     │
-│                                                                           │
-│  EXISTING                               NEW                               │
-│  /pde:research-phase                    /pde:optimize                     │
-│  /pde:plan-phase (unmodified)           (experiment loop entry point)     │
-│  /pde:execute-phase (unmodified)                                          │
+│                    EXISTING PDE PLUGIN (Claude Code)                     │
+│  skills/ → workflows/ → agents/ → templates/ → references/ → bin/       │
+│  .planning/ (PROJECT.md, ROADMAP.md, STATE.md, design-manifest.json)    │
 ├──────────────────────────────────────────────────────────────────────────┤
-│                    Workflow Engine (markdown workflow files)               │
-│                                                                           │
-│  EXISTING (unmodified)                  NEW                               │
-│  ┌──────────────────┐                  ┌──────────────────────────────┐  │
-│  │ execute-phase.md │                  │ optimize.md                  │  │
-│  │ research-phase.md│                  │ (experiment orchestrator)    │  │
-│  │ autonomous.md    │                  └──────────────────────────────┘  │
-│  └──────────────────┘                                                     │
+│                                                                          │
+│  ┌──────────────┐   ┌───────────────┐   ┌───────────────────────┐       │
+│  │ bin/lib/     │   │ bin/lib/      │   │ bin/lib/              │       │
+│  │ core.cjs     │   │ mcp-bridge.cjs│   │ design.cjs            │       │
+│  │ state.cjs    │   │ (57 tools)    │   │ (manifest, coverage)  │       │
+│  │ config.cjs   │   │               │   │                       │       │
+│  └──────┬───────┘   └──────┬────────┘   └───────────┬───────────┘       │
+│         │                  │                         │                   │
+├─────────┴──────────────────┴─────────────────────────┴───────────────────┤
+│                       SHARED CORE LIBRARY (NEW)                          │
+│              bin/lib/context-sync.cjs + bin/lib/divergence.cjs           │
+│    Reads .planning/ state → produces editor-agnostic intermediate repr  │
 ├──────────────────────────────────────────────────────────────────────────┤
-│                        Agent Layer (YAML frontmatter)                     │
-│                                                                           │
-│  EXISTING (unmodified)                  NEW                               │
-│  ┌────────────────────┐                ┌──────────────────────────────┐  │
-│  │ pde-phase-researcher│               │ pde-experiment-runner        │  │
-│  │ pde-executor        │               │ (mutate + measure subagent)  │  │
-│  │ pde-plan-checker    │               └──────────────────────────────┘  │
-│  └────────────────────┘                                                   │
+│                                                                          │
+│  ┌────────────┐  ┌──────────────────┐  ┌──────────────┐                 │
+│  │ Context    │  │ Context          │  │ Context      │                 │
+│  │ Emitter:   │  │ Emitter:         │  │ Emitter:     │                 │
+│  │ Cursor     │  │ Antigravity      │  │ Gemini CLI   │                 │
+│  │ (.cursor/  │  │ (GEMINI.md +     │  │ (GEMINI.md)  │                 │
+│  │  rules/)   │  │  .agent/rules/)  │  │              │                 │
+│  └────────────┘  └──────────────────┘  └──────────────┘                 │
+│                                                                          │
 ├──────────────────────────────────────────────────────────────────────────┤
-│                    Tool Layer (bin/pde-tools.cjs commands)                │
-│                                                                           │
-│  EXISTING (unmodified)                  NEW                               │
-│  commit, state load/update             experiment init/status            │
-│  roadmap get-phase                     experiment commit (tagged)        │
-│  design manifest-read                  experiment reset (to tag)         │
-│  tracking init/set-status              metric eval <file>                │
+│                  pde-mcp-server/ (NEW — subdirectory)                    │
+│  Own package.json + @modelcontextprotocol/sdk dependency                │
+│  Exposes PDE workflows as MCP tools via stdio transport                 │
+│  Invocable: npx pde-mcp-server                                         │
 ├──────────────────────────────────────────────────────────────────────────┤
-│                     State Layer (.planning/)                               │
-│                                                                           │
-│  EXISTING (unmodified)                  NEW                               │
-│  STATE.md, ROADMAP.md                  .planning/experiments/            │
-│  phases/{N}-{slug}/                      {slug}-EXPERIMENT.md            │
-│  config.json                             {slug}-EXPERIMENT-LOG.ndjson    │
-│  design-manifest.json                    {slug}-EXPERIMENT-BEST.json     │
+│                  STITCH DESIGN BRIDGE (NEW)                              │
+│  bin/lib/stitch-bridge.cjs — bidirectional artifact flow                │
+│  PDE Stitch artifacts ↔ Antigravity native Stitch canvas                │
 └──────────────────────────────────────────────────────────────────────────┘
 ```
 
 ### Component Responsibilities
 
-| Component | Responsibility | New vs Modified |
-|-----------|---------------|-----------------|
-| `commands/optimize.md` | `/pde:optimize` entry point — parse metric + search space + budget, spawn optimize workflow | NEW |
-| `workflows/optimize.md` | Experiment orchestrator — define spec, drive iteration loop, call runner, gate on keep/discard threshold | NEW |
-| `agents/pde-experiment-runner.md` | Mutation subagent — receives single candidate mutation, applies it to mutable files, runs metric script, returns structured JSON result | NEW |
-| `bin/lib/experiment.cjs` | State machine for exploratory commits — `init`, `commit-candidate`, `reset-to-baseline`, `promote-best` operations wrapping `execGit` from `core.cjs` | NEW |
-| `pde-tools.cjs` (dispatch) | Expose experiment subcommands as top-level CLI (`experiment init`, `experiment commit`, `experiment reset`, `metric eval`) | MODIFIED — ~30 lines |
-| `agents/pde-phase-researcher.md` | Gain `--empirical` mode flag: instead of returning RESEARCH.md, returns RESEARCH.md + `try_candidates: [...]` list for the optimize workflow to execute | MODIFIED — additive flag, ~40 lines |
-| `.planning/experiments/` | Persisted experiment state directory — one subdirectory per experiment run | NEW (dir) |
-
----
+| Component | Responsibility | New vs Modified | Implementation |
+|-----------|----------------|-----------------|----------------|
+| `bin/lib/context-sync.cjs` | Read .planning/ state, produce editor-agnostic intermediate representation | **NEW** | CJS module, zero npm deps |
+| `bin/lib/context-emitters/cursor.cjs` | Transform intermediate repr to `.cursor/rules/*.mdc` files | **NEW** | CJS module, writes .mdc with YAML frontmatter |
+| `bin/lib/context-emitters/antigravity.cjs` | Transform intermediate repr to `GEMINI.md` + `.agent/rules/*.md` | **NEW** | CJS module, writes markdown rules |
+| `bin/lib/context-emitters/gemini-cli.cjs` | Transform intermediate repr to `GEMINI.md` (project root) | **NEW** | CJS module, writes markdown |
+| `bin/lib/divergence.cjs` | Compare handoff specs vs actual code, detect drift | **NEW** | CJS module, AST-free heuristic matching |
+| `bin/lib/stitch-bridge.cjs` | Bidirectional artifact flow: PDE .planning/design/ to/from Stitch MCP | **NEW** | CJS module, reads existing mcp-bridge.cjs |
+| `pde-mcp-server/` | Standalone MCP server exposing PDE workflows as tools | **NEW** | Subdirectory with own package.json |
+| `bin/lib/mcp-bridge.cjs` | Add pde-mcp-server to APPROVED_SERVERS (self-reference for testing) | **MODIFIED** | Add entry + TOOL_MAP entries |
+| `bin/pde-tools.cjs` | Add `context-sync`, `divergence-check` commands | **MODIFIED** | New case blocks calling new modules |
+| `workflows/context-sync.md` | Workflow for `/pde:context-sync` command | **NEW** | Markdown workflow |
+| `workflows/divergence.md` | Workflow for `/pde:divergence` command | **NEW** | Markdown workflow |
+| `skills/context-sync.md` | Slash command registration | **NEW** | Skill definition |
+| `skills/divergence.md` | Slash command registration | **NEW** | Skill definition |
 
 ## Recommended Project Structure
 
-The experiment loop adds a single new state directory alongside the existing `.planning/phases/` tree:
+### New Files Only (existing structure unchanged)
 
 ```
-.planning/
-├── STATE.md                          (existing — unmodified)
-├── ROADMAP.md                        (existing — unmodified)
-├── config.json                       (existing — gains experiment_defaults section)
-├── phases/                           (existing — unmodified)
-│   └── {N}-{slug}/
-├── experiments/                      (NEW)
-│   └── {slug}/                       (one per /pde:optimize run)
-│       ├── EXPERIMENT.md             (spec: metric, search space, budget, mutable files)
-│       ├── EXPERIMENT-LOG.ndjson     (per-iteration results — append-only)
-│       └── EXPERIMENT-BEST.json      (current best candidate snapshot)
-└── design/                           (existing — unmodified)
-
-agents/
-├── pde-experiment-runner.md          (NEW — mutation + measurement subagent)
-└── pde-phase-researcher.md           (MODIFIED — --empirical flag)
-
-workflows/
-├── optimize.md                       (NEW — experiment orchestrator workflow)
-└── research-phase.md                 (MODIFIED — --empirical mode routing)
-
-commands/
-└── optimize.md                       (NEW — /pde:optimize slash command)
-
-bin/
-└── lib/
-    └── experiment.cjs                (NEW — git state machine for exploratory commits)
+Platform Development Engine/
+├── bin/
+│   ├── lib/
+│   │   ├── context-sync.cjs           # Core sync engine — reads .planning/, produces intermediate
+│   │   ├── context-emitters/           # NEW directory
+│   │   │   ├── cursor.cjs             # .cursor/rules/*.mdc writer
+│   │   │   ├── antigravity.cjs        # GEMINI.md + .agent/rules/ writer
+│   │   │   └── gemini-cli.cjs         # GEMINI.md writer
+│   │   ├── divergence.cjs             # Handoff spec vs code drift detector
+│   │   └── stitch-bridge.cjs          # PDE to/from Antigravity Stitch artifact bridge
+│   └── pde-tools.cjs                  # MODIFIED: new command cases
+├── pde-mcp-server/                    # NEW subdirectory — isolated npm package
+│   ├── package.json                   # @modelcontextprotocol/sdk dependency
+│   ├── index.cjs                      # MCP server entry point (bin target)
+│   ├── tools/                         # Tool definitions mapping to PDE workflows
+│   │   ├── design-tools.cjs           # design manifest, coverage queries
+│   │   ├── planning-tools.cjs         # roadmap, phase status queries
+│   │   └── state-tools.cjs            # state queries, todo listing
+│   └── README.md                      # npx usage instructions
+├── workflows/
+│   ├── context-sync.md                # NEW workflow
+│   └── divergence.md                  # NEW workflow
+└── skills/
+    ├── context-sync.md                # NEW skill
+    └── divergence.md                  # NEW skill
 ```
 
 ### Structure Rationale
 
-- **`.planning/experiments/` not inside `.planning/phases/`:** Experiments are not phases. They do not follow the phase lifecycle (PLAN.md → SUMMARY.md → VERIFICATION.md). A dedicated directory prevents the `roadmap analyze` and `phase complete` tooling from treating experiment state as incomplete phase work.
-- **Per-run subdirectory `{slug}/`:** Multiple experiments can run in sequence (optimize workflow A, then optimize workflow B). The slug is derived from the metric + timestamp (`{metric}-{date}`). Each run is self-contained.
-- **`EXPERIMENT-LOG.ndjson` as append-only:** Matches the NDJSON event bus pattern already established in v0.8. Each iteration writes one line — no locking needed for sequential experiments. The orchestrator reads the full log to compute trends and select the best candidate.
-- **`EXPERIMENT-BEST.json`:** Snapshot of the best git hash + metric score seen so far. Written atomically after each improvement. Allows recovery if a session ends mid-experiment — the next session can read EXPERIMENT-BEST.json and continue from the best-known state.
-- **`config.json` gains `experiment_defaults`:** Reuses the existing config pattern (already has `model_profile`, `commit_docs`, etc.). Adds: `experiment.max_iterations`, `experiment.improvement_threshold`, `experiment.protected_files_check`. No new config file needed.
-
----
+- **`bin/lib/context-emitters/`:** Subdirectory (not flat in lib/) because there will be 3+ editor emitters sharing a common interface. Each emitter is a pure function: intermediate repr in, file writes out. Adding a new editor = one new file.
+- **`pde-mcp-server/`:** Separate subdirectory at plugin root (not inside bin/) because it has its own package.json with npm dependencies (@modelcontextprotocol/sdk). This preserves the zero-npm-deps constraint at the plugin root while being discoverable. Published to npm separately as `pde-mcp-server`.
+- **`bin/lib/stitch-bridge.cjs`:** Lives in bin/lib/ (not in pde-mcp-server/) because it uses the existing mcp-bridge.cjs TOOL_MAP and Stitch quota tracking. The bridge is consumed by both the context-sync workflow and the pde-mcp-server.
+- **`bin/lib/divergence.cjs`:** Separate from context-sync because divergence detection is independently useful (run it from `/pde:divergence` without syncing context) and has different trigger points in the workflow lifecycle.
 
 ## Architectural Patterns
 
-### Pattern 1: Exploratory Commit State Machine (commit / tag / reset)
+### Pattern 1: Intermediate Representation for Context Sync
 
-**What:** The experiment loop uses a two-tier git commit strategy. Normal PDE commits (`feat`, `fix`, `docs`) are permanent. Exploratory commits are tagged with `pde-exp/{slug}/{n}` and may be reset if the metric regresses. The `experiment.cjs` module wraps `execGit` from `core.cjs` to implement this.
+**What:** The context sync engine reads all .planning/ state once and produces an editor-agnostic JSON intermediate representation. Each emitter transforms this IR into editor-specific files. This decouples PDE state reading from editor format writing.
 
-**When to use:** Every time the experiment runner applies a candidate mutation, before running the metric. If metric improves: tag is kept (promoted to permanent commit). If metric regresses: `git reset --hard {baseline-hash}` reverts all mutable file changes.
+**When to use:** Whenever PDE state changes and the user runs `/pde:context-sync` or when triggered automatically after build/handoff workflows.
 
-**State machine transitions:**
+**Trade-offs:** Extra abstraction layer adds ~100 LOC. But without it, each emitter independently parses .planning/ files (3x duplication, 3x opportunity for drift). The IR also enables testing emitters in isolation.
 
-```
-BASELINE (known good hash, stored in EXPERIMENT.md)
-    ↓ experiment commit-candidate
-CANDIDATE (staged mutation, tagged pde-exp/{slug}/{n})
-    ↓ metric eval returns score
-    ├── score > (best_score + threshold)
-    │       → PROMOTE: amend tag to pde-exp/{slug}/{n}-KEPT, update EXPERIMENT-BEST.json
-    │         → new BASELINE = CANDIDATE hash
-    └── score <= (best_score + threshold)
-            → DISCARD: git reset --hard {baseline-hash}
-              → BASELINE unchanged
-```
-
-**Critical constraint:** The state machine must verify that only `mutable_files` listed in EXPERIMENT.md are staged before any exploratory commit. Files in `immutable_boundaries` (see Pattern 3) must never be staged. The `experiment commit-candidate` command runs this check before committing.
-
-**Implementation in `experiment.cjs`:**
+**Example:**
 ```javascript
-// Simplified — real impl adds boundary checks
-function commitCandidate(cwd, slug, n, message) {
-  const result = execGit(cwd, ['commit', '-m', `exp(${slug}): ${message}`]);
-  if (result.exitCode !== 0) return { ok: false, error: result.stderr };
-  execGit(cwd, ['tag', `pde-exp/${slug}/${n}`]);
-  return { ok: true, hash: execGit(cwd, ['rev-parse', 'HEAD']).stdout };
+// context-sync.cjs — produces IR
+function buildContextIR(planningDir) {
+  const project = safeReadFile(path.join(planningDir, 'PROJECT.md'));
+  const state = safeReadFile(path.join(planningDir, 'STATE.md'));
+  const manifest = safeReadJSON(path.join(planningDir, 'design', 'design-manifest.json'));
+  const stack = safeReadFile(path.join(planningDir, 'STACK.md'));
+  const roadmap = safeReadFile(path.join(planningDir, 'ROADMAP.md'));
+
+  return {
+    projectName: extractField(project, 'name'),
+    productType: extractField(state, 'productType'),
+    currentPhase: extractField(state, 'currentPhase'),
+    stack: extractStackSummary(stack),
+    designArtifacts: manifest?.artifacts || [],
+    constraints: extractConstraints(project),
+    coverageFlags: manifest?.designCoverage || {},
+    roadmapPhases: extractPhases(roadmap),
+  };
 }
 
-function resetToBaseline(cwd, baselineHash) {
-  return execGit(cwd, ['reset', '--hard', baselineHash]);
+// cursor.cjs — consumes IR
+function emitCursorRules(ir, projectRoot) {
+  const rulesDir = path.join(projectRoot, '.cursor', 'rules');
+  fs.mkdirSync(rulesDir, { recursive: true });
+
+  // Always-on project context rule
+  writeRule(rulesDir, 'pde-context.mdc', {
+    description: `PDE project context for ${ir.projectName}`,
+    globs: '**/*',
+    alwaysApply: true,
+    body: buildProjectContextBody(ir),
+  });
+
+  // Stack-specific rules
+  writeRule(rulesDir, 'pde-stack.mdc', {
+    description: 'Technology stack constraints from PDE',
+    globs: ir.stack.fileGlobs,  // e.g., "*.tsx,*.ts"
+    alwaysApply: false,
+    body: buildStackBody(ir),
+  });
 }
 ```
 
-**Trade-offs:** Tags accumulate in the local repo. After experiment completion, `experiment cleanup` should delete `pde-exp/{slug}/*` tags. Tags are local-only (not pushed) so they don't pollute remotes.
+### Pattern 2: Subdirectory Package Isolation
 
-### Pattern 2: Metric-as-Script (measure via shell, not LLM)
+**What:** pde-mcp-server lives in its own subdirectory with its own package.json. Dependencies (@modelcontextprotocol/sdk) are installed locally. The parent plugin root remains zero-npm-deps.
 
-**What:** The experiment metric is defined as a shell command or Node.js script that returns a numeric score to stdout. The experiment runner executes it via `Bash` tool and parses the output. The metric script is the single source of truth for improvement — no LLM judgment in the keep/discard decision.
+**When to use:** Any time a PDE feature requires npm dependencies that would break the zero-dep constraint.
 
-**When to use:** Every iteration. The metric command is stored in `EXPERIMENT.md` as a string (e.g., `node tests/quality-score.cjs`, `grep -c "VERIFIED" .planning/phases/99-*/RESEARCH-VALIDATION.md`). The runner executes it before and after mutation and compares.
+**Trade-offs:** Users must `cd pde-mcp-server && npm install` or rely on `npx pde-mcp-server` (which auto-installs from npm). Slightly more complex distribution, but maintains the core constraint and follows the exact pattern used by Playwright MCP (`npx @playwright/mcp@latest`).
 
-**Metric spec in EXPERIMENT.md:**
-```yaml
-metric:
-  command: "node tests/workflow-quality.cjs --phase 30 --score-only"
-  baseline_score: 72.4
-  improvement_threshold: 2.0    # minimum delta to keep (prevents noise promotions)
-  higher_is_better: true
-  timeout_seconds: 60
+**Example:**
+```json
+// pde-mcp-server/package.json
+{
+  "name": "pde-mcp-server",
+  "version": "0.15.0",
+  "bin": { "pde-mcp-server": "./index.cjs" },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.0"
+  },
+  "files": ["index.cjs", "tools/"]
+}
 ```
 
-**Why not LLM-as-judge:** LLM scoring is non-deterministic and cannot serve as a reliable keep/discard gate — the same output may score 72 or 79 on two calls. Shell scripts and test runners are deterministic. The v0.4 self-improvement fleet already uses this principle: Nyquist tests are the ground truth, not LLM opinion.
+### Pattern 3: Probe-Before-Bridge for Stitch
 
-**Existing precedent:** `tests/*.cjs` using `node:test` — already the PDE test convention. The metric script follows the same pattern.
+**What:** The Stitch bridge reuses mcp-bridge.cjs probe/degrade contracts. Before any bidirectional operation, it probes the Stitch MCP server. If Stitch is unavailable, the bridge degrades to local-only artifact operations (no remote sync, no error).
 
-### Pattern 3: Mutable/Immutable File Boundary Enforcement
+**When to use:** Every Stitch bridge operation (push design to Antigravity, pull Antigravity design into PDE).
 
-**What:** The experiment spec declares which files the runner may modify (`mutable_files`) and which it must never touch (`immutable_boundaries`). The `experiment commit-candidate` command reads `EXPERIMENT.md`, diffs `git status`, and aborts if any staged file is not in the mutable list.
+**Trade-offs:** Probe adds ~2-3s latency per bridge call. But without it, operations fail with cryptic MCP errors. This matches the existing PDE MCP pattern established in v0.5/v0.9.
 
-**When to use:** Before every exploratory commit. This is the primary safety mechanism preventing experiments from corrupting PDE infrastructure files.
+### Pattern 4: AST-Free Divergence Detection
 
-**Boundary spec in EXPERIMENT.md:**
-```yaml
-mutable_files:
-  - "workflows/critique.md"
-  - "workflows/iterate.md"
-boundaries:
-  immutable:
-    - "bin/pde-tools.cjs"          # core tool — changes affect all phases
-    - "bin/lib/"                    # library modules
-    - ".planning/STATE.md"          # phase state
-    - ".planning/ROADMAP.md"        # phase structure
-    - "protected-files.json"        # PDE's own protected list
-    - "agents/"                     # all agent definitions (circular risk)
-    - "tests/"                      # test files (metric scripts must not change)
+**What:** Divergence detection compares handoff TypeScript interfaces against actual source files using structural heuristics (prop name matching, type signature comparison, component name presence) rather than full AST parsing. This avoids requiring typescript/babel dependencies.
+
+**When to use:** After code implementation, before shipping. Run via `/pde:divergence` or integrated into pressure-test workflow.
+
+**Trade-offs:** Heuristic matching has ~85% accuracy vs ~98% with AST parsing. But AST parsing requires typescript npm dependency (breaks zero-dep in bin/lib/) or offloading to pde-mcp-server (wrong layer). For the 15% edge cases, the divergence report flags "LOW confidence — manual review recommended."
+
+## Data Flow
+
+### Context Sync Flow
+
+```
+User runs /pde:context-sync [--editor cursor|antigravity|gemini|all]
+    │
+    ▼
+bin/pde-tools.cjs "context-sync" command
+    │
+    ▼
+bin/lib/context-sync.cjs :: buildContextIR()
+    │ Reads: .planning/PROJECT.md
+    │        .planning/STATE.md
+    │        .planning/ROADMAP.md
+    │        .planning/STACK.md (if exists)
+    │        .planning/design/design-manifest.json
+    │        .planning/design/handoff/HND-handoff-spec-v*.md
+    │        .planning/design/DESIGN-STATE.md
+    │
+    ▼
+Intermediate Representation (JSON object in memory)
+    │
+    ├─────────────────┬─────────────────┐
+    ▼                 ▼                 ▼
+cursor.cjs      antigravity.cjs   gemini-cli.cjs
+    │                 │                 │
+    ▼                 ▼                 ▼
+.cursor/rules/   GEMINI.md +        GEMINI.md
+  pde-*.mdc      .agent/rules/
+                   pde-*.md
 ```
 
-**Relationship to `protected-files.json`:** PDE already has `protected-files.json` as a prompt-level enforcement mechanism. The experiment boundary check adds a pre-commit enforcement layer that is tool-verified (not prompt-only). The two mechanisms are complementary — `protected-files.json` prevents the agent from writing, the boundary check prevents exploratory commits from staging.
+### MCP Server Tool Invocation Flow
 
-**Trade-offs:** The mutable list must be explicit — no globs. This is intentional: a typo in a glob that accidentally includes `bin/pde-tools.cjs` would be catastrophic. Explicit lists are auditable.
+```
+External Editor (Cursor/Antigravity/Gemini CLI)
+    │
+    │ MCP stdio connection to: npx pde-mcp-server
+    │
+    ▼
+pde-mcp-server/index.cjs
+    │ Receives tool call (e.g., "pde_state", "pde_design_manifest")
+    │
+    ▼
+tools/*.cjs
+    │ Maps MCP tool name to pde-tools.cjs command
+    │ Spawns: node ../bin/pde-tools.cjs <command> [args] --raw
+    │
+    ▼
+bin/pde-tools.cjs (existing, unmodified for most commands)
+    │
+    ▼
+JSON result returned via stdio to editor
+```
 
-### Pattern 4: Researcher Empirical Mode (`--empirical` flag)
+### Stitch Bridge Flow
 
-**What:** `pde-phase-researcher` gains an `--empirical` flag. When set, instead of returning only a RESEARCH.md with implementation recommendations, the researcher also returns a `try_candidates` list — specific, bounded mutations to test in the experiment loop. Each candidate is a self-contained description of one change: which files, what to change, expected effect.
+```
+/pde:context-sync --editor antigravity
+    │
+    ▼
+context-sync.cjs :: buildContextIR()
+    │ Checks: manifest artifacts with source: "stitch"
+    │
+    ▼
+stitch-bridge.cjs :: syncToAntigravity(ir)
+    │
+    ├── Probe Stitch MCP via mcp-bridge.cjs
+    │   (degrade if unavailable)
+    │
+    ├── Push: .planning/design/wireframe/STH-*.html
+    │         to Stitch project via stitch:create-project
+    │
+    ├── Pull: Antigravity's Stitch modifications
+    │         Compare with local STH-*.html
+    │         Emit divergence report if changed
+    │
+    └── Update: design-manifest.json stitch_synced_at timestamp
+```
 
-**When to use:** Only when invoked from the optimize workflow. Standard `research-phase.md` invocations are unaffected.
+### Divergence Detection Flow
 
-**Return structure (empirical mode only):**
+```
+/pde:divergence [--scope component|style|api]
+    │
+    ▼
+bin/lib/divergence.cjs :: detectDivergence(planningDir, srcDir)
+    │
+    ├── Read: .planning/design/handoff/HND-handoff-spec-v*.md
+    │         (latest version)
+    │
+    ├── Parse: Component names, prop interfaces, style tokens
+    │          from handoff spec
+    │
+    ├── Scan: src/ directory for matching component files
+    │         (glob patterns from STACK.md framework conventions)
+    │
+    ├── Compare:
+    │   ├── Component existence (spec says X, code has/lacks X)
+    │   ├── Prop name matching (spec props vs actual props)
+    │   ├── Token usage (DTCG tokens referenced vs hardcoded values)
+    │   └── Stitch annotation compliance (@verify labels)
+    │
+    └── Output: .planning/DIVERGENCE-REPORT.md
+                (components: matched/missing/drifted, confidence per item)
+```
+
+### Key Data Flows
+
+1. **Context sync (one-way read):** .planning/ state is read-only input. Editor config files are write-only output. PDE never reads .cursor/rules/ or GEMINI.md — those are disposable, regenerated each sync.
+
+2. **MCP server (shell delegation):** pde-mcp-server does NOT import bin/lib/ modules directly (different node_modules tree). Instead, it spawns `node ../bin/pde-tools.cjs` with `--raw` flag for JSON output. This preserves the single-entry-point pattern and avoids require-path complexity.
+
+3. **Stitch bridge (bidirectional):** Only bidirectional component. Reads local .planning/design/ artifacts AND reads Stitch MCP state. Writes in both directions with confirmation gates (inherits VAL-03 pattern from mcp-bridge.cjs).
+
+4. **Divergence (read-only analysis):** Reads handoff specs and source code. Writes only a report file. Never modifies source code or design artifacts.
+
+## Editor-Specific Context Formats
+
+### Cursor: .cursor/rules/*.mdc
+
+```markdown
+---
+description: PDE project context — [project name]
+globs: "**/*"
+alwaysApply: true
+---
+
+# Project: [name]
+## Current Phase: [N] — [description]
+## Product Type: [software|hardware|hybrid|experience|business]
+## Stack: [framework, language, key libraries]
+
+## Design Artifacts Available
+- [artifact list from manifest]
+
+## Constraints
+- [from PROJECT.md constraints section]
+```
+
+Cursor uses `.cursor/rules/` with `.mdc` (Markdown Component) files containing YAML frontmatter (`description`, `globs`, `alwaysApply`). The old `.cursorrules` root file is deprecated but still supported as fallback. PDE generates multiple .mdc files: one always-on context file, one stack-specific file (with framework globs), one design-artifact file (with component globs).
+
+**Confidence: HIGH** — verified via Cursor official docs.
+
+### Antigravity: GEMINI.md + .agent/rules/
+
+Antigravity reads (in priority order):
+1. `GEMINI.md` at project root (highest priority, Antigravity-specific)
+2. `AGENTS.md` at project root (cross-tool, also read by Cursor and Claude Code)
+3. `.agent/rules/*.md` files (supplementary, organized by concern)
+
+PDE generates:
+- `GEMINI.md` — project context, current phase, design pipeline status
+- `.agent/rules/pde-stack.md` — stack constraints and conventions
+- `.agent/rules/pde-design.md` — design artifact inventory and handoff specs
+
+The `AGENTS.md` file is NOT generated by PDE to avoid conflicting with user-authored cross-tool rules. PDE writes only to GEMINI.md (PDE-specific, regenerable) and .agent/rules/ (supplementary, namespaced with `pde-` prefix).
+
+**Confidence: MEDIUM** — Antigravity official docs were JS-rendered and partially unavailable; verified via community guides at antigravity.codes.
+
+### Gemini CLI: GEMINI.md
+
+Gemini CLI reads `GEMINI.md` from project root and parent directories up to `.git` root. It also supports `AGENTS.md` (v1.20.3+). The CLI discovers context files automatically and concatenates them with path separators.
+
+PDE generates `GEMINI.md` at project root. This is the same file Antigravity reads, so the two editors share context. The format is plain markdown with no frontmatter requirements.
+
+MCP server configuration for Gemini CLI goes in `~/.gemini/settings.json` under `mcpServers`:
 ```json
 {
-  "status": "RESEARCH_COMPLETE",
-  "research_file": ".planning/phases/99-optimize/RESEARCH.md",
-  "try_candidates": [
-    {
-      "id": "C1",
-      "description": "Add explicit chain-of-thought prompt to critique Step 3",
-      "mutable_files": ["workflows/critique.md"],
-      "change_summary": "Insert 4-line reasoning scaffold before the scoring rubric",
-      "expected_delta": "+3 to +8 quality score points",
-      "confidence": "MEDIUM"
+  "mcpServers": {
+    "pde": {
+      "command": "npx",
+      "args": ["pde-mcp-server"],
+      "cwd": "/path/to/project"
     }
-  ]
+  }
 }
 ```
 
-**Why modify researcher rather than add new agent:** The researcher already understands PDE's file structure, workflow patterns, and which changes are safe. Adding empirical mode reuses that domain knowledge. A new "candidate generator" agent would need to learn all the same context from scratch. The modification is additive — the researcher returns everything it always returned, plus the candidate list. No existing callers are affected because they ignore unknown fields.
+**Confidence: HIGH** — verified via official Gemini CLI docs.
 
----
+## pde-mcp-server Design
 
-## Data Flow: Experiment Lifecycle End to End
+### Tool Surface
 
-### Invocation to First Candidate
+The MCP server exposes PDE workflows as read-only query tools. Following the existing key decision "Write tools in PDE-as-MCP-server — creates second write path bypassing pde-tools.cjs validation and locking" (from PROJECT.md Out of Scope), the server exposes ONLY read and orchestration tools:
 
-```
-User: /pde:optimize --metric "node tests/quality.cjs" \
-                    --target workflows/critique.md \
-                    --budget 8
-    ↓
-commands/optimize.md: parse args, resolve models, spawn optimize workflow
-    ↓
-optimize.md Step 1: scaffold EXPERIMENT.md
-  → writes .planning/experiments/{slug}/EXPERIMENT.md
-  → stores: metric command, mutable_files, baseline_score (from first metric run),
-            improvement_threshold, max_iterations=8
-  → git commit "exp({slug}): initialize experiment baseline"
-  → stores baseline_hash in EXPERIMENT.md
-    ↓
-optimize.md Step 2: spawn pde-phase-researcher --empirical
-  → researcher reads mutable_files, reads metric spec
-  → returns RESEARCH.md + try_candidates list (C1..CN)
-    ↓
-optimize.md Step 3: enter iteration loop
-```
+| MCP Tool Name | Maps To | Description |
+|---------------|---------|-------------|
+| `pde_state` | `state json` | Current project state |
+| `pde_design_manifest` | `design manifest-read` | Design artifact registry |
+| `pde_design_coverage` | `design coverage-check` | Coverage flag status |
+| `pde_roadmap` | `roadmap analyze` | Roadmap with disk status |
+| `pde_phase_status` | `phase-plan-index <N>` | Plans + wave status for phase |
+| `pde_history` | `history-digest` | Aggregated SUMMARY.md data |
+| `pde_divergence` | `divergence-check` | Handoff vs code drift report |
+| `pde_list_todos` | `list-todos` | Pending TODO inventory |
+| `pde_health` | `health` (via workflow) | MCP connection health |
 
-### Iteration Loop (per candidate)
+Write operations (build, brief, deploy, etc.) are deliberately excluded. External editors invoke PDE write workflows through their native terminal, not through the MCP server. This preserves the single-write-path constraint.
 
-```
-optimize.md: take next candidate Ci from try_candidates queue
-    ↓
-spawn pde-experiment-runner with:
-  - candidate spec (description, mutable_files, change_summary)
-  - experiment slug
-  - iteration number i
-  - baseline_hash (from EXPERIMENT.md)
-    ↓
-pde-experiment-runner:
-  Step 1: apply mutation to mutable_files (Write/Edit tool)
-  Step 2: node pde-tools.cjs experiment commit-candidate {slug} {i}
-    → boundary check: abort if staged files outside mutable list
-    → git commit -m "exp({slug}): {change_summary}"
-    → git tag pde-exp/{slug}/{i}
-    → returns: candidate_hash, ok/fail
-  Step 3: run metric command via Bash tool
-    → parse numeric score from stdout
-    → timeout enforced ({timeout_seconds} from spec)
-  Step 4: return structured JSON to optimize.md orchestrator:
-    {
-      "iteration": i,
-      "candidate_id": "C1",
-      "candidate_hash": "abc123",
-      "metric_score": 77.2,
-      "baseline_score": 72.4,
-      "delta": 4.8,
-      "status": "metric_collected"
-    }
-    ↓
-optimize.md: keep/discard decision
-    ├── delta > improvement_threshold (2.0)?
-    │     → KEEP: update EXPERIMENT-BEST.json, new baseline = candidate_hash
-    │       append EXPERIMENT-LOG.ndjson: {iteration, delta, decision: "KEEP", hash}
-    │       display: "Iteration {i}: KEPT +{delta} (score: {score})"
-    └── delta <= improvement_threshold?
-          → DISCARD: node pde-tools.cjs experiment reset {baseline_hash}
-            → git reset --hard {baseline_hash}
-            append EXPERIMENT-LOG.ndjson: {iteration, delta, decision: "DISCARD"}
-            display: "Iteration {i}: DISCARDED (delta {delta} < threshold {threshold})"
-    ↓
-Check budget: iterations_used < max_iterations AND try_candidates queue not empty?
-  → YES: spawn next pde-experiment-runner (next candidate)
-  → NO: finalize experiment
+### Distribution Strategy
+
+Published to npm as `pde-mcp-server`. Users configure their editor:
+
+**Cursor:** `.cursor/mcp.json`
+```json
+{ "mcpServers": { "pde": { "command": "npx", "args": ["pde-mcp-server"] } } }
 ```
 
-### Finalization
-
-```
-optimize.md Step 4: finalize
-    ↓
-Read EXPERIMENT-BEST.json: best_hash, best_score, best_candidate_id
-    ↓
-git checkout {best_hash} -- {mutable_files}   (if best_hash != HEAD)
-git commit -m "feat: promote best experiment candidate {best_candidate_id}
-               score {best_score} (+{best_delta} vs baseline)"
-    ↓
-experiment cleanup: delete pde-exp/{slug}/* tags
-    ↓
-append EXPERIMENT.md with ## Results section:
-  - iterations run
-  - improvements found (N)
-  - best candidate, score, delta
-  - promoted commit hash
-    ↓
-node pde-tools.cjs commit "exp({slug}): finalize experiment" \
-  --files .planning/experiments/{slug}/
-    ↓
-display summary table:
-  | Iteration | Candidate | Score | Delta | Decision |
-  |-----------|-----------|-------|-------|----------|
-  | 1         | C1        | 77.2  | +4.8  | KEPT     |
-  | 2         | C2        | 71.1  | -1.3  | DISCARDED|
-  ...
-  Best result: {score} (+{delta}) — committed as {hash}
+**Antigravity:** Settings > MCP Servers > Add
+```json
+{ "command": "npx", "args": ["pde-mcp-server"] }
 ```
 
----
-
-## Integration Points with Existing PDE Components
-
-### Touches vs Does Not Touch
-
-| Existing Component | Relationship | Modification |
-|-------------------|-------------|-------------|
-| `bin/lib/core.cjs` | `experiment.cjs` calls `execGit` from here | NOT modified — experiment.cjs imports it |
-| `bin/pde-tools.cjs` | Dispatch block gains `experiment` and `metric` subcommands | MODIFIED — ~30 lines in the case dispatch |
-| `agents/pde-executor.md` | Normal plan execution, not involved in experiments | NOT modified |
-| `agents/pde-phase-researcher.md` | Gains `--empirical` flag and `try_candidates` return field | MODIFIED — additive, ~40 lines |
-| `workflows/execute-phase.md` | Normal phase execution, not involved in experiments | NOT modified |
-| `workflows/research-phase.md` | Gains routing for `--empirical` flag to pass to researcher | MODIFIED — ~10 lines |
-| `bin/lib/event-bus.cjs` | Experiment events (`exp_iteration_started`, `exp_iteration_complete`) can be emitted for dashboard visibility | MODIFIED — add 2 event types |
-| `.planning/config.json` (schema) | Gains `experiment_defaults` section | MODIFIED — template updated |
-| `protected-files.json` | Read by experiment boundary checker but not modified | NOT modified |
-| `workflows/autonomous.md` | Not involved — experiments are explicit invocations, not autonomous phases | NOT modified |
-| `bin/lib/design.cjs` | Not involved | NOT modified |
-| MCP bridge layer | Not involved | NOT modified |
-
-### Agent Interaction Model
-
-The experiment runner is a distinct agent type from `pde-executor`. The distinction matters:
-
-| Capability | pde-executor | pde-experiment-runner |
-|-----------|-------------|----------------------|
-| Allowed tools | Read, Write, Edit, Bash, Glob, Grep | Read, Write, Edit, Bash (metric only), Glob, Grep |
-| Commits | Regular `feat/fix/docs` commits (permanent) | Exploratory commits via `pde-tools experiment commit-candidate` only |
-| Scope | Full plan file (all tasks) | Single candidate mutation (one bounded change) |
-| File boundaries | Protected-files.json (prompt enforcement) | EXPERIMENT.md `mutable_files` (tool-verified) |
-| Returns | SUMMARY.md written to disk | Structured JSON to orchestrator (does not write SUMMARY) |
-| Context model | Fresh context per plan (Pattern A from execute-plan.md) | Fresh context per iteration (same pattern, smaller scope) |
-
-The runner is explicitly READ-ONLY for metric execution. It runs `node tests/quality.cjs` via Bash but must not modify test files. This mirrors the `pde-research-validator` READ-ONLY constraint.
-
-### Git Layer Integration
-
-The experiment commit state machine integrates below the existing `pde-tools.cjs commit` wrapper:
-
-```
-Existing:
-  pde-tools.cjs commit <msg> --files f1 f2
-    → calls execGit(cwd, ['add', ...files])
-    → calls execGit(cwd, ['commit', '-m', msg])
-
-New (experiment.cjs):
-  experiment commit-candidate {slug} {n}
-    → reads EXPERIMENT.md for mutable_files list
-    → calls execGit(cwd, ['diff', '--cached', '--name-only'])
-    → validates staged files are subset of mutable_files
-    → calls execGit(cwd, ['commit', '-m', msg])
-    → calls execGit(cwd, ['tag', `pde-exp/${slug}/${n}`])
-
-  experiment reset {baseline-hash}
-    → calls execGit(cwd, ['reset', '--hard', baselineHash])
-    → DOES NOT call pde-tools.cjs commit (no commit on reset)
+**Gemini CLI:** `~/.gemini/settings.json`
+```json
+{ "mcpServers": { "pde": { "command": "npx", "args": ["pde-mcp-server"] } } }
 ```
 
-The two paths are independent — the experiment state machine never calls through `pde-tools.cjs commit` because it needs tag management and boundary checks that the existing commit wrapper does not have.
+### Zero-Dep Preservation
 
----
+The pde-mcp-server subdirectory has its own `node_modules/` and `package.json`. The `@modelcontextprotocol/sdk` dependency lives ONLY in `pde-mcp-server/node_modules/`. The plugin root's bin/, lib/, workflows/, etc. remain zero-npm-dep. The server calls back into PDE by spawning `node ../bin/pde-tools.cjs` — no shared require() paths cross the boundary.
 
-## New vs Modified File Inventory
+## Scaling Considerations
 
-### New Files
+| Scale | Architecture Adjustments |
+|-------|--------------------------|
+| 1 editor (Cursor only) | Single emitter, no GEMINI.md conflict. Simplest path. |
+| 2-3 editors simultaneously | IR pattern prevents duplication. GEMINI.md shared between Antigravity and Gemini CLI — PDE appends `<!-- PDE-GENERATED -->` markers to avoid clobbering user content. |
+| New editors (future) | Add one file to `bin/lib/context-emitters/`. If the editor reads GEMINI.md or AGENTS.md, the gemini-cli emitter already handles it. If the editor has a unique format, write a new emitter consuming the same IR. |
 
-| File | Purpose | Why New (Not Modified) |
-|------|---------|----------------------|
-| `commands/optimize.md` | `/pde:optimize` slash command entry point | New user-facing command — follows existing command bootstrap pattern |
-| `workflows/optimize.md` | Experiment orchestrator — full iteration loop | Too different from execute-phase to modify it; experiment lifecycle has distinct states (BASELINE, CANDIDATE, PROMOTE, DISCARD) not present in normal execution |
-| `agents/pde-experiment-runner.md` | Mutation + measurement subagent | Different tool permissions, different output format, different scope from pde-executor. Reusing pde-executor would require conditional logic that degrades both |
-| `bin/lib/experiment.cjs` | Git state machine for exploratory commits | The exploratory commit pattern (tag, reset, promote) is not supported by existing `core.cjs` execGit or the `commit` command in pde-tools.cjs. New module follows the established CJS lib pattern |
-| `.planning/experiments/` | Runtime experiment state storage | Experiments are not phases — they must not appear in roadmap analyze output or confuse phase tooling |
+### Scaling Priorities
 
-### Modified Files
+1. **First concern:** GEMINI.md collision between Antigravity and Gemini CLI. Both read the same file. Solution: PDE generates one shared GEMINI.md with editor-agnostic content. Editor-specific rules go in `.agent/rules/` (Antigravity) or subdirectory GEMINI.md files (Gemini CLI).
 
-| File | Modification | Estimated Scope |
-|------|-------------|-----------------|
-| `bin/pde-tools.cjs` | Add `experiment` and `metric` subcommand dispatch blocks | ~30 lines |
-| `agents/pde-phase-researcher.md` | Add `--empirical` flag handling section + `try_candidates` return block in empirical mode | ~40 lines (additive) |
-| `workflows/research-phase.md` | Add `--empirical` flag detection + pass to researcher spawn | ~10 lines |
-| `bin/lib/event-bus.cjs` | Add `exp_iteration_started` and `exp_iteration_complete` event type constants | ~6 lines |
-| `.planning/config.json` template | Add `experiment_defaults` section with `max_iterations`, `improvement_threshold`, `protected_files_check` | ~8 lines |
-
----
+2. **Second concern:** pde-mcp-server version drift from PDE plugin. The server spawns bin/pde-tools.cjs which evolves with the plugin. Solution: pde-mcp-server version is pinned to PDE milestone version. The server includes a version compatibility check on startup.
 
 ## Anti-Patterns
 
-### Anti-Pattern 1: Using Regular `pde-tools commit` for Exploratory Commits
+### Anti-Pattern 1: Direct Module Import from MCP Server
 
-**What people do:** Route experiment commits through the existing `pde-tools.cjs commit` wrapper (same as task commits).
+**What people do:** `require('../../bin/lib/state.cjs')` from pde-mcp-server/
+**Why it's wrong:** Different node_modules trees. The server has @modelcontextprotocol/sdk; bin/lib/ has zero deps. Cross-tree requires create invisible coupling and break when either side changes.
+**Do this instead:** Spawn `node ../bin/pde-tools.cjs state json --raw` as a subprocess. Parse JSON output. This uses the established single-entry-point pattern.
 
-**Why it's wrong:** Regular commits have no rollback mechanism and are not tagged. If a metric regresses, you cannot `git reset --hard` back to baseline without also discarding any non-experiment changes that happened to be committed nearby. The exploratory commit state machine exists precisely to create an isolated, reversible commit layer.
+### Anti-Pattern 2: Generating .cursorrules Instead of .cursor/rules/
 
-**Do this instead:** Use `pde-tools experiment commit-candidate` exclusively for all experiment mutations. Never use `pde-tools commit` inside the experiment runner.
+**What people do:** Write a single `.cursorrules` file at project root.
+**Why it's wrong:** Cursor deprecated `.cursorrules` in favor of `.cursor/rules/*.mdc` with YAML frontmatter, glob targeting, and alwaysApply control. The old format still works but lacks per-file scoping.
+**Do this instead:** Generate multiple `.mdc` files in `.cursor/rules/` with proper frontmatter. One rule per concern (context, stack, design).
 
-### Anti-Pattern 2: LLM-as-Metric-Judge
+### Anti-Pattern 3: Writing to AGENTS.md
 
-**What people do:** Ask Claude to "score" the mutated workflow file and use that score as the keep/discard signal.
+**What people do:** Generate PDE context into `AGENTS.md` because it is cross-tool compatible.
+**Why it's wrong:** AGENTS.md is the user's cross-tool file. PDE overwriting it destroys user rules. Multiple tools writing to the same file creates merge conflicts.
+**Do this instead:** Write to `GEMINI.md` (PDE-specific, regenerable) and `.agent/rules/pde-*.md` (namespaced, non-conflicting). Never touch AGENTS.md.
 
-**Why it's wrong:** LLM scoring is non-deterministic. The same workflow text can score 72 on one call and 79 on the next. Basing keep/discard on a non-deterministic signal makes the experiment loop a random walk rather than an optimization. The v0.4 quality fleet demonstrated this: Nyquist test counts are reliable, "is this better" LLM ratings are not.
+### Anti-Pattern 4: MCP Server Exposing Write Tools
 
-**Do this instead:** The metric command must be a deterministic script (`node tests/quality.cjs`, `grep -c VERIFIED`). LLM judgment belongs in the researcher's candidate generation phase (where non-determinism is acceptable) not in the keep/discard gate.
+**What people do:** Expose `pde_build`, `pde_deploy`, `pde_brief` as MCP tools for external editors.
+**Why it's wrong:** PROJECT.md explicitly excludes this: "Write tools in PDE-as-MCP-server creates second write path bypassing pde-tools.cjs validation and locking." Write operations involve confirmation gates, coverage flag writes, manifest updates, and event bus emissions that only work correctly through the workflow layer.
+**Do this instead:** Expose read-only query tools. External editors invoke write workflows through their terminal (the editor's built-in terminal runs Claude Code or the CLI directly).
 
-### Anti-Pattern 3: Placing Experiment State Inside `.planning/phases/`
+### Anti-Pattern 5: Full AST Parsing for Divergence Detection
 
-**What people do:** Store `EXPERIMENT.md` in a new phase directory (e.g., `.planning/phases/99-optimize/EXPERIMENT.md`).
+**What people do:** Import typescript compiler API or babel parser for exact prop/type matching.
+**Why it's wrong:** Adds ~40MB of npm dependencies to bin/lib/, violating zero-dep constraint. Alternatively, putting it in pde-mcp-server creates a layering violation (divergence is a core feature, not an MCP concern).
+**Do this instead:** Heuristic matching (regex for prop names, string matching for type annotations, glob for component file existence). Flag low-confidence matches for manual review. Accept ~85% accuracy as the tradeoff for zero dependencies.
 
-**Why it's wrong:** `pde-tools roadmap analyze` scans `.planning/phases/` for all directories and checks if they have PLAN.md + SUMMARY.md. An experiment directory has neither. The analyzer will flag it as an incomplete phase, the readiness gate will fire, and `autonomous.md` will try to plan and execute it as a normal phase. The confusion propagates through every tool that iterates over phases.
+## Integration Points
 
-**Do this instead:** Use the dedicated `.planning/experiments/` directory, which exists outside the phase scanning path.
+### External Services
 
-### Anti-Pattern 4: Allowing Mutable File Globs in Experiment Spec
+| Service | Integration Pattern | Notes |
+|---------|---------------------|-------|
+| Cursor IDE | .cursor/rules/*.mdc file generation | One-way write; PDE never reads Cursor config |
+| Google Antigravity | GEMINI.md + .agent/rules/ + Stitch bridge | GEMINI.md shared with Gemini CLI; Stitch bridge is bidirectional |
+| Gemini CLI | GEMINI.md + MCP server config | Shares GEMINI.md with Antigravity |
+| Stitch MCP | Existing mcp-bridge.cjs + new stitch-bridge.cjs | Reuses probe/degrade, quota tracking from v0.9 |
+| npm registry | pde-mcp-server published package | npx distribution for zero-install editor setup |
 
-**What people do:** Specify `mutable_files: ["workflows/*.md"]` in EXPERIMENT.md to give the runner flexibility.
+### Internal Boundaries
 
-**Why it's wrong:** A glob boundary is unauditable at commit time. The `experiment commit-candidate` boundary check would need to expand the glob against the working tree — and a new file created by the runner that matches the glob would silently be included. The accidental modification of `workflows/build.md` or `workflows/deploy.md` would corrupt production workflows with no easy audit trail.
-
-**Do this instead:** Require explicit file paths in `mutable_files`. The optimize workflow should reject EXPERIMENT.md specs that contain globs or directory paths. If the experiment needs to touch multiple files, list each one explicitly.
-
-### Anti-Pattern 5: Running Experiments Inside Active Phase Execution
-
-**What people do:** Invoke `/pde:optimize` during an ongoing `execute-phase` run (from a checkpoint or nested Task call).
-
-**Why it's wrong:** The experiment loop performs `git reset --hard` operations. If a parent `execute-phase` has uncommitted changes in flight, a reset would destroy them. The experiment runner's `git reset --hard` is scoped to `baseline_hash` which predates any in-flight work.
-
-**Do this instead:** Experiments are standalone operations, not nested calls. The optimize workflow checks `git status` at the start and aborts if there are uncommitted changes outside the experiment's mutable files. The `/pde:optimize` command is safe to run between phases, not during them.
-
----
-
-## Scalability Considerations
-
-The experiment loop is bounded by design. Scalability is not a primary concern, but budget exhaustion and session limits are:
-
-| Scale | Concern | Mitigation |
-|-------|---------|------------|
-| 8 iterations (default) | Session length — 8 runner spawns in one session | Each iteration is a fresh subagent. Total session cost is 8 × runner context. Default budget of 8 keeps total cost manageable. |
-| 20+ iterations | Context accumulation in orchestrator | Orchestrator reads only EXPERIMENT-BEST.json and EXPERIMENT-LOG.ndjson (NDJSON is append-only, read line count not full content). Orchestrator context stays flat. |
-| Multi-file mutations | Boundary complexity | Explicit mutable_files list must be validated at spec time. More files = more rollback surface. Recommend single-file experiments for first version. |
-| Long-running metric scripts | Timeout | `timeout_seconds` in spec. Runner kills metric process and returns `metric_timeout` status after deadline. |
-
----
+| Boundary | Communication | Notes |
+|----------|---------------|-------|
+| context-sync.cjs to emitters | Function call (IR object passed) | Same process, synchronous |
+| pde-mcp-server to pde-tools.cjs | Subprocess spawn (JSON over stdout) | Cross-process, --raw flag required |
+| stitch-bridge.cjs to mcp-bridge.cjs | require() (same bin/lib/ tree) | Same process, reuses TOOL_MAP |
+| divergence.cjs to handoff artifacts | File read (glob .planning/design/handoff/) | Read-only, latest version only |
+| context-sync workflow to event-bus | emit('context:sync', { editor, files }) | Optional observability, non-blocking |
 
 ## Suggested Build Order
 
-Dependencies run from bottom up: the git state machine must exist before the runner, the runner before the orchestrator, the orchestrator before the command.
+Based on dependency analysis, the build order should be:
 
-| Phase | Files | Rationale |
-|-------|-------|-----------|
-| 1 | `bin/lib/experiment.cjs`, `pde-tools.cjs` dispatch additions | Git state machine is the lowest-level dependency. All other components call it. Build and test in isolation before agents exist. Analogous to how `event-bus.cjs` shipped in Phase 58 before any workflow consumed it. |
-| 2 | `agents/pde-experiment-runner.md` | Runner depends on `experiment commit-candidate` and `metric eval` from Phase 1. Can be defined before the orchestrator — it is a pure subagent with no awareness of the outer loop. |
-| 3 | `workflows/optimize.md`, `commands/optimize.md` | Orchestrator depends on runner (Phase 2) and git state machine (Phase 1). The command entry point is trivial (~20 lines) and ships in the same phase as the workflow. |
-| 4 | `agents/pde-phase-researcher.md` (empirical flag), `workflows/research-phase.md` routing | Empirical mode is additive and decoupled. The researcher can be modified after the loop is functional. This allows testing the basic commit/reset/metric loop without needing candidates from the researcher. |
-| 5 | Event bus additions, config template | Integration polish — emit experiment events to the tmux dashboard, add `experiment_defaults` to config template. Can ship in same phase as researcher modification or separately. |
-| 6 | Nyquist regression tests | Verify: non-experiment workflows unaffected, boundary check rejects out-of-bounds files, reset restores baseline, metric timeout is respected, protected files are never staged. |
+### Phase 1: Context Sync Core (foundation — no external deps)
+1. `bin/lib/context-sync.cjs` — IR builder reading .planning/ state
+2. `bin/lib/context-emitters/cursor.cjs` — Cursor .mdc emitter
+3. `bin/lib/context-emitters/gemini-cli.cjs` — GEMINI.md emitter
+4. `bin/pde-tools.cjs` modification — `context-sync` command
+5. `workflows/context-sync.md` + `skills/context-sync.md`
 
----
+**Rationale:** Start with the IR builder because all other features depend on it. Cursor and Gemini CLI emitters are simplest (well-documented formats). This phase delivers immediate value — users can run `/pde:context-sync` to populate editor rules.
+
+### Phase 2: Antigravity Context + Stitch Bridge
+1. `bin/lib/context-emitters/antigravity.cjs` — GEMINI.md + .agent/rules/ emitter
+2. `bin/lib/stitch-bridge.cjs` — bidirectional Stitch artifact flow
+3. Integration with context-sync workflow for Antigravity-specific Stitch sync
+
+**Rationale:** Antigravity emitter depends on understanding the shared GEMINI.md format (proven in Phase 1). Stitch bridge depends on existing mcp-bridge.cjs patterns and is Antigravity-specific.
+
+### Phase 3: pde-mcp-server (standalone package)
+1. `pde-mcp-server/package.json` + `pde-mcp-server/index.cjs`
+2. `pde-mcp-server/tools/state-tools.cjs` — state and manifest queries
+3. `pde-mcp-server/tools/planning-tools.cjs` — roadmap and phase queries
+4. `pde-mcp-server/tools/design-tools.cjs` — design coverage and artifact queries
+5. npm publish setup + npx verification
+
+**Rationale:** MCP server depends on pde-tools.cjs commands being stable. Build after context sync proves the state reading layer works. The server is independently testable via MCP Inspector.
+
+### Phase 4: Divergence Detection
+1. `bin/lib/divergence.cjs` — heuristic comparison engine
+2. `bin/pde-tools.cjs` modification — `divergence-check` command
+3. `workflows/divergence.md` + `skills/divergence.md`
+4. Integration into pressure-test workflow (optional divergence dimension)
+
+**Rationale:** Divergence detection requires handoff artifacts to exist (downstream of the full design pipeline). It is the most independent feature — no other v0.15 component depends on it.
+
+### Phase 5: Integration + Cross-Editor Testing
+1. End-to-end: Claude Code plugin to context-sync to Cursor opens with PDE rules
+2. End-to-end: pde-mcp-server to Gemini CLI queries PDE state
+3. End-to-end: Stitch bridge to Antigravity receives PDE design artifacts
+4. Divergence accuracy validation against real handoff specs
 
 ## Sources
 
-- Direct codebase analysis — HIGH confidence:
-  - `bin/lib/core.cjs` — `execGit` function, `loadConfig` structure, CJS module conventions
-  - `bin/lib/event-bus.cjs` — NDJSON append pattern, session-scoped file naming, error swallowing contract
-  - `bin/pde-tools.cjs` — dispatch block pattern, subcommand registration convention, `@file:` large-payload pattern
-  - `agents/pde-research-validator.md` — read-only agent pattern, structured JSON return to orchestrator (not file write)
-  - `agents/pde-experiment-runner.md` (does not exist yet) — modeled on `pde-executor` + `pde-research-validator` hybrid pattern
-  - `workflows/execute-phase.md` — fresh-context-per-subagent Pattern A, agent tracking protocol
-  - `workflows/autonomous.md` — iteration loop structure, phase re-read after each cycle, blocker handling
-  - `references/git-integration.md` — commit format conventions, per-task commit principle, `git reset` usage in `complete-milestone.md`
-  - `.planning/PROJECT.md` — v0.13 target features, out-of-scope list, existing architecture summary, constraints
+- [Cursor Rules for AI (official docs)](https://docs.cursor.com/context/rules-for-ai)
+- [Antigravity Rules Guide](https://antigravity.codes/blog/user-rules)
+- [Gemini CLI Configuration (official)](https://geminicli.com/docs/reference/configuration/)
+- [Gemini CLI MCP Servers (official)](https://geminicli.com/docs/tools/mcp-server/)
+- [MCP TypeScript SDK (official)](https://github.com/modelcontextprotocol/typescript-sdk)
+- [Google Stitch + Antigravity Design-to-Code (Google Codelabs)](https://codelabs.developers.google.com/design-to-code-with-antigravity-stitch?hl=en)
+- [Google Antigravity Developer Blog](https://developers.googleblog.com/build-with-google-antigravity-our-new-agentic-development-platform/)
+- [Antigravity + Data Cloud MCP (Google Cloud Blog)](https://cloud.google.com/blog/products/data-analytics/connect-google-antigravity-ide-to-googles-data-cloud-services)
 
 ---
-
-*Architecture research for: PDE v0.13 — AutoResearch Experiment Loop Integration*
+*Architecture research for: Multi-Editor Integration (v0.15)*
 *Researched: 2026-03-23*
