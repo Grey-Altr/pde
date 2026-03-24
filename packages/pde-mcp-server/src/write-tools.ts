@@ -1,6 +1,8 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { updateConstraintsTool } from './tools/update-constraints.js';
 import { updateTechStackTool } from './tools/update-tech-stack.js';
+import { appendContextNoteTool } from './tools/append-context-note.js';
+import { flagDivergenceTool } from './tools/flag-divergence.js';
 
 /**
  * Register all write tools with the MCP server.
@@ -13,6 +15,8 @@ export function registerWriteTools(server: McpServer, planningDir: string): void
   const tools = [
     updateConstraintsTool(planningDir),
     updateTechStackTool(planningDir),
+    appendContextNoteTool(planningDir),
+    flagDivergenceTool(planningDir),
   ];
 
   for (const tool of tools) {
