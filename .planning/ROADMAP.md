@@ -244,7 +244,7 @@ Full details: .planning/milestones/v0.12-ROADMAP.md
 - [x] **Phase 114: Visual Regression Circuit Breaker** — Prevent cosmetic regressions during optimization with screenshot-based before/after comparison (completed 2026-03-23)
 - [x] **Phase 115: Multi-Candidate Experiments** — A/B variant testing with best-of-N selection in experiment loop (completed 2026-03-24)
 - [x] **Phase 116: Pressure Test + Meta-Optimization + Ideation + Brief Reference** — Visual pressure test dimension, strategy self-calibration, ideation visual scoring, reference screenshot capture (completed 2026-03-24)
-- [ ] **Phase 117: Integration & Nyquist** — Structural regression tests for all v0.14 requirements, zero v0.13 regressions
+- [x] **Phase 117: Integration & Nyquist** — Structural regression tests for all v0.14 requirements, zero v0.13 regressions (completed 2026-03-24)
 
 ## Phase Details
 
@@ -380,10 +380,10 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. Nyquist structural tests exist for all 76 v0.14 requirements
   2. All existing v0.13 Nyquist tests (1216 assertions) continue to pass with zero regressions
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 Plans:
-- [ ] 117-01-PLAN.md — Integration test covering all 76 v0.14 requirements (INTG-01)
-- [ ] 117-02-PLAN.md — Fix TOOL_MAP count regressions in phases 40-43 (INTG-02)
+- [x] 117-01-PLAN.md — Integration test covering all 76 v0.14 requirements (INTG-01)
+- [x] 117-02-PLAN.md — Fix TOOL_MAP count regressions in phases 40-43 (INTG-02)
 
 ## Progress
 

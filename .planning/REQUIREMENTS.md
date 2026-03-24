@@ -103,36 +103,36 @@ Requirements for v0.14 Visual AutoResearch. Each maps to roadmap phases.
 
 ### Pressure Test Visual Dimension (PRES)
 
-- [ ] **PRES-01**: Pressure test gains visual quality dimension alongside existing Awwwards text rubric
-- [ ] **PRES-02**: Browser renders pressure test output artifacts and scores DOM structure, a11y, contrast
-- [ ] **PRES-03**: Combined score formula weights text rubric (existing) + visual metrics (new)
-- [ ] **PRES-04**: Visual dimension degrades gracefully when Playwright unavailable (text-only scoring)
+- [x] **PRES-01**: Pressure test gains visual quality dimension alongside existing Awwwards text rubric
+- [x] **PRES-02**: Browser renders pressure test output artifacts and scores DOM structure, a11y, contrast
+- [x] **PRES-03**: Combined score formula weights text rubric (existing) + visual metrics (new)
+- [x] **PRES-04**: Visual dimension degrades gracefully when Playwright unavailable (text-only scoring)
 
 ### Meta-Optimization (META)
 
-- [ ] **META-01**: Experiment runner self-calibrates mutation strategies based on historical improvement data
-- [ ] **META-02**: Mutation strategy effectiveness tracked across experiment runs (which strategies produce improvements)
-- [ ] **META-03**: Meta-optimization reads experiment JSONL history to derive strategy weights
-- [ ] **META-04**: Strategy weights influence mutation agent's approach selection in subsequent experiments
+- [x] **META-01**: Experiment runner self-calibrates mutation strategies based on historical improvement data
+- [x] **META-02**: Mutation strategy effectiveness tracked across experiment runs (which strategies produce improvements)
+- [x] **META-03**: Meta-optimization reads experiment JSONL history to derive strategy weights
+- [x] **META-04**: Strategy weights influence mutation agent's approach selection in subsequent experiments
 
 ### Ideation Visual Scoring (IDT)
 
-- [ ] **IDT-01**: Ideation divergence scored by measuring screenshot variance across generated concepts
-- [ ] **IDT-02**: Visual similarity metric compares screenshots pairwise (structural hash or pixel-level)
-- [ ] **IDT-03**: Higher visual diversity = higher ideation quality score
-- [ ] **IDT-04**: Ideation visual scoring degrades gracefully (text-only diversity when Playwright unavailable)
+- [x] **IDT-01**: Ideation divergence scored by measuring screenshot variance across generated concepts
+- [x] **IDT-02**: Visual similarity metric compares screenshots pairwise (structural hash or pixel-level)
+- [x] **IDT-03**: Higher visual diversity = higher ideation quality score
+- [x] **IDT-04**: Ideation visual scoring degrades gracefully (text-only diversity when Playwright unavailable)
 
 ### Brief Reference Capture (BREF)
 
-- [ ] **BREF-01**: Brief workflow can capture live product screenshots as reference material
-- [ ] **BREF-02**: User provides URL → Playwright navigates, screenshots, saves to `.planning/design/references/`
-- [ ] **BREF-03**: Reference screenshots available to downstream skills (wireframe, mockup, critique)
-- [ ] **BREF-04**: Reference capture is opt-in (not automatic — requires user-provided URLs)
+- [x] **BREF-01**: Brief workflow can capture live product screenshots as reference material
+- [x] **BREF-02**: User provides URL → Playwright navigates, screenshots, saves to `.planning/design/references/`
+- [x] **BREF-03**: Reference screenshots available to downstream skills (wireframe, mockup, critique)
+- [x] **BREF-04**: Reference capture is opt-in (not automatic — requires user-provided URLs)
 
 ### Integration & Nyquist (INTG)
 
-- [ ] **INTG-01**: Nyquist structural regression tests for all new v0.14 requirements
-- [ ] **INTG-02**: No regressions across existing v0.13 Nyquist test suite (1216 assertions)
+- [x] **INTG-01**: Nyquist structural regression tests for all new v0.14 requirements
+- [x] **INTG-02**: No regressions across existing v0.13 Nyquist test suite (1216 assertions)
 
 ## Future Requirements
 
@@ -225,24 +225,24 @@ Requirements for v0.14 Visual AutoResearch. Each maps to roadmap phases.
 | MULTI-03 | Phase 115 | Complete |
 | MULTI-04 | Phase 115 | Complete |
 | MULTI-05 | Phase 115 | Complete |
-| PRES-01 | Phase 116 | Pending |
-| PRES-02 | Phase 116 | Pending |
-| PRES-03 | Phase 116 | Pending |
-| PRES-04 | Phase 116 | Pending |
-| META-01 | Phase 116 | Pending |
-| META-02 | Phase 116 | Pending |
-| META-03 | Phase 116 | Pending |
-| META-04 | Phase 116 | Pending |
-| IDT-01 | Phase 116 | Pending |
-| IDT-02 | Phase 116 | Pending |
-| IDT-03 | Phase 116 | Pending |
-| IDT-04 | Phase 116 | Pending |
-| BREF-01 | Phase 116 | Pending |
-| BREF-02 | Phase 116 | Pending |
-| BREF-03 | Phase 116 | Pending |
-| BREF-04 | Phase 116 | Pending |
-| INTG-01 | Phase 117 | Pending |
-| INTG-02 | Phase 117 | Pending |
+| PRES-01 | Phase 116 | Complete |
+| PRES-02 | Phase 116 | Complete |
+| PRES-03 | Phase 116 | Complete |
+| PRES-04 | Phase 116 | Complete |
+| META-01 | Phase 116 | Complete |
+| META-02 | Phase 116 | Complete |
+| META-03 | Phase 116 | Complete |
+| META-04 | Phase 116 | Complete |
+| IDT-01 | Phase 116 | Complete |
+| IDT-02 | Phase 116 | Complete |
+| IDT-03 | Phase 116 | Complete |
+| IDT-04 | Phase 116 | Complete |
+| BREF-01 | Phase 116 | Complete |
+| BREF-02 | Phase 116 | Complete |
+| BREF-03 | Phase 116 | Complete |
+| BREF-04 | Phase 116 | Complete |
+| INTG-01 | Phase 117 | Complete |
+| INTG-02 | Phase 117 | Complete |
 
 **Coverage:**
 - v0.14 requirements: 76 total
