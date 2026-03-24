@@ -1963,11 +1963,10 @@ function cmdSyncStatus(cwd) {
     process.stdout.write('Pending ingest: 0 file(s)\n');
   }
 
-  // Count monitored files from WRITE_BACK_FILES + editor output files list
-  var monitoredFiles = WRITE_BACK_FILES;
-  process.stdout.write('Monitored files (' + monitoredFiles.length + '):\n');
-  for (var i = 0; i < monitoredFiles.length; i++) {
-    process.stdout.write('  - ' + monitoredFiles[i] + '\n');
+  // Display monitored editor output files (the files actually scanned for reverse-sync)
+  process.stdout.write('Monitored files (' + MONITORED_FILES.length + '):\n');
+  for (var i = 0; i < MONITORED_FILES.length; i++) {
+    process.stdout.write('  - ' + MONITORED_FILES[i].path + '\n');
   }
 
   // Count unresolved conflicts from .sync-conflicts.log

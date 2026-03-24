@@ -394,7 +394,7 @@ async function handleUpdateConstraints(planningDir, params) {
   let emitResult = 'ok';
   try {
     const result = emitAll(cwd);
-    emitResult = result ? `ok:emitted=${result.emitted || 0}` : 'ok';
+    emitResult = 'ok';
   } catch (e) {
     emitResult = `error:${e.message}`;
   }
@@ -440,7 +440,7 @@ async function handleUpdateTechStack(planningDir, params) {
   let emitResult = 'ok';
   try {
     const result = emitAll(cwd);
-    emitResult = result ? `ok:emitted=${result.emitted || 0}` : 'ok';
+    emitResult = 'ok';
   } catch (e) {
     emitResult = `error:${e.message}`;
   }
@@ -497,11 +497,13 @@ async function handleAppendContextNote(planningDir, params) {
   fs.appendFileSync(notesPath, `\n## ${timestamp}\n\n${note.trim()}\n`, 'utf-8');
 
   const cwd = path.dirname(planningDir);
+  let emitResult = 'ok';
   try {
     const { emitAll } = getContextSync();
-    emitAll(cwd);
-  } catch {
-    // Isolation: handler succeeds even if re-emission fails
+    const result = emitAll(cwd);
+    emitResult = 'ok';
+  } catch (e) {
+    emitResult = `error:${e.message}`;
   }
 
   appendMcpWriteLog(planningDir, {
@@ -509,6 +511,7 @@ async function handleAppendContextNote(planningDir, params) {
     tool: 'pde_append_context_note',
     category,
     noteLen: note.length,
+    emitResult,
   });
 
   return {
