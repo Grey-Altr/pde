@@ -179,3 +179,35 @@ describe('MULTI-02: evaluation contract unchanged', () => {
     assert.strictEqual(runner._writeJsonlRow.length, 4);
   });
 });
+
+// ─── MULTI-05: optimize.md multi-candidate integration ────────────────────────
+
+describe('MULTI-05: optimize.md multi-candidate integration', () => {
+  const optimizePath = path.join(ROOT, 'workflows', 'optimize.md');
+  const content = fs.readFileSync(optimizePath, 'utf-8');
+
+  it('optimize.md contains candidateCount variable', () => {
+    assert.ok(content.includes('candidateCount'), 'optimize.md must reference candidateCount');
+  });
+
+  it('optimize.md contains candidate loop', () => {
+    assert.ok(content.includes('candidate_index'), 'optimize.md must have candidate_index loop variable');
+  });
+
+  it('optimize.md uses reset-to-sha for candidate selection', () => {
+    assert.ok(content.includes('reset-to-sha'), 'optimize.md must call reset-to-sha subcommand');
+  });
+
+  it('optimize.md contains candidate selection phase', () => {
+    assert.ok(content.includes('candidates_evaluated') || content.includes('candidateResults'),
+      'optimize.md must have candidate selection logic');
+  });
+
+  it('optimize.md references candidates_scores for JSONL', () => {
+    assert.ok(content.includes('candidates_scores'), 'optimize.md must write candidates_scores to JSONL');
+  });
+
+  it('optimize.md references best_candidate_index for JSONL', () => {
+    assert.ok(content.includes('best_candidate_index'), 'optimize.md must write best_candidate_index to JSONL');
+  });
+});

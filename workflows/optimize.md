@@ -169,8 +169,9 @@ Merge with experiment.md frontmatter (experiment.md overrides config.json for it
 - `consecutiveFailureLimit` = config.json `consecutive_failure_limit` (default 5) — NOT overridable per-experiment
 - `noProgressLimit` = config.json `no_progress_limit` (default 10) — NOT overridable per-experiment
 - `costEstimateEnabled` = config.json `cost_estimate_enabled` (default true) — NOT overridable per-experiment
+- `candidateCount` = experiment.md `candidates` if present, else 3 (MULTI-04 default)
 
-Store: slug, metric, direction, verify, mutable_files, iterationBudget, timeBudget, consecutiveFailureLimit, noProgressLimit, costEstimateEnabled, dryRun flag.
+Store: slug, metric, direction, verify, mutable_files, iterationBudget, timeBudget, consecutiveFailureLimit, noProgressLimit, costEstimateEnabled, candidateCount, dryRun flag.
 </step>
 
 <step name="step-2-clean-working-tree">
@@ -299,13 +300,29 @@ LOOP (while haltReason is null):
   ```
   Where baseline-sha is read from EXPERIMENT-BEST.json.
 
-  **d.** Read last 3 rows from `.planning/experiments/{slug}/results.jsonl` (using Read tool or Bash tail). If file does not exist yet, last3rows = [].
+  **d.** Capture iteration baseline SHA:
+  ```bash
+  iterationBaselineSha=$(git rev-parse HEAD)
+  ```
+  Initialize empty `candidateResults` array.
 
-  **e.** Dispatch runner agent via Task():
+  **e.** Candidate loop (FOR candidate_index = 1 to candidateCount):
+
+  If candidate_index > 1:
+    Reset to iteration baseline to give this candidate a clean starting point:
+    ```bash
+    node bin/pde-tools.cjs experiment reset-to-sha --slug {slug} --sha {iterationBaselineSha}
+    ```
+
+  Read last 3 rows from `.planning/experiments/{slug}/results.jsonl` (using Read tool or Bash tail). If file does not exist yet, last3rows = [].
+
+  Dispatch runner agent via Task():
   ```
   Task(
     prompt="<objective>
   Run experiment iteration {currentIteration} for slug: {slug}
+  Candidate {candidate_index} of {candidateCount}.
+  {if candidate_index > 1: "Generate a DIFFERENT mutation than previous candidates in this iteration. Vary your approach — try a different strategy, target different sections, or apply a contrasting optimization philosophy."}
   </objective>
 
   <files_to_read>
@@ -314,6 +331,7 @@ LOOP (while haltReason is null):
 
   <additional_context>
   Iteration: {currentIteration}
+  Candidate: {candidate_index} of {candidateCount}
   Baseline SHA: {baseline-sha}
   Context mode: {context_mode}
   Last 3 results: {last3rows as JSON}
@@ -323,47 +341,112 @@ LOOP (while haltReason is null):
   )
   ```
 
-  **f.** Parse the JSON code block from the Task() response. Extract:
+  Parse the JSON code block from the Task() response. Extract:
   - `status` (KEEP / DISCARD / CRASH / BOUNDARY_VIOLATION)
   - `metric_value`
   - `metric_delta`
   - `description`
   - `tokens_used`
 
-  **g.** Display iteration result:
-  "Iteration {currentIteration}: {status} | metric={metric_value} | delta={metric_delta}"
+  If status is 'KEEP' or 'DISCARD' (candidate scored successfully):
+    Capture candidate SHA:
+    ```bash
+    candidateSha=$(git rev-parse HEAD)
+    ```
+    Append to candidateResults: { index: candidate_index, status, metric_value, sha: candidateSha, description, tokens_used }
 
-  **g2.** Emit per-iteration and outcome events based on status:
+  If status is 'CRASH' or 'BOUNDARY_VIOLATION':
+    Reset to iteration baseline:
+    ```bash
+    node bin/pde-tools.cjs experiment reset-to-sha --slug {slug} --sha {iterationBaselineSha}
+    ```
+    Append to candidateResults: { index: candidate_index, status: 'CRASH', metric_value: null, sha: null }
+
+  END candidate loop
+
+  **f.** Candidate selection phase:
+
+  Filter surviving candidates: `surviving = candidateResults where metric_value is not null`
+
+  IF surviving is empty (all candidates crashed):
+    Reset to iteration baseline:
+    ```bash
+    node bin/pde-tools.cjs experiment reset-to-sha --slug {slug} --sha {iterationBaselineSha}
+    ```
+    Set iterationStatus = 'CRASH', bestMetricValue = null, iterationDescription = 'all candidates crashed'
+    Set bestCandidateIndex = null
+    Set candidates_evaluated = candidateResults.length
+    Set candidates_scores = candidateResults.map(c => c.metric_value)  // all null
+
+  ELSE:
+    Select best candidate:
+    - If direction === 'max': best = surviving candidate with highest metric_value
+    - If direction === 'min': best = surviving candidate with lowest metric_value
+    - On ties: select the candidate with the lowest index (first wins)
+
+    Reset branch to best candidate's SHA:
+    ```bash
+    node bin/pde-tools.cjs experiment reset-to-sha --slug {slug} --sha {best.sha}
+    ```
+
+    Read bestMetric from EXPERIMENT-BEST.json. Compare best candidate's metric against bestMetric:
+    - If bestMetric is null (first iteration): decision = 'KEEP'
+    - If direction === 'max' and best.metric_value > bestMetric: decision = 'KEEP'
+    - If direction === 'min' and best.metric_value < bestMetric: decision = 'KEEP'
+    - Otherwise: decision = 'DISCARD'
+
+    If decision === 'DISCARD':
+      Reset to iteration baseline (do NOT keep the best candidate — it was worse than historical best):
+      ```bash
+      node bin/pde-tools.cjs experiment reset-to-sha --slug {slug} --sha {iterationBaselineSha}
+      ```
+
+    Set iterationStatus = decision, bestMetricValue = best.metric_value
+    Set iterationDescription = best.description
+    Set bestCandidateIndex = best.index - 1  // 0-indexed
+
+    Build candidates_scores array: for each candidate in candidateResults (ordered by index), include metric_value (null for crashed).
+    Set candidates_evaluated = candidateResults.length
+
+  **g.** Display iteration result:
+  "Iteration {currentIteration}: {iterationStatus} | metric={bestMetricValue} | candidates={candidates_evaluated} | best=#{bestCandidateIndex} | scores={candidates_scores}"
+
+  **g2.** Emit per-iteration and outcome events based on iterationStatus:
   - Always emit `experiment.iteration`:
     ```bash
-    node bin/pde-tools.cjs event-emit experiment.iteration '{"slug":"{slug}","iteration":{currentIteration},"metric_value":{metric_value},"best_metric":{bestMetricSoFar},"status":"{status}","budget_used":{currentIteration},"budget_total":{iterationBudget}}' 2>/dev/null || true
+    node bin/pde-tools.cjs event-emit experiment.iteration '{"slug":"{slug}","iteration":{currentIteration},"metric_value":{bestMetricValue},"best_metric":{bestMetricSoFar},"status":"{iterationStatus}","budget_used":{currentIteration},"budget_total":{iterationBudget}}' 2>/dev/null || true
     ```
-  - If status === "KEEP": emit `experiment.keep`:
+  - If iterationStatus === "KEEP": emit `experiment.keep`:
     ```bash
-    node bin/pde-tools.cjs event-emit experiment.keep '{"slug":"{slug}","iteration":{currentIteration},"metric_value":{metric_value},"best_metric":{metric_value},"status":"KEEP","budget_used":{currentIteration},"budget_total":{iterationBudget}}' 2>/dev/null || true
+    node bin/pde-tools.cjs event-emit experiment.keep '{"slug":"{slug}","iteration":{currentIteration},"metric_value":{bestMetricValue},"best_metric":{bestMetricValue},"status":"KEEP","budget_used":{currentIteration},"budget_total":{iterationBudget}}' 2>/dev/null || true
     ```
-  - If status === "DISCARD": emit `experiment.discard`:
+  - If iterationStatus === "DISCARD": emit `experiment.discard`:
     ```bash
-    node bin/pde-tools.cjs event-emit experiment.discard '{"slug":"{slug}","iteration":{currentIteration},"metric_value":{metric_value},"best_metric":{bestMetricSoFar},"status":"DISCARD","budget_used":{currentIteration},"budget_total":{iterationBudget}}' 2>/dev/null || true
+    node bin/pde-tools.cjs event-emit experiment.discard '{"slug":"{slug}","iteration":{currentIteration},"metric_value":{bestMetricValue},"best_metric":{bestMetricSoFar},"status":"DISCARD","budget_used":{currentIteration},"budget_total":{iterationBudget}}' 2>/dev/null || true
     ```
-  - If status === "CRASH" or status === "BOUNDARY_VIOLATION": emit `experiment.crash`:
+  - If iterationStatus === "CRASH" or iterationStatus === "BOUNDARY_VIOLATION": emit `experiment.crash`:
     ```bash
-    node bin/pde-tools.cjs event-emit experiment.crash '{"slug":"{slug}","iteration":{currentIteration},"metric_value":null,"best_metric":{bestMetricSoFar},"status":"{status}","budget_used":{currentIteration},"budget_total":{iterationBudget}}' 2>/dev/null || true
+    node bin/pde-tools.cjs event-emit experiment.crash '{"slug":"{slug}","iteration":{currentIteration},"metric_value":null,"best_metric":{bestMetricSoFar},"status":"{iterationStatus}","budget_used":{currentIteration},"budget_total":{iterationBudget}}' 2>/dev/null || true
     ```
 
-  **h.** Update loop state counters based on status:
-  - If status === "KEEP":
+  Write JSONL row with multi-candidate extension fields. Include in the row write:
+  - `candidates_evaluated`: candidates_evaluated (total candidates including crashed)
+  - `candidates_scores`: JSON.stringify(candidates_scores) (array of metric values, null for crashed)
+  - `best_candidate_index`: bestCandidateIndex (0-indexed winner, null if all crashed)
+
+  **h.** Update loop state counters based on iterationStatus:
+  - If iterationStatus === "KEEP":
     - `consecutiveFailures` = 0
     - `iterationsSinceImprovement` = 0
     - `consecutiveViolations` = 0
     - If `visualRegressionGuard === true`:
       - Copy `/tmp/pde-experiment-{slug}/current-screenshot.png` to `/tmp/pde-experiment-{slug}/baseline-screenshot.png`
       - (The new KEEP result becomes the baseline for subsequent regression checks)
-  - If status === "DISCARD":
+  - If iterationStatus === "DISCARD":
     - `consecutiveFailures`++
     - `iterationsSinceImprovement`++
     - `consecutiveViolations` = 0
-  - If status === "CRASH" or status === "BOUNDARY_VIOLATION":
+  - If iterationStatus === "CRASH" or iterationStatus === "BOUNDARY_VIOLATION":
     - `consecutiveFailures`++
     - `iterationsSinceImprovement`++
     - `consecutiveViolations`++
@@ -384,7 +467,7 @@ LOOP (while haltReason is null):
   2. BREAK-02 (time_budget): if elapsedMinutes >= timeBudget → haltReason = "time_budget"
   3. BREAK-03 (consecutive_failures): if consecutiveFailures >= consecutiveFailureLimit → haltReason = "consecutive_failures"
   4. BREAK-04 (no_progress): if iterationsSinceImprovement >= noProgressLimit → haltReason = "no_progress"
-  5. BREAK-05 (visual_regression): Only if `visualRegressionGuard === true` AND status is not "CRASH" AND status is not "BOUNDARY_VIOLATION":
+  5. BREAK-05 (visual_regression): Only if `visualRegressionGuard === true` AND iterationStatus is not "CRASH" AND iterationStatus is not "BOUNDARY_VIOLATION":
      - Capture current screenshot: call `captureAndStoreBaseline(cwd, slug, visualRegressionTarget)` from `bin/lib/visual-regression.cjs` but save to `/tmp/pde-experiment-{slug}/current-screenshot.png` instead of baseline
      - Call `checkVisualRegression({ cwd, slug, currentScreenshotPath: '/tmp/pde-experiment-{slug}/current-screenshot.png', currentScore: metricValue, baselineScore: baselineMetric, direction })` from `bin/lib/visual-regression.cjs`
      - If `result.fired === true`:
