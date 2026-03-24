@@ -287,4 +287,4 @@ Any user can go from idea to shipped product through a single platform that hand
 | 20-field designCoverage write (not copy 16-field pattern) | Phase 84 added 4 fields; copying opportunity.md's 16-field pattern silently drops them | ✓ Good — canonical order from manifest template |
 | Playwright MCP via stdio transport | npx @playwright/mcp@latest --headless — identical to Stitch pattern, zero npm deps | ✓ Good — 7th APPROVED_SERVER, 10 TOOL_MAP entries, 27 Nyquist tests |
 | browser_snapshot as probe tool (not browser_navigate) | browser_snapshot requires no URL arg, avoids "missing required parameter" error on probe | ✓ Good — lightest read-only operation for server health check |
-*Last updated: 2026-03-24 after Phase 115 (Multi-Candidate Experiments) complete — 8/10 v0.14 phases done*
+*Last updated: 2026-03-24 after Phase 116 (Pressure Test + Meta-Optimization + Ideation + Brief Reference) complete — 9/10 v0.14 phases done*
