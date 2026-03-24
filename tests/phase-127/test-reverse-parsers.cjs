@@ -1,10 +1,12 @@
 'use strict';
 
 /**
- * test-reverse-parsers.cjs — Nyquist test suite for Phase 127 (CUR-01, CUR-02)
+ * test-reverse-parsers.cjs — Nyquist test suite for Phase 127 (CUR-01, CUR-02, AGR-01, AGR-02)
  *
  * CUR-01: parseMdcContent gate checks (null/empty/no-marker/corrupt input, frontmatter extraction)
  * CUR-02: Section mapping and PDE:BEGIN/END marker handling
+ * AGR-01: parseSkillMd gate checks, section extraction, agentAdditions
+ * AGR-02: parseDesignMd gate checks, color extraction, version detection
  */
 
 const { test } = require('node:test');
@@ -13,7 +15,7 @@ const os = require('os');
 const fs = require('fs');
 const path = require('path');
 
-const { parseMdcContent } = require('../../bin/lib/context-sync.cjs');
+const { parseMdcContent, parseSkillMd, parseDesignMd, emitAll } = require('../../bin/lib/context-sync.cjs');
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -165,4 +167,223 @@ test('CUR-02: malformed markers (BEGIN present, END absent) -> no crash, returns
     result.constraints === '' || result.constraints === undefined,
     'constraints must be empty when markers are malformed'
   );
+});
+
+// ─── AGR-01: parseSkillMd ────────────────────────────────────────────────────
+
+const VALID_SKILL_MD = `<!-- PDE-GENERATED | hash:${VALID_HASH} | generated:${VALID_GENERATED} -->
+---
+name: pde-design
+description: PDE design system context
+---
+
+# PDE Design System
+
+## Goal
+Provide design context.
+
+## Instructions
+Follow the design system.
+
+## Design Tokens Available
+Token data here
+
+## Component Catalog
+Component data here
+
+## Constraints
+- Use hex color values
+- Follow typography hierarchy
+`;
+
+const SKILL_MD_WRONG_NAME = `<!-- PDE-GENERATED | hash:${VALID_HASH} | generated:${VALID_GENERATED} -->
+---
+name: other-skill
+description: Some other skill
+---
+
+# Other Skill
+
+## Goal
+Something else.
+`;
+
+const SKILL_MD_WITH_AGENT_ADDITIONS = `<!-- PDE-GENERATED | hash:${VALID_HASH} | generated:${VALID_GENERATED} -->
+---
+name: pde-design
+description: PDE design system context
+---
+
+# PDE Design System
+
+## Goal
+Provide design context.
+
+## Instructions
+Follow the design system.
+
+## Design Tokens Available
+Token data here
+
+## Component Catalog
+Component data here
+
+## Constraints
+- Use hex color values
+
+## Custom Agent Notes
+Agent wrote this.
+`;
+
+test('AGR-01: parseSkillMd(null) returns null', () => {
+  const result = parseSkillMd(null);
+  assert.equal(result, null, 'null input must return null');
+});
+
+test('AGR-01: parseSkillMd(no-marker-content) returns null', () => {
+  const result = parseSkillMd('no PDE-GENERATED marker here');
+  assert.equal(result, null, 'content without PDE-GENERATED marker must return null');
+});
+
+test('AGR-01: parseSkillMd(valid_with_wrong_name) returns null when frontmatter name != pde-design', () => {
+  const result = parseSkillMd(SKILL_MD_WRONG_NAME);
+  assert.equal(result, null, 'skill.md with name != pde-design must return null');
+});
+
+test('AGR-01: parseSkillMd(valid_skill_md) extracts designTokens, componentCatalog, constraints', () => {
+  const result = parseSkillMd(VALID_SKILL_MD);
+  assert.notEqual(result, null, 'valid skill.md must return an object');
+  assert.ok(typeof result.designTokens === 'string', 'designTokens must be a string');
+  assert.ok(result.designTokens.includes('Token data here'), 'designTokens must contain section content');
+  assert.ok(typeof result.componentCatalog === 'string', 'componentCatalog must be a string');
+  assert.ok(result.componentCatalog.includes('Component data here'), 'componentCatalog must contain section content');
+  assert.ok(typeof result.constraints === 'string', 'constraints must be a string');
+  assert.ok(result.constraints.includes('Use hex color values'), 'constraints must contain section content');
+});
+
+test('AGR-01: parseSkillMd captures unknown section as agentAdditions', () => {
+  const result = parseSkillMd(SKILL_MD_WITH_AGENT_ADDITIONS);
+  assert.notEqual(result, null, 'valid skill.md must return an object');
+  assert.ok('agentAdditions' in result, 'agentAdditions must be present when unknown sections exist');
+  assert.ok(result.agentAdditions.includes('Agent wrote this'), 'agentAdditions must contain unknown section content');
+  assert.ok(result.agentAdditions.includes('Custom Agent Notes'), 'agentAdditions must include the section heading');
+});
+
+test('AGR-01: parseSkillMd handles marker-before-frontmatter ordering (PDE-GENERATED on line 1)', () => {
+  // The marker appears on line 1, then --- frontmatter on line 2
+  // This is the standard SKILL.md format from emitAntigravitySkill
+  const result = parseSkillMd(VALID_SKILL_MD);
+  assert.notEqual(result, null, 'marker-before-frontmatter format must parse correctly');
+  // If we can extract sections, the header stripping worked correctly
+  assert.ok('designTokens' in result || 'constraints' in result, 'must extract at least one field');
+});
+
+// ─── AGR-02: parseDesignMd ───────────────────────────────────────────────────
+
+const VALID_DESIGN_MD = `<!-- PDE-GENERATED | hash:${VALID_HASH} | generated:${VALID_GENERATED} -->
+<!-- pde-format-version: 1.0 -->
+# Design System: Test Project
+**Source Hash:** aaaaaaaaaaaa
+
+## 2. Color Palette & Roles
+- **Primary** (#3b82f6) -- primary color role
+- **Secondary** (#8b5cf6) -- secondary color role
+`;
+
+const DESIGN_MD_NO_VERSION = `<!-- PDE-GENERATED | hash:${VALID_HASH} | generated:${VALID_GENERATED} -->
+# Design System: Test Project
+**Source Hash:** aaaaaaaaaaaa
+
+## 2. Color Palette & Roles
+- **Primary** (#3b82f6) -- primary color role
+- **Secondary** (#8b5cf6) -- secondary color role
+`;
+
+const PLACEHOLDER_DESIGN_MD = `<!-- PDE-GENERATED | hash:${VALID_HASH} | generated:${VALID_GENERATED} -->
+# Design System: Test Project
+
+Design tokens not yet generated -- run the PDE design pipeline to populate this file.
+
+## 2. Color Palette & Roles
+
+Not yet generated.
+`;
+
+test('AGR-02: parseDesignMd(null) returns null', () => {
+  const result = parseDesignMd(null);
+  assert.equal(result, null, 'null input must return null');
+});
+
+test('AGR-02: parseDesignMd(no-marker-content) returns null', () => {
+  const result = parseDesignMd('no PDE-GENERATED marker here');
+  assert.equal(result, null, 'content without PDE-GENERATED marker must return null');
+});
+
+test('AGR-02: parseDesignMd(valid_design_md) extracts hex colors from Color Palette', () => {
+  const result = parseDesignMd(VALID_DESIGN_MD);
+  assert.notEqual(result, null, 'valid design.md must return an object');
+  assert.ok('designTokens' in result, 'designTokens must be present');
+  assert.ok(result.designTokens.includes('#3b82f6'), 'designTokens must contain primary hex color');
+  assert.ok(result.designTokens.includes('#8b5cf6'), 'designTokens must contain secondary hex color');
+  assert.ok(result.designTokens.includes('Primary'), 'designTokens must contain role name');
+});
+
+test('AGR-02: parseDesignMd(design_md_without_format_version) still extracts colors (lenient fallback)', () => {
+  const stderrMessages = [];
+  const origWrite = process.stderr.write.bind(process.stderr);
+  process.stderr.write = (msg, ...args) => { stderrMessages.push(String(msg)); return origWrite(msg, ...args); };
+
+  let result;
+  try {
+    result = parseDesignMd(DESIGN_MD_NO_VERSION);
+  } finally {
+    process.stderr.write = origWrite;
+  }
+
+  assert.notEqual(result, null, 'missing version marker must still return an object (lenient fallback)');
+  assert.ok('designTokens' in result, 'designTokens must still be extracted without version marker');
+  assert.ok(result.designTokens.includes('#3b82f6'), 'colors must be extracted even without version marker');
+  const hasVersionWarning = stderrMessages.some(m => m.includes('pde-format-version'));
+  assert.ok(hasVersionWarning, 'must log warning when pde-format-version marker is absent');
+});
+
+test('AGR-02: parseDesignMd(placeholder_design_md) returns {} (no color entries, valid empty partial)', () => {
+  const result = parseDesignMd(PLACEHOLDER_DESIGN_MD);
+  assert.notEqual(result, null, 'placeholder design.md must return an object, not null');
+  assert.deepEqual(result, {}, 'placeholder design.md must return empty object {}');
+});
+
+// ─── Round-trip integration tests ────────────────────────────────────────────
+
+test('Round-trip: emitAll() -> read pde-project.mdc -> parseMdcContent() -> partial.constraints present', () => {
+  const baseDir = makeTmpDir();
+  makePlanningDir(baseDir);
+  emitAll(baseDir);
+  const mdcPath = path.join(baseDir, '.cursor', 'rules', 'pde-project.mdc');
+  assert.ok(fs.existsSync(mdcPath), 'pde-project.mdc must be emitted by emitAll()');
+  const content = fs.readFileSync(mdcPath, 'utf-8');
+  const partial = parseMdcContent(content, 'pde-project.mdc');
+  assert.notEqual(partial, null, 'parseMdcContent must return non-null for PDE-authored .mdc file');
+  assert.ok('constraints' in partial, 'partial IR must have constraints field after round-trip');
+});
+
+test('Round-trip: emitAll() -> read SKILL.md -> parseSkillMd() -> partial contains at least one IR field', () => {
+  const baseDir = makeTmpDir();
+  makePlanningDir(baseDir);
+  emitAll(baseDir);
+  const skillPath = path.join(baseDir, '.agent', 'skills', 'pde-design', 'SKILL.md');
+  assert.ok(fs.existsSync(skillPath), 'SKILL.md must be emitted by emitAll()');
+  const content = fs.readFileSync(skillPath, 'utf-8');
+  const partial = parseSkillMd(content);
+  assert.notEqual(partial, null, 'parseSkillMd must return non-null for PDE-authored SKILL.md');
+  // At minimum one field must be extractable (Constraints is always hardcoded in SKILL.md)
+  const hasField = 'designTokens' in partial || 'componentCatalog' in partial || 'constraints' in partial;
+  assert.ok(hasField, 'partial IR must have at least one extractable field after round-trip');
+});
+
+test('Exports check: parseMdcContent, parseSkillMd, parseDesignMd all present in module.exports', () => {
+  const m = require('../../bin/lib/context-sync.cjs');
+  assert.equal(typeof m.parseMdcContent, 'function', 'parseMdcContent must be exported as a function');
+  assert.equal(typeof m.parseSkillMd, 'function', 'parseSkillMd must be exported as a function');
+  assert.equal(typeof m.parseDesignMd, 'function', 'parseDesignMd must be exported as a function');
 });
