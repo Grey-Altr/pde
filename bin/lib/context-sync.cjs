@@ -1733,6 +1733,24 @@ function parseDesignMd(content) {
   }
 }
 
+// ─── AGR-03: Format adapter ───────────────────────────────────────────────────
+
+/**
+ * Convert parseDesignMd() color-list string to Array<{name,hex,role}> for writeBackDesignTokens.
+ * @param {string} designTokensStr - Color-list string: "- **Name** (#hex) -- role\n..."
+ * @returns {Array<{name:string, hex:string, role:string}>}
+ */
+function colorListToArray(designTokensStr) {
+  if (!designTokensStr) return [];
+  var re = /^-\s+\*\*([^*]+)\*\*\s+\(#([a-fA-F0-9]{3,6})\)\s+--\s+(.+)$/gm;
+  var colors = [];
+  var m;
+  while ((m = re.exec(designTokensStr)) !== null) {
+    colors.push({ name: m[1].trim(), hex: '#' + m[2], role: m[3].trim() });
+  }
+  return colors;
+}
+
 // ─── Antigravity Write-back ──────────────────────────────────────────────────
 
 /**
@@ -2077,7 +2095,7 @@ module.exports = {
   mergePartialIR, appendConflictLog, readFieldPolicy, normalizeDesignTokensForComparison,
   // SYN-04, SYN-05: reverse-sync utilities
   MONITORED_FILES, replaceSectionInFile, parseMonitoredFile, reconcileOnStart, ingestAll,
-  hexToOklch, computeHexDelta, writeBackDesignTokens,
+  hexToOklch, computeHexDelta, writeBackDesignTokens, colorListToArray,
   // Phase 132: Audit trail, snapshot system, CLI commands (INF-06, INF-07, INF-08)
   WRITE_BACK_FILES, appendSyncLog, trimSyncLog, snapshotFilesBeforeBatch, cleanupOldSnapshots,
   decodeSnapshotPath, cmdSyncStatus, cmdSyncRollback,
