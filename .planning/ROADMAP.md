@@ -142,7 +142,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 126. Sync Foundation | 2/2 | Complete   | 2026-03-24 |
 | 127. Reverse Parsers | 2/2 | Complete    | 2026-03-24 |
-| 128. Merge Engine and Conflict Resolution | 2/2 | Complete   | 2026-03-24 |
+| 128. Merge Engine and Conflict Resolution | 2/2 | Complete    | 2026-03-24 |
 | 129. Hook Integration | 0/2 | Planned | - |
 | 130. Antigravity Write-Back | 0/2 | Planned | - |
 | 131. MCP Write Tools | 0/TBD | Not started | - |
