@@ -26,6 +26,18 @@ const { safeReadFile, output, error } = require('./core.cjs');
 const WRITABLE_FIELDS = ['techStack', 'constraints', 'componentCatalog', 'designTokens'];
 const VALID_POLICIES = ['planning-wins', 'editor-wins', 'prompt'];
 
+// ─── Monitored editor output files (SYN-04, CUR-03) ─────────────────────────
+// All editor output paths tracked for reverse-sync mtime detection
+const MONITORED_FILES = [
+  { path: '.cursor/rules/pde-project.mdc',      parser: 'mdc', filename: 'pde-project.mdc' },
+  { path: '.cursor/rules/pde-architecture.mdc',  parser: 'mdc', filename: 'pde-architecture.mdc' },
+  { path: '.cursor/rules/pde-design-tokens.mdc', parser: 'mdc', filename: 'pde-design-tokens.mdc' },
+  { path: '.cursor/rules/pde-components.mdc',    parser: 'mdc', filename: 'pde-components.mdc' },
+  { path: '.cursor/rules/pde-pipeline.mdc',      parser: 'mdc', filename: 'pde-pipeline.mdc' },
+  { path: '.agent/skills/pde-design/SKILL.md',   parser: 'skill' },
+  { path: 'DESIGN.md',                           parser: 'design' },
+];
+
 const SOURCE_FILES = [
   'PROJECT.md',
   'STATE.md',
@@ -1078,6 +1090,242 @@ function emitAll(cwd) {
   };
 }
 
+// ─── SYN-04/SYN-05: Reverse-sync utilities ──────────────────────────────────
+
+/**
+ * Replace a ## SectionName section in a markdown file with new content.
+ * Atomic write — returns true if section found and replaced, false if not found.
+ * Only used for techStack -> ## Tech Stack, constraints -> ## Constraints.
+ * @param {string} filePath - Absolute path to file
+ * @param {string} sectionName - Heading text (exact case)
+ * @param {string} newContent - New section body content
+ * @returns {boolean} true if replaced, false if section not found
+ */
+function replaceSectionInFile(filePath, sectionName, newContent) {
+  var content = fs.readFileSync(filePath, 'utf-8');
+  var escaped = sectionName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  // Match from the heading to the next ## heading or end of file
+  var pattern = new RegExp(
+    '(^##\\s+' + escaped + '[ \\t]*$\\n)([\\s\\S]*?)(?=^##\\s|\\Z)',
+    'im'
+  );
+  var replacement = '$1' + newContent.trim() + '\n\n';
+  var updated = content.replace(pattern, replacement);
+  if (updated === content) return false;
+  fs.writeFileSync(filePath, updated, 'utf-8');
+  return true;
+}
+
+/**
+ * Parse a single monitored file using the appropriate reverse parser.
+ * @param {string} absPath - Absolute path to the file
+ * @param {object} entry - MONITORED_FILES entry { path, parser, filename }
+ * @returns {object|null} Partial IR or null
+ */
+function parseMonitoredFile(absPath, entry) {
+  try {
+    var content = fs.readFileSync(absPath, 'utf-8');
+    if (entry.parser === 'mdc') return parseMdcContent(content, entry.filename);
+    if (entry.parser === 'skill') return parseSkillMd(content);
+    if (entry.parser === 'design') return parseDesignMd(content);
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Scan all MONITORED_FILES, detect mtime changes since lastEmittedAt,
+ * merge editor partials, write back to PROJECT.md, call emitAll to re-normalize.
+ * Called at session start to catch editor changes made between sessions.
+ * @param {string} cwd - Project root directory
+ * @returns {{ filesScanned, changesDetected, conflicts, elapsed }}
+ */
+function reconcileOnStart(cwd) {
+  var startNs = process.hrtime.bigint();
+  var planningDir = path.join(cwd, '.planning');
+  var filesScanned = 0;
+  var changesDetected = 0;
+  var conflictCount = 0;
+
+  try {
+    var state = readStateFile(planningDir);
+    var lastEmitted = (state && state.lastEmittedAt)
+      ? new Date(state.lastEmittedAt).getTime() : 0;
+    var GRACE_MS = 500;
+
+    var currentIR = buildContextIR(planningDir);
+    var base = state ? state.lastIR : null;
+
+    var editorPartials = [];
+
+    for (var i = 0; i < MONITORED_FILES.length; i++) {
+      var entry = MONITORED_FILES[i];
+      var absPath = path.join(cwd, entry.path);
+      var stat;
+      try { stat = fs.statSync(absPath); } catch { continue; }
+      filesScanned++;
+
+      // Skip files within grace window
+      if (stat.mtimeMs <= lastEmitted + GRACE_MS) continue;
+
+      // Loop-break gate: skip PDE-written files (hash matches current)
+      var content;
+      try { content = fs.readFileSync(absPath, 'utf-8'); } catch { continue; }
+      var loopResult = computeLoopBreak(content, planningDir);
+      if (loopResult === 'skip') continue;
+
+      // File was externally edited — parse it
+      var partial = parseMonitoredFile(absPath, entry);
+      if (partial) {
+        editorPartials.push({ partial: partial, source: entry.path });
+        changesDetected++;
+      }
+    }
+
+    // Merge all editor partials
+    var mergedIR = Object.assign({}, currentIR);
+    for (var j = 0; j < editorPartials.length; j++) {
+      var ep = editorPartials[j];
+      var mergeResult = mergePartialIR(base, ep.partial, mergedIR, {
+        planningDir: planningDir,
+        source: ep.source,
+        fieldPolicies: {},
+      });
+      conflictCount += mergeResult.conflicts.length;
+      // Write back editor-wins fields to PROJECT.md
+      var projectMd = path.join(planningDir, 'PROJECT.md');
+      var fieldMap = { techStack: 'Tech Stack', constraints: 'Constraints' };
+      for (var field in fieldMap) {
+        if (mergeResult.merged[field] && mergeResult.merged[field] !== currentIR[field]) {
+          replaceSectionInFile(projectMd, fieldMap[field], mergeResult.merged[field]);
+        }
+      }
+      // Update mergedIR for subsequent iterations
+      for (var k = 0; k < WRITABLE_FIELDS.length; k++) {
+        var wf = WRITABLE_FIELDS[k];
+        if (mergeResult.merged[wf] !== undefined) {
+          mergedIR[wf] = mergeResult.merged[wf];
+        }
+      }
+    }
+
+    // Re-normalize all editor files via emitAll
+    emitAll(cwd);
+
+    // Log results
+    var elapsedMs = Number(process.hrtime.bigint() - startNs) / 1e6;
+    var logsDir = path.join(planningDir, 'logs');
+    try { fs.mkdirSync(logsDir, { recursive: true }); } catch { /* ignore */ }
+    var logLine = '[' + new Date().toISOString() + '] reconcile: scanned=' + filesScanned +
+      ' changed=' + changesDetected + ' conflicts=' + conflictCount +
+      ' elapsed=' + Math.round(elapsedMs) + 'ms\n';
+    try { fs.appendFileSync(path.join(logsDir, 'sync-reconciliation.log'), logLine, 'utf-8'); } catch { /* non-fatal */ }
+
+    return {
+      filesScanned: filesScanned,
+      changesDetected: changesDetected,
+      conflicts: conflictCount,
+      elapsed: Math.round(elapsedMs),
+    };
+  } catch (err) {
+    var elapsedErr = Number(process.hrtime.bigint() - startNs) / 1e6;
+    return {
+      filesScanned: filesScanned,
+      changesDetected: changesDetected,
+      conflicts: conflictCount,
+      elapsed: Math.round(elapsedErr),
+      error: err.message,
+    };
+  }
+}
+
+/**
+ * Always-scan variant of reconcileOnStart.
+ * Parses ALL monitored files regardless of mtime, processes pendingIngest queue,
+ * merges, writes back, and calls emitAll (which resets pendingIngest to []).
+ * Idempotent: after emitAll re-normalizes, second run detects no differences.
+ * @param {string} cwd - Project root directory
+ * @returns {{ filesScanned, changesDetected, conflicts }}
+ */
+function ingestAll(cwd) {
+  var planningDir = path.join(cwd, '.planning');
+  var filesScanned = 0;
+  var changesDetected = 0;
+  var conflictCount = 0;
+
+  try {
+    var state = readStateFile(planningDir);
+    var currentIR = buildContextIR(planningDir);
+    var base = state ? state.lastIR : null;
+
+    // Process any pending ingest entries from state first
+    var pendingPaths = (state && state.pendingIngest) ? state.pendingIngest.map(function(e) { return e.path; }) : [];
+    var processedPaths = {};
+
+    // Helper to process a single monitored file entry (filesScanned is incremented by caller)
+    function processEntry(entry) {
+      var absPath = path.join(cwd, entry.path);
+      var content;
+      try { content = fs.readFileSync(absPath, 'utf-8'); } catch { return; }
+
+      var loopResult = computeLoopBreak(content, planningDir);
+      if (loopResult === 'skip') return;
+
+      var partial = parseMonitoredFile(absPath, entry);
+      if (!partial) return;
+      changesDetected++;
+
+      var mergeResult = mergePartialIR(base, partial, currentIR, {
+        planningDir: planningDir,
+        source: entry.path,
+        fieldPolicies: {},
+      });
+      conflictCount += mergeResult.conflicts.length;
+
+      // Write back editor-wins fields to PROJECT.md
+      var projectMd = path.join(planningDir, 'PROJECT.md');
+      var fieldMap = { techStack: 'Tech Stack', constraints: 'Constraints' };
+      for (var field in fieldMap) {
+        if (mergeResult.merged[field] && mergeResult.merged[field] !== currentIR[field]) {
+          replaceSectionInFile(projectMd, fieldMap[field], mergeResult.merged[field]);
+        }
+      }
+      // Update currentIR for subsequent entries
+      for (var k = 0; k < WRITABLE_FIELDS.length; k++) {
+        var wf = WRITABLE_FIELDS[k];
+        if (mergeResult.merged[wf] !== undefined) {
+          currentIR[wf] = mergeResult.merged[wf];
+        }
+      }
+    }
+
+    // Scan ALL monitored files (always, no mtime filter)
+    // filesScanned counts ALL monitored files (the full scan set)
+    for (var i = 0; i < MONITORED_FILES.length; i++) {
+      var entry = MONITORED_FILES[i];
+      processedPaths[entry.path] = true;
+      filesScanned++;
+      processEntry(entry);
+    }
+
+    // Call emitAll to re-normalize all editor files and reset pendingIngest to []
+    emitAll(cwd);
+
+    return {
+      filesScanned: filesScanned,
+      changesDetected: changesDetected,
+      conflicts: conflictCount,
+    };
+  } catch {
+    return {
+      filesScanned: filesScanned,
+      changesDetected: changesDetected,
+      conflicts: conflictCount,
+    };
+  }
+}
+
 // ─── CLI command ────────────────────────────────────────────────────────────
 
 /**
@@ -1088,6 +1336,19 @@ function emitAll(cwd) {
  */
 function cmdContextSync(cwd, args, raw) {
   try {
+    // SYN-05: --ingest flag routes to ingestAll (checked BEFORE --editor)
+    var ingestFlag = args.indexOf('--ingest');
+    if (ingestFlag !== -1) {
+      var ingestResult = ingestAll(cwd);
+      if (!raw) {
+        process.stdout.write('Ingest complete: scanned=' + ingestResult.filesScanned +
+          ' changed=' + ingestResult.changesDetected + ' conflicts=' + ingestResult.conflicts + '\n');
+      } else {
+        process.stdout.write(JSON.stringify(ingestResult));
+      }
+      return;
+    }
+
     const editorFlag = args.indexOf('--editor');
     const editor = editorFlag !== -1 && args[editorFlag + 1]
       ? args[editorFlag + 1].toLowerCase()
@@ -1302,4 +1563,6 @@ module.exports = {
   writeStateFile, readStateFile, computeLoopBreak,
   parseMdcContent, parseSkillMd, parseDesignMd,
   mergePartialIR, appendConflictLog, readFieldPolicy, normalizeDesignTokensForComparison,
+  // SYN-04, SYN-05: reverse-sync utilities
+  MONITORED_FILES, replaceSectionInFile, parseMonitoredFile, reconcileOnStart, ingestAll,
 };
