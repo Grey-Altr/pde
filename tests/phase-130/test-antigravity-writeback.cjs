@@ -14,6 +14,7 @@ const {
   emitAll,
   emitDesignMd,
   buildContextIR,
+  parseSkillMd,
 } = require('../../bin/lib/context-sync.cjs');
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -297,6 +298,185 @@ describe('AGR-07: emitDesignMd format-version marker', () => {
     assert.ok(
       idxFormatVersion < idxHeading,
       `pde-format-version (${idxFormatVersion}) must come before # Design System (${idxHeading})`
+    );
+  });
+
+});
+
+// ─── AGR-05: Agent Additions Preservation ────────────────────────────────────
+
+const AGENT_MARKER = '<!-- AGENT-ADDITIONS: DO NOT EDIT THIS LINE -->';
+
+describe('AGR-05: Agent Additions Preservation', () => {
+
+  test('AGR-05: Test 13 -- emitAll produces SKILL.md containing AGENT-ADDITIONS marker', () => {
+    const tmpDir = makeTmpDir();
+    makePlanningDirWithTokens(tmpDir);
+
+    emitAll(tmpDir);
+
+    const skillMd = fs.readFileSync(
+      path.join(tmpDir, '.agent', 'skills', 'pde-design', 'SKILL.md'),
+      'utf-8'
+    );
+    assert.ok(
+      skillMd.includes(AGENT_MARKER),
+      `SKILL.md missing AGENT-ADDITIONS marker. Content tail:\n${skillMd.slice(-200)}`
+    );
+  });
+
+  test('AGR-05: Test 14 -- agent content below marker preserved after re-emit', () => {
+    const tmpDir = makeTmpDir();
+    makePlanningDirWithTokens(tmpDir);
+
+    // First emit
+    emitAll(tmpDir);
+
+    const skillPath = path.join(tmpDir, '.agent', 'skills', 'pde-design', 'SKILL.md');
+    const agentContent = '\n\n## Custom Agent Notes\nAgent wrote this.\n';
+
+    // Agent appends below marker
+    fs.appendFileSync(skillPath, agentContent, 'utf-8');
+
+    // Second emit - should preserve agent content
+    emitAll(tmpDir);
+
+    const regenerated = fs.readFileSync(skillPath, 'utf-8');
+    assert.ok(
+      regenerated.includes('## Custom Agent Notes'),
+      `"## Custom Agent Notes" not preserved after re-emit`
+    );
+    assert.ok(
+      regenerated.includes('Agent wrote this.'),
+      `"Agent wrote this." not preserved after re-emit`
+    );
+  });
+
+  test('AGR-05: Test 15 -- multi-section agent content preserved verbatim', () => {
+    const tmpDir = makeTmpDir();
+    makePlanningDirWithTokens(tmpDir);
+
+    // First emit
+    emitAll(tmpDir);
+
+    const skillPath = path.join(tmpDir, '.agent', 'skills', 'pde-design', 'SKILL.md');
+    const multiSectionContent = '\n\n## Custom Notes\nNote 1\n\n## Agent Tips\nTip 1\n';
+
+    // Agent appends multi-section content
+    fs.appendFileSync(skillPath, multiSectionContent, 'utf-8');
+
+    // Second emit
+    emitAll(tmpDir);
+
+    const regenerated = fs.readFileSync(skillPath, 'utf-8');
+    assert.ok(
+      regenerated.includes('## Custom Notes'),
+      `"## Custom Notes" not preserved after re-emit`
+    );
+    assert.ok(
+      regenerated.includes('## Agent Tips'),
+      `"## Agent Tips" not preserved after re-emit`
+    );
+    assert.ok(
+      regenerated.includes('Note 1'),
+      `"Note 1" not preserved after re-emit`
+    );
+    assert.ok(
+      regenerated.includes('Tip 1'),
+      `"Tip 1" not preserved after re-emit`
+    );
+  });
+
+  test('AGR-05: Test 16 -- file without marker gets marker added, no content lost', () => {
+    const tmpDir = makeTmpDir();
+    makePlanningDirWithTokens(tmpDir);
+
+    const skillDir = path.join(tmpDir, '.agent', 'skills', 'pde-design');
+    fs.mkdirSync(skillDir, { recursive: true });
+
+    // Write a SKILL.md without the AGENT-ADDITIONS marker
+    const noMarkerContent = '<!-- PDE-GENERATED -->\n---\nname: pde-design\n---\n\n# Old PDE Content\n\nSome existing content.\n';
+    fs.writeFileSync(path.join(skillDir, 'SKILL.md'), noMarkerContent, 'utf-8');
+
+    // emitAll should not crash and should produce marker at bottom
+    assert.doesNotThrow(() => {
+      emitAll(tmpDir);
+    }, 'emitAll must not throw when SKILL.md has no marker');
+
+    const regenerated = fs.readFileSync(path.join(skillDir, 'SKILL.md'), 'utf-8');
+    assert.ok(
+      regenerated.includes(AGENT_MARKER),
+      `AGENT-ADDITIONS marker not added when file had no marker`
+    );
+  });
+
+  test('AGR-05: Test 17 -- fresh generation (SKILL.md does not exist) creates marker cleanly', () => {
+    const tmpDir = makeTmpDir();
+    makePlanningDirWithTokens(tmpDir);
+
+    // Ensure .agent/ does NOT exist
+    const agentDir = path.join(tmpDir, '.agent');
+    if (fs.existsSync(agentDir)) {
+      fs.rmSync(agentDir, { recursive: true });
+    }
+
+    // emitAll should create SKILL.md with PDE content + marker, no crash
+    assert.doesNotThrow(() => {
+      emitAll(tmpDir);
+    }, 'emitAll must not throw when SKILL.md does not exist');
+
+    const skillPath = path.join(tmpDir, '.agent', 'skills', 'pde-design', 'SKILL.md');
+    assert.ok(fs.existsSync(skillPath), 'SKILL.md must be created on fresh generation');
+
+    const content = fs.readFileSync(skillPath, 'utf-8');
+    assert.ok(
+      content.includes(AGENT_MARKER),
+      `Fresh SKILL.md missing AGENT-ADDITIONS marker. Tail:\n${content.slice(-200)}`
+    );
+    // No agent content block should be present (just the marker line)
+    const markerIdx = content.indexOf(AGENT_MARKER);
+    const afterMarker = content.slice(markerIdx + AGENT_MARKER.length).trim();
+    assert.equal(
+      afterMarker,
+      '',
+      `Fresh generation must have empty agent block after marker, got: "${afterMarker}"`
+    );
+  });
+
+  test('AGR-05: Test 18 -- round-trip: emit -> agent writes -> parseSkillMd -> emit preserves agentAdditions', () => {
+    const tmpDir = makeTmpDir();
+    makePlanningDirWithTokens(tmpDir);
+
+    // Step 1: First emit
+    emitAll(tmpDir);
+
+    const skillPath = path.join(tmpDir, '.agent', 'skills', 'pde-design', 'SKILL.md');
+
+    // Step 2: Agent appends custom section
+    const agentSection = '\n\n## Agent Domain Knowledge\nThis is domain-specific guidance written by an agent.\n';
+    fs.appendFileSync(skillPath, agentSection, 'utf-8');
+
+    // Step 3: parseSkillMd captures agentAdditions
+    const intermediate = fs.readFileSync(skillPath, 'utf-8');
+    const parsed = parseSkillMd(intermediate);
+    assert.ok(parsed !== null, 'parseSkillMd must return non-null for a valid PDE SKILL.md');
+    assert.ok(
+      parsed.agentAdditions && parsed.agentAdditions.includes('Agent Domain Knowledge'),
+      `parseSkillMd must capture agentAdditions. Got: ${JSON.stringify(parsed.agentAdditions)}`
+    );
+
+    // Step 4: Second emit
+    emitAll(tmpDir);
+
+    // Step 5: Agent content survives
+    const afterReemit = fs.readFileSync(skillPath, 'utf-8');
+    assert.ok(
+      afterReemit.includes('## Agent Domain Knowledge'),
+      `"## Agent Domain Knowledge" not preserved after round-trip re-emit`
+    );
+    assert.ok(
+      afterReemit.includes('This is domain-specific guidance'),
+      `Agent content body not preserved after round-trip re-emit`
     );
   });
 
