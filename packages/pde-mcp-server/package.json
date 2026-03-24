@@ -1,0 +1,26 @@
+{
+  "name": "pde-mcp-server",
+  "version": "0.1.0",
+  "description": "MCP server for querying PDE project state from any MCP-compatible editor",
+  "type": "module",
+  "bin": {
+    "pde-mcp-server": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "handlers.cjs",
+    "discover.cjs"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.26.0",
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0"
+  }
+}
