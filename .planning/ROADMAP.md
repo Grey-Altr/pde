@@ -149,7 +149,7 @@ Full details: .planning/milestones/v0.14-ROADMAP.md
 - [x] **Phase 119: Antigravity Context + Stitch Bridge** — Antigravity emitter + DESIGN.md from DTCG tokens + Stitch bidirectional artifact flow + skills export (completed 2026-03-24)
 - [x] **Phase 120: Artifact Formatting** — @file annotations in handoff specs, DTCG-to-Tailwind v4 conversion, framework-detected component stubs (completed 2026-03-24)
 - [x] **Phase 121: MCP Server** — Isolated TypeScript package with 10 read-only tools, npx distribution, pipeline resource (completed 2026-03-24)
-- [ ] **Phase 122: Divergence Detection** — 3-tier handoff-vs-code drift detection with DIVERGENCE.md output and ignore mechanism
+- [x] **Phase 122: Divergence Detection** — 3-tier handoff-vs-code drift detection with DIVERGENCE.md output and ignore mechanism (completed 2026-03-24)
 - [ ] **Phase 123: Context Sync Engine** — Hook-driven auto-regeneration + /pde:editor-sync manual command
 - [ ] **Phase 124: Integration & Nyquist** — Cross-editor validation and structural regression tests for all v0.15 requirements
 
