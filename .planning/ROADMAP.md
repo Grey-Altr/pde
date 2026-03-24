@@ -57,7 +57,11 @@ Plans:
   3. The SKILL.md reverse parser extracts Design Tokens, Component Catalog, and Constraints sections into a partial IR, preserving unknown sections as agentAdditions
   4. The DESIGN.md reverse parser extracts hex color values from the Color Palette section using the `- **Name** (#hex) -- role` pattern, with format-version detection via `<!-- pde-format-version: 1.0 -->` and lenient fallback
   5. Round-trip Nyquist tests confirm partial IR extraction round-trips without data loss for all fields the parsers are responsible for
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 127-01-PLAN.md — .mdc reverse parser: parseMdcContent() with YAML frontmatter extraction, PDE:BEGIN/END section markers, section-to-IR mapping (CUR-01, CUR-02)
+- [ ] 127-02-PLAN.md — SKILL.md + DESIGN.md reverse parsers: parseSkillMd(), parseDesignMd() with agentAdditions, format-version detection, round-trip tests (AGR-01, AGR-02)
 
 ### Phase 128: Merge Engine and Conflict Resolution
 **Goal**: A 3-way merge engine correctly merges editor-parsed partial IR against the base IR snapshot and current .planning/ IR, with conflicts detected, logged, and resolved per configurable field policy
@@ -125,7 +129,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 126. Sync Foundation | 1/2 | Complete    | 2026-03-24 |
-| 127. Reverse Parsers | 0/TBD | Not started | - |
+| 127. Reverse Parsers | 0/2 | Not started | - |
 | 128. Merge Engine and Conflict Resolution | 0/TBD | Not started | - |
 | 129. Hook Integration | 0/TBD | Not started | - |
 | 130. Antigravity Write-Back | 0/TBD | Not started | - |
