@@ -151,6 +151,20 @@ Any user can go from idea to shipped product through a single platform that hand
 
 ### Active
 
+## Current Milestone: v0.16 Multi-Editor Context Sync
+
+**Goal:** Full bidirectional context synchronization between PDE and external editors (Cursor, Antigravity), enabling live state sharing, conflict resolution, and agent coordination.
+
+**Target features:**
+- Cursor → PDE: .cursor/rules/*.mdc changes propagate back to .planning/ state
+- PDE → Cursor (enhance): Richer .mdc generation with deeper context, better globs, more rules
+- Cursor conflict resolution: Detect divergence, merge or prompt user
+- Cursor live sync: Real-time file watching triggers PDE state updates
+- AG → PDE: Antigravity outputs flow back into PDE critique/handoff
+- PDE → AG (enhance): Richer SKILL.md + DESIGN.md generation
+- AG shared state: Single source of truth for design tokens across tools
+- AG agent coordination: PDE and Antigravity agents delegate work via MCP
+
 ### Out of Scope
 
 - Multi-AI-provider support (Gemini CLI, OpenCode, Codex) — candidate for future milestone
@@ -178,7 +192,7 @@ Any user can go from idea to shipped product through a single platform that hand
 - **Shipped v0.13** on 2026-03-23: 9 phases, 15 plans (AutoResearch: safety boundaries, git state machine, experiment schema, mutation agent, orchestrator, circuit breakers, self-improvement presets, researcher empirical mode, observability)
 - **Shipped v0.14** on 2026-03-24: 10 phases, 21 plans, 78 requirements, 441+ Nyquist assertions (Visual AutoResearch: Playwright MCP, screenshot capture, AOM accessibility, visual metrics, 14 experiment templates, pipeline experiments, visual regression circuit breaker, multi-candidate A/B, meta-optimization, ideation diversity, brief reference capture)
 - **Shipped v0.15** on 2026-03-24: 8 phases, 16 plans, 25 requirements, 162 Nyquist tests (Multi-Editor Integration: context sync engine for Cursor/Gemini/Antigravity/AGENTS.md, standalone MCP server with 10 read-only tools, artifact formatting with DTCG-to-Tailwind v4, 3-tier divergence detection, hook-driven auto-sync, Stitch bridge production consumer)
-- **Planned roadmap:** v0.16 Remote Dashboard → v0.17 Stakeholder Presentations → v1.0 Standalone CLI
+- **Planned roadmap:** v0.16 Multi-Editor Context Sync (in progress) → v0.17 Remote Dashboard → v0.18 Stakeholder Presentations → v1.0 Standalone CLI
 - **v0.11** shipped 2026-03-22: 112 files changed, 116 commits (experience product type: detection, brief, tokens, flows, wireframes, critique, HIG, print, handoff, 48 requirements)
 - **v0.10** shipped 2026-03-21: 107 files changed, 56 commits (idle-time productivity: suggestion engine, catalog, context notes, 7-pane dashboard)
 - **v0.9** shipped 2026-03-21: 91 files changed, 76 commits (Google Stitch integration across 5 pipeline skills)
@@ -284,4 +298,21 @@ Any user can go from idea to shipped product through a single platform that hand
 | 20-field designCoverage write (not copy 16-field pattern) | Phase 84 added 4 fields; copying opportunity.md's 16-field pattern silently drops them | ✓ Good — canonical order from manifest template |
 | Playwright MCP via stdio transport | npx @playwright/mcp@latest --headless — identical to Stitch pattern, zero npm deps | ✓ Good — 7th APPROVED_SERVER, 10 TOOL_MAP entries, 27 Nyquist tests |
 | browser_snapshot as probe tool (not browser_navigate) | browser_snapshot requires no URL arg, avoids "missing required parameter" error on probe | ✓ Good — lightest read-only operation for server health check |
-*Last updated: 2026-03-24 after v0.15 Multi-Editor Integration milestone completed*
+## Evolution
+
+This document evolves at phase transitions and milestone boundaries.
+
+**After each phase transition** (via `/gsd:transition`):
+1. Requirements invalidated? → Move to Out of Scope with reason
+2. Requirements validated? → Move to Validated with phase reference
+3. New requirements emerged? → Add to Active
+4. Decisions to log? → Add to Key Decisions
+5. "What This Is" still accurate? → Update if drifted
+
+**After each milestone** (via `/gsd:complete-milestone`):
+1. Full review of all sections
+2. Core Value check — still the right priority?
+3. Audit Out of Scope — reasons still valid?
+4. Update Context with current state
+
+*Last updated: 2026-03-24 after v0.16 Multi-Editor Context Sync milestone started*
