@@ -1,10 +1,11 @@
 ---
 phase: 123
 slug: context-sync-engine
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-23
+completed: 2026-03-24
 ---
 
 # Phase 123 — Validation Strategy
@@ -19,15 +20,15 @@ created: 2026-03-23
 |----------|-------|
 | **Framework** | node:test (built-in) |
 | **Config file** | none |
-| **Quick run command** | `node --test tests/phase-123/test-context-sync-engine.cjs` |
-| **Full suite command** | `node --test tests/phase-123/test-context-sync-engine.cjs` |
+| **Quick run command** | `node --test tests/phase-123/test-context-sync-hook.cjs tests/phase-123/test-editor-sync-command.cjs` |
+| **Full suite command** | `node --test tests/phase-123/test-context-sync-hook.cjs tests/phase-123/test-editor-sync-command.cjs` |
 | **Estimated runtime** | ~3 seconds |
 
 ---
 
 ## Sampling Rate
 
-- **After every task commit:** Run quick command
+- **After every task commit:** Run `node --test tests/phase-123/test-context-sync-hook.cjs tests/phase-123/test-editor-sync-command.cjs`
 - **After every plan wave:** Run full suite
 - **Before `/pde:verify-work`:** Full suite must be green
 - **Max feedback latency:** 3 seconds
@@ -38,14 +39,14 @@ created: 2026-03-23
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 123-01-01 | 01 | 1 | CTX-06 | unit | `node --test tests/phase-123/test-context-sync-engine.cjs` | ❌ W0 | ⬜ pending |
-| 123-01-02 | 01 | 1 | CTX-07 | unit | `node --test tests/phase-123/test-context-sync-engine.cjs` | ❌ W0 | ⬜ pending |
+| 123-01-01 | 01 | 1 | CTX-06 | unit | `node --test tests/phase-123/test-context-sync-hook.cjs` | yes | ✅ green |
+| 123-01-02 | 01 | 1 | CTX-07 | unit | `node --test tests/phase-123/test-editor-sync-command.cjs` | yes | ✅ green |
 
 ---
 
 ## Wave 0 Requirements
 
-- [ ] `tests/phase-123/test-context-sync-engine.cjs` — stubs for CTX-06, CTX-07
+- [x] `tests/phase-123/test-context-sync-hook.cjs` and `test-editor-sync-command.cjs` — stubs for CTX-06, CTX-07
 
 ---
 
@@ -59,11 +60,11 @@ created: 2026-03-23
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 3s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 3s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** APPROVED

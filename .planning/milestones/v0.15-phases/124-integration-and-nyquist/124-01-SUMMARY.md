@@ -24,6 +24,7 @@ metrics:
   tasks_total: 1
   files_created: 1
   files_modified: 0
+requirements-completed: [MCP-03, INTG-01]
 ---
 
 # Phase 124 Plan 01: Integration & Nyquist Summary

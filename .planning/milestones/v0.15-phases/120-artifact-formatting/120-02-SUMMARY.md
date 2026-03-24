@@ -4,6 +4,7 @@ phase: "120-artifact-formatting"
 status: complete
 started: "2026-03-23"
 completed: "2026-03-23"
+requirements-completed: [FMT-01, FMT-02, FMT-03]
 ---
 
 # Plan 120-02 Summary

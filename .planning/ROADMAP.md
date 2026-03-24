@@ -150,7 +150,7 @@ Full details: .planning/milestones/v0.14-ROADMAP.md
 - [x] **Phase 122: Divergence Detection** — 3-tier handoff-vs-code drift detection with DIVERGENCE.md output and ignore mechanism (completed 2026-03-24)
 - [x] **Phase 123: Context Sync Engine** — Hook-driven auto-regeneration + /pde:editor-sync manual command (completed 2026-03-24)
 - [x] **Phase 124: Integration & Nyquist** — Cross-editor validation and structural regression tests for all v0.15 requirements (completed 2026-03-24)
-- [ ] **Phase 125: Nyquist Traceability & Metadata Cleanup** — Gap closure: DIV-05 + STH-02 Nyquist describe blocks, isStitchSource production wiring, VALIDATION.md promotion, SUMMARY frontmatter backfill
+- [x] **Phase 125: Nyquist Traceability & Metadata Cleanup** — Gap closure: DIV-05 + STH-02 Nyquist describe blocks, isStitchSource production wiring, VALIDATION.md promotion, SUMMARY frontmatter backfill (completed 2026-03-24)
 
 ## Phase Details
 
@@ -165,11 +165,11 @@ Full details: .planning/milestones/v0.14-ROADMAP.md
   3. `isStitchSource()` is called from handoff.md workflow instead of inline string comparison
   4. All 7 v0.15 Nyquist VALIDATION.md files promoted from draft to compliant
   5. All 14 v0.15 SUMMARY.md files have `requirements_completed` frontmatter populated
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 complete
 
 Plans:
 - [x] 125-01-PLAN.md — Wire isStitchSource() in handoff.md + mark DIV-05/STH-02 complete
-- [ ] 125-02-PLAN.md — Promote 7 VALIDATION.md + backfill 12 SUMMARY.md requirements
+- [x] 125-02-PLAN.md — Promote 7 VALIDATION.md + backfill 12 SUMMARY.md requirements
 
 ## Progress
 

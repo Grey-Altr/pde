@@ -22,6 +22,7 @@ metrics:
   tasks_total: 1
   files_created: 1
   files_modified: 0
+requirements-completed: []
 ---
 
 # Phase 124 Plan 02: Integration & Nyquist Regression Sweep Summary

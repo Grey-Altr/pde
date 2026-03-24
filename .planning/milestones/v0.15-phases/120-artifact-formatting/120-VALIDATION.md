@@ -1,10 +1,11 @@
 ---
 phase: 120
 slug: artifact-formatting
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-23
+completed: 2026-03-24
 ---
 
 # Phase 120 — Validation Strategy
@@ -38,18 +39,18 @@ created: 2026-03-23
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 120-01-01 | 01 | 1 | FMT-01 | unit | `node --test tests/phase-120/test-artifact-format.cjs` | ❌ W0 | ⬜ pending |
-| 120-01-02 | 01 | 1 | FMT-02 | unit | `node --test tests/phase-120/test-artifact-format.cjs` | ❌ W0 | ⬜ pending |
-| 120-01-03 | 01 | 1 | FMT-03 | unit | `node --test tests/phase-120/test-artifact-format.cjs` | ❌ W0 | ⬜ pending |
+| 120-01-01 | 01 | 1 | FMT-01 | unit | `node --test tests/phase-120/test-artifact-format.cjs` | yes | ✅ green |
+| 120-01-02 | 01 | 1 | FMT-02 | unit | `node --test tests/phase-120/test-artifact-format.cjs` | yes | ✅ green |
+| 120-01-03 | 01 | 1 | FMT-03 | unit | `node --test tests/phase-120/test-artifact-format.cjs` | yes | ✅ green |
 
-*Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
+*Status legend: pending · ✅ green · red · flaky*
 
 ---
 
 ## Wave 0 Requirements
 
-- [ ] `tests/phase-120/test-artifact-format.cjs` — stubs for FMT-01, FMT-02, FMT-03
-- [ ] `bin/lib/artifact-format.cjs` — module under test
+- [x] `tests/phase-120/test-artifact-format.cjs` — stubs for FMT-01, FMT-02, FMT-03
+- [x] `bin/lib/artifact-format.cjs` — module under test
 
 *Existing node:test infrastructure from prior phases covers framework needs.*
 
@@ -66,11 +67,11 @@ created: 2026-03-23
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 3s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 3s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** APPROVED

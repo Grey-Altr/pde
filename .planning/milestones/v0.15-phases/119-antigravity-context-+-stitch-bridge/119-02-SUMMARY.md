@@ -27,6 +27,7 @@ metrics:
   test_count: 63
   test_pass: 63
   test_fail: 0
+requirements-completed: [CTX-05, STH-01, STH-02, STH-03]
 ---
 
 # Phase 119 Plan 02: Antigravity Verification + Human Review Summary

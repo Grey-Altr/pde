@@ -1,10 +1,11 @@
 ---
 phase: 125
 slug: nyquist-traceability-metadata-cleanup
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-24
+completed: 2026-03-24
 ---
 
 # Phase 125 — Validation Strategy
@@ -38,10 +39,10 @@ created: 2026-03-24
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 125-01-01 | 01 | 1 | DIV-05 | structural | `node --test tests/phase-124/test-integration-nyquist.cjs` | yes | pending |
-| 125-01-02 | 01 | 1 | STH-02 | unit | `node --test tests/phase-119/test-antigravity-stitch.cjs` | yes | pending |
+| 125-01-01 | 01 | 1 | DIV-05 | structural | `node --test tests/phase-124/test-integration-nyquist.cjs` | yes | ✅ green |
+| 125-01-02 | 01 | 1 | STH-02 | unit | `node --test tests/phase-119/test-antigravity-stitch.cjs` | yes | ✅ green |
 
-*Status: pending · green · red · flaky*
+*Status legend: pending · ✅ green · red · flaky*
 
 ---
 
@@ -63,11 +64,11 @@ Existing infrastructure covers all phase requirements. No new test files needed.
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 5s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 5s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** APPROVED
