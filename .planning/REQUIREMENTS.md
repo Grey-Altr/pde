@@ -14,7 +14,7 @@
 - [x] **CUR-02**: .mdc PDE-owned section extraction — content between `<!-- PDE:BEGIN -->` / `<!-- PDE:END -->` markers is PDE-parseable; content outside is user-authored (preserved, never written back); maps pde-project.mdc Conventions to constraints IR, pde-architecture.mdc Tech Stack to techStack IR
 - [ ] **CUR-03**: Live mtime change detection — hook-triggered scan of .mdc files during .planning/ writes; compare mtime against lastEmittedAt + 500ms grace; debounce 200ms; queue in state file pendingIngest; zero stdout; <10ms overhead
 - [x] **CUR-04**: Conflict detection — 3-way merge using lastIR as base: if both PDE and editor changed same field to different values, log conflict to .sync-conflicts.log (NDJSON) with both values; auto-resolve when only one side changed
-- [ ] **CUR-05**: Conflict resolution — planning-wins default policy; configurable per-field in config.json contextSync.fieldPolicies; editor-wins overwrites .planning/ value; prompt policy defers resolution and blocks emitAll(); policy read at ingest start
+- [x] **CUR-05**: Conflict resolution — planning-wins default policy; configurable per-field in config.json contextSync.fieldPolicies; editor-wins overwrites .planning/ value; prompt policy defers resolution and blocks emitAll(); policy read at ingest start
 - [ ] **CUR-06**: Enhanced .mdc generation — `<!-- PDE:BEGIN -->` / `<!-- PDE:END -->` section markers in each .mdc body; user content below PDE:END preserved across regeneration; improved globs (**.{css,scss,tsx,jsx,ts} for tokens, **.{tsx,jsx,stories.tsx,test.tsx} for components); inline examples in pde-project.mdc
 
 ## AGR — Antigravity Bidirectional Sync
@@ -51,7 +51,7 @@
 | CUR-02 | Phase 127 | Complete |
 | CUR-03 | Phase 129 | Pending |
 | CUR-04 | Phase 128 | Complete |
-| CUR-05 | Phase 128 | Pending |
+| CUR-05 | Phase 128 | Complete |
 | CUR-06 | Phase 132 | Pending |
 | AGR-01 | Phase 127 | Complete |
 | AGR-02 | Phase 127 | Complete |

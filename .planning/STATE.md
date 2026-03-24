@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.16
 milestone_name: Multi-Editor Context Sync
-status: Ready to execute
-stopped_at: Completed 128-01-PLAN.md
-last_updated: "2026-03-24T20:02:19.122Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 128-02-PLAN.md
+last_updated: "2026-03-24T20:07:18.094Z"
 progress:
   total_phases: 7
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 10
-  completed_plans: 5
+  completed_plans: 6
 ---
 
 # Project State
@@ -58,6 +58,7 @@ Recent decisions affecting v0.16 implementation:
 - [Phase 127]: pde-format-version absence triggers stderr warning but parsing continues (lenient fallback, not hard gate)
 - [Phase 128]: Test 12 fixture corrected to canonical .mdc format (frontmatter first, then PDE-GENERATED comment) — real architecture .mdc files use D-07 backward compat (no PDE:BEGIN/END)
 - [Phase 128]: mergePartialIR planning-wins default: resolvedValue === planningValue on true conflict, conflict logged to .sync-conflicts.log as NDJSON
+- [Phase 128]: readFieldPolicy checks opts.fieldPolicies override before config.json; prompt policy sets pendingResolution=true; designTokens normalization applied before editorChanged comparison
 
 ### Pending Todos
 
@@ -70,8 +71,8 @@ Recent decisions affecting v0.16 implementation:
 
 ## Session Continuity
 
-Last session: 2026-03-24T20:02:19.119Z
-Stopped at: Completed 128-01-PLAN.md
+Last session: 2026-03-24T20:07:18.092Z
+Stopped at: Completed 128-02-PLAN.md
 Resume with: /gsd:discuss-phase 127
 Resume file: None
 
