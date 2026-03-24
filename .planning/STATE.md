@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.14
-milestone_name: Visual AutoResearch
-status: v0.14 milestone complete
-stopped_at: Completed 117-01-PLAN.md
-last_updated: "2026-03-24T01:54:14.062Z"
+milestone: v0.15
+milestone_name: Multi-Editor Integration
+status: Defining requirements
+stopped_at: null
+last_updated: "2026-03-23"
 progress:
-  total_phases: 10
-  completed_phases: 10
-  total_plans: 21
-  completed_plans: 21
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
 # Project State
@@ -19,12 +19,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-23)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 117 — integration-nyquist
+**Current focus:** Defining requirements for v0.15
 
 ## Current Position
 
-Phase: 117
-Plan: Not started
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-23 — Milestone v0.15 started
 
 ## Performance Metrics
 
