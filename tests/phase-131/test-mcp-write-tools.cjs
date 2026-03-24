@@ -168,3 +168,221 @@ describe('INF-03: handleUpdateTechStack', () => {
     assert.equal(result.isError, true, 'Expected isError: true for overflow');
   });
 });
+
+describe('INF-04: pde_append_context_note', () => {
+  let handlers;
+  let tmpDir;
+  let planningDir;
+
+  before(() => {
+    handlers = require(HANDLERS_PATH);
+    tmpDir = makeTmpDir();
+    planningDir = makePlanningDir(tmpDir);
+  });
+
+  test('INF-04-valid: appends timestamped note to technical-notes.md', async () => {
+    const result = await handlers.handleAppendContextNote(planningDir, {
+      category: 'technical',
+      note: 'Test note for INF-04',
+    });
+    assert.equal(result.isError, undefined, `Expected no error, got: ${result.content?.[0]?.text}`);
+    assert.ok(result.content[0].text.includes('technical-notes.md'), `Expected success text mentioning file, got: ${result.content[0].text}`);
+
+    // Verify note file was created and contains the note
+    const notesPath = path.join(planningDir, 'context-notes', 'technical-notes.md');
+    assert.ok(fs.existsSync(notesPath), 'technical-notes.md should exist');
+    const contents = fs.readFileSync(notesPath, 'utf-8');
+    assert.ok(contents.includes('Test note for INF-04'), 'File should contain the note text');
+    // Verify ISO timestamp header
+    assert.ok(/## \d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(contents), 'File should contain ISO timestamp header');
+  });
+
+  test('INF-04-invalid-category: returns isError for category="malicious"', async () => {
+    const result = await handlers.handleAppendContextNote(planningDir, {
+      category: 'malicious',
+      note: 'Attempt with invalid category',
+    });
+    assert.equal(result.isError, true, 'Expected isError: true for invalid category');
+  });
+
+  test('INF-04-traversal: returns isError for category="../secret" (caught by allowlist)', async () => {
+    const result = await handlers.handleAppendContextNote(planningDir, {
+      category: '../secret',
+      note: 'Path traversal attempt',
+    });
+    assert.equal(result.isError, true, 'Expected isError: true for traversal attempt');
+  });
+
+  test('INF-04-empty-note: returns isError for note=""', async () => {
+    const result = await handlers.handleAppendContextNote(planningDir, {
+      category: 'design',
+      note: '',
+    });
+    assert.equal(result.isError, true, 'Expected isError: true for empty note');
+  });
+
+  test('INF-04-ndjson: logs entry to mcp-writes.ndjson with tool, category, noteLen', async () => {
+    const tmpDir2 = makeTmpDir();
+    const planningDir2 = makePlanningDir(tmpDir2);
+
+    await handlers.handleAppendContextNote(planningDir2, {
+      category: 'product',
+      note: 'Note for NDJSON logging test',
+    });
+
+    const logPath = path.join(planningDir2, 'logs', 'mcp-writes.ndjson');
+    assert.ok(fs.existsSync(logPath), 'mcp-writes.ndjson should exist');
+
+    const logContent = fs.readFileSync(logPath, 'utf-8').trim();
+    const entry = JSON.parse(logContent.split('\n')[0]);
+
+    assert.ok(entry.ts, 'entry should have ts field');
+    assert.equal(entry.tool, 'pde_append_context_note', 'entry should have correct tool name');
+    assert.equal(entry.category, 'product', 'entry should have category field');
+    assert.ok(typeof entry.noteLen === 'number', 'entry should have noteLen as a number');
+  });
+
+  test('INF-04-emitall: calls emitAll(cwd) post-write (no error thrown)', async () => {
+    const tmpDir3 = makeTmpDir();
+    const planningDir3 = makePlanningDir(tmpDir3);
+
+    // emitAll may fail (no real editor setup) but should not throw from handler
+    const result = await handlers.handleAppendContextNote(planningDir3, {
+      category: 'decision',
+      note: 'Testing emitAll is called after note append',
+    });
+    // Handler should succeed regardless of emitAll result (try/catch wraps it)
+    assert.equal(result.isError, undefined, `Expected no error from emitAll isolation, got: ${result.content?.[0]?.text}`);
+  });
+});
+
+describe('INF-05: pde_flag_divergence', () => {
+  let handlers;
+  let tmpDir;
+  let planningDir;
+
+  before(() => {
+    handlers = require(HANDLERS_PATH);
+    tmpDir = makeTmpDir();
+    planningDir = makePlanningDir(tmpDir);
+  });
+
+  test('INF-05-valid: writes entry to divergence-flags.json array', async () => {
+    const result = await handlers.handleFlagDivergence(planningDir, {
+      component: 'Button',
+      reason: 'Color drift from design spec',
+      severity: 'medium',
+    });
+    assert.equal(result.isError, undefined, `Expected no error, got: ${result.content?.[0]?.text}`);
+    assert.ok(result.content[0].text.includes('Button'), `Expected success text mentioning component, got: ${result.content[0].text}`);
+
+    // Verify divergence-flags.json was created with the entry
+    const flagsPath = path.join(planningDir, 'divergence-flags.json');
+    assert.ok(fs.existsSync(flagsPath), 'divergence-flags.json should exist');
+    const flags = JSON.parse(fs.readFileSync(flagsPath, 'utf-8'));
+    assert.ok(Array.isArray(flags), 'flags should be an array');
+    assert.ok(flags.length >= 1, 'flags array should have at least one entry');
+    const entry = flags[flags.length - 1];
+    assert.equal(entry.component, 'Button', 'entry should have component field');
+    assert.equal(entry.reason, 'Color drift from design spec', 'entry should have reason field');
+    assert.equal(entry.severity, 'medium', 'entry should have severity field');
+    assert.ok(entry.ts, 'entry should have ts field');
+  });
+
+  test('INF-05-no-emitall: does NOT call emitAll (no .context-sync-state.json written)', async () => {
+    const tmpDir2 = makeTmpDir();
+    const planningDir2 = makePlanningDir(tmpDir2);
+    const cwd2 = path.dirname(planningDir2);
+
+    await handlers.handleFlagDivergence(planningDir2, {
+      component: 'Header',
+      reason: 'Typography mismatch',
+      severity: 'low',
+    });
+
+    // emitAll would write .context-sync-state.json in cwd — verify it was not created
+    const syncStatePath = path.join(cwd2, '.context-sync-state.json');
+    assert.ok(!fs.existsSync(syncStatePath), '.context-sync-state.json should NOT exist (emitAll was not called)');
+  });
+
+  test('INF-05-component-validation: returns isError for component=""', async () => {
+    const result = await handlers.handleFlagDivergence(planningDir, {
+      component: '',
+      reason: 'Some reason',
+      severity: 'low',
+    });
+    assert.equal(result.isError, true, 'Expected isError: true for empty component');
+  });
+
+  test('INF-05-component-pattern: returns isError for component containing "/"', async () => {
+    const result = await handlers.handleFlagDivergence(planningDir, {
+      component: 'path/traversal',
+      reason: 'Some reason',
+      severity: 'low',
+    });
+    assert.equal(result.isError, true, 'Expected isError: true for component with path separator');
+  });
+
+  test('INF-05-ndjson: logs entry to mcp-writes.ndjson with tool, component, severity', async () => {
+    const tmpDir3 = makeTmpDir();
+    const planningDir3 = makePlanningDir(tmpDir3);
+
+    await handlers.handleFlagDivergence(planningDir3, {
+      component: 'Card',
+      reason: 'Shadow mismatch',
+      severity: 'high',
+    });
+
+    const logPath = path.join(planningDir3, 'logs', 'mcp-writes.ndjson');
+    assert.ok(fs.existsSync(logPath), 'mcp-writes.ndjson should exist');
+
+    const logContent = fs.readFileSync(logPath, 'utf-8').trim();
+    const entry = JSON.parse(logContent.split('\n')[0]);
+
+    assert.ok(entry.ts, 'entry should have ts field');
+    assert.equal(entry.tool, 'pde_flag_divergence', 'entry should have correct tool name');
+    assert.equal(entry.component, 'Card', 'entry should have component field');
+    assert.equal(entry.severity, 'high', 'entry should have severity field');
+  });
+
+  test('INF-05-atomic: file exists after write (tmp+renameSync pattern)', async () => {
+    const tmpDir4 = makeTmpDir();
+    const planningDir4 = makePlanningDir(tmpDir4);
+
+    const result = await handlers.handleFlagDivergence(planningDir4, {
+      component: 'Modal',
+      reason: 'Border radius drift',
+      severity: 'low',
+    });
+
+    assert.equal(result.isError, undefined, 'Expected no error');
+    const flagsPath = path.join(planningDir4, 'divergence-flags.json');
+    assert.ok(fs.existsSync(flagsPath), 'divergence-flags.json should exist after atomic write');
+    // Verify no leftover tmp file
+    const tmpPattern = flagsPath + '.' + process.pid + '.tmp';
+    assert.ok(!fs.existsSync(tmpPattern), 'No leftover tmp file should remain');
+  });
+
+  test('INF-05-append: two calls result in 2 entries in divergence-flags.json', async () => {
+    const tmpDir5 = makeTmpDir();
+    const planningDir5 = makePlanningDir(tmpDir5);
+
+    await handlers.handleFlagDivergence(planningDir5, {
+      component: 'Input',
+      reason: 'First divergence',
+      severity: 'low',
+    });
+
+    await handlers.handleFlagDivergence(planningDir5, {
+      component: 'Select',
+      reason: 'Second divergence',
+      severity: 'medium',
+    });
+
+    const flagsPath = path.join(planningDir5, 'divergence-flags.json');
+    const flags = JSON.parse(fs.readFileSync(flagsPath, 'utf-8'));
+    assert.equal(flags.length, 2, 'Should have exactly 2 entries after two calls');
+    assert.equal(flags[0].component, 'Input', 'First entry should be Input');
+    assert.equal(flags[1].component, 'Select', 'Second entry should be Select');
+  });
+});

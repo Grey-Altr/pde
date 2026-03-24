@@ -458,6 +458,137 @@ async function handleUpdateTechStack(planningDir, params) {
   };
 }
 
+// ─── Write Tool: pde_append_context_note ─────────────────────────────────────
+
+/**
+ * Valid categories for context notes. Used as an allowlist to prevent path traversal.
+ * @type {string[]}
+ */
+const VALID_CATEGORIES = ['design', 'technical', 'product', 'research', 'decision'];
+
+/**
+ * Appends a timestamped note to the corresponding category notes file in
+ * .planning/context-notes/{category}-notes.md and re-emits editor context.
+ * @param {string} planningDir - Absolute path to .planning/
+ * @param {{ category: string, note: string }} params
+ */
+async function handleAppendContextNote(planningDir, params) {
+  const { category, note } = params || {};
+
+  if (!VALID_CATEGORIES.includes(category)) {
+    return {
+      content: [{ type: 'text', text: `Validation failed: category must be one of [${VALID_CATEGORIES.join(', ')}]` }],
+      isError: true,
+    };
+  }
+
+  if (typeof note !== 'string' || note.trim().length === 0) {
+    return {
+      content: [{ type: 'text', text: 'Validation failed: note must be a non-empty string' }],
+      isError: true,
+    };
+  }
+
+  const notesDir = path.join(planningDir, 'context-notes');
+  fs.mkdirSync(notesDir, { recursive: true });
+
+  const notesPath = path.join(notesDir, `${category}-notes.md`);
+  const timestamp = new Date().toISOString();
+  fs.appendFileSync(notesPath, `\n## ${timestamp}\n\n${note.trim()}\n`, 'utf-8');
+
+  const cwd = path.dirname(planningDir);
+  try {
+    const { emitAll } = getContextSync();
+    emitAll(cwd);
+  } catch {
+    // Isolation: handler succeeds even if re-emission fails
+  }
+
+  appendMcpWriteLog(planningDir, {
+    ts: timestamp,
+    tool: 'pde_append_context_note',
+    category,
+    noteLen: note.length,
+  });
+
+  return {
+    content: [{ type: 'text', text: `Note appended to ${category}-notes.md` }],
+  };
+}
+
+// ─── Write Tool: pde_flag_divergence ─────────────────────────────────────────
+
+/**
+ * Component name pattern: alphanumeric start, allows letters/digits/spaces/underscores/hyphens/dots,
+ * no path separators, max 100 chars.
+ */
+const COMPONENT_NAME_RE = /^[A-Za-z][A-Za-z0-9 _.-]{0,99}$/;
+
+/**
+ * Flags a component as diverged from design specifications.
+ * Writes atomically to divergence-flags.json. Does NOT call emitAll.
+ * @param {string} planningDir - Absolute path to .planning/
+ * @param {{ component: string, reason: string, severity: string }} params
+ */
+async function handleFlagDivergence(planningDir, params) {
+  const { component, reason, severity } = params || {};
+
+  if (typeof component !== 'string' || !COMPONENT_NAME_RE.test(component)) {
+    return {
+      content: [{ type: 'text', text: 'Validation failed: component must start with a letter, contain only alphanumeric/space/_/.-  characters, and be at most 100 chars' }],
+      isError: true,
+    };
+  }
+
+  if (typeof reason !== 'string' || reason.length === 0) {
+    return {
+      content: [{ type: 'text', text: 'Validation failed: reason must be a non-empty string' }],
+      isError: true,
+    };
+  }
+
+  const VALID_SEVERITIES = ['low', 'medium', 'high'];
+  if (!VALID_SEVERITIES.includes(severity)) {
+    return {
+      content: [{ type: 'text', text: `Validation failed: severity must be one of [${VALID_SEVERITIES.join(', ')}]` }],
+      isError: true,
+    };
+  }
+
+  const flagsPath = path.join(planningDir, 'divergence-flags.json');
+
+  let flags = [];
+  try {
+    const raw = fs.readFileSync(flagsPath, 'utf-8');
+    flags = JSON.parse(raw);
+    if (!Array.isArray(flags)) flags = [];
+  } catch {
+    // File does not exist or is invalid — start with empty array
+    flags = [];
+  }
+
+  const ts = new Date().toISOString();
+  flags.push({ ts, component, reason, severity });
+
+  // Atomic write: write to tmp then rename
+  const tmpPath = `${flagsPath}.${process.pid}.tmp`;
+  fs.writeFileSync(tmpPath, JSON.stringify(flags, null, 2), 'utf-8');
+  fs.renameSync(tmpPath, flagsPath);
+
+  // NOTE: Do NOT call emitAll() — per INF-05 spec
+
+  appendMcpWriteLog(planningDir, {
+    ts,
+    tool: 'pde_flag_divergence',
+    component,
+    severity,
+  });
+
+  return {
+    content: [{ type: 'text', text: `Divergence flagged for ${component}` }],
+  };
+}
+
 // ─── Exports ──────────────────────────────────────────────────────────────────
 
 module.exports = {
@@ -475,4 +606,6 @@ module.exports = {
   handleUpdateConstraints,
   handleUpdateTechStack,
   appendMcpWriteLog,
+  handleAppendContextNote,
+  handleFlagDivergence,
 };
