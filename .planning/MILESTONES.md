@@ -1,5 +1,31 @@
 # Milestones
 
+## v0.14 Visual AutoResearch (Shipped: 2026-03-24)
+
+**Phases completed:** 10 phases, 21 plans, 15 tasks
+
+**Key accomplishments:**
+
+- Playwright registered as 7th APPROVED_SERVER with stdio transport, 10 TOOL_MAP entries, AUTH_INSTRUCTIONS, and 27 Nyquist tests GREEN
+- mcp-integration.md updated with Playwright --headless/--allow-unrestricted-file-access flags, corrected browser_snapshot probe, Flags subsection, %20 encoding note, version fallback, and MCP-08 gate deferred for live verification
+- playwright:resize TOOL_MAP entry + wireframe Step 5d expanded into per-file screenshot loop with resize/navigate/screenshot/close bridge calls at 1280x800
+- mockup.md Step 7f expanded from multi-breakpoint stub to full per-file Playwright MCP screenshot loop at 1280x800 using the wireframe Step 5d pattern
+- Playwright AOM probe added to critique.md Step 3 with 4-way merge logic: landmarks/headings/unlabeled analysis when Playwright available, AOM+Axe combined table when both available, graceful degradation to manual WCAG checklist when neither available.
+- One-liner:
+- One-liner:
+- Task 1 — 4 Non-Browser Experiment Templates
+- Multi-stage pipeline metric wrapper (PIPE-04) and two upstream isolation experiment templates (PIPE-01/02/03) enabling AutoResearch to optimize brief.md vs system.md by downstream wireframe DOM quality delta comparison
+- One-liner:
+- SHA-256 screenshot hash comparison + metric score AND gate in visual-regression.cjs, with JSONL schema extension and 16 Nyquist tests covering VRCB-01 through VRCB-04
+- BREAK-05 visual regression circuit breaker wired into optimize.md Step 6b/7h/7k with 11 new Nyquist tests covering VRCB-05 integration — all 27 phase-114 tests pass, full suite 1540/1548 unchanged
+- TDD approach — RED then GREEN:
+- Multi-candidate loop wired into optimize.md Step 7: N candidates dispatched per iteration, argmax/argmin selection promotes the best via reset-to-sha, DISCARD/all-crash paths reset to iteration baseline, and JSONL rows include candidates_evaluated, candidates_scores, and best_candidate_index.
+- 1. [Rule 3 - Blocking] Replaced inline `node -e "require()"` with direct script invocation
+- One-liner:
+- TOOL_MAP count assertions corrected from 56 to 57 across phases 40-43 test files, restoring the pre-v0.14 Nyquist baseline to 1216 pass / 8 fail (zero v0.14-introduced regressions)
+
+---
+
 ## v0.12 Business Product Type (Shipped: 2026-03-23)
 
 **Phases completed:** 15 phases, 24 plans, 46 tasks
