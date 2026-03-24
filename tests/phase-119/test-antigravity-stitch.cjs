@@ -147,9 +147,9 @@ describe('oklchToHex', () => {
   });
 });
 
-// ─── isStitchSource tests ──────────────────────────────────────────────────
+// ─── STH-02: Antigravity Stitch detection via manifest metadata ─────────────
 
-describe('isStitchSource', () => {
+describe('STH-02: Antigravity Stitch detection via manifest metadata', () => {
   it('returns true for "stitch"', () => {
     assert.equal(isStitchSource('stitch'), true);
   });

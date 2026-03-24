@@ -42,6 +42,26 @@ describe('MCP-03: npx distributable structure', () => {
   });
 });
 
+// ─── DIV-05: /pde:check-divergence command exists ────────────────────────────
+
+describe('DIV-05: /pde:check-divergence command exists', () => {
+  const CMD_PATH = path.join(PROJECT_ROOT, 'commands', 'check-divergence.md');
+  const WF_PATH = path.join(PROJECT_ROOT, 'workflows', 'check-divergence.md');
+
+  it('commands/check-divergence.md exists', () => {
+    assert.ok(fs.existsSync(CMD_PATH), 'check-divergence command must exist');
+  });
+
+  it('workflows/check-divergence.md exists', () => {
+    assert.ok(fs.existsSync(WF_PATH), 'check-divergence workflow must exist');
+  });
+
+  it('workflow references divergence.cjs module', () => {
+    const content = fs.readFileSync(WF_PATH, 'utf8');
+    assert.ok(content.includes('divergence.cjs'), 'workflow must reference divergence.cjs');
+  });
+});
+
 // ─── INTG-01: Nyquist structural tests exist for all 25 v0.15 requirements ──
 
 describe('INTG-01: Nyquist structural tests exist for all 25 v0.15 requirements', () => {
