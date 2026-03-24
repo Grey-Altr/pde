@@ -100,16 +100,22 @@ function makePlanningDirWithTokens(baseDir) {
   return planningDir;
 }
 
+// Arbitrary 64-char hex hash that will never match any real source hash
+// (all zeros is distinctive and won't collide with SHA-256 of real planning files)
+const FAKE_OLD_HASH = '0000000000000000000000000000000000000000000000000000000000000000';
+const FAKE_TIMESTAMP = '2000-01-01T00:00:00.000Z';
+
 /**
  * Write a DESIGN.md at cwd/DESIGN.md (which is what MONITORED_FILES monitors)
- * with a PDE-GENERATED header that has a NON-MATCHING hash (abc123), so
- * computeLoopBreak returns 'proceed' (file treated as externally edited).
+ * with a PDE-GENERATED header using the correct format (hash:<64hex> | generated:<ISO>)
+ * but with a NON-MATCHING hash, so computeLoopBreak returns 'proceed'
+ * (file treated as externally edited by a human/editor).
  * @param {string} baseDir - cwd (project root)
  * @param {string} hex - New hex color for primary (without #), e.g. "FF0000"
  */
 function makeDesignMdWithChangedColor(baseDir, hex) {
   const content = [
-    '<!-- PDE-GENERATED | source-hash: abc123 -->',
+    `<!-- PDE-GENERATED | hash:${FAKE_OLD_HASH} | generated:${FAKE_TIMESTAMP} -->`,
     '<!-- pde-format-version: 1.0 -->',
     '<!-- SOURCE: design-manifest.json | DERIVE-ONLY -->',
     '# Design Tokens',
@@ -134,7 +140,7 @@ function writeBaseStateWithOldTokens(planningDir, oldDesignTokens) {
   const state = {
     schemaVersion: '1.0',
     lastEmittedAt: new Date(Date.now() - 10000).toISOString(), // 10 seconds ago
-    lastSourceHash: 'abc123', // non-matching so files are detected as changed
+    lastSourceHash: FAKE_OLD_HASH, // non-matching so files are detected as changed
     lastIR: {
       techStack: '',
       constraints: '',
@@ -328,8 +334,8 @@ describe('Phase 133: AGR-03 DESIGN.md Write-Back Integration', () => {
     const designMdContent = fs.readFileSync(path.join(baseDir, 'DESIGN.md'), 'utf-8');
 
     // The re-emitted DESIGN.md should contain a color line for Primary
-    // (it may not be exactly #FF0000 due to OKLCH round-trip, but it must have a hex color entry)
-    const hasColorLine = /- \*\*Primary\*\* \(#[a-fA-F0-9]{3,6}\) -- Primary color role/.test(designMdContent);
+    // (case-insensitive check since emitDesignMd may lowercase role text from manifest)
+    const hasColorLine = /- \*\*Primary\*\* \(#[a-fA-F0-9]{3,6}\) -- /i.test(designMdContent);
     assert.ok(hasColorLine, 'Re-emitted DESIGN.md should contain Primary color line with hex: ' + designMdContent.slice(0, 500));
 
     // Also confirm it has PDE-GENERATED header (re-emitted by emitAll)
