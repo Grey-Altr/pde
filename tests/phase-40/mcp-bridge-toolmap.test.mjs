@@ -12,6 +12,8 @@
  * TOOL_MAP total is now 36 (8 GitHub + 7 Linear + 7 Atlassian + 7 Figma + 7 Pencil).
  * NOTE (Phase 108 update): Playwright entries added. TOOL_MAP total is now 56
  * (8 GitHub + 7 Linear + 7 Atlassian + 7 Figma + 7 Pencil + 10 Stitch + 10 Playwright).
+ * NOTE (Phase 109 update): playwright:resize added. TOOL_MAP total is now 57
+ * (8 GitHub + 7 Linear + 7 Atlassian + 7 Figma + 7 Pencil + 10 Stitch + 11 Playwright).
  */
 
 import { describe, it } from 'node:test';
@@ -25,9 +27,9 @@ const req = createRequire(import.meta.url);
 const bridge = req(path.resolve(__dirname, '../../bin/lib/mcp-bridge.cjs'));
 
 describe('TOOL_MAP has 8 GitHub entries (Gap 1 — INFRA)', () => {
-  it('TOOL_MAP contains exactly 56 total entries (8 GitHub + 7 Linear + 7 Atlassian + 7 Figma + 7 Pencil + 10 Stitch + 10 Playwright)', () => {
+  it('TOOL_MAP contains exactly 57 total entries (8 GitHub + 7 Linear + 7 Atlassian + 7 Figma + 7 Pencil + 10 Stitch + 11 Playwright)', () => {
     const keys = Object.keys(bridge.TOOL_MAP);
-    assert.equal(keys.length, 56, `Expected 56 TOOL_MAP entries after Phase 108, got ${keys.length}: ${keys.join(', ')}`);
+    assert.equal(keys.length, 57, `Expected 57 TOOL_MAP entries after Phase 108, got ${keys.length}: ${keys.join(', ')}`);
   });
 
   it('TOOL_MAP contains exactly 8 GitHub canonical entries', () => {
