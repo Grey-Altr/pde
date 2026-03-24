@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A full professional product design and development platform delivered as a Claude Code plugin. PDE takes users from raw idea to shipped product through AI-assisted research, design, planning, coding, testing, and deployment. Includes a complete 13-stage design pipeline (recommend → competitive → opportunity → ideate → brief → system → flows → wireframe → critique → iterate → mockup → hig → handoff) orchestrable via a single `/pde:build` command. Supports multiple product types — software, hardware, hybrid, experience (events, festivals, installations), and business — with type-specific artifacts including physical design tokens, floor plan/timeline wireframes, print collateral, production bible handoff, and venture design engine (business thesis, lean canvas, brand system, landing page spec, pricing config, pitch deck, launch kit, deploy scaffolding). Features browser-based visual optimization via Playwright MCP: automatic screenshot capture for wireframes and mockups, browser AOM accessibility analysis for critique, 5 visual metric scripts (DOM structure, a11y violations, WCAG contrast, responsive compliance, Mermaid readability), and AutoResearch experiment templates for all 14 design skills with visual regression circuit breaker, multi-candidate A/B variant selection, meta-optimization strategy self-calibration, ideation visual diversity scoring, and brief reference screenshot capture. Self-improvement fleet audits, validates, and elevates output quality against Awwwards-level standards. Integrates with external development tools (GitHub, Linear, Jira, Figma, Pencil) via MCP for bidirectional sync. Advanced workflow methodology with story-file sharding, acceptance-criteria-first planning, post-execution reconciliation, readiness gating, and persistent agent memory. Real-time observability via structured event infrastructure with NDJSON event bus, persistent 7-pane tmux monitoring dashboard, and idle-time suggestion display — zero npm dependencies.
+A full professional product design and development platform delivered as a Claude Code plugin. PDE takes users from raw idea to shipped product through AI-assisted research, design, planning, coding, testing, and deployment. Includes a complete 13-stage design pipeline (recommend → competitive → opportunity → ideate → brief → system → flows → wireframe → critique → iterate → mockup → hig → handoff) orchestrable via a single `/pde:build` command. Supports multiple product types — software, hardware, hybrid, experience (events, festivals, installations), and business — with type-specific artifacts including physical design tokens, floor plan/timeline wireframes, print collateral, production bible handoff, and venture design engine (business thesis, lean canvas, brand system, landing page spec, pricing config, pitch deck, launch kit, deploy scaffolding). Features browser-based visual optimization via Playwright MCP: automatic screenshot capture for wireframes and mockups, browser AOM accessibility analysis for critique, 5 visual metric scripts (DOM structure, a11y violations, WCAG contrast, responsive compliance, Mermaid readability), and AutoResearch experiment templates for all 14 design skills with visual regression circuit breaker, multi-candidate A/B variant selection, meta-optimization strategy self-calibration, ideation visual diversity scoring, and brief reference screenshot capture. Self-improvement fleet audits, validates, and elevates output quality against Awwwards-level standards. Integrates with external development tools (GitHub, Linear, Jira, Figma, Pencil) via MCP for bidirectional sync. Advanced workflow methodology with story-file sharding, acceptance-criteria-first planning, post-execution reconciliation, readiness gating, and persistent agent memory. Real-time observability via structured event infrastructure with NDJSON event bus, persistent 7-pane tmux monitoring dashboard, and idle-time suggestion display. Multi-editor integration: generates context files for Cursor (.mdc rules), Gemini CLI (GEMINI.md), Google Antigravity (SKILL.md + Design DNA), and AGENTS.md; standalone MCP server with 10 read-only tools for programmatic state queries; hook-driven auto-sync on .planning/ changes; 3-tier handoff-vs-code divergence detection; DTCG-to-Tailwind v4 artifact formatting with framework-detected component stubs — zero npm dependencies.
 
 ## Core Value
 
@@ -140,20 +140,15 @@ Any user can go from idea to shipped product through a single platform that hand
 - ✓ Ideation visual diversity scoring via screenshot hash variance — v0.14
 - ✓ Brief reference screenshot capture from user-provided URLs — v0.14
 - ✓ 441+ Nyquist tests across all 10 v0.14 phases, zero v0.13 regressions — v0.14
+- ✓ Context sync engine generating AGENTS.md, .cursor/rules/*.mdc, .cursorrules, GEMINI.md, Antigravity SKILL.md, DESIGN.md from .planning/ state — v0.15
+- ✓ Standalone MCP server (packages/pde-mcp-server/) with 10 read-only tools, pipeline resource, npx distribution — v0.15
+- ✓ Artifact formatting: @file annotations in handoff specs, DTCG-to-Tailwind v4 @theme conversion, framework-detected component stubs — v0.15
+- ✓ Antigravity Design DNA emitter (DESIGN.md from DTCG tokens), Stitch bridge source detection, bidirectional artifact flow — v0.15
+- ✓ 3-tier divergence detection (structural/content/behavioral) with DIVERGENCE.md output and .pde-divergence-ignore suppression — v0.15
+- ✓ Hook-driven auto-regeneration of editor files on .planning/ changes, /pde:editor-sync manual command — v0.15
+- ✓ 575 Nyquist tests across all v0.15 phases, zero v0.14 regressions — v0.15
 
 ### Active
-
-## Current Milestone: v0.15 Multi-Editor Integration
-
-**Goal:** Make PDE consumable from Cursor, Google Antigravity, and Gemini CLI — exposing workflows via standalone MCP server, generating editor-specific context files, and building a Stitch-mediated design bridge for Antigravity.
-
-**Target features:**
-- Standalone MCP server (`npx pde-mcp-server`) exposing PDE workflows as MCP tools
-- Context sync engine generating `.cursorrules`, Antigravity agent config, and `GEMINI.md`
-- Shared artifact formatting optimized for editor consumption
-- Stitch design bridge — bidirectional artifact flow between PDE and Antigravity's native Stitch canvas
-- Bidirectional divergence detection — handoff specs vs actual code drift detection
-- Hybrid architecture — shared core library + editor-specific layers
 
 ### Out of Scope
 

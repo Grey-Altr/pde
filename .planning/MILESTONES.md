@@ -1,5 +1,14 @@
 # Milestones
 
+## v0.15 Multi-Editor Integration (Shipped: 2026-03-24)
+
+**Phases completed:** 7 phases, 14 plans, 6 tasks
+
+**Key accomplishments:**
+- (none recorded)
+
+---
+
 ## v0.14 Visual AutoResearch (Shipped: 2026-03-24)
 
 **Phases completed:** 10 phases, 21 plans, 15 tasks
