@@ -509,6 +509,48 @@ Google Stitch AI UI design tool fully integrated into PDE's 13-stage design pipe
 
 ---
 
+## Milestone: v0.15 — Multi-Editor Integration
+
+**Shipped:** 2026-03-24
+**Phases:** 8 | **Plans:** 16
+
+### What Was Built
+- Context sync engine generating AGENTS.md, .cursor/rules/*.mdc, .cursorrules, GEMINI.md, Antigravity SKILL.md, Design DNA DESIGN.md from .planning/ state with SHA-256 freshness markers
+- Standalone MCP server (packages/pde-mcp-server/) with 10 read-only tools and pipeline-status resource, distributable via npx
+- Artifact formatting: @file annotations in handoff specs, DTCG-to-Tailwind v4 @theme conversion, framework-detected component stubs
+- Antigravity Design DNA emitter, Stitch bridge source detection (isStitchSource), bidirectional artifact flow
+- 3-tier divergence detection (structural/content/behavioral) with DIVERGENCE.md output and .pde-divergence-ignore suppression
+- Hook-driven auto-regeneration on .planning/ changes + /pde:editor-sync manual command
+- Full Nyquist traceability cleanup: 7 VALIDATION.md promotions, 14 SUMMARY.md backfills, isStitchSource production consumer wiring
+
+### What Worked
+- **Dedicated cleanup phase (125)** — creating a gap closure phase specifically for Nyquist traceability and metadata was the right call; it closed all 8 audit items cleanly
+- **Research-then-plan-then-execute** — phase 125's research was thorough and saved execution time (no new test code needed — describe blocks already existed)
+- **Parallel plan execution** — plans 125-01 and 125-02 ran in parallel worktrees with clean merge, halving wall-clock time
+- **Zero npm deps at plugin root** — MCP server isolated in packages/ subdirectory; all plugin-root code remains dependency-free
+
+### What Was Inefficient
+- **Worktree merge conflicts** — parallel executor agents writing to overlapping files (STATE.md, VALIDATION.md) required manual conflict resolution
+- **VERIFICATION.md gap accumulation** — phases 122 and 124 had metadata gaps that persisted until phase 125; earlier gap detection would have been better
+- **Test filename inconsistency** — 123-VALIDATION.md referenced a non-existent test file name; caught during promotion but should have been caught at creation
+
+### Patterns Established
+- **YAML key convention:** `requirements-completed` (hyphen) is the canonical SUMMARY.md field name, matching existing populated files
+- **VALIDATION.md promotion pattern:** 4 frontmatter fields + sign-off checkboxes + per-task map + approval — modeled on Phase 94 reference
+- **Workflow CJS loading pattern:** `createRequire` for loading bin/lib/*.cjs from workflow markdown files
+
+### Key Lessons
+- Metadata cleanup phases should run immediately after initial execution, not deferred to milestone end
+- Parallel worktree execution needs conflict-free file partitioning — STATE.md updates should be orchestrator-only
+- Nyquist VALIDATION.md creation should validate test file names against actual filesystem at creation time
+
+### Cost Observations
+- Model mix: ~30% opus (planning), ~70% sonnet (execution, verification, integration check)
+- Sessions: 1 session for phase 125 (plan + execute + validate + audit)
+- Notable: 8 phases, 25 requirements — cleanest milestone execution with zero gap closure phases needed (phase 125 WAS the gap closure)
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -526,6 +568,10 @@ Google Stitch AI UI design tool fully integrated into PDE's 13-stage design pipe
 | v0.9 | 76 | 6 | Google Stitch — AI UI generation across 5 pipeline skills, quota tracking, consent gates |
 | v0.10 | 56 | 4 | Idle-time productivity — suggestion engine, catalog, context notes, 7-pane dashboard |
 | v0.11 | 116 | 10 | Experience product type — detection, tokens, flows, wireframes, critique, HIG, print, handoff |
+| v0.12 | ~141 | 15 | Business product type — venture design engine, launch kit, deploy skill |
+| v0.13 | ~80 | 9 | AutoResearch — safety boundaries, experiment schema, mutation agent, circuit breakers |
+| v0.14 | ~100 | 10 | Visual AutoResearch — Playwright MCP, screenshot capture, visual metrics, meta-optimization |
+| v0.15 | ~40 | 8 | Multi-Editor Integration — context sync, MCP server, divergence detection, artifact formatting |
 
 ### Cumulative Quality
 
@@ -542,3 +588,7 @@ Google Stitch AI UI design tool fully integrated into PDE's 13-stage design pipe
 | v0.9 | 30/30 | 100% | 0 | 215 |
 | v0.10 | 23/23 | 100% | 0 | 39 (4 suites) |
 | v0.11 | 48/48 | 100% | 1 (phase 83, audit-driven) | 162 (10 suites) |
+| v0.12 | 59/59 | 100% | 0 | 235 |
+| v0.13 | 36/36 | 100% | 0 | — |
+| v0.14 | 78/78 | 100% | 0 | 441+ |
+| v0.15 | 25/25 | 100% | 1 (phase 125, gap closure) | 162 (8 suites) |
