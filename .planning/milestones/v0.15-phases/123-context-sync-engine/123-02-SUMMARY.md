@@ -27,6 +27,7 @@ metrics:
   tasks_total: 2
   files_created: 3
   files_modified: 0
+requirements-completed: [CTX-07]
 ---
 
 # Phase 123 Plan 02: Editor-Sync Command Summary

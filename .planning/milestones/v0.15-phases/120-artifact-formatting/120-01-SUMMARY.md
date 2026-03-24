@@ -24,6 +24,7 @@ metrics:
   completed_date: "2026-03-24"
   tasks_completed: 3
   files_changed: 2
+requirements-completed: [FMT-01, FMT-02, FMT-03]
 ---
 
 # Phase 120 Plan 01: Artifact Format Module Summary
