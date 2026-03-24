@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v0.15
 milestone_name: Multi-Editor Integration
-status: Defining requirements
+status: Ready to plan
 stopped_at: null
 last_updated: "2026-03-23"
 progress:
-  total_phases: 0
+  total_phases: 7
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -16,103 +16,44 @@ progress:
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-03-23)
+See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Defining requirements for v0.15
+**Current focus:** Phase 118 — Context Sync Core (v0.15 Multi-Editor Integration)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-03-23 — Milestone v0.15 started
+Phase: 118 — 1 of 7 in v0.15 (Context Sync Core)
+Plan: 0 of TBD in current phase
+Status: Ready to plan
+Last activity: 2026-03-23 — v0.15 roadmap created, v0.14 milestone shipped
+
+Progress: [░░░░░░░░░░] 0% (v0.15)
 
 ## Performance Metrics
 
 **Prior milestone reference:**
 
+- v0.14: 10 phases, 21 plans (~6 hours)
 - v0.13: 9 phases, 15 plans, ~3 hours
 - v0.12: 15 phases, 24 plans, 141 commits, 235/235 Nyquist GREEN
-- v0.11: 10 phases, 19 plans, 116 commits (~15 hours)
 
-**By Phase:**
-
-| Phase | Plans | Total | Avg/Plan |
-|-------|-------|-------|----------|
-| 108 | 2 | ~25 min | ~12 min |
-| Phase 109-wireframe-mockup-screenshots P01 | 112 | 2 tasks | 4 files |
-| Phase 109-wireframe-mockup-screenshots P02 | 5 | 1 tasks | 1 files |
-| Phase 110-critique-a11y-deploy-smoke-test P01 | 3 | 2 tasks | 2 files |
-| Phase 110 P02 | 2 | 2 tasks | 2 files |
-| Phase 111 P02 | 175 | 2 tasks | 4 files |
-| Phase 111 P01 | 277 | 2 tasks | 10 files |
-| Phase 112 P01 | 133 | 2 tasks | 9 files |
-| Phase 112 P02 | 5 | 2 tasks | 14 files |
-| Phase 113-01 P01 | 139 | 3 tasks | 4 files |
-| Phase 113 P02 | 150 | 2 tasks | 4 files |
-| Phase 114 P01 | 272 | 2 tasks | 5 files |
-| Phase 114-visual-regression-circuit-breaker P02 | 6 | 2 tasks | 2 files |
-| Phase 115 P01 | 3 min | 1 tasks | 4 files |
-| Phase 115-multi-candidate-experiments P02 | 5 | 1 tasks | 2 files |
-| Phase 116 P01 | 4 | 2 tasks | 5 files |
-| Phase 116 P02 | 372 | 2 tasks | 5 files |
-| Phase 117-integration-nyquist P02 | 5 | 1 tasks | 4 files |
-| Phase 117 P01 | 73 | 1 tasks | 1 files |
+*Updated after each plan completion*
 
 ## Accumulated Context
-
-| Phase 108 P01 | 15 | 2 tasks | 6 files |
 
 ### Decisions
 
 Decisions are logged in PROJECT.md Key Decisions table.
 
-Recent decisions affecting v0.14 planning:
+Recent decisions affecting v0.15 planning:
 
-- Playwright MCP via stdio transport (npx @playwright/mcp@latest --headless) — identical to Stitch pattern, zero npm deps
-- TOOL_MAP entries marked VERIFY_REQUIRED — live verification in Phase 108 before workflow integration
-- file:// URL access requires --allow-unrestricted-file-access flag — critical for wireframe screenshot capture
-- Visual metrics follow _evalMetric contract (exit 0, stdout = numeric score) — consistent with v0.13 metric infrastructure
-- Phase 116 bundles 4 independent browser enhancements (pressure test, meta-optimization, ideation visual, brief reference) — each is small, all share Playwright dependency
-- browser_snapshot chosen as probe tool (not browser_navigate) — browser_snapshot requires no URL arg, avoids "missing required parameter" error
-- MCP-08 live verification gate deferred pending user Playwright MCP install — TOOL_MAP_VERIFY_REQUIRED markers preserved
-- [Phase 109-wireframe-mockup-screenshots]: Updated Phase 108 tests (10→11 playwright entries) when adding playwright:resize to preserve test correctness
-- [Phase 109-wireframe-mockup-screenshots]: MOK-01/MOK-02 tests intentionally RED at plan 01 end — Plan 02 expands mockup.md Step 7f
-- [Phase 109-02]: Use ux/mockups/screenshots/ not visual/mockups/screenshots/ — co-located with source HTML, consistent with wireframe pattern; requirements path appears to be a typo
-- [Phase 109-02]: Single 1280x800 viewport replaces old multi-breakpoint stub in mockup Step 7f — matches WFR-05 consistency; multi-breakpoint deferred to Phase 111 VIS-04
-- [Phase 110-critique-a11y-deploy-smoke-test]: AOM probe added as Step 3b — sets PLAYWRIGHT_A11Y_AVAILABLE flag for 4-way Perspective 3 merge logic (Playwright+Axe, Playwright-only, Axe-only, neither)
-- [Phase 110-critique-a11y-deploy-smoke-test]: critique.md Perspective 3 preserves existing HIG --light delegation as the AXE_AVAILABLE branch — no behavior change when Playwright unavailable
-- [Phase 110]: Smoke test is informational-only — deploy failure does NOT halt workflow
-- [Phase 110]: BACKOFF_DELAYS=[10,20,40]s with 3-attempt cap prevents blocking slow Vercel builds
-- [Phase 111]: mermaid-metric polls __MERMAID_RENDERED__ 5 times at 500ms — matches research pattern, prevents false-negative on slow CDN loads
-- [Phase 111]: responsive-metric uses Promise.resolve().then() entry for async/await in CJS format
-- [Phase 111]: a11y-metric.cjs uses playwright:snapshot AOM tree not browser_evaluate — reflects what assistive technology sees (VIS-02)
-- [Phase 111]: contrast-metric.cjs score = pass count (elements passing AA) not a ratio — direction is max, compatible with experiment-runner DISCARD logic
-- [Phase 112]: All 9 experiment templates use direction: max — consistent with Phase 111 metric conventions (higher-is-better scores across all visual metrics)
-- [Phase 112]: critique.md uses nyquist-metric.cjs not a11y direction:min — nyquist tests directly validate critique structure/quality as a safer proxy
-- [Phase 112]: brief.md uses dom-metric.cjs on fixture as Phase 112 proxy — full brief-to-wireframe pipeline measurement deferred to Phase 113
-- [Phase 112]: All 13 design skill experiment templates use direction: max — consistent metric direction enables KEEP/DISCARD logic in experiment runner without direction-specific handling
-- [Phase 112]: critique.md uses nyquist-metric.cjs not a11y fixture — Nyquist pass count is safer proxy for text critique quality than a11y score on a reference HTML fixture
-- [Phase 113]: pipeline-brief-wireframe-metric.cjs uses fixture mode in Phase 113 — Stage 1 is passthrough; future phases replace with live pde-tools.cjs invocations
-- [Phase 113]: PIPE-03 upstream isolation: compare metric_delta across brief.md vs system.md pipeline templates using same verify command for apples-to-apples attribution
-- [Phase 113]: iterate-effectiveness-metric uses dom-metric.cjs via spawnSync in fixture mode — avoids Playwright dependency for Phase 113 testing
-- [Phase 113]: ITER-04 convergence speed is post-hoc analysis from JSONL history, not a separate metric output from iterate-effectiveness-metric.cjs
-- [Phase 114]: AND gate regression detection: hash change alone is not a regression — metric must also worsen to fire circuit breaker
-- [Phase 114]: visual_regression_guard defaults to false when absent — optional field, not in REQUIRED_FIELDS (backward compatible)
-- [Phase 114]: captureAndStoreBaseline fully non-fatal — returns null on any error, never throws (graceful Playwright degradation)
-- [Phase 114-visual-regression-circuit-breaker]: Playwright availability probe uses pde-tools mcp-probe subcommand in optimize.md — avoids require() in workflow prose which fails workflow sandbox validator
-- [Phase 114-visual-regression-circuit-breaker]: BREAK-05 capture saves to current-screenshot.png (not baseline) — baseline only advances on KEEP, preserving AND-gate regression detection semantics
-- [Phase 115]: screenshot_hash and baseline_hash included in base 11 JSONL fields — worktree predates Phase 114, both phases' schema extensions applied atomically
-- [Phase 115-02]: Circuit breakers apply per-iteration after selection (not per-candidate) — partial batch success is not a failure
-- [Phase 115-02]: DISCARD resets to iterationBaselineSha; all-crash also resets — prevents stale candidate commits on branch
-- [Phase 116]: Replace inline node -e require() with direct script invocation — workflow validator rejects require() in workflow prose bash blocks
-- [Phase 116]: Visual Quality PASS threshold = VISUAL_AVG >= 50; informational only, does not affect Overall pass/fail per PRES-04 graceful degradation
-- [Phase 116]: require.main === module guard required for CJS scripts that export functions AND run as CLI tools — prevents process.exit(0) from terminating test process when module required
-- [Phase 116]: PLAYWRIGHT_AVAILABLE probe in brief.md gated on REFERENCE_URL not empty — avoids unnecessary probe overhead for non-reference-capture runs
-- [Phase 117-integration-nyquist]: TOOL_MAP count assertions updated from 56 to 57 across phases 40-43 test files to reflect playwright:resize added in Phase 109
-- [Phase 117]: INTG-01 meta-test uses file-count assertion as structural proxy for complete v0.14 coverage
-- [Phase 117]: PLAY-04 tested via TOOL_MAP value-prefix structural check — no live Playwright MCP required
+- Context files use editor-agnostic IR builder pattern -- shared state reading, editor-specific emitters
+- MCP server isolated in subdirectory to preserve zero-npm-dependency constraint at plugin root
+- Read-only MCP contract enforced from design phase -- no write tools to avoid second write path
+- AGENTS.md generated only if not user-authored (check for PDE-GENERATED marker)
+- Divergence detection starts heuristic (regex/glob) not AST -- T3 behavioral via grep
+- Stitch bridge reuses mcp-bridge.cjs probe/degrade contracts from v0.9
 
 ### Pending Todos
 
@@ -120,14 +61,11 @@ Recent decisions affecting v0.14 planning:
 
 ### Blockers/Concerns
 
-- Tool name prefix (mcp__playwright__*) assumed but not confirmed — must live-verify in Phase 108
-- file:// URL support in Playwright MCP uncertain — fallback: npx serve with random port
-- Headless Chrome in worktree subagents untested — potential resource contention during autonomous execution
+- Antigravity DESIGN.md format reconstructed from community guides, not official spec -- validate during Phase 119 execution
+- MCP SDK v2 anticipated but v1.x used -- if v2 ships during v0.15, defer migration to v0.16
 
 ## Session Continuity
 
-Last session: 2026-03-24T01:39:48.364Z
-Stopped at: Completed 117-01-PLAN.md
+Last session: 2026-03-23
+Stopped at: v0.15 roadmap created, ready to plan Phase 118
 Resume file: None
-
-Next action: /pde:plan-phase 109 (Wireframe Screenshot Capture)

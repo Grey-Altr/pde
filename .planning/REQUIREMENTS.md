@@ -80,37 +80,37 @@ Requirements for v0.15 Multi-Editor Integration. Each maps to roadmap phases.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CTX-01 | — | Pending |
-| CTX-02 | — | Pending |
-| CTX-03 | — | Pending |
-| CTX-04 | — | Pending |
-| CTX-05 | — | Pending |
-| CTX-06 | — | Pending |
-| CTX-07 | — | Pending |
-| CTX-08 | — | Pending |
-| MCP-01 | — | Pending |
-| MCP-02 | — | Pending |
-| MCP-03 | — | Pending |
-| MCP-04 | — | Pending |
-| MCP-05 | — | Pending |
-| STH-01 | — | Pending |
-| STH-02 | — | Pending |
-| STH-03 | — | Pending |
-| FMT-01 | — | Pending |
-| FMT-02 | — | Pending |
-| FMT-03 | — | Pending |
-| DIV-01 | — | Pending |
-| DIV-02 | — | Pending |
-| DIV-03 | — | Pending |
-| DIV-04 | — | Pending |
-| DIV-05 | — | Pending |
-| DIV-06 | — | Pending |
+| CTX-01 | Phase 118 | Pending |
+| CTX-02 | Phase 118 | Pending |
+| CTX-03 | Phase 118 | Pending |
+| CTX-04 | Phase 118 | Pending |
+| CTX-05 | Phase 119 | Pending |
+| CTX-06 | Phase 123 | Pending |
+| CTX-07 | Phase 123 | Pending |
+| CTX-08 | Phase 118 | Pending |
+| MCP-01 | Phase 121 | Pending |
+| MCP-02 | Phase 121 | Pending |
+| MCP-03 | Phase 121 | Pending |
+| MCP-04 | Phase 121 | Pending |
+| MCP-05 | Phase 121 | Pending |
+| STH-01 | Phase 119 | Pending |
+| STH-02 | Phase 119 | Pending |
+| STH-03 | Phase 119 | Pending |
+| FMT-01 | Phase 120 | Pending |
+| FMT-02 | Phase 120 | Pending |
+| FMT-03 | Phase 120 | Pending |
+| DIV-01 | Phase 122 | Pending |
+| DIV-02 | Phase 122 | Pending |
+| DIV-03 | Phase 122 | Pending |
+| DIV-04 | Phase 122 | Pending |
+| DIV-05 | Phase 122 | Pending |
+| DIV-06 | Phase 122 | Pending |
 
 **Coverage:**
 - v0.15 requirements: 25 total
-- Mapped to phases: 0
-- Unmapped: 25
+- Mapped to phases: 25
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-23*
-*Last updated: 2026-03-23 after initial definition*
+*Last updated: 2026-03-23 after roadmap creation*
