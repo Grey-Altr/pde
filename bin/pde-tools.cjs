@@ -924,8 +924,15 @@ async function main() {
       } else if (subcommand === 'diff-summary') {
         const report = require('./lib/experiment-report.cjs');
         report._cmdDiffSummary(cwd, slug, raw);
+      } else if (subcommand === 'reset-to-sha') {
+        const runner = require('./lib/experiment-runner.cjs');
+        const shaIdx = args.indexOf('--sha');
+        const targetSha = shaIdx !== -1 ? args[shaIdx + 1] : null;
+        if (!targetSha) error('--sha SHA required for experiment reset-to-sha');
+        const result = runner._resetToSha(cwd, slug, targetSha);
+        output(result, raw);
       } else {
-        error('Unknown experiment subcommand. Available: init, commit, reset, promote, status, cleanup, ensure-dirs, patch-config, check-boundaries, eval-metric, write-row, generate-report, diff-summary');
+        error('Unknown experiment subcommand. Available: init, commit, reset, promote, status, cleanup, ensure-dirs, patch-config, check-boundaries, eval-metric, write-row, generate-report, diff-summary, reset-to-sha');
       }
       break;
     }

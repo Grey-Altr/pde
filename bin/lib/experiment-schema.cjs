@@ -30,6 +30,10 @@ const JSONL_ROW_FIELDS = Object.freeze([
   'tokens_used',
   'screenshot_hash',
   'baseline_hash',
+  // Multi-candidate extensions (Phase 115)
+  'candidates_evaluated',
+  'candidates_scores',
+  'best_candidate_index',
 ]);
 
 // ─── Schema parsing ───────────────────────────────────────────────────────────
@@ -105,6 +109,7 @@ function parseExperimentFile(filePath) {
       enabled: fm.visual_regression_guard === 'true' || fm.visual_regression_guard === true,
       target: fm.visual_regression_target || null,
     },
+    candidates: fm.candidates !== undefined ? parseInt(fm.candidates, 10) : 3,
   };
 }
 

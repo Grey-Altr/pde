@@ -186,6 +186,27 @@ function _extractDiff(cwd, baseline, files) {
   return result.stdout;
 }
 
+// ─── SHA-targeted reset (Phase 115 multi-candidate) ───────────────────────────
+
+/**
+ * _resetToSha(cwd, slug, sha)
+ *
+ * Reset experiment branch to a specific SHA. Guards:
+ *   1. Must be on experiment/{slug} branch
+ *   2. SHA must be a valid commit reference
+ *
+ * Returns { reset: true } or { reset: false, reason: string }
+ */
+function _resetToSha(cwd, slug, sha) {
+  const branchResult = execGit(cwd, ['rev-parse', '--abbrev-ref', 'HEAD']);
+  if (branchResult.exitCode !== 0) return { reset: false, reason: 'git_error' };
+  if (branchResult.stdout !== `experiment/${slug}`) return { reset: false, reason: 'wrong_branch' };
+
+  const resetResult = execGit(cwd, ['reset', '--hard', sha]);
+  if (resetResult.exitCode !== 0) return { reset: false, reason: 'reset_failed', detail: resetResult.stderr };
+  return { reset: true };
+}
+
 // ─── Exports ──────────────────────────────────────────────────────────────────
 
 module.exports = {
@@ -194,4 +215,5 @@ module.exports = {
   _compareMetric,
   _writeJsonlRow,
   _extractDiff,
+  _resetToSha,
 };
