@@ -22,7 +22,7 @@ Requirements for v0.15 Multi-Editor Integration. Each maps to roadmap phases.
 
 - [x] **MCP-01**: Standalone MCP server package in isolated subdirectory with @modelcontextprotocol/sdk, TypeScript, stdio transport
 - [x] **MCP-02**: Server exposes 10 read-only tools: get-project, get-design-state, get-manifest, get-tokens, get-handoff, get-artifact, get-roadmap, get-requirements, get-pipeline-status, list-artifacts
-- [ ] **MCP-03**: Server distributable via npx pde-mcp-server with automatic .planning/ directory discovery
+- [x] **MCP-03**: Server distributable via npx pde-mcp-server with automatic .planning/ directory discovery
 - [x] **MCP-04**: Pipeline status exposed as MCP resource (passive context) for editor consumption
 - [x] **MCP-05**: Design tokens served as Tailwind v4 @theme format via get-tokens tool with DTCG-to-Tailwind conversion
 
@@ -90,7 +90,7 @@ Requirements for v0.15 Multi-Editor Integration. Each maps to roadmap phases.
 | CTX-08 | Phase 118 | Complete |
 | MCP-01 | Phase 121 | Complete |
 | MCP-02 | Phase 121 | Complete |
-| MCP-03 | Phase 121 | Pending |
+| MCP-03 | Phase 121 | Complete |
 | MCP-04 | Phase 121 | Complete |
 | MCP-05 | Phase 121 | Complete |
 | STH-01 | Phase 119 | Complete |

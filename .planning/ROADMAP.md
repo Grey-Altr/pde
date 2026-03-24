@@ -253,7 +253,7 @@ Plans:
   4. MCP server responds correctly to all 10 tool invocations when tested via MCP Inspector or equivalent
 **Plans**: 2 plans
 Plans:
-- [ ] 124-01-PLAN.md — Nyquist integration test file (MCP-03 gap fill + INTG-01 meta-test)
+- [x] 124-01-PLAN.md — Nyquist integration test file (MCP-03 gap fill + INTG-01 meta-test)
 - [ ] 124-02-PLAN.md — Cross-milestone regression sweep and count-assertion fixes
 
 ## Progress

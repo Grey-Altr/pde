@@ -1,15 +1,15 @@
 ---
-pde_state_version: 1.0
+gsd_state_version: 1.0
 milestone: v0.15
 milestone_name: Multi-Editor Integration
 status: unknown
-stopped_at: Completed 123-02-PLAN.md
-last_updated: "2026-03-24T05:50:52.134Z"
+stopped_at: Completed 124-01-PLAN.md
+last_updated: "2026-03-24T06:03:31.596Z"
 progress:
   total_phases: 7
   completed_phases: 6
-  total_plans: 12
-  completed_plans: 12
+  total_plans: 14
+  completed_plans: 13
 ---
 
 # Project State
@@ -67,6 +67,8 @@ Recent decisions affecting v0.15 planning:
 - [Phase 123]: [Phase 123]: context-sync-hook uses opts dependency injection for unit testability without touching real filesystem emitters
 - [Phase 123]: [Phase 123]: matcher Write|Edit (no Bash) — Bash tool_input lacks file_path, prevents wasted hook invocations
 - [Phase 123]: [Phase 123]: marker stored in os.tmpdir() with session-scoped filename for per-session idempotency
+- [Phase 124]: MCP-03 structural gate via dist/index.js existence + shebang + bin field assertion (not live npx invocation)
+- [Phase 124]: INTG-01 meta-test enumerates all 8 v0.15 test files to register structural coverage proof
 
 ### Pending Todos
 
@@ -79,6 +81,6 @@ Recent decisions affecting v0.15 planning:
 
 ## Session Continuity
 
-Last session: 2026-03-24T05:48:06.188Z
-Stopped at: Completed 123-02-PLAN.md
+Last session: 2026-03-24T06:03:31.593Z
+Stopped at: Completed 124-01-PLAN.md
 Resume file: None
