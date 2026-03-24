@@ -2,16 +2,16 @@
 
 ## SYN — Sync Foundation
 
-- [ ] **SYN-01**: Context sync state file (.planning/.context-sync-state.json) records last IR snapshot, emission timestamp, and source hash — written atomically by emitAll(), excluded from computeSourceHash(), git-ignored
-- [ ] **SYN-02**: Loop-break via PDE-GENERATED hash comparison — when editor file change detected, compare embedded hash against current source hash; if match, skip reverse sync (PDE wrote it); if differ, proceed to parse
-- [ ] **SYN-03**: IR snapshot stored in state file as 3-way merge base — captures writable IR fields (techStack, constraints, componentCatalog, designTokens) post-emission for conflict detection
+- [x] **SYN-01**: Context sync state file (.planning/.context-sync-state.json) records last IR snapshot, emission timestamp, and source hash — written atomically by emitAll(), excluded from computeSourceHash(), git-ignored
+- [x] **SYN-02**: Loop-break via PDE-GENERATED hash comparison — when editor file change detected, compare embedded hash against current source hash; if match, skip reverse sync (PDE wrote it); if differ, proceed to parse
+- [x] **SYN-03**: IR snapshot stored in state file as 3-way merge base — captures writable IR fields (techStack, constraints, componentCatalog, designTokens) post-emission for conflict detection
 - [ ] **SYN-04**: Session-start reconciliation sweep — on SessionStart hook, scan monitored editor files for mtime newer than lastEmittedAt; queue changed files for reverse parse; log to sync-reconciliation.log; complete in <500ms
 - [ ] **SYN-05**: `pde context-sync --ingest` CLI command — full scan of all monitored editor files, parse if changed, merge, write-back to .planning/; summary output with file/change/conflict counts; idempotent
 
 ## CUR — Cursor Bidirectional Sync
 
-- [ ] **CUR-01**: .mdc reverse parser — extract YAML frontmatter (description, globs, alwaysApply) from .cursor/rules/pde-*.mdc files using regex; skip files without PDE-GENERATED marker; strip inline comments; log parse errors without throwing
-- [ ] **CUR-02**: .mdc PDE-owned section extraction — content between `<!-- PDE:BEGIN -->` / `<!-- PDE:END -->` markers is PDE-parseable; content outside is user-authored (preserved, never written back); maps pde-project.mdc Conventions to constraints IR, pde-architecture.mdc Tech Stack to techStack IR
+- [x] **CUR-01**: .mdc reverse parser — extract YAML frontmatter (description, globs, alwaysApply) from .cursor/rules/pde-*.mdc files using regex; skip files without PDE-GENERATED marker; strip inline comments; log parse errors without throwing
+- [x] **CUR-02**: .mdc PDE-owned section extraction — content between `<!-- PDE:BEGIN -->` / `<!-- PDE:END -->` markers is PDE-parseable; content outside is user-authored (preserved, never written back); maps pde-project.mdc Conventions to constraints IR, pde-architecture.mdc Tech Stack to techStack IR
 - [ ] **CUR-03**: Live mtime change detection — hook-triggered scan of .mdc files during .planning/ writes; compare mtime against lastEmittedAt + 500ms grace; debounce 200ms; queue in state file pendingIngest; zero stdout; <10ms overhead
 - [ ] **CUR-04**: Conflict detection — 3-way merge using lastIR as base: if both PDE and editor changed same field to different values, log conflict to .sync-conflicts.log (NDJSON) with both values; auto-resolve when only one side changed
 - [ ] **CUR-05**: Conflict resolution — planning-wins default policy; configurable per-field in config.json contextSync.fieldPolicies; editor-wins overwrites .planning/ value; prompt policy defers resolution and blocks emitAll(); policy read at ingest start
@@ -19,8 +19,8 @@
 
 ## AGR — Antigravity Bidirectional Sync
 
-- [ ] **AGR-01**: SKILL.md reverse parser — section-aware extraction from .agent/skills/pde-design/SKILL.md; parse Design Tokens, Component Catalog, Constraints sections to partial IR; capture unknown sections as agentAdditions; skip files without PDE-GENERATED marker; handle marker-before-frontmatter ordering
-- [ ] **AGR-02**: DESIGN.md reverse parser — extract hex color values from Color Palette section using pattern `- **Name** (#hex) -- role`; format version detection via `<!-- pde-format-version: 1.0 -->`; capture unknown sections as agentAdditions; lenient fallback for unknown versions
+- [x] **AGR-01**: SKILL.md reverse parser — section-aware extraction from .agent/skills/pde-design/SKILL.md; parse Design Tokens, Component Catalog, Constraints sections to partial IR; capture unknown sections as agentAdditions; skip files without PDE-GENERATED marker; handle marker-before-frontmatter ordering
+- [x] **AGR-02**: DESIGN.md reverse parser — extract hex color values from Color Palette section using pattern `- **Name** (#hex) -- role`; format version detection via `<!-- pde-format-version: 1.0 -->`; capture unknown sections as agentAdditions; lenient fallback for unknown versions
 - [ ] **AGR-03**: DESIGN.md write-back — value-only DTCG update in design-manifest.json; update only $value field of color tokens; preserve $type, $description, $extensions, group hierarchy; hex-to-OKLCH reverse conversion with 4-decimal precision; log precision warnings >0.001 delta; recompute hash and emitAll() after write
 - [ ] **AGR-04**: Shared token state contract — design-manifest.json is canonical source; DESIGN.md includes `<!-- SOURCE: design-manifest.json | DERIVE-ONLY -->` comment; emitDesignMd() never reads DESIGN.md as input; no code path writes manifest without merge engine
 - [ ] **AGR-05**: Agent-written SKILL.md additions preserved — emitAntigravitySkill() parses existing agentAdditions from current SKILL.md, regenerates PDE sections, appends agent block below `<!-- AGENT-ADDITIONS: DO NOT EDIT THIS LINE -->` marker
@@ -42,19 +42,19 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| SYN-01 | Phase 126 | Pending |
-| SYN-02 | Phase 126 | Pending |
-| SYN-03 | Phase 126 | Pending |
+| SYN-01 | Phase 126 | Complete |
+| SYN-02 | Phase 126 | Complete |
+| SYN-03 | Phase 126 | Complete |
 | SYN-04 | Phase 129 | Pending |
 | SYN-05 | Phase 129 | Pending |
-| CUR-01 | Phase 127 | Pending |
-| CUR-02 | Phase 127 | Pending |
+| CUR-01 | Phase 127 | Complete |
+| CUR-02 | Phase 127 | Complete |
 | CUR-03 | Phase 129 | Pending |
 | CUR-04 | Phase 128 | Pending |
 | CUR-05 | Phase 128 | Pending |
 | CUR-06 | Phase 132 | Pending |
-| AGR-01 | Phase 127 | Pending |
-| AGR-02 | Phase 127 | Pending |
+| AGR-01 | Phase 127 | Complete |
+| AGR-02 | Phase 127 | Complete |
 | AGR-03 | Phase 130 | Pending |
 | AGR-04 | Phase 128 | Pending |
 | AGR-05 | Phase 130 | Pending |
