@@ -2,11 +2,11 @@
 pde_state_version: 1.0
 milestone: v0.15
 milestone_name: Multi-Editor Integration
-status: unknown
-stopped_at: Completed 124-02-PLAN.md
-last_updated: "2026-03-24T06:17:30.155Z"
+status: in_progress
+stopped_at: Gap closure phase 125 created
+last_updated: "2026-03-23T00:00:00Z"
 progress:
-  total_phases: 7
+  total_phases: 8
   completed_phases: 7
   total_plans: 14
   completed_plans: 14
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 124 — integration-and-nyquist (complete)
+**Current focus:** Phase 125 — nyquist-traceability-metadata-cleanup (gap closure)
 
 ## Current Position
 
-Phase: 124
-Plan: 02 (complete)
+Phase: 125
+Plan: pending (needs /gsd:plan-phase 125)
 
 ## Performance Metrics
 

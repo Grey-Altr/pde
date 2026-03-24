@@ -16,7 +16,7 @@
 - ✅ **v0.12 Business Product Type** — Phases 84-98 (shipped 2026-03-23)
 - ✅ **v0.13 AutoResearch** — Phases 99-107 (shipped 2026-03-23)
 - ✅ **v0.14 Visual AutoResearch** — Phases 108-117 (shipped 2026-03-24)
-- ✅ **v0.15 Multi-Editor Integration** — Phases 118-124 (shipped 2026-03-24)
+- 🚧 **v0.15 Multi-Editor Integration** — Phases 118-125 (gap closure in progress)
 
 ## Phases
 
@@ -141,8 +141,7 @@ Full details: .planning/milestones/v0.14-ROADMAP.md
 
 </details>
 
-<details>
-<summary>✅ v0.15 Multi-Editor Integration (Phases 118-124) — SHIPPED 2026-03-24</summary>
+### v0.15 Multi-Editor Integration (Phases 118-125)
 
 - [x] **Phase 118: Context Sync Core** — IR builder + AGENTS.md + Cursor .mdc + GEMINI.md generators with hash-based freshness (completed 2026-03-24)
 - [x] **Phase 119: Antigravity Context + Stitch Bridge** — Antigravity emitter + DESIGN.md from DTCG tokens + Stitch bidirectional artifact flow + skills export (completed 2026-03-24)
@@ -151,14 +150,26 @@ Full details: .planning/milestones/v0.14-ROADMAP.md
 - [x] **Phase 122: Divergence Detection** — 3-tier handoff-vs-code drift detection with DIVERGENCE.md output and ignore mechanism (completed 2026-03-24)
 - [x] **Phase 123: Context Sync Engine** — Hook-driven auto-regeneration + /pde:editor-sync manual command (completed 2026-03-24)
 - [x] **Phase 124: Integration & Nyquist** — Cross-editor validation and structural regression tests for all v0.15 requirements (completed 2026-03-24)
+- [ ] **Phase 125: Nyquist Traceability & Metadata Cleanup** — Gap closure: DIV-05 + STH-02 Nyquist describe blocks, isStitchSource production wiring, VALIDATION.md promotion, SUMMARY frontmatter backfill
 
-Full details: .planning/milestones/v0.15-ROADMAP.md
+## Phase Details
 
-</details>
+### Phase 125: Nyquist Traceability & Metadata Cleanup
+**Goal:** Close all tech debt gaps identified by v0.15 milestone audit — Nyquist traceability, metadata consistency, and architectural cleanup
+**Depends on:** Phase 124 (v0.15 complete)
+**Requirements:** DIV-05, STH-02 (partial → satisfied)
+**Gap Closure:** Closes gaps from v0.15-MILESTONE-AUDIT.md
+**Success Criteria** (what must be TRUE):
+  1. `describe('DIV-05: /pde:check-divergence command', ...)` block exists in test file asserting commands/check-divergence.md has required frontmatter
+  2. `describe('STH-02: Antigravity Stitch detection', ...)` block exists in test file asserting isStitchSource behavior
+  3. `isStitchSource()` is called from handoff.md workflow instead of inline string comparison
+  4. All 7 v0.15 Nyquist VALIDATION.md files promoted from draft to compliant
+  5. All 14 v0.15 SUMMARY.md files have `requirements_completed` frontmatter populated
+**Plans:** 0 (pending /gsd:plan-phase 125)
 
 ## Progress
 
-**All milestones complete through v0.15.**
+**Milestones complete through v0.14. v0.15 reopened for gap closure.**
 
 | Milestone | Phases | Plans | Status | Completed |
 |-----------|--------|-------|--------|-----------|
@@ -176,4 +187,4 @@ Full details: .planning/milestones/v0.15-ROADMAP.md
 | v0.12 | 84-98 | 24/24 | Complete | 2026-03-23 |
 | v0.13 | 99-107 | 15/15 | Complete | 2026-03-23 |
 | v0.14 | 108-117 | 21/21 | Complete | 2026-03-24 |
-| v0.15 | 118-124 | 14/14 | Complete | 2026-03-24 |
+| v0.15 | 118-125 | 14/? | In progress | - |
