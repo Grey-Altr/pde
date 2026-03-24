@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.16
 milestone_name: Multi-Editor Context Sync
 status: Ready to plan
-stopped_at: Phase 127 context gathered
-last_updated: "2026-03-24T18:26:24.397Z"
+stopped_at: Completed 127-02-PLAN.md
+last_updated: "2026-03-24T18:55:54.723Z"
 progress:
   total_phases: 7
-  completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  completed_phases: 2
+  total_plans: 4
+  completed_plans: 4
 ---
 
 # Project State
@@ -19,11 +19,11 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 127 — Reverse Parsers (v0.16 Multi-Editor Context Sync)
+**Current focus:** Phase 127 — reverse-parsers
 
 ## Current Position
 
-Phase: 127
+Phase: 128
 Plan: Not started
 
 ## Performance Metrics
@@ -51,6 +51,11 @@ Recent decisions affecting v0.16 implementation:
 - chokidar v4 (not v5 ESM-only, not fs.watch macOS-unreliable) — isolated in packages/reverse-sync/
 - [Phase 126-sync-foundation]: PID-based tmp path for writeStateFile prevents concurrent hook race; readStateFile returns null for schema != 1.0 (forward-compat guard)
 - [Phase 126]: PDE_HASH_RE derived from makeHeader() output to auto-sync with header format changes
+- [Phase 127]: parseMdcContent malformed marker behavior: BEGIN-without-END extracts nothing (safe for merge engine) rather than falling back to full body
+- [Phase 127]: D-07 backward compat: absent PDE:BEGIN/END markers treat entire body as PDE-owned
+- [Phase 127]: Color regex applied to entire DESIGN.md (not section-gated) for resilience when section headings change
+- [Phase 127]: parseDesignMd returns {} (not null) for placeholder DESIGN.md — valid empty partial IR distinct from null
+- [Phase 127]: pde-format-version absence triggers stderr warning but parsing continues (lenient fallback, not hard gate)
 
 ### Pending Todos
 
@@ -63,10 +68,10 @@ Recent decisions affecting v0.16 implementation:
 
 ## Session Continuity
 
-Last session: 2026-03-24T18:26:24.394Z
-Stopped at: Phase 127 context gathered
+Last session: 2026-03-24T18:52:54.375Z
+Stopped at: Completed 127-02-PLAN.md
 Resume with: /gsd:discuss-phase 127
-Resume file: .planning/phases/127-reverse-parsers/127-CONTEXT.md
+Resume file: None
 
 ### Session 2026-03-24 Summary
 

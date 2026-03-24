@@ -23,7 +23,7 @@ Phases 119-125 delivered the unidirectional context generation pipeline: context
 **Milestone Goal:** Bidirectional sync between `.planning/` and Cursor + Antigravity editor files — changes flow both ways through a 3-way merge engine with conflict detection, resolution policy, and audit trail.
 
 - [x] **Phase 126: Sync Foundation** - State file schema, base IR snapshot, loop-break hash comparison (completed 2026-03-24)
-- [ ] **Phase 127: Reverse Parsers** - .mdc and SKILL.md/DESIGN.md reverse parsers with section-marker ownership
+- [x] **Phase 127: Reverse Parsers** - .mdc and SKILL.md/DESIGN.md reverse parsers with section-marker ownership (completed 2026-03-24)
 - [ ] **Phase 128: Merge Engine and Conflict Resolution** - 3-way merge, conflict detection, configurable resolution policy
 - [ ] **Phase 129: Hook Integration** - Live mtime detection, CLI ingest command, session-start reconciliation
 - [ ] **Phase 130: Antigravity Write-Back** - DESIGN.md value-only write-back, agent additions preservation, token state contract
@@ -60,7 +60,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 127-01-PLAN.md — .mdc reverse parser: parseMdcContent() with YAML frontmatter extraction, PDE:BEGIN/END section markers, section-to-IR mapping (CUR-01, CUR-02)
+- [x] 127-01-PLAN.md — .mdc reverse parser: parseMdcContent() with YAML frontmatter extraction, PDE:BEGIN/END section markers, section-to-IR mapping (CUR-01, CUR-02)
 - [ ] 127-02-PLAN.md — SKILL.md + DESIGN.md reverse parsers: parseSkillMd(), parseDesignMd() with agentAdditions, format-version detection, round-trip tests (AGR-01, AGR-02)
 
 ### Phase 128: Merge Engine and Conflict Resolution
@@ -129,7 +129,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 126. Sync Foundation | 1/2 | Complete    | 2026-03-24 |
-| 127. Reverse Parsers | 0/2 | Not started | - |
+| 127. Reverse Parsers | 1/2 | Complete    | 2026-03-24 |
 | 128. Merge Engine and Conflict Resolution | 0/TBD | Not started | - |
 | 129. Hook Integration | 0/TBD | Not started | - |
 | 130. Antigravity Write-Back | 0/TBD | Not started | - |
