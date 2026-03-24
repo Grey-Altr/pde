@@ -382,8 +382,8 @@ Plans:
   2. All existing v0.13 Nyquist tests (1216 assertions) continue to pass with zero regressions
 **Plans:** 2 plans
 Plans:
-- [ ] 108-01-PLAN.md — Register Playwright in mcp-bridge.cjs (APPROVED_SERVERS + TOOL_MAP + AUTH_INSTRUCTIONS + Nyquist tests)
-- [ ] 108-02-PLAN.md — Update mcp-integration.md docs + MCP-08 live verification gate
+- [ ] 117-01-PLAN.md — Integration test covering all 76 v0.14 requirements (INTG-01)
+- [ ] 117-02-PLAN.md — Fix TOOL_MAP count regressions in phases 40-43 (INTG-02)
 
 ## Progress
 
