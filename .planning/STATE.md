@@ -54,6 +54,8 @@ Recent decisions affecting v0.15 planning:
 - AGENTS.md generated only if not user-authored (check for PDE-GENERATED marker)
 - Divergence detection starts heuristic (regex/glob) not AST -- T3 behavioral via grep
 - Stitch bridge reuses mcp-bridge.cjs probe/degrade contracts from v0.9
+- [Phase 119]: oklchToHex uses hand-rolled math with gamut clamping (zero-dep constraint)
+- [Phase 119]: isStitchSource uses exact equality per STH-02
 
 ### Pending Todos
 
@@ -67,5 +69,5 @@ Recent decisions affecting v0.15 planning:
 ## Session Continuity
 
 Last session: 2026-03-23
-Stopped at: v0.15 roadmap created, ready to plan Phase 118
+Stopped at: Completed 119-01-PLAN.md
 Resume file: None
