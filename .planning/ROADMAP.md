@@ -209,7 +209,10 @@ Plans:
   3. Running `npx pde-mcp-server` starts the server with automatic .planning/ directory discovery
   4. Pipeline status is exposed as an MCP resource (passive context) for ambient editor consumption
   5. The get-tokens tool serves design tokens in Tailwind v4 @theme format via DTCG-to-Tailwind conversion
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 121-01-PLAN.md — Package scaffold, 10 tools, pipeline resource, discovery, tests
+- [ ] 121-02-PLAN.md — TypeScript build, npx distribution, human verification
 
 ### Phase 122: Divergence Detection
 **Goal**: Users can detect when implemented code has drifted from PDE handoff specifications across structural, content, and behavioral dimensions
