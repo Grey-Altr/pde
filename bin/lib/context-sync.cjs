@@ -971,6 +971,73 @@ function cmdContextSync(cwd, args, raw) {
   }
 }
 
+// ─── Reverse parsers ─────────────────────────────────────────────────────────
+
+/**
+ * Parse a single PDE .mdc rule file content into a partial IR object.
+ * Returns null when: content is empty, PDE-GENERATED marker absent, or parse error occurs.
+ *
+ * @param {string} content - Raw .mdc file content (NOT a file path — caller must read file first)
+ * @param {string} filename - Base filename e.g. 'pde-project.mdc' (drives IR field mapping)
+ * @returns {object|null} Partial IR with frontmatter fields + mapped IR field, or null on failure
+ */
+function parseMdcContent(content, filename) {
+  if (!content) return null;
+  if (!PDE_HASH_RE.test(content)) return null;
+  try {
+    // Extract YAML frontmatter (between first --- and second ---)
+    const fmMatch = content.match(/^---\n([\s\S]*?)\n---/);
+    if (!fmMatch) return null;
+    const block = fmMatch[1];
+    const frontmatter = {
+      description: (block.match(/^description:\s*(.+)$/m) || [])[1]?.trim() || '',
+      globs: (block.match(/^globs:\s*(.+)$/m) || [])[1]?.trim() || null,
+      alwaysApply: (block.match(/^alwaysApply:\s*(true|false)$/m) || [])[1] === 'true',
+    };
+
+    // Extract body (everything after the closing --- delimiter)
+    const closingDelim = content.indexOf('\n---\n', content.indexOf('---\n') + 4);
+    const body = closingDelim !== -1 ? content.slice(closingDelim + 5) : '';
+
+    // PDE:BEGIN/PDE:END gate — D-06/D-07
+    // If both markers are present and END comes after BEGIN, extract only that region.
+    // If either marker is absent (including malformed BEGIN-without-END), fall back:
+    //   - D-07 backward compat: no markers -> entire body is PDE-owned
+    //   - Malformed (BEGIN without END): markers present but malformed -> nothing extracted
+    const BEGIN = '<!-- PDE:BEGIN -->';
+    const END   = '<!-- PDE:END -->';
+    const bi = body.indexOf(BEGIN);
+    const ei = body.indexOf(END);
+    let pdeOwned;
+    if (bi !== -1 && ei !== -1 && ei > bi) {
+      // Both markers present and valid — extract content between them
+      pdeOwned = body.slice(bi + BEGIN.length, ei).trim();
+    } else if (bi !== -1 || ei !== -1) {
+      // Malformed: one marker present without the other — extract nothing (D-05)
+      pdeOwned = '';
+    } else {
+      // D-07 backward compat: no markers -> entire body is PDE-owned
+      pdeOwned = body;
+    }
+
+    // Map section content to IR field by filename
+    const partial = { ...frontmatter };
+    if (filename === 'pde-project.mdc') {
+      partial.constraints = extractSection(pdeOwned, 'Conventions');
+    } else if (filename === 'pde-architecture.mdc') {
+      partial.techStack = extractSection(pdeOwned, 'Tech Stack');
+    } else if (filename === 'pde-design-tokens.mdc') {
+      partial.designTokens = extractSection(pdeOwned, 'Design Tokens');
+    } else if (filename === 'pde-components.mdc') {
+      partial.componentCatalog = extractSection(pdeOwned, 'Component Catalog');
+    }
+    return partial;
+  } catch (err) {
+    process.stderr.write(`[context-sync] mdc parse error (${filename}): ${err.message}\n`);
+    return null;
+  }
+}
+
 // ─── Exports ────────────────────────────────────────────────────────────────
 
 module.exports = {
@@ -978,4 +1045,5 @@ module.exports = {
   emitGeminiMd, computeSourceHash, cmdContextSync, oklchToHex,
   isStitchSource, emitAntigravitySkill, emitDesignMd,
   writeStateFile, readStateFile, computeLoopBreak,
+  parseMdcContent,
 };
