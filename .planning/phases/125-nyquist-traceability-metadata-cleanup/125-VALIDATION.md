@@ -72,3 +72,18 @@ Existing infrastructure covers all phase requirements. No new test files needed.
 - [x] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** APPROVED
+
+---
+
+## Validation Audit 2026-03-24
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+All requirements (DIV-05, STH-02) have automated verification. Manual-only items confirmed:
+- 7/7 VALIDATION.md files promoted (nyquist_compliant: true)
+- 14/14 SUMMARY.md files have requirements-completed field
+- handoff.md uses isStitchSource() (2 references)
