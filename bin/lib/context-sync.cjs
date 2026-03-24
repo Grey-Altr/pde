@@ -321,6 +321,61 @@ function oklchToHex(oklchStr) {
   return '#' + toHex(rG) + toHex(gG) + toHex(bG);
 }
 
+/**
+ * Convert hex color (#rrggbb or #rgb) to OKLCH string with 4-decimal precision.
+ * Reverse of oklchToHex(). Pipeline: hex -> sRGB -> linear -> LMS -> OKLAB -> OKLCH.
+ * @param {string} hexStr - 7-char or 4-char hex color string
+ * @returns {string} 'oklch(L C H)' with 4-decimal precision
+ */
+function hexToOklch(hexStr) {
+  let h = hexStr.replace('#', '');
+  if (h.length === 3) h = h[0]+h[0]+h[1]+h[1]+h[2]+h[2];
+  const r = parseInt(h.slice(0,2),16)/255;
+  const g = parseInt(h.slice(2,4),16)/255;
+  const b = parseInt(h.slice(4,6),16)/255;
+
+  function linearize(c) {
+    return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  }
+  const rL = linearize(r), gL = linearize(g), bL = linearize(b);
+
+  // linear sRGB -> LMS (forward M matrix)
+  const l = 0.4122214708*rL + 0.5363325363*gL + 0.0514459929*bL;
+  const m = 0.2119034982*rL + 0.6806995451*gL + 0.1073969566*bL;
+  const s = 0.0883024619*rL + 0.2817188376*gL + 0.6299787005*bL;
+
+  // LMS -> OKLAB (cube root, then forward M2)
+  const l_ = Math.cbrt(l), m_ = Math.cbrt(m), s_ = Math.cbrt(s);
+  const L  =  0.2104542553*l_ + 0.7936177850*m_ - 0.0040720468*s_;
+  const a  =  1.9779984951*l_ - 2.4285922050*m_ + 0.4505937099*s_;
+  const b2 =  0.0259040371*l_ + 0.7827717662*m_ - 0.8086757660*s_;
+
+  // OKLAB -> OKLCH
+  const C = Math.sqrt(a*a + b2*b2);
+  let H = Math.atan2(b2, a) * (180 / Math.PI);
+  if (H < 0) H += 360;
+
+  return `oklch(${L.toFixed(4)} ${C.toFixed(4)} ${H.toFixed(4)})`;
+}
+
+/**
+ * Compute per-channel max delta between two 7-char hex color strings.
+ * Used for precision warning threshold in writeBackDesignTokens.
+ * @param {string} hex1 - 7-char hex string (#rrggbb)
+ * @param {string} hex2 - 7-char hex string (#rrggbb)
+ * @returns {number} Max absolute per-channel difference on 0-1 scale
+ */
+function computeHexDelta(hex1, hex2) {
+  const parse = h => [
+    parseInt(h.slice(1,3),16)/255,
+    parseInt(h.slice(3,5),16)/255,
+    parseInt(h.slice(5,7),16)/255
+  ];
+  const [r1,g1,b1] = parse(hex1);
+  const [r2,g2,b2] = parse(hex2);
+  return Math.max(Math.abs(r1-r2), Math.abs(g1-g2), Math.abs(b1-b2));
+}
+
 // ─── Stitch Source Detection ────────────────────────────────────────────────
 
 /**
@@ -754,7 +809,8 @@ function emitDesignMd(ir, projectRoot, planningDir) {
     // Placeholder DESIGN.md when no tokens exist
     const content = [
       header,
-      sourceComment,          // AGR-04: canonical token source marker
+      sourceComment,                          // AGR-04: canonical token source marker
+      '<!-- pde-format-version: 1.0 -->',     // AGR-07: format version
       `# Design System: ${ir.projectName}`,
       '',
       'Design tokens not yet generated -- run the PDE design pipeline to populate this file.',
@@ -819,7 +875,8 @@ function emitDesignMd(ir, projectRoot, planningDir) {
 
   const content = [
     header,
-    sourceComment,          // AGR-04: canonical token source marker
+    sourceComment,                          // AGR-04: canonical token source marker
+    '<!-- pde-format-version: 1.0 -->',     // AGR-07: format version
     `# Design System: ${ir.projectName}`,
     `**Source Hash:** ${ir.sourceHash.slice(0, 12)}`,
     '',
@@ -1554,6 +1611,57 @@ function parseDesignMd(content) {
   }
 }
 
+// ─── Antigravity Write-back ──────────────────────────────────────────────────
+
+/**
+ * Write back editor color changes to design-manifest.json.
+ * Value-only DTCG update: changes only $value, preserves $type, $description, $extensions.
+ * Uses atomic write-rename (same as writeStateFile).
+ * @param {string} planningDir - Absolute path to .planning/
+ * @param {Array<{name:string, hex:string, role:string}>} editorColors - Colors from parseDesignMd
+ * @param {object} opts - Options: { cwd } for emitAll call
+ * @returns {{updated:number, warnings:number}}
+ */
+function writeBackDesignTokens(planningDir, editorColors, opts) {
+  const manifestPath = path.join(planningDir, 'design', 'design-manifest.json');
+  const raw = fs.readFileSync(manifestPath, 'utf-8');
+  const manifest = JSON.parse(raw);
+
+  let updated = 0, warnings = 0;
+
+  for (const { hex, role } of editorColors) {
+    const roleLower = role.replace(/\s+color\s+role$/i, '').trim().toLowerCase();
+    if (manifest.tokens && manifest.tokens.color && manifest.tokens.color[roleLower]) {
+      const token = manifest.tokens.color[roleLower];
+      const newOklch = hexToOklch(hex);
+
+      // Precision check: round-trip via oklchToHex
+      const roundTripped = oklchToHex(newOklch);
+      if (roundTripped !== hex) {
+        const delta = computeHexDelta(hex, roundTripped);
+        if (delta > 0.001) {
+          process.stderr.write(`[context-sync] precision warning: ${hex} -> ${newOklch} -> ${roundTripped} (delta=${delta.toFixed(4)})\n`);
+          warnings++;
+        }
+      }
+
+      // VALUE-ONLY update
+      token.$value = newOklch;
+      updated++;
+    }
+  }
+
+  // Atomic write-rename (same pattern as writeStateFile)
+  const tmpPath = manifestPath + '.' + process.pid + '.tmp';
+  fs.writeFileSync(tmpPath, JSON.stringify(manifest, null, 2), 'utf-8');
+  fs.renameSync(tmpPath, manifestPath);
+
+  // Re-normalize all editor files
+  if (opts && opts.cwd) emitAll(opts.cwd);
+
+  return { updated, warnings };
+}
+
 // ─── Exports ────────────────────────────────────────────────────────────────
 
 module.exports = {
@@ -1565,4 +1673,5 @@ module.exports = {
   mergePartialIR, appendConflictLog, readFieldPolicy, normalizeDesignTokensForComparison,
   // SYN-04, SYN-05: reverse-sync utilities
   MONITORED_FILES, replaceSectionInFile, parseMonitoredFile, reconcileOnStart, ingestAll,
+  hexToOklch, computeHexDelta, writeBackDesignTokens,
 };
