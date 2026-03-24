@@ -87,7 +87,7 @@ Check for flags in $ARGUMENTS before beginning: `--dry-run`, `--quick`, `--verbo
 
 ---
 
-### Step 1/7: Initialize design directories
+### Step 1/8: Initialize design directories
 
 ```bash
 INIT=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design ensure-dirs)
@@ -102,11 +102,11 @@ Error: Failed to initialize design directories.
   Check that .planning/ exists and is writable, then re-run /pde:ideate.
 ```
 
-Halt on error. On success, display: `Step 1/7: Design directories initialized.`
+Halt on error. On success, display: `Step 1/8: Design directories initialized.`
 
 ---
 
-### Step 2/7: Check prerequisites and determine version
+### Step 2/8: Check prerequisites and determine version
 
 **Read PROJECT.md (hard requirement):**
 
@@ -162,11 +162,11 @@ Estimated token usage: ~{estimate}
 MCP enhancements planned: Sequential Thinking (direction generation depth)
 ```
 
-Display: `Step 2/7: Prerequisites satisfied. PROJECT.md loaded. Version: v{N}.`
+Display: `Step 2/8: Prerequisites satisfied. PROJECT.md loaded. Version: v{N}.`
 
 ---
 
-### Step 3/7: Probe MCP (Sequential Thinking)
+### Step 3/8: Probe MCP (Sequential Thinking)
 
 **Check flags first:**
 
@@ -217,13 +217,13 @@ IF --diverge NOT in $ARGUMENTS:
   SET DIVERGE_STITCH = false
 ```
 
-Display: `Step 3/7: MCP probes complete. Sequential Thinking: {available|unavailable}. Stitch visual divergence: {enabled|disabled}.`
+Display: `Step 3/8: MCP probes complete. Sequential Thinking: {available|unavailable}. Stitch visual divergence: {enabled|disabled}.`
 
 ---
 <!-- /LOCKED -->
 
 <!-- OPTIMIZABLE: ideation prompts, concept framing, direction generation, output structure -->
-### Step 4/7: DIVERGE — Generate minimum 5 directions
+### Step 4/8: DIVERGE — Generate minimum 5 directions
 
 This is the core diverge pass. Generate minimum 5 distinct product directions based on PROJECT.md context and any loaded soft dependencies (CMP gaps, OPP opportunities, BRF personas).
 
@@ -278,13 +278,13 @@ File content structure:
 {all direction blocks from the diverge pass}
 ```
 
-Display: `Step 4/7: Diverge complete. {M} directions generated. Intermediate IDT artifact saved.`
+Display: `Step 4/8: Diverge complete. {M} directions generated. Intermediate IDT artifact saved.`
 
 ---
 
 ### Step 4-STITCH: Visual variant generation (--diverge only)
 
-Skip this entire section if DIVERGE_STITCH is false. Jump directly to Step 5/7.
+Skip this entire section if DIVERGE_STITCH is false. Jump directly to Step 5/8.
 
 **4-STITCH-A: Pre-flight Experimental quota check**
 
@@ -425,8 +425,8 @@ The run NEVER aborts due to partial quota or per-direction failure. Text-only fa
 
 **4-STITCH-F: Update IDT artifact with ## Visual Variants section**
 
-Read the intermediate IDT artifact (written in Step 4/7 with Status: diverge-complete).
-Insert a `## Visual Variants` section AFTER `## Diverge Phase` and BEFORE `## Recommend Checkpoint` (which will be added in Step 6/7):
+Read the intermediate IDT artifact (written in Step 4/8 with Status: diverge-complete).
+Insert a `## Visual Variants` section AFTER `## Diverge Phase` and BEFORE `## Recommend Checkpoint` (which will be added in Step 6/8):
 
 ```markdown
 ## Visual Variants
@@ -448,7 +448,7 @@ Insert a `## Visual Variants` section AFTER `## Diverge Phase` and BEFORE `## Re
 }
 ```
 
-Write updated IDT artifact back to disk (still Status: diverge-complete at this point — Step 6/7 will update to ideation-complete).
+Write updated IDT artifact back to disk (still Status: diverge-complete at this point — Step 6/8 will update to ideation-complete).
 
 Display: `Step 4-STITCH: Visual variants written to IDT artifact.`
 
@@ -456,7 +456,7 @@ Display: `Step 4-STITCH: Visual variants written to IDT artifact.`
 <!-- /OPTIMIZABLE -->
 
 <!-- LOCKED: recommend checkpoint, artifact writes, designCoverage update, manifest registration -->
-### Step 5/7: Recommend checkpoint
+### Step 5/8: Recommend checkpoint
 
 Invoke recommend at the diverge-converge transition to surface tooling feasibility signals:
 
@@ -472,13 +472,13 @@ After recommend completes:
 - For each diverge direction, check if any recommended tool in the REC artifact is specifically relevant to that direction's tech approach
 - Prepare a feasibility annotation for each direction: `"Feasibility note: {tool relevance summary or 'No specific tooling signal from recommend checkpoint'}"
 
-Display: `Step 5/7: Recommend checkpoint complete. REC artifact consumed. Feasibility annotations prepared.`
+Display: `Step 5/8: Recommend checkpoint complete. REC artifact consumed. Feasibility annotations prepared.`
 <!-- /LOCKED -->
 
 <!-- OPTIMIZABLE: convergence scoring rubric descriptions, direction scoring guidance, output prose -->
 ---
 
-### Step 6/7: CONVERGE — Score directions and recommend
+### Step 6/8: CONVERGE — Score directions and recommend
 
 Score each direction against a readiness rubric using 0-3 scales consistent with strategy-frameworks.md scoring vocabulary:
 
@@ -618,11 +618,11 @@ Feasibility annotations applied to all {M} directions.
 {brief seed section}
 ```
 
-Display: `Step 6/7: Converge complete. {Direction Name} recommended. IDT artifact finalized.`
+Display: `Step 6/8: Converge complete. {Direction Name} recommended. IDT artifact finalized.`
 
 ---
 
-### Step 7/7: Update DESIGN-STATE and manifest
+### Step 7/8: Update DESIGN-STATE and manifest
 
 **Acquire write lock:**
 
@@ -706,7 +706,57 @@ node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design manifest-set-top-level des
 
 **IMPORTANT:** Replace each `{current}` placeholder with the actual boolean value read from coverage-check. NEVER use dot-notation for this field. ALWAYS write all 21 fields. The canonical field order is: hasDesignSystem, hasWireframes, hasFlows, hasHardwareSpec, hasCritique, hasIterate, hasHandoff, hasIdeation, hasCompetitive, hasOpportunity, hasMockup, hasHigAudit, hasRecommendations, hasStitchWireframes, hasPrintCollateral, hasProductionBible, hasBusinessThesis, hasMarketLandscape, hasServiceBlueprint, hasLaunchKit, hasDeployStaging.
 
-Display: `Step 7/7: Root DESIGN-STATE and manifest updated. hasIdeation: true.`
+Display: `Step 7/8: Root DESIGN-STATE and manifest updated. hasIdeation: true.`
+
+---
+
+### Step 7b/8: Visual Diversity Scoring
+
+IF --no-playwright in $ARGUMENTS OR --no-mcp in $ARGUMENTS:
+  SET PLAYWRIGHT_AVAILABLE = false
+ELSE:
+  Probe via: node bin/pde-tools.cjs mcp-probe --tool playwright:screenshot 2>/dev/null
+  IF exit code 0: SET PLAYWRIGHT_AVAILABLE = true
+  ELSE: SET PLAYWRIGHT_AVAILABLE = false
+
+IF PLAYWRIGHT_AVAILABLE is false:
+  Log: "  -> Visual diversity scoring unavailable — install Playwright MCP"
+  Skip to next step.
+
+Determine screenshot source directory:
+  IF Stitch PNGs exist (STH-ideate-direction-*.png files in .planning/design/):
+    SET DIVERSITY_DIR to the directory containing STH-ideate-direction-*.png files
+    Log: "  -> Using Stitch visual variants for diversity scoring"
+  ELSE:
+    Log: "  -> No Stitch visual variants found — visual diversity scoring skipped"
+    Skip to next step.
+
+Compute diversity score:
+```bash
+DIVERSITY_SCORE=$(node bin/visual-diversity-metric.cjs "$DIVERSITY_DIR" 2>/dev/null | tail -1)
+```
+
+Log: "  -> Visual diversity score: {DIVERSITY_SCORE}/100 (unique screenshots / total)"
+
+IF DIVERSITY_SCORE = 0 AND total PNG files > 1:
+  Log: "  -> Warning: All concepts rendered identically — check wireframe HTML completeness"
+
+Append to IDT artifact (the file written in Step 7):
+
+```markdown
+
+## Visual Diversity
+
+| Metric | Value |
+|--------|-------|
+| Screenshot Count | {total_pngs} |
+| Unique Hashes | {unique_count} |
+| Diversity Score | {DIVERSITY_SCORE}/100 |
+
+{If DIVERSITY_SCORE = 0: "**Warning:** All concepts rendered identically."}
+```
+
+Display: `Step 7b/8: Visual diversity scoring complete. Score: {DIVERSITY_SCORE}/100.`
 
 ---
 
@@ -742,7 +792,7 @@ Display the final summary table (always the last output):
 - ALWAYS release write lock even on error. The lock has a 60s TTL but releasing immediately prevents blocking other skills.
 - NEVER present fewer than 5 directions in the diverge pass. The minimum 5 constraint prevents premature narrowing. If the problem space is rich, generate more.
 - NEVER silently drop any direction from the converge scoring. All diverge directions MUST appear in the converge scoring table.
-- NEVER run the 4-STITCH visual diverge BEFORE text directions in Step 4 complete. Stitch prompts are built from text direction content. Step 4-STITCH runs AFTER Step 4/7, not in parallel.
+- NEVER run the 4-STITCH visual diverge BEFORE text directions in Step 4 complete. Stitch prompts are built from text direction content. Step 4-STITCH runs AFTER Step 4/8, not in parallel.
 - NEVER share a project_id across directions in 4-STITCH-D. Each direction must be generated in isolation to ensure visually distinct variants. Design DNA propagation violates IDT-01.
 - NEVER use modelId "GEMINI_3_FLASH" for ideation. Ideation uses Experimental quota (GEMINI_3_PRO). Using Flash would debit Standard quota.
 - NEVER fetch HTML (stitch:fetch-screen-code) for ideation variants. PNG-only. HTML fetch is unnecessary MCP overhead for visual thumbnails.
