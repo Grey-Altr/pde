@@ -44,7 +44,7 @@ Requirements for v0.15 Multi-Editor Integration. Each maps to roadmap phases.
 - [x] **DIV-02**: T2 content detection — regex-based interface parsing comparing prop names/types against handoff specs
 - [x] **DIV-03**: T3 behavioral detection — grep-based check that components use specified design tokens and patterns
 - [x] **DIV-04**: DIVERGENCE.md output with per-component status (ALIGNED, DRIFTED, MISSING, EXTRA)
-- [ ] **DIV-05**: /pde:check-divergence command triggers detection on demand
+- [x] **DIV-05**: /pde:check-divergence command triggers detection on demand
 - [x] **DIV-06**: .pde-divergence-ignore file for suppressing known-acceptable divergences
 
 ## Future Requirements
@@ -103,7 +103,7 @@ Requirements for v0.15 Multi-Editor Integration. Each maps to roadmap phases.
 | DIV-02 | Phase 122 | Complete |
 | DIV-03 | Phase 122 | Complete |
 | DIV-04 | Phase 122 | Complete |
-| DIV-05 | Phase 122 | Pending |
+| DIV-05 | Phase 122 | Complete |
 | DIV-06 | Phase 122 | Complete |
 
 **Coverage:**
