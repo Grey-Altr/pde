@@ -116,6 +116,26 @@ If the file exists: store content as STACK_CONTENT. Extract the following with s
 
 Display: `Step 2/7 (2a): STACK.md loaded. Framework: {FRAMEWORK}. TypeScript: {TYPESCRIPT}.`
 
+#### 2a-ii. Refine framework detection via package.json (artifact-format)
+
+After reading STACK.md (or after bypass for experience products), refine FRAMEWORK using `detectFramework()` from `bin/lib/artifact-format.cjs`.
+
+**Priority chain: package.json > STACK.md > default React**
+
+```bash
+PKG_FW=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" artifact-format detect-framework 2>/dev/null)
+if [[ "$PKG_FW" == @file:* ]]; then PKG_FW=$(cat "${PKG_FW#@file:}"); fi
+```
+
+- If `PKG_FW` is non-empty (`React`, `Vue`, or `Svelte`): set FRAMEWORK = PKG_FW (overrides STACK.md value).
+  Log: `  -> package.json framework detected: {PKG_FW} (overrides STACK.md value).`
+- If `PKG_FW` is empty AND FRAMEWORK is "none" or empty: set FRAMEWORK = "React" (default fallback).
+  Log: `  -> No package.json framework detected. Falling back to React (default).`
+- If `PKG_FW` is empty AND FRAMEWORK is already a known value from STACK.md: keep STACK.md value.
+  Log: `  -> No package.json framework detected. Using STACK.md value: {FRAMEWORK}.`
+
+Display: `Step 2/7 (2a-ii): Framework resolution complete. Final: {FRAMEWORK}.`
+
 #### 2b. Check coverage flags (soft — Glob fallback)
 
 ```bash
@@ -430,6 +450,14 @@ If TOKENS_AVAILABLE: parse TOKENS_CONTENT (CSS custom properties). Group tokens 
 - Motion tokens: `--duration-*`, `--ease-*`, `--transition-*`
 
 Build GLOBAL_TOKEN_MAPPINGS table (token name, CSS property usage, value, usage context).
+
+#### 4d-ii. Generate Tailwind v4 @theme block (artifact-format)
+
+If TOKENS_AVAILABLE and DTCG token files exist in `.planning/design/tokens/`:
+
+Generate a Tailwind v4 `@theme { }` block alongside the existing CSS custom properties using `generateTailwindTheme()` from `bin/lib/artifact-format.cjs`. Store as TAILWIND_THEME_BLOCK. This will be emitted in the Global Token Mappings section of the handoff spec alongside the `:root { }` CSS custom properties.
+
+If no DTCG token files exist: skip — the CSS custom properties from 4d are sufficient.
 
 If not available: note "Design system tokens not available — token references will use placeholder names" in the spec.
 
@@ -777,7 +805,7 @@ Enhanced By: "{Sequential Thinking MCP or none}"
 
 3. `## Route Structure` — table from 4h with routes, screens, components, wireframe refs, flow refs
 
-4. `## Global Token Mappings` — table from 4d grouped by token category
+4. `## Global Token Mappings` — table from 4d grouped by token category. If TAILWIND_THEME_BLOCK is available (from Step 4d-ii), include it after the CSS custom properties `:root {}` block under a `### Tailwind v4 @theme` subsection.
 
 5. `## Shared Component APIs` — TypeScript interface blocks from 4h for each shared component, with Slots/Children and Tokens Used notes
 
@@ -829,7 +857,7 @@ After `### Interaction Specs`, check whether this screen has concept-specific in
     - `### Motion Specs` — table with trigger/duration/easing/property
     - `### Token Mappings` — table with element/property/token/fallback
     - `### Accessibility Requirements` — table with ARIA requirements
-    - `### Component Stubs` — React, Vue, and Svelte stub blocks (language-appropriate based on FRAMEWORK — include all three for "none", include the detected framework first for known frameworks)
+    - `### Component Stubs` — Before each component stub, emit @file annotations via `generateFileAnnotations({ name, props, tokens })` from `bin/lib/artifact-format.cjs`. Then emit the framework-appropriate stub via `generateComponentStub(componentName, propNames, framework)` using the FRAMEWORK detected in Step 2a-ii. For "none" or null framework, default to React.
     - `### Test Specs` — table with component/state/interaction/expected
 
 10a. **If STITCH_ARTIFACTS is non-empty:** After the Per-Screen Detail Specs (item 10), append:

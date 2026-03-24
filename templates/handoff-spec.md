@@ -228,9 +228,15 @@ interface {ComponentName}Props {
 | Screen Reader | {announcement on state change} |
 | Live Region | {aria-live="polite/assertive"} on {element} |
 
-### Component Stubs
+<!-- @component: {ComponentName} -->
+<!-- @props: {ComponentName}Props -->
+<!-- @tokens: {comma-separated token variables used by this component} -->
 
-#### React
+### Component Stub ({detected-framework})
+
+> Framework detected from package.json via `detectFramework()` from `bin/lib/artifact-format.cjs`.
+> Priority: package.json > STACK.md > default React.
+> Call `generateComponentStub(componentName, propNames, framework)` to generate the correct framework's stub.
 
 ```tsx
 import type { FC } from 'react';
@@ -254,47 +260,6 @@ export const {ComponentName}: FC<{ComponentName}Props> = ({
     {/* TODO: Implement markup */}
   );
 };
-```
-
-#### Vue
-
-```vue
-<script setup lang="ts">
-// Token imports
-import '{tokens-path}';
-
-interface Props {
-  {prop}: {type};
-  {prop}?: {type};
-}
-
-const props = defineProps<Props>();
-const emit = defineEmits<{
-  {event}: [{payload-type}];
-}>();
-
-// TODO: Implement component logic
-</script>
-
-<template>
-  <!-- TODO: Implement markup -->
-</template>
-```
-
-#### Svelte
-
-```svelte
-<script lang="ts">
-  // Token imports
-  import '{tokens-path}';
-
-  export let {prop}: {type};
-  export let {prop}: {type} = {default};
-
-  // TODO: Implement component logic
-</script>
-
-<!-- TODO: Implement markup -->
 ```
 
 ### Test Specs
