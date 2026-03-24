@@ -32,6 +32,16 @@
             "async": true
           }
         ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/context-sync-hook.cjs",
+            "async": true
+          }
+        ]
       }
     ],
     "SessionStart": [
