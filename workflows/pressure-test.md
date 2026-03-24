@@ -69,6 +69,18 @@ echo "$ARGUMENTS" | grep -q '\-\-dry-run' && DRY_RUN=true
 echo "$ARGUMENTS" | grep -q '\-\-quick' && QUICK=true
 ```
 
+Probe Playwright availability:
+
+```bash
+PLAYWRIGHT_AVAILABLE=false
+if echo "$ARGUMENTS" | grep -qE '\-\-no-playwright|\-\-no-mcp'; then
+  PLAYWRIGHT_AVAILABLE=false
+else
+  node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" mcp-probe --tool playwright:screenshot 2>/dev/null
+  if [ $? -eq 0 ]; then PLAYWRIGHT_AVAILABLE=true; else PLAYWRIGHT_AVAILABLE=false; fi
+fi
+```
+
 Validate FIXTURE is one of: greenfield, partial, rerun. If invalid, display error and HALT:
 
 ```
@@ -287,6 +299,49 @@ Parse the evaluator's returned JSON. Extract:
 
 ---
 
+## Step 5b/7: Visual Quality Scoring
+
+IF QUICK is true OR PLAYWRIGHT_AVAILABLE is false:
+  SET VISUAL_AVG = 0
+  IF PLAYWRIGHT_AVAILABLE is false:
+    Log: "  -> Visual scoring skipped — Playwright MCP unavailable (text rubric only)"
+  Skip to Step 6/7.
+
+Scan for mockup HTML artifacts:
+
+```bash
+MOCKUP_HTML_FILES=$(ls .planning/design/ux/mockups/mockup-*.html 2>/dev/null)
+```
+
+IF no mockup HTML files found:
+  SET VISUAL_AVG = 0
+  Log: "  -> Visual scoring skipped — no mockup HTML artifacts found"
+  Skip to Step 6/7.
+
+For each MOCKUP_PATH in MOCKUP_HTML_FILES:
+
+```bash
+DOM_SCORE=$(node bin/dom-metric.cjs "$MOCKUP_PATH" 2>/dev/null | tail -1)
+A11Y_SCORE=$(node bin/a11y-metric.cjs "$MOCKUP_PATH" 2>/dev/null | tail -1)
+CONTRAST_SCORE=$(node bin/contrast-metric.cjs "$MOCKUP_PATH" 2>/dev/null | tail -1)
+```
+
+Log: "  -> {MOCKUP_PATH}: DOM={DOM_SCORE} A11Y={A11Y_SCORE} Contrast={CONTRAST_SCORE}"
+
+Compute VISUAL_AVG = average of all (DOM_SCORE + A11Y_SCORE + CONTRAST_SCORE) / 3 across all mockup files.
+Normalize to 0-10 scale: VISUAL_NORMALIZED = VISUAL_AVG / 10
+
+Combined score formula (per PRES-03):
+  TEXT_SCORE = quality_result average overall_score from Step 5/7 evaluator (range 1-10)
+  COMBINED_SCORE = (TEXT_SCORE * 0.65) + (VISUAL_NORMALIZED * 0.35)
+  Log: "  -> Combined score: {COMBINED_SCORE} (text={TEXT_SCORE}*0.65 + visual={VISUAL_NORMALIZED}*0.35)"
+
+SET VISUAL_QUALITY_DATA = { visual_avg: VISUAL_AVG, visual_normalized: VISUAL_NORMALIZED, combined_score: COMBINED_SCORE, per_mockup_scores: [...] }
+
+NOTE: Visual Quality result is informational only — it does NOT affect the Overall pass/fail result. Text rubric remains authoritative per PRES-04 graceful degradation.
+
+---
+
 ## Step 6/7: Generate Report
 
 Write the structured report to `.planning/pressure-test-report.md` using the Write tool.
@@ -363,6 +418,19 @@ Report template:
 
 **Quality Result:** {PASS (average score >= 6.5) or FAIL}
 
+## Tier 2b: Visual Quality Metrics
+
+{If PLAYWRIGHT_AVAILABLE is false: "Skipped (Playwright MCP unavailable — text rubric only)"}
+{If QUICK mode: "Skipped (--quick mode)"}
+
+| Mockup | DOM Structure | A11y | Contrast | Avg |
+|--------|---------------|------|----------|-----|
+{For each mockup in per_mockup_scores:}
+| {filename} | {dom} | {a11y} | {contrast} | {avg} |
+
+**Visual Average:** {VISUAL_AVG}/100 (normalized: {VISUAL_NORMALIZED}/10)
+**Combined Score:** {COMBINED_SCORE}/10 (text rubric 65% + visual 35%)
+
 ## Summary
 
 | Tier | Result |
@@ -370,6 +438,7 @@ Report template:
 | Process Compliance | {PASS/FAIL} |
 | Design Quality | {PASS/FAIL or Skipped} |
 | AI Aesthetic Avoidance | {PASS/FAIL or Skipped} |
+| Visual Quality | {PASS/FAIL/Skipped} |
 | **Overall** | **{PASS only if all applicable tiers pass}** |
 ```
 
@@ -387,6 +456,7 @@ PDE > PRESSURE TEST — COMPLETE
 | Process Compliance       | {PASS/FAIL} |
 | Design Quality           | {PASS/FAIL or Skipped} |
 | AI Aesthetic Avoidance   | {PASS/FAIL or Skipped} |
+| Visual Quality           | {PASS/FAIL/Skipped} |
 
 Report: .planning/pressure-test-report.md
 ```
