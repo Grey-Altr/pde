@@ -1,5 +1,25 @@
 # Milestones
 
+## v0.16 Multi-Editor Context Sync (Shipped: 2026-03-24)
+
+**Phases completed:** 7 phases, 14 plans, 8 tasks
+
+**Key accomplishments:**
+
+- Atomic sync state file infrastructure with writeStateFile()/readStateFile() using PID-based tmp, schema v1.0 with 4-field lastIR snapshot, and forward-compatibility guard — establishes the 3-way merge base for Phase 128
+- One-liner:
+- One-liner:
+- One-liner:
+- 3-way field-level merge engine with conflict detection and NDJSON logging — mergePartialIR() + appendConflictLog() — plus parseMdcContent Architecture Conventions fix and canonical token SOURCE comment in both DESIGN.md output paths
+- One-liner:
+- emitAntigravitySkill modified with read-before-write pattern: AGENT-ADDITIONS marker always present, agent content below marker preserved verbatim across all regeneration cycles
+- One-liner:
+- One-liner:
+- Sync audit trail (SYNC-LOG.md append-only markdown), pre-write snapshot system with auto-cleanup, and two CLI subcommands (sync-status, sync-rollback) added to context-sync.cjs with 17 Nyquist tests GREEN
+- PDE:BEGIN/PDE:END user content preservation in .mdc files, improved glob patterns, and SKILL.md enriched with pde-skill-version, Workflows checklist, ir.constraints, and design-manifest.json reference
+
+---
+
 ## v0.15 Multi-Editor Integration (Shipped: 2026-03-24)
 
 **Phases completed:** 1 phases, 2 plans, 5 tasks
