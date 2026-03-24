@@ -285,15 +285,17 @@ test("AGR-04: emitDesignMd placeholder output contains SOURCE comment (Research 
 // ─── Finding 1: parseMdcContent pde-architecture.mdc extracts BOTH fields ─────
 
 test("Finding 1: parseMdcContent for pde-architecture.mdc extracts both techStack AND constraints", () => {
+  // Correct format: YAML frontmatter first, then PDE-GENERATED comment, then body
+  // Architecture mdc files use D-07 backward compat (no PDE:BEGIN/END markers)
   const mdcContent = [
-    '<!-- PDE-GENERATED | hash:' + 'a'.repeat(64) + ' | generated:2025-01-01T00:00:00.000Z -->',
     '---',
     'description: Architecture patterns',
     'globs: "**/*.ts"',
     'alwaysApply: false',
     '---',
     '',
-    '<!-- PDE:BEGIN -->',
+    '<!-- PDE-GENERATED | hash:' + 'a'.repeat(64) + ' | generated:2025-01-01T00:00:00.000Z -->',
+    '',
     '## Tech Stack',
     '',
     'Node.js, TypeScript',
@@ -302,7 +304,6 @@ test("Finding 1: parseMdcContent for pde-architecture.mdc extracts both techStac
     '',
     'Use barrel exports. No circular deps.',
     '',
-    '<!-- PDE:END -->',
   ].join('\n');
 
   const partial = parseMdcContent(mdcContent, 'pde-architecture.mdc');

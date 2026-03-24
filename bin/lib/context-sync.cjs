@@ -23,6 +23,8 @@ const { safeReadFile, output, error } = require('./core.cjs');
 
 // ─── Source files that contribute to the composite hash ─────────────────────
 
+const WRITABLE_FIELDS = ['techStack', 'constraints', 'componentCatalog', 'designTokens'];
+
 const SOURCE_FILES = [
   'PROJECT.md',
   'STATE.md',
@@ -733,11 +735,13 @@ function readDesignTokens(planningDir) {
 function emitDesignMd(ir, projectRoot, planningDir) {
   const header = makeHeader(ir.sourceHash, ir.generatedAt);
   const tokens = readDesignTokens(planningDir);
+  const sourceComment = '<!-- SOURCE: design-manifest.json | DERIVE-ONLY -->';
 
   if (!tokens || !tokens.color) {
     // Placeholder DESIGN.md when no tokens exist
     const content = [
       header,
+      sourceComment,          // AGR-04: canonical token source marker
       `# Design System: ${ir.projectName}`,
       '',
       'Design tokens not yet generated -- run the PDE design pipeline to populate this file.',
@@ -802,6 +806,7 @@ function emitDesignMd(ir, projectRoot, planningDir) {
 
   const content = [
     header,
+    sourceComment,          // AGR-04: canonical token source marker
     `# Design System: ${ir.projectName}`,
     `**Source Hash:** ${ir.sourceHash.slice(0, 12)}`,
     '',
@@ -884,6 +889,92 @@ function readStateFile(planningDir) {
     return parsed;
   } catch {
     return null;
+  }
+}
+
+// ─── CUR-04: 3-way merge engine ─────────────────────────────────────────────
+
+/**
+ * 3-way merge: base (lastIR snapshot) + editor (parsed partial) + current (.planning/ IR).
+ * Field-level merge with conflict detection. Default policy: planning-wins.
+ * @param {object|null} base - lastIR from readStateFile(), null on first run
+ * @param {object} editorPartial - Partial IR from reverse parser
+ * @param {object} currentIR - Full IR from buildContextIR()
+ * @param {object} opts - { planningDir, source, fieldPolicies }
+ * @returns {{ merged: object, conflicts: Array }}
+ */
+function mergePartialIR(base, editorPartial, currentIR, opts) {
+  if (!opts) opts = {};
+  var merged = {};
+  var conflicts = [];
+
+  for (var i = 0; i < WRITABLE_FIELDS.length; i++) {
+    var field = WRITABLE_FIELDS[i];
+    var currentVal = currentIR[field] || '';
+    var editorVal = editorPartial[field];
+    var baseVal = base ? (base[field] || '') : null;
+
+    // Editor didn't touch this field -- preserve current
+    if (editorVal === undefined) {
+      merged[field] = currentVal;
+      continue;
+    }
+
+    // No base (first run) -- editor wins for provided fields
+    if (baseVal === null) {
+      merged[field] = editorVal;
+      continue;
+    }
+
+    var editorChanged = editorVal !== baseVal;
+    var pdeChanged = currentVal !== baseVal;
+
+    if (!editorChanged) {
+      // Editor unchanged -- use current PDE value (covers both "PDE changed" and "neither changed")
+      merged[field] = currentVal;
+    } else if (!pdeChanged) {
+      // Only editor changed -- editor wins
+      merged[field] = editorVal;
+    } else if (editorVal === currentVal) {
+      // Both changed to same value -- no conflict
+      merged[field] = currentVal;
+    } else {
+      // True conflict: both changed to different values
+      var policy = 'planning-wins';
+      var resolvedValue = currentVal; // planning-wins default
+      var entry = {
+        field: field,
+        baseValue: baseVal,
+        editorValue: editorVal,
+        planningValue: currentVal,
+        resolvedValue: resolvedValue,
+        policy: policy,
+        timestamp: new Date().toISOString(),
+        source: opts.source || 'unknown',
+      };
+      conflicts.push(entry);
+      merged[field] = resolvedValue;
+      if (opts.planningDir) {
+        appendConflictLog(opts.planningDir, entry);
+      }
+    }
+  }
+
+  return { merged: merged, conflicts: conflicts };
+}
+
+/**
+ * Append a conflict entry as NDJSON to .planning/.sync-conflicts.log.
+ * Non-fatal: errors logged to stderr, never thrown.
+ * @param {string} planningDir - Absolute path to .planning/
+ * @param {object} entry - Conflict entry object
+ */
+function appendConflictLog(planningDir, entry) {
+  try {
+    var logPath = path.join(planningDir, '.sync-conflicts.log');
+    fs.appendFileSync(logPath, JSON.stringify(entry) + '\n', 'utf-8');
+  } catch (err) {
+    process.stderr.write('[context-sync] conflict log write error: ' + err.message + '\n');
   }
 }
 
@@ -1026,6 +1117,8 @@ function parseMdcContent(content, filename) {
       partial.constraints = extractSection(pdeOwned, 'Conventions');
     } else if (filename === 'pde-architecture.mdc') {
       partial.techStack = extractSection(pdeOwned, 'Tech Stack');
+      var archConventions = extractSection(pdeOwned, 'Architecture Conventions');
+      if (archConventions) partial.constraints = archConventions;
     } else if (filename === 'pde-design-tokens.mdc') {
       partial.designTokens = extractSection(pdeOwned, 'Design Tokens');
     } else if (filename === 'pde-components.mdc') {
@@ -1143,4 +1236,5 @@ module.exports = {
   isStitchSource, emitAntigravitySkill, emitDesignMd,
   writeStateFile, readStateFile, computeLoopBreak,
   parseMdcContent, parseSkillMd, parseDesignMd,
+  mergePartialIR, appendConflictLog,
 };
