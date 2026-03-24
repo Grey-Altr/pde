@@ -316,6 +316,15 @@ LOOP (while haltReason is null):
 
   Read last 3 rows from `.planning/experiments/{slug}/results.jsonl` (using Read tool or Bash tail). If file does not exist yet, last3rows = [].
 
+  Compute strategy weights from JSONL history (META-01 through META-04).
+  The script reads results.jsonl files, computes keep_rate per strategy tag, and
+  outputs a strategy_hint XML block listing top strategies by KEEP rate:
+  ```bash
+  STRATEGY_HINT=$(node "${CLAUDE_PLUGIN_ROOT}/bin/lib/strategy-weights.cjs" --strategy-hint 2>/dev/null || echo "")
+  ```
+
+  IF STRATEGY_HINT is not empty, inject it into the <additional_context> block of the Task() prompt below. Otherwise, omit the strategy_hint tag entirely.
+
   Dispatch runner agent via Task():
   ```
   Task(
@@ -336,6 +345,7 @@ LOOP (while haltReason is null):
   Context mode: {context_mode}
   Last 3 results: {last3rows as JSON}
   {if context_mode === 'diff': include diff output here}
+  {if STRATEGY_HINT is not empty: STRATEGY_HINT}
   </additional_context>",
     subagent_type="{currentModel}"
   )
