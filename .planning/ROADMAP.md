@@ -120,7 +120,11 @@ Plans:
   3. `pde_update_tech_stack` overwrites the PROJECT.md Tech Stack section with the same validation and post-write behavior as pde_update_constraints
   4. `pde_append_context_note` appends a timestamped note to the appropriate .planning/context-notes/<category>-notes.md file using the category enum (design/technical/product/research/decision), with path traversal prevention
   5. `pde_flag_divergence` writes a component/reason/severity entry to .planning/divergence-flags.json with component name pattern validation, and does not call emitAll() (divergence flags are not part of editor context)
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 131-01-PLAN.md — Flag gate + section-overwrite handlers: --enable-writes in index.ts, handleUpdateConstraints, handleUpdateTechStack, NDJSON audit log (INF-01, INF-02, INF-03)
+- [ ] 131-02-PLAN.md — Context note + divergence flag tools: handleAppendContextNote, handleFlagDivergence, full 4-tool registration (INF-04, INF-05)
 
 ### Phase 132: Conflict UX and Generation Enhancements
 **Goal**: Sync operations are auditable and reversible, conflicts are presented semantically, and .mdc and SKILL.md generation produces richer output that gives Cursor and Antigravity better context
@@ -145,5 +149,5 @@ Plans:
 | 128. Merge Engine and Conflict Resolution | 2/2 | Complete    | 2026-03-24 |
 | 129. Hook Integration | 1/2 | Complete    | 2026-03-24 |
 | 130. Antigravity Write-Back | 2/2 | Complete    | 2026-03-24 |
-| 131. MCP Write Tools | 0/TBD | Not started | - |
+| 131. MCP Write Tools | 0/2 | Not started | - |
 | 132. Conflict UX and Generation Enhancements | 0/TBD | Not started | - |
