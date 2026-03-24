@@ -1,15 +1,15 @@
 ---
-pde_state_version: 1.0
+gsd_state_version: 1.0
 milestone: v0.15
 milestone_name: Multi-Editor Integration
 status: unknown
-stopped_at: Completed 120-01-PLAN.md
-last_updated: "2026-03-24T04:22:44.509Z"
+stopped_at: Completed 121-01-PLAN.md
+last_updated: "2026-03-24T04:46:04.599Z"
 progress:
   total_phases: 7
   completed_phases: 3
-  total_plans: 6
-  completed_plans: 6
+  total_plans: 8
+  completed_plans: 7
 ---
 
 # Project State
@@ -19,11 +19,11 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 120 — artifact-formatting
+**Current focus:** Phase 121 — mcp-server
 
 ## Current Position
 
-Phase: 120
+Phase: 121
 Plan: 01 (complete)
 
 ## Performance Metrics
@@ -58,6 +58,8 @@ Recent decisions affecting v0.15 planning:
 - [Phase 120]: depth-aware suffix in dtcgToThemeLines strips top-level category key to prevent namespace duplication
 - [Phase 120]: detectFramework requires react + react-dom for React detection to guard against testing-library false positives
 - [Phase 120]: generateCssVarsFromTheme reuses dtcgToThemeLines for :root companion block with same variable names as @theme
+- [Phase 121-mcp-server]: CJS handlers.cjs pattern: all handler logic in plain CJS for direct test import without TypeScript compilation; TypeScript index.ts wraps via createRequire
+- [Phase 121-mcp-server]: discover.cjs provided alongside discover.ts so tests import CJS directly without build step
 
 ### Pending Todos
 
@@ -70,6 +72,6 @@ Recent decisions affecting v0.15 planning:
 
 ## Session Continuity
 
-Last session: 2026-03-24T04:14:34.766Z
-Stopped at: Completed 120-01-PLAN.md
+Last session: 2026-03-24T04:45:51.768Z
+Stopped at: Completed 121-01-PLAN.md
 Resume file: None

@@ -20,11 +20,11 @@ Requirements for v0.15 Multi-Editor Integration. Each maps to roadmap phases.
 
 ### MCP Server (MCP)
 
-- [ ] **MCP-01**: Standalone MCP server package in isolated subdirectory with @modelcontextprotocol/sdk, TypeScript, stdio transport
-- [ ] **MCP-02**: Server exposes 10 read-only tools: get-project, get-design-state, get-manifest, get-tokens, get-handoff, get-artifact, get-roadmap, get-requirements, get-pipeline-status, list-artifacts
+- [x] **MCP-01**: Standalone MCP server package in isolated subdirectory with @modelcontextprotocol/sdk, TypeScript, stdio transport
+- [x] **MCP-02**: Server exposes 10 read-only tools: get-project, get-design-state, get-manifest, get-tokens, get-handoff, get-artifact, get-roadmap, get-requirements, get-pipeline-status, list-artifacts
 - [ ] **MCP-03**: Server distributable via npx pde-mcp-server with automatic .planning/ directory discovery
-- [ ] **MCP-04**: Pipeline status exposed as MCP resource (passive context) for editor consumption
-- [ ] **MCP-05**: Design tokens served as Tailwind v4 @theme format via get-tokens tool with DTCG-to-Tailwind conversion
+- [x] **MCP-04**: Pipeline status exposed as MCP resource (passive context) for editor consumption
+- [x] **MCP-05**: Design tokens served as Tailwind v4 @theme format via get-tokens tool with DTCG-to-Tailwind conversion
 
 ### Stitch Bridge (STH)
 
@@ -88,11 +88,11 @@ Requirements for v0.15 Multi-Editor Integration. Each maps to roadmap phases.
 | CTX-06 | Phase 123 | Pending |
 | CTX-07 | Phase 123 | Pending |
 | CTX-08 | Phase 118 | Complete |
-| MCP-01 | Phase 121 | Pending |
-| MCP-02 | Phase 121 | Pending |
+| MCP-01 | Phase 121 | Complete |
+| MCP-02 | Phase 121 | Complete |
 | MCP-03 | Phase 121 | Pending |
-| MCP-04 | Phase 121 | Pending |
-| MCP-05 | Phase 121 | Pending |
+| MCP-04 | Phase 121 | Complete |
+| MCP-05 | Phase 121 | Complete |
 | STH-01 | Phase 119 | Complete |
 | STH-02 | Phase 119 | Complete |
 | STH-03 | Phase 119 | Complete |

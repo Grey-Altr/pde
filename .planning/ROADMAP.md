@@ -211,7 +211,7 @@ Plans:
   5. The get-tokens tool serves design tokens in Tailwind v4 @theme format via DTCG-to-Tailwind conversion
 **Plans**: 2 plans
 Plans:
-- [ ] 121-01-PLAN.md — Package scaffold, 10 tools, pipeline resource, discovery, tests
+- [x] 121-01-PLAN.md — Package scaffold, 10 tools, pipeline resource, discovery, tests
 - [ ] 121-02-PLAN.md — TypeScript build, npx distribution, human verification
 
 ### Phase 122: Divergence Detection
