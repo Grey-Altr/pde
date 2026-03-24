@@ -1,20 +1,12 @@
 'use strict';
 
 /**
- * test-sync-foundation.cjs — Nyquist test suite for Phase 126 sync state file
+ * test-sync-foundation.cjs — Nyquist test suite for Phase 126 (SYN-01, SYN-02, SYN-03)
  *
- * Tests SYN-01 (persistent sync state file) and SYN-03 (lastIR snapshot).
- * Uses node:test framework with tmp dir isolation.
- *
- * Coverage:
- *   SYN-01: emitAll() writes .context-sync-state.json with correct schema fields
- *   SYN-01: computeSourceHash() is stable after state file write (no loop risk)
- *   SYN-03: lastIR snapshot contains exactly the 4 writable fields
- *   SYN-03: lastIR snapshot updated on second emitAll() call
- *   readStateFile: returns null for missing file
- *   readStateFile: returns null for corrupt JSON
- *   readStateFile: returns parsed state for valid file
- *   readStateFile: returns null for unknown schema version (forward-compat guard)
+ * SYN-01: Persistent sync state file (writeStateFile / emitAll integration)
+ * SYN-02: Loop-break hash comparison gate (computeLoopBreak)
+ * SYN-03: IR snapshot stored in state file (lastIR fields)
+ * readStateFile: read/validate state file
  */
 
 const { test } = require('node:test');
@@ -23,61 +15,55 @@ const os = require('os');
 const fs = require('fs');
 const path = require('path');
 
-const { emitAll, computeSourceHash, readStateFile } = require('../../bin/lib/context-sync.cjs');
+const { emitAll, computeSourceHash, readStateFile, computeLoopBreak } = require('../../bin/lib/context-sync.cjs');
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function makeTmpDir() {
-  return fs.mkdtempSync(path.join(os.tmpdir(), 'pde-test-'));
+  return fs.mkdtempSync(path.join(os.tmpdir(), 'pde-126-test-'));
 }
 
-/**
- * Create a minimal .planning/ directory that satisfies computeSourceHash()
- * without throwing. Writes:
- *   .planning/PROJECT.md
- *   .planning/STATE.md
- *   .planning/design/DESIGN-STATE.md
- *   .planning/design/design-manifest.json
- */
 function makePlanningDir(baseDir) {
   const planningDir = path.join(baseDir, '.planning');
   fs.mkdirSync(planningDir, { recursive: true });
-  fs.mkdirSync(path.join(planningDir, 'design'), { recursive: true });
-
+  // Minimal PROJECT.md so buildContextIR doesn't fail
   fs.writeFileSync(path.join(planningDir, 'PROJECT.md'), '# Test Project\n', 'utf-8');
+  // Minimal STATE.md
   fs.writeFileSync(path.join(planningDir, 'STATE.md'), '# State\n', 'utf-8');
-  fs.writeFileSync(path.join(planningDir, 'design', 'DESIGN-STATE.md'), '', 'utf-8');
-  fs.writeFileSync(path.join(planningDir, 'design', 'design-manifest.json'), '{}', 'utf-8');
-
+  // design/ subdirectory with required files
+  const designDir = path.join(planningDir, 'design');
+  fs.mkdirSync(designDir, { recursive: true });
+  fs.writeFileSync(path.join(designDir, 'DESIGN-STATE.md'), '', 'utf-8');
+  fs.writeFileSync(path.join(designDir, 'design-manifest.json'), '{}', 'utf-8');
   return planningDir;
 }
 
-// ─── SYN-01 tests ─────────────────────────────────────────────────────────────
+// ─── SYN-01: State file creation and schema ───────────────────────────────────
 
 test('SYN-01: emitAll() creates .planning/.context-sync-state.json', () => {
   const baseDir = makeTmpDir();
-  makePlanningDir(baseDir);
+  const planningDir = makePlanningDir(baseDir);
 
   emitAll(baseDir);
 
-  const stateFilePath = path.join(baseDir, '.planning', '.context-sync-state.json');
-  assert.ok(fs.existsSync(stateFilePath), 'state file must exist after emitAll()');
+  const statePath = path.join(planningDir, '.context-sync-state.json');
+  assert.equal(fs.existsSync(statePath), true, 'state file must exist after emitAll()');
 });
 
 test('SYN-01: state file has correct schema fields', () => {
   const baseDir = makeTmpDir();
-  makePlanningDir(baseDir);
+  const planningDir = makePlanningDir(baseDir);
 
   emitAll(baseDir);
 
-  const stateFilePath = path.join(baseDir, '.planning', '.context-sync-state.json');
-  const raw = fs.readFileSync(stateFilePath, 'utf-8');
+  const statePath = path.join(planningDir, '.context-sync-state.json');
+  const raw = fs.readFileSync(statePath, 'utf-8');
   const state = JSON.parse(raw);
 
   assert.equal(state.schemaVersion, '1.0', 'schemaVersion must be "1.0"');
   assert.equal(typeof state.lastEmittedAt, 'string', 'lastEmittedAt must be a string');
   assert.equal(typeof state.lastSourceHash, 'string', 'lastSourceHash must be a string');
-  assert.ok(Array.isArray(state.pendingIngest), 'pendingIngest must be an array');
+  assert.equal(Array.isArray(state.pendingIngest), true, 'pendingIngest must be an array');
   assert.equal(state.pendingIngest.length, 0, 'pendingIngest must be empty on first write');
 });
 
@@ -89,99 +75,146 @@ test('SYN-01: state file excluded from computeSourceHash (hash stable after stat
   emitAll(baseDir);
   const hashAfter = computeSourceHash(planningDir);
 
-  assert.equal(hashBefore, hashAfter, 'computeSourceHash must return same value before and after emitAll()');
+  assert.equal(hashBefore, hashAfter, 'hash must be identical before and after emitAll() (no loop risk)');
 });
 
-// ─── SYN-03 tests ─────────────────────────────────────────────────────────────
+// ─── SYN-03: lastIR snapshot ──────────────────────────────────────────────────
 
 test('SYN-03: lastIR snapshot contains exactly the 4 writable fields', () => {
   const baseDir = makeTmpDir();
-  makePlanningDir(baseDir);
+  const planningDir = makePlanningDir(baseDir);
 
   emitAll(baseDir);
 
-  const stateFilePath = path.join(baseDir, '.planning', '.context-sync-state.json');
-  const state = JSON.parse(fs.readFileSync(stateFilePath, 'utf-8'));
+  const raw = fs.readFileSync(path.join(planningDir, '.context-sync-state.json'), 'utf-8');
+  const state = JSON.parse(raw);
 
-  assert.ok(state.lastIR, 'lastIR must exist');
+  assert.ok(state.lastIR, 'lastIR must exist in state');
   assert.ok('techStack' in state.lastIR, 'lastIR must have techStack');
   assert.ok('constraints' in state.lastIR, 'lastIR must have constraints');
   assert.ok('componentCatalog' in state.lastIR, 'lastIR must have componentCatalog');
   assert.ok('designTokens' in state.lastIR, 'lastIR must have designTokens');
-
-  // Must NOT have computed fields
-  assert.ok(!('sourceHash' in state.lastIR), 'lastIR must NOT have sourceHash');
-  assert.ok(!('generatedAt' in state.lastIR), 'lastIR must NOT have generatedAt');
-  assert.ok(!('projectName' in state.lastIR), 'lastIR must NOT have projectName');
+  assert.equal('sourceHash' in state.lastIR, false, 'lastIR must NOT have sourceHash');
+  assert.equal('generatedAt' in state.lastIR, false, 'lastIR must NOT have generatedAt');
+  assert.equal('projectName' in state.lastIR, false, 'lastIR must NOT have projectName');
 });
 
 test('SYN-03: lastIR snapshot updated on second emitAll() call', () => {
   const baseDir = makeTmpDir();
-  makePlanningDir(baseDir);
+  const planningDir = makePlanningDir(baseDir);
 
   emitAll(baseDir);
-  const stateFilePath = path.join(baseDir, '.planning', '.context-sync-state.json');
-  const firstState = JSON.parse(fs.readFileSync(stateFilePath, 'utf-8'));
+  const raw1 = fs.readFileSync(path.join(planningDir, '.context-sync-state.json'), 'utf-8');
+  const state1 = JSON.parse(raw1);
 
-  // Small delay to allow timestamp to advance (or equal at minimum)
+  // Small delay to ensure timestamps differ if they can
   emitAll(baseDir);
-  const secondState = JSON.parse(fs.readFileSync(stateFilePath, 'utf-8'));
+  const raw2 = fs.readFileSync(path.join(planningDir, '.context-sync-state.json'), 'utf-8');
+  const state2 = JSON.parse(raw2);
 
-  assert.ok(
-    secondState.lastEmittedAt >= firstState.lastEmittedAt,
-    'second lastEmittedAt must be >= first lastEmittedAt (as ISO strings)'
-  );
+  assert.ok(state2.lastEmittedAt >= state1.lastEmittedAt, 'second lastEmittedAt must be >= first');
 });
 
 // ─── readStateFile tests ──────────────────────────────────────────────────────
 
-test('readStateFile: returns null when file missing', () => {
+test('readStateFile() returns null when file missing', () => {
   const baseDir = makeTmpDir();
   const planningDir = makePlanningDir(baseDir);
 
   const result = readStateFile(planningDir);
-  assert.equal(result, null, 'readStateFile must return null when file does not exist');
+  assert.equal(result, null, 'readStateFile() must return null when state file does not exist');
 });
 
-test('readStateFile: returns null when file is corrupt JSON', () => {
+test('readStateFile() returns null when file is corrupt JSON', () => {
   const baseDir = makeTmpDir();
   const planningDir = makePlanningDir(baseDir);
 
-  fs.writeFileSync(path.join(planningDir, '.context-sync-state.json'), 'CORRUPT', 'utf-8');
+  const statePath = path.join(planningDir, '.context-sync-state.json');
+  fs.writeFileSync(statePath, 'CORRUPT', 'utf-8');
 
   const result = readStateFile(planningDir);
-  assert.equal(result, null, 'readStateFile must return null for corrupt JSON');
+  assert.equal(result, null, 'readStateFile() must return null for corrupt JSON');
 });
 
-test('readStateFile: returns state object when file is valid', () => {
+test('readStateFile() returns state object when file is valid', () => {
   const baseDir = makeTmpDir();
   const planningDir = makePlanningDir(baseDir);
 
   emitAll(baseDir);
   const result = readStateFile(planningDir);
 
-  assert.ok(result !== null, 'readStateFile must return non-null for valid state file');
+  assert.notEqual(result, null, 'readStateFile() must return object for valid state file');
   assert.equal(result.schemaVersion, '1.0', 'returned state must have schemaVersion "1.0"');
-  assert.equal(typeof result.lastIR.techStack, 'string', 'returned state.lastIR.techStack must be a string');
+  assert.equal(typeof result.lastIR.techStack, 'string', 'lastIR.techStack must be a string');
 });
 
-test('readStateFile: returns null for unknown schema version (forward-compat guard)', () => {
+test('readStateFile() returns null for unknown schema version (forward-compatibility guard)', () => {
   const baseDir = makeTmpDir();
   const planningDir = makePlanningDir(baseDir);
 
-  const futureState = {
-    schemaVersion: '2.0',
-    lastEmittedAt: new Date().toISOString(),
-    lastSourceHash: 'abc123',
-    lastIR: {},
-    pendingIngest: [],
-  };
-  fs.writeFileSync(
-    path.join(planningDir, '.context-sync-state.json'),
-    JSON.stringify(futureState, null, 2),
-    'utf-8'
-  );
+  const statePath = path.join(planningDir, '.context-sync-state.json');
+  fs.writeFileSync(statePath, JSON.stringify({ schemaVersion: '2.0', lastIR: {} }), 'utf-8');
 
   const result = readStateFile(planningDir);
-  assert.equal(result, null, 'readStateFile must return null for schemaVersion "2.0" (forward-compat guard)');
+  assert.equal(result, null, 'readStateFile() must return null for schemaVersion "2.0"');
+});
+
+// ─── SYN-02: computeLoopBreak ─────────────────────────────────────────────────
+
+test("SYN-02: computeLoopBreak() returns 'skip' when embedded hash matches current hash", () => {
+  const baseDir = makeTmpDir();
+  const planningDir = makePlanningDir(baseDir);
+
+  const currentHash = computeSourceHash(planningDir);
+  const content = `<!-- PDE-GENERATED | hash:${currentHash} | generated:2026-01-01T00:00:00.000Z -->`;
+
+  const result = computeLoopBreak(content, planningDir);
+  assert.equal(result, 'skip', "must return 'skip' when embedded hash matches current source hash");
+});
+
+test("SYN-02: computeLoopBreak() returns 'proceed' when embedded hash differs from current hash", () => {
+  const baseDir = makeTmpDir();
+  const planningDir = makePlanningDir(baseDir);
+
+  const wrongHash = 'a'.repeat(64);
+  const content = `<!-- PDE-GENERATED | hash:${wrongHash} | generated:2026-01-01T00:00:00.000Z -->`;
+
+  const result = computeLoopBreak(content, planningDir);
+  assert.equal(result, 'proceed', "must return 'proceed' when embedded hash differs from current hash");
+});
+
+test("SYN-02: computeLoopBreak() returns 'skip' when no PDE-GENERATED marker present", () => {
+  const content = '# User Authored File\nNo markers here.';
+
+  const baseDir = makeTmpDir();
+  const planningDir = makePlanningDir(baseDir);
+
+  const result = computeLoopBreak(content, planningDir);
+  assert.equal(result, 'skip', "must return 'skip' when no PDE-GENERATED marker present");
+});
+
+test("SYN-02: computeLoopBreak() returns 'skip' for empty string", () => {
+  const baseDir = makeTmpDir();
+  const planningDir = makePlanningDir(baseDir);
+
+  const result = computeLoopBreak('', planningDir);
+  assert.equal(result, 'skip', "must return 'skip' for empty string content");
+});
+
+test("SYN-02: computeLoopBreak() returns 'skip' for null content", () => {
+  const baseDir = makeTmpDir();
+  const planningDir = makePlanningDir(baseDir);
+
+  const result = computeLoopBreak(null, planningDir);
+  assert.equal(result, 'skip', "must return 'skip' for null content");
+});
+
+test("SYN-02: computeLoopBreak() returns 'skip' for malformed PDE-GENERATED marker (INVALID_NOT_HEX)", () => {
+  const baseDir = makeTmpDir();
+  const planningDir = makePlanningDir(baseDir);
+
+  const content = '<!-- PDE-GENERATED | hash:INVALID_NOT_HEX | generated:2026-01-01T00:00:00.000Z -->';
+
+  const result = computeLoopBreak(content, planningDir);
+  assert.equal(result, 'skip', "must return 'skip' for malformed marker with non-hex hash");
 });

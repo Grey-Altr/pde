@@ -69,6 +69,38 @@ function makeHeader(sourceHash, generatedAt) {
   return `<!-- PDE-GENERATED | hash:${sourceHash} | generated:${generatedAt} -->`;
 }
 
+// ─── Loop-break hash comparison ─────────────────────────────────────────────
+
+/**
+ * Regex to extract the embedded source hash from a PDE-GENERATED comment.
+ * DERIVED from makeHeader() output — not a duplicated magic string.
+ * If makeHeader() format changes, this regex auto-updates.
+ * Matches: <!-- PDE-GENERATED | hash:<64hex> | generated:<ISO> -->
+ */
+const _sampleHeader = makeHeader('0'.repeat(64), '2000-01-01T00:00:00.000Z');
+const _escaped = _sampleHeader
+  .replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  .replace('0'.repeat(64), '([a-f0-9]{64})')
+  .replace('2000-01-01T00:00:00\\.000Z', '([^>]+)');
+const PDE_HASH_RE = new RegExp(_escaped);
+
+/**
+ * Determine whether a changed editor file was written by PDE or by a human/external tool.
+ * Called before any reverse parse operation to prevent emission loops.
+ *
+ * @param {string|null} fileContent - Full content of the changed editor file
+ * @param {string} planningDir - Absolute path to .planning/
+ * @returns {'skip'|'proceed'} 'skip' = PDE-written (no loop); 'proceed' = external edit
+ */
+function computeLoopBreak(fileContent, planningDir) {
+  if (!fileContent) return 'skip'; // Empty or null — not actionable
+  const match = fileContent.match(PDE_HASH_RE);
+  if (!match) return 'skip'; // No valid PDE-GENERATED marker — user-authored or malformed, skip
+  const embeddedHash = match[1];
+  const currentHash = computeSourceHash(planningDir);
+  return embeddedHash === currentHash ? 'skip' : 'proceed';
+}
+
 // ─── Markdown extraction helpers ────────────────────────────────────────────
 
 /**
@@ -942,18 +974,8 @@ function cmdContextSync(cwd, args, raw) {
 // ─── Exports ────────────────────────────────────────────────────────────────
 
 module.exports = {
-  buildContextIR,
-  emitAll,
-  emitAgentsMd,
-  emitCursorRules,
-  emitCursorrules,
-  emitGeminiMd,
-  computeSourceHash,
-  cmdContextSync,
-  oklchToHex,
-  isStitchSource,
-  emitAntigravitySkill,
-  emitDesignMd,
-  writeStateFile,
-  readStateFile,
+  buildContextIR, emitAll, emitAgentsMd, emitCursorRules, emitCursorrules,
+  emitGeminiMd, computeSourceHash, cmdContextSync, oklchToHex,
+  isStitchSource, emitAntigravitySkill, emitDesignMd,
+  writeStateFile, readStateFile, computeLoopBreak,
 };
