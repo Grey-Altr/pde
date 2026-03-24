@@ -165,17 +165,27 @@ test('SYN-04: reconcileOnStart detects file with mtime newer than lastEmittedAt'
   const planningDir = makePlanningDir(tmpDir);
   makeEditorFiles(tmpDir);
 
-  // emitAll writes state file
+  // emitAll writes .mdc files with PDE-GENERATED hash and state file
   emitAll(tmpDir);
 
-  // Touch a .mdc file with a future mtime (10 seconds in the future)
+  // Now modify pde-project.mdc: change the hash to a fake one so
+  // computeLoopBreak returns 'proceed' (different from current source hash)
   const mdcFile = path.join(tmpDir, '.cursor', 'rules', 'pde-project.mdc');
+  const existingContent = fs.readFileSync(mdcFile, 'utf-8');
+  // Replace the real hash with all-zeros to force 'proceed'
+  const modifiedContent = existingContent.replace(
+    /hash:[a-f0-9]{64}/,
+    'hash:' + '0'.repeat(64)
+  );
+  fs.writeFileSync(mdcFile, modifiedContent, 'utf-8');
+
+  // Set future mtime so reconcileOnStart picks it up
   const futureTime = new Date(Date.now() + 10000);
   fs.utimesSync(mdcFile, futureTime, futureTime);
 
   const result = reconcileOnStart(tmpDir);
 
-  assert.ok(result.changesDetected >= 1, 'should detect at least one changed file');
+  assert.ok(result.changesDetected >= 1, 'should detect at least one changed file with different hash');
 });
 
 test('SYN-04: reconcileOnStart calls computeLoopBreak and skips PDE-written files', () => {
