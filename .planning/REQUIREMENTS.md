@@ -9,14 +9,14 @@ Requirements for v0.15 Multi-Editor Integration. Each maps to roadmap phases.
 
 ### Context Generation (CTX)
 
-- [ ] **CTX-01**: PDE generates AGENTS.md at project root with project context, design system summary, and component catalog from .planning/ artifacts
-- [ ] **CTX-02**: PDE generates .cursor/rules/*.mdc files with YAML frontmatter (description, globs, alwaysApply) — pde-project.mdc, pde-design-tokens.mdc, pde-components.mdc, pde-architecture.mdc, pde-pipeline.mdc
-- [ ] **CTX-03**: PDE generates legacy .cursorrules file at project root for backwards compatibility
-- [ ] **CTX-04**: PDE generates hierarchical GEMINI.md files (project root + .planning/ + .planning/design/) with @file imports
-- [ ] **CTX-05**: PDE generates .agent/skills/pde-design/SKILL.md for Antigravity Agent Manager with PDE workflow instructions
+- [x] **CTX-01**: PDE generates AGENTS.md at project root with project context, design system summary, and component catalog from .planning/ artifacts
+- [x] **CTX-02**: PDE generates .cursor/rules/*.mdc files with YAML frontmatter (description, globs, alwaysApply) — pde-project.mdc, pde-design-tokens.mdc, pde-components.mdc, pde-architecture.mdc, pde-pipeline.mdc
+- [x] **CTX-03**: PDE generates legacy .cursorrules file at project root for backwards compatibility
+- [x] **CTX-04**: PDE generates hierarchical GEMINI.md files (project root + .planning/ + .planning/design/) with @file imports
+- [x] **CTX-05**: PDE generates .agent/skills/pde-design/SKILL.md for Antigravity Agent Manager with PDE workflow instructions
 - [ ] **CTX-06**: Context sync engine auto-regenerates all editor files when .planning/ state changes via hook-driven detection
 - [ ] **CTX-07**: /pde:editor-sync command manually regenerates all editor context files on demand
-- [ ] **CTX-08**: Generated context files include hash-based staleness marker for freshness detection
+- [x] **CTX-08**: Generated context files include hash-based staleness marker for freshness detection
 
 ### MCP Server (MCP)
 
@@ -28,9 +28,9 @@ Requirements for v0.15 Multi-Editor Integration. Each maps to roadmap phases.
 
 ### Stitch Bridge (STH)
 
-- [ ] **STH-01**: PDE generates DESIGN.md in Antigravity Design DNA format from DTCG tokens (palette, typography, spacing, component patterns)
-- [ ] **STH-02**: Antigravity-originated Stitch projects detected via manifest metadata (source: "antigravity-stitch")
-- [ ] **STH-03**: Bidirectional artifact flow: PDE design artifacts → Stitch canvas via DESIGN.md, Stitch outputs → PDE critique/handoff via existing STH pipeline
+- [x] **STH-01**: PDE generates DESIGN.md in Antigravity Design DNA format from DTCG tokens (palette, typography, spacing, component patterns)
+- [x] **STH-02**: Antigravity-originated Stitch projects detected via manifest metadata (source: "antigravity-stitch")
+- [x] **STH-03**: Bidirectional artifact flow: PDE design artifacts → Stitch canvas via DESIGN.md, Stitch outputs → PDE critique/handoff via existing STH pipeline
 
 ### Artifact Formatting (FMT)
 
@@ -80,22 +80,22 @@ Requirements for v0.15 Multi-Editor Integration. Each maps to roadmap phases.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CTX-01 | Phase 118 | Pending |
-| CTX-02 | Phase 118 | Pending |
-| CTX-03 | Phase 118 | Pending |
-| CTX-04 | Phase 118 | Pending |
-| CTX-05 | Phase 119 | Pending |
+| CTX-01 | Phase 118 | Complete |
+| CTX-02 | Phase 118 | Complete |
+| CTX-03 | Phase 118 | Complete |
+| CTX-04 | Phase 118 | Complete |
+| CTX-05 | Phase 119 | Complete |
 | CTX-06 | Phase 123 | Pending |
 | CTX-07 | Phase 123 | Pending |
-| CTX-08 | Phase 118 | Pending |
+| CTX-08 | Phase 118 | Complete |
 | MCP-01 | Phase 121 | Pending |
 | MCP-02 | Phase 121 | Pending |
 | MCP-03 | Phase 121 | Pending |
 | MCP-04 | Phase 121 | Pending |
 | MCP-05 | Phase 121 | Pending |
-| STH-01 | Phase 119 | Pending |
-| STH-02 | Phase 119 | Pending |
-| STH-03 | Phase 119 | Pending |
+| STH-01 | Phase 119 | Complete |
+| STH-02 | Phase 119 | Complete |
+| STH-03 | Phase 119 | Complete |
 | FMT-01 | Phase 120 | Pending |
 | FMT-02 | Phase 120 | Pending |
 | FMT-03 | Phase 120 | Pending |
