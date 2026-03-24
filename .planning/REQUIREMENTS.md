@@ -14,7 +14,7 @@ Requirements for v0.14 Visual AutoResearch. Each maps to roadmap phases.
 - [x] **PLAY-03**: AUTH_INSTRUCTIONS entry with `claude mcp add playwright` install command including `--headless` and `--allow-unrestricted-file-access` flags
 - [x] **PLAY-04**: Live tool name verification confirms mcp__playwright__* prefix matches actual registered names
 - [x] **PLAY-05**: Probe/degrade contract — graceful fallback when Playwright MCP not installed
-- [ ] **PLAY-06**: mcp-integration.md updated with Playwright enhancement recipe and 7-server probe/degrade table
+- [x] **PLAY-06**: mcp-integration.md updated with Playwright enhancement recipe and 7-server probe/degrade table
 - [x] **PLAY-07**: `--allow-unrestricted-file-access` flag documented for file:// wireframe/mockup access
 
 ### Wireframe Screenshots (WFR)
@@ -169,7 +169,7 @@ Requirements for v0.14 Visual AutoResearch. Each maps to roadmap phases.
 | PLAY-03 | Phase 108 | Complete |
 | PLAY-04 | Phase 108 | Complete |
 | PLAY-05 | Phase 108 | Complete |
-| PLAY-06 | Phase 108 | Pending |
+| PLAY-06 | Phase 108 | Complete |
 | PLAY-07 | Phase 108 | Complete |
 | WFR-01 | Phase 109 | Complete |
 | WFR-02 | Phase 109 | Complete |
