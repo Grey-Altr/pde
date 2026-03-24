@@ -26,6 +26,9 @@ const { safeReadFile, output, error } = require('./core.cjs');
 const WRITABLE_FIELDS = ['techStack', 'constraints', 'componentCatalog', 'designTokens'];
 const VALID_POLICIES = ['planning-wins', 'editor-wins', 'prompt'];
 
+// AGR-05: Marker delineating PDE-generated content from agent-written additions
+const AGENT_MARKER = '<!-- AGENT-ADDITIONS: DO NOT EDIT THIS LINE -->';
+
 // ─── Monitored editor output files (SYN-04, CUR-03) ─────────────────────────
 // All editor output paths tracked for reverse-sync mtime detection
 const MONITORED_FILES = [
@@ -730,8 +733,22 @@ function emitAntigravitySkill(ir, projectRoot) {
   const skillDir = path.join(projectRoot, '.agent', 'skills', 'pde-design');
   fs.mkdirSync(skillDir, { recursive: true });
 
+  const skillPath = path.join(skillDir, 'SKILL.md');
+
+  // AGR-05: Read existing agent additions before regeneration
+  let agentBlock = '';
+  try {
+    const existing = fs.readFileSync(skillPath, 'utf-8');
+    const markerIdx = existing.indexOf(AGENT_MARKER);
+    if (markerIdx !== -1) {
+      agentBlock = existing.slice(markerIdx + AGENT_MARKER.length);
+    }
+  } catch {
+    // File doesn't exist yet -- no agent additions to preserve
+  }
+
   const header = makeHeader(ir.sourceHash, ir.generatedAt);
-  const content = [
+  let content = [
     header,
     '---',
     'name: pde-design',
@@ -767,7 +784,13 @@ function emitAntigravitySkill(ir, projectRoot) {
     '',
   ].join('\n');
 
-  fs.writeFileSync(path.join(skillDir, 'SKILL.md'), content, 'utf-8');
+  // AGR-05: ALWAYS append marker, then any preserved agent content
+  content += '\n' + AGENT_MARKER + '\n';
+  if (agentBlock) {
+    content += agentBlock;
+  }
+
+  fs.writeFileSync(skillPath, content, 'utf-8');
   return { written: true, path: '.agent/skills/pde-design/SKILL.md' };
 }
 
