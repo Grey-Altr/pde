@@ -282,6 +282,118 @@ test("AGR-04: emitDesignMd placeholder output contains SOURCE comment (Research 
   );
 });
 
+// ─── CUR-05: Per-field conflict resolution policies ──────────────────────────
+
+test("CUR-05: editor-wins policy resolves conflict with editor value", function () {
+  const tmpDir = makeTmpDir();
+  const planningDir = makePlanningDir(tmpDir);
+
+  const base = { techStack: 'A', constraints: '', componentCatalog: '', designTokens: '' };
+  const editor = { techStack: 'B' };
+  const current = { techStack: 'C', constraints: '', componentCatalog: '', designTokens: '' };
+  const { merged, conflicts } = mergePartialIR(base, editor, current, {
+    planningDir: planningDir,
+    source: 'test',
+    fieldPolicies: { techStack: 'editor-wins' },
+  });
+  assert.equal(merged.techStack, 'B', 'editor-wins: merged value must be editor value');
+  assert.equal(conflicts[0].policy, 'editor-wins', 'policy must be "editor-wins"');
+  assert.equal(conflicts[0].resolvedValue, 'B', 'resolvedValue must equal editor value');
+});
+
+test("CUR-05: prompt policy defers resolution with pendingResolution flag", function () {
+  const tmpDir = makeTmpDir();
+  const planningDir = makePlanningDir(tmpDir);
+
+  const base = { techStack: '', constraints: 'A', componentCatalog: '', designTokens: '' };
+  const editor = { constraints: 'B' };
+  const current = { techStack: '', constraints: 'C', componentCatalog: '', designTokens: '' };
+  const { merged, conflicts } = mergePartialIR(base, editor, current, {
+    planningDir: planningDir,
+    source: 'test',
+    fieldPolicies: { constraints: 'prompt' },
+  });
+  assert.equal(merged.constraints, 'C', 'prompt policy: planning value used as placeholder');
+  assert.equal(conflicts[0].policy, 'prompt', 'policy must be "prompt"');
+  assert.equal(conflicts[0].pendingResolution, true, 'pendingResolution must be true for prompt policy');
+});
+
+test("CUR-05: mixed policies -- different fields use different policies in same merge", function () {
+  const tmpDir = makeTmpDir();
+  const planningDir = makePlanningDir(tmpDir);
+
+  const base = { techStack: 'A', constraints: 'X', componentCatalog: '', designTokens: '' };
+  const editor = { techStack: 'B', constraints: 'Y' };
+  const current = { techStack: 'C', constraints: 'Z', componentCatalog: '', designTokens: '' };
+  const { merged, conflicts } = mergePartialIR(base, editor, current, {
+    planningDir: planningDir,
+    source: 'test',
+    fieldPolicies: { techStack: 'editor-wins', constraints: 'planning-wins' },
+  });
+  assert.equal(merged.techStack, 'B', 'editor-wins: techStack must be editor value');
+  assert.equal(merged.constraints, 'Z', 'planning-wins: constraints must be planning value');
+  assert.equal(conflicts.length, 2, 'two conflicts for two conflicting fields');
+});
+
+test("CUR-05: missing fieldPolicies defaults to planning-wins", function () {
+  const tmpDir = makeTmpDir();
+  const planningDir = makePlanningDir(tmpDir);
+
+  // No contextSync in config.json (the planning dir has no config.json)
+  const base = { techStack: 'A', constraints: '', componentCatalog: '', designTokens: '' };
+  const editor = { techStack: 'B' };
+  const current = { techStack: 'C', constraints: '', componentCatalog: '', designTokens: '' };
+  const { merged, conflicts } = mergePartialIR(base, editor, current, {
+    planningDir: planningDir,
+    source: 'test',
+    // No fieldPolicies
+  });
+  assert.equal(merged.techStack, 'C', 'no fieldPolicies: planning-wins applied');
+  assert.equal(conflicts[0].policy, 'planning-wins', 'policy must be "planning-wins" when missing');
+});
+
+test("CUR-05: invalid policy name defaults to planning-wins", function () {
+  const tmpDir = makeTmpDir();
+  const planningDir = makePlanningDir(tmpDir);
+
+  const base = { techStack: 'A', constraints: '', componentCatalog: '', designTokens: '' };
+  const editor = { techStack: 'B' };
+  const current = { techStack: 'C', constraints: '', componentCatalog: '', designTokens: '' };
+  const { merged, conflicts } = mergePartialIR(base, editor, current, {
+    planningDir: planningDir,
+    source: 'test',
+    fieldPolicies: { techStack: 'invalid-policy' },
+  });
+  assert.equal(merged.techStack, 'C', 'invalid policy: planning-wins applied as default');
+  assert.equal(conflicts[0].policy, 'planning-wins', 'policy must be "planning-wins" for invalid policy name');
+});
+
+// ─── CUR-05: designTokens format reconciliation (Finding 2) ──────────────────
+
+test("CUR-05: designTokens normalization prevents false conflict when same colors in different formats", function () {
+  const tmpDir = makeTmpDir();
+  const planningDir = makePlanningDir(tmpDir);
+
+  const base = { designTokens: 'Token summary: **Primary** (#3b82f6), **Secondary** (#64748b)', techStack: '', constraints: '', componentCatalog: '' };
+  const editor = { designTokens: '- **Primary** (#3b82f6) -- primary color role\n- **Secondary** (#64748b) -- secondary color role' };
+  const current = { designTokens: 'Token summary: **Primary** (#3b82f6), **Secondary** (#64748b)', techStack: '', constraints: '', componentCatalog: '' };
+  const { conflicts } = mergePartialIR(base, editor, current, { planningDir: planningDir, source: 'test' });
+  assert.equal(conflicts.length, 0, 'same colors in different formats must not produce a conflict');
+});
+
+test("CUR-05: designTokens normalization detects real color change through format differences", function () {
+  const tmpDir = makeTmpDir();
+  const planningDir = makePlanningDir(tmpDir);
+
+  const base = { designTokens: 'Token summary: **Primary** (#3b82f6)', techStack: '', constraints: '', componentCatalog: '' };
+  const editor = { designTokens: '- **Primary** (#ff0000) -- changed color' };
+  const current = { designTokens: 'Token summary: **Primary** (#3b82f6)', techStack: '', constraints: '', componentCatalog: '' };
+  const { merged, conflicts } = mergePartialIR(base, editor, current, { planningDir: planningDir, source: 'test' });
+  // Only editor changed (current == base), so editor wins (no conflict)
+  assert.equal(merged.designTokens, '- **Primary** (#ff0000) -- changed color', 'editor value wins when only editor changed (real color change)');
+  assert.equal(conflicts.length, 0, 'only editor changed -- no conflict, editor value adopted');
+});
+
 // ─── Finding 1: parseMdcContent pde-architecture.mdc extracts BOTH fields ─────
 
 test("Finding 1: parseMdcContent for pde-architecture.mdc extracts both techStack AND constraints", () => {
