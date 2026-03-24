@@ -226,7 +226,7 @@ Plans:
   5. Users can suppress known-acceptable divergences via a .pde-divergence-ignore file
 **Plans**: 2 plans
 Plans:
-- [ ] 122-01-PLAN.md — TDD: divergence.cjs module with T1/T2/T3 detection, ignore list, report builder
+- [x] 122-01-PLAN.md — TDD: divergence.cjs module with T1/T2/T3 detection, ignore list, report builder
 - [ ] 122-02-PLAN.md — Command/workflow wiring + human verification
 
 ### Phase 123: Context Sync Engine

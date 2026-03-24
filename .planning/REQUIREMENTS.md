@@ -40,12 +40,12 @@ Requirements for v0.15 Multi-Editor Integration. Each maps to roadmap phases.
 
 ### Divergence Detection (DIV)
 
-- [ ] **DIV-01**: T1 structural detection — glob-based check that handoff-declared components exist in codebase
-- [ ] **DIV-02**: T2 content detection — regex-based interface parsing comparing prop names/types against handoff specs
-- [ ] **DIV-03**: T3 behavioral detection — grep-based check that components use specified design tokens and patterns
-- [ ] **DIV-04**: DIVERGENCE.md output with per-component status (ALIGNED, DRIFTED, MISSING, EXTRA)
+- [x] **DIV-01**: T1 structural detection — glob-based check that handoff-declared components exist in codebase
+- [x] **DIV-02**: T2 content detection — regex-based interface parsing comparing prop names/types against handoff specs
+- [x] **DIV-03**: T3 behavioral detection — grep-based check that components use specified design tokens and patterns
+- [x] **DIV-04**: DIVERGENCE.md output with per-component status (ALIGNED, DRIFTED, MISSING, EXTRA)
 - [ ] **DIV-05**: /pde:check-divergence command triggers detection on demand
-- [ ] **DIV-06**: .pde-divergence-ignore file for suppressing known-acceptable divergences
+- [x] **DIV-06**: .pde-divergence-ignore file for suppressing known-acceptable divergences
 
 ## Future Requirements
 
@@ -99,12 +99,12 @@ Requirements for v0.15 Multi-Editor Integration. Each maps to roadmap phases.
 | FMT-01 | Phase 120 | Complete |
 | FMT-02 | Phase 120 | Complete |
 | FMT-03 | Phase 120 | Complete |
-| DIV-01 | Phase 122 | Pending |
-| DIV-02 | Phase 122 | Pending |
-| DIV-03 | Phase 122 | Pending |
-| DIV-04 | Phase 122 | Pending |
+| DIV-01 | Phase 122 | Complete |
+| DIV-02 | Phase 122 | Complete |
+| DIV-03 | Phase 122 | Complete |
+| DIV-04 | Phase 122 | Complete |
 | DIV-05 | Phase 122 | Pending |
-| DIV-06 | Phase 122 | Pending |
+| DIV-06 | Phase 122 | Complete |
 
 **Coverage:**
 - v0.15 requirements: 25 total

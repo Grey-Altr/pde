@@ -1,15 +1,15 @@
 ---
-pde_state_version: 1.0
+gsd_state_version: 1.0
 milestone: v0.15
 milestone_name: Multi-Editor Integration
 status: unknown
-stopped_at: Completed 121-01-PLAN.md
-last_updated: "2026-03-24T04:53:06.144Z"
+stopped_at: Completed 122-01-PLAN.md
+last_updated: "2026-03-24T05:13:00.460Z"
 progress:
   total_phases: 7
   completed_phases: 4
-  total_plans: 8
-  completed_plans: 8
+  total_plans: 10
+  completed_plans: 9
 ---
 
 # Project State
@@ -19,11 +19,11 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 121 — mcp-server
+**Current focus:** Phase 122 — divergence-detection
 
 ## Current Position
 
-Phase: 121
+Phase: 122
 Plan: 01 (complete)
 
 ## Performance Metrics
@@ -60,6 +60,8 @@ Recent decisions affecting v0.15 planning:
 - [Phase 120]: generateCssVarsFromTheme reuses dtcgToThemeLines for :root companion block with same variable names as @theme
 - [Phase 121-mcp-server]: CJS handlers.cjs pattern: all handler logic in plain CJS for direct test import without TypeScript compilation; TypeScript index.ts wraps via createRequire
 - [Phase 121-mcp-server]: discover.cjs provided alongside discover.ts so tests import CJS directly without build step
+- [Phase 122]: Brace-counting interface body extraction handles nested generics (MouseEvent<HTMLButtonElement>)
+- [Phase 122]: loadHandoffSpecs handles per-file read errors gracefully with stderr log + continue (no abort)
 
 ### Pending Todos
 
@@ -72,6 +74,6 @@ Recent decisions affecting v0.15 planning:
 
 ## Session Continuity
 
-Last session: 2026-03-24T04:45:51.768Z
-Stopped at: Completed 121-01-PLAN.md
+Last session: 2026-03-24T05:13:00.456Z
+Stopped at: Completed 122-01-PLAN.md
 Resume file: None
