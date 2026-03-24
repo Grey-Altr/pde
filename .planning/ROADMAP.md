@@ -147,7 +147,7 @@ Full details: .planning/milestones/v0.14-ROADMAP.md
 
 - [x] **Phase 118: Context Sync Core** — IR builder + AGENTS.md + Cursor .mdc + GEMINI.md generators with hash-based freshness (completed 2026-03-24)
 - [x] **Phase 119: Antigravity Context + Stitch Bridge** — Antigravity emitter + DESIGN.md from DTCG tokens + Stitch bidirectional artifact flow + skills export (completed 2026-03-24)
-- [ ] **Phase 120: Artifact Formatting** — @file annotations in handoff specs, DTCG-to-Tailwind v4 conversion, framework-detected component stubs
+- [x] **Phase 120: Artifact Formatting** — @file annotations in handoff specs, DTCG-to-Tailwind v4 conversion, framework-detected component stubs (completed 2026-03-24)
 - [ ] **Phase 121: MCP Server** — Isolated TypeScript package with 10 read-only tools, npx distribution, pipeline resource
 - [ ] **Phase 122: Divergence Detection** — 3-tier handoff-vs-code drift detection with DIVERGENCE.md output and ignore mechanism
 - [ ] **Phase 123: Context Sync Engine** — Hook-driven auto-regeneration + /pde:editor-sync manual command
@@ -193,7 +193,7 @@ Plans:
   1. Handoff specs include @file annotations (@component:, @props:, @tokens:) that any editor can extract to locate related artifacts
   2. DTCG design tokens are converted to both Tailwind v4 @theme declarations and CSS custom properties
   3. Framework detection reads package.json and generates framework-appropriate component stubs (React + Tailwind as default, adapting to detected framework)
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 Plans:
 - [x] 120-01-PLAN.md — TDD: artifact-format.cjs module with @file annotations, DTCG-to-Tailwind @theme, framework detection + stubs
 - [ ] 120-02-PLAN.md — Wire into handoff pipeline + human verification
