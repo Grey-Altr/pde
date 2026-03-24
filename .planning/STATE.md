@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.16
 milestone_name: Multi-Editor Context Sync
-status: Ready to plan
-stopped_at: Completed 128-02-PLAN.md
-last_updated: "2026-03-24T20:10:59.790Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 129-02-PLAN.md
+last_updated: "2026-03-24T20:41:17.744Z"
 progress:
   total_phases: 7
   completed_phases: 3
   total_plans: 10
-  completed_plans: 6
+  completed_plans: 7
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 128 — merge-engine
+**Current focus:** Phase 129 — hook-integration
 
 ## Current Position
 
-Phase: 129
-Plan: Not started
+Phase: 129 (hook-integration) — EXECUTING
+Plan: 2 of 2
 
 ## Performance Metrics
 
@@ -59,6 +59,11 @@ Recent decisions affecting v0.16 implementation:
 - [Phase 128]: Test 12 fixture corrected to canonical .mdc format (frontmatter first, then PDE-GENERATED comment) — real architecture .mdc files use D-07 backward compat (no PDE:BEGIN/END)
 - [Phase 128]: mergePartialIR planning-wins default: resolvedValue === planningValue on true conflict, conflict logged to .sync-conflicts.log as NDJSON
 - [Phase 128]: readFieldPolicy checks opts.fieldPolicies override before config.json; prompt policy sets pendingResolution=true; designTokens normalization applied before editorChanged comparison
+- [Phase 129]: replaceSectionInFile uses regex to locate ## heading and replace body — returns false (not throw) when section not found
+- [Phase 129]: reconcileOnStart calls computeLoopBreak BEFORE parsing any changed file — files without PDE-GENERATED header also return skip
+- [Phase 129]: ingestAll processes pendingIngest queue before emitAll to prevent emitAll pendingIngest reset from losing queued items
+- [Phase 129]: scanMonitoredFiles uses GRACE_MS=500ms to avoid false positives from near-simultaneous PDE writes and DEBOUNCE_MS=200ms to prevent double-queueing
+- [Phase 129]: handleHookPayload calls ingestAll (not plain emitAll) when mtime changes detected; context-sync-session-start.cjs produces zero stdout per SessionStart contract
 
 ### Pending Todos
 
@@ -71,8 +76,8 @@ Recent decisions affecting v0.16 implementation:
 
 ## Session Continuity
 
-Last session: 2026-03-24T20:07:18.092Z
-Stopped at: Completed 128-02-PLAN.md
+Last session: 2026-03-24T20:41:17.741Z
+Stopped at: Completed 129-02-PLAN.md
 Resume with: /gsd:discuss-phase 127
 Resume file: None
 

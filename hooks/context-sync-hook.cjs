@@ -73,18 +73,71 @@ function handleHookPayload(hookData, opts) {
     // 8. Skip if hash unchanged (idempotency gate)
     if (currentHash === lastHash) return;
 
-    // 9. Regenerate all editor context files (injected for testing; default: real emitAll)
-    const emitAll = (opts && opts.emitAllFn)
-      ? opts.emitAllFn
-      : require('../bin/lib/context-sync.cjs').emitAll;
-    emitAll(cwd);
+    // 9. Phase 129: scan monitored files for mtime changes before deciding emitAll vs ingestAll
+    var contextSyncMod = require('../bin/lib/context-sync.cjs');
+    var state = contextSyncMod.readStateFile(planningDir);
+    var changed = scanMonitoredFiles(cwd, state);
+
+    if (changed.length > 0) {
+      // Editor files changed — ingestAll processes queue, merges, and calls emitAll internally
+      var doIngest = (opts && opts.ingestAllFn) ? opts.ingestAllFn : contextSyncMod.ingestAll;
+      doIngest(cwd);
+    } else {
+      // No editor changes — plain emitAll
+      var doEmit = (opts && opts.emitAllFn) ? opts.emitAllFn : contextSyncMod.emitAll;
+      doEmit(cwd);
+    }
 
     // 10. Write new hash to marker file
     fs.writeFileSync(markerPath, currentHash, 'utf-8');
   } catch { /* swallow all errors — hook failures must never affect Claude Code execution */ }
 }
 
-module.exports = { handleHookPayload };
+// ─── scanMonitoredFiles ───────────────────────────────────────────────────────
+
+var GRACE_MS = 500;
+var DEBOUNCE_MS = 200;
+
+/**
+ * Scan MONITORED_FILES for files with mtime newer than lastEmittedAt + GRACE_MS.
+ * Applies debounce: skips files already in pendingIngest within DEBOUNCE_MS.
+ * Returns array of { path, detectedAt } for changed files.
+ *
+ * @param {string} cwd - Project root directory
+ * @param {object|null} state - Parsed state file or null
+ * @returns {Array<{path: string, detectedAt: string}>}
+ */
+function scanMonitoredFiles(cwd, state) {
+  var contextSync = require('../bin/lib/context-sync.cjs');
+  var monitoredFiles = contextSync.MONITORED_FILES;
+  var lastEmitted = state && state.lastEmittedAt
+    ? new Date(state.lastEmittedAt).getTime() : 0;
+  var pendingIngest = (state && state.pendingIngest) || [];
+  var changed = [];
+
+  for (var i = 0; i < monitoredFiles.length; i++) {
+    var entry = monitoredFiles[i];
+    var absPath = path.join(cwd, entry.path);
+    var stat;
+    try { stat = fs.statSync(absPath); } catch { continue; }
+
+    // Skip files within grace period
+    if (stat.mtimeMs <= lastEmitted + GRACE_MS) continue;
+
+    // Debounce: skip if already queued in pendingIngest within 200ms
+    var now = Date.now();
+    var alreadyQueued = pendingIngest.some(function(e) {
+      return e.path === entry.path &&
+        (now - new Date(e.detectedAt).getTime()) < DEBOUNCE_MS;
+    });
+    if (alreadyQueued) continue;
+
+    changed.push({ path: entry.path, detectedAt: new Date().toISOString() });
+  }
+  return changed;
+}
+
+module.exports = { handleHookPayload, scanMonitoredFiles };
 
 // ─── Stdin reader (production entry point) ───────────────────────────────────
 

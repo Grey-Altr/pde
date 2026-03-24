@@ -5,14 +5,14 @@
 - [x] **SYN-01**: Context sync state file (.planning/.context-sync-state.json) records last IR snapshot, emission timestamp, and source hash — written atomically by emitAll(), excluded from computeSourceHash(), git-ignored
 - [x] **SYN-02**: Loop-break via PDE-GENERATED hash comparison — when editor file change detected, compare embedded hash against current source hash; if match, skip reverse sync (PDE wrote it); if differ, proceed to parse
 - [x] **SYN-03**: IR snapshot stored in state file as 3-way merge base — captures writable IR fields (techStack, constraints, componentCatalog, designTokens) post-emission for conflict detection
-- [ ] **SYN-04**: Session-start reconciliation sweep — on SessionStart hook, scan monitored editor files for mtime newer than lastEmittedAt; queue changed files for reverse parse; log to sync-reconciliation.log; complete in <500ms
-- [ ] **SYN-05**: `pde context-sync --ingest` CLI command — full scan of all monitored editor files, parse if changed, merge, write-back to .planning/; summary output with file/change/conflict counts; idempotent
+- [x] **SYN-04**: Session-start reconciliation sweep — on SessionStart hook, scan monitored editor files for mtime newer than lastEmittedAt; queue changed files for reverse parse; log to sync-reconciliation.log; complete in <500ms
+- [x] **SYN-05**: `pde context-sync --ingest` CLI command — full scan of all monitored editor files, parse if changed, merge, write-back to .planning/; summary output with file/change/conflict counts; idempotent
 
 ## CUR — Cursor Bidirectional Sync
 
 - [x] **CUR-01**: .mdc reverse parser — extract YAML frontmatter (description, globs, alwaysApply) from .cursor/rules/pde-*.mdc files using regex; skip files without PDE-GENERATED marker; strip inline comments; log parse errors without throwing
 - [x] **CUR-02**: .mdc PDE-owned section extraction — content between `<!-- PDE:BEGIN -->` / `<!-- PDE:END -->` markers is PDE-parseable; content outside is user-authored (preserved, never written back); maps pde-project.mdc Conventions to constraints IR, pde-architecture.mdc Tech Stack to techStack IR
-- [ ] **CUR-03**: Live mtime change detection — hook-triggered scan of .mdc files during .planning/ writes; compare mtime against lastEmittedAt + 500ms grace; debounce 200ms; queue in state file pendingIngest; zero stdout; <10ms overhead
+- [x] **CUR-03**: Live mtime change detection — hook-triggered scan of .mdc files during .planning/ writes; compare mtime against lastEmittedAt + 500ms grace; debounce 200ms; queue in state file pendingIngest; zero stdout; <10ms overhead
 - [x] **CUR-04**: Conflict detection — 3-way merge using lastIR as base: if both PDE and editor changed same field to different values, log conflict to .sync-conflicts.log (NDJSON) with both values; auto-resolve when only one side changed
 - [x] **CUR-05**: Conflict resolution — planning-wins default policy; configurable per-field in config.json contextSync.fieldPolicies; editor-wins overwrites .planning/ value; prompt policy defers resolution and blocks emitAll(); policy read at ingest start
 - [ ] **CUR-06**: Enhanced .mdc generation — `<!-- PDE:BEGIN -->` / `<!-- PDE:END -->` section markers in each .mdc body; user content below PDE:END preserved across regeneration; improved globs (**.{css,scss,tsx,jsx,ts} for tokens, **.{tsx,jsx,stories.tsx,test.tsx} for components); inline examples in pde-project.mdc
@@ -45,11 +45,11 @@
 | SYN-01 | Phase 126 | Complete |
 | SYN-02 | Phase 126 | Complete |
 | SYN-03 | Phase 126 | Complete |
-| SYN-04 | Phase 129 | Pending |
-| SYN-05 | Phase 129 | Pending |
+| SYN-04 | Phase 129 | Complete |
+| SYN-05 | Phase 129 | Complete |
 | CUR-01 | Phase 127 | Complete |
 | CUR-02 | Phase 127 | Complete |
-| CUR-03 | Phase 129 | Pending |
+| CUR-03 | Phase 129 | Complete |
 | CUR-04 | Phase 128 | Complete |
 | CUR-05 | Phase 128 | Complete |
 | CUR-06 | Phase 132 | Pending |
