@@ -567,3 +567,150 @@ test("CUR-06-6: emitCursorRules produces pde-components.mdc with glob **.{tsx,js
     `pde-components.mdc glob should be **.{tsx,jsx,stories.tsx,test.tsx}, got: ${componentsMdc.slice(0, 200)}`
   );
 });
+
+// ─── AGR-06: emitAntigravitySkill enhancements ────────────────────────────────
+
+test("AGR-06-1: emitAntigravitySkill output contains <!-- pde-skill-version: 1.0 --> after PDE-GENERATED header", () => {
+  const baseDir = makeTmpDir();
+  const planningDir = makePlanningDir(baseDir);
+
+  const ir = {
+    projectName: 'Test', productType: 'web', techStack: 'React', projectSummary: 'Test',
+    designTokens: '', componentCatalog: '', pipelineStatus: '', constraints: 'Use hex colors',
+    sourceHash: 'a'.repeat(64), generatedAt: '2026-03-24T00:00:00.000Z',
+  };
+
+  emitAntigravitySkill(ir, baseDir, planningDir);
+
+  const skillPath = path.join(baseDir, '.agent', 'skills', 'pde-design', 'SKILL.md');
+  const content = fs.readFileSync(skillPath, 'utf-8');
+
+  assert.ok(content.includes('<!-- pde-skill-version: 1.0 -->'), 'SKILL.md should contain pde-skill-version: 1.0 marker');
+
+  // Must appear after PDE-GENERATED header
+  const headerIdx = content.indexOf('<!-- PDE-GENERATED');
+  const versionIdx = content.indexOf('<!-- pde-skill-version: 1.0 -->');
+  assert.ok(versionIdx > headerIdx, 'pde-skill-version should appear after PDE-GENERATED header');
+});
+
+test("AGR-06-2: emitAntigravitySkill SKILL.md output contains ## Workflows section", () => {
+  const baseDir = makeTmpDir();
+  const planningDir = makePlanningDir(baseDir);
+
+  const ir = {
+    projectName: 'Test', productType: 'web', techStack: 'React', projectSummary: 'Test',
+    designTokens: '', componentCatalog: '', pipelineStatus: '', constraints: '',
+    sourceHash: 'b'.repeat(64), generatedAt: '2026-03-24T00:00:00.000Z',
+  };
+
+  emitAntigravitySkill(ir, baseDir, planningDir);
+
+  const skillPath = path.join(baseDir, '.agent', 'skills', 'pde-design', 'SKILL.md');
+  const content = fs.readFileSync(skillPath, 'utf-8');
+
+  assert.ok(content.includes('## Workflows'), 'SKILL.md should contain ## Workflows section');
+});
+
+test("AGR-06-3: extractWorkflows with DESIGN-STATE.md containing SYS marker returns [x] System Tokens", () => {
+  const baseDir = makeTmpDir();
+  const planningDir = makePlanningDir(baseDir);
+
+  // Write a DESIGN-STATE.md with a Domain Files table row containing SYS
+  const designStateContent = `# DESIGN-STATE\n\n## Domain Files\n\n| Domain | File | Artifacts | Last Updated |\n|--------|------|-----------|----------|\n| ux | SYS-domain.md | SYS | 2026-03-24 |\n`;
+  fs.writeFileSync(path.join(planningDir, 'design', 'DESIGN-STATE.md'), designStateContent, 'utf-8');
+
+  const result = extractWorkflows(planningDir);
+  assert.ok(result.includes('[x] System Tokens'), `should show [x] for SYS stage, got: ${result}`);
+});
+
+test("AGR-06-4: extractWorkflows returns 'Design pipeline not yet initialized.' when DESIGN-STATE.md is empty", () => {
+  const baseDir = makeTmpDir();
+  const planningDir = makePlanningDir(baseDir);
+
+  // DESIGN-STATE.md is empty (makePlanningDir writes empty string)
+  const result = extractWorkflows(planningDir);
+  assert.equal(result, 'Design pipeline not yet initialized.', 'empty DESIGN-STATE should return not-initialized message');
+});
+
+test("AGR-06-5: SKILL.md Constraints section contains ir.constraints value not hardcoded lines", () => {
+  const baseDir = makeTmpDir();
+  const planningDir = makePlanningDir(baseDir);
+
+  const customConstraints = 'Always use TypeScript strict mode\nPrefer functional components\n';
+  const ir = {
+    projectName: 'Test', productType: 'web', techStack: 'React', projectSummary: 'Test',
+    designTokens: '', componentCatalog: '', pipelineStatus: '', constraints: customConstraints,
+    sourceHash: 'c'.repeat(64), generatedAt: '2026-03-24T00:00:00.000Z',
+  };
+
+  emitAntigravitySkill(ir, baseDir, planningDir);
+
+  const skillPath = path.join(baseDir, '.agent', 'skills', 'pde-design', 'SKILL.md');
+  const content = fs.readFileSync(skillPath, 'utf-8');
+
+  assert.ok(content.includes('Always use TypeScript strict mode'), 'SKILL.md should contain ir.constraints');
+  assert.ok(content.includes('Prefer functional components'), 'SKILL.md should contain ir.constraints');
+  // Should NOT have the old hardcoded constraint
+  assert.ok(!content.includes('Use hex color values from DESIGN.md, not raw OKLCH'), 'should not have old hardcoded constraints');
+});
+
+test("AGR-06-6: SKILL.md Instructions references design-manifest.json not SYS-tokens.json", () => {
+  const baseDir = makeTmpDir();
+  const planningDir = makePlanningDir(baseDir);
+
+  const ir = {
+    projectName: 'Test', productType: 'web', techStack: 'React', projectSummary: 'Test',
+    designTokens: '', componentCatalog: '', pipelineStatus: '', constraints: '',
+    sourceHash: 'd'.repeat(64), generatedAt: '2026-03-24T00:00:00.000Z',
+  };
+
+  emitAntigravitySkill(ir, baseDir, planningDir);
+
+  const skillPath = path.join(baseDir, '.agent', 'skills', 'pde-design', 'SKILL.md');
+  const content = fs.readFileSync(skillPath, 'utf-8');
+
+  assert.ok(content.includes('design-manifest.json'), 'SKILL.md Instructions should reference design-manifest.json');
+  assert.ok(!content.includes('SYS-tokens.json'), 'SKILL.md should not reference old SYS-tokens.json path');
+});
+
+test("AGR-06-7: emitAntigravitySkill accepts planningDir as third argument without error", () => {
+  const baseDir = makeTmpDir();
+  const planningDir = makePlanningDir(baseDir);
+
+  const ir = {
+    projectName: 'Test', productType: 'web', techStack: 'React', projectSummary: 'Test',
+    designTokens: '', componentCatalog: '', pipelineStatus: '', constraints: '',
+    sourceHash: 'e'.repeat(64), generatedAt: '2026-03-24T00:00:00.000Z',
+  };
+
+  assert.doesNotThrow(() => {
+    emitAntigravitySkill(ir, baseDir, planningDir);
+  }, 'emitAntigravitySkill should accept planningDir as third argument without throwing');
+});
+
+test("AGR-06-8: SKILL.md agent additions below AGENT_MARKER are preserved after enhancement", () => {
+  const baseDir = makeTmpDir();
+  const planningDir = makePlanningDir(baseDir);
+  const skillPath = path.join(baseDir, '.agent', 'skills', 'pde-design', 'SKILL.md');
+
+  const ir = {
+    projectName: 'Test', productType: 'web', techStack: 'React', projectSummary: 'Test',
+    designTokens: '', componentCatalog: '', pipelineStatus: '', constraints: '',
+    sourceHash: 'f'.repeat(64), generatedAt: '2026-03-24T00:00:00.000Z',
+  };
+
+  // First write
+  emitAntigravitySkill(ir, baseDir, planningDir);
+
+  // Append agent additions below AGENT_MARKER
+  const existing = fs.readFileSync(skillPath, 'utf-8');
+  const agentAddition = '\n## Agent Custom Section\n\n- Custom agent rule 1\n';
+  fs.writeFileSync(skillPath, existing + agentAddition, 'utf-8');
+
+  // Regenerate
+  emitAntigravitySkill(ir, baseDir, planningDir);
+
+  const result = fs.readFileSync(skillPath, 'utf-8');
+  assert.ok(result.includes('## Agent Custom Section'), 'agent additions should be preserved after regeneration');
+  assert.ok(result.includes('Custom agent rule 1'), 'agent addition content should be preserved');
+});

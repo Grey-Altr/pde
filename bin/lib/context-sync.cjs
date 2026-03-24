@@ -32,6 +32,18 @@ var WRITE_BACK_FILES = ['.planning/PROJECT.md', '.planning/design/design-manifes
 // AGR-05: Marker delineating PDE-generated content from agent-written additions
 const AGENT_MARKER = '<!-- AGENT-ADDITIONS: DO NOT EDIT THIS LINE -->';
 
+// AGR-06: SKILL.md format version marker
+var SKILL_VERSION_MARKER = '<!-- pde-skill-version: 1.0 -->';
+
+// AGR-06: Pipeline stages for extractWorkflows
+var PIPELINE_STAGES = [
+  { name: 'System Tokens (/pde:system)', marker: 'SYS' },
+  { name: 'Wireframes (/pde:wireframe)', marker: 'WFR' },
+  { name: 'Mockups (/pde:mockup)', marker: 'MCK' },
+  { name: 'Handoff Specs (/pde:handoff)', marker: 'HND' },
+  { name: 'Visual Regression (/pde:visual-regression)', marker: 'VRG' },
+];
+
 // ─── Monitored editor output files (SYN-04, CUR-03) ─────────────────────────
 // All editor output paths tracked for reverse-sync mtime detection
 const MONITORED_FILES = [
@@ -248,6 +260,28 @@ function extractComponentCatalog(planningDir) {
   } catch {
     return 'No component handoff specs available yet.';
   }
+}
+
+/**
+ * Extract workflow checklist from DESIGN-STATE.md for SKILL.md Workflows section.
+ * @param {string} planningDir - Absolute path to .planning/
+ * @returns {string} Checklist of pipeline stages with [x]/[ ] status
+ */
+function extractWorkflows(planningDir) {
+  const designStateContent = safeReadFile(path.join(planningDir, 'design', 'DESIGN-STATE.md'));
+  if (!designStateContent || !designStateContent.trim()) {
+    return 'Design pipeline not yet initialized.';
+  }
+  // Extract ## Domain Files section
+  const domainFilesSection = extractSection(designStateContent, 'Domain Files');
+  if (!domainFilesSection || !domainFilesSection.trim()) {
+    return 'Design pipeline not yet initialized.';
+  }
+  const lines = PIPELINE_STAGES.map(function(stage) {
+    const checked = domainFilesSection.includes(stage.marker);
+    return (checked ? '[x] ' : '[ ] ') + stage.name;
+  });
+  return lines.join('\n');
 }
 
 /**
@@ -752,9 +786,10 @@ function emitGeminiMd(ir, projectRoot, planningDir) {
  * Emit .agent/skills/pde-design/SKILL.md for Antigravity Agent Manager.
  * @param {object} ir - Context IR
  * @param {string} projectRoot - Project root directory
+ * @param {string} [planningDir] - .planning/ directory path (for Workflows section)
  * @returns {object} Result: { written, path }
  */
-function emitAntigravitySkill(ir, projectRoot) {
+function emitAntigravitySkill(ir, projectRoot, planningDir) {
   const skillDir = path.join(projectRoot, '.agent', 'skills', 'pde-design');
   fs.mkdirSync(skillDir, { recursive: true });
 
@@ -772,6 +807,11 @@ function emitAntigravitySkill(ir, projectRoot) {
     // File doesn't exist yet -- no agent additions to preserve
   }
 
+  // AGR-06: Extract workflows from DESIGN-STATE.md if planningDir provided
+  const workflowsContent = planningDir
+    ? extractWorkflows(planningDir)
+    : 'Design pipeline not yet initialized.';
+
   const header = makeHeader(ir.sourceHash, ir.generatedAt);
   let content = [
     header,
@@ -779,6 +819,7 @@ function emitAntigravitySkill(ir, projectRoot) {
     'name: pde-design',
     'description: PDE design system context -- query palette colors, typography rules, spacing scale, and component patterns for the current project',
     '---',
+    SKILL_VERSION_MARKER,
     '',
     `# PDE Design System`,
     '',
@@ -790,8 +831,12 @@ function emitAntigravitySkill(ir, projectRoot) {
     '## Instructions',
     '',
     '1. Check DESIGN.md at project root for full design DNA (palette, typography, spacing)',
-    '2. Design tokens are in DTCG format at .planning/design/SYS-tokens.json',
+    '2. Design tokens are in DTCG format at .planning/design/design-manifest.json',
     '3. Component patterns are documented in handoff specs at .planning/design/handoff/',
+    '',
+    '## Workflows',
+    '',
+    workflowsContent,
     '',
     '## Design Tokens Available',
     '',
@@ -803,9 +848,7 @@ function emitAntigravitySkill(ir, projectRoot) {
     '',
     '## Constraints',
     '',
-    '- Use hex color values from DESIGN.md, not raw OKLCH from token files',
-    '- Follow typography hierarchy defined in DESIGN.md section 3',
-    '- Spacing uses the base unit defined in DESIGN.md section 5',
+    ir.constraints,
     '',
   ].join('\n');
 
@@ -1177,7 +1220,7 @@ function emitAll(cwd) {
   const cursorRules = emitCursorRules(ir, projectRoot);
   const cursorrules = emitCursorrules(ir, projectRoot);
   const geminiMd = emitGeminiMd(ir, projectRoot, planningDir);
-  const antigravitySkill = emitAntigravitySkill(ir, projectRoot);
+  const antigravitySkill = emitAntigravitySkill(ir, projectRoot, planningDir);
   const designMd = emitDesignMd(ir, projectRoot, planningDir);
 
   // Phase 126: Write persistent state file for 3-way merge base (SYN-01, SYN-03)
@@ -1480,7 +1523,7 @@ function cmdContextSync(cwd, args, raw) {
       } else if (editor === 'agents') {
         results.agentsMd = emitAgentsMd(ir, cwd);
       } else if (editor === 'antigravity') {
-        results.antigravitySkill = emitAntigravitySkill(ir, cwd);
+        results.antigravitySkill = emitAntigravitySkill(ir, cwd, planningDir);
         results.designMd = emitDesignMd(ir, cwd, planningDir);
       } else {
         error(`Unknown editor: ${editor}. Available: cursor, gemini, agents, antigravity, all`);
@@ -1600,12 +1643,13 @@ function parseSkillMd(content) {
     const componentCatalog = extractSection(body, 'Component Catalog');
     if (componentCatalog !== '') partial.componentCatalog = componentCatalog;
 
-    // Pitfall 4: Constraints in SKILL.md are hardcoded strings, not ir.constraints
+    // Constraints section uses ir.constraints (since Phase 132-02: AGR-06-5)
     const constraints = extractSection(body, 'Constraints');
     if (constraints !== '') partial.constraints = constraints;
 
     // agentAdditions: sections not in the known list (D-11)
-    const KNOWN = ['Goal', 'Instructions', 'Design Tokens Available', 'Component Catalog', 'Constraints'];
+    // Phase 132-02: Added 'Workflows' as a PDE-generated section (AGR-06-2)
+    const KNOWN = ['Goal', 'Instructions', 'Workflows', 'Design Tokens Available', 'Component Catalog', 'Constraints'];
     const unknownSections = body.split(/^(?=## )/m).filter(s => {
       const h = s.match(/^## (.+)/)?.[1]?.trim();
       return h && !KNOWN.includes(h);
@@ -2012,4 +2056,6 @@ module.exports = {
   // Phase 132: Audit trail, snapshot system, CLI commands (INF-06, INF-07, INF-08)
   WRITE_BACK_FILES, appendSyncLog, trimSyncLog, snapshotFilesBeforeBatch, cleanupOldSnapshots,
   decodeSnapshotPath, cmdSyncStatus, cmdSyncRollback,
+  // Phase 132-02: AGR-06 extractWorkflows
+  extractWorkflows,
 };
