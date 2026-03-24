@@ -45,7 +45,7 @@ Phases 119-125 delivered the unidirectional context generation pipeline: context
 
 Plans:
 - [x] 126-01-PLAN.md — State file infrastructure: writeStateFile(), readStateFile(), emitAll() integration, gitignore (SYN-01, SYN-03)
-- [ ] 126-02-PLAN.md — Loop-break gate: computeLoopBreak() with PDE_HASH_RE hash comparison (SYN-02)
+- [x] 126-02-PLAN.md — Loop-break gate: computeLoopBreak() with PDE_HASH_RE hash comparison (SYN-02)
 
 ### Phase 127: Reverse Parsers
 **Goal**: PDE can parse editor-authored changes from .mdc files and SKILL.md/DESIGN.md into partial IR objects, with section-marker ownership boundaries enforced and round-trip fidelity verified
@@ -61,7 +61,7 @@ Plans:
 
 Plans:
 - [x] 127-01-PLAN.md — .mdc reverse parser: parseMdcContent() with YAML frontmatter extraction, PDE:BEGIN/END section markers, section-to-IR mapping (CUR-01, CUR-02)
-- [ ] 127-02-PLAN.md — SKILL.md + DESIGN.md reverse parsers: parseSkillMd(), parseDesignMd() with agentAdditions, format-version detection, round-trip tests (AGR-01, AGR-02)
+- [x] 127-02-PLAN.md — SKILL.md + DESIGN.md reverse parsers: parseSkillMd(), parseDesignMd() with agentAdditions, format-version detection, round-trip tests (AGR-01, AGR-02)
 
 ### Phase 128: Merge Engine and Conflict Resolution
 **Goal**: A 3-way merge engine correctly merges editor-parsed partial IR against the base IR snapshot and current .planning/ IR, with conflicts detected, logged, and resolved per configurable field policy
@@ -73,7 +73,11 @@ Plans:
   3. When both PDE and an editor changed the same field to different values, a conflict entry is written to `.planning/.sync-conflicts.log` as NDJSON with both values — emitAll() is not blocked by default (planning-wins policy applies)
   4. The conflict resolution policy is configurable per-field in config.json contextSync.fieldPolicies — planning-wins, editor-wins, and prompt policies are all supported
   5. design-manifest.json is established as the canonical token source; no code path writes to it without passing through the merge engine
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 128-01-PLAN.md — Core 3-way merge engine: mergePartialIR(), appendConflictLog(), parseMdcContent Architecture Conventions fix, SOURCE comment (CUR-04, AGR-04)
+- [ ] 128-02-PLAN.md — Per-field conflict resolution policies: readFieldPolicy(), config.json fieldPolicies, designTokens format reconciliation (CUR-05)
 
 ### Phase 129: Hook Integration
 **Goal**: Editor file changes are detected automatically during active sessions and ingested on session start, with zero stdout overhead and the full Cursor write-back path verified end-to-end
@@ -84,7 +88,11 @@ Plans:
   2. `pde context-sync --ingest` runs a full scan of all monitored editor files, reports file/change/conflict counts, and is idempotent (running it twice with no changes produces no writes)
   3. When a .mdc file is modified during an active session, the change is detected via mtime comparison within 200ms debounce, queued in the state file's pendingIngest list, and produces zero stdout output with under 10ms hook overhead
   4. An end-to-end scenario succeeds: user edits a PDE-owned section in a .mdc file → hook detects the change → .planning/ is updated with the merged value → emitAll() re-normalizes all editor files
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 129-01-PLAN.md — Session-start reconciliation + CLI ingest: reconcileOnStart(), ingestAll(), MONITORED_FILES, --ingest routing (SYN-04, SYN-05)
+- [ ] 129-02-PLAN.md — Live mtime detection in PostToolUse hook: scanMonitoredFiles(), debounce, pendingIngest queue, E2E verification (CUR-03)
 
 ### Phase 130: Antigravity Write-Back
 **Goal**: Changes to Antigravity SKILL.md and DESIGN.md are parsed, merged into .planning/ state, and write-back to design-manifest.json uses value-only DTCG updates that preserve all token metadata
@@ -95,8 +103,12 @@ Plans:
   2. When emitAntigravitySkill() regenerates SKILL.md, content below the `<!-- AGENT-ADDITIONS: DO NOT EDIT THIS LINE -->` marker is read from the existing file and re-appended verbatim — agent-written additions are never lost
   3. DESIGN.md carries a `<!-- pde-format-version: 1.0 -->` marker that the reverse parser uses to select the correct parsing strategy — unknown format versions fall back to lenient mode rather than throwing
   4. A precision warning is logged when hex-to-OKLCH conversion delta exceeds 0.001, allowing detection of round-trip loss before it silently corrupts token values
-**Plans**: TBD
+**Plans**: 2 plans
 **UI hint**: yes
+
+Plans:
+- [ ] 130-01-PLAN.md — hex-to-OKLCH conversion + DESIGN.md write-back to design-manifest.json + format-version marker (AGR-03, AGR-07)
+- [ ] 130-02-PLAN.md — Agent additions preservation in SKILL.md regeneration: read-before-write + AGENT-ADDITIONS marker (AGR-05)
 
 ### Phase 131: MCP Write Tools
 **Goal**: The MCP server exposes four validated write tools behind an --enable-writes flag that route all writes through pde-tools.cjs validation and call emitAll() post-write
@@ -128,10 +140,10 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 126. Sync Foundation | 1/2 | Complete    | 2026-03-24 |
-| 127. Reverse Parsers | 1/2 | Complete    | 2026-03-24 |
-| 128. Merge Engine and Conflict Resolution | 0/TBD | Not started | - |
-| 129. Hook Integration | 0/TBD | Not started | - |
-| 130. Antigravity Write-Back | 0/TBD | Not started | - |
+| 126. Sync Foundation | 2/2 | Complete   | 2026-03-24 |
+| 127. Reverse Parsers | 2/2 | Complete    | 2026-03-24 |
+| 128. Merge Engine and Conflict Resolution | 0/2 | Planned | - |
+| 129. Hook Integration | 0/2 | Planned | - |
+| 130. Antigravity Write-Back | 0/2 | Planned | - |
 | 131. MCP Write Tools | 0/TBD | Not started | - |
 | 132. Conflict UX and Generation Enhancements | 0/TBD | Not started | - |
