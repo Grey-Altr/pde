@@ -4,3 +4,4 @@
 # Phase 126: Sync state file — session-specific timestamps, not for git
 .planning/.context-sync-state.json
 .planning/.context-sync-state.json.*.tmp
+.planning/sync-snapshots/

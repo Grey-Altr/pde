@@ -26,6 +26,9 @@ const { safeReadFile, output, error } = require('./core.cjs');
 const WRITABLE_FIELDS = ['techStack', 'constraints', 'componentCatalog', 'designTokens'];
 const VALID_POLICIES = ['planning-wins', 'editor-wins', 'prompt'];
 
+// Files snapshotted before each write-back batch (INF-07)
+var WRITE_BACK_FILES = ['.planning/PROJECT.md', '.planning/design/design-manifest.json'];
+
 // AGR-05: Marker delineating PDE-generated content from agent-written additions
 const AGENT_MARKER = '<!-- AGENT-ADDITIONS: DO NOT EDIT THIS LINE -->';
 
@@ -1416,6 +1419,10 @@ function ingestAll(cwd) {
  */
 function cmdContextSync(cwd, args, raw) {
   try {
+    // INF-08: route sync-status and sync-rollback subcommands before --editor/--ingest handling
+    if (args[0] === 'sync-status') { cmdSyncStatus(cwd); return; }
+    if (args[0] === 'sync-rollback') { cmdSyncRollback(cwd, args.slice(1)); return; }
+
     // SYN-05: --ingest flag routes to ingestAll (checked BEFORE --editor)
     var ingestFlag = args.indexOf('--ingest');
     if (ingestFlag !== -1) {
@@ -1685,6 +1692,289 @@ function writeBackDesignTokens(planningDir, editorColors, opts) {
   return { updated, warnings };
 }
 
+function appendSyncLog(planningDir, entry) {
+  try {
+    var logsDir = path.join(planningDir, 'logs');
+    fs.mkdirSync(logsDir, { recursive: true });
+    var logPath = path.join(logsDir, 'SYNC-LOG.md');
+    var ts = new Date().toISOString();
+    var block = [
+      '## ' + ts,
+      '- Trigger: ' + (entry.trigger || 'unknown'),
+      '- Files scanned: ' + (entry.filesScanned || 0),
+      '- Changes detected: ' + (entry.changes || 0),
+      '- Write-backs: ' + (entry.writeBacks || 0),
+      '- Conflicts: ' + (entry.conflicts || 0),
+      '',
+    ].join('\n');
+    fs.appendFileSync(logPath, block, 'utf-8');
+    trimSyncLog(logPath, 500);
+  } catch (err) {
+    process.stderr.write('[context-sync] sync log write error: ' + err.message + '\n');
+  }
+}
+
+/**
+ * Trim SYNC-LOG.md to at most maxEntries entries (each entry starts with `## `).
+ * Preserves the `# Sync Log` header if present. Atomic rewrite via PID tmp + rename.
+ * Non-fatal: errors go to stderr, never thrown.
+ *
+ * @param {string} logPath - Absolute path to SYNC-LOG.md
+ * @param {number} maxEntries - Maximum number of entries to keep
+ */
+function trimSyncLog(logPath, maxEntries) {
+  try {
+    if (!fs.existsSync(logPath)) return;
+    var content = fs.readFileSync(logPath, 'utf-8');
+    // Split on entry boundaries (## at start of line)
+    // Each block is one entry (heading + body)
+    var parts = content.split(/\n(?=## )/);
+    // Check if first part is a header (# Sync Log)
+    var headerLine = '';
+    var entries = parts;
+    if (parts.length > 0 && parts[0].startsWith('# ') && !parts[0].startsWith('## ')) {
+      headerLine = parts[0];
+      entries = parts.slice(1);
+    }
+    if (entries.length <= maxEntries) return; // nothing to trim
+    // Keep last maxEntries blocks
+    var kept = entries.slice(entries.length - maxEntries);
+    var newContent = (headerLine ? headerLine + '\n\n' : '') + kept.join('\n');
+    // Atomic write via PID-based tmp file
+    var tmpPath = logPath + '.' + process.pid + '.tmp';
+    fs.writeFileSync(tmpPath, newContent, 'utf-8');
+    fs.renameSync(tmpPath, logPath);
+  } catch (err) {
+    process.stderr.write('[context-sync] sync log trim error: ' + err.message + '\n');
+  }
+}
+
+// ─── INF-07: Pre-write Snapshot System ──────────────────────────────────────
+
+/**
+ * Snapshot WRITE_BACK_FILES to .planning/sync-snapshots/ before a write-back batch.
+ * Snapshot filename: <ISO-safe-ts>--<path-with-plus-for-slashes>
+ * ISO-safe-ts: colons and periods replaced with hyphens to avoid filesystem issues.
+ * Non-fatal: missing source files are silently skipped; errors go to stderr, never thrown.
+ * Calls cleanupOldSnapshots after writing.
+ *
+ * @param {string} cwd - Project root directory
+ */
+function snapshotFilesBeforeBatch(cwd) {
+  try {
+    var planningDir = path.join(cwd, '.planning');
+    var snapshotDir = path.join(planningDir, 'sync-snapshots');
+    fs.mkdirSync(snapshotDir, { recursive: true });
+
+    // ISO-safe timestamp: replace : and . with - to avoid filesystem issues
+    var ts = new Date().toISOString().replace(/:/g, '-').replace(/\./g, '-');
+
+    for (var i = 0; i < WRITE_BACK_FILES.length; i++) {
+      var relPath = WRITE_BACK_FILES[i];
+      var srcPath = path.join(cwd, relPath);
+      try {
+        var content = fs.readFileSync(srcPath, 'utf-8');
+        // Encode path: replace / with + (research finding 1)
+        var encodedPath = relPath.replace(/\//g, '+');
+        var snapshotName = ts + '--' + encodedPath;
+        var snapshotPath = path.join(snapshotDir, snapshotName);
+        var tmpPath = snapshotPath + '.' + process.pid + '.tmp';
+        fs.writeFileSync(tmpPath, content, 'utf-8');
+        fs.renameSync(tmpPath, snapshotPath);
+      } catch (fileErr) {
+        // Missing source file — silently skip (INF-07-3)
+      }
+    }
+
+    cleanupOldSnapshots(snapshotDir, 30);
+  } catch (err) {
+    process.stderr.write('[context-sync] snapshot error: ' + err.message + '\n');
+  }
+}
+
+/**
+ * Remove snapshot files older than maxDays from snapshotDir.
+ * Age is based on file mtime (modification time). Non-fatal.
+ * Note: mtime is used rather than ctime because mtime can be set via fs.utimesSync
+ * and is reliably settable on all platforms, while ctime reflects kernel-managed
+ * metadata changes and cannot be set directly.
+ *
+ * @param {string} snapshotDir - Absolute path to .planning/sync-snapshots/
+ * @param {number} maxDays - Maximum age in days before a snapshot is removed
+ */
+function cleanupOldSnapshots(snapshotDir, maxDays) {
+  try {
+    if (!fs.existsSync(snapshotDir)) return;
+    var cutoffMs = Date.now() - (maxDays * 24 * 60 * 60 * 1000);
+    var files = fs.readdirSync(snapshotDir);
+    for (var i = 0; i < files.length; i++) {
+      var filePath = path.join(snapshotDir, files[i]);
+      try {
+        var stat = fs.statSync(filePath);
+        if (stat.mtimeMs < cutoffMs) {
+          fs.unlinkSync(filePath);
+        }
+      } catch (fileErr) {
+        // Non-fatal: skip individual file errors
+      }
+    }
+  } catch (err) {
+    process.stderr.write('[context-sync] snapshot cleanup error: ' + err.message + '\n');
+  }
+}
+
+/**
+ * Decode a snapshot filename to the original file path.
+ * Snapshot format: <ISO-safe-ts>--<encoded-path>
+ * Encoded path: forward slashes replaced with +
+ *
+ * @param {string} cwd - Project root directory
+ * @param {string} snapshotName - Snapshot filename (not full path)
+ * @returns {string|null} Absolute path to original file, or null if decode fails
+ */
+function decodeSnapshotPath(cwd, snapshotName) {
+  try {
+    var sepIdx = snapshotName.indexOf('--');
+    if (sepIdx === -1) return null;
+    var encodedPath = snapshotName.slice(sepIdx + 2);
+    if (!encodedPath) return null;
+    // Replace + with / to restore original path separators
+    var relPath = encodedPath.replace(/\+/g, '/');
+    return path.join(cwd, relPath);
+  } catch (err) {
+    return null;
+  }
+}
+
+// ─── INF-08: Conflict UX Commands ───────────────────────────────────────────
+
+/**
+ * Display sync status: last sync time, source hash, monitored files, pending ingest,
+ * and unresolved conflict count. Reads state file only — no file scanning.
+ *
+ * @param {string} cwd - Project root directory
+ */
+function cmdSyncStatus(cwd) {
+  var planningDir = path.join(cwd, '.planning');
+  var state = readStateFile(planningDir);
+
+  process.stdout.write('=== PDE Sync Status ===\n');
+
+  if (state) {
+    process.stdout.write('Last sync:     ' + (state.lastEmittedAt || 'unknown') + '\n');
+    var hashShort = state.lastSourceHash ? state.lastSourceHash.slice(0, 12) + '...' : 'none';
+    process.stdout.write('Source hash:   ' + hashShort + '\n');
+    var pendingCount = Array.isArray(state.pendingIngest) ? state.pendingIngest.length : 0;
+    process.stdout.write('Pending ingest: ' + pendingCount + ' file(s)\n');
+  } else {
+    process.stdout.write('Last sync:     (no state file found)\n');
+    process.stdout.write('Pending ingest: 0 file(s)\n');
+  }
+
+  // Count monitored files from WRITE_BACK_FILES + editor output files list
+  var monitoredFiles = WRITE_BACK_FILES;
+  process.stdout.write('Monitored files (' + monitoredFiles.length + '):\n');
+  for (var i = 0; i < monitoredFiles.length; i++) {
+    process.stdout.write('  - ' + monitoredFiles[i] + '\n');
+  }
+
+  // Count unresolved conflicts from .sync-conflicts.log
+  var unresolvedCount = 0;
+  try {
+    var conflictLogPath = path.join(planningDir, '.sync-conflicts.log');
+    if (fs.existsSync(conflictLogPath)) {
+      var lines = fs.readFileSync(conflictLogPath, 'utf-8').split('\n');
+      for (var j = 0; j < lines.length; j++) {
+        var line = lines[j].trim();
+        if (!line) continue;
+        try {
+          var entry = JSON.parse(line);
+          if (entry.pendingResolution === true) unresolvedCount++;
+        } catch (parseErr) {
+          // Malformed line — skip
+        }
+      }
+    }
+  } catch (conflictErr) {
+    // Non-fatal: conflict log may not exist
+  }
+  process.stdout.write('Unresolved conflicts: ' + unresolvedCount + '\n');
+}
+
+/**
+ * List available rollback snapshots or restore one.
+ *
+ * Without --restore: lists .planning/sync-snapshots/ sorted newest-first (max 20 shown).
+ * With --restore <snapshot-name>: decodes filename, writes file content back, calls emitAll().
+ *
+ * @param {string} cwd - Project root directory
+ * @param {string[]} args - Args after 'sync-rollback'
+ */
+function cmdSyncRollback(cwd, args) {
+  var planningDir = path.join(cwd, '.planning');
+  var snapshotDir = path.join(planningDir, 'sync-snapshots');
+
+  var restoreIdx = args.indexOf('--restore');
+
+  if (restoreIdx !== -1) {
+    // Restore mode
+    var snapshotName = args[restoreIdx + 1] || '';
+    if (!snapshotName) {
+      process.stdout.write('[sync-rollback] --restore requires a snapshot name\n');
+      return;
+    }
+    var snapshotPath = path.join(snapshotDir, snapshotName);
+    if (!fs.existsSync(snapshotPath)) {
+      process.stdout.write('[sync-rollback] snapshot not found: ' + snapshotName + '\n');
+      return;
+    }
+    try {
+      var content = fs.readFileSync(snapshotPath, 'utf-8');
+      var targetPath = decodeSnapshotPath(cwd, snapshotName);
+      if (!targetPath) {
+        process.stdout.write('[sync-rollback] could not decode snapshot path from: ' + snapshotName + '\n');
+        return;
+      }
+      // Ensure target directory exists
+      fs.mkdirSync(path.dirname(targetPath), { recursive: true });
+      fs.writeFileSync(targetPath, content, 'utf-8');
+      process.stdout.write('[sync-rollback] restored ' + targetPath + '\n');
+      // Re-emit all editor context files after restore
+      emitAll(cwd);
+      process.stdout.write('[sync-rollback] emitAll complete after restore\n');
+    } catch (err) {
+      process.stdout.write('[sync-rollback] restore error: ' + err.message + '\n');
+    }
+    return;
+  }
+
+  // List mode
+  try {
+    if (!fs.existsSync(snapshotDir)) {
+      process.stdout.write('[sync-rollback] no snapshots directory found (no snapshots taken yet)\n');
+      return;
+    }
+    var files = fs.readdirSync(snapshotDir);
+    if (files.length === 0) {
+      process.stdout.write('[sync-rollback] no snapshots available\n');
+      return;
+    }
+    // Sort newest-first (filenames start with ISO-safe timestamp, so lexicographic sort works)
+    files.sort().reverse();
+    var limit = Math.min(files.length, 20);
+    process.stdout.write('Available snapshots (' + files.length + ' total, showing ' + limit + '):\n');
+    for (var i = 0; i < limit; i++) {
+      process.stdout.write('  ' + files[i] + '\n');
+    }
+    if (files.length > 20) {
+      process.stdout.write('  ... and ' + (files.length - 20) + ' more\n');
+    }
+    process.stdout.write('\nTo restore: pde context-sync sync-rollback --restore <snapshot-name>\n');
+  } catch (err) {
+    process.stdout.write('[sync-rollback] error listing snapshots: ' + err.message + '\n');
+  }
+}
+
 // ─── Exports ────────────────────────────────────────────────────────────────
 
 module.exports = {
@@ -1697,4 +1987,7 @@ module.exports = {
   // SYN-04, SYN-05: reverse-sync utilities
   MONITORED_FILES, replaceSectionInFile, parseMonitoredFile, reconcileOnStart, ingestAll,
   hexToOklch, computeHexDelta, writeBackDesignTokens,
+  // Phase 132: Audit trail, snapshot system, CLI commands (INF-06, INF-07, INF-08)
+  WRITE_BACK_FILES, appendSyncLog, trimSyncLog, snapshotFilesBeforeBatch, cleanupOldSnapshots,
+  decodeSnapshotPath, cmdSyncStatus, cmdSyncRollback,
 };
