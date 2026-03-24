@@ -344,11 +344,11 @@ const score = Math.max(0, 100 - violations * 10);
 
 ### Pitfall 5: Mermaid CSS Class Case in DOM
 
-**What goes wrong:** The script queries `svg.querySelectorAll('.edgePath')` but the rendered SVG uses `.edgepath` (lowercase). Zero edges counted, score inflated.
+**What goes wrong:** The script queries `svg.querySelectorAll('.edgePath')` but Mermaid v11 doesn't use `.edgePath` as an individual edge class — it's `.edgePaths` (plural, container only). Zero edges counted, score inflated.
 
-**Why it happens:** Mermaid's SVG rendering may lowercase class names in the actual DOM. Documented in v0.14-MERMAID-METRICS.md as MEDIUM confidence.
+**Why it happens:** The v0.14 research was based on older Mermaid versions. In v11, individual edges use `.flowchart-link` class, and the container group uses `.edgePaths` (plural, camelCase). Verified in Mermaid source 2026-03-23.
 
-**How to avoid:** Query both: `svg.querySelectorAll('.edgePath, .edgepath, .flowchart-link')`. Use the `.flowchart-link` class as the primary edge selector (HIGH confidence, verified in Mermaid Cypress tests).
+**How to avoid:** Use `svg.querySelectorAll('.edgePaths path, .flowchart-link')`. The `.flowchart-link` class is the primary edge path selector (HIGH confidence, verified in Mermaid v11 source and ELK layout renderer).
 
 **Warning signs:** Edge count = 0 for diagrams that clearly have edges.
 
@@ -546,7 +546,7 @@ process.exit(0);  // always exit 0
   if (!svg) return JSON.stringify({ error: 'No SVG', score: 0 });
   try {
     const nodes = Array.from(svg.querySelectorAll('.node'));
-    const edgePaths = Array.from(svg.querySelectorAll('.edgePath path, .edgepath path, .flowchart-link'));
+    const edgePaths = Array.from(svg.querySelectorAll('.edgePaths path, .flowchart-link'));
     const nodeCount = nodes.length;
     const edgeCount = edgePaths.length;
     // Bounding box crossing heuristic
@@ -744,22 +744,49 @@ assert.strictEqual(parseFloat(lastLine), 0, 'Must return 0 when no file arg (VIS
 
 ---
 
-## Open Questions
+## Open Questions — RESOLVED
 
-1. **bridge.call() synchrony**
-   - What we know: wireframe.md, mockup.md, critique.md all use bridge.call() patterns in workflow instructions
-   - What's unclear: whether bridge.call() is synchronous (blocking) or returns a Promise — CJS metric scripts cannot use await at top level without a wrapper
-   - Recommendation: Read bin/lib/mcp-bridge.cjs call() function signature. If it returns a Promise, the `run()` wrapper pattern handles it correctly.
+All three open questions from initial research have been resolved via source verification.
 
-2. **Mermaid CSS class case sensitivity in Playwright Chromium**
-   - What we know: Research documents note `.edgePath` vs `.edgepath` discrepancy as MEDIUM confidence
-   - What's unclear: Actual class name case in Mermaid v11 rendered SVG in Chromium
-   - Recommendation: Query both `.edgePath` and `.edgepath` plus `.flowchart-link` (HIGH confidence). Accept the first non-empty result.
+### 1. bridge.call() synchrony — RESOLVED: SYNCHRONOUS
 
-3. **file:// URL with spaces in project path**
-   - What we know: The project is at `Platform Development Engine` (has spaces). PLAY-07 confirms `--allow-unrestricted-file-access` is set.
-   - What's unclear: Whether spaces in file:// URLs are handled automatically or need `encodeURI()`
-   - Recommendation: Always use `encodeURI()` on the file path before passing to browser_navigate: `'file://' + encodeURI('/path/to/file.html')`
+**Evidence:** `bin/lib/mcp-bridge.cjs` lines 356-363:
+```javascript
+function call(canonicalName, args) {
+  if (!Object.prototype.hasOwnProperty.call(TOOL_MAP, canonicalName)) {
+    throw new Error(`Tool "${canonicalName}" not found in TOOL_MAP.`);
+  }
+  return { toolName: TOOL_MAP[canonicalName], args };
+}
+```
+
+**Finding:** `bridge.call()` is **synchronous** — it's a pure lookup function that returns `{ toolName, args }`. It does NOT execute MCP tools directly. The actual MCP tool execution happens at the workflow layer (Claude Code runtime). The comment at line 320-321 confirms: *"Actual MCP tool calls happen at the workflow layer where Claude Code MCP tools are available. This module never calls MCP tools."*
+
+**Impact on metric scripts:** Metric scripts cannot call MCP tools directly via bridge.call(). The scripts must be designed as **workflow instructions** — they provide the tool name and args, and the experiment runner (or workflow layer) executes the actual MCP calls. Alternatively, metric scripts can use `spawnSync` to invoke node scripts that output scores, with the MCP interaction happening in the orchestrating workflow context.
+
+### 2. Mermaid CSS class case sensitivity — RESOLVED: camelCase "edgePaths" container, NO "edgePath" individual class
+
+**Evidence:** Verified in Mermaid v11 source (develop branch, 2026-03-23):
+- `packages/mermaid/src/rendering-util/layout-algorithms/dagre/index.js` line 46: `elem.insert('g').attr('class', 'edgePaths')` — **container** group is camelCase `edgePaths`
+- `packages/mermaid/src/dagre-wrapper/index.js` line 24: same pattern `attr('class', 'edgePaths')`
+- `packages/mermaid-layout-elk/src/render.ts`: uses `attr('class', 'edges edgePaths')`
+- Individual edge **path** elements get classes: `edge-thickness-normal`, `edge-pattern-solid`, `flowchart-link` — NOT `edgePath`
+- The `flowchart-link` class is set via `edgeData.classes = 'flowchart-link ' + linkNameStart + ' ' + linkNameEnd`
+
+**Finding:** There is NO `.edgePath` class on individual edges in modern Mermaid v11. The original research concern about `.edgePath` vs `.edgepath` was based on older Mermaid versions (pre-v11). The correct selectors are:
+- **Edge container:** `.edgePaths` (camelCase, the `<g>` group)
+- **Individual edge paths:** `.flowchart-link` (HIGH confidence, verified in source)
+- **Edge path elements:** `.edgePaths path` or `.flowchart-link` (either works)
+
+**Updated recommendation:** Use `.edgePaths path` as primary selector, `.flowchart-link` as secondary. Drop the `.edgepath` lowercase fallback — it was never in the v11 source. Confidence upgraded from MEDIUM to HIGH.
+
+### 3. file:// URL with spaces — RESOLVED: Use encodeURI()
+
+**Evidence:** No existing `encodeURI` or `file://` patterns found in `bin/` scripts (grep returned empty). The project path `Platform Development Engine` contains spaces.
+
+**Finding:** Standard browser behavior requires percent-encoding spaces in file:// URLs. Use `'file://' + encodeURI(absolutePath)` to handle spaces. This is a standard Web API pattern, not project-specific.
+
+**Recommendation unchanged:** Always use `encodeURI()` on the file path. This is defensive and costs nothing.
 
 ---
 
@@ -807,7 +834,7 @@ assert.strictEqual(parseFloat(lastLine), 0, 'Must return 0 when no file arg (VIS
 - Architecture: HIGH — _evalMetric contract and probe/degrade pattern are production-proven
 - DOM/a11y/contrast patterns: HIGH — complete code from verified research documents
 - Responsive metric: HIGH — resize + evaluate pattern established in existing workflows
-- Mermaid CSS class names: MEDIUM — `.edgePath`/`.edgepath` case ambiguity, mitigation documented
+- Mermaid CSS class names: HIGH — verified in Mermaid v11 source: `.edgePaths path` and `.flowchart-link` are correct selectors; no `.edgePath`/`.edgepath` ambiguity exists in v11
 - Pitfalls: HIGH — derived from existing codebase behavior
 
 **Research date:** 2026-03-23

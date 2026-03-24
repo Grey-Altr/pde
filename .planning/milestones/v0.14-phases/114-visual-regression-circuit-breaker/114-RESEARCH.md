@@ -12,8 +12,8 @@
 | ID | Description | Research Support |
 |----|-------------|------------------|
 | VRCB-01 | Visual regression circuit breaker prevents cosmetic regressions during optimization | `detectVisualRegression()` pattern documented in v0.14-VISUAL-REGRESSION.md; integrates with optimize.md BREAK-05 as new circuit breaker |
-| VRCB-02 | Before each experiment iteration, baseline screenshots captured | `playwright:screenshot` TOOL_MAP entry confirmed in mcp-bridge.cjs line 164; baseline saved to `.planning/experiments/{slug}/baseline-screenshot.png` |
-| VRCB-03 | After mutation, screenshots compared — if visual regression detected, mutation is rejected (git reset) | `_reset()` in experiment.cjs uses `git reset --hard HEAD~1`; DISCARD path already calls reset; REGRESSION status triggers same path |
+| VRCB-02 | Before each experiment iteration, baseline screenshots captured | `playwright:screenshot` TOOL_MAP entry confirmed in mcp-bridge.cjs line 164; baseline saved to `/tmp/pde-experiment-{slug}/baseline-screenshot.png` |
+| VRCB-03 | After mutation, screenshots compared — if visual regression detected, mutation is rejected (git reset) | `_reset()` in experiment.cjs uses `git reset --hard HEAD~1`; DISCARD path already calls reset; visual regression reuses DISCARD status with `"VISUAL REGRESSION: ..."` description prefix |
 | VRCB-04 | Regression threshold configurable in experiment.md (default: any new a11y violation = regression) | New `visual_regression_guard` frontmatter field (boolean, default false); threshold expressed as metric score drop from baseline |
 | VRCB-05 | Integrates with existing circuit breaker infrastructure (consecutive_failure_limit, no_progress_limit) | optimize.md step 7k already has BREAK-01..04; VRCB adds BREAK-05 (visual_regression) as a new halt reason checked in the same step |
 </phase_requirements>
@@ -22,11 +22,11 @@
 
 ## Summary
 
-Phase 114 adds a visual regression safety net to the AutoResearch experiment loop. The core mechanism is simple and zero-dependency: before each iteration, capture a baseline screenshot of the target HTML artifact. After mutation and metric evaluation, capture a post-mutation screenshot and compare SHA-256 hashes. If the hash changed AND the primary metric score decreased from baseline, fire a regression circuit breaker that triggers `git reset --hard HEAD~1` and records `status: "REGRESSION"` in the JSONL row.
+Phase 114 adds a visual regression safety net to the AutoResearch experiment loop. The core mechanism is simple and zero-dependency: before each iteration, capture a baseline screenshot of the target HTML artifact (stored in `/tmp/pde-experiment-{slug}/`). After mutation and metric evaluation, capture a post-mutation screenshot and compare SHA-256 hashes. If the hash changed AND the primary metric score decreased from baseline, fire a regression circuit breaker that triggers `git reset --hard HEAD~1` and records `status: "DISCARD"` with description prefixed `"VISUAL REGRESSION: ..."` in the JSONL row.
 
-The entire feature is opt-in via a new `visual_regression_guard: true` field in experiment.md frontmatter. When absent or false, zero overhead — no screenshots are captured, no comparison occurs. This preserves backward compatibility with all 18 existing experiment templates.
+The entire feature is opt-in via two new fields in experiment.md frontmatter: `visual_regression_guard: true` and `visual_regression_target: path/to/artifact.html`. When absent or false, zero overhead — no screenshots are captured, no comparison occurs. This preserves backward compatibility with all 18 existing experiment templates.
 
-The implementation touches four files: (1) a new `bin/lib/visual-regression.cjs` module (~80 lines), (2) `bin/lib/experiment-schema.cjs` to recognize the new frontmatter field and add optional JSONL fields, (3) `workflows/optimize.md` to add BREAK-05 and baseline screenshot capture steps, and (4) new Nyquist tests in `tests/phase-114/`.
+The implementation touches four files: (1) a new `bin/lib/visual-regression.cjs` module (~80 lines), (2) `bin/lib/experiment-schema.cjs` to recognize the new frontmatter fields and add optional JSONL fields (`screenshot_hash`, `baseline_hash`), (3) `workflows/optimize.md` to add BREAK-05 and baseline screenshot capture steps, and (4) new Nyquist tests in `tests/phase-114/`.
 
 **Primary recommendation:** Build `visual-regression.cjs` as a pure library module exporting `hashScreenshot()`, `checkVisualRegression()`, and `captureAndStoreBaseline()`. The optimize.md orchestrator calls it directly — no new bin/ script, no new subcommand. The module is under 100 lines and uses only `crypto` and `fs` built-ins.
 
@@ -76,7 +76,7 @@ CLAUDE.md is not present. Constraints derived from project source, STATE.md deci
 | SHA-256 hash comparison | ImageMagick `compare` CLI | System dependency, not guaranteed on all machines |
 | SHA-256 hash comparison | Buffer.compare() | Functionally equivalent; hash is preferred because it is cheap to store/log in JSONL (64 chars) |
 | hash + metric score | hash alone | Hash alone would fire on ANY visual change (including improvements). Metric score is required to determine direction. |
-| separate baseline store | EXPERIMENT-BEST.json | Already stores `bestMetric`; baseline screenshot path co-located in `.planning/experiments/{slug}/` is consistent |
+| separate baseline store | EXPERIMENT-BEST.json | Already stores `bestMetric`; baseline screenshot stored in `/tmp/pde-experiment-{slug}/` (ephemeral, consistent with existing `/tmp/` patterns) |
 
 **Installation:** No installation step. All dependencies are Node.js built-ins already available.
 
@@ -122,10 +122,11 @@ Unlike Phases 111-113 which added new `bin/*.cjs` metric scripts, Phase 114 adds
                                     /                      \
                          Score same or better         Score worse
                                 |                          |
-                         No regression              REGRESSION → BREAK-05
+                         No regression              VISUAL REGRESSION → BREAK-05
                                                         |
                                                git reset --hard HEAD~1
-                                               JSONL status: "REGRESSION"
+                                               JSONL status: "DISCARD"
+                                               description: "VISUAL REGRESSION: ..."
 ```
 
 **Source:** v0.14-VISUAL-REGRESSION.md section 1 — The Regression Detection Formula (HIGH confidence, derived from live project infrastructure).
@@ -149,7 +150,7 @@ function hashScreenshot(filePath) {
 }
 
 function checkVisualRegression({ cwd, slug, currentScreenshotPath, currentScore, baselineScore, direction }) {
-  const baselinePath = path.join(cwd, '.planning', 'experiments', slug, 'baseline-screenshot.png');
+  const baselinePath = path.join('/tmp', `pde-experiment-${slug}`, 'baseline-screenshot.png');
   const baselineHash = hashScreenshot(baselinePath);
   const currentHash = hashScreenshot(currentScreenshotPath);
 
@@ -176,7 +177,7 @@ function captureAndStoreBaseline(cwd, slug, targetHtmlPath) {
   // Uses Playwright MCP bridge — gracefully degrades if unavailable
   try {
     const bridge = require('./mcp-bridge.cjs');
-    const baselinePath = path.join(cwd, '.planning', 'experiments', slug, 'baseline-screenshot.png');
+    const baselinePath = path.join('/tmp', `pde-experiment-${slug}`, 'baseline-screenshot.png');
     const fileUrl = 'file://' + encodeURI(path.resolve(targetHtmlPath));
     bridge.call('playwright:navigate', { url: fileUrl });
     bridge.call('playwright:screenshot', { filename: baselinePath, type: 'png' });
@@ -413,7 +414,7 @@ function hashScreenshot(filePath) {
 function captureAndStoreBaseline(cwd, slug, targetHtmlPath) {
   try {
     const bridge = require('./mcp-bridge.cjs');
-    const baselinePath = path.join(cwd, '.planning', 'experiments', slug, 'baseline-screenshot.png');
+    const baselinePath = path.join('/tmp', `pde-experiment-${slug}`, 'baseline-screenshot.png');
     const fileUrl = 'file://' + encodeURI(path.resolve(targetHtmlPath));
     bridge.call('playwright:navigate', { url: fileUrl });
     bridge.call('playwright:screenshot', { filename: baselinePath, type: 'png' });
@@ -454,7 +455,7 @@ if (visualRegressionGuard && status !== 'CRASH' && status !== 'BOUNDARY_VIOLATIO
   const vr = require('./bin/lib/visual-regression.cjs');
 
   // Capture current screenshot AFTER mutation
-  const currentScreenshotPath = path.join(cwd, '.planning', 'experiments', slug, 'current-screenshot.png');
+  const currentScreenshotPath = path.join('/tmp', `pde-experiment-${slug}`, 'current-screenshot.png');
   vr.captureCurrentScreenshot(cwd, slug, targetHtmlPath, currentScreenshotPath);
 
   const result = vr.checkVisualRegression({
@@ -467,9 +468,8 @@ if (visualRegressionGuard && status !== 'CRASH' && status !== 'BOUNDARY_VIOLATIO
   if (result.fired) {
     haltReason = 'visual_regression';
     // git reset --hard HEAD~1 (the commit from this iteration)
-    // JSONL row already written — amend status? Or write new row?
-    // Resolution: write a separate REGRESSION row (iteration + 0.5 is awkward)
-    // Recommendation: overwrite the DISCARD row's status field OR add a note to description
+    // JSONL row already written with status DISCARD — append "VISUAL REGRESSION: ..." to description
+    // No new status value needed; haltReason: "visual_regression" in final report distinguishes cause
   }
 }
 
@@ -545,22 +545,74 @@ describe('VRCB-04: visual_regression_guard field', () => {
 
 ---
 
-## Open Questions
+## Design Decisions (RESOLVED)
 
-1. **Where to store baseline/current screenshots: `.planning/experiments/` vs `/tmp/`**
-   - What we know: `_commit()` in experiment.cjs uses `git add -A` which stages everything including PNGs. PNG files in `.planning/experiments/` would be committed to the experiment branch, bloating git history.
-   - What's unclear: Whether the PNG bloat is acceptable (experiment branches are deleted after promotion), or whether it causes performance issues during git operations.
-   - Recommendation: Store in `/tmp/pde-experiment-{slug}/` to avoid git staging entirely. Pattern is consistent with how `/tmp/pde-self-improve-experiment.md` is used for `--self` flag. Document this in the RESEARCH.md and plan accordingly. If `/tmp/` is used, add note that screenshots are lost on reboot (acceptable — they're per-run ephemeral data).
+All three open questions from initial research have been resolved via maxdepth codebase investigation (2026-03-23).
 
-2. **JSONL row handling when REGRESSION fires after commit**
-   - What we know: The runner agent commits the mutation (experiment commit), writes the JSONL row with status DISCARD, then returns. The orchestrator checks BREAK-05. If BREAK-05 fires, the commit exists in git and the JSONL row exists on disk.
-   - What's unclear: Should the JSONL row status be updated from DISCARD to REGRESSION, or should a separate REGRESSION row be appended?
-   - Recommendation: Update the JSONL row's description field to include "(visual regression detected)" and let status remain DISCARD. The `haltReason: "visual_regression"` in the final report is sufficient to identify the cause. Avoid complicating the JSONL schema with a new status value.
+### Decision 1: Screenshot Storage — `/tmp/pde-experiment-{slug}/` (RESOLVED)
 
-3. **targetHtmlPath for baseline capture: what file to screenshot?**
-   - What we know: Different experiments target different HTML artifacts (wireframe HTML, mockup HTML, fixture HTML). The `verify` command already knows the target path (it is the argument to `dom-metric.cjs` or `a11y-metric.cjs`).
-   - What's unclear: How to extract the target HTML path from the `verify` command string automatically vs requiring explicit configuration.
-   - Recommendation: Add an optional `visual_regression_target` field to experiment.md frontmatter. If absent, VRCB circuit breaker is disabled even when `visual_regression_guard: true`. This avoids fragile parsing of the verify command string. Template authors who want VRCB must explicitly specify the target artifact path.
+**Decision:** Store baseline and current screenshots in `/tmp/pde-experiment-{slug}/`, NOT in `.planning/experiments/{slug}/`.
+
+**Evidence:**
+- `experiment.cjs:108` — `_commit()` calls `execGit(cwd, ['add', '-A'])` which stages ALL files in the working tree. PNGs in `.planning/experiments/` would bloat experiment branches with binary files.
+- `.gitignore` is minimal (only excludes `mcp-connections.json`) — no `*.png` exclusion exists, and adding one would be fragile.
+- Existing `/tmp/` pattern confirmed at 3 locations: `event-bus.cjs:50` (`/tmp/pde-session-{id}.ndjson`), `optimize.md:94,140` (`/tmp/pde-self-improve-experiment.md`), `idle-suggestions.cjs:67` (`/tmp/pde-suggestions-{id}.md`). All follow the convention `/tmp/pde-{component}-{identifier}.{ext}`.
+- Screenshots are per-run ephemeral data — only needed for before/after comparison within a single iteration. No value persisting across reboots.
+- Loop counters (`consecutiveFailures`, `iterationsSinceImprovement`) are also ephemeral (initialized fresh at `optimize.md:270-276`), so screenshot ephemerality is consistent with the existing state model.
+
+**Layout:**
+```
+/tmp/pde-experiment-{slug}/
+├── baseline-screenshot.png
+├── current-screenshot.png
+└── baseline-hash.txt        # SHA-256 for fast comparison without re-reading PNG
+```
+
+### Decision 2: JSONL Status on Regression — Reuse `DISCARD` (RESOLVED)
+
+**Decision:** Reuse `status: 'DISCARD'` with descriptive text prefix `"VISUAL REGRESSION: {detail}"` in the description field. Do NOT add a new `REGRESSION` status value.
+
+**Evidence:**
+- Only 4 statuses exist: `KEEP`, `DISCARD`, `CRASH`, `""` (empty for start/complete events). Source: `experiment-runner.cjs:114-132`, `event-bus.cjs:115-126`.
+- No status enum exists — validation is implicit via `_compareMetric()` logic, which only returns `KEEP` or `DISCARD`.
+- Adding `REGRESSION` would require updating: `experiment-report.cjs:138` (filters `r.status === 'KEEP'`), event-bus docs (`lines 115-126`), and all 32 Nyquist tests that validate status behavior.
+- `DISCARD` already means "iteration regressed the metric" — semantically correct for visual regression.
+- Report table at `experiment-report.cjs:172-176` renders both status AND description columns — users see `DISCARD | VISUAL REGRESSION: new a11y violation (baseline: 0, current: 2)` which fully distinguishes the cause.
+- Downstream consumers that need programmatic distinction can check `description.startsWith('VISUAL REGRESSION:')` without any schema migration.
+
+**Pattern:**
+```
+status: 'DISCARD'
+description: 'VISUAL REGRESSION: screenshot hash changed + metric decreased (delta: -3.2)'
+```
+
+**JSONL_ROW_FIELDS update:** Still add `screenshot_hash` and `baseline_hash` as optional fields (null when guard disabled). These are diagnostic metadata, not a new status. The frozen array must be replaced (not pushed to) per Pitfall 3.
+
+### Decision 3: Visual Regression Target Path — New Frontmatter Field (RESOLVED)
+
+**Decision:** Add explicit `visual_regression_target` field to experiment.md frontmatter. Do NOT parse the `verify` command string.
+
+**Evidence:**
+- `verify` command is parsed by splitting on whitespace at `experiment-runner.cjs:70` (`verifyCmd.trim().split(/\s+/)`). Extracting a path from it would require fragile index-based string parsing that breaks if arguments change order.
+- Established pattern: per-experiment config lives in frontmatter (`iteration_budget`, `time_budget_minutes`), global thresholds in `config.json` (`consecutive_failure_limit`, `no_progress_limit`). A per-experiment target path belongs in frontmatter.
+- Frontmatter parser at `frontmatter.cjs:11-84` returns ALL values as strings. Boolean normalization is required: `=== 'true' || === true` (confirmed — parser does NOT convert YAML booleans).
+- No existing mechanism for specifying screenshot targets exists — `mutable_files`/`immutable_files` only control write permissions, not capture targets.
+
+**Frontmatter additions:**
+```yaml
+visual_regression_guard: true
+visual_regression_target: .planning/pipeline/design/wireframes/dashboard.html
+```
+
+**Schema addition in `parseExperimentFile()` return block:**
+```javascript
+visual_regression: {
+  enabled: fm.visual_regression_guard === 'true' || fm.visual_regression_guard === true,
+  target: fm.visual_regression_target || null
+}
+```
+
+**Guard logic:** If `visual_regression_guard: true` but `visual_regression_target` is null/absent, VRCB circuit breaker is inactive (logged as warning, not error). Template authors must specify both fields to enable VRCB.
 
 ---
 

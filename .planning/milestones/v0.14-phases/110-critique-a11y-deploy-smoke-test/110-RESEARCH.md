@@ -157,7 +157,7 @@ IF neither:
 
 The mcp-bridge.cjs defines canonical Playwright bridge keys. Phase 108/109 established: `playwright:navigate`, `playwright:screenshot`, `playwright:resize`, `playwright:close`. For AOM work, the relevant key is `playwright:snapshot` — this maps to `browser_snapshot` in the official @playwright/mcp tool namespace.
 
-**CRITICAL:** Verify `playwright:snapshot` exists in TOOL_MAP before writing critque.md step. Pattern: resolve via bridge, check for empty string, degrade if missing (same as Phase 109 pattern).
+**CONFIRMED:** `playwright:snapshot` exists in TOOL_MAP at line 165 of `bin/lib/mcp-bridge.cjs` (verified 2026-03-23). Pattern: resolve via bridge, check for empty string, degrade if missing (same as Phase 109 pattern).
 
 ```javascript
 // Bridge resolution (same pattern as wireframe.md Step 5d)
@@ -308,11 +308,8 @@ The existing `vercel_deployment` object in deploy-manifest.json gets a new `smok
 **How to avoid:** `browser_snapshot` → YAML text (AOM). `browser_take_screenshot` → PNG file. Both are needed for the smoke test (screenshot for human review, snapshot for section verification).
 **Warning signs:** Smoke test reports sections as missing even when page loads correctly.
 
-### Pitfall 2: bridge key `playwright:snapshot` may not exist in TOOL_MAP
-**What goes wrong:** Bridge lookup returns empty string, causing AOM step to silently skip.
-**Why it happens:** Phase 108 added keys for `navigate`, `screenshot`, `resize`, `close`. The `snapshot` key presence is unconfirmed.
-**How to avoid:** Wave 0 of the plan MUST verify TOOL_MAP contains `playwright:snapshot`. If missing, add it to mcp-bridge.cjs before critique.md references it.
-**Warning signs:** All AOM analysis silently degrades even when Playwright is available.
+### Pitfall 2: ~~bridge key `playwright:snapshot` may not exist in TOOL_MAP~~ — RESOLVED
+**Status:** Bridge key confirmed at `bin/lib/mcp-bridge.cjs:165`. Tagged `TOOL_MAP_VERIFY_REQUIRED` — live Nyquist test still needed to confirm MCP server exposes `browser_snapshot`, but bridge mapping is in place. No Wave 0 registration work required.
 
 ### Pitfall 3: Vercel --no-wait URL is a deployment subdomain, not necessarily the production domain
 **What goes wrong:** Smoke test navigates to the deployment preview URL (e.g., `https://my-project-abc123.vercel.app`) which may have different content or redirect behavior than `my-project.vercel.app`.
@@ -486,20 +483,16 @@ done
 
 ## Open Questions
 
-1. **Does `playwright:snapshot` exist as a bridge key in mcp-bridge.cjs?**
-   - What we know: Phase 108 added `navigate`, `screenshot`, `resize`, `close`. Snapshot was not in the Phase 108 scope.
-   - What's unclear: Whether `browser_snapshot` in the @playwright/mcp tool maps to a `playwright:snapshot` TOOL_MAP entry, or a different key.
-   - Recommendation: Wave 0 task MUST read mcp-bridge.cjs TOOL_MAP and either confirm the key or add it. If absent, add `playwright:snapshot` → `browser_snapshot` to TOOL_MAP.
+All resolved via codebase verification (2026-03-23).
 
-2. **Where exactly in critique.md does the Playwright probe get added?**
-   - What we know: Critique Step 3 has Sequential Thinking probe. Axe probe is "handled inside HIG skill" per line 189 of critique.md. A11Y-01 says "accessibility perspective" uses AOM.
-   - What's unclear: Whether the Playwright probe goes into critique.md Step 3 (alongside ST probe), or into the Perspective 3 execution step, or into hig.md's light mode.
-   - Recommendation: Add Playwright probe to critique.md Step 3 (alongside existing probes). Perspective 3 then has access to PLAYWRIGHT_A11Y_AVAILABLE flag and AOM_DATA. This keeps probe/degrade consistent with other MCP patterns and doesn't touch hig.md's locked sections.
+1. **~~Does `playwright:snapshot` exist as a bridge key in mcp-bridge.cjs?~~** — **RESOLVED: YES.**
+   `bin/lib/mcp-bridge.cjs:165` maps `'playwright:snapshot'` → `'mcp__playwright__browser_snapshot'`. Also `'playwright:probe'` at line 162 maps to the same tool. Both tagged `TOOL_MAP_VERIFY_REQUIRED` (bridge mapping complete; needs live Nyquist test only). **No Wave 0 bridge registration work needed.**
 
-3. **Does the smoke test step in deploy.md need Playwright MCP separately available?**
-   - What we know: deploy.md doesn't currently probe Playwright at all. The smoke test needs it.
-   - What's unclear: Should the smoke test be silently skipped if Playwright unavailable, or should deploy.md add a probe step?
-   - Recommendation: Add Playwright probe at the start of the new smoke test step (Step 5). If unavailable, set smoke_test.status = "skipped" and continue. Same graceful degradation pattern as every other PDE skill.
+2. **~~Where exactly in critique.md does the Playwright probe get added?~~** — **RESOLVED: Step 3/7.**
+   Critique.md Step 3/7 (line 169) is the established MCP probe step. Currently probes Sequential Thinking only. Axe is NOT probed here — it's delegated to `/pde:hig --light` (line 189). **Add Playwright AOM probe to critique.md Step 3**, setting `PLAYWRIGHT_A11Y_AVAILABLE` flag. Perspective 3 uses that flag and stored `AOM_DATA`. Consistent with existing probe pattern; no changes to hig.md locked sections.
+
+3. **~~Does the smoke test step in deploy.md need Playwright MCP separately available?~~** — **RESOLVED: YES, probe at step start.**
+   Deploy.md has no existing Playwright probe. New Step 5 probes Playwright at its start. If unavailable: `smoke_test.status = "skipped"`, continue. Same graceful degradation pattern as every other PDE skill.
 
 ---
 
@@ -534,7 +527,7 @@ done
 ### Wave 0 Gaps
 - [ ] `tests/phase-110/critique-a11y-aom.test.mjs` — covers A11Y-01 through A11Y-04
 - [ ] `tests/phase-110/deploy-smoke-test.test.mjs` — covers DEP-01 through DEP-05
-- [ ] Verify `playwright:snapshot` key in `bin/lib/mcp-bridge.cjs` TOOL_MAP (add if missing)
+- [x] ~~Verify `playwright:snapshot` key in `bin/lib/mcp-bridge.cjs` TOOL_MAP~~ — confirmed at line 165 (2026-03-23)
 
 ---
 
