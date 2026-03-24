@@ -13,6 +13,7 @@ import { getRequirementsTool } from './tools/get-requirements.js';
 import { getPipelineStatusTool } from './tools/get-pipeline-status.js';
 import { listArtifactsTool } from './tools/list-artifacts.js';
 import { pipelineStatusResource } from './resources/pipeline-status.js';
+import { registerWriteTools } from './write-tools.js';
 
 // ─── Resolve planningDir ──────────────────────────────────────────────────────
 
@@ -35,6 +36,13 @@ if (!planningDir) {
 }
 
 process.stderr.write(`pde-mcp-server: Using planningDir: ${planningDir}\n`);
+
+// ─── Parse --enable-writes flag ───────────────────────────────────────────────
+
+const enableWrites = process.argv.includes('--enable-writes');
+if (enableWrites) {
+  process.stderr.write('pde-mcp-server: Write mode enabled — 4 write tools registered\n');
+}
 
 // ─── Server setup ─────────────────────────────────────────────────────────────
 
@@ -68,6 +76,10 @@ for (const tool of tools) {
     tool.handler
   );
 }
+
+// ─── Register write tools (conditional on --enable-writes) ───────────────────
+
+if (enableWrites) { registerWriteTools(server, planningDir); }
 
 // ─── Register pipeline-status resource ───────────────────────────────────────
 
