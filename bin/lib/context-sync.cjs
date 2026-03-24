@@ -24,6 +24,7 @@ const { safeReadFile, output, error } = require('./core.cjs');
 // ─── Source files that contribute to the composite hash ─────────────────────
 
 const WRITABLE_FIELDS = ['techStack', 'constraints', 'componentCatalog', 'designTokens'];
+const VALID_POLICIES = ['planning-wins', 'editor-wins', 'prompt'];
 
 const SOURCE_FILES = [
   'PROJECT.md',
@@ -926,8 +927,18 @@ function mergePartialIR(base, editorPartial, currentIR, opts) {
       continue;
     }
 
-    var editorChanged = editorVal !== baseVal;
-    var pdeChanged = currentVal !== baseVal;
+    // For designTokens, normalize before comparison to handle format mismatch (Finding 2)
+    var compareEditorVal = editorVal;
+    var compareBaseVal = baseVal;
+    var compareCurrentVal = currentVal;
+    if (field === 'designTokens') {
+      compareEditorVal = normalizeDesignTokensForComparison(editorVal);
+      compareBaseVal = normalizeDesignTokensForComparison(baseVal);
+      compareCurrentVal = normalizeDesignTokensForComparison(currentVal);
+    }
+
+    var editorChanged = compareEditorVal !== compareBaseVal;
+    var pdeChanged = compareCurrentVal !== compareBaseVal;
 
     if (!editorChanged) {
       // Editor unchanged -- use current PDE value (covers both "PDE changed" and "neither changed")
@@ -935,13 +946,20 @@ function mergePartialIR(base, editorPartial, currentIR, opts) {
     } else if (!pdeChanged) {
       // Only editor changed -- editor wins
       merged[field] = editorVal;
-    } else if (editorVal === currentVal) {
+    } else if (compareEditorVal === compareCurrentVal) {
       // Both changed to same value -- no conflict
       merged[field] = currentVal;
     } else {
       // True conflict: both changed to different values
-      var policy = 'planning-wins';
-      var resolvedValue = currentVal; // planning-wins default
+      var policy = readFieldPolicy(opts.planningDir, field, opts.fieldPolicies);
+      var resolvedValue;
+      if (policy === 'editor-wins') {
+        resolvedValue = editorVal;
+      } else if (policy === 'prompt') {
+        resolvedValue = currentVal; // planning value as placeholder until user decides
+      } else {
+        resolvedValue = currentVal; // planning-wins (default)
+      }
       var entry = {
         field: field,
         baseValue: baseVal,
@@ -952,6 +970,9 @@ function mergePartialIR(base, editorPartial, currentIR, opts) {
         timestamp: new Date().toISOString(),
         source: opts.source || 'unknown',
       };
+      if (policy === 'prompt') {
+        entry.pendingResolution = true;
+      }
       conflicts.push(entry);
       merged[field] = resolvedValue;
       if (opts.planningDir) {
@@ -977,6 +998,50 @@ function appendConflictLog(planningDir, entry) {
     process.stderr.write('[context-sync] conflict log write error: ' + err.message + '\n');
   }
 }
+
+/**
+ * Read the conflict resolution policy for a specific field.
+ * Checks overrides first, then config.json contextSync.fieldPolicies.
+ * Returns 'planning-wins' as default for any error or missing config.
+ * @param {string} planningDir - Absolute path to .planning/
+ * @param {string} field - Field name from WRITABLE_FIELDS
+ * @param {object} [overrides] - Per-call policy overrides (e.g., from opts.fieldPolicies)
+ * @returns {string} One of VALID_POLICIES
+ */
+function readFieldPolicy(planningDir, field, overrides) {
+  if (overrides && overrides[field] && VALID_POLICIES.indexOf(overrides[field]) !== -1) {
+    return overrides[field];
+  }
+  try {
+    var configPath = path.join(planningDir, 'config.json');
+    var config = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+    var policy = config && config.contextSync && config.contextSync.fieldPolicies
+      && config.contextSync.fieldPolicies[field];
+    return (policy && VALID_POLICIES.indexOf(policy) !== -1) ? policy : 'planning-wins';
+  } catch (e) {
+    return 'planning-wins';
+  }
+}
+
+/**
+ * Normalize designTokens value for comparison by extracting sorted color set.
+ * Handles both color-list format (from parseDesignMd) and token-summary format (from buildContextIR).
+ * Falls back to trimmed raw string if no color patterns found.
+ * @param {string} value - designTokens string in either format
+ * @returns {string} Normalized comparison key
+ */
+function normalizeDesignTokensForComparison(value) {
+  if (!value) return '';
+  var colors = [];
+  var re = /\*\*([^*]+)\*\*\s+\(#([a-fA-F0-9]{3,6})\)/g;
+  var m;
+  while ((m = re.exec(value)) !== null) {
+    colors.push(m[1].trim().toLowerCase() + ':#' + m[2].toLowerCase());
+  }
+  if (colors.length === 0) return value.trim();
+  return colors.sort().join('|');
+}
+
 
 // ─── Orchestrator ───────────────────────────────────────────────────────────
 
@@ -1236,5 +1301,5 @@ module.exports = {
   isStitchSource, emitAntigravitySkill, emitDesignMd,
   writeStateFile, readStateFile, computeLoopBreak,
   parseMdcContent, parseSkillMd, parseDesignMd,
-  mergePartialIR, appendConflictLog,
+  mergePartialIR, appendConflictLog, readFieldPolicy, normalizeDesignTokensForComparison,
 };
