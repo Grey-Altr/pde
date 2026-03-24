@@ -1,15 +1,15 @@
 ---
-gsd_state_version: 1.0
+pde_state_version: 1.0
 milestone: v0.15
 milestone_name: Multi-Editor Integration
 status: unknown
 stopped_at: Completed 121-01-PLAN.md
-last_updated: "2026-03-24T04:46:04.599Z"
+last_updated: "2026-03-24T04:53:06.144Z"
 progress:
   total_phases: 7
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 8
-  completed_plans: 7
+  completed_plans: 8
 ---
 
 # Project State
