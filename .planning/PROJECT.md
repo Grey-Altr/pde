@@ -315,4 +315,4 @@ This document evolves at phase transitions and milestone boundaries.
 3. Audit Out of Scope — reasons still valid?
 4. Update Context with current state
 
-*Last updated: 2026-03-24 after Phase 128 (Merge Engine and Conflict Resolution) complete — mergePartialIR, appendConflictLog, readFieldPolicy, normalizeDesignTokensForComparison, 20 Nyquist tests*
+*Last updated: 2026-03-24 after Phase 129 (Hook Integration) complete — reconcileOnStart, ingestAll, scanMonitoredFiles, SessionStart hook, replaceSectionInFile, 18 Nyquist tests*
