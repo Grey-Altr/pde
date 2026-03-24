@@ -123,7 +123,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 131-01-PLAN.md — Flag gate + section-overwrite handlers: --enable-writes in index.ts, handleUpdateConstraints, handleUpdateTechStack, NDJSON audit log (INF-01, INF-02, INF-03)
+- [x] 131-01-PLAN.md — Flag gate + section-overwrite handlers: --enable-writes in index.ts, handleUpdateConstraints, handleUpdateTechStack, NDJSON audit log (INF-01, INF-02, INF-03)
 - [ ] 131-02-PLAN.md — Context note + divergence flag tools: handleAppendContextNote, handleFlagDivergence, full 4-tool registration (INF-04, INF-05)
 
 ### Phase 132: Conflict UX and Generation Enhancements
@@ -149,5 +149,5 @@ Plans:
 | 128. Merge Engine and Conflict Resolution | 2/2 | Complete    | 2026-03-24 |
 | 129. Hook Integration | 1/2 | Complete    | 2026-03-24 |
 | 130. Antigravity Write-Back | 2/2 | Complete    | 2026-03-24 |
-| 131. MCP Write Tools | 0/2 | Not started | - |
+| 131. MCP Write Tools | 1/2 | In Progress|  |
 | 132. Conflict UX and Generation Enhancements | 0/TBD | Not started | - |
