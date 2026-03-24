@@ -1331,6 +1331,11 @@ function reconcileOnStart(cwd) {
       }
     }
 
+    // INF-07: Snapshot files before write-back batch
+    if (editorPartials.length > 0) {
+      snapshotFilesBeforeBatch(cwd);
+    }
+
     // Merge all editor partials
     var mergedIR = Object.assign({}, currentIR);
     for (var j = 0; j < editorPartials.length; j++) {
@@ -1369,6 +1374,15 @@ function reconcileOnStart(cwd) {
       ' changed=' + changesDetected + ' conflicts=' + conflictCount +
       ' elapsed=' + Math.round(elapsedMs) + 'ms\n';
     try { fs.appendFileSync(path.join(logsDir, 'sync-reconciliation.log'), logLine, 'utf-8'); } catch { /* non-fatal */ }
+
+    // INF-06: Append to structured SYNC-LOG.md
+    appendSyncLog(planningDir, {
+      trigger: 'reconcileOnStart',
+      filesScanned: filesScanned,
+      changes: changesDetected,
+      writeBacks: editorPartials.length,
+      conflicts: conflictCount,
+    });
 
     return {
       filesScanned: filesScanned,
@@ -1448,6 +1462,9 @@ function ingestAll(cwd) {
       }
     }
 
+    // INF-07: Snapshot files before write-back batch
+    snapshotFilesBeforeBatch(cwd);
+
     // Scan ALL monitored files (always, no mtime filter)
     // filesScanned counts ALL monitored files (the full scan set)
     for (var i = 0; i < MONITORED_FILES.length; i++) {
@@ -1459,6 +1476,15 @@ function ingestAll(cwd) {
 
     // Call emitAll to re-normalize all editor files and reset pendingIngest to []
     emitAll(cwd);
+
+    // INF-06: Append to structured SYNC-LOG.md
+    appendSyncLog(planningDir, {
+      trigger: 'ingestAll',
+      filesScanned: filesScanned,
+      changes: changesDetected,
+      writeBacks: changesDetected,
+      conflicts: conflictCount,
+    });
 
     return {
       filesScanned: filesScanned,
