@@ -1,548 +1,500 @@
-# Architecture Research: Multi-Editor Integration
+# Architecture Research: Bidirectional Multi-Editor Context Sync
 
-**Domain:** Multi-editor AI tool integration (Cursor, Google Antigravity, Gemini CLI)
-**Researched:** 2026-03-23
-**Confidence:** MEDIUM (editor config formats verified; Antigravity official docs partially unavailable, supplemented by community guides)
+**Domain:** Bidirectional editor context synchronization — reverse parsing, conflict detection, MCP write-back
+**Researched:** 2026-03-24
+**Confidence:** HIGH for integration patterns (code verified), MEDIUM for Antigravity MCP write-back (official AG write API undocumented)
 
-## System Overview
+---
 
-```
-┌──────────────────────────────────────────────────────────────────────────┐
-│                    EXISTING PDE PLUGIN (Claude Code)                     │
-│  skills/ → workflows/ → agents/ → templates/ → references/ → bin/       │
-│  .planning/ (PROJECT.md, ROADMAP.md, STATE.md, design-manifest.json)    │
-├──────────────────────────────────────────────────────────────────────────┤
-│                                                                          │
-│  ┌──────────────┐   ┌───────────────┐   ┌───────────────────────┐       │
-│  │ bin/lib/     │   │ bin/lib/      │   │ bin/lib/              │       │
-│  │ core.cjs     │   │ mcp-bridge.cjs│   │ design.cjs            │       │
-│  │ state.cjs    │   │ (57 tools)    │   │ (manifest, coverage)  │       │
-│  │ config.cjs   │   │               │   │                       │       │
-│  └──────┬───────┘   └──────┬────────┘   └───────────┬───────────┘       │
-│         │                  │                         │                   │
-├─────────┴──────────────────┴─────────────────────────┴───────────────────┤
-│                       SHARED CORE LIBRARY (NEW)                          │
-│              bin/lib/context-sync.cjs + bin/lib/divergence.cjs           │
-│    Reads .planning/ state → produces editor-agnostic intermediate repr  │
-├──────────────────────────────────────────────────────────────────────────┤
-│                                                                          │
-│  ┌────────────┐  ┌──────────────────┐  ┌──────────────┐                 │
-│  │ Context    │  │ Context          │  │ Context      │                 │
-│  │ Emitter:   │  │ Emitter:         │  │ Emitter:     │                 │
-│  │ Cursor     │  │ Antigravity      │  │ Gemini CLI   │                 │
-│  │ (.cursor/  │  │ (GEMINI.md +     │  │ (GEMINI.md)  │                 │
-│  │  rules/)   │  │  .agent/rules/)  │  │              │                 │
-│  └────────────┘  └──────────────────┘  └──────────────┘                 │
-│                                                                          │
-├──────────────────────────────────────────────────────────────────────────┤
-│                  pde-mcp-server/ (NEW — subdirectory)                    │
-│  Own package.json + @modelcontextprotocol/sdk dependency                │
-│  Exposes PDE workflows as MCP tools via stdio transport                 │
-│  Invocable: npx pde-mcp-server                                         │
-├──────────────────────────────────────────────────────────────────────────┤
-│                  STITCH DESIGN BRIDGE (NEW)                              │
-│  bin/lib/stitch-bridge.cjs — bidirectional artifact flow                │
-│  PDE Stitch artifacts ↔ Antigravity native Stitch canvas                │
-└──────────────────────────────────────────────────────────────────────────┘
-```
+## System Overview: Current vs. Target State
 
-### Component Responsibilities
-
-| Component | Responsibility | New vs Modified | Implementation |
-|-----------|----------------|-----------------|----------------|
-| `bin/lib/context-sync.cjs` | Read .planning/ state, produce editor-agnostic intermediate representation | **NEW** | CJS module, zero npm deps |
-| `bin/lib/context-emitters/cursor.cjs` | Transform intermediate repr to `.cursor/rules/*.mdc` files | **NEW** | CJS module, writes .mdc with YAML frontmatter |
-| `bin/lib/context-emitters/antigravity.cjs` | Transform intermediate repr to `GEMINI.md` + `.agent/rules/*.md` | **NEW** | CJS module, writes markdown rules |
-| `bin/lib/context-emitters/gemini-cli.cjs` | Transform intermediate repr to `GEMINI.md` (project root) | **NEW** | CJS module, writes markdown |
-| `bin/lib/divergence.cjs` | Compare handoff specs vs actual code, detect drift | **NEW** | CJS module, AST-free heuristic matching |
-| `bin/lib/stitch-bridge.cjs` | Bidirectional artifact flow: PDE .planning/design/ to/from Stitch MCP | **NEW** | CJS module, reads existing mcp-bridge.cjs |
-| `pde-mcp-server/` | Standalone MCP server exposing PDE workflows as tools | **NEW** | Subdirectory with own package.json |
-| `bin/lib/mcp-bridge.cjs` | Add pde-mcp-server to APPROVED_SERVERS (self-reference for testing) | **MODIFIED** | Add entry + TOOL_MAP entries |
-| `bin/pde-tools.cjs` | Add `context-sync`, `divergence-check` commands | **MODIFIED** | New case blocks calling new modules |
-| `workflows/context-sync.md` | Workflow for `/pde:context-sync` command | **NEW** | Markdown workflow |
-| `workflows/divergence.md` | Workflow for `/pde:divergence` command | **NEW** | Markdown workflow |
-| `skills/context-sync.md` | Slash command registration | **NEW** | Skill definition |
-| `skills/divergence.md` | Slash command registration | **NEW** | Skill definition |
-
-## Recommended Project Structure
-
-### New Files Only (existing structure unchanged)
+### Current (Unidirectional, v0.15)
 
 ```
-Platform Development Engine/
-├── bin/
-│   ├── lib/
-│   │   ├── context-sync.cjs           # Core sync engine — reads .planning/, produces intermediate
-│   │   ├── context-emitters/           # NEW directory
-│   │   │   ├── cursor.cjs             # .cursor/rules/*.mdc writer
-│   │   │   ├── antigravity.cjs        # GEMINI.md + .agent/rules/ writer
-│   │   │   └── gemini-cli.cjs         # GEMINI.md writer
-│   │   ├── divergence.cjs             # Handoff spec vs code drift detector
-│   │   └── stitch-bridge.cjs          # PDE to/from Antigravity Stitch artifact bridge
-│   └── pde-tools.cjs                  # MODIFIED: new command cases
-├── pde-mcp-server/                    # NEW subdirectory — isolated npm package
-│   ├── package.json                   # @modelcontextprotocol/sdk dependency
-│   ├── index.cjs                      # MCP server entry point (bin target)
-│   ├── tools/                         # Tool definitions mapping to PDE workflows
-│   │   ├── design-tools.cjs           # design manifest, coverage queries
-│   │   ├── planning-tools.cjs         # roadmap, phase status queries
-│   │   └── state-tools.cjs            # state queries, todo listing
-│   └── README.md                      # npx usage instructions
-├── workflows/
-│   ├── context-sync.md                # NEW workflow
-│   └── divergence.md                  # NEW workflow
-└── skills/
-    ├── context-sync.md                # NEW skill
-    └── divergence.md                  # NEW skill
+.planning/ state files
+        │
+        ▼
+bin/lib/context-sync.cjs (IR builder)
+        │ buildContextIR()
+        ▼
+  [Intermediate Representation]
+        │
+   ┌────┴──────────────────────────────────┐
+   ▼          ▼          ▼          ▼      ▼
+AGENTS.md  .cursor/   GEMINI.md  SKILL.md DESIGN.md
+           rules/*.mdc
 ```
 
-### Structure Rationale
+**Trigger:** PostToolUse(Write|Edit) → context-sync-hook.cjs → hash check → emitAll()
+**Direction:** .planning/ → editor files only (read-only in reverse)
 
-- **`bin/lib/context-emitters/`:** Subdirectory (not flat in lib/) because there will be 3+ editor emitters sharing a common interface. Each emitter is a pure function: intermediate repr in, file writes out. Adding a new editor = one new file.
-- **`pde-mcp-server/`:** Separate subdirectory at plugin root (not inside bin/) because it has its own package.json with npm dependencies (@modelcontextprotocol/sdk). This preserves the zero-npm-deps constraint at the plugin root while being discoverable. Published to npm separately as `pde-mcp-server`.
-- **`bin/lib/stitch-bridge.cjs`:** Lives in bin/lib/ (not in pde-mcp-server/) because it uses the existing mcp-bridge.cjs TOOL_MAP and Stitch quota tracking. The bridge is consumed by both the context-sync workflow and the pde-mcp-server.
-- **`bin/lib/divergence.cjs`:** Separate from context-sync because divergence detection is independently useful (run it from `/pde:divergence` without syncing context) and has different trigger points in the workflow lifecycle.
+### Target (Bidirectional, Next Milestone)
 
-## Architectural Patterns
+```
+.planning/ state files  ◄──────────────────────────┐
+        │                                           │
+        ▼                                           │ write-back
+bin/lib/context-sync.cjs (IR builder + IR receiver) │
+        │ buildContextIR()                          │
+        ▼                          ┌────────────────┴──────┐
+  [Intermediate Representation]    │  bin/lib/ir-merger.cjs │
+        │                          │  (3-way merge engine)  │
+   ┌────┴──────────────────────────└──────────────┐
+   ▼          ▼          ▼          ▼      ▼      │
+AGENTS.md  .cursor/   GEMINI.md  SKILL.md DESIGN.md│
+           rules/*.mdc                             │
+                │                                 │
+                ▼                                 │
+   ┌────────────────────────────────────────────┐ │
+   │  bin/lib/reverse-parsers/                  │ │
+   │  cursor-mdc-parser.cjs                     ├─┘
+   │  antigravity-skill-parser.cjs              │
+   └────────────────────────────────────────────┘
+           ▲             ▲
+           │             │
+   Cursor edits    Antigravity edits
+   .mdc rules      SKILL.md / DESIGN.md
+```
 
-### Pattern 1: Intermediate Representation for Context Sync
+**New triggers:** PostToolUse on .cursor/rules/*.mdc or .agent/ files → reverse parse → merge → write-back
 
-**What:** The context sync engine reads all .planning/ state once and produces an editor-agnostic JSON intermediate representation. Each emitter transforms this IR into editor-specific files. This decouples PDE state reading from editor format writing.
+---
 
-**When to use:** Whenever PDE state changes and the user runs `/pde:context-sync` or when triggered automatically after build/handoff workflows.
+## Component Responsibilities
 
-**Trade-offs:** Extra abstraction layer adds ~100 LOC. But without it, each emitter independently parses .planning/ files (3x duplication, 3x opportunity for drift). The IR also enables testing emitters in isolation.
+| Component | Type | Responsibility | Status |
+|-----------|------|----------------|--------|
+| `bin/lib/context-sync.cjs` | MODIFY | Add `parseIRFromMdc()`, `parseIRFromSkill()` entry points; `buildContextIR()` unchanged | Existing |
+| `bin/lib/reverse-parsers/cursor-mdc-parser.cjs` | NEW | Parse .cursor/rules/*.mdc YAML frontmatter + body back into partial IR fields | New |
+| `bin/lib/reverse-parsers/antigravity-skill-parser.cjs` | NEW | Parse SKILL.md / DESIGN.md back into partial IR fields | New |
+| `bin/lib/ir-merger.cjs` | NEW | 3-way merge between .planning/-sourced IR, editor-sourced IR delta, and last-sync IR snapshot | New |
+| `bin/lib/conflict-resolver.cjs` | NEW | Escalate irreconcilable conflicts to user prompt; implement last-write-wins policy for automatic resolution | New |
+| `hooks/context-sync-hook.cjs` | MODIFY | Add watcher path for editor files, call reverse parsers when editor files change, feed merge engine | Existing |
+| `hooks/hooks.json` | MODIFY | Add PostToolUse matcher for .cursor/rules/ and .agent/ paths | Existing |
+| `packages/pde-mcp-server/` | MODIFY | Add write tools: `update-planning-section`, `append-constraint`, `flag-divergence` | Existing |
+| `bin/lib/ag-mcp-bridge.cjs` | NEW | Antigravity-specific MCP write-back channel with consent gate | New |
 
-**Example:**
+---
+
+## Detailed Component Design
+
+### Pattern 1: Reverse Parser Architecture
+
+**What:** Each editor format gets a dedicated parser that extracts only the fields it owns back into a partial IR object. The parser does NOT attempt to reconstruct fields it never wrote.
+
+**Why this design:** The `buildContextIR()` function assembles IR from 4 authoritative source files. A reverse parser can only claim ownership of fields it originally emitted — for example, `.mdc` body content may contain user-added custom rules not originating from PDE. The parser must distinguish PDE-generated sections (via the `PDE-GENERATED` HTML comment marker) from user-authored additions.
+
+**Critical constraint:** The `PDE-GENERATED | hash:... | generated:...` comment already exists in every emitted file. This is the anchor for safe reverse parsing — only content in PDE-generated sections participates in merge; user-added content below the last PDE section is preserved verbatim.
+
 ```javascript
-// context-sync.cjs — produces IR
-function buildContextIR(planningDir) {
-  const project = safeReadFile(path.join(planningDir, 'PROJECT.md'));
-  const state = safeReadFile(path.join(planningDir, 'STATE.md'));
-  const manifest = safeReadJSON(path.join(planningDir, 'design', 'design-manifest.json'));
-  const stack = safeReadFile(path.join(planningDir, 'STACK.md'));
-  const roadmap = safeReadFile(path.join(planningDir, 'ROADMAP.md'));
-
-  return {
-    projectName: extractField(project, 'name'),
-    productType: extractField(state, 'productType'),
-    currentPhase: extractField(state, 'currentPhase'),
-    stack: extractStackSummary(stack),
-    designArtifacts: manifest?.artifacts || [],
-    constraints: extractConstraints(project),
-    coverageFlags: manifest?.designCoverage || {},
-    roadmapPhases: extractPhases(roadmap),
-  };
-}
-
-// cursor.cjs — consumes IR
-function emitCursorRules(ir, projectRoot) {
-  const rulesDir = path.join(projectRoot, '.cursor', 'rules');
-  fs.mkdirSync(rulesDir, { recursive: true });
-
-  // Always-on project context rule
-  writeRule(rulesDir, 'pde-context.mdc', {
-    description: `PDE project context for ${ir.projectName}`,
-    globs: '**/*',
-    alwaysApply: true,
-    body: buildProjectContextBody(ir),
-  });
-
-  // Stack-specific rules
-  writeRule(rulesDir, 'pde-stack.mdc', {
-    description: 'Technology stack constraints from PDE',
-    globs: ir.stack.fileGlobs,  // e.g., "*.tsx,*.ts"
-    alwaysApply: false,
-    body: buildStackBody(ir),
-  });
+// bin/lib/reverse-parsers/cursor-mdc-parser.cjs
+// Returns a PARTIAL IR — only fields cursor rules can contribute
+function parseCursorMdcToPartialIR(rulesDir) {
+  // 1. Read all pde-*.mdc files
+  // 2. Verify PDE-GENERATED marker — skip files without it
+  // 3. Parse YAML frontmatter (description, globs, alwaysApply)
+  // 4. Extract body sections by ## heading
+  // 5. Return { constraints, techStack, ... } — ONLY fields this emitter owns
+  // 6. Include { _sourceHash, _parsedAt } for 3-way merge anchor
+  return { _partial: true, _source: 'cursor-mdc', constraints, techStack };
 }
 ```
 
-### Pattern 2: Subdirectory Package Isolation
+**Owned fields by emitter:**
 
-**What:** pde-mcp-server lives in its own subdirectory with its own package.json. Dependencies (@modelcontextprotocol/sdk) are installed locally. The parent plugin root remains zero-npm-deps.
+| Emitter | Fields it owns (can write back) |
+|---------|--------------------------------|
+| `emitCursorRules` | `constraints` (from pde-project.mdc), `techStack` (from pde-architecture.mdc), `pipelineStatus` (from pde-pipeline.mdc) |
+| `emitAntigravitySkill` | `designTokens`, `componentCatalog` (SKILL.md body sections) |
+| `emitDesignMd` | Color palette section, typography section (DESIGN.md sections 2-3) |
+| `emitAgentsMd` | `projectSummary`, `constraints` (AGENTS.md — only if PDE-GENERATED) |
+| `emitGeminiMd` | `pipelineStatus`, `projectSummary` (read-only — Gemini CLI is consume-only) |
 
-**When to use:** Any time a PDE feature requires npm dependencies that would break the zero-dep constraint.
+### Pattern 2: Hash-Anchored 3-Way Merge
 
-**Trade-offs:** Users must `cd pde-mcp-server && npm install` or rely on `npx pde-mcp-server` (which auto-installs from npm). Slightly more complex distribution, but maintains the core constraint and follows the exact pattern used by Playwright MCP (`npx @playwright/mcp@latest`).
+**What:** IR merger uses the last-emitted hash as the "base" for a 3-way merge. This mirrors git's 3-way merge but operates on IR fields rather than text lines.
 
-**Example:**
-```json
-// pde-mcp-server/package.json
-{
-  "name": "pde-mcp-server",
-  "version": "0.15.0",
-  "bin": { "pde-mcp-server": "./index.cjs" },
-  "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.12.0"
-  },
-  "files": ["index.cjs", "tools/"]
-}
-```
-
-### Pattern 3: Probe-Before-Bridge for Stitch
-
-**What:** The Stitch bridge reuses mcp-bridge.cjs probe/degrade contracts. Before any bidirectional operation, it probes the Stitch MCP server. If Stitch is unavailable, the bridge degrades to local-only artifact operations (no remote sync, no error).
-
-**When to use:** Every Stitch bridge operation (push design to Antigravity, pull Antigravity design into PDE).
-
-**Trade-offs:** Probe adds ~2-3s latency per bridge call. But without it, operations fail with cryptic MCP errors. This matches the existing PDE MCP pattern established in v0.5/v0.9.
-
-### Pattern 4: AST-Free Divergence Detection
-
-**What:** Divergence detection compares handoff TypeScript interfaces against actual source files using structural heuristics (prop name matching, type signature comparison, component name presence) rather than full AST parsing. This avoids requiring typescript/babel dependencies.
-
-**When to use:** After code implementation, before shipping. Run via `/pde:divergence` or integrated into pressure-test workflow.
-
-**Trade-offs:** Heuristic matching has ~85% accuracy vs ~98% with AST parsing. But AST parsing requires typescript npm dependency (breaks zero-dep in bin/lib/) or offloading to pde-mcp-server (wrong layer). For the 15% edge cases, the divergence report flags "LOW confidence — manual review recommended."
-
-## Data Flow
-
-### Context Sync Flow
+**How it works:**
 
 ```
-User runs /pde:context-sync [--editor cursor|antigravity|gemini|all]
-    │
-    ▼
-bin/pde-tools.cjs "context-sync" command
-    │
-    ▼
-bin/lib/context-sync.cjs :: buildContextIR()
-    │ Reads: .planning/PROJECT.md
-    │        .planning/STATE.md
-    │        .planning/ROADMAP.md
-    │        .planning/STACK.md (if exists)
-    │        .planning/design/design-manifest.json
-    │        .planning/design/handoff/HND-handoff-spec-v*.md
-    │        .planning/design/DESIGN-STATE.md
-    │
-    ▼
-Intermediate Representation (JSON object in memory)
-    │
-    ├─────────────────┬─────────────────┐
-    ▼                 ▼                 ▼
-cursor.cjs      antigravity.cjs   gemini-cli.cjs
-    │                 │                 │
-    ▼                 ▼                 ▼
-.cursor/rules/   GEMINI.md +        GEMINI.md
-  pde-*.mdc      .agent/rules/
-                   pde-*.md
+base_IR   = IR snapshot from last emitAll() run (stored in .planning/.context-sync-state.json)
+current_IR = IR freshly built from .planning/ sources via buildContextIR()
+editor_IR  = partial IR parsed from editor files (reverse parsers)
+
+For each IR field:
+  if current_IR[field] == base_IR[field] AND editor_IR[field] != base_IR[field]:
+    → Editor changed it, .planning/ did not: accept editor change → write-back to .planning/
+  if current_IR[field] != base_IR[field] AND editor_IR[field] == base_IR[field]:
+    → .planning/ changed it, editor did not: push forward (re-emit, skip write-back)
+  if current_IR[field] != base_IR[field] AND editor_IR[field] != base_IR[field]:
+    → Both changed: CONFLICT → escalate to conflict-resolver.cjs
+  if both unchanged:
+    → No-op
 ```
 
-### MCP Server Tool Invocation Flow
+**State file:** `.planning/.context-sync-state.json`
 
-```
-External Editor (Cursor/Antigravity/Gemini CLI)
-    │
-    │ MCP stdio connection to: npx pde-mcp-server
-    │
-    ▼
-pde-mcp-server/index.cjs
-    │ Receives tool call (e.g., "pde_state", "pde_design_manifest")
-    │
-    ▼
-tools/*.cjs
-    │ Maps MCP tool name to pde-tools.cjs command
-    │ Spawns: node ../bin/pde-tools.cjs <command> [args] --raw
-    │
-    ▼
-bin/pde-tools.cjs (existing, unmodified for most commands)
-    │
-    ▼
-JSON result returned via stdio to editor
-```
-
-### Stitch Bridge Flow
-
-```
-/pde:context-sync --editor antigravity
-    │
-    ▼
-context-sync.cjs :: buildContextIR()
-    │ Checks: manifest artifacts with source: "stitch"
-    │
-    ▼
-stitch-bridge.cjs :: syncToAntigravity(ir)
-    │
-    ├── Probe Stitch MCP via mcp-bridge.cjs
-    │   (degrade if unavailable)
-    │
-    ├── Push: .planning/design/wireframe/STH-*.html
-    │         to Stitch project via stitch:create-project
-    │
-    ├── Pull: Antigravity's Stitch modifications
-    │         Compare with local STH-*.html
-    │         Emit divergence report if changed
-    │
-    └── Update: design-manifest.json stitch_synced_at timestamp
-```
-
-### Divergence Detection Flow
-
-```
-/pde:divergence [--scope component|style|api]
-    │
-    ▼
-bin/lib/divergence.cjs :: detectDivergence(planningDir, srcDir)
-    │
-    ├── Read: .planning/design/handoff/HND-handoff-spec-v*.md
-    │         (latest version)
-    │
-    ├── Parse: Component names, prop interfaces, style tokens
-    │          from handoff spec
-    │
-    ├── Scan: src/ directory for matching component files
-    │         (glob patterns from STACK.md framework conventions)
-    │
-    ├── Compare:
-    │   ├── Component existence (spec says X, code has/lacks X)
-    │   ├── Prop name matching (spec props vs actual props)
-    │   ├── Token usage (DTCG tokens referenced vs hardcoded values)
-    │   └── Stitch annotation compliance (@verify labels)
-    │
-    └── Output: .planning/DIVERGENCE-REPORT.md
-                (components: matched/missing/drifted, confidence per item)
-```
-
-### Key Data Flows
-
-1. **Context sync (one-way read):** .planning/ state is read-only input. Editor config files are write-only output. PDE never reads .cursor/rules/ or GEMINI.md — those are disposable, regenerated each sync.
-
-2. **MCP server (shell delegation):** pde-mcp-server does NOT import bin/lib/ modules directly (different node_modules tree). Instead, it spawns `node ../bin/pde-tools.cjs` with `--raw` flag for JSON output. This preserves the single-entry-point pattern and avoids require-path complexity.
-
-3. **Stitch bridge (bidirectional):** Only bidirectional component. Reads local .planning/design/ artifacts AND reads Stitch MCP state. Writes in both directions with confirmation gates (inherits VAL-03 pattern from mcp-bridge.cjs).
-
-4. **Divergence (read-only analysis):** Reads handoff specs and source code. Writes only a report file. Never modifies source code or design artifacts.
-
-## Editor-Specific Context Formats
-
-### Cursor: .cursor/rules/*.mdc
-
-```markdown
----
-description: PDE project context — [project name]
-globs: "**/*"
-alwaysApply: true
----
-
-# Project: [name]
-## Current Phase: [N] — [description]
-## Product Type: [software|hardware|hybrid|experience|business]
-## Stack: [framework, language, key libraries]
-
-## Design Artifacts Available
-- [artifact list from manifest]
-
-## Constraints
-- [from PROJECT.md constraints section]
-```
-
-Cursor uses `.cursor/rules/` with `.mdc` (Markdown Component) files containing YAML frontmatter (`description`, `globs`, `alwaysApply`). The old `.cursorrules` root file is deprecated but still supported as fallback. PDE generates multiple .mdc files: one always-on context file, one stack-specific file (with framework globs), one design-artifact file (with component globs).
-
-**Confidence: HIGH** — verified via Cursor official docs.
-
-### Antigravity: GEMINI.md + .agent/rules/
-
-Antigravity reads (in priority order):
-1. `GEMINI.md` at project root (highest priority, Antigravity-specific)
-2. `AGENTS.md` at project root (cross-tool, also read by Cursor and Claude Code)
-3. `.agent/rules/*.md` files (supplementary, organized by concern)
-
-PDE generates:
-- `GEMINI.md` — project context, current phase, design pipeline status
-- `.agent/rules/pde-stack.md` — stack constraints and conventions
-- `.agent/rules/pde-design.md` — design artifact inventory and handoff specs
-
-The `AGENTS.md` file is NOT generated by PDE to avoid conflicting with user-authored cross-tool rules. PDE writes only to GEMINI.md (PDE-specific, regenerable) and .agent/rules/ (supplementary, namespaced with `pde-` prefix).
-
-**Confidence: MEDIUM** — Antigravity official docs were JS-rendered and partially unavailable; verified via community guides at antigravity.codes.
-
-### Gemini CLI: GEMINI.md
-
-Gemini CLI reads `GEMINI.md` from project root and parent directories up to `.git` root. It also supports `AGENTS.md` (v1.20.3+). The CLI discovers context files automatically and concatenates them with path separators.
-
-PDE generates `GEMINI.md` at project root. This is the same file Antigravity reads, so the two editors share context. The format is plain markdown with no frontmatter requirements.
-
-MCP server configuration for Gemini CLI goes in `~/.gemini/settings.json` under `mcpServers`:
 ```json
 {
-  "mcpServers": {
-    "pde": {
-      "command": "npx",
-      "args": ["pde-mcp-server"],
-      "cwd": "/path/to/project"
-    }
+  "lastHash": "abc123...",
+  "lastEmittedAt": "2026-03-24T10:00:00Z",
+  "lastIR": { "constraints": "...", "techStack": "..." }
+}
+```
+
+This file must be excluded from the `SOURCE_FILES` array in `context-sync.cjs` hash computation to avoid circular invalidation.
+
+### Pattern 3: File Watcher Integration Within Hook Constraints
+
+**What:** Claude Code hooks fire PostToolUse for Write and Edit — but Cursor and Antigravity write files directly, bypassing Claude Code's tool invocations. A persistent file watcher is required to detect these external edits.
+
+**Constraint:** Claude Code hooks run as short-lived processes (stdin → process → exit). They cannot host a long-running `fs.watch()` daemon. A separate watcher process must run alongside.
+
+**Recommended architecture: poll-on-hook + debounced daemon**
+
+Two complementary approaches:
+
+1. **Poll-on-hook (lightweight, no daemon):** When `context-sync-hook.cjs` fires for any `.planning/` write, also scan editor file mtimes against the state file's `lastEmittedAt`. If an editor file is newer than the last emit, trigger reverse parsing. This requires no daemon and no `fs.watch()`.
+
+2. **Explicit trigger command:** Add a `pde context-sync --ingest` CLI flag that Cursor or Antigravity users invoke when they want their edits to propagate back to `.planning/`. This is the most explicit and lowest-risk approach for an initial milestone.
+
+**Avoid:** A persistent `fs.watch()` daemon in a hook — hooks must not spawn long-lived background processes. If a daemon approach is needed in the future, it belongs in the MCP server (which is already a long-running process).
+
+**Recommended for this milestone:** Option 2 (explicit `--ingest` CLI flag) + Option 1 (mtime scan on hook) as a secondary passive detection layer.
+
+```javascript
+// hooks/context-sync-hook.cjs — addition to existing handleHookPayload
+function checkEditorFilesForInboundChanges(cwd, state) {
+  const editorPaths = [
+    path.join(cwd, '.cursor', 'rules'),
+    path.join(cwd, '.agent', 'skills', 'pde-design'),
+    path.join(cwd, 'DESIGN.md'),
+  ];
+  // Compare mtime of each file against state.lastEmittedAt
+  // Return list of files modified after last emit
+}
+```
+
+### Pattern 4: Conflict Detection Algorithm
+
+**What:** When both .planning/ and an editor file have changed since last emit, a conflict exists. The algorithm must distinguish genuine conflicts (incompatible intent) from stale staleness (user forgot to sync).
+
+**Decision tree:**
+
+```
+Is the conflict in a user-authored section (no PDE-GENERATED marker)?
+  YES → Preserve user content unconditionally. No conflict.
+  NO  → Both PDE-generated sections changed since last hash.
+    Are the changes semantically equivalent (same normalized content)?
+      YES → Accept either, update hash. No conflict.
+      NO  → Genuine conflict:
+        Is auto-resolution policy set?
+          "planning-wins" → .planning/ is source of truth, discard editor change
+          "editor-wins"   → editor change propagates to .planning/ (write-back)
+          "prompt"        → escalate to user (emit warning to stderr, skip write-back)
+```
+
+**Default policy:** `planning-wins` — safer because .planning/ is the authoritative source of truth and agents have already validated it. Editor changes are advisory.
+
+**Configuration:** `.planning/config.json` extended with:
+```json
+{
+  "contextSync": {
+    "conflictPolicy": "planning-wins",
+    "writeBackEnabled": true,
+    "writeBackTargets": ["cursor", "antigravity"]
   }
 }
 ```
 
-**Confidence: HIGH** — verified via official Gemini CLI docs.
+### Pattern 5: MCP Write-Back Architecture
 
-## pde-mcp-server Design
+**What:** The existing `pde-mcp-server` is read-only. Adding write tools requires careful safety design to prevent Antigravity (or any external MCP caller) from corrupting `.planning/` state.
 
-### Tool Surface
+**Safety requirements:**
+- Write tools must validate input against known IR field names — no freeform path writes
+- Each write is logged to the NDJSON event bus (via existing emit-event.cjs infrastructure)
+- Write tools trigger `emitAll()` post-write to keep editor files in sync
+- Writes to `.planning/PROJECT.md` require the section name to be explicitly whitelisted
 
-The MCP server exposes PDE workflows as read-only query tools. Following the existing key decision "Write tools in PDE-as-MCP-server — creates second write path bypassing pde-tools.cjs validation and locking" (from PROJECT.md Out of Scope), the server exposes ONLY read and orchestration tools:
+**New MCP tools to add to `packages/pde-mcp-server/`:**
 
-| MCP Tool Name | Maps To | Description |
-|---------------|---------|-------------|
-| `pde_state` | `state json` | Current project state |
-| `pde_design_manifest` | `design manifest-read` | Design artifact registry |
-| `pde_design_coverage` | `design coverage-check` | Coverage flag status |
-| `pde_roadmap` | `roadmap analyze` | Roadmap with disk status |
-| `pde_phase_status` | `phase-plan-index <N>` | Plans + wave status for phase |
-| `pde_history` | `history-digest` | Aggregated SUMMARY.md data |
-| `pde_divergence` | `divergence-check` | Handoff vs code drift report |
-| `pde_list_todos` | `list-todos` | Pending TODO inventory |
-| `pde_health` | `health` (via workflow) | MCP connection health |
+| Tool Name | Input | Effect | Safety Gate |
+|-----------|-------|--------|-------------|
+| `update-constraints` | `{ constraints: string }` | Overwrites Constraints section in PROJECT.md | Validates non-empty, max 2000 chars |
+| `update-tech-stack` | `{ techStack: string }` | Overwrites Tech Stack section in PROJECT.md | Validates non-empty, max 2000 chars |
+| `append-context-note` | `{ note: string, category: string }` | Appends to `.planning/context-notes/` | Category must be in allowlist |
+| `flag-divergence` | `{ component: string, reason: string }` | Writes to `.planning/divergence-flags.json` | Component name validated |
 
-Write operations (build, brief, deploy, etc.) are deliberately excluded. External editors invoke PDE write workflows through their native terminal, not through the MCP server. This preserves the single-write-path constraint.
+**Architecture decision: Extend existing server vs. separate write server**
 
-### Distribution Strategy
+Extend the existing `pde-mcp-server` with an optional write-mode flag (`--enable-writes`). The server starts read-only by default. Users must explicitly opt in. This avoids process proliferation and reuses the existing `planningDir` resolution, `@modelcontextprotocol/sdk` setup, and tool registration pattern.
 
-Published to npm as `pde-mcp-server`. Users configure their editor:
-
-**Cursor:** `.cursor/mcp.json`
-```json
-{ "mcpServers": { "pde": { "command": "npx", "args": ["pde-mcp-server"] } } }
+```typescript
+// packages/pde-mcp-server/src/index.ts — addition
+const writesEnabled = process.argv.includes('--enable-writes');
+if (writesEnabled) {
+  const writeTool = updateConstraintsTool(planningDir);
+  server.registerTool(writeTool.name, { ... }, writeTool.handler);
+  // ... register other write tools
+}
 ```
 
-**Antigravity:** Settings > MCP Servers > Add
-```json
-{ "command": "npx", "args": ["pde-mcp-server"] }
+### Pattern 6: Agent Coordination Protocol
+
+**What:** PDE (Claude Code) and Antigravity agents operate independently. When Antigravity modifies SKILL.md, PDE should not race-write it back without checking AG's changes. Coordination happens through the `.planning/.context-sync-state.json` file as a shared lock file.
+
+**Protocol:**
+
+```
+AG writes SKILL.md
+    ↓
+pde-mcp-server (long-running) detects file change via fs.watch on .agent/ dir
+    ↓
+Parses SKILL.md → partial IR delta
+    ↓
+Compares against state.json base
+    ↓
+Writes delta to .planning/.ag-inbound-delta.json
+    ↓
+Next PDE hook invocation reads delta → runs ir-merger → clears delta file
 ```
 
-**Gemini CLI:** `~/.gemini/settings.json`
-```json
-{ "mcpServers": { "pde": { "command": "npx", "args": ["pde-mcp-server"] } } }
+**Lock semantics:** `.planning/.context-sync-state.json` tracks `lastWrittenBy` (pde|ag|cursor) and `lockedUntil` timestamp. A writer checks the lock before proceeding. Lock TTL is 30 seconds — prevents deadlock if a writer crashes.
+
+**Note on Antigravity MCP write-back confidence:** The Antigravity Agent Manager's MCP write API is not publicly documented as of March 2026. The recommended approach is to use the file-system as the coordination channel (SKILL.md / DESIGN.md files) rather than attempting direct MCP calls from PDE to AG. This avoids requiring Antigravity MCP write permissions and works with any AG version.
+
+---
+
+## Recommended Project Structure (New Files)
+
+```
+bin/lib/
+├── context-sync.cjs            # MODIFY: add parseIRFromMdc(), parseIRFromSkill()
+├── ir-merger.cjs               # NEW: 3-way merge engine
+├── conflict-resolver.cjs       # NEW: conflict detection + escalation
+└── reverse-parsers/
+    ├── cursor-mdc-parser.cjs   # NEW: .cursor/rules/*.mdc → partial IR
+    └── antigravity-skill-parser.cjs  # NEW: SKILL.md/DESIGN.md → partial IR
+
+hooks/
+├── context-sync-hook.cjs       # MODIFY: add inbound change detection + --ingest path
+└── hooks.json                  # MODIFY: add .cursor/rules/ + .agent/ matchers
+
+packages/pde-mcp-server/src/
+├── index.ts                    # MODIFY: add --enable-writes flag + write tool registration
+└── tools/
+    ├── update-constraints.ts   # NEW
+    ├── update-tech-stack.ts    # NEW
+    ├── append-context-note.ts  # NEW
+    └── flag-divergence.ts      # NEW
+
+.planning/
+├── .context-sync-state.json    # NEW: base IR snapshot + lock state (git-ignored)
+├── .ag-inbound-delta.json      # NEW: AG-written delta queue (git-ignored)
+└── config.json                 # MODIFY: add contextSync block
 ```
 
-### Zero-Dep Preservation
+---
 
-The pde-mcp-server subdirectory has its own `node_modules/` and `package.json`. The `@modelcontextprotocol/sdk` dependency lives ONLY in `pde-mcp-server/node_modules/`. The plugin root's bin/, lib/, workflows/, etc. remain zero-npm-dep. The server calls back into PDE by spawning `node ../bin/pde-tools.cjs` — no shared require() paths cross the boundary.
+## Data Flow
+
+### Outbound Flow (Unchanged from v0.15)
+
+```
+.planning/ write (by agent or user)
+    ↓ PostToolUse hook fires
+hooks/context-sync-hook.cjs
+    ↓ hash check (marker file in tmpdir)
+bin/lib/context-sync.cjs → buildContextIR()
+    ↓
+emitAll() → 6 emitters → editor files written
+    ↓
+.planning/.context-sync-state.json updated (lastHash, lastIR snapshot)
+```
+
+### Inbound Flow (New — Editor → .planning/)
+
+```
+Cursor user edits .cursor/rules/pde-project.mdc
+    ↓ next PostToolUse hook fires (any .planning/ write)
+hooks/context-sync-hook.cjs → checkEditorFilesForInboundChanges()
+    ↓ mtime newer than lastEmittedAt → inbound change detected
+reverse-parsers/cursor-mdc-parser.cjs → partial IR extracted
+    ↓
+bin/lib/ir-merger.cjs → 3-way merge(base_IR, current_IR, editor_partial_IR)
+    ↓
+  NO CONFLICT → apply delta to .planning/PROJECT.md
+  CONFLICT    → conflict-resolver.cjs → log warning, skip write-back
+    ↓
+emitAll() re-runs to normalize all editor files from merged .planning/ state
+```
+
+### Antigravity Write-Back Flow (New)
+
+```
+AG agent modifies DESIGN.md or SKILL.md
+    ↓ pde-mcp-server fs.watch detects change (long-running process)
+    ↓
+reverse-parsers/antigravity-skill-parser.cjs → partial IR
+    ↓
+writes .planning/.ag-inbound-delta.json
+    ↓ next PDE hook fires
+context-sync-hook.cjs detects .ag-inbound-delta.json → reads + clears it
+    ↓
+ir-merger → merge → write-back to .planning/ if no conflict
+    ↓
+emitAll() re-normalizes all editor files
+```
+
+---
+
+## Integration Points with context-sync.cjs
+
+### What changes in context-sync.cjs
+
+1. **Export `computeSourceHash`** — already exported (used by hook). No change needed.
+2. **Add `buildBaseIRSnapshot(planningDir)`** — identical to `buildContextIR()` but writes result to `.context-sync-state.json`. Called at end of `emitAll()`.
+3. **Add `parseIRFromEditorFiles(projectRoot)`** — entry point that delegates to reverse parsers and returns merged partial IR.
+4. **`emitAll()` extended** — after writing files, call `buildBaseIRSnapshot()` to update the state file.
+
+### What does NOT change in context-sync.cjs
+
+- `buildContextIR()` — authoritative IR construction from .planning/ unchanged
+- All 6 emitter functions — format contracts unchanged
+- `computeSourceHash()` — unchanged
+- `makeHeader()` / `PDE-GENERATED` marker — unchanged (reverse parsers rely on it)
+- CLI command `cmdContextSync()` — gains `--ingest` subcommand but core unchanged
+
+### Hook constraint: zero stdout, always exit 0
+
+The existing hook contract (`ZERO stdout — Claude Code displays hook stdout to user`, `Always exits 0`) must be preserved in all new hook code. Merge conflicts must be logged to a file (`.planning/.sync-conflicts.log`) not to stdout.
+
+---
 
 ## Scaling Considerations
 
 | Scale | Architecture Adjustments |
 |-------|--------------------------|
-| 1 editor (Cursor only) | Single emitter, no GEMINI.md conflict. Simplest path. |
-| 2-3 editors simultaneously | IR pattern prevents duplication. GEMINI.md shared between Antigravity and Gemini CLI — PDE appends `<!-- PDE-GENERATED -->` markers to avoid clobbering user content. |
-| New editors (future) | Add one file to `bin/lib/context-emitters/`. If the editor reads GEMINI.md or AGENTS.md, the gemini-cli emitter already handles it. If the editor has a unique format, write a new emitter consuming the same IR. |
+| 1 editor tool (Cursor only) | Reverse parser + mtime scan on hook. No daemon needed. |
+| 2 editor tools (Cursor + Antigravity) | Add ag-skill-parser. pde-mcp-server handles AG change detection via fs.watch in its long-running process. |
+| 3+ tools simultaneously editing | Shared lock file TTL becomes important. Consider atomic rename pattern for `.context-sync-state.json` writes to prevent torn reads. |
+| High-frequency edits | Hash-based idempotency in hook already handles this. Debounce inbound checks to 500ms after last detected change. |
 
-### Scaling Priorities
-
-1. **First concern:** GEMINI.md collision between Antigravity and Gemini CLI. Both read the same file. Solution: PDE generates one shared GEMINI.md with editor-agnostic content. Editor-specific rules go in `.agent/rules/` (Antigravity) or subdirectory GEMINI.md files (Gemini CLI).
-
-2. **Second concern:** pde-mcp-server version drift from PDE plugin. The server spawns bin/pde-tools.cjs which evolves with the plugin. Solution: pde-mcp-server version is pinned to PDE milestone version. The server includes a version compatibility check on startup.
+---
 
 ## Anti-Patterns
 
-### Anti-Pattern 1: Direct Module Import from MCP Server
+### Anti-Pattern 1: Bidirectional Sync on All Fields
 
-**What people do:** `require('../../bin/lib/state.cjs')` from pde-mcp-server/
-**Why it's wrong:** Different node_modules trees. The server has @modelcontextprotocol/sdk; bin/lib/ has zero deps. Cross-tree requires create invisible coupling and break when either side changes.
-**Do this instead:** Spawn `node ../bin/pde-tools.cjs state json --raw` as a subprocess. Parse JSON output. This uses the established single-entry-point pattern.
+**What people do:** Attempt to round-trip every IR field through every editor format, creating a symmetric sync.
 
-### Anti-Pattern 2: Generating .cursorrules Instead of .cursor/rules/
+**Why it's wrong:** The IR is lossy in most editor formats. `.mdc` rules cannot represent `design-manifest.json` token data; SKILL.md cannot represent PROJECT.md requirements. Attempting full round-trip produces phantom conflicts and data loss.
 
-**What people do:** Write a single `.cursorrules` file at project root.
-**Why it's wrong:** Cursor deprecated `.cursorrules` in favor of `.cursor/rules/*.mdc` with YAML frontmatter, glob targeting, and alwaysApply control. The old format still works but lacks per-file scoping.
-**Do this instead:** Generate multiple `.mdc` files in `.cursor/rules/` with proper frontmatter. One rule per concern (context, stack, design).
+**Do this instead:** Assign clear field ownership per emitter. Each editor format only writes back the specific fields it visibly surfaces to users. Everything else flows one-way from .planning/.
 
-### Anti-Pattern 3: Writing to AGENTS.md
+### Anti-Pattern 2: Direct .planning/ writes from MCP tools without emitAll()
 
-**What people do:** Generate PDE context into `AGENTS.md` because it is cross-tool compatible.
-**Why it's wrong:** AGENTS.md is the user's cross-tool file. PDE overwriting it destroys user rules. Multiple tools writing to the same file creates merge conflicts.
-**Do this instead:** Write to `GEMINI.md` (PDE-specific, regenerable) and `.agent/rules/pde-*.md` (namespaced, non-conflicting). Never touch AGENTS.md.
+**What people do:** Add write tools to pde-mcp-server that patch PROJECT.md but don't trigger re-emission of editor files.
 
-### Anti-Pattern 4: MCP Server Exposing Write Tools
+**Why it's wrong:** Editor files become stale. The next time a user looks at their `.mdc` rules, they see outdated content, undermining trust in the sync system.
 
-**What people do:** Expose `pde_build`, `pde_deploy`, `pde_brief` as MCP tools for external editors.
-**Why it's wrong:** PROJECT.md explicitly excludes this: "Write tools in PDE-as-MCP-server creates second write path bypassing pde-tools.cjs validation and locking." Write operations involve confirmation gates, coverage flag writes, manifest updates, and event bus emissions that only work correctly through the workflow layer.
-**Do this instead:** Expose read-only query tools. External editors invoke write workflows through their terminal (the editor's built-in terminal runs Claude Code or the CLI directly).
+**Do this instead:** Every MCP write tool handler ends with `emitAll(planningDir)` before returning. The overhead is negligible (pure Node.js file I/O, ~10ms) and guarantees consistency.
 
-### Anti-Pattern 5: Full AST Parsing for Divergence Detection
+### Anti-Pattern 3: fs.watch() inside a hook process
 
-**What people do:** Import typescript compiler API or babel parser for exact prop/type matching.
-**Why it's wrong:** Adds ~40MB of npm dependencies to bin/lib/, violating zero-dep constraint. Alternatively, putting it in pde-mcp-server creates a layering violation (divergence is a core feature, not an MCP concern).
-**Do this instead:** Heuristic matching (regex for prop names, string matching for type annotations, glob for component file existence). Flag low-confidence matches for manual review. Accept ~85% accuracy as the tradeoff for zero dependencies.
+**What people do:** Spawn a persistent file watcher from the hook to catch editor changes in real time.
 
-## Integration Points
+**Why it's wrong:** Claude Code hooks are short-lived. Node.js won't exit while `fs.watch()` handles are open, causing the hook to hang indefinitely. Claude Code will eventually kill the hung process, potentially mid-write.
 
-### External Services
+**Do this instead:** File watching belongs in the already-long-running `pde-mcp-server` process. For hooks, use the mtime comparison pattern — cheap, deterministic, no hanging processes.
 
-| Service | Integration Pattern | Notes |
-|---------|---------------------|-------|
-| Cursor IDE | .cursor/rules/*.mdc file generation | One-way write; PDE never reads Cursor config |
-| Google Antigravity | GEMINI.md + .agent/rules/ + Stitch bridge | GEMINI.md shared with Gemini CLI; Stitch bridge is bidirectional |
-| Gemini CLI | GEMINI.md + MCP server config | Shares GEMINI.md with Antigravity |
-| Stitch MCP | Existing mcp-bridge.cjs + new stitch-bridge.cjs | Reuses probe/degrade, quota tracking from v0.9 |
-| npm registry | pde-mcp-server published package | npx distribution for zero-install editor setup |
+### Anti-Pattern 4: Parsing user-authored sections as PDE-generated
+
+**What people do:** Reverse parsers extract all content from editor files regardless of whether PDE wrote it.
+
+**Why it's wrong:** Users add custom rules below PDE sections. A naive parser will attempt to write these back to .planning/ as if they were PDE-originated fields, corrupting PROJECT.md with editor-specific formatting.
+
+**Do this instead:** Reverse parsers treat the `<!-- PDE-GENERATED | hash:... -->` marker as a section boundary. Content within PDE-generated sections is parseable. Content outside those sections (user-added) is captured in a `userAdditions` field and preserved verbatim in the output file but never written back to .planning/.
+
+---
+
+## Integration Boundaries
 
 ### Internal Boundaries
 
 | Boundary | Communication | Notes |
 |----------|---------------|-------|
-| context-sync.cjs to emitters | Function call (IR object passed) | Same process, synchronous |
-| pde-mcp-server to pde-tools.cjs | Subprocess spawn (JSON over stdout) | Cross-process, --raw flag required |
-| stitch-bridge.cjs to mcp-bridge.cjs | require() (same bin/lib/ tree) | Same process, reuses TOOL_MAP |
-| divergence.cjs to handoff artifacts | File read (glob .planning/design/handoff/) | Read-only, latest version only |
-| context-sync workflow to event-bus | emit('context:sync', { editor, files }) | Optional observability, non-blocking |
+| `context-sync-hook.cjs` ↔ `context-sync.cjs` | CommonJS `require()` | Already established. New: also requires `ir-merger.cjs` |
+| `ir-merger.cjs` ↔ `reverse-parsers/` | CommonJS `require()` | New internal dependency |
+| `pde-mcp-server` ↔ `.planning/` | Direct file I/O | Write tools use `fs.writeFileSync` + call emitAll via handler |
+| `pde-mcp-server` ↔ `.ag-inbound-delta.json` | File-based message queue | Long-running server writes; hook reads and clears |
+| `conflict-resolver.cjs` ↔ `.planning/.sync-conflicts.log` | Append-only log | Conflicts logged for user review; never to stdout |
 
-## Suggested Build Order
+### External Integration Points
 
-Based on dependency analysis, the build order should be:
+| System | Channel | Notes |
+|--------|---------|-------|
+| Cursor | `.cursor/rules/*.mdc` file system | Cursor reads/writes these directly. PDE detects via mtime. |
+| Antigravity | `.agent/skills/pde-design/SKILL.md` + `DESIGN.md` | AG writes these files. PDE detects via fs.watch in MCP server. |
+| Claude Code hooks | stdin JSON → stdout/stderr | Hook contract: zero stdout, exit 0. All new code must follow. |
+| MCP protocol | StdioServerTransport (existing) | Write tools added to same server, same transport. |
 
-### Phase 1: Context Sync Core (foundation — no external deps)
-1. `bin/lib/context-sync.cjs` — IR builder reading .planning/ state
-2. `bin/lib/context-emitters/cursor.cjs` — Cursor .mdc emitter
-3. `bin/lib/context-emitters/gemini-cli.cjs` — GEMINI.md emitter
-4. `bin/pde-tools.cjs` modification — `context-sync` command
-5. `workflows/context-sync.md` + `skills/context-sync.md`
+---
 
-**Rationale:** Start with the IR builder because all other features depend on it. Cursor and Gemini CLI emitters are simplest (well-documented formats). This phase delivers immediate value — users can run `/pde:context-sync` to populate editor rules.
+## Build Order (Dependency-Aware)
 
-### Phase 2: Antigravity Context + Stitch Bridge
-1. `bin/lib/context-emitters/antigravity.cjs` — GEMINI.md + .agent/rules/ emitter
-2. `bin/lib/stitch-bridge.cjs` — bidirectional Stitch artifact flow
-3. Integration with context-sync workflow for Antigravity-specific Stitch sync
+```
+Phase A: Foundation (no deps on new components)
+  1. .planning/.context-sync-state.json schema + writer in context-sync.cjs
+  2. Extend emitAll() to write state snapshot after each emit
+  3. Tests: state file written correctly, not included in source hash
 
-**Rationale:** Antigravity emitter depends on understanding the shared GEMINI.md format (proven in Phase 1). Stitch bridge depends on existing mcp-bridge.cjs patterns and is Antigravity-specific.
+Phase B: Reverse Parsers (dep: state file schema)
+  4. bin/lib/reverse-parsers/cursor-mdc-parser.cjs
+  5. bin/lib/reverse-parsers/antigravity-skill-parser.cjs
+  6. Tests: round-trip fidelity (emit → parse → verify field match)
 
-### Phase 3: pde-mcp-server (standalone package)
-1. `pde-mcp-server/package.json` + `pde-mcp-server/index.cjs`
-2. `pde-mcp-server/tools/state-tools.cjs` — state and manifest queries
-3. `pde-mcp-server/tools/planning-tools.cjs` — roadmap and phase queries
-4. `pde-mcp-server/tools/design-tools.cjs` — design coverage and artifact queries
-5. npm publish setup + npx verification
+Phase C: Merge Engine (deps: reverse parsers + state file)
+  7. bin/lib/ir-merger.cjs (3-way merge logic)
+  8. bin/lib/conflict-resolver.cjs (conflict log + policy)
+  9. Tests: merge cases (no-conflict, .planning-wins, editor-wins, conflict)
 
-**Rationale:** MCP server depends on pde-tools.cjs commands being stable. Build after context sync proves the state reading layer works. The server is independently testable via MCP Inspector.
+Phase D: Hook Integration (deps: merge engine)
+  10. Extend context-sync-hook.cjs with mtime scan + ingest path
+  11. Add --ingest flag to cmdContextSync CLI command
+  12. Extend hooks.json with .cursor/rules/ and .agent/ matchers
+  13. Tests: end-to-end: edit .mdc → hook fires → .planning/ updated
 
-### Phase 4: Divergence Detection
-1. `bin/lib/divergence.cjs` — heuristic comparison engine
-2. `bin/pde-tools.cjs` modification — `divergence-check` command
-3. `workflows/divergence.md` + `skills/divergence.md`
-4. Integration into pressure-test workflow (optional divergence dimension)
+Phase E: MCP Write Tools (deps: emitAll sync guarantee)
+  14. packages/pde-mcp-server/src/tools/update-constraints.ts
+  15. packages/pde-mcp-server/src/tools/update-tech-stack.ts
+  16. packages/pde-mcp-server/src/tools/append-context-note.ts
+  17. packages/pde-mcp-server/src/tools/flag-divergence.ts
+  18. Extend index.ts with --enable-writes flag
+  19. Tests: each write tool + emitAll re-emission post-write
 
-**Rationale:** Divergence detection requires handoff artifacts to exist (downstream of the full design pipeline). It is the most independent feature — no other v0.15 component depends on it.
+Phase F: Antigravity Coordination (deps: all above)
+  20. fs.watch in pde-mcp-server targeting .agent/ dir
+  21. .ag-inbound-delta.json queue protocol
+  22. Hook reads and processes delta file
+  23. Tests: AG write simulation → delta queue → merge → .planning/ update
+```
 
-### Phase 5: Integration + Cross-Editor Testing
-1. End-to-end: Claude Code plugin to context-sync to Cursor opens with PDE rules
-2. End-to-end: pde-mcp-server to Gemini CLI queries PDE state
-3. End-to-end: Stitch bridge to Antigravity receives PDE design artifacts
-4. Divergence accuracy validation against real handoff specs
+---
 
 ## Sources
 
-- [Cursor Rules for AI (official docs)](https://docs.cursor.com/context/rules-for-ai)
-- [Antigravity Rules Guide](https://antigravity.codes/blog/user-rules)
-- [Gemini CLI Configuration (official)](https://geminicli.com/docs/reference/configuration/)
-- [Gemini CLI MCP Servers (official)](https://geminicli.com/docs/tools/mcp-server/)
-- [MCP TypeScript SDK (official)](https://github.com/modelcontextprotocol/typescript-sdk)
-- [Google Stitch + Antigravity Design-to-Code (Google Codelabs)](https://codelabs.developers.google.com/design-to-code-with-antigravity-stitch?hl=en)
-- [Google Antigravity Developer Blog](https://developers.googleblog.com/build-with-google-antigravity-our-new-agentic-development-platform/)
-- [Antigravity + Data Cloud MCP (Google Cloud Blog)](https://cloud.google.com/blog/products/data-analytics/connect-google-antigravity-ide-to-googles-data-cloud-services)
+- Code verified directly: `/bin/lib/context-sync.cjs` (emitAll, buildContextIR, PDE-GENERATED marker)
+- Code verified directly: `/hooks/context-sync-hook.cjs` (hash-based idempotency, hook contract)
+- Code verified directly: `/hooks/hooks.json` (PostToolUse Write|Edit matcher, async: true)
+- Code verified directly: `/packages/pde-mcp-server/src/index.ts` (StdioServerTransport, 10 read-only tools)
+- Code verified directly: `/bin/lib/divergence.cjs` (ANNOTATION_RE pattern, 3-tier detection)
+- 3-way merge pattern: standard git merge-base algorithm adapted to IR field granularity
+- fs.watch in long-running process: Node.js docs (built-in, no dependencies)
+- Antigravity MCP write API: LOW confidence — not publicly documented as of March 2026; file-system channel recommended as safe fallback
 
 ---
-*Architecture research for: Multi-Editor Integration (v0.15)*
-*Researched: 2026-03-23*
+
+*Architecture research for: Bidirectional Multi-Editor Context Sync (next milestone after v0.15)*
+*Researched: 2026-03-24*

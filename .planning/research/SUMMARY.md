@@ -1,170 +1,199 @@
 # Project Research Summary
 
-**Project:** PDE v0.15 Multi-Editor Integration
-**Domain:** Multi-editor AI tool integration (MCP server, context generation, design bridge)
-**Researched:** 2026-03-23
-**Confidence:** MEDIUM-HIGH
+**Project:** PDE v0.16 — Bidirectional Multi-Editor Context Sync
+**Domain:** File-watching reverse-sync pipeline with conflict resolution and write-back coordination
+**Researched:** 2026-03-24
+**Confidence:** HIGH (stack and architecture verified against live code), MEDIUM (Antigravity write-back, DESIGN.md format), LOW (DTCG round-trip precision, MCP A2A coordination)
 
 ## Executive Summary
 
-PDE v0.15 extends the existing Claude Code plugin to expose its design pipeline state to three additional AI editors: Cursor, Google Antigravity, and Gemini CLI. The integration has two distinct tracks: (1) generating static context files that editors consume natively (`.cursor/rules/*.mdc`, `GEMINI.md`, `AGENTS.md`), and (2) a standalone MCP server (`npx pde-mcp-server`) that exposes PDE workflows as read-only query tools over stdio transport. Both tracks feed from the same `.planning/` state files through an intermediate representation pattern that decouples state reading from editor-specific formatting. The zero-npm-dependency constraint at the plugin root is preserved by isolating the MCP server in its own subdirectory with independent `package.json`.
+PDE v0.15 established a solid unidirectional context generation pipeline: `.planning/` state drives six editor output files (`.cursor/rules/*.mdc`, `AGENTS.md`, `GEMINI.md`, `SKILL.md`, `DESIGN.md`) via a hook-triggered IR build-and-emit cycle. v0.16 adds the reverse direction — detecting when Cursor or Antigravity users modify those derived files, parsing only the fields each editor format can meaningfully own, merging those changes back into `.planning/` state via a 3-way merge engine, and re-emitting to normalize all editors. The core architectural insight is that `.planning/` remains the single source of truth at all times; editor files are derived views, never canonical inputs. This design eliminates the hardest class of bidirectional sync problem (equal-precedence conflict resolution) by making authority explicit rather than symmetric.
 
-The recommended approach is to build context generation first (zero dependencies, immediate value), then Antigravity-specific context plus Stitch bridge (extends Phase 1 patterns with bidirectional design flow), then the MCP server (requires npm packaging), and finally divergence detection (independent, requires handoff artifacts). This ordering follows the dependency chain: context files prove the state-reading layer; the Stitch bridge extends Antigravity's context; the MCP server reuses the proven layer via subprocess delegation; divergence detection is independently scoped.
+The implementation strategy is conservative and well-precedented: hash-anchored 3-way merge (base IR snapshot vs. current `.planning/` IR vs. editor-parsed partial IR), section-aware merge using the existing `PDE-GENERATED` comment markers as ownership boundaries, and mtime-based inbound change detection on hook fire rather than a persistent watcher daemon. The recommended approach avoids adding a separate background daemon (which conflicts with Claude Code's session-based model) by using poll-on-hook mtime scanning as the primary detection path and an explicit `pde context-sync --ingest` command as the user-controlled fallback. Session-start reconciliation catches all out-of-session editor changes, making correctness independent of whether the watcher is running.
 
-The primary risks are: (1) accidentally exposing write tools in the MCP server, which would create a second write path bypassing PDE's validation infrastructure -- this must be enforced as a hard architectural constraint from Phase 1 design; (2) context file staleness, where generated files drift from PDE state within a single pipeline run -- mitigated by embedding source hashes and hook-driven regeneration; (3) dual Stitch integration paths (PDE's existing v0.9 path and Antigravity's native path) producing incompatible artifact representations -- mitigated by defining a canonical format both paths must produce. All three risks have clear prevention strategies documented in the pitfalls research.
+The highest-confidence risks are all well-documented across integration platform post-mortems: infinite sync loops (prevented by write-origin markers and hash comparison in the existing `PDE-GENERATED` comment), MCP write-back bypassing pde-tools.cjs validation (prevented by keeping the MCP server read-only and routing all write-back through hook-based file watching), and state conflicts from concurrent token edits (resolved by field-level ownership assignment and last-write-wins per field with user escalation on genuine conflicts). The lower-confidence risks — DTCG round-trip precision loss and Antigravity DESIGN.md format instability — are mitigated by value-only write-back (preserving DTCG metadata) and defensive versioned parsing respectively. Both require explicit Nyquist test coverage before shipping.
 
 ## Key Findings
 
 ### Recommended Stack
 
-The stack splits cleanly: context generators are zero-dependency CJS modules in `bin/lib/` using Node.js built-ins only, while the MCP server is an isolated TypeScript package using `@modelcontextprotocol/sdk` v1.27.1 and `zod` v3.25+. All editor context files are plain markdown with minimal formatting conventions (YAML frontmatter for Cursor `.mdc` only).
+The v0.16 stack adds exactly one new npm dependency: **chokidar v4** (`^4.0.3`), isolated in a new `packages/reverse-sync/` subpackage. All other new components use Node.js built-ins already present in the codebase (`fs`, `crypto`), following the zero-npm-dep constraint at plugin root and the isolation pattern established by `packages/pde-mcp-server/`. The existing `@modelcontextprotocol/sdk@^1.27.1` and the full `context-sync.cjs` infrastructure are reused without changes to their core logic.
+
+Chokidar v4 is mandatory over `fs.watch` (confirmed unreliable on macOS: wrong event types, unreliable filenames, Node.js issue #47058) and over chokidar v5 (ESM-only, breaks `require()` from `.cjs` daemon files). The `.mdc` frontmatter parser uses regex over `gray-matter` or `js-yaml` — the format is a constrained 4-field subset with no nesting, and a regex parser is 20 lines with zero dependencies.
 
 **Core technologies:**
-- **@modelcontextprotocol/sdk ^1.27.1**: MCP server implementation -- official TypeScript SDK, stdio transport, 12ms latency
-- **zod ^3.25.0**: MCP tool input validation -- required peer dependency of SDK
-- **TypeScript ^5.5**: MCP server compilation only -- ESM-only SDK requirement, does not affect plugin root
-- **Node.js built-ins (fs, path, crypto)**: Context generators, divergence detection, Stitch bridge -- zero npm deps
-
-**Critical version notes:** SDK uses zod/v4 compat layer, requiring zod 3.25+ (not older 3.x). Node 18+ required for ESM. MCP SDK v2 anticipated but v1.x is production-recommended with 6+ month support window.
+- **chokidar v4.0.3**: FSEvents-backed file watching for `.cursor/rules/` and `.agent/skills/pde-design/` — only reliable macOS event source; isolated in `packages/reverse-sync/` (never plugin root)
+- **Node.js `fs` + `crypto` (built-in)**: Read/write `.mdc` frontmatter and `.planning/` artifacts; SHA-256 hash for sync-loop prevention using the same `computeSourceHash()` pattern already in `context-sync.cjs`
+- **`@modelcontextprotocol/sdk` ^1.27.1 (existing)**: Write tools added to `packages/pde-mcp-server/` behind `--enable-writes` flag; `readOnlyHint: false`, `idempotentHint: true` annotations supported in 1.27.x
+- **`context-sync.cjs` (existing, minimally modified)**: Add `buildBaseIRSnapshot()` post-emit and `parseIRFromEditorFiles()` entry point; `buildContextIR()` and all 6 emitters are unchanged
 
 ### Expected Features
 
-**Must have (table stakes):**
-- `.cursor/rules/*.mdc` generation (Cursor is dominant AI IDE; multiple `.mdc` files with YAML frontmatter)
-- `GEMINI.md` generation (shared by Antigravity and Gemini CLI; hierarchical, plain markdown)
-- `AGENTS.md` generation (cross-tool standard read by all four editors)
-- MCP server with read-only PDE state tools (10 tools, well under Cursor's 40-tool cap)
-- Design token output as Tailwind v4 `@theme` config (editors need consumable tokens)
-- Handoff spec as `@file` annotations (component specs as inline references)
+**Must have (P1 — bidirectional sync is broken without these):**
+- Section-aware merge using `<!-- PDE-GENERATED -->` markers as ownership boundaries — prerequisite for all reverse sync; without it, every PDE regeneration destroys user edits
+- Cursor to PDE reverse sync: `.mdc` rule changes propagate to `.planning/` — primary new capability
+- Conflict detection: divergence between editor edits and PDE state surfaced before write-back
+- Manual conflict resolution prompt: user choice (PDE wins / editor wins / show diff); PDE wins as default
+- Live file watching for `.mdc` changes: hook-triggered mtime scan + debounced detection (not daemon)
+- Antigravity to PDE reverse sync: SKILL.md section edits propagate back — symmetric with Cursor path
+- Shared design token state: `tokens.json` as master, `DESIGN.md` as derivative view only
 
-**Should have (differentiators):**
-- Stitch design bridge (bidirectional PDE-to-Antigravity artifact flow via existing v0.9 infrastructure)
-- Divergence detection (three-tier handoff spec vs code drift analysis)
-- Context sync engine with hook-driven auto-regeneration
-- Antigravity agent skills export (PDE workflows as invocable Antigravity skills)
-- Pipeline progress as MCP resource (passive context, not action)
+**Should have (P2 — quality and traceability):**
+- Conflict audit trail (SYNC-LOG.md) — append-only log of auto-resolved conflicts
+- Richer `.mdc` generation: deeper glob targeting, inline examples for better Cursor AI activation
+- Richer SKILL.md + DESIGN.md generation: workflow stubs, constraint annotations for Antigravity
 
-**Defer (v2+):**
-- Multi-format artifact export beyond React+Tailwind (wait for demand signal)
-- Full TypeScript AST parsing for divergence detection (regex MVP first)
-- T3 behavioral divergence detection (runtime analysis, diminishing returns)
-- Individual pipeline stage skills for Antigravity (complexity exceeds initial value)
-- Bidirectional code-to-design sync (architecturally intractable)
+**Defer (P3 / v2+):**
+- Agent coordination via MCP (PDE and Antigravity A2A delegation) — MCP A2A standards still maturing as of March 2026
+- Sync status dashboard pane — SYNC-LOG.md in the filesystem is sufficient for solo/small-team use
+
+**Anti-features to reject outright:**
+- Real-time continuous sync daemon: contradicts Claude Code's session-based model, creates orphan processes
+- Auto-merge all conflicts without user consent: silent merge on semantic conflicts produces corrupted state
+- Bidirectional sync for GEMINI.md and AGENTS.md: pure PDE outputs with no user-editable sections
+- MCP write tools writing directly to `.planning/`: bypasses pde-tools.cjs validation — explicitly out of scope in PROJECT.md
 
 ### Architecture Approach
 
-The architecture follows a layered emitter pattern: a shared context-sync engine reads `.planning/` state into an editor-agnostic intermediate representation (IR), which editor-specific emitters transform into target formats. The MCP server is a separate process that delegates to `pde-tools.cjs` via subprocess spawning (not direct module imports), preserving the single-entry-point pattern. The Stitch bridge reuses `mcp-bridge.cjs` probe/degrade contracts for graceful degradation when Stitch MCP is unavailable.
+The architecture extends the existing IR pipeline with three new layers without modifying its core. Outbound flow is unchanged: hook fires → `buildContextIR()` → `emitAll()` → 6 editor files. The new inbound flow runs when an editor file's mtime is newer than the `lastEmittedAt` timestamp in `.planning/.context-sync-state.json`: reverse parsers extract a partial IR from the editor file, the IR merger runs a 3-way merge against the base IR snapshot and fresh `.planning/`-sourced IR, the conflict resolver either applies the delta or escalates to the user, then `emitAll()` re-normalizes all editor files. The state file is the coordination primitive and is explicitly excluded from the source hash computation to prevent circular invalidation.
 
 **Major components:**
-1. **`bin/lib/context-sync.cjs`** -- IR builder reading `.planning/` state (foundation for all editors)
-2. **`bin/lib/context-emitters/{cursor,antigravity,gemini-cli}.cjs`** -- Format-specific file generators
-3. **`pde-mcp-server/`** -- Isolated npm package exposing 9-10 read-only MCP tools via stdio
-4. **`bin/lib/stitch-bridge.cjs`** -- Bidirectional artifact flow between PDE and Antigravity Stitch canvas
-5. **`bin/lib/divergence.cjs`** -- Heuristic handoff-vs-code drift detection (AST-free, ~85% accuracy)
+1. `bin/lib/reverse-parsers/cursor-mdc-parser.cjs` — parses `.cursor/rules/*.mdc` YAML frontmatter and PDE-owned sections into a partial IR; ignores user-authored sections below `PDE-GENERATED` markers
+2. `bin/lib/reverse-parsers/antigravity-skill-parser.cjs` — parses SKILL.md and DESIGN.md back into partial IR at section-level granularity only (`## Colors`, `## Typography`, `## Spacing`)
+3. `bin/lib/ir-merger.cjs` — hash-anchored 3-way merge: `base_IR` (last emit snapshot) vs. `current_IR` (fresh from `.planning/`) vs. `editor_IR` (reverse-parsed partial); field-level ownership determines merge policy
+4. `bin/lib/conflict-resolver.cjs` — conflict detection when both sides changed since base; user escalation or `planning-wins` default policy; logs to `.planning/.sync-conflicts.log`, never to stdout
+5. `packages/pde-mcp-server/src/tools/` (4 new write tools) — `update-constraints`, `update-tech-stack`, `append-context-note`, `flag-divergence`; all behind `--enable-writes` flag; each write triggers `emitAll()` post-write
+
+**Key patterns:**
+- Field ownership assignment: each emitter declares which IR fields it owns for write-back; reverse parsers only contribute owned fields; everything else flows one-way from `.planning/`
+- PDE-GENERATED marker as sync anchor: existing comment format already in all 6 output files; reverse parsers use it as the section boundary between parseable and user-preserved content
+- `emitAll()` always follows write-back: ensures all editor files normalize to merged `.planning/` state; overhead is approximately 10ms of pure Node.js file I/O
 
 ### Critical Pitfalls
 
-1. **Write tools in MCP server** -- Enforce read-only contract from Phase 1; grep all tool handlers for `fs.write*`; mark every tool description as "read-only" to prevent LLM hallucination of write capability. Recovery cost is HIGH (rewrite + breaking change).
+1. **Infinite sync loop** — Editor change triggers PDE regeneration which triggers another editor change, causing CPU-pegged sessions and disk-filling commits. Prevention: write-origin marker in every PDE-generated file (`PDE-GENERATED` comment already present) plus SHA-256 hash comparison before triggering reverse sync. Both defenses must be active simultaneously — hash comparison alone has a race condition window during in-flight writes.
 
-2. **Context file staleness** -- Embed generation timestamp and SHA-256 source hash in every generated file; hook-driven regeneration after pipeline skills; provide `/pde:sync-context` manual command. Ship hash tracking alongside initial generation, not after.
+2. **MCP write-back bypassing pde-tools.cjs validation** — Adding write tools that patch `.planning/` files directly would resurrect the flag-clobber bugs from v0.11/v0.12/v0.14. Prevention: MCP server stays read-only for external callers; all write-back routes through hook-based file watching, never through MCP tool calls. The `--enable-writes` flag exposes write tools that route through the same `pde-tools.cjs` validation gates as all other PDE writes.
 
-3. **Dual Stitch path divergence** -- Define canonical artifact format (PDE's `STH-{slug}.html` convention); Antigravity bridge converts to canonical format before manifest registration; unify quota tracking across both paths. Design in Phase 1, build in Phase 2.
+3. **DTCG to CSS to DTCG round-trip precision loss** — Tailwind v4 CSS custom properties cannot represent DTCG `$description`, `$extensions`, `$type`, or group hierarchy. On write-back these fields are silently lost. Prevention: value-only write-back (update `$value` only; preserve all other DTCG metadata unchanged); explicit CSS variable name to DTCG token path mapping table; round-trip Nyquist test as a hard gate.
 
-4. **npx distribution breaking zero-dep constraint** -- MCP server must live in isolated subdirectory with own `package.json`; never reference from plugin root; pin SDK version explicitly; document Windows `cmd /c npx` workaround.
+4. **Session boundary gap** — File watchers exist only for the duration of the active Claude Code session. Editor changes made with Claude Code closed are invisible to the sync engine. Prevention: session-start reconciliation sweep comparing all monitored editor file hashes against `sync-state.json`; explicit `/pde:editor-sync` command works as a complete reconciliation regardless of session state.
 
-5. **Divergence detection false positives** -- Start with high-confidence checks only (token values, interface signatures); report as CONCERNS severity, never FAIL; ship `.pde-divergence-ignore` mechanism alongside the detector; include confidence scores per finding.
+5. **Antigravity DESIGN.md format instability** — The DESIGN.md format is community-documented without an official stability guarantee. Antigravity version updates may change section structure, causing silent parse failures and wrong token write-backs. Prevention: versioned defensive parsing with `<!-- pde-format-version: 1.0 -->` marker; section-level granularity only; unknown sections preserved verbatim; format-version detection assertion in Nyquist test suite.
+
+6. **.mdc frontmatter round-trip loss** — Cursor may normalize frontmatter fields; inline comments on `globs:` lines cause confirmed YAML parse failures (Cursor forum documented). Prevention: error-tolerant frontmatter parsing with regex fallback; `<!-- PDE:BEGIN -->` / `<!-- PDE:END -->` section markers for surgical regeneration; never overwrite an entire `.mdc` file; round-trip test simulating common user edits as a Nyquist gate.
 
 ## Implications for Roadmap
 
-Based on research, suggested phase structure:
+Based on combined research, the build order is strictly dependency-driven. The 3-way merge engine cannot function without the base IR snapshot. Reverse parsers cannot be safely integrated without section-marker ownership semantics established. Conflict resolution cannot function without detection. Hook integration cannot function without the merge engine. MCP write tools must come last because they call `emitAll()`, which depends on the state file being maintained correctly.
 
-### Phase 1: Context Sync Core
-**Rationale:** Zero dependencies, immediate value, foundation for all subsequent phases. The IR builder must exist before any editor-specific work begins. Cursor and Gemini CLI formats are well-documented (HIGH confidence).
-**Delivers:** `/pde:context-sync` command generating `.cursor/rules/*.mdc`, `GEMINI.md`, and `AGENTS.md` from PDE state; design token Tailwind v4 conversion; generation timestamp and source hash in every file.
-**Addresses:** All 6 table-stakes features from FEATURES.md (context files, token conversion, annotation format).
-**Avoids:** Context staleness pitfall (build hash tracking from day one). Anti-pattern of writing to user's AGENTS.md (write to GEMINI.md + `.agent/rules/pde-*` instead).
+### Phase A: Sync Foundation
+**Rationale:** Everything downstream depends on the base IR snapshot and the state file schema. This phase has no dependencies on other new components and can be built and tested in isolation. The loop-prevention guarantee must be in place before any watcher is wired — adding it after means testing in a live-fire environment where loops can fill disk or exhaust API quotas within seconds.
+**Delivers:** `.planning/.context-sync-state.json` schema and writer in `context-sync.cjs`; `buildBaseIRSnapshot()` called at end of every `emitAll()`; state file excluded from source hash computation; SHA-256 hash comparison as the primary loop-break mechanism
+**Addresses:** Infinite sync loop (Pitfall 1) — must be in place before any watcher is live
+**Avoids:** The highest-cost failure mode in the research: CPU-pegged sessions and disk-filling commits
 
-### Phase 2: Antigravity Context + Stitch Bridge
-**Rationale:** Antigravity emitter depends on the shared GEMINI.md format proven in Phase 1. Stitch bridge depends on existing mcp-bridge.cjs patterns and is Antigravity-specific. Grouping these delivers the full Antigravity experience.
-**Delivers:** Antigravity-specific `.agent/rules/` files, `DESIGN.md` generator (DTCG to Design DNA), bidirectional Stitch artifact flow, `.agent/skills/pde-design/` skill export.
-**Uses:** context-sync IR (Phase 1), mcp-bridge.cjs probe/degrade pattern (v0.9), Stitch MCP tools.
-**Avoids:** Dual Stitch path divergence (canonical format enforcement); quota tracking split (single shared counter).
+### Phase B: Reverse Parsers
+**Rationale:** Parser fidelity must be proven independently before the merge engine relies on parser output. Round-trip tests in this phase are the gate for Phase C. The value-only write-back strategy and CSS variable name mapping table must be defined here — retrofitting precision preservation after users lose DTCG metadata is rated HIGH recovery cost.
+**Delivers:** `cursor-mdc-parser.cjs` (`.mdc` frontmatter plus PDE-owned sections to partial IR); `antigravity-skill-parser.cjs` (SKILL.md and DESIGN.md sections to partial IR); CSS variable name to DTCG token path mapping table; `<!-- PDE:BEGIN -->` / `<!-- PDE:END -->` section marker implementation; round-trip Nyquist tests
+**Addresses:** .mdc frontmatter round-trip loss (Pitfall 5); DTCG precision loss (Pitfall 7); Antigravity format instability (Pitfall 6)
+**Avoids:** Producing corrupted partial IRs that the merge engine then writes to `.planning/`
 
-### Phase 3: Standalone MCP Server
-**Rationale:** MCP server depends on `pde-tools.cjs` commands being stable. Building after context sync proves the state-reading layer. The server is independently testable via MCP Inspector. Requires npm packaging/publishing infrastructure.
-**Delivers:** `npx pde-mcp-server` with 9-10 read-only tools, stdio transport, editor registration configs for Cursor/Antigravity/Gemini CLI.
-**Implements:** Subdirectory package isolation pattern; subprocess delegation to `pde-tools.cjs --raw`.
-**Avoids:** Write tool exposure (read-only contract enforced at tool definition layer); npx dependency pollution (isolated subdirectory); tool count explosion (budget of 10 tools, under Cursor's 40-tool cap).
+### Phase C: Merge Engine and Conflict Resolution
+**Rationale:** The 3-way merge logic is the correctness core of bidirectional sync. It must be verified against all merge cases (no-conflict, planning-wins, editor-wins, genuine conflict) before hook integration puts it on the hot path triggered by every `.planning/` write.
+**Delivers:** `ir-merger.cjs` (field-level 3-way merge with field ownership table); `conflict-resolver.cjs` (conflict detection, `planning-wins` default, user escalation, `.sync-conflicts.log`); `.planning/config.json` `contextSync` block (conflict policy, write-back targets)
+**Addresses:** State conflicts and last-write-wins silent data loss (Pitfall 3)
+**Avoids:** Automatic conflict resolution without user awareness; raw JSON diff presentation (show semantic token diffs, not JSON)
 
-### Phase 4: Divergence Detection
-**Rationale:** Most independent feature -- no other v0.15 component depends on it. Requires handoff artifacts to exist. Heuristic approach is well-scoped but needs calibration against real codebases.
-**Delivers:** `/pde:divergence` command, three-tier detection (structural + content for MVP), `DIVERGENCE-REPORT.md`, `.pde-divergence-ignore` mechanism, confidence scores per finding.
-**Addresses:** Differentiator feature from FEATURES.md (catches spec-vs-code drift).
-**Avoids:** False positive trap (CONCERNS severity, confidence scores, ignore mechanism shipped alongside detector).
+### Phase D: Hook Integration — Cursor Write-Back Path
+**Rationale:** With parsers and merge engine proven in isolation, hook integration is the wiring layer that makes the system automatic. Cursor path comes first because its format is more stable and better documented than Antigravity's, reducing risk for the first end-to-end test.
+**Delivers:** Inbound change detection in `context-sync-hook.cjs` (mtime scan against `lastEmittedAt`); `--ingest` flag on `cmdContextSync` CLI; session-start reconciliation sweep; hooks.json extended with `.cursor/rules/` matchers; end-to-end verification: edit `.mdc` → hook fires → `.planning/` updated → `emitAll()` normalizes
+**Addresses:** Section-aware merge (P1 feature); Cursor to PDE reverse sync (P1 feature); live file watching (P1 feature); session boundary gap (Pitfall 4)
+**Avoids:** Hanging hooks — no `fs.watch()` inside the hook process (mtime comparison only); stdout pollution — conflicts log to file, never stdout (hook zero-stdout contract)
 
-### Phase 5: Integration Testing + Cross-Editor Validation
-**Rationale:** End-to-end validation across all three target editors. Cannot run until all components exist. Validates the assumptions made in earlier phases about editor behavior.
-**Delivers:** Verified context consumption in Cursor, Antigravity, Gemini CLI; MCP server query validation; Stitch bridge round-trip; divergence accuracy calibration (<5 findings on a known-good codebase).
+### Phase E: Antigravity Write-Back Path
+**Rationale:** Antigravity reuses the merge engine and parsers proven in Phases C and D. The new surface is DESIGN.md format detection and the `.ag-inbound-delta.json` file-based queue for changes detected by the MCP server's long-running `fs.watch` on `.agent/`. The Antigravity path has lower confidence than Cursor (community-documented format) and is correctly sequenced after the Cursor path validates the shared infrastructure.
+**Delivers:** `antigravity-skill-parser.cjs` fully integrated with format-version detection; `pde-mcp-server` `fs.watch` on `.agent/` directory; `.ag-inbound-delta.json` delta queue protocol; `tokens.json` formally established as master with `DESIGN.md` as derivative-only; Antigravity to PDE reverse sync (P1 feature); shared design token state (P1 feature)
+**Addresses:** Antigravity DESIGN.md format instability (Pitfall 6); shared token state clarity
+**Avoids:** Treating DESIGN.md as a canonical input; TOON to DTCG conversion loss (versioned parser plus Nyquist test required before shipping)
+
+### Phase F: MCP Write Tools
+**Rationale:** Write tools are additive to the established sync architecture and depend on all prior phases — they call `emitAll()`, they must route through validation, and they log to the event bus established in earlier phases. Sequencing them last prevents the temptation to use them as a shortcut before the hook-based write-back path is proven.
+**Delivers:** 4 write tools in `packages/pde-mcp-server/` behind `--enable-writes`: `update-constraints`, `update-tech-stack`, `append-context-note`, `flag-divergence`; each validated, triggers `emitAll()` post-write, logged to NDJSON event bus
+**Addresses:** MCP write-back bypass risk (Pitfall 2) — by routing through validation, not around it; `idempotentHint: true` on all tools
+**Avoids:** Confused deputy attack surface; race conditions with active Claude sessions
+
+### Phase G: Conflict UX and Audit Trail
+**Rationale:** Deliver after core sync paths are validated end-to-end. SYNC-LOG.md and the rollback command convert the system from technically correct to user-trustable. This phase addresses UX pitfalls that are rated MEDIUM recovery cost — resolvable but damaging to user trust if encountered first.
+**Delivers:** SYNC-LOG.md conflict audit trail (P2 feature); `/pde:sync-rollback` command with auto-snapshot to `.planning/sync-snapshots/` before each write-back batch; semantic conflict presentation (token name plus old and new values, not raw JSON diff); sync events visible in tmux dashboard Pane 7 via existing NDJSON event bus
+**Addresses:** Silent write-back with no user notification; no undo path for bad syncs; false conflict alarms from clock skew (hash-based comparison prevents timestamp false positives)
+**Avoids:** Users losing track of auto-resolved conflicts and eventually distrusting the sync system
 
 ### Phase Ordering Rationale
 
-- **Dependency chain drives order:** Context sync IR is the foundation (Phase 1) consumed by all downstream phases. Antigravity needs the GEMINI.md format proven first (Phase 2 after 1). MCP server needs stable `pde-tools.cjs` commands (Phase 3 after 1-2). Divergence is independent (Phase 4 can parallel Phase 3).
-- **Risk front-loading:** The two highest-risk pitfalls (write tool exposure, staleness) are addressed in Phases 1-3. The Stitch dual-path risk is contained in Phase 2 before the MCP server exposes Stitch state.
-- **Value delivery cadence:** Phase 1 delivers usable context files immediately. Each subsequent phase adds a distinct capability layer. Users get incremental value at each phase boundary.
+- Phase A before everything: loop prevention must precede any watcher. The research explicitly calls out that adding loop protection after the watcher is live means "testing in a live-fire environment where loops can fill disk or exhaust API quotas within seconds."
+- Phases B and C before Phase D: parser fidelity and merge correctness must be independently verified before being put on the hook's hot path (every `.planning/` write fires the hook).
+- Phase D (Cursor) before Phase E (Antigravity): Cursor path has a more stable, well-documented format (HIGH confidence) vs. Antigravity's community-documented format (MEDIUM confidence). Proven merge patterns from Phase D reduce integration risk in Phase E.
+- Phase F after Phase E: write tools call `emitAll()`, which depends on the state file (Phase A), parsers (Phase B), and merge engine (Phase C). Building write tools before these foundations inverts the dependency order and would require retrofitting validation.
+- Phase G last: audit trail and rollback are quality-of-life improvements on top of a working system. Building them first would optimize the escape hatch before validating the primary path.
 
 ### Research Flags
 
-Phases likely needing deeper research during planning:
-- **Phase 2 (Antigravity + Stitch Bridge):** Antigravity's official docs are JS-rendered and partially unavailable; `DESIGN.md` format is reconstructed from community guides. The bidirectional Stitch flow has limited community post-mortem data. Recommend `/gsd:research-phase` before planning.
-- **Phase 3 (MCP Server):** npm publishing and npx distribution has platform-specific edge cases (Windows, NVM). The 73% failure rate for local MCP installations cited in distribution guides warrants investigation. Recommend targeted research on distribution strategy.
+Phases needing deeper research during planning:
+- **Phase E (Antigravity write-back):** Antigravity MCP write API is undocumented as of March 2026. DESIGN.md format is community-documented and version-unstable. TOON to DTCG conversion is lossy with limited post-mortem data (LOW confidence). Recommend `/gsd:research-phase` before implementation targeting specifically: TOON converter precision requirements and any Antigravity v1.21+ format changes.
+- **Phase F (MCP write tools):** MCP A2A coordination patterns are still maturing. Verify whether Antigravity prefers invoking write tools via MCP or continues to prefer direct file writes. This affects the write tool API surface and whether the tools will actually be used.
 
-Phases with standard patterns (skip research-phase):
-- **Phase 1 (Context Sync Core):** Cursor `.mdc` format is thoroughly documented. GEMINI.md spec is official. IR builder is a standard read-transform-write pattern. HIGH confidence, no additional research needed.
-- **Phase 4 (Divergence Detection):** Architecture drift detection literature is well-established (absence/divergence/convergence model). Heuristic approach is straightforward. Calibration happens during execution, not research.
-- **Phase 5 (Integration Testing):** Standard end-to-end validation. No research needed.
+Phases with well-established patterns (skip research-phase):
+- **Phase A (Sync Foundation):** SHA-256 hash comparison and state file patterns are directly implemented in existing `context-sync.cjs`. The `computeSourceHash()` function already exists and will be reused unchanged.
+- **Phase B (Reverse Parsers):** Regex frontmatter parsing and PDE-GENERATED marker boundaries are verified against live code. The 4-field `.mdc` format is confirmed stable against official Cursor docs.
+- **Phase C (Merge Engine):** Field-level 3-way merge is a well-documented algorithm. The field ownership table is fully specified in ARCHITECTURE.md and can be implemented directly.
+- **Phase D (Hook Integration):** mtime comparison pattern is explicitly designed in ARCHITECTURE.md with code examples. Hook zero-stdout constraint is well-understood from 15 milestones of PDE hook development.
+- **Phase G (Conflict UX):** NDJSON event bus and tmux dashboard Pane 7 are existing infrastructure. Append-only log pattern is established from v0.8 event system.
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | MCP SDK is official, well-documented. Zod version constraint verified. Cursor .mdc format from official docs. |
-| Features | MEDIUM-HIGH | Table stakes well-defined. Antigravity features partially based on community guides (official docs JS-rendered). Stitch bridge data model inferred from codelab, not official API docs. |
-| Architecture | MEDIUM | IR pattern and emitter separation are sound. MCP server subprocess delegation is proven (matches Playwright MCP). Stitch bridge bidirectional flow is the least proven component. |
-| Pitfalls | HIGH | Grounded in MCP security specification, real exploit post-mortems, and PDE's own bug history (coverage flag corruption fixed 3 times in v0.11/v0.12/v0.14). |
+| Stack | HIGH | chokidar v4 choice verified against Node.js issue #47058 and chokidar release history; MCP SDK annotations verified against spec; all other components use existing dependencies verified against live code in `context-sync.cjs` and `pde-mcp-server/` |
+| Features | HIGH | v0.15 foundation thoroughly documented; Cursor formats verified via official docs; anti-features grounded in specific failure modes from PROJECT.md scope decisions; dependency graph fully mapped |
+| Architecture | HIGH (internal patterns), MEDIUM (Antigravity coordination) | Internal patterns verified by reading live `context-sync.cjs`, `context-sync-hook.cjs`, `hooks.json`, and `pde-mcp-server/src/index.ts`; Antigravity MCP write API explicitly flagged as undocumented |
+| Pitfalls | HIGH (loop prevention, MCP bypass, session gaps), MEDIUM (DESIGN.md format), LOW (DTCG round-trip) | Loop prevention sourced from multiple integration platform post-mortems and a confirmed CVE (EscapeRoute); DTCG round-trip limited post-mortem data, spec v1 only stable since October 2025 |
 
-**Overall confidence:** MEDIUM-HIGH
+**Overall confidence:** HIGH for Phases A through D; MEDIUM for Phase E; LOW for MCP A2A coordination in Phase F.
 
 ### Gaps to Address
 
-- **Antigravity DESIGN.md format:** Reconstructed from community guides and Google Codelabs, not official specification. Validate during Phase 2 execution by testing against actual Antigravity workspace.
-- **Stitch quota unification:** Both PDE direct path and Antigravity bridge path consume the same Google Labs monthly quota, but the exact API call counting mechanism is not documented. May need empirical testing.
-- **Divergence detection calibration:** No PDE-specific drift detection data exists. The ~85% accuracy estimate for heuristic matching is extrapolated from similar tools, not measured. Phase 4 must include a calibration gate against real handoff specs.
-- **MCP SDK v2 migration path:** v2 is anticipated but not shipped. The research assumes v1.x stability for 6+ months. If v2 ships during v0.15 development, migration should be deferred to v0.16 unless v1.x is deprecated.
-- **Cursor 40-tool limit behavior:** Confirmed via community reports that exceeding the limit silently drops tools. The exact drop algorithm (FIFO, random, by server) is undocumented. PDE's 10-tool budget provides ample headroom but the behavior should be verified during Phase 5.
-- **AGENTS.md write policy conflict:** FEATURES.md recommends generating AGENTS.md; ARCHITECTURE.md says never touch it (user-authored). Recommendation: generate AGENTS.md only if it does not already exist, with a `<!-- PDE-GENERATED -->` marker. If user has their own AGENTS.md, PDE writes only to GEMINI.md and `.agent/rules/pde-*`.
+- **Antigravity DESIGN.md format version:** No official stability guarantee exists. Build format-version detection as a first-class concern in Phase E, not a retrofit. Treat any format change as a breaking change requiring a parser update.
+- **TOON to DTCG conversion:** Lossy operation with limited documentation. Define the explicit conversion table and precision requirements (OKLCH values to 4 decimal places) before writing any TOON-related sync code. The round-trip must be a Nyquist assertion.
+- **Antigravity MCP write API:** Undocumented. Recommended mitigation: use the file system as the coordination channel (SKILL.md, DESIGN.md) rather than direct MCP calls from PDE to AG. Revisit in Phase F if Antigravity publishes an official write API.
+- **chokidar on Windows:** `awaitWriteFinish` must be used (editors write files in bursts); polling fallback must degrade gracefully to manual sync rather than enabling polling mode (400MB+ memory, lost events on large directories per chokidar issue #228).
+- **Session-start reconciliation scope:** Must explicitly enumerate which files are monitored (`.cursor/rules/*.mdc`, `AGENTS.md`, `GEMINI.md`, `DESIGN.md`, `.agent/skills/pde-design/SKILL.md`). Not `.planning/` internals — watching those creates inevitable loops.
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- [MCP TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk) -- server patterns, StdioServerTransport, version compatibility
-- [Cursor Rules Documentation](https://cursor.com/docs/context/rules) -- .mdc format, YAML frontmatter, rule types, AGENTS.md support
-- [Gemini CLI GEMINI.md Docs](https://geminicli.com/docs/cli/gemini-md/) -- hierarchical loading, @file imports, configurable filename
-- [MCP Security Best Practices](https://modelcontextprotocol.io/specification/draft/basic/security_best_practices) -- read/write separation, least privilege
-- [Architecture Drift Detection (ScienceDirect)](https://www.sciencedirect.com/science/article/pii/S0920548923000557) -- absence/divergence/convergence model
-- [Design-to-Code Antigravity+Stitch Codelab](https://codelabs.developers.google.com/design-to-code-with-antigravity-stitch) -- official Google workflow
+- Live codebase: `bin/lib/context-sync.cjs`, `hooks/context-sync-hook.cjs`, `hooks/hooks.json`, `packages/pde-mcp-server/src/index.ts`, `bin/lib/divergence.cjs` — verified against actual implementation
+- [chokidar GitHub](https://github.com/paulmillr/chokidar) and [releases](https://github.com/paulmillr/chokidar/releases) — v4 CJS/ESM dual mode confirmed, v5 ESM-only confirmed
+- [Node.js issue #47058](https://github.com/nodejs/node/issues/47058) — `fs.watch` macOS event type unreliability confirmed
+- [MCP Tools spec](https://modelcontextprotocol.io/specification/2025-06-18/server/tools) — annotation fields `readOnlyHint`, `destructiveHint`, `idempotentHint` verified
+- [Cursor Rules docs](https://cursor.com/docs/context/rules) — `.mdc` 4-field frontmatter format confirmed stable
+- [Antigravity Skills codelab](https://codelabs.developers.google.com/getting-started-with-antigravity-skills) — SKILL.md format, `.agent/skills/` path verified
+- [EscapeRoute CVE-2025-53109/53110](https://cymulate.com/blog/cve-2025-53109-53110-escaperoute-anthropic/) — MCP filesystem write safety risks confirmed
+- [DTCG v1 stable spec](https://www.w3.org/community/design-tokens/2025/10/28/design-tokens-specification-reaches-first-stable-version/) — token schema and color space metadata
 
 ### Secondary (MEDIUM confidence)
-- [Antigravity Rules Guide](https://antigravity.codes/blog/user-rules) -- AGENTS.md + GEMINI.md hierarchy, Skills format
-- [AGENTS.md Standard](https://agents.md/) -- cross-tool specification, 60K+ projects
-- [Cursor 40-Tool MCP Limit](https://forum.cursor.com/t/mcp-server-40-tool-limit-in-cursor-is-this-frustrating-your-workflow/81627) -- confirmed tool cap
-- [stitch-mcp GitHub](https://github.com/davideast/stitch-mcp) -- tool list, Stitch API patterns
-- [MCP Server Distribution Guide](https://www.speakeasy.com/mcp/distributing-mcp-servers) -- npx packaging best practices
-- [MCP Confused Deputy Analysis](https://securityboulevard.com/2026/03/mcp-servers-and-the-return-of-the-service-account-problem/) -- write tool exposure risks
+- [Valence bi-directional sync loop prevention](https://docs.valence.app/en/latest/guides/stop-infinite-loops.html) — origin tracking and fingerprinting patterns
+- [Cursor forum: mdc best practices](https://forum.cursor.com/t/my-best-practices-for-mdc-rules-and-troubleshooting/50526) — frontmatter parsing ambiguities and inline comment YAML bug confirmed
+- [Antigravity context management guide](https://datalakehousehub.com/blog/2026-03-context-management-google-antigravity/) — file write patterns
+- [Tailwind CSS 4 @theme design tokens](https://www.maviklabs.com/blog/design-tokens-tailwind-v4-2026) — CSS variable architecture and OKLCH usage
+- [Conflict resolution strategies in data synchronization](https://mobterest.medium.com/conflict-resolution-strategies-in-data-synchronization-2a10be5b82bc) — LWW and 3-way merge patterns
+- `.planning/PROJECT.md` (local) — v0.16 target features and explicit out-of-scope decisions
 
 ### Tertiary (LOW confidence)
-- [Antigravity AgentKit 2.0](https://www.geeky-gadgets.com/google-antigravity-agentkit-2026/) -- 16 agents, 40+ skills (third-party report, unverified)
-- Divergence detection accuracy estimates -- extrapolated from similar tools, no PDE-specific measurement
+- [MCP vs A2A guide](https://dev.to/pockit_tools/mcp-vs-a2a-the-complete-guide-to-ai-agent-protocols-in-2026-30li) — MCP A2A patterns still maturing, community article
+- Antigravity MCP write API — undocumented as of March 2026; file-system channel recommended as safe fallback
+- DTCG round-trip precision loss — limited post-mortem data; DTCG spec v1 only stable since October 2025
 
 ---
-*Research completed: 2026-03-23*
+*Research completed: 2026-03-24*
 *Ready for roadmap: yes*

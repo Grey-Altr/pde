@@ -1,314 +1,218 @@
-# Feature Landscape: v0.15 Multi-Editor Integration
+# Feature Research
 
-**Domain:** AI IDE integration layer for design/development platform
-**Researched:** 2026-03-23
-**Overall confidence:** MEDIUM (Antigravity is new; Cursor/.mdc and Gemini CLI specs are well-documented)
+**Domain:** Bidirectional multi-editor context sync (PDE v0.16)
+**Researched:** 2026-03-24
+**Confidence:** HIGH (v0.15 infrastructure well-documented; editor formats verified via official sources)
 
-## Table Stakes
-
-Features users expect from a multi-editor integration. Missing = integration feels broken or incomplete.
-
-| Feature | Why Expected | Complexity | Dependencies | Notes |
-|---------|--------------|------------|--------------|-------|
-| `.cursorrules` / `.cursor/rules/*.mdc` generation | Cursor is the dominant AI IDE; users expect context injection | Medium | `.planning/PROJECT.md`, `DESIGN-STATE.md`, `design-manifest.json` | Must produce both legacy `.cursorrules` AND new `.mdc` format files in `.cursor/rules/` |
-| `GEMINI.md` generation | Gemini CLI uses hierarchical `GEMINI.md` for context; standard expectation | Low | Same as Cursor context sources | Plain markdown, hierarchical loading from project root + subdirectories; supports `@file.md` imports |
-| `AGENTS.md` generation | Cross-tool standard (Antigravity v1.20.3+, Cursor, Claude Code fallback); single file for all editors | Low | Same as Cursor context sources | Plain markdown, no special syntax; serves as the shared baseline all editors read |
-| MCP server exposing read-only PDE state | AI IDEs consume MCP tools; Cursor/Antigravity/Gemini CLI all support MCP natively | High | `mcp-bridge.cjs`, all `.planning/` state files, `design-manifest.json` | Must stay under Cursor's 40-tool limit; read-only tools only (PROJECT.md out-of-scope decision) |
-| Design token output as Tailwind config | Editors generating code need design tokens in consumable format, not raw DTCG JSON | Medium | `SYS-*.json` DTCG token files, `design-manifest.json` | Convert OKLCH tokens to Tailwind v4 `@theme` format; CSS custom properties as fallback |
-| Handoff spec as `@file` annotations | AI code generators need component specs as inline annotations they can reference | Medium | `handoff.md` output, TypeScript interfaces from handoff | `@component:`, `@props:`, `@tokens:` annotation format extractable by any editor |
-
-## Differentiators
-
-Features that set PDE apart from manually maintaining editor config files. Not expected, but highly valued.
-
-| Feature | Value Proposition | Complexity | Dependencies | Notes |
-|---------|-------------------|------------|--------------|-------|
-| Stitch design bridge (PDE <-> Antigravity canvas) | Antigravity has native Stitch integration; PDE already has Stitch MCP; bidirectional bridge means designs flow seamlessly between PDE's pipeline and Antigravity's canvas | High | Stitch MCP (v0.9), `design-manifest.json`, Antigravity's `stitch-mcp` server, `DESIGN.md` format | PDE generates `DESIGN.md` (Antigravity's design DNA format) from DTCG tokens; Antigravity's Stitch skills consume it; Stitch screen output flows back through PDE's existing STH pipeline |
-| Divergence detection (handoff spec vs code) | Catches drift between PDE design specs and actual implementation; unique to PDE since it owns both sides | High | Handoff TypeScript interfaces, actual codebase `*.tsx`/`*.ts` files | Three-tier: structural (prop names exist), content (prop types match), behavioral (patterns follow spec); reuses v0.7 research validation 3-tier pattern |
-| Context sync engine (auto-regeneration) | Editor config files regenerate automatically when PDE state changes, not manual | Medium | Event bus (v0.8), all context source files | Hook-driven: when `design-manifest.json` or `DESIGN-STATE.md` changes, regenerate all editor configs |
-| Antigravity agent skills export | PDE workflows packaged as Antigravity skills (SKILL.md + instructions) in `.agent/skills/` | Medium | PDE workflow files, Antigravity skill format | Each PDE design skill becomes an invocable Antigravity skill; users can trigger PDE workflows from Antigravity's Agent Manager |
-| Pipeline progress as MCP resource | Editors can query PDE pipeline status (which stages complete, current phase, blockers) | Low | `DESIGN-STATE.md`, `STATE.md`, event bus | MCP resource (not tool) -- passively available context, not an action |
-| Multi-format artifact export | Same design artifact available as HTML, React component, Tailwind utility, CSS module depending on editor/framework context | Medium | Wireframe/mockup HTML artifacts, handoff TypeScript interfaces | Antigravity prefers React+Tailwind; Cursor users may want Vue/Svelte; detect from project config |
-
-## Anti-Features
-
-Features to explicitly NOT build. Each has a clear reason to avoid.
-
-| Anti-Feature | Why Avoid | What to Do Instead |
-|--------------|-----------|-------------------|
-| Write tools in PDE MCP server | Creates second write path bypassing pde-tools.cjs validation and locking (already in out-of-scope) | Expose read-only tools only; editors invoke PDE commands via their own terminal/shell integration |
-| Real-time file watching / live sync | PDE is session-based (Claude Code constraint); file watchers create background processes that conflict with plugin model | Hook-driven regeneration on PDE state changes; manual `/pde:sync-editors` command for on-demand |
-| Editor-specific UI panels or extensions | PDE is a CLI plugin, not a VS Code extension; building Cursor/Antigravity extensions is a separate product | Generate static files (`.cursorrules`, `GEMINI.md`, `DESIGN.md`) that editors consume natively |
-| Cursor Composer / Antigravity Agent Manager API integration | These are proprietary, undocumented internal APIs that change frequently | Use the stable MCP protocol and file-based context injection that all editors support |
-| Auto-install MCP servers in editors | Triggers unexpected OAuth flows; already in out-of-scope constraints | Provide setup instructions and `npx pde-mcp-server` command; user explicitly configures |
-| Full pipeline execution from external editors | 13-stage pipeline requires Claude Code's subagent/worktree infrastructure | Expose individual read-only queries and single-skill invocations; full orchestration stays in Claude Code |
-| Bidirectional code-to-design sync | Reverse-engineering code back into PDE design artifacts is architecturally intractable | One-way: PDE designs -> editor consumption; divergence detection flags drift for human decision |
-
-## Feature Specifications
-
-### 1. MCP Server Tool Exposure
-
-**What to expose (read-only, under 40-tool Cursor limit):**
-
-| Tool | Purpose | Returns |
-|------|---------|---------|
-| `pde:get-project` | Project context | PROJECT.md contents (compact) |
-| `pde:get-design-state` | Pipeline progress | DESIGN-STATE.md parsed |
-| `pde:get-manifest` | Artifact registry | design-manifest.json |
-| `pde:get-tokens` | Design tokens | DTCG JSON or Tailwind config |
-| `pde:get-handoff` | Component specs | TypeScript interfaces from handoff |
-| `pde:get-artifact` | Specific artifact by ID | HTML/JSON content of named artifact |
-| `pde:get-roadmap` | Milestone/phase status | ROADMAP.md parsed |
-| `pde:get-requirements` | Current phase requirements | REQUIREMENTS.md parsed |
-| `pde:get-pipeline-status` | Build pipeline stage status | Stage completion flags |
-| `pde:list-artifacts` | Available design artifacts | Manifest entries list |
-
-**10 tools total -- well within Cursor's 40-tool budget**, leaving room for other MCP servers the user has installed.
-
-**Implementation:** TypeScript MCP server using `@modelcontextprotocol/sdk`, stdio transport (matching existing Stitch/Playwright pattern), launched via `npx pde-mcp-server`.
-
-**Cursor constraint:** Cursor has a hard 40-tool cap across ALL MCP servers combined. Exceeding it silently drops tools. PDE must be lean. 10 tools is the right budget -- users typically have 2-3 other MCP servers (GitHub, database, etc.) consuming the remaining 30 slots.
-
-### 2. Cursor Context Generation
-
-**Two output formats required:**
-
-**Legacy `.cursorrules` (single file, project root):**
-- Project summary from PROJECT.md
-- Current design state (active pipeline stage, completion %)
-- Design tokens as CSS custom properties
-- Component API specs from handoff
-- Architecture constraints and conventions
-- Still works in all Cursor versions but deprecated; generate for backwards compatibility
-
-**Modern `.cursor/rules/*.mdc` (multiple files, frontmatter-driven):**
-
-| File | `alwaysApply` | `globs` | Content |
-|------|---------------|---------|---------|
-| `pde-project.mdc` | `true` | - | Project context, conventions, constraints |
-| `pde-design-tokens.mdc` | `false` | `*.css,*.scss,*.tsx,*.jsx` | OKLCH palette, spacing scale, typography |
-| `pde-components.mdc` | `false` | `src/components/**` | Component APIs, prop interfaces, usage patterns |
-| `pde-architecture.mdc` | `false` | `src/**` | Architecture patterns from handoff |
-| `pde-pipeline.mdc` | `true` | - | Current pipeline status, what's built vs pending |
-
-**`.mdc` frontmatter format (YAML + markdown body):**
-```
----
-description: PDE design token reference for styling decisions
-globs: "*.css,*.scss,*.tsx,*.jsx"
-alwaysApply: false
 ---
 
-[markdown content here]
-```
+## Context: What Already Exists in v0.15
 
-**Key `.mdc` behaviors:**
-- `alwaysApply: true` = always injected into every AI request
-- `globs` with `alwaysApply: false` = auto-attached only when matching files are in context
-- When both are set, `alwaysApply` wins and globs are ignored
-- Files stored flat in `.cursor/rules/` (no subdirectories)
+These features are NOT in scope — they are the foundation this milestone builds on:
 
-### 3. Antigravity Agent Config
+- One-way PDE → Cursor: `.cursor/rules/*.mdc` generation with YAML frontmatter (pde-project, pde-design-tokens, pde-components, pde-architecture, pde-pipeline)
+- One-way PDE → Antigravity: `SKILL.md` + `DESIGN.md` generation
+- One-way PDE → Gemini: `GEMINI.md` hierarchical files with `@file` imports
+- Hook-driven auto-regeneration on `.planning/` changes (`CTX-06`)
+- 3-tier divergence detection (structural/content/behavioral) on code vs handoff specs (`DIV-01` through `DIV-06`)
+- Standalone MCP server with 10 read-only tools (`MCP-01` through `MCP-05`)
+- Hash-based staleness markers on generated context files (`CTX-08`)
 
-**Three output layers:**
+The v0.16 milestone adds the **reverse path**: editor changes flowing back into PDE state.
 
-1. **`AGENTS.md`** (project root) -- cross-tool baseline readable by Antigravity, Cursor, and Claude Code
-   - Project identity, tech stack, conventions
-   - Design system summary (palette, typography, spacing)
-   - Component catalog from handoff
-   - Plain markdown, no special syntax required
+---
 
-2. **`GEMINI.md`** (project root) -- Antigravity-specific overrides (takes priority over AGENTS.md when both exist)
-   - PDE pipeline status and available MCP tools
-   - Import modular context: `@.planning/design/DESIGN.md`
-   - Stitch integration instructions (when `--use-stitch` active)
+## Feature Landscape
 
-3. **`.agent/skills/pde-design/SKILL.md`** -- Antigravity skill for PDE design queries
-   - Instructions for querying PDE MCP server
-   - Design token lookup patterns
-   - Component spec retrieval workflows
+### Table Stakes (Users Expect These)
 
-**Antigravity priority hierarchy:** System rules > GEMINI.md > AGENTS.md > .agent/rules/
+| Feature | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| Cursor → PDE reverse sync: .mdc rule changes propagate to .planning/ | If users can edit .mdc files (they can and do), edits must round-trip or they silently diverge | HIGH | Requires .mdc YAML frontmatter parsing + semantic diffing against .planning/ source of truth; the existing 3-tier divergence detector covers code divergence but not context file divergence |
+| Conflict detection on reverse sync | Bidirectional sync without conflict detection causes silent data loss — the most common failure mode in sync tools | MEDIUM | PDE is already the authoritative source for design state; conflict = editor edited something PDE auto-generates → must surface, not silently overwrite |
+| Manual conflict resolution prompt | Auto-resolution without user input loses intent; "editor wins" vs "PDE wins" vs "show diff" must be user-controlled | LOW | Can be a simple CLI prompt + CONFLICT.md diff output; defer to PDE as default since .planning/ is source of truth |
+| Antigravity → PDE reverse sync: SKILL.md edits propagate back | Antigravity users modify SKILL.md to tune agent behavior; those edits should not be clobbered on next PDE sync | MEDIUM | Requires section-level parsing (YAML frontmatter + fenced instruction blocks); only user-modified sections should propagate; PDE-generated sections should be protected |
+| Live file watching (Cursor .mdc changes trigger sync) | Without a watcher, users must manually invoke sync after every editor edit; defeats the purpose of integration | HIGH | Node.js `fs.watch` / chokidar pattern well-established; must debounce (200-500ms) to avoid thrashing on editor saves; hooks architecture (already used for PDE→editor) is the natural extension point |
+| Single source of truth for design tokens (shared token state) | DTCG tokens already live in `.planning/design/tokens.json`; Antigravity DESIGN.md is a derived view; if Antigravity can write tokens back, there must be one authoritative file | HIGH | Shared state problem: resolve by making `.planning/design/tokens.json` the master; DESIGN.md is always read-only derivative; write-backs from Antigravity must parse and merge into tokens.json, not replace it |
+| Sync status visibility | Users need to know when sync is in-progress, when conflicts exist, and when state is clean | LOW | Can extend existing DIVERGENCE.md pattern + dashboard pane; a SYNC-STATUS.md or dashboard row covers this |
 
-### 4. GEMINI.md for Gemini CLI
+### Differentiators (Competitive Advantage)
 
-**Hierarchical file placement (Gemini CLI concatenates all discovered files):**
+| Feature | Value Proposition | Complexity | Notes |
+|---------|-------------------|------------|-------|
+| Section-aware merge (preserve user edits in PDE-generated files) | Most sync tools are whole-file: overwrite or skip. Section-aware merge lets users annotate regions as "user-owned" that survive PDE regeneration | MEDIUM | Pattern: HTML comment fencing in .mdc and SKILL.md files; PDE regeneration preserves fenced blocks; similar to @generated markers used in GraphQL codegen and Prisma client |
+| Agent coordination via MCP (PDE and Antigravity delegate work) | Antigravity agents can query PDE state via MCP to make context-aware decisions without duplicating state; PDE agents can trigger Antigravity skill execution | HIGH | Builds directly on existing read-only MCP server; requires adding write/notification tools (e.g., notify-state-change, request-skill-execution); MCP A2A patterns emerging in 2026 as standard |
+| Richer .mdc generation (deeper context, better globs, more rules) | Current .mdc files are functional but thin; richer rules with per-file-type glob targeting, inline examples, and cross-file relationship annotations make Cursor AI responses measurably better | MEDIUM | Cursor docs confirm .mdc with well-scoped globs reduces context token usage by activating only relevant rules; this is enhancement to existing CTX-02, not a new capability class |
+| Richer SKILL.md + DESIGN.md generation (enhanced Antigravity output) | Current Antigravity outputs cover design DNA basics; richer output includes component relationship graphs, constraint annotations, and Antigravity-native workflow hooks | MEDIUM | Antigravity Skills support workflows: declarations in SKILL.md YAML frontmatter; PDE can auto-generate workflow stubs from .planning/ pipeline state |
+| Conflict audit trail (SYNC-LOG.md) | When conflicts are auto-resolved, a timestamped log of what changed and why gives users traceability and the ability to undo | LOW | Append-only log in `.planning/logs/` using existing NDJSON event bus infrastructure; near-zero implementation cost given v0.8 event system |
 
-- **Project root `GEMINI.md`:** Project context, design conventions, available PDE tools
-- **`.planning/GEMINI.md`:** PDE state context (pipeline status, current phase, requirements)
-- **`.planning/design/GEMINI.md`:** Design system reference (tokens, components, patterns)
+### Anti-Features (Commonly Requested, Often Problematic)
 
-**Uses `@file.md` imports for modularity:**
-```markdown
-## Design System
-@./DESIGN-STATE.md
+| Feature | Why Requested | Why Problematic | Alternative |
+|---------|---------------|-----------------|-------------|
+| Real-time continuous sync daemon | "I want changes to appear instantly everywhere" | A persistent background process contradicts Claude Code's session-based model; a daemon can't be reliably started/stopped within a session, creates orphan processes, and conflicts with worktree isolation | Use hook-driven sync (already the pattern): changes trigger on file events within the session, not via a separate daemon |
+| Auto-merge all conflicts without user consent | "I want zero interruptions" | Silent auto-merge on semantic conflicts (e.g., user renamed a token in Antigravity, PDE regenerated with old name) produces corrupted state that's hard to diagnose | Default to PDE-wins with a prompt on divergence; log all auto-resolutions to SYNC-LOG.md so they're auditable |
+| Bidirectional sync for all editor files (GEMINI.md, AGENTS.md, .cursorrules) | "Sync everything in both directions" | GEMINI.md and AGENTS.md are pure PDE-generated outputs with no user-editable sections; adding reverse sync creates a second write path into .planning/ that bypasses validation | Limit reverse sync to files that users meaningfully edit: .mdc rules (Cursor workflow customization) and SKILL.md (Antigravity agent tuning); GEMINI.md and AGENTS.md remain write-once from PDE |
+| Automatic Antigravity agent invocation on PDE state changes | "When PDE updates tokens, Antigravity should automatically re-run" | Antigravity invocation requires an active Antigravity session; triggering it from a PDE hook creates cross-process coupling with no error recovery path | Expose state-change notifications via MCP so Antigravity agents can poll or subscribe; let Antigravity initiate, not PDE |
+| Write tools added to pde-mcp-server | "Antigravity should be able to update .planning/ via MCP" | Creates a second write path bypassing pde-tools.cjs validation and locking (already documented as out-of-scope in PROJECT.md); MCP write tools in the existing server would create race conditions with active Claude sessions | Use the existing file-based sync path: Antigravity writes to its own files (SKILL.md, DESIGN.md), PDE watches and ingests; the MCP server stays read-only |
+| Field-level CRDT merge for design tokens | "Merge token changes at the property level without conflicts" | CRDT implementations (Yjs, Automerge) add significant complexity and npm dependencies, violating the zero-dependency constraint for pde-tools.cjs | Use append-log + timestamp merge: tokens.json has a _lastModified per token group; last-writer-wins per group is sufficient for the solo/small-team use case |
 
-## Token Reference
-@./design/SYS-tokens-summary.md
-```
-
-**Content must be self-contained per file** since Gemini CLI concatenates all discovered GEMINI.md files from root through subdirectories. Each file should work independently without assuming the others are loaded.
-
-**Custom filename support:** Gemini CLI allows overriding the default `GEMINI.md` name via `settings.json` `context.fileName` property, but PDE should use the standard name for zero-config experience.
-
-### 5. Stitch Design Bridge
-
-**Bidirectional artifact flow leveraging existing v0.9 Stitch MCP infrastructure:**
-
-**PDE -> Antigravity (Design DNA export):**
-- Generate `DESIGN.md` in Antigravity's format from PDE's DTCG tokens
-- Map OKLCH palette to hex values with semantic roles (primary, secondary, surface, etc.)
-- Typography rules from `SYS-typography.json` tokens
-- Component styling patterns from handoff artifacts
-- Antigravity's `design-md` and `stitch-design` skills consume this DESIGN.md for consistent generation
-
-**Antigravity -> PDE (Stitch screen import):**
-- Already partially built in v0.9: `--use-stitch` flag fetches Stitch-generated screens
-- Bridge extends this: detect Antigravity-originated Stitch projects via manifest metadata
-- Import Stitch screen HTML/PNG through existing STH pipeline
-- Annotation injection and critique comparison already work (v0.9)
-
-**New bridge components:**
-- `DESIGN.md` generator (DTCG tokens -> Antigravity Design DNA markdown format)
-- Stitch project detection (is this an Antigravity-linked Stitch project?)
-- Manifest metadata for Antigravity origin tracking (`source: "antigravity-stitch"`)
-
-**Stitch MCP tools available (from davideast/stitch-mcp):**
-- `get_screen_code` -- retrieves HTML code from Stitch screen
-- `get_screen_image` -- retrieves screenshot as base64
-- `build_site` -- maps screens to routes, returns multi-page HTML
-- Plus upstream Stitch tools (generate_screen, list_projects, etc.)
-
-### 6. Artifact Formatting for Editor Consumption
-
-**Token conversion pipeline:**
-```
-DTCG JSON -> Tailwind v4 @theme -> CSS custom properties -> @file annotations
-```
-
-**Component spec formatting:**
-```
-Handoff TypeScript interfaces -> @component: annotations -> Editor-readable props
-```
-
-**Framework-aware output:**
-- Detect project framework from `package.json` (Next.js, Nuxt, SvelteKit, etc.)
-- Generate framework-appropriate component stubs
-- Default: React + Tailwind (matches Antigravity's preferred stack and PDE's deploy scaffold)
-
-**Inline conversion functions (preserving zero-npm-dependency constraint):**
-- `oklchToHex()` -- reverse of existing `hexToOklch()` in handoff.md
-- `dtcgToTailwindTheme()` -- maps DTCG token groups to Tailwind v4 `@theme` declarations
-- `dtcgToDesignDna()` -- maps DTCG tokens to Antigravity DESIGN.md format
-
-### 7. Divergence Detection
-
-**Three-tier detection reusing v0.7 research validation pattern:**
-
-| Tier | What | How | Severity |
-|------|------|-----|----------|
-| T1: Structural | Do declared components exist in codebase? | Glob for files matching handoff component names | Missing = HIGH |
-| T2: Content | Do prop interfaces match handoff specs? | Parse TypeScript interfaces, compare prop names/types | Mismatch = MEDIUM |
-| T3: Behavioral | Do components use specified tokens/patterns? | Grep for token variable usage, pattern matching | Drift = LOW |
-
-**Detection model (from architecture drift literature):**
-- **Absence:** Architectural element declared in spec but missing from code
-- **Divergence:** Code has extra elements not in spec
-- **Convergence:** Spec and code match
-
-**Output:** `DIVERGENCE.md` in `.planning/` with per-component status:
-- ALIGNED: Spec matches implementation
-- DRIFTED: Implementation diverges (with specific deltas)
-- MISSING: Specified in handoff but not implemented
-- EXTRA: Implemented but not in handoff spec
-
-**T2 implementation note:** Full TypeScript AST parsing would require a dependency (typescript compiler API or ts-morph). Alternative: regex-based interface extraction from `.d.ts` files, which is less accurate but preserves zero-npm-dependency constraint. Recommend regex for MVP, flag AST parsing as future enhancement.
-
-**Trigger:** Manual via `/pde:check-divergence` command; optionally hook-driven after code changes.
+---
 
 ## Feature Dependencies
 
 ```
-AGENTS.md generation ─────────────────────────── (no dependencies, plain markdown)
-     |
-     +-- .cursorrules generation (extends AGENTS.md content with Cursor-specific format)
-     +-- GEMINI.md generation (extends AGENTS.md content with Gemini CLI hierarchy)
-     +-- Antigravity agent config (extends AGENTS.md with GEMINI.md + .agent/skills/)
+[Cursor Live File Watching]
+    └──enables──> [Cursor → PDE Reverse Sync]
+                      └──requires──> [Section-Aware Merge]
+                      └──requires──> [Conflict Detection]
+                                         └──enables──> [Manual Conflict Resolution Prompt]
+                                         └──enables──> [Conflict Audit Trail / SYNC-LOG.md]
 
-MCP server ──────────────────────────────────── (independent, parallel track)
-     |
-     +-- Pipeline status tool (reads DESIGN-STATE.md)
-     +-- Artifact retrieval tools (reads design-manifest.json)
-     +-- Token delivery tool (reads SYS-*.json, converts to Tailwind)
+[Antigravity → PDE Reverse Sync]
+    └──requires──> [Section-Aware Merge]
+    └──requires──> [Shared Token State (tokens.json as master)]
 
-Design token conversion ─────────────────────── (required by Cursor + Antigravity context)
-     |
-     +-- Tailwind v4 @theme output
-     +-- CSS custom properties output
-     +-- DESIGN.md generation (Antigravity Design DNA format)
+[Agent Coordination via MCP]
+    └──requires──> [Existing MCP Server (v0.15 read-only tools)]
+    └──enhances──> [Antigravity → PDE Reverse Sync]
 
-Stitch bridge ───────────────────────────────── (requires token conversion + v0.9 Stitch MCP)
-     |
-     +-- DESIGN.md generator (DTCG -> Design DNA)
-     +-- Antigravity origin detection
-     +-- Existing STH pipeline (v0.9)
+[Richer .mdc Generation]
+    └──builds-on──> [Existing CTX-02 (v0.15 .mdc generation)]
 
-Divergence detection ────────────────────────── (requires handoff specs exist)
-     |
-     +-- T1: Structural (glob-based, low dependency)
-     +-- T2: Content (regex-based interface parsing for MVP)
-     +-- T3: Behavioral (grep-based, low dependency)
+[Richer SKILL.md + DESIGN.md Generation]
+    └──builds-on──> [Existing CTX-05 / STH-01 (v0.15 Antigravity output)]
 
-Context sync engine ─────────────────────────── (requires all generators built first)
-     |
-     +-- Hook-driven regeneration (event bus v0.8)
-     +-- /pde:sync-editors command
+[Sync Status Visibility]
+    └──builds-on──> [Existing Event Bus (v0.8 NDJSON infrastructure)]
+    └──builds-on──> [Existing 7-pane Dashboard (v0.10)]
 ```
 
-## MVP Recommendation
+### Dependency Notes
 
-**Phase 1 -- Context Generation (foundation):**
-1. `AGENTS.md` generator (cross-tool baseline, simplest format)
-2. `.cursor/rules/*.mdc` generator (largest user base)
-3. `GEMINI.md` hierarchical generator
-4. Design token Tailwind conversion
+- **Cursor live file watching requires session context**: The watcher must run within an active Claude Code session (hook-triggered); it cannot be a daemon. The PostToolUse hook pattern used in v0.15 for auto-regeneration is the correct foundation.
+- **Section-aware merge is a prerequisite for both reverse sync paths**: Without it, every PDE regeneration destroys user edits in .mdc and SKILL.md, making reverse sync useless. This must be built before the reverse sync features.
+- **Conflict detection must exist before conflict resolution**: Detection produces a CONFLICT.md diff; resolution consumes it. They ship together as one phase.
+- **Shared token state is a prerequisite for Antigravity → PDE token sync**: If the source-of-truth question is unresolved, any token write-back risks creating a forked state. Establish tokens.json as master first.
+- **Agent coordination via MCP is additive**: It enhances the Antigravity sync path but is not required for it. Can be deferred to a sub-phase.
 
-**Phase 2 -- MCP Server (consumption layer):**
-5. Standalone MCP server with 10 read-only tools
-6. `npx pde-mcp-server` entry point with stdio transport
+---
 
-**Phase 3 -- Stitch Bridge (design flow):**
-7. `DESIGN.md` generator for Antigravity Design DNA
-8. Antigravity origin detection in manifest
-9. `.agent/skills/pde-design/` skill export
+## MVP Definition
 
-**Phase 4 -- Divergence + Sync (quality layer):**
-10. Three-tier divergence detection (T1+T2 for MVP, T3 deferred)
-11. `DIVERGENCE.md` output
-12. Context sync engine (hook-driven regeneration)
-13. `/pde:sync-editors` command
+### Launch With (v1 of this milestone)
 
-**Defer:**
-- Antigravity agent skills for individual pipeline stages (complexity outweighs initial value)
-- Multi-format artifact export beyond React+Tailwind (wait for user demand signal)
-- T3 behavioral divergence detection (diminishing returns; T1+T2 cover 80% of value)
-- Full TypeScript AST parsing for divergence (regex MVP first, upgrade when needed)
+- [ ] Section-aware merge (user-owned fencing in .mdc and SKILL.md) — prerequisite for everything; without it, reverse sync destroys user edits
+- [ ] Cursor → PDE reverse sync (.mdc rule changes propagate to .planning/) — the primary new capability
+- [ ] Conflict detection (divergence between editor edits and PDE state) — prevents silent data loss
+- [ ] Manual conflict resolution prompt (user choice: PDE wins / editor wins / show diff) — required for safe reverse sync
+- [ ] Live file watching for .mdc changes (hook-triggered, debounced) — makes reverse sync automatic rather than manual-only
+- [ ] Antigravity → PDE reverse sync (SKILL.md section edits propagate back) — second primary capability; symmetric with Cursor path
+- [ ] Shared design token state (tokens.json as master, DESIGN.md as derivative) — required for AG token sync correctness
+
+### Add After Validation (v1.x)
+
+- [ ] Conflict audit trail (SYNC-LOG.md) — trigger: first time a user loses track of an auto-resolved conflict
+- [ ] Richer .mdc generation (deeper globs, inline examples) — trigger: user feedback that Cursor rules are not activating correctly
+- [ ] Richer SKILL.md + DESIGN.md generation (workflow stubs, constraint annotations) — trigger: Antigravity agents producing generic outputs despite PDE context
+
+### Future Consideration (v2+)
+
+- [ ] Agent coordination via MCP (PDE and Antigravity A2A delegation) — defer: MCP A2A standards still maturing in 2026; implement once Antigravity's MCP interface stabilizes
+- [ ] Sync status dashboard pane — defer: SYNC-LOG.md in the filesystem is sufficient for solo/small-team use; a pane adds polish but not capability
+
+---
+
+## Feature Prioritization Matrix
+
+| Feature | User Value | Implementation Cost | Priority |
+|---------|------------|---------------------|----------|
+| Section-aware merge | HIGH | MEDIUM | P1 |
+| Cursor → PDE reverse sync | HIGH | HIGH | P1 |
+| Conflict detection | HIGH | MEDIUM | P1 |
+| Manual conflict resolution | HIGH | LOW | P1 |
+| Live file watching (.mdc) | HIGH | HIGH | P1 |
+| Antigravity → PDE reverse sync | HIGH | MEDIUM | P1 |
+| Shared token state (tokens.json master) | HIGH | MEDIUM | P1 |
+| Conflict audit trail (SYNC-LOG.md) | MEDIUM | LOW | P2 |
+| Richer .mdc generation | MEDIUM | MEDIUM | P2 |
+| Richer SKILL.md + DESIGN.md generation | MEDIUM | MEDIUM | P2 |
+| Agent coordination via MCP | MEDIUM | HIGH | P3 |
+| Sync status dashboard pane | LOW | LOW | P3 |
+
+**Priority key:**
+- P1: Must have for launch (bidirectional sync is broken without these)
+- P2: Should have, add when possible (quality improvements)
+- P3: Nice to have, future consideration (ecosystem evolution)
+
+---
+
+## Workflow Analysis: User Workflows to Support
+
+### Workflow 1: Cursor user customizes .mdc rules
+
+A developer opens `.cursor/rules/pde-design-tokens.mdc` and modifies the glob pattern to exclude test files. On save, the live watcher detects the change, parses the diff, identifies the glob modification as user-authored, and propagates it back to `.planning/config/` as an override. Next PDE regeneration respects the override.
+
+Key requirements: live file watching, section-aware merge (to protect the user's glob change from being overwritten), conflict detection if PDE also updated the same section.
+
+### Workflow 2: Antigravity agent tunes SKILL.md workflow instructions
+
+During an Antigravity session, the agent appends a new skill instruction block to `.agent/skills/pde-design/SKILL.md`. When the user runs `/pde:editor-sync` (or on next hook trigger), PDE detects the new block, determines it is in the user-fenced section, and copies it into the PDE memory system.
+
+Key requirements: section-aware merge, Antigravity → PDE reverse sync path, SKILL.md section parser.
+
+### Workflow 3: Design tokens updated in PDE, Antigravity sees latest
+
+User runs `/pde:system` and generates new DTCG tokens. The hook triggers regeneration of `DESIGN.md`. Antigravity (active in parallel session) picks up the updated `DESIGN.md` via its file-watching or next-read. No user intervention needed.
+
+Key requirements: existing `STH-01` (DESIGN.md generation) already handles this; the v0.16 addition is ensuring `tokens.json` is the single master and `DESIGN.md` is never modified directly.
+
+### Workflow 4: Conflict — user edited .mdc, PDE regenerated same section
+
+User manually edits `pde-components.mdc` to add a component alias. Separately, `/pde:build` runs and regenerates the same .mdc. On next sync, conflict detector finds the same section modified in both sources. PDE surfaces a `CONFLICT.md` diff and prompts the user to choose: keep PDE version, keep editor version, or view diff. User picks "keep editor version." Change is logged to SYNC-LOG.md.
+
+Key requirements: conflict detection, manual resolution prompt, conflict audit trail.
+
+---
+
+## Competitor Feature Analysis
+
+| Feature | Mutagen / rsync-style tools | Git-based sync (Syncthing) | PDE v0.16 approach |
+|---------|---------------------------|---------------------------|-------------------|
+| Conflict detection | Two-way-safe mode flags conflicts | Creates .sync-conflict- files | CONFLICT.md with section-level diff |
+| Conflict resolution | CLI prompt or auto-discard | Manual file inspection | CLI prompt with PDE-wins default |
+| File watching | inotify/kqueue/FSEvents native | Background daemon | Claude Code hook-triggered (session-scoped) |
+| Merge granularity | Whole file | Whole file | Section-aware (fenced blocks) |
+| Source of truth | Equal precedence | Equal precedence | PDE (.planning/) is authoritative master |
+| Dependencies | External binary | External daemon | Zero external dependencies (Node.js built-ins) |
+
+The PDE approach diverges from generic sync tools by being opinionated about authority: `.planning/` is always master, editor files are derived views. This avoids the hardest class of bidirectional sync problem (equal-precedence conflict resolution) by design.
+
+---
+
+## V0.15 Infrastructure Dependencies
+
+| v0.15 Component | v0.16 Dependency |
+|----------------|-----------------|
+| CTX-06 hook-driven auto-regeneration | Live file watching must plug into the same hook architecture (extending PostToolUse hooks for file watch events) |
+| CTX-08 hash-based staleness markers | Conflict detection reads these hashes to determine if a file was PDE-generated or user-modified since last generation |
+| DIV-01/02/03 divergence detection | Conflict detection for reverse sync is a new divergence type; the same DIVERGENCE.md output pattern should be extended |
+| MCP-01/02 read-only MCP server | Agent coordination builds on this; write/notification tools would be additive to the existing server structure |
+| STH-01/03 Stitch bridge artifact flow | Shared token state (tokens.json as master) is the formalization of the directional artifact flow already described in STH-03 |
+| v0.8 NDJSON event bus | SYNC-LOG.md / conflict audit trail should use the existing event infrastructure for consistency |
+
+---
 
 ## Sources
 
-- [Cursor Rules for AI docs](https://cursor.com/docs) -- .mdc format specification [HIGH confidence]
-- [Cursor .mdc best practices forum](https://forum.cursor.com/t/my-best-practices-for-mdc-rules-and-troubleshooting/50526) -- frontmatter fields, rule types [MEDIUM confidence]
-- [Cursor .mdc deep dive (0.45+)](https://forum.cursor.com/t/a-deep-dive-into-cursor-rules-0-45/60721) -- detailed format behavior [MEDIUM confidence]
-- [Cursor 40-tool MCP limit](https://forum.cursor.com/t/mcp-server-40-tool-limit-in-cursor-is-this-frustrating-your-workflow/81627) -- confirmed 40-tool cap across all servers [HIGH confidence]
-- [Gemini CLI GEMINI.md specification](https://google-gemini.github.io/gemini-cli/docs/cli/gemini-md.html) -- hierarchical loading, @file imports [HIGH confidence]
-- [Antigravity rules guide with AGENTS.md](https://antigravity.codes/blog/user-rules) -- priority hierarchy, cross-tool format [MEDIUM confidence]
-- [AGENTS.md standard](https://agents.md/) -- cross-tool specification [MEDIUM confidence]
-- [Antigravity AGENTS.md v1.20.3 guide](https://antigravitylab.net/en/articles/tips/agents-md-guide) -- format, plain markdown, nesting [MEDIUM confidence]
-- [Stitch-Antigravity integration guide](https://antigravity.codes/blog/google-stitch-antigravity-guide) -- DESIGN.md format, MCP bridge, 7 agent skills [MEDIUM confidence]
-- [davideast/stitch-mcp GitHub](https://github.com/davideast/stitch-mcp) -- tool list (build_site, get_screen_code, get_screen_image) [MEDIUM confidence]
-- [Design-to-Code Antigravity+Stitch Codelab](https://codelabs.developers.google.com/design-to-code-with-antigravity-stitch) -- official Google workflow [HIGH confidence]
-- [MCP TypeScript SDK](https://github.com/modelcontextprotocol/typescript-sdk) -- server implementation patterns, Zod schemas [HIGH confidence]
-- [Claude Code AGENTS.md support issue #6235](https://github.com/anthropics/claude-code/issues/6235) -- not natively supported, fallback behavior [MEDIUM confidence]
-- [Architecture drift detection (ScienceDirect)](https://www.sciencedirect.com/science/article/pii/S0920548923000557) -- absence/divergence/convergence model [HIGH confidence]
-- [Google Antigravity announcement](https://developers.googleblog.com/build-with-google-antigravity-our-new-agentic-development-platform/) -- official platform description [HIGH confidence]
-- [Antigravity AgentKit 2.0](https://www.geeky-gadgets.com/google-antigravity-agentkit-2026/) -- 16 agents, 40+ skills [LOW confidence, third-party report]
+- [Rules | Cursor Docs](https://cursor.com/docs/rules) — HIGH confidence; official Cursor documentation on .mdc format, YAML frontmatter, globs
+- [Authoring Google Antigravity Skills | Google Codelabs](https://codelabs.developers.google.com/getting-started-with-antigravity-skills) — MEDIUM confidence; official Antigravity SKILL.md format documentation
+- [MCP vs A2A: The Complete Guide to AI Agent Protocols in 2026](https://dev.to/pockit_tools/mcp-vs-a2a-the-complete-guide-to-ai-agent-protocols-in-2026-30li) — LOW confidence (community article); MCP A2A patterns still maturing
+- [Conflict resolution strategies in Data Synchronization](https://mobterest.medium.com/conflict-resolution-strategies-in-data-synchronization-2a10be5b82bc) — MEDIUM confidence; standard sync patterns (last-write-wins, three-way merge, field-level merge)
+- [Context Management Strategies for Google Antigravity](https://datalakehousehub.com/blog/2026-03-context-management-google-antigravity/) — LOW confidence; community article, unverified
+- v0.15 REQUIREMENTS.md (local, `.planning/milestones/v0.15-REQUIREMENTS.md`) — HIGH confidence; shipped requirements define the exact foundation this milestone extends
+- PDE PROJECT.md (local, `.planning/PROJECT.md`) — HIGH confidence; v0.16 target features explicitly listed
+
+---
+*Feature research for: PDE v0.16 Bidirectional Multi-Editor Context Sync*
+*Researched: 2026-03-24*
