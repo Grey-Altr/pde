@@ -13,7 +13,7 @@
 - [x] **CUR-01**: .mdc reverse parser — extract YAML frontmatter (description, globs, alwaysApply) from .cursor/rules/pde-*.mdc files using regex; skip files without PDE-GENERATED marker; strip inline comments; log parse errors without throwing
 - [x] **CUR-02**: .mdc PDE-owned section extraction — content between `<!-- PDE:BEGIN -->` / `<!-- PDE:END -->` markers is PDE-parseable; content outside is user-authored (preserved, never written back); maps pde-project.mdc Conventions to constraints IR, pde-architecture.mdc Tech Stack to techStack IR
 - [ ] **CUR-03**: Live mtime change detection — hook-triggered scan of .mdc files during .planning/ writes; compare mtime against lastEmittedAt + 500ms grace; debounce 200ms; queue in state file pendingIngest; zero stdout; <10ms overhead
-- [ ] **CUR-04**: Conflict detection — 3-way merge using lastIR as base: if both PDE and editor changed same field to different values, log conflict to .sync-conflicts.log (NDJSON) with both values; auto-resolve when only one side changed
+- [x] **CUR-04**: Conflict detection — 3-way merge using lastIR as base: if both PDE and editor changed same field to different values, log conflict to .sync-conflicts.log (NDJSON) with both values; auto-resolve when only one side changed
 - [ ] **CUR-05**: Conflict resolution — planning-wins default policy; configurable per-field in config.json contextSync.fieldPolicies; editor-wins overwrites .planning/ value; prompt policy defers resolution and blocks emitAll(); policy read at ingest start
 - [ ] **CUR-06**: Enhanced .mdc generation — `<!-- PDE:BEGIN -->` / `<!-- PDE:END -->` section markers in each .mdc body; user content below PDE:END preserved across regeneration; improved globs (**.{css,scss,tsx,jsx,ts} for tokens, **.{tsx,jsx,stories.tsx,test.tsx} for components); inline examples in pde-project.mdc
 
@@ -22,7 +22,7 @@
 - [x] **AGR-01**: SKILL.md reverse parser — section-aware extraction from .agent/skills/pde-design/SKILL.md; parse Design Tokens, Component Catalog, Constraints sections to partial IR; capture unknown sections as agentAdditions; skip files without PDE-GENERATED marker; handle marker-before-frontmatter ordering
 - [x] **AGR-02**: DESIGN.md reverse parser — extract hex color values from Color Palette section using pattern `- **Name** (#hex) -- role`; format version detection via `<!-- pde-format-version: 1.0 -->`; capture unknown sections as agentAdditions; lenient fallback for unknown versions
 - [ ] **AGR-03**: DESIGN.md write-back — value-only DTCG update in design-manifest.json; update only $value field of color tokens; preserve $type, $description, $extensions, group hierarchy; hex-to-OKLCH reverse conversion with 4-decimal precision; log precision warnings >0.001 delta; recompute hash and emitAll() after write
-- [ ] **AGR-04**: Shared token state contract — design-manifest.json is canonical source; DESIGN.md includes `<!-- SOURCE: design-manifest.json | DERIVE-ONLY -->` comment; emitDesignMd() never reads DESIGN.md as input; no code path writes manifest without merge engine
+- [x] **AGR-04**: Shared token state contract — design-manifest.json is canonical source; DESIGN.md includes `<!-- SOURCE: design-manifest.json | DERIVE-ONLY -->` comment; emitDesignMd() never reads DESIGN.md as input; no code path writes manifest without merge engine
 - [ ] **AGR-05**: Agent-written SKILL.md additions preserved — emitAntigravitySkill() parses existing agentAdditions from current SKILL.md, regenerates PDE sections, appends agent block below `<!-- AGENT-ADDITIONS: DO NOT EDIT THIS LINE -->` marker
 - [ ] **AGR-06**: Enhanced SKILL.md generation — Workflows section listing pipeline stages with completion status from DESIGN-STATE.md; full Constraints from PROJECT.md; exact DTCG token path; `<!-- pde-skill-version: 1.0 -->` format marker
 - [ ] **AGR-07**: Enhanced DESIGN.md generation — `<!-- pde-format-version: 1.0 -->` format version marker for parser version detection; version incremented only on breaking changes
@@ -50,13 +50,13 @@
 | CUR-01 | Phase 127 | Complete |
 | CUR-02 | Phase 127 | Complete |
 | CUR-03 | Phase 129 | Pending |
-| CUR-04 | Phase 128 | Pending |
+| CUR-04 | Phase 128 | Complete |
 | CUR-05 | Phase 128 | Pending |
 | CUR-06 | Phase 132 | Pending |
 | AGR-01 | Phase 127 | Complete |
 | AGR-02 | Phase 127 | Complete |
 | AGR-03 | Phase 130 | Pending |
-| AGR-04 | Phase 128 | Pending |
+| AGR-04 | Phase 128 | Complete |
 | AGR-05 | Phase 130 | Pending |
 | AGR-06 | Phase 132 | Pending |
 | AGR-07 | Phase 130 | Pending |

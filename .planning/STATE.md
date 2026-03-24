@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.16
 milestone_name: Multi-Editor Context Sync
-status: Ready to plan
-stopped_at: Completed 127-02-PLAN.md
-last_updated: "2026-03-24T19:33:58.432Z"
+status: Ready to execute
+stopped_at: Completed 128-01-PLAN.md
+last_updated: "2026-03-24T20:02:19.122Z"
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 10
-  completed_plans: 4
+  completed_plans: 5
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 127 — reverse-parsers
+**Current focus:** Phase 128 — merge-engine
 
 ## Current Position
 
-Phase: 128
-Plan: Not started
+Phase: 128 (merge-engine) — EXECUTING
+Plan: 2 of 2
 
 ## Performance Metrics
 
@@ -56,6 +56,8 @@ Recent decisions affecting v0.16 implementation:
 - [Phase 127]: Color regex applied to entire DESIGN.md (not section-gated) for resilience when section headings change
 - [Phase 127]: parseDesignMd returns {} (not null) for placeholder DESIGN.md — valid empty partial IR distinct from null
 - [Phase 127]: pde-format-version absence triggers stderr warning but parsing continues (lenient fallback, not hard gate)
+- [Phase 128]: Test 12 fixture corrected to canonical .mdc format (frontmatter first, then PDE-GENERATED comment) — real architecture .mdc files use D-07 backward compat (no PDE:BEGIN/END)
+- [Phase 128]: mergePartialIR planning-wins default: resolvedValue === planningValue on true conflict, conflict logged to .sync-conflicts.log as NDJSON
 
 ### Pending Todos
 
@@ -68,8 +70,8 @@ Recent decisions affecting v0.16 implementation:
 
 ## Session Continuity
 
-Last session: 2026-03-24T18:52:54.375Z
-Stopped at: Completed 127-02-PLAN.md
+Last session: 2026-03-24T20:02:19.119Z
+Stopped at: Completed 128-01-PLAN.md
 Resume with: /gsd:discuss-phase 127
 Resume file: None
 

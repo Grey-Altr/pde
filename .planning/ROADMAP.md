@@ -76,7 +76,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 128-01-PLAN.md — Core 3-way merge engine: mergePartialIR(), appendConflictLog(), parseMdcContent Architecture Conventions fix, SOURCE comment (CUR-04, AGR-04)
+- [x] 128-01-PLAN.md — Core 3-way merge engine: mergePartialIR(), appendConflictLog(), parseMdcContent Architecture Conventions fix, SOURCE comment (CUR-04, AGR-04)
 - [ ] 128-02-PLAN.md — Per-field conflict resolution policies: readFieldPolicy(), config.json fieldPolicies, designTokens format reconciliation (CUR-05)
 
 ### Phase 129: Hook Integration
@@ -142,7 +142,7 @@ Plans:
 |-------|----------------|--------|-----------|
 | 126. Sync Foundation | 2/2 | Complete   | 2026-03-24 |
 | 127. Reverse Parsers | 2/2 | Complete    | 2026-03-24 |
-| 128. Merge Engine and Conflict Resolution | 0/2 | Planned | - |
+| 128. Merge Engine and Conflict Resolution | 1/2 | In Progress|  |
 | 129. Hook Integration | 0/2 | Planned | - |
 | 130. Antigravity Write-Back | 0/2 | Planned | - |
 | 131. MCP Write Tools | 0/TBD | Not started | - |
