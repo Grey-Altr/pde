@@ -315,4 +315,4 @@ This document evolves at phase transitions and milestone boundaries.
 3. Audit Out of Scope — reasons still valid?
 4. Update Context with current state
 
-*Last updated: 2026-03-24 after Phase 130 (Antigravity Write-Back) complete — hexToOklch, writeBackDesignTokens, AGENT-ADDITIONS preservation, format-version marker, 18 Nyquist tests*
+*Last updated: 2026-03-24 after Phase 131 (MCP Write Tools) complete — 4 write tools behind --enable-writes flag, handleUpdateConstraints/TechStack/AppendContextNote/FlagDivergence, 24 Nyquist tests*
