@@ -1038,6 +1038,103 @@ function parseMdcContent(content, filename) {
   }
 }
 
+// ─── AGR-01: SKILL.md Reverse Parser ─────────────────────────────────────────
+
+/**
+ * Parse .agent/skills/pde-design/SKILL.md into a partial IR object.
+ * Returns null when: content is empty, PDE-GENERATED marker absent,
+ * name != pde-design, or parse error occurs.
+ * Returns {} (valid empty partial IR) when SKILL.md has no extractable content.
+ *
+ * @param {string} content - Raw SKILL.md file content
+ * @returns {object|null} Partial IR { designTokens?, componentCatalog?, constraints?, agentAdditions? } or null
+ */
+function parseSkillMd(content) {
+  if (!content) return null;
+  if (!PDE_HASH_RE.test(content)) return null;
+  try {
+    // Pitfall 1: PDE-GENERATED marker precedes frontmatter in SKILL.md (marker on line 1, --- on line 2)
+    // Strip first HTML comment line before parsing frontmatter
+    const withoutHeader = content.replace(/^<!--[^>]+-->\n/, '');
+
+    // Validate frontmatter contains name: pde-design (D-12)
+    const fmMatch = withoutHeader.match(/^---\n([\s\S]*?)\n---/);
+    if (!fmMatch) return null;
+    if (!/^name:\s*pde-design$/m.test(fmMatch[1])) return null;
+
+    const body = withoutHeader.slice(fmMatch[0].length).trim();
+    const partial = {};
+
+    // Pitfall 3: section heading is "Design Tokens Available", NOT "Design Tokens"
+    const designTokens = extractSection(body, 'Design Tokens Available');
+    if (designTokens !== '') partial.designTokens = designTokens;
+
+    const componentCatalog = extractSection(body, 'Component Catalog');
+    if (componentCatalog !== '') partial.componentCatalog = componentCatalog;
+
+    // Pitfall 4: Constraints in SKILL.md are hardcoded strings, not ir.constraints
+    const constraints = extractSection(body, 'Constraints');
+    if (constraints !== '') partial.constraints = constraints;
+
+    // agentAdditions: sections not in the known list (D-11)
+    const KNOWN = ['Goal', 'Instructions', 'Design Tokens Available', 'Component Catalog', 'Constraints'];
+    const unknownSections = body.split(/^(?=## )/m).filter(s => {
+      const h = s.match(/^## (.+)/)?.[1]?.trim();
+      return h && !KNOWN.includes(h);
+    });
+    if (unknownSections.length > 0) {
+      partial.agentAdditions = unknownSections.join('\n').trim();
+    }
+
+    return partial;
+  } catch (err) {
+    process.stderr.write(`[context-sync] skill.md parse error: ${err.message}\n`);
+    return null;
+  }
+}
+
+// ─── AGR-02: DESIGN.md Reverse Parser ────────────────────────────────────────
+
+/**
+ * Parse DESIGN.md (Antigravity Design DNA format) into a partial IR object.
+ * Returns null when: content is empty, PDE-GENERATED marker absent, or parse error.
+ * Returns {} (valid empty partial IR) when DESIGN.md is a placeholder with no color entries.
+ *
+ * Note: designTokens returned here is a color-list string, not a full token summary.
+ * Phase 128 merge engine is responsible for reconciling this with DTCG token data.
+ *
+ * @param {string} content - Raw DESIGN.md file content
+ * @returns {object|null} Partial IR { designTokens? } or null
+ */
+function parseDesignMd(content) {
+  if (!content) return null;
+  if (!PDE_HASH_RE.test(content)) return null;
+  try {
+    // D-08: format version detection — warn if absent, but continue (lenient fallback)
+    const isV1 = /<!--\s*pde-format-version:\s*1\.0\s*-->/.test(content);
+    if (!isV1) {
+      process.stderr.write('[context-sync] design.md: no pde-format-version marker, using lenient fallback\n');
+    }
+
+    // Pitfall 5: color pattern applied to entire document (not section-gated) for resilience
+    // Pattern matches confirmed emitter output: - **Name** (#hex) -- role
+    const colorPattern = /^-\s+\*\*([^*]+)\*\*\s+\(#([a-fA-F0-9]{3,6})\)\s+--\s+(.+)$/gm;
+    const colors = [];
+    let m;
+    while ((m = colorPattern.exec(content)) !== null) {
+      colors.push({ name: m[1].trim(), hex: `#${m[2]}`, role: m[3].trim() });
+    }
+
+    if (colors.length === 0) return {};
+
+    const designTokens = colors.map(c => `- **${c.name}** (${c.hex}) -- ${c.role}`).join('\n');
+    return { designTokens };
+  } catch (err) {
+    process.stderr.write(`[context-sync] design.md parse error: ${err.message}\n`);
+    return null;
+  }
+}
+
 // ─── Exports ────────────────────────────────────────────────────────────────
 
 module.exports = {
@@ -1045,5 +1142,5 @@ module.exports = {
   emitGeminiMd, computeSourceHash, cmdContextSync, oklchToHex,
   isStitchSource, emitAntigravitySkill, emitDesignMd,
   writeStateFile, readStateFile, computeLoopBreak,
-  parseMdcContent,
+  parseMdcContent, parseSkillMd, parseDesignMd,
 };
