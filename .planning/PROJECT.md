@@ -147,6 +147,7 @@ Any user can go from idea to shipped product through a single platform that hand
 - ✓ 3-tier divergence detection (structural/content/behavioral) with DIVERGENCE.md output and .pde-divergence-ignore suppression — v0.15
 - ✓ Hook-driven auto-regeneration of editor files on .planning/ changes, /pde:editor-sync manual command — v0.15
 - ✓ 575 Nyquist tests across all v0.15 phases, zero v0.14 regressions — v0.15
+- ✓ Full Nyquist traceability: all 8 VALIDATION.md files compliant, all 14 SUMMARY.md files with requirements-completed, isStitchSource production consumer wired — v0.15
 
 ### Active
 
@@ -176,7 +177,8 @@ Any user can go from idea to shipped product through a single platform that hand
 - **Shipped v0.11** on 2026-03-22: ~245,000 LOC (JavaScript/Markdown/Shell), ~1,078 total commits
 - **Shipped v0.13** on 2026-03-23: 9 phases, 15 plans (AutoResearch: safety boundaries, git state machine, experiment schema, mutation agent, orchestrator, circuit breakers, self-improvement presets, researcher empirical mode, observability)
 - **Shipped v0.14** on 2026-03-24: 10 phases, 21 plans, 78 requirements, 441+ Nyquist assertions (Visual AutoResearch: Playwright MCP, screenshot capture, AOM accessibility, visual metrics, 14 experiment templates, pipeline experiments, visual regression circuit breaker, multi-candidate A/B, meta-optimization, ideation diversity, brief reference capture)
-- **Planned roadmap:** v0.15 Multi-Editor Integration → v0.16 Remote Dashboard → v0.17 Stakeholder Presentations → v1.0 Standalone CLI
+- **Shipped v0.15** on 2026-03-24: 8 phases, 16 plans, 25 requirements, 162 Nyquist tests (Multi-Editor Integration: context sync engine for Cursor/Gemini/Antigravity/AGENTS.md, standalone MCP server with 10 read-only tools, artifact formatting with DTCG-to-Tailwind v4, 3-tier divergence detection, hook-driven auto-sync, Stitch bridge production consumer)
+- **Planned roadmap:** v0.16 Remote Dashboard → v0.17 Stakeholder Presentations → v1.0 Standalone CLI
 - **v0.11** shipped 2026-03-22: 112 files changed, 116 commits (experience product type: detection, brief, tokens, flows, wireframes, critique, HIG, print, handoff, 48 requirements)
 - **v0.10** shipped 2026-03-21: 107 files changed, 56 commits (idle-time productivity: suggestion engine, catalog, context notes, 7-pane dashboard)
 - **v0.9** shipped 2026-03-21: 91 files changed, 76 commits (Google Stitch integration across 5 pipeline skills)
@@ -282,4 +284,4 @@ Any user can go from idea to shipped product through a single platform that hand
 | 20-field designCoverage write (not copy 16-field pattern) | Phase 84 added 4 fields; copying opportunity.md's 16-field pattern silently drops them | ✓ Good — canonical order from manifest template |
 | Playwright MCP via stdio transport | npx @playwright/mcp@latest --headless — identical to Stitch pattern, zero npm deps | ✓ Good — 7th APPROVED_SERVER, 10 TOOL_MAP entries, 27 Nyquist tests |
 | browser_snapshot as probe tool (not browser_navigate) | browser_snapshot requires no URL arg, avoids "missing required parameter" error on probe | ✓ Good — lightest read-only operation for server health check |
-*Last updated: 2026-03-23 after v0.15 Multi-Editor Integration milestone started*
+*Last updated: 2026-03-24 after v0.15 Multi-Editor Integration milestone completed*

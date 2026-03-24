@@ -2,9 +2,21 @@
 
 ## v0.15 Multi-Editor Integration (Shipped: 2026-03-24)
 
+**Phases completed:** 1 phases, 2 plans, 5 tasks
+
+**Key accomplishments:**
+
+- isStitchSource() wired as production consumer in handoff.md, closing STH-02 and DIV-05 gaps — all 25 v0.15 requirements now complete
+- Promoted all 7 v0.15 VALIDATION.md files to Nyquist-compliant and backfilled requirements-completed in all 14 SUMMARY.md files, closing all metadata gaps from the v0.15 milestone audit.
+
+---
+
+## v0.15 Multi-Editor Integration (Shipped: 2026-03-24)
+
 **Phases completed:** 7 phases, 14 plans, 6 tasks
 
 **Key accomplishments:**
+
 - (none recorded)
 
 ---
