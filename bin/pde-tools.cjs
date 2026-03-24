@@ -944,6 +944,18 @@ async function main() {
       break;
     }
 
+    case 'artifact-format': {
+      const sub = args[1];
+      if (sub === 'detect-framework') {
+        const { detectFramework } = require('./lib/artifact-format.cjs');
+        const fw = detectFramework(cwd);
+        output(fw || '');
+      } else {
+        error(`Unknown artifact-format subcommand: ${sub}`);
+      }
+      break;
+    }
+
     default:
       error(`Unknown command: ${command}`);
   }
