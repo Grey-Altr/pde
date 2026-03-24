@@ -151,7 +151,7 @@ Full details: .planning/milestones/v0.14-ROADMAP.md
 - [x] **Phase 121: MCP Server** — Isolated TypeScript package with 10 read-only tools, npx distribution, pipeline resource (completed 2026-03-24)
 - [x] **Phase 122: Divergence Detection** — 3-tier handoff-vs-code drift detection with DIVERGENCE.md output and ignore mechanism (completed 2026-03-24)
 - [x] **Phase 123: Context Sync Engine** — Hook-driven auto-regeneration + /pde:editor-sync manual command (completed 2026-03-24)
-- [ ] **Phase 124: Integration & Nyquist** — Cross-editor validation and structural regression tests for all v0.15 requirements
+- [x] **Phase 124: Integration & Nyquist** — Cross-editor validation and structural regression tests for all v0.15 requirements (completed 2026-03-24)
 
 ## Phase Details
 
@@ -254,7 +254,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 - [x] 124-01-PLAN.md — Nyquist integration test file (MCP-03 gap fill + INTG-01 meta-test)
-- [ ] 124-02-PLAN.md — Cross-milestone regression sweep and count-assertion fixes
+- [x] 124-02-PLAN.md — Cross-milestone regression sweep and count-assertion fixes
 
 ## Progress
 
