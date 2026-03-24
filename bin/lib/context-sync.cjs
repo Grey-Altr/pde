@@ -799,6 +799,62 @@ function emitDesignMd(ir, projectRoot, planningDir) {
   return { written: true, path: 'DESIGN.md' };
 }
 
+// ─── Sync state file ────────────────────────────────────────────────────────
+
+/**
+ * Write persistent sync state file atomically using write-rename pattern.
+ * Records the IR snapshot as 3-way merge base for Phase 128.
+ * Non-fatal: emitAll() must not throw if this fails.
+ * Uses process.pid in tmpPath to avoid race if concurrent hooks fire.
+ * @param {object} ir - Full IR object from buildContextIR()
+ * @param {string} planningDir - Absolute path to .planning/
+ */
+function writeStateFile(ir, planningDir) {
+  const statePath = path.join(planningDir, '.context-sync-state.json');
+  const tmpPath = statePath + '.' + process.pid + '.tmp';
+  const state = {
+    schemaVersion: '1.0',
+    lastEmittedAt: ir.generatedAt,
+    lastSourceHash: ir.sourceHash,
+    lastIR: {
+      techStack: ir.techStack,
+      constraints: ir.constraints,
+      componentCatalog: ir.componentCatalog,
+      designTokens: ir.designTokens,
+    },
+    pendingIngest: [],
+  };
+  try {
+    fs.writeFileSync(tmpPath, JSON.stringify(state, null, 2), 'utf-8');
+    fs.renameSync(tmpPath, statePath);
+  } catch {
+    // State file write failure is non-fatal — emitAll() contract requires silent resilience
+    // Cleanup orphaned tmp file if rename failed
+    try { fs.unlinkSync(tmpPath); } catch { /* ignore */ }
+  }
+}
+
+/**
+ * Read and validate the persistent sync state file.
+ * Returns null if file is missing, corrupt, or wrong schema version.
+ * Design note: the broad catch is intentional — permission errors and OOM
+ * surface as null (missing state), which is safe because emitAll() recreates
+ * the file on every call. Callers must tolerate null gracefully.
+ * @param {string} planningDir - Absolute path to .planning/
+ * @returns {object|null} Parsed state or null
+ */
+function readStateFile(planningDir) {
+  const statePath = path.join(planningDir, '.context-sync-state.json');
+  try {
+    const raw = fs.readFileSync(statePath, 'utf-8');
+    const parsed = JSON.parse(raw);
+    if (!parsed || parsed.schemaVersion !== '1.0') return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
 // ─── Orchestrator ───────────────────────────────────────────────────────────
 
 /**
@@ -818,6 +874,9 @@ function emitAll(cwd) {
   const geminiMd = emitGeminiMd(ir, projectRoot, planningDir);
   const antigravitySkill = emitAntigravitySkill(ir, projectRoot);
   const designMd = emitDesignMd(ir, projectRoot, planningDir);
+
+  // Phase 126: Write persistent state file for 3-way merge base (SYN-01, SYN-03)
+  writeStateFile(ir, planningDir);
 
   return {
     agentsMd,
@@ -895,4 +954,6 @@ module.exports = {
   isStitchSource,
   emitAntigravitySkill,
   emitDesignMd,
+  writeStateFile,
+  readStateFile,
 };

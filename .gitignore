@@ -1,2 +1,6 @@
 # MCP connection metadata — project-local, no credentials, but user-specific
 .planning/mcp-connections.json
+
+# Phase 126: Sync state file — session-specific timestamps, not for git
+.planning/.context-sync-state.json
+.planning/.context-sync-state.json.*.tmp
