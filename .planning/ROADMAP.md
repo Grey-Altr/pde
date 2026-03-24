@@ -22,7 +22,7 @@ Phases 119-125 delivered the unidirectional context generation pipeline: context
 
 **Milestone Goal:** Bidirectional sync between `.planning/` and Cursor + Antigravity editor files — changes flow both ways through a 3-way merge engine with conflict detection, resolution policy, and audit trail.
 
-- [ ] **Phase 126: Sync Foundation** - State file schema, base IR snapshot, loop-break hash comparison
+- [x] **Phase 126: Sync Foundation** - State file schema, base IR snapshot, loop-break hash comparison (completed 2026-03-24)
 - [ ] **Phase 127: Reverse Parsers** - .mdc and SKILL.md/DESIGN.md reverse parsers with section-marker ownership
 - [ ] **Phase 128: Merge Engine and Conflict Resolution** - 3-way merge, conflict detection, configurable resolution policy
 - [ ] **Phase 129: Hook Integration** - Live mtime detection, CLI ingest command, session-start reconciliation
@@ -44,7 +44,7 @@ Phases 119-125 delivered the unidirectional context generation pipeline: context
 **Plans**: 2 plans
 
 Plans:
-- [ ] 126-01-PLAN.md — State file infrastructure: writeStateFile(), readStateFile(), emitAll() integration, gitignore (SYN-01, SYN-03)
+- [x] 126-01-PLAN.md — State file infrastructure: writeStateFile(), readStateFile(), emitAll() integration, gitignore (SYN-01, SYN-03)
 - [ ] 126-02-PLAN.md — Loop-break gate: computeLoopBreak() with PDE_HASH_RE hash comparison (SYN-02)
 
 ### Phase 127: Reverse Parsers
@@ -124,7 +124,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 126. Sync Foundation | 0/2 | Not started | - |
+| 126. Sync Foundation | 1/2 | Complete    | 2026-03-24 |
 | 127. Reverse Parsers | 0/TBD | Not started | - |
 | 128. Merge Engine and Conflict Resolution | 0/TBD | Not started | - |
 | 129. Hook Integration | 0/TBD | Not started | - |

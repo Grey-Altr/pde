@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.16
 milestone_name: Multi-Editor Context Sync
-status: Ready to execute
-stopped_at: Phase 126 planned, reviewed, revised — ready to execute
-last_updated: "2026-03-24T17:30:00.000Z"
+status: Ready to plan
+stopped_at: Completed 126-02-PLAN.md
+last_updated: "2026-03-24T18:22:27.355Z"
 progress:
   total_phases: 7
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 2
-  completed_plans: 0
+  completed_plans: 2
 ---
 
 # Project State
@@ -19,16 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 126 — Sync Foundation (v0.16 Multi-Editor Context Sync)
+**Current focus:** Phase 126 — sync-foundation
 
 ## Current Position
 
-Phase: 126 of 132 (Sync Foundation)
-Plan: 2 plans in 2 waves (126-01, 126-02) — reviewed by Gemini, revised
-Status: Ready to execute
-Last activity: 2026-03-24 — Phase 126 researched, planned, cross-AI reviewed, revised
-
-Progress: [░░░░░░░░░░] 0%
+Phase: 127
+Plan: Not started
 
 ## Performance Metrics
 
@@ -53,6 +49,8 @@ Recent decisions affecting v0.16 implementation:
 - Value-only DTCG write-back: update `$value` only, preserve all other DTCG metadata
 - MCP server stays read-only by default; --enable-writes flag required for write tools
 - chokidar v4 (not v5 ESM-only, not fs.watch macOS-unreliable) — isolated in packages/reverse-sync/
+- [Phase 126-sync-foundation]: PID-based tmp path for writeStateFile prevents concurrent hook race; readStateFile returns null for schema != 1.0 (forward-compat guard)
+- [Phase 126]: PDE_HASH_RE derived from makeHeader() output to auto-sync with header format changes
 
 ### Pending Todos
 
@@ -65,12 +63,13 @@ Recent decisions affecting v0.16 implementation:
 
 ## Session Continuity
 
-Last session: 2026-03-24
-Stopped at: Phase 126 fully planned and reviewed — execute next
+Last session: 2026-03-24T18:18:27.051Z
+Stopped at: Completed 126-02-PLAN.md
 Resume with: /gsd:execute-phase 126
 Resume file: None
 
 ### Session 2026-03-24 Summary
+
 - Researched Phase 126 (maxdepth — gsd-phase-researcher agent)
 - Created 126-VALIDATION.md (Nyquist strategy)
 - Planned Phase 126 (2 plans, 2 waves, 15 tests)
