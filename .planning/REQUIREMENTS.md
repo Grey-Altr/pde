@@ -3,251 +3,113 @@
 **Defined:** 2026-03-23
 **Core Value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
 
-## v0.14 Requirements
+## v0.15 Requirements
 
-Requirements for v0.14 Visual AutoResearch. Each maps to roadmap phases.
+Requirements for v0.15 Multi-Editor Integration. Each maps to roadmap phases.
 
-### Playwright Infrastructure (PLAY)
+### Context Generation (CTX)
 
-- [x] **PLAY-01**: Playwright registered as 7th APPROVED_SERVER in mcp-bridge.cjs with stdio transport and headless mode
-- [x] **PLAY-02**: ~10 TOOL_MAP entries for canonical Playwright tool names (VERIFY_REQUIRED markers)
-- [x] **PLAY-03**: AUTH_INSTRUCTIONS entry with `claude mcp add playwright` install command including `--headless` and `--allow-unrestricted-file-access` flags
-- [x] **PLAY-04**: Live tool name verification confirms mcp__playwright__* prefix matches actual registered names
-- [x] **PLAY-05**: Probe/degrade contract — graceful fallback when Playwright MCP not installed
-- [x] **PLAY-06**: mcp-integration.md updated with Playwright enhancement recipe and 7-server probe/degrade table
-- [x] **PLAY-07**: `--allow-unrestricted-file-access` flag documented for file:// wireframe/mockup access
+- [ ] **CTX-01**: PDE generates AGENTS.md at project root with project context, design system summary, and component catalog from .planning/ artifacts
+- [ ] **CTX-02**: PDE generates .cursor/rules/*.mdc files with YAML frontmatter (description, globs, alwaysApply) — pde-project.mdc, pde-design-tokens.mdc, pde-components.mdc, pde-architecture.mdc, pde-pipeline.mdc
+- [ ] **CTX-03**: PDE generates legacy .cursorrules file at project root for backwards compatibility
+- [ ] **CTX-04**: PDE generates hierarchical GEMINI.md files (project root + .planning/ + .planning/design/) with @file imports
+- [ ] **CTX-05**: PDE generates .agent/skills/pde-design/SKILL.md for Antigravity Agent Manager with PDE workflow instructions
+- [ ] **CTX-06**: Context sync engine auto-regenerates all editor files when .planning/ state changes via hook-driven detection
+- [ ] **CTX-07**: /pde:editor-sync command manually regenerates all editor context files on demand
+- [ ] **CTX-08**: Generated context files include hash-based staleness marker for freshness detection
 
-### Wireframe Screenshots (WFR)
+### MCP Server (MCP)
 
-- [x] **WFR-01**: wireframe.md Step 5d wired to capture screenshots of each wireframe HTML via Playwright MCP
-- [x] **WFR-02**: Screenshots saved to `.planning/design/ux/wireframes/screenshots/`
-- [x] **WFR-03**: Multi-page wireframes handled (index.html + screen-*.html each screenshotted)
-- [x] **WFR-04**: `--no-playwright` flag preserves existing degradation path (no screenshots, no error)
-- [x] **WFR-05**: Viewport configured for consistent wireframe dimensions (1280x800 default)
+- [ ] **MCP-01**: Standalone MCP server package in isolated subdirectory with @modelcontextprotocol/sdk, TypeScript, stdio transport
+- [ ] **MCP-02**: Server exposes 10 read-only tools: get-project, get-design-state, get-manifest, get-tokens, get-handoff, get-artifact, get-roadmap, get-requirements, get-pipeline-status, list-artifacts
+- [ ] **MCP-03**: Server distributable via npx pde-mcp-server with automatic .planning/ directory discovery
+- [ ] **MCP-04**: Pipeline status exposed as MCP resource (passive context) for editor consumption
+- [ ] **MCP-05**: Design tokens served as Tailwind v4 @theme format via get-tokens tool with DTCG-to-Tailwind conversion
 
-### Mockup Screenshots (MOK)
+### Stitch Bridge (STH)
 
-- [x] **MOK-01**: mockup.md captures screenshots of generated mockup HTML files via Playwright MCP
-- [x] **MOK-02**: Screenshots saved to `.planning/design/ux/mockups/screenshots/`
-- [x] **MOK-03**: `--no-playwright` degradation path (mockup workflow completes without screenshots)
+- [ ] **STH-01**: PDE generates DESIGN.md in Antigravity Design DNA format from DTCG tokens (palette, typography, spacing, component patterns)
+- [ ] **STH-02**: Antigravity-originated Stitch projects detected via manifest metadata (source: "antigravity-stitch")
+- [ ] **STH-03**: Bidirectional artifact flow: PDE design artifacts → Stitch canvas via DESIGN.md, Stitch outputs → PDE critique/handoff via existing STH pipeline
 
-### Critique A11y Integration (A11Y)
+### Artifact Formatting (FMT)
 
-- [x] **A11Y-01**: critique.md accessibility perspective uses browser_snapshot for AOM tree when Playwright available
-- [x] **A11Y-02**: AOM tree analyzed for missing landmarks, unlabeled controls, heading hierarchy issues
-- [x] **A11Y-03**: Browser a11y data merges with Axe MCP results when both available
-- [x] **A11Y-04**: Falls back to manual WCAG checklist when neither Playwright nor Axe available
+- [ ] **FMT-01**: Handoff specs include @file annotations (@component:, @props:, @tokens:) extractable by any editor
+- [ ] **FMT-02**: DTCG tokens converted to Tailwind v4 @theme declarations and CSS custom properties
+- [ ] **FMT-03**: Framework detection from package.json generates framework-appropriate component stubs (default: React + Tailwind)
 
-### Deploy Smoke Test (DEP)
+### Divergence Detection (DIV)
 
-- [x] **DEP-01**: deploy.md adds post-deploy smoke test after Gate 4/4 success
-- [x] **DEP-02**: Navigates to $DEPLOY_URL, captures screenshot and accessibility snapshot
-- [x] **DEP-03**: Verifies expected sections present (hero, pricing, CTA from LDP spec)
-- [x] **DEP-04**: Retry with exponential backoff (3 attempts, 10s/20s/40s) for builds still in progress
-- [x] **DEP-05**: Pass/fail results logged to deploy-manifest.json with screenshot path
-
-### Visual Metric Scripts (VIS)
-
-- [x] **VIS-01**: DOM structure metric script — counts semantic elements (nav, main, article, section, header, footer), penalizes div-soup, follows _evalMetric contract (exit 0, stdout = numeric score)
-- [x] **VIS-02**: A11y violations metric script — runs browser_snapshot AOM tree through rule checks (missing alt, unlabeled inputs, heading skip, missing landmarks), score = inverse violation count
-- [x] **VIS-03**: WCAG contrast metric script — evaluates text/background contrast ratios via browser_evaluate, score based on AA pass rate
-- [x] **VIS-04**: Responsive compliance metric script — screenshots at 3 breakpoints (mobile 375px, tablet 768px, desktop 1280px), measures layout shift/overflow/element visibility
-- [x] **VIS-05**: Mermaid readability metric script — validates Mermaid syntax renders without error, measures node count, edge count, diagram dimensions
-- [x] **VIS-06**: All 5 metric scripts follow _evalMetric contract (exit 0 always, stdout = numeric score, timeout-safe)
-- [x] **VIS-07**: All metrics return 0 (not crash) when Playwright MCP is unavailable — graceful degradation
-
-### Experiment Templates (EXP)
-
-- [x] **EXP-01**: experiment.md templates for wireframe skill optimization (mutate wireframe.md prose → measure DOM structure + a11y + contrast)
-- [x] **EXP-02**: experiment.md templates for mockup skill optimization (mutate mockup.md prose → measure visual quality metrics)
-- [x] **EXP-03**: experiment.md templates for critique skill optimization (mutate critique.md → measure finding quality against known-defective wireframes)
-- [x] **EXP-04**: experiment.md templates for system skill optimization (mutate system.md → measure token WCAG contrast compliance in rendered output)
-- [x] **EXP-05**: experiment.md templates for brief skill optimization (mutate brief.md → measure downstream wireframe quality as proxy metric)
-- [x] **EXP-06**: experiment.md templates for flows skill optimization (mutate flows.md → measure Mermaid readability + diagram completeness)
-- [x] **EXP-07**: experiment.md templates for iterate skill optimization (mutate iterate.md → measure before/after visual delta improvement)
-- [x] **EXP-08**: experiment.md templates for hig skill optimization (mutate hig.md → measure a11y finding detection rate)
-- [x] **EXP-09**: experiment.md templates for handoff skill optimization (mutate handoff.md → measure TypeScript interface completeness vs rendered component count)
-- [x] **EXP-10**: experiment.md templates for recommend/competitive/opportunity/ideate skills (text-metric experiments using existing Nyquist, no browser required)
-- [x] **EXP-11**: Each template specifies mutable_files, verify_command, target_metric, search_space, iteration_budget per experiment-schema.cjs contract
-- [x] **EXP-12**: All 14 eligible design skills have at least one experiment template
-
-### Cross-Skill Pipeline Experiments (PIPE)
-
-- [x] **PIPE-01**: Pipeline experiment measures upstream prose change impact on downstream visual output (e.g., brief.md change → wireframe visual delta)
-- [x] **PIPE-02**: Pipeline experiment runs full skill chain (brief → system → wireframe) with browser metrics at terminal stage
-- [x] **PIPE-03**: Pipeline experiment isolates which upstream skill change produced the largest downstream improvement
-- [x] **PIPE-04**: Pipeline experiment templates define multi-stage verify commands chaining skill invocations
-
-### Iterate Effectiveness (ITER)
-
-- [x] **ITER-01**: Before/after screenshot capture around /pde:iterate invocations
-- [x] **ITER-02**: Visual delta measurement between pre-iterate and post-iterate wireframes
-- [x] **ITER-03**: Iterate experiment template mutates iterate.md prose → measures improvement magnitude per iteration cycle
-- [x] **ITER-04**: Iterate effectiveness metric tracks convergence speed (iterations-to-stable)
-
-### Visual Regression Circuit Breaker (VRCB)
-
-- [x] **VRCB-01**: Visual regression circuit breaker prevents cosmetic regressions during optimization
-- [x] **VRCB-02**: Before each experiment iteration, baseline screenshots captured
-- [x] **VRCB-03**: After mutation, screenshots compared — if visual regression detected, mutation is rejected (git reset)
-- [x] **VRCB-04**: Regression threshold configurable in experiment.md (default: any new a11y violation = regression)
-- [x] **VRCB-05**: Integrates with existing circuit breaker infrastructure (consecutive_failure_limit, no_progress_limit)
-
-### Multi-Candidate Experiments (MULTI)
-
-- [x] **MULTI-01**: Multi-candidate experiment mode generates N variants per iteration (A/B testing)
-- [x] **MULTI-02**: Each candidate evaluated independently against same metric
-- [x] **MULTI-03**: Best candidate selected and promoted (git commit), others discarded
-- [x] **MULTI-04**: Candidate count configurable in experiment.md (default: 3)
-- [x] **MULTI-05**: Multi-candidate mode integrates with existing orchestrator loop (Phase 103 infrastructure)
-
-### Pressure Test Visual Dimension (PRES)
-
-- [x] **PRES-01**: Pressure test gains visual quality dimension alongside existing Awwwards text rubric
-- [x] **PRES-02**: Browser renders pressure test output artifacts and scores DOM structure, a11y, contrast
-- [x] **PRES-03**: Combined score formula weights text rubric (existing) + visual metrics (new)
-- [x] **PRES-04**: Visual dimension degrades gracefully when Playwright unavailable (text-only scoring)
-
-### Meta-Optimization (META)
-
-- [x] **META-01**: Experiment runner self-calibrates mutation strategies based on historical improvement data
-- [x] **META-02**: Mutation strategy effectiveness tracked across experiment runs (which strategies produce improvements)
-- [x] **META-03**: Meta-optimization reads experiment JSONL history to derive strategy weights
-- [x] **META-04**: Strategy weights influence mutation agent's approach selection in subsequent experiments
-
-### Ideation Visual Scoring (IDT)
-
-- [x] **IDT-01**: Ideation divergence scored by measuring screenshot variance across generated concepts
-- [x] **IDT-02**: Visual similarity metric compares screenshots pairwise (structural hash or pixel-level)
-- [x] **IDT-03**: Higher visual diversity = higher ideation quality score
-- [x] **IDT-04**: Ideation visual scoring degrades gracefully (text-only diversity when Playwright unavailable)
-
-### Brief Reference Capture (BREF)
-
-- [x] **BREF-01**: Brief workflow can capture live product screenshots as reference material
-- [x] **BREF-02**: User provides URL → Playwright navigates, screenshots, saves to `.planning/design/references/`
-- [x] **BREF-03**: Reference screenshots available to downstream skills (wireframe, mockup, critique)
-- [x] **BREF-04**: Reference capture is opt-in (not automatic — requires user-provided URLs)
-
-### Integration & Nyquist (INTG)
-
-- [x] **INTG-01**: Nyquist structural regression tests for all new v0.14 requirements
-- [x] **INTG-02**: No regressions across existing v0.13 Nyquist test suite (1216 assertions)
+- [ ] **DIV-01**: T1 structural detection — glob-based check that handoff-declared components exist in codebase
+- [ ] **DIV-02**: T2 content detection — regex-based interface parsing comparing prop names/types against handoff specs
+- [ ] **DIV-03**: T3 behavioral detection — grep-based check that components use specified design tokens and patterns
+- [ ] **DIV-04**: DIVERGENCE.md output with per-component status (ALIGNED, DRIFTED, MISSING, EXTRA)
+- [ ] **DIV-05**: /pde:check-divergence command triggers detection on demand
+- [ ] **DIV-06**: .pde-divergence-ignore file for suppressing known-acceptable divergences
 
 ## Future Requirements
 
-### PDE-as-MCP-Server (deferred from v0.14)
+### Multi-Format Export
 
-- **SRV-01**: Read-only MCP server exposing planning state via JSON-RPC over stdio
-- **SRV-02**: Tools for project info, roadmap, state, requirements, design artifacts
-- **SRV-03**: Registered in .mcp.json for auto-discovery
+- **MFMT-01**: Same design artifact available as React, Vue, or Svelte component depending on project framework
+- **MFMT-02**: Multi-framework artifact export beyond React+Tailwind (wait for user demand signal)
 
-### W3C WebMCP Adapter (deferred from v0.14)
+### Advanced Divergence
 
-- **WEB-01**: navigator.modelContext adapter registering PDE tools for browser-based AI consumers
-- **WEB-02**: Minimal localhost frontend displaying PDE state
-- **WEB-03**: WebMCP consumer mode via Playwright + Chrome flag
+- **ADIV-01**: Full TypeScript AST parsing for divergence detection (upgrade from regex when needed)
+- **ADIV-02**: Hook-driven automatic divergence detection after code changes
+
+### Extended Editor Support
+
+- **EDIT-01**: Windsurf IDE context generation
+- **EDIT-02**: VS Code Copilot context generation
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| PDE-as-MCP-server | Moved to future milestone — focus v0.14 on visual metrics exploitation |
-| W3C WebMCP adapter | Spec unstable (Chrome Canary only), deferred until spec stabilizes |
-| Pixel-perfect image comparison | Requires npm deps (pixelmatch/resemblejs) — violates zero-dep constraint |
-| Persistent browser sessions | Security risk, scope creep — ephemeral sessions sufficient for all use cases |
-| Headed browser in autonomous mode | Focus-stealing, zombie processes — always headless for autonomous execution |
-| Cookie/session persistence in .planning/ | Security risk — browser state is ephemeral |
-| Full web scraping capabilities | Scope creep — Playwright only for PDE artifacts + deploy verification + reference capture |
+| Write tools in PDE MCP server | Creates second write path bypassing pde-tools.cjs validation and locking |
+| Real-time file watching / live sync | PDE is session-based; file watchers conflict with plugin model |
+| Editor-specific UI panels or extensions | PDE is a CLI plugin, not a VS Code extension |
+| Cursor Composer / Antigravity Agent Manager API | Proprietary, undocumented internal APIs that change frequently |
+| Auto-install MCP servers in editors | Triggers unexpected OAuth flows |
+| Full pipeline execution from external editors | 13-stage pipeline requires Claude Code's subagent infrastructure |
+| Bidirectional code-to-design sync | Reverse-engineering code back into PDE design artifacts is intractable |
 
 ## Traceability
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PLAY-01 | Phase 108 | Complete |
-| PLAY-02 | Phase 108 | Complete |
-| PLAY-03 | Phase 108 | Complete |
-| PLAY-04 | Phase 108 | Complete |
-| PLAY-05 | Phase 108 | Complete |
-| PLAY-06 | Phase 108 | Complete |
-| PLAY-07 | Phase 108 | Complete |
-| WFR-01 | Phase 109 | Complete |
-| WFR-02 | Phase 109 | Complete |
-| WFR-03 | Phase 109 | Complete |
-| WFR-04 | Phase 109 | Complete |
-| WFR-05 | Phase 109 | Complete |
-| MOK-01 | Phase 109 | Complete |
-| MOK-02 | Phase 109 | Complete |
-| MOK-03 | Phase 109 | Complete |
-| A11Y-01 | Phase 110 | Complete |
-| A11Y-02 | Phase 110 | Complete |
-| A11Y-03 | Phase 110 | Complete |
-| A11Y-04 | Phase 110 | Complete |
-| DEP-01 | Phase 110 | Complete |
-| DEP-02 | Phase 110 | Complete |
-| DEP-03 | Phase 110 | Complete |
-| DEP-04 | Phase 110 | Complete |
-| DEP-05 | Phase 110 | Complete |
-| VIS-01 | Phase 111 | Complete |
-| VIS-02 | Phase 111 | Complete |
-| VIS-03 | Phase 111 | Complete |
-| VIS-04 | Phase 111 | Complete |
-| VIS-05 | Phase 111 | Complete |
-| VIS-06 | Phase 111 | Complete |
-| VIS-07 | Phase 111 | Complete |
-| EXP-01 | Phase 112 | Complete |
-| EXP-02 | Phase 112 | Complete |
-| EXP-03 | Phase 112 | Complete |
-| EXP-04 | Phase 112 | Complete |
-| EXP-05 | Phase 112 | Complete |
-| EXP-06 | Phase 112 | Complete |
-| EXP-07 | Phase 112 | Complete |
-| EXP-08 | Phase 112 | Complete |
-| EXP-09 | Phase 112 | Complete |
-| EXP-10 | Phase 112 | Complete |
-| EXP-11 | Phase 112 | Complete |
-| EXP-12 | Phase 112 | Complete |
-| PIPE-01 | Phase 113 | Complete |
-| PIPE-02 | Phase 113 | Complete |
-| PIPE-03 | Phase 113 | Complete |
-| PIPE-04 | Phase 113 | Complete |
-| ITER-01 | Phase 113 | Complete |
-| ITER-02 | Phase 113 | Complete |
-| ITER-03 | Phase 113 | Complete |
-| ITER-04 | Phase 113 | Complete |
-| VRCB-01 | Phase 114 | Complete |
-| VRCB-02 | Phase 114 | Complete |
-| VRCB-03 | Phase 114 | Complete |
-| VRCB-04 | Phase 114 | Complete |
-| VRCB-05 | Phase 114 | Complete |
-| MULTI-01 | Phase 115 | Complete |
-| MULTI-02 | Phase 115 | Complete |
-| MULTI-03 | Phase 115 | Complete |
-| MULTI-04 | Phase 115 | Complete |
-| MULTI-05 | Phase 115 | Complete |
-| PRES-01 | Phase 116 | Complete |
-| PRES-02 | Phase 116 | Complete |
-| PRES-03 | Phase 116 | Complete |
-| PRES-04 | Phase 116 | Complete |
-| META-01 | Phase 116 | Complete |
-| META-02 | Phase 116 | Complete |
-| META-03 | Phase 116 | Complete |
-| META-04 | Phase 116 | Complete |
-| IDT-01 | Phase 116 | Complete |
-| IDT-02 | Phase 116 | Complete |
-| IDT-03 | Phase 116 | Complete |
-| IDT-04 | Phase 116 | Complete |
-| BREF-01 | Phase 116 | Complete |
-| BREF-02 | Phase 116 | Complete |
-| BREF-03 | Phase 116 | Complete |
-| BREF-04 | Phase 116 | Complete |
-| INTG-01 | Phase 117 | Complete |
-| INTG-02 | Phase 117 | Complete |
+| CTX-01 | — | Pending |
+| CTX-02 | — | Pending |
+| CTX-03 | — | Pending |
+| CTX-04 | — | Pending |
+| CTX-05 | — | Pending |
+| CTX-06 | — | Pending |
+| CTX-07 | — | Pending |
+| CTX-08 | — | Pending |
+| MCP-01 | — | Pending |
+| MCP-02 | — | Pending |
+| MCP-03 | — | Pending |
+| MCP-04 | — | Pending |
+| MCP-05 | — | Pending |
+| STH-01 | — | Pending |
+| STH-02 | — | Pending |
+| STH-03 | — | Pending |
+| FMT-01 | — | Pending |
+| FMT-02 | — | Pending |
+| FMT-03 | — | Pending |
+| DIV-01 | — | Pending |
+| DIV-02 | — | Pending |
+| DIV-03 | — | Pending |
+| DIV-04 | — | Pending |
+| DIV-05 | — | Pending |
+| DIV-06 | — | Pending |
 
 **Coverage:**
-- v0.14 requirements: 76 total
-- Mapped to phases: 76
-- Unmapped: 0
+- v0.15 requirements: 25 total
+- Mapped to phases: 0
+- Unmapped: 25
 
 ---
 *Requirements defined: 2026-03-23*
