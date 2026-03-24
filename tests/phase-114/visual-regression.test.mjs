@@ -315,7 +315,7 @@ describe('VRCB-05: No regression in existing experiment schema', () => {
     assert.equal(result.visual_regression.enabled, false);
   });
 
-  it('JSONL_ROW_FIELDS has 11 fields (9 original + 2 new)', () => {
-    assert.equal(JSONL_ROW_FIELDS.length, 11);
+  it('JSONL_ROW_FIELDS has 14 fields (9 original + 2 Phase 114 + 3 Phase 115)', () => {
+    assert.equal(JSONL_ROW_FIELDS.length, 14);
   });
 });
