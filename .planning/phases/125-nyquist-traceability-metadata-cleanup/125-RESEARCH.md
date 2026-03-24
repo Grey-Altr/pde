@@ -98,7 +98,7 @@ From REQUIREMENTS.md traceability table + phase execution records:
 | 123-context-sync-engine | 01, 02 | CTX-06, CTX-07 |
 | 124-integration-and-nyquist | 01, 02 | MCP-03 (structural gate), INTG-01 |
 
-Note: 122-01-SUMMARY.md already has `requirements-completed: [DIV-01, DIV-02, DIV-03, DIV-04, DIV-06]` — missing DIV-05 (since it was pending). After Phase 125 closes DIV-05, 122-01-SUMMARY.md should be updated to include DIV-05.
+Note: 122-01-SUMMARY.md already has `requirements-completed: [DIV-01, DIV-02, DIV-03, DIV-04, DIV-06]` — this is correct as-is. DIV-05 belongs to plan 122-02 (command wiring), not 122-01 (engine). Add `requirements-completed: [DIV-05]` to 122-02-SUMMARY.md.
 
 ### handoff.md isStitchSource() Refactor
 
@@ -358,21 +358,18 @@ None — existing test infrastructure covers all phase requirements. No new test
 
 ---
 
-## Open Questions
+## Open Questions — RESOLVED
 
-1. **handoff.md Step 2l — bash block vs prose**
-   - What we know: Line 245 uses inline prose `=== "stitch"` — no bash block at this step
-   - What's unclear: Is the production consumer requirement satisfied by updating prose OR does it require adding an actual createRequire bash block?
-   - Recommendation: The audit says "isStitchSource() exported but no production consumer (handoff.md uses inline comparison)". The fix is to change the workflow instruction to reference `isStitchSource()`. If Step 2l has no bash block (it's all prose), then adding a small bash block to run the check via context-sync.cjs createRequire satisfies the requirement more thoroughly. Read lines 230-270 of handoff.md before writing the plan.
+1. **handoff.md Step 2l — bash block vs prose** — RESOLVED
+   - **Answer:** Update the prose instruction only. The workflow at line 245 is pseudocode/instruction text telling Claude how to process manifest data — not executable JS. The fix is changing `manifest.artifacts[code].source === "stitch"` to `isStitchSource(manifest.artifacts[code].source)`. The workflow already uses `createRequire` pattern elsewhere (see `workflows/check-divergence.md` as precedent), so a small bash block should also be added to Step 2l to load `isStitchSource` from `bin/lib/context-sync.cjs` via createRequire, making it available for the pseudocode instruction.
+   - **Why this matters:** The inline `=== "stitch"` is a real bug — it misses `"antigravity-stitch"` sources, which would cause Stitch artifacts from Antigravity to be silently skipped in handoff processing. `isStitchSource()` handles both values.
 
-2. **122-01-SUMMARY.md: Add DIV-05 or leave as-is**
-   - What we know: It has `requirements-completed: [DIV-01, DIV-02, DIV-03, DIV-04, DIV-06]` — missing DIV-05
-   - What's unclear: Plan 122-01 implemented the detection engine (DIV-01 through DIV-06 module), not the command. DIV-05 is technically Plan 122-02's work.
-   - Recommendation: Leave 122-01 as-is (its requirements list is accurate). Add `requirements-completed: [DIV-05]` to 122-02-SUMMARY.md.
+2. **122-01-SUMMARY.md: Add DIV-05 or leave as-is** — RESOLVED
+   - **Answer:** Leave 122-01-SUMMARY.md as-is. Add `requirements-completed: [DIV-05]` to 122-02-SUMMARY.md only.
+   - **Evidence:** 122-01 built the detection engine (divergence.cjs — library code). 122-02 built the command (`commands/check-divergence.md` + `workflows/check-divergence.md`). DIV-05 specifically says "/pde:check-divergence command triggers detection on demand". The 122-VERIFICATION.md maps `DIV-05 → 122-02` explicitly (line 84). The implementation plan split is clean: 122-01 = engine (DIV-01..04, DIV-06), 122-02 = command (DIV-05).
 
-3. **124-02-SUMMARY.md: Requirements or empty**
-   - What we know: Plan 124-02 was a verification-only plan (no files modified)
-   - Recommendation: Add `requirements-completed: []` to be explicit, or omit. Either is fine; the audit counts this as "missing the field" so add `requirements-completed: []`.
+3. **124-02-SUMMARY.md: Requirements or empty** — RESOLVED
+   - **Answer:** Add `requirements-completed: []` to be explicit. The audit counts this as "missing the field", and adding an empty array makes the schema consistent across all SUMMARY.md files. Verification-only plans that don't close new requirements get `[]`.
 
 ---
 
