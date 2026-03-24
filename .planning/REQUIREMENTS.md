@@ -14,8 +14,8 @@ Requirements for v0.15 Multi-Editor Integration. Each maps to roadmap phases.
 - [x] **CTX-03**: PDE generates legacy .cursorrules file at project root for backwards compatibility
 - [x] **CTX-04**: PDE generates hierarchical GEMINI.md files (project root + .planning/ + .planning/design/) with @file imports
 - [x] **CTX-05**: PDE generates .agent/skills/pde-design/SKILL.md for Antigravity Agent Manager with PDE workflow instructions
-- [ ] **CTX-06**: Context sync engine auto-regenerates all editor files when .planning/ state changes via hook-driven detection
-- [ ] **CTX-07**: /pde:editor-sync command manually regenerates all editor context files on demand
+- [x] **CTX-06**: Context sync engine auto-regenerates all editor files when .planning/ state changes via hook-driven detection
+- [x] **CTX-07**: /pde:editor-sync command manually regenerates all editor context files on demand
 - [x] **CTX-08**: Generated context files include hash-based staleness marker for freshness detection
 
 ### MCP Server (MCP)
@@ -85,8 +85,8 @@ Requirements for v0.15 Multi-Editor Integration. Each maps to roadmap phases.
 | CTX-03 | Phase 118 | Complete |
 | CTX-04 | Phase 118 | Complete |
 | CTX-05 | Phase 119 | Complete |
-| CTX-06 | Phase 123 | Pending |
-| CTX-07 | Phase 123 | Pending |
+| CTX-06 | Phase 123 | Complete |
+| CTX-07 | Phase 123 | Complete |
 | CTX-08 | Phase 118 | Complete |
 | MCP-01 | Phase 121 | Complete |
 | MCP-02 | Phase 121 | Complete |

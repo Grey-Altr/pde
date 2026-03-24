@@ -150,7 +150,7 @@ Full details: .planning/milestones/v0.14-ROADMAP.md
 - [x] **Phase 120: Artifact Formatting** — @file annotations in handoff specs, DTCG-to-Tailwind v4 conversion, framework-detected component stubs (completed 2026-03-24)
 - [x] **Phase 121: MCP Server** — Isolated TypeScript package with 10 read-only tools, npx distribution, pipeline resource (completed 2026-03-24)
 - [x] **Phase 122: Divergence Detection** — 3-tier handoff-vs-code drift detection with DIVERGENCE.md output and ignore mechanism (completed 2026-03-24)
-- [ ] **Phase 123: Context Sync Engine** — Hook-driven auto-regeneration + /pde:editor-sync manual command
+- [x] **Phase 123: Context Sync Engine** — Hook-driven auto-regeneration + /pde:editor-sync manual command (completed 2026-03-24)
 - [ ] **Phase 124: Integration & Nyquist** — Cross-editor validation and structural regression tests for all v0.15 requirements
 
 ## Phase Details
@@ -239,8 +239,8 @@ Plans:
   3. Auto-regeneration is idempotent -- running it twice with no state change produces identical output
 **Plans**: 2 plans
 Plans:
-- [ ] 123-01-PLAN.md — PostToolUse hook for auto-regeneration with hash-gated idempotency
-- [ ] 123-02-PLAN.md — /pde:editor-sync command and workflow with tests
+- [x] 123-01-PLAN.md — PostToolUse hook for auto-regeneration with hash-gated idempotency
+- [x] 123-02-PLAN.md — /pde:editor-sync command and workflow with tests
 
 ### Phase 124: Integration & Nyquist
 **Goal**: All v0.15 features validated with structural regression tests, cross-editor consumption verified, and zero regressions against existing test suite

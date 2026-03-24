@@ -1,15 +1,15 @@
 ---
-pde_state_version: 1.0
+gsd_state_version: 1.0
 milestone: v0.15
 milestone_name: Multi-Editor Integration
 status: unknown
-stopped_at: Completed 122-01-PLAN.md
-last_updated: "2026-03-24T05:18:40.544Z"
+stopped_at: Completed 123-02-PLAN.md
+last_updated: "2026-03-24T05:48:13.400Z"
 progress:
   total_phases: 7
-  completed_phases: 5
-  total_plans: 10
-  completed_plans: 10
+  completed_phases: 6
+  total_plans: 12
+  completed_plans: 12
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 122 — divergence-detection
+**Current focus:** Phase 123 — context-sync-engine
 
 ## Current Position
 
-Phase: 122
-Plan: 01 (complete)
+Phase: 123
+Plan: 02 (complete)
 
 ## Performance Metrics
 
@@ -62,6 +62,11 @@ Recent decisions affecting v0.15 planning:
 - [Phase 121-mcp-server]: discover.cjs provided alongside discover.ts so tests import CJS directly without build step
 - [Phase 122]: Brace-counting interface body extraction handles nested generics (MouseEvent<HTMLButtonElement>)
 - [Phase 122]: loadHandoffSpecs handles per-file read errors gracefully with stderr log + continue (no abort)
+- [Phase 123-02]: /pde:editor-sync command delegates to workflows/editor-sync.md following check-divergence pattern
+- [Phase 123-02]: Workflow calls context-sync.cjs emitAll directly via inline ESM for full sync; pde-tools.cjs context-sync for --editor flag variants
+- [Phase 123]: [Phase 123]: context-sync-hook uses opts dependency injection for unit testability without touching real filesystem emitters
+- [Phase 123]: [Phase 123]: matcher Write|Edit (no Bash) — Bash tool_input lacks file_path, prevents wasted hook invocations
+- [Phase 123]: [Phase 123]: marker stored in os.tmpdir() with session-scoped filename for per-session idempotency
 
 ### Pending Todos
 
@@ -74,6 +79,6 @@ Recent decisions affecting v0.15 planning:
 
 ## Session Continuity
 
-Last session: 2026-03-24T05:13:00.456Z
-Stopped at: Completed 122-01-PLAN.md
+Last session: 2026-03-24T05:48:06.188Z
+Stopped at: Completed 123-02-PLAN.md
 Resume file: None
