@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.14
 milestone_name: Visual AutoResearch
-status: Ready to plan
-stopped_at: Completed 114-02-PLAN.md
-last_updated: "2026-03-23T23:56:10.086Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 115-02-PLAN.md
+last_updated: "2026-03-24T00:45:54.642Z"
 progress:
   total_phases: 10
-  completed_phases: 7
-  total_plans: 15
-  completed_plans: 15
+  completed_phases: 8
+  total_plans: 17
+  completed_plans: 17
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-23)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 114 — visual-regression-circuit-breaker
+**Current focus:** Phase 115 — multi-candidate-experiments
 
 ## Current Position
 
-Phase: 115
-Plan: Not started
+Phase: 115 (multi-candidate-experiments) — EXECUTING
+Plan: 2 of 2
 
 ## Performance Metrics
 
@@ -51,6 +51,8 @@ Plan: Not started
 | Phase 113 P02 | 150 | 2 tasks | 4 files |
 | Phase 114 P01 | 272 | 2 tasks | 5 files |
 | Phase 114-visual-regression-circuit-breaker P02 | 6 | 2 tasks | 2 files |
+| Phase 115 P01 | 3 min | 1 tasks | 4 files |
+| Phase 115-multi-candidate-experiments P02 | 5 | 1 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -95,6 +97,9 @@ Recent decisions affecting v0.14 planning:
 - [Phase 114]: captureAndStoreBaseline fully non-fatal — returns null on any error, never throws (graceful Playwright degradation)
 - [Phase 114-visual-regression-circuit-breaker]: Playwright availability probe uses pde-tools mcp-probe subcommand in optimize.md — avoids require() in workflow prose which fails workflow sandbox validator
 - [Phase 114-visual-regression-circuit-breaker]: BREAK-05 capture saves to current-screenshot.png (not baseline) — baseline only advances on KEEP, preserving AND-gate regression detection semantics
+- [Phase 115]: screenshot_hash and baseline_hash included in base 11 JSONL fields — worktree predates Phase 114, both phases' schema extensions applied atomically
+- [Phase 115-02]: Circuit breakers apply per-iteration after selection (not per-candidate) — partial batch success is not a failure
+- [Phase 115-02]: DISCARD resets to iterationBaselineSha; all-crash also resets — prevents stale candidate commits on branch
 
 ### Pending Todos
 
@@ -108,8 +113,8 @@ Recent decisions affecting v0.14 planning:
 
 ## Session Continuity
 
-Last session: 2026-03-23T23:50:36.199Z
-Stopped at: Completed 114-02-PLAN.md
+Last session: 2026-03-24T00:45:54.639Z
+Stopped at: Completed 115-02-PLAN.md
 Resume file: None
 
 Next action: /pde:plan-phase 109 (Wireframe Screenshot Capture)

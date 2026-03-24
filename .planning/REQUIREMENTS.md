@@ -95,11 +95,11 @@ Requirements for v0.14 Visual AutoResearch. Each maps to roadmap phases.
 
 ### Multi-Candidate Experiments (MULTI)
 
-- [ ] **MULTI-01**: Multi-candidate experiment mode generates N variants per iteration (A/B testing)
-- [ ] **MULTI-02**: Each candidate evaluated independently against same metric
-- [ ] **MULTI-03**: Best candidate selected and promoted (git commit), others discarded
-- [ ] **MULTI-04**: Candidate count configurable in experiment.md (default: 3)
-- [ ] **MULTI-05**: Multi-candidate mode integrates with existing orchestrator loop (Phase 103 infrastructure)
+- [x] **MULTI-01**: Multi-candidate experiment mode generates N variants per iteration (A/B testing)
+- [x] **MULTI-02**: Each candidate evaluated independently against same metric
+- [x] **MULTI-03**: Best candidate selected and promoted (git commit), others discarded
+- [x] **MULTI-04**: Candidate count configurable in experiment.md (default: 3)
+- [x] **MULTI-05**: Multi-candidate mode integrates with existing orchestrator loop (Phase 103 infrastructure)
 
 ### Pressure Test Visual Dimension (PRES)
 
@@ -220,11 +220,11 @@ Requirements for v0.14 Visual AutoResearch. Each maps to roadmap phases.
 | VRCB-03 | Phase 114 | Complete |
 | VRCB-04 | Phase 114 | Complete |
 | VRCB-05 | Phase 114 | Complete |
-| MULTI-01 | Phase 115 | Pending |
-| MULTI-02 | Phase 115 | Pending |
-| MULTI-03 | Phase 115 | Pending |
-| MULTI-04 | Phase 115 | Pending |
-| MULTI-05 | Phase 115 | Pending |
+| MULTI-01 | Phase 115 | Complete |
+| MULTI-02 | Phase 115 | Complete |
+| MULTI-03 | Phase 115 | Complete |
+| MULTI-04 | Phase 115 | Complete |
+| MULTI-05 | Phase 115 | Complete |
 | PRES-01 | Phase 116 | Pending |
 | PRES-02 | Phase 116 | Pending |
 | PRES-03 | Phase 116 | Pending |

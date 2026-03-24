@@ -242,7 +242,7 @@ Full details: .planning/milestones/v0.12-ROADMAP.md
 - [x] **Phase 112: Experiment Templates** — AutoResearch experiment templates for all 14 eligible design skills with browser-backed verify (completed 2026-03-23)
 - [x] **Phase 113: Cross-Skill Pipeline + Iterate Effectiveness** — Pipeline experiments measuring upstream-to-downstream visual impact, iterate before/after delta (completed 2026-03-23)
 - [x] **Phase 114: Visual Regression Circuit Breaker** — Prevent cosmetic regressions during optimization with screenshot-based before/after comparison (completed 2026-03-23)
-- [ ] **Phase 115: Multi-Candidate Experiments** — A/B variant testing with best-of-N selection in experiment loop
+- [x] **Phase 115: Multi-Candidate Experiments** — A/B variant testing with best-of-N selection in experiment loop (completed 2026-03-24)
 - [ ] **Phase 116: Pressure Test + Meta-Optimization + Ideation + Brief Reference** — Visual pressure test dimension, strategy self-calibration, ideation visual scoring, reference screenshot capture
 - [ ] **Phase 117: Integration & Nyquist** — Structural regression tests for all v0.14 requirements, zero v0.13 regressions
 
@@ -353,10 +353,10 @@ Plans:
   2. Best candidate is promoted (git commit) and others are discarded
   3. Candidate count is configurable in experiment.md
   4. Multi-candidate mode works within the existing orchestrator loop from Phase 103
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 Plans:
-- [ ] 115-01-PLAN.md — Library layer: candidates field, JSONL extension, _resetToSha, Nyquist tests (MULTI-01..04)
-- [ ] 115-02-PLAN.md — Orchestrator layer: optimize.md candidate loop + MULTI-05 structural tests
+- [x] 115-01-PLAN.md — Library layer: candidates field, JSONL extension, _resetToSha, Nyquist tests (MULTI-01..04)
+- [x] 115-02-PLAN.md — Orchestrator layer: optimize.md candidate loop + MULTI-05 structural tests
 
 ### Phase 116: Pressure Test + Meta-Optimization + Ideation + Brief Reference
 **Goal**: Four independent enhancements exploiting browser capabilities -- visual pressure testing, self-calibrating mutation strategies, ideation visual diversity scoring, and live reference screenshot capture
