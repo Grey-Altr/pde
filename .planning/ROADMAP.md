@@ -145,7 +145,7 @@ Full details: .planning/milestones/v0.14-ROADMAP.md
 
 **Milestone Goal:** Expose PDE design pipeline state to Cursor, Google Antigravity, and Gemini CLI through generated context files, a standalone MCP server, and a Stitch design bridge -- enabling any AI editor to consume PDE artifacts natively while detecting handoff-to-code divergence.
 
-- [ ] **Phase 118: Context Sync Core** — IR builder + AGENTS.md + Cursor .mdc + GEMINI.md generators with hash-based freshness
+- [x] **Phase 118: Context Sync Core** — IR builder + AGENTS.md + Cursor .mdc + GEMINI.md generators with hash-based freshness (completed 2026-03-24)
 - [ ] **Phase 119: Antigravity Context + Stitch Bridge** — Antigravity emitter + DESIGN.md from DTCG tokens + Stitch bidirectional artifact flow + skills export
 - [ ] **Phase 120: Artifact Formatting** — @file annotations in handoff specs, DTCG-to-Tailwind v4 conversion, framework-detected component stubs
 - [ ] **Phase 121: MCP Server** — Isolated TypeScript package with 10 read-only tools, npx distribution, pipeline resource
@@ -165,9 +165,9 @@ Full details: .planning/milestones/v0.14-ROADMAP.md
   3. Running context generation produces hierarchical GEMINI.md files (project root + .planning/ + .planning/design/) with @file imports
   4. Running context generation produces a legacy .cursorrules file at project root
   5. Every generated context file includes a SHA-256 source hash and generation timestamp for staleness detection
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 Plans:
-- [ ] 118-01-PLAN.md — IR builder, all editor emitters, hash infrastructure, pde-tools wiring
+- [x] 118-01-PLAN.md — IR builder, all editor emitters, hash infrastructure, pde-tools wiring
 - [ ] 118-02-PLAN.md — Structural tests for all CTX requirements + human verification
 **UI hint**: yes
 
