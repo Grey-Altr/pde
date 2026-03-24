@@ -355,8 +355,8 @@ Plans:
   4. Multi-candidate mode works within the existing orchestrator loop from Phase 103
 **Plans:** 2 plans
 Plans:
-- [ ] 108-01-PLAN.md — Register Playwright in mcp-bridge.cjs (APPROVED_SERVERS + TOOL_MAP + AUTH_INSTRUCTIONS + Nyquist tests)
-- [ ] 108-02-PLAN.md — Update mcp-integration.md docs + MCP-08 live verification gate
+- [ ] 115-01-PLAN.md — Library layer: candidates field, JSONL extension, _resetToSha, Nyquist tests (MULTI-01..04)
+- [ ] 115-02-PLAN.md — Orchestrator layer: optimize.md candidate loop + MULTI-05 structural tests
 
 ### Phase 116: Pressure Test + Meta-Optimization + Ideation + Brief Reference
 **Goal**: Four independent enhancements exploiting browser capabilities -- visual pressure testing, self-calibrating mutation strategies, ideation visual diversity scoring, and live reference screenshot capture
