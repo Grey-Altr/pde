@@ -136,7 +136,11 @@ Plans:
   3. `/pde:sync-status` displays last sync time, list of monitored files, count of unresolved conflicts, and any pending ingest items — all from the state file, no file scanning required
   4. Each regenerated .mdc file contains `<!-- PDE:BEGIN -->` / `<!-- PDE:END -->` section markers, user content below PDE:END is preserved across regeneration, and globs use the improved patterns (**.{css,scss,tsx,jsx,ts} for tokens)
   5. The regenerated SKILL.md includes a Workflows section listing pipeline stages with completion status from DESIGN-STATE.md, full Constraints from PROJECT.md, and exact DTCG token paths
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 132-01-PLAN.md — Audit trail, snapshot system, CLI commands: appendSyncLog, snapshotFilesBeforeBatch, cmdSyncStatus, cmdSyncRollback (INF-06, INF-07, INF-08)
+- [ ] 132-02-PLAN.md — Enhanced .mdc and SKILL.md generation: PDE:BEGIN/END markers, improved globs, Workflows section, ir.constraints, pde-skill-version (CUR-06, AGR-06)
 
 ## Progress
 
@@ -150,4 +154,4 @@ Plans:
 | 129. Hook Integration | 1/2 | Complete    | 2026-03-24 |
 | 130. Antigravity Write-Back | 2/2 | Complete    | 2026-03-24 |
 | 131. MCP Write Tools | 2/2 | Complete    | 2026-03-24 |
-| 132. Conflict UX and Generation Enhancements | 0/TBD | Not started | - |
+| 132. Conflict UX and Generation Enhancements | 0/2 | Not started | - |
