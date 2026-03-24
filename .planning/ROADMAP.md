@@ -165,7 +165,10 @@ Full details: .planning/milestones/v0.14-ROADMAP.md
   3. Running context generation produces hierarchical GEMINI.md files (project root + .planning/ + .planning/design/) with @file imports
   4. Running context generation produces a legacy .cursorrules file at project root
   5. Every generated context file includes a SHA-256 source hash and generation timestamp for staleness detection
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 118-01-PLAN.md — IR builder, all editor emitters, hash infrastructure, pde-tools wiring
+- [ ] 118-02-PLAN.md — Structural tests for all CTX requirements + human verification
 **UI hint**: yes
 
 ### Phase 119: Antigravity Context + Stitch Bridge
@@ -256,4 +259,4 @@ Phases execute in numeric order: 118 -> 119 -> 120 -> 121 -> 122 -> 123 -> 124
 | v0.12 | 84-98 | 24/24 | Complete | 2026-03-23 |
 | v0.13 | 99-107 | 15/15 | Complete | 2026-03-23 |
 | v0.14 | 108-117 | 21/21 | Complete | 2026-03-24 |
-| v0.15 | 118-124 | 0/TBD | Not started | - |
+| v0.15 | 118-124 | 0/2 | In progress | - |
