@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.15
 milestone_name: Multi-Editor Integration
 status: Ready to plan
-stopped_at: Completed 119-02-PLAN.md
-last_updated: "2026-03-24T03:50:44.448Z"
+stopped_at: Completed 120-01-PLAN.md
+last_updated: "2026-03-24T04:14:42.608Z"
 progress:
   total_phases: 7
   completed_phases: 2
-  total_plans: 4
-  completed_plans: 4
+  total_plans: 6
+  completed_plans: 5
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 119 — antigravity-context-+-stitch-bridge
+**Current focus:** Phase 120 — artifact-formatting
 
 ## Current Position
 
 Phase: 120
-Plan: Not started
+Plan: 01 (complete)
 
 ## Performance Metrics
 
@@ -55,6 +55,9 @@ Recent decisions affecting v0.15 planning:
 - [Phase 119]: oklchToHex uses hand-rolled math with gamut clamping (zero-dep constraint)
 - [Phase 119]: isStitchSource uses exact equality per STH-02
 - [Phase 119]: All 63 tests (32 Phase 119 + 31 Phase 118) pass with zero regressions
+- [Phase 120]: depth-aware suffix in dtcgToThemeLines strips top-level category key to prevent namespace duplication
+- [Phase 120]: detectFramework requires react + react-dom for React detection to guard against testing-library false positives
+- [Phase 120]: generateCssVarsFromTheme reuses dtcgToThemeLines for :root companion block with same variable names as @theme
 
 ### Pending Todos
 
@@ -67,6 +70,6 @@ Recent decisions affecting v0.15 planning:
 
 ## Session Continuity
 
-Last session: 2026-03-24T03:47:35.865Z
-Stopped at: Completed 119-02-PLAN.md
+Last session: 2026-03-24T04:14:34.766Z
+Stopped at: Completed 120-01-PLAN.md
 Resume file: None

@@ -34,9 +34,9 @@ Requirements for v0.15 Multi-Editor Integration. Each maps to roadmap phases.
 
 ### Artifact Formatting (FMT)
 
-- [ ] **FMT-01**: Handoff specs include @file annotations (@component:, @props:, @tokens:) extractable by any editor
-- [ ] **FMT-02**: DTCG tokens converted to Tailwind v4 @theme declarations and CSS custom properties
-- [ ] **FMT-03**: Framework detection from package.json generates framework-appropriate component stubs (default: React + Tailwind)
+- [x] **FMT-01**: Handoff specs include @file annotations (@component:, @props:, @tokens:) extractable by any editor
+- [x] **FMT-02**: DTCG tokens converted to Tailwind v4 @theme declarations and CSS custom properties
+- [x] **FMT-03**: Framework detection from package.json generates framework-appropriate component stubs (default: React + Tailwind)
 
 ### Divergence Detection (DIV)
 
@@ -96,9 +96,9 @@ Requirements for v0.15 Multi-Editor Integration. Each maps to roadmap phases.
 | STH-01 | Phase 119 | Complete |
 | STH-02 | Phase 119 | Complete |
 | STH-03 | Phase 119 | Complete |
-| FMT-01 | Phase 120 | Pending |
-| FMT-02 | Phase 120 | Pending |
-| FMT-03 | Phase 120 | Pending |
+| FMT-01 | Phase 120 | Complete |
+| FMT-02 | Phase 120 | Complete |
+| FMT-03 | Phase 120 | Complete |
 | DIV-01 | Phase 122 | Pending |
 | DIV-02 | Phase 122 | Pending |
 | DIV-03 | Phase 122 | Pending |

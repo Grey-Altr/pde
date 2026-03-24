@@ -193,9 +193,9 @@ Plans:
   1. Handoff specs include @file annotations (@component:, @props:, @tokens:) that any editor can extract to locate related artifacts
   2. DTCG design tokens are converted to both Tailwind v4 @theme declarations and CSS custom properties
   3. Framework detection reads package.json and generates framework-appropriate component stubs (React + Tailwind as default, adapting to detected framework)
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 Plans:
-- [ ] 120-01-PLAN.md — TDD: artifact-format.cjs module with @file annotations, DTCG-to-Tailwind @theme, framework detection + stubs
+- [x] 120-01-PLAN.md — TDD: artifact-format.cjs module with @file annotations, DTCG-to-Tailwind @theme, framework detection + stubs
 - [ ] 120-02-PLAN.md — Wire into handoff pipeline + human verification
 **UI hint**: yes
 
