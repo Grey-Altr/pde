@@ -41,7 +41,11 @@ Phases 119-125 delivered the unidirectional context generation pipeline: context
   2. When a PDE-generated file is detected as changed, the embedded PDE-GENERATED hash is compared against the current source hash — if they match, reverse sync is skipped entirely (no loop)
   3. The state file is excluded from computeSourceHash() so updating it never triggers a new emission cycle
   4. The stored IR snapshot captures techStack, constraints, componentCatalog, and designTokens as the 3-way merge base for subsequent phases
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 126-01-PLAN.md — State file infrastructure: writeStateFile(), readStateFile(), emitAll() integration, gitignore (SYN-01, SYN-03)
+- [ ] 126-02-PLAN.md — Loop-break gate: computeLoopBreak() with PDE_HASH_RE hash comparison (SYN-02)
 
 ### Phase 127: Reverse Parsers
 **Goal**: PDE can parse editor-authored changes from .mdc files and SKILL.md/DESIGN.md into partial IR objects, with section-marker ownership boundaries enforced and round-trip fidelity verified
@@ -120,7 +124,7 @@ Phases 119-125 delivered the unidirectional context generation pipeline: context
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 126. Sync Foundation | 0/TBD | Not started | - |
+| 126. Sync Foundation | 0/2 | Not started | - |
 | 127. Reverse Parsers | 0/TBD | Not started | - |
 | 128. Merge Engine and Conflict Resolution | 0/TBD | Not started | - |
 | 129. Hook Integration | 0/TBD | Not started | - |
