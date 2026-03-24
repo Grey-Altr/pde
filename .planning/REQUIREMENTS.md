@@ -32,8 +32,8 @@
 - [x] **INF-01**: MCP server --enable-writes flag — pde-mcp-server accepts flag; absent = read-only (v0.15 behavior); present = 4 additional write tools registered; stderr log on write mode activation
 - [x] **INF-02**: MCP write tool pde_update_constraints — overwrites PROJECT.md Constraints section; validates input (1-4000 chars, no marker injection); calls emitAll() post-write; logs to mcp-writes.ndjson; idempotent
 - [x] **INF-03**: MCP write tool pde_update_tech_stack — overwrites PROJECT.md Tech Stack section; same validation as INF-02; calls emitAll() post-write; logs to mcp-writes.ndjson
-- [ ] **INF-04**: MCP write tool pde_append_context_note — appends timestamped note to .planning/context-notes/<category>-notes.md; category enum (design/technical/product/research/decision); prevents path traversal; calls emitAll() post-write
-- [ ] **INF-05**: MCP write tool pde_flag_divergence — writes component/reason/severity entry to .planning/divergence-flags.json; component name pattern validation; does NOT call emitAll() (divergence flags not in editor context)
+- [x] **INF-04**: MCP write tool pde_append_context_note — appends timestamped note to .planning/context-notes/<category>-notes.md; category enum (design/technical/product/research/decision); prevents path traversal; calls emitAll() post-write
+- [x] **INF-05**: MCP write tool pde_flag_divergence — writes component/reason/severity entry to .planning/divergence-flags.json; component name pattern validation; does NOT call emitAll() (divergence flags not in editor context)
 - [ ] **INF-06**: Sync audit trail — .planning/logs/SYNC-LOG.md append-only markdown entries per sync operation (trigger, files scanned, changes, write-backs, conflicts); git-committed; trimmed at 500 entries
 - [ ] **INF-07**: Sync rollback — pre-write snapshots in .planning/sync-snapshots/ with file content backup; 30-day auto-cleanup; git-ignored; /pde:sync-rollback restores selected snapshot then calls emitAll()
 - [ ] **INF-08**: Conflict UX commands — /pde:sync-status shows last sync time, monitored files, unresolved conflicts, pending ingests; /pde:sync-rollback lists snapshots and restores selected one with confirmation
@@ -63,8 +63,8 @@
 | INF-01 | Phase 131 | Complete |
 | INF-02 | Phase 131 | Complete |
 | INF-03 | Phase 131 | Complete |
-| INF-04 | Phase 131 | Pending |
-| INF-05 | Phase 131 | Pending |
+| INF-04 | Phase 131 | Complete |
+| INF-05 | Phase 131 | Complete |
 | INF-06 | Phase 132 | Pending |
 | INF-07 | Phase 132 | Pending |
 | INF-08 | Phase 132 | Pending |
