@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.14
 milestone_name: Visual AutoResearch
 status: Ready to plan
-stopped_at: Completed 115-02-PLAN.md
-last_updated: "2026-03-24T00:49:32.335Z"
+stopped_at: Completed 116-02-PLAN.md
+last_updated: "2026-03-24T01:24:20.930Z"
 progress:
   total_phases: 10
-  completed_phases: 8
-  total_plans: 17
-  completed_plans: 17
+  completed_phases: 9
+  total_plans: 19
+  completed_plans: 19
 ---
 
 # Project State
@@ -19,11 +19,11 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-23)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 115 — multi-candidate-experiments
+**Current focus:** Phase 116 — pressure-test-meta-optimization-ideation-brief-reference
 
 ## Current Position
 
-Phase: 116
+Phase: 117
 Plan: Not started
 
 ## Performance Metrics
@@ -53,6 +53,8 @@ Plan: Not started
 | Phase 114-visual-regression-circuit-breaker P02 | 6 | 2 tasks | 2 files |
 | Phase 115 P01 | 3 min | 1 tasks | 4 files |
 | Phase 115-multi-candidate-experiments P02 | 5 | 1 tasks | 2 files |
+| Phase 116 P01 | 4 | 2 tasks | 5 files |
+| Phase 116 P02 | 372 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -100,6 +102,10 @@ Recent decisions affecting v0.14 planning:
 - [Phase 115]: screenshot_hash and baseline_hash included in base 11 JSONL fields — worktree predates Phase 114, both phases' schema extensions applied atomically
 - [Phase 115-02]: Circuit breakers apply per-iteration after selection (not per-candidate) — partial batch success is not a failure
 - [Phase 115-02]: DISCARD resets to iterationBaselineSha; all-crash also resets — prevents stale candidate commits on branch
+- [Phase 116]: Replace inline node -e require() with direct script invocation — workflow validator rejects require() in workflow prose bash blocks
+- [Phase 116]: Visual Quality PASS threshold = VISUAL_AVG >= 50; informational only, does not affect Overall pass/fail per PRES-04 graceful degradation
+- [Phase 116]: require.main === module guard required for CJS scripts that export functions AND run as CLI tools — prevents process.exit(0) from terminating test process when module required
+- [Phase 116]: PLAYWRIGHT_AVAILABLE probe in brief.md gated on REFERENCE_URL not empty — avoids unnecessary probe overhead for non-reference-capture runs
 
 ### Pending Todos
 
@@ -113,8 +119,8 @@ Recent decisions affecting v0.14 planning:
 
 ## Session Continuity
 
-Last session: 2026-03-24T00:45:54.639Z
-Stopped at: Completed 115-02-PLAN.md
+Last session: 2026-03-24T01:20:23.443Z
+Stopped at: Completed 116-02-PLAN.md
 Resume file: None
 
 Next action: /pde:plan-phase 109 (Wireframe Screenshot Capture)

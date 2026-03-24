@@ -243,7 +243,7 @@ Full details: .planning/milestones/v0.12-ROADMAP.md
 - [x] **Phase 113: Cross-Skill Pipeline + Iterate Effectiveness** — Pipeline experiments measuring upstream-to-downstream visual impact, iterate before/after delta (completed 2026-03-23)
 - [x] **Phase 114: Visual Regression Circuit Breaker** — Prevent cosmetic regressions during optimization with screenshot-based before/after comparison (completed 2026-03-23)
 - [x] **Phase 115: Multi-Candidate Experiments** — A/B variant testing with best-of-N selection in experiment loop (completed 2026-03-24)
-- [ ] **Phase 116: Pressure Test + Meta-Optimization + Ideation + Brief Reference** — Visual pressure test dimension, strategy self-calibration, ideation visual scoring, reference screenshot capture
+- [x] **Phase 116: Pressure Test + Meta-Optimization + Ideation + Brief Reference** — Visual pressure test dimension, strategy self-calibration, ideation visual scoring, reference screenshot capture (completed 2026-03-24)
 - [ ] **Phase 117: Integration & Nyquist** — Structural regression tests for all v0.14 requirements, zero v0.13 regressions
 
 ## Phase Details
@@ -368,7 +368,7 @@ Plans:
   3. Ideation divergence is scored by screenshot variance across generated concepts -- higher visual diversity = higher quality score
   4. `/pde:brief` can capture live product screenshots from user-provided URLs as reference material available to downstream skills
   5. All four capabilities degrade gracefully when Playwright is unavailable (text-only fallback)
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 Plans:
 - [ ] 116-01-PLAN.md — Pressure test visual scoring (PRES-01..04) + meta-optimization strategy weights (META-01..04)
 - [ ] 116-02-PLAN.md — Ideation visual diversity scoring (IDT-01..04) + brief reference capture (BREF-01..04)
