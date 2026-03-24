@@ -22,13 +22,22 @@ Generate a structured product design brief from PROJECT.md context. Produces BRF
 | `--no-mcp` | Boolean | Skip ALL MCP probes. Pure baseline mode using training knowledge and local files only. |
 | `--no-sequential-thinking` | Boolean | Skip Sequential Thinking MCP specifically while allowing other MCPs. |
 | `--force` | Boolean | Skill-specific flag. Skip the confirmation prompt when a brief already exists and auto-increment to the next version. |
+| `--reference-url` | String | URL to capture as reference screenshot. Requires Playwright MCP. Optional — omit for no reference capture. |
 </flags>
 
 <process>
 
 ## /pde:brief — Design Brief Generation Pipeline
 
-Check for flags in $ARGUMENTS before beginning: `--dry-run`, `--quick`, `--verbose`, `--no-mcp`, `--no-sequential-thinking`, `--force`.
+Check for flags in $ARGUMENTS before beginning: `--dry-run`, `--quick`, `--verbose`, `--no-mcp`, `--no-sequential-thinking`, `--force`, `--reference-url`.
+
+Parse `--reference-url` flag value:
+```
+IF --reference-url in $ARGUMENTS:
+  SET REFERENCE_URL = value following --reference-url
+ELSE:
+  SET REFERENCE_URL = empty
+```
 
 ---
 
@@ -167,6 +176,61 @@ Attempt to call `mcp__sequential-thinking__think` with test prompt `"Analyze the
   - If retry fails: `SEQUENTIAL_THINKING_AVAILABLE = false`. Log: `  -> Sequential Thinking MCP: unavailable (degraded mode)`
 
 Display: `Step 3/7: MCP probes complete. Sequential Thinking: {available | unavailable}.`
+
+---
+
+### Step 3b: Reference Screenshot Capture
+
+**Probe Playwright for reference capture (only when REFERENCE_URL is not empty):**
+
+```
+IF --no-playwright in $ARGUMENTS OR --no-mcp in $ARGUMENTS:
+  SET PLAYWRIGHT_AVAILABLE = false
+ELSE IF REFERENCE_URL is not empty:
+  Probe via: node bin/pde-tools.cjs mcp-probe --tool playwright:screenshot 2>/dev/null
+  IF exit code 0: SET PLAYWRIGHT_AVAILABLE = true
+  ELSE: SET PLAYWRIGHT_AVAILABLE = false
+ELSE:
+  SET PLAYWRIGHT_AVAILABLE = false  (no URL provided, no probe needed)
+```
+
+**Reference screenshot capture:**
+
+IF REFERENCE_URL is empty:
+  Skip silently — no reference capture requested.
+
+IF REFERENCE_URL is not empty AND PLAYWRIGHT_AVAILABLE is false:
+  Log: "  -> Reference capture skipped — Playwright MCP unavailable"
+  Skip to Step 4.
+
+IF REFERENCE_URL is not empty AND PLAYWRIGHT_AVAILABLE is true:
+  Create references directory:
+  ```bash
+  mkdir -p .planning/design/references/
+  ```
+
+  Derive slug from URL hostname:
+  ```bash
+  REF_SLUG=$(node -e "try { const u = new URL('${REFERENCE_URL}'); console.log(u.hostname.replace(/[^a-zA-Z0-9]/g, '-')); } catch { console.log('unknown'); }")
+  ```
+
+  SET REFERENCE_SCREENSHOT_PATH = .planning/design/references/REF-{REF_SLUG}.png
+
+  Capture reference screenshot using Playwright MCP (following wireframe.md Step 5d pattern):
+  - Navigate to REFERENCE_URL using playwright:navigate (via mcp-bridge tool name resolution)
+  - Wait for page load (playwright:navigate handles this)
+  - Screenshot to REFERENCE_SCREENSHOT_PATH using playwright:screenshot
+  - Close browser using playwright:close
+
+  Timeout guard: If capture takes longer than 30 seconds, abort and log:
+  "  -> Reference capture timed out — {REFERENCE_URL} did not respond within 30s"
+
+  On success:
+  Log: "  -> Reference captured: {REFERENCE_SCREENSHOT_PATH}"
+
+  On failure (any Playwright error):
+  Log: "  -> Reference capture failed — continuing without reference screenshot"
+  Continue to Step 4 (non-fatal).
 
 ---
 
@@ -558,6 +622,20 @@ IF businessMode == true, append this section to the BRF artifact content AFTER `
 ```
 
 **Financial placeholder enforcement (BRIEF-07):** The Domain Strategy section must use qualitative language only. Brand positioning seeds must NOT contain dollar amounts, specific percentages, or revenue targets. If any financial context is needed, use `[YOUR_X]` format from `@references/business-financial-disclaimer.md`.
+
+**Reference Material (only when reference screenshot was successfully captured in Step 3b):**
+
+IF REFERENCE_SCREENSHOT_PATH is not empty AND the reference screenshot was captured successfully:
+```markdown
+## Reference Material
+
+| Type | Path |
+|------|------|
+| Screenshot | {REFERENCE_SCREENSHOT_PATH} |
+| Source URL | {REFERENCE_URL} |
+```
+
+This section is only written when a reference was successfully captured. Downstream skills (wireframe, mockup, critique) can read this section via the standard brief artifact loading pattern.
 
 **Footer:**
 ```markdown
