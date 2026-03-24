@@ -239,10 +239,12 @@ if [[ "$MANIFEST" == @file:* ]]; then MANIFEST=$(cat "${MANIFEST#@file:}"); fi
 
 Parse JSON output. Initialize three lists: STITCH_CANDIDATES, STITCH_ARTIFACTS (extractable), STITCH_UNANNOTATED (gate failed).
 
+Load `isStitchSource` from `bin/lib/context-sync.cjs` (via `createRequire` if using ESM context, or direct `require` in CJS context). This function accepts both `"stitch"` and `"antigravity-stitch"` source values.
+
 For each file path in WIREFRAME_FILES:
 - Extract artifact code from filename stem (e.g., `STH-login.html` -> `STH-login`)
 - Look up `manifest.artifacts[code]`
-- If `manifest.artifacts[code].source === "stitch"`: add code to STITCH_CANDIDATES
+- If `isStitchSource(manifest.artifacts[code].source)` returns true: add code to STITCH_CANDIDATES
 
 For each code in STITCH_CANDIDATES:
 - If `manifest.artifacts[code].stitch_annotated === true`: add to STITCH_ARTIFACTS
