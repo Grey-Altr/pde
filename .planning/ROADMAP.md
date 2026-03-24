@@ -370,8 +370,8 @@ Plans:
   5. All four capabilities degrade gracefully when Playwright is unavailable (text-only fallback)
 **Plans:** 2 plans
 Plans:
-- [ ] 108-01-PLAN.md — Register Playwright in mcp-bridge.cjs (APPROVED_SERVERS + TOOL_MAP + AUTH_INSTRUCTIONS + Nyquist tests)
-- [ ] 108-02-PLAN.md — Update mcp-integration.md docs + MCP-08 live verification gate
+- [ ] 116-01-PLAN.md — Pressure test visual scoring (PRES-01..04) + meta-optimization strategy weights (META-01..04)
+- [ ] 116-02-PLAN.md — Ideation visual diversity scoring (IDT-01..04) + brief reference capture (BREF-01..04)
 
 ### Phase 117: Integration & Nyquist
 **Goal**: All v0.14 features validated with structural regression tests and zero regressions against existing test suite
