@@ -217,6 +217,76 @@ function extractPipelineStatus(designState) {
   return parts.length > 0 ? parts.join('\n') : 'Design pipeline not yet initialized.';
 }
 
+// ─── Color Conversion ────────────────────────────────────────────────────────
+
+/**
+ * Convert an OKLCH color string to a 7-char hex code.
+ * Passthrough for non-OKLCH strings.
+ * Uses OKLCH -> OKLAB -> linear sRGB -> gamma sRGB -> hex pipeline.
+ * Clamps linear RGB to [0,1] for gamut safety.
+ *
+ * @param {string} oklchStr - e.g. "oklch(0.7 0.15 150)"
+ * @returns {string} "#rrggbb" hex code or original string if not OKLCH
+ */
+function oklchToHex(oklchStr) {
+  const match = String(oklchStr).match(/oklch\(([0-9.]+)\s+([0-9.]+)\s+([0-9.]+)\)/);
+  if (!match) return oklchStr;
+
+  const L = parseFloat(match[1]);
+  const C = parseFloat(match[2]);
+  const H = parseFloat(match[3]) * (Math.PI / 180);
+
+  // OKLCH -> OKLAB
+  const a = C * Math.cos(H);
+  const b = C * Math.sin(H);
+
+  // OKLAB -> LMS (cube roots)
+  const l_ = L + 0.3963377774 * a + 0.2158037573 * b;
+  const m_ = L - 0.1055613458 * a - 0.0638541728 * b;
+  const s_ = L - 0.0894841775 * a - 1.2914855480 * b;
+
+  const l = l_ * l_ * l_;
+  const m = m_ * m_ * m_;
+  const s = s_ * s_ * s_;
+
+  // LMS -> linear sRGB
+  let rLin =  4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s;
+  let gLin = -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s;
+  let bLin = -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s;
+
+  // sRGB gamma encoding with clamp
+  function gamma(x) {
+    if (x <= 0) return 0;
+    if (x >= 1) return 1;
+    return x >= 0.0031308
+      ? 1.055 * Math.pow(x, 1 / 2.4) - 0.055
+      : 12.92 * x;
+  }
+
+  const rG = gamma(rLin);
+  const gG = gamma(gLin);
+  const bG = gamma(bLin);
+
+  function toHex(v) {
+    return Math.round(v * 255).toString(16).padStart(2, '0');
+  }
+
+  return '#' + toHex(rG) + toHex(gG) + toHex(bG);
+}
+
+// ─── Stitch Source Detection ────────────────────────────────────────────────
+
+/**
+ * Check if a manifest source value indicates a Stitch origin.
+ * Uses exact equality -- NOT includes() or startsWith().
+ *
+ * @param {string|undefined|null} source - Manifest artifact source field
+ * @returns {boolean} True if source is "stitch" or "antigravity-stitch"
+ */
+function isStitchSource(source) {
+  return source === 'stitch' || source === 'antigravity-stitch';
+}
+
 // ─── IR Builder ─────────────────────────────────────────────────────────────
 
 /**
@@ -546,6 +616,189 @@ function emitGeminiMd(ir, projectRoot, planningDir) {
   return { written: true, files: written, path: 'GEMINI.md (hierarchy)' };
 }
 
+// ─── Antigravity SKILL.md Emitter ────────────────────────────────────────────
+
+/**
+ * Emit .agent/skills/pde-design/SKILL.md for Antigravity Agent Manager.
+ * @param {object} ir - Context IR
+ * @param {string} projectRoot - Project root directory
+ * @returns {object} Result: { written, path }
+ */
+function emitAntigravitySkill(ir, projectRoot) {
+  const skillDir = path.join(projectRoot, '.agent', 'skills', 'pde-design');
+  fs.mkdirSync(skillDir, { recursive: true });
+
+  const header = makeHeader(ir.sourceHash, ir.generatedAt);
+  const content = [
+    header,
+    '---',
+    'name: pde-design',
+    'description: PDE design system context -- query palette colors, typography rules, spacing scale, and component patterns for the current project',
+    '---',
+    '',
+    `# PDE Design System`,
+    '',
+    '## Goal',
+    '',
+    `Provide design system context for ${ir.projectName} to enable consistent`,
+    "code generation aligned with the project's visual identity.",
+    '',
+    '## Instructions',
+    '',
+    '1. Check DESIGN.md at project root for full design DNA (palette, typography, spacing)',
+    '2. Design tokens are in DTCG format at .planning/design/SYS-tokens.json',
+    '3. Component patterns are documented in handoff specs at .planning/design/handoff/',
+    '',
+    '## Design Tokens Available',
+    '',
+    ir.designTokens,
+    '',
+    '## Component Catalog',
+    '',
+    ir.componentCatalog,
+    '',
+    '## Constraints',
+    '',
+    '- Use hex color values from DESIGN.md, not raw OKLCH from token files',
+    '- Follow typography hierarchy defined in DESIGN.md section 3',
+    '- Spacing uses the base unit defined in DESIGN.md section 5',
+    '',
+  ].join('\n');
+
+  fs.writeFileSync(path.join(skillDir, 'SKILL.md'), content, 'utf-8');
+  return { written: true, path: '.agent/skills/pde-design/SKILL.md' };
+}
+
+// ─── DESIGN.md Emitter ──────────────────────────────────────────────────────
+
+/**
+ * Read DTCG color tokens from design-manifest.json.
+ * @param {string} planningDir - Absolute path to .planning/
+ * @returns {object|null} Tokens object with color entries or null
+ */
+function readDesignTokens(planningDir) {
+  const manifestRaw = safeReadFile(path.join(planningDir, 'design', 'design-manifest.json'));
+  if (!manifestRaw) return null;
+  try {
+    const manifest = JSON.parse(manifestRaw);
+    if (manifest && manifest.tokens && manifest.tokens.color) {
+      return manifest.tokens;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Emit DESIGN.md in Antigravity Design DNA format from DTCG tokens.
+ * Gracefully handles missing tokens with placeholder content.
+ * @param {object} ir - Context IR
+ * @param {string} projectRoot - Project root directory
+ * @param {string} planningDir - .planning/ directory path
+ * @returns {object} Result: { written, path, placeholder? }
+ */
+function emitDesignMd(ir, projectRoot, planningDir) {
+  const header = makeHeader(ir.sourceHash, ir.generatedAt);
+  const tokens = readDesignTokens(planningDir);
+
+  if (!tokens || !tokens.color) {
+    // Placeholder DESIGN.md when no tokens exist
+    const content = [
+      header,
+      `# Design System: ${ir.projectName}`,
+      '',
+      'Design tokens not yet generated -- run the PDE design pipeline to populate this file.',
+      '',
+      '## 1. Visual Theme & Atmosphere',
+      '',
+      'Not yet generated.',
+      '',
+      '## 2. Color Palette & Roles',
+      '',
+      'Not yet generated.',
+      '',
+      '## 3. Typography Rules',
+      '',
+      'Not yet generated.',
+      '',
+      '## 4. Component Stylings',
+      '',
+      'Not yet generated.',
+      '',
+      '## 5. Layout Principles',
+      '',
+      'Not yet generated.',
+      '',
+    ].join('\n');
+
+    fs.writeFileSync(path.join(projectRoot, 'DESIGN.md'), content, 'utf-8');
+    return { written: true, path: 'DESIGN.md', placeholder: true };
+  }
+
+  // Build color palette with hex conversion
+  const colorEntries = Object.entries(tokens.color).map(([name, token]) => {
+    const hex = oklchToHex(token.$value || token.value || '');
+    const role = name.charAt(0).toUpperCase() + name.slice(1);
+    return `- **${role}** (${hex}) -- ${name} color role`;
+  });
+
+  // Typography info
+  let typographySection = 'Typography tokens not available.';
+  if (tokens.typography) {
+    const typoParts = [];
+    if (tokens.typography.fontFamily) {
+      typoParts.push(`**Primary Font Family:** ${tokens.typography.fontFamily.$value || tokens.typography.fontFamily.value || 'System default'}`);
+    }
+    typoParts.push('');
+    typoParts.push('### Hierarchy & Weights');
+    typoParts.push('- **H1:** Bold, standard letter-spacing');
+    typoParts.push('- **Body:** Regular weight, comfortable line-height');
+    typographySection = typoParts.join('\n');
+  }
+
+  // Spacing info
+  let spacingSection = 'Spacing tokens not available.';
+  if (tokens.spacing) {
+    const spacingParts = ['### Whitespace Strategy'];
+    for (const [name, token] of Object.entries(tokens.spacing)) {
+      const val = token.$value || token.value || '';
+      spacingParts.push(`- **${name.charAt(0).toUpperCase() + name.slice(1)}:** ${val}`);
+    }
+    spacingSection = spacingParts.join('\n');
+  }
+
+  const content = [
+    header,
+    `# Design System: ${ir.projectName}`,
+    `**Source Hash:** ${ir.sourceHash.slice(0, 12)}`,
+    '',
+    '## 1. Visual Theme & Atmosphere',
+    '',
+    ir.projectSummary,
+    '',
+    '## 2. Color Palette & Roles',
+    '',
+    ...colorEntries,
+    '',
+    '## 3. Typography Rules',
+    '',
+    typographySection,
+    '',
+    '## 4. Component Stylings',
+    '',
+    ir.componentCatalog,
+    '',
+    '## 5. Layout Principles',
+    '',
+    spacingSection,
+    '',
+  ].join('\n');
+
+  fs.writeFileSync(path.join(projectRoot, 'DESIGN.md'), content, 'utf-8');
+  return { written: true, path: 'DESIGN.md' };
+}
+
 // ─── Orchestrator ───────────────────────────────────────────────────────────
 
 /**
@@ -563,12 +816,16 @@ function emitAll(cwd) {
   const cursorRules = emitCursorRules(ir, projectRoot);
   const cursorrules = emitCursorrules(ir, projectRoot);
   const geminiMd = emitGeminiMd(ir, projectRoot, planningDir);
+  const antigravitySkill = emitAntigravitySkill(ir, projectRoot);
+  const designMd = emitDesignMd(ir, projectRoot, planningDir);
 
   return {
     agentsMd,
     cursorRules,
     cursorrules,
     geminiMd,
+    antigravitySkill,
+    designMd,
     sourceHash: ir.sourceHash,
     generatedAt: ir.generatedAt,
   };
@@ -605,8 +862,11 @@ function cmdContextSync(cwd, args, raw) {
         results.geminiMd = emitGeminiMd(ir, cwd, planningDir);
       } else if (editor === 'agents') {
         results.agentsMd = emitAgentsMd(ir, cwd);
+      } else if (editor === 'antigravity') {
+        results.antigravitySkill = emitAntigravitySkill(ir, cwd);
+        results.designMd = emitDesignMd(ir, cwd, planningDir);
       } else {
-        error(`Unknown editor: ${editor}. Available: cursor, gemini, agents, all`);
+        error(`Unknown editor: ${editor}. Available: cursor, gemini, agents, antigravity, all`);
         return;
       }
       results.sourceHash = ir.sourceHash;
@@ -631,4 +891,8 @@ module.exports = {
   emitGeminiMd,
   computeSourceHash,
   cmdContextSync,
+  oklchToHex,
+  isStitchSource,
+  emitAntigravitySkill,
+  emitDesignMd,
 };
