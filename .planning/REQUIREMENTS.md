@@ -29,7 +29,7 @@ Requirements for v0.15 Multi-Editor Integration. Each maps to roadmap phases.
 ### Stitch Bridge (STH)
 
 - [x] **STH-01**: PDE generates DESIGN.md in Antigravity Design DNA format from DTCG tokens (palette, typography, spacing, component patterns)
-- [ ] **STH-02**: Antigravity-originated Stitch projects detected via manifest metadata (source: "antigravity-stitch") — Nyquist describe block + production consumer needed
+- [x] **STH-02**: Antigravity-originated Stitch projects detected via manifest metadata (source: "antigravity-stitch")
 - [x] **STH-03**: Bidirectional artifact flow: PDE design artifacts -> Stitch canvas via DESIGN.md, Stitch outputs -> PDE critique/handoff via existing STH pipeline
 
 ### Artifact Formatting (FMT)
@@ -44,7 +44,7 @@ Requirements for v0.15 Multi-Editor Integration. Each maps to roadmap phases.
 - [x] **DIV-02**: T2 content detection — regex-based interface parsing comparing prop names/types against handoff specs
 - [x] **DIV-03**: T3 behavioral detection — grep-based check that components use specified design tokens and patterns
 - [x] **DIV-04**: DIVERGENCE.md output with per-component status (ALIGNED, DRIFTED, MISSING, EXTRA)
-- [ ] **DIV-05**: /pde:check-divergence command triggers detection on demand — Nyquist describe block needed
+- [x] **DIV-05**: /pde:check-divergence command triggers detection on demand
 - [x] **DIV-06**: .pde-divergence-ignore file for suppressing known-acceptable divergences
 
 ## Traceability
@@ -65,7 +65,7 @@ Requirements for v0.15 Multi-Editor Integration. Each maps to roadmap phases.
 | MCP-04 | Phase 121 | Complete |
 | MCP-05 | Phase 121 | Complete |
 | STH-01 | Phase 119 | Complete |
-| STH-02 | Phase 125 | Pending |
+| STH-02 | Phase 125 | Complete |
 | STH-03 | Phase 119 | Complete |
 | FMT-01 | Phase 120 | Complete |
 | FMT-02 | Phase 120 | Complete |
@@ -74,13 +74,13 @@ Requirements for v0.15 Multi-Editor Integration. Each maps to roadmap phases.
 | DIV-02 | Phase 122 | Complete |
 | DIV-03 | Phase 122 | Complete |
 | DIV-04 | Phase 122 | Complete |
-| DIV-05 | Phase 125 | Pending |
+| DIV-05 | Phase 125 | Complete |
 | DIV-06 | Phase 122 | Complete |
 
 **Coverage:**
 - v0.15 requirements: 25 total
-- Satisfied: 23
-- Pending (gap closure): 2 (STH-02, DIV-05)
+- Satisfied: 25
+- Pending (gap closure): 0
 - Unmapped: 0
 
 ---
