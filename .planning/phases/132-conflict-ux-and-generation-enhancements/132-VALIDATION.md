@@ -3,7 +3,7 @@ phase: 132
 slug: conflict-ux-and-generation-enhancements
 status: approved
 nyquist_compliant: true
-wave_0_complete: false
+wave_0_complete: true
 created: 2026-03-24
 ---
 
@@ -28,13 +28,13 @@ created: 2026-03-24
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 132-01-01 | 01 | 1 | INF-06, INF-07, INF-08 | unit (TDD) | `node --test tests/phase-132/test-conflict-ux.cjs 2>&1 \| tail -5` | W0 | pending |
-| 132-02-01 | 02 | 2 | CUR-06, AGR-06 | unit (TDD RED) | `node --test tests/phase-132/test-conflict-ux.cjs 2>&1 \| tail -10` | depends 132-01 | pending |
-| 132-02-02 | 02 | 2 | CUR-06, AGR-06 | unit (TDD GREEN) | full suite | depends 132-01 | pending |
+| 132-01-01 | 01 | 1 | INF-06, INF-07, INF-08 | unit (TDD) | `node --test tests/phase-132/test-conflict-ux.cjs 2>&1 \| tail -5` | W0 | passed |
+| 132-02-01 | 02 | 2 | CUR-06, AGR-06 | unit (TDD RED) | `node --test tests/phase-132/test-conflict-ux.cjs 2>&1 \| tail -10` | depends 132-01 | passed |
+| 132-02-02 | 02 | 2 | CUR-06, AGR-06 | unit (TDD GREEN) | full suite | depends 132-01 | passed |
 
 ## Wave 0 Requirements
 
-- [ ] `tests/phase-132/test-conflict-ux.cjs` — created by Plan 132-01 Task 1
+- [x] `tests/phase-132/test-conflict-ux.cjs` — created by Plan 132-01 Task 1 (31/31 pass)
 
 ## Manual-Only Verifications
 
@@ -50,3 +50,15 @@ created: 2026-03-24
 - [x] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** approved 2026-03-24
+
+## Validation Audit 2026-03-24
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+| Tests passing | 31/31 |
+| Requirements covered | 5/5 (INF-06, INF-07, INF-08, CUR-06, AGR-06) |
+
+All requirements have automated verification. No gaps detected. Per-Task Map statuses updated to `passed`. Wave 0 marked complete.
