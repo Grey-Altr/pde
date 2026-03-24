@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.16
 milestone_name: Multi-Editor Context Sync
 status: Ready to plan
-stopped_at: Completed 131-02-PLAN.md
-last_updated: "2026-03-24T21:39:50.756Z"
+stopped_at: Completed 132-02-PLAN.md
+last_updated: "2026-03-24T22:13:40.287Z"
 progress:
   total_phases: 7
-  completed_phases: 6
-  total_plans: 12
-  completed_plans: 12
+  completed_phases: 7
+  total_plans: 14
+  completed_plans: 14
 ---
 
 # Project State
@@ -70,6 +70,8 @@ Recent decisions affecting v0.16 implementation:
 - [Phase 131]: emitAll error isolation: wrap in try/catch so handler succeeds and logs emitResult even if re-emission fails
 - [Phase 131]: VALID_CATEGORIES allowlist prevents path traversal without regex — simpler and more explicit
 - [Phase 131]: handleFlagDivergence does NOT call emitAll per INF-05 — divergence flags are internal signals, not editor-sync triggers
+- [Phase 132]: SKILL_VERSION_MARKER placed after frontmatter closing --- to avoid breaking parseSkillMd HTML-comment strip pattern
+- [Phase 132]: parseMdcContent KNOWN sections updated to include Workflows to prevent mis-identification as agent additions
 
 ### Pending Todos
 
@@ -82,8 +84,8 @@ Recent decisions affecting v0.16 implementation:
 
 ## Session Continuity
 
-Last session: 2026-03-24T21:35:55.387Z
-Stopped at: Completed 131-02-PLAN.md
+Last session: 2026-03-24T22:13:35.193Z
+Stopped at: Completed 132-02-PLAN.md
 Resume with: /gsd:discuss-phase 127
 Resume file: None
 

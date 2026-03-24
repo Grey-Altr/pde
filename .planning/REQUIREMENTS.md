@@ -15,7 +15,7 @@
 - [x] **CUR-03**: Live mtime change detection — hook-triggered scan of .mdc files during .planning/ writes; compare mtime against lastEmittedAt + 500ms grace; debounce 200ms; queue in state file pendingIngest; zero stdout; <10ms overhead
 - [x] **CUR-04**: Conflict detection — 3-way merge using lastIR as base: if both PDE and editor changed same field to different values, log conflict to .sync-conflicts.log (NDJSON) with both values; auto-resolve when only one side changed
 - [x] **CUR-05**: Conflict resolution — planning-wins default policy; configurable per-field in config.json contextSync.fieldPolicies; editor-wins overwrites .planning/ value; prompt policy defers resolution and blocks emitAll(); policy read at ingest start
-- [ ] **CUR-06**: Enhanced .mdc generation — `<!-- PDE:BEGIN -->` / `<!-- PDE:END -->` section markers in each .mdc body; user content below PDE:END preserved across regeneration; improved globs (**.{css,scss,tsx,jsx,ts} for tokens, **.{tsx,jsx,stories.tsx,test.tsx} for components); inline examples in pde-project.mdc
+- [x] **CUR-06**: Enhanced .mdc generation — `<!-- PDE:BEGIN -->` / `<!-- PDE:END -->` section markers in each .mdc body; user content below PDE:END preserved across regeneration; improved globs (**.{css,scss,tsx,jsx,ts} for tokens, **.{tsx,jsx,stories.tsx,test.tsx} for components); inline examples in pde-project.mdc
 
 ## AGR — Antigravity Bidirectional Sync
 
@@ -24,7 +24,7 @@
 - [x] **AGR-03**: DESIGN.md write-back — value-only DTCG update in design-manifest.json; update only $value field of color tokens; preserve $type, $description, $extensions, group hierarchy; hex-to-OKLCH reverse conversion with 4-decimal precision; log precision warnings >0.001 delta; recompute hash and emitAll() after write
 - [x] **AGR-04**: Shared token state contract — design-manifest.json is canonical source; DESIGN.md includes `<!-- SOURCE: design-manifest.json | DERIVE-ONLY -->` comment; emitDesignMd() never reads DESIGN.md as input; no code path writes manifest without merge engine
 - [x] **AGR-05**: Agent-written SKILL.md additions preserved — emitAntigravitySkill() parses existing agentAdditions from current SKILL.md, regenerates PDE sections, appends agent block below `<!-- AGENT-ADDITIONS: DO NOT EDIT THIS LINE -->` marker
-- [ ] **AGR-06**: Enhanced SKILL.md generation — Workflows section listing pipeline stages with completion status from DESIGN-STATE.md; full Constraints from PROJECT.md; exact DTCG token path; `<!-- pde-skill-version: 1.0 -->` format marker
+- [x] **AGR-06**: Enhanced SKILL.md generation — Workflows section listing pipeline stages with completion status from DESIGN-STATE.md; full Constraints from PROJECT.md; exact DTCG token path; `<!-- pde-skill-version: 1.0 -->` format marker
 - [x] **AGR-07**: Enhanced DESIGN.md generation — `<!-- pde-format-version: 1.0 -->` format version marker for parser version detection; version incremented only on breaking changes
 
 ## INF — Infrastructure
@@ -52,13 +52,13 @@
 | CUR-03 | Phase 129 | Complete |
 | CUR-04 | Phase 128 | Complete |
 | CUR-05 | Phase 128 | Complete |
-| CUR-06 | Phase 132 | Pending |
+| CUR-06 | Phase 132 | Complete |
 | AGR-01 | Phase 127 | Complete |
 | AGR-02 | Phase 127 | Complete |
 | AGR-03 | Phase 130 | Complete |
 | AGR-04 | Phase 128 | Complete |
 | AGR-05 | Phase 130 | Complete |
-| AGR-06 | Phase 132 | Pending |
+| AGR-06 | Phase 132 | Complete |
 | AGR-07 | Phase 130 | Complete |
 | INF-01 | Phase 131 | Complete |
 | INF-02 | Phase 131 | Complete |
