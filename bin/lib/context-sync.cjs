@@ -1354,6 +1354,23 @@ function reconcileOnStart(cwd) {
           replaceSectionInFile(projectMd, fieldMap[field], mergeResult.merged[field]);
         }
       }
+      // AGR-03: designTokens branch -- write-back to design-manifest.json
+      // Use editor partial directly: mergeResult.merged.designTokens may be in token-summary
+      // format (planning-wins conflict) which colorListToArray cannot parse. Instead, check
+      // if editor changed colors vs base, and if so, use the editor partial's color-list.
+      var editorDesignTokens = ep.partial.designTokens;
+      var baseDesignTokens = base ? base.designTokens : null;
+      if (editorDesignTokens &&
+          normalizeDesignTokensForComparison(editorDesignTokens) !== normalizeDesignTokensForComparison(baseDesignTokens)) {
+        var colors = colorListToArray(editorDesignTokens);
+        if (colors.length > 0) {
+          try {
+            writeBackDesignTokens(planningDir, colors, {}); // no cwd -- outer emitAll handles re-normalization
+          } catch (err) {
+            process.stderr.write('[context-sync] designTokens write-back failed: ' + err.message + '\n');
+          }
+        }
+      }
       // Update mergedIR for subsequent iterations
       for (var k = 0; k < WRITABLE_FIELDS.length; k++) {
         var wf = WRITABLE_FIELDS[k];
@@ -1451,6 +1468,23 @@ function ingestAll(cwd) {
       for (var field in fieldMap) {
         if (mergeResult.merged[field] && mergeResult.merged[field] !== currentIR[field]) {
           replaceSectionInFile(projectMd, fieldMap[field], mergeResult.merged[field]);
+        }
+      }
+      // AGR-03: designTokens branch -- write-back to design-manifest.json
+      // Use editor partial directly: mergeResult.merged.designTokens may be in token-summary
+      // format (planning-wins conflict) which colorListToArray cannot parse. Instead, check
+      // if editor changed colors vs base, and if so, use the editor partial's color-list.
+      var editorDesignTokens = partial.designTokens;
+      var baseDesignTokens = base ? base.designTokens : null;
+      if (editorDesignTokens &&
+          normalizeDesignTokensForComparison(editorDesignTokens) !== normalizeDesignTokensForComparison(baseDesignTokens)) {
+        var colors = colorListToArray(editorDesignTokens);
+        if (colors.length > 0) {
+          try {
+            writeBackDesignTokens(planningDir, colors, {}); // no cwd -- outer emitAll handles re-normalization
+          } catch (err) {
+            process.stderr.write('[context-sync] designTokens write-back failed: ' + err.message + '\n');
+          }
         }
       }
       // Update currentIR for subsequent entries
@@ -1731,6 +1765,24 @@ function parseDesignMd(content) {
     process.stderr.write(`[context-sync] design.md parse error: ${err.message}\n`);
     return null;
   }
+}
+
+// ─── AGR-03: Format adapter ───────────────────────────────────────────────────
+
+/**
+ * Convert parseDesignMd() color-list string to Array<{name,hex,role}> for writeBackDesignTokens.
+ * @param {string} designTokensStr - Color-list string: "- **Name** (#hex) -- role\n..."
+ * @returns {Array<{name:string, hex:string, role:string}>}
+ */
+function colorListToArray(designTokensStr) {
+  if (!designTokensStr) return [];
+  var re = /^-\s+\*\*([^*]+)\*\*\s+\(#([a-fA-F0-9]{3,6})\)\s+--\s+(.+)$/gm;
+  var colors = [];
+  var m;
+  while ((m = re.exec(designTokensStr)) !== null) {
+    colors.push({ name: m[1].trim(), hex: '#' + m[2], role: m[3].trim() });
+  }
+  return colors;
 }
 
 // ─── Antigravity Write-back ──────────────────────────────────────────────────
@@ -2077,7 +2129,7 @@ module.exports = {
   mergePartialIR, appendConflictLog, readFieldPolicy, normalizeDesignTokensForComparison,
   // SYN-04, SYN-05: reverse-sync utilities
   MONITORED_FILES, replaceSectionInFile, parseMonitoredFile, reconcileOnStart, ingestAll,
-  hexToOklch, computeHexDelta, writeBackDesignTokens,
+  hexToOklch, computeHexDelta, writeBackDesignTokens, colorListToArray,
   // Phase 132: Audit trail, snapshot system, CLI commands (INF-06, INF-07, INF-08)
   WRITE_BACK_FILES, appendSyncLog, trimSyncLog, snapshotFilesBeforeBatch, cleanupOldSnapshots,
   decodeSnapshotPath, cmdSyncStatus, cmdSyncRollback,
