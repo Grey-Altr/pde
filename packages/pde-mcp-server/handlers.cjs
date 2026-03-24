@@ -3,7 +3,10 @@
 /**
  * handlers.cjs — PDE MCP server tool handler functions
  *
- * All 10 read-only tool handlers plus the pipeline-status resource handler.
+ * All 10 read-only tool handlers plus the pipeline-status resource handler,
+ * and 2 write tool handlers (handleUpdateConstraints, handleUpdateTechStack)
+ * available when --enable-writes flag is set.
+ *
  * Written as plain CJS so tests can import directly without TypeScript compilation.
  * The TypeScript index.ts imports this via createRequire(import.meta.url).
  *
@@ -38,6 +41,14 @@ function getGenerateTailwindTheme() {
   const artifactFormatPath = path.join(__dirname, '..', '..', 'bin', 'lib', 'artifact-format.cjs');
   const { generateTailwindTheme } = require(artifactFormatPath);
   return generateTailwindTheme;
+}
+
+/**
+ * Lazy-load context-sync.cjs utilities (replaceSectionInFile, emitAll).
+ * Resolves path relative to this file's location.
+ */
+function getContextSync() {
+  return require(path.join(__dirname, '..', '..', 'bin', 'lib', 'context-sync.cjs'));
 }
 
 // ─── Tool: get-project ────────────────────────────────────────────────────────
@@ -312,6 +323,141 @@ async function handlePipelineStatusResource(planningDir, uriHref) {
   };
 }
 
+// ─── Write Tools ──────────────────────────────────────────────────────────────
+
+/**
+ * Validate write tool content.
+ * @param {unknown} content
+ * @returns {string|null} null if valid, error message if invalid
+ */
+function validateWriteContent(content) {
+  if (typeof content !== 'string') {
+    return 'content must be a string';
+  }
+  if (content.length < 1) {
+    return 'content must be at least 1 character';
+  }
+  if (content.length > 4000) {
+    return `content exceeds 4000 character limit (got ${content.length})`;
+  }
+  if (content.includes('<!--')) {
+    return 'content must not contain HTML comment markers (<!--)';
+  }
+  if (content.includes('PDE-GENERATED')) {
+    return 'content must not contain PDE-GENERATED marker';
+  }
+  return null;
+}
+
+/**
+ * Append an NDJSON audit log entry to logs/mcp-writes.ndjson.
+ * Creates the logs/ directory if it does not exist.
+ * @param {string} planningDir - Absolute path to .planning/
+ * @param {object} entry - Log entry object
+ */
+function appendMcpWriteLog(planningDir, entry) {
+  try {
+    const logsDir = path.join(planningDir, 'logs');
+    fs.mkdirSync(logsDir, { recursive: true });
+    const logPath = path.join(logsDir, 'mcp-writes.ndjson');
+    fs.appendFileSync(logPath, JSON.stringify(entry) + '\n', 'utf-8');
+  } catch (e) {
+    process.stderr.write(`pde-mcp-server: Failed to write mcp-writes.ndjson: ${e.message}\n`);
+  }
+}
+
+/**
+ * Overwrite the Constraints section of PROJECT.md, re-emit all editor files,
+ * and log an NDJSON audit entry.
+ * @param {string} planningDir - Absolute path to .planning/
+ * @param {{ content: string }} params
+ */
+async function handleUpdateConstraints(planningDir, params) {
+  const content = params && params.content;
+  const validationError = validateWriteContent(content);
+  if (validationError) {
+    return { content: [{ type: 'text', text: `Validation failed: ${validationError}` }], isError: true };
+  }
+
+  const projectMd = path.join(planningDir, 'PROJECT.md');
+  const { replaceSectionInFile, emitAll } = getContextSync();
+
+  const replaced = replaceSectionInFile(projectMd, 'Constraints', content);
+  if (!replaced) {
+    return {
+      content: [{ type: 'text', text: 'Section "Constraints" not found in PROJECT.md' }],
+      isError: true,
+    };
+  }
+
+  const cwd = path.dirname(planningDir);
+  let emitResult = 'ok';
+  try {
+    const result = emitAll(cwd);
+    emitResult = result ? `ok:emitted=${result.emitted || 0}` : 'ok';
+  } catch (e) {
+    emitResult = `error:${e.message}`;
+  }
+
+  appendMcpWriteLog(planningDir, {
+    ts: new Date().toISOString(),
+    tool: 'pde_update_constraints',
+    section: 'Constraints',
+    contentLen: content.length,
+    emitResult,
+  });
+
+  return {
+    content: [{ type: 'text', text: `Constraints section updated (${content.length} chars). Editor files re-emitted.` }],
+  };
+}
+
+/**
+ * Overwrite the Tech Stack section of PROJECT.md, re-emit all editor files,
+ * and log an NDJSON audit entry.
+ * @param {string} planningDir - Absolute path to .planning/
+ * @param {{ content: string }} params
+ */
+async function handleUpdateTechStack(planningDir, params) {
+  const content = params && params.content;
+  const validationError = validateWriteContent(content);
+  if (validationError) {
+    return { content: [{ type: 'text', text: `Validation failed: ${validationError}` }], isError: true };
+  }
+
+  const projectMd = path.join(planningDir, 'PROJECT.md');
+  const { replaceSectionInFile, emitAll } = getContextSync();
+
+  const replaced = replaceSectionInFile(projectMd, 'Tech Stack', content);
+  if (!replaced) {
+    return {
+      content: [{ type: 'text', text: 'Section "Tech Stack" not found in PROJECT.md' }],
+      isError: true,
+    };
+  }
+
+  const cwd = path.dirname(planningDir);
+  let emitResult = 'ok';
+  try {
+    const result = emitAll(cwd);
+    emitResult = result ? `ok:emitted=${result.emitted || 0}` : 'ok';
+  } catch (e) {
+    emitResult = `error:${e.message}`;
+  }
+
+  appendMcpWriteLog(planningDir, {
+    ts: new Date().toISOString(),
+    tool: 'pde_update_tech_stack',
+    section: 'Tech Stack',
+    contentLen: content.length,
+    emitResult,
+  });
+
+  return {
+    content: [{ type: 'text', text: `Tech Stack section updated (${content.length} chars). Editor files re-emitted.` }],
+  };
+}
+
 // ─── Exports ──────────────────────────────────────────────────────────────────
 
 module.exports = {
@@ -326,4 +472,7 @@ module.exports = {
   handleGetPipelineStatus,
   handleListArtifacts,
   handlePipelineStatusResource,
+  handleUpdateConstraints,
+  handleUpdateTechStack,
+  appendMcpWriteLog,
 };
