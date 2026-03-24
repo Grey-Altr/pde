@@ -29,6 +29,7 @@
  *   phase-plan-index <phase>           Index plans with waves and status
  *   websearch <query>                  Search web via Brave API (if configured)
  *     [--limit N] [--freshness day|week|month]
+ *   context-sync [--editor cursor|gemini|all]  Generate editor context files (AGENTS.md, .mdc, GEMINI.md)
  *
  * Phase Operations:
  *   phase next-decimal <phase>         Calculate next decimal phase number
@@ -934,6 +935,12 @@ async function main() {
       } else {
         error('Unknown experiment subcommand. Available: init, commit, reset, promote, status, cleanup, ensure-dirs, patch-config, check-boundaries, eval-metric, write-row, generate-report, diff-summary, reset-to-sha');
       }
+      break;
+    }
+
+    case 'context-sync': {
+      const contextSync = require('./lib/context-sync.cjs');
+      contextSync.cmdContextSync(cwd, args.slice(1), raw);
       break;
     }
 
