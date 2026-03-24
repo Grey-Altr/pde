@@ -251,7 +251,10 @@ Plans:
   2. All existing Nyquist tests continue to pass with zero regressions
   3. Generated context files are syntactically valid for their target editors (YAML frontmatter in .mdc, @file imports in GEMINI.md, valid markdown in AGENTS.md)
   4. MCP server responds correctly to all 10 tool invocations when tested via MCP Inspector or equivalent
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 124-01-PLAN.md — Nyquist integration test file (MCP-03 gap fill + INTG-01 meta-test)
+- [ ] 124-02-PLAN.md — Cross-milestone regression sweep and count-assertion fixes
 
 ## Progress
 
@@ -274,4 +277,4 @@ Phases execute in numeric order: 118 -> 119 -> 120 -> 121 -> 122 -> 123 -> 124
 | v0.12 | 84-98 | 24/24 | Complete | 2026-03-23 |
 | v0.13 | 99-107 | 15/15 | Complete | 2026-03-23 |
 | v0.14 | 108-117 | 21/21 | Complete | 2026-03-24 |
-| v0.15 | 118-124 | 2/6 | In progress | - |
+| v0.15 | 118-124 | 12/14 | In progress | - |
