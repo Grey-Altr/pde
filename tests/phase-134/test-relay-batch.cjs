@@ -5,7 +5,7 @@
  * Phase 134, Plan 02
  */
 
-const { describe, it, expect, beforeEach, afterEach, vi } = require('vitest');
+// vitest globals (describe, it, expect, beforeEach, afterEach, vi) are injected via globals:true in vitest.config.ts
 const { BatchQueue } = require('../../bin/lib/relay.cjs');
 
 let queues = [];

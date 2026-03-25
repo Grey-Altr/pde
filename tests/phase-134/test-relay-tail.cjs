@@ -8,7 +8,7 @@
  * Does NOT use fake timers — TailCursor uses synchronous fs ops in setInterval.
  */
 
-const { describe, it, expect, beforeEach, afterEach } = require('vitest');
+// vitest globals (describe, it, expect, beforeEach, afterEach) are injected via globals:true in vitest.config.ts
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');

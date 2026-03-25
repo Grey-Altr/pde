@@ -7,7 +7,7 @@
  * Pure state machine tests — no I/O, no timers.
  */
 
-const { describe, it, expect, beforeEach, vi } = require('vitest');
+// vitest globals (describe, it, expect, beforeEach, vi) are injected via globals:true in vitest.config.ts
 const { CircuitBreaker } = require('../../bin/lib/relay.cjs');
 
 describe('CircuitBreaker', () => {
