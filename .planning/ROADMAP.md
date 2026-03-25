@@ -18,7 +18,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 136: Core Dashboard Features** - Phase progress, cost meter, event log, mobile layout, auto-reconnection (completed 2026-03-25)
 - [x] **Phase 136.1: Extensions Path Fix & Token Event Source** - Fix extensions field path mismatch and add token usage event emission (INSERTED — gap closure) (completed 2026-03-25)
 - [x] **Phase 136.2: Documentation Tech Debt & Nyquist Compliance** - Fix ROADMAP checkboxes, SUMMARY frontmatter gaps, REQUIREMENTS traceability, and Nyquist validation for phases 134.1 and 135 (INSERTED — gap closure) (completed 2026-03-25)
-- [ ] **Phase 136.3: Final Documentation & Filter Cleanup** - Close remaining traceability gaps and add token_usage to EventLog filter (INSERTED — gap closure)
+- [x] **Phase 136.3: Final Documentation & Filter Cleanup** - Close remaining traceability gaps and add token_usage to EventLog filter (INSERTED — gap closure) (completed 2026-03-25)
 - [ ] **Phase 137: Approval Gates** - Bidirectional approval flow from dashboard to PDE with TOCTOU-safe protocol
 - [ ] **Phase 138: PWA and Push Notifications** - Installable PWA with service worker, Web Push, and offline shell
 - [ ] **Phase 139: Production Hardening** - Rate limiting, TTL, downsampling, garbage collection, buffer caps
@@ -133,7 +133,7 @@ Plans:
   5. EVENT_FILTER_GROUPS in dashboard/lib/event-types.ts includes token_usage in a named filter tab
 **Plans**: 1 plan
 Plans:
-- [ ] 136.3-01-PLAN.md -- REQUIREMENTS.md traceability updates + token_usage filter group in event-types.ts (SC-1, SC-5)
+- [x] 136.3-01-PLAN.md -- REQUIREMENTS.md traceability updates + token_usage filter group in event-types.ts (SC-1, SC-5)
 
 ### Phase 137: Approval Gates
 **Goal**: Users can receive, review, and respond to PDE approval requests from their phone with cryptographic safety guarantees
@@ -185,7 +185,7 @@ Phases execute in numeric order: 134 -> 134.1 -> 134.2 -> 135 -> ...
 | 136. Core Dashboard Features | 2/2 | Complete    | 2026-03-25 |
 | 136.1. Extensions Path Fix & Token Event Source | 2/2 | Complete    | 2026-03-25 |
 | 136.2. Documentation Tech Debt & Nyquist Compliance | 2/2 | Complete    | 2026-03-25 |
-| 136.3. Final Documentation & Filter Cleanup | 0/1 | Not started | - |
+| 136.3. Final Documentation & Filter Cleanup | 1/1 | Complete    | 2026-03-25 |
 | 137. Approval Gates | 0/TBD | Not started | - |
 | 138. PWA and Push Notifications | 0/TBD | Not started | - |
 | 139. Production Hardening | 0/TBD | Not started | - |
