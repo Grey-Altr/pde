@@ -14,6 +14,23 @@ export interface SessionListItem {
   pendingApprovalId: string | null;  // APR-01: non-null when approval pending
 }
 
+/**
+ * Returns the first approval_request event whose approval_id is not matched
+ * by any approval_response in the events array. Order-independent (Set-based).
+ */
+export function findPendingApproval(events: WireEnvelope[]): WireEnvelope | null {
+  const responded = new Set(
+    events
+      .filter(e => e.event_type === 'approval_response' && e.approval_id)
+      .map(e => e.approval_id)
+  );
+  return (
+    events.find(
+      e => e.event_type === 'approval_request' && e.approval_id && !responded.has(e.approval_id)
+    ) ?? null
+  );
+}
+
 export async function getSessions(): Promise<SessionListItem[]> {
   const ids = await redis.zrange('pde:default:sessions', 0, -1, { rev: true });
   if (!ids || ids.length === 0) return [];
@@ -68,19 +85,6 @@ export async function getSessionMeta(sessionId: string): Promise<SessionListItem
     startedAt,
     pendingApprovalId,
   };
-}
-
-export function findPendingApproval(events: WireEnvelope[]): WireEnvelope | null {
-  const responded = new Set(
-    events
-      .filter(e => e.event_type === 'approval_response' && e.approval_id)
-      .map(e => e.approval_id)
-  );
-  return (
-    events.find(
-      e => e.event_type === 'approval_request' && e.approval_id && !responded.has(e.approval_id)
-    ) ?? null
-  );
 }
 
 export async function writeApprovalResponse(
