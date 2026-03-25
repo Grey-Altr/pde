@@ -27,11 +27,11 @@ export function PhaseProgress({ events, connectionStatus }: PhaseProgressProps) 
           <p className="text-base font-semibold">
             {phaseName || 'No active phase'}
           </p>
-          <Progress className="h-1.5 mt-1" />
+          <Progress className="h-1.5 mt-1" value={null} />
           {planName && (
             <div className="ml-3 mt-2">
               <p className="text-xs text-muted-foreground">{planName}</p>
-              <Progress className="h-1 mt-0.5" />
+              <Progress className="h-1 mt-0.5" value={null} />
             </div>
           )}
         </div>
