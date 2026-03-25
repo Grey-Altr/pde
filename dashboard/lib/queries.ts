@@ -36,8 +36,8 @@ export async function getSessions(): Promise<SessionListItem[]> {
     sessions.push({
       id,
       status: deriveStatus(lastEventType, lastEventTs),
-      phase: raw.phase_name ?? '',
-      plan: raw.plan_name ?? '',
+      phase: raw.phase ?? '',
+      plan: raw.plan ?? '',
       lastEventType,
       lastEventTs,
       startedAt,
