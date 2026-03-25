@@ -49,7 +49,10 @@ Plans:
   3. SUMMARY frontmatter for Plans 02 and 03 includes requirements-completed field
   4. ROADMAP.md Plan 03 checkbox reflects completed status
   5. REQUIREMENTS.md traceability table has correct Plan and Verified columns for Phase 134 requirements
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 134.1-01-PLAN.md -- Fix session ID source in hook scripts + integration test for hook spawn path (RLY-01)
+- [ ] 134.1-02-PLAN.md -- Documentation tech debt: SUMMARY frontmatter, ROADMAP checkbox, REQUIREMENTS traceability
 
 ### Phase 135: Dashboard Scaffold and Event Ingestion
 **Goal**: Users can open a deployed web dashboard, authenticate, and see live session data flowing from their PDE instance
@@ -122,7 +125,7 @@ Phases execute in numeric order: 134 -> 134.1 -> 134.2 -> 135 -> ...
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 134. Relay Protocol and Transport Module | 2/3 | Complete    | 2026-03-25 |
-| 134.1. Session ID Fix & Phase 134 Tech Debt | 0/TBD | Not started | - |
+| 134.1. Session ID Fix & Phase 134 Tech Debt | 0/2 | Not started | - |
 | 135. Dashboard Scaffold and Event Ingestion | 0/TBD | Not started | - |
 | 136. Core Dashboard Features | 0/TBD | Not started | - |
 | 137. Approval Gates | 0/TBD | Not started | - |
