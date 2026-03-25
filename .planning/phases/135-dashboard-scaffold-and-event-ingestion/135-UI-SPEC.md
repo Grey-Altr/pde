@@ -52,19 +52,22 @@ Exceptions:
 
 | Role | Font | Size | Weight | Line Height | Usage |
 |------|------|------|--------|-------------|-------|
-| Body | Geist Sans | 14px | 400 (regular) | 1.5 | Card metadata, badge labels, secondary text |
-| Label | Geist Sans | 16px | 500 (medium) | 1.4 | Phase name, plan name, primary card content |
+| Body | Geist Sans | 14px | 400 (regular) | 1.5 | Card metadata, badge labels, secondary text; also used for event log entries in Geist Mono face |
+| Label | Geist Sans | 16px | 600 (semibold) | 1.4 | Phase name, plan name, primary card content |
 | Heading | Geist Sans | 20px | 600 (semibold) | 1.2 | Session card title, page section headings |
 | Display | Geist Sans | 28px | 600 (semibold) | 1.1 | Page title ("Sessions") — desktop only |
-| Mono | Geist Mono | 12px | 400 (regular) | 1.5 | Event log entries, elapsed time counters, session IDs, timestamps |
 
-Weight constraint: Use only 400 (regular) and 600 (semibold). Medium (500) is the sole exception for Label role as a mid-emphasis token. Executors must not introduce 300, 700, or 800 weights.
+Weight constraint: Use only 400 (regular) and 600 (semibold). No exceptions.
+
+Font face note: Event log entries, elapsed time counters, session IDs, and timestamps render at 14px weight 400 in Geist Mono — the font family switch provides visual differentiation without requiring a separate size token.
 
 ---
 
 ## Color
 
 Dark mode is the default rendering context. All values are dark mode tokens.
+
+**Primary focal point:** active session status badge (green pulse ring) in the session list card.
 
 | Role | Tailwind Token | Dark Mode Hex (approx) | Usage |
 |------|---------------|------------------------|-------|
@@ -166,7 +169,7 @@ Custom components (hand-authored, not from registry):
 | Destructive actions | None in Phase 135 — no delete, no deny actions in this phase scope | Phase boundary: approval gates are Phase 137 |
 | Session status badge labels | "Active" / "Idle" / "Error" / "Complete" | CONTEXT.md D-08 |
 | Mini event log: no events | "No events yet" | Default |
-| Mini event log event format | `{event_type} · {timestamp}` in Geist Mono 12px | CONTEXT.md D-09 discretion |
+| Mini event log event format | `{event_type} · {timestamp}` in Geist Mono 14px (Body size) | CONTEXT.md D-09 discretion |
 
 ---
 
