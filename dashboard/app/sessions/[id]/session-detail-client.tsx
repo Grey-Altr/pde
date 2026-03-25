@@ -22,7 +22,7 @@ export function SessionDetailClient({
 }: SessionDetailClientProps) {
   const { events: liveEvents, connectionStatus } = useEventStream(sessionId);
 
-  // Merge live events with initial events, deduplicate by seq
+  // Merge live events with initial events, deduplicate by seq, keep full buffer
   const mergedEvents = useMemo(() => {
     const seen = new Set<number>();
     const all: WireEnvelope[] = [];
@@ -32,9 +32,10 @@ export function SessionDetailClient({
         all.push(ev);
       }
     }
-    // Sort newest-first by relay_ts
+    // Sort newest-first by relay_ts (same convention as useEventStream)
     all.sort((a, b) => new Date(b.relay_ts).getTime() - new Date(a.relay_ts).getTime());
-    return all.slice(0, 10);
+    // Use full buffer (up to 200 from useEventStream + initial), no longer capped at 10
+    return all.slice(0, 200);
   }, [liveEvents, initialEvents]);
 
   // Derive updated session metadata from latest event
@@ -60,7 +61,7 @@ export function SessionDetailClient({
     <main className="px-4 sm:px-8 max-w-screen-sm mx-auto py-12">
       <Link
         href="/"
-        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6"
+        className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6 min-h-[44px]"
       >
         <ArrowLeft className="w-4 h-4" />
         Sessions

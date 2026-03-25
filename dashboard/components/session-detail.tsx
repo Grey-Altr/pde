@@ -3,6 +3,8 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { StatusBadge } from '@/components/status-badge';
+import { PhaseProgress } from '@/components/phase-progress';
+import { CostMeter } from '@/components/cost-meter';
 import { EventLog } from '@/components/event-log';
 import type { SessionListItem } from '@/lib/queries';
 import type { ConnectionStatus } from '@/hooks/use-event-stream';
@@ -22,17 +24,10 @@ function formatDuration(startedAt: number): string {
   return `${minutes}m ${seconds}s`;
 }
 
-function formatLastEventTime(relay_ts: string): string {
-  const ageS = Math.floor((Date.now() - new Date(relay_ts).getTime()) / 1000);
-  if (ageS < 60) return `${ageS}s ago`;
-  return `${Math.floor(ageS / 60)}m ago`;
-}
-
 export function SessionDetail({ session, connectionStatus, events }: SessionDetailProps) {
-  const latestEvent = events[0];
-
   return (
-    <div>
+    <div className="space-y-4">
+      {/* Status header card */}
       <Card className="w-full">
         <CardContent className="py-4">
           <div className="flex items-center gap-2 flex-wrap">
@@ -48,23 +43,20 @@ export function SessionDetail({ session, connectionStatus, events }: SessionDeta
               </Badge>
             )}
           </div>
-          <div className="mt-3 space-y-1">
-            <p className="text-base font-semibold">Phase: {session.phase || 'Unknown'}</p>
-            <p className="text-sm text-muted-foreground">Plan: {session.plan || 'Unknown'}</p>
-            <p className="font-mono text-sm text-muted-foreground">
-              Running {formatDuration(session.startedAt)}
-            </p>
-            {latestEvent && (
-              <p className="font-mono text-sm text-muted-foreground">
-                Last: {latestEvent.event_type} · {formatLastEventTime(latestEvent.relay_ts)}
-              </p>
-            )}
-          </div>
+          <p className="font-mono text-sm text-muted-foreground mt-2">
+            Running {formatDuration(session.startedAt)}
+          </p>
         </CardContent>
       </Card>
-      <div className="mt-4">
-        <EventLog events={events} />
-      </div>
+
+      {/* Phase progress (MON-01) */}
+      <PhaseProgress events={events} connectionStatus={connectionStatus} />
+
+      {/* Token/cost meter (MON-02) */}
+      <CostMeter events={events} connectionStatus={connectionStatus} />
+
+      {/* Live event log with filtering (MON-03) */}
+      <EventLog events={events} connectionStatus={connectionStatus} />
     </div>
   );
 }
