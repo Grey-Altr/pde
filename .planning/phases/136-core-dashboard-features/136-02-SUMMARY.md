@@ -3,6 +3,7 @@ phase: 136-core-dashboard-features
 plan: "02"
 subsystem: dashboard
 tags: [react, nextjs, monitoring-ui, mobile, sse]
+requirements-completed: [MON-01, MON-02, MON-03, MON-04, MON-05]
 dependency_graph:
   requires:
     - 136-01 (derive-progress.ts, derive-cost.ts, event-types.ts, shadcn progress/tabs/separator)

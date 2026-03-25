@@ -3,6 +3,7 @@ phase: 136-core-dashboard-features
 plan: "01"
 subsystem: dashboard
 tags: [pure-functions, tdd, shadcn, lib, derive, event-filtering]
+requirements-completed: [MON-01, MON-02, MON-03]
 dependency_graph:
   requires: [dashboard/lib/wire-schema.ts]
   provides: [dashboard/lib/derive-progress.ts, dashboard/lib/derive-cost.ts, dashboard/lib/event-types.ts]
