@@ -24,7 +24,7 @@ metrics:
   tasks_completed: 1
   files_created: 2
   files_modified: 0
-requirements_completed: [DSH-01, DSH-06]
+requirements-completed: [DSH-01, DSH-06]
 ---
 
 # Phase 135 Plan 02: Event Ingest Endpoint Summary
