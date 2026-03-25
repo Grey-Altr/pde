@@ -6,6 +6,7 @@ export const EVENT_FILTER_GROUPS = {
   agents: ['subagent_start', 'subagent_stop'],
   phases: ['session_start', 'session_end'],
   errors: ['error'],
+  tokens: ['token_usage'],
 } as const;
 
 export type FilterGroup = keyof typeof EVENT_FILTER_GROUPS;

@@ -38,6 +38,10 @@ describe('EVENT_FILTER_GROUPS', () => {
   it('errors contains "error"', () => {
     expect(EVENT_FILTER_GROUPS.errors).toContain('error');
   });
+
+  it('tokens contains token_usage', () => {
+    expect(EVENT_FILTER_GROUPS.tokens).toContain('token_usage');
+  });
 });
 
 describe('filterEvents', () => {
@@ -50,6 +54,7 @@ describe('filterEvents', () => {
     mockEnvelope({ event_type: 'session_start' }),
     mockEnvelope({ event_type: 'session_end' }),
     mockEnvelope({ event_type: 'error' }),
+    mockEnvelope({ event_type: 'token_usage' }),
   ];
 
   it('returns all events when group is "all"', () => {
@@ -82,9 +87,16 @@ describe('filterEvents', () => {
     expect(result[0].event_type).toBe('error');
   });
 
+  it('returns only token events when group is "tokens"', () => {
+    const result = filterEvents(events, 'tokens');
+    expect(result).toHaveLength(1);
+    expect(result[0].event_type).toBe('token_usage');
+  });
+
   it('returns empty array for empty events input', () => {
     expect(filterEvents([], 'tools')).toEqual([]);
     expect(filterEvents([], 'agents')).toEqual([]);
     expect(filterEvents([], 'all')).toEqual([]);
+    expect(filterEvents([], 'tokens')).toEqual([]);
   });
 });
