@@ -16,6 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 134.1: Session ID Fix & Phase 134 Tech Debt** - Fix session ID namespace mismatch blocking production relay, clean up Phase 134 artifacts (INSERTED — gap closure) (completed 2026-03-25)
 - [x] **Phase 135: Dashboard Scaffold and Event Ingestion** - Next.js app receives events, stores in Redis, delivers to browser, with auth (completed 2026-03-25)
 - [x] **Phase 136: Core Dashboard Features** - Phase progress, cost meter, event log, mobile layout, auto-reconnection (completed 2026-03-25)
+- [ ] **Phase 136.1: Extensions Path Fix & Token Event Source** - Fix extensions field path mismatch and add token usage event emission (INSERTED — gap closure)
 - [ ] **Phase 137: Approval Gates** - Bidirectional approval flow from dashboard to PDE with TOCTOU-safe protocol
 - [ ] **Phase 138: PWA and Push Notifications** - Installable PWA with service worker, Web Push, and offline shell
 - [ ] **Phase 139: Production Hardening** - Rate limiting, TTL, downsampling, garbage collection, buffer caps
@@ -51,7 +52,7 @@ Plans:
   5. REQUIREMENTS.md traceability table has correct Plan and Verified columns for Phase 134 requirements
 **Plans**: 2 plans
 Plans:
-- [ ] 134.1-01-PLAN.md -- Fix session ID source in hook scripts + integration test for hook spawn path (RLY-01)
+- [x] 134.1-01-PLAN.md -- Fix session ID source in hook scripts + integration test for hook spawn path (RLY-01)
 - [x] 134.1-02-PLAN.md -- Documentation tech debt: SUMMARY frontmatter, ROADMAP checkbox, REQUIREMENTS traceability
 
 ### Phase 135: Dashboard Scaffold and Event Ingestion
@@ -85,8 +86,20 @@ Plans:
 **Plans**: 2 plans
 Plans:
 - [x] 136-01-PLAN.md -- Install shadcn deps, create pure lib functions (deriveProgress, deriveCost, filterEvents) with unit tests (MON-01, MON-02, MON-03)
-- [ ] 136-02-PLAN.md -- Build PhaseProgress, CostMeter, expanded EventLog components, wire into SessionDetail, fix field name bug, visual verification (MON-01, MON-02, MON-03, MON-04, MON-05)
+- [x] 136-02-PLAN.md -- Build PhaseProgress, CostMeter, expanded EventLog components, wire into SessionDetail, fix field name bug, visual verification (MON-01, MON-02, MON-03, MON-04, MON-05)
 **UI hint**: yes
+
+### Phase 136.1: Extensions Path Fix & Token Event Source
+**Goal**: Fix the extensions field path mismatch that breaks phase/plan display across ingest, dashboard components, and live event paths, and add token usage event emission so CostMeter displays real data
+**Depends on**: Phase 136
+**Requirements**: DSH-03, DSH-04, MON-01, MON-02
+**Gap Closure**: Closes gaps from v0.17 milestone audit — extensions?.phase_name path mismatch and missing token data source
+**Success Criteria** (what must be TRUE):
+  1. Ingest route, deriveProgress, and session-detail-client read phase_name/plan_name from top-level wire envelope fields (not extensions sub-object) — session list and detail show correct phase/plan names
+  2. PDE emits token_usage events with input_tokens and output_tokens fields via event-bus, and deriveCost reads these fields correctly — CostMeter shows non-zero values during real sessions
+  3. All existing tests pass plus new integration tests verify the field path fix end-to-end
+  4. SUMMARY frontmatter gaps filled, REQUIREMENTS.md traceability table updated, ROADMAP plan counts corrected
+**Plans**: TBD
 
 ### Phase 137: Approval Gates
 **Goal**: Users can receive, review, and respond to PDE approval requests from their phone with cryptographic safety guarantees
@@ -132,10 +145,11 @@ Phases execute in numeric order: 134 -> 134.1 -> 134.2 -> 135 -> ...
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 134. Relay Protocol and Transport Module | 2/3 | Complete    | 2026-03-25 |
-| 134.1. Session ID Fix & Phase 134 Tech Debt | 1/2 | Complete    | 2026-03-25 |
+| 134. Relay Protocol and Transport Module | 3/3 | Complete    | 2026-03-25 |
+| 134.1. Session ID Fix & Phase 134 Tech Debt | 2/2 | Complete    | 2026-03-25 |
 | 135. Dashboard Scaffold and Event Ingestion | 4/4 | Complete    | 2026-03-25 |
-| 136. Core Dashboard Features | 1/2 | Complete    | 2026-03-25 |
+| 136. Core Dashboard Features | 2/2 | Complete    | 2026-03-25 |
+| 136.1. Extensions Path Fix & Token Event Source | 0/TBD | Not started | - |
 | 137. Approval Gates | 0/TBD | Not started | - |
 | 138. PWA and Push Notifications | 0/TBD | Not started | - |
 | 139. Production Hardening | 0/TBD | Not started | - |

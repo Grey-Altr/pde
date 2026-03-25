@@ -12,15 +12,15 @@
 
 - [x] **DSH-01**: Next.js 16 App Router dashboard deployed to Vercel with `/api/ingest` endpoint that validates events with zod and stores in Upstash Redis sorted sets
 - [x] **DSH-02**: SSE Route Handler delivers events to browser with polling fallback for Vercel serverless timeout, including heartbeat detection and auto-reconnection
-- [x] **DSH-03**: Dashboard home page shows session list with status badges (active/idle/error/complete) and current phase name
-- [x] **DSH-04**: Live session status card displays current phase, plan, agent activity, and elapsed time
+- [ ] **DSH-03**: Dashboard home page shows session list with status badges (active/idle/error/complete) and current phase name
+- [ ] **DSH-04**: Live session status card displays current phase, plan, agent activity, and elapsed time
 - [x] **DSH-05**: Clerk authentication restricts dashboard access to the PDE owner (single-user)
 - [x] **DSH-06**: Ingest endpoint authenticates PDE relay via Bearer token, rejecting unauthorized event pushes
 
 ## Monitoring
 
-- [x] **MON-01**: Phase progress display shows nested hierarchy (phase → plan → wave) with progress indicators
-- [x] **MON-02**: Token/cost meter shows running session total visible at a glance, updated in near-real-time
+- [ ] **MON-01**: Phase progress display shows nested hierarchy (phase → plan → wave) with progress indicators
+- [ ] **MON-02**: Token/cost meter shows running session total visible at a glance, updated in near-real-time
 - [x] **MON-03**: Live event log streams events with type filtering (tool calls, agent activity, phase transitions, errors)
 - [x] **MON-04**: Auto-reconnection with visual feedback ("reconnecting..." state) when SSE/polling connection drops
 - [x] **MON-05**: All monitoring views are mobile-responsive with card-based layout and touch targets >= 44px
@@ -79,12 +79,12 @@
 | RLY-05 | 134 | 134-03 | Yes |
 | DSH-01 | 135 | — | — |
 | DSH-02 | 135 | — | — |
-| DSH-03 | 135 | — | — |
-| DSH-04 | 135 | — | — |
+| DSH-03 | 136.1 | Pending | — |
+| DSH-04 | 136.1 | Pending | — |
 | DSH-05 | 135 | — | — |
 | DSH-06 | 135 | — | — |
-| MON-01 | 136 | — | — |
-| MON-02 | 136 | — | — |
+| MON-01 | 136.1 | Pending | — |
+| MON-02 | 136.1 | Pending | — |
 | MON-03 | 136 | — | — |
 | MON-04 | 136 | — | — |
 | MON-05 | 136 | — | — |
