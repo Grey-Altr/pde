@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { StatusBadge } from '@/components/status-badge';
 import type { SessionListItem } from '@/lib/queries';
 
@@ -29,7 +30,14 @@ export function SessionCard({ session }: SessionCardProps) {
       <Card className="w-full">
         <CardContent className="py-3">
           <div className="flex items-center justify-between">
-            <StatusBadge status={session.status} />
+            <div className="flex items-center gap-2">
+              <StatusBadge status={session.status} />
+              {session.pendingApprovalId && (
+                <Badge variant="secondary" className="bg-amber-500/20 text-amber-600 border-amber-500/30 text-xs">
+                  Approval
+                </Badge>
+              )}
+            </div>
             <span className="font-mono text-sm text-muted-foreground">
               {formatElapsed(session.startedAt, session.status)}
             </span>

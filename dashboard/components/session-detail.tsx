@@ -6,9 +6,11 @@ import { StatusBadge } from '@/components/status-badge';
 import { PhaseProgress } from '@/components/phase-progress';
 import { CostMeter } from '@/components/cost-meter';
 import { EventLog } from '@/components/event-log';
+import { findPendingApproval } from '@/lib/queries';
 import type { SessionListItem } from '@/lib/queries';
 import type { ConnectionStatus } from '@/hooks/use-event-stream';
 import type { WireEnvelope } from '@/lib/wire-schema';
+import { ApprovalCard } from '@/components/approval-card';
 
 interface SessionDetailProps {
   session: SessionListItem;
@@ -25,6 +27,8 @@ function formatDuration(startedAt: number): string {
 }
 
 export function SessionDetail({ session, connectionStatus, events }: SessionDetailProps) {
+  const pendingApproval = findPendingApproval(events);
+
   return (
     <div className="space-y-4">
       {/* Status header card */}
@@ -48,6 +52,14 @@ export function SessionDetail({ session, connectionStatus, events }: SessionDeta
           </p>
         </CardContent>
       </Card>
+
+      {/* Approval gate card (APR-01, APR-02) -- appears when approval pending */}
+      {pendingApproval && (
+        <ApprovalCard
+          event={pendingApproval}
+          sessionId={session.id}
+        />
+      )}
 
       {/* Phase progress (MON-01) */}
       <PhaseProgress events={events} connectionStatus={connectionStatus} />
