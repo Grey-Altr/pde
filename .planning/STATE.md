@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.17
 milestone_name: milestone
 status: Ready to plan
-stopped_at: Completed 135-04-PLAN.md — Phase 135 complete
-last_updated: "2026-03-25T16:38:54.146Z"
+stopped_at: Completed 136-02-PLAN.md
+last_updated: "2026-03-25T19:49:07.044Z"
 progress:
   total_phases: 7
-  completed_phases: 3
-  total_plans: 9
-  completed_plans: 9
+  completed_phases: 4
+  total_plans: 11
+  completed_plans: 11
 ---
 
 # Project State
@@ -19,11 +19,11 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 135 — dashboard-scaffold-and-event-ingestion
+**Current focus:** Phase 136 — core-dashboard-features
 
 ## Current Position
 
-Phase: 136
+Phase: 137
 Plan: Not started
 
 ## Performance Metrics
@@ -69,6 +69,10 @@ Recent decisions affecting current work:
 - [Phase 135]: Event deduplication uses seq field; live events merged with initial events, sorted newest-first, capped at 10
 - [Phase 135]: Session detail split into server+client components for initial data fetch + live updates via useEventStream
 - [Phase 135]: Event deduplication uses seq field; live events merged with initial events, sorted newest-first, capped at 10
+- [Phase 136-01]: TDD RED/GREEN discipline maintained — tests written and confirmed failing before implementation
+- [Phase 136-01]: deriveCost uses Sonnet 4.5 pricing ($3/M input, $15/M output) as the cost estimate basis
+- [Phase 136-01]: EVENT_FILTER_GROUPS uses as const for exhaustive type inference on FilterGroup
+- [Phase 136]: Progress value=null for indeterminate state — Base UI ProgressPrimitive.Root.Props requires value; null signals indeterminate mode
 
 ### Pending Todos
 
@@ -84,7 +88,7 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-25T16:31:52.908Z
-Stopped at: Completed 135-04-PLAN.md — Phase 135 complete
+Last session: 2026-03-25T19:42:12.948Z
+Stopped at: Completed 136-02-PLAN.md
 Resume with: /gsd:plan-phase 134
 Resume file: None

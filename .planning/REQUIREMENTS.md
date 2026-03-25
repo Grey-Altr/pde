@@ -19,11 +19,11 @@
 
 ## Monitoring
 
-- [ ] **MON-01**: Phase progress display shows nested hierarchy (phase → plan → wave) with progress indicators
-- [ ] **MON-02**: Token/cost meter shows running session total visible at a glance, updated in near-real-time
-- [ ] **MON-03**: Live event log streams events with type filtering (tool calls, agent activity, phase transitions, errors)
-- [ ] **MON-04**: Auto-reconnection with visual feedback ("reconnecting..." state) when SSE/polling connection drops
-- [ ] **MON-05**: All monitoring views are mobile-responsive with card-based layout and touch targets >= 44px
+- [x] **MON-01**: Phase progress display shows nested hierarchy (phase → plan → wave) with progress indicators
+- [x] **MON-02**: Token/cost meter shows running session total visible at a glance, updated in near-real-time
+- [x] **MON-03**: Live event log streams events with type filtering (tool calls, agent activity, phase transitions, errors)
+- [x] **MON-04**: Auto-reconnection with visual feedback ("reconnecting..." state) when SSE/polling connection drops
+- [x] **MON-05**: All monitoring views are mobile-responsive with card-based layout and touch targets >= 44px
 
 ## Approval Gates
 

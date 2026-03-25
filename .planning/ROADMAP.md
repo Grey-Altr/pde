@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 134: Relay Protocol and Transport Module** - PDE relay daemon tails NDJSON and pushes batched events to cloud via HTTP (completed 2026-03-25)
 - [x] **Phase 134.1: Session ID Fix & Phase 134 Tech Debt** - Fix session ID namespace mismatch blocking production relay, clean up Phase 134 artifacts (INSERTED — gap closure) (completed 2026-03-25)
 - [x] **Phase 135: Dashboard Scaffold and Event Ingestion** - Next.js app receives events, stores in Redis, delivers to browser, with auth (completed 2026-03-25)
-- [ ] **Phase 136: Core Dashboard Features** - Phase progress, cost meter, event log, mobile layout, auto-reconnection
+- [x] **Phase 136: Core Dashboard Features** - Phase progress, cost meter, event log, mobile layout, auto-reconnection (completed 2026-03-25)
 - [ ] **Phase 137: Approval Gates** - Bidirectional approval flow from dashboard to PDE with TOCTOU-safe protocol
 - [ ] **Phase 138: PWA and Push Notifications** - Installable PWA with service worker, Web Push, and offline shell
 - [ ] **Phase 139: Production Hardening** - Rate limiting, TTL, downsampling, garbage collection, buffer caps
@@ -84,7 +84,7 @@ Plans:
   5. All monitoring views render correctly on mobile with card-based layout and touch targets at least 44px
 **Plans**: 2 plans
 Plans:
-- [ ] 136-01-PLAN.md -- Install shadcn deps, create pure lib functions (deriveProgress, deriveCost, filterEvents) with unit tests (MON-01, MON-02, MON-03)
+- [x] 136-01-PLAN.md -- Install shadcn deps, create pure lib functions (deriveProgress, deriveCost, filterEvents) with unit tests (MON-01, MON-02, MON-03)
 - [ ] 136-02-PLAN.md -- Build PhaseProgress, CostMeter, expanded EventLog components, wire into SessionDetail, fix field name bug, visual verification (MON-01, MON-02, MON-03, MON-04, MON-05)
 **UI hint**: yes
 
@@ -135,7 +135,7 @@ Phases execute in numeric order: 134 -> 134.1 -> 134.2 -> 135 -> ...
 | 134. Relay Protocol and Transport Module | 2/3 | Complete    | 2026-03-25 |
 | 134.1. Session ID Fix & Phase 134 Tech Debt | 1/2 | Complete    | 2026-03-25 |
 | 135. Dashboard Scaffold and Event Ingestion | 4/4 | Complete    | 2026-03-25 |
-| 136. Core Dashboard Features | 0/2 | Not started | - |
+| 136. Core Dashboard Features | 1/2 | Complete    | 2026-03-25 |
 | 137. Approval Gates | 0/TBD | Not started | - |
 | 138. PWA and Push Notifications | 0/TBD | Not started | - |
 | 139. Production Hardening | 0/TBD | Not started | - |
