@@ -57,8 +57,8 @@ export async function getSessionMeta(sessionId: string): Promise<SessionListItem
   return {
     id: sessionId,
     status: deriveStatus(lastEventType, lastEventTs),
-    phase: raw.phase_name ?? '',
-    plan: raw.plan_name ?? '',
+    phase: raw.phase ?? '',
+    plan: raw.plan ?? '',
     lastEventType,
     lastEventTs,
     startedAt,
