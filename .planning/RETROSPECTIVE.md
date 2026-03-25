@@ -551,6 +551,50 @@ Google Stitch AI UI design tool fully integrated into PDE's 13-stage design pipe
 
 ---
 
+## Milestone: v0.16 — Multi-Editor Context Sync
+
+**Shipped:** 2026-03-24
+**Phases:** 8 (126-133) | **Plans:** 15 | **Commits:** 48
+
+### What Was Built
+- Atomic sync state file infrastructure (writeStateFile/readStateFile) with PID-based tmp, schema v1.0, forward-compat guard
+- Reverse parsers for all 3 editor formats: parseMdcContent (Cursor), parseSkillMd + parseDesignMd (Antigravity)
+- 3-way field-level merge engine (mergePartialIR) with planning-wins default, per-field policies, NDJSON conflict log
+- Hook-driven bidirectional sync: PostToolUse mtime scanning, SessionStart reconciliation, 500ms grace + 200ms debounce
+- Antigravity write-back: hex-to-OKLCH color conversion, AGENT-ADDITIONS marker preservation, pde-format-version header
+- MCP write tools (--enable-writes gate): updateConstraints, updateTechStack, appendContextNote, flagDivergence with NDJSON audit
+- Sync audit trail (SYNC-LOG.md), pre-write snapshots with 30-day cleanup, sync-status/sync-rollback CLI subcommands
+- DESIGN.md write-back integration: colorListToArray format adapter bridging parseDesignMd output to writeBackDesignTokens input
+
+### What Worked
+- **Foundation-first phase sequencing** — state file (126) then parsers (127) then merge (128) then hooks (129) then write-back (130-133) — each layer had solid tests before the next consumed it
+- **3-way merge as core primitive** — investing in a proper merge engine early (Phase 128) made every subsequent integration phase simpler; field-level policies gave fine-grained control
+- **TDD with Nyquist compliance** — every phase shipped with structural tests; round-trip assertions caught format regressions immediately
+- **Loop prevention before watchers** — shipping computeLoopBreak in Phase 126 (before any watcher code) prevented infinite sync loops that would have been hard to debug
+
+### What Was Inefficient
+- **STATE.md milestone label drift** — frontmatter still says "v1.0" from a prior milestone; the body references v0.16 correctly but automated tooling reads the wrong milestone
+- **SUMMARY.md one-liner extraction** — many summaries have empty "One-liner:" fields, causing MILESTONES.md to record "(none)" entries; frontmatter discipline needs enforcement
+- **Phase 133 as late discovery** — the AGR-03 integration gap (DESIGN.md write-back not wired into reconcileOnStart/ingestAll) was caught by the milestone audit, not during Phase 130 planning; could have been part of 130 with better cross-phase dependency tracing
+
+### Patterns Established
+- **Canonical direction: .planning/ -> editors** — editors are derived views; reverse sync merges back but never overwrites planning state
+- **Hash-based loop breaking** — PDE_HASH_RE derived from makeHeader() output ensures loop detection auto-syncs with header format changes
+- **AGENT-ADDITIONS marker pattern** — Antigravity agents can write below the marker; PDE preserves their content across regeneration cycles
+- **Value-only DTCG write-back** — update $value fields only, preserve all other DTCG metadata (description, type, extensions)
+
+### Key Lessons
+- Wire integration paths during the phase that creates the producer, not in a later cleanup phase — AGR-03 gap would have been avoided if Phase 130 (writeBackDesignTokens) had included the ingestAll/reconcileOnStart call sites
+- Format adapters (colorListToArray) are a sign of parser output mismatch — normalize parser output shapes earlier to avoid bridge functions
+- Milestone audit is essential but shouldn't be the primary gap-discovery mechanism — cross-phase integration checks at plan time catch more
+
+### Cost Observations
+- Sessions: ~4 (single-day execution)
+- Model mix: primarily Opus for execution, Sonnet for research agents
+- Notable: 8 phases in one day with zero gap-closure phases — tightest milestone execution to date
+
+---
+
 ## Cross-Milestone Trends
 
 ### Process Evolution
@@ -572,6 +616,7 @@ Google Stitch AI UI design tool fully integrated into PDE's 13-stage design pipe
 | v0.13 | ~80 | 9 | AutoResearch — safety boundaries, experiment schema, mutation agent, circuit breakers |
 | v0.14 | ~100 | 10 | Visual AutoResearch — Playwright MCP, screenshot capture, visual metrics, meta-optimization |
 | v0.15 | ~40 | 8 | Multi-Editor Integration — context sync, MCP server, divergence detection, artifact formatting |
+| v0.16 | 48 | 8 | Context Sync — bidirectional sync, 3-way merge, loop prevention, Antigravity write-back, MCP writes |
 
 ### Cumulative Quality
 
@@ -592,3 +637,4 @@ Google Stitch AI UI design tool fully integrated into PDE's 13-stage design pipe
 | v0.13 | 36/36 | 100% | 0 | — |
 | v0.14 | 78/78 | 100% | 0 | 441+ |
 | v0.15 | 25/25 | 100% | 1 (phase 125, gap closure) | 162 (8 suites) |
+| v0.16 | 26/26 | 100% | 1 (phase 133, AGR-03 gap) | 6/8 compliant, 2 partial |
