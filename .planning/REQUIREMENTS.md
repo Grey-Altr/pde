@@ -3,10 +3,10 @@
 ## Transport & Relay
 
 - [ ] **RLY-01**: PDE relay daemon tails local NDJSON files and batches events into HTTP POST calls to the dashboard ingest endpoint using only `node:https` (zero npm deps)
-- [ ] **RLY-02**: Event wire protocol includes envelope with sequence number, session_id, machine_id, timestamp, and approval_id fields validated by zod schema
-- [ ] **RLY-03**: Relay daemon includes circuit breaker that stops pushing after N consecutive failures and auto-recovers after cooldown period
-- [ ] **RLY-04**: Relay is gated behind `PDE_REMOTE` environment variable — disabled by default, existing local-only flow unchanged
-- [ ] **RLY-05**: Relay failures are fully swallowed — PDE session never blocks, slows, or errors due to relay issues
+- [x] **RLY-02**: Event wire protocol includes envelope with sequence number, session_id, machine_id, timestamp, and approval_id fields validated by zod schema
+- [x] **RLY-03**: Relay daemon includes circuit breaker that stops pushing after N consecutive failures and auto-recovers after cooldown period
+- [x] **RLY-04**: Relay is gated behind `PDE_REMOTE` environment variable — disabled by default, existing local-only flow unchanged
+- [x] **RLY-05**: Relay failures are fully swallowed — PDE session never blocks, slows, or errors due to relay issues
 
 ## Dashboard Core
 
@@ -72,7 +72,7 @@
 
 | REQ-ID | Phase | Plan | Verified |
 |--------|-------|------|----------|
-| RLY-01 | 134 | — | — |
+| RLY-01 | 134.1 | Pending | — |
 | RLY-02 | 134 | — | — |
 | RLY-03 | 134 | — | — |
 | RLY-04 | 134 | — | — |

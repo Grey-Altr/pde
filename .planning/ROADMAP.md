@@ -13,6 +13,7 @@ Transform PDE from a local-only CLI tool into a remotely monitorable platform. A
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 134: Relay Protocol and Transport Module** - PDE relay daemon tails NDJSON and pushes batched events to cloud via HTTP (completed 2026-03-25)
+- [ ] **Phase 134.1: Session ID Fix & Phase 134 Tech Debt** - Fix session ID namespace mismatch blocking production relay, clean up Phase 134 artifacts (INSERTED — gap closure)
 - [ ] **Phase 135: Dashboard Scaffold and Event Ingestion** - Next.js app receives events, stores in Redis, delivers to browser, with auth
 - [ ] **Phase 136: Core Dashboard Features** - Phase progress, cost meter, event log, mobile layout, auto-reconnection
 - [ ] **Phase 137: Approval Gates** - Bidirectional approval flow from dashboard to PDE with TOCTOU-safe protocol
@@ -36,6 +37,19 @@ Plans:
 - [x] 134-01-PLAN.md -- Vitest setup + wire protocol zod schema + protocol unit tests (RLY-02)
 - [x] 134-02-PLAN.md -- Core relay module: TailCursor, BatchQueue, CircuitBreaker, HTTP transport (RLY-01, RLY-03)
 - [ ] 134-03-PLAN.md -- Hook integration, PDE_REMOTE env gate, zero-impact isolation, e2e test (RLY-04, RLY-05)
+
+### Phase 134.1: Session ID Fix & Phase 134 Tech Debt
+**Goal**: Fix session ID namespace mismatch that blocks production relay, and clean up Phase 134 artifact gaps
+**Depends on**: Phase 134
+**Requirements**: RLY-01 (re-verify after fix)
+**Gap Closure**: Closes critical integration gap from v0.17 milestone audit
+**Success Criteria** (what must be TRUE):
+  1. start-relay.cjs and event-bus.cjs use the same session ID source — relay tails the correct NDJSON file in production
+  2. Integration tests exercise the hook spawn path (not just direct startRelay() calls) to catch namespace mismatches
+  3. SUMMARY frontmatter for Plans 02 and 03 includes requirements-completed field
+  4. ROADMAP.md Plan 03 checkbox reflects completed status
+  5. REQUIREMENTS.md traceability table has correct Plan and Verified columns for Phase 134 requirements
+**Plans**: TBD
 
 ### Phase 135: Dashboard Scaffold and Event Ingestion
 **Goal**: Users can open a deployed web dashboard, authenticate, and see live session data flowing from their PDE instance
@@ -108,6 +122,7 @@ Phases execute in numeric order: 134 -> 134.1 -> 134.2 -> 135 -> ...
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 134. Relay Protocol and Transport Module | 2/3 | Complete    | 2026-03-25 |
+| 134.1. Session ID Fix & Phase 134 Tech Debt | 0/TBD | Not started | - |
 | 135. Dashboard Scaffold and Event Ingestion | 0/TBD | Not started | - |
 | 136. Core Dashboard Features | 0/TBD | Not started | - |
 | 137. Approval Gates | 0/TBD | Not started | - |
