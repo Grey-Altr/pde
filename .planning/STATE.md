@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.17
 milestone_name: milestone
 status: Ready to plan
-stopped_at: Completed 136.1-02-PLAN.md
-last_updated: "2026-03-25T20:56:21.673Z"
+stopped_at: Completed 136.2-02-PLAN.md
+last_updated: "2026-03-25T21:45:13.556Z"
 progress:
-  total_phases: 8
-  completed_phases: 5
-  total_plans: 13
-  completed_plans: 13
+  total_phases: 9
+  completed_phases: 6
+  total_plans: 15
+  completed_plans: 15
 ---
 
 # Project State
@@ -19,7 +19,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 136.1 — extensions-path-fix-token-event-source
+**Current focus:** Phase 136.2 — documentation-tech-debt-nyquist-compliance
 
 ## Current Position
 
@@ -77,6 +77,9 @@ Recent decisions affecting current work:
 - [Phase 136.1]: Use plan_id as fallback display when plan_name absent — plan_started only emits plan_id
 - [Phase 136.1]: SubagentStop emits token_usage event by reading agent_transcript_path JSONL; all errors swallowed to protect hook exit code
 - [Phase 136.1]: requirements-completed field added to SUMMARY frontmatter separately from requirements_satisfied — both now present, frontmatter field is the canonical machine-readable source
+- [Phase 136.2]: ROADMAP 136-02 and 136.1-02 checkboxes were already [x] — research confirmed pre-execution
+- [Phase 136.2]: requirements-completed (hyphen) is canonical frontmatter field; REQUIREMENTS.md traceability uses SUMMARY evidence as Verified basis
+- [Phase 136.2]: 135-05-01 row removed from VALIDATION — Plan 05 never existed; DSH-05 is manual-only (Clerk OAuth redirect)
 
 ### Pending Todos
 
@@ -92,7 +95,7 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-25T20:51:00.190Z
-Stopped at: Completed 136.1-02-PLAN.md
+Last session: 2026-03-25T21:40:16.381Z
+Stopped at: Completed 136.2-02-PLAN.md
 Resume with: /gsd:plan-phase 134
 Resume file: None
