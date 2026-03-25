@@ -12,7 +12,7 @@ export default async function SessionDetailPage({ params }: PageProps) {
   const session = await getSessionMeta(id);
   if (!session) notFound();
 
-  const initialEvents = await getRecentEvents(id, 10);
+  const initialEvents = await getRecentEvents(id, 50);
 
   return (
     <SessionDetailClient
