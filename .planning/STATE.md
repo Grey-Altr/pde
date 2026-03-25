@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.17
 milestone_name: milestone
-status: Ready to plan
-stopped_at: Completed 136-02-PLAN.md
-last_updated: "2026-03-25T19:49:07.044Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 136.1-02-PLAN.md
+last_updated: "2026-03-25T20:51:00.194Z"
 progress:
-  total_phases: 7
+  total_phases: 8
   completed_phases: 4
-  total_plans: 11
-  completed_plans: 11
+  total_plans: 13
+  completed_plans: 12
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 136 — core-dashboard-features
+**Current focus:** Phase 136.1 — extensions-path-fix-token-event-source
 
 ## Current Position
 
-Phase: 137
-Plan: Not started
+Phase: 136.1 (extensions-path-fix-token-event-source) — EXECUTING
+Plan: 2 of 2
 
 ## Performance Metrics
 
@@ -73,6 +73,10 @@ Recent decisions affecting current work:
 - [Phase 136-01]: deriveCost uses Sonnet 4.5 pricing ($3/M input, $15/M output) as the cost estimate basis
 - [Phase 136-01]: EVENT_FILTER_GROUPS uses as const for exhaustive type inference on FilterGroup
 - [Phase 136]: Progress value=null for indeterminate state — Base UI ProgressPrimitive.Root.Props requires value; null signals indeterminate mode
+- [Phase 136.1]: Read phase_name/plan_name from top-level wire envelope via Record<string,unknown> cast — extensions sub-object is always empty
+- [Phase 136.1]: Use plan_id as fallback display when plan_name absent — plan_started only emits plan_id
+- [Phase 136.1]: SubagentStop emits token_usage event by reading agent_transcript_path JSONL; all errors swallowed to protect hook exit code
+- [Phase 136.1]: requirements-completed field added to SUMMARY frontmatter separately from requirements_satisfied — both now present, frontmatter field is the canonical machine-readable source
 
 ### Pending Todos
 
@@ -88,7 +92,7 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-25T19:42:12.948Z
-Stopped at: Completed 136-02-PLAN.md
+Last session: 2026-03-25T20:51:00.190Z
+Stopped at: Completed 136.1-02-PLAN.md
 Resume with: /gsd:plan-phase 134
 Resume file: None

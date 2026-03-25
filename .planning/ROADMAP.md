@@ -101,7 +101,7 @@ Plans:
   4. SUMMARY frontmatter gaps filled, REQUIREMENTS.md traceability table updated, ROADMAP plan counts corrected
 **Plans**: 2 plans
 Plans:
-- [ ] 136.1-01-PLAN.md -- Fix extensions path + token_usage emission + tests (DSH-03, DSH-04, MON-01, MON-02)
+- [x] 136.1-01-PLAN.md -- Fix extensions path + token_usage emission + tests (DSH-03, DSH-04, MON-01, MON-02)
 - [ ] 136.1-02-PLAN.md -- Documentation tech debt: SUMMARY frontmatter, ROADMAP, REQUIREMENTS (DSH-03, DSH-04, MON-01, MON-02)
 
 ### Phase 137: Approval Gates
@@ -152,7 +152,7 @@ Phases execute in numeric order: 134 -> 134.1 -> 134.2 -> 135 -> ...
 | 134.1. Session ID Fix & Phase 134 Tech Debt | 2/2 | Complete    | 2026-03-25 |
 | 135. Dashboard Scaffold and Event Ingestion | 4/4 | Complete    | 2026-03-25 |
 | 136. Core Dashboard Features | 2/2 | Complete    | 2026-03-25 |
-| 136.1. Extensions Path Fix & Token Event Source | 0/2 | Not started | - |
+| 136.1. Extensions Path Fix & Token Event Source | 1/2 | In Progress|  |
 | 137. Approval Gates | 0/TBD | Not started | - |
 | 138. PWA and Push Notifications | 0/TBD | Not started | - |
 | 139. Production Hardening | 0/TBD | Not started | - |
