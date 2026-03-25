@@ -3,6 +3,7 @@ phase: 134-relay-protocol-transport
 plan: "03"
 subsystem: relay
 tags: [hooks, relay, daemon, pde-remote, zero-impact, e2e, circuit-breaker]
+requirements-completed: [RLY-04, RLY-05]
 dependency_graph:
   requires: [134-01, 134-02]
   provides: [RLY-04, RLY-05, relay-hook-integration, relay-e2e-pipeline]

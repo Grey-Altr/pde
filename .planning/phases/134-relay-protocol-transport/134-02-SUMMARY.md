@@ -3,6 +3,7 @@ phase: 134-relay-protocol-transport
 plan: "02"
 subsystem: relay
 tags: [relay, file-tailing, circuit-breaker, batch-queue, http-transport, rly-01, rly-02, rly-03]
+requirements-completed: [RLY-01, RLY-03]
 dependency_graph:
   requires: [134-01]
   provides: [bin/lib/relay.cjs]
