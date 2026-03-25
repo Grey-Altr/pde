@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v0.17
 milestone_name: milestone
 status: Ready to plan
-stopped_at: Completed 136.2-02-PLAN.md
-last_updated: "2026-03-25T22:32:35.275Z"
+stopped_at: Phase 137 context gathered
+last_updated: "2026-03-25T22:36:48.991Z"
 progress:
   total_phases: 10
   completed_phases: 7
@@ -95,7 +95,7 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-25T22:30:00.000Z
-Stopped at: Phase 136.3 complete, ready to plan Phase 137
+Last session: 2026-03-25T22:36:48.987Z
+Stopped at: Phase 137 context gathered
 Resume with: /gsd:discuss-phase 137
-Resume file: None
+Resume file: .planning/phases/137-approval-gates/137-CONTEXT.md
