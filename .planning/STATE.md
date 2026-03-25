@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v0.17
 milestone_name: milestone
-status: Ready to execute
-stopped_at: "135-04 checkpoint:human-verify (Tasks 1-2 complete)"
-last_updated: "2026-03-25T16:29:06.707Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 135-04-PLAN.md — Phase 135 complete
+last_updated: "2026-03-25T16:31:52.911Z"
 progress:
   total_phases: 7
   completed_phases: 3
@@ -67,6 +67,8 @@ Recent decisions affecting current work:
 - [Phase 135]: SSE error fallback after 2 consecutive onerror events to tolerate transient network blips
 - [Phase 135]: Session detail split into server+client components for initial data fetch + live updates via useEventStream
 - [Phase 135]: Event deduplication uses seq field; live events merged with initial events, sorted newest-first, capped at 10
+- [Phase 135]: Session detail split into server+client components for initial data fetch + live updates via useEventStream
+- [Phase 135]: Event deduplication uses seq field; live events merged with initial events, sorted newest-first, capped at 10
 
 ### Pending Todos
 
@@ -82,7 +84,7 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-25T16:29:00.892Z
-Stopped at: 135-04 checkpoint:human-verify (Tasks 1-2 complete)
+Last session: 2026-03-25T16:31:52.908Z
+Stopped at: Completed 135-04-PLAN.md — Phase 135 complete
 Resume with: /gsd:plan-phase 134
 Resume file: None
