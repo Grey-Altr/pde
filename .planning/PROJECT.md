@@ -324,4 +324,4 @@ This document evolves at phase transitions and milestone boundaries.
 3. Audit Out of Scope — reasons still valid?
 4. Update Context with current state
 
-*Last updated: 2026-03-24 — Milestone v0.17 Remote Dashboard started.*
+*Last updated: 2026-03-25 — Phase 136.1 complete: extensions path fix + token event source (gap closure).*
