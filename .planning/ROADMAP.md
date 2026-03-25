@@ -64,7 +64,12 @@ Plans:
   3. Dashboard home page shows a list of sessions with status badges (active/idle/error/complete) and current phase name
   4. Clicking a session shows a live status card with current phase, plan, agent activity, and elapsed time
   5. Only the authenticated PDE owner can access the dashboard (Clerk), and only authenticated relay can push events (Bearer token)
-**Plans**: TBD
+**Plans**: 4 plans
+Plans:
+- [ ] 135-01-PLAN.md -- Next.js 16 scaffold, dependencies, Clerk auth, shadcn/ui, Geist fonts, shared libs, vitest (DSH-01, DSH-05)
+- [ ] 135-02-PLAN.md -- /api/ingest POST endpoint with Bearer auth, zod validation, Redis pipeline (DSH-01, DSH-06)
+- [ ] 135-03-PLAN.md -- SSE streaming endpoint, polling fallback, useEventStream client hook (DSH-02)
+- [ ] 135-04-PLAN.md -- Session list page, session detail page, custom components, visual verification (DSH-03, DSH-04)
 **UI hint**: yes
 
 ### Phase 136: Core Dashboard Features
@@ -126,7 +131,7 @@ Phases execute in numeric order: 134 -> 134.1 -> 134.2 -> 135 -> ...
 |-------|----------------|--------|-----------|
 | 134. Relay Protocol and Transport Module | 2/3 | Complete    | 2026-03-25 |
 | 134.1. Session ID Fix & Phase 134 Tech Debt | 1/2 | Complete    | 2026-03-25 |
-| 135. Dashboard Scaffold and Event Ingestion | 0/TBD | Not started | - |
+| 135. Dashboard Scaffold and Event Ingestion | 0/4 | Not started | - |
 | 136. Core Dashboard Features | 0/TBD | Not started | - |
 | 137. Approval Gates | 0/TBD | Not started | - |
 | 138. PWA and Push Notifications | 0/TBD | Not started | - |
