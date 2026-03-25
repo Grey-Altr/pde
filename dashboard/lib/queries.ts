@@ -11,6 +11,26 @@ export interface SessionListItem {
   lastEventType: string;
   lastEventTs: number;
   startedAt: number;
+  pendingApprovalId: string | null;  // non-null when approval pending
+}
+
+/**
+ * Returns the first approval_request event whose approval_id is not matched
+ * by any approval_response in the events array. Order-independent (Set-based).
+ */
+export function findPendingApproval(events: WireEnvelope[]): WireEnvelope | null {
+  const respondedIds = new Set<string>();
+  for (const ev of events) {
+    if (ev.event_type === 'approval_response' && ev.approval_id) {
+      respondedIds.add(ev.approval_id);
+    }
+  }
+  for (const ev of events) {
+    if (ev.event_type === 'approval_request' && ev.approval_id && !respondedIds.has(ev.approval_id)) {
+      return ev;
+    }
+  }
+  return null;
 }
 
 export async function getSessions(): Promise<SessionListItem[]> {
@@ -41,6 +61,7 @@ export async function getSessions(): Promise<SessionListItem[]> {
       lastEventType,
       lastEventTs,
       startedAt,
+      pendingApprovalId: raw.pending_approval_id ?? null,
     });
   }
   return sessions;
@@ -62,6 +83,7 @@ export async function getSessionMeta(sessionId: string): Promise<SessionListItem
     lastEventType,
     lastEventTs,
     startedAt,
+    pendingApprovalId: raw.pending_approval_id ?? null,
   };
 }
 
