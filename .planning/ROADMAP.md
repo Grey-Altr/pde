@@ -18,6 +18,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 136: Core Dashboard Features** - Phase progress, cost meter, event log, mobile layout, auto-reconnection (completed 2026-03-25)
 - [x] **Phase 136.1: Extensions Path Fix & Token Event Source** - Fix extensions field path mismatch and add token usage event emission (INSERTED — gap closure) (completed 2026-03-25)
 - [x] **Phase 136.2: Documentation Tech Debt & Nyquist Compliance** - Fix ROADMAP checkboxes, SUMMARY frontmatter gaps, REQUIREMENTS traceability, and Nyquist validation for phases 134.1 and 135 (INSERTED — gap closure) (completed 2026-03-25)
+- [ ] **Phase 136.3: Final Documentation & Filter Cleanup** - Close remaining traceability gaps and add token_usage to EventLog filter (INSERTED — gap closure)
 - [ ] **Phase 137: Approval Gates** - Bidirectional approval flow from dashboard to PDE with TOCTOU-safe protocol
 - [ ] **Phase 138: PWA and Push Notifications** - Installable PWA with service worker, Web Push, and offline shell
 - [ ] **Phase 139: Production Hardening** - Rate limiting, TTL, downsampling, garbage collection, buffer caps
@@ -117,8 +118,20 @@ Plans:
   5. Phase 135 Nyquist VALIDATION.md is compliant (nyquist_compliant: true)
 **Plans**: 2 plans
 Plans:
-- [ ] 136.2-01-PLAN.md -- ROADMAP checkboxes, SUMMARY field name fix, REQUIREMENTS traceability (SC-1, SC-2, SC-3)
-- [ ] 136.2-02-PLAN.md -- Nyquist VALIDATION compliance for phases 134.1 and 135 (SC-4, SC-5)
+- [x] 136.2-01-PLAN.md -- ROADMAP checkboxes, SUMMARY field name fix, REQUIREMENTS traceability (SC-1, SC-2, SC-3)
+- [x] 136.2-02-PLAN.md -- Nyquist VALIDATION compliance for phases 134.1 and 135 (SC-4, SC-5)
+
+### Phase 136.3: Final Documentation & Filter Cleanup
+**Goal**: Close remaining documentation traceability gaps and add token_usage to EventLog filter taxonomy
+**Depends on**: Phase 136.2
+**Gap Closure**: Closes tech debt from v0.17 milestone audit (INT-01 + documentation gaps)
+**Success Criteria** (what must be TRUE):
+  1. REQUIREMENTS.md traceability table: DSH-02 has Plan=135-03, Verified=Yes; DSH-03, DSH-04, MON-01, MON-02 have Verified=Yes; RLY-01 has Verified=Yes
+  2. 134-01-SUMMARY.md and 135-01-SUMMARY.md have requirements-completed in YAML frontmatter block (between --- delimiters), not buried in file body
+  3. ROADMAP.md Phase 136.2 top-level checkbox is [x], plan checkboxes are [x], progress table shows 2/2 Complete
+  4. 136.2-VALIDATION.md has nyquist_compliant: true
+  5. EVENT_FILTER_GROUPS in dashboard/lib/event-types.ts includes token_usage in a named filter tab
+**Plans**: TBD
 
 ### Phase 137: Approval Gates
 **Goal**: Users can receive, review, and respond to PDE approval requests from their phone with cryptographic safety guarantees
@@ -169,7 +182,8 @@ Phases execute in numeric order: 134 -> 134.1 -> 134.2 -> 135 -> ...
 | 135. Dashboard Scaffold and Event Ingestion | 4/4 | Complete    | 2026-03-25 |
 | 136. Core Dashboard Features | 2/2 | Complete    | 2026-03-25 |
 | 136.1. Extensions Path Fix & Token Event Source | 2/2 | Complete    | 2026-03-25 |
-| 136.2. Documentation Tech Debt & Nyquist Compliance | 0/2 | Complete    | 2026-03-25 |
+| 136.2. Documentation Tech Debt & Nyquist Compliance | 2/2 | Complete    | 2026-03-25 |
+| 136.3. Final Documentation & Filter Cleanup | 0/TBD | Not started | - |
 | 137. Approval Gates | 0/TBD | Not started | - |
 | 138. PWA and Push Notifications | 0/TBD | Not started | - |
 | 139. Production Hardening | 0/TBD | Not started | - |
