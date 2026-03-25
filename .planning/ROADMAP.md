@@ -16,7 +16,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 134.1: Session ID Fix & Phase 134 Tech Debt** - Fix session ID namespace mismatch blocking production relay, clean up Phase 134 artifacts (INSERTED — gap closure) (completed 2026-03-25)
 - [x] **Phase 135: Dashboard Scaffold and Event Ingestion** - Next.js app receives events, stores in Redis, delivers to browser, with auth (completed 2026-03-25)
 - [x] **Phase 136: Core Dashboard Features** - Phase progress, cost meter, event log, mobile layout, auto-reconnection (completed 2026-03-25)
-- [ ] **Phase 136.1: Extensions Path Fix & Token Event Source** - Fix extensions field path mismatch and add token usage event emission (INSERTED — gap closure)
+- [x] **Phase 136.1: Extensions Path Fix & Token Event Source** - Fix extensions field path mismatch and add token usage event emission (INSERTED — gap closure) (completed 2026-03-25)
 - [ ] **Phase 137: Approval Gates** - Bidirectional approval flow from dashboard to PDE with TOCTOU-safe protocol
 - [ ] **Phase 138: PWA and Push Notifications** - Installable PWA with service worker, Web Push, and offline shell
 - [ ] **Phase 139: Production Hardening** - Rate limiting, TTL, downsampling, garbage collection, buffer caps
@@ -102,7 +102,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 - [x] 136.1-01-PLAN.md -- Fix extensions path + token_usage emission + tests (DSH-03, DSH-04, MON-01, MON-02)
-- [ ] 136.1-02-PLAN.md -- Documentation tech debt: SUMMARY frontmatter, ROADMAP, REQUIREMENTS (DSH-03, DSH-04, MON-01, MON-02)
+- [x] 136.1-02-PLAN.md -- Documentation tech debt: SUMMARY frontmatter, ROADMAP, REQUIREMENTS (DSH-03, DSH-04, MON-01, MON-02)
 
 ### Phase 137: Approval Gates
 **Goal**: Users can receive, review, and respond to PDE approval requests from their phone with cryptographic safety guarantees
@@ -152,7 +152,7 @@ Phases execute in numeric order: 134 -> 134.1 -> 134.2 -> 135 -> ...
 | 134.1. Session ID Fix & Phase 134 Tech Debt | 2/2 | Complete    | 2026-03-25 |
 | 135. Dashboard Scaffold and Event Ingestion | 4/4 | Complete    | 2026-03-25 |
 | 136. Core Dashboard Features | 2/2 | Complete    | 2026-03-25 |
-| 136.1. Extensions Path Fix & Token Event Source | 1/2 | In Progress|  |
+| 136.1. Extensions Path Fix & Token Event Source | 2/2 | Complete    | 2026-03-25 |
 | 137. Approval Gates | 0/TBD | Not started | - |
 | 138. PWA and Push Notifications | 0/TBD | Not started | - |
 | 139. Production Hardening | 0/TBD | Not started | - |
