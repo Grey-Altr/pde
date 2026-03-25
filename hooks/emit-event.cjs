@@ -13,6 +13,7 @@
 
 const { spawnSync } = require('child_process');
 const path = require('path');
+const fs = require('fs');
 
 // Map Claude Code hook event names to PDE event types
 const HOOK_TO_EVENT_TYPE = {
@@ -27,6 +28,24 @@ function toolNameToEventType(toolName) {
   if (toolName === 'Write' || toolName === 'Edit') return 'file_changed';
   if (toolName === 'Bash') return 'bash_called';
   return 'tool_called';
+}
+
+function sumTranscriptTokens(transcriptPath) {
+  let inputTokens = 0;
+  let outputTokens = 0;
+  try {
+    const lines = fs.readFileSync(transcriptPath, 'utf-8').trim().split('\n');
+    for (const line of lines) {
+      try {
+        const obj = JSON.parse(line);
+        if (obj.type === 'assistant' && obj.message && obj.message.usage) {
+          inputTokens  += Number(obj.message.usage.input_tokens  ?? 0);
+          outputTokens += Number(obj.message.usage.output_tokens ?? 0);
+        }
+      } catch { /* skip malformed JSONL line */ }
+    }
+  } catch { /* transcript unreadable — return zeros */ }
+  return { inputTokens, outputTokens };
 }
 
 // Resolve plugin root: use CLAUDE_PLUGIN_ROOT env var, fall back to parent of hooks/ dir
@@ -74,6 +93,19 @@ process.stdin.on('end', () => {
   if (hookName === 'SessionStart') {
     if (hookData.model)  payload.model  = hookData.model;
     if (hookData.source) payload.source = hookData.source;
+  }
+
+  // Emit token_usage event from transcript before main subagent_stop event (MON-02)
+  if (hookName === 'SubagentStop' && hookData.agent_transcript_path) {
+    const { inputTokens, outputTokens } = sumTranscriptTokens(hookData.agent_transcript_path);
+    const tokenPayload = { input_tokens: inputTokens, output_tokens: outputTokens };
+    if (hookData.agent_id) tokenPayload.agent_id = hookData.agent_id;
+    try {
+      spawnSync(process.execPath, [pdeTools, 'event-emit', 'token_usage', JSON.stringify(tokenPayload)], {
+        encoding: 'utf-8',
+        timeout: 5000,
+      });
+    } catch { /* swallow — token event failure must never affect hook exit code */ }
   }
 
   // Call pde-tools.cjs event-emit — synchronous spawnSync with timeout cap
