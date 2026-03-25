@@ -8,9 +8,10 @@ export interface PhaseProgressState {
 export function deriveProgress(events: WireEnvelope[]): PhaseProgressState {
   // events are newest-first; find first event with a non-empty phase name
   for (const ev of events) {
-    const ext = ev.extensions as Record<string, string> | undefined;
-    const phaseName = ext?.phase_name ?? '';
-    const planName = ext?.plan_name ?? '';
+    const payload = ev as Record<string, unknown>;
+    const phaseName = String(payload.phase_name ?? '');
+    const planName  = String(payload.plan_name ?? '') ||
+                      String(payload.plan_id   ?? '');
     if (phaseName) return { phaseName, planName };
   }
   return { phaseName: '', planName: '' };

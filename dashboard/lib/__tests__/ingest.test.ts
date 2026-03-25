@@ -116,6 +116,17 @@ describe('POST /api/ingest', () => {
     expect(body).toEqual({ ok: true, count: 2 });
   });
 
+  it('Test 9: hset stores phase from top-level phase_name field (not extensions)', async () => {
+    const events = [makeValidEnvelope({ phase_name: 'Core Dashboard', plan_name: '02' })];
+    const req = makeRequest(events, { authorization: 'Bearer test-token-123' });
+    await POST(req);
+    const hsetArgs = mockHset.mock.calls[0];
+    expect(hsetArgs[1]).toMatchObject({
+      phase: 'Core Dashboard',
+      plan: '02',
+    });
+  });
+
   it('Test 8: valid batch triggers redis.pipeline() with zadd and hset calls', async () => {
     const events = [makeValidEnvelope()];
     const req = makeRequest(events, { authorization: 'Bearer test-token-123' });

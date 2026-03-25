@@ -45,15 +45,15 @@ export function SessionDetailClient({
 
     const lastEventType = latestEv.event_type;
     const lastEventTs = new Date(latestEv.relay_ts).getTime();
-    const ext = latestEv.extensions as Record<string, string> | undefined;
+    const evPayload = latestEv as Record<string, unknown>;
 
     return {
       ...initialSession,
       lastEventType,
       lastEventTs,
       status: deriveStatus(lastEventType, lastEventTs),
-      phase: ext?.phase_name ?? initialSession.phase,
-      plan: ext?.plan_name ?? initialSession.plan,
+      phase: String(evPayload.phase_name ?? '') || initialSession.phase,
+      plan: (String(evPayload.plan_name ?? '') || String(evPayload.plan_id ?? '')) || initialSession.plan,
     };
   }, [mergedEvents, initialSession]);
 

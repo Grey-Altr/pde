@@ -50,11 +50,12 @@ export async function POST(request: Request): Promise<NextResponse> {
   });
 
   // Update session metadata hash (D-01)
+  const lastEventPayload = lastEvent as Record<string, unknown>;
   p.hset(`pde:default:session:${sessionId}`, {
     last_event_ts: String(Date.now()),
     last_event_type: lastEvent.event_type,
-    phase: String(lastEvent.extensions?.phase_name ?? ''),
-    plan: String(lastEvent.extensions?.plan_name ?? ''),
+    phase: String(lastEventPayload.phase_name ?? ''),
+    plan: String(lastEventPayload.plan_name ?? ''),
     started_at: String(new Date(validatedBatch[0].relay_ts).getTime()),
   });
 
