@@ -23,7 +23,7 @@ Bidirectional approval flow from dashboard to PDE. When PDE requests human appro
 - **D-05:** Response payload includes: `{ approval_id, action: 'approved' | 'denied', responded_at, responder_id }`. PDE validates approval_id matches the original request before accepting.
 
 ### Confirmation UX
-- **D-06:** shadcn/ui AlertDialog for approve/deny — prevents accidental taps (APR-02). Dialog shows approval context (what's being approved, phase, plan), two clear action buttons (Approve green, Deny red), and requires deliberate click/tap.
+- **D-06:** Base UI AlertDialog (`@base-ui/react/alert-dialog`) for approve/deny — prevents accidental taps (APR-02). Dialog shows approval context (what's being approved, phase, plan), two clear action buttons (Approve green, Deny red), and requires deliberate click/tap.
 - **D-07:** Approval action card in session detail view — full-width card with context summary, approve/deny buttons. Card appears at the top of the event stream when an approval is pending.
 - **D-08:** 44px minimum touch targets on approve/deny buttons — consistent with existing mobile-first design (Phase 136 established this pattern).
 
@@ -88,7 +88,7 @@ Bidirectional approval flow from dashboard to PDE. When PDE requests human appro
 - `dashboard/components/event-log.tsx` — Dynamic filter tabs render from Object.keys (new group appears automatically)
 - `dashboard/components/session-detail.tsx` — Session detail view where approval card will be inserted
 - `dashboard/components/status-badge.tsx` — Status badge component (extend with approval-pending state)
-- `dashboard/components/ui/` — shadcn/ui components (AlertDialog available or can be added)
+- `dashboard/components/ui/` — Base UI components (@base-ui/react)
 
 ### Established Patterns
 - SSE-first with polling fallback (3s interval) — approval notifications ride this existing transport
