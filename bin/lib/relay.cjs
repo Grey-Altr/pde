@@ -311,6 +311,49 @@ function postEvents(url, bearerToken, events) {
   });
 }
 
+// ─── getApprovalResponse — HTTP GET for approval polling ─────────────────────
+
+/**
+ * getApprovalResponse — Poll dashboard for approval response.
+ * Zero npm deps — uses node:https/http matching postEvents pattern.
+ * Resolves to parsed JSON on 200, null on any error/non-200.
+ *
+ * @param {string} approvalUrl  — Base URL of /api/approval-response
+ * @param {string} bearerToken  — Bearer token for Authorization header
+ * @param {string} sessionId    — Session UUID
+ * @param {string} approvalId   — Approval UUID to poll for
+ * @returns {Promise<object|null>}
+ */
+function getApprovalResponse(approvalUrl, bearerToken, sessionId, approvalId) {
+  return new Promise((resolve) => {
+    const url = new URL(approvalUrl);
+    url.searchParams.set('session_id', sessionId);
+    url.searchParams.set('approval_id', approvalId);
+    const isHttps = url.protocol === 'https:';
+    const httpMod = isHttps ? https : http;
+    const options = {
+      hostname: url.hostname,
+      port: url.port || (isHttps ? 443 : 80),
+      path: url.pathname + url.search,
+      method: 'GET',
+      headers: { 'Authorization': `Bearer ${bearerToken}` },
+      timeout: 10000,
+    };
+    const req = httpMod.request(options, (res) => {
+      let body = '';
+      res.on('data', (chunk) => { body += chunk; });
+      res.on('end', () => {
+        if (res.statusCode === 200) {
+          try { resolve(JSON.parse(body)); } catch { resolve(null); }
+        } else { resolve(null); }
+      });
+    });
+    req.on('timeout', () => { req.destroy(); resolve(null); });
+    req.on('error', () => resolve(null));
+    req.end();
+  });
+}
+
 // ─── Module-level relay instance ──────────────────────────────────────────────
 
 /** Active relay handle (set by startRelay, cleared by stopRelay) */
@@ -370,6 +413,40 @@ function startRelay(sessionId, opts = {}) {
     },
   });
 
+  // ---- Approval polling (APR-04) ----
+  // Derive approval-response URL from ingest URL:
+  //   'https://example.com/api/ingest' -> 'https://example.com/api/approval-response'
+  const approvalUrl = ingestUrl ? ingestUrl.replace(/\/api\/ingest\/?$/, '/api/approval-response') : '';
+
+  // Map of pending approvals: approval_id -> { sessionId, startedAt }
+  const pendingApprovals = new Map();
+  const APPROVAL_POLL_INTERVAL = 3000;  // 3 seconds
+  const APPROVAL_TIMEOUT = 600000;      // 10 minutes
+
+  // Poll for approval responses
+  const approvalPollTimer = approvalUrl ? setInterval(async () => {
+    for (const [aid, meta] of pendingApprovals.entries()) {
+      // Check timeout (10 minutes)
+      if (Date.now() - meta.startedAt > APPROVAL_TIMEOUT) {
+        pendingApprovals.delete(aid);
+        continue;
+      }
+      const resp = await getApprovalResponse(approvalUrl, bearerToken, meta.sessionId, aid);
+      if (resp) {
+        pendingApprovals.delete(aid);
+        // Write response to stdout as NDJSON for PDE to consume
+        try {
+          process.stdout.write(JSON.stringify({
+            type: 'approval_response',
+            approval_id: aid,
+            action: resp.action,
+            responded_at: resp.responded_at,
+          }) + '\n');
+        } catch { /* swallow — relay errors never surface */ }
+      }
+    }
+  }, APPROVAL_POLL_INTERVAL) : null;
+
   // Tail cursor — parses each line, wraps with createEnvelope, validates, then queues
   const tail = new TailCursor(filePath, (line) => {
     let parsedEvent;
@@ -388,6 +465,14 @@ function startRelay(sessionId, opts = {}) {
 
     // Queue validated envelope for batch transmission
     batchQueue.push(envelope);
+
+    // Track approval requests for polling (APR-04)
+    if (parsedEvent.event_type === 'approval_request' && parsedEvent.approval_id) {
+      pendingApprovals.set(parsedEvent.approval_id, {
+        sessionId,
+        startedAt: Date.now(),
+      });
+    }
   });
 
   tail.start(pollIntervalMs);
@@ -396,6 +481,8 @@ function startRelay(sessionId, opts = {}) {
   const handle = {
     stop() {
       tail.stop();
+      if (approvalPollTimer) clearInterval(approvalPollTimer);
+      pendingApprovals.clear();
       return batchQueue.stop();
     },
   };
@@ -437,4 +524,4 @@ if (require.main === module) {
 
 // ─── Exports ──────────────────────────────────────────────────────────────────
 
-module.exports = { TailCursor, BatchQueue, CircuitBreaker, postEvents, startRelay, stopRelay };
+module.exports = { TailCursor, BatchQueue, CircuitBreaker, postEvents, getApprovalResponse, startRelay, stopRelay };
