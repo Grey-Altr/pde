@@ -147,7 +147,7 @@ Plans:
   5. Approval history log shows past approvals per session with timestamp, action taken, and context
 **Plans**: 3 plans
 Plans:
-- [ ] 137-01-PLAN.md -- Approval data layer: filter taxonomy, detection logic, Redis queries, ingest extension, /api/approval-response (APR-01, APR-03, APR-04, APR-05)
+- [x] 137-01-PLAN.md -- Approval data layer: filter taxonomy, detection logic, Redis queries, ingest extension, /api/approval-response (APR-01, APR-03, APR-04, APR-05)
 - [ ] 137-02-PLAN.md -- ApprovalCard with AlertDialog confirmation, SessionDetail wiring, SessionCard badge, visual verification (APR-01, APR-02, APR-05)
 - [ ] 137-03-PLAN.md -- Relay daemon approval polling: getApprovalResponse HTTP, polling loop, timeout handling (APR-03, APR-04)
 **UI hint**: yes
@@ -190,6 +190,6 @@ Phases execute in numeric order: 134 -> 134.1 -> 134.2 -> 135 -> ...
 | 136.1. Extensions Path Fix & Token Event Source | 2/2 | Complete    | 2026-03-25 |
 | 136.2. Documentation Tech Debt & Nyquist Compliance | 2/2 | Complete    | 2026-03-25 |
 | 136.3. Final Documentation & Filter Cleanup | 1/1 | Complete    | 2026-03-25 |
-| 137. Approval Gates | 0/3 | Not started | - |
+| 137. Approval Gates | 1/3 | In Progress|  |
 | 138. PWA and Push Notifications | 0/TBD | Not started | - |
 | 139. Production Hardening | 0/TBD | Not started | - |
