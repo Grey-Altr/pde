@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.17
 milestone_name: milestone
 status: Ready to execute
-stopped_at: Completed 135-01-PLAN.md
-last_updated: "2026-03-25T16:15:32.640Z"
+stopped_at: Completed 135-03-PLAN.md
+last_updated: "2026-03-25T16:22:36.752Z"
 progress:
   total_phases: 7
   completed_phases: 2
   total_plans: 9
-  completed_plans: 6
+  completed_plans: 7
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-24)
 ## Current Position
 
 Phase: 135 (dashboard-scaffold-and-event-ingestion) — EXECUTING
-Plan: 2 of 4
+Plan: 4 of 4
 
 ## Performance Metrics
 
@@ -62,6 +62,9 @@ Recent decisions affecting current work:
 - [Phase 135]: Inline shadcn/dist/tailwind.css into globals.css — Turbopack cannot resolve CSS @import from node_modules
 - [Phase 135]: Set turbopack.root in next.config.ts to fix multi-lockfile repo workspace detection
 - [Phase 135]: zod v4 z.record() requires two args: z.record(z.string(), z.unknown())
+- [Phase 135]: Ingest batch size capped at 100 events per request (zod .max(100) on BatchSchema)
+- [Phase 135]: zrange with byScore+withScores instead of deprecated zrangebyscore — Upstash SDK v1.37 unified command
+- [Phase 135]: SSE error fallback after 2 consecutive onerror events to tolerate transient network blips
 
 ### Pending Todos
 
@@ -77,7 +80,7 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-25T16:15:32.636Z
-Stopped at: Completed 135-01-PLAN.md
+Last session: 2026-03-25T16:22:36.749Z
+Stopped at: Completed 135-03-PLAN.md
 Resume with: /gsd:plan-phase 134
 Resume file: None

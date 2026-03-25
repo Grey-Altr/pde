@@ -11,11 +11,11 @@
 ## Dashboard Core
 
 - [x] **DSH-01**: Next.js 16 App Router dashboard deployed to Vercel with `/api/ingest` endpoint that validates events with zod and stores in Upstash Redis sorted sets
-- [ ] **DSH-02**: SSE Route Handler delivers events to browser with polling fallback for Vercel serverless timeout, including heartbeat detection and auto-reconnection
+- [x] **DSH-02**: SSE Route Handler delivers events to browser with polling fallback for Vercel serverless timeout, including heartbeat detection and auto-reconnection
 - [ ] **DSH-03**: Dashboard home page shows session list with status badges (active/idle/error/complete) and current phase name
 - [ ] **DSH-04**: Live session status card displays current phase, plan, agent activity, and elapsed time
 - [x] **DSH-05**: Clerk authentication restricts dashboard access to the PDE owner (single-user)
-- [ ] **DSH-06**: Ingest endpoint authenticates PDE relay via Bearer token, rejecting unauthorized event pushes
+- [x] **DSH-06**: Ingest endpoint authenticates PDE relay via Bearer token, rejecting unauthorized event pushes
 
 ## Monitoring
 
