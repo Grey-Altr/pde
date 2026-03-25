@@ -417,6 +417,24 @@ function stopRelay() {
   }
 }
 
+// ─── Daemon mode ──────────────────────────────────────────────────────────────
+
+// Daemon mode: run as standalone process when spawned by start-relay.cjs hook
+if (require.main === module) {
+  const sessionId   = process.argv[2];
+  const ingestUrl   = process.argv[3];
+  const bearerToken = process.argv[4] || '';
+  if (!sessionId || !ingestUrl) {
+    process.exit(1);
+  }
+  // Zero-impact error isolation (RLY-05)
+  process.on('unhandledRejection', () => {});
+  process.on('uncaughtException', () => { process.exit(0); });
+  startRelay(sessionId, { ingestUrl, bearerToken });
+  // Keep process alive until SIGTERM
+  setInterval(() => {}, 60000);
+}
+
 // ─── Exports ──────────────────────────────────────────────────────────────────
 
 module.exports = { TailCursor, BatchQueue, CircuitBreaker, postEvents, startRelay, stopRelay };
