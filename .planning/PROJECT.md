@@ -151,6 +151,11 @@ Any user can go from idea to shipped product through a single platform that hand
 
 ### Active
 
+- ✓ Relay protocol with zod wire envelope schema (seq, session_id, machine_id, relay_ts, approval_id), createEnvelope helper, safeParse validation — v0.17
+- ✓ Core relay module: TailCursor (byte-offset NDJSON tailing), BatchQueue (count/timer flush), CircuitBreaker (3-state failure protection), HTTP POST transport — zero npm deps — v0.17
+- ✓ Hook integration: SessionStart spawns relay daemon when PDE_REMOTE set, SessionEnd kills via PID file, zero-impact error isolation (all failures exit 0) — v0.17
+- ✓ 33 tests across 6 test files (protocol, tail, circuit, batch, hooks, e2e) — v0.17
+
 ## Current Milestone: v0.17 Remote Dashboard
 
 **Goal:** Phone-first PWA that monitors PDE sessions remotely and enables approval gate interaction from anywhere.
