@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import * as AlertDialog from '@base-ui/react/alert-dialog';
+import { AlertDialog } from '@base-ui/react/alert-dialog';
 import { Card, CardContent } from '@/components/ui/card';
 import type { WireEnvelope } from '@/lib/wire-schema';
 
@@ -147,7 +147,7 @@ export function ApprovalCard({ event, sessionId, onResponded }: ApprovalCardProp
 
       <AlertDialog.Root open={open} onOpenChange={setOpen}>
         <AlertDialog.Portal>
-          <AlertDialog.Overlay className="fixed inset-0 bg-black/50 z-50" />
+          <AlertDialog.Backdrop className="fixed inset-0 bg-black/50 z-50" />
           <AlertDialog.Popup className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50 w-[90vw] max-w-md rounded-lg bg-background p-6 shadow-lg">
             <AlertDialog.Title className="text-base font-bold mb-2">
               Confirm {actionLabel}
