@@ -161,6 +161,7 @@ Any user can go from idea to shipped product through a single platform that hand
 - ✓ Extensions path fix: phase_name/plan_name read from top-level wire envelope (not extensions sub-object), token_usage event emission for CostMeter — v0.17
 - ✓ Documentation tech debt closure: REQUIREMENTS.md traceability filled for DSH-01/05/06, MON-03/04/05; SUMMARY frontmatter field name corrected; Nyquist VALIDATION.md compliant for phases 134.1 and 135 — v0.17
 - ✓ Final traceability closure: RLY-01, DSH-02, DSH-03, DSH-04, MON-01, MON-02 verified; tokens filter group added to EventLog — v0.17
+- ✓ Bidirectional approval gates: ApprovalCard with Base UI AlertDialog, /api/approval-response (POST+GET), relay daemon polling, findPendingApproval detection, 1h TTL TOCTOU safety, approval badge on SessionCard, 91 tests — v0.17
 
 ## Current Milestone: v0.17 Remote Dashboard
 
@@ -327,4 +328,4 @@ This document evolves at phase transitions and milestone boundaries.
 3. Audit Out of Scope — reasons still valid?
 4. Update Context with current state
 
-*Last updated: 2026-03-25 — Phase 136.3 complete: final documentation traceability + tokens filter group (gap closure).*
+*Last updated: 2026-03-25 — Phase 137 complete: bidirectional approval gates with TOCTOU safety.*
