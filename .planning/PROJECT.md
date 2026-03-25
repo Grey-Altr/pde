@@ -151,19 +151,19 @@ Any user can go from idea to shipped product through a single platform that hand
 
 ### Active
 
-## Current Milestone: v0.16 Multi-Editor Context Sync
+## Current Milestone: v0.17 Remote Dashboard
 
-**Goal:** Full bidirectional context synchronization between PDE and external editors (Cursor, Antigravity), enabling live state sharing, conflict resolution, and agent coordination.
+**Goal:** Phone-first PWA that monitors PDE sessions remotely and enables approval gate interaction from anywhere.
 
 **Target features:**
-- Cursor → PDE: .cursor/rules/*.mdc changes propagate back to .planning/ state
-- PDE → Cursor (enhance): Richer .mdc generation with deeper context, better globs, more rules
-- Cursor conflict resolution: Detect divergence, merge or prompt user
-- Cursor live sync: Real-time file watching triggers PDE state updates
-- AG → PDE: Antigravity outputs flow back into PDE critique/handoff
-- PDE → AG (enhance): Richer SKILL.md + DESIGN.md generation
-- AG shared state: Single source of truth for design tokens across tools
-- AG agent coordination: PDE and Antigravity agents delegate work via MCP
+- Event relay module (zero-dep CJS daemon pushing NDJSON to Upstash Redis via node:https)
+- Next.js 16 PWA dashboard on Vercel (phase progress, cost meter, event log)
+- Remote approval gates (approve/deny from phone with TOCTOU-safe cryptographic IDs)
+- Push notifications for approval gates and phase completions
+- Session management (multi-session view, history, reconnection)
+- Mobile-first responsive UI (shadcn/ui, Geist, card-based, bottom tab nav)
+- Clerk authentication (single-user owner access)
+- SSE-based real-time event delivery from Upstash Redis to PWA
 
 ### Out of Scope
 
@@ -192,7 +192,8 @@ Any user can go from idea to shipped product through a single platform that hand
 - **Shipped v0.13** on 2026-03-23: 9 phases, 15 plans (AutoResearch: safety boundaries, git state machine, experiment schema, mutation agent, orchestrator, circuit breakers, self-improvement presets, researcher empirical mode, observability)
 - **Shipped v0.14** on 2026-03-24: 10 phases, 21 plans, 78 requirements, 441+ Nyquist assertions (Visual AutoResearch: Playwright MCP, screenshot capture, AOM accessibility, visual metrics, 14 experiment templates, pipeline experiments, visual regression circuit breaker, multi-candidate A/B, meta-optimization, ideation diversity, brief reference capture)
 - **Shipped v0.15** on 2026-03-24: 8 phases, 16 plans, 25 requirements, 162 Nyquist tests (Multi-Editor Integration: context sync engine for Cursor/Gemini/Antigravity/AGENTS.md, standalone MCP server with 10 read-only tools, artifact formatting with DTCG-to-Tailwind v4, 3-tier divergence detection, hook-driven auto-sync, Stitch bridge production consumer)
-- **Planned roadmap:** v0.16 Multi-Editor Context Sync (in progress) → v0.17 Remote Dashboard → v0.18 Stakeholder Presentations → v1.0 Standalone CLI
+- **Shipped v0.16** on 2026-03-24: 7 phases, 14 plans, 26 requirements, 48 commits (Multi-Editor Context Sync: bidirectional sync, 3-way merge, conflict detection, sync audit trail, user content preservation)
+- **Planned roadmap:** v0.17 Remote Dashboard (in progress) → v0.18 Stakeholder Presentations → v1.0 Standalone CLI
 - **v0.11** shipped 2026-03-22: 112 files changed, 116 commits (experience product type: detection, brief, tokens, flows, wireframes, critique, HIG, print, handoff, 48 requirements)
 - **v0.10** shipped 2026-03-21: 107 files changed, 56 commits (idle-time productivity: suggestion engine, catalog, context notes, 7-pane dashboard)
 - **v0.9** shipped 2026-03-21: 91 files changed, 76 commits (Google Stitch integration across 5 pipeline skills)
@@ -315,4 +316,4 @@ This document evolves at phase transitions and milestone boundaries.
 3. Audit Out of Scope — reasons still valid?
 4. Update Context with current state
 
-*Last updated: 2026-03-24 after Phase 132 (Conflict UX) complete — v0.16 milestone complete, all 7 phases shipped.*
+*Last updated: 2026-03-24 — Milestone v0.17 Remote Dashboard started.*

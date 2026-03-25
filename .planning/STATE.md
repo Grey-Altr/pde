@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.16
-milestone_name: Multi-Editor Context Sync
-status: Milestone complete
-stopped_at: v0.16 archived
-last_updated: "2026-03-25T00:30:00.000Z"
+milestone: v0.17
+milestone_name: Remote Dashboard
+status: Defining requirements
+stopped_at: null
+last_updated: "2026-03-24T00:00:00.000Z"
 progress:
-  total_phases: 8
-  completed_phases: 8
-  total_plans: 15
-  completed_plans: 15
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
 # Project State
@@ -19,12 +19,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Planning next milestone
+**Current focus:** v0.17 Remote Dashboard — phone-first PWA for remote monitoring and approval gates
 
 ## Current Position
 
-Milestone v0.16 complete. No active phase.
-Run `/gsd:new-milestone` to start the next milestone.
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-24 — Milestone v0.17 started
 
 ## Performance Metrics
 
@@ -55,7 +57,7 @@ v0.16 decisions archived to milestones/v0.16-phases/ SUMMARY.md files.
 
 ## Session Continuity
 
-Last session: 2026-03-25
-Stopped at: v0.16 milestone archived
-Resume with: /gsd:new-milestone
+Last session: 2026-03-24
+Stopped at: Milestone v0.17 started, defining requirements
+Resume with: Continue requirements definition
 Resume file: None
