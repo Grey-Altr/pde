@@ -59,6 +59,19 @@ export async function POST(request: Request): Promise<NextResponse> {
     started_at: String(new Date(validatedBatch[0].relay_ts).getTime()),
   });
 
+  // Track pending approval on session hash (APR-01: enables approval badge on SessionCard)
+  for (const event of validatedBatch) {
+    if (event.event_type === 'approval_request' && event.approval_id) {
+      p.hset('pde:default:session:' + sessionId, {
+        pending_approval_id: event.approval_id,
+      });
+    } else if (event.event_type === 'approval_response' && event.approval_id) {
+      p.hset('pde:default:session:' + sessionId, {
+        pending_approval_id: '',
+      });
+    }
+  }
+
   // Step 5: Execute pipeline (single HTTP round-trip to Upstash)
   await p.exec();
 

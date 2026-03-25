@@ -11,6 +11,7 @@ export interface SessionListItem {
   lastEventType: string;
   lastEventTs: number;
   startedAt: number;
+  pendingApprovalId: string | null;  // APR-01: non-null when approval pending
 }
 
 export async function getSessions(): Promise<SessionListItem[]> {
@@ -32,6 +33,7 @@ export async function getSessions(): Promise<SessionListItem[]> {
     const lastEventType = raw.last_event_type ?? '';
     const lastEventTs = Number(raw.last_event_ts ?? 0);
     const startedAt = Number(raw.started_at ?? 0);
+    const pendingApprovalId = raw.pending_approval_id || null;
 
     sessions.push({
       id,
@@ -41,6 +43,7 @@ export async function getSessions(): Promise<SessionListItem[]> {
       lastEventType,
       lastEventTs,
       startedAt,
+      pendingApprovalId,
     });
   }
   return sessions;
@@ -53,6 +56,7 @@ export async function getSessionMeta(sessionId: string): Promise<SessionListItem
   const lastEventType = raw.last_event_type ?? '';
   const lastEventTs = Number(raw.last_event_ts ?? 0);
   const startedAt = Number(raw.started_at ?? 0);
+  const pendingApprovalId = raw.pending_approval_id || null;
 
   return {
     id: sessionId,
@@ -62,6 +66,7 @@ export async function getSessionMeta(sessionId: string): Promise<SessionListItem
     lastEventType,
     lastEventTs,
     startedAt,
+    pendingApprovalId,
   };
 }
 

@@ -23,10 +23,10 @@ import { validateRelayToken } from '@/lib/auth';
 import { writeApprovalResponse, readApprovalResponse } from '@/lib/queries';
 import { POST, GET } from '@/app/api/approval-response/route';
 
-const mockAuth = auth as ReturnType<typeof vi.fn>;
-const mockValidateRelayToken = validateRelayToken as ReturnType<typeof vi.fn>;
-const mockWriteApprovalResponse = writeApprovalResponse as ReturnType<typeof vi.fn>;
-const mockReadApprovalResponse = readApprovalResponse as ReturnType<typeof vi.fn>;
+const mockAuth = vi.mocked(auth);
+const mockValidateRelayToken = vi.mocked(validateRelayToken);
+const mockWriteApprovalResponse = vi.mocked(writeApprovalResponse);
+const mockReadApprovalResponse = vi.mocked(readApprovalResponse);
 
 const SESSION_ID = '550e8400-e29b-41d4-a716-446655440000';
 const APPROVAL_ID = '6ba7b810-9dad-11d1-80b4-00c04fd430c8';
@@ -37,7 +37,7 @@ beforeEach(() => {
 
 describe('POST /api/approval-response', () => {
   it('returns 401 when Clerk session is not authenticated', async () => {
-    mockAuth.mockResolvedValue({ isAuthenticated: false });
+    mockAuth.mockResolvedValue({ isAuthenticated: false } as never);
 
     const req = new Request('http://localhost/api/approval-response', {
       method: 'POST',
@@ -50,7 +50,7 @@ describe('POST /api/approval-response', () => {
   });
 
   it('returns 422 when body schema is invalid (missing action)', async () => {
-    mockAuth.mockResolvedValue({ isAuthenticated: true, userId: 'user-1' });
+    mockAuth.mockResolvedValue({ isAuthenticated: true, userId: 'user-1' } as never);
 
     const req = new Request('http://localhost/api/approval-response', {
       method: 'POST',
@@ -65,7 +65,7 @@ describe('POST /api/approval-response', () => {
   });
 
   it('returns 422 when action enum is invalid', async () => {
-    mockAuth.mockResolvedValue({ isAuthenticated: true, userId: 'user-1' });
+    mockAuth.mockResolvedValue({ isAuthenticated: true, userId: 'user-1' } as never);
 
     const req = new Request('http://localhost/api/approval-response', {
       method: 'POST',
@@ -78,7 +78,7 @@ describe('POST /api/approval-response', () => {
   });
 
   it('returns 200 on valid body and calls writeApprovalResponse', async () => {
-    mockAuth.mockResolvedValue({ isAuthenticated: true, userId: 'user-1' });
+    mockAuth.mockResolvedValue({ isAuthenticated: true, userId: 'user-1' } as never);
     mockWriteApprovalResponse.mockResolvedValue(undefined);
 
     const req = new Request('http://localhost/api/approval-response', {
