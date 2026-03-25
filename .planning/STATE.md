@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
 milestone: v0.17
-milestone_name: Remote Dashboard
+milestone_name: milestone
 status: Ready to plan
-stopped_at: "Roadmap created for v0.17 Remote Dashboard (6 phases, 30 requirements)"
-last_updated: "2026-03-24T00:00:00.000Z"
+stopped_at: Completed 134-03-PLAN.md — hook scripts and e2e integration test
+last_updated: "2026-03-25T04:13:59.053Z"
 progress:
   total_phases: 6
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  completed_phases: 1
+  total_plans: 3
+  completed_plans: 3
 ---
 
 # Project State
@@ -19,16 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** v0.17 Remote Dashboard -- Phase 134: Relay Protocol and Transport Module
+**Current focus:** Phase 134 — relay-protocol-transport
 
 ## Current Position
 
-Phase: 134 (1 of 6 in v0.17) (Relay Protocol and Transport Module)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-03-24 -- Roadmap created for v0.17 Remote Dashboard (6 phases, 30 requirements)
-
-Progress: [░░░░░░░░░░] 0%
+Phase: 135
+Plan: Not started
 
 ## Performance Metrics
 
@@ -55,6 +51,11 @@ Recent decisions affecting current work:
 - [v0.17 init]: Polling-first real-time delivery to avoid Vercel serverless timeout
 - [v0.17 init]: Clerk for dashboard auth, Bearer token for relay auth
 - [v0.17 init]: Serwist for PWA service worker (Webpack build, Turbopack dev)
+- [Phase 134-relay-protocol-transport]: vitest globals:true used for CJS test files — vitest 4.x does not support require('vitest')
+- [Phase 134-relay-protocol-transport]: WireEnvelopeSchema uses .passthrough() to preserve PDE event fields on the relay wire
+- [Phase 134]: Remove require('vitest') from CJS test files — vitest v4 globals:true injects test APIs globally
+- [Phase 134]: Relay daemon spawned with detached:true + stdio:ignore + child.unref() so hook exits immediately
+- [Phase 134]: stop-relay placed before archive-session in SessionEnd to flush events before session archive
 
 ### Pending Todos
 
@@ -70,7 +71,7 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-24
-Stopped at: Roadmap created for v0.17 Remote Dashboard (6 phases, 30 requirements)
+Last session: 2026-03-25T04:09:29.769Z
+Stopped at: Completed 134-03-PLAN.md — hook scripts and e2e integration test
 Resume with: /gsd:plan-phase 134
 Resume file: None

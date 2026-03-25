@@ -12,7 +12,7 @@ Transform PDE from a local-only CLI tool into a remotely monitorable platform. A
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 134: Relay Protocol and Transport Module** - PDE relay daemon tails NDJSON and pushes batched events to cloud via HTTP
+- [x] **Phase 134: Relay Protocol and Transport Module** - PDE relay daemon tails NDJSON and pushes batched events to cloud via HTTP (completed 2026-03-25)
 - [ ] **Phase 135: Dashboard Scaffold and Event Ingestion** - Next.js app receives events, stores in Redis, delivers to browser, with auth
 - [ ] **Phase 136: Core Dashboard Features** - Phase progress, cost meter, event log, mobile layout, auto-reconnection
 - [ ] **Phase 137: Approval Gates** - Bidirectional approval flow from dashboard to PDE with TOCTOU-safe protocol
@@ -33,8 +33,8 @@ Decimal phases appear between their surrounding integers in numeric order.
   5. A deliberately broken relay endpoint causes zero impact on PDE session execution -- no slowdowns, no errors, no blocked hooks
 **Plans**: 3 plans
 Plans:
-- [ ] 134-01-PLAN.md -- Vitest setup + wire protocol zod schema + protocol unit tests (RLY-02)
-- [ ] 134-02-PLAN.md -- Core relay module: TailCursor, BatchQueue, CircuitBreaker, HTTP transport (RLY-01, RLY-03)
+- [x] 134-01-PLAN.md -- Vitest setup + wire protocol zod schema + protocol unit tests (RLY-02)
+- [x] 134-02-PLAN.md -- Core relay module: TailCursor, BatchQueue, CircuitBreaker, HTTP transport (RLY-01, RLY-03)
 - [ ] 134-03-PLAN.md -- Hook integration, PDE_REMOTE env gate, zero-impact isolation, e2e test (RLY-04, RLY-05)
 
 ### Phase 135: Dashboard Scaffold and Event Ingestion
@@ -107,7 +107,7 @@ Phases execute in numeric order: 134 -> 134.1 -> 134.2 -> 135 -> ...
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 134. Relay Protocol and Transport Module | 0/3 | Planned | - |
+| 134. Relay Protocol and Transport Module | 2/3 | Complete    | 2026-03-25 |
 | 135. Dashboard Scaffold and Event Ingestion | 0/TBD | Not started | - |
 | 136. Core Dashboard Features | 0/TBD | Not started | - |
 | 137. Approval Gates | 0/TBD | Not started | - |
