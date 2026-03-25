@@ -1,12 +1,13 @@
 import type { WireEnvelope } from '@/lib/wire-schema';
 
 export const EVENT_FILTER_GROUPS = {
-  all: null,
-  tools: ['tool_called', 'bash_called', 'file_changed'],
-  agents: ['subagent_start', 'subagent_stop'],
-  phases: ['session_start', 'session_end'],
-  errors: ['error'],
-  tokens: ['token_usage'],
+  all:       null,
+  tools:     ['tool_called', 'bash_called', 'file_changed'],
+  agents:    ['subagent_start', 'subagent_stop'],
+  phases:    ['session_start', 'session_end'],
+  errors:    ['error'],
+  tokens:    ['token_usage'],
+  approvals: ['approval_request', 'approval_response'],
 } as const;
 
 export type FilterGroup = keyof typeof EVENT_FILTER_GROUPS;

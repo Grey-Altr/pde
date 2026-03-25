@@ -65,6 +65,50 @@ export async function getSessionMeta(sessionId: string): Promise<SessionListItem
   };
 }
 
+export function findPendingApproval(events: WireEnvelope[]): WireEnvelope | null {
+  const responded = new Set(
+    events
+      .filter(e => e.event_type === 'approval_response' && e.approval_id)
+      .map(e => e.approval_id)
+  );
+  return (
+    events.find(
+      e => e.event_type === 'approval_request' && e.approval_id && !responded.has(e.approval_id)
+    ) ?? null
+  );
+}
+
+export async function writeApprovalResponse(
+  sessionId: string,
+  approvalId: string,
+  action: 'approved' | 'denied',
+  responderId: string
+): Promise<void> {
+  const key = `pde:default:approvals:${sessionId}:${approvalId}`;
+  const p = redis.pipeline();
+  p.hset(key, {
+    approval_id: approvalId,
+    action,
+    responded_at: new Date().toISOString(),
+    responder_id: responderId,
+  });
+  p.expire(key, 3600);
+  await p.exec();
+}
+
+export async function readApprovalResponse(
+  sessionId: string,
+  approvalId: string
+): Promise<Record<string, string> | null> {
+  const key = `pde:default:approvals:${sessionId}:${approvalId}`;
+  const data = await redis.hgetall(key) as Record<string, string> | null;
+  if (data && Object.keys(data).length > 0) {
+    await redis.del(key);
+    return data;
+  }
+  return null;
+}
+
 export async function getRecentEvents(sessionId: string, count = 10): Promise<WireEnvelope[]> {
   const members = await redis.zrange('pde:default:events:' + sessionId, -count, -1);
   if (!members || members.length === 0) return [];

@@ -42,6 +42,11 @@ describe('EVENT_FILTER_GROUPS', () => {
   it('tokens contains token_usage', () => {
     expect(EVENT_FILTER_GROUPS.tokens).toContain('token_usage');
   });
+
+  it('approvals contains approval_request and approval_response', () => {
+    expect(EVENT_FILTER_GROUPS.approvals).toContain('approval_request');
+    expect(EVENT_FILTER_GROUPS.approvals).toContain('approval_response');
+  });
 });
 
 describe('filterEvents', () => {
@@ -98,5 +103,21 @@ describe('filterEvents', () => {
     expect(filterEvents([], 'agents')).toEqual([]);
     expect(filterEvents([], 'all')).toEqual([]);
     expect(filterEvents([], 'tokens')).toEqual([]);
+  });
+
+  it('returns only approval events when group is "approvals"', () => {
+    const approvalEvents = [
+      ...events,
+      mockEnvelope({ event_type: 'approval_request', approval_id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' }),
+      mockEnvelope({ event_type: 'approval_response', approval_id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa' }),
+    ];
+    const result = filterEvents(approvalEvents, 'approvals');
+    expect(result).toHaveLength(2);
+    expect(result.map((e) => e.event_type)).toEqual(['approval_request', 'approval_response']);
+  });
+
+  it('returns empty array when no approval events exist for group "approvals"', () => {
+    const result = filterEvents(events, 'approvals');
+    expect(result).toHaveLength(0);
   });
 });
