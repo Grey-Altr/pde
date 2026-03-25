@@ -31,7 +31,11 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. When the dashboard endpoint is unreachable, relay stops pushing after N failures and resumes automatically after cooldown -- no data loss, no crash
   4. With PDE_REMOTE unset, PDE behaves identically to pre-v0.17 -- zero relay activity, zero network calls
   5. A deliberately broken relay endpoint causes zero impact on PDE session execution -- no slowdowns, no errors, no blocked hooks
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 134-01-PLAN.md -- Vitest setup + wire protocol zod schema + protocol unit tests (RLY-02)
+- [ ] 134-02-PLAN.md -- Core relay module: TailCursor, BatchQueue, CircuitBreaker, HTTP transport (RLY-01, RLY-03)
+- [ ] 134-03-PLAN.md -- Hook integration, PDE_REMOTE env gate, zero-impact isolation, e2e test (RLY-04, RLY-05)
 
 ### Phase 135: Dashboard Scaffold and Event Ingestion
 **Goal**: Users can open a deployed web dashboard, authenticate, and see live session data flowing from their PDE instance
@@ -103,7 +107,7 @@ Phases execute in numeric order: 134 -> 134.1 -> 134.2 -> 135 -> ...
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 134. Relay Protocol and Transport Module | 0/TBD | Not started | - |
+| 134. Relay Protocol and Transport Module | 0/3 | Planned | - |
 | 135. Dashboard Scaffold and Event Ingestion | 0/TBD | Not started | - |
 | 136. Core Dashboard Features | 0/TBD | Not started | - |
 | 137. Approval Gates | 0/TBD | Not started | - |
