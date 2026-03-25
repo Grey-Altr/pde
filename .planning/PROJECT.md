@@ -158,6 +158,8 @@ Any user can go from idea to shipped product through a single platform that hand
 - ✓ Next.js 16 dashboard scaffold with Clerk auth, Upstash Redis ingest, SSE/polling real-time delivery, session list and detail views — v0.17
 - ✓ Core monitoring: PhaseProgress (indeterminate bars), CostMeter (graceful zero-state), EventLog (filter tabs, auto-scroll lock), 200-event buffer, 44px mobile touch targets — v0.17
 - ✓ 54 tests across 8 test files (derive-progress, derive-cost, event-filters, wire-schema, ingest, poll, sessions) — v0.17
+- ✓ Extensions path fix: phase_name/plan_name read from top-level wire envelope (not extensions sub-object), token_usage event emission for CostMeter — v0.17
+- ✓ Documentation tech debt closure: REQUIREMENTS.md traceability filled for DSH-01/05/06, MON-03/04/05; SUMMARY frontmatter field name corrected; Nyquist VALIDATION.md compliant for phases 134.1 and 135 — v0.17
 
 ## Current Milestone: v0.17 Remote Dashboard
 
