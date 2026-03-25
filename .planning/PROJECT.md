@@ -155,6 +155,9 @@ Any user can go from idea to shipped product through a single platform that hand
 - ✓ Core relay module: TailCursor (byte-offset NDJSON tailing), BatchQueue (count/timer flush), CircuitBreaker (3-state failure protection), HTTP POST transport — zero npm deps — v0.17
 - ✓ Hook integration: SessionStart spawns relay daemon when PDE_REMOTE set, SessionEnd kills via PID file, zero-impact error isolation (all failures exit 0) — v0.17
 - ✓ 33 tests across 6 test files (protocol, tail, circuit, batch, hooks, e2e) — v0.17
+- ✓ Next.js 16 dashboard scaffold with Clerk auth, Upstash Redis ingest, SSE/polling real-time delivery, session list and detail views — v0.17
+- ✓ Core monitoring: PhaseProgress (indeterminate bars), CostMeter (graceful zero-state), EventLog (filter tabs, auto-scroll lock), 200-event buffer, 44px mobile touch targets — v0.17
+- ✓ 54 tests across 8 test files (derive-progress, derive-cost, event-filters, wire-schema, ingest, poll, sessions) — v0.17
 
 ## Current Milestone: v0.17 Remote Dashboard
 
