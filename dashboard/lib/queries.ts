@@ -1,0 +1,83 @@
+import { redis } from '@/lib/redis';
+import { deriveStatus } from '@/lib/session-status';
+import type { SessionStatus } from '@/lib/session-status';
+import type { WireEnvelope } from '@/lib/wire-schema';
+
+export interface SessionListItem {
+  id: string;
+  status: SessionStatus;
+  phase: string;
+  plan: string;
+  lastEventType: string;
+  lastEventTs: number;
+  startedAt: number;
+}
+
+export async function getSessions(): Promise<SessionListItem[]> {
+  const ids = await redis.zrange('pde:default:sessions', 0, -1, { rev: true });
+  if (!ids || ids.length === 0) return [];
+
+  const p = redis.pipeline();
+  for (const id of ids) {
+    p.hgetall('pde:default:session:' + id);
+  }
+  const results = await p.exec();
+
+  const sessions: SessionListItem[] = [];
+  for (let i = 0; i < ids.length; i++) {
+    const id = ids[i] as string;
+    const raw = results[i] as Record<string, string> | null;
+    if (!raw) continue;
+
+    const lastEventType = raw.last_event_type ?? '';
+    const lastEventTs = Number(raw.last_event_ts ?? 0);
+    const startedAt = Number(raw.started_at ?? 0);
+
+    sessions.push({
+      id,
+      status: deriveStatus(lastEventType, lastEventTs),
+      phase: raw.phase_name ?? '',
+      plan: raw.plan_name ?? '',
+      lastEventType,
+      lastEventTs,
+      startedAt,
+    });
+  }
+  return sessions;
+}
+
+export async function getSessionMeta(sessionId: string): Promise<SessionListItem | null> {
+  const raw = await redis.hgetall('pde:default:session:' + sessionId) as Record<string, string> | null;
+  if (!raw || Object.keys(raw).length === 0) return null;
+
+  const lastEventType = raw.last_event_type ?? '';
+  const lastEventTs = Number(raw.last_event_ts ?? 0);
+  const startedAt = Number(raw.started_at ?? 0);
+
+  return {
+    id: sessionId,
+    status: deriveStatus(lastEventType, lastEventTs),
+    phase: raw.phase_name ?? '',
+    plan: raw.plan_name ?? '',
+    lastEventType,
+    lastEventTs,
+    startedAt,
+  };
+}
+
+export async function getRecentEvents(sessionId: string, count = 10): Promise<WireEnvelope[]> {
+  const members = await redis.zrange('pde:default:events:' + sessionId, -count, -1);
+  if (!members || members.length === 0) return [];
+
+  const parsed: WireEnvelope[] = [];
+  for (const m of members) {
+    try {
+      const ev = typeof m === 'string' ? JSON.parse(m) : m;
+      parsed.push(ev as WireEnvelope);
+    } catch {
+      // skip malformed entries
+    }
+  }
+  // reverse so newest-first
+  return parsed.reverse();
+}
