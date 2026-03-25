@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v0.17
 milestone_name: Remote Dashboard
-status: Defining requirements
-stopped_at: null
+status: Ready to plan
+stopped_at: "Roadmap created for v0.17 Remote Dashboard (6 phases, 30 requirements)"
 last_updated: "2026-03-24T00:00:00.000Z"
 progress:
-  total_phases: 0
+  total_phases: 6
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -19,14 +19,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-24)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** v0.17 Remote Dashboard — phone-first PWA for remote monitoring and approval gates
+**Current focus:** v0.17 Remote Dashboard -- Phase 134: Relay Protocol and Transport Module
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-03-24 — Milestone v0.17 started
+Phase: 134 (1 of 6 in v0.17) (Relay Protocol and Transport Module)
+Plan: 0 of TBD in current phase
+Status: Ready to plan
+Last activity: 2026-03-24 -- Roadmap created for v0.17 Remote Dashboard (6 phases, 30 requirements)
+
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
@@ -46,18 +48,29 @@ Last activity: 2026-03-24 — Milestone v0.17 started
 Decisions are logged in PROJECT.md Key Decisions table.
 v0.16 decisions archived to milestones/v0.16-phases/ SUMMARY.md files.
 
+Recent decisions affecting current work:
+
+- [v0.17 init]: Push-based relay architecture -- relay daemon tails NDJSON, POSTs to dashboard ingest
+- [v0.17 init]: Upstash Redis sorted sets as storage (not Streams, not LISTs) for time-range queries
+- [v0.17 init]: Polling-first real-time delivery to avoid Vercel serverless timeout
+- [v0.17 init]: Clerk for dashboard auth, Bearer token for relay auth
+- [v0.17 init]: Serwist for PWA service worker (Webpack build, Turbopack dev)
+
 ### Pending Todos
 
 - Run /pde:connect stitch --confirm with valid STITCH_API_KEY to execute MCP-05 live tool name gate
 
 ### Blockers/Concerns
 
-- [v0.16] Antigravity DESIGN.md format is community-documented without official stability guarantee — format-version detection is a first-class concern, not a retrofit
-- [v0.16] Antigravity MCP write API undocumented as of March 2026 — use filesystem channel (SKILL.md, DESIGN.md) rather than direct MCP calls; revisit if official API published
+- [v0.17] Approval response delivery path (cloud to PDE) needs design during Phase 137 planning
+- [v0.17] Vercel SSE duration needs production testing in Phase 135 -- Hobby 10s timeout vs Fluid Compute
+- [v0.17] Serwist + Turbopack compatibility needs validation in Phase 138
+- [v0.16] Antigravity DESIGN.md format has no official stability guarantee -- format-version detection is first-class
+- [v0.16] Antigravity MCP write API undocumented -- use filesystem channel (SKILL.md, DESIGN.md)
 
 ## Session Continuity
 
 Last session: 2026-03-24
-Stopped at: Milestone v0.17 started, defining requirements
-Resume with: Continue requirements definition
+Stopped at: Roadmap created for v0.17 Remote Dashboard (6 phases, 30 requirements)
+Resume with: /gsd:plan-phase 134
 Resume file: None
