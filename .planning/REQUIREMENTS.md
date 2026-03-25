@@ -28,7 +28,7 @@
 ## Approval Gates
 
 - [x] **APR-01**: Approval gate notifications appear in-app when PDE requests human approval (deploy, write-back, etc.)
-- [ ] **APR-02**: User can approve or deny from the dashboard with a confirmation dialog preventing accidental taps
+- [x] **APR-02**: User can approve or deny from the dashboard with a confirmation dialog preventing accidental taps
 - [x] **APR-03**: Each approval request uses a unique cryptographic approval_id — PDE rejects responses with stale or mismatched IDs (TOCTOU-safe)
 - [x] **APR-04**: Approval responses flow back to PDE via relay polling Upstash for pending responses
 - [x] **APR-05**: Approval history log shows past approvals per session with timestamp, action, and context

@@ -19,7 +19,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 136.1: Extensions Path Fix & Token Event Source** - Fix extensions field path mismatch and add token usage event emission (INSERTED — gap closure) (completed 2026-03-25)
 - [x] **Phase 136.2: Documentation Tech Debt & Nyquist Compliance** - Fix ROADMAP checkboxes, SUMMARY frontmatter gaps, REQUIREMENTS traceability, and Nyquist validation for phases 134.1 and 135 (INSERTED — gap closure) (completed 2026-03-25)
 - [x] **Phase 136.3: Final Documentation & Filter Cleanup** - Close remaining traceability gaps and add token_usage to EventLog filter (INSERTED — gap closure) (completed 2026-03-25)
-- [ ] **Phase 137: Approval Gates** - Bidirectional approval flow from dashboard to PDE with TOCTOU-safe protocol
+- [x] **Phase 137: Approval Gates** - Bidirectional approval flow from dashboard to PDE with TOCTOU-safe protocol (completed 2026-03-25)
 - [ ] **Phase 138: PWA and Push Notifications** - Installable PWA with service worker, Web Push, and offline shell
 - [ ] **Phase 139: Production Hardening** - Rate limiting, TTL, downsampling, garbage collection, buffer caps
 
@@ -190,6 +190,6 @@ Phases execute in numeric order: 134 -> 134.1 -> 134.2 -> 135 -> ...
 | 136.1. Extensions Path Fix & Token Event Source | 2/2 | Complete    | 2026-03-25 |
 | 136.2. Documentation Tech Debt & Nyquist Compliance | 2/2 | Complete    | 2026-03-25 |
 | 136.3. Final Documentation & Filter Cleanup | 1/1 | Complete    | 2026-03-25 |
-| 137. Approval Gates | 1/3 | In Progress|  |
+| 137. Approval Gates | 1/3 | Complete    | 2026-03-25 |
 | 138. PWA and Push Notifications | 0/TBD | Not started | - |
 | 139. Production Hardening | 0/TBD | Not started | - |
