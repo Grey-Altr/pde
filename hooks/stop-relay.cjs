@@ -17,15 +17,23 @@ const fs   = require('node:fs');
 const os   = require('node:os');
 const path = require('node:path');
 
+// Resolve plugin root: use CLAUDE_PLUGIN_ROOT env var, fall back to parent of hooks/ dir
+const pluginRoot = process.env.CLAUDE_PLUGIN_ROOT || path.resolve(__dirname, '..');
+
 let raw = '';
 process.stdin.setEncoding('utf-8');
 process.stdin.on('data', chunk => { raw += chunk; });
 process.stdin.on('end', () => {
   try {
-    // Parse hook payload to extract session_id
-    let hookData;
-    try { hookData = JSON.parse(raw); } catch { hookData = {}; }
-    const sessionId = hookData.session_id || '';
+    // Read PDE session UUID from config.json (must match start-relay.cjs PID file naming)
+    const configPath = path.join(pluginRoot, '.planning', 'config.json');
+    let sessionId = '';
+    try {
+      const cfg = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+      sessionId = (cfg.monitoring && cfg.monitoring.session_id) || '';
+    } catch {
+      // config.json missing — no session to stop
+    }
 
     if (!sessionId) {
       process.exit(0);
