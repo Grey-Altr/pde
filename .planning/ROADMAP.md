@@ -131,7 +131,9 @@ Plans:
   3. ROADMAP.md Phase 136.2 top-level checkbox is [x], plan checkboxes are [x], progress table shows 2/2 Complete
   4. 136.2-VALIDATION.md has nyquist_compliant: true
   5. EVENT_FILTER_GROUPS in dashboard/lib/event-types.ts includes token_usage in a named filter tab
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 136.3-01-PLAN.md -- REQUIREMENTS.md traceability updates + token_usage filter group in event-types.ts (SC-1, SC-5)
 
 ### Phase 137: Approval Gates
 **Goal**: Users can receive, review, and respond to PDE approval requests from their phone with cryptographic safety guarantees
@@ -183,7 +185,7 @@ Phases execute in numeric order: 134 -> 134.1 -> 134.2 -> 135 -> ...
 | 136. Core Dashboard Features | 2/2 | Complete    | 2026-03-25 |
 | 136.1. Extensions Path Fix & Token Event Source | 2/2 | Complete    | 2026-03-25 |
 | 136.2. Documentation Tech Debt & Nyquist Compliance | 2/2 | Complete    | 2026-03-25 |
-| 136.3. Final Documentation & Filter Cleanup | 0/TBD | Not started | - |
+| 136.3. Final Documentation & Filter Cleanup | 0/1 | Not started | - |
 | 137. Approval Gates | 0/TBD | Not started | - |
 | 138. PWA and Push Notifications | 0/TBD | Not started | - |
 | 139. Production Hardening | 0/TBD | Not started | - |
