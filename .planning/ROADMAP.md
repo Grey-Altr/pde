@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 134: Relay Protocol and Transport Module** - PDE relay daemon tails NDJSON and pushes batched events to cloud via HTTP (completed 2026-03-25)
 - [x] **Phase 134.1: Session ID Fix & Phase 134 Tech Debt** - Fix session ID namespace mismatch blocking production relay, clean up Phase 134 artifacts (INSERTED — gap closure) (completed 2026-03-25)
-- [ ] **Phase 135: Dashboard Scaffold and Event Ingestion** - Next.js app receives events, stores in Redis, delivers to browser, with auth
+- [x] **Phase 135: Dashboard Scaffold and Event Ingestion** - Next.js app receives events, stores in Redis, delivers to browser, with auth (completed 2026-03-25)
 - [ ] **Phase 136: Core Dashboard Features** - Phase progress, cost meter, event log, mobile layout, auto-reconnection
 - [ ] **Phase 137: Approval Gates** - Bidirectional approval flow from dashboard to PDE with TOCTOU-safe protocol
 - [ ] **Phase 138: PWA and Push Notifications** - Installable PWA with service worker, Web Push, and offline shell
@@ -67,9 +67,9 @@ Plans:
 **Plans**: 4 plans
 Plans:
 - [x] 135-01-PLAN.md -- Next.js 16 scaffold, dependencies, Clerk auth, shadcn/ui, Geist fonts, shared libs, vitest (DSH-01, DSH-05)
-- [ ] 135-02-PLAN.md -- /api/ingest POST endpoint with Bearer auth, zod validation, Redis pipeline (DSH-01, DSH-06)
+- [x] 135-02-PLAN.md -- /api/ingest POST endpoint with Bearer auth, zod validation, Redis pipeline (DSH-01, DSH-06)
 - [x] 135-03-PLAN.md -- SSE streaming endpoint, polling fallback, useEventStream client hook (DSH-02)
-- [ ] 135-04-PLAN.md -- Session list page, session detail page, custom components, visual verification (DSH-03, DSH-04)
+- [x] 135-04-PLAN.md -- Session list page, session detail page, custom components, visual verification (DSH-03, DSH-04)
 **UI hint**: yes
 
 ### Phase 136: Core Dashboard Features
@@ -131,7 +131,7 @@ Phases execute in numeric order: 134 -> 134.1 -> 134.2 -> 135 -> ...
 |-------|----------------|--------|-----------|
 | 134. Relay Protocol and Transport Module | 2/3 | Complete    | 2026-03-25 |
 | 134.1. Session ID Fix & Phase 134 Tech Debt | 1/2 | Complete    | 2026-03-25 |
-| 135. Dashboard Scaffold and Event Ingestion | 2/4 | In Progress|  |
+| 135. Dashboard Scaffold and Event Ingestion | 4/4 | Complete   | 2026-03-25 |
 | 136. Core Dashboard Features | 0/TBD | Not started | - |
 | 137. Approval Gates | 0/TBD | Not started | - |
 | 138. PWA and Push Notifications | 0/TBD | Not started | - |

@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.17
 milestone_name: milestone
 status: Ready to execute
-stopped_at: Completed 135-03-PLAN.md
-last_updated: "2026-03-25T16:22:36.752Z"
+stopped_at: "135-04 checkpoint:human-verify (Tasks 1-2 complete)"
+last_updated: "2026-03-25T16:29:06.707Z"
 progress:
   total_phases: 7
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 9
-  completed_plans: 7
+  completed_plans: 9
 ---
 
 # Project State
@@ -65,6 +65,8 @@ Recent decisions affecting current work:
 - [Phase 135]: Ingest batch size capped at 100 events per request (zod .max(100) on BatchSchema)
 - [Phase 135]: zrange with byScore+withScores instead of deprecated zrangebyscore — Upstash SDK v1.37 unified command
 - [Phase 135]: SSE error fallback after 2 consecutive onerror events to tolerate transient network blips
+- [Phase 135]: Session detail split into server+client components for initial data fetch + live updates via useEventStream
+- [Phase 135]: Event deduplication uses seq field; live events merged with initial events, sorted newest-first, capped at 10
 
 ### Pending Todos
 
@@ -80,7 +82,7 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-25T16:22:36.749Z
-Stopped at: Completed 135-03-PLAN.md
+Last session: 2026-03-25T16:29:00.892Z
+Stopped at: 135-04 checkpoint:human-verify (Tasks 1-2 complete)
 Resume with: /gsd:plan-phase 134
 Resume file: None
