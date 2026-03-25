@@ -13,7 +13,7 @@ Transform PDE from a local-only CLI tool into a remotely monitorable platform. A
 Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 134: Relay Protocol and Transport Module** - PDE relay daemon tails NDJSON and pushes batched events to cloud via HTTP (completed 2026-03-25)
-- [ ] **Phase 134.1: Session ID Fix & Phase 134 Tech Debt** - Fix session ID namespace mismatch blocking production relay, clean up Phase 134 artifacts (INSERTED — gap closure)
+- [x] **Phase 134.1: Session ID Fix & Phase 134 Tech Debt** - Fix session ID namespace mismatch blocking production relay, clean up Phase 134 artifacts (INSERTED — gap closure) (completed 2026-03-25)
 - [ ] **Phase 135: Dashboard Scaffold and Event Ingestion** - Next.js app receives events, stores in Redis, delivers to browser, with auth
 - [ ] **Phase 136: Core Dashboard Features** - Phase progress, cost meter, event log, mobile layout, auto-reconnection
 - [ ] **Phase 137: Approval Gates** - Bidirectional approval flow from dashboard to PDE with TOCTOU-safe protocol
@@ -125,7 +125,7 @@ Phases execute in numeric order: 134 -> 134.1 -> 134.2 -> 135 -> ...
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 134. Relay Protocol and Transport Module | 2/3 | Complete    | 2026-03-25 |
-| 134.1. Session ID Fix & Phase 134 Tech Debt | 1/2 | In Progress|  |
+| 134.1. Session ID Fix & Phase 134 Tech Debt | 1/2 | Complete    | 2026-03-25 |
 | 135. Dashboard Scaffold and Event Ingestion | 0/TBD | Not started | - |
 | 136. Core Dashboard Features | 0/TBD | Not started | - |
 | 137. Approval Gates | 0/TBD | Not started | - |
