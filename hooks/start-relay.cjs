@@ -36,13 +36,18 @@ process.stdin.on('end', () => {
   const bearerToken = process.env.PDE_RELAY_TOKEN || '';
 
   try {
-    // Parse hook payload to extract session_id
-    let hookData;
-    try { hookData = JSON.parse(raw); } catch { hookData = {}; }
-    const sessionId = hookData.session_id || '';
+    // Read PDE session UUID from config.json (written by emit-event.cjs before this hook runs)
+    // Do NOT use hookData.session_id — that's the Claude conversation ID, not the PDE UUID
+    const configPath = path.join(pluginRoot, '.planning', 'config.json');
+    let sessionId = '';
+    try {
+      const cfg = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+      sessionId = (cfg.monitoring && cfg.monitoring.session_id) || '';
+    } catch {
+      // config.json missing or unreadable — cannot operate, exit 0 (RLY-05)
+    }
 
     if (!sessionId) {
-      // No session ID — cannot safely operate, but still exit 0 (RLY-05)
       process.exit(0);
     }
 
