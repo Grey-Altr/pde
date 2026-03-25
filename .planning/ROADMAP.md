@@ -115,7 +115,10 @@ Plans:
   3. REQUIREMENTS.md traceability table has Plan and Verified columns filled for DSH-01, DSH-05, DSH-06, MON-03, MON-04, MON-05
   4. Phase 134.1 Nyquist VALIDATION.md is compliant (nyquist_compliant: true)
   5. Phase 135 Nyquist VALIDATION.md is compliant (nyquist_compliant: true)
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 136.2-01-PLAN.md -- ROADMAP checkboxes, SUMMARY field name fix, REQUIREMENTS traceability (SC-1, SC-2, SC-3)
+- [ ] 136.2-02-PLAN.md -- Nyquist VALIDATION compliance for phases 134.1 and 135 (SC-4, SC-5)
 
 ### Phase 137: Approval Gates
 **Goal**: Users can receive, review, and respond to PDE approval requests from their phone with cryptographic safety guarantees
@@ -166,7 +169,7 @@ Phases execute in numeric order: 134 -> 134.1 -> 134.2 -> 135 -> ...
 | 135. Dashboard Scaffold and Event Ingestion | 4/4 | Complete    | 2026-03-25 |
 | 136. Core Dashboard Features | 2/2 | Complete    | 2026-03-25 |
 | 136.1. Extensions Path Fix & Token Event Source | 2/2 | Complete    | 2026-03-25 |
-| 136.2. Documentation Tech Debt & Nyquist Compliance | 0/TBD | Not started | - |
+| 136.2. Documentation Tech Debt & Nyquist Compliance | 0/2 | Not started | - |
 | 137. Approval Gates | 0/TBD | Not started | - |
 | 138. PWA and Push Notifications | 0/TBD | Not started | - |
 | 139. Production Hardening | 0/TBD | Not started | - |
