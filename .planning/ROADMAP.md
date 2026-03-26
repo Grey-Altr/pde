@@ -192,7 +192,9 @@ Plans:
   1. `/api/approval-response` is in the `isPublicRoute` matcher in `dashboard/proxy.ts` — relay GET with Bearer token reaches the route handler without Clerk 401
   2. `/api/cron/gc` is in the `isPublicRoute` matcher — Vercel cron requests reach the GC handler without Clerk 401
   3. Approval Gate E2E flow completes: PDE → relay → ingest → Redis → SSE → ApprovalCard → POST → Redis → relay GET → PDE unblocks
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 140-01-PLAN.md -- Add /api/approval-response and /api/cron/gc to public route matcher + Nyquist regression test (APR-04)
 
 ## Progress
 
@@ -211,4 +213,4 @@ Phases execute in numeric order: 134 -> 134.1 -> 134.2 -> 135 -> ...
 | 137. Approval Gates | 1/3 | Complete    | 2026-03-25 |
 | 138. PWA and Push Notifications | 1/2 | Complete    | 2026-03-26 |
 | 139. Production Hardening | 0/2 | Complete    | 2026-03-26 |
-| 140. Clerk Public Route Matcher Fix | 0/0 | Pending | — |
+| 140. Clerk Public Route Matcher Fix | 0/1 | Pending | — |
