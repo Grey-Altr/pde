@@ -151,8 +151,8 @@ Plans:
 **Plans**: 3 plans
 Plans:
 - [x] 137-01-PLAN.md -- Approval data layer: filter taxonomy, detection logic, Redis queries, ingest extension, /api/approval-response (APR-01, APR-03, APR-04, APR-05)
-- [ ] 137-02-PLAN.md -- ApprovalCard with AlertDialog confirmation, SessionDetail wiring, SessionCard badge, visual verification (APR-01, APR-02, APR-05)
-- [ ] 137-03-PLAN.md -- Relay daemon approval polling: getApprovalResponse HTTP, polling loop, timeout handling (APR-03, APR-04)
+- [x] 137-02-PLAN.md -- ApprovalCard with AlertDialog confirmation, SessionDetail wiring, SessionCard badge, visual verification (APR-01, APR-02, APR-05)
+- [x] 137-03-PLAN.md -- Relay daemon approval polling: getApprovalResponse HTTP, polling loop, timeout handling (APR-03, APR-04)
 **UI hint**: yes
 
 ### Phase 138: PWA and Push Notifications
@@ -167,7 +167,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 - [x] 138-01-PLAN.md -- Serwist service worker, PWA manifest, icons, Turbopack route, bottom tab nav, viewport metadata (PWA-01, PWA-04)
-- [ ] 138-02-PLAN.md -- Web Push Server Actions, VAPID push delivery, capability detection, Settings page, ingest push trigger (PWA-02, PWA-03)
+- [x] 138-02-PLAN.md -- Web Push Server Actions, VAPID push delivery, capability detection, Settings page, ingest push trigger (PWA-02, PWA-03)
 **UI hint**: yes
 
 ### Phase 139: Production Hardening
@@ -182,8 +182,8 @@ Plans:
   5. Vercel cron job runs daily to garbage-collect expired sessions from Redis
 **Plans**: 2 plans
 Plans:
-- [ ] 139-01-PLAN.md -- Dashboard hardening: Redis TTL, rate limiting, cron GC endpoint (HRD-01, HRD-02, HRD-05)
-- [ ] 139-02-PLAN.md -- Relay hardening: event downsampling, buffer cap verification (HRD-03, HRD-04)
+- [x] 139-01-PLAN.md -- Dashboard hardening: Redis TTL, rate limiting, cron GC endpoint (HRD-01, HRD-02, HRD-05)
+- [x] 139-02-PLAN.md -- Relay hardening: event downsampling, buffer cap verification (HRD-03, HRD-04)
 
 ### Phase 140: Clerk Public Route Matcher Fix
 **Goal**: Unblock approval response relay and cron GC by adding missing public routes to the Clerk middleware matcher in proxy.ts
@@ -209,7 +209,7 @@ Plans:
   3. Existing relay behavior (event pushing, circuit breaker, zero-impact isolation) remains unchanged
 **Plans**: 1 plan
 Plans:
-- [ ] 141-01-PLAN.md -- Fix start-relay.cjs stdio + add poll-approval to pde-tools.cjs (APR-04)
+- [x] 141-01-PLAN.md -- Fix start-relay.cjs stdio + add poll-approval to pde-tools.cjs (APR-04)
 
 ### Phase 142: Documentation Tech Debt & Nyquist Cleanup
 **Goal**: Close all documentation gaps and achieve full Nyquist compliance for v0.17 milestone
@@ -240,9 +240,9 @@ Phases execute in numeric order: 134 -> 134.1 -> 134.2 -> 135 -> ...
 | 136.1. Extensions Path Fix & Token Event Source | 2/2 | Complete    | 2026-03-25 |
 | 136.2. Documentation Tech Debt & Nyquist Compliance | 2/2 | Complete    | 2026-03-25 |
 | 136.3. Final Documentation & Filter Cleanup | 1/1 | Complete    | 2026-03-25 |
-| 137. Approval Gates | 1/3 | Complete    | 2026-03-25 |
-| 138. PWA and Push Notifications | 1/2 | Complete    | 2026-03-26 |
-| 139. Production Hardening | 0/2 | Complete    | 2026-03-26 |
+| 137. Approval Gates | 3/3 | Complete    | 2026-03-25 |
+| 138. PWA and Push Notifications | 2/2 | Complete    | 2026-03-26 |
+| 139. Production Hardening | 2/2 | Complete    | 2026-03-26 |
 | 140. Clerk Public Route Matcher Fix | 1/1 | Complete    | 2026-03-26 |
-| 141. Approval Response Stdio Fix | 0/1 | Complete    | 2026-03-26 |
+| 141. Approval Response Stdio Fix | 1/1 | Complete    | 2026-03-26 |
 | 142. Documentation Tech Debt & Nyquist Cleanup | 0/0 | Pending     | — |
