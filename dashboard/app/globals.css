@@ -42,6 +42,12 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@custom-variant standalone {
+  @media (display-mode: standalone) {
+    @slot;
+  }
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;

@@ -38,7 +38,7 @@ async function SessionList() {
 
 export default function HomePage() {
   return (
-    <main className="px-4 sm:px-8 max-w-screen-sm mx-auto py-12">
+    <main className="px-4 sm:px-8 max-w-screen-sm mx-auto py-12 pb-24 md:pb-12">
       <h1 className="text-xl sm:text-[28px] font-semibold leading-[1.1]">Sessions</h1>
       <Suspense fallback={<SessionListSkeleton />}>
         <SessionList />

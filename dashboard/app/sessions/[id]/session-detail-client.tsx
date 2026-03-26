@@ -58,7 +58,7 @@ export function SessionDetailClient({
   }, [mergedEvents, initialSession]);
 
   return (
-    <main className="px-4 sm:px-8 max-w-screen-sm mx-auto py-12">
+    <main className="px-4 sm:px-8 max-w-screen-sm mx-auto py-12 pb-24 md:pb-12">
       <Link
         href="/"
         className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-6 min-h-[44px]"
