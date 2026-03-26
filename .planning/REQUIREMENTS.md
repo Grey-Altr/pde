@@ -30,7 +30,7 @@
 - [x] **APR-01**: Approval gate notifications appear in-app when PDE requests human approval (deploy, write-back, etc.)
 - [x] **APR-02**: User can approve or deny from the dashboard with a confirmation dialog preventing accidental taps
 - [x] **APR-03**: Each approval request uses a unique cryptographic approval_id — PDE rejects responses with stale or mismatched IDs (TOCTOU-safe)
-- [x] **APR-04**: Approval responses flow back to PDE via relay polling Upstash for pending responses
+- [ ] **APR-04**: Approval responses flow back to PDE via relay polling Upstash for pending responses
 - [x] **APR-05**: Approval history log shows past approvals per session with timestamp, action, and context
 
 ## PWA & Notifications
@@ -91,7 +91,7 @@
 | APR-01 | 137 | — | — |
 | APR-02 | 137 | — | — |
 | APR-03 | 137 | — | — |
-| APR-04 | 137 | — | — |
+| APR-04 | 140 | Pending | — |
 | APR-05 | 137 | — | — |
 | PWA-01 | 138 | — | — |
 | PWA-02 | 138 | — | — |

@@ -22,6 +22,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 137: Approval Gates** - Bidirectional approval flow from dashboard to PDE with TOCTOU-safe protocol (completed 2026-03-25)
 - [x] **Phase 138: PWA and Push Notifications** - Installable PWA with service worker, Web Push, and offline shell (completed 2026-03-26)
 - [x] **Phase 139: Production Hardening** - Rate limiting, TTL, downsampling, garbage collection, buffer caps (completed 2026-03-26)
+- [ ] **Phase 140: Clerk Public Route Matcher Fix** - Add missing public routes to proxy.ts Clerk matcher, unblocking approval response relay and cron GC (gap closure)
 
 ## Phase Details
 
@@ -182,6 +183,17 @@ Plans:
 - [ ] 139-01-PLAN.md -- Dashboard hardening: Redis TTL, rate limiting, cron GC endpoint (HRD-01, HRD-02, HRD-05)
 - [ ] 139-02-PLAN.md -- Relay hardening: event downsampling, buffer cap verification (HRD-03, HRD-04)
 
+### Phase 140: Clerk Public Route Matcher Fix
+**Goal**: Unblock approval response relay and cron GC by adding missing public routes to the Clerk middleware matcher in proxy.ts
+**Depends on**: Phase 139
+**Requirements**: APR-04
+**Gap Closure**: Closes INT-01 (critical), INT-02 (medium), FLOW-01 (critical) from v0.17 milestone audit
+**Success Criteria** (what must be TRUE):
+  1. `/api/approval-response` is in the `isPublicRoute` matcher in `dashboard/proxy.ts` — relay GET with Bearer token reaches the route handler without Clerk 401
+  2. `/api/cron/gc` is in the `isPublicRoute` matcher — Vercel cron requests reach the GC handler without Clerk 401
+  3. Approval Gate E2E flow completes: PDE → relay → ingest → Redis → SSE → ApprovalCard → POST → Redis → relay GET → PDE unblocks
+**Plans**: TBD
+
 ## Progress
 
 **Execution Order:**
@@ -199,3 +211,4 @@ Phases execute in numeric order: 134 -> 134.1 -> 134.2 -> 135 -> ...
 | 137. Approval Gates | 1/3 | Complete    | 2026-03-25 |
 | 138. PWA and Push Notifications | 1/2 | Complete    | 2026-03-26 |
 | 139. Production Hardening | 0/2 | Complete    | 2026-03-26 |
+| 140. Clerk Public Route Matcher Fix | 0/0 | Pending | — |
