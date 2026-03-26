@@ -4,20 +4,12 @@
  * spawn.test.cjs — Unit tests for packages/dispatcher/lib/spawn.cjs
  *
  * Uses vitest globals (no require('vitest') — globals: true in vitest.config.ts).
- * Mocks node:child_process spawn to return a fake ChildProcess.
+ * Spies on child_process.spawn to return a fake ChildProcess.
  * No real claude process is spawned.
  */
 
+const childProcess = require('node:child_process');
 const { PassThrough, EventEmitter } = require('node:stream');
-
-// --- Mock node:child_process before requiring the module under test ---
-vi.mock('node:child_process', () => {
-  return {
-    spawn: vi.fn(),
-  };
-});
-
-const { spawn } = require('node:child_process');
 const { spawnSession } = require('../../packages/dispatcher/lib/spawn.cjs');
 
 /**
@@ -34,17 +26,21 @@ function makeFakeChild(pid = 12345) {
 
 describe('spawnSession', () => {
   let fakeChild;
+  let spawnSpy;
   let capturedArgs;
   let capturedOpts;
 
   beforeEach(() => {
     fakeChild = makeFakeChild(42);
-    spawn.mockReset();
-    spawn.mockImplementation((cmd, args, opts) => {
+    spawnSpy = vi.spyOn(childProcess, 'spawn').mockImplementation((cmd, args, opts) => {
       capturedArgs = args;
       capturedOpts = opts;
       return fakeChild;
     });
+  });
+
+  afterEach(() => {
+    spawnSpy.mockRestore();
   });
 
   it('Test 1: returns object with numeric pid and callable kill function', () => {
@@ -143,7 +139,7 @@ describe('spawnSession', () => {
     fakeChild.stdout.push(JSON.stringify(testEvent) + '\n');
 
     // Give readline time to process
-    await new Promise(r => setTimeout(r, 10));
+    await new Promise(r => setTimeout(r, 20));
 
     expect(onLine).toHaveBeenCalledWith('p144-online', testEvent);
   });
@@ -161,7 +157,7 @@ describe('spawnSession', () => {
     });
 
     fakeChild.stderr.push('some error message\n');
-    await new Promise(r => setTimeout(r, 10));
+    await new Promise(r => setTimeout(r, 20));
 
     const stderrCalls = onLine.mock.calls.filter(c => c[1] && c[1].subtype === 'stderr');
     expect(stderrCalls.length).toBeGreaterThan(0);
@@ -185,7 +181,7 @@ describe('spawnSession', () => {
     });
 
     fakeChild.emit('close', null);
-    await new Promise(r => setTimeout(r, 10));
+    await new Promise(r => setTimeout(r, 20));
 
     expect(onExit).toHaveBeenCalledWith('p144-exit', 1);
   });
@@ -203,7 +199,7 @@ describe('spawnSession', () => {
     });
 
     fakeChild.emit('close', 2);
-    await new Promise(r => setTimeout(r, 10));
+    await new Promise(r => setTimeout(r, 20));
 
     expect(onExit).toHaveBeenCalledWith('p144-exit2', 2);
   });
