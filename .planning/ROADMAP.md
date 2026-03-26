@@ -213,4 +213,4 @@ Phases execute in numeric order: 134 -> 134.1 -> 134.2 -> 135 -> ...
 | 137. Approval Gates | 1/3 | Complete    | 2026-03-25 |
 | 138. PWA and Push Notifications | 1/2 | Complete    | 2026-03-26 |
 | 139. Production Hardening | 0/2 | Complete    | 2026-03-26 |
-| 140. Clerk Public Route Matcher Fix | 1/1 | Complete   | 2026-03-26 |
+| 140. Clerk Public Route Matcher Fix | 1/1 | Complete    | 2026-03-26 |
