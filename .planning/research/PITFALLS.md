@@ -1,338 +1,288 @@
-# Pitfalls Research: PDE Remote Dashboard
+# Pitfalls Research: PDE v0.18 Distributed Execution
 
-**Domain:** Remote monitoring/control layer for local-first CLI tool
-**Researched:** 2026-03-24
-**Confidence:** HIGH (architecture-specific pitfalls verified across multiple sources)
+**Domain:** Adding parallel session execution, git worktree orchestration, and remote dispatch to an existing single-session CLI tool
+**Researched:** 2026-03-26
+**Confidence:** HIGH (patterns verified across Node.js process management docs, git worktree real-world issue threads, multi-agent parallelism community reports, and Upstash/SSE scaling literature)
+
+---
+
+## Context: The Integration Trap
+
+The most dangerous pitfall category for v0.18 is not greenfield complexity — it is the assumption that a working single-session system composes cleanly into a parallel one. PDE's existing behavior (single executor, one NDJSON file, STATE.md as single writer, sequential phases) will fight distributed execution at every boundary. The failures below are ranked by how much damage they cause before they are noticed.
+
+---
 
 ## Critical Pitfalls
 
-### Pitfall 1: Approval Gate TOCTOU Race Conditions
-
-**Severity:** CRITICAL -- can cause unintended code execution
+### Pitfall 1: Worktree Bootstrap Leak on Partial Failure
 
 **What goes wrong:**
-User taps "Approve" on PWA for a specific action, but by the time the approval reaches the local PDE instance, the session has moved on. The approval either: (a) applies to a different pending action, (b) arrives after PDE timed out waiting, or (c) arrives for a session that no longer exists. This is a Time-of-Check-to-Time-of-Use (TOCTOU) vulnerability. Codex CLI 0.98.0 had exactly this bug -- parallel tool calls caused approval "swaps" where the UI asked to approve one command but a different command executed.
+The dispatcher runs `git worktree add .sessions/<id> -b pde/session/<id>`, then something fails before the session is registered (config snapshot write fails, relay spawn errors, Claude CLI not found). The worktree directory and branch now exist with no registry entry. On the next run, `git worktree add` for a new session with the same path will fail with `fatal: '.sessions/<id>' already exists`. Each partial failure leaves a permanent artifact. On machines with slow disks or quota limits, these accumulate into "can't create worktree" errors with no clear root cause.
 
 **Why it happens:**
-The approval request and the approval response travel through an asynchronous, multi-hop path: PDE -> relay -> cloud -> SSE -> PWA -> user tap -> cloud -> relay -> PDE. Any step can introduce latency. Meanwhile, PDE's local state is mutable -- the pending action may timeout, be superseded, or the session may end.
+Developers add cleanup to the happy path only. When bootstrap is a multi-step procedure (mkdir + git worktree + relay spawn + registry write), any exception after step 1 exits without reversing steps 1-N. This is documented in the wild: bootstrap failure in Opencode left orphaned directories that caused disk fillup (GitHub issue #14648).
 
 **How to avoid:**
-- Every approval request gets a unique, cryptographically random `approval_id` (UUID v4 minimum)
-- PDE only accepts approval responses that match the *currently pending* `approval_id`
-- Approvals carry a `session_id` + `approval_id` pair; both must match
-- PDE has a local approval timeout (e.g., 5 minutes); after timeout, the approval_id is invalidated server-side too
-- The cloud relay must reject stale approvals before forwarding (don't rely on PDE alone)
-- Display the specific action being approved in the PWA UI with enough context to prevent "blind approve"
+Implement an atomic bootstrap protocol with rollback:
+1. Allocate session ID
+2. Open a try/finally or try/catch block BEFORE any git command
+3. On any exception: run `git worktree remove --force .sessions/<id>`, `git branch -D pde/session/<id>`, then rethrow
+4. Only write to the registry after all setup succeeds
+5. Add a startup audit that scans `.sessions/` against the registry and flags directory-without-registry-entry as orphan
 
 **Warning signs:**
-- Tests pass approval without checking IDs
-- Approval endpoint accepts any session's approval_id
-- No TTL on pending approvals in the cloud relay
-- PWA shows "Approve" button without showing what action is being approved
+- `git worktree list` shows sessions not in the dispatcher registry
+- `.sessions/` directory count grows across runs
+- Tests only cover the happy path of session creation
 
-**Phase to address:** Phase 1 (Relay Protocol Design) -- the approval wire format must include these fields from day one. Retrofitting approval IDs into an existing protocol is painful.
+**Phase to address:**
+Session Isolation phase (Layer 1). Foundation must be atomic before parallelism is added.
 
 ---
 
-### Pitfall 2: Unbounded /tmp/ Queue Growth During Network Outages
-
-**Severity:** CRITICAL -- can fill disk and crash PDE or other system processes
+### Pitfall 2: Orphaned Detached Processes After Dispatcher Death
 
 **What goes wrong:**
-PDE writes NDJSON events to /tmp/ session files. The relay module reads these and pushes to cloud. When the user's internet drops (laptop lid close, WiFi switch, VPN reconnect), the relay can't push. If the relay continues reading events and buffering them in memory, OOM. If it stops reading, /tmp/ files grow unbounded. A 10,000-event autonomous run at ~500 bytes/event = ~5MB, manageable. But if the relay retries with exponential backoff and queues 50,000 events across multiple sessions, /tmp/ fills up. On macOS, /tmp/ is on the boot volume.
+The design spawns Claude CLI subprocesses with `detached: true`. When the dispatcher process is killed (Ctrl-C, OOM, crash), those detached children keep running — consuming tokens, writing to the worktree, and potentially attempting git commits. The next dispatcher startup finds completed worktrees with no matching registry entry. Worse: if the new dispatcher spawns a new session for the same phase, two sessions may produce conflicting artifacts for phase N. The design notes orphan detection on startup, but detection alone does not prevent the window of concurrent execution.
 
 **Why it happens:**
-Developers test on stable connections. The "offline" case is easy to forget. The relay is additive to PDE -- PDE already writes to /tmp/ for the tmux dashboard. Adding a relay reader that can't keep up creates invisible backpressure.
+`detached: true` without a corresponding process-group kill strategy means SIGTERM to the parent does nothing to the children. Node.js's `subprocess.unref()` (used to allow parent to exit) also severs the kill chain. Most implementations add the shutdown signal handler as an afterthought after the happy path is proven.
 
 **How to avoid:**
-- Implement a hard cap on relay buffer: max 1000 events in memory, max 10MB per session on disk
-- When buffer is full, drop oldest non-critical events (keep phase transitions, approvals, errors; drop verbose telemetry)
-- The relay module must be a "best effort" push -- PDE must NEVER block or slow down waiting for relay
-- Add a circuit breaker: after N consecutive push failures, stop trying for M seconds (not just exponential backoff)
-- Monitor /tmp/ usage and log warnings at 80% of cap
-- On reconnect, send a "gap" marker event so the dashboard knows events were dropped
+- Track all spawned child PIDs in the session registry and in a persistent `.planning/dispatcher.pids` file (survives dispatcher crash)
+- On dispatcher startup: read `.planning/dispatcher.pids`, check each PID with `process.kill(pid, 0)`, offer Adopt/Kill for any live PIDs found
+- On graceful shutdown: send SIGTERM to the entire process group (`process.kill(-child.pid, 'SIGTERM')`) before exiting
+- On the PDE CLI side: implement a `preStop` hook that writes a `STOPPING` marker to the session's worktree; Claude CLI should check for this marker and exit cleanly
+- Set a hard timeout: if a session runs longer than `max_session_duration` (e.g., 90 minutes), the dispatcher sends SIGTERM even without explicit shutdown
 
 **Warning signs:**
-- Relay has no max buffer size constant
-- No distinction between "must-deliver" events (approvals) and "best-effort" events (telemetry)
-- Tests don't simulate network outage scenarios
-- No "gap" or "events_dropped" event type in the protocol
+- `ps aux | grep claude` shows more claude processes than the registry claims are active
+- Worktrees have uncommitted changes from sessions the registry marks as unknown
+- Tests don't simulate parent crash mid-execution
 
-**Phase to address:** Phase 1 (Relay Module) -- buffer management must be designed before any HTTP push code. This is the relay's primary responsibility.
+**Phase to address:**
+Session Isolation phase (Layer 1), then validated again in Local CLI Dispatch (Layer 2).
 
 ---
 
-### Pitfall 3: SSE Timeout on Vercel Serverless (Dashboard Goes Dead)
-
-**Severity:** CRITICAL -- dashboard appears "connected" but receives no updates
+### Pitfall 3: Shared Git Index Lock Contention
 
 **What goes wrong:**
-Vercel serverless functions have hard timeout limits: 10 seconds on Hobby, 60 seconds on Pro (up to 300s with Fluid Compute on Pro). SSE connections that exceed these limits are silently terminated by the platform. The dashboard shows a "connected" indicator but receives no new events. Users stare at a frozen dashboard thinking PDE is stuck when it's actually the SSE connection that died.
+Git creates an `index.lock` file before any write operation. Worktrees have their own index at `.git/worktrees/<name>/index.lock` — so concurrent sessions don't contend on the main index. However, they DO share the main `.git/objects/` pack database and the main `.git/config`. If the dispatcher performs git operations on the main repo (e.g., `git branch`, `git fetch`, `git merge`) while a session is doing git operations in its worktree, both may contend on the shared pack-refs lock or the main `config.lock`. This appears as `fatal: Unable to create '.git/refs/heads/.lock': File exists` — an error message that looks like a different problem than "two concurrent git operations."
 
 **Why it happens:**
-SSE works perfectly in local dev (no timeout). Developers ship to Vercel and it works for the first 10-60 seconds. The connection drop is silent -- no error event fires on the client EventSource.
+The distinction between worktree-scoped locks and main-repo-shared locks is non-obvious. Teams test single worktree isolation and conclude "worktrees prevent contention" without testing concurrent dispatcher + session git operations.
 
 **How to avoid:**
-- Do NOT use long-lived SSE from Vercel serverless functions
-- Use one of these patterns instead:
-  - **Polling with SSE fallback:** Client polls every 2-3 seconds, SSE only for sub-second delivery when available
-  - **Edge Runtime SSE:** Vercel Edge Runtime supports long-lived connections (no timeout), but has 128MB memory limit and no Node.js APIs
-  - **External SSE provider:** Use Upstash Redis pub/sub or Ably/Pusher for the real-time channel, Vercel only serves the API
-- Implement client-side reconnection with heartbeat detection: if no event received in 10 seconds, reconnect
-- Show "reconnecting..." UI state -- never let the dashboard appear connected when it isn't
+- The dispatcher must never run git commands on the main repository while a session is actively running in a worktree spawned from it
+- Serialize all dispatcher-level git operations (branch pruning, fetching, merging) through a single async queue — one operation at a time
+- For the merge phase: collect all sessions to merge, then execute merges sequentially with exponential backoff on lock errors (not retries in a tight loop)
+- Use `git worktree lock` on active sessions to prevent the main repo from garbage-collecting their objects
 
 **Warning signs:**
-- SSE endpoint is a standard Node.js serverless function (not Edge)
-- No heartbeat/keepalive events in the SSE stream
-- Client EventSource has no `onerror` handler with reconnection logic
-- Works in dev, mysteriously stops updating in production
+- `fatal: Unable to create '.../.lock'` errors in dispatcher logs
+- Merge operations that succeed in isolation but fail when N sessions complete simultaneously
+- No serialization mechanism in the dispatcher for main-repo git operations
 
-**Phase to address:** Phase 2 (Dashboard MVP) -- the real-time delivery mechanism must be chosen before building any dashboard UI. This is an architectural decision, not a bug to fix later.
+**Phase to address:**
+Local CLI Dispatch phase (Layer 2), merge manager component.
 
 ---
 
-### Pitfall 4: State Divergence -- Dashboard Shows Stale Reality
-
-**Severity:** HIGH -- erodes user trust, causes incorrect approval decisions
+### Pitfall 4: STATE.md / ROADMAP.md Write-Back Race
 
 **What goes wrong:**
-Dashboard shows phase 3 executing; local PDE has already moved to phase 5. User sees an approval gate for phase 3 that PDE has already auto-timed-out. User approves. Now PDE gets an approval for a completed phase. Alternatively: dashboard shows "idle" but PDE is mid-execution because events haven't propagated yet. User closes laptop thinking PDE is done.
+The design correctly assigns STATE.md and ROADMAP.md updates to the dispatcher post-merge (single writer). However, the existing executor agents (running inside CLI sessions) may still write to these files — they have always written to them, and the code change to stop doing so must be surgical and complete. If even one executor workflow path still writes STATE.md directly (e.g., an error handler, a compatibility path, the session-start header), the post-merge write will overwrite or be overwritten by the session write. Result: phases appear re-opened, progress reverts, or agent memory is clobbered.
 
 **Why it happens:**
-There are three independent clocks: PDE local time, cloud relay time, and the user's browser time. Event delivery has variable latency (batching + HTTP push + cloud processing + SSE/polling delivery). The dashboard's state is always a projection of the past, never the present. The gap between "event happened" and "dashboard shows it" is typically 1-5 seconds but can be 30+ seconds during network hiccups.
+Existing behavior is deeply embedded. Searching for "STATE.md" in workflow files will find the happy-path writes, but miss indirect writes through helper functions or emergency fallback paths. Developers who partially migrate the protocol will introduce exactly one execution path that still writes directly.
 
 **How to avoid:**
-- Every event carries a monotonic sequence number AND a wall-clock timestamp
-- Dashboard shows "last updated: X seconds ago" prominently -- never hide staleness
-- If last update > 10 seconds old, show an amber "possibly stale" indicator
-- If last update > 60 seconds old, show a red "connection lost" indicator
-- For approval gates specifically: include a "this approval was requested X seconds ago" countdown
-- Server-side: maintain a "session heartbeat" that PDE sends every 5 seconds; dashboard knows session is alive vs. dead
-- Consider "pull on demand" for approval gates: when user opens an approval, PWA does a fresh HTTP GET to verify it's still pending
+- Audit ALL writes to STATE.md and ROADMAP.md in the existing codebase before building the dispatcher — not just the obvious ones
+- Add a file-write hook (PostToolUse) in the Claude Code hooks configuration for sessions that fires when STATE.md or ROADMAP.md is written from inside a session — it should log a WARNING and ideally no-op the write
+- The dispatcher's merge phase should use `git diff HEAD..session-branch -- .planning/STATE.md` to detect whether the session wrote to STATE.md; if so, flag for review before merging
+- Add a Nyquist test that simulates a session completing and verifies STATE.md was NOT modified in the session branch
 
 **Warning signs:**
-- Dashboard has no "last updated" indicator
-- No heartbeat mechanism -- dashboard can't distinguish "no events" from "disconnected"
-- Approval UI doesn't show when the approval was requested
-- No sequence numbers in events -- can't detect gaps
+- STATE.md shows phase completion before the dispatcher has run its post-merge recalculation
+- ROADMAP.md progress bars update mid-session without dispatcher involvement
+- Executor agents emit `agent.memory_saved` events for the global memories.md (not session-scoped file)
 
-**Phase to address:** Phase 1 (Protocol) for sequence numbers/timestamps; Phase 2 (Dashboard) for staleness UI; Phase 3 (Approval Gates) for fresh-pull verification.
+**Phase to address:**
+Session Isolation phase (Layer 1) — the write protocol change must land before any parallel sessions are spawned.
 
 ---
 
-### Pitfall 5: Security Surface -- Cloud Endpoint Accepts Events From Anywhere
-
-**Severity:** HIGH -- event injection, session hijacking, data exfiltration
+### Pitfall 5: Static File Analysis Misses Runtime-Generated Paths
 
 **What goes wrong:**
-The cloud relay endpoint is a public HTTPS URL. Anyone who discovers it (or reverse-engineers the PDE plugin) can: (a) inject fake events to pollute a user's dashboard, (b) replay captured events, (c) send fake approval responses, (d) enumerate session IDs to sniff other users' event streams. PDE events may contain file paths, code snippets, error messages with sensitive context.
+The design uses static analysis of PLAN.md to detect which source files each phase will modify, then serializes phases that mention the same file. This works for `src/components/Button.tsx` listed explicitly. It fails for paths generated at runtime: a phase that creates a new file based on a naming convention, a phase that writes to `dist/` (not mentioned in PLAN.md), or a phase that modifies a file discovered via glob. Two phases both running `npm install` modify `package-lock.json` — not mentioned in either PLAN.md. The static analysis reports "no overlap" and both run concurrently. The merge produces a lockfile conflict.
 
 **Why it happens:**
-"It's just a monitoring dashboard" mentality. Security gets deferred to "later." But the approval gate feature makes this a control plane, not just observability. An attacker who can inject approvals can cause PDE to execute arbitrary actions.
+PLAN.md is authored by agents who describe intent, not execution. Agents regularly omit build artifacts, generated files, and files modified as side effects. The static analysis is conservative by design, but "conservative by design" fails silently when the conservative case is wrong.
 
 **How to avoid:**
-- Authentication: each PDE instance gets a short-lived JWT (or similar) on registration. Token includes `user_id` and `session_id` claims
-- Token rotation: tokens expire every 1 hour, PDE refreshes silently
-- Event signing: each event batch includes an HMAC signature using a shared secret established at session registration
-- Rate limiting: max 100 events/second per session, max 10 sessions per user
-- The dashboard SSE/polling endpoint requires its own authentication (user's Vercel/OAuth session)
-- Approval responses require the dashboard's auth token AND match the session's approval_id -- two independent auth checks
-- Never include raw file contents in events -- only paths, diff summaries, metadata
-- Scrub sensitive environment variable names from events before push
+- Add a blocklist of always-conflict paths to the dispatcher's static analysis: `package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`, `*.tsbuildinfo`, `dist/`, `build/`, `.next/`, any generated directory listed in `.gitignore`
+- These paths auto-serialize any two phases that both involve package changes or build steps
+- Add a "phase category" heuristic: phases with `install`, `build`, or `compile` in their description run sequentially even if file lists don't overlap
+- Post-merge: if a non-.planning/ conflict is detected, surface the specific conflicting file paths in the dashboard merge conflict card so the user can update PLAN.md to be accurate
 
 **Warning signs:**
-- Relay endpoint has no authentication middleware
-- Events include `process.env` values or full file contents
-- No rate limiting on event ingestion
-- Session IDs are predictable (sequential integers, timestamps)
-- Same auth token used for both event push and dashboard viewing
+- Merge conflicts in `package-lock.json` despite static analysis claiming clean parallel execution
+- Phases that run `npm install` or build steps scheduled concurrently
+- Static analysis coverage rate never validated with integration tests
 
-**Phase to address:** Phase 1 (Auth + Relay Protocol). Security cannot be retrofitted. The auth flow must be designed before the first event is pushed.
+**Phase to address:**
+Local CLI Dispatch phase (Layer 2), routing/scheduling component.
 
 ---
 
-### Pitfall 6: iOS PWA Push Notifications Are Unreliable (Especially in EU)
-
-**Severity:** HIGH -- core feature doesn't work for significant user segment
+### Pitfall 6: SSH Dispatch Round-Trip State Divergence
 
 **What goes wrong:**
-Web Push on iOS has a ~70-85% delivery rate (vs ~95% on Android). In the EU, PWA push notifications do not work at all -- Apple removed standalone PWA support under the Digital Markets Act in iOS 17.4 (2024). PWAs in EU open in Safari tabs without push capability. This was NOT reversed for push notifications despite Apple reinstating basic PWA support. Additionally, iOS requires the PWA to be installed to the Home Screen before push works, and Safari can clear the Service Worker state if the PWA hasn't been opened recently, silently breaking the push subscription.
+The remote dispatch flow is: (1) `git push` session branch, (2) SSH remote fetches + creates worktree, (3) Claude runs on remote, (4) remote commits + pushes session branch, (5) local fetches + merges. Between steps 1 and 5, the local main branch may receive other commits (from another session completing, from the user making a local change). When step 5 runs `git merge pde/session/<id>`, the merge base has shifted. This is not a git conflict (git handles it), but it means the post-merge state recalculation runs against a different base than what the remote session saw during execution. The remote session's COMPLETE markers and COMPLETED-REQS.md reference a world that no longer exists exactly.
 
 **Why it happens:**
-Developers test on Android or desktop Chrome where Web Push is reliable. iOS restrictions aren't encountered until real users report "I never got the notification." EU users may not report anything because they never got push working in the first place.
+Remote execution has a longer round-trip than local. The window for the main branch to advance is much larger. Developers test with sequential sessions (where the base doesn't shift) and only discover the shifted-base problem when running two remote sessions concurrently.
 
 **How to avoid:**
-- Do NOT make push notifications the primary notification channel
-- Implement a tiered notification strategy:
-  1. **Primary:** In-app polling (dashboard auto-refreshes, shows approval banners)
-  2. **Secondary:** Email notifications for approval gates (reliable, works everywhere)
-  3. **Tertiary:** Web Push for users who opt in and meet platform requirements
-- Show clear status: "Push notifications: active / not available on your device / not supported in your region"
-- For approval gates specifically: implement a "check for pending approvals" button that works regardless of push
-- Consider SMS as a future channel for critical approvals (high delivery rate, works everywhere)
+- The dispatcher must record the exact commit hash of main at session spawn time in the session registry
+- At merge time, compare the current main HEAD with the spawn-time commit: if they differ, run the post-merge state recalculation from scratch against the full current state rather than applying deltas
+- REQUIREMENTS.md merging must use a union strategy (collect all COMPLETED-REQS.md entries) rather than a "apply this session's changes" strategy — union is idempotent and base-shift-safe
+- Test explicitly: spawn two remote sessions concurrently, have one complete and merge before the other finishes, verify the second merge succeeds
 
 **Warning signs:**
-- Push notifications are the only notification mechanism
-- No fallback for when push subscription silently breaks
-- No analytics on push delivery rate per platform
-- EU users are not tested
-- No "check for approvals" manual refresh option
+- Post-merge STATE.md shows fewer completed requirements than the COMPLETE markers indicate
+- ROADMAP.md progress bars regress after a second session merges
+- Integration tests only ever run one remote session at a time
 
-**Phase to address:** Phase 2 (Dashboard MVP) should use polling as primary. Phase 3 (Notifications) adds push as enhancement, never as sole mechanism.
+**Phase to address:**
+Remote Dispatch phase (Layer 3), merge manager + state recalculation.
 
 ---
 
-### Pitfall 7: Zero-NPM-Dep Constraint Makes Relay Fragile
-
-**Severity:** HIGH -- no retry, no circuit breaker, no connection pooling out of the box
+### Pitfall 7: Relay Event Loss for Sessions That Complete Before Dashboard Subscribes
 
 **What goes wrong:**
-PDE's hard constraint is zero npm dependencies at the plugin root. The relay module must use Node.js built-in `fetch()` (or `node:https`). Built-in fetch has: no automatic retry, no timeout by default (must use AbortController), no built-in circuit breaker, and each request pays full TLS handshake cost without explicit connection reuse configuration. A naive `fetch()` call that fails silently on network error, with no retry, means events are permanently lost.
+A local CLI session spawns, executes, and completes in 8 minutes. The dashboard opens 10 minutes later (user was away). The relay daemon for that session wrote events to `/tmp/pde-session-<id>.ndjson` while running, but the relay's in-memory buffer (the Upstash Redis stream) has already expired the events via TTL. The dashboard shows the session as "completed" with zero events — no timeline, no progress, no cost breakdown. For remote sessions, the gap is worse: the remote relay daemon exits when the session completes, and its events are only in the remote `/tmp/` file, not accessible locally.
 
 **Why it happens:**
-`fetch()` looks simple. `await fetch(url, { method: 'POST', body: batch })` -- done, right? But production HTTP is hard. Libraries like `got`, `ky`, `undici` exist because raw fetch is insufficient for production use. The zero-dep constraint means reimplementing retry, timeout, circuit breaker, and keepalive logic by hand.
+The existing relay was designed for a live-monitoring use case (user watching during execution). Session archival (keeping events for post-hoc review) was an add-on. With multiple parallel sessions, users will frequently miss live execution and need replay.
 
 **How to avoid:**
-- Build a small (~100 LOC) `resilientFetch` wrapper that includes:
-  - `AbortController` with configurable timeout (default 10s)
-  - Exponential backoff retry (3 attempts, 1s/2s/4s delays)
-  - Circuit breaker (open after 5 consecutive failures, half-open after 30s)
-  - HTTP keepalive via `{ keepalive: true }` option (supported in Node 18+)
-- Undici IS built into Node.js (it powers the global `fetch()`). Connection pooling happens automatically for the same origin when using `keepalive: true`
-- Batch events (send 10-50 at once, not individually) to amortize TLS overhead
-- All relay failures must be logged but must NEVER propagate to PDE's main execution flow
+- Before a session is cleaned up, the dispatcher must copy the session's NDJSON file to a persistent location: `.planning/sessions/<id>/events.ndjson`
+- For remote sessions: after the remote session commits and pushes, add the NDJSON file to the git commit (or push it as a separate artifact). The local merge step pulls it down
+- The dashboard's session detail view should fall back to reading `.planning/sessions/<id>/events.ndjson` when the live relay has no data
+- Do not rely on Upstash TTL alone as the only event store — the TTL is correct for live streaming, not for archival
 
 **Warning signs:**
-- Raw `fetch()` calls without AbortController
-- No retry logic in the relay module
-- Individual event push (one HTTP request per event)
-- Relay errors cause unhandled promise rejections
-- No connection reuse between requests
+- Session detail pages in the dashboard show empty event logs for completed sessions
+- Remote session histories are unavailable locally
+- NDJSON files in `/tmp/` are not backed up before relay daemon exits
 
-**Phase to address:** Phase 1 (Relay Module). The `resilientFetch` wrapper should be the first code written. Everything else depends on it.
+**Phase to address:**
+Session Isolation phase (Layer 1) for local archival; Remote Dispatch phase (Layer 3) for remote event retrieval.
+
+---
+
+### Pitfall 8: Dispatcher Lock File Stale PID False Negatives
+
+**What goes wrong:**
+The design prevents two dispatchers with `.planning/dispatcher.lock` containing the PID of the running dispatcher. On startup, the new dispatcher reads the lock file, finds a PID, checks if it is alive with `process.kill(pid, 0)`, and if alive, exits. This works correctly when the previous dispatcher is still running. It fails in two ways: (a) the PID has been recycled — the OS assigned the same PID to a completely different process, which is alive, so the new dispatcher incorrectly exits; (b) the lock file was written on a different machine (SSH server), and the PID namespace is different.
+
+**Why it happens:**
+PID recycling is a real phenomenon on systems that run many short-lived processes (common on dev machines). The check `process.kill(pid, 0)` only confirms a process with that PID exists — it does not confirm it is the PDE dispatcher.
+
+**How to avoid:**
+- Write the lock file with both PID AND a randomly generated session token (UUID v4) and a timestamp
+- On startup: read PID + token + timestamp. Check if PID is alive. If alive, also check for a PDE-specific sentinel: the dispatcher should write a second file `.planning/dispatcher.sentinel` with the same token, updated every 30 seconds (heartbeat). If the PID is alive but the sentinel is stale (older than 90 seconds), the process is not the dispatcher — steal the lock
+- For remote: never check remote PIDs from local; remote locks are scoped to the remote machine and are not relevant to the local dispatcher
+
+**Warning signs:**
+- Dispatcher refuses to start on a machine that runs many short processes (Docker, CI)
+- Two dispatcher processes occasionally co-exist despite the lock mechanism
+- Lock files on remote machines are not cleaned up after SSH sessions complete
+
+**Phase to address:**
+Local CLI Dispatch phase (Layer 2), dispatcher coordination.
 
 ---
 
 ## Moderate Pitfalls
 
-### Pitfall 8: Cost Surprise From Autonomous Runs
-
-**Severity:** MODERATE -- unexpectedly high bills, not a technical failure
+### Pitfall 9: Context Window Exhaustion in Long-Running Parallel Sessions
 
 **What goes wrong:**
-Normal usage (10 sessions/day, 1000 events/session) costs almost nothing. But autonomous runs can generate 10,000-50,000 events per session. Cost math:
-
-**Upstash Redis:** $0.20 per 100K commands. 10 sessions x 1000 events = 10K commands = free tier (500K commands/month free). But 5 autonomous runs x 50K events = 250K commands + reads for dashboard polling = ~500K commands = at the edge of free tier. Heavy month with multiple autonomous sessions: $1-5.
-
-**Vercel Functions:** $0.60 per 1M invocations. If each event batch triggers an API route + dashboard polls every 2 seconds across 8 hours of active use = 14,400 poll requests/day + event pushes. 1M invocations/month included on Hobby. Comfortable margin.
-
-**Bandwidth:** NDJSON events are small (~500 bytes). 500K events/month = ~250MB. Well within Upstash's 200GB free bandwidth and Vercel's included transfer.
-
-**The real surprise:** It's not the per-unit cost. It's that autonomous mode can 10-50x your event volume overnight, and if you're on Upstash pay-as-you-go with no budget cap, you won't know until the bill. Also, multi-dimensional Vercel billing (CPU time + memory + invocations) means costs compound in ways not obvious from invocation count alone.
+The design routes "execute a phase" to CLI subprocess (heavyweight). A complex phase may run long enough to fill the Claude context window. The current single-session behavior handles this gracefully (PDE has context management in the executor). But in a parallel session, the context fills in a worktree where the orchestrator is not watching. The session exits with a non-zero code or produces an incomplete SUMMARY.md. The dispatcher records it as "failed" and surfaces a retry card. If the user retries without adjusting the phase scope, the same failure recurs.
 
 **How to avoid:**
-- Set a hard event rate limit: max 10 events/second pushed to cloud (buffer/drop the rest locally)
-- Implement event downsampling for autonomous mode: only push phase transitions, errors, and approval gates; skip verbose telemetry
-- Set Upstash spend cap (available in dashboard)
-- Log estimated monthly cost in PDE's tmux dashboard as a running counter
-- Alert user when event volume exceeds 10x normal threshold
+- Add a missing-SUMMARY.md detection to the failure recovery path (the design mentions this, but make it active: check for SUMMARY.md existence BEFORE checking exit code)
+- Surface "context window exhausted" as a distinct failure reason in the dashboard (not generic "failed")
+- Provide a "Split this phase" action on the failure card that re-routes the user to the plan-phase workflow
+- Log the final context window utilization in the session's event archive
 
-**Warning signs:**
-- No event rate limiting in relay
-- All event types pushed equally regardless of mode (interactive vs autonomous)
-- No cost monitoring or estimation
-- No Upstash spend cap configured
-
-**Phase to address:** Phase 1 (Relay) for rate limiting and downsampling. Phase 4 (Production Hardening) for cost monitoring.
+**Phase to address:**
+Local CLI Dispatch phase (Layer 2), failure handling.
 
 ---
 
-### Pitfall 9: Session Identity Collisions and Cleanup
-
-**Severity:** MODERATE -- wrong data on dashboard, leaked sessions
+### Pitfall 10: Dashboard SSE Connection Count Explosion
 
 **What goes wrong:**
-PDE sessions need unique IDs that link local execution to cloud dashboard. If session IDs collide (two machines, same user, both generate the same ID), events interleave on the dashboard. If sessions aren't cleaned up, the cloud accumulates zombie sessions that consume storage and confuse the UI. Multi-machine users (desktop + laptop) need their sessions properly namespaced.
+The existing v0.17 dashboard opens one SSE connection to the relay endpoint. With N concurrent sessions, the dashboard opens N SSE connections (one per session's relay). Each SSE connection is a long-lived HTTP connection. On mobile (the stated target), browsers enforce 6 concurrent HTTP/1.1 connections per origin. At 7+ sessions, new SSE connections queue behind the 6-connection limit, causing some sessions to appear offline. On the server side, Upstash Redis has a concurrent connection limit (documented); N parallel sessions each polling Redis creates N×(poll interval) reads.
 
 **Why it happens:**
-Session ID generation seems trivial. `Date.now()` or `randomUUID()` alone might seem sufficient. But: (a) `Date.now()` has millisecond resolution -- two rapid session starts collide, (b) sessions need to survive PDE restarts gracefully (is it a new session or continuation?), (c) cloud has no way to know when a session ended if PDE crashes.
+The v0.17 architecture was optimized for one session. The "one relay daemon per session" model multiplies connection count linearly. HTTP/2 would allow multiplexing, but most local dev environments use HTTP/1.1 for the relay.
 
 **How to avoid:**
-- Session ID = `${machineId}-${crypto.randomUUID()}` where machineId is derived from hostname + username hash
-- Store session ID in the /tmp/ session file so it persists across PDE restarts within the same logical session
-- Cloud-side: sessions auto-expire after 24 hours of no events (configurable)
-- PDE sends explicit "session_end" event on clean shutdown
-- Dashboard UI groups sessions by machine and shows active vs. expired
-- Cloud-side garbage collection: delete session data after 7 days
+- The dispatcher writes a multiplexed NDJSON file (`/tmp/pde-dispatch-<id>.ndjson`) that merges all session events — the dashboard should subscribe to this SINGLE file/endpoint, not N per-session endpoints
+- The dashboard uses the `session_id` tag in each event to filter/route to per-session views — no per-session connections needed
+- For Upstash: the relay aggregator (one process) reads from all Redis streams and fans out to the single multiplexed file — reduces Redis connections from N to 1
+- Test explicitly with 3+ concurrent sessions before shipping the dashboard update
 
 **Warning signs:**
-- Session IDs are just timestamps or sequential numbers
-- No session expiry mechanism on the cloud side
-- No "session_end" event in the protocol
-- Dashboard shows sessions from weeks ago with no way to clean up
-- Multi-machine user sees interleaved events
+- Dashboard shows some sessions as "offline" when 4+ are active
+- Browser DevTools shows 6+ open SSE connections
+- Dashboard performance degrades with each additional session
 
-**Phase to address:** Phase 1 (Protocol) for session ID format. Phase 2 (Dashboard) for session list UI. Phase 4 (Production) for cleanup/GC.
+**Phase to address:**
+Dashboard Integration phase, event aggregation component.
 
 ---
 
-### Pitfall 10: Backward Compatibility -- Opt-in Goes Wrong
-
-**Severity:** MODERATE -- breaks existing users who don't want remote features
+### Pitfall 11: PLAN.md File List Is an Estimate, Not a Contract
 
 **What goes wrong:**
-The relay module is loaded at PDE startup. If it throws (misconfigured, missing config, network code has a bug), it takes down PDE's entire hook chain. Or: the relay adds perceptible latency to PDE's event loop, making the local tmux dashboard feel sluggish. Or: users who never configured remote monitoring see error messages about failed cloud connections in their terminal.
+The merge conflict prevention strategy relies on each phase "owning" its files. But PLAN.md is written by an agent at plan-time, and the agent may write an optimistic plan. During execution, the agent discovers it needs to modify an additional file (refactor dependency, fix failing test, update a shared util). Two sessions are now both writing to a file that neither declared. The static analysis passed, the merge conflicts.
+
+**How to avoid:**
+- Treat PLAN.md file lists as a soft lock, not a hard lock
+- At merge time, use `git diff --name-only session-branch..main` to produce the actual file list for the session (not the planned list)
+- Compare actual file lists between sessions being merged: if overlap is found, pause and surface it before completing the merge
+- Do not retroactively block the session — the work is done. Surface the overlap, auto-resolve if the changes are in different hunks, escalate to user only on true line-level conflicts
+- The static analysis pre-dispatch check is a best-effort serialization helper, not a correctness guarantee
+
+**Phase to address:**
+Local CLI Dispatch phase (Layer 2), merge manager.
+
+---
+
+### Pitfall 12: Agent SDK Token Cost Explosion for Routing Decisions
+
+**What goes wrong:**
+The design uses Agent SDK for lightweight orchestration tasks: dependency analysis, routing decisions, progress summarization. These are described as "lightweight." In practice, dependency analysis of a full ROADMAP.md for a 20-phase project, read at every dispatch decision, will send 10-15k tokens per call. If the orchestration loop runs frequently (polling for session status every 60 seconds), Agent SDK costs can exceed the cost of the actual work sessions within a few hours.
 
 **Why it happens:**
-Additive features are supposed to be safe. But the relay module hooks into PDE's event pipeline. If the hook is synchronous, or if it awaits network calls in the hot path, it blocks PDE. If it throws an unhandled error, the hook system may abort.
+"Lightweight" is conflated with "cheap." Agent SDK calls are lightweight in latency (no tool use) but not necessarily in token cost. Orchestration loops that run continuously are a known cost sink in multi-agent systems (the token consumption 15x multiplier in Anthropic's own multi-agent testing data confirms this).
 
 **How to avoid:**
-- Relay module is gated behind explicit opt-in: `PDE_REMOTE=true` environment variable or `.pde-remote.json` config file
-- If not opted in, the relay module code is never loaded (not loaded-but-disabled)
-- Relay hook is strictly async and fire-and-forget -- PDE event emission never awaits relay
-- Wrap the entire relay in a top-level try/catch that logs to a separate relay.log but NEVER throws into PDE's stack
-- Integration test: run full PDE session with relay module present but misconfigured -- verify PDE works perfectly
+- Dependency analysis and routing decisions are ONE-TIME operations at dispatch start — do not re-run them on every session status poll
+- Session health monitoring (is the process alive?) must use PID checks and relay heartbeat checks — NOT Agent SDK calls
+- Progress summarization should be triggered on explicit user request or on session completion — not on a polling schedule
+- Add a token counter for dispatcher Agent SDK calls; log a warning if any single orchestration run consumes more than 5k tokens
 
-**Warning signs:**
-- Relay code is imported unconditionally at PDE startup
-- Relay hook uses `await` in the event emission path
-- No try/catch around relay initialization
-- No test that verifies PDE works when relay is broken/misconfigured
-- Error messages about cloud connection appear when user hasn't opted in
-
-**Phase to address:** Phase 1 (Relay Module) -- the isolation boundary must be established first. Test it by deliberately breaking the relay and verifying PDE still works.
-
----
-
-## Minor Pitfalls
-
-### Pitfall 11: Latency Perception -- "Real-Time" Expectations
-
-**What goes wrong:**
-Users expect the PWA dashboard to update within 100ms of local PDE actions (like their tmux dashboard does). Actual end-to-end latency: PDE event write (~1ms) + relay batch window (~500ms) + HTTP push (~100-500ms) + cloud processing (~50ms) + SSE/poll delivery (~0-3000ms) = 650ms-4s typical. During network congestion: 5-15 seconds. Users perceive > 2 seconds as "broken."
-
-**Prevention:**
-- Set expectations in UI: "Updates every 1-3 seconds" label
-- Use optimistic updates where possible: show "sending approval..." immediately on tap, confirm when acknowledged
-- Prioritize approval gate events for immediate push (don't batch them)
-- Show a "latency indicator" (like video call quality bars) so users understand the delay is network, not a bug
-
-**Phase to address:** Phase 2 (Dashboard UX).
-
----
-
-### Pitfall 12: Service Worker Lifecycle Gotchas
-
-**What goes wrong:**
-PWA Service Worker is updated by the browser on its own schedule. A stale Service Worker can serve cached API responses, breaking real-time functionality. Or: the Service Worker's push subscription gets cleared by iOS after inactivity (confirmed behavior), silently breaking notifications.
-
-**Prevention:**
-- Implement `skipWaiting()` + `clients.claim()` for immediate SW activation
-- Version the SW file and check on each dashboard load
-- Store push subscription server-side and re-register on each PWA open
-- API routes should have `Cache-Control: no-store` headers
-
-**Phase to address:** Phase 2 (PWA Setup).
+**Phase to address:**
+Agent SDK Orchestrator phase (Layer 2), orchestration loop design.
 
 ---
 
@@ -340,104 +290,128 @@ PWA Service Worker is updated by the browser on its own schedule. A stale Servic
 
 | Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
 |----------|-------------------|----------------|-----------------|
-| Skip event batching, push individually | Simpler relay code | 10-50x HTTP overhead, TLS per event | Never -- batching is trivial and essential |
-| Use polling instead of SSE entirely | Avoids Vercel SSE timeout complexity | Higher latency (2-3s floor), more function invocations | Acceptable for MVP, replace with Edge SSE or external provider later |
-| Store events in Vercel KV instead of Upstash Redis | One fewer external service | Vercel KV has lower throughput limits, 1MB value size limit | Acceptable if event volume stays low (< 1000/day) |
-| Skip auth on relay endpoint initially | Faster development | Any authenticated PDE user can inject events into any session | Never -- auth must be day one. Even a simple shared secret is better than nothing |
-| Hardcode session timeout to 1 hour | No cleanup logic needed | Long autonomous runs get disconnected; zombie sessions if too long | Only in MVP, replace with heartbeat-based timeout |
+| Polling session status via file mtime instead of relay events | Simple, no relay dependency | Misses events between polls, slow to detect failure | Never — relay events are already in place |
+| Writing STATE.md directly from session "just for now" | Unblocks development | Races with dispatcher; creates subtle state corruption bugs | Never |
+| Skipping bootstrap rollback in early prototypes | Faster iteration | Orphaned worktrees accumulate; harder to clean up as they age | Only in throwaway local spikes |
+| One SSE connection per session in dashboard | Simple implementation | Browser connection limit at 6+; Upstash Redis connection flood | Never in the shipped product |
+| Reusing the same session ID on retry | Simpler registry | Old artifacts in `.sessions/<id>/` contaminate the retry | Never |
+| Using `kill -9` to stop a session | Immediate termination | Leaves index.lock files, uncommitted partial writes, orphaned relay daemon | Only as absolute last resort via "Force Kill" button |
+| Skipping the sentinel heartbeat on the dispatcher lock | Simpler startup check | PID recycling causes false "dispatcher already running" exits | Never |
+
+---
 
 ## Integration Gotchas
 
 | Integration | Common Mistake | Correct Approach |
 |-------------|----------------|------------------|
-| Upstash Redis | Using `GET`/`SET` for event storage (wrong data structure) | Use Redis Streams (`XADD`/`XREAD`) -- purpose-built for ordered event ingestion with consumer groups |
-| Vercel Edge Runtime | Assuming Node.js APIs are available | Edge Runtime has no `fs`, no `node:` imports, limited to Web APIs. Use Node.js runtime for API routes that need full Node |
-| Web Push API | Requesting notification permission on first visit | Only request after user explicitly opts in (e.g., clicks "Enable notifications"). Safari blocks repeated permission requests |
-| EventSource (SSE client) | No reconnection logic, trusting browser auto-reconnect | Browser reconnects but may lose events during gap. Implement manual reconnect with `Last-Event-ID` header to resume from last received event |
-| AbortController (fetch timeout) | Creating one AbortController per request without cleanup | Always call `controller.abort()` in error paths to prevent memory leaks. Don't share controllers across requests -- aborting one would abort all |
+| Git worktree + existing plugin hooks | Plugin hooks that scan `.planning/` fire in worktree context and write to the worktree's copy — but hooks configured at the repo level may also fire in the main repo unexpectedly. | Ensure PostToolUse and other hooks that write to `.planning/` are session-aware. Add a `PDE_SESSION_ID` env check: if set, write to session-scoped paths only. |
+| Claude CLI `--print` flag + worktree CWD | `claude --print --cwd <worktree>` requires the worktree to have a valid `.claude/` plugin directory (or inherit from the main repo). If the skills/hooks aren't found in the worktree, the session runs without them. | Use the `--worktree` flag (recently fixed in March 2026 to load skills from worktree) OR ensure the main repo's plugin config is inherited. The fix in Claude Code that addressed "worktree not loading skills" is recent — verify it is present in the installed version. |
+| Upstash Redis + multiple relay daemons | Each relay daemon opens a Redis connection. N parallel sessions = N connections. Upstash free tier has a 1000 concurrent connection limit — easy to hit if each relay also uses pooling. | One relay aggregator connects to Redis; per-session relay daemons write to NDJSON only, do not connect to Redis directly. The aggregator tails all NDJSON files and pushes to Redis. |
+| SSH dispatch + git push race | The dispatcher pushes `pde/session/<id>` to origin. The remote machine fetches the branch. If the push hasn't propagated to origin by the time SSH runs `git fetch`, the branch is not found. | Add a 3-second delay + retry loop (up to 5 attempts) between push and SSH fetch command. This is not ideal but is the practical mitigation for remote Git propagation lag on shared origins. |
+| `process.kill(-child.pid)` on macOS | Sending SIGTERM to a process group works on Linux but behaves differently on macOS when the child was spawned with `detached: true` but not as a process group leader. | Verify process group leadership with `getpgid`. If the child's PID equals its PGID, use `process.kill(-child.pid)`. Otherwise, walk the process tree using `pgrep -P <pid>` and kill children individually. |
+
+---
 
 ## Performance Traps
 
 | Trap | Symptoms | Prevention | When It Breaks |
 |------|----------|------------|----------------|
-| Pushing every NDJSON line individually | High latency, excessive function invocations | Batch 10-50 events per push, flush on timer (500ms) or batch full | Immediately in production -- even 10 events/second = 10 TLS handshakes/second |
-| Dashboard polling every 500ms | Smooth updates but high invocation cost | Poll every 2-3 seconds, use SSE/Edge for sub-second when needed | At 10+ concurrent dashboard viewers = 20+ req/sec constant load |
-| Storing full event history in Redis | Works initially | Use TTL (24h) on event streams, archive to cheaper storage | When Redis memory exceeds 256MB free tier (~500K events) |
-| JSON.parse on every poll response | Invisible on small payloads | Use NDJSON streaming response, parse incrementally | When response exceeds 100KB (~200 events) |
+| Linear scan of `.sessions/` on every status poll | Dispatcher slows as abandoned worktrees accumulate | Registry is the source of truth; scan `.sessions/` only on startup for orphan detection, not on every tick | At 20+ abandoned sessions |
+| NDJSON tail with `fs.watch` per file | N concurrent sessions = N `fs.watch` file descriptors; macOS kqueue limit is 256 by default | Single aggregator process using a glob watch on `/tmp/pde-session-*.ndjson` | At 6+ concurrent sessions |
+| Git merge on large repos with many worktrees | `git worktree list` becomes slow; merge time scales with repo size | Keep `.sessions/` worktrees sparse (only checkout `.planning/` + source files the phase touches) | On repos with 10k+ files |
+| Relay event buffer unlimited growth | Memory pressure on dispatcher after hours of parallel execution | Implement rolling window on in-memory event buffer (keep last 1000 events per session); flush to NDJSON continuously | After ~4 hours of concurrent execution |
+| Agent SDK dependency analysis called at every routing decision | Token cost scales with phase count × dispatch events | Cache the dependency DAG; invalidate only when ROADMAP.md changes | At 15+ phases, frequent dispatch |
 
-## Security Mistakes
+---
 
-| Mistake | Risk | Prevention |
+## Security Considerations
+
+| Concern | Risk | Prevention |
 |---------|------|------------|
-| Session tokens in URL query params | Tokens logged in server access logs, browser history, referer headers | Use `Authorization: Bearer` header for API calls, httpOnly cookies for dashboard |
-| No CORS restrictions on relay endpoint | Any website can push events to your relay | Strict CORS: only allow requests from PDE (no Origin header = server-to-server) and your dashboard domain |
-| Approval gate without re-authentication | Stolen dashboard session = ability to approve actions on user's machine | Require re-authentication (or at minimum, session freshness check) for approval actions |
-| Event payloads include secrets | `.env` values, API keys, passwords visible in dashboard | Scrub events at the relay layer BEFORE push. Regex filter for common secret patterns. Never include `process.env` in events |
+| SSH credentials in config.json | If `.planning/config.json` is committed to git, SSH host details and credentials are exposed | Add `.planning/config.json` to `.gitignore`; use environment variables for SSH credentials; document this clearly in setup |
+| Session IDs in worktree branch names | `pde/session/<uuid>` branches pushed to origin are visible to anyone with repo access | Use short random tokens (not full UUIDs) for branch names in any shared repo context; document that session branches should be treated as temporary |
+| Relay URL in remote environment | `PDE_REMOTE` env var passed to SSH session contains the full Upstash relay URL including auth token | Treat `PDE_REMOTE` as a secret; do not log it; ensure SSH command does not end up in shell history (use `-o LogLevel=QUIET`) |
+| Stale session branches | After a session completes, its branch may persist on origin with sensitive plan content | Prune session branches from origin as part of cleanup; never leave `pde/session/*` branches on origin longer than 24 hours |
+
+---
 
 ## UX Pitfalls
 
 | Pitfall | User Impact | Better Approach |
 |---------|-------------|-----------------|
-| Dashboard shows raw NDJSON events | Overwhelming, unreadable, feels like a log viewer not a dashboard | Aggregate events into meaningful states: "Phase 3 executing, 47% complete, 12 files changed" |
-| No indication of connection status | User doesn't know if dashboard is live or stale | Always-visible connection indicator: green (live), amber (delayed), red (disconnected) |
-| Approval gate shows technical details only | User can't make informed approve/deny decision | Show: what action, what files affected, risk level, and allow viewing diff before approving |
-| Multiple sessions shown equally | Confusing when user has 3 old sessions and 1 active | Auto-focus active session, collapse/archive completed sessions, clear visual hierarchy |
+| Showing "3 active sessions" without indicating which phases they correspond to | User cannot tell what is happening — "active" means nothing without context | Each session card must show phase number + plan description; "Session 2: Phase 5, Plan 3 — refactor auth module" |
+| Destructive "Kill Session" accessible with one tap | User accidentally kills a 45-minute session while scrolling | Single-tap shows preview: "Kill session? This will discard N uncommitted changes." Confirm requires explicit tap on destructive button inside AlertDialog — not just dismiss |
+| Merge conflict notification with no actionable next step | User sees "conflict" but has no idea what to do | Merge conflict card must always show: (a) the specific files in conflict, (b) a "View Diff" button, (c) a git command they can paste to resolve locally, (d) an "Abandon session and keep main" escape hatch |
+| Progress bars showing % based on event count, not actual phase completion | Bars jump around unpredictably; a phase with many quick events looks "faster" than one with few slow events | Progress bars for phases are binary step counters (waves complete, not event rates); only show animated stripe for "active" state, not as a % proxy |
+| Session filter chip defaulting to "All Sessions" with interleaved events | With 3+ concurrent sessions, the event log is unreadable | Default to "All Sessions" on the Sessions tab, but default to the most recently active session on the Events tab; persist filter preference in localStorage |
+
+---
 
 ## "Looks Done But Isn't" Checklist
 
-- [ ] **Relay push:** Works on stable WiFi but -- test on 3G throttle, test with WiFi off mid-push, test VPN reconnect
-- [ ] **SSE connection:** Works in dev -- test on Vercel production with actual serverless timeouts
-- [ ] **Push notifications:** Works on Android Chrome -- test on iOS Safari (must be home-screen installed), test after 48 hours of inactivity
-- [ ] **Approval gate:** Works when clicked within 5 seconds -- test approval after 5 minutes, test approval after session ended, test double-tap
-- [ ] **Multi-session:** Works with one session -- test with 3 concurrent sessions on 2 machines
-- [ ] **Backward compatibility:** Works with relay configured -- test with relay not configured, test with relay misconfigured, test with relay endpoint down
-- [ ] **EU users:** Push works in US -- test with EU-based iOS device (push will not work, verify graceful degradation)
-- [ ] **Cost:** Works on free tier with test load -- estimate cost for heaviest real-world month (autonomous runs)
+- [ ] **Worktree cleanup:** Session completes AND merge succeeds AND `.sessions/<id>/` is removed AND `pde/session/<id>` branch is pruned from local AND origin. Verify: `git worktree list` shows no stale entries after session completes.
+- [ ] **Orphan detection:** Dispatcher startup scans `.sessions/`, `.planning/dispatcher.pids`, and the registry. Verify: kill dispatcher mid-session, restart, confirm orphan is detected within 5 seconds.
+- [ ] **STATE.md single writer:** No executor agent writes to STATE.md during session execution. Verify: git diff on the session branch shows no STATE.md changes.
+- [ ] **Event archival:** After session cleanup, `.planning/sessions/<id>/events.ndjson` exists and is non-empty. Verify: dashboard shows event history for completed sessions opened after the fact.
+- [ ] **Lock file heartbeat:** Dispatcher lock file's sentinel is updated every 30 seconds while dispatcher is alive. Verify: `stat .planning/dispatcher.sentinel` shows mtime within 60 seconds while dispatcher runs.
+- [ ] **Relay aggregation:** With 3 concurrent sessions, the dashboard SSE connection count in DevTools is 1, not 3. Verify in browser Network panel.
+- [ ] **SSH cleanup:** After remote session completes and merges, the remote machine has no `.sessions/<id>/` directory and no `pde/session/<id>` branch. Verify via SSH inspection.
+- [ ] **Package lock conflict prevention:** Two sessions that both run `npm install` (or equivalent) are serialized, not run in parallel. Verify by inspecting dispatch decision logs for phases with install steps.
+
+---
 
 ## Recovery Strategies
 
 | Pitfall | Recovery Cost | Recovery Steps |
 |---------|---------------|----------------|
-| Approval TOCTOU race | LOW | Add approval_id validation server-side; existing approvals without IDs are rejected. No data migration needed |
-| /tmp/ overflow | MEDIUM | Add buffer cap + event priority. Requires relay module changes. Lost events during outage are unrecoverable (acceptable -- dashboard is best-effort) |
-| SSE timeout in production | HIGH | Architecture change: move from serverless SSE to Edge Runtime or external provider. May require rewriting real-time delivery layer |
-| State divergence | LOW | Add sequence numbers to events, staleness indicators to UI. Incremental improvement, no breaking changes |
-| Security breach via unauthenticated endpoint | HIGH | Must add auth retroactively. Existing sessions need re-registration. Potential data exposure of all events pushed before auth was added |
-| iOS push failure | LOW | Add email/polling fallback. Push was never the sole mechanism if designed correctly |
-| Cost overrun | LOW | Add rate limiting and downsampling. Immediate effect. Set Upstash spend cap |
+| Orphaned worktrees with uncommitted work | MEDIUM | 1. `git worktree list` to identify; 2. Inspect each for useful work; 3. `git worktree remove --force` for abandoned ones; 4. `git branch -D pde/session/<id>` to prune branches; 5. Clean `.planning/dispatcher.pids` |
+| STATE.md corrupted by session write race | HIGH | 1. `git log --oneline -20` to find last good STATE.md; 2. `git show <hash>:.planning/STATE.md > /tmp/state-backup.md`; 3. Re-run dispatcher's `recalculateState()` from scratch using COMPLETE markers in phase directories |
+| Two dispatchers ran concurrently, duplicate phases executed | HIGH | 1. Both session branches should exist; 2. Inspect each for completeness; 3. Keep the more complete one; 4. Manually merge any unique artifacts from the other; 5. Delete the duplicate session's branch |
+| SSH session completed but push failed, work is stranded | MEDIUM | 1. SSH to remote; 2. `git log --oneline` in the session's worktree; 3. `git push origin pde/session/<id> --force-with-lease`; 4. Resume local merge flow |
+| Dashboard shows stale session state after dispatcher restart | LOW | 1. Hard-reload dashboard; 2. Dashboard reads registry via API on load — fresh registry will be accurate; 3. If stale, check that dispatcher rebuilt registry correctly from disk on startup |
+| merge conflict in source code (non-.planning/) | MEDIUM | 1. Dashboard merge conflict card surfaces the files; 2. User runs `git checkout -b pde/resolve-<id>`; 3. Manually resolves; 4. Dispatcher resumes with resolved branch |
+
+---
 
 ## Pitfall-to-Phase Mapping
 
 | Pitfall | Prevention Phase | Verification |
 |---------|------------------|--------------|
-| Approval TOCTOU | Phase 1: Protocol Design | Unit test: send approval with wrong/expired ID, verify rejection |
-| /tmp/ overflow | Phase 1: Relay Module | Integration test: simulate 60s network outage during 10K event burst, verify /tmp/ stays under cap |
-| SSE timeout | Phase 2: Dashboard MVP | E2E test: deploy to Vercel, verify events received after 120s of connection |
-| State divergence | Phase 2: Dashboard UI | Manual test: induce 30s network delay, verify staleness indicator appears |
-| Security surface | Phase 1: Auth + Protocol | Penetration test: attempt event injection without valid token, attempt cross-session approval |
-| iOS push unreliability | Phase 3: Notifications | Real-device test: iOS in US and EU, verify graceful degradation |
-| Zero-dep relay fragility | Phase 1: Relay Module | Unit test: verify resilientFetch retries, circuit breaks, and times out correctly |
-| Cost surprise | Phase 4: Production Hardening | Load test: simulate 50K events/session, calculate projected monthly cost |
-| Session identity | Phase 1: Protocol | Test: launch 2 sessions simultaneously on same machine, verify distinct IDs and correct routing |
-| Backward compatibility | Phase 1: Relay Module | Integration test: full PDE session with `PDE_REMOTE` unset, verify zero relay code loaded |
-| Latency perception | Phase 2: Dashboard UX | Measure: end-to-end latency from PDE event to dashboard render, set p95 target |
-| Service Worker lifecycle | Phase 2: PWA Setup | Test: deploy SW update, verify new version activates within 1 page reload |
+| Worktree bootstrap leak on partial failure | Phase: Session Isolation (Layer 1) | Nyquist test: simulate exception during bootstrap, verify no orphaned worktree |
+| Orphaned detached processes after dispatcher death | Phase: Session Isolation (Layer 1) + Local CLI Dispatch (Layer 2) | Integration test: SIGKILL parent, restart, verify orphan detection within 5s |
+| Shared git index lock contention | Phase: Local CLI Dispatch (Layer 2) | Integration test: 3 concurrent sessions all completing simultaneously, zero lock errors |
+| STATE.md / ROADMAP.md write-back race | Phase: Session Isolation (Layer 1) | Nyquist test: session branch contains no STATE.md diff |
+| Static analysis misses runtime-generated paths | Phase: Local CLI Dispatch (Layer 2) | Integration test: two phases with npm install, verify serialization |
+| SSH dispatch round-trip state divergence | Phase: Remote Dispatch (Layer 3) | Integration test: two remote sessions, first merges before second completes |
+| Relay event loss for sessions completing before dashboard | Phase: Session Isolation (Layer 1) for archival | Manual test: session completes, open dashboard 30 minutes later, events visible |
+| Dispatcher lock file stale PID false negatives | Phase: Local CLI Dispatch (Layer 2) | Unit test: mock PID recycling scenario, verify heartbeat check prevents false block |
+| Context window exhaustion in parallel sessions | Phase: Local CLI Dispatch (Layer 2) | Integration test: simulate missing SUMMARY.md, verify distinct failure reason in dashboard |
+| Dashboard SSE connection count explosion | Phase: Dashboard Integration | Browser DevTools test: 3+ sessions, verify single SSE connection |
+| Agent SDK token cost explosion | Phase: Agent SDK Orchestrator (Layer 2) | Log token count per orchestration run; alert if >5k |
+| SSH credentials in config.json | Phase: Remote Dispatch (Layer 3) | Verify `.planning/config.json` is in `.gitignore` before remote config is documented |
+
+---
 
 ## Sources
 
-- [Codex CLI 0.98.0 Approval Swap TOCTOU Bug](https://codefix.dev/2026/02/09/codex-cli-0-98-0-approval-swap-parallel-tool-calls-toctou/) - MEDIUM confidence (community analysis of real vulnerability)
-- [Gemini CLI TOCTOU Race Condition](https://github.com/google-gemini/gemini-cli/issues/20746) - HIGH confidence (official GitHub issue)
-- [PWA iOS Limitations and Safari Support 2026](https://www.magicbell.com/blog/pwa-ios-limitations-safari-support-complete-guide) - HIGH confidence (comprehensive, current guide)
-- [PWA Push Notifications on iOS in 2026](https://webscraft.org/blog/pwa-pushspovischennya-na-ios-u-2026-scho-realno-pratsyuye?lang=en) - MEDIUM confidence (corroborated by MagicBell guide)
-- [Reliable Push Notifications on PWAs for iOS and Android](https://edana.ch/en/2026/03/19/push-notifications-on-web-applications-pwa-is-it-really-reliable-on-ios-and-android/) - MEDIUM confidence (70-85% iOS delivery rate figure)
-- [Vercel SSE Time Limits](https://community.vercel.com/t/sse-time-limits/5954) - HIGH confidence (official Vercel community)
-- [Fixing Slow SSE in Next.js and Vercel](https://medium.com/@oyetoketoby80/fixing-slow-sse-server-sent-events-streaming-in-next-js-and-vercel-99f42fbdb996) - MEDIUM confidence (practitioner experience)
-- [Vercel Function Pricing](https://vercel.com/docs/functions/usage-and-pricing) - HIGH confidence (official docs)
-- [Upstash Redis Pricing](https://upstash.com/docs/redis/overall/pricing) - HIGH confidence (official docs)
-- [Node.js Fetch Timeout and Retry Guide](https://tasukehub.com/articles/nodejs-fetch-timeout-retry-guide?lang=en) - MEDIUM confidence (verified against Node.js docs)
-- [Node.js Backpressuring in Streams](https://nodejs.org/en/learn/modules/backpressuring-in-streams) - HIGH confidence (official Node.js docs)
-- [Apple DMA and Apps in the EU](https://developer.apple.com/support/dma-and-apps-in-the-eu/) - HIGH confidence (official Apple developer docs)
+- [Git Worktrees: Advanced Topics — Git Cheat Sheet](https://gitcheatsheet.dev/docs/advanced/worktrees/)
+- [Git Worktree Conflicts with Multiple AI Agents: Diagnosis and Fixes — Termdock](https://www.termdock.com/en/blog/git-worktree-conflicts-ai-agents)
+- [Worktree bootstrap failures leak orphaned directories — anomalyco/opencode Issue #14648](https://github.com/anomalyco/opencode/issues/14648)
+- [Stale `.git/index.lock` files created by CC's background git operations — anthropics/claude-code Issue #11005](https://github.com/anthropics/claude-code/issues/11005)
+- [Killing process families with Node — Almenon, Medium](https://medium.com/@almenon214/killing-processes-with-node-772ffdd19aad)
+- [Node.js child_process docs — Official](https://nodejs.org/api/child_process.html)
+- [Node.js race conditions — nodejsdesignpatterns.com](https://nodejsdesignpatterns.com/blog/node-js-race-conditions/)
+- [Preventing Race Conditions in Node.js with Distributed Locks — DEV Community](https://dev.to/koistya/preventing-race-conditions-in-nodejs-with-distributed-locks-48fp)
+- [proper-lockfile — Node.js inter-process lockfile utility](https://github.com/moxystudio/node-proper-lockfile)
+- [How to Build LLM Streams That Survive Reconnects, Refreshes, and Crashes — Upstash Blog](https://upstash.com/blog/resumable-llm-streams)
+- [ERR max concurrent connections exceeded — Upstash Documentation](https://upstash.com/docs/redis/troubleshooting/max_concurrent_connections)
+- [Clash: avoid merge conflicts across git worktrees for parallel AI agents](https://github.com/clash-sh/clash)
+- [Building agents with the Claude Agent SDK — Anthropic Engineering](https://www.anthropic.com/engineering/building-agents-with-the-claude-agent-sdk)
+- [Claude Code Worktrees: Run Parallel Sessions Without Conflicts](https://claudefa.st/blog/guide/development/worktree-guide)
+- [Claude Code Release Notes — March 2026 (worktree skills fix)](https://releasebot.io/updates/anthropic/claude-code)
+- [Git Worktrees for Parallel AI Coding Agents — Upsun Developer Center](https://devcenter.upsun.com/posts/git-worktrees-for-parallel-ai-coding-agents/)
 
 ---
-*Pitfalls research for: PDE Remote Dashboard -- adding remote monitoring/control to local-first CLI tool*
-*Researched: 2026-03-24*
+
+*Pitfalls research for: PDE v0.18 Distributed Execution — adding parallel session execution to single-session CLI*
+*Researched: 2026-03-26*

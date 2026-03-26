@@ -1,24 +1,31 @@
-# Feature Research
+# Feature Research: PDE v0.18 Distributed Execution
 
-**Domain:** Bidirectional multi-editor context sync (PDE v0.16)
-**Researched:** 2026-03-24
-**Confidence:** HIGH (v0.15 infrastructure well-documented; editor formats verified via official sources)
+**Domain:** Distributed task execution — git worktree session isolation, CLI subprocess orchestration, multi-session monitoring, remote dispatch
+**Researched:** 2026-03-26
+**Confidence:** HIGH (core patterns verified against Claude Code official docs and 2026 ecosystem research)
 
 ---
 
-## Context: What Already Exists in v0.15
+## Context: What Already Exists (Not in Scope)
 
-These features are NOT in scope — they are the foundation this milestone builds on:
+These features are the foundation this milestone builds on — do NOT re-build:
 
-- One-way PDE → Cursor: `.cursor/rules/*.mdc` generation with YAML frontmatter (pde-project, pde-design-tokens, pde-components, pde-architecture, pde-pipeline)
-- One-way PDE → Antigravity: `SKILL.md` + `DESIGN.md` generation
-- One-way PDE → Gemini: `GEMINI.md` hierarchical files with `@file` imports
-- Hook-driven auto-regeneration on `.planning/` changes (`CTX-06`)
-- 3-tier divergence detection (structural/content/behavioral) on code vs handoff specs (`DIV-01` through `DIV-06`)
-- Standalone MCP server with 10 read-only tools (`MCP-01` through `MCP-05`)
-- Hash-based staleness markers on generated context files (`CTX-08`)
+- Single-session phase execution with wave-based plan parallelism (Task() subagents)
+- NDJSON event streaming via relay daemon to Upstash Redis
+- PWA dashboard with real-time monitoring via SSE, session cards, event log
+- Approval gate push notifications (Web Push + VAPID)
+- Production hardening: rate limiting, TTL, downsampling, GC on relay
+- Existing tmux 7-pane monitoring dashboard
 
-The v0.16 milestone adds the **reverse path**: editor changes flowing back into PDE state.
+The v0.18 milestone adds **parallel session dispatch** (Layer 2) and **remote execution** (Layer 3).
+
+---
+
+## Ecosystem Context (2026)
+
+The ecosystem has converged on git worktrees as the standard session isolation primitive for parallel AI coding agents. Tools validated this year: ccswarm (Rust, CLI orchestrator), Mux (desktop with conflict visualization), Superset (multi-agent dispatcher), Parallel Worktrees (GitHub), and critically, Anthropic's own experimental "Agent Teams" feature (v2.1.32+). The pattern is proven and table stakes — the differentiation is in the orchestration logic, merge conflict prevention, and observability layer on top.
+
+**Key finding from official Claude Code Agent Teams docs (HIGH confidence):** Agent teams use significantly more tokens than single sessions, require experimental flag (`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS`), have known limitations around session resumption, and are not recommended for sequential tasks, same-file edits, or work with many dependencies. PDE's CLI-subprocess + worktree approach is architecturally sounder than the native Agent Teams feature for its use case.
 
 ---
 
@@ -26,100 +33,172 @@ The v0.16 milestone adds the **reverse path**: editor changes flowing back into 
 
 ### Table Stakes (Users Expect These)
 
-| Feature | Why Expected | Complexity | Notes |
-|---------|--------------|------------|-------|
-| Cursor → PDE reverse sync: .mdc rule changes propagate to .planning/ | If users can edit .mdc files (they can and do), edits must round-trip or they silently diverge | HIGH | Requires .mdc YAML frontmatter parsing + semantic diffing against .planning/ source of truth; the existing 3-tier divergence detector covers code divergence but not context file divergence |
-| Conflict detection on reverse sync | Bidirectional sync without conflict detection causes silent data loss — the most common failure mode in sync tools | MEDIUM | PDE is already the authoritative source for design state; conflict = editor edited something PDE auto-generates → must surface, not silently overwrite |
-| Manual conflict resolution prompt | Auto-resolution without user input loses intent; "editor wins" vs "PDE wins" vs "show diff" must be user-controlled | LOW | Can be a simple CLI prompt + CONFLICT.md diff output; defer to PDE as default since .planning/ is source of truth |
-| Antigravity → PDE reverse sync: SKILL.md edits propagate back | Antigravity users modify SKILL.md to tune agent behavior; those edits should not be clobbered on next PDE sync | MEDIUM | Requires section-level parsing (YAML frontmatter + fenced instruction blocks); only user-modified sections should propagate; PDE-generated sections should be protected |
-| Live file watching (Cursor .mdc changes trigger sync) | Without a watcher, users must manually invoke sync after every editor edit; defeats the purpose of integration | HIGH | Node.js `fs.watch` / chokidar pattern well-established; must debounce (200-500ms) to avoid thrashing on editor saves; hooks architecture (already used for PDE→editor) is the natural extension point |
-| Single source of truth for design tokens (shared token state) | DTCG tokens already live in `.planning/design/tokens.json`; Antigravity DESIGN.md is a derived view; if Antigravity can write tokens back, there must be one authoritative file | HIGH | Shared state problem: resolve by making `.planning/design/tokens.json` the master; DESIGN.md is always read-only derivative; write-backs from Antigravity must parse and merge into tokens.json, not replace it |
-| Sync status visibility | Users need to know when sync is in-progress, when conflicts exist, and when state is clean | LOW | Can extend existing DIVERGENCE.md pattern + dashboard pane; a SYNC-STATUS.md or dashboard row covers this |
+Features users assume exist in any parallel execution system. Missing these = system feels broken.
+
+| Feature | Why Expected | Complexity | Infrastructure Dependency |
+|---------|--------------|------------|---------------------------|
+| **Git worktree per session** | The universal isolation primitive — every parallel agent tool uses this; anything less causes file conflicts | LOW | git CLI (always present) |
+| **Session lifecycle management (spawn/track/complete/cleanup)** | Users need to know which sessions are running, which finished, and have confidence nothing is leaked | MEDIUM | Dispatcher session registry |
+| **Exit code detection + failure surfacing** | If a CLI subprocess crashes silently, user cannot recover; must be visible | LOW | Node.js child_process exit event |
+| **Opt-in flag (`--parallel`)** | Without explicit opt-in, parallel execution changes behavior in surprising ways; users expect existing sequential flow to be untouched | LOW | PDE plugin config |
+| **Session-scoped event tagging** | Events from parallel sessions must be distinguishable in the dashboard; unlabeled events from multiple sessions are unusable | LOW | Existing NDJSON `session_id` field (already supported) |
+| **Orphan detection on startup** | Detached processes surviving a PDE crash are a hazard; users expect the system to find and surface these on next launch | MEDIUM | `.sessions/` dir scan + PID check |
+| **Nuclear reset command** | When parallel execution goes wrong (stuck sessions, bad merges), users need a single command to restore clean state | LOW | Session registry + worktree cleanup |
+| **Non-overlapping phase assignment** | Dispatching the same phase to two sessions simultaneously is a fundamental correctness violation; must be prevented by construction | MEDIUM | Dispatcher routing logic |
+| **Session status in dashboard** | "What is each session doing right now?" is the baseline query for any multi-session system | LOW | Existing SSE pipeline + session card component |
+| **Graceful degradation when dispatch is disabled** | `dispatch.enabled: false` must make the system behave exactly as today with zero behavioral change | LOW | Feature gate in config |
 
 ### Differentiators (Competitive Advantage)
 
-| Feature | Value Proposition | Complexity | Notes |
-|---------|-------------------|------------|-------|
-| Section-aware merge (preserve user edits in PDE-generated files) | Most sync tools are whole-file: overwrite or skip. Section-aware merge lets users annotate regions as "user-owned" that survive PDE regeneration | MEDIUM | Pattern: HTML comment fencing in .mdc and SKILL.md files; PDE regeneration preserves fenced blocks; similar to @generated markers used in GraphQL codegen and Prisma client |
-| Agent coordination via MCP (PDE and Antigravity delegate work) | Antigravity agents can query PDE state via MCP to make context-aware decisions without duplicating state; PDE agents can trigger Antigravity skill execution | HIGH | Builds directly on existing read-only MCP server; requires adding write/notification tools (e.g., notify-state-change, request-skill-execution); MCP A2A patterns emerging in 2026 as standard |
-| Richer .mdc generation (deeper context, better globs, more rules) | Current .mdc files are functional but thin; richer rules with per-file-type glob targeting, inline examples, and cross-file relationship annotations make Cursor AI responses measurably better | MEDIUM | Cursor docs confirm .mdc with well-scoped globs reduces context token usage by activating only relevant rules; this is enhancement to existing CTX-02, not a new capability class |
-| Richer SKILL.md + DESIGN.md generation (enhanced Antigravity output) | Current Antigravity outputs cover design DNA basics; richer output includes component relationship graphs, constraint annotations, and Antigravity-native workflow hooks | MEDIUM | Antigravity Skills support workflows: declarations in SKILL.md YAML frontmatter; PDE can auto-generate workflow stubs from .planning/ pipeline state |
-| Conflict audit trail (SYNC-LOG.md) | When conflicts are auto-resolved, a timestamped log of what changed and why gives users traceability and the ability to undo | LOW | Append-only log in `.planning/logs/` using existing NDJSON event bus infrastructure; near-zero implementation cost given v0.8 event system |
+Features that distinguish PDE's distributed execution from generic parallel agent tools.
+
+| Feature | Value Proposition | Complexity | Infrastructure Dependency |
+|---------|-------------------|------------|---------------------------|
+| **Zero merge conflict guarantee for `.planning/` metadata** | Generic tools surface conflicts as a problem; PDE eliminates them by construction (single-writer pattern per shared file, session-scoped writes during execution) | HIGH | Dispatcher post-merge collector; requires changing STATE.md, ROADMAP.md, REQUIREMENTS.md write semantics in executor agents |
+| **Static file analysis at dispatch** | Most tools discover conflicts at merge time; PDE detects file overlap at dispatch time by reading PLAN.md file lists, preventing conflicts before they start | MEDIUM | Agent SDK (read-only reasoning); PLAN.md file-list convention |
+| **Two-tier execution routing (CLI vs Agent SDK)** | Heavyweight work (filesystem, tools, git) runs as CLI subprocesses; lightweight work (dependency analysis, routing decisions, merge resolution, summarization) runs as Agent SDK. Cost-optimized: SDK calls are cheaper than full CLI sessions | HIGH | `@anthropic-ai/agent-sdk` in `packages/dispatcher/` |
+| **Tiered remote dispatch with fallback (managed → SSH → local)** | Most agent tools are local-only; PDE routes autonomous work to remote machines with zero additional infrastructure cost (git + existing relay) and automatic fallback | HIGH | git push/pull for state sync; existing relay for real-time events; SSH or `claude --remote` |
+| **Session-source tagging in dashboard** | Users can see whether a session is `local`, `remote-managed`, or `remote-ssh` with relationship context ("Phase 5, Plan 2") | LOW | Existing SSE pipeline; new `dispatch.session_spawned` event type |
+| **Interactive vs autonomous routing** | Sessions with approval gates stay local (can't prompt user remotely); fully autonomous sessions route to remote. Routing decision is automatic based on PLAN.md checkpoint field | MEDIUM | Dispatcher routing; PLAN.md checkpoint convention |
+| **Tiered chevron progress per session card** | Visual state machine showing last 3 transitions (Spawned → Wave 1 → Wave 2, each with Y/*/X/o symbols) gives at-a-glance session state without opening detail views | MEDIUM | Dashboard session card component; existing dispatch events |
+| **Aggregate multi-session progress view** | "3/7 phases complete, 2 running, 2 queued" — single-number summary across all active sessions for the phone home screen widget use case | LOW | Dashboard state derived from session registry events |
+| **Dispatcher events in existing event bus** | New `dispatch.*` event types flow through the existing NDJSON → relay → Redis → SSE pipeline with zero wire protocol changes; extensions field absorbs new data | LOW | Existing relay + SSE pipeline (no changes needed) |
+| **Session context window utilization per session (stacked bars)** | Token visibility for multiple sessions simultaneously; no CI/CD tool or agent orchestration tool shows this | MEDIUM | Existing token/cost events; multi-session aggregation in dashboard |
+| **Failure preservation + Agent SDK failure summary** | Failed sessions preserve exit log (last 50 lines stderr), NDJSON tail (last 100 events), and worktree; Agent SDK generates human-readable failure summary | MEDIUM | Agent SDK; worktree lifecycle (no cleanup on failure) |
+| **Concurrent phase + plan parallelism** | Two levels: independent phases run as separate sessions; plans within a wave run as sessions in worktrees. Most tools offer one level | HIGH | Dependency DAG from ROADMAP.md; Dispatcher routing logic |
+| **Striped animated progress bars with speed-as-signal** | Active work: animated diagonal stripes; slow animation = waiting at gate; no animation + solid = failed. Animation speed communicates health, not just progress | LOW | Dashboard CSS; existing progress bar component |
 
 ### Anti-Features (Commonly Requested, Often Problematic)
 
+Features that seem beneficial but create problems in this context.
+
 | Feature | Why Requested | Why Problematic | Alternative |
 |---------|---------------|-----------------|-------------|
-| Real-time continuous sync daemon | "I want changes to appear instantly everywhere" | A persistent background process contradicts Claude Code's session-based model; a daemon can't be reliably started/stopped within a session, creates orphan processes, and conflicts with worktree isolation | Use hook-driven sync (already the pattern): changes trigger on file events within the session, not via a separate daemon |
-| Auto-merge all conflicts without user consent | "I want zero interruptions" | Silent auto-merge on semantic conflicts (e.g., user renamed a token in Antigravity, PDE regenerated with old name) produces corrupted state that's hard to diagnose | Default to PDE-wins with a prompt on divergence; log all auto-resolutions to SYNC-LOG.md so they're auditable |
-| Bidirectional sync for all editor files (GEMINI.md, AGENTS.md, .cursorrules) | "Sync everything in both directions" | GEMINI.md and AGENTS.md are pure PDE-generated outputs with no user-editable sections; adding reverse sync creates a second write path into .planning/ that bypasses validation | Limit reverse sync to files that users meaningfully edit: .mdc rules (Cursor workflow customization) and SKILL.md (Antigravity agent tuning); GEMINI.md and AGENTS.md remain write-once from PDE |
-| Automatic Antigravity agent invocation on PDE state changes | "When PDE updates tokens, Antigravity should automatically re-run" | Antigravity invocation requires an active Antigravity session; triggering it from a PDE hook creates cross-process coupling with no error recovery path | Expose state-change notifications via MCP so Antigravity agents can poll or subscribe; let Antigravity initiate, not PDE |
-| Write tools added to pde-mcp-server | "Antigravity should be able to update .planning/ via MCP" | Creates a second write path bypassing pde-tools.cjs validation and locking (already documented as out-of-scope in PROJECT.md); MCP write tools in the existing server would create race conditions with active Claude sessions | Use the existing file-based sync path: Antigravity writes to its own files (SKILL.md, DESIGN.md), PDE watches and ingests; the MCP server stays read-only |
-| Field-level CRDT merge for design tokens | "Merge token changes at the property level without conflicts" | CRDT implementations (Yjs, Automerge) add significant complexity and npm dependencies, violating the zero-dependency constraint for pde-tools.cjs | Use append-log + timestamp merge: tokens.json has a _lastModified per token group; last-writer-wins per group is sufficient for the solo/small-team use case |
+| **Using native Claude Code Agent Teams feature** | Anthropic already built multi-agent coordination — why not use it? | Experimental, gated behind env flag, no session resumption, task status lags, no nested teams, all teammates inherit lead's permissions, does not support worktree-isolated subprocess execution model PDE needs | PDE's own CLI-subprocess + worktree pattern; more control, no experimental flags |
+| **Shared `.planning/` state during parallel execution** | "All sessions should see the same state" | Creates race conditions and merge conflicts by definition; the whole point of worktree isolation is independent writes | Single-writer pattern: sessions write completion markers to their own phase dir; dispatcher aggregates post-merge |
+| **Auto-resolve all merge conflicts silently** | "Zero interruptions during autonomous execution" | Silent auto-resolution of source code conflicts corrupts state in ways that are hard to diagnose; user trust requires visibility when conflicts occur | Auto-resolve only `.planning/` metadata (provably safe strategies); surface source code conflicts to user with worktree preserved |
+| **Real-time cross-session state sharing during execution** | "Sessions should know what other sessions are doing" | Cross-session communication during execution adds synchronization overhead and coupling that defeats the purpose of isolation; the only safe shared state is the pre-dispatch snapshot | Sessions are fully isolated during execution; coordination happens at dispatch (pre-execution) and merge (post-execution) |
+| **More than 3 concurrent local sessions** | "Maximize parallelism = maximize speed" | Claude Code sessions are memory-intensive; 3+ concurrent sessions on a typical developer machine causes resource contention, slowdowns, and context thrashing that negates parallelism gains | Configurable `max_local_sessions: 3` default; queue excess work; user can raise limit explicitly |
+| **Persistent background dispatcher daemon** | "Dispatcher should always be running to pick up new work" | A persistent daemon creates orphan processes, complicates session model, conflicts with Claude Code's session-based execution model | Lock-file-based single-dispatcher pattern; dispatcher spawns on demand, runs until all sessions complete |
+| **Bidirectional relay between remote and local dispatchers** | "Remote sessions should be able to spawn more sessions locally" | Creates a distributed coordination problem with failure modes that require a full distributed systems solution (leader election, network partition handling) | One-way dispatch: local dispatcher → remote session. Remote session reports back via git push + relay events |
+| **Real-time streaming of remote session filesystem** | "Show me what files the remote session is changing in real-time" | Streaming filesystem events over SSH adds bandwidth, latency, and complexity; file changes on remote are meaningful only after merge | Show git diff stats post-merge; relay events show logical progress (phase/plan/wave); file changes visible in dashboard after session completes |
+| **Cost controls and spend caps** | "Stop sessions when they exceed budget" | Requires real-time token counting accuracy (current heuristic is chars/4, labeled ~est.) and Anthropic API rate-limit integration; incorrect cutoffs abort work mid-execution in hard-to-recover states | Placeholder only; surface aggregate cost per session; let user stop sessions manually from dashboard |
+| **Running full PDE plugin in the cloud** | "I want zero local dependencies" | Requires packaging the entire Claude Code plugin as a deployable artifact, MCP server hosting, auth, and multi-tenant isolation — v1.0 Standalone CLI milestone scope | SSH to a machine that has Claude Code installed; that machine runs PDE locally |
 
 ---
 
 ## Feature Dependencies
 
 ```
-[Cursor Live File Watching]
-    └──enables──> [Cursor → PDE Reverse Sync]
-                      └──requires──> [Section-Aware Merge]
-                      └──requires──> [Conflict Detection]
-                                         └──enables──> [Manual Conflict Resolution Prompt]
-                                         └──enables──> [Conflict Audit Trail / SYNC-LOG.md]
+[Git Worktree Per Session]
+    |-- requires --> [git CLI]
+    |-- enables --> [Session Lifecycle Management]
+    |-- enables --> [Non-Overlapping Phase Assignment]
+    |-- enables --> [Static File Analysis at Dispatch]
 
-[Antigravity → PDE Reverse Sync]
-    └──requires──> [Section-Aware Merge]
-    └──requires──> [Shared Token State (tokens.json as master)]
+[Session Lifecycle Management]
+    |-- requires --> [Git Worktree Per Session]
+    |-- requires --> [Session Registry (in-memory Map)]
+    |-- enables --> [Exit Code Detection]
+    |-- enables --> [Orphan Detection]
+    |-- enables --> [Nuclear Reset Command]
+    |-- enables --> [Session Status in Dashboard]
 
-[Agent Coordination via MCP]
-    └──requires──> [Existing MCP Server (v0.15 read-only tools)]
-    └──enhances──> [Antigravity → PDE Reverse Sync]
+[Dispatcher Events in Existing Event Bus]
+    |-- requires --> [Session Lifecycle Management]
+    |-- requires --> [Existing NDJSON relay pipeline (NO CHANGES)]
+    |-- enables --> [Session Source Tagging in Dashboard]
+    |-- enables --> [Tiered Chevron Progress per Session Card]
+    |-- enables --> [Aggregate Multi-Session Progress View]
 
-[Richer .mdc Generation]
-    └──builds-on──> [Existing CTX-02 (v0.15 .mdc generation)]
+[Two-Tier Execution Routing]
+    |-- requires --> [@anthropic-ai/agent-sdk]
+    |-- requires --> [packages/dispatcher/ isolation]
+    |-- enables --> [Interactive vs Autonomous Routing]
+    |-- enables --> [Static File Analysis at Dispatch]
+    |-- enables --> [Failure Preservation + Agent SDK Summary]
+    |-- enables --> [Tiered Remote Dispatch with Fallback]
 
-[Richer SKILL.md + DESIGN.md Generation]
-    └──builds-on──> [Existing CTX-05 / STH-01 (v0.15 Antigravity output)]
+[Zero Merge Conflict Guarantee (.planning/)]
+    |-- requires --> [Non-Overlapping Phase Assignment]
+    |-- requires --> [Single-writer pattern for STATE.md, ROADMAP.md, REQUIREMENTS.md]
+    |-- requires --> [Session-scoped COMPLETED-REQS.md and memories-{id}.md]
+    |-- enables --> [Auto-resolve .planning/ metadata conflicts]
+    |-- conflicts_with --> [Shared .planning/ state during execution]
 
-[Sync Status Visibility]
-    └──builds-on──> [Existing Event Bus (v0.8 NDJSON infrastructure)]
-    └──builds-on──> [Existing 7-pane Dashboard (v0.10)]
+[Tiered Remote Dispatch]
+    |-- requires --> [Session Lifecycle Management]
+    |-- requires --> [Two-Tier Execution Routing]
+    |-- requires --> [Interactive vs Autonomous Routing]
+    |-- requires --> [git push/pull for state sync]
+    |-- requires --> [Existing relay (zero changes, remote points to same ingest URL)]
+    |-- enables --> [SSH dispatch sequence]
+    |-- enables --> [managed dispatch (claude --remote)]
+
+[Multi-Session Dashboard Integration]
+    |-- requires --> [Dispatcher Events in Existing Event Bus]
+    |-- requires --> [Session source tagging]
+    |-- enhances --> [Existing v0.17 PWA (additive, no rewrites)]
+    |-- enables --> [Striped Animated Progress Bars]
+    |-- enables --> [Tiered Chevron Progress per Session Card]
+    |-- enables --> [Session Context Window Bars (stacked)]
+    |-- enables --> [Merge Notifications (push)]
+
+[Orphan Detection]
+    |-- requires --> [Session Lifecycle Management]
+    |-- requires --> [.sessions/ directory scan on startup]
+    |-- requires --> [PID check from dispatcher.lock]
+    |-- enables --> [Adopt / Kill / Ignore prompt on startup]
+    |-- enables --> [Nuclear Reset Command]
 ```
 
 ### Dependency Notes
 
-- **Cursor live file watching requires session context**: The watcher must run within an active Claude Code session (hook-triggered); it cannot be a daemon. The PostToolUse hook pattern used in v0.15 for auto-regeneration is the correct foundation.
-- **Section-aware merge is a prerequisite for both reverse sync paths**: Without it, every PDE regeneration destroys user edits in .mdc and SKILL.md, making reverse sync useless. This must be built before the reverse sync features.
-- **Conflict detection must exist before conflict resolution**: Detection produces a CONFLICT.md diff; resolution consumes it. They ship together as one phase.
-- **Shared token state is a prerequisite for Antigravity → PDE token sync**: If the source-of-truth question is unresolved, any token write-back risks creating a forked state. Establish tokens.json as master first.
-- **Agent coordination via MCP is additive**: It enhances the Antigravity sync path but is not required for it. Can be deferred to a sub-phase.
+- **Git worktree is the root dependency.** Everything in Layer 2 flows from this. It must be the first thing built and tested.
+- **Dispatcher events require zero wire protocol changes.** The extensions field in existing NDJSON envelope absorbs all new data. This is the lowest-risk integration point.
+- **Zero merge conflict guarantee requires executor agent changes.** STATE.md, ROADMAP.md, REQUIREMENTS.md write semantics must change in executor agents — this is a cross-cutting change across existing workflows, not just new dispatcher code.
+- **Remote dispatch depends on interactive vs autonomous routing.** Cannot safely dispatch to remote without first classifying each session's interactivity requirement. Build routing before remote.
+- **Two-tier routing requires Agent SDK.** `packages/dispatcher/` must be an isolated subdirectory to keep plugin root zero-dependency. Do not add `@anthropic-ai/agent-sdk` to the plugin root.
+- **Multi-session dashboard is additive.** The v0.17 PWA does not need rewrites — new session cards, chevrons, and progress bars extend the existing component tree.
 
 ---
 
 ## MVP Definition
 
-### Launch With (v1 of this milestone)
+### Launch With (Layer 2 — Local Parallel Execution)
 
-- [ ] Section-aware merge (user-owned fencing in .mdc and SKILL.md) — prerequisite for everything; without it, reverse sync destroys user edits
-- [ ] Cursor → PDE reverse sync (.mdc rule changes propagate to .planning/) — the primary new capability
-- [ ] Conflict detection (divergence between editor edits and PDE state) — prevents silent data loss
-- [ ] Manual conflict resolution prompt (user choice: PDE wins / editor wins / show diff) — required for safe reverse sync
-- [ ] Live file watching for .mdc changes (hook-triggered, debounced) — makes reverse sync automatic rather than manual-only
-- [ ] Antigravity → PDE reverse sync (SKILL.md section edits propagate back) — second primary capability; symmetric with Cursor path
-- [ ] Shared design token state (tokens.json as master, DESIGN.md as derivative) — required for AG token sync correctness
+Minimum viable: independent phases and plans execute in parallel locally, user can monitor all sessions from existing dashboard.
 
-### Add After Validation (v1.x)
+- [ ] **Git worktree lifecycle (spawn/track/complete/cleanup)** — Foundation; everything else depends on this
+- [ ] **Session registry** — Track active sessions, status, phase/plan assignment; enable `canSpawn()` concurrency check
+- [ ] **Non-overlapping phase assignment** — Dispatch never assigns the same phase to two sessions; correctness invariant
+- [ ] **CLI subprocess spawning in worktree** — `spawn('claude', ['--print', '--prompt', '...', '--cwd', worktreePath])` with detached: true
+- [ ] **Exit code detection and failure surfacing** — Dashboard failure card; worktree preserved on failure
+- [ ] **Dispatcher events in event bus** — `dispatch.session_spawned`, `dispatch.session_completed`, `dispatch.session_failed` through existing NDJSON pipeline
+- [ ] **Session-scoped event tagging in dashboard** — Filter dropdown; color-coded session tags; interleaved chronological timeline
+- [ ] **Zero merge conflict guarantee for `.planning/`** — Single-writer pattern; session-scoped COMPLETED-REQS.md and memories-{id}.md; dispatcher aggregates post-merge
+- [ ] **Orphan detection on startup** — Scan `.sessions/`, PID check, Adopt/Kill/Ignore prompt
+- [ ] **`--parallel` opt-in flag** — Zero behavioral change without flag; existing sequential flow untouched
+- [ ] **Nuclear reset command (`/gsd:sessions reset`)** — Kill all, remove worktrees, prune branches, restore clean state
 
-- [ ] Conflict audit trail (SYNC-LOG.md) — trigger: first time a user loses track of an auto-resolved conflict
-- [ ] Richer .mdc generation (deeper globs, inline examples) — trigger: user feedback that Cursor rules are not activating correctly
-- [ ] Richer SKILL.md + DESIGN.md generation (workflow stubs, constraint annotations) — trigger: Antigravity agents producing generic outputs despite PDE context
+### Add After Layer 2 Validates (Layer 3 — Remote Dispatch)
+
+Add once local parallel execution is stable and merged conflicts are confirmed zero.
+
+- [ ] **Two-tier execution routing (CLI vs Agent SDK)** — `packages/dispatcher/` with Agent SDK; routing table for task types
+- [ ] **Interactive vs autonomous routing** — Tag sessions based on PLAN.md checkpoint field; interactive stays local
+- [ ] **SSH remote dispatch** — git push branch → SSH execute → git push result → local merge; full round-trip
+- [ ] **Managed remote dispatch (`claude --remote`)** — Try managed first, fallback to SSH, fallback to local
+- [ ] **Remote relay integration** — Remote machine runs relay.cjs pointed at same dashboard ingest URL; no dashboard changes
+- [ ] **SSH failure fallback** — Graceful local re-routing on SSH refused or relay heartbeat timeout
 
 ### Future Consideration (v2+)
 
-- [ ] Agent coordination via MCP (PDE and Antigravity A2A delegation) — defer: MCP A2A standards still maturing in 2026; implement once Antigravity's MCP interface stabilizes
-- [ ] Sync status dashboard pane — defer: SYNC-LOG.md in the filesystem is sufficient for solo/small-team use; a pane adds polish but not capability
+Defer until Layer 2 + Layer 3 have real usage data.
+
+- [ ] **Cost controls and spend caps** — Requires accurate token counting and API integration; placeholder only in v0.18
+- [ ] **Cross-session state sharing during execution** — Dangerous without distributed consensus; not worth the complexity
+- [ ] **Nested dispatcher (remote spawning local sessions)** — Full distributed systems problem; out of scope for single-user trust model
 
 ---
 
@@ -127,92 +206,67 @@ The v0.16 milestone adds the **reverse path**: editor changes flowing back into 
 
 | Feature | User Value | Implementation Cost | Priority |
 |---------|------------|---------------------|----------|
-| Section-aware merge | HIGH | MEDIUM | P1 |
-| Cursor → PDE reverse sync | HIGH | HIGH | P1 |
-| Conflict detection | HIGH | MEDIUM | P1 |
-| Manual conflict resolution | HIGH | LOW | P1 |
-| Live file watching (.mdc) | HIGH | HIGH | P1 |
-| Antigravity → PDE reverse sync | HIGH | MEDIUM | P1 |
-| Shared token state (tokens.json master) | HIGH | MEDIUM | P1 |
-| Conflict audit trail (SYNC-LOG.md) | MEDIUM | LOW | P2 |
-| Richer .mdc generation | MEDIUM | MEDIUM | P2 |
-| Richer SKILL.md + DESIGN.md generation | MEDIUM | MEDIUM | P2 |
-| Agent coordination via MCP | MEDIUM | HIGH | P3 |
-| Sync status dashboard pane | LOW | LOW | P3 |
+| Git worktree lifecycle | HIGH | LOW | P1 |
+| Session registry | HIGH | LOW | P1 |
+| Non-overlapping phase assignment | HIGH | LOW | P1 |
+| CLI subprocess spawning | HIGH | LOW | P1 |
+| Exit code detection + failure surfacing | HIGH | LOW | P1 |
+| Dispatcher events in event bus | HIGH | LOW | P1 |
+| Session-scoped event tagging in dashboard | HIGH | LOW | P1 |
+| Zero merge conflict guarantee (.planning/) | HIGH | HIGH | P1 |
+| Orphan detection | MEDIUM | MEDIUM | P1 |
+| `--parallel` opt-in flag | HIGH | LOW | P1 |
+| Nuclear reset command | HIGH | LOW | P1 |
+| Interactive vs autonomous routing | HIGH | MEDIUM | P2 |
+| Two-tier execution routing (CLI vs Agent SDK) | HIGH | HIGH | P2 |
+| Tiered chevron progress per session card | MEDIUM | MEDIUM | P2 |
+| Aggregate multi-session progress view | MEDIUM | LOW | P2 |
+| Striped animated progress bars | LOW | LOW | P2 |
+| SSH remote dispatch | HIGH | HIGH | P2 |
+| Managed remote dispatch | MEDIUM | MEDIUM | P2 |
+| Remote relay integration | MEDIUM | LOW | P2 |
+| Static file analysis at dispatch | MEDIUM | MEDIUM | P2 |
+| Session context window bars (stacked) | MEDIUM | LOW | P2 |
+| Failure preservation + Agent SDK summary | MEDIUM | MEDIUM | P2 |
+| Cost controls / spend caps | LOW | HIGH | P3 |
+| Session comparison view | LOW | MEDIUM | P3 |
+| Nested dispatcher | LOW | HIGH | P3 |
 
 **Priority key:**
-- P1: Must have for launch (bidirectional sync is broken without these)
-- P2: Should have, add when possible (quality improvements)
-- P3: Nice to have, future consideration (ecosystem evolution)
+- P1: Must have for Layer 2 launch — local parallel execution
+- P2: Layer 3 launch — remote dispatch + dashboard polish
+- P3: Future consideration — defer until usage data exists
 
 ---
 
-## Workflow Analysis: User Workflows to Support
+## Ecosystem Comparison
 
-### Workflow 1: Cursor user customizes .mdc rules
-
-A developer opens `.cursor/rules/pde-design-tokens.mdc` and modifies the glob pattern to exclude test files. On save, the live watcher detects the change, parses the diff, identifies the glob modification as user-authored, and propagates it back to `.planning/config/` as an override. Next PDE regeneration respects the override.
-
-Key requirements: live file watching, section-aware merge (to protect the user's glob change from being overwritten), conflict detection if PDE also updated the same section.
-
-### Workflow 2: Antigravity agent tunes SKILL.md workflow instructions
-
-During an Antigravity session, the agent appends a new skill instruction block to `.agent/skills/pde-design/SKILL.md`. When the user runs `/pde:editor-sync` (or on next hook trigger), PDE detects the new block, determines it is in the user-fenced section, and copies it into the PDE memory system.
-
-Key requirements: section-aware merge, Antigravity → PDE reverse sync path, SKILL.md section parser.
-
-### Workflow 3: Design tokens updated in PDE, Antigravity sees latest
-
-User runs `/pde:system` and generates new DTCG tokens. The hook triggers regeneration of `DESIGN.md`. Antigravity (active in parallel session) picks up the updated `DESIGN.md` via its file-watching or next-read. No user intervention needed.
-
-Key requirements: existing `STH-01` (DESIGN.md generation) already handles this; the v0.16 addition is ensuring `tokens.json` is the single master and `DESIGN.md` is never modified directly.
-
-### Workflow 4: Conflict — user edited .mdc, PDE regenerated same section
-
-User manually edits `pde-components.mdc` to add a component alias. Separately, `/pde:build` runs and regenerates the same .mdc. On next sync, conflict detector finds the same section modified in both sources. PDE surfaces a `CONFLICT.md` diff and prompts the user to choose: keep PDE version, keep editor version, or view diff. User picks "keep editor version." Change is logged to SYNC-LOG.md.
-
-Key requirements: conflict detection, manual resolution prompt, conflict audit trail.
-
----
-
-## Competitor Feature Analysis
-
-| Feature | Mutagen / rsync-style tools | Git-based sync (Syncthing) | PDE v0.16 approach |
-|---------|---------------------------|---------------------------|-------------------|
-| Conflict detection | Two-way-safe mode flags conflicts | Creates .sync-conflict- files | CONFLICT.md with section-level diff |
-| Conflict resolution | CLI prompt or auto-discard | Manual file inspection | CLI prompt with PDE-wins default |
-| File watching | inotify/kqueue/FSEvents native | Background daemon | Claude Code hook-triggered (session-scoped) |
-| Merge granularity | Whole file | Whole file | Section-aware (fenced blocks) |
-| Source of truth | Equal precedence | Equal precedence | PDE (.planning/) is authoritative master |
-| Dependencies | External binary | External daemon | Zero external dependencies (Node.js built-ins) |
-
-The PDE approach diverges from generic sync tools by being opinionated about authority: `.planning/` is always master, editor files are derived views. This avoids the hardest class of bidirectional sync problem (equal-precedence conflict resolution) by design.
-
----
-
-## V0.15 Infrastructure Dependencies
-
-| v0.15 Component | v0.16 Dependency |
-|----------------|-----------------|
-| CTX-06 hook-driven auto-regeneration | Live file watching must plug into the same hook architecture (extending PostToolUse hooks for file watch events) |
-| CTX-08 hash-based staleness markers | Conflict detection reads these hashes to determine if a file was PDE-generated or user-modified since last generation |
-| DIV-01/02/03 divergence detection | Conflict detection for reverse sync is a new divergence type; the same DIVERGENCE.md output pattern should be extended |
-| MCP-01/02 read-only MCP server | Agent coordination builds on this; write/notification tools would be additive to the existing server structure |
-| STH-01/03 Stitch bridge artifact flow | Shared token state (tokens.json as master) is the formalization of the directional artifact flow already described in STH-03 |
-| v0.8 NDJSON event bus | SYNC-LOG.md / conflict audit trail should use the existing event infrastructure for consistency |
+| Feature | ccswarm | Mux | Claude Code Agent Teams | PDE v0.18 (Our Approach) |
+|---------|---------|-----|------------------------|--------------------------|
+| Session isolation | Git worktrees | Git worktrees (auto) | Separate context windows (no worktrees by default) | Git worktrees (explicit `.sessions/<id>`) |
+| Merge conflict prevention | Manual | Visual divergence detection | Task claiming with file locks | Zero by construction for `.planning/`; static analysis for source |
+| Remote execution | No | No | No | Yes (SSH + managed) |
+| Event observability | Terminal UI | Desktop app | In-process or tmux split panes | Existing NDJSON/SSE/PWA pipeline (no new infra) |
+| Mobile control | No | No | No | Existing PWA (action buttons on session cards) |
+| Failure recovery | Manual | Manual | Manual worktree inspection | Worktree preserved; Agent SDK summary; retry button in dashboard |
+| Token cost visibility | No | No | Per-session (experimental) | Per-session + aggregate; existing cost infrastructure |
+| Routing intelligence | None | None | Claude decides team structure | Dispatcher: interactive vs autonomous; file overlap analysis |
+| Orphan handling | Manual | Manual | Prompt on conflict | Auto-detect on startup; Adopt/Kill/Ignore |
+| Infrastructure cost | Runtime only | Desktop app required | None | Runtime only (git + existing Upstash relay) |
 
 ---
 
 ## Sources
 
-- [Rules | Cursor Docs](https://cursor.com/docs/rules) — HIGH confidence; official Cursor documentation on .mdc format, YAML frontmatter, globs
-- [Authoring Google Antigravity Skills | Google Codelabs](https://codelabs.developers.google.com/getting-started-with-antigravity-skills) — MEDIUM confidence; official Antigravity SKILL.md format documentation
-- [MCP vs A2A: The Complete Guide to AI Agent Protocols in 2026](https://dev.to/pockit_tools/mcp-vs-a2a-the-complete-guide-to-ai-agent-protocols-in-2026-30li) — LOW confidence (community article); MCP A2A patterns still maturing
-- [Conflict resolution strategies in Data Synchronization](https://mobterest.medium.com/conflict-resolution-strategies-in-data-synchronization-2a10be5b82bc) — MEDIUM confidence; standard sync patterns (last-write-wins, three-way merge, field-level merge)
-- [Context Management Strategies for Google Antigravity](https://datalakehousehub.com/blog/2026-03-context-management-google-antigravity/) — LOW confidence; community article, unverified
-- v0.15 REQUIREMENTS.md (local, `.planning/milestones/v0.15-REQUIREMENTS.md`) — HIGH confidence; shipped requirements define the exact foundation this milestone extends
-- PDE PROJECT.md (local, `.planning/PROJECT.md`) — HIGH confidence; v0.16 target features explicitly listed
+- [Claude Code Agent Teams (official docs, current)](https://code.claude.com/docs/en/agent-teams) — Architecture, limitations, session resumption known issues, token cost guidance
+- [Claude Code Worktrees Guide](https://claudefa.st/blog/guide/development/worktree-guide) — Standard isolation patterns, subagent isolation, cleanup mechanics (MEDIUM confidence)
+- [Claude Code Remote Control Guide](https://claudefa.st/blog/guide/development/remote-control-guide) — Remote control architecture, limitations (single session restriction, no SSH dispatch) (HIGH confidence)
+- [ccswarm: AI Multi-Agent Orchestration](https://crates.io/crates/ccswarm) — Community orchestration tool; session persistence patterns (LOW confidence, WebSearch only)
+- [Process Supervision for AI Agents (Zylos Research, 2026-02-20)](https://zylos.ai/research/2026-02-20-process-supervision-health-monitoring-ai-agents) — Application-level heartbeats vs crude metrics; state persistence across restarts (MEDIUM confidence)
+- [Parallel Coding Agents with Git Worktree x tmux (Medium, 2026)](https://medium.com/@sean0628/parallel-coding-agents-with-git-worktree-x-tmux-be2a5a290f18) — Confirms tmux + worktree as standard parallel agent pattern (LOW confidence, WebSearch summary)
+- [Four Design Patterns for Event-Driven Multi-Agent Systems (Confluent)](https://www.confluent.io/blog/event-driven-multi-agent-systems/) — Orchestrator-worker, parallel fan-out/gather, event aggregation (MEDIUM confidence)
+- [Design spec: 2026-03-26-distributed-execution-design.md](../docs/superpowers/specs/2026-03-26-distributed-execution-design.md) — PRIMARY SOURCE for v0.18 feature definitions
 
 ---
-*Feature research for: PDE v0.16 Bidirectional Multi-Editor Context Sync*
-*Researched: 2026-03-24*
+*Feature research for: PDE v0.18 Distributed Execution (Layers 2-3)*
+*Researched: 2026-03-26*

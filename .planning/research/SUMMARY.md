@@ -1,212 +1,191 @@
 # Project Research Summary
 
-**Project:** PDE Remote Dashboard (Layer 1)
-**Domain:** Real-time monitoring PWA for local-first CLI agent orchestrator
-**Researched:** 2026-03-24
+**Project:** PDE v0.18 — Distributed Execution (Layers 2-3)
+**Domain:** Distributed task execution — git worktree session isolation, CLI subprocess orchestration, multi-session monitoring, remote dispatch
+**Researched:** 2026-03-26
 **Confidence:** HIGH
 
 ## Executive Summary
 
-The PDE Remote Dashboard is a phone-first PWA that lets users monitor agent sessions and respond to approval gates away from their desk. The core technical challenge is bridging a local CLI plugin (zero npm dependencies, ephemeral hook processes, 5-second timeout cap) to a cloud-hosted Next.js app with near-real-time event delivery. Research across transport, stack, features, architecture, and pitfalls converged on a clear recommendation: **Upstash Redis via its REST API** as the single transport and storage layer, with a **polling relay daemon** on the PDE side and **SSE delivery** to the browser via Next.js Route Handlers on Vercel.
+PDE v0.18 adds two layers of distributed execution to an established single-session CLI orchestration tool: Layer 2 (local parallel session dispatch via git worktrees) and Layer 3 (remote dispatch over SSH and managed endpoints). The ecosystem has converged on git worktrees as the standard session isolation primitive for parallel AI coding agents in 2026, validated by ccswarm, Mux, Anthropic's own Agent Teams feature, and community tooling. PDE's architecture is more controlled than Claude Code's native Agent Teams (experimental, no session resumption, no nested teams) and more observable than generic CLI parallel tools. The single biggest architectural constraint — placing all new code in a new packages/dispatcher/ package rather than the plugin root — is non-negotiable: the plugin root is zero-npm-dependency by design, and that constraint must not be violated.
 
-The recommended approach is a push-based architecture where PDE writes events to local NDJSON files (already exists, unchanged) and a detached relay daemon tails those files, batching events into HTTP POST calls to the dashboard's `/api/ingest` endpoint. The dashboard stores events in Upstash Redis sorted sets and streams them to the browser via SSE. This architecture satisfies every hard constraint: zero npm deps on PDE (relay uses only `node:https`, `node:fs`, `node:os`, `node:path`), fire-and-forget semantics (relay never blocks PDE), durable local fallback (NDJSON files are ground truth), and $0/month hosting on Vercel Hobby + Upstash free tier (500K commands/month, 256MB storage).
+The recommended approach is a five-phase build sequence that maps directly to the feature dependency graph: Session Isolation first (worktree lifecycle, completion marker protocol, executor agent migration), then Local CLI Dispatch (spawn, merge, aggregation), then Agent SDK Orchestrator (DAG analysis, routing intelligence), then Remote Dispatch (SSH + managed backend), then Dashboard Integration (additive UI on top of proven data). This order is enforced by hard dependencies — you cannot safely dispatch CLI sessions until worktrees are atomic, cannot route intelligently until dispatch is proven, cannot dispatch remotely until routing tags sessions correctly, and cannot build the dashboard correctly until real session_id-tagged events exist to test against.
 
-The three highest-risk areas are: (1) **approval gate TOCTOU races** -- the multi-hop async path from PDE to phone and back creates a window where the pending action changes before the approval arrives, requiring cryptographic approval IDs validated at every hop; (2) **SSE timeout on Vercel serverless** -- Hobby plan kills functions at 10 seconds, so the real-time delivery must use polling with SSE as enhancement (or Edge Runtime), not long-lived SSE connections; and (3) **iOS push notification unreliability** -- Web Push has ~70-85% delivery on iOS, zero delivery in the EU, and requires home-screen installation, so push must be a secondary channel behind in-app polling. All three are solvable with known patterns but must be designed for from phase 1, not retrofitted.
+The highest risk in this milestone is not the new code — it is the migration of existing executor agents away from direct STATE.md/ROADMAP.md writes. Every parallel execution path breaks if even a single existing workflow still writes to shared planning files directly. The STATE.md single-writer invariant (dispatcher post-merge only, never inside a session) must be enforced and verified with Nyquist tests before any parallel session is spawned. Secondary risks are worktree bootstrap atomicity (partial failures leave permanent orphans), git index lock contention (concurrent dispatcher + session git operations on shared repo objects), and SSE connection explosion in the dashboard (one connection per session defeats the browser 6-connection limit).
 
 ## Key Findings
 
 ### Recommended Stack
 
-Two codebases with a clean boundary. The PDE plugin gains only `lib/relay.cjs` (~100 LOC, zero deps). The dashboard is a separate Next.js app deployed to Vercel.
+The packages/dispatcher/ package is CJS Node.js with exactly one external npm dependency: @anthropic-ai/claude-agent-sdk ^0.2.84. All other dispatcher functionality (subprocess spawning, worktree operations, lock files, session monitoring) is covered by Node.js built-ins (node:child_process, node:fs, node:path, node:os, node:timers). No TypeScript, no build step — plain .cjs files matching the existing relay.cjs and plugin root patterns. The Agent SDK is used strictly for lightweight reasoning (DAG analysis, routing decisions, merge triage, summarization) and never for work that writes files. All file-writing work goes to claude --print CLI subprocesses in dedicated worktrees.
 
-**PDE side (zero npm deps):**
-- `node:https` + `node:fs`: relay daemon tails NDJSON, batches events, POSTs to dashboard ingest endpoint
-- Upstash Redis REST API: event storage (sorted sets) + pub/sub (real-time notification), accessed via plain HTTP
+**Core technologies:**
+- @anthropic-ai/claude-agent-sdk ^0.2.84: In-process reasoning tier — dependency DAG analysis, routing decisions, merge conflict triage, progress summarization. persistSession: false, maxTurns: 3-5, allowedTools: [] for analysis calls. The only external dep in the entire new package.
+- node:child_process (spawn, execFile): CLI subprocess spawning for heavyweight work; all git/SSH calls. spawn with detached: true + .unref() for fire-and-forget sessions. execFile (not exec) for all git and SSH to prevent shell injection.
+- node:fs / node:fs/promises: Lock file creation (O_EXCL atomic), session registry persistence, NDJSON archival, completion marker reads.
+- Existing relay.cjs + NDJSON event bus: Zero changes to wire protocol. extensions field absorbs new session_id enrichment. One relay daemon per session, aggregated to a single multiplexed endpoint by aggregator.cjs.
+- Existing Next.js 16 dashboard: Additive UI only — new session cards, filter pills, chevron progress, action buttons. No infrastructure changes. No new npm deps in dashboard/.
 
-**Dashboard app:**
-- Next.js 16.2 + React 19 + TypeScript 5.7: App Router with SSE Route Handlers, Fluid Compute on Vercel
-- @upstash/redis: type-safe Redis client for sorted set reads and pub/sub subscription
-- Clerk (@clerk/nextjs v7): authentication -- single-user maps to free tier, pre-built components, 30-minute setup
-- Serwist (@serwist/next v9): service worker generation for PWA installability and offline shell (requires Webpack for build)
-- shadcn/ui + Tailwind CSS 4: card-based mobile-first dashboard components
-- web-push: VAPID-based push notifications for approval gates (server-side only)
-- zod: event schema validation at ingest endpoint
-
-**Infrastructure ($0/month):**
-- Vercel Hobby: 100GB transfer, 1M function invocations
-- Upstash Redis free tier: 500K commands/month, 256MB storage
-- Estimated usage: ~258K commands/month at 5 sessions/day
+**Critical version constraint:** @anthropic-ai/claude-agent-sdk ^0.2.84 requires Node.js 18.0.0+. The bypassPermissions + allowDangerouslySkipPermissions: true pair is required for headless operation — both fields must be set together.
 
 ### Expected Features
 
-**Must have (table stakes) -- P1:**
-- Live session status (active/idle/error/complete with current phase and cost)
-- Phase/plan progress display (progress bar, nested hierarchy)
-- Token/cost meter (running total, visible at a glance)
-- Approval gate actions (approve/deny from phone with confirmation dialog)
-- PWA installability (web manifest + service worker)
-- Session list with status badges
-- Mobile-responsive card layout (touch targets >= 44px)
-- Auto-reconnection with visual feedback ("reconnecting..." state)
+**Must have (table stakes — Layer 2 launch):**
+- Git worktree per session — universal isolation primitive; anything less causes file conflicts
+- Session lifecycle management (spawn/track/complete/cleanup) — users need confidence nothing leaks
+- Exit code detection and failure surfacing — silent crashes are unrecoverable
+- --parallel opt-in flag — existing sequential flow must be completely untouched without the flag
+- Session-scoped event tagging — events from parallel sessions must be distinguishable in the dashboard
+- Orphan detection on startup — detached processes surviving dispatcher crash are a hazard
+- Nuclear reset command (/gsd:sessions reset) — escape hatch when parallel execution goes wrong
+- Non-overlapping phase assignment — dispatching the same phase twice is a correctness violation
+- Zero merge conflict guarantee for .planning/ files — single-writer pattern via completion markers
+- Graceful degradation when dispatch.enabled: false — zero behavioral change from today
 
-**Should have (differentiators) -- P2:**
-- Web Push notifications for approval gates and errors
-- Live event log stream with type filtering
-- File change feed (paths + operations)
-- Session timeline (chronological view of phases, plans, waves, tool calls)
-- Multi-session overview (dashboard-of-dashboards)
-- Cost projection ("at this rate, this session will cost $X")
+**Should have (competitive differentiators):**
+- Two-tier execution routing (CLI for work, Agent SDK for orchestration) — cost-optimized; routing stays in-process
+- Static file analysis at dispatch — detect file overlap before execution, not at merge time
+- Interactive vs autonomous routing — sessions with approval gates stay local; autonomous route to remote
+- SSH remote dispatch with fallback chain (managed to SSH to local) — Layer 3 value
+- Tiered chevron progress per session card and striped animated progress bars — at-a-glance session health
+- Failure preservation with Agent SDK summary — preserved worktree + human-readable failure explanation
+- Session context window utilization per session — visible in dashboard per-session; no other tool shows this
 
 **Defer (v2+):**
-- Sound/haptic alerts (iOS has no Vibration API)
-- Offline action queueing (iOS has no Background Sync)
-- Session comparison
-- Team visibility / multi-user
-- Native iOS/Android app
-
-**Anti-features (explicitly do NOT build):**
-- Full terminal emulation (unreadable on mobile)
-- Remote code editing (scope explosion)
-- WebSocket bidirectional streaming (SSE + REST POST is simpler and sufficient)
-- Chat/messaging with agent (scope creep into IDE territory)
+- Cost controls and spend caps — requires accurate token counting and API integration; placeholder only in v0.18
+- Cross-session state sharing during execution — distributed consensus problem; defeats isolation purpose
+- Nested dispatcher (remote spawning local sessions) — full distributed systems scope; out of v0.18
 
 ### Architecture Approach
 
-Push-based, fire-and-forget. PDE writes to local NDJSON (unchanged). A detached relay daemon tails the NDJSON files, batches events on a 500ms timer, and POSTs them to the dashboard's `/api/ingest` Route Handler. The ingest endpoint validates with zod, stores in Upstash Redis sorted sets (score = epoch ms), and publishes to a Redis channel for SSE fan-out. The browser connects via EventSource to an SSE Route Handler that replays history then polls for new events.
+The system adds one new package (packages/dispatcher/) as a sibling to the existing packages/pde-mcp-server/. The dispatcher is the only component that coordinates parallel work; the plugin root (bin/) invokes it via require('../../packages/dispatcher/index.cjs') and has no knowledge of internal dispatcher modules. This boundary is enforced by the zero-dep constraint on the plugin root. Existing infrastructure — relay.cjs, event-bus.cjs, relay-protocol.cjs — is completely unchanged. The dashboard receives additive UI components only.
 
 **Major components:**
-1. `lib/relay.cjs` (PDE side) -- polling daemon, NDJSON tail, batched HTTP push, circuit breaker, zero deps
-2. `/api/ingest` (dashboard) -- event validation, Upstash ZADD + PUBLISH, rate limiting, auth
-3. `/api/events/[sessionId]/stream` (dashboard) -- SSE Route Handler, history replay via ZRANGEBYSCORE, poll for new events
-4. `/api/approvals/[approvalId]` (dashboard) -- approval gate POST endpoint, idempotent, validates approval_id + session_id
-5. React dashboard components -- card-based status feed, bottom tab navigation, progressive disclosure (glance/summary/detail)
-6. Service worker (Serwist) -- PWA shell, push notification handler, offline caching
-
-**Key architectural decisions:**
-- Relay is a polling daemon (not per-event hook) -- avoids adding latency to every Claude Code tool call
-- Upstash sorted sets (not LISTs) -- enables time-range queries and natural ordering by timestamp score
-- Polling as primary real-time delivery (not long-lived SSE) -- avoids Vercel serverless timeout issue
-- Approval gates use separate REST endpoint (not bidirectional transport) -- SSE for notification, POST for action
+1. packages/dispatcher/lib/worktree.cjs — atomic addWorktree() / removeWorktree() / listOrphans(); .sessions/ gitignored; rollback on partial failure
+2. packages/dispatcher/lib/registry.cjs — in-memory SessionRegistry with concurrency cap enforcement; persisted to .planning/dispatcher.pids for crash recovery
+3. packages/dispatcher/lib/session.cjs — spawnSession() via claude --print with detached: true + .unref(); PID tracked in registry
+4. packages/dispatcher/lib/merge.cjs — post-session git merge + auto-resolve strategies for .planning/ files; flags any STATE.md writes from inside sessions
+5. packages/dispatcher/lib/orchestrator.cjs — Agent SDK calls: analyzeDag(), routingDecision(), summarize() — one-time at dispatch start, never on polling schedule
+6. packages/dispatcher/lib/router.cjs — route each unit: local CLI | remote managed | remote SSH; uses autonomy tag from PLAN.md checkpoint field
+7. packages/dispatcher/lib/remote.cjs — fallbackChain(): tryManaged() to trySSH() to local; git push/fetch/pull round-trip for state sync
+8. packages/dispatcher/lib/aggregator.cjs — MuxAggregator: tails N session NDJSON files into one multiplexed dispatch NDJSON; pane scripts use PDE_NDJSON_PATH override
+9. packages/dispatcher/lib/lock.cjs — dispatcher.lock with PID + UUID token + heartbeat sentinel; prevents PID-recycling false locks
+10. Executor agents (agents/executor.md) — MODIFIED: write COMPLETE marker + COMPLETED-REQS.md instead of updating STATE.md/REQUIREMENTS.md inline
 
 ### Critical Pitfalls
 
-1. **Approval gate TOCTOU race** -- Every approval request gets a unique `approval_id` (UUID v4). PDE only accepts responses matching the currently pending ID. Cloud relay rejects stale approvals before forwarding. Must be designed into the wire protocol from phase 1.
+1. **Worktree bootstrap leak on partial failure** — git worktree add succeeds, then relay spawn or registry write fails; orphaned directory permanently blocks the same session path on future runs. Prevent with atomic try/finally bootstrap: run git worktree remove --force on any exception before registry write succeeds.
 
-2. **SSE timeout on Vercel serverless (10s Hobby / 60s Pro)** -- Do not rely on long-lived SSE connections. Use client-side polling every 2-3 seconds as primary, SSE as enhancement. Implement heartbeat detection: if no event in 10 seconds, reconnect. Show "reconnecting" UI state. Consider Edge Runtime for longer connections in a later phase.
+2. **STATE.md / ROADMAP.md write-back race** — Existing executor agents write to STATE.md inline; this behavior is deeply embedded and easy to miss in partial migrations. Two sessions modifying STATE.md concurrently produces unreliable three-way merges. Audit ALL write paths (including error handlers), add a PostToolUse hook that fires on STATE.md writes inside sessions, and verify via Nyquist test that session branches contain no STATE.md diff.
 
-3. **iOS push notification unreliability (~70-85% delivery, zero in EU)** -- Push must never be the sole notification channel. Tiered strategy: (1) in-app polling primary, (2) email secondary, (3) Web Push tertiary for opted-in users. Show clear "push not available" status on unsupported platforms.
+3. **Orphaned detached processes after dispatcher death** — detached: true + unref() means SIGTERM to the dispatcher does not kill child sessions. Prevent by writing all child PIDs to .planning/dispatcher.pids, sending process.kill(-child.pid, 'SIGTERM') on graceful shutdown, and enforcing a max_session_duration hard timeout.
 
-4. **Blocking PDE hook execution** -- Relay must be a separate detached process, never inline in the hook path. The 5-second hook timeout is a hard cap. All relay failures must be swallowed -- PDE must never know or care if the relay is broken.
+4. **Shared git index lock contention** — Worktrees share the main repo's .git/objects/ pack database and config lock. Concurrent dispatcher + session git operations produce fatal: Unable to create '.../.lock' errors. Prevent by serializing all dispatcher-level git operations through an async queue with exponential backoff.
 
-5. **Unbounded resource growth** -- Redis sorted sets need TTL (7 days), relay needs buffer cap (max 1000 events in memory), /tmp/ NDJSON files need size awareness. Without these, autonomous runs (10K-50K events) can exhaust free tier or fill disk.
-
-6. **Security surface of cloud endpoint** -- The ingest endpoint is a public URL. Must have auth from day one (Bearer token minimum for MVP, Clerk for dashboard). Approval responses require re-authentication. Never expose Upstash tokens to client-side code. Scrub secrets from event payloads before push.
+5. **Dashboard SSE connection count explosion** — One SSE per session hits the browser 6-connection HTTP/1.1 limit at 7+ sessions; some sessions appear offline. Prevent with MuxAggregator single multiplexed endpoint — dashboard subscribes to ONE SSE connection and filters by session_id tag.
 
 ## Implications for Roadmap
 
-### Phase 1: Relay Protocol and Transport Module
-**Rationale:** Everything depends on events flowing from PDE to cloud. The wire format (event envelope with sequence numbers, approval IDs, session metadata) and the relay daemon (`lib/relay.cjs`) must be built and tested independently before any dashboard UI exists. This phase can be validated by pushing events to Upstash and inspecting them in the Upstash console.
-**Delivers:** `lib/relay.cjs` (polling daemon with resilient fetch, batching, circuit breaker), event schema (zod), session ID format, approval wire protocol with `approval_id`, relay opt-in gating (`PDE_REMOTE` env var)
-**Addresses features:** Fire-and-forget push, local NDJSON fallback (verify unchanged), session isolation, graceful degradation
-**Avoids pitfalls:** Blocking hook execution (#1 transport), zero-dep relay fragility (#7 dashboard), backward compatibility (#10 dashboard), unbounded /tmp/ growth (#2 dashboard)
+The build sequence is determined by hard feature dependencies. The five-phase order below is fixed — each phase is a prerequisite for the next.
 
-### Phase 2: Dashboard Scaffold and Event Ingestion
-**Rationale:** With events flowing to Upstash, build the Next.js app that receives and displays them. Focus on the ingest API, SSE/polling delivery, and minimal dashboard UI (session list + live status card). This phase proves the full pipeline works end-to-end.
-**Delivers:** Next.js app with `/api/ingest` (auth + validation + Upstash write), `/api/events/[sid]/stream` (SSE with polling fallback), session list page, live session status card, Vercel deployment, Clerk auth
-**Uses stack:** Next.js 16.2, @upstash/redis, @clerk/nextjs, zod, shadcn/ui Card + Badge + Progress
-**Avoids pitfalls:** SSE timeout (#3 dashboard) via polling-first approach, token leakage (#6 transport) via server-only Upstash access, state divergence (#4 dashboard) via staleness indicators
+### Phase 1: Session Isolation (Foundation)
+**Rationale:** Nothing works without atomic worktree lifecycle and the single-writer protocol for shared planning files. This phase eliminates the two highest-severity pitfalls before any parallel execution is attempted. Executor agent migration (stop writing STATE.md inline) must land here — it is a cross-cutting change that is harder to retrofit later and correctness-blocking for all subsequent phases.
+**Delivers:** worktree.cjs, registry.cjs, lock.cjs, orphan detection on startup, .sessions/ gitignore, completion marker protocol (COMPLETE file + COMPLETED-REQS.md + memories-{id}.md), executor agent write protocol migration away from inline STATE.md/REQUIREMENTS.md writes.
+**Addresses:** Git worktree per session, orphan detection, zero merge conflict guarantee (infrastructure), nuclear reset (foundation).
+**Avoids:** Pitfall 1 (worktree bootstrap leak), Pitfall 2 (STATE.md write-back race), Pitfall 3 (orphaned processes — foundation), Pitfall 7 (relay event loss — local archival path).
+**Research flag:** Standard patterns. No research-phase needed. One verification task: confirm March 2026 --worktree skills-loading fix is present in installed Claude Code version before Phase 1 execution.
 
-### Phase 3: Core Dashboard Features
-**Rationale:** With the pipeline proven, build the monitoring features that make the dashboard useful day-to-day. Phase progress, cost meter, event log, and file change feed are all read-only projections of the event stream -- they can be built in parallel.
-**Delivers:** Phase progress display, token/cost meter, live event log with filtering, file change feed, mobile-responsive card layout with bottom tab navigation, auto-reconnection UI
-**Addresses features:** All remaining P1 table stakes features
-**Avoids pitfalls:** Latency perception (#11 dashboard) via "last updated" indicators and latency bars
+### Phase 2: Local CLI Dispatch
+**Rationale:** Core value delivery. Proves the parallel execution pattern with real sessions before adding Agent SDK complexity or network risk. Merge strategies and event aggregation can be validated against actual parallel runs in isolation.
+**Delivers:** session.cjs, merge.cjs, aggregator.cjs, --parallel opt-in flag on /gsd:execute-phase, dispatch.enabled and dispatch.max_local_sessions config keys, pane script PDE_NDJSON_PATH override, package-lock.json and build artifact conflict blocklist.
+**Addresses:** CLI subprocess spawning, exit code detection, dispatcher events in event bus, session-scoped event tagging, non-overlapping phase assignment, graceful degradation when disabled.
+**Avoids:** Pitfall 3 (shared git index lock — async queue for dispatcher git ops), Pitfall 5 (static analysis missing runtime paths — blocklist for package-lock.json and build artifacts), Pitfall 8 (dispatcher lock stale PID — sentinel heartbeat), Pitfall 11 (PLAN.md file list as soft not hard lock — actual git diff check at merge time).
+**Research flag:** Standard patterns. No research-phase needed.
 
-### Phase 4: Approval Gates
-**Rationale:** The highest-value feature but also the deepest dependency chain (SSE for notification + REST for action + push for background alerts). Requires the full pipeline from phases 1-3 to be working. Approval gates also introduce bidirectional communication (PWA to PDE), which needs the approval_id protocol from phase 1.
-**Delivers:** Approval gate notification (in-app), approve/deny/defer actions with confirmation dialog, idempotent approval endpoint, approval timeout handling, "pull on demand" fresh-check before approving
-**Addresses features:** Approval gate actions (P1), approval context display
-**Avoids pitfalls:** TOCTOU race (#1 dashboard) via approval_id validation, security surface (#5 dashboard) via re-authentication for approval actions
+### Phase 3: Agent SDK Orchestrator
+**Rationale:** Replaces hardcoded parallelism heuristics from Phase 2 with proper dependency analysis. Phase 2 shipped something real; Phase 3 makes it smarter. The Agent SDK enters the codebase here — isolated to packages/dispatcher/package.json only.
+**Delivers:** orchestrator.cjs, router.cjs, packages/dispatcher/package.json with @anthropic-ai/claude-agent-sdk, DAG analysis replacing parallelism heuristics, interactive vs autonomous session tagging, failure retry with backoff, circuit breaker on multiple session failures, pde-dispatcher and pde-merge-resolver model profile entries.
+**Addresses:** Two-tier execution routing, interactive vs autonomous routing, static file analysis at dispatch, failure preservation with Agent SDK summary.
+**Avoids:** Pitfall 12 (Agent SDK token cost explosion — one-time DAG analysis per dispatch, not polling; session health via PID checks only).
+**Research flag:** Agent SDK query() API patterns are verified against official docs. No research-phase needed. Watch: DAG analysis token cost must be logged from day one; alert if any single orchestration run exceeds 5k tokens.
 
-### Phase 5: PWA and Push Notifications
-**Rationale:** PWA installability and push notifications are enhancement layers on top of a working dashboard. Service worker setup (Serwist), Web Push (VAPID keys), and offline shell can be added without changing the core architecture. Deliberately last because push is unreliable on iOS and the dashboard must work perfectly without it.
-**Delivers:** PWA manifest + service worker (Serwist), Web Push for approval gates and errors, offline shell caching, iOS install instructions banner, push subscription management, platform capability detection and graceful degradation
-**Addresses features:** PWA installability (P1), push notifications (P2)
-**Avoids pitfalls:** iOS push unreliability (#6 dashboard) via tiered notification strategy, service worker lifecycle (#12 dashboard) via skipWaiting + version check
+### Phase 4: Remote Dispatch
+**Rationale:** Highest-risk layer. Built after local dispatch is proven so session lifecycle, merge strategies, and aggregation patterns are all validated before adding network complexity. Interactive vs autonomous routing tag (Phase 3) is required before remote dispatch is meaningful.
+**Delivers:** remote.cjs, SSH dispatch round-trip (git push to SSH exec to git pull), claude --remote managed backend, fallback chain (managed to SSH to local), dispatch.remote.* config keys, /gsd:autonomous --parallel command, relay.cjs on remote machine via PDE_REMOTE env var, SSH failure fallback to local.
+**Addresses:** Tiered remote dispatch with fallback, remote relay integration.
+**Avoids:** Pitfall 6 (SSH round-trip state divergence — record spawn-time commit hash; union strategy for REQUIREMENTS.md), SSH credentials in config.json (verify .planning/config.json is in .gitignore before writing remote config docs), SSH push/fetch race (3s delay + retry loop between push and SSH fetch).
+**Research flag:** Needs /gsd:research-phase. claude --remote managed backend stability and API surface need verification before building tryManaged(). SSH failure mode coverage under concurrent load is less documented than local patterns.
 
-### Phase 6: Production Hardening
-**Rationale:** Polish phase. Cost monitoring, event downsampling for autonomous mode, session cleanup/GC, rate limiting, load testing. Only meaningful after real usage data from phases 1-5.
-**Delivers:** Upstash spend cap + cost dashboard, event downsampling for autonomous mode, session expiry and garbage collection (Vercel cron), rate limiting (@upstash/ratelimit), "looks done but isn't" checklist verification
-**Addresses features:** Session history (P2), cost projection (P2)
-**Avoids pitfalls:** Cost surprise (#8 dashboard), session identity collisions (#9 dashboard)
+### Phase 5: Dashboard Integration
+**Rationale:** Purely additive on top of v0.17 UI. Requires real session_id-tagged event data from Phases 2+ to test correctly. Building last means the data contract (wire envelope, session_id, source_tag) is stable and visual work is not chasing a moving target.
+**Delivers:** Multi-session session cards with source tag chips (local / remote-managed / remote-ssh), session filter pill (persistent, localStorage), tiered action chevron, striped animated progress bars, dispatch action buttons (Stop, Retry, Merge Now, Abandon, Reset All), new API routes (/api/sessions CRUD), mobile tab bar (Sessions / Progress / Events / Cost), responsive layout (phone tab bar, tablet 2x2, laptop 7-pane).
+**Addresses:** Session status in dashboard, aggregate multi-session progress view, session context window bars, tiered chevron progress per session card, merge notifications.
+**Avoids:** Pitfall 10 (SSE connection explosion — single SSE to multiplexed endpoint; session_id filtering in client), UX pitfalls (destructive kill requires confirmation AlertDialog; merge conflict card shows files + diff button + git command + escape hatch; Events tab defaults to most recent session not All).
+**Research flag:** Standard Next.js + Tailwind CSS patterns. No research-phase needed. Test explicitly with 3+ concurrent sessions in browser before shipping.
 
 ### Phase Ordering Rationale
 
-- **Relay first** because it can be tested independently (push events, verify in Upstash console) and defines the wire protocol that everything else depends on
-- **Dashboard scaffold second** because it proves end-to-end pipeline and establishes the deployment infrastructure
-- **Core features third** because they are read-only projections of the event stream -- low risk, high value, can parallelize
-- **Approval gates fourth** because they are the highest-complexity feature (bidirectional communication, TOCTOU, idempotency) and benefit from all prior infrastructure
-- **PWA/push fifth** because they are enhancement layers -- the dashboard must work as a regular web app first
-- **Hardening last** because it requires real usage data to calibrate (rate limits, cost monitoring, downsampling thresholds)
+- **Session Isolation before everything:** The atomic worktree bootstrap and single-writer migration are correctness prerequisites. A single surviving executor write path corrupts all parallel state.
+- **Local CLI Dispatch before Agent SDK:** Proves the parallel execution model with no reasoning overhead. Makes Agent SDK a progressive enhancement, not a foundation dependency.
+- **Agent SDK before Remote Dispatch:** The interactive vs autonomous routing tag produced by the orchestrator is required before remote dispatch is meaningful — you cannot safely route to remote without knowing a session has no approval gates.
+- **Remote Dispatch after local is proven:** SSH + git sync adds failure modes that are much harder to debug when session lifecycle and merge strategies are still being validated locally.
+- **Dashboard last:** Visual work against a stable, known data contract is predictable and requires no rework. The existing v0.17 dashboard continues to work correctly throughout all prior phases.
 
 ### Research Flags
 
-Phases likely needing deeper research during planning:
-- **Phase 2 (SSE delivery):** Vercel serverless SSE timeout behavior needs production testing. Edge Runtime vs Fluid Compute for long-lived connections. Upstash's built-in SSE subscribe endpoint as alternative to custom Route Handler.
-- **Phase 4 (Approval gates):** Bidirectional communication pattern needs protocol research. How PDE polls for approval responses (relay pushes events out, but how do approvals flow back in?). Likely needs a Redis-based polling mechanism on the PDE side.
-- **Phase 5 (PWA/push):** Serwist + Turbopack compatibility. iOS push subscription persistence across service worker updates. EU PWA degradation testing on real devices.
+Phases needing deeper research during planning:
+- **Phase 4 (Remote Dispatch):** claude --remote managed backend stability and API surface need verification before building tryManaged(). SSH failure mode coverage under concurrent load is less documented. Recommend /gsd:research-phase before Phase 4 planning.
 
 Phases with standard patterns (skip research-phase):
-- **Phase 1 (Relay module):** Well-documented `node:https` patterns. Upstash REST API is straightforward. Circuit breaker and retry are standard patterns.
-- **Phase 3 (Core features):** Standard React dashboard components. shadcn/ui provides most primitives. Event stream rendering is well-trodden ground.
-- **Phase 6 (Hardening):** Rate limiting, TTL, cron cleanup are all commodity patterns.
+- **Phase 1 (Session Isolation):** Git worktree lifecycle and atomic lock file patterns are well-documented. One pre-execution verification: confirm March 2026 --worktree skills-loading fix is present.
+- **Phase 2 (Local CLI Dispatch):** Node.js subprocess management and git merge strategies are well-documented. Package-lock conflict blocklist is a known pattern.
+- **Phase 3 (Agent SDK Orchestrator):** Official Agent SDK docs verified. Token cost logging needed but not a research-phase blocker.
+- **Phase 5 (Dashboard Integration):** Standard Next.js + Tailwind patterns. No novel infrastructure.
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | Upstash REST API verified via official docs. Next.js 16.2 confirmed current. Clerk v7 confirmed Next.js 16 compatible. All version compatibility verified. |
-| Features | HIGH | Core features derived from direct PDE code review. Dashboard patterns validated against Vercel, Railway, GitHub Actions, Linear mobile apps. PWA browser support matrix verified across multiple 2026 sources. |
-| Architecture | HIGH | Push-based pattern is standard. Upstash pipeline/sorted set APIs verified. Relay daemon approach validated against PDE's hook execution model (spawnSync, 5s timeout). |
-| Pitfalls | HIGH | TOCTOU bug confirmed via real-world Codex CLI 0.98.0 vulnerability. SSE timeout confirmed via Vercel community docs. iOS push limitations confirmed via Apple DMA docs and multiple PWA guides. |
-| Cost estimates | MEDIUM | Based on projected usage at 5 sessions/day. Autonomous mode could 10-50x command volume. Free tier math is sound but real-world usage will vary. |
-| Approval gate protocol | MEDIUM | The outbound path (PDE to cloud) is well-understood. The inbound path (cloud to PDE) for approval responses needs more design. |
+| Stack | HIGH | Agent SDK verified against official Anthropic docs 2026-03-26. All Node.js built-ins verified against official Node.js docs. Package versions confirmed on npm. |
+| Features | HIGH | Core patterns verified against official Claude Code docs and real-world parallel agent tools (ccswarm, Mux, Agent Teams limitations). MVP feature set derived from the approved design spec (primary source). |
+| Architecture | HIGH | Derived directly from the approved docs/superpowers/specs/2026-03-26-distributed-execution-design.md and verified against the existing codebase (relay.cjs, event-bus.cjs, config.cjs, model-profiles.cjs inspected directly). |
+| Pitfalls | HIGH | Patterns verified across Node.js process management docs, git worktree real-world issue threads (opencode/claude-code GitHub issues), Upstash scaling docs, and multi-agent community reports. |
 
 **Overall confidence:** HIGH
 
 ### Gaps to Address
 
-- **Approval response delivery to PDE:** The relay pushes events out, but how do approval responses get back to PDE? Options: (a) PDE polls Upstash directly via `node:https` while waiting for approval, (b) relay daemon polls and writes response to a local file that PDE watches, (c) separate approval-specific endpoint. This needs design during phase 4 planning.
-- **Vercel SSE duration in production:** Documentation says 10s timeout on Hobby, but streaming responses may behave differently with Fluid Compute. Needs real deployment testing in phase 2.
-- **Serwist + Turbopack compatibility:** Serwist requires Webpack for service worker generation. Next.js 16 defaults to Turbopack. The documented workaround (Webpack for build, Turbopack for dev) needs validation in phase 5.
-- **Upstash sorted sets vs Redis Streams:** Transport research recommended LISTs, dashboard stack research recommended sorted sets, and the pitfalls integration gotchas section recommended Streams (XADD/XREAD). Decision: sorted sets are the best fit -- they give time-range queries and natural ordering without the complexity of consumer groups. Validate during phase 2.
-- **Multi-machine session namespacing:** Session IDs need machine discrimination for users running PDE on desktop + laptop simultaneously. Format `${machineId}-${crypto.randomUUID()}` is proposed but needs validation against PDE's current session model.
+- **claude --remote managed backend:** The managed dispatch path (tryManaged()) depends on claude --remote being stable and its API surface being fully specified. Marked MEDIUM confidence in features research. Validate before Phase 4 planning begins.
+- **March 2026 worktree skills-loading fix:** ARCHITECTURE.md notes a recent Claude Code fix (verified in March 2026 release notes) that addressed "worktree not loading skills." Confirm this fix is present in the installed Claude Code version before Phase 1 execution.
+- **Token cost of DAG analysis at scale:** Pitfalls research flags that Agent SDK DAG analysis of a 20-phase ROADMAP.md can consume 10-15k tokens per call. The mitigation (one-time analysis, cache by ROADMAP.md hash) is specified but not tested. Add token logging from day one in Phase 3 and verify against a real 20-phase roadmap.
+- **Upstash Redis concurrent connection limit:** The MuxAggregator single-connection approach mitigates the free-tier 1000-connection limit, but the architecture must be tested with 3+ concurrent sessions before any multi-session load hits Redis.
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- Upstash Redis REST API: https://upstash.com/docs/redis/features/restapi
-- Upstash pricing: https://upstash.com/pricing/redis
-- Vercel function limits: https://vercel.com/docs/limits
-- Vercel pricing: https://vercel.com/docs/functions/usage-and-pricing
-- Next.js 16.2 release: https://nextjs.org/blog/next-16-2
-- Clerk Next.js quickstart: https://clerk.com/docs/nextjs/getting-started/quickstart
-- Apple DMA and Apps in the EU: https://developer.apple.com/support/dma-and-apps-in-the-eu/
-- Node.js backpressuring in streams: https://nodejs.org/en/learn/modules/backpressuring-in-streams
-- PDE source code: event-bus.cjs, emit-event.cjs (direct code review)
+- docs/superpowers/specs/2026-03-26-distributed-execution-design.md — PRIMARY: approved v0.18 design spec; authoritative source for feature definitions, architecture decisions, build order
+- https://platform.claude.com/docs/en/agent-sdk/quickstart — Agent SDK installation, query() API, Options fields, permission modes (verified 2026-03-26)
+- https://platform.claude.com/docs/en/agent-sdk/typescript — Full TypeScript SDK reference: cwd, persistSession, maxTurns, permissionMode, allowDangerouslySkipPermissions, systemPrompt, allowedTools
+- https://platform.claude.com/docs/en/agent-sdk/sessions — Session management: persistSession, session ID capture, cwd encoding
+- https://nodejs.org/api/child_process.html — spawn() with detached + unref pattern; execFile() vs exec() injection safety
+- https://code.claude.com/docs/en/agent-teams — Agent Teams architecture, limitations, token cost guidance, session resumption known issues
+- Existing codebase: bin/lib/relay.cjs, bin/lib/event-bus.cjs, bin/lib/config.cjs, bin/lib/model-profiles.cjs, packages/pde-mcp-server/package.json — all verified directly
 
 ### Secondary (MEDIUM confidence)
-- Codex CLI 0.98.0 TOCTOU bug analysis: https://codefix.dev/2026/02/09/codex-cli-0-98-0-approval-swap-parallel-tool-calls-toctou/
-- PWA iOS Limitations 2026: https://www.magicbell.com/blog/pwa-ios-limitations-safari-support-complete-guide
-- PWA push delivery rates: https://edana.ch/en/2026/03/19/push-notifications-on-web-applications-pwa-is-it-really-reliable-on-ios-and-android/
-- Serwist Next.js docs: https://serwist.pages.dev/docs/next/getting-started
-- Upstash SSE streaming: https://upstash.com/blog/sse-streaming-llm-responses
-- Vercel SSE community discussion: https://community.vercel.com/t/sse-time-limits/5954
+- https://deepwiki.com/anthropics/claude-agent-sdk-typescript — Version 0.2.84, Node.js 18+ requirement
+- https://zylos.ai/research/2026-02-20-process-supervision-health-monitoring-ai-agents — Application-level heartbeats vs crude metrics; state persistence across restarts
+- https://www.confluent.io/blog/event-driven-multi-agent-systems/ — Orchestrator-worker, parallel fan-out/gather, event aggregation patterns
+- https://www.termdock.com/en/blog/git-worktree-conflicts-ai-agents — Git worktree conflict diagnosis and fixes
+- https://upstash.com/docs/redis/troubleshooting/max_concurrent_connections — Concurrent connection limit documentation
+- https://claudefa.st/blog/guide/development/remote-control-guide — Remote control architecture, limitations
+- https://releasebot.io/updates/anthropic/claude-code — March 2026 Claude Code release notes (worktree skills fix)
 
-### Tertiary (needs validation)
-- Ably pricing/capabilities: https://ably.com/pricing (backup real-time provider if SSE proves insufficient)
-- shadcn-timeline community component (unverified compatibility with shadcn CLI v4)
+### Tertiary (LOW confidence, needs validation)
+- https://crates.io/crates/ccswarm — Community orchestration tool; session persistence patterns (WebSearch summary only)
+- https://medium.com/@sean0628/parallel-coding-agents-with-git-worktree-x-tmux-be2a5a290f18 — Confirms tmux + worktree as standard pattern
+- https://github.com/anomalyco/opencode/issues/14648 — Worktree bootstrap failure leak (real-world data point for Pitfall 1)
+- https://github.com/anthropics/claude-code/issues/11005 — Stale .git/index.lock from CC background git operations (real-world data for Pitfall 4)
 
 ---
-*Research completed: 2026-03-24*
+*Research completed: 2026-03-26*
 *Ready for roadmap: yes*
