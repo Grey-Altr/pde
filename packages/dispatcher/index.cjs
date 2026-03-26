@@ -11,13 +11,6 @@
 
 const worktree = require('./lib/worktree.cjs');
 const lock = require('./lib/lock.cjs');
-
-// merge.cjs is added in Task 2 — exported when present
-let merge = {};
-try {
-  merge = require('./lib/merge.cjs');
-} catch (_) {
-  // merge.cjs not yet present (Task 1 scaffold only) — no-op
-}
+const merge = require('./lib/merge.cjs');
 
 module.exports = { ...worktree, ...lock, ...merge };
