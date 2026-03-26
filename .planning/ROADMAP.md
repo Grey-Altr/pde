@@ -21,7 +21,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 136.3: Final Documentation & Filter Cleanup** - Close remaining traceability gaps and add token_usage to EventLog filter (INSERTED — gap closure) (completed 2026-03-25)
 - [x] **Phase 137: Approval Gates** - Bidirectional approval flow from dashboard to PDE with TOCTOU-safe protocol (completed 2026-03-25)
 - [x] **Phase 138: PWA and Push Notifications** - Installable PWA with service worker, Web Push, and offline shell (completed 2026-03-26)
-- [ ] **Phase 139: Production Hardening** - Rate limiting, TTL, downsampling, garbage collection, buffer caps
+- [x] **Phase 139: Production Hardening** - Rate limiting, TTL, downsampling, garbage collection, buffer caps (completed 2026-03-26)
 
 ## Phase Details
 
@@ -198,4 +198,4 @@ Phases execute in numeric order: 134 -> 134.1 -> 134.2 -> 135 -> ...
 | 136.3. Final Documentation & Filter Cleanup | 1/1 | Complete    | 2026-03-25 |
 | 137. Approval Gates | 1/3 | Complete    | 2026-03-25 |
 | 138. PWA and Push Notifications | 1/2 | Complete    | 2026-03-26 |
-| 139. Production Hardening | 0/2 | Not started | - |
+| 139. Production Hardening | 0/2 | Complete    | 2026-03-26 |

@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.17
 milestone_name: milestone
-status: Ready to plan
-stopped_at: Completed 138-02-PLAN.md
-last_updated: "2026-03-26T00:33:36.880Z"
+status: Milestone complete
+stopped_at: Completed 139-01-PLAN.md
+last_updated: "2026-03-26T01:34:38.107Z"
 progress:
   total_phases: 10
-  completed_phases: 9
-  total_plans: 21
-  completed_plans: 21
+  completed_phases: 10
+  total_plans: 23
+  completed_plans: 23
 ---
 
 # Project State
@@ -19,7 +19,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-25)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 138 — pwa-and-push-notifications
+**Current focus:** Phase 139 — production-hardening
 
 ## Current Position
 
@@ -90,6 +90,9 @@ Recent decisions affecting current work:
 - [Phase 138]: Dynamic import sendPushToOwner in ingest route avoids loading web-push on every request
 - [Phase 138]: requestPermission called directly in click handler for iOS gesture requirement
 - [Phase 138]: VAPID setVapidDetails guarded by env var presence to allow dev/test without keys
+- [Phase 139-production-hardening]: DOWNSAMPLE_TYPES uses actual PDE event types (bash_called, file_changed, tool_called) from hooks/emit-event.cjs; rate=1 guard disables downsampling
+- [Phase 139-production-hardening]: Global sessions registry (pde:default:sessions) is never expired as a key — stale members pruned by cron GC via zrem
+- [Phase 139-production-hardening]: Rate limit key is global 'ingest' string — avoids body-parse ordering problems; correct for single-user PDE
 
 ### Pending Todos
 
@@ -105,7 +108,7 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-26T00:29:52.355Z
-Stopped at: Completed 138-02-PLAN.md
+Last session: 2026-03-26T01:28:42.229Z
+Stopped at: Completed 139-01-PLAN.md
 Resume with: /gsd:discuss-phase 137
 Resume file: None

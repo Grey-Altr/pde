@@ -42,11 +42,11 @@
 
 ## Production Hardening
 
-- [ ] **HRD-01**: Redis sorted sets have 7-day TTL — events older than 7 days are automatically expired
-- [ ] **HRD-02**: Ingest endpoint has rate limiting via @upstash/ratelimit preventing abuse
-- [ ] **HRD-03**: Relay daemon has buffer cap (max 1000 events in memory) preventing unbounded growth during autonomous runs
-- [ ] **HRD-04**: Event downsampling reduces volume during autonomous mode (tool_start/tool_complete events sampled at 1-in-N)
-- [ ] **HRD-05**: Vercel cron job runs daily to garbage-collect expired sessions from Redis
+- [x] **HRD-01**: Redis sorted sets have 7-day TTL — events older than 7 days are automatically expired
+- [x] **HRD-02**: Ingest endpoint has rate limiting via @upstash/ratelimit preventing abuse
+- [x] **HRD-03**: Relay daemon has buffer cap (max 1000 events in memory) preventing unbounded growth during autonomous runs
+- [x] **HRD-04**: Event downsampling reduces volume during autonomous mode (tool_start/tool_complete events sampled at 1-in-N)
+- [x] **HRD-05**: Vercel cron job runs daily to garbage-collect expired sessions from Redis
 
 ## Future Requirements
 
