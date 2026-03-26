@@ -12,8 +12,8 @@ Requirements for Distributed Execution milestone. Each maps to roadmap phases.
 - [x] **ISO-01**: Dispatcher can create a git worktree with dedicated branch for a new session
 - [x] **ISO-02**: Dispatcher can merge a completed session branch back to parent with auto-resolve for .planning/ metadata
 - [x] **ISO-03**: Dispatcher can clean up worktrees and branches after successful merge
-- [ ] **ISO-04**: Orphaned sessions detected on PDE startup with adopt/kill/ignore options
-- [ ] **ISO-05**: Nuclear reset command kills all sessions, removes all worktrees, prunes all branches
+- [x] **ISO-04**: Orphaned sessions detected on PDE startup with adopt/kill/ignore options
+- [x] **ISO-05**: Nuclear reset command kills all sessions, removes all worktrees, prunes all branches
 - [x] **ISO-06**: Executor agents write completion markers to phase directory instead of STATE.md
 - [x] **ISO-07**: Executor agents write phase-local COMPLETED-REQS.md instead of REQUIREMENTS.md
 - [x] **ISO-08**: Executor agents write session-scoped agent-memory files instead of shared memories.md
@@ -115,8 +115,8 @@ Deferred to future release.
 | ISO-01 | Phase 143 | Complete |
 | ISO-02 | Phase 143 | Complete |
 | ISO-03 | Phase 143 | Complete |
-| ISO-04 | Phase 143 | Pending |
-| ISO-05 | Phase 143 | Pending |
+| ISO-04 | Phase 143 | Complete |
+| ISO-05 | Phase 143 | Complete |
 | ISO-06 | Phase 143 | Complete |
 | ISO-07 | Phase 143 | Complete |
 | ISO-08 | Phase 143 | Complete |

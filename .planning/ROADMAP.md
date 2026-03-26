@@ -27,7 +27,7 @@
 
 **Milestone Goal:** PDE can dispatch parallel sessions to git worktrees (local and remote), coordinate them with Agent SDK intelligence, and surface all session activity in a unified dashboard — delivering hands-off autonomous execution at scale while the user watches progress from any device.
 
-- [ ] **Phase 143: Session Isolation** - Establish atomic worktree lifecycle and single-writer protocol for .planning/ files — correctness prerequisite for all parallel execution
+- [x] **Phase 143: Session Isolation** - Establish atomic worktree lifecycle and single-writer protocol for .planning/ files — correctness prerequisite for all parallel execution (completed 2026-03-26)
 - [ ] **Phase 144: Local CLI Dispatch** - Spawn, track, merge, and aggregate parallel claude CLI sessions in dedicated worktrees on the local machine
 - [ ] **Phase 145: Agent SDK Orchestrator** - Add in-process reasoning via Agent SDK for DAG analysis, routing decisions, conflict triage, and failure summaries
 - [ ] **Phase 146: Remote Dispatch** - Dispatch autonomous sessions to a configured remote server via SSH or managed backend with git-based state sync
@@ -50,7 +50,7 @@
 **Plans**: 3 plans
 Plans:
 - [x] 143-01-PLAN.md — Dispatcher package scaffold, worktree lifecycle, merge-back with recalculation
-- [ ] 143-02-PLAN.md — Orphan detection and nuclear reset
+- [x] 143-02-PLAN.md — Orphan detection and nuclear reset
 - [x] 143-03-PLAN.md — Executor write protocol migration (session-scoped artifacts)
 
 ### Phase 144: Local CLI Dispatch
@@ -130,7 +130,7 @@ Note: Phase 147 (Dashboard) and Phase 148 (tmux) both depend on Phase 144 and ca
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 143. Session Isolation | 2/3 | In Progress|  |
+| 143. Session Isolation | 3/3 | Complete   | 2026-03-26 |
 | 144. Local CLI Dispatch | 0/TBD | Not started | - |
 | 145. Agent SDK Orchestrator | 0/TBD | Not started | - |
 | 146. Remote Dispatch | 0/TBD | Not started | - |
