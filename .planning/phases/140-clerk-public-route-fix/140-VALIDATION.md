@@ -1,10 +1,11 @@
 ---
 phase: 140
 slug: clerk-public-route-fix
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-25
+validated: 2026-03-26
 ---
 
 # Phase 140 — Validation Strategy
@@ -38,8 +39,8 @@ created: 2026-03-25
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 140-01-01 | 01 | 1 | APR-04 | unit (static config assert) | `cd dashboard && npm test` | ❌ W0 | ⬜ pending |
-| 140-01-02 | 01 | 1 | HRD-05 (guard) | unit (static config assert) | `cd dashboard && npm test` | ❌ W0 | ⬜ pending |
+| 140-01-01 | 01 | 1 | APR-04 | unit (static config assert) | `cd dashboard && npm test` | ✅ PR-01 | ✅ green |
+| 140-01-02 | 01 | 1 | HRD-05 (guard) | unit (static config assert) | `cd dashboard && npm test` | ✅ PR-02 | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -47,7 +48,7 @@ created: 2026-03-25
 
 ## Wave 0 Requirements
 
-- [ ] `dashboard/__tests__/proxy-public-routes.test.ts` — stubs for APR-04 and HRD-05 guard (test IDs PR-01, PR-02)
+- [x] `dashboard/__tests__/proxy-public-routes.test.ts` — 4 tests (PR-01 through PR-04) covering APR-04 and HRD-05 guard + regression
 
 *Existing vitest infrastructure covers framework needs.*
 
@@ -63,11 +64,23 @@ created: 2026-03-25
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 5s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 5s (547ms actual)
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** ✅ validated 2026-03-26
+
+---
+
+## Validation Audit 2026-03-26
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+All 4 PR-* tests (PR-01 through PR-04) pass green. 121/121 total suite green in 547ms. No gaps to fill.

@@ -103,3 +103,12 @@ None — no external service configuration required.
 ---
 *Phase: 140-clerk-public-route-fix*
 *Completed: 2026-03-26*
+
+## Self-Check: PASSED
+
+- FOUND: dashboard/proxy.ts
+- FOUND: dashboard/__tests__/proxy-public-routes.test.ts
+- FOUND: .planning/phases/140-clerk-public-route-fix/140-01-SUMMARY.md
+- FOUND commit: 52e2585 (task commit)
+- FOUND commit: bd6cea9 (metadata commit)
+- All 121 tests passing
