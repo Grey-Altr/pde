@@ -178,7 +178,7 @@ Plans:
   1. Redis sorted sets have 7-day TTL -- events older than 7 days are automatically expired without manual intervention
   2. Ingest endpoint rejects excessive requests via @upstash/ratelimit, returning appropriate error responses
   3. Relay daemon caps in-memory buffer at 1000 events -- during long autonomous runs, oldest unbatched events are dropped rather than consuming unbounded memory
-  4. During autonomous mode, high-frequency tool_start/tool_complete events are downsampled at 1-in-N, reducing event volume without losing phase transitions or errors
+  4. During autonomous mode, high-frequency bash_called/file_changed/tool_called events are downsampled at 1-in-N, reducing event volume without losing phase transitions or errors
   5. Vercel cron job runs daily to garbage-collect expired sessions from Redis
 **Plans**: 2 plans
 Plans:

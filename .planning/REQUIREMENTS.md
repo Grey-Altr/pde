@@ -45,7 +45,7 @@
 - [x] **HRD-01**: Redis sorted sets have 7-day TTL — events older than 7 days are automatically expired
 - [x] **HRD-02**: Ingest endpoint has rate limiting via @upstash/ratelimit preventing abuse
 - [x] **HRD-03**: Relay daemon has buffer cap (max 1000 events in memory) preventing unbounded growth during autonomous runs
-- [x] **HRD-04**: Event downsampling reduces volume during autonomous mode (tool_start/tool_complete events sampled at 1-in-N)
+- [x] **HRD-04**: Event downsampling reduces volume during autonomous mode (bash_called/file_changed/tool_called events sampled at 1-in-N)
 - [x] **HRD-05**: Vercel cron job runs daily to garbage-collect expired sessions from Redis
 
 ## Future Requirements
@@ -88,17 +88,17 @@
 | MON-03 | 136 | 136-01 | Yes |
 | MON-04 | 136 | 136-02 | Yes |
 | MON-05 | 136 | 136-02 | Yes |
-| APR-01 | 137 | — | — |
-| APR-02 | 137 | — | — |
-| APR-03 | 137 | — | — |
-| APR-04 | 141 | Pending | — |
-| APR-05 | 137 | — | — |
-| PWA-01 | 138 | — | — |
-| PWA-02 | 138 | — | — |
-| PWA-03 | 138 | — | — |
-| PWA-04 | 138 | — | — |
-| HRD-01 | 139 | — | — |
-| HRD-02 | 139 | — | — |
-| HRD-03 | 139 | — | — |
-| HRD-04 | 139 | — | — |
-| HRD-05 | 139 | — | — |
+| APR-01 | 137 | 137-02 | Yes |
+| APR-02 | 137 | 137-02 | Yes |
+| APR-03 | 137 | 137-03 | Yes |
+| APR-04 | 141 | 141-01 | Yes |
+| APR-05 | 137 | 137-02 | Yes |
+| PWA-01 | 138 | 138-01 | Yes |
+| PWA-02 | 138 | 138-02 | Yes |
+| PWA-03 | 138 | 138-02 | Yes |
+| PWA-04 | 138 | 138-01 | Yes |
+| HRD-01 | 139 | 139-01 | Yes |
+| HRD-02 | 139 | 139-01 | Yes |
+| HRD-03 | 139 | 139-02 | Yes |
+| HRD-04 | 139 | 139-02 | Yes |
+| HRD-05 | 139 | 139-01 | Yes |
