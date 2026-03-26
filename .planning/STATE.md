@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.18
 milestone_name: Distributed Execution
-status: Ready to execute
-stopped_at: Completed 144-02-PLAN.md
-last_updated: "2026-03-26T21:33:46.533Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 144-03-PLAN.md
+last_updated: "2026-03-26T21:50:33.872Z"
 progress:
   total_phases: 7
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 6
-  completed_plans: 5
+  completed_plans: 6
 ---
 
 # Project State
@@ -59,6 +59,8 @@ Plan: 3 of 3
 - [Phase 146]: SSH-primary architecture; `claude --remote` deferred — research preview, no NDJSON streaming, no CLAUDE.md propagation
 - [Phase 144-local-cli-dispatch]: Aggregator uses DI constructor arg (TailCursorClass?) for test isolation — avoids vi.mock CJS hoisting issues while preserving production default from relay.cjs
 - [Phase 144-local-cli-dispatch]: Use vi.spyOn(childProcess, 'spawn') for CJS mocking — destructured imports cache references at require time, making vi.mock ineffective
+- [Phase 144]: DispatchCoordinator uses opts._deps injection for CJS testability — production code unchanged, tests inject vi.fn() stubs
+- [Phase 144]: Lock released before spawn — lock held only during atomic check+register window to avoid blocking slow spawn operations
 
 ### Pending Todos
 
@@ -71,7 +73,7 @@ Plan: 3 of 3
 
 ## Session Continuity
 
-Last session: 2026-03-26T21:33:46.530Z
-Stopped at: Completed 144-02-PLAN.md
+Last session: 2026-03-26T21:50:33.869Z
+Stopped at: Completed 144-03-PLAN.md
 Resume with: `/gsd:plan-phase 143`
 Resume file: None

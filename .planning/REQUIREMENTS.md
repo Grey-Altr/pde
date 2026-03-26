@@ -24,8 +24,8 @@ Requirements for Distributed Execution milestone. Each maps to roadmap phases.
 - [x] **DSP-01**: Dispatcher spawns `claude` CLI subprocesses in worktrees with session-scoped env vars
 - [x] **DSP-02**: Dispatcher tracks active sessions in registry (Map + JSON file for crash recovery)
 - [x] **DSP-03**: Dispatcher detects session completion/failure via exit codes
-- [ ] **DSP-04**: `--parallel` flag on execute-phase enables dispatcher (opt-in, zero change without flag)
-- [ ] **DSP-05**: `--parallel` flag on autonomous enables phase-level + plan-level parallelism
+- [x] **DSP-04**: `--parallel` flag on execute-phase enables dispatcher (opt-in, zero change without flag)
+- [x] **DSP-05**: `--parallel` flag on autonomous enables phase-level + plan-level parallelism
 - [x] **DSP-06**: Dispatcher enforces concurrency limit (configurable, default 3)
 - [x] **DSP-07**: Dispatcher never assigns same phase to two concurrent sessions
 - [x] **DSP-08**: One relay daemon per session streams events to dashboard
@@ -124,8 +124,8 @@ Deferred to future release.
 | DSP-01 | Phase 144 | Complete |
 | DSP-02 | Phase 144 | Complete |
 | DSP-03 | Phase 144 | Complete |
-| DSP-04 | Phase 144 | Pending |
-| DSP-05 | Phase 144 | Pending |
+| DSP-04 | Phase 144 | Complete |
+| DSP-05 | Phase 144 | Complete |
 | DSP-06 | Phase 144 | Complete |
 | DSP-07 | Phase 144 | Complete |
 | DSP-08 | Phase 144 | Complete |

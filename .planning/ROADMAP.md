@@ -28,7 +28,7 @@
 **Milestone Goal:** PDE can dispatch parallel sessions to git worktrees (local and remote), coordinate them with Agent SDK intelligence, and surface all session activity in a unified dashboard — delivering hands-off autonomous execution at scale while the user watches progress from any device.
 
 - [x] **Phase 143: Session Isolation** - Establish atomic worktree lifecycle and single-writer protocol for .planning/ files — correctness prerequisite for all parallel execution (completed 2026-03-26)
-- [ ] **Phase 144: Local CLI Dispatch** - Spawn, track, merge, and aggregate parallel claude CLI sessions in dedicated worktrees on the local machine
+- [x] **Phase 144: Local CLI Dispatch** - Spawn, track, merge, and aggregate parallel claude CLI sessions in dedicated worktrees on the local machine (completed 2026-03-26)
 - [ ] **Phase 145: Agent SDK Orchestrator** - Add in-process reasoning via Agent SDK for DAG analysis, routing decisions, conflict triage, and failure summaries
 - [ ] **Phase 146: Remote Dispatch** - Dispatch autonomous sessions to a configured remote server via SSH or managed backend with git-based state sync
 - [ ] **Phase 147: Dashboard Integration** - Extend the v0.17 dashboard with multi-session session cards, filter pills, chevron progress, animated progress bars, and responsive action controls
@@ -67,7 +67,7 @@ Plans:
 Plans:
 - [x] 144-01-PLAN.md — Subprocess spawn module and crash-recoverable session registry
 - [x] 144-02-PLAN.md — Concurrency queue and NDJSON aggregator
-- [ ] 144-03-PLAN.md — Coordinator orchestrator and --parallel flag wiring
+- [x] 144-03-PLAN.md — Coordinator orchestrator and --parallel flag wiring
 
 ### Phase 145: Agent SDK Orchestrator
 **Goal**: The dispatcher uses the Agent SDK for one-time DAG analysis at dispatch time, interactive vs autonomous session tagging, and failure summarization — replacing hardcoded heuristics with reasoned routing decisions
@@ -135,7 +135,7 @@ Note: Phase 147 (Dashboard) and Phase 148 (tmux) both depend on Phase 144 and ca
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 143. Session Isolation | 3/3 | Complete    | 2026-03-26 |
-| 144. Local CLI Dispatch | 2/3 | In Progress|  |
+| 144. Local CLI Dispatch | 3/3 | Complete   | 2026-03-26 |
 | 145. Agent SDK Orchestrator | 0/TBD | Not started | - |
 | 146. Remote Dispatch | 0/TBD | Not started | - |
 | 147. Dashboard Integration | 0/TBD | Not started | - |
