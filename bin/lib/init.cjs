@@ -71,6 +71,17 @@ function cmdInitExecutePhase(cwd, phase, raw) {
     memory_dir: '.planning/agent-memory',
   };
 
+  // ISO-04: Detect orphaned session worktrees at startup (per D-15)
+  try {
+    const { detectOrphans } = require('../../packages/dispatcher/lib/orphan.cjs');
+    const orphans = detectOrphans(cwd, null);
+    if (orphans.length > 0) {
+      result.orphaned_sessions = orphans;
+    }
+  } catch (e) {
+    // Dispatcher package not yet built (pre-phase-143) — silently skip
+  }
+
   output(result, raw);
 }
 
@@ -515,6 +526,18 @@ function cmdInitProgress(cwd, raw) {
     state_path: '.planning/STATE.md', roadmap_path: '.planning/ROADMAP.md',
     project_path: '.planning/PROJECT.md', config_path: '.planning/config.json',
   };
+
+  // ISO-04: Detect orphaned session worktrees at startup (per D-15)
+  try {
+    const { detectOrphans } = require('../../packages/dispatcher/lib/orphan.cjs');
+    const orphans = detectOrphans(cwd, null);
+    if (orphans.length > 0) {
+      result.orphaned_sessions = orphans;
+    }
+  } catch (e) {
+    // Dispatcher package not yet built (pre-phase-143) — silently skip
+  }
+
   output(result, raw);
 }
 
