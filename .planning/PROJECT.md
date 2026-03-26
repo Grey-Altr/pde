@@ -177,7 +177,7 @@ Any user can go from idea to shipped product through a single platform that hand
 
 ## Current State
 
-**Building v0.18 Distributed Execution** — Phase 143 (Session Isolation) complete. Dispatcher package with worktree lifecycle, session-scoped artifacts, orphan detection shipped.
+**Building v0.18 Distributed Execution** — Phase 144 (Local CLI Dispatch) complete. Subprocess spawn, crash-recoverable registry, concurrency queue, NDJSON aggregator, and DispatchCoordinator shipped. `--parallel` flag wired as opt-in with zero change to non-parallel path. 89 tests across 9 files.
 
 ### Out of Scope
 
@@ -337,4 +337,4 @@ This document evolves at phase transitions and milestone boundaries.
 3. Audit Out of Scope — reasons still valid?
 4. Update Context with current state
 
-*Last updated: 2026-03-26 after Phase 143 — Session Isolation: dispatcher package, worktree lifecycle, session-scoped artifacts, orphan detection (3 plans, 9 requirements)*
+*Last updated: 2026-03-26 after Phase 144 — Local CLI Dispatch: subprocess spawn, registry, queue, aggregator, coordinator, --parallel wiring (3 plans, 9 requirements, 89 tests)*
