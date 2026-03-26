@@ -177,7 +177,7 @@ Any user can go from idea to shipped product through a single platform that hand
 
 ## Current State
 
-**Building v0.18 Distributed Execution** — defining requirements.
+**Building v0.18 Distributed Execution** — Phase 143 (Session Isolation) complete. Dispatcher package with worktree lifecycle, session-scoped artifacts, orphan detection shipped.
 
 ### Out of Scope
 
@@ -337,4 +337,4 @@ This document evolves at phase transitions and milestone boundaries.
 3. Audit Out of Scope — reasons still valid?
 4. Update Context with current state
 
-*Last updated: 2026-03-26 after v0.17 milestone — Remote Dashboard shipped: relay daemon, Next.js 16 PWA, approval gates, Web Push, production hardening (13 phases, 27 plans, 27 requirements)*
+*Last updated: 2026-03-26 after Phase 143 — Session Isolation: dispatcher package, worktree lifecycle, session-scoped artifacts, orphan detection (3 plans, 9 requirements)*
