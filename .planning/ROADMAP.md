@@ -135,7 +135,7 @@ Note: Phase 147 (Dashboard) and Phase 148 (tmux) both depend on Phase 144 and ca
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 143. Session Isolation | 3/3 | Complete    | 2026-03-26 |
-| 144. Local CLI Dispatch | 3/3 | Complete   | 2026-03-26 |
+| 144. Local CLI Dispatch | 3/3 | Complete    | 2026-03-26 |
 | 145. Agent SDK Orchestrator | 0/TBD | Not started | - |
 | 146. Remote Dispatch | 0/TBD | Not started | - |
 | 147. Dashboard Integration | 0/TBD | Not started | - |
