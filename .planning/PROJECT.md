@@ -177,7 +177,7 @@ Any user can go from idea to shipped product through a single platform that hand
 
 ## Current State
 
-**Building v0.18 Distributed Execution** — Phase 144 (Local CLI Dispatch) complete. Subprocess spawn, crash-recoverable registry, concurrency queue, NDJSON aggregator, and DispatchCoordinator shipped. `--parallel` flag wired as opt-in with zero change to non-parallel path. 89 tests across 9 files.
+**Building v0.18 Distributed Execution** — Phase 145 (Agent SDK Orchestrator) complete. SDK bridge for ESM-to-CJS interop, four orchestrator functions (analyzeDag, checkFileOverlap, summarizeFailure, triageConflicts) wired into DispatchCoordinator via _deps injection. DAG analysis cached per coordinator, file overlap warnings before each wave, failure summaries and conflict triage in _handleExit. 116 tests across 13 files.
 
 ### Out of Scope
 
