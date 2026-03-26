@@ -14,9 +14,9 @@ Requirements for Distributed Execution milestone. Each maps to roadmap phases.
 - [ ] **ISO-03**: Dispatcher can clean up worktrees and branches after successful merge
 - [ ] **ISO-04**: Orphaned sessions detected on PDE startup with adopt/kill/ignore options
 - [ ] **ISO-05**: Nuclear reset command kills all sessions, removes all worktrees, prunes all branches
-- [ ] **ISO-06**: Executor agents write completion markers to phase directory instead of STATE.md
-- [ ] **ISO-07**: Executor agents write phase-local COMPLETED-REQS.md instead of REQUIREMENTS.md
-- [ ] **ISO-08**: Executor agents write session-scoped agent-memory files instead of shared memories.md
+- [x] **ISO-06**: Executor agents write completion markers to phase directory instead of STATE.md
+- [x] **ISO-07**: Executor agents write phase-local COMPLETED-REQS.md instead of REQUIREMENTS.md
+- [x] **ISO-08**: Executor agents write session-scoped agent-memory files instead of shared memories.md
 - [ ] **ISO-09**: Dispatcher recalculates STATE.md, ROADMAP.md progress, and REQUIREMENTS.md from disk post-merge
 
 ### Local Dispatch
@@ -117,9 +117,9 @@ Deferred to future release.
 | ISO-03 | Phase 143 | Pending |
 | ISO-04 | Phase 143 | Pending |
 | ISO-05 | Phase 143 | Pending |
-| ISO-06 | Phase 143 | Pending |
-| ISO-07 | Phase 143 | Pending |
-| ISO-08 | Phase 143 | Pending |
+| ISO-06 | Phase 143 | Complete |
+| ISO-07 | Phase 143 | Complete |
+| ISO-08 | Phase 143 | Complete |
 | ISO-09 | Phase 143 | Pending |
 | DSP-01 | Phase 144 | Pending |
 | DSP-02 | Phase 144 | Pending |
