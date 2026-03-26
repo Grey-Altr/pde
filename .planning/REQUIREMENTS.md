@@ -33,11 +33,11 @@ Requirements for Distributed Execution milestone. Each maps to roadmap phases.
 
 ### Agent SDK Orchestration
 
-- [ ] **SDK-01**: Agent SDK installed in packages/dispatcher/ (isolated subdirectory, plugin root stays zero-dep)
-- [ ] **SDK-02**: Agent SDK analyzes ROADMAP.md to build dependency DAG and identify parallelizable phases
-- [ ] **SDK-03**: Agent SDK performs static file-overlap analysis on PLAN.md to prevent source code conflicts
-- [ ] **SDK-04**: Agent SDK generates failure summaries from session NDJSON tail
-- [ ] **SDK-05**: Agent SDK assists with merge conflict resolution when auto-resolve fails
+- [x] **SDK-01**: Agent SDK installed in packages/dispatcher/ (isolated subdirectory, plugin root stays zero-dep)
+- [x] **SDK-02**: Agent SDK analyzes ROADMAP.md to build dependency DAG and identify parallelizable phases
+- [x] **SDK-03**: Agent SDK performs static file-overlap analysis on PLAN.md to prevent source code conflicts
+- [x] **SDK-04**: Agent SDK generates failure summaries from session NDJSON tail
+- [x] **SDK-05**: Agent SDK assists with merge conflict resolution when auto-resolve fails
 
 ### Remote Dispatch
 
@@ -130,11 +130,11 @@ Deferred to future release.
 | DSP-07 | Phase 144 | Complete |
 | DSP-08 | Phase 144 | Complete |
 | DSP-09 | Phase 144 | Complete |
-| SDK-01 | Phase 145 | Pending |
-| SDK-02 | Phase 145 | Pending |
-| SDK-03 | Phase 145 | Pending |
-| SDK-04 | Phase 145 | Pending |
-| SDK-05 | Phase 145 | Pending |
+| SDK-01 | Phase 145 | Complete |
+| SDK-02 | Phase 145 | Complete |
+| SDK-03 | Phase 145 | Complete |
+| SDK-04 | Phase 145 | Complete |
+| SDK-05 | Phase 145 | Complete |
 | RMT-01 | Phase 146 | Pending |
 | RMT-02 | Phase 146 | Pending |
 | RMT-03 | Phase 146 | Pending |
