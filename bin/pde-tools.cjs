@@ -30,6 +30,7 @@
  *   websearch <query>                  Search web via Brave API (if configured)
  *     [--limit N] [--freshness day|week|month]
  *   context-sync [--editor cursor|gemini|all]  Generate editor context files (AGENTS.md, .mdc, GEMINI.md)
+ *   poll-approval <id> [timeout_ms]   Poll for approval response by ID
  *
  * Phase Operations:
  *   phase next-decimal <phase>         Calculate next decimal phase number
@@ -953,6 +954,65 @@ async function main() {
       } else {
         error(`Unknown artifact-format subcommand: ${sub}`);
       }
+      break;
+    }
+
+    case 'poll-approval': {
+      // Usage: pde-tools poll-approval <approval_id> [timeout_ms]
+      const approvalId = args[1];
+      const timeoutMs  = Number(args[2] ?? '600000'); // 10 min default
+      if (!approvalId) {
+        process.stdout.write(JSON.stringify({ error: 'missing approval_id' }));
+        break;
+      }
+
+      const configPath = path.join(cwd, '.planning', 'config.json');
+      let sessionId = '';
+      try {
+        const cfg = JSON.parse(fs.readFileSync(configPath, 'utf-8'));
+        sessionId = (cfg.monitoring && cfg.monitoring.session_id) || '';
+      } catch { /* config unreadable */ }
+
+      if (!sessionId) {
+        process.stdout.write(JSON.stringify({ error: 'no session_id' }));
+        break;
+      }
+
+      const responseFile = path.join(require('os').tmpdir(), `pde-relay-responses-${sessionId}.ndjson`);
+      const deadline = Date.now() + timeoutMs;
+      const POLL_INTERVAL = 1000;
+
+      const findResponse = () => {
+        try {
+          const lines = fs.readFileSync(responseFile, 'utf-8').split('\n').filter(Boolean);
+          for (const line of lines) {
+            try {
+              const obj = JSON.parse(line);
+              if (obj.type === 'approval_response' && obj.approval_id === approvalId) {
+                return obj;
+              }
+            } catch { /* skip malformed */ }
+          }
+        } catch { /* file not yet created */ }
+        return null;
+      };
+
+      const poll = () => {
+        const result = findResponse();
+        if (result) {
+          process.stdout.write(JSON.stringify(result));
+          process.exit(0);
+          return;
+        }
+        if (Date.now() >= deadline) {
+          process.stdout.write(JSON.stringify({ timed_out: true, approval_id: approvalId }));
+          process.exit(0);
+          return;
+        }
+        setTimeout(poll, POLL_INTERVAL);
+      };
+
+      poll();
       break;
     }
 
