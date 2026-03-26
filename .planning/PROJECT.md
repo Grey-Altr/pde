@@ -151,7 +151,22 @@ Any user can go from idea to shipped product through a single platform that hand
 
 ### Active
 
-(None — v0.17 complete, next milestone not yet started)
+## Current Milestone: v0.18 Distributed Execution
+
+**Goal:** Enable parallel and remote execution of PDE phases via git worktree isolation, tiered CLI/Agent SDK dispatch, and hybrid git+relay cloud offloading.
+
+**Target features:**
+- Session isolation via git worktrees (branch per session, merge on completion)
+- Local parallel dispatch (phase-level + plan-level via CLI subprocesses)
+- Agent SDK orchestrator for lightweight reasoning (dependency analysis, routing, merge assistance)
+- Remote dispatch to `claude --remote` or SSH servers with hybrid git+relay sync
+- Multi-session dashboard views (session matrix, color-coded events, aggregate costs)
+- Mobile-first UI with tiered action chevrons, striped progress bars, touch-friendly buttons
+- Zero merge conflicts for `.planning/` metadata by construction
+- tmux pane multi-session aggregation with session switching
+
+### Validated (v0.17)
+
 - ✓ Relay daemon with zod wire protocol, circuit breaker, HTTP batching, zero-impact PDE isolation gated behind PDE_REMOTE — v0.17
 - ✓ Next.js 16 dashboard with Clerk auth, Upstash Redis, SSE streaming + polling fallback, session list and detail views — v0.17
 - ✓ Core monitoring: PhaseProgress, CostMeter, EventLog with type filtering, mobile-responsive 44px touch targets — v0.17
@@ -162,7 +177,7 @@ Any user can go from idea to shipped product through a single platform that hand
 
 ## Current State
 
-**Shipped v0.17 Remote Dashboard** on 2026-03-26. Next milestone not yet started.
+**Building v0.18 Distributed Execution** — defining requirements.
 
 ### Out of Scope
 

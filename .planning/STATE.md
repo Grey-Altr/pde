@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.17
-milestone_name: Remote Dashboard
-status: Milestone complete — archived
-stopped_at: Milestone v0.17 archived
-last_updated: "2026-03-26T09:00:00.000Z"
+milestone: v0.18
+milestone_name: Distributed Execution
+status: Defining requirements
+stopped_at: Milestone v0.18 started
+last_updated: "2026-03-26T12:00:00.000Z"
 progress:
-  total_phases: 13
-  completed_phases: 13
-  total_plans: 27
-  completed_plans: 27
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
 # Project State
@@ -19,11 +19,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-26)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Planning next milestone
+**Current focus:** v0.18 Distributed Execution — defining requirements
 
 ## Current Position
 
-No active milestone. Run `/gsd:new-milestone` to start the next one.
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-26 — Milestone v0.18 started
 
 ## Performance Metrics
 
@@ -50,11 +53,11 @@ v0.17 decisions archived to milestones/v0.17-ROADMAP.md.
 
 ### Blockers/Concerns
 
-(None — milestone archived)
+(None)
 
 ## Session Continuity
 
 Last session: 2026-03-26
-Stopped at: Milestone v0.17 archived
-Resume with: /gsd:new-milestone
+Stopped at: Milestone v0.18 started — defining requirements
+Resume with: /gsd:new-milestone (continue from Step 7)
 Resume file: None
