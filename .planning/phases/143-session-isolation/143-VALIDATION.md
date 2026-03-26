@@ -38,17 +38,17 @@ created: 2026-03-26
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 143-01-01 | 01 | 0 | ISO-01 | unit | `node_modules/.bin/vitest run tests/dispatcher/worktree.test.cjs` | ❌ W0 | ⬜ pending |
-| 143-01-02 | 01 | 0 | ISO-03 | unit | `node_modules/.bin/vitest run tests/dispatcher/worktree.test.cjs` | ❌ W0 | ⬜ pending |
-| 143-02-01 | 02 | 0 | ISO-02 | unit | `node_modules/.bin/vitest run tests/dispatcher/merge.test.cjs` | ❌ W0 | ⬜ pending |
-| 143-02-02 | 02 | 0 | ISO-09 | unit | `node_modules/.bin/vitest run tests/dispatcher/merge.test.cjs` | ❌ W0 | ⬜ pending |
-| 143-03-01 | 03 | 0 | ISO-04 | unit | `node_modules/.bin/vitest run tests/dispatcher/orphan.test.cjs` | ❌ W0 | ⬜ pending |
-| 143-03-02 | 03 | 0 | ISO-05 | unit | `node_modules/.bin/vitest run tests/dispatcher/orphan.test.cjs` | ❌ W0 | ⬜ pending |
-| 143-04-01 | 04 | 0 | ISO-06 | unit | `node_modules/.bin/vitest run tests/dispatcher/artifacts.test.cjs` | ❌ W0 | ⬜ pending |
-| 143-04-02 | 04 | 0 | ISO-07 | unit | `node_modules/.bin/vitest run tests/dispatcher/artifacts.test.cjs` | ❌ W0 | ⬜ pending |
-| 143-04-03 | 04 | 0 | ISO-08 | unit | `node_modules/.bin/vitest run tests/dispatcher/artifacts.test.cjs` | ❌ W0 | ⬜ pending |
+| 143-01-01 | 01 | 0 | ISO-01 | unit | `node_modules/.bin/vitest run tests/dispatcher/worktree.test.cjs` | W0 | pending |
+| 143-01-02 | 01 | 0 | ISO-03 | unit | `node_modules/.bin/vitest run tests/dispatcher/worktree.test.cjs` | W0 | pending |
+| 143-01-03 | 01 | 0 | ISO-02 | unit | `node_modules/.bin/vitest run tests/dispatcher/merge.test.cjs` | W0 | pending |
+| 143-01-04 | 01 | 0 | ISO-09 | unit | `node_modules/.bin/vitest run tests/dispatcher/merge.test.cjs` | W0 | pending |
+| 143-02-01 | 02 | 0 | ISO-04 | unit | `node_modules/.bin/vitest run tests/dispatcher/orphan.test.cjs` | W0 | pending |
+| 143-02-02 | 02 | 0 | ISO-05 | unit | `node_modules/.bin/vitest run tests/dispatcher/orphan.test.cjs` | W0 | pending |
+| 143-03-01 | 03 | 0 | ISO-06 | unit | `node_modules/.bin/vitest run tests/dispatcher/artifacts.test.cjs` | W0 | pending |
+| 143-03-02 | 03 | 0 | ISO-07 | unit | `node_modules/.bin/vitest run tests/dispatcher/artifacts.test.cjs` | W0 | pending |
+| 143-03-03 | 03 | 0 | ISO-08 | unit | `node_modules/.bin/vitest run tests/dispatcher/artifacts.test.cjs` | W0 | pending |
 
-*Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
+*Status: pending / green / red / flaky*
 
 ---
 
