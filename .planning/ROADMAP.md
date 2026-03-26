@@ -29,7 +29,7 @@
 
 - [x] **Phase 143: Session Isolation** - Establish atomic worktree lifecycle and single-writer protocol for .planning/ files — correctness prerequisite for all parallel execution (completed 2026-03-26)
 - [x] **Phase 144: Local CLI Dispatch** - Spawn, track, merge, and aggregate parallel claude CLI sessions in dedicated worktrees on the local machine (completed 2026-03-26)
-- [ ] **Phase 145: Agent SDK Orchestrator** - Add in-process reasoning via Agent SDK for DAG analysis, routing decisions, conflict triage, and failure summaries
+- [x] **Phase 145: Agent SDK Orchestrator** - Add in-process reasoning via Agent SDK for DAG analysis, routing decisions, conflict triage, and failure summaries (completed 2026-03-26)
 - [ ] **Phase 146: Remote Dispatch** - Dispatch autonomous sessions to a configured remote server via SSH or managed backend with git-based state sync
 - [ ] **Phase 147: Dashboard Integration** - Extend the v0.17 dashboard with multi-session session cards, filter pills, chevron progress, animated progress bars, and responsive action controls
 - [ ] **Phase 148: tmux Integration** - Multiplex all active session events into the existing tmux panes with color-prefixed session tags and aggregate cost/token display
@@ -80,7 +80,7 @@ Plans:
   4. Merge conflict triage assistance is available when auto-resolve fails — the orchestrator surfaces the conflicting files and a suggested resolution strategy
 **Plans**: 2 plans
 Plans:
-- [ ] 145-01-PLAN.md — SDK install, ESM bridge, and orchestrator module with all four functions
+- [x] 145-01-PLAN.md — SDK install, ESM bridge, and orchestrator module with all four functions
 - [ ] 145-02-PLAN.md — Wire orchestrator into DispatchCoordinator and update package exports
 
 ### Phase 146: Remote Dispatch
@@ -139,7 +139,7 @@ Note: Phase 147 (Dashboard) and Phase 148 (tmux) both depend on Phase 144 and ca
 |-------|----------------|--------|-----------|
 | 143. Session Isolation | 3/3 | Complete    | 2026-03-26 |
 | 144. Local CLI Dispatch | 3/3 | Complete    | 2026-03-26 |
-| 145. Agent SDK Orchestrator | 0/2 | Not started | - |
+| 145. Agent SDK Orchestrator | 1/2 | Complete    | 2026-03-26 |
 | 146. Remote Dispatch | 0/TBD | Not started | - |
 | 147. Dashboard Integration | 0/TBD | Not started | - |
 | 148. tmux Integration | 0/TBD | Not started | - |

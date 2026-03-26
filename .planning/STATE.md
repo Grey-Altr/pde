@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.18
 milestone_name: Distributed Execution
 status: Ready to plan
-stopped_at: Completed 144-03-PLAN.md
-last_updated: "2026-03-26T22:05:10.248Z"
+stopped_at: Completed 145-02-PLAN.md
+last_updated: "2026-03-26T23:32:33.384Z"
 progress:
   total_phases: 7
-  completed_phases: 2
-  total_plans: 6
-  completed_plans: 6
+  completed_phases: 3
+  total_plans: 8
+  completed_plans: 8
 ---
 
 # Project State
@@ -19,11 +19,11 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-26)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 144 — local-cli-dispatch
+**Current focus:** Phase 145 — agent-sdk-orchestrator
 
 ## Current Position
 
-Phase: 145
+Phase: 146
 Plan: Not started
 
 ## Performance Metrics
@@ -61,6 +61,11 @@ Plan: Not started
 - [Phase 144-local-cli-dispatch]: Use vi.spyOn(childProcess, 'spawn') for CJS mocking — destructured imports cache references at require time, making vi.mock ineffective
 - [Phase 144]: DispatchCoordinator uses opts._deps injection for CJS testability — production code unchanged, tests inject vi.fn() stubs
 - [Phase 144]: Lock released before spawn — lock held only during atomic check+register window to avoid blocking slow spawn operations
+- [Phase 145]: Dynamic import() mandatory for ESM SDK in CJS — require() throws ERR_REQUIRE_ESM on Node 20; sdk-bridge.cjs caches module to avoid re-importing
+- [Phase 145]: checkFileOverlap uses pure static YAML regex (no SDK) per SDK-03 'static analysis' directive — deterministic, zero API cost, handles all PLAN.md frontmatter patterns
+- [Phase 145]: orchestrator.cjs uses functional _sdkQuery parameter injection (not _deps class object) — cleaner for module-level exported functions
+- [Phase 145]: DispatchCoordinator caches DAG result in this._dag — one analyzeDag call per coordinator lifetime, not per wave
+- [Phase 145]: All orchestrator calls wrapped in try/catch — SDK failure never blocks session exit handler
 
 ### Pending Todos
 
@@ -73,7 +78,7 @@ Plan: Not started
 
 ## Session Continuity
 
-Last session: 2026-03-26T21:50:33.869Z
-Stopped at: Completed 144-03-PLAN.md
+Last session: 2026-03-26T23:28:57.354Z
+Stopped at: Completed 145-02-PLAN.md
 Resume with: `/gsd:plan-phase 143`
 Resume file: None
