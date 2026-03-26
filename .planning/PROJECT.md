@@ -332,4 +332,4 @@ This document evolves at phase transitions and milestone boundaries.
 3. Audit Out of Scope — reasons still valid?
 4. Update Context with current state
 
-*Last updated: 2026-03-26 — Phase 139 complete: production hardening (rate limiting, Redis TTL, downsampling, cron GC). v0.17 milestone complete.*
+*Last updated: 2026-03-26 — Phase 140 complete: Clerk public route matcher fix (APR-04). /api/approval-response and /api/cron/gc added to public routes — relay polling and cron GC unblocked.*
