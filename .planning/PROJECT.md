@@ -162,6 +162,10 @@ Any user can go from idea to shipped product through a single platform that hand
 - ✓ Documentation tech debt closure: REQUIREMENTS.md traceability filled for DSH-01/05/06, MON-03/04/05; SUMMARY frontmatter field name corrected; Nyquist VALIDATION.md compliant for phases 134.1 and 135 — v0.17
 - ✓ Final traceability closure: RLY-01, DSH-02, DSH-03, DSH-04, MON-01, MON-02 verified; tokens filter group added to EventLog — v0.17
 - ✓ Bidirectional approval gates: ApprovalCard with Base UI AlertDialog, /api/approval-response (POST+GET), relay daemon polling, findPendingApproval detection, 1h TTL TOCTOU safety, approval badge on SessionCard, 91 tests — v0.17
+- ✓ PWA installability: Serwist service worker with Turbopack route, Next.js built-in manifest.ts, 3 PNG icons, offline shell caching with StaleWhileRevalidate for RSC pages — v0.17
+- ✓ Web Push notifications: VAPID delivery via Server Actions, Upstash Redis subscription storage, ingest route triggers for approval_request and error events, 410/404 stale subscription cleanup — v0.17
+- ✓ Platform capability detection: usePushCapability hook (4 states), PushStatusBanner fallback, iOS install prompt for non-standalone, Settings page with subscribe/unsubscribe UI — v0.17
+- ✓ Mobile-first responsive UI: bottom tab nav with safe-area-inset-bottom, md:hidden, 44px touch targets, standalone CSS custom variant, 107 tests across 15 files — v0.17
 
 ## Current Milestone: v0.17 Remote Dashboard
 
