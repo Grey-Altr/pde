@@ -207,6 +207,9 @@ Plans:
   1. start-relay.cjs no longer spawns relay with stdio:'ignore' — approval response NDJSON lines written by relay.cjs are captured by PDE
   2. Approval responses flow end-to-end: dashboard POST → Redis → relay GET → relay stdout/file → PDE reads and unblocks approval gate
   3. Existing relay behavior (event pushing, circuit breaker, zero-impact isolation) remains unchanged
+**Plans**: 1 plan
+Plans:
+- [ ] 141-01-PLAN.md -- Fix start-relay.cjs stdio + add poll-approval to pde-tools.cjs (APR-04)
 
 ### Phase 142: Documentation Tech Debt & Nyquist Cleanup
 **Goal**: Close all documentation gaps and achieve full Nyquist compliance for v0.17 milestone
@@ -237,5 +240,5 @@ Phases execute in numeric order: 134 -> 134.1 -> 134.2 -> 135 -> ...
 | 138. PWA and Push Notifications | 1/2 | Complete    | 2026-03-26 |
 | 139. Production Hardening | 0/2 | Complete    | 2026-03-26 |
 | 140. Clerk Public Route Matcher Fix | 1/1 | Complete    | 2026-03-26 |
-| 141. Approval Response Stdio Fix | 0/0 | Pending     | — |
+| 141. Approval Response Stdio Fix | 0/1 | Pending     | — |
 | 142. Documentation Tech Debt & Nyquist Cleanup | 0/0 | Pending     | — |
