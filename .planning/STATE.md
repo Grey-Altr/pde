@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.17
 milestone_name: milestone
-status: Milestone complete
-stopped_at: Completed 139-01-PLAN.md
-last_updated: "2026-03-26T01:34:38.107Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 140-01-PLAN.md
+last_updated: "2026-03-26T07:09:08.667Z"
 progress:
-  total_phases: 10
-  completed_phases: 10
-  total_plans: 23
-  completed_plans: 23
+  total_phases: 11
+  completed_phases: 11
+  total_plans: 24
+  completed_plans: 24
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-25)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 139 — production-hardening
+**Current focus:** Phase 140 — clerk-public-route-fix
 
 ## Current Position
 
-Phase: 139
-Plan: Not started
+Phase: 140 (clerk-public-route-fix) — EXECUTING
+Plan: 1 of 1
 
 ## Performance Metrics
 
@@ -93,6 +93,8 @@ Recent decisions affecting current work:
 - [Phase 139-production-hardening]: DOWNSAMPLE_TYPES uses actual PDE event types (bash_called, file_changed, tool_called) from hooks/emit-event.cjs; rate=1 guard disables downsampling
 - [Phase 139-production-hardening]: Global sessions registry (pde:default:sessions) is never expired as a key — stale members pruned by cron GC via zrem
 - [Phase 139-production-hardening]: Rate limit key is global 'ingest' string — avoids body-parse ordering problems; correct for single-user PDE
+- [Phase 140-clerk-public-route-fix]: Export PUBLIC_ROUTES as const from proxy.ts — enables direct import in tests without Clerk runtime mocking
+- [Phase 140-clerk-public-route-fix]: No wildcards on /api/approval-response or /api/cron/gc — exact paths, no child routes exist
 
 ### Pending Todos
 
@@ -108,7 +110,7 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-26T01:28:42.229Z
-Stopped at: Completed 139-01-PLAN.md
+Last session: 2026-03-26T07:09:08.663Z
+Stopped at: Completed 140-01-PLAN.md
 Resume with: /gsd:discuss-phase 137
 Resume file: None

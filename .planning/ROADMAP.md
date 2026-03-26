@@ -22,7 +22,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 137: Approval Gates** - Bidirectional approval flow from dashboard to PDE with TOCTOU-safe protocol (completed 2026-03-25)
 - [x] **Phase 138: PWA and Push Notifications** - Installable PWA with service worker, Web Push, and offline shell (completed 2026-03-26)
 - [x] **Phase 139: Production Hardening** - Rate limiting, TTL, downsampling, garbage collection, buffer caps (completed 2026-03-26)
-- [ ] **Phase 140: Clerk Public Route Matcher Fix** - Add missing public routes to proxy.ts Clerk matcher, unblocking approval response relay and cron GC (gap closure)
+- [x] **Phase 140: Clerk Public Route Matcher Fix** - Add missing public routes to proxy.ts Clerk matcher, unblocking approval response relay and cron GC (gap closure) (completed 2026-03-26)
 
 ## Phase Details
 
@@ -194,7 +194,7 @@ Plans:
   3. Approval Gate E2E flow completes: PDE → relay → ingest → Redis → SSE → ApprovalCard → POST → Redis → relay GET → PDE unblocks
 **Plans**: 1 plan
 Plans:
-- [ ] 140-01-PLAN.md -- Add /api/approval-response and /api/cron/gc to public route matcher + Nyquist regression test (APR-04)
+- [x] 140-01-PLAN.md -- Add /api/approval-response and /api/cron/gc to public route matcher + Nyquist regression test (APR-04)
 
 ## Progress
 
@@ -213,4 +213,4 @@ Phases execute in numeric order: 134 -> 134.1 -> 134.2 -> 135 -> ...
 | 137. Approval Gates | 1/3 | Complete    | 2026-03-25 |
 | 138. PWA and Push Notifications | 1/2 | Complete    | 2026-03-26 |
 | 139. Production Hardening | 0/2 | Complete    | 2026-03-26 |
-| 140. Clerk Public Route Matcher Fix | 0/1 | Pending | — |
+| 140. Clerk Public Route Matcher Fix | 1/1 | Complete   | 2026-03-26 |
