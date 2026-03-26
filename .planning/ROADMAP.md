@@ -177,7 +177,10 @@ Plans:
   3. Relay daemon caps in-memory buffer at 1000 events -- during long autonomous runs, oldest unbatched events are dropped rather than consuming unbounded memory
   4. During autonomous mode, high-frequency tool_start/tool_complete events are downsampled at 1-in-N, reducing event volume without losing phase transitions or errors
   5. Vercel cron job runs daily to garbage-collect expired sessions from Redis
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 139-01-PLAN.md -- Dashboard hardening: Redis TTL, rate limiting, cron GC endpoint (HRD-01, HRD-02, HRD-05)
+- [ ] 139-02-PLAN.md -- Relay hardening: event downsampling, buffer cap verification (HRD-03, HRD-04)
 
 ## Progress
 
@@ -195,4 +198,4 @@ Phases execute in numeric order: 134 -> 134.1 -> 134.2 -> 135 -> ...
 | 136.3. Final Documentation & Filter Cleanup | 1/1 | Complete    | 2026-03-25 |
 | 137. Approval Gates | 1/3 | Complete    | 2026-03-25 |
 | 138. PWA and Push Notifications | 1/2 | Complete    | 2026-03-26 |
-| 139. Production Hardening | 0/TBD | Not started | - |
+| 139. Production Hardening | 0/2 | Not started | - |
