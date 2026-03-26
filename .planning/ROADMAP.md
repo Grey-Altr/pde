@@ -23,6 +23,8 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 138: PWA and Push Notifications** - Installable PWA with service worker, Web Push, and offline shell (completed 2026-03-26)
 - [x] **Phase 139: Production Hardening** - Rate limiting, TTL, downsampling, garbage collection, buffer caps (completed 2026-03-26)
 - [x] **Phase 140: Clerk Public Route Matcher Fix** - Add missing public routes to proxy.ts Clerk matcher, unblocking approval response relay and cron GC (gap closure) (completed 2026-03-26)
+- [ ] **Phase 141: Approval Response Stdio Fix** - Fix relay daemon stdio configuration so approval responses flow back to PDE (gap closure)
+- [ ] **Phase 142: Documentation Tech Debt & Nyquist Cleanup** - Fix ROADMAP checkboxes, REQUIREMENTS traceability, SUMMARY frontmatter, and Nyquist validation (gap closure)
 
 ## Phase Details
 
@@ -196,6 +198,27 @@ Plans:
 Plans:
 - [x] 140-01-PLAN.md -- Add /api/approval-response and /api/cron/gc to public route matcher + Nyquist regression test (APR-04)
 
+### Phase 141: Approval Response Stdio Fix
+**Goal**: Fix the relay daemon stdio configuration so approval responses written to stdout by relay.cjs actually reach PDE, completing the bidirectional approval loop
+**Depends on**: Phase 140
+**Requirements**: APR-04
+**Gap Closure**: Closes APR-04 (partial), integration gap (relay stdout → PDE), flow gap (approval response delivery step 11)
+**Success Criteria** (what must be TRUE):
+  1. start-relay.cjs no longer spawns relay with stdio:'ignore' — approval response NDJSON lines written by relay.cjs are captured by PDE
+  2. Approval responses flow end-to-end: dashboard POST → Redis → relay GET → relay stdout/file → PDE reads and unblocks approval gate
+  3. Existing relay behavior (event pushing, circuit breaker, zero-impact isolation) remains unchanged
+
+### Phase 142: Documentation Tech Debt & Nyquist Cleanup
+**Goal**: Close all documentation gaps and achieve full Nyquist compliance for v0.17 milestone
+**Depends on**: Phase 141
+**Gap Closure**: Closes tech debt from v0.17 milestone audit
+**Success Criteria** (what must be TRUE):
+  1. ROADMAP.md plan checkboxes checked: 137-02, 137-03, 138-02, 139-01, 139-02
+  2. REQUIREMENTS.md traceability filled: APR-01–05, PWA-01–04, HRD-01–05 (Plan and Verified columns)
+  3. SUMMARY frontmatter includes requirements-completed: 134-01, 134.1-01, 135-01, 136.3-01, 139-01
+  4. HRD-04 requirement text updated to reference actual event names (bash_called/file_changed/tool_called)
+  5. Nyquist VALIDATION.md compliant (nyquist_compliant: true) for phases 136.3 and 137
+
 ## Progress
 
 **Execution Order:**
@@ -214,3 +237,5 @@ Phases execute in numeric order: 134 -> 134.1 -> 134.2 -> 135 -> ...
 | 138. PWA and Push Notifications | 1/2 | Complete    | 2026-03-26 |
 | 139. Production Hardening | 0/2 | Complete    | 2026-03-26 |
 | 140. Clerk Public Route Matcher Fix | 1/1 | Complete    | 2026-03-26 |
+| 141. Approval Response Stdio Fix | 0/0 | Pending     | — |
+| 142. Documentation Tech Debt & Nyquist Cleanup | 0/0 | Pending     | — |
