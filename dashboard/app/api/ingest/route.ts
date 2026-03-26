@@ -75,6 +75,31 @@ export async function POST(request: Request): Promise<NextResponse> {
   // Step 5: Execute pipeline (single HTTP round-trip to Upstash)
   await p.exec();
 
+  // Step 5b: Fire push notifications for approval_request and error events
+  for (const event of validatedBatch) {
+    if (event.event_type === 'approval_request' && event.approval_id) {
+      const { sendPushToOwner } = await import('@/app/actions');
+      const eventPayload = event as Record<string, unknown>;
+      sendPushToOwner({
+        title: 'Approval Required',
+        body: typeof eventPayload.context === 'string' ? eventPayload.context : 'PDE needs your approval',
+        url: '/',
+        tag: `approval-${event.approval_id}`,
+      }).catch(() => {});
+      break;
+    } else if (event.event_type === 'error' || event.event_type === 'critical_error') {
+      const { sendPushToOwner } = await import('@/app/actions');
+      const eventPayload = event as Record<string, unknown>;
+      sendPushToOwner({
+        title: 'PDE Error',
+        body: typeof eventPayload.message === 'string' ? eventPayload.message : 'A critical error occurred',
+        url: '/',
+        tag: 'error-notification',
+      }).catch(() => {});
+      break;
+    }
+  }
+
   // Step 6: Return success
   return NextResponse.json({ ok: true, count: validatedBatch.length });
 }
