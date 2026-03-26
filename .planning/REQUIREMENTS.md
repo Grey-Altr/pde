@@ -35,10 +35,10 @@
 
 ## PWA & Notifications
 
-- [ ] **PWA-01**: Dashboard is installable as PWA with web manifest, Serwist service worker, and offline shell caching
-- [ ] **PWA-02**: Web Push notifications fire for approval gates and critical errors using VAPID keys
-- [ ] **PWA-03**: Platform capability detection shows "push not available" on unsupported platforms (iOS EU, non-installed PWA)
-- [ ] **PWA-04**: Mobile-first responsive UI with bottom tab navigation, card-based layout, and Geist typography
+- [x] **PWA-01**: Dashboard is installable as PWA with web manifest, Serwist service worker, and offline shell caching
+- [x] **PWA-02**: Web Push notifications fire for approval gates and critical errors using VAPID keys
+- [x] **PWA-03**: Platform capability detection shows "push not available" on unsupported platforms (iOS EU, non-installed PWA)
+- [x] **PWA-04**: Mobile-first responsive UI with bottom tab navigation, card-based layout, and Geist typography
 
 ## Production Hardening
 

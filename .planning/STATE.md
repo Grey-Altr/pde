@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.17
 milestone_name: milestone
 status: Ready to plan
-stopped_at: Completed 137-02-PLAN.md
-last_updated: "2026-03-25T23:29:57.329Z"
+stopped_at: Completed 138-02-PLAN.md
+last_updated: "2026-03-26T00:33:36.880Z"
 progress:
   total_phases: 10
-  completed_phases: 8
-  total_plans: 19
-  completed_plans: 19
+  completed_phases: 9
+  total_plans: 21
+  completed_plans: 21
 ---
 
 # Project State
@@ -19,11 +19,11 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-25)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 137 — approval-gates
+**Current focus:** Phase 138 — pwa-and-push-notifications
 
 ## Current Position
 
-Phase: 138
+Phase: 139
 Plan: Not started
 
 ## Performance Metrics
@@ -85,6 +85,11 @@ Recent decisions affecting current work:
 - [Phase 137]: getApprovalResponse uses same node:https/http pattern as postEvents — zero npm deps maintained; approvalUrl derived from ingestUrl; approval responses emitted as NDJSON to stdout
 - [Phase 137-approval-gates]: Controlled AlertDialog.Root open state for dual-action approve/deny dialog — shared dialog with pendingAction state
 - [Phase 137-approval-gates]: findPendingApproval added to queries.ts in Plan 02 (Plan 01 gap) — Set-based matching for order-independent approval detection
+- [Phase 138]: Use @serwist/turbopack (not @serwist/next) — different packages with different internals; Turbopack uses esbuild + route handler
+- [Phase 138]: Register SW at /serwist/sw.js not /sw.js — Turbopack arch serves from dynamic route handler
+- [Phase 138]: Dynamic import sendPushToOwner in ingest route avoids loading web-push on every request
+- [Phase 138]: requestPermission called directly in click handler for iOS gesture requirement
+- [Phase 138]: VAPID setVapidDetails guarded by env var presence to allow dev/test without keys
 
 ### Pending Todos
 
@@ -100,7 +105,7 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-25T23:20:55.686Z
-Stopped at: Completed 137-02-PLAN.md
+Last session: 2026-03-26T00:29:52.355Z
+Stopped at: Completed 138-02-PLAN.md
 Resume with: /gsd:discuss-phase 137
 Resume file: None

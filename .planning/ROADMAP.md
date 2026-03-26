@@ -20,7 +20,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 136.2: Documentation Tech Debt & Nyquist Compliance** - Fix ROADMAP checkboxes, SUMMARY frontmatter gaps, REQUIREMENTS traceability, and Nyquist validation for phases 134.1 and 135 (INSERTED — gap closure) (completed 2026-03-25)
 - [x] **Phase 136.3: Final Documentation & Filter Cleanup** - Close remaining traceability gaps and add token_usage to EventLog filter (INSERTED — gap closure) (completed 2026-03-25)
 - [x] **Phase 137: Approval Gates** - Bidirectional approval flow from dashboard to PDE with TOCTOU-safe protocol (completed 2026-03-25)
-- [ ] **Phase 138: PWA and Push Notifications** - Installable PWA with service worker, Web Push, and offline shell
+- [x] **Phase 138: PWA and Push Notifications** - Installable PWA with service worker, Web Push, and offline shell (completed 2026-03-26)
 - [ ] **Phase 139: Production Hardening** - Rate limiting, TTL, downsampling, garbage collection, buffer caps
 
 ## Phase Details
@@ -163,7 +163,7 @@ Plans:
   4. Mobile-first responsive UI with bottom tab navigation, card-based layout, and Geist typography renders correctly across iOS Safari, Android Chrome, and desktop
 **Plans**: 2 plans
 Plans:
-- [ ] 138-01-PLAN.md -- Serwist service worker, PWA manifest, icons, Turbopack route, bottom tab nav, viewport metadata (PWA-01, PWA-04)
+- [x] 138-01-PLAN.md -- Serwist service worker, PWA manifest, icons, Turbopack route, bottom tab nav, viewport metadata (PWA-01, PWA-04)
 - [ ] 138-02-PLAN.md -- Web Push Server Actions, VAPID push delivery, capability detection, Settings page, ingest push trigger (PWA-02, PWA-03)
 **UI hint**: yes
 
@@ -194,5 +194,5 @@ Phases execute in numeric order: 134 -> 134.1 -> 134.2 -> 135 -> ...
 | 136.2. Documentation Tech Debt & Nyquist Compliance | 2/2 | Complete    | 2026-03-25 |
 | 136.3. Final Documentation & Filter Cleanup | 1/1 | Complete    | 2026-03-25 |
 | 137. Approval Gates | 1/3 | Complete    | 2026-03-25 |
-| 138. PWA and Push Notifications | 0/2 | Not started | - |
+| 138. PWA and Push Notifications | 1/2 | Complete    | 2026-03-26 |
 | 139. Production Hardening | 0/TBD | Not started | - |
