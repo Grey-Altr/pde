@@ -43,8 +43,12 @@ class DispatchCoordinator {
   /**
    * @param {string} projectRoot - Absolute path to the git repo root
    * @param {object} [opts]
-   * @param {number} [opts.maxConcurrent=3] - Max simultaneous sessions
-   * @param {string} [opts.pluginDir]        - Absolute path to PDE plugin directory
+   * @param {number} [opts.maxConcurrent=3]   - Max simultaneous sessions
+   * @param {string} [opts.pluginDir]          - Absolute path to PDE plugin directory
+   * @param {object} [opts._deps]              - Dependency injection for testing only.
+   *   Shape: { spawnSession, createWorktree, removeWorktree, deleteBranch,
+   *            mergeSession, recalculateFromArtifacts, acquireLock, releaseLock }
+   *   When omitted, production module-level requires are used.
    */
   constructor(projectRoot, opts) {
     const options = opts || {};
@@ -54,6 +58,18 @@ class DispatchCoordinator {
     this._aggregator = new Aggregator();
     this._pluginDir = options.pluginDir || DispatchCoordinator.resolvePluginDir();
     this._sessions = new Map(); // sessionId → { pid, kill }
+
+    // Dependency injection — allows test doubles without vi.mock() hoisting.
+    // Production code never passes _deps; tests inject stubs here.
+    const deps = options._deps || {};
+    this._spawnSession = deps.spawnSession || spawnSession;
+    this._createWorktree = deps.createWorktree || createWorktree;
+    this._removeWorktree = deps.removeWorktree || removeWorktree;
+    this._deleteBranch = deps.deleteBranch || deleteBranch;
+    this._mergeSession = deps.mergeSession || mergeSession;
+    this._recalculateFromArtifacts = deps.recalculateFromArtifacts || recalculateFromArtifacts;
+    this._acquireLock = deps.acquireLock || acquireLock;
+    this._releaseLock = deps.releaseLock || releaseLock;
   }
 
   /**
@@ -100,7 +116,7 @@ class DispatchCoordinator {
     const phaseNum = typeof phase === 'string' ? parseInt(phase, 10) : phase;
 
     // 1. Acquire dispatcher lock
-    const lockResult = acquireLock(this._root);
+    const lockResult = this._acquireLock(this._root);
     if (!lockResult.acquired) {
       throw new Error(`Another dispatcher is running (PID: ${lockResult.pid || 'unknown'})`);
     }
@@ -115,7 +131,7 @@ class DispatchCoordinator {
       const sessionId = `p${phaseNum}-${plan}-${crypto.randomUUID().slice(0, 8)}`;
 
       // 4. Create git worktree
-      const { worktreePath, branch } = createWorktree(this._root, sessionId);
+      const { worktreePath, branch } = this._createWorktree(this._root, sessionId);
 
       // 5. Register in registry (with placeholder pid 0 — updated after spawn)
       this._registry.register(sessionId, {
@@ -127,7 +143,7 @@ class DispatchCoordinator {
       });
 
       // 6. Release lock before spawning (spawn is slow; don't hold lock)
-      releaseLock(this._root);
+      this._releaseLock(this._root);
 
       // 7. Start aggregator watch for this session's NDJSON file
       this._aggregator.watch(sessionId);
@@ -138,7 +154,7 @@ class DispatchCoordinator {
       return sessionId;
     } catch (err) {
       // Release lock if we threw after acquiring but before the try block's releaseLock
-      try { releaseLock(this._root); } catch (_) {}
+      try { this._releaseLock(this._root); } catch (_) {}
       throw err;
     }
   }
@@ -170,7 +186,7 @@ class DispatchCoordinator {
    */
   _runSession(sessionId, phase, plan, worktreePath, branch) {
     return new Promise((resolve) => {
-      const handle = spawnSession({
+      const handle = this._spawnSession({
         worktreePath,
         sessionId,
         phase,
@@ -208,11 +224,11 @@ class DispatchCoordinator {
 
     if (exitCode === 0) {
       // Success path: merge → recalculate → cleanup
-      const result = mergeSession(this._root, sessionId);
+      const result = this._mergeSession(this._root, sessionId);
       if (result.ok) {
-        recalculateFromArtifacts(this._root);
-        removeWorktree(this._root, sessionId);
-        deleteBranch(this._root, branch);
+        this._recalculateFromArtifacts(this._root);
+        this._removeWorktree(this._root, sessionId);
+        this._deleteBranch(this._root, branch);
         this._registry.remove(sessionId);
       } else {
         // merge returned needsHuman — preserve worktree for manual resolution
