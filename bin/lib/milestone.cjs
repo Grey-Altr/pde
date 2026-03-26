@@ -8,6 +8,36 @@ const { escapeRegex, getMilestonePhaseFilter, output, error } = require('./core.
 const { extractFrontmatter } = require('./frontmatter.cjs');
 const { writeStateMd } = require('./state.cjs');
 
+/**
+ * Resolve the current phase directory from STATE.md frontmatter.
+ * Falls back to cwd/.planning/phases/<current-phase>-<slug> pattern.
+ * Used by session-scoped requirement writes.
+ *
+ * @param {string} cwd - Project root
+ * @returns {string} Absolute path to the current phase directory
+ */
+function _findCurrentPhaseDir(cwd) {
+  try {
+    const statePath = path.join(cwd, '.planning', 'STATE.md');
+    const stateContent = fs.readFileSync(statePath, 'utf-8');
+    // Try YAML frontmatter: current_phase: 143
+    const fmPhaseMatch = stateContent.match(/^current_phase:\s*['"]?(\S+?)['"]?\s*$/m);
+    const phaseNum = fmPhaseMatch ? fmPhaseMatch[1] : null;
+    if (phaseNum) {
+      const phasesDir = path.join(cwd, '.planning', 'phases');
+      if (fs.existsSync(phasesDir)) {
+        const entries = fs.readdirSync(phasesDir, { withFileTypes: true });
+        const match = entries.find(e => e.isDirectory() && e.name.startsWith(phaseNum + '-'));
+        if (match) {
+          return path.join(phasesDir, match.name);
+        }
+      }
+    }
+  } catch (_) {}
+  // Fallback: write to .planning/phases directly
+  return path.join(cwd, '.planning', 'phases');
+}
+
 function cmdRequirementsMarkComplete(cwd, reqIdsRaw, raw) {
   if (!reqIdsRaw || reqIdsRaw.length === 0) {
     error('requirement IDs required. Usage: requirements mark-complete REQ-01,REQ-02 or REQ-01 REQ-02');
@@ -23,6 +53,19 @@ function cmdRequirementsMarkComplete(cwd, reqIdsRaw, raw) {
 
   if (reqIds.length === 0) {
     error('no valid requirement IDs found');
+  }
+
+  // ISO-07: When running inside a session, write COMPLETED-REQS.md to the phase
+  // directory instead of mutating shared REQUIREMENTS.md. The dispatcher
+  // recalculates requirements state from these artifacts post-merge (D-09, D-10).
+  const sessionId = process.env.PDE_SESSION_ID;
+  if (sessionId) {
+    const { writeCompletedReqs } = require('./session-artifacts.cjs');
+    const phaseDir = _findCurrentPhaseDir(cwd);
+    writeCompletedReqs(cwd, phaseDir, sessionId, reqIds, null, null);
+    output({ updated: true, sessionScoped: true, ids: reqIds }, raw,
+      `Session-scoped: wrote ${reqIds.length} requirement(s) to COMPLETED-REQS.md`);
+    return;
   }
 
   const reqPath = path.join(cwd, '.planning', 'REQUIREMENTS.md');

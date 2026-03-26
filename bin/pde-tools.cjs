@@ -185,6 +185,35 @@ const init = require('./lib/init.cjs');
 const frontmatter = require('./lib/frontmatter.cjs');
 const validateSkill = require('./lib/validate-skill.cjs');
 
+// ─── Session Helpers ─────────────────────────────────────────────────────────
+
+/**
+ * Resolve the current phase directory from STATE.md frontmatter.
+ * Used by session-scoped writes in the record-session gate (ISO-06).
+ *
+ * @param {string} cwd - Project root
+ * @returns {string} Absolute path to current phase directory
+ */
+function _resolvePhaseDir(cwd) {
+  try {
+    const statePath = path.join(cwd, '.planning', 'STATE.md');
+    const stateContent = fs.readFileSync(statePath, 'utf-8');
+    const fmPhaseMatch = stateContent.match(/^current_phase:\s*['"]?(\S+?)['"]?\s*$/m);
+    const phaseNum = fmPhaseMatch ? fmPhaseMatch[1] : null;
+    if (phaseNum) {
+      const phasesDir = path.join(cwd, '.planning', 'phases');
+      if (fs.existsSync(phasesDir)) {
+        const entries = fs.readdirSync(phasesDir, { withFileTypes: true });
+        const match = entries.find(e => e.isDirectory() && e.name.startsWith(phaseNum + '-'));
+        if (match) {
+          return path.join(phasesDir, match.name);
+        }
+      }
+    }
+  } catch (_) {}
+  return path.join(cwd, '.planning', 'phases');
+}
+
 // ─── CLI Router ───────────────────────────────────────────────────────────────
 
 async function main() {
@@ -280,12 +309,28 @@ async function main() {
         const textIdx = args.indexOf('--text');
         state.cmdStateResolveBlocker(cwd, textIdx !== -1 ? args[textIdx + 1] : null, raw);
       } else if (subcommand === 'record-session') {
-        const stoppedIdx = args.indexOf('--stopped-at');
-        const resumeIdx = args.indexOf('--resume-file');
-        state.cmdStateRecordSession(cwd, {
-          stopped_at: stoppedIdx !== -1 ? args[stoppedIdx + 1] : null,
-          resume_file: resumeIdx !== -1 ? args[resumeIdx + 1] : 'None',
-        }, raw);
+        // ISO-06: When running inside a session, write COMPLETE.json to phase
+        // directory instead of updating shared STATE.md session fields.
+        if (process.env.PDE_SESSION_ID) {
+          const { writeCompleteJson } = require('./lib/session-artifacts.cjs');
+          const phaseDir = _resolvePhaseDir(cwd);
+          writeCompleteJson(cwd, phaseDir, {
+            session_id: process.env.PDE_SESSION_ID,
+            exit_code: 0,
+            duration_ms: Date.now() - (parseInt(process.env.PDE_SESSION_START, 10) || Date.now()),
+            completed_at: new Date().toISOString(),
+            phase: parseInt(process.env.PDE_PHASE || '0', 10),
+            plan: parseInt(process.env.PDE_PLAN || '0', 10),
+          });
+          output({ sessionScoped: true }, raw, 'Session-scoped: wrote COMPLETE.json');
+        } else {
+          const stoppedIdx = args.indexOf('--stopped-at');
+          const resumeIdx = args.indexOf('--resume-file');
+          state.cmdStateRecordSession(cwd, {
+            stopped_at: stoppedIdx !== -1 ? args[stoppedIdx + 1] : null,
+            resume_file: resumeIdx !== -1 ? args[resumeIdx + 1] : 'None',
+          }, raw);
+        }
       } else {
         state.cmdStateLoad(cwd, raw);
       }

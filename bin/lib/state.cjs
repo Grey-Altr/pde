@@ -677,8 +677,18 @@ function syncStateFrontmatter(content, cwd) {
 /**
  * Write STATE.md with synchronized YAML frontmatter.
  * All STATE.md writes should use this instead of raw writeFileSync.
+ *
+ * ISO-06: When PDE_SESSION_ID is set, this is a no-op. Session-scoped executors
+ * must not write to shared STATE.md — the dispatcher recalculates from COMPLETE.json
+ * artifacts post-merge (D-10). This single guard covers ALL state subcommands
+ * (update, patch, advance-plan, record-metric, update-progress, add-decision,
+ * add-blocker, resolve-blocker, record-session) because they all route through here.
  */
 function writeStateMd(statePath, content, cwd) {
+  if (process.env.PDE_SESSION_ID) {
+    // ISO-06: Session-scoped execution — do NOT write to shared STATE.md
+    return;
+  }
   const synced = syncStateFrontmatter(content, cwd);
   fs.writeFileSync(statePath, synced, 'utf-8');
 }
