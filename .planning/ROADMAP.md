@@ -78,7 +78,10 @@ Plans:
   2. Before dispatching, the orchestrator analyzes ROADMAP.md once to identify parallelizable phases and flags any with overlapping file sets as unsafe to run concurrently
   3. When a session fails, the orchestrator produces a human-readable failure summary from the session's NDJSON tail — visible in the event log without the user digging through raw files
   4. Merge conflict triage assistance is available when auto-resolve fails — the orchestrator surfaces the conflicting files and a suggested resolution strategy
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 145-01-PLAN.md — SDK install, ESM bridge, and orchestrator module with all four functions
+- [ ] 145-02-PLAN.md — Wire orchestrator into DispatchCoordinator and update package exports
 
 ### Phase 146: Remote Dispatch
 **Goal**: Autonomous sessions can be routed to a configured remote server via SSH or claude --remote managed backend, with fallback chain to local execution and git-based state sync
@@ -136,7 +139,7 @@ Note: Phase 147 (Dashboard) and Phase 148 (tmux) both depend on Phase 144 and ca
 |-------|----------------|--------|-----------|
 | 143. Session Isolation | 3/3 | Complete    | 2026-03-26 |
 | 144. Local CLI Dispatch | 3/3 | Complete    | 2026-03-26 |
-| 145. Agent SDK Orchestrator | 0/TBD | Not started | - |
+| 145. Agent SDK Orchestrator | 0/2 | Not started | - |
 | 146. Remote Dispatch | 0/TBD | Not started | - |
 | 147. Dashboard Integration | 0/TBD | Not started | - |
 | 148. tmux Integration | 0/TBD | Not started | - |
