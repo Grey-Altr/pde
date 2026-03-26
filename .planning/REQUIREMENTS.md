@@ -21,15 +21,15 @@ Requirements for Distributed Execution milestone. Each maps to roadmap phases.
 
 ### Local Dispatch
 
-- [ ] **DSP-01**: Dispatcher spawns `claude` CLI subprocesses in worktrees with session-scoped env vars
-- [ ] **DSP-02**: Dispatcher tracks active sessions in registry (Map + JSON file for crash recovery)
-- [ ] **DSP-03**: Dispatcher detects session completion/failure via exit codes
+- [x] **DSP-01**: Dispatcher spawns `claude` CLI subprocesses in worktrees with session-scoped env vars
+- [x] **DSP-02**: Dispatcher tracks active sessions in registry (Map + JSON file for crash recovery)
+- [x] **DSP-03**: Dispatcher detects session completion/failure via exit codes
 - [ ] **DSP-04**: `--parallel` flag on execute-phase enables dispatcher (opt-in, zero change without flag)
 - [ ] **DSP-05**: `--parallel` flag on autonomous enables phase-level + plan-level parallelism
-- [ ] **DSP-06**: Dispatcher enforces concurrency limit (configurable, default 3)
-- [ ] **DSP-07**: Dispatcher never assigns same phase to two concurrent sessions
-- [ ] **DSP-08**: One relay daemon per session streams events to dashboard
-- [ ] **DSP-09**: Failed sessions preserve worktree for debugging
+- [x] **DSP-06**: Dispatcher enforces concurrency limit (configurable, default 3)
+- [x] **DSP-07**: Dispatcher never assigns same phase to two concurrent sessions
+- [x] **DSP-08**: One relay daemon per session streams events to dashboard
+- [x] **DSP-09**: Failed sessions preserve worktree for debugging
 
 ### Agent SDK Orchestration
 
@@ -121,15 +121,15 @@ Deferred to future release.
 | ISO-07 | Phase 143 | Complete |
 | ISO-08 | Phase 143 | Complete |
 | ISO-09 | Phase 143 | Complete |
-| DSP-01 | Phase 144 | Pending |
-| DSP-02 | Phase 144 | Pending |
-| DSP-03 | Phase 144 | Pending |
+| DSP-01 | Phase 144 | Complete |
+| DSP-02 | Phase 144 | Complete |
+| DSP-03 | Phase 144 | Complete |
 | DSP-04 | Phase 144 | Pending |
 | DSP-05 | Phase 144 | Pending |
-| DSP-06 | Phase 144 | Pending |
-| DSP-07 | Phase 144 | Pending |
-| DSP-08 | Phase 144 | Pending |
-| DSP-09 | Phase 144 | Pending |
+| DSP-06 | Phase 144 | Complete |
+| DSP-07 | Phase 144 | Complete |
+| DSP-08 | Phase 144 | Complete |
+| DSP-09 | Phase 144 | Complete |
 | SDK-01 | Phase 145 | Pending |
 | SDK-02 | Phase 145 | Pending |
 | SDK-03 | Phase 145 | Pending |

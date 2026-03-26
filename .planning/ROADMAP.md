@@ -65,8 +65,8 @@ Plans:
   5. One relay daemon per session tags all its events with a session_id, and an aggregator daemon multiplexes all session event streams into one endpoint
 **Plans**: 3 plans
 Plans:
-- [ ] 144-01-PLAN.md — Subprocess spawn module and crash-recoverable session registry
-- [ ] 144-02-PLAN.md — Concurrency queue and NDJSON aggregator
+- [x] 144-01-PLAN.md — Subprocess spawn module and crash-recoverable session registry
+- [x] 144-02-PLAN.md — Concurrency queue and NDJSON aggregator
 - [ ] 144-03-PLAN.md — Coordinator orchestrator and --parallel flag wiring
 
 ### Phase 145: Agent SDK Orchestrator
@@ -135,7 +135,7 @@ Note: Phase 147 (Dashboard) and Phase 148 (tmux) both depend on Phase 144 and ca
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 143. Session Isolation | 3/3 | Complete    | 2026-03-26 |
-| 144. Local CLI Dispatch | 0/3 | Not started | - |
+| 144. Local CLI Dispatch | 2/3 | In Progress|  |
 | 145. Agent SDK Orchestrator | 0/TBD | Not started | - |
 | 146. Remote Dispatch | 0/TBD | Not started | - |
 | 147. Dashboard Integration | 0/TBD | Not started | - |

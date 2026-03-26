@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.18
 milestone_name: Distributed Execution
-status: Ready to plan
-stopped_at: Completed 143-02-PLAN.md
-last_updated: "2026-03-26T20:26:59.938Z"
+status: Ready to execute
+stopped_at: Completed 144-02-PLAN.md
+last_updated: "2026-03-26T21:33:46.533Z"
 progress:
   total_phases: 7
   completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
+  total_plans: 6
+  completed_plans: 5
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-26)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 143 — session-isolation
+**Current focus:** Phase 144 — local-cli-dispatch
 
 ## Current Position
 
-Phase: 144
-Plan: Not started
+Phase: 144 (local-cli-dispatch) — EXECUTING
+Plan: 3 of 3
 
 ## Performance Metrics
 
@@ -57,6 +57,8 @@ Plan: Not started
 - [Phase 144]: Env vars are `PDE_PHASE` and `PDE_PLAN` (not `PDE_PHASE_NUMBER`/`PDE_PLAN_NUMBER`)
 - [Phase 144]: `--parallel` enables plan-level parallelism only (wave-based); phase-level parallelism deferred to Phase 145 (requires DAG + file-overlap analysis)
 - [Phase 146]: SSH-primary architecture; `claude --remote` deferred — research preview, no NDJSON streaming, no CLAUDE.md propagation
+- [Phase 144-local-cli-dispatch]: Aggregator uses DI constructor arg (TailCursorClass?) for test isolation — avoids vi.mock CJS hoisting issues while preserving production default from relay.cjs
+- [Phase 144-local-cli-dispatch]: Use vi.spyOn(childProcess, 'spawn') for CJS mocking — destructured imports cache references at require time, making vi.mock ineffective
 
 ### Pending Todos
 
@@ -69,7 +71,7 @@ Plan: Not started
 
 ## Session Continuity
 
-Last session: 2026-03-26T20:20:22.746Z
-Stopped at: Completed 143-02-PLAN.md
+Last session: 2026-03-26T21:33:46.530Z
+Stopped at: Completed 144-02-PLAN.md
 Resume with: `/gsd:plan-phase 143`
 Resume file: None
