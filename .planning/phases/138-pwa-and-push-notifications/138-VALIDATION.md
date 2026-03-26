@@ -1,9 +1,9 @@
 ---
 phase: 138
 slug: pwa-and-push-notifications
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: approved
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-25
 ---
 
@@ -21,7 +21,7 @@ created: 2026-03-25
 | **Config file** | `dashboard/vitest.config.ts` |
 | **Quick run command** | `npm test --prefix dashboard` |
 | **Full suite command** | `npm test --prefix dashboard -- --reporter=verbose` |
-| **Estimated runtime** | ~8 seconds |
+| **Estimated runtime** | ~0.3 seconds |
 
 ---
 
@@ -30,7 +30,7 @@ created: 2026-03-25
 - **After every task commit:** Run `npm test --prefix dashboard`
 - **After every plan wave:** Run `npm test --prefix dashboard -- --reporter=verbose`
 - **Before `/gsd:verify-work`:** Full suite must be green
-- **Max feedback latency:** 8 seconds
+- **Max feedback latency:** 0.3 seconds
 
 ---
 
@@ -38,14 +38,11 @@ created: 2026-03-25
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 138-01-01 | 01 | 1 | PWA-01 | unit | `npm test --prefix dashboard` | ❌ W0 | ⬜ pending |
-| 138-01-02 | 01 | 1 | PWA-01 | unit | `npm test --prefix dashboard` | ❌ W0 | ⬜ pending |
-| 138-02-01 | 02 | 1 | PWA-02 | unit | `npm test --prefix dashboard` | ❌ W0 | ⬜ pending |
-| 138-02-02 | 02 | 1 | PWA-02 | unit | `npm test --prefix dashboard` | ❌ W0 | ⬜ pending |
-| 138-02-03 | 02 | 1 | PWA-02 | unit | `npm test --prefix dashboard` | ❌ W0 | ⬜ pending |
-| 138-03-01 | 03 | 2 | PWA-03 | unit | `npm test --prefix dashboard` | ❌ W0 | ⬜ pending |
-| 138-03-02 | 03 | 2 | PWA-03 | unit | `npm test --prefix dashboard` | ❌ W0 | ⬜ pending |
-| 138-04-01 | 04 | 2 | PWA-04 | unit | `npm test --prefix dashboard` | ❌ W0 | ⬜ pending |
+| 138-01-01 | 01 | 1 | PWA-01 | unit | `npm test --prefix dashboard` | ✅ `dashboard/lib/__tests__/manifest.test.ts` (4 tests) | ✅ green |
+| 138-01-02 | 01 | 1 | PWA-04 | unit | `npm test --prefix dashboard` | ✅ `dashboard/lib/__tests__/bottom-nav.test.ts` (3 tests) | ✅ green |
+| 138-02-01 | 02 | 2 | PWA-02 | unit | `npm test --prefix dashboard` | ✅ `dashboard/lib/__tests__/actions.test.ts` (6 tests) | ✅ green |
+| 138-02-02 | 02 | 2 | PWA-03 | unit | `npm test --prefix dashboard` | ✅ `dashboard/lib/__tests__/use-push-capability.test.ts` (7 tests) | ✅ green |
+| 138-02-03 | 02 | 2 | PWA-02, PWA-03 | checkpoint | Human verification | N/A | ✅ auto-approved |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -53,10 +50,12 @@ created: 2026-03-25
 
 ## Wave 0 Requirements
 
-- [ ] `dashboard/__tests__/pwa/manifest.test.ts` — stubs for PWA-01 manifest shape
-- [ ] `dashboard/__tests__/pwa/actions.test.ts` — stubs for PWA-02 subscribe/send/stale-cleanup
-- [ ] `dashboard/__tests__/pwa/use-push-capability.test.ts` — stubs for PWA-03 capability states
-- [ ] `dashboard/__tests__/pwa/bottom-nav.test.ts` — stubs for PWA-04 nav accessibility
+- [x] `dashboard/lib/__tests__/manifest.test.ts` — PWA-01 manifest shape (4 tests)
+- [x] `dashboard/lib/__tests__/actions.test.ts` — PWA-02 subscribe/send/stale-cleanup (6 tests)
+- [x] `dashboard/lib/__tests__/use-push-capability.test.ts` — PWA-03 capability states (7 tests)
+- [x] `dashboard/lib/__tests__/bottom-nav.test.ts` — PWA-04 nav accessibility (3 tests)
+
+All Wave 0 test files created inline during TDD execution (not pre-existing stubs).
 
 ---
 
@@ -74,11 +73,23 @@ created: 2026-03-25
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 8s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 0.3s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-03-25
+
+---
+
+## Validation Audit 2026-03-25
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+All 4 requirements (PWA-01 through PWA-04) have automated test coverage across 20 tests in 4 test files. 107 total tests pass across 15 files (including prior-phase regression tests). No gaps detected.
