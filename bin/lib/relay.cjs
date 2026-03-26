@@ -447,6 +447,14 @@ function startRelay(sessionId, opts = {}) {
     }
   }, APPROVAL_POLL_INTERVAL) : null;
 
+  // ---- Downsampling (HRD-04) ----
+  // Counter-mod: keep every Nth high-frequency tool event to reduce volume
+  // CRITICAL: these are the ACTUAL PDE event types from hooks/emit-event.cjs
+  // tool_start/tool_complete do NOT exist in PDE
+  const DOWNSAMPLE_TYPES = new Set(['bash_called', 'file_changed', 'tool_called']);
+  const DOWNSAMPLE_RATE = Number(process.env.PDE_DOWNSAMPLE_RATE ?? '5');
+  const typeCounters = new Map();
+
   // Tail cursor — parses each line, wraps with createEnvelope, validates, then queues
   const tail = new TailCursor(filePath, (line) => {
     let parsedEvent;
@@ -462,6 +470,15 @@ function startRelay(sessionId, opts = {}) {
     // RLY-02: validate against WireEnvelopeSchema before queueing
     const result = WireEnvelopeSchema.safeParse(envelope);
     if (!result.success) return; // drop invalid envelopes — never transmit
+
+    // Downsample high-frequency tool events (HRD-04)
+    if (DOWNSAMPLE_RATE > 1 && DOWNSAMPLE_TYPES.has(parsedEvent.event_type)) {
+      const count = typeCounters.get(parsedEvent.event_type) ?? 0;
+      typeCounters.set(parsedEvent.event_type, count + 1);
+      if (count % DOWNSAMPLE_RATE !== 0) {
+        return; // drop this event — keep only every Nth
+      }
+    }
 
     // Queue validated envelope for batch transmission
     batchQueue.push(envelope);
