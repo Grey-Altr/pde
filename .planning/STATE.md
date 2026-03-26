@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.17
 milestone_name: milestone
-status: Milestone complete
-stopped_at: Completed 140-01-PLAN.md
-last_updated: "2026-03-26T07:12:52.936Z"
+status: Ready to plan
+stopped_at: Completed 141-01-PLAN.md
+last_updated: "2026-03-26T08:00:19.751Z"
 progress:
-  total_phases: 11
-  completed_phases: 11
-  total_plans: 24
-  completed_plans: 24
+  total_phases: 13
+  completed_phases: 12
+  total_plans: 25
+  completed_plans: 25
 ---
 
 # Project State
@@ -19,11 +19,11 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-25)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 140 — clerk-public-route-fix
+**Current focus:** Phase 141 — approval-response-stdio-fix
 
 ## Current Position
 
-Phase: 140
+Phase: 142
 Plan: Not started
 
 ## Performance Metrics
@@ -95,6 +95,9 @@ Recent decisions affecting current work:
 - [Phase 139-production-hardening]: Rate limit key is global 'ingest' string — avoids body-parse ordering problems; correct for single-user PDE
 - [Phase 140-clerk-public-route-fix]: Export PUBLIC_ROUTES as const from proxy.ts — enables direct import in tests without Clerk runtime mocking
 - [Phase 140-clerk-public-route-fix]: No wildcards on /api/approval-response or /api/cron/gc — exact paths, no child routes exist
+- [Phase 141]: Use fd-based spawn stdio to redirect relay daemon stdout to named NDJSON file — avoids EPIPE from pipe+unref pattern
+- [Phase 141]: Skip response file deletion in stop-relay.cjs — avoids race condition where SessionEnd fires before poll-approval reads response; OS tmpdir handles cleanup
+- [Phase 141]: poll-approval inlined in pde-tools.cjs case block (not delegated to commands module) — self-contained, no new module dependency
 
 ### Pending Todos
 
@@ -110,7 +113,7 @@ Recent decisions affecting current work:
 
 ## Session Continuity
 
-Last session: 2026-03-26T07:09:08.663Z
-Stopped at: Completed 140-01-PLAN.md
+Last session: 2026-03-26T07:56:39.627Z
+Stopped at: Completed 141-01-PLAN.md
 Resume with: /gsd:discuss-phase 137
 Resume file: None
