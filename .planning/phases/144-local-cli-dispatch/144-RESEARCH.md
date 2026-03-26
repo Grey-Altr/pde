@@ -146,19 +146,26 @@ const readline = require('node:readline');
  * @returns {{ pid: number, kill: function }}
  */
 function spawnSession(opts) {
-  const { worktreePath, sessionId, prompt, extraArgs = [], onLine, onExit } = opts;
+  const { worktreePath, sessionId, phase, plan, pluginDir, extraArgs = [], onLine, onExit } = opts;
+  const prompt = `Execute phase ${phase}, plan ${plan}. Run /gsd:execute-plan ${phase} ${plan}.`;
 
   const env = { ...process.env };
   delete env.CLAUDECODE;   // must not be "1" — blocks nested launch
   env.PDE_SESSION_ID = sessionId;
+  env.PDE_PHASE = String(phase);
+  env.PDE_PLAN = String(plan);
+  env.PDE_SESSION_START = String(Date.now());
 
   const args = [
     '--print',
+    '--bare',                // fast startup: skip hooks, LSP, plugin sync, auto-memory
     '--output-format', 'stream-json',
-    '--verbose',
+    '--verbose',             // REQUIRED with stream-json
     '--dangerously-skip-permissions',
+    '--plugin-dir', pluginDir,  // load PDE plugin (sets CLAUDE_PLUGIN_ROOT)
+    '--append-system-prompt', 'You are a PDE executor agent running in a worktree. Operate in autonomous mode. Auto-approve all checkpoints. Do not ask questions.',
     ...extraArgs,
-    prompt,
+    prompt,                  // positional arg (last) — NOT a --prompt flag
   ];
 
   const child = spawn('claude', args, {
@@ -656,22 +663,87 @@ describe('ConcurrencyQueue', () => {
 - `claude --worktree` flag: Creates worktrees in `.claude/worktrees/` under Claude's own management. PDE does NOT use this — PDE manages worktrees directly via `packages/dispatcher/lib/worktree.cjs` to maintain full control.
 - `p-queue` ESM: The sindresorhus ESM-only `p-queue` 9.1.0 is incompatible with CJS modules in `packages/dispatcher/`. Hand-roll instead.
 
-## Open Questions
+## Resolved Questions (researched 2026-03-26)
 
-1. **Plugin directory for child claude sessions**
-   - What we know: `--plugin-dir` passes a directory of skills to a claude session in `--print` mode
-   - What's unclear: Does the PDE plugin need to be at a specific path? Does `--bare` mode prevent skills from loading? Should child sessions use `--bare` to reduce startup overhead?
-   - Recommendation: Test with `--plugin-dir <project-root>` in child spawn. If `--bare` is used for speed, the executor agent system prompt must include the full execute-phase workflow inline.
+### RQ-1: Plugin directory for child claude sessions — RESOLVED
 
-2. **`--parallel` flag scope in autonomous**
-   - What we know: DSP-05 says `--parallel` on autonomous enables phase-level AND plan-level parallelism
-   - What's unclear: With no DAG analysis until Phase 145, how does Phase 144 decide which phases are safe to run concurrently? Should Phase 144 simply run all phases in sequence with parallel plans within each phase?
-   - Recommendation: Phase 144 autonomous `--parallel` enables parallel plan execution within phases (using existing wave parallelization), but keeps phases sequential. Phase-level parallelism across phases waits for Phase 145's DAG analysis.
+**Finding:** `--plugin-dir` works with `--print` mode (confirmed from CLI help and docs). `--bare` mode skips auto-discovery but explicitly preserves skills when `--plugin-dir` is passed — CLI help states: "Skills still resolve via /skill-name."
 
-3. **What prompt to pass to spawned claude sessions**
-   - What we know: The child session needs to run `/gsd:execute-phase <N> <plan>` (or similar)
-   - What's unclear: Is the prompt a direct skill invocation string? How does the child session know which phase/plan to execute?
-   - Recommendation: Pass `PDE_PHASE_NUMBER` and `PDE_PLAN_NUMBER` as env vars AND as explicit prompt content. The child session reads these and routes to the correct execute-plan workflow.
+**Plugin path resolution:** Read `~/.claude/plugins/installed_plugins.json`, extract `installPath` for the `platform-development-engine@pde` entry. Current path: `/Users/greyaltaer/.claude/plugins/cache/pde/platform-development-engine/1.0.0`. The `--plugin-dir` flag takes this root directory (the one containing `.claude-plugin/`). `CLAUDE_PLUGIN_ROOT` is set automatically when a plugin is loaded via `--plugin-dir`.
+
+**`--system-prompt` alone is NOT viable** — the execute-phase workflow has hard dependencies on `CLAUDE_PLUGIN_ROOT` for `pde-tools.cjs` and sub-workflow resolution. Plugin loading via `--plugin-dir` is required.
+
+**Security flags available:** `--allowedTools` (auto-approve), `--disallowedTools` (remove from context), `--tools` (restrict built-in set).
+
+**Decision:** Use `--bare --plugin-dir <resolved-path>` for child sessions. Fast startup + full skill access.
+
+### RQ-2: `--parallel` flag scope in autonomous — RESOLVED
+
+**Finding:** Phase 144 should implement **plan-level parallelism only**. Phase-level parallelism deferred to Phase 145.
+
+**Rationale:**
+1. The design spec explicitly places DAG analysis in Phase 145 (SDK-02, SDK-03)
+2. ROADMAP.md "Depends on" captures ordering but NOT file-overlap — insufficient for safe phase parallelism
+3. Wave-based plan parallelization is already established (plan frontmatter has `wave`, `depends_on`, `files_modified`)
+4. Phase 144 builds the dispatch infrastructure; Phase 145 adds intelligence
+
+**Concrete behavior:**
+- `execute-phase N --parallel` → Plans in same wave spawn as CLI sessions in worktrees (upgrade from Task() subagents). Waves still sequential.
+- `autonomous --parallel` → Phases sequential (same as today). Within each phase, plans use the parallel dispatcher.
+- Without `--parallel` → Zero behavioral change (DSP-04).
+
+**DSP-05 adjustment:** Narrow to "plan-level parallelism within phases" for Phase 144. Add new Phase 145 requirement for phase-level parallelism across phases.
+
+### RQ-3: What prompt to pass to spawned claude sessions — RESOLVED
+
+**Finding:** The prompt is a **positional argument** (last arg). There is no `--prompt` flag. Slash commands are interactive-only and CANNOT be the initial `-p` prompt. However, the agent CAN invoke skills during execution if loaded via `--plugin-dir`.
+
+**Actual env vars (corrected from research question):**
+- `PDE_SESSION_ID` — guards session-scoped writes
+- `PDE_PHASE` — phase number (NOT `PDE_PHASE_NUMBER`)
+- `PDE_PLAN` — plan number (NOT `PDE_PLAN_NUMBER`)
+- `PDE_SESSION_START` — epoch timestamp for duration calculation
+
+**Recommended spawn pattern:**
+```javascript
+const args = [
+  '--print',
+  '--bare',
+  '--output-format', 'stream-json',
+  '--verbose',
+  '--dangerously-skip-permissions',
+  '--plugin-dir', resolvedPluginPath,
+  '--append-system-prompt', 'You are a PDE executor agent running in a worktree. Operate in autonomous mode. Auto-approve all checkpoints. Do not ask questions.',
+  `Execute phase ${phase}, plan ${plan}. Run /gsd:execute-plan ${phase} ${plan}.`,
+];
+
+const env = { ...process.env };
+delete env.CLAUDECODE;
+env.PDE_SESSION_ID = sessionId;
+env.PDE_PHASE = String(phase);
+env.PDE_PLAN = String(plan);
+env.PDE_SESSION_START = String(Date.now());
+```
+
+**Max prompt length:** OS ARG_MAX (~1MB on macOS). PDE prompts are <1KB. Use `--append-system-prompt-file` for long context if needed.
+
+## Resolved Blockers (researched 2026-03-26)
+
+### BLK-1: Worktree skills-loading fix — RESOLVED (not applicable)
+
+**Finding:** The March 2026 worktree skills-loading bug (GitHub #27985, #28041) affected `claude --worktree` which loads skills from the main working tree instead of the worktree. **PDE does NOT use `claude --worktree`** — PDE manages worktrees directly via `packages/dispatcher/lib/worktree.cjs` and spawns `claude --print` with `cwd` set to the worktree path + `--plugin-dir` for explicit plugin loading. The bug is irrelevant to PDE's architecture.
+
+### BLK-2: claude --remote managed backend stability — RESOLVED (unstable, defer)
+
+**Finding:** `claude --remote` (branded "Claude Code on the web" / "Dispatch") exists and is recognized in CLI v2.1.84, but is in **research preview** with active blocking bugs:
+- GitHub #38066: 403 "Request not allowed" on Pro plan
+- GitHub #38049: Sessions stuck on "Brewing..." indefinitely
+- GitHub #37713: No CLAUDE.md propagation in dispatch sessions
+- GitHub #38029: Abnormal token consumption on session resume
+
+**Architectural mismatch:** `--remote` creates web sessions — no NDJSON streaming, no programmatic control, GitHub-only repos. Incompatible with PDE's aggregator pattern.
+
+**Decision:** Phase 146 proceeds with **SSH-primary architecture**. `claude --remote` integration deferred to post-v0.18 when it exits preview and supports programmatic NDJSON streaming. Success criteria 146-SC2 should be revised to: "SSH is the primary remote backend; `claude --remote` is tracked for future integration."
 
 ## Environment Availability
 

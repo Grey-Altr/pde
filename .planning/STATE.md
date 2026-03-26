@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v0.18
 milestone_name: Distributed Execution
-status: Ready to execute
+status: Ready to plan
 stopped_at: Completed 143-02-PLAN.md
-last_updated: "2026-03-26T20:20:22.750Z"
+last_updated: "2026-03-26T20:26:59.938Z"
 progress:
   total_phases: 7
   completed_phases: 1
@@ -23,8 +23,8 @@ See: .planning/PROJECT.md (updated 2026-03-26)
 
 ## Current Position
 
-Phase: 143 (session-isolation) — EXECUTING
-Plan: 3 of 3
+Phase: 144
+Plan: Not started
 
 ## Performance Metrics
 
@@ -52,6 +52,11 @@ Plan: 3 of 3
 - [Phase 143]: recalculateFromArtifacts is the single writer for STATE.md, ROADMAP.md, REQUIREMENTS.md post-merge — session agents never write shared files during execution
 - [Phase 143]: Pass null as sessionRegistry during Phase 143 startup — all found pde/session/* worktrees are orphans by definition (no parallel registry in this phase)
 - [Phase 143]: Lazy require inside try/catch in init.cjs — graceful degradation when dispatcher package not yet built
+- [Phase 144]: Child sessions use `--bare --plugin-dir <resolved-path>` — fast startup + full PDE skill access; plugin path resolved from `~/.claude/plugins/installed_plugins.json`
+- [Phase 144]: Slash commands are interactive-only; child prompt is natural language ("Execute phase N, plan M. Run /gsd:execute-plan N M.") + `--append-system-prompt` for autonomous mode
+- [Phase 144]: Env vars are `PDE_PHASE` and `PDE_PLAN` (not `PDE_PHASE_NUMBER`/`PDE_PLAN_NUMBER`)
+- [Phase 144]: `--parallel` enables plan-level parallelism only (wave-based); phase-level parallelism deferred to Phase 145 (requires DAG + file-overlap analysis)
+- [Phase 146]: SSH-primary architecture; `claude --remote` deferred — research preview, no NDJSON streaming, no CLAUDE.md propagation
 
 ### Pending Todos
 
@@ -59,8 +64,8 @@ Plan: 3 of 3
 
 ### Blockers/Concerns
 
-- Confirm March 2026 --worktree skills-loading fix is present in installed Claude Code version before Phase 143 execution
-- claude --remote managed backend stability is MEDIUM confidence — validate before Phase 146 planning
+- ~~Confirm March 2026 --worktree skills-loading fix~~ — RESOLVED: PDE doesn't use `claude --worktree`; `--plugin-dir` bypasses discovery entirely
+- ~~claude --remote managed backend stability~~ — RESOLVED: research preview with active bugs (#38066, #38049, #37713); Phase 146 proceeds SSH-primary, --remote deferred to post-v0.18
 
 ## Session Continuity
 
