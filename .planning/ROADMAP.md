@@ -223,7 +223,7 @@ Plans:
   5. Nyquist VALIDATION.md compliant (nyquist_compliant: true) for phases 136.3 and 137
 **Plans**: 2 plans
 Plans:
-- [ ] 142-01-PLAN.md -- ROADMAP checkboxes, REQUIREMENTS traceability, HRD-04 text fix, SUMMARY frontmatter
+- [x] 142-01-PLAN.md -- ROADMAP checkboxes, REQUIREMENTS traceability, HRD-04 text fix, SUMMARY frontmatter
 - [ ] 142-02-PLAN.md -- Nyquist VALIDATION.md compliance for phases 136.3 and 137
 
 ## Progress
@@ -245,4 +245,4 @@ Phases execute in numeric order: 134 -> 134.1 -> 134.2 -> 135 -> ...
 | 139. Production Hardening | 2/2 | Complete    | 2026-03-26 |
 | 140. Clerk Public Route Matcher Fix | 1/1 | Complete    | 2026-03-26 |
 | 141. Approval Response Stdio Fix | 1/1 | Complete    | 2026-03-26 |
-| 142. Documentation Tech Debt & Nyquist Cleanup | 0/0 | Pending     | — |
+| 142. Documentation Tech Debt & Nyquist Cleanup | 1/2 | In Progress|  |
