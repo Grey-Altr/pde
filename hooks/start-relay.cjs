@@ -71,16 +71,23 @@ process.stdin.on('end', () => {
       }
     }
 
+    // Response file: relay stdout → named file so PDE can read approval responses
+    const responseFile = path.join(os.tmpdir(), `pde-relay-responses-${sessionId}.ndjson`);
+    const responseFd = fs.openSync(responseFile, 'a');
+
     // Spawn relay daemon as a detached background process
     const child = spawn(
       process.execPath,
       [relayScript, sessionId, ingestUrl, bearerToken],
       {
         detached: true,
-        stdio:    'ignore',
+        stdio:    ['ignore', responseFd, 'ignore'],
         env:      { ...process.env },
       }
     );
+
+    // Close the fd in the parent — child holds its own copy independently
+    fs.closeSync(responseFd);
 
     // Write PID file so stop-relay.cjs can kill the daemon later
     fs.writeFileSync(pidFile, String(child.pid), 'utf-8');
