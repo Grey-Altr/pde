@@ -145,10 +145,14 @@ pde:default:phase-lock:{repo_slug}:{phase}
   Note: repo_slug = owner/repo extracted from URL (e.g., "user/pde" from "https://github.com/user/pde.git")
 ```
 
-1. `SETNX` with execution_id — first executor wins
-2. Running executor sends heartbeat every 30s (extends TTL via `EXPIRE`)
-3. On completion/failure — delete lock key
-4. Executor crash — lock auto-expires after 1 hour
+**Implementation:** Use `@upstash/lock` package which handles atomic `SET ... NX PX`, Lua compare-and-delete for safe release, and UUID ownership tracking.
+
+1. `lock.acquire()` — atomic `SET key uuid NX PX 60000` — first executor wins
+2. Running executor calls `lock.extend(60000)` every 20s (heartbeat at TTL/3)
+3. On completion/failure — `lock.release()` (Lua script: delete only if UUID matches)
+4. Executor crash — lock auto-expires after 60 seconds
+
+Lock is for efficiency, not correctness — Upstash async replication means theoretical double-claim during network partition. Application-level idempotency (check phase status before writing) provides safety net.
 
 **Heartbeat implementation per backend:**
 
@@ -166,10 +170,12 @@ pde:default:phase-lock:{repo_slug}:{phase}
 Extends the relay daemon with a **command poller** — same pattern as approval polling.
 
 ```
-Dashboard → Redis command hash → Relay daemon polls every 3s → writes to stdout → PDE reads command
+Dashboard → Redis command hash → Relay daemon polls every 3s → writes to output file → PDE tails file
 ```
 
-**PDE-side change:** One new file `command-listener.cjs` — reads dispatch commands from relay stdout and triggers `/pde:execute-phase`.
+**Relay output fix:** The relay daemon is currently spawned with `stdio: 'ignore'` (stdout is `/dev/null`). Must change `start-relay.cjs` to redirect stdout to a file: `fs.openSync('/tmp/pde-relay-{sessionId}-out.ndjson', 'a')` passed as the stdout fd in `spawn()` options. The command poller writes command NDJSON to stdout, which lands in this file.
+
+**PDE-side change:** One new file `command-listener.cjs` — uses `TailCursor` (same class from relay.cjs) to tail the relay output file and triggers `/pde:execute-phase` when it sees dispatch commands.
 
 **Acknowledgment protocol:** When PDE receives a command, it emits an `execution_acknowledged` event. If the dashboard doesn't see this event within 15 seconds, it retries the command (re-writes to Redis). After 3 retries with no ack, the dispatch is marked `failed` with reason "local session unresponsive."
 
@@ -177,21 +183,31 @@ Dashboard → Redis command hash → Relay daemon polls every 3s → writes to s
 
 ### Agent SDK Backend
 
-Spawns a Claude agent via Anthropic's Agent SDK from a Vercel Function.
+Spawns a Claude agent via **Vercel Sandbox** (`@vercel/sandbox`), which creates an isolated Firecracker microVM. The Agent SDK (`@anthropic-ai/claude-agent-sdk`) cannot run inside a regular Vercel Function — it spawns a persistent Claude Code CLI subprocess that requires filesystem access and long-running process support. Vercel Sandbox supports up to 5 hours of execution.
 
-The agent receives:
-- System prompt with PDE execution instructions and conventions
-- PLAN.md content fetched from the git repo via GitHub API
-- Git repo URL and worktree branch name
-- Ingest URL and bearer token for event reporting
-- GitHub token (from `pde:default:settings`) injected into agent environment for `git clone` and `git push` via HTTPS (clone URL rewritten to `https://{token}@github.com/{owner}/{repo}.git`)
-- Anthropic API key read from `pde:default:settings` server-side — never exposed to client
+**Execution flow:**
+1. Dashboard API route (`POST /api/dispatch`) creates a Vercel Sandbox instance
+2. Sandbox installs Claude Code CLI and the Agent SDK
+3. Agent SDK `query()` runs with streaming input mode, receiving:
+   - System prompt with PDE execution instructions and conventions
+   - PLAN.md content fetched from the git repo via GitHub API
+   - Git repo URL and worktree branch name
+   - Ingest URL and bearer token for event reporting
+   - GitHub token (from `pde:default:settings`) injected via `options.env` for `git clone` and `git push` via HTTPS (clone URL rewritten to `https://{token}@github.com/{owner}/{repo}.git`)
+   - Anthropic API key injected via `options.env` — never exposed to client
+   - `maxBudgetUsd` and `maxTurns` as safety limits
+4. Agent streams `SDKMessage` events which are translated and POSTed to `/api/ingest`
+5. Cancellation via `AbortController` (triggered from dashboard DELETE endpoint)
 
 **Key decision:** The agent reads PLAN.md directly instead of running the PDE plugin. This avoids the circular dependency of needing Claude Code to run a Claude Code plugin in the cloud. The agent's system prompt encodes PDE conventions (commit format, SUMMARY.md structure, Nyquist patterns).
 
 **Fidelity mitigation:** Post-execution validation checks agent output against PDE conventions before merge. Worktree branch isolation ensures bad output never reaches main.
 
-**Cost:** Per API token. A typical phase costs $2-10.
+**Cold start:** ~12 seconds for the first `query()` call (CLI subprocess startup). Subsequent tool calls within the same session are 2-3 seconds.
+
+**Cost:** Per API token (Sonnet 4.6: $3/$15 per 1M input/output tokens). A typical phase costs $2-10. Sandbox compute is separate (~$0.05/hour minimum). `maxBudgetUsd` prevents runaway costs.
+
+**Reference implementation:** Vercel's official [Coding Agent Platform template](https://vercel.com/templates/next.js/coding-agent-platform) demonstrates this exact pattern.
 
 ### Vercel Functions Backend
 
@@ -201,7 +217,14 @@ For lightweight, well-defined tasks that don't need agent reasoning:
 - Generate VALIDATION.md from test results
 - Run Nyquist assertion checks
 
-**Git operations use the GitHub API (not git CLI):** Merges, PR creation, and branch management use the GitHub REST API via `octokit`. This avoids cloning repos in serverless functions entirely — no disk, no timeout issues, works within Hobby tier constraints.
+**Git operations use the GitHub API (not git CLI):** Merges, PR creation, and branch management use the GitHub REST API via `@octokit/rest`. This avoids cloning repos in serverless functions entirely — no disk, no timeout issues, works within Hobby tier constraints. Specific endpoints:
+- Merge: `POST /repos/{owner}/{repo}/merges` (merge commit) or `git.updateRef()` with `force: false` (fast-forward)
+- PR creation: `POST /repos/{owner}/{repo}/pulls` + `PUT /repos/{owner}/{repo}/pulls/{n}/merge`
+- Conflict check: `repos.compareCommitsWithBasehead()` — returns `status: 'diverged'` if conflicts possible
+- Branch cleanup: `git.deleteRef()` after merge
+- File reads: `repos.getContent()` for ROADMAP.md (base64 decoded, cached in Redis 5 min)
+
+Rate limit: 5,000 requests/hour per PAT — more than sufficient.
 
 Implemented as predefined task runners, not general-purpose execution. Covered by Vercel Hobby free tier.
 
@@ -481,10 +504,22 @@ pde:default:settings
 
 1. **Agent SDK fidelity drift** — Cloud agents may produce artifacts that don't match PDE conventions. Mitigated by: system prompt encoding conventions, post-execution validation, worktree isolation.
 
-2. **Git operations from Vercel Functions** — Avoided entirely by using GitHub REST API (octokit) for merges, PRs, and branch management. No cloning needed in serverless functions.
+2. **Relay stdout is currently /dev/null** — `start-relay.cjs` spawns with `stdio: 'ignore'`, making the existing approval poller's stdout writes dead code. Must fix to file-based output before command polling works. Well-understood change (~10 lines).
 
 3. **Relay command latency** — Local backend commands take up to 3 seconds (poll interval) to reach PDE. Acceptable for phase-level dispatch, not for real-time control.
 
-4. **Free-tier limits** — Agent SDK execution costs real money. Upstash free tier (500K commands) may be strained with multiple concurrent executions. Monitor and upgrade if needed.
+4. **Vercel Sandbox costs** — Agent SDK execution requires Vercel Sandbox (~$0.05/hour compute) plus Claude API tokens ($2-10/phase). Free tier won't cover cloud agents — this is pay-per-use. `maxBudgetUsd` caps prevent runaway costs.
 
-5. **Phase lock stale state** — If an executor crashes and the heartbeat stops, the lock expires after 1 hour. During that hour, the phase appears locked. Acceptable for single-user use.
+5. **Phase lock stale state** — If an executor crashes and the heartbeat stops, the lock expires after 60 seconds (reduced from 1 hour via @upstash/lock with 60s lease). Acceptable for single-user use.
+
+6. **Sandbox cold start** — Agent SDK takes ~12 seconds for first `query()` call. Acceptable for phase-level dispatch (not real-time).
+
+## Research References
+
+- [Agent SDK TypeScript API](https://platform.claude.com/docs/en/agent-sdk/typescript) — `query()`, streaming, tools, cancellation
+- [Hosting the Agent SDK](https://platform.claude.com/docs/en/agent-sdk/hosting) — Vercel Sandbox, Modal, E2B, Fly.io
+- [Vercel Coding Agent Platform Template](https://vercel.com/templates/next.js/coding-agent-platform) — reference implementation
+- [Vercel Sandbox + Agent SDK Guide](https://vercel.com/kb/guide/using-vercel-sandbox-claude-agent-sdk)
+- [@upstash/lock](https://github.com/upstash/lock) — distributed locking with Lua scripts
+- [@octokit/rest](https://github.com/octokit/rest.js) — GitHub API for serverless git operations
+- [Vercel Workflow DevKit](https://vercel.com/docs/workflow) — alternative for step-decomposed durable execution
