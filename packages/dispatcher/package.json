@@ -1,0 +1,9 @@
+{
+  "name": "pde-dispatcher",
+  "version": "0.1.0",
+  "description": "PDE session dispatcher — worktree lifecycle, merge, and orchestration",
+  "type": "commonjs",
+  "main": "index.cjs",
+  "license": "UNLICENSED",
+  "engines": { "node": ">=20.0.0" }
+}
