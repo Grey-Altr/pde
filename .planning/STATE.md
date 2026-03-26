@@ -1,15 +1,15 @@
 ---
-pde_state_version: 1.0
+gsd_state_version: 1.0
 milestone: v0.18
 milestone_name: Distributed Execution
-status: unknown
-stopped_at: "Completed 143-03: session-scoped artifact writing"
-last_updated: "2026-03-26T20:11:45.015Z"
+status: Ready to execute
+stopped_at: Completed 143-01-PLAN.md
+last_updated: "2026-03-26T20:15:11.817Z"
 progress:
   total_phases: 7
   completed_phases: 0
   total_plans: 3
-  completed_plans: 1
+  completed_plans: 2
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-26)
 ## Current Position
 
 Phase: 143 (session-isolation) — EXECUTING
-Plan: 1 of 3
+Plan: 2 of 3
 
 ## Performance Metrics
 
@@ -47,6 +47,9 @@ Plan: 1 of 3
 - Phase 147 (Dashboard) and Phase 148 (tmux) both depend on Phase 144 and may execute in parallel after it completes
 - packages/dispatcher/ is a new CJS package — Agent SDK goes there only; plugin root (bin/) stays zero-npm-dependency
 - [Phase 143]: Single writeStateMd guard covers all 8 state subcommands for PDE_SESSION_ID gating — no per-command changes needed
+- [Phase 143]: Zero npm dependencies in packages/dispatcher/ for phase 143 — Agent SDK deferred to phase 145
+- [Phase 143]: pde/session/ branch prefix isolates PDE worktrees from Claude Code's own .claude/worktrees/ system
+- [Phase 143]: recalculateFromArtifacts is the single writer for STATE.md, ROADMAP.md, REQUIREMENTS.md post-merge — session agents never write shared files during execution
 
 ### Pending Todos
 
@@ -59,7 +62,7 @@ Plan: 1 of 3
 
 ## Session Continuity
 
-Last session: 2026-03-26T20:11:45.013Z
-Stopped at: Completed 143-03: session-scoped artifact writing
+Last session: 2026-03-26T20:15:11.814Z
+Stopped at: Completed 143-01-PLAN.md
 Resume with: `/gsd:plan-phase 143`
 Resume file: None

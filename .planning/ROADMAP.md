@@ -49,9 +49,9 @@
   5. Post-merge, STATE.md and ROADMAP.md progress are recalculated from disk artifacts — not written during session execution
 **Plans**: 3 plans
 Plans:
-- [ ] 143-01-PLAN.md — Dispatcher package scaffold, worktree lifecycle, merge-back with recalculation
+- [x] 143-01-PLAN.md — Dispatcher package scaffold, worktree lifecycle, merge-back with recalculation
 - [ ] 143-02-PLAN.md — Orphan detection and nuclear reset
-- [ ] 143-03-PLAN.md — Executor write protocol migration (session-scoped artifacts)
+- [x] 143-03-PLAN.md — Executor write protocol migration (session-scoped artifacts)
 
 ### Phase 144: Local CLI Dispatch
 **Goal**: Users can run `/gsd:execute-phase --parallel` or `/gsd:autonomous --parallel` to spawn multiple claude CLI sessions in dedicated worktrees with live tracking, failure preservation, and merge-back on completion
@@ -130,7 +130,7 @@ Note: Phase 147 (Dashboard) and Phase 148 (tmux) both depend on Phase 144 and ca
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 143. Session Isolation | 1/3 | In Progress|  |
+| 143. Session Isolation | 2/3 | In Progress|  |
 | 144. Local CLI Dispatch | 0/TBD | Not started | - |
 | 145. Agent SDK Orchestrator | 0/TBD | Not started | - |
 | 146. Remote Dispatch | 0/TBD | Not started | - |
