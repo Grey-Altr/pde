@@ -5,5 +5,10 @@
   "type": "commonjs",
   "main": "index.cjs",
   "license": "UNLICENSED",
-  "engines": { "node": ">=20.0.0" }
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.2.85"
+  }
 }
