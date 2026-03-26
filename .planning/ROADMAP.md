@@ -24,7 +24,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 139: Production Hardening** - Rate limiting, TTL, downsampling, garbage collection, buffer caps (completed 2026-03-26)
 - [x] **Phase 140: Clerk Public Route Matcher Fix** - Add missing public routes to proxy.ts Clerk matcher, unblocking approval response relay and cron GC (gap closure) (completed 2026-03-26)
 - [x] **Phase 141: Approval Response Stdio Fix** - Fix relay daemon stdio configuration so approval responses flow back to PDE (gap closure) (completed 2026-03-26)
-- [ ] **Phase 142: Documentation Tech Debt & Nyquist Cleanup** - Fix ROADMAP checkboxes, REQUIREMENTS traceability, SUMMARY frontmatter, and Nyquist validation (gap closure)
+- [x] **Phase 142: Documentation Tech Debt & Nyquist Cleanup** - Fix ROADMAP checkboxes, REQUIREMENTS traceability, SUMMARY frontmatter, and Nyquist validation (gap closure) (completed 2026-03-26)
 
 ## Phase Details
 
@@ -245,4 +245,4 @@ Phases execute in numeric order: 134 -> 134.1 -> 134.2 -> 135 -> ...
 | 139. Production Hardening | 2/2 | Complete    | 2026-03-26 |
 | 140. Clerk Public Route Matcher Fix | 1/1 | Complete    | 2026-03-26 |
 | 141. Approval Response Stdio Fix | 1/1 | Complete    | 2026-03-26 |
-| 142. Documentation Tech Debt & Nyquist Cleanup | 1/2 | In Progress|  |
+| 142. Documentation Tech Debt & Nyquist Cleanup | 1/2 | Complete    | 2026-03-26 |
