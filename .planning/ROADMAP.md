@@ -161,7 +161,10 @@ Plans:
   2. Web Push notifications fire for approval gates and critical errors using VAPID keys
   3. On platforms where push is unavailable (iOS EU, non-installed PWA), user sees clear "push not available" message instead of silent failure
   4. Mobile-first responsive UI with bottom tab navigation, card-based layout, and Geist typography renders correctly across iOS Safari, Android Chrome, and desktop
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 138-01-PLAN.md -- Serwist service worker, PWA manifest, icons, Turbopack route, bottom tab nav, viewport metadata (PWA-01, PWA-04)
+- [ ] 138-02-PLAN.md -- Web Push Server Actions, VAPID push delivery, capability detection, Settings page, ingest push trigger (PWA-02, PWA-03)
 **UI hint**: yes
 
 ### Phase 139: Production Hardening
@@ -191,5 +194,5 @@ Phases execute in numeric order: 134 -> 134.1 -> 134.2 -> 135 -> ...
 | 136.2. Documentation Tech Debt & Nyquist Compliance | 2/2 | Complete    | 2026-03-25 |
 | 136.3. Final Documentation & Filter Cleanup | 1/1 | Complete    | 2026-03-25 |
 | 137. Approval Gates | 1/3 | Complete    | 2026-03-25 |
-| 138. PWA and Push Notifications | 0/TBD | Not started | - |
+| 138. PWA and Push Notifications | 0/2 | Not started | - |
 | 139. Production Hardening | 0/TBD | Not started | - |
