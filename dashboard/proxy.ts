@@ -1,9 +1,13 @@
 import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 
-const isPublicRoute = createRouteMatcher([
+export const PUBLIC_ROUTES = [
   '/sign-in(.*)',
-  '/api/ingest',
-]);
+  '/api/ingest',               // relay Bearer token (existing)
+  '/api/approval-response',    // relay polls with Bearer token — INT-01 fix
+  '/api/cron/gc',              // Vercel cron uses CRON_SECRET — INT-02 fix
+] as const;
+
+const isPublicRoute = createRouteMatcher([...PUBLIC_ROUTES]);
 
 export default clerkMiddleware(async (auth, req) => {
   if (!isPublicRoute(req)) await auth.protect();
