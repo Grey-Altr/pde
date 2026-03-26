@@ -7,10 +7,11 @@ const path = require('path');
 const { execSync } = require('child_process');
 const { loadConfig, resolveModelInternal, findPhaseInternal, getRoadmapPhaseInternal, pathExistsInternal, generateSlugInternal, getMilestoneInfo, getMilestonePhaseFilter, stripShippedMilestones, normalizePhaseName, toPosixPath, output, error } = require('./core.cjs');
 
-function cmdInitExecutePhase(cwd, phase, raw) {
+function cmdInitExecutePhase(cwd, phase, raw, opts) {
   if (!phase) {
     error('phase required for init execute-phase');
   }
+  const isParallel = !!(opts && opts.parallel);
 
   const config = loadConfig(cwd);
   const phaseInfo = findPhaseInternal(cwd, phase);
@@ -69,6 +70,7 @@ function cmdInitExecutePhase(cwd, phase, raw) {
     roadmap_path: '.planning/ROADMAP.md',
     config_path: '.planning/config.json',
     memory_dir: '.planning/agent-memory',
+    parallel: isParallel,
   };
 
   // ISO-04: Detect orphaned session worktrees at startup (per D-15)

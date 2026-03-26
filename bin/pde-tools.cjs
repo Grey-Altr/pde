@@ -673,9 +673,11 @@ async function main() {
     case 'init': {
       const workflow = args[1];
       switch (workflow) {
-        case 'execute-phase':
-          init.cmdInitExecutePhase(cwd, args[2], raw);
+        case 'execute-phase': {
+          const isParallel = args.includes('--parallel');
+          init.cmdInitExecutePhase(cwd, args[2], raw, { parallel: isParallel });
           break;
+        }
         case 'plan-phase':
           init.cmdInitPlanPhase(cwd, args[2], raw);
           break;
@@ -1058,6 +1060,28 @@ async function main() {
       };
 
       poll();
+      break;
+    }
+
+    case 'dispatch': {
+      // node pde-tools.cjs dispatch <phase> <plan> [--max-concurrent N]
+      // Lazy-require coordinator to avoid loading dispatcher when not needed
+      const { DispatchCoordinator } = require('../packages/dispatcher/lib/coordinator.cjs');
+      const dispatchPhase = parseInt(args[1], 10);
+      const dispatchPlan = parseInt(args[2], 10);
+      if (isNaN(dispatchPhase) || isNaN(dispatchPlan)) {
+        error('Usage: pde-tools dispatch <phase> <plan> [--max-concurrent N]');
+      }
+      const maxConcurrentIdx = args.indexOf('--max-concurrent');
+      const maxConcurrent = maxConcurrentIdx !== -1 ? parseInt(args[maxConcurrentIdx + 1], 10) : 3;
+      const pluginDir = DispatchCoordinator.resolvePluginDir();
+      const coord = new DispatchCoordinator(cwd, { maxConcurrent, pluginDir });
+      coord.dispatch(dispatchPhase, dispatchPlan).then(sid => {
+        console.log(JSON.stringify({ ok: true, sessionId: sid }));
+      }).catch(err => {
+        console.error(JSON.stringify({ ok: false, error: err.message }));
+        process.exit(1);
+      });
       break;
     }
 
