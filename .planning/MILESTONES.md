@@ -1,5 +1,26 @@
 # Milestones
 
+## v0.17 Remote Dashboard (Shipped: 2026-03-26)
+
+**Phases completed:** 13 phases, 27 plans, 38 tasks
+**Commits:** 224 | **Files:** 308 | **LOC:** +44,337
+**Timeline:** 2 days (2026-03-24 → 2026-03-26)
+**Git range:** v0.16..HEAD
+**Requirements:** 27/27 satisfied (RLY-01–05, DSH-01–06, MON-01–05, APR-01–05, PWA-01–04, HRD-01–05)
+
+**Key accomplishments:**
+
+1. Relay daemon with zod wire protocol (WireEnvelopeSchema), circuit breaker, HTTP batching, and zero-impact PDE isolation gated behind PDE_REMOTE env var — zero npm deps, node:https only
+2. Next.js 16 dashboard with Clerk proxy.ts auth, Upstash Redis sorted sets, SSE streaming with polling fallback, auto-reconnection on heartbeat loss, and shadcn/ui + Geist mobile-first UI
+3. Core monitoring: phase progress hierarchy (phase→plan→wave), token/cost meter with Sonnet 4.5 pricing, live event log with type filtering, mobile-responsive card layout with 44px touch targets
+4. Bidirectional approval gates with TOCTOU-safe cryptographic approval_id, AlertDialog confirmation UI, 1h TTL + one-shot delete Redis protocol, and relay daemon polling with fd-based stdio capture
+5. Installable PWA with Serwist service worker (Turbopack route handler), Web Push notifications via VAPID for approval gates and critical errors, offline shell caching, bottom tab navigation
+6. Production hardened: @upstash/ratelimit (120 req/min), 7-day Redis TTL, event downsampling (bash_called/file_changed/tool_called at 1-in-N), 1000-event buffer cap, daily cron GC
+
+**Delivered:** A remotely monitorable PDE platform — push-based relay daemon streams session events from local machine to cloud-hosted Next.js dashboard, enabling phone-based monitoring of phase progress, token costs, and live events, with bidirectional approval gate responses and Web Push notifications — all production-hardened with rate limiting, TTL, downsampling, and garbage collection.
+
+---
+
 ## v0.16 Multi-Editor Context Sync (Shipped: 2026-03-24)
 
 **Phases completed:** 7 phases, 14 plans, 8 tasks

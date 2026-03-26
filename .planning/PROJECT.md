@@ -151,35 +151,18 @@ Any user can go from idea to shipped product through a single platform that hand
 
 ### Active
 
-- ✓ Relay protocol with zod wire envelope schema (seq, session_id, machine_id, relay_ts, approval_id), createEnvelope helper, safeParse validation — v0.17
-- ✓ Core relay module: TailCursor (byte-offset NDJSON tailing), BatchQueue (count/timer flush), CircuitBreaker (3-state failure protection), HTTP POST transport — zero npm deps — v0.17
-- ✓ Hook integration: SessionStart spawns relay daemon when PDE_REMOTE set, SessionEnd kills via PID file, zero-impact error isolation (all failures exit 0) — v0.17
-- ✓ 33 tests across 6 test files (protocol, tail, circuit, batch, hooks, e2e) — v0.17
-- ✓ Next.js 16 dashboard scaffold with Clerk auth, Upstash Redis ingest, SSE/polling real-time delivery, session list and detail views — v0.17
-- ✓ Core monitoring: PhaseProgress (indeterminate bars), CostMeter (graceful zero-state), EventLog (filter tabs, auto-scroll lock), 200-event buffer, 44px mobile touch targets — v0.17
-- ✓ 54 tests across 8 test files (derive-progress, derive-cost, event-filters, wire-schema, ingest, poll, sessions) — v0.17
-- ✓ Extensions path fix: phase_name/plan_name read from top-level wire envelope (not extensions sub-object), token_usage event emission for CostMeter — v0.17
-- ✓ Documentation tech debt closure: REQUIREMENTS.md traceability filled for DSH-01/05/06, MON-03/04/05; SUMMARY frontmatter field name corrected; Nyquist VALIDATION.md compliant for phases 134.1 and 135 — v0.17
-- ✓ Final traceability closure: RLY-01, DSH-02, DSH-03, DSH-04, MON-01, MON-02 verified; tokens filter group added to EventLog — v0.17
-- ✓ Bidirectional approval gates: ApprovalCard with Base UI AlertDialog, /api/approval-response (POST+GET), relay daemon polling, findPendingApproval detection, 1h TTL TOCTOU safety, approval badge on SessionCard, 91 tests — v0.17
-- ✓ PWA installability: Serwist service worker with Turbopack route, Next.js built-in manifest.ts, 3 PNG icons, offline shell caching with StaleWhileRevalidate for RSC pages — v0.17
-- ✓ Web Push notifications: VAPID delivery via Server Actions, Upstash Redis subscription storage, ingest route triggers for approval_request and error events, 410/404 stale subscription cleanup — v0.17
-- ✓ Platform capability detection: usePushCapability hook (4 states), PushStatusBanner fallback, iOS install prompt for non-standalone, Settings page with subscribe/unsubscribe UI — v0.17
-- ✓ Mobile-first responsive UI: bottom tab nav with safe-area-inset-bottom, md:hidden, 44px touch targets, standalone CSS custom variant, 107 tests across 15 files — v0.17
+(None — v0.17 complete, next milestone not yet started)
+- ✓ Relay daemon with zod wire protocol, circuit breaker, HTTP batching, zero-impact PDE isolation gated behind PDE_REMOTE — v0.17
+- ✓ Next.js 16 dashboard with Clerk auth, Upstash Redis, SSE streaming + polling fallback, session list and detail views — v0.17
+- ✓ Core monitoring: PhaseProgress, CostMeter, EventLog with type filtering, mobile-responsive 44px touch targets — v0.17
+- ✓ Bidirectional approval gates: TOCTOU-safe cryptographic approval_id, AlertDialog confirmation, relay polling, 1h TTL one-shot delete — v0.17
+- ✓ PWA: Serwist service worker (Turbopack route), Web Push notifications (VAPID), offline shell, capability detection, Settings page — v0.17
+- ✓ Production hardening: rate limiting, 7-day Redis TTL, event downsampling, 1000-event buffer cap, daily cron GC — v0.17
+- ✓ 107 tests across 15 files, 27/27 requirements satisfied, full Nyquist compliance — v0.17
 
-## Current Milestone: v0.17 Remote Dashboard
+## Current State
 
-**Goal:** Phone-first PWA that monitors PDE sessions remotely and enables approval gate interaction from anywhere.
-
-**Target features:**
-- Event relay module (zero-dep CJS daemon pushing NDJSON to Upstash Redis via node:https)
-- Next.js 16 PWA dashboard on Vercel (phase progress, cost meter, event log)
-- Remote approval gates (approve/deny from phone with TOCTOU-safe cryptographic IDs)
-- Push notifications for approval gates and phase completions
-- Session management (multi-session view, history, reconnection)
-- Mobile-first responsive UI (shadcn/ui, Geist, card-based, bottom tab nav)
-- Clerk authentication (single-user owner access)
-- SSE-based real-time event delivery from Upstash Redis to PWA
+**Shipped v0.17 Remote Dashboard** on 2026-03-26. Next milestone not yet started.
 
 ### Out of Scope
 
@@ -203,13 +186,13 @@ Any user can go from idea to shipped product through a single platform that hand
 
 ## Context
 
-- **Shipped v0.12** on 2026-03-23: business product type with venture design engine — 15 phases, 24 plans, 59 requirements, 235 Nyquist assertions, 141 commits, zero tech debt
-- **Shipped v0.11** on 2026-03-22: ~245,000 LOC (JavaScript/Markdown/Shell), ~1,078 total commits
-- **Shipped v0.13** on 2026-03-23: 9 phases, 15 plans (AutoResearch: safety boundaries, git state machine, experiment schema, mutation agent, orchestrator, circuit breakers, self-improvement presets, researcher empirical mode, observability)
-- **Shipped v0.14** on 2026-03-24: 10 phases, 21 plans, 78 requirements, 441+ Nyquist assertions (Visual AutoResearch: Playwright MCP, screenshot capture, AOM accessibility, visual metrics, 14 experiment templates, pipeline experiments, visual regression circuit breaker, multi-candidate A/B, meta-optimization, ideation diversity, brief reference capture)
-- **Shipped v0.15** on 2026-03-24: 8 phases, 16 plans, 25 requirements, 162 Nyquist tests (Multi-Editor Integration: context sync engine for Cursor/Gemini/Antigravity/AGENTS.md, standalone MCP server with 10 read-only tools, artifact formatting with DTCG-to-Tailwind v4, 3-tier divergence detection, hook-driven auto-sync, Stitch bridge production consumer)
+- **Shipped v0.17** on 2026-03-26: 13 phases, 27 plans, 27 requirements, 224 commits, 308 files, +44,337 LOC (Remote Dashboard: relay daemon, Next.js 16 PWA, approval gates, Web Push, production hardening)
 - **Shipped v0.16** on 2026-03-24: 7 phases, 14 plans, 26 requirements, 48 commits (Multi-Editor Context Sync: bidirectional sync, 3-way merge, conflict detection, sync audit trail, user content preservation)
-- **Planned roadmap:** v0.17 Remote Dashboard (in progress) → v0.18 Stakeholder Presentations → v1.0 Standalone CLI
+- **Shipped v0.15** on 2026-03-24: 8 phases, 16 plans, 25 requirements, 162 Nyquist tests (Multi-Editor Integration: context sync engine, standalone MCP server, DTCG-to-Tailwind v4, divergence detection)
+- **Shipped v0.14** on 2026-03-24: 10 phases, 21 plans, 78 requirements, 441+ Nyquist assertions (Visual AutoResearch: Playwright MCP, visual metrics, multi-candidate A/B, meta-optimization)
+- **Shipped v0.13** on 2026-03-23: 9 phases, 15 plans (AutoResearch: safety boundaries, experiment schema, mutation agent, circuit breakers)
+- **Shipped v0.12** on 2026-03-23: 15 phases, 24 plans, 59 requirements, 235 Nyquist assertions (Business product type with venture design engine)
+- **Planned roadmap:** v0.18 Stakeholder Presentations → v1.0 Standalone CLI
 - **v0.11** shipped 2026-03-22: 112 files changed, 116 commits (experience product type: detection, brief, tokens, flows, wireframes, critique, HIG, print, handoff, 48 requirements)
 - **v0.10** shipped 2026-03-21: 107 files changed, 56 commits (idle-time productivity: suggestion engine, catalog, context notes, 7-pane dashboard)
 - **v0.9** shipped 2026-03-21: 91 files changed, 76 commits (Google Stitch integration across 5 pipeline skills)
@@ -315,6 +298,13 @@ Zero npm deps at plugin root**: Any new dependencies go in isolated subdirectori
 | 20-field designCoverage write (not copy 16-field pattern) | Phase 84 added 4 fields; copying opportunity.md's 16-field pattern silently drops them | ✓ Good — canonical order from manifest template |
 | Playwright MCP via stdio transport | npx @playwright/mcp@latest --headless — identical to Stitch pattern, zero npm deps | ✓ Good — 7th APPROVED_SERVER, 10 TOOL_MAP entries, 27 Nyquist tests |
 | browser_snapshot as probe tool (not browser_navigate) | browser_snapshot requires no URL arg, avoids "missing required parameter" error on probe | ✓ Good — lightest read-only operation for server health check |
+| Push-based relay architecture | Relay daemon tails NDJSON, POSTs to dashboard ingest — PDE never knows if relay is working | ✓ Good — zero-impact isolation, fire-and-forget |
+| Upstash Redis sorted sets (not Streams/LISTs) | Time-range queries for session events, natural TTL via ZRANGEBYSCORE | ✓ Good — simple API, efficient range scans |
+| Polling-first real-time delivery | SSE with polling fallback avoids Vercel serverless timeout | ✓ Good — works on all plans, auto-reconnects |
+| Clerk for dashboard auth, Bearer token for relay | Single-user owner access via Clerk; relay uses static Bearer token | ✓ Good — simple, Marketplace-native |
+| Serwist for PWA service worker (Turbopack) | @serwist/turbopack esbuild + route handler for Turbopack dev mode | ✓ Good — /serwist/sw.js path, no webpack collision |
+| fd-based spawn stdio for relay daemon | Named file descriptor redirect instead of pipe+unref pattern | ✓ Good — avoids EPIPE, approval responses captured |
+| TOCTOU-safe approval with 1h TTL + one-shot delete | Cryptographic approval_id, Redis single-read-delete pattern | ✓ Good — prevents replay attacks and stale responses |
 ## Evolution
 
 This document evolves at phase transitions and milestone boundaries.
@@ -332,4 +322,4 @@ This document evolves at phase transitions and milestone boundaries.
 3. Audit Out of Scope — reasons still valid?
 4. Update Context with current state
 
-*Last updated: 2026-03-26 — Phase 140 complete: Clerk public route matcher fix (APR-04). /api/approval-response and /api/cron/gc added to public routes — relay polling and cron GC unblocked.*
+*Last updated: 2026-03-26 after v0.17 milestone — Remote Dashboard shipped: relay daemon, Next.js 16 PWA, approval gates, Web Push, production hardening (13 phases, 27 plans, 27 requirements)*

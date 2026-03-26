@@ -597,6 +597,49 @@ Google Stitch AI UI design tool fully integrated into PDE's 13-stage design pipe
 
 ## Cross-Milestone Trends
 
+## Milestone: v0.17 — Remote Dashboard
+
+**Shipped:** 2026-03-26
+**Phases:** 13 | **Plans:** 27 | **Commits:** 224
+
+### What Was Built
+- Relay daemon (zero npm deps) tailing local NDJSON, HTTP batching events to cloud via circuit breaker
+- Next.js 16 PWA dashboard with Clerk auth, Upstash Redis sorted sets, SSE + polling real-time delivery
+- Core monitoring: phase progress hierarchy, token/cost meter, live event log with type filtering
+- Bidirectional approval gates with TOCTOU-safe cryptographic IDs, AlertDialog confirmation, relay polling
+- Serwist PWA service worker, Web Push notifications (VAPID), offline shell, bottom tab navigation
+- Production hardening: rate limiting, 7-day TTL, event downsampling, buffer caps, cron GC
+
+### What Worked
+- **Push-based relay architecture** — fire-and-forget design means PDE never blocks on relay status, achieving true zero-impact isolation
+- **Incremental delivery** — relay protocol first (testable independently), then scaffold, then features, then hardening; each phase built on proven foundation
+- **Gap closure phases as first-class citizens** — 7 of 13 phases were insertions fixing real integration bugs (session ID mismatch, extensions path, Clerk routes, stdio, docs); catching these in audit before shipping prevented broken E2E flows
+- **TDD for dashboard lib functions** — deriveProgress, deriveCost, filterEvents all had failing tests before implementation, catching field name bugs early
+
+### What Was Inefficient
+- **7 gap-closure phases out of 13** — more than half the phases were fixing issues from earlier phases; tighter integration testing during execution could have caught session ID mismatch, extensions path, and Clerk route issues earlier
+- **Documentation tech debt accumulation** — SUMMARY frontmatter gaps and REQUIREMENTS traceability holes required 3 dedicated cleanup phases (136.2, 136.3, 142); these should be automated or enforced at plan completion time
+- **Audit found critical bugs too late** — the stdio:ignore bug (Phase 141) meant the entire approval flow was broken despite passing individual phase tests; E2E flow testing should happen during execution, not only at audit
+
+### Patterns Established
+- **Dashboard architecture**: Next.js 16 App Router + Clerk proxy.ts + Upstash Redis sorted sets + SSE/polling delivery pattern is reusable for any monitoring dashboard
+- **Wire protocol pattern**: zod schema with createEnvelope factory, passthrough() for extensions, safeParse at ingest boundary
+- **PWA pattern**: Serwist with @serwist/turbopack, manifest.ts (not manifest.json), /serwist/sw.js dynamic route, VAPID via Server Actions
+- **Approval protocol**: cryptographic ID + 1h TTL + one-shot delete + relay polling = TOCTOU-safe bidirectional communication
+
+### Key Lessons
+1. **Integration testing must cover the full E2E flow** — individual phase tests passed for approval gates, but the flow broke at spawn stdio configuration. Add E2E smoke tests that trace the entire data path.
+2. **Automate documentation compliance** — SUMMARY frontmatter, REQUIREMENTS traceability, and ROADMAP checkboxes should be validated by tooling at plan completion, not by dedicated cleanup phases.
+3. **Audit before production hardening** — running the milestone audit earlier (after Phase 137 instead of after 139) would have caught the Clerk route and stdio issues before adding rate limiting and cron, reducing the number of gap-closure phases.
+4. **Zero-npm-dep relay was the right call** — node:https + node:fs/promises kept the relay daemon independent of dashboard dependencies, enabling isolated testing and deployment.
+
+### Cost Observations
+- Model mix: opus for orchestration, sonnet for execution agents
+- Timeline: 2 days (2026-03-24 → 2026-03-26)
+- Notable: 224 commits in 2 days with full Next.js PWA dashboard shipped; highest LOC delta (+44,337) of any milestone due to new dashboard/ directory
+
+---
+
 ### Process Evolution
 
 | Milestone | Commits | Phases | Key Change |
@@ -617,6 +660,7 @@ Google Stitch AI UI design tool fully integrated into PDE's 13-stage design pipe
 | v0.14 | ~100 | 10 | Visual AutoResearch — Playwright MCP, screenshot capture, visual metrics, meta-optimization |
 | v0.15 | ~40 | 8 | Multi-Editor Integration — context sync, MCP server, divergence detection, artifact formatting |
 | v0.16 | 48 | 8 | Context Sync — bidirectional sync, 3-way merge, loop prevention, Antigravity write-back, MCP writes |
+| v0.17 | 224 | 13 | Remote Dashboard — relay daemon, Next.js 16 PWA, approval gates, Web Push, production hardening |
 
 ### Cumulative Quality
 
@@ -638,3 +682,4 @@ Google Stitch AI UI design tool fully integrated into PDE's 13-stage design pipe
 | v0.14 | 78/78 | 100% | 0 | 441+ |
 | v0.15 | 25/25 | 100% | 1 (phase 125, gap closure) | 162 (8 suites) |
 | v0.16 | 26/26 | 100% | 1 (phase 133, AGR-03 gap) | 6/8 compliant, 2 partial |
+| v0.17 | 27/27 | 100% | 7 (phases 134.1, 136.1-136.3, 140-142) | Full Nyquist compliance |
