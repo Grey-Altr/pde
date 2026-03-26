@@ -5,10 +5,29 @@ import { z } from 'zod';
 import { validateRelayToken } from '@/lib/auth';
 import { WireEnvelopeSchema } from '@/lib/wire-schema';
 import { redis } from '@/lib/redis';
+import { ratelimit } from '@/lib/ratelimit';
+
+const TTL_7_DAYS = 604800;
 
 const BatchSchema = z.array(WireEnvelopeSchema).min(1).max(100);
 
 export async function POST(request: Request): Promise<NextResponse> {
+  // Step 0: Rate limit check (HRD-02) — before auth to prevent enumeration
+  const { success, reset } = await ratelimit.limit('ingest');
+  if (!success) {
+    const retryAfter = Math.max(Math.ceil((reset - Date.now()) / 1000), 1);
+    return NextResponse.json(
+      { error: 'Rate limit exceeded' },
+      {
+        status: 429,
+        headers: {
+          'Retry-After': String(retryAfter),
+          'X-RateLimit-Remaining': '0',
+        },
+      }
+    );
+  }
+
   // Step 1: Validate Bearer token (DSH-06)
   if (!validateRelayToken(request)) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -72,7 +91,12 @@ export async function POST(request: Request): Promise<NextResponse> {
     }
   }
 
-  // Step 5: Execute pipeline (single HTTP round-trip to Upstash)
+  // Step 5a: Set 7-day TTL on per-session keys (HRD-01) — refreshed on every ingest batch
+  // Never expire pde:default:sessions (global registry) — stale entries pruned by cron GC
+  p.expire(`pde:default:events:${sessionId}`, TTL_7_DAYS);
+  p.expire(`pde:default:session:${sessionId}`, TTL_7_DAYS);
+
+  // Step 5b: Flush pipeline to Upstash (single HTTP round-trip)
   await p.exec();
 
   // Step 5b: Fire push notifications for approval_request and error events

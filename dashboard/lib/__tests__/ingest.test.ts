@@ -1,12 +1,21 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
+// Mock ratelimit — always allow in existing ingest tests
+vi.mock('@/lib/ratelimit', () => ({
+  ratelimit: {
+    limit: vi.fn().mockResolvedValue({ success: true, reset: 0 }),
+  },
+}));
+
 // Mock the redis module before importing route
 const mockExec = vi.fn().mockResolvedValue([]);
 const mockZadd = vi.fn().mockReturnThis();
 const mockHset = vi.fn().mockReturnThis();
+const mockExpire = vi.fn().mockReturnThis();
 const mockPipeline = vi.fn(() => ({
   zadd: mockZadd,
   hset: mockHset,
+  expire: mockExpire,
   exec: mockExec,
 }));
 
