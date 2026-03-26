@@ -112,64 +112,64 @@ Deferred to future release.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| ISO-01 | — | Pending |
-| ISO-02 | — | Pending |
-| ISO-03 | — | Pending |
-| ISO-04 | — | Pending |
-| ISO-05 | — | Pending |
-| ISO-06 | — | Pending |
-| ISO-07 | — | Pending |
-| ISO-08 | — | Pending |
-| ISO-09 | — | Pending |
-| DSP-01 | — | Pending |
-| DSP-02 | — | Pending |
-| DSP-03 | — | Pending |
-| DSP-04 | — | Pending |
-| DSP-05 | — | Pending |
-| DSP-06 | — | Pending |
-| DSP-07 | — | Pending |
-| DSP-08 | — | Pending |
-| DSP-09 | — | Pending |
-| SDK-01 | — | Pending |
-| SDK-02 | — | Pending |
-| SDK-03 | — | Pending |
-| SDK-04 | — | Pending |
-| SDK-05 | — | Pending |
-| RMT-01 | — | Pending |
-| RMT-02 | — | Pending |
-| RMT-03 | — | Pending |
-| RMT-04 | — | Pending |
-| RMT-05 | — | Pending |
-| RMT-06 | — | Pending |
-| DSH-01 | — | Pending |
-| DSH-02 | — | Pending |
-| DSH-03 | — | Pending |
-| DSH-04 | — | Pending |
-| DSH-05 | — | Pending |
-| DSH-06 | — | Pending |
-| DSH-07 | — | Pending |
-| DSH-08 | — | Pending |
-| DSH-09 | — | Pending |
-| DSH-10 | — | Pending |
-| DSH-11 | — | Pending |
-| DSH-12 | — | Pending |
-| DSH-13 | — | Pending |
-| TMX-01 | — | Pending |
-| TMX-02 | — | Pending |
-| TMX-03 | — | Pending |
-| TMX-04 | — | Pending |
-| TMX-05 | — | Pending |
-| CFG-01 | — | Pending |
-| CFG-02 | — | Pending |
-| CFG-03 | — | Pending |
-| CFG-04 | — | Pending |
-| CFG-05 | — | Pending |
+| ISO-01 | Phase 143 | Pending |
+| ISO-02 | Phase 143 | Pending |
+| ISO-03 | Phase 143 | Pending |
+| ISO-04 | Phase 143 | Pending |
+| ISO-05 | Phase 143 | Pending |
+| ISO-06 | Phase 143 | Pending |
+| ISO-07 | Phase 143 | Pending |
+| ISO-08 | Phase 143 | Pending |
+| ISO-09 | Phase 143 | Pending |
+| DSP-01 | Phase 144 | Pending |
+| DSP-02 | Phase 144 | Pending |
+| DSP-03 | Phase 144 | Pending |
+| DSP-04 | Phase 144 | Pending |
+| DSP-05 | Phase 144 | Pending |
+| DSP-06 | Phase 144 | Pending |
+| DSP-07 | Phase 144 | Pending |
+| DSP-08 | Phase 144 | Pending |
+| DSP-09 | Phase 144 | Pending |
+| SDK-01 | Phase 145 | Pending |
+| SDK-02 | Phase 145 | Pending |
+| SDK-03 | Phase 145 | Pending |
+| SDK-04 | Phase 145 | Pending |
+| SDK-05 | Phase 145 | Pending |
+| RMT-01 | Phase 146 | Pending |
+| RMT-02 | Phase 146 | Pending |
+| RMT-03 | Phase 146 | Pending |
+| RMT-04 | Phase 146 | Pending |
+| RMT-05 | Phase 146 | Pending |
+| RMT-06 | Phase 146 | Pending |
+| DSH-01 | Phase 147 | Pending |
+| DSH-02 | Phase 147 | Pending |
+| DSH-03 | Phase 147 | Pending |
+| DSH-04 | Phase 147 | Pending |
+| DSH-05 | Phase 147 | Pending |
+| DSH-06 | Phase 147 | Pending |
+| DSH-07 | Phase 147 | Pending |
+| DSH-08 | Phase 147 | Pending |
+| DSH-09 | Phase 147 | Pending |
+| DSH-10 | Phase 147 | Pending |
+| DSH-11 | Phase 147 | Pending |
+| DSH-12 | Phase 147 | Pending |
+| DSH-13 | Phase 147 | Pending |
+| TMX-01 | Phase 148 | Pending |
+| TMX-02 | Phase 148 | Pending |
+| TMX-03 | Phase 148 | Pending |
+| TMX-04 | Phase 148 | Pending |
+| TMX-05 | Phase 148 | Pending |
+| CFG-01 | Phase 149 | Pending |
+| CFG-02 | Phase 149 | Pending |
+| CFG-03 | Phase 149 | Pending |
+| CFG-04 | Phase 149 | Pending |
+| CFG-05 | Phase 149 | Pending |
 
 **Coverage:**
 - v0.18 requirements: 47 total
-- Mapped to phases: 0
-- Unmapped: 47
+- Mapped to phases: 47
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-26*
-*Last updated: 2026-03-26 after initial definition*
+*Last updated: 2026-03-26 — traceability mapped after roadmap creation*
