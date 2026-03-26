@@ -795,7 +795,7 @@ Stage both files, commit: "feat: add BackendBadge and ExecutionCard components"
 
 - [ ] **Step 1: Create ExecutionGrid component**
 
-Client component: fetches `GET /api/dispatch` every 5s, renders grid of ExecutionCards, shows empty state with dispatch CTA. Grid: 1 col mobile, 2 tablet, 3 desktop.
+Client component: fetches `GET /api/executions` every 5s, renders grid of ExecutionCards, shows empty state with dispatch CTA. Grid: 1 col mobile, 2 tablet, 3 desktop.
 
 - [ ] **Step 2: Create executions page**
 
