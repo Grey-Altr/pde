@@ -221,6 +221,10 @@ Plans:
   3. SUMMARY frontmatter includes requirements-completed: 134-01, 134.1-01, 135-01, 136.3-01, 139-01
   4. HRD-04 requirement text updated to reference actual event names (bash_called/file_changed/tool_called)
   5. Nyquist VALIDATION.md compliant (nyquist_compliant: true) for phases 136.3 and 137
+**Plans**: 2 plans
+Plans:
+- [ ] 142-01-PLAN.md -- ROADMAP checkboxes, REQUIREMENTS traceability, HRD-04 text fix, SUMMARY frontmatter
+- [ ] 142-02-PLAN.md -- Nyquist VALIDATION.md compliance for phases 136.3 and 137
 
 ## Progress
 
