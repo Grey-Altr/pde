@@ -4,7 +4,8 @@
  * coordinator.cjs — DispatchCoordinator: full session lifecycle orchestrator
  *
  * Phase 144: Local CLI Dispatch
- * Satisfies: DSP-04, DSP-05
+ * Phase 145: Agent SDK Orchestrator — DAG analysis, file overlap, failure summaries, conflict triage
+ * Satisfies: DSP-04, DSP-05, SDK-02, SDK-03, SDK-04, SDK-05
  *
  * Ties together queue, registry, spawn, worktree, merge, and aggregator into a
  * single orchestrated lifecycle. The --parallel flag in pde-tools routes to this
@@ -20,10 +21,15 @@
  *     → aggregator.watch
  *     → queue.add(_runSession)
  *
+ *   dispatchWave(plans)
+ *     → analyzeDag (once, cached in this._dag)
+ *     → checkFileOverlap → emit overlap_warning events
+ *     → dispatch each plan concurrently
+ *
  *   _runSession → spawnSession → on exit:
  *     exit 0: mergeSession → recalculateFromArtifacts → removeWorktree → deleteBranch → registry.remove
- *     exit ≠0: write FAILED.json → registry.update(status:'failed') — preserve worktree (DSP-09)
- *     exit 0 + merge needsHuman: registry.update(status:'merge_failed') — preserve worktree
+ *     exit 0 + merge needsHuman: registry.update(status:'merge_failed') → triageConflicts → registry.update(conflictTriage)
+ *     exit ≠0: write FAILED.json → registry.update(status:'failed') → summarizeFailure → emit failure_summary
  */
 
 const path = require('node:path');
@@ -38,6 +44,7 @@ const { Aggregator } = require('./aggregator.cjs');
 const { createWorktree, removeWorktree, deleteBranch } = require('./worktree.cjs');
 const { mergeSession, recalculateFromArtifacts } = require('./merge.cjs');
 const { acquireLock, releaseLock } = require('./lock.cjs');
+const { analyzeDag, checkFileOverlap, summarizeFailure, triageConflicts } = require('./orchestrator.cjs');
 
 class DispatchCoordinator {
   /**
@@ -47,7 +54,8 @@ class DispatchCoordinator {
    * @param {string} [opts.pluginDir]          - Absolute path to PDE plugin directory
    * @param {object} [opts._deps]              - Dependency injection for testing only.
    *   Shape: { spawnSession, createWorktree, removeWorktree, deleteBranch,
-   *            mergeSession, recalculateFromArtifacts, acquireLock, releaseLock }
+   *            mergeSession, recalculateFromArtifacts, acquireLock, releaseLock,
+   *            analyzeDag, checkFileOverlap, summarizeFailure, triageConflicts }
    *   When omitted, production module-level requires are used.
    */
   constructor(projectRoot, opts) {
@@ -70,6 +78,13 @@ class DispatchCoordinator {
     this._recalculateFromArtifacts = deps.recalculateFromArtifacts || recalculateFromArtifacts;
     this._acquireLock = deps.acquireLock || acquireLock;
     this._releaseLock = deps.releaseLock || releaseLock;
+
+    // Phase 145: SDK orchestrator functions — injectable for testability
+    this._analyzeDag = deps.analyzeDag || analyzeDag;
+    this._checkFileOverlap = deps.checkFileOverlap || checkFileOverlap;
+    this._summarizeFailure = deps.summarizeFailure || summarizeFailure;
+    this._triageConflicts = deps.triageConflicts || triageConflicts;
+    this._dag = null; // cached DAG analysis result — computed once per coordinator lifetime
   }
 
   /**
@@ -161,6 +176,8 @@ class DispatchCoordinator {
 
   /**
    * Dispatch multiple plans in parallel (wave-based).
+   * Runs DAG analysis (once, cached) and file overlap check before dispatching.
+   * Emits overlap_warning events via aggregator if overlapping files are detected.
    * All plans are dispatched concurrently — ConcurrencyQueue limits simultaneous
    * spawned processes.
    *
@@ -168,6 +185,29 @@ class DispatchCoordinator {
    * @returns {Promise<Array>} Promise.allSettled result
    */
   async dispatchWave(plans) {
+    // Phase 145 (SDK-02): Run DAG analysis once per coordinator lifetime (cached)
+    if (!this._dag) {
+      try {
+        this._dag = await this._analyzeDag(this._root);
+      } catch (_) {
+        this._dag = { parallelizable: [], unsafe: [] };
+      }
+    }
+
+    // Phase 145 (SDK-03): Check for file overlap before dispatching
+    const phases = plans.map(p => typeof p.phase === 'string' ? parseInt(p.phase, 10) : p.phase);
+    const overlap = this._checkFileOverlap(this._root, phases);
+    if (overlap.overlapping.length > 0) {
+      for (const pair of overlap.overlapping) {
+        this._aggregator.emit('event', 'system', {
+          type: 'system',
+          subtype: 'overlap_warning',
+          phases: pair.phases,
+          files: pair.files,
+        });
+      }
+    }
+
     const dispatches = plans.map(({ phase, plan }) => this.dispatch(phase, plan));
     return Promise.allSettled(dispatches);
   }
@@ -236,6 +276,14 @@ class DispatchCoordinator {
           status: 'merge_failed',
           conflicts: result.conflicts || [],
         });
+
+        // Phase 145 (SDK-05): Triage conflicts (non-blocking — don't let triage failure break exit handler)
+        try {
+          const triage = await this._triageConflicts(result.conflicts || [], this._root);
+          this._registry.update(sessionId, { conflictTriage: triage });
+        } catch (_) {
+          // Triage failed — non-critical
+        }
       }
     } else {
       // Failure path: write FAILED.json, preserve worktree (DSP-09)
@@ -254,6 +302,19 @@ class DispatchCoordinator {
       );
       this._registry.update(sessionId, { status: 'failed', exitCode });
       // Do NOT remove worktree — preserve for debugging
+
+      // Phase 145 (SDK-04): Generate failure summary (non-blocking — don't let summary failure break exit handler)
+      try {
+        const summary = await this._summarizeFailure(sessionId);
+        this._aggregator.emit('event', sessionId, {
+          type: 'system',
+          subtype: 'failure_summary',
+          sessionId,
+          summary,
+        });
+      } catch (_) {
+        // Summary generation failed — non-critical, do not block
+      }
     }
   }
 

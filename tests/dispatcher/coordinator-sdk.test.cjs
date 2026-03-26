@@ -210,13 +210,17 @@ describe('DispatchCoordinator + Orchestrator Wiring', () => {
     });
 
     const sessionId = await coord.dispatch(144, 1);
+    // Flush microtask queue: queue schedules via Promise.resolve().then(run),
+    // and run schedules via Promise.resolve().then(factory) — two levels deep
+    await Promise.resolve();
+    await Promise.resolve();
     const onExit = getCapturedOnExit();
 
     const worktreePath = path.join(root, '.sessions', sessionId);
     fs.mkdirSync(path.join(worktreePath, '.planning', 'phases'), { recursive: true });
 
     // Should not throw even if summarizeFailure rejects
-    await expect(onExit(sessionId, 1)).resolves.not.toThrow();
+    await onExit(sessionId, 1);
 
     // FAILED.json still written
     const failedPath = path.join(worktreePath, '.planning', 'phases', `FAILED-${sessionId}.json`);
