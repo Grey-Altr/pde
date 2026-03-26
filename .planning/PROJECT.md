@@ -332,4 +332,4 @@ This document evolves at phase transitions and milestone boundaries.
 3. Audit Out of Scope — reasons still valid?
 4. Update Context with current state
 
-*Last updated: 2026-03-25 — Phase 137 complete: bidirectional approval gates with TOCTOU safety.*
+*Last updated: 2026-03-26 — Phase 139 complete: production hardening (rate limiting, Redis TTL, downsampling, cron GC). v0.17 milestone complete.*
