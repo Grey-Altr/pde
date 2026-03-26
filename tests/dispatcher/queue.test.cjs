@@ -60,6 +60,7 @@ describe('ConcurrencyQueue', () => {
     expect(q.activeCount).toBe(1);
     resolveFirst();
     await firstPromise;
+    await Promise.resolve(); // yield for .finally() microtask to decrement _active
     expect(q.activeCount).toBe(0);
   });
 
@@ -96,8 +97,9 @@ describe('ConcurrencyQueue', () => {
     const q = new ConcurrencyQueue(1);
     // First task rejects
     await expect(q.add(() => Promise.reject(new Error('oops')))).rejects.toThrow('oops');
-    // Queue should still be functional
+    // Queue should still be functional — slot must have been released by the rejection
     const result = await q.add(() => Promise.resolve('ok'));
+    await Promise.resolve(); // yield for .finally() microtask
     expect(result).toBe('ok');
     expect(q.activeCount).toBe(0);
   });
