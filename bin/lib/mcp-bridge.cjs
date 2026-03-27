@@ -89,7 +89,7 @@ const APPROVED_SERVERS = {
     url: null,
     installCmd: null, // Multi-flag: see AUTH_INSTRUCTIONS
     probeTimeoutMs: 30000, // Browser launch can be slow on first use (~170MB Chromium download)
-    probeTool: 'mcp__playwright__browser_snapshot', // TOOL_MAP_VERIFY_REQUIRED — lightest read-only tool
+    probeTool: 'mcp__plugin_playwright_playwright__browser_snapshot', // TOOL_MAP_VERIFIED — lightest read-only tool
     probeArgs: {},
   },
 };
@@ -107,6 +107,7 @@ const APPROVED_SERVERS = {
  *   Figma — Phase 42 (verified from developers.figma.com/docs/figma-mcp-server/tools-and-prompts/)
  *   Pencil — Phase 43 (tool names from docs.pencil.dev/getting-started/ai-integration; raw mcp__pencil__* names MEDIUM confidence)
  *   Greptile — verified against live MCP server 2026-03-27 (code review & PR analysis, not code search)
+ *   Playwright — verified against live MCP server 2026-03-27 (prefix: mcp__plugin_playwright_playwright__)
  *   Phase 44 will complete validation.
  */
 const TOOL_MAP = {
@@ -183,18 +184,30 @@ const TOOL_MAP = {
   'greptile:list-custom-context':      'mcp__greptile__list_custom_context',          // TOOL_MAP_VERIFIED
   'greptile:search-custom-context':    'mcp__greptile__search_custom_context',        // TOOL_MAP_VERIFIED
 
-  // Playwright — Phase 108 (MEDIUM confidence — tool names from official README + practitioner sources; MCP-08 live verification required before finalizing)
-  'playwright:probe':      'mcp__playwright__browser_snapshot',        // TOOL_MAP_VERIFY_REQUIRED
-  'playwright:navigate':   'mcp__playwright__browser_navigate',        // TOOL_MAP_VERIFY_REQUIRED
-  'playwright:screenshot': 'mcp__playwright__browser_take_screenshot', // TOOL_MAP_VERIFY_REQUIRED
-  'playwright:snapshot':   'mcp__playwright__browser_snapshot',        // TOOL_MAP_VERIFY_REQUIRED
-  'playwright:click':      'mcp__playwright__browser_click',           // TOOL_MAP_VERIFY_REQUIRED
-  'playwright:type':       'mcp__playwright__browser_type',            // TOOL_MAP_VERIFY_REQUIRED
-  'playwright:wait':       'mcp__playwright__browser_wait_for',        // TOOL_MAP_VERIFY_REQUIRED
-  'playwright:evaluate':   'mcp__playwright__browser_evaluate',        // TOOL_MAP_VERIFY_REQUIRED
-  'playwright:pdf':        'mcp__playwright__browser_pdf_save',        // TOOL_MAP_VERIFY_REQUIRED
-  'playwright:close':      'mcp__playwright__browser_close',           // TOOL_MAP_VERIFY_REQUIRED
-  'playwright:resize':     'mcp__playwright__browser_resize',           // TOOL_MAP_VERIFY_REQUIRED
+  // Playwright — Phase 108 (verified against live MCP server 2026-03-27; prefix is mcp__plugin_playwright_playwright__)
+  'playwright:probe':             'mcp__plugin_playwright_playwright__browser_snapshot',         // TOOL_MAP_VERIFIED
+  'playwright:navigate':          'mcp__plugin_playwright_playwright__browser_navigate',         // TOOL_MAP_VERIFIED
+  'playwright:navigate-back':     'mcp__plugin_playwright_playwright__browser_navigate_back',    // TOOL_MAP_VERIFIED
+  'playwright:screenshot':        'mcp__plugin_playwright_playwright__browser_take_screenshot',  // TOOL_MAP_VERIFIED
+  'playwright:snapshot':          'mcp__plugin_playwright_playwright__browser_snapshot',         // TOOL_MAP_VERIFIED
+  'playwright:click':             'mcp__plugin_playwright_playwright__browser_click',            // TOOL_MAP_VERIFIED
+  'playwright:type':              'mcp__plugin_playwright_playwright__browser_type',             // TOOL_MAP_VERIFIED
+  'playwright:press-key':         'mcp__plugin_playwright_playwright__browser_press_key',        // TOOL_MAP_VERIFIED
+  'playwright:hover':             'mcp__plugin_playwright_playwright__browser_hover',            // TOOL_MAP_VERIFIED
+  'playwright:drag':              'mcp__plugin_playwright_playwright__browser_drag',             // TOOL_MAP_VERIFIED
+  'playwright:select-option':     'mcp__plugin_playwright_playwright__browser_select_option',    // TOOL_MAP_VERIFIED
+  'playwright:fill-form':         'mcp__plugin_playwright_playwright__browser_fill_form',        // TOOL_MAP_VERIFIED
+  'playwright:file-upload':       'mcp__plugin_playwright_playwright__browser_file_upload',      // TOOL_MAP_VERIFIED
+  'playwright:wait':              'mcp__plugin_playwright_playwright__browser_wait_for',         // TOOL_MAP_VERIFIED
+  'playwright:evaluate':          'mcp__plugin_playwright_playwright__browser_evaluate',         // TOOL_MAP_VERIFIED
+  'playwright:run-code':          'mcp__plugin_playwright_playwright__browser_run_code',         // TOOL_MAP_VERIFIED
+  'playwright:close':             'mcp__plugin_playwright_playwright__browser_close',            // TOOL_MAP_VERIFIED
+  'playwright:resize':            'mcp__plugin_playwright_playwright__browser_resize',           // TOOL_MAP_VERIFIED
+  'playwright:tabs':              'mcp__plugin_playwright_playwright__browser_tabs',             // TOOL_MAP_VERIFIED
+  'playwright:console':           'mcp__plugin_playwright_playwright__browser_console_messages', // TOOL_MAP_VERIFIED
+  'playwright:network':           'mcp__plugin_playwright_playwright__browser_network_requests', // TOOL_MAP_VERIFIED
+  'playwright:handle-dialog':     'mcp__plugin_playwright_playwright__browser_handle_dialog',    // TOOL_MAP_VERIFIED
+  'playwright:install':           'mcp__plugin_playwright_playwright__browser_install',          // TOOL_MAP_VERIFIED
 };
 
 // ─── Per-server auth instructions ─────────────────────────────────────────────
