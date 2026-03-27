@@ -177,7 +177,7 @@ Any user can go from idea to shipped product through a single platform that hand
 
 ## Current State
 
-**Building v0.18 Distributed Execution** — Phase 147 (Dashboard Integration) complete. Full dashboard surfaces all active parallel sessions with per-session health matrix, multi-phase progress bars (striped animations), event log with session filtering and color tags, failure cards with retry/abandon/kill actions (44px touch targets, AlertDialog confirmation), responsive layout (phone bottom tabs, tablet 2x2 grid, laptop 7-pane grid), and keyboard shortcuts (1-7 pane focus, s/a session cycle, Esc collapse). 163 tests across 22 files. Phase 146 (Remote Dispatch) also complete — SSH backend, session router, managed stub, coordinator wiring.
+**Building v0.18 Distributed Execution** — Phase 148 (tmux Integration) complete. TmuxFanout module subscribes to aggregator EventEmitter, writes enriched NDJSON with `_pde_session_id`, `_pde_session_source` ([L]/[R]), and `_pde_color_index` to combined file. Three pane scripts (agent-activity, log-stream, token-meter) upgraded with ANSI color-coded session tags and [L]/[R] source labels. Session cycling via `s`/`a` tmux key bindings. 158 tests across 18 dispatcher test files. Phase 147 (Dashboard Integration) also complete — full web dashboard with per-session health matrix, progress bars, event log, failure cards, responsive layout.
 
 ### Out of Scope
 
