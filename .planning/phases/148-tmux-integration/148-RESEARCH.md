@@ -466,22 +466,29 @@ IFS='|' read -r event_type ts session_id session_source color_idx <<< "$parsed"
 
 ---
 
-## Open Questions
+## Resolved Questions
 
-1. **Bare `s` key vs prefix+`s` key**
-   - What we know: The requirement says `s` key; using `bind-key -n s` intercepts bare `s` globally in the pde-monitor tmux session
-   - What's unclear: Whether users will want to type `s` in other panes within the same session (unlikely for a monitoring dashboard)
-   - Recommendation: Use `bind-key s` (prefix+s) for safety, document in monitor-dashboard.sh. Plan can default to prefix+s and the planner can note this as a decision point.
+1. **Bare `s` key vs prefix+`s` key** — RESOLVED: Use `bind-key -n s` (bare key, no prefix)
+   - The pde-monitor tmux session is isolated and dedicated to monitoring — all 7 panes run passive `tail -F` loops with no interactive prompt
+   - `-n` flag bindings are session-scoped, NOT global across all tmux sessions — verified against tmux manpage
+   - Users cannot accidentally trigger `s` by typing in a pane since panes don't accept input
+   - Bare-key interaction is standard for monitoring dashboards (htop, tmux-sessionx)
+   - Scope with `-t "$SESSION"`: `tmux bind-key -t "$SESSION" -n s run-shell "..."`
 
-2. **TmuxFanout initialization: always-on vs --parallel-only**
-   - What we know: The fan-out file is only meaningful when `--parallel` is active; single-session runs don't need it
-   - What's unclear: Whether the monitoring dashboard should gracefully degrade when parallel dispatch is not active
-   - Recommendation: Always start TmuxFanout but document in pane scripts that the "multi-session" panes show a waiting message until `--parallel` sessions appear. This avoids adding conditional initialization logic to the coordinator.
+2. **TmuxFanout initialization: always-on vs --parallel-only** — RESOLVED: Always-on (unconditional in DispatchCoordinator constructor)
+   - Aggregator is already always instantiated in coordinator constructor (line 104) — TmuxFanout follows the same pattern
+   - If no parallel sessions exist, TmuxFanout subscribes to an Aggregator that never emits events — quietly does nothing, no crash risk
+   - Avoids conditional initialization logic and branching constructor paths
+   - Pane scripts show "waiting for parallel sessions..." message until events appear
+   - Forward-compatible: if monitor-dashboard.sh always passes multi-session path later, TmuxFanout is already running
 
-3. **File rotation: should pde-multi-session.ndjson be truncated on coordinator restart?**
-   - What we know: The file grows unboundedly across multiple dispatcher invocations; `tail -F` handles this
-   - What's unclear: Whether stale events from prior runs should appear on restart
-   - Recommendation: Truncate (open with `w` flag) at TmuxFanout startup rather than append, so the pane only shows current run events. This matches user expectation.
+3. **File rotation: should pde-multi-session.ndjson be truncated on coordinator restart?** — RESOLVED: Truncate at startup
+   - Unlike per-session files (unique UUID per session), the multi-session file uses a fixed path — appending across restarts mixes old and new events
+   - Color indices reset on restart (in-memory Map) — truncation eliminates the mixed-color problem entirely
+   - `tail -F` handles truncation gracefully on macOS and Linux — detects inode change and transitions smoothly
+   - No session-start event exists as a delimiter; truncation is simpler than adding synthetic events
+   - Implementation: `fs.writeFileSync(FANOUT_PATH, '', 'utf8')` once in TmuxFanout.start(), then appendFileSync for all events
+   - Swallow truncate errors silently (follows existing safeAppendEvent pattern)
 
 ---
 
