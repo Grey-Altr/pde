@@ -52,7 +52,7 @@ export async function getSessions(): Promise<SessionListItem[]> {
     const lastEventTs = Number(raw.last_event_ts ?? 0);
     const startedAt = Number(raw.started_at ?? 0);
     const pendingApprovalId = raw.pending_approval_id || null;
-    const rawSource = raw.source ?? 'local';
+    const rawSource = raw.session_source ?? 'local';
     const source = (rawSource === 'remote-ssh' || rawSource === 'remote-managed')
       ? (rawSource as 'remote-ssh' | 'remote-managed')
       : 'local';
@@ -80,7 +80,7 @@ export async function getSessionMeta(sessionId: string): Promise<SessionListItem
   const lastEventTs = Number(raw.last_event_ts ?? 0);
   const startedAt = Number(raw.started_at ?? 0);
   const pendingApprovalId = raw.pending_approval_id || null;
-  const rawSource = raw.source ?? 'local';
+  const rawSource = raw.session_source ?? 'local';
   const source = (rawSource === 'remote-ssh' || rawSource === 'remote-managed')
     ? (rawSource as 'remote-ssh' | 'remote-managed')
     : 'local';
