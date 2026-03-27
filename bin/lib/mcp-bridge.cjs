@@ -71,7 +71,7 @@ const APPROVED_SERVERS = {
     url: null,
     installCmd: null, // Multi-step: env var + npx — see AUTH_INSTRUCTIONS
     probeTimeoutMs: 15000,
-    probeTool: 'mcp__stitch__list_projects', // TOOL_MAP_VERIFY_REQUIRED — lightest read-only tool
+    probeTool: 'mcp__stitch__list_projects', // TOOL_MAP_VERIFIED — lightest read-only tool
     probeArgs: {},
   },
   greptile: {
@@ -106,6 +106,7 @@ const APPROVED_SERVERS = {
  *   Atlassian — Phase 41 (verified from Atlassian Rovo MCP supported-tools docs)
  *   Figma — Phase 42 (verified from developers.figma.com/docs/figma-mcp-server/tools-and-prompts/)
  *   Pencil — Phase 43 (tool names from docs.pencil.dev/getting-started/ai-integration; raw mcp__pencil__* names MEDIUM confidence)
+ *   Stitch — verified against live MCP server 2026-03-27 (16 tools including design system ops)
  *   Greptile — verified against live MCP server 2026-03-27 (code review & PR analysis, not code search)
  *   Playwright — verified against live MCP server 2026-03-27 (prefix: mcp__plugin_playwright_playwright__)
  *   Phase 44 will complete validation.
@@ -157,17 +158,24 @@ const TOOL_MAP = {
   'pencil:batch-design':      'mcp__pencil__batch_design',
   'pencil:get-editor-state':  'mcp__pencil__get_editor_state',
 
-  // Stitch — Phase 65 (MEDIUM confidence — community sources; MCP-05 live verification required before finalizing)
-  'stitch:probe':                   'mcp__stitch__list_projects',          // TOOL_MAP_VERIFY_REQUIRED
-  'stitch:generate-screen':         'mcp__stitch__generate_screen_from_text', // TOOL_MAP_VERIFY_REQUIRED
-  'stitch:get-screen':              'mcp__stitch__get_screen',             // TOOL_MAP_VERIFY_REQUIRED
-  'stitch:list-screens':            'mcp__stitch__list_screens',           // TOOL_MAP_VERIFY_REQUIRED
-  'stitch:fetch-screen-code':       'mcp__stitch__fetch_screen_code',      // TOOL_MAP_VERIFY_REQUIRED
-  'stitch:fetch-screen-image':      'mcp__stitch__fetch_screen_image',     // TOOL_MAP_VERIFY_REQUIRED
-  'stitch:extract-design-context':  'mcp__stitch__extract_design_context', // TOOL_MAP_VERIFY_REQUIRED
-  'stitch:create-project':          'mcp__stitch__create_project',         // TOOL_MAP_VERIFY_REQUIRED
-  'stitch:list-projects':           'mcp__stitch__list_projects',          // TOOL_MAP_VERIFY_REQUIRED
-  'stitch:get-project':             'mcp__stitch__get_project',            // TOOL_MAP_VERIFY_REQUIRED
+  // Stitch — Phase 65 (verified against live MCP server 2026-03-27 via stitch-mcp tool command)
+  'stitch:probe':                   'mcp__stitch__list_projects',              // TOOL_MAP_VERIFIED
+  'stitch:create-project':          'mcp__stitch__create_project',             // TOOL_MAP_VERIFIED
+  'stitch:get-project':             'mcp__stitch__get_project',                // TOOL_MAP_VERIFIED
+  'stitch:list-projects':           'mcp__stitch__list_projects',              // TOOL_MAP_VERIFIED
+  'stitch:generate-screen':         'mcp__stitch__generate_screen_from_text',  // TOOL_MAP_VERIFIED
+  'stitch:get-screen':              'mcp__stitch__get_screen',                 // TOOL_MAP_VERIFIED
+  'stitch:list-screens':            'mcp__stitch__list_screens',               // TOOL_MAP_VERIFIED
+  'stitch:get-screen-code':         'mcp__stitch__get_screen_code',            // TOOL_MAP_VERIFIED
+  'stitch:get-screen-image':        'mcp__stitch__get_screen_image',           // TOOL_MAP_VERIFIED
+  'stitch:edit-screens':            'mcp__stitch__edit_screens',               // TOOL_MAP_VERIFIED
+  'stitch:generate-variants':       'mcp__stitch__generate_variants',          // TOOL_MAP_VERIFIED
+  'stitch:build-site':              'mcp__stitch__build_site',                 // TOOL_MAP_VERIFIED
+  'stitch:create-design-system':    'mcp__stitch__create_design_system',       // TOOL_MAP_VERIFIED
+  'stitch:update-design-system':    'mcp__stitch__update_design_system',       // TOOL_MAP_VERIFIED
+  'stitch:list-design-systems':     'mcp__stitch__list_design_systems',        // TOOL_MAP_VERIFIED
+  'stitch:apply-design-system':     'mcp__stitch__apply_design_system',        // TOOL_MAP_VERIFIED
+  'stitch:list-tools':              'mcp__stitch__list_tools',                 // TOOL_MAP_VERIFIED
 
   // Greptile — AI code review & PR analysis (verified against live MCP server 2026-03-27)
   'greptile:probe':                    'mcp__greptile__list_code_reviews',           // TOOL_MAP_VERIFIED
