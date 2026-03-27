@@ -806,7 +806,7 @@ async function main() {
       // Generate new PDE session UUID and persist to .planning/config.json monitoring.session_id
       // Called by emit-event.cjs SessionStart hook handler (async: false — must complete before hook exits)
       const { randomUUID } = require('crypto');
-      const newSessionId = randomUUID();
+      const newSessionId = process.env.PDE_SESSION_ID || randomUUID();
       const configPath = path.join(cwd, '.planning', 'config.json');
       try {
         let cfg = {};
