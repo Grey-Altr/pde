@@ -5,21 +5,24 @@
  *
  * Phase 144: Local CLI Dispatch
  * Phase 145: Agent SDK Orchestrator — DAG analysis, file overlap, failure summaries, conflict triage
- * Satisfies: DSP-04, DSP-05, SDK-02, SDK-03, SDK-04, SDK-05
+ * Phase 146: Remote Dispatch — routeSession, spawnRemoteSession, readPlanAutonomous
+ * Satisfies: DSP-04, DSP-05, SDK-02, SDK-03, SDK-04, SDK-05, RMT-01, RMT-02, RMT-03, RMT-04
  *
  * Ties together queue, registry, spawn, worktree, merge, and aggregator into a
  * single orchestrated lifecycle. The --parallel flag in pde-tools routes to this
  * class; without it, the existing single-session code path is completely untouched.
  *
  * Session lifecycle:
- *   dispatch(phase, plan)
+ *   dispatch(phase, plan, opts)
+ *     → readPlanAutonomous (or opts.isAutonomous)
+ *     → routeSession (before lock — routing is async, lock window must stay narrow)
  *     → acquireLock (mutual exclusion)
  *     → hasPhase check (reject duplicates)
  *     → createWorktree (git worktree add)
- *     → registry.register
+ *     → registry.register (includes backend + remoteHost)
  *     → releaseLock
  *     → aggregator.watch
- *     → queue.add(_runSession)
+ *     → queue.add(_runSession | _runRemoteSession)
  *
  *   dispatchWave(plans)
  *     → analyzeDag (once, cached in this._dag)
@@ -30,6 +33,8 @@
  *     exit 0: mergeSession → recalculateFromArtifacts → removeWorktree → deleteBranch → registry.remove
  *     exit 0 + merge needsHuman: registry.update(status:'merge_failed') → triageConflicts → registry.update(conflictTriage)
  *     exit ≠0: write FAILED.json → registry.update(status:'failed') → summarizeFailure → emit failure_summary
+ *
+ *   _runRemoteSession → spawnRemoteSession (SSH) → on exit: same _handleExit as _runSession
  */
 
 const path = require('node:path');
@@ -46,16 +51,49 @@ const { mergeSession, recalculateFromArtifacts } = require('./merge.cjs');
 const { acquireLock, releaseLock } = require('./lock.cjs');
 const { analyzeDag, checkFileOverlap, summarizeFailure, triageConflicts } = require('./orchestrator.cjs');
 
+// Phase 146: Remote dispatch
+const { routeSession } = require('./remote-router.cjs');
+const { spawnRemoteSession } = require('./remote-ssh.cjs');
+
+/**
+ * Read autonomous: true/false from PLAN.md YAML frontmatter.
+ * Pure static regex parse -- same pattern as orchestrator.cjs checkFileOverlap.
+ *
+ * @param {string} projectRoot
+ * @param {number} phase
+ * @param {number|string} plan
+ * @returns {boolean}
+ */
+function readPlanAutonomous(projectRoot, phase, plan) {
+  const phasesDir = path.join(projectRoot, '.planning', 'phases');
+  const padded = String(phase).padStart(3, '0');
+  const planPadded = String(plan).padStart(2, '0');
+  try {
+    const phaseDirs = fs.readdirSync(phasesDir).filter(d => d.startsWith(padded + '-'));
+    if (phaseDirs.length === 0) return false;
+    const planFile = path.join(phasesDir, phaseDirs[0], padded + '-' + planPadded + '-PLAN.md');
+    const content = fs.readFileSync(planFile, 'utf8');
+    const fmMatch = content.match(/^---\n([\s\S]*?)\n---/);
+    if (!fmMatch) return false;
+    return /^autonomous:\s*true/m.test(fmMatch[1]);
+  } catch (_) {
+    return false;
+  }
+}
+
 class DispatchCoordinator {
   /**
    * @param {string} projectRoot - Absolute path to the git repo root
    * @param {object} [opts]
    * @param {number} [opts.maxConcurrent=3]   - Max simultaneous sessions
    * @param {string} [opts.pluginDir]          - Absolute path to PDE plugin directory
+   * @param {object} [opts.config]             - Project config object (config.json). Used to extract
+   *   dispatch.remote block for remote routing.
    * @param {object} [opts._deps]              - Dependency injection for testing only.
    *   Shape: { spawnSession, createWorktree, removeWorktree, deleteBranch,
    *            mergeSession, recalculateFromArtifacts, acquireLock, releaseLock,
-   *            analyzeDag, checkFileOverlap, summarizeFailure, triageConflicts }
+   *            analyzeDag, checkFileOverlap, summarizeFailure, triageConflicts,
+   *            spawnRemoteSession, routeSession, readPlanAutonomous }
    *   When omitted, production module-level requires are used.
    */
   constructor(projectRoot, opts) {
@@ -85,6 +123,12 @@ class DispatchCoordinator {
     this._summarizeFailure = deps.summarizeFailure || summarizeFailure;
     this._triageConflicts = deps.triageConflicts || triageConflicts;
     this._dag = null; // cached DAG analysis result — computed once per coordinator lifetime
+
+    // Phase 146: Remote dispatch
+    this._spawnRemoteSession = deps.spawnRemoteSession || spawnRemoteSession;
+    this._routeSession = deps.routeSession || routeSession;
+    this._remoteConfig = (options.config && options.config.dispatch && options.config.dispatch.remote) || null;
+    this._readPlanAutonomous = deps.readPlanAutonomous || readPlanAutonomous;
   }
 
   /**
@@ -125,10 +169,22 @@ class DispatchCoordinator {
    *
    * @param {number|string} phase - Phase number (e.g. 144)
    * @param {number|string} plan  - Plan number (e.g. 1)
+   * @param {object} [opts]       - Optional dispatch options
+   * @param {boolean} [opts.isAutonomous] - Override autonomous detection (skip PLAN.md parse)
    * @returns {Promise<string>} Resolves to sessionId immediately after queuing
    */
-  async dispatch(phase, plan) {
+  async dispatch(phase, plan, opts) {
     const phaseNum = typeof phase === 'string' ? parseInt(phase, 10) : phase;
+    const planNum = typeof plan === 'string' ? parseInt(plan, 10) : plan;
+
+    // Phase 146: Determine backend BEFORE lock (routing is async, lock window must stay narrow)
+    const isAutonomous = (opts && opts.isAutonomous !== undefined)
+      ? opts.isAutonomous
+      : this._readPlanAutonomous(this._root, phaseNum, planNum);
+    const backend = await this._routeSession({
+      isAutonomous,
+      remoteConfig: this._remoteConfig,
+    });
 
     // 1. Acquire dispatcher lock
     const lockResult = this._acquireLock(this._root);
@@ -152,9 +208,11 @@ class DispatchCoordinator {
       this._registry.register(sessionId, {
         pid: 0,
         phase: phaseNum,
-        plan: typeof plan === 'string' ? parseInt(plan, 10) : plan,
+        plan: planNum,
         worktreePath,
         branch,
+        backend,
+        remoteHost: (backend === 'ssh' && this._remoteConfig) ? this._remoteConfig.host : undefined,
       });
 
       // 6. Release lock before spawning (spawn is slow; don't hold lock)
@@ -164,7 +222,11 @@ class DispatchCoordinator {
       this._aggregator.watch(sessionId);
 
       // 8. Queue the session — runs when a concurrency slot opens
-      this._queue.add(() => this._runSession(sessionId, phaseNum, plan, worktreePath, branch));
+      if (backend === 'ssh') {
+        this._queue.add(() => this._runRemoteSession(sessionId, phaseNum, plan, worktreePath, branch));
+      } else {
+        this._queue.add(() => this._runSession(sessionId, phaseNum, plan, worktreePath, branch));
+      }
 
       return sessionId;
     } catch (err) {
@@ -243,6 +305,39 @@ class DispatchCoordinator {
 
       // Update registry with actual PID
       this._registry.update(sessionId, { pid: handle.pid });
+      this._sessions.set(sessionId, handle);
+    });
+  }
+
+  /**
+   * Internal: spawn and manage a remote SSH session. Returns a Promise that
+   * resolves when the session completes (success or failure).
+   *
+   * @param {string} sessionId
+   * @param {number} phase
+   * @param {number|string} plan
+   * @param {string} worktreePath - Local worktree path (used for merge after fetch)
+   * @param {string} branch
+   * @returns {Promise<void>}
+   * @private
+   */
+  _runRemoteSession(sessionId, phase, plan, worktreePath, branch) {
+    return new Promise((resolve) => {
+      const handle = this._spawnRemoteSession({
+        sessionId,
+        phase,
+        plan,
+        branch,
+        projectRoot: this._root,
+        remoteConfig: this._remoteConfig,
+        onLine: (sid, event) => {
+          this._aggregator.emit('event', sid, event);
+        },
+        onExit: (sid, exitCode) => {
+          this._handleExit(sid, exitCode, worktreePath, branch).then(resolve);
+        },
+      });
+      // Note: no pid update for remote sessions — SSH has no local PID. kill() uses ssh.dispose()
       this._sessions.set(sessionId, handle);
     });
   }
@@ -339,4 +434,4 @@ class DispatchCoordinator {
   }
 }
 
-module.exports = { DispatchCoordinator };
+module.exports = { DispatchCoordinator, readPlanAutonomous };
