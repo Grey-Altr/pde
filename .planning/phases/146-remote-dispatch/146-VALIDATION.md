@@ -1,9 +1,9 @@
 ---
 phase: 146
 slug: remote-dispatch
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: active
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-26
 ---
 
@@ -38,13 +38,12 @@ created: 2026-03-26
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 146-01-01 | 01 | 0 | RMT-01, RMT-02, RMT-03 | unit | `npx vitest run tests/dispatcher/remote-ssh.test.cjs` | ❌ W0 | ⬜ pending |
-| 146-01-02 | 01 | 0 | RMT-04, RMT-05, RMT-06 | unit | `npx vitest run tests/dispatcher/remote-router.test.cjs` | ❌ W0 | ⬜ pending |
-| 146-02-01 | 02 | 1 | RMT-01 | unit | `npx vitest run tests/dispatcher/remote-ssh.test.cjs` | ❌ W0 | ⬜ pending |
-| 146-02-02 | 02 | 1 | RMT-02 | unit | `npx vitest run tests/dispatcher/remote-ssh.test.cjs` | ❌ W0 | ⬜ pending |
-| 146-02-03 | 02 | 1 | RMT-03 | unit | `npx vitest run tests/dispatcher/remote-ssh.test.cjs` | ❌ W0 | ⬜ pending |
-| 146-03-01 | 03 | 1 | RMT-04, RMT-05, RMT-06 | unit | `npx vitest run tests/dispatcher/remote-router.test.cjs` | ❌ W0 | ⬜ pending |
-| 146-04-01 | 04 | 2 | RMT-01, RMT-04 | integration | `npx vitest run tests/dispatcher/ --reporter=verbose` | ❌ W0 | ⬜ pending |
+| 146-01-01 | 01 | 1 | RMT-04, RMT-05, RMT-06 | unit | `node -e "require('./packages/dispatcher/lib/remote-managed.cjs')"` | ✅ inline | ⬜ pending |
+| 146-01-02 | 01 | 1 | RMT-04, RMT-05, RMT-06 | unit | `npx vitest run tests/dispatcher/remote-router.test.cjs` | TDD T2 | ⬜ pending |
+| 146-02-01 | 02 | 1 | RMT-01, RMT-02, RMT-03 | unit | `node -e "require('./packages/dispatcher/lib/remote-ssh.cjs')"` | ✅ inline | ⬜ pending |
+| 146-02-02 | 02 | 1 | RMT-01, RMT-02, RMT-03 | unit | `npx vitest run tests/dispatcher/remote-ssh.test.cjs` | TDD T2 | ⬜ pending |
+| 146-03-01 | 03 | 2 | RMT-01 thru RMT-06 | unit | `node -e "require('./packages/dispatcher/lib/coordinator.cjs')"` | ✅ inline | ⬜ pending |
+| 146-03-02 | 03 | 2 | RMT-01 thru RMT-06 | integration | `npx vitest run tests/dispatcher/ --reporter=verbose` | TDD T2 | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -52,11 +51,9 @@ created: 2026-03-26
 
 ## Wave 0 Requirements
 
-- [ ] `tests/dispatcher/remote-ssh.test.cjs` — stubs for RMT-01, RMT-02, RMT-03 with mocked NodeSSH + mocked execFileSync
-- [ ] `tests/dispatcher/remote-router.test.cjs` — stubs for RMT-04, RMT-05, RMT-06 routing decisions
-- [ ] Package install: `cd packages/dispatcher && npm install node-ssh` — required before any SSH code
+*No separate Wave 0 plan required.* Test files are created via TDD Task-2 pattern within Wave 1 plans (01-T2 creates remote-router.test.cjs, 02-T2 creates remote-ssh.test.cjs). Each Task 1 has an inline `node -e` verify that validates the production module independently before tests exist. Package install (`cd packages/dispatcher && npm install node-ssh`) is handled in Plan 02 Task 1.
 
-*Existing infrastructure covers vitest framework — no framework install needed.*
+Existing vitest infrastructure covers framework — no framework install needed.
 
 ---
 
@@ -70,11 +67,11 @@ created: 2026-03-26
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 15s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify (inline node -e for T1, vitest for T2)
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 handled via in-wave TDD Task-2 pattern + inline verify on Task 1
+- [x] No watch-mode flags
+- [x] Feedback latency < 15s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-03-26
