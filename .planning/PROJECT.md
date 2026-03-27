@@ -177,7 +177,7 @@ Any user can go from idea to shipped product through a single platform that hand
 
 ## Current State
 
-**v0.18 Distributed Execution complete** — All 7 phases (143-149) shipped. Phase 149 (Configuration & Commands) added dispatch config schema (11 `dispatch.*` keys in config.json), fixed critical config wiring gap in pde-tools dispatch case, added `/pde:sessions` command for session list/stop, extended `/pde:settings` with dispatch configuration, and implemented graceful degradation (dispatch.enabled=false = exact pre-v0.18 behavior). 220+ tests across 23 dispatcher test files. Full milestone: session isolation, local CLI dispatch, Agent SDK orchestrator, remote SSH dispatch, web dashboard, tmux aggregation, and configuration commands.
+**v0.18 Distributed Execution in progress** — Phases 143-149 shipped. Phase 150 (Dashboard Hardening) added Clerk auth guard to /api/sessions (401 for unauthenticated) and wired FailureCard action buttons to real server actions (kill/abandon/retry) interacting with the dispatcher SessionRegistry. 212 dashboard tests passing. Remaining: Phase 151 (Test & Validation Cleanup).
 
 ### Out of Scope
 
@@ -337,4 +337,4 @@ This document evolves at phase transitions and milestone boundaries.
 3. Audit Out of Scope — reasons still valid?
 4. Update Context with current state
 
-*Last updated: 2026-03-27 after Phase 149 — Configuration & Commands: dispatch config schema, session management commands, settings extension, graceful degradation (3 plans, 5 requirements, 220+ tests)*
+*Last updated: 2026-03-27 after Phase 150 — Dashboard Hardening: Clerk auth guard on /api/sessions, FailureCard server actions (kill/abandon/retry), 212 dashboard tests passing (1 plan, 2 requirements)*
