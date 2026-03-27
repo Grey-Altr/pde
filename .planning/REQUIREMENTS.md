@@ -51,18 +51,18 @@ Requirements for Distributed Execution milestone. Each maps to roadmap phases.
 ### Dashboard
 
 - [x] **DSH-01**: Session health matrix shows all active sessions with status, phase, source, runtime
-- [ ] **DSH-02**: Event log supports filtering by individual session or all sessions
+- [x] **DSH-02**: Event log supports filtering by individual session or all sessions
 - [x] **DSH-03**: Color-coded session tags distinguish events from different sessions
-- [ ] **DSH-04**: Multi-phase progress view with one progress bar per active phase
-- [ ] **DSH-05**: Aggregate status bar shows active count, queued count, total cost
-- [ ] **DSH-06**: Failure cards with retry/abandon buttons (touch-friendly, 44px targets)
-- [ ] **DSH-07**: Merge notifications via Web Push
-- [ ] **DSH-08**: Tiered action chevron showing current + last two state transitions per session
+- [x] **DSH-04**: Multi-phase progress view with one progress bar per active phase
+- [x] **DSH-05**: Aggregate status bar shows active count, queued count, total cost
+- [x] **DSH-06**: Failure cards with retry/abandon buttons (touch-friendly, 44px targets)
+- [x] **DSH-07**: Merge notifications via Web Push
+- [x] **DSH-08**: Tiered action chevron showing current + last two state transitions per session
 - [x] **DSH-09**: Striped animated progress bars (speed-as-signal: normal=executing, slow=waiting, none=failed)
-- [ ] **DSH-10**: Actions render as buttons on phone/tablet, buttons+commands on laptop
-- [ ] **DSH-11**: Responsive pane navigation (tab bar on phone, 2x2 grid on tablet, full grid on laptop)
+- [x] **DSH-10**: Actions render as buttons on phone/tablet, buttons+commands on laptop
+- [x] **DSH-11**: Responsive pane navigation (tab bar on phone, 2x2 grid on tablet, full grid on laptop)
 - [x] **DSH-12**: Persistent session filter across all tabs
-- [ ] **DSH-13**: Keyboard shortcuts on laptop (1-7 pane focus, s/a session cycle, f expand, Esc collapse)
+- [x] **DSH-13**: Keyboard shortcuts on laptop (1-7 pane focus, s/a session cycle, f expand, Esc collapse)
 
 ### tmux Integration
 
@@ -142,18 +142,18 @@ Deferred to future release.
 | RMT-05 | Phase 146 | Complete |
 | RMT-06 | Phase 146 | Complete |
 | DSH-01 | Phase 147 | Complete |
-| DSH-02 | Phase 147 | Pending |
+| DSH-02 | Phase 147 | Complete |
 | DSH-03 | Phase 147 | Complete |
-| DSH-04 | Phase 147 | Pending |
-| DSH-05 | Phase 147 | Pending |
-| DSH-06 | Phase 147 | Pending |
-| DSH-07 | Phase 147 | Pending |
-| DSH-08 | Phase 147 | Pending |
+| DSH-04 | Phase 147 | Complete |
+| DSH-05 | Phase 147 | Complete |
+| DSH-06 | Phase 147 | Complete |
+| DSH-07 | Phase 147 | Complete |
+| DSH-08 | Phase 147 | Complete |
 | DSH-09 | Phase 147 | Complete |
-| DSH-10 | Phase 147 | Pending |
-| DSH-11 | Phase 147 | Pending |
+| DSH-10 | Phase 147 | Complete |
+| DSH-11 | Phase 147 | Complete |
 | DSH-12 | Phase 147 | Complete |
-| DSH-13 | Phase 147 | Pending |
+| DSH-13 | Phase 147 | Complete |
 | TMX-01 | Phase 148 | Pending |
 | TMX-02 | Phase 148 | Pending |
 | TMX-03 | Phase 148 | Pending |
