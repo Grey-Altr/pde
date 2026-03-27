@@ -180,7 +180,7 @@ Any user can go from idea to shipped product through a single platform that hand
 
 ## Current State
 
-**v0.18 Distributed Execution complete** — All 9 phases (143-151) shipped. Phase 150 (Dashboard Hardening) added Clerk auth guard and wired FailureCard action buttons. Phase 151 (Test & Validation Cleanup) fixed coordinator-smoke Test 7 SDK stub gap and finalized Phase 149 Nyquist validation. 221 dispatcher tests passing, all VALIDATION.md files compliant.
+**v0.18 Distributed Execution complete** — All 11 phases (143-153) shipped. Phase 152 (Parallel Session Relay Wiring) wired relay lifecycle end-to-end with PDE_SESSION_ID passthrough. Phase 153 (Dashboard Auth UX) added 401 detection to useAllSessions hook with sign-in redirect — closes INT-AUTH-SILENT gap. 217 dashboard tests passing, all VALIDATION.md files compliant.
 
 ### Out of Scope
 
@@ -340,4 +340,4 @@ This document evolves at phase transitions and milestone boundaries.
 3. Audit Out of Scope — reasons still valid?
 4. Update Context with current state
 
-*Last updated: 2026-03-27 after Phase 150 — Dashboard Hardening: Clerk auth guard on /api/sessions, FailureCard server actions (kill/abandon/retry), 212 dashboard tests passing (1 plan, 2 requirements)*
+*Last updated: 2026-03-27 after Phase 153 — Dashboard Auth UX: 401 detection in useAllSessions with sign-in redirect, 217 dashboard tests passing, INT-AUTH-SILENT gap closed*
