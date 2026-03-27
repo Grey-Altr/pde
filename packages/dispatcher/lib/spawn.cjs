@@ -42,7 +42,9 @@ function spawnSession(opts) {
   // Build env: inherit parent, delete CLAUDECODE (blocks nested launch if set to "1")
   const env = { ...process.env };
   delete env.CLAUDECODE;   // must not be "1" — blocks nested launch
-  env.PDE_SESSION_ID = sessionId;
+  // Phase 152 (RLY-01): Use relayId (UUID) as PDE_SESSION_ID when available so session-start
+  // writes the UUID to config.json, aligning the NDJSON path with relay.cjs (D-02)
+  env.PDE_SESSION_ID = opts.relayId || sessionId;
   env.PDE_PHASE = String(phase);
   env.PDE_PLAN = String(plan);
   env.PDE_SESSION_START = String(Date.now());
