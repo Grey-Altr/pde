@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.18
 milestone_name: Distributed Execution
-status: Ready to plan
-stopped_at: Completed 145-02-PLAN.md
-last_updated: "2026-03-26T23:32:33.384Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 146-03-PLAN.md
+last_updated: "2026-03-27T00:20:04.268Z"
 progress:
   total_phases: 7
   completed_phases: 3
-  total_plans: 8
-  completed_plans: 8
+  total_plans: 11
+  completed_plans: 10
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-26)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 145 — agent-sdk-orchestrator
+**Current focus:** Phase 146 — remote-dispatch
 
 ## Current Position
 
-Phase: 146
-Plan: Not started
+Phase: 146 (remote-dispatch) — EXECUTING
+Plan: 3 of 3
 
 ## Performance Metrics
 
@@ -66,6 +66,12 @@ Plan: Not started
 - [Phase 145]: orchestrator.cjs uses functional _sdkQuery parameter injection (not _deps class object) — cleaner for module-level exported functions
 - [Phase 145]: DispatchCoordinator caches DAG result in this._dag — one analyzeDag call per coordinator lifetime, not per wave
 - [Phase 145]: All orchestrator calls wrapped in try/catch — SDK failure never blocks session exit handler
+- [Phase 146]: routeSession uses injectable _detectManaged parameter (not _deps object) — consistent with orchestrator.cjs functional injection pattern
+- [Phase 146]: Async IIFE pattern returns synchronous kill handle while SSH lifecycle runs async -- matches local spawn.cjs pattern
+- [Phase 146]: CLAUDECODE= (empty) in remote env prefix -- prevents nested-session error; channel.stdin.end() immediately -- prevents hang; pty: false -- prevents NDJSON corruption
+- [Phase 146]: DI via opts._deps (NodeSSH + execFileSync) enables hermetic test isolation in remote-ssh.cjs without vi.mock CJS hoisting issues
+- [Phase 146]: Routing before lock: routeSession() async call completes before acquireLock() to keep critical section narrow
+- [Phase 146]: No PID update for remote sessions: SSH has no local PID, _runRemoteSession skips registry.update({pid})
 
 ### Pending Todos
 
@@ -78,7 +84,7 @@ Plan: Not started
 
 ## Session Continuity
 
-Last session: 2026-03-26T23:28:57.354Z
-Stopped at: Completed 145-02-PLAN.md
+Last session: 2026-03-27T00:20:04.265Z
+Stopped at: Completed 146-03-PLAN.md
 Resume with: `/gsd:plan-phase 143`
 Resume file: None

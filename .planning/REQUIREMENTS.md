@@ -41,12 +41,12 @@ Requirements for Distributed Execution milestone. Each maps to roadmap phases.
 
 ### Remote Dispatch
 
-- [ ] **RMT-01**: SSH backend dispatches sessions to configured remote server
-- [ ] **RMT-02**: Remote sessions use git push/pull for .planning/ state sync
-- [ ] **RMT-03**: Remote sessions run relay daemon for real-time event streaming to dashboard
-- [ ] **RMT-04**: Managed backend (`claude --remote`) dispatches when available, falls back to SSH
-- [ ] **RMT-05**: Dispatcher routes autonomous work to remote, interactive work stays local
-- [ ] **RMT-06**: Remote dispatch configurable in .planning/config.json (host, repo_path, preferred backend)
+- [x] **RMT-01**: SSH backend dispatches sessions to configured remote server
+- [x] **RMT-02**: Remote sessions use git push/pull for .planning/ state sync
+- [x] **RMT-03**: Remote sessions run relay daemon for real-time event streaming to dashboard
+- [x] **RMT-04**: Managed backend (`claude --remote`) dispatches when available, falls back to SSH
+- [x] **RMT-05**: Dispatcher routes autonomous work to remote, interactive work stays local
+- [x] **RMT-06**: Remote dispatch configurable in .planning/config.json (host, repo_path, preferred backend)
 
 ### Dashboard
 
@@ -135,12 +135,12 @@ Deferred to future release.
 | SDK-03 | Phase 145 | Complete |
 | SDK-04 | Phase 145 | Complete |
 | SDK-05 | Phase 145 | Complete |
-| RMT-01 | Phase 146 | Pending |
-| RMT-02 | Phase 146 | Pending |
-| RMT-03 | Phase 146 | Pending |
-| RMT-04 | Phase 146 | Pending |
-| RMT-05 | Phase 146 | Pending |
-| RMT-06 | Phase 146 | Pending |
+| RMT-01 | Phase 146 | Complete |
+| RMT-02 | Phase 146 | Complete |
+| RMT-03 | Phase 146 | Complete |
+| RMT-04 | Phase 146 | Complete |
+| RMT-05 | Phase 146 | Complete |
+| RMT-06 | Phase 146 | Complete |
 | DSH-01 | Phase 147 | Pending |
 | DSH-02 | Phase 147 | Pending |
 | DSH-03 | Phase 147 | Pending |

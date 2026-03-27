@@ -94,8 +94,8 @@ Plans:
   4. Remote dispatch configuration (host, repo path, preferred backend) lives in .planning/config.json under a dispatch.remote block
 **Plans**: 3 plans
 Plans:
-- [ ] 146-01-PLAN.md — Remote router and managed backend stub (RMT-04, RMT-05, RMT-06)
-- [ ] 146-02-PLAN.md — SSH remote execution backend (RMT-01, RMT-02, RMT-03)
+- [x] 146-01-PLAN.md — Remote router and managed backend stub (RMT-04, RMT-05, RMT-06)
+- [x] 146-02-PLAN.md — SSH remote execution backend (RMT-01, RMT-02, RMT-03)
 - [ ] 146-03-PLAN.md — Wire remote dispatch into coordinator and update exports
 
 ### Phase 147: Dashboard Integration
@@ -143,7 +143,7 @@ Note: Phase 147 (Dashboard) and Phase 148 (tmux) both depend on Phase 144 and ca
 | 143. Session Isolation | 3/3 | Complete    | 2026-03-26 |
 | 144. Local CLI Dispatch | 3/3 | Complete    | 2026-03-26 |
 | 145. Agent SDK Orchestrator | 1/2 | Complete    | 2026-03-26 |
-| 146. Remote Dispatch | 0/3 | Not started | - |
+| 146. Remote Dispatch | 2/3 | In Progress|  |
 | 147. Dashboard Integration | 0/TBD | Not started | - |
 | 148. tmux Integration | 0/TBD | Not started | - |
 | 149. Configuration & Commands | 0/TBD | Not started | - |
