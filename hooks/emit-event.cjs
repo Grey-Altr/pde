@@ -92,7 +92,10 @@ process.stdin.on('end', () => {
   if (hookData.agent_transcript_path) payload.agent_transcript_path = hookData.agent_transcript_path;
   if (hookName === 'SessionStart') {
     if (hookData.model)  payload.model  = hookData.model;
-    if (hookData.source) payload.source = hookData.source;
+    // Phase 154: SSH-04 — fall back to PDE_BACKEND env var when hookData.source absent.
+    // Remote sessions set PDE_BACKEND=remote-ssh in SSH envPrefix; local sessions leave it unset.
+    const source = hookData.source || process.env.PDE_BACKEND;
+    if (source) payload.source = source;
   }
 
   // Emit token_usage event from transcript before main subagent_stop event (MON-02)
