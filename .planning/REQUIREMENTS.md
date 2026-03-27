@@ -87,8 +87,8 @@ Requirements for Distributed Execution milestone. Each maps to roadmap phases.
 
 ### Test & Validation Cleanup (Gap Closure)
 
-- [ ] **CLN-01**: coordinator-smoke.test.cjs Test 7 passes with analyzeDag and routeSession stubs injected into makeCoordWithDeps
-- [ ] **CLN-02**: Phase 149 VALIDATION.md reaches nyquist_compliant: true with wave_0_complete: true
+- [x] **CLN-01**: coordinator-smoke.test.cjs Test 7 passes with analyzeDag and routeSession stubs injected into makeCoordWithDeps
+- [x] **CLN-02**: Phase 149 VALIDATION.md reaches nyquist_compliant: true with wave_0_complete: true
 
 ## Future Requirements
 
@@ -177,8 +177,8 @@ Deferred to future release.
 
 | HDN-01 | Phase 150 | Complete |
 | HDN-02 | Phase 150 | Complete |
-| CLN-01 | Phase 151 | Pending |
-| CLN-02 | Phase 151 | Pending |
+| CLN-01 | Phase 151 | Complete |
+| CLN-02 | Phase 151 | Complete |
 
 **Coverage:**
 - v0.18 requirements: 51 total (47 original + 4 gap closure)

@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.18
 milestone_name: Distributed Execution
-status: Ready to plan
-stopped_at: Completed 150-01-PLAN.md
-last_updated: "2026-03-27T05:51:37.074Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 151-01-PLAN.md
+last_updated: "2026-03-27T06:17:33.981Z"
 progress:
   total_phases: 9
-  completed_phases: 8
-  total_plans: 23
-  completed_plans: 23
+  completed_phases: 9
+  total_plans: 24
+  completed_plans: 24
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-26)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 150 — dashboard-hardening
+**Current focus:** Phase 151 — test-validation-cleanup
 
 ## Current Position
 
-Phase: 151
-Plan: Not started
+Phase: 151 (test-validation-cleanup) — EXECUTING
+Plan: 1 of 1
 
 ## Performance Metrics
 
@@ -97,6 +97,9 @@ Plan: Not started
 - [Phase 150-dashboard-hardening]: hardening-hdn.test.ts created as separate file from hardening.test.ts to avoid mock conflicts with @/app/actions
 - [Phase 150-dashboard-hardening]: vi.importActual('node:fs') used for source-inspection test to bypass node:fs mock in same test file
 - [Phase 150-dashboard-hardening]: session-source.test.ts patched with Clerk mock — auth guard on /api/sessions broke two pre-existing tests (Rule 1 auto-fix)
+- [Phase 151]: analyzeDag stub returns { parallelizable: [], unsafe: [] } — coordinator caches via this._dag; empty arrays valid and non-blocking
+- [Phase 151]: routeSession stub returns 'local' — routes to existing spawnSession stub, avoids untested _runRemoteSession path
+- [Phase 151]: checkFileOverlap/summarizeFailure/triageConflicts do not need stubs — synchronous or exit-handler-only, not exercised by dispatchWave
 
 ### Pending Todos
 
@@ -109,7 +112,7 @@ Plan: Not started
 
 ## Session Continuity
 
-Last session: 2026-03-27T05:48:14.952Z
-Stopped at: Completed 150-01-PLAN.md
+Last session: 2026-03-27T06:17:33.978Z
+Stopped at: Completed 151-01-PLAN.md
 Resume with: `/gsd:plan-phase 143`
 Resume file: None

@@ -35,7 +35,7 @@
 - [x] **Phase 148: tmux Integration** - Multiplex all active session events into the existing tmux panes with color-prefixed session tags and aggregate cost/token display (completed 2026-03-27)
 - [x] **Phase 149: Configuration & Commands** - Wire the dispatch config block, session management slash commands, and graceful degradation path (completed 2026-03-27)
 - [x] **Phase 150: Dashboard Hardening** - Add auth guard to /api/sessions, wire FailureCard action handlers with server actions, close integration gaps from milestone audit (completed 2026-03-27)
-- [ ] **Phase 151: Test & Validation Cleanup** - Fix coordinator-smoke Test 7 SDK stubs and complete Phase 149 Nyquist validation
+- [x] **Phase 151: Test & Validation Cleanup** - Fix coordinator-smoke Test 7 SDK stubs and complete Phase 149 Nyquist validation (completed 2026-03-27)
 
 ## Phase Details
 
@@ -170,7 +170,7 @@ Plans:
   2. Phase 149 VALIDATION.md reaches nyquist_compliant: true
 **Plans**: 1 plan
 Plans:
-- [ ] 151-01-PLAN.md — Fix coordinator-smoke Test 7 SDK stubs and finalize Phase 149 VALIDATION.md
+- [x] 151-01-PLAN.md — Fix coordinator-smoke Test 7 SDK stubs and finalize Phase 149 VALIDATION.md
 
 ## Progress
 
@@ -188,4 +188,4 @@ Note: Phase 150 and Phase 151 can execute in parallel (independent gap closure p
 | 148. tmux Integration | 3/3 | Complete    | 2026-03-27 |
 | 149. Configuration & Commands | 2/3 | Complete    | 2026-03-27 |
 | 150. Dashboard Hardening | 1/1 | Complete    | 2026-03-27 |
-| 151. Test & Validation Cleanup | 0/1 | Pending     | — |
+| 151. Test & Validation Cleanup | 1/1 | Complete   | 2026-03-27 |
