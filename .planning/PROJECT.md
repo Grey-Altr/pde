@@ -177,7 +177,7 @@ Any user can go from idea to shipped product through a single platform that hand
 
 ## Current State
 
-**Building v0.18 Distributed Execution** — Phase 148 (tmux Integration) complete. TmuxFanout module subscribes to aggregator EventEmitter, writes enriched NDJSON with `_pde_session_id`, `_pde_session_source` ([L]/[R]), and `_pde_color_index` to combined file. Three pane scripts (agent-activity, log-stream, token-meter) upgraded with ANSI color-coded session tags and [L]/[R] source labels. Session cycling via `s`/`a` tmux key bindings. 158 tests across 18 dispatcher test files. Phase 147 (Dashboard Integration) also complete — full web dashboard with per-session health matrix, progress bars, event log, failure cards, responsive layout.
+**v0.18 Distributed Execution complete** — All 7 phases (143-149) shipped. Phase 149 (Configuration & Commands) added dispatch config schema (11 `dispatch.*` keys in config.json), fixed critical config wiring gap in pde-tools dispatch case, added `/pde:sessions` command for session list/stop, extended `/pde:settings` with dispatch configuration, and implemented graceful degradation (dispatch.enabled=false = exact pre-v0.18 behavior). 220+ tests across 23 dispatcher test files. Full milestone: session isolation, local CLI dispatch, Agent SDK orchestrator, remote SSH dispatch, web dashboard, tmux aggregation, and configuration commands.
 
 ### Out of Scope
 
@@ -337,4 +337,4 @@ This document evolves at phase transitions and milestone boundaries.
 3. Audit Out of Scope — reasons still valid?
 4. Update Context with current state
 
-*Last updated: 2026-03-27 after Phase 147 — Dashboard Integration: session health matrix, progress bars, event log, failure cards, responsive layout, keyboard shortcuts (5 plans, 13 requirements, 163 tests)*
+*Last updated: 2026-03-27 after Phase 149 — Configuration & Commands: dispatch config schema, session management commands, settings extension, graceful degradation (3 plans, 5 requirements, 220+ tests)*
