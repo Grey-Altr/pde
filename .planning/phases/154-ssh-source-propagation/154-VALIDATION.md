@@ -1,9 +1,9 @@
 ---
 phase: 154
 slug: ssh-source-propagation
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: approved
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-27
 ---
 
@@ -39,10 +39,12 @@ created: 2026-03-27
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 154-01-01 | 01 | 1 | SSH-03 | unit | `npx vitest run tests/dispatcher/coordinator-remote.test.cjs` | NO -- Wave 0 gap | ⬜ pending |
-| 154-01-02 | 01 | 1 | SSH-04 | unit | New test file needed | NO -- Wave 0 gap | ⬜ pending |
-| 154-01-03 | 01 | 1 | SSH-01 | integration | `cd dashboard && npx vitest run __tests__/session-source.test.ts` | YES (SS-02, SS-05, SS-07) | ⬜ pending |
-| 154-01-04 | 01 | 1 | SSH-02 | unit | `cd dashboard && npx vitest run __tests__/session-source.test.ts` | YES (SS-02) | ⬜ pending |
+| 154-01-01 | 01 | 1 | SSH-03 | unit | `npx vitest run tests/dispatcher/coordinator-remote.test.cjs tests/dispatcher/remote-ssh.test.cjs` | YES (Tests 8-9, Tests 13-14) | ✅ green |
+| 154-01-02 | 01 | 1 | SSH-04 | unit | `npx vitest run tests/dispatcher/emit-event-source.test.cjs` | YES (3 tests) | ✅ green |
+| 154-01-03 | 01 | 1 | SSH-01 | integration | `cd dashboard && npx vitest run __tests__/session-source.test.ts` | YES (SS-02, SS-05, SS-07) | ✅ green |
+| 154-01-04 | 01 | 1 | SSH-02 | unit | `cd dashboard && npx vitest run __tests__/session-source.test.ts` | YES (SS-02) | ✅ green |
+| 154-01-05 | 01 | 1 | Finding-1 | unit | `npx vitest run tests/dispatcher/coordinator-remote.test.cjs tests/dispatcher/remote-ssh.test.cjs` | YES (Tests 8-9, Test 14) | ✅ green |
+| 154-01-06 | 01 | 1 | Finding-2 | unit | `npx vitest run tests/dispatcher/remote-ssh.test.cjs` | YES (Test 15) | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -50,11 +52,13 @@ created: 2026-03-27
 
 ## Wave 0 Requirements
 
-- [ ] New test in `tests/dispatcher/coordinator-remote.test.cjs` verifying PDE_BACKEND=remote-ssh appears in envPrefix -- covers SSH-03
-- [ ] New test verifying emit-event.cjs reads PDE_BACKEND as source fallback when hookData.source is absent -- covers SSH-04
-- [ ] New test verifying PDE_SESSION_ID uses UUID relayId (not non-UUID sessionId) in SSH envPrefix -- covers Finding 1
+- [x] New test in `tests/dispatcher/coordinator-remote.test.cjs` verifying relayId UUID passed to SSH path -- covers SSH-03, Finding-1
+- [x] New test verifying emit-event.cjs reads PDE_BACKEND as source fallback -- covers SSH-04
+- [x] New test verifying PDE_SESSION_ID uses UUID relayId in SSH envPrefix -- covers Finding-1
+- [x] New test verifying PDE_BACKEND=remote-ssh in envPrefix -- covers SSH-01
+- [x] New test verifying PDE_REMOTE injection from remoteConfig.ingest_url -- covers Finding-2
 
-*Existing dashboard tests (SS-01..SS-10) cover ingest and queries layers completely.*
+*All Wave 0 gaps resolved during Phase 154 execution (TDD tasks).*
 
 ---
 
@@ -68,11 +72,23 @@ created: 2026-03-27
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 15s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 15s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-03-27
+
+---
+
+## Validation Audit 2026-03-27
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+All 6 requirements (SSH-01..SSH-04, Finding-1, Finding-2) have automated test coverage. 28 tests across 3 test suites + 10 dashboard tests verify the full SSH source propagation pipeline. Phase is Nyquist-compliant.
