@@ -3,13 +3,18 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { filterEvents, EVENT_FILTER_GROUPS, type FilterGroup } from '@/lib/event-types';
+import { sessionColor } from '@/lib/session-colors';
+import { cn } from '@/lib/utils';
 import type { WireEnvelope } from '@/lib/wire-schema';
 import type { ConnectionStatus } from '@/hooks/use-event-stream';
 
 interface EventLogProps {
   events: WireEnvelope[];
   connectionStatus: ConnectionStatus;
+  sessionFilter?: string;        // 'all' or a specific session UUID
+  sessionIds?: string[];         // ordered list of unique session IDs for color assignment
 }
 
 function formatRelativeTs(isoString: string): string {
@@ -20,15 +25,21 @@ function formatRelativeTs(isoString: string): string {
   return `${ageM}m ago`;
 }
 
-export function EventLog({ events, connectionStatus }: EventLogProps) {
+export function EventLog({ events, connectionStatus, sessionFilter, sessionIds }: EventLogProps) {
   const [selectedFilter, setSelectedFilter] = useState<FilterGroup>('all');
 
   // events are newest-first; reverse to chronological (oldest first) for log display
   const chronological = useMemo(() => [...events].reverse(), [events]);
 
+  // Apply session filter before event type filter
+  const sessionFiltered = useMemo(() => {
+    if (!sessionFilter || sessionFilter === 'all') return chronological;
+    return chronological.filter(ev => ev.session_id === sessionFilter);
+  }, [chronological, sessionFilter]);
+
   const filteredEvents = useMemo(
-    () => filterEvents(chronological, selectedFilter),
-    [chronological, selectedFilter]
+    () => filterEvents(sessionFiltered, selectedFilter),
+    [sessionFiltered, selectedFilter]
   );
 
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -47,6 +58,7 @@ export function EventLog({ events, connectionStatus }: EventLogProps) {
   }, [filteredEvents.length]);
 
   const dimmed = connectionStatus === 'reconnecting';
+  const showSessionTags = sessionIds && sessionIds.length > 1;
 
   return (
     <Card className="w-full">
@@ -76,24 +88,32 @@ export function EventLog({ events, connectionStatus }: EventLogProps) {
                     {selectedFilter === 'all' ? 'No events' : 'No matching events'}
                   </p>
                 ) : (
-                  filteredEvents.map((ev, idx) => (
-                    <div
-                      key={`${ev.seq}-${idx}`}
-                      className="flex items-center gap-2 py-1.5 px-2 font-mono text-sm border-b border-border/50 last:border-b-0"
-                    >
-                      <span className="text-xs px-1.5 py-0.5 rounded bg-muted font-semibold shrink-0">
-                        {ev.event_type}
-                      </span>
-                      <span className="text-muted-foreground shrink-0">
-                        {formatRelativeTs(ev.relay_ts)}
-                      </span>
-                      {ev.extensions && Object.keys(ev.extensions).length > 0 && (
-                        <span className="text-muted-foreground truncate">
-                          {Object.keys(ev.extensions)[0]}
+                  filteredEvents.map((ev, idx) => {
+                    const sessionIndex = sessionIds?.indexOf(ev.session_id) ?? 0;
+                    return (
+                      <div
+                        key={`${ev.seq}-${idx}`}
+                        className="flex items-center gap-2 py-1.5 px-2 font-mono text-sm border-b border-border/50 last:border-b-0"
+                      >
+                        {showSessionTags && (
+                          <Badge className={cn("text-[10px] px-1 py-0 border", sessionColor(sessionIndex))}>
+                            {ev.session_id.slice(0, 8)}
+                          </Badge>
+                        )}
+                        <span className="text-xs px-1.5 py-0.5 rounded bg-muted font-semibold shrink-0">
+                          {ev.event_type}
                         </span>
-                      )}
-                    </div>
-                  ))
+                        <span className="text-muted-foreground shrink-0">
+                          {formatRelativeTs(ev.relay_ts)}
+                        </span>
+                        {ev.extensions && Object.keys(ev.extensions).length > 0 && (
+                          <span className="text-muted-foreground truncate">
+                            {Object.keys(ev.extensions)[0]}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })
                 )}
               </div>
             </TabsContent>
