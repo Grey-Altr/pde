@@ -193,7 +193,9 @@ Plans:
 **Gap Closure**: Closes INT-AUTH-SILENT and flow "Dashboard auth UX"
 **Success Criteria** (what must be TRUE):
   1. When `/api/sessions` returns 401, the dashboard redirects to sign-in page instead of rendering empty state
-**Plans**: 0 plans
+**Plans**: 1 plan
+Plans:
+- [ ] 153-01-PLAN.md — 401 detection in useAllSessions with sign-in redirect
 
 ## Progress
 
