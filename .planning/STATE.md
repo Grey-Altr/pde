@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.18
 milestone_name: Distributed Execution
-status: Milestone complete
-stopped_at: Completed 149-03-PLAN.md
-last_updated: "2026-03-27T04:49:26.283Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 150-01-PLAN.md
+last_updated: "2026-03-27T05:48:14.956Z"
 progress:
-  total_phases: 7
-  completed_phases: 7
-  total_plans: 22
-  completed_plans: 22
+  total_phases: 9
+  completed_phases: 8
+  total_plans: 23
+  completed_plans: 23
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-26)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 149 — configuration-commands
+**Current focus:** Phase 150 — dashboard-hardening
 
 ## Current Position
 
-Phase: 149
-Plan: Not started
+Phase: 150 (dashboard-hardening) — EXECUTING
+Plan: 1 of 1
 
 ## Performance Metrics
 
@@ -94,6 +94,9 @@ Plan: Not started
 - [Phase 149]: Tests extract listSessions/stopSession as local helper functions for testability — avoids requiring pde-tools.cjs monolith in tests
 - [Phase 149]: Test 9 uses process.pid (live PID) so loadFromDisk preserves running status before killSpy intercepts; Test 10 bypasses loadFromDisk by setting registry._map directly
 - [Phase 149-03]: Dispatch questions placed after git branching in AskUserQuestion wizard — preserves logical grouping and matches Max Local as 5 discrete labeled options
+- [Phase 150-dashboard-hardening]: hardening-hdn.test.ts created as separate file from hardening.test.ts to avoid mock conflicts with @/app/actions
+- [Phase 150-dashboard-hardening]: vi.importActual('node:fs') used for source-inspection test to bypass node:fs mock in same test file
+- [Phase 150-dashboard-hardening]: session-source.test.ts patched with Clerk mock — auth guard on /api/sessions broke two pre-existing tests (Rule 1 auto-fix)
 
 ### Pending Todos
 
@@ -106,7 +109,7 @@ Plan: Not started
 
 ## Session Continuity
 
-Last session: 2026-03-27T04:45:35.213Z
-Stopped at: Completed 149-03-PLAN.md
+Last session: 2026-03-27T05:48:14.952Z
+Stopped at: Completed 150-01-PLAN.md
 Resume with: `/gsd:plan-phase 143`
 Resume file: None

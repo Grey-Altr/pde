@@ -34,7 +34,7 @@
 - [x] **Phase 147: Dashboard Integration** - Extend the v0.17 dashboard with multi-session session cards, filter pills, chevron progress, animated progress bars, and responsive action controls (completed 2026-03-27)
 - [x] **Phase 148: tmux Integration** - Multiplex all active session events into the existing tmux panes with color-prefixed session tags and aggregate cost/token display (completed 2026-03-27)
 - [x] **Phase 149: Configuration & Commands** - Wire the dispatch config block, session management slash commands, and graceful degradation path (completed 2026-03-27)
-- [ ] **Phase 150: Dashboard Hardening** - Add auth guard to /api/sessions, wire FailureCard action handlers with server actions, close integration gaps from milestone audit
+- [x] **Phase 150: Dashboard Hardening** - Add auth guard to /api/sessions, wire FailureCard action handlers with server actions, close integration gaps from milestone audit (completed 2026-03-27)
 - [ ] **Phase 151: Test & Validation Cleanup** - Fix coordinator-smoke Test 7 SDK stubs and complete Phase 149 Nyquist validation
 
 ## Phase Details
@@ -158,7 +158,7 @@ Plans:
   2. FailureCard Retry/Abandon/Kill buttons trigger real server actions that interact with the dispatcher SessionRegistry
 **Plans**: 1 plan
 Plans:
-- [ ] 150-01-PLAN.md — Auth guard for /api/sessions + FailureCard server actions wiring
+- [x] 150-01-PLAN.md — Auth guard for /api/sessions + FailureCard server actions wiring
 
 ### Phase 151: Test & Validation Cleanup
 **Goal**: Fix test infrastructure gap and complete Nyquist validation for Phase 149
@@ -185,5 +185,5 @@ Note: Phase 150 and Phase 151 can execute in parallel (independent gap closure p
 | 147. Dashboard Integration | 4/5 | Complete    | 2026-03-27 |
 | 148. tmux Integration | 3/3 | Complete    | 2026-03-27 |
 | 149. Configuration & Commands | 2/3 | Complete    | 2026-03-27 |
-| 150. Dashboard Hardening | 0/1 | Pending     | — |
+| 150. Dashboard Hardening | 1/1 | Complete   | 2026-03-27 |
 | 151. Test & Validation Cleanup | 0/1 | Pending     | — |

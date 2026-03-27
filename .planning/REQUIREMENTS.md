@@ -82,8 +82,8 @@ Requirements for Distributed Execution milestone. Each maps to roadmap phases.
 
 ### Dashboard Hardening (Gap Closure)
 
-- [ ] **HDN-01**: `/api/sessions` route requires Clerk authentication — unauthenticated requests return 401
-- [ ] **HDN-02**: FailureCard Retry/Abandon/Kill buttons trigger server actions that interact with dispatcher SessionRegistry
+- [x] **HDN-01**: `/api/sessions` route requires Clerk authentication — unauthenticated requests return 401
+- [x] **HDN-02**: FailureCard Retry/Abandon/Kill buttons trigger server actions that interact with dispatcher SessionRegistry
 
 ### Test & Validation Cleanup (Gap Closure)
 
@@ -175,8 +175,8 @@ Deferred to future release.
 | CFG-04 | Phase 149 | Complete |
 | CFG-05 | Phase 149 | Complete |
 
-| HDN-01 | Phase 150 | Pending |
-| HDN-02 | Phase 150 | Pending |
+| HDN-01 | Phase 150 | Complete |
+| HDN-02 | Phase 150 | Complete |
 | CLN-01 | Phase 151 | Pending |
 | CLN-02 | Phase 151 | Pending |
 
