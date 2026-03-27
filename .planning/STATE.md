@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.18
 milestone_name: Distributed Execution
-status: Milestone complete
-stopped_at: Phase 152 context gathered
-last_updated: "2026-03-27T20:38:38.795Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 152-01-PLAN.md
+last_updated: "2026-03-27T20:54:04.348Z"
 progress:
   total_phases: 11
-  completed_phases: 9
-  total_plans: 24
-  completed_plans: 24
+  completed_phases: 10
+  total_plans: 25
+  completed_plans: 25
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-26)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 151 — test-validation-cleanup
+**Current focus:** Phase 152 — parallel-relay-wiring
 
 ## Current Position
 
-Phase: 151
-Plan: Not started
+Phase: 152 (parallel-relay-wiring) — EXECUTING
+Plan: 1 of 1
 
 ## Performance Metrics
 
@@ -100,6 +100,9 @@ Plan: Not started
 - [Phase 151]: analyzeDag stub returns { parallelizable: [], unsafe: [] } — coordinator caches via this._dag; empty arrays valid and non-blocking
 - [Phase 151]: routeSession stub returns 'local' — routes to existing spawnSession stub, avoids untested _runRemoteSession path
 - [Phase 151]: checkFileOverlap/summarizeFailure/triageConflicts do not need stubs — synchronous or exit-handler-only, not exercised by dispatchWave
+- [Phase 152]: Relay spawned synchronously in dispatch() before queue.add() — relay ready before session writes events
+- [Phase 152]: child.kill(sig) used in relay handle (not process.kill(pid)) — preserves mock fidelity in DI tests
+- [Phase 152]: aggregator.watch(relayId) replaces watch(sessionId) — aligns NDJSON tail path with relay.cjs argv UUID
 
 ### Pending Todos
 
@@ -112,7 +115,7 @@ Plan: Not started
 
 ## Session Continuity
 
-Last session: 2026-03-27T20:38:38.792Z
-Stopped at: Phase 152 context gathered
+Last session: 2026-03-27T20:54:04.344Z
+Stopped at: Completed 152-01-PLAN.md
 Resume with: `/gsd:plan-phase 143`
-Resume file: .planning/phases/152-parallel-relay-wiring/152-CONTEXT.md
+Resume file: None

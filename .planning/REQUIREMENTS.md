@@ -92,8 +92,8 @@ Requirements for Distributed Execution milestone. Each maps to roadmap phases.
 
 ### Parallel Session Relay Wiring (Gap Closure)
 
-- [ ] **RLY-01**: Coordinator spawns a relay.cjs child process per dispatched session tagged with session_id that POSTs NDJSON events to /api/ingest
-- [ ] **RLY-02**: Dashboard /api/sessions returns parallel-dispatched sessions with live status updates from Redis
+- [x] **RLY-01**: Coordinator spawns a relay.cjs child process per dispatched session tagged with session_id that POSTs NDJSON events to /api/ingest
+- [x] **RLY-02**: Dashboard /api/sessions returns parallel-dispatched sessions with live status updates from Redis
 
 ### Dashboard Auth UX (Gap Closure)
 
@@ -188,8 +188,8 @@ Deferred to future release.
 | HDN-02 | Phase 150 | Complete |
 | CLN-01 | Phase 151 | Complete |
 | CLN-02 | Phase 151 | Complete |
-| RLY-01 | Phase 152 | Pending |
-| RLY-02 | Phase 152 | Pending |
+| RLY-01 | Phase 152 | Complete |
+| RLY-02 | Phase 152 | Complete |
 | AUX-01 | Phase 153 | Pending |
 
 **Coverage:**

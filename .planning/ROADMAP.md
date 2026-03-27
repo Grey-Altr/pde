@@ -36,7 +36,7 @@
 - [x] **Phase 149: Configuration & Commands** - Wire the dispatch config block, session management slash commands, and graceful degradation path (completed 2026-03-27)
 - [x] **Phase 150: Dashboard Hardening** - Add auth guard to /api/sessions, wire FailureCard action handlers with server actions, close integration gaps from milestone audit (completed 2026-03-27)
 - [x] **Phase 151: Test & Validation Cleanup** - Fix coordinator-smoke Test 7 SDK stubs and complete Phase 149 Nyquist validation (completed 2026-03-27)
-- [ ] **Phase 152: Parallel Session Relay Wiring** - Launch relay process alongside spawned sessions so dashboard receives parallel session data
+- [x] **Phase 152: Parallel Session Relay Wiring** - Launch relay process alongside spawned sessions so dashboard receives parallel session data (completed 2026-03-27)
 - [ ] **Phase 153: Dashboard Auth UX** - Surface 401 errors in useAllSessions with sign-in redirect instead of blank dashboard
 
 ## Phase Details
@@ -184,7 +184,7 @@ Plans:
   2. Dashboard `/api/sessions` returns parallel-dispatched sessions with live status updates from Redis
 **Plans**: 1 plan
 Plans:
-- [ ] 152-01-PLAN.md — Relay spawn wiring in coordinator, session-start UUID alignment, and relay lifecycle tests
+- [x] 152-01-PLAN.md — Relay spawn wiring in coordinator, session-start UUID alignment, and relay lifecycle tests
 
 ### Phase 153: Dashboard Auth UX
 **Goal**: useAllSessions hook surfaces 401 errors with a redirect to sign-in instead of showing a blank dashboard
@@ -212,5 +212,5 @@ Note: Phase 152 and Phase 153 can execute in parallel (independent gap closure p
 | 149. Configuration & Commands | 2/3 | Complete    | 2026-03-27 |
 | 150. Dashboard Hardening | 1/1 | Complete    | 2026-03-27 |
 | 151. Test & Validation Cleanup | 1/1 | Complete    | 2026-03-27 |
-| 152. Parallel Session Relay Wiring | 0/1 | Not Started | — |
+| 152. Parallel Session Relay Wiring | 1/1 | Complete   | 2026-03-27 |
 | 153. Dashboard Auth UX | 0/0 | Not Started | — |
