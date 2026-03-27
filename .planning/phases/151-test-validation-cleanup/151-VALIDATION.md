@@ -1,9 +1,9 @@
 ---
 phase: 151
 slug: test-validation-cleanup
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-27
 ---
 
@@ -38,8 +38,8 @@ created: 2026-03-27
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 151-01-01 | 01 | 1 | CLN-01 | unit | `npx vitest run tests/dispatcher/coordinator-smoke.test.cjs` | ✅ | ⬜ pending |
-| 151-01-02 | 01 | 1 | CLN-02 | doc edit | `head -5 .planning/phases/149-configuration-commands/149-VALIDATION.md` | ✅ | ⬜ pending |
+| 151-01-01 | 01 | 1 | CLN-01 | unit | `npx vitest run tests/dispatcher/coordinator-smoke.test.cjs` | ✅ | ✅ green |
+| 151-01-02 | 01 | 1 | CLN-02 | doc edit | `head -5 .planning/phases/149-configuration-commands/149-VALIDATION.md` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -59,11 +59,18 @@ All phase behaviors have automated verification.
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 5s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 5s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** complete — 9/9 coordinator-smoke tests passing, Phase 149 VALIDATION.md finalized
+
+## Validation Audit 2026-03-27
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |

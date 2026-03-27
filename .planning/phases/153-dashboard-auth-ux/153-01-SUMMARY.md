@@ -101,3 +101,11 @@ None — no external service configuration required.
 ---
 *Phase: 153-dashboard-auth-ux*
 *Completed: 2026-03-27*
+
+## Self-Check: PASSED
+
+- FOUND: `dashboard/__tests__/auth-ux.test.ts`
+- FOUND: `dashboard/hooks/use-all-sessions.ts`
+- FOUND: `.planning/phases/153-dashboard-auth-ux/153-01-SUMMARY.md`
+- FOUND commit: `e9c2bba` (test: RED phase)
+- FOUND commit: `6000851` (feat: GREEN phase)
