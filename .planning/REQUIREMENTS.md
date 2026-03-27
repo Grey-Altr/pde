@@ -74,11 +74,21 @@ Requirements for Distributed Execution milestone. Each maps to roadmap phases.
 
 ### Configuration
 
-- [ ] **CFG-01**: New `dispatch` config block with enabled, max_local_sessions, max_remote_sessions, remote, routing fields
-- [ ] **CFG-02**: `/gsd:sessions` command lists active sessions
-- [ ] **CFG-03**: `/gsd:sessions stop <id>` stops a specific session
-- [ ] **CFG-04**: `/gsd:settings` exposes dispatch configuration
-- [ ] **CFG-05**: Graceful degradation: dispatch disabled = exact current behavior
+- [x] **CFG-01**: New `dispatch` config block with enabled, max_local_sessions, max_remote_sessions, remote, routing fields
+- [x] **CFG-02**: `/gsd:sessions` command lists active sessions
+- [x] **CFG-03**: `/gsd:sessions stop <id>` stops a specific session
+- [x] **CFG-04**: `/gsd:settings` exposes dispatch configuration
+- [x] **CFG-05**: Graceful degradation: dispatch disabled = exact current behavior
+
+### Dashboard Hardening (Gap Closure)
+
+- [ ] **HDN-01**: `/api/sessions` route requires Clerk authentication — unauthenticated requests return 401
+- [ ] **HDN-02**: FailureCard Retry/Abandon/Kill buttons trigger server actions that interact with dispatcher SessionRegistry
+
+### Test & Validation Cleanup (Gap Closure)
+
+- [ ] **CLN-01**: coordinator-smoke.test.cjs Test 7 passes with analyzeDag and routeSession stubs injected into makeCoordWithDeps
+- [ ] **CLN-02**: Phase 149 VALIDATION.md reaches nyquist_compliant: true with wave_0_complete: true
 
 ## Future Requirements
 
@@ -159,15 +169,20 @@ Deferred to future release.
 | TMX-03 | Phase 148 | Complete |
 | TMX-04 | Phase 148 | Complete |
 | TMX-05 | Phase 148 | Complete |
-| CFG-01 | Phase 149 | Pending |
-| CFG-02 | Phase 149 | Pending |
-| CFG-03 | Phase 149 | Pending |
-| CFG-04 | Phase 149 | Pending |
-| CFG-05 | Phase 149 | Pending |
+| CFG-01 | Phase 149 | Complete |
+| CFG-02 | Phase 149 | Complete |
+| CFG-03 | Phase 149 | Complete |
+| CFG-04 | Phase 149 | Complete |
+| CFG-05 | Phase 149 | Complete |
+
+| HDN-01 | Phase 150 | Pending |
+| HDN-02 | Phase 150 | Pending |
+| CLN-01 | Phase 151 | Pending |
+| CLN-02 | Phase 151 | Pending |
 
 **Coverage:**
-- v0.18 requirements: 47 total
-- Mapped to phases: 47
+- v0.18 requirements: 51 total (47 original + 4 gap closure)
+- Mapped to phases: 51
 - Unmapped: 0
 
 ---

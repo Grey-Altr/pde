@@ -19,7 +19,7 @@
 - ✅ **v0.15 Multi-Editor Integration** — Phases 118-125 (shipped 2026-03-24)
 - ✅ **v0.16 Multi-Editor Context Sync** — Phases 126-133 (shipped 2026-03-24)
 - ✅ **v0.17 Remote Dashboard** — Phases 134-142 (shipped 2026-03-26)
-- 🚧 **v0.18 Distributed Execution** — Phases 143-149 (in progress)
+- 🚧 **v0.18 Distributed Execution** — Phases 143-151 (in progress)
 
 ## Phases
 
@@ -34,6 +34,8 @@
 - [x] **Phase 147: Dashboard Integration** - Extend the v0.17 dashboard with multi-session session cards, filter pills, chevron progress, animated progress bars, and responsive action controls (completed 2026-03-27)
 - [x] **Phase 148: tmux Integration** - Multiplex all active session events into the existing tmux panes with color-prefixed session tags and aggregate cost/token display (completed 2026-03-27)
 - [x] **Phase 149: Configuration & Commands** - Wire the dispatch config block, session management slash commands, and graceful degradation path (completed 2026-03-27)
+- [ ] **Phase 150: Dashboard Hardening** - Add auth guard to /api/sessions, wire FailureCard action handlers with server actions, close integration gaps from milestone audit
+- [ ] **Phase 151: Test & Validation Cleanup** - Fix coordinator-smoke Test 7 SDK stubs and complete Phase 149 Nyquist validation
 
 ## Phase Details
 
@@ -146,11 +148,31 @@ Plans:
 - [x] 149-02-PLAN.md — Session list/stop subcommands and /pde:sessions command
 - [ ] 149-03-PLAN.md — Settings workflow dispatch configuration extension
 
+### Phase 150: Dashboard Hardening
+**Goal**: Close integration gaps from milestone audit — add auth to /api/sessions, wire FailureCard action handlers, and fix broken dashboard session action flow
+**Depends on**: Phase 147, Phase 144
+**Requirements**: HDN-01, HDN-02
+**Gap Closure**: Closes INT-01, INT-02, and broken flow "Dashboard session action"
+**Success Criteria** (what must be TRUE):
+  1. `/api/sessions` route requires Clerk auth — unauthenticated requests receive 401
+  2. FailureCard Retry/Abandon/Kill buttons trigger real server actions that interact with the dispatcher SessionRegistry
+**Plans**: 1 plan
+
+### Phase 151: Test & Validation Cleanup
+**Goal**: Fix test infrastructure gap and complete Nyquist validation for Phase 149
+**Depends on**: Phase 145, Phase 149
+**Requirements**: CLN-01, CLN-02
+**Gap Closure**: Closes INT-03 and Nyquist gap for Phase 149
+**Success Criteria** (what must be TRUE):
+  1. coordinator-smoke.test.cjs Test 7 passes with proper SDK stubs injected
+  2. Phase 149 VALIDATION.md reaches nyquist_compliant: true
+**Plans**: 1 plan
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 143 → 144 → 145 → 146 → 147 → 148 → 149
-Note: Phase 147 (Dashboard) and Phase 148 (tmux) both depend on Phase 144 and can execute in parallel after it completes.
+Phases execute in numeric order: 143 → 144 → 145 → 146 → 147 → 148 → 149 → 150 → 151
+Note: Phase 150 and Phase 151 can execute in parallel (independent gap closure phases).
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -161,3 +183,5 @@ Note: Phase 147 (Dashboard) and Phase 148 (tmux) both depend on Phase 144 and ca
 | 147. Dashboard Integration | 4/5 | Complete    | 2026-03-27 |
 | 148. tmux Integration | 3/3 | Complete    | 2026-03-27 |
 | 149. Configuration & Commands | 2/3 | Complete    | 2026-03-27 |
+| 150. Dashboard Hardening | 0/1 | Pending     | — |
+| 151. Test & Validation Cleanup | 0/1 | Pending     | — |
