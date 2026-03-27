@@ -1,15 +1,10 @@
 "use client";
 
-import React from "react";
+import React from 'react';
 
 const PANE_NAMES = [
-  "Health",
-  "Events",
-  "Progress",
-  "Status",
-  "Failures",
-  "Actions",
-  "Summary",
+  'Health', 'Events', 'Progress',
+  'Status', 'Failures', 'Actions', 'Summary',
 ] as const;
 
 interface PaneGridProps {
@@ -18,69 +13,64 @@ interface PaneGridProps {
   onPaneSelect: (index: number) => void;
 }
 
-export function PaneGrid({ children, activePane, onPaneSelect }: PaneGridProps) {
+export function PaneGrid({ children, activePane }: PaneGridProps) {
   return (
     <>
-      {/* Phone: single pane visible at a time (<md) */}
+      {/* Phone: single pane visible, <md */}
       <div className="block md:hidden">
-        <section
+        <div
           id={`pane-${activePane}`}
-          aria-label={PANE_NAMES[activePane]}
-          className="w-full"
+          aria-label={PANE_NAMES[activePane] ?? 'Pane'}
         >
           {children[activePane]}
-        </section>
+        </div>
       </div>
 
-      {/* Tablet: 2-column grid showing first 4 panes (md to <lg) */}
+      {/* Tablet: 2x2 grid of first 4 panes, md to <lg */}
       <div className="hidden md:grid md:grid-cols-2 md:gap-4 lg:hidden">
         {children.slice(0, 4).map((child, index) => (
           <section
             key={index}
             id={`pane-${index}`}
             aria-label={PANE_NAMES[index]}
-            className="w-full"
-            onClick={() => onPaneSelect(index)}
           >
             {child}
           </section>
         ))}
       </div>
 
-      {/* Laptop: full 7-pane grid layout (lg+) */}
+      {/* Laptop: full 7-pane grid, lg+ */}
       <div className="hidden lg:grid lg:grid-cols-3 lg:gap-4">
-        {/* Row 1: Panes 0-2 (Health, Events, Progress) */}
+        {/* Row 1: Panes 0-2 */}
         {children.slice(0, 3).map((child, index) => (
           <section
             key={index}
             id={`pane-${index}`}
             aria-label={PANE_NAMES[index]}
-            className="w-full"
           >
             {child}
           </section>
         ))}
-
-        {/* Row 2: Panes 3-5 (Status, Failures, Actions) */}
+        {/* Row 2: Panes 3-5 */}
         {children.slice(3, 6).map((child, index) => (
           <section
             key={index + 3}
             id={`pane-${index + 3}`}
             aria-label={PANE_NAMES[index + 3]}
-            className="w-full"
           >
             {child}
           </section>
         ))}
-
-        {/* Row 3: Pane 6 (Summary) — full width */}
-        <section
-          id="pane-6"
-          aria-label={PANE_NAMES[6]}
-          className="col-span-3 w-full"
-        >
-          {children[6]}
-        </section>
+        {/* Row 3: Pane 6 — full width */}
+        {children[6] && (
+          <section
+            id="pane-6"
+            aria-label={PANE_NAMES[6]}
+            className="col-span-3"
+          >
+            {children[6]}
+          </section>
+        )}
       </div>
     </>
   );

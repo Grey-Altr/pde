@@ -13,7 +13,7 @@ import {
   LayoutDashboard,
 } from "lucide-react";
 
-const routeTabs = [
+const settingsTabs = [
   { href: "/", label: "Sessions", icon: Activity },
   { href: "/settings", label: "Settings", icon: Settings },
 ] as const;
@@ -42,12 +42,12 @@ export function BottomNav({ activePane = 0, onPaneSelect }: BottomNavProps) {
       <nav
         className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur border-t border-border lg:hidden z-50"
         style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
-        aria-label="Dashboard navigation"
+        aria-label="Dashboard pane navigation"
       >
         <div className="overflow-x-auto no-scrollbar">
-          <div className="flex items-center min-w-max">
+          <div className="flex items-center min-w-max px-2">
             {dashboardTabs.map((tab) => {
-              const isActive = tab.index === activePane;
+              const isActive = activePane === tab.index;
               return (
                 <button
                   key={tab.index}
@@ -75,7 +75,7 @@ export function BottomNav({ activePane = 0, onPaneSelect }: BottomNavProps) {
       style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
       aria-label="Main navigation"
     >
-      {routeTabs.map((tab) => {
+      {settingsTabs.map((tab) => {
         const isActive = tab.href === "/" ? pathname === "/" : pathname.startsWith(tab.href);
         return (
           <Link

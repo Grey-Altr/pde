@@ -3,9 +3,9 @@ import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
 import { ClerkProvider } from '@clerk/nextjs';
 import { ThemeProvider } from '@/components/theme-provider';
-import { BottomNav } from '@/components/layout/bottom-nav';
+import { Providers } from '@/components/providers';
+import { DashboardShell } from '@/components/dashboard-shell';
 import { SwRegister } from '@/components/pwa/sw-register';
-import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import './globals.css';
 
 export const viewport: Viewport = {
@@ -46,10 +46,11 @@ export default function RootLayout({
             enableSystem={false}
             disableTransitionOnChange
           >
-            <NuqsAdapter>
-              {children}
-              <BottomNav />
-            </NuqsAdapter>
+            <Providers>
+              <DashboardShell>
+                {children}
+              </DashboardShell>
+            </Providers>
           </ThemeProvider>
           <SwRegister />
         </body>
