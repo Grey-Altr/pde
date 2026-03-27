@@ -110,6 +110,9 @@ if [ -z "$NDJSON_PATH" ]; then
   NDJSON_PATH="/tmp/pde-session-unknown.ndjson"
 fi
 
+# ── Multi-session NDJSON path (Phase 148: tmux integration) ────────────────
+MULTI_NDJSON_PATH="${TMPDIR:-/tmp}/pde-multi-session.ndjson"
+
 # ── Suggestion file path resolution ──────────────────────────────────────────
 SUGG_PATH=$(node -e "
   const fs = require('fs');
@@ -204,12 +207,12 @@ build_full_layout() {
   tmux select-pane -t "${P7}" -T "experiment"
 
   # Start streaming processes in each pane
-  tmux send-keys -t "${P0}" "bash '${PLUGIN_ROOT}/bin/pane-agent-activity.sh' '${ndjson}'" C-m
+  tmux send-keys -t "${P0}" "bash '${PLUGIN_ROOT}/bin/pane-agent-activity.sh' '${MULTI_NDJSON_PATH}'" C-m
   tmux send-keys -t "${P1}" "bash '${PLUGIN_ROOT}/bin/pane-pipeline-progress.sh' '${ndjson}'" C-m
   tmux send-keys -t "${P2}" "bash '${PLUGIN_ROOT}/bin/pane-file-changes.sh' '${ndjson}'" C-m
   tmux send-keys -t "${P3}" "bash '${PLUGIN_ROOT}/bin/pane-context-window.sh' '${ndjson}'" C-m
-  tmux send-keys -t "${P4}" "bash '${PLUGIN_ROOT}/bin/pane-log-stream.sh' '${ndjson}'" C-m
-  tmux send-keys -t "${P5}" "bash '${PLUGIN_ROOT}/bin/pane-token-meter.sh' '${ndjson}'" C-m
+  tmux send-keys -t "${P4}" "bash '${PLUGIN_ROOT}/bin/pane-log-stream.sh' '${MULTI_NDJSON_PATH}'" C-m
+  tmux send-keys -t "${P5}" "bash '${PLUGIN_ROOT}/bin/pane-token-meter.sh' '${MULTI_NDJSON_PATH}'" C-m
   tmux send-keys -t "${P6}" "bash '${PLUGIN_ROOT}/bin/pane-suggestions.sh' '${sugg_path}'" C-m
   tmux send-keys -t "${P7}" "bash '${PLUGIN_ROOT}/bin/pane-experiment.sh' '${ndjson}'" C-m
 }
@@ -225,7 +228,7 @@ build_minimal_layout() {
   tmux select-pane -t "${P0}" -T "agent activity"
   tmux select-pane -t "${P1}" -T "pipeline progress"
 
-  tmux send-keys -t "${P0}" "bash '${PLUGIN_ROOT}/bin/pane-agent-activity.sh' '${ndjson}'" C-m
+  tmux send-keys -t "${P0}" "bash '${PLUGIN_ROOT}/bin/pane-agent-activity.sh' '${MULTI_NDJSON_PATH}'" C-m
   tmux send-keys -t "${P1}" "bash '${PLUGIN_ROOT}/bin/pane-pipeline-progress.sh' '${ndjson}'" C-m
 }
 
@@ -235,6 +238,16 @@ if [ "$COLS" -ge "$MIN_COLS" ] && [ "$ROWS" -ge "$MIN_ROWS" ]; then
 else
   build_minimal_layout "$SESSION" "$NDJSON_PATH"
 fi
+
+# ── Phase 148: Session filter key bindings ─────────────────────────────────
+# s = cycle through running sessions (all → sess1 → sess2 → all)
+# a = reset to all sessions
+# Scoped to pde-monitor session only (-t "$SESSION")
+REGISTRY_PATH="$(cd "$(dirname "$0")/.." && pwd)/.planning/dispatcher.pids"
+tmux bind-key -n s -t "$SESSION" run-shell \
+  "node '${PLUGIN_ROOT}/bin/lib/tmux-cycle-session.cjs' '${REGISTRY_PATH}'"
+tmux bind-key -n a -t "$SESSION" run-shell \
+  "printf 'all' > '${TMPDIR:-/tmp}/pde-tmux-filter.txt'"
 
 # ── Attach or switch ─────────────────────────────────────────────────────────
 if [ "$NESTED" = "true" ]; then
