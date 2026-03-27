@@ -340,4 +340,4 @@ This document evolves at phase transitions and milestone boundaries.
 3. Audit Out of Scope — reasons still valid?
 4. Update Context with current state
 
-*Last updated: 2026-03-27 after Phase 153 — Dashboard Auth UX: 401 detection in useAllSessions with sign-in redirect, 217 dashboard tests passing, INT-AUTH-SILENT gap closed*
+*Last updated: 2026-03-27 after Phase 154 — SSH Source Propagation: relayId UUID wiring, PDE_BACKEND envPrefix injection, PDE_REMOTE/PDE_RELAY_TOKEN conditional injection, emit-event.cjs fallback — SSH sessions now display source='remote-ssh' in dashboard*
