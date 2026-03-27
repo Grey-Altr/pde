@@ -38,6 +38,8 @@
 - [x] **Phase 151: Test & Validation Cleanup** - Fix coordinator-smoke Test 7 SDK stubs and complete Phase 149 Nyquist validation (completed 2026-03-27)
 - [x] **Phase 152: Parallel Session Relay Wiring** - Launch relay process alongside spawned sessions so dashboard receives parallel session data (completed 2026-03-27)
 - [x] **Phase 153: Dashboard Auth UX** - Surface 401 errors in useAllSessions with sign-in redirect instead of blank dashboard (completed 2026-03-27)
+- [ ] **Phase 154: SSH Source Propagation** - Propagate remote-ssh source through event stream so dashboard shows correct session origin
+- [ ] **Phase 155: Retry & Documentation Polish** - Disable retry button when unavailable, document PDE_REMOTE env var for dispatcher
 
 ## Phase Details
 
@@ -197,11 +199,31 @@ Plans:
 Plans:
 - [x] 153-01-PLAN.md — 401 detection in useAllSessions with sign-in redirect
 
+### Phase 154: SSH Source Propagation
+**Goal**: SSH-dispatched sessions display correct `source='remote-ssh'` in dashboard instead of defaulting to `'local'`
+**Depends on**: Phase 146, Phase 147
+**Requirements**: (none — DSH-01, RMT-03 already satisfied; this is correctness polish)
+**Gap Closure**: Closes INT-SOURCE and flow "SSH session source display"
+**Success Criteria** (what must be TRUE):
+  1. SSH-dispatched sessions appear with `source='remote-ssh'` in the session health matrix and event log
+  2. Ingest route propagates source field from relay NDJSON events instead of defaulting to `'local'`
+**Plans**: 0 plans
+
+### Phase 155: Retry & Documentation Polish
+**Goal**: Make retry limitation explicit in UI and document PDE_REMOTE env var for operator setup
+**Depends on**: Phase 150, Phase 152
+**Requirements**: (none — HDN-02, RLY-01, RLY-02 already satisfied; this is UX/doc polish)
+**Gap Closure**: Closes INT-RETRY-STUB, INT-PDE-REMOTE-DOC, and flow "User clicks Retry"
+**Success Criteria** (what must be TRUE):
+  1. Retry button renders disabled with tooltip explaining the limitation when no local dispatcher is available
+  2. PDE_REMOTE env var is documented in dispatcher help text and dashboard/.env.example
+**Plans**: 0 plans
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 143 → 144 → 145 → 146 → 147 → 148 → 149 → 150 → 151 → 152 → 153
-Note: Phase 152 and Phase 153 can execute in parallel (independent gap closure phases).
+Phases execute in numeric order: 143 → 144 → 145 → 146 → 147 → 148 → 149 → 150 → 151 → 152 → 153 → 154 → 155
+Note: Phase 154 and Phase 155 can execute in parallel (independent gap closure phases).
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -216,3 +238,5 @@ Note: Phase 152 and Phase 153 can execute in parallel (independent gap closure p
 | 151. Test & Validation Cleanup | 1/1 | Complete    | 2026-03-27 |
 | 152. Parallel Session Relay Wiring | 1/1 | Complete    | 2026-03-27 |
 | 153. Dashboard Auth UX | 1/1 | Complete    | 2026-03-27 |
+| 154. SSH Source Propagation | 0/0 | Pending | — |
+| 155. Retry & Documentation Polish | 0/0 | Pending | — |
