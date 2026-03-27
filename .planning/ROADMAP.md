@@ -240,5 +240,5 @@ Note: Phase 154 and Phase 155 can execute in parallel (independent gap closure p
 | 151. Test & Validation Cleanup | 1/1 | Complete    | 2026-03-27 |
 | 152. Parallel Session Relay Wiring | 1/1 | Complete    | 2026-03-27 |
 | 153. Dashboard Auth UX | 1/1 | Complete    | 2026-03-27 |
-| 154. SSH Source Propagation | 1/1 | Complete   | 2026-03-27 |
+| 154. SSH Source Propagation | 1/1 | Complete    | 2026-03-27 |
 | 155. Retry & Documentation Polish | 0/0 | Pending | — |
