@@ -125,7 +125,11 @@ Plans:
   1. Pane 1 (agent activity) displays all session spawn events with [L] for local and [R] for remote tags so the user can see which machine each session is running on
   2. Pane 4 (log stream) multiplexes all active session output with a distinct color prefix per session — no session's output is lost or mixed with another's
   3. Pane 5 (token/cost) shows aggregate cost across all active sessions and supports cycling to a single-session view with the `s` key
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 148-01-PLAN.md — TmuxFanout module, coordinator wiring, and unit tests
+- [ ] 148-02-PLAN.md — tmux-cycle-session.cjs helper for session filter cycling
+- [ ] 148-03-PLAN.md — Upgrade pane scripts (agent activity, log stream, token meter) and monitor-dashboard.sh
 
 ### Phase 149: Configuration & Commands
 **Goal**: Users can configure dispatch behavior in config.json and manage active sessions via slash commands — and disabling dispatch results in exactly the current single-session behavior
@@ -151,5 +155,5 @@ Note: Phase 147 (Dashboard) and Phase 148 (tmux) both depend on Phase 144 and ca
 | 145. Agent SDK Orchestrator | 1/2 | Complete    | 2026-03-26 |
 | 146. Remote Dispatch | 2/3 | Complete    | 2026-03-27 |
 | 147. Dashboard Integration | 4/5 | Complete    | 2026-03-27 |
-| 148. tmux Integration | 0/TBD | Not started | - |
+| 148. tmux Integration | 0/3 | Not started | - |
 | 149. Configuration & Commands | 0/TBD | Not started | - |
