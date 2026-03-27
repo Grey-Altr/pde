@@ -27,6 +27,17 @@ const VALID_CONFIG_KEYS = new Set([
   'experiment_defaults.consecutive_failure_limit', // Phase 101: override consecutive failure limit
   'experiment_defaults.no_progress_limit', // Phase 101: override no-progress limit
   'experiment_defaults.cost_estimate_enabled', // Phase 101: enable/disable cost estimation
+  'dispatch.enabled', // Phase 149: enable/disable parallel dispatch (false blocks both dispatch case and --parallel flag)
+  'dispatch.max_local_sessions', // Phase 149: max concurrent local agent sessions (overrides --max-concurrent default of 3)
+  'dispatch.max_remote_sessions', // Phase 149: max concurrent remote agent sessions
+  'dispatch.remote.host', // Phase 149: remote SSH host for remote dispatch
+  'dispatch.remote.username', // Phase 149: SSH username for remote dispatch
+  'dispatch.remote.identity_file', // Phase 149: path to SSH identity file for remote dispatch
+  'dispatch.remote.repo_path', // Phase 149: path to repo on remote host
+  'dispatch.remote.plugin_dir', // Phase 149: path to PDE plugin dir on remote host
+  'dispatch.remote.preferred_backend', // Phase 149: preferred backend type for remote dispatch
+  'dispatch.remote.env', // Phase 149: environment variables to pass to remote sessions
+  'dispatch.routing.fallback_to_local', // Phase 149: fall back to local execution if remote dispatch fails
 ]);
 
 const CONFIG_KEY_SUGGESTIONS = {
