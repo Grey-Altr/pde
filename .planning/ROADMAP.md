@@ -212,5 +212,5 @@ Note: Phase 152 and Phase 153 can execute in parallel (independent gap closure p
 | 149. Configuration & Commands | 2/3 | Complete    | 2026-03-27 |
 | 150. Dashboard Hardening | 1/1 | Complete    | 2026-03-27 |
 | 151. Test & Validation Cleanup | 1/1 | Complete    | 2026-03-27 |
-| 152. Parallel Session Relay Wiring | 1/1 | Complete   | 2026-03-27 |
+| 152. Parallel Session Relay Wiring | 1/1 | Complete    | 2026-03-27 |
 | 153. Dashboard Auth UX | 0/0 | Not Started | — |
