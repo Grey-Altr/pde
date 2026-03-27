@@ -155,5 +155,5 @@ Note: Phase 147 (Dashboard) and Phase 148 (tmux) both depend on Phase 144 and ca
 | 145. Agent SDK Orchestrator | 1/2 | Complete    | 2026-03-26 |
 | 146. Remote Dispatch | 2/3 | Complete    | 2026-03-27 |
 | 147. Dashboard Integration | 4/5 | Complete    | 2026-03-27 |
-| 148. tmux Integration | 3/3 | Complete   | 2026-03-27 |
+| 148. tmux Integration | 3/3 | Complete    | 2026-03-27 |
 | 149. Configuration & Commands | 0/TBD | Not started | - |
