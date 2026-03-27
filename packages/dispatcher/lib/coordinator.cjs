@@ -55,6 +55,9 @@ const { analyzeDag, checkFileOverlap, summarizeFailure, triageConflicts } = requ
 const { routeSession } = require('./remote-router.cjs');
 const { spawnRemoteSession } = require('./remote-ssh.cjs');
 
+// Phase 148: tmux pane integration fan-out writer
+const { TmuxFanout } = require('./tmux-fanout.cjs');
+
 /**
  * Read autonomous: true/false from PLAN.md YAML frontmatter.
  * Pure static regex parse -- same pattern as orchestrator.cjs checkFileOverlap.
@@ -108,6 +111,11 @@ class DispatchCoordinator {
     // Dependency injection — allows test doubles without vi.mock() hoisting.
     // Production code never passes _deps; tests inject stubs here.
     const deps = options._deps || {};
+
+    // Phase 148: tmux fan-out writer — starts immediately, stops on shutdown
+    const TmuxFanoutClass = deps.TmuxFanout || TmuxFanout;
+    this._tmuxFanout = new TmuxFanoutClass(this._aggregator, this._registry);
+    this._tmuxFanout.start();
     this._spawnSession = deps.spawnSession || spawnSession;
     this._createWorktree = deps.createWorktree || createWorktree;
     this._removeWorktree = deps.removeWorktree || removeWorktree;
@@ -422,6 +430,7 @@ class DispatchCoordinator {
       kill();
     }
     this._aggregator.stopAll();
+    this._tmuxFanout.stop();
   }
 
   /**
