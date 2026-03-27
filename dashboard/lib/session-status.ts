@@ -1,4 +1,4 @@
-export type SessionStatus = 'active' | 'idle' | 'error' | 'complete';
+export type SessionStatus = 'active' | 'idle' | 'error' | 'complete' | 'failed' | 'queued';
 
 export function deriveStatus(
   lastEventType: string,
