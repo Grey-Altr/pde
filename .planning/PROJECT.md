@@ -177,7 +177,7 @@ Any user can go from idea to shipped product through a single platform that hand
 
 ## Current State
 
-**Building v0.18 Distributed Execution** — Phase 145 (Agent SDK Orchestrator) complete. SDK bridge for ESM-to-CJS interop, four orchestrator functions (analyzeDag, checkFileOverlap, summarizeFailure, triageConflicts) wired into DispatchCoordinator via _deps injection. DAG analysis cached per coordinator, file overlap warnings before each wave, failure summaries and conflict triage in _handleExit. 116 tests across 13 files.
+**Building v0.18 Distributed Execution** — Phase 146 (Remote Dispatch) complete. Autonomous sessions can be routed to configured SSH remote hosts with fallback chain (managed→SSH→local). SSH backend via node-ssh dispatches sessions to remote worktrees, streams NDJSON back for dashboard consumption. Managed backend deferred as detection stub. Router reads dispatch.remote config. 27 new tests (143 total across dispatcher). Phase 145 (Agent SDK Orchestrator) also complete — SDK bridge, DAG analysis, file overlap, failure summaries, conflict triage.
 
 ### Out of Scope
 
@@ -337,4 +337,4 @@ This document evolves at phase transitions and milestone boundaries.
 3. Audit Out of Scope — reasons still valid?
 4. Update Context with current state
 
-*Last updated: 2026-03-26 after Phase 144 — Local CLI Dispatch: subprocess spawn, registry, queue, aggregator, coordinator, --parallel wiring (3 plans, 9 requirements, 89 tests)*
+*Last updated: 2026-03-27 after Phase 146 — Remote Dispatch: SSH backend, session router, managed stub, coordinator wiring (3 plans, 6 requirements, 27 new tests)*
