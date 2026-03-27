@@ -78,6 +78,18 @@ export async function POST(request: Request): Promise<NextResponse> {
     started_at: String(new Date(validatedBatch[0].relay_ts).getTime()),
   });
 
+  // Store session_source on first event (DSH-01)
+  for (const event of validatedBatch) {
+    if (event.event_type === 'session_start') {
+      const evPayload = event as Record<string, unknown>;
+      const sessionSource = String(evPayload.source ?? 'local');
+      p.hset(`pde:default:session:${sessionId}`, {
+        session_source: sessionSource,
+      });
+      break;
+    }
+  }
+
   // Track pending approval on session hash (APR-01: enables approval badge on SessionCard)
   for (const event of validatedBatch) {
     if (event.event_type === 'approval_request' && event.approval_id) {

@@ -12,6 +12,7 @@ export interface SessionListItem {
   lastEventTs: number;
   startedAt: number;
   pendingApprovalId: string | null;  // APR-01: non-null when approval pending
+  source: 'local' | 'remote-ssh' | 'remote-managed';
 }
 
 /**
@@ -61,6 +62,7 @@ export async function getSessions(): Promise<SessionListItem[]> {
       lastEventTs,
       startedAt,
       pendingApprovalId,
+      source: (raw.session_source as SessionListItem['source']) || 'local',
     });
   }
   return sessions;
@@ -84,6 +86,7 @@ export async function getSessionMeta(sessionId: string): Promise<SessionListItem
     lastEventTs,
     startedAt,
     pendingApprovalId,
+    source: (raw.session_source as SessionListItem['source']) || 'local',
   };
 }
 

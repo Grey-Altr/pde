@@ -147,8 +147,8 @@ describe('POST /api/ingest', () => {
     // zadd should be called for each event + once for session registry
     expect(mockZadd).toHaveBeenCalledTimes(2); // 1 event + session registry
 
-    // hset should be called once for session metadata
-    expect(mockHset).toHaveBeenCalledTimes(1);
+    // hset should be called twice: session metadata + session_source (DSH-01)
+    expect(mockHset).toHaveBeenCalledTimes(2);
 
     // exec should be called once
     expect(mockExec).toHaveBeenCalledTimes(1);
