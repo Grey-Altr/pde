@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { StatusBadge } from '@/components/status-badge';
 import { sessionColor } from '@/lib/session-colors';
+import { cn } from '@/lib/utils';
 import type { SessionListItem } from '@/lib/queries';
 
 interface SessionHealthMatrixProps {
@@ -57,8 +58,7 @@ export function SessionHealthMatrix({ sessions }: SessionHealthMatrixProps) {
                 <td className="py-2 pr-2 pl-0">
                   <Link href={`/sessions/${session.id}`} className="flex items-center">
                     <span
-                      className="w-1 self-stretch rounded-r-sm mr-3"
-                      style={{ backgroundColor: sessionColor(index) }}
+                      className={cn("w-1 self-stretch rounded-r-sm mr-3", sessionColor(index))}
                       aria-hidden
                     />
                     <StatusBadge status={session.status} />

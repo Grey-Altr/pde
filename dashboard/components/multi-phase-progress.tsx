@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress, ProgressIndicator } from '@/components/ui/progress';
 import { sessionColor } from '@/lib/session-colors';
+import { cn } from '@/lib/utils';
 import type { SessionListItem } from '@/lib/queries';
 import type { ProgressVariant } from '@/components/ui/progress';
 
@@ -61,13 +62,11 @@ export function MultiPhaseProgress({ sessions }: MultiPhaseProgressProps) {
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 min-w-0">
                   <span
-                    className="w-2 h-2 rounded-full shrink-0"
-                    style={{ backgroundColor: accent }}
+                    className={cn("w-2 h-2 rounded-full shrink-0", accent.split(' ')[0])}
                     aria-hidden
                   />
                   <span
-                    className="text-sm font-medium truncate"
-                    style={{ color: accent }}
+                    className={cn("text-sm font-medium truncate", accent.split(' ')[1])}
                   >
                     {phaseName}
                   </span>
