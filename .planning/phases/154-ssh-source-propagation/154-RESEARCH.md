@@ -328,3 +328,231 @@ Note: The dashboard tests (SS-01 through SS-10) already cover the ingest and que
 
 **Research date:** 2026-03-27
 **Valid until:** 2026-04-27 (stable codebase; no fast-moving external dependencies)
+
+---
+
+## Verification Deep-Dive
+
+**Verified:** 2026-03-27
+**Method:** Line-by-line code reading of every file in the data flow
+
+This section verifies each claim from the prior research by tracing actual code. Several claims are CONFIRMED, one claim has an important PARTIAL CORRECTION, and two previously undocumented issues are newly identified.
+
+---
+
+### Claim 1: remote-ssh.cjs envPrefix lacks PDE_BACKEND
+
+**Verdict: CONFIRMED**
+
+Evidence: `packages/dispatcher/lib/remote-ssh.cjs` lines 103-108:
+```javascript
+const envPrefix =
+  'CLAUDECODE= ' +
+  'PDE_SESSION_ID=' + opts.sessionId + ' ' +
+  'PDE_PHASE=' + opts.phase + ' ' +
+  'PDE_PLAN=' + opts.plan +
+  (extraEnv ? ' ' + extraEnv : '');
+```
+
+`PDE_BACKEND` is absent. The env prefix only sets CLAUDECODE (empty), PDE_SESSION_ID, PDE_PHASE, PDE_PLAN, and optional user-supplied extraEnv. No source attribution reaches the remote process.
+
+**Also verified:** `extraEnv` comes from `Object.entries(opts.remoteConfig.env || {}).map(([k, v]) => k + '=' + v).join(' ')` (lines 95-97). The `remoteConfig` shape is `{ host, username, identity_file, repo_path, plugin_dir, env }` per the JSDoc. The `env` field is user-configurable extra vars -- no built-in PDE_BACKEND is injected there today.
+
+---
+
+### Claim 2: emit-event.cjs is the correct place to add the fallback
+
+**Verdict: CONFIRMED WITH IMPORTANT NUANCE**
+
+Evidence: `hooks/emit-event.cjs` lines 93-96:
+```javascript
+if (hookName === 'SessionStart') {
+  if (hookData.model)  payload.model  = hookData.model;
+  if (hookData.source) payload.source = hookData.source;
+}
+```
+
+This is where `source` enters the payload. Confirmed correct fix location.
+
+**Critical nuance -- emit-event.cjs does NOT write the event directly.** The actual write path is:
+
+1. `emit-event.cjs` calls `spawnSync(process.execPath, [pdeTools, 'event-emit', eventType, JSON.stringify(payload)])` (line 113)
+2. `pde-tools.cjs` `case 'event-emit'` receives the payload as `args[2]`, parses it with `JSON.parse(args[2])` (line 837), then merges it into an envelope (lines 850-856):
+
+```javascript
+const envelope = {
+  schema_version: '1.0',
+  ts: new Date().toISOString(),
+  event_type: eventType,
+  session_id: sessionId,
+  ...payload,       // <-- source field from emit-event.cjs payload arrives here
+  extensions: payload.extensions || {},
+};
+safeAppendEvent(sessionId, envelope);
+```
+
+The `source` field survives the JSON serialization round-trip through `spawnSync` args intact, provided `emit-event.cjs` sets it in `payload` before calling `spawnSync`. The research fix is at the right layer.
+
+**Additional finding:** `pde-tools.cjs` also sets `session_id` from `config.json` (line 844-847), not from the payload. For SSH sessions this is the PDE_SESSION_ID written by the `session-start` subcommand at line 809: `const newSessionId = process.env.PDE_SESSION_ID || randomUUID();`. Since PDE_SESSION_ID is set in the envPrefix (line 105 of remote-ssh.cjs), the session_id in the NDJSON file will be `opts.sessionId` (the coordinator's session ID string like `p146-1-abc12345`), NOT a UUID.
+
+**WARNING -- Session ID format mismatch (newly identified, see Finding 1).**
+
+---
+
+### Claim 3: Dashboard layer is already complete (ingest + queries)
+
+**Verdict: CONFIRMED**
+
+Evidence:
+- `dashboard/app/api/ingest/route.ts` lines 82-91: scans batch for `session_start`, stores `String(evPayload.source ?? 'local')` as `session_source`. Correct.
+- `dashboard/lib/queries.ts` lines 55-58: reads `session_source` from Redis hash, whitelists `remote-ssh` and `remote-managed`, defaults to `local`. Correct.
+- `dashboard/lib/wire-schema.ts` line 13: `.passthrough()` on `WireEnvelopeSchema`. Confirmed.
+- `dashboard/__tests__/session-source.test.ts` SS-01 through SS-10: tests cover all ingest and queries paths. The tests mock Redis correctly and verify the full source storage and retrieval pipeline.
+
+No changes needed in the dashboard layer. Claim is accurate.
+
+---
+
+### Claim 4: WireEnvelopeSchema uses .passthrough() so no schema changes needed
+
+**Verdict: CONFIRMED**
+
+Evidence: `dashboard/lib/wire-schema.ts` line 13: `}).passthrough();`. Also confirmed in `bin/lib/relay-protocol.cjs` line 70: `}).passthrough();`. Both the CJS relay-side schema and the TypeScript dashboard-side schema use passthrough.
+
+`createEnvelope` in `relay-protocol.cjs` lines 93-101 uses `...pdeEvent` spread after the explicit fields, so any `source` field present in the PDE event is preserved in the envelope. The `approval_id` is handled explicitly before the spread (line 99) but `source` is not -- it passes through cleanly.
+
+**One subtle point:** the spread order `{ seq, session_id, machine_id, relay_ts, approval_id, ...pdeEvent }` means if `pdeEvent` contained a `seq`, `session_id`, `machine_id`, or `relay_ts` field, they would be overwritten by the pdeEvent values since the spread comes AFTER. But `source` is not one of those fields, so there is no collision risk. No schema change needed. Claim is accurate.
+
+---
+
+### Claim 5: Both relay architectures run through the same emit-event.cjs
+
+**Verdict: CONFIRMED**
+
+Evidence:
+- `hooks/hooks.json` lines 47-71: `SessionStart` hook array includes `emit-event.cjs` (async: false, runs first) and then `start-relay.cjs` (async: true). Both local and SSH sessions run the same hooks file.
+- `coordinator.cjs` line 247: `if (backend !== 'ssh') { const relayHandle = this._spawnRelay(relayId); ... }` -- SSH sessions skip the coordinator-side relay. Instead, `start-relay.cjs` on the remote machine spawns `relay.cjs` when `PDE_REMOTE` is set in the remote process environment.
+- `hooks/start-relay.cjs` line 31: `if (!process.env.PDE_REMOTE) { process.exit(0); }` -- the remote relay only activates when PDE_REMOTE is present. For SSH sessions, PDE_REMOTE must come from the SSH envPrefix (via `extraEnv` from `remoteConfig.env`) -- see Finding 2.
+
+Both relay paths read the same NDJSON file written by `pde-tools.cjs event-emit`. Claim is correct that `emit-event.cjs` is the correct single fix point.
+
+---
+
+### NEW FINDING 1: Session ID Format Mismatch for SSH Sessions
+
+**Severity: HIGH -- may cause relay to fail silently for SSH sessions**
+
+**Evidence:**
+
+`remote-ssh.cjs` line 105 sets `PDE_SESSION_ID=p146-1-abc12345` (a non-UUID string like `p${phase}-${plan}-${hex8}`).
+
+`pde-tools.cjs` `case 'session-start'` line 809: `const newSessionId = process.env.PDE_SESSION_ID || randomUUID();`
+
+So the session ID written to `config.json` for SSH sessions is a short non-UUID string (e.g. `p146-1-abc12345`), NOT a UUID.
+
+`bin/lib/relay-protocol.cjs` line 62: `session_id: z.string().uuid()` -- the WireEnvelopeSchema (relay-side CJS) requires a valid UUID v4 for `session_id`.
+
+`dashboard/lib/wire-schema.ts` line 5: `session_id: z.string().uuid()` -- the dashboard-side schema also requires UUID.
+
+**The consequence:** If the session_id in the NDJSON event is `p146-1-abc12345`, then `WireEnvelopeSchema.safeParse(envelope)` at `relay.cjs` line 471 will FAIL, and the event will be silently dropped: `if (!result.success) return;`. The relay will drop ALL events for SSH sessions with non-UUID session IDs.
+
+**However -- there is a mitigating mechanism:** The remote `start-relay.cjs` uses the session ID from `config.json` (lines 43-45) for naming the NDJSON file path and for `relay.cjs argv[2]`. But `createEnvelope(sessionId, pdeEvent)` in relay.cjs uses the sessionId from `argv[2]`, which is the value from `config.json`. If that is `p146-1-abc12345`, then `session_id` in the envelope will be a non-UUID, and schema validation will fail.
+
+**Comparison with local sessions:** `coordinator.cjs` line 220 generates `const relayId = crypto.randomUUID()` and passes it as `opts.relayId` to `spawnSession()`. `spawn.cjs` line 47: `env.PDE_SESSION_ID = opts.relayId || sessionId`. So LOCAL sessions have `PDE_SESSION_ID` set to a proper UUID (the `relayId`), and the relay works correctly.
+
+**For SSH sessions:** `remote-ssh.cjs` line 105 sets `PDE_SESSION_ID=opts.sessionId` which is `p146-1-abc12345`. There is no relay UUID pre-assigned for SSH sessions. There is no `relayId` concept in `_runRemoteSession`.
+
+**This is likely why the prior research says SSH session relay is "operational" but source never shows up: the relay may be dropping all events due to UUID validation failure.**
+
+**Resolution required in Phase 154:** `_runRemoteSession` must generate a `relayId = crypto.randomUUID()` and pass it as `PDE_SESSION_ID` in the remote envPrefix (just as `_runSession` does for local sessions via `spawn.cjs`). The coordinator must also call `this._aggregator.watch(relayId)` for SSH sessions (currently it only does this for non-SSH sessions implicitly through the relay spawn path). Check coordinator.cjs line 243: `this._aggregator.watch(relayId)` is called BEFORE the backend check -- but `relayId` for SSH sessions is the local `relayId` generated at line 220. The remote machine does not know this UUID. The remote `start-relay.cjs` spawns relay.cjs with the session_id from `config.json` (which will be whatever PDE_SESSION_ID is set to in the SSH command).
+
+**Revised fix for remote-ssh.cjs:** The caller (`_runRemoteSession`) must pass a UUID as `opts.relayId`, and `remote-ssh.cjs` must use `opts.relayId || opts.sessionId` for the `PDE_SESSION_ID` env var -- matching the spawn.cjs pattern exactly.
+
+**Alternatively:** Check whether the coordinator already passes a relayId to `_runRemoteSession` -- it currently does NOT (lines 353-371 show `_runRemoteSession` called with `sessionId, phase, plan, worktreePath, branch` -- no relayId). This must be added.
+
+---
+
+### NEW FINDING 2: PDE_REMOTE Is Not Set in the SSH Remote Environment
+
+**Severity: HIGH -- start-relay.cjs silently exits without spawning relay for SSH sessions**
+
+**Evidence:**
+
+`hooks/start-relay.cjs` line 31: `if (!process.env.PDE_REMOTE) { process.exit(0); }` -- the relay only starts if `PDE_REMOTE` is set.
+
+`remote-ssh.cjs` envPrefix (lines 103-108): `CLAUDECODE= PDE_SESSION_ID=... PDE_PHASE=... PDE_PLAN= [extraEnv]` -- `PDE_REMOTE` is NOT in the envPrefix.
+
+`PDE_REMOTE` can only reach the remote process via `opts.remoteConfig.env` (user-configured extra env vars from `dispatch.remote.env` in config.json). There is no built-in injection of `PDE_REMOTE` into the SSH command.
+
+**The consequence:** Unless the user manually adds `PDE_REMOTE=https://dashboard.example.com/api/ingest` to their `dispatch.remote.env` config block, `start-relay.cjs` will silently exit without spawning a relay on the remote machine. No events from SSH sessions will reach the dashboard at all.
+
+**This finding is independent of the source attribution bug.** Even after fixing `PDE_BACKEND` and `source`, SSH sessions will produce no relay traffic unless `PDE_REMOTE` is in the environment.
+
+**Whether this is a pre-existing bug or Phase 154's scope:** Looking at the phase description -- "SSH-dispatched sessions display correct `source='remote-ssh'` in dashboard" -- the bug description implies events ARE reaching the dashboard but with wrong source. If `PDE_REMOTE` is absent, no events reach the dashboard at all. Either: (a) users are expected to set `PDE_REMOTE` in `remoteConfig.env` manually (documented elsewhere), or (b) this is a second bug that prevents relay from ever running.
+
+**Required investigation:** Check whether Phase 146 (Remote Dispatch) included documentation or configuration requirements for `PDE_REMOTE` in `remoteConfig.env`. If it did, the relay can work for properly-configured users. If it did not, Phase 154 may need to also inject `PDE_REMOTE` (and `PDE_RELAY_TOKEN`) into the SSH envPrefix.
+
+**The fix if needed:** Add to remote-ssh.cjs envPrefix (reading from `opts.remoteConfig` or a new `opts.ingestUrl` / `opts.relayToken` field):
+```javascript
+const ingestUrl = opts.remoteConfig.ingest_url || process.env.PDE_REMOTE || '';
+const relayToken = opts.remoteConfig.relay_token || process.env.PDE_RELAY_TOKEN || '';
+// Add to envPrefix:
+(ingestUrl ? ' PDE_REMOTE=' + ingestUrl : '') +
+(relayToken ? ' PDE_RELAY_TOKEN=' + relayToken : '') +
+```
+
+---
+
+### Claim Verification Summary
+
+| Claim | Verdict | Evidence Location |
+|-------|---------|-------------------|
+| remote-ssh.cjs lacks PDE_BACKEND in envPrefix | CONFIRMED | remote-ssh.cjs:103-108 |
+| emit-event.cjs is the correct fix location for source | CONFIRMED (with nuance: calls pde-tools.cjs via spawnSync) | emit-event.cjs:113, pde-tools.cjs:850-856 |
+| Dashboard layer complete (ingest + queries) | CONFIRMED | route.ts:82-91, queries.ts:55-58, SS-01..SS-10 |
+| WireEnvelopeSchema .passthrough() handles source | CONFIRMED | wire-schema.ts:13, relay-protocol.cjs:70 |
+| Both relay architectures share emit-event.cjs | CONFIRMED | hooks.json:47-71, coordinator.cjs:247 |
+| Two-file fix is sufficient (remote-ssh.cjs + emit-event.cjs) | PARTIALLY WRONG | See Findings 1 and 2 |
+
+---
+
+### Revised Implementation Plan
+
+The prior research identified two changes. The verification reveals two additional changes are needed:
+
+**Change 1 (confirmed from prior research):** `hooks/emit-event.cjs` -- add PDE_BACKEND fallback for source on SessionStart. Lines 93-96. Small, safe, additive.
+
+**Change 2 (confirmed from prior research):** `packages/dispatcher/lib/remote-ssh.cjs` -- add `PDE_BACKEND=remote-ssh` to envPrefix. Lines 103-108. Small, safe.
+
+**Change 3 (NEW -- Finding 1):** `packages/dispatcher/lib/coordinator.cjs` `_runRemoteSession` -- generate and pass a `relayId` UUID to `_spawnRemoteSession`, then use it for `this._aggregator.watch(relayId)` and `this._relayIds.set(sessionId, relayId)`. Also update `remote-ssh.cjs` to accept `opts.relayId` and use `opts.relayId || opts.sessionId` for `PDE_SESSION_ID` in the envPrefix -- matching the spawn.cjs pattern (spawn.cjs line 47: `env.PDE_SESSION_ID = opts.relayId || sessionId`).
+
+**Change 4 (NEW -- Finding 2, conditional):** `packages/dispatcher/lib/remote-ssh.cjs` -- inject `PDE_REMOTE` and `PDE_RELAY_TOKEN` into the SSH envPrefix if the remoteConfig includes `ingest_url` / `relay_token` fields, OR if the coordinator's process.env has PDE_REMOTE set. Without this, `start-relay.cjs` on the remote machine silently exits without creating a relay. **This change is CONDITIONAL on confirming that Phase 146 did not already document a manual `remoteConfig.env` solution for users.** Before implementing, verify by checking Phase 146 plan/docs for `PDE_REMOTE` injection guidance.
+
+**Files that need changes (revised):**
+
+| File | Change | Confirmed Needed |
+|------|--------|-----------------|
+| `hooks/emit-event.cjs` | Add PDE_BACKEND fallback for source | YES |
+| `packages/dispatcher/lib/remote-ssh.cjs` | Add PDE_BACKEND to envPrefix; add relayId support; conditionally inject PDE_REMOTE/PDE_RELAY_TOKEN | YES |
+| `packages/dispatcher/lib/coordinator.cjs` | Generate relayId in _runRemoteSession, pass to spawnRemoteSession | YES (if Finding 1 is confirmed as a bug) |
+
+---
+
+### Files Verified in This Deep-Dive
+
+| File | Key Finding |
+|------|-------------|
+| `packages/dispatcher/lib/remote-ssh.cjs` | envPrefix confirmed missing PDE_BACKEND; also missing PDE_REMOTE; PDE_SESSION_ID uses non-UUID sessionId |
+| `hooks/emit-event.cjs` | source handling confirmed at lines 93-96; fix location is correct |
+| `bin/pde-tools.cjs` | event-emit case (lines 824-863) is the actual NDJSON writer; receives payload from emit-event.cjs via spawnSync args; source survives round-trip |
+| `bin/lib/event-bus.cjs` | safeAppendEvent writes to /tmp/pde-session-{id}.ndjson; sessionId comes from payload or module-level _sessionId |
+| `bin/lib/relay-protocol.cjs` | createEnvelope (lines 93-101) spreads pdeEvent after explicit fields; source passes through; .passthrough() on schema (line 70) |
+| `bin/lib/relay.cjs` | startRelay daemon mode (lines 527-539): reads sessionId from argv[2], which is what start-relay.cjs passes from config.json |
+| `hooks/start-relay.cjs` | PDE_REMOTE gate at line 31; sessionId from config.json (lines 43-45); spawns relay.cjs with sessionId, ingestUrl, bearerToken |
+| `hooks/hooks.json` | SessionStart runs emit-event.cjs (async:false) then start-relay.cjs (async:true); order confirmed |
+| `packages/dispatcher/lib/coordinator.cjs` | SSH path skips local relay spawn (line 247); relayId generated at line 220 but NOT passed to _runRemoteSession; aggregator.watch(relayId) called for all sessions at line 243 |
+| `packages/dispatcher/lib/spawn.cjs` | env.PDE_SESSION_ID = opts.relayId || sessionId (line 47); UUID pattern for local sessions |
+| `dashboard/app/api/ingest/route.ts` | source storage confirmed at lines 82-91 |
+| `dashboard/lib/queries.ts` | source field mapping confirmed at lines 55-58 |
+| `dashboard/lib/wire-schema.ts` | .passthrough() confirmed at line 13; UUID required for session_id at line 5 |
+| `dashboard/__tests__/session-source.test.ts` | SS-01..SS-10 tests confirmed; cover ingest and queries layers only |
