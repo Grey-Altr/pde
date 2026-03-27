@@ -69,8 +69,8 @@ Requirements for Distributed Execution milestone. Each maps to roadmap phases.
 - [ ] **TMX-01**: Dispatcher writes aggregated NDJSON for multi-session tmux pane consumption
 - [ ] **TMX-02**: Pane 1 (agent activity) shows all session spawns with [L]/[R] tags
 - [ ] **TMX-03**: Pane 4 (log stream) multiplexes all active sessions with color prefix
-- [ ] **TMX-04**: Pane 5 (token/cost) shows aggregate across all sessions
-- [ ] **TMX-05**: Session switching via `s` key (cycle) and `a` key (all)
+- [x] **TMX-04**: Pane 5 (token/cost) shows aggregate across all sessions
+- [x] **TMX-05**: Session switching via `s` key (cycle) and `a` key (all)
 
 ### Configuration
 
@@ -157,8 +157,8 @@ Deferred to future release.
 | TMX-01 | Phase 148 | Pending |
 | TMX-02 | Phase 148 | Pending |
 | TMX-03 | Phase 148 | Pending |
-| TMX-04 | Phase 148 | Pending |
-| TMX-05 | Phase 148 | Pending |
+| TMX-04 | Phase 148 | Complete |
+| TMX-05 | Phase 148 | Complete |
 | CFG-01 | Phase 149 | Pending |
 | CFG-02 | Phase 149 | Pending |
 | CFG-03 | Phase 149 | Pending |
