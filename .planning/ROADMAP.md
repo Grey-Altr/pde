@@ -140,7 +140,11 @@ Plans:
   2. `/gsd:sessions` lists all active sessions with their phase, status, source, and runtime; `/gsd:sessions stop <id>` stops a specific session cleanly
   3. `/gsd:settings` exposes and allows editing of the dispatch configuration block
   4. Setting dispatch.enabled: false produces zero behavioral difference from the current pre-v0.18 workflow — no extra steps, no new prompts, no changed output
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 149-01-PLAN.md — Config keys extension, dispatch wiring fix, and graceful degradation guards
+- [ ] 149-02-PLAN.md — Session list/stop subcommands and /pde:sessions command
+- [ ] 149-03-PLAN.md — Settings workflow dispatch configuration extension
 
 ## Progress
 
@@ -156,4 +160,4 @@ Note: Phase 147 (Dashboard) and Phase 148 (tmux) both depend on Phase 144 and ca
 | 146. Remote Dispatch | 2/3 | Complete    | 2026-03-27 |
 | 147. Dashboard Integration | 4/5 | Complete    | 2026-03-27 |
 | 148. tmux Integration | 3/3 | Complete    | 2026-03-27 |
-| 149. Configuration & Commands | 0/TBD | Not started | - |
+| 149. Configuration & Commands | 0/3   | Not started | - |
