@@ -5,6 +5,7 @@ import { ClerkProvider } from '@clerk/nextjs';
 import { ThemeProvider } from '@/components/theme-provider';
 import { BottomNav } from '@/components/layout/bottom-nav';
 import { SwRegister } from '@/components/pwa/sw-register';
+import { NuqsAdapter } from 'nuqs/adapters/next/app';
 import './globals.css';
 
 export const viewport: Viewport = {
@@ -45,8 +46,10 @@ export default function RootLayout({
             enableSystem={false}
             disableTransitionOnChange
           >
-            {children}
-            <BottomNav />
+            <NuqsAdapter>
+              {children}
+              <BottomNav />
+            </NuqsAdapter>
           </ThemeProvider>
           <SwRegister />
         </body>

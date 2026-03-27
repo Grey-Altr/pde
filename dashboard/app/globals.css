@@ -10,6 +10,27 @@
     from { height: var(--radix-accordion-content-height, var(--accordion-panel-height, auto)); }
     to { height: 0; }
   }
+  @keyframes progress-stripes {
+    from { background-position-x: 1rem; }
+    to   { background-position-x: 0; }
+  }
+}
+
+.progress-striped {
+  background-image: repeating-linear-gradient(
+    45deg,
+    currentColor 0,
+    currentColor 0.25rem,
+    transparent 0.25rem,
+    transparent 0.5rem
+  );
+  background-size: 1rem 1rem;
+}
+.progress-executing {
+  animation: progress-stripes 0.6s linear infinite;
+}
+.progress-waiting {
+  animation: progress-stripes 2s linear infinite;
 }
 
 @custom-variant data-open {

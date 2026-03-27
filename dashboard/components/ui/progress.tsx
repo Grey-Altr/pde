@@ -4,6 +4,8 @@ import { Progress as ProgressPrimitive } from "@base-ui/react/progress"
 
 import { cn } from "@/lib/utils"
 
+export type ProgressVariant = 'executing' | 'waiting' | 'failed' | 'complete';
+
 function Progress({
   className,
   children,
@@ -40,12 +42,19 @@ function ProgressTrack({ className, ...props }: ProgressPrimitive.Track.Props) {
 
 function ProgressIndicator({
   className,
+  variant,
   ...props
-}: ProgressPrimitive.Indicator.Props) {
+}: ProgressPrimitive.Indicator.Props & { variant?: ProgressVariant }) {
   return (
     <ProgressPrimitive.Indicator
       data-slot="progress-indicator"
-      className={cn("h-full bg-primary transition-all", className)}
+      className={cn(
+        "h-full bg-primary transition-all",
+        variant === 'executing' && "progress-striped progress-executing",
+        variant === 'waiting'   && "progress-striped progress-waiting",
+        variant === 'failed'    && "opacity-30",
+        className
+      )}
       {...props}
     />
   )
