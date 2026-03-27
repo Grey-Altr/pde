@@ -12,7 +12,7 @@ interface MultiPhaseProgressProps {
   sessions: SessionListItem[];
 }
 
-function deriveVariant(phaseSessions: SessionListItem[]): ProgressVariant {
+export function deriveVariant(phaseSessions: SessionListItem[]): ProgressVariant {
   const statuses = phaseSessions.map(s => s.status);
   if (statuses.some(s => s === 'failed' || s === 'error')) return 'failed';
   if (statuses.some(s => s === 'active')) return 'executing';

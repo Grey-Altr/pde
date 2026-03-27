@@ -15,7 +15,7 @@ interface ActionChevronProps {
  * Extracts the last 3 unique event_type values for the given sessionId,
  * ordered oldest-to-newest so the rightmost item is the current state.
  */
-function extractLastEventTypes(events: WireEnvelope[], sessionId: string): string[] {
+export function extractLastEventTypes(events: WireEnvelope[], sessionId: string): string[] {
   const sessionEvents = events.filter(e => e.session_id === sessionId);
   // Deduplicate consecutive identical event types, then take last 3
   const deduped: string[] = [];
