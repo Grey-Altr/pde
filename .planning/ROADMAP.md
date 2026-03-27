@@ -157,6 +157,8 @@ Plans:
   1. `/api/sessions` route requires Clerk auth — unauthenticated requests receive 401
   2. FailureCard Retry/Abandon/Kill buttons trigger real server actions that interact with the dispatcher SessionRegistry
 **Plans**: 1 plan
+Plans:
+- [ ] 150-01-PLAN.md — Auth guard for /api/sessions + FailureCard server actions wiring
 
 ### Phase 151: Test & Validation Cleanup
 **Goal**: Fix test infrastructure gap and complete Nyquist validation for Phase 149
