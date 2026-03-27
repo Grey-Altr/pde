@@ -1,9 +1,9 @@
 ---
 phase: 152
 slug: parallel-relay-wiring
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: validated
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-27
 ---
 
@@ -38,12 +38,12 @@ created: 2026-03-27
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 152-01-01 | 01 | 1 | RLY-01 | unit | `npx vitest run tests/dispatcher/coordinator-relay.test.cjs` | ❌ W0 | ⬜ pending |
-| 152-01-02 | 01 | 1 | RLY-01 | unit | `npx vitest run tests/dispatcher/coordinator-relay.test.cjs` | ❌ W0 | ⬜ pending |
-| 152-01-03 | 01 | 1 | RLY-01 | unit | `npx vitest run tests/dispatcher/coordinator-relay.test.cjs` | ❌ W0 | ⬜ pending |
-| 152-01-04 | 01 | 1 | RLY-01 | source inspection | `npx vitest run tests/dispatcher/coordinator-relay.test.cjs` | ❌ W0 | ⬜ pending |
-| 152-01-05 | 01 | 1 | RLY-01 | unit | `npx vitest run tests/dispatcher/coordinator-relay.test.cjs` | ❌ W0 | ⬜ pending |
-| 152-01-06 | 01 | 1 | RLY-02 | unit (existing) | `cd dashboard && npx vitest run __tests__/session-source.test.ts` | ✅ | ⬜ pending |
+| 152-01-01 | 01 | 1 | RLY-01 | unit | `npx vitest run tests/dispatcher/coordinator-relay.test.cjs` | ✅ | ✅ green |
+| 152-01-02 | 01 | 1 | RLY-01 | unit | `npx vitest run tests/dispatcher/coordinator-relay.test.cjs` | ✅ | ✅ green |
+| 152-01-03 | 01 | 1 | RLY-01 | unit | `npx vitest run tests/dispatcher/coordinator-relay.test.cjs` | ✅ | ✅ green |
+| 152-01-04 | 01 | 1 | RLY-01 | source inspection | `npx vitest run tests/dispatcher/coordinator-relay.test.cjs` | ✅ | ✅ green |
+| 152-01-05 | 01 | 1 | RLY-01 | unit | `npx vitest run tests/dispatcher/coordinator-relay.test.cjs` | ✅ | ✅ green |
+| 152-01-06 | 01 | 1 | RLY-02 | unit (existing) | `cd dashboard && npx vitest run __tests__/session-source.test.ts` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -51,7 +51,7 @@ created: 2026-03-27
 
 ## Wave 0 Requirements
 
-- [ ] `tests/dispatcher/coordinator-relay.test.cjs` — stubs for RLY-01 (relay spawning, cleanup, lifecycle)
+- [x] `tests/dispatcher/coordinator-relay.test.cjs` — 8 tests for RLY-01 (relay spawning, cleanup, lifecycle)
 
 *Existing dashboard tests cover RLY-02 path.*
 
@@ -65,11 +65,23 @@ created: 2026-03-27
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 5s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 5s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-03-27
+
+---
+
+## Validation Audit 2026-03-27
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+All 8 relay tests pass (8/8). Full dispatcher suite green (229/229). No gaps detected.
