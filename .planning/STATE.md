@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.18
 milestone_name: Distributed Execution
-status: Ready to execute
-stopped_at: Completed 147-01-PLAN.md
-last_updated: "2026-03-27T01:41:10.479Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 147-05-PLAN.md
+last_updated: "2026-03-27T02:00:26.563Z"
 progress:
   total_phases: 7
   completed_phases: 4
   total_plans: 16
-  completed_plans: 12
+  completed_plans: 15
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-26)
 ## Current Position
 
 Phase: 147 (dashboard-integration) — EXECUTING
-Plan: 2 of 5
+Plan: 5 of 5
 
 ## Performance Metrics
 
@@ -75,6 +75,14 @@ Plan: 2 of 5
 - [Phase 147]: sessionColor() uses modulo 6 over a const tuple — deterministic, tree-shakeable, no state
 - [Phase 147]: CSS-only striped progress via repeating-linear-gradient — no framer-motion dep needed
 - [Phase 147]: NuqsAdapter placed inside ThemeProvider to ensure filter state available to all children including BottomNav
+- [Phase 147]: Source inspection tests (readFileSync) used in failure-card.test.ts — vitest node environment has no DOM; matches existing project test pattern
+- [Phase 147]: session-colors.ts created in Plan 03 as parallel-execution fix — Plan 01 runs in separate worktree; palette spec sourced from Plan 01 action block
+- [Phase 147-dashboard-integration]: Tests run in vitest node environment — aggregate counts logic extracted from component into standalone function for testability without jsdom
+- [Phase 147-dashboard-integration]: ActionChevron deduplicates consecutive identical event_types before taking last 3 — avoids showing repeated states in timeline
+- [Phase 147-dashboard-integration]: MultiPhaseProgress deriveVariant precedence: failed/error > active (executing) > all-complete > waiting
+- [Phase 147]: PaneGrid uses CSS-only responsive layout (Tailwind breakpoints) — no JS viewport detection; enabled guard in useDashboardHotkeys delegates breakpoint detection to consuming component
+- [Phase 147]: ActivePaneContext pattern — DashboardShell owns activePane state threads it to both page.tsx and BottomNav through React context, avoiding prop drilling through server layout
+- [Phase 147]: Providers component pattern — NuqsAdapter + HotkeysProvider extracted to client component so layout.tsx remains a server component
 
 ### Pending Todos
 
@@ -87,7 +95,7 @@ Plan: 2 of 5
 
 ## Session Continuity
 
-Last session: 2026-03-27T01:41:10.476Z
-Stopped at: Completed 147-01-PLAN.md
+Last session: 2026-03-27T02:00:26.560Z
+Stopped at: Completed 147-05-PLAN.md
 Resume with: `/gsd:plan-phase 143`
 Resume file: None

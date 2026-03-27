@@ -111,10 +111,10 @@ Plans:
 **Plans**: 5 plans
 Plans:
 - [x] 147-01-PLAN.md — Foundation: deps, session_source gap, shared primitives (colors, filter hook, progress variant)
-- [ ] 147-02-PLAN.md — Data components: SessionHealthMatrix, AggregateStatusBar, MultiPhaseProgress, ActionChevron
-- [ ] 147-03-PLAN.md — Event log multi-session filter, color tags, FailureCard, merge push notifications
+- [x] 147-02-PLAN.md — Data components: SessionHealthMatrix, AggregateStatusBar, MultiPhaseProgress, ActionChevron
+- [x] 147-03-PLAN.md — Event log multi-session filter, color tags, FailureCard, merge push notifications
 - [ ] 147-04-PLAN.md — Responsive PaneGrid layout, extended BottomNav, keyboard shortcuts hook
-- [ ] 147-05-PLAN.md — Integration wiring: page assembly, HotkeysProvider, responsive verification checkpoint
+- [x] 147-05-PLAN.md — Integration wiring: page assembly, HotkeysProvider, responsive verification checkpoint
 **UI hint**: yes
 
 ### Phase 148: tmux Integration
@@ -150,6 +150,6 @@ Note: Phase 147 (Dashboard) and Phase 148 (tmux) both depend on Phase 144 and ca
 | 144. Local CLI Dispatch | 3/3 | Complete    | 2026-03-26 |
 | 145. Agent SDK Orchestrator | 1/2 | Complete    | 2026-03-26 |
 | 146. Remote Dispatch | 2/3 | Complete    | 2026-03-27 |
-| 147. Dashboard Integration | 1/5 | In Progress|  |
+| 147. Dashboard Integration | 4/5 | In Progress|  |
 | 148. tmux Integration | 0/TBD | Not started | - |
 | 149. Configuration & Commands | 0/TBD | Not started | - |
