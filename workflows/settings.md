@@ -34,6 +34,8 @@ Parse current values (default to `true` if not present):
 - `workflow.ui_safety_gate` — prompt to run /pde:ui-phase before planning frontend phases (default: true if absent)
 - `model_profile` — which model each agent uses (default: `balanced`)
 - `git.branching_strategy` — branching approach (default: `"none"`)
+- `dispatch.enabled` — enable/disable parallel dispatch (default: true if absent)
+- `dispatch.max_local_sessions` — max concurrent local sessions (default: 3 if absent)
 </step>
 
 <step name="present_settings">
@@ -126,6 +128,27 @@ AskUserQuestion([
       { label: "Per Phase", description: "Create branch for each phase (pde/phase-{N}-{name})" },
       { label: "Per Milestone", description: "Create branch for entire milestone (pde/{version}-{name})" }
     ]
+  },
+  {
+    question: "Enable dispatch (parallel session execution)?",
+    header: "Dispatch",
+    multiSelect: false,
+    options: [
+      { label: "Enabled (Default)", description: "Use --parallel flag to dispatch concurrent sessions to worktrees" },
+      { label: "Disabled", description: "Single-session mode — exact pre-v0.18 behavior, --parallel flag blocked" }
+    ]
+  },
+  {
+    question: "Max local concurrent sessions (when dispatch enabled)?",
+    header: "Max Local",
+    multiSelect: false,
+    options: [
+      { label: "1", description: "One session at a time" },
+      { label: "2", description: "Two concurrent sessions" },
+      { label: "3 (Default)", description: "Three concurrent sessions (recommended)" },
+      { label: "4", description: "Four concurrent sessions" },
+      { label: "5", description: "Five concurrent sessions (heavy workloads)" }
+    ]
   }
 ])
 ```
@@ -149,11 +172,21 @@ Merge new settings into existing config.json:
   },
   "git": {
     "branching_strategy": "none" | "phase" | "milestone"
+  },
+  "dispatch": {
+    "enabled": true/false,
+    "max_local_sessions": 1-5
   }
 }
 ```
 
 Write updated config to `.planning/config.json`.
+
+Write dispatch settings using pde-tools config-set:
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" config-set dispatch.enabled true
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" config-set dispatch.max_local_sessions 3
+```
 </step>
 
 <step name="save_as_defaults">
@@ -196,6 +229,10 @@ Write `~/.pde/defaults.json` with:
     "nyquist_validation": <current>,
     "ui_phase": <current>,
     "ui_safety_gate": <current>
+  },
+  "dispatch": {
+    "enabled": <current>,
+    "max_local_sessions": <current>
   }
 }
 ```
@@ -218,6 +255,8 @@ node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" banner "SETTINGS UPDATED"
 | UI Phase             | {On/Off} |
 | UI Safety Gate       | {On/Off} |
 | Git Branching        | {None/Per Phase/Per Milestone} |
+| Dispatch             | {Enabled/Disabled} |
+| Max Local Sessions   | {1/2/3/4/5} |
 | Saved as Defaults    | {Yes/No} |
 
 These settings apply to future /pde:plan-phase and /pde:execute-phase runs.
@@ -233,7 +272,7 @@ Quick commands:
 
 <success_criteria>
 - [ ] Current config read
-- [ ] User presented with 9 settings (profile + 7 workflow toggles + git branching)
+- [ ] User presented with 11 settings (profile + 7 workflow toggles + git branching + 2 dispatch settings)
 - [ ] Config updated with model_profile, workflow, and git sections
 - [ ] User offered to save as global defaults (~/.pde/defaults.json)
 - [ ] Changes confirmed to user
