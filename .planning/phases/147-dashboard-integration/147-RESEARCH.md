@@ -580,22 +580,126 @@ The existing push infrastructure already fires on `approval_request` and `error`
 
 ---
 
-## Open Questions
+## Open Questions — RESOLVED
 
-1. **How does `session_source` get into the wire envelope?**
-   - What we know: The relay daemon (`bin/lib/relay.cjs`) creates envelopes via `createEnvelope()`. The `extensions` field is `z.record(z.unknown()).optional()`. The dispatcher registry has `backend: 'local' | 'ssh'`.
-   - What's unclear: Does the relay daemon receive the backend type from the dispatcher at startup? The relay daemon is spawned per-session by `DSP-08` but the exact CLI args are not visible in this research.
-   - Recommendation: Have the Wave 0 plan task inspect `bin/lib/relay.cjs` spawn invocation in `coordinator.cjs` to determine if `backend` is passed as an env var or CLI arg. If it is, the relay daemon can add `session_source` to `extensions` in `createEnvelope()`.
+### 1. How does `session_source` propagate into the wire envelope?
 
-2. **7-pane grid layout content: what are the 7 panes?**
-   - What we know: DSH-13 says "1-7 pane focus"; DSH-11 says "full grid on laptop". The requirements don't name the 7 panes explicitly.
-   - What's unclear: The planner needs to define the 7 pane identities (e.g., Sessions List, Event Log, Progress, Costs, Failures, Settings, Details).
-   - Recommendation: Plan task should define the 7 panes from existing components: (1) Session Matrix, (2) Event Log, (3) Phase Progress, (4) Cost Meter, (5) Failure Cards, (6) Action Chevron/Session Detail, (7) Settings/Push Config.
+**Status:** RESOLVED — gap confirmed, fix path identified.
 
-3. **`session_end` event reliability for merge notifications (DSH-07)**
-   - What we know: The relay daemon fires `session_end` events. Push infra exists.
-   - What's unclear: Is `session_end` fired before or after the merge? If after, the notification correctly signals "merged". If during (on exit before merge), it may be misleading.
-   - Recommendation: Check `coordinator.cjs` `_handleExit` to confirm timing. The push should fire after `mergeSession()` succeeds, not on process exit.
+**Full data flow traced:**
+
+```
+Dispatcher registry (backend: 'local'|'ssh'|'managed')
+       ↓ (NOT propagated to relay daemon)
+Claude Code SessionStart hook (source field in hookData)
+       ↓
+emit-event.cjs spreads source into PDE event payload
+       ↓
+PDE event written to /tmp/pde-session-{sessionId}.ndjson
+       ↓
+Relay daemon's createEnvelope() spreads pdeEvent (includes source)
+       ↓
+WireEnvelopeSchema.passthrough() preserves source field
+       ↓
+Dashboard ingest stores full envelope in Redis sorted set
+       ↓ GAP: source NOT extracted to session metadata hash
+SessionListItem type has NO source field
+```
+
+**Two parallel source fields exist:**
+- **Dispatcher `backend`** — routing decision stored in `.planning/dispatcher.pids` registry
+- **Claude Code `source`** — execution context from SessionStart hook payload
+
+**The gap:** Ingest route (`dashboard/app/api/ingest/route.ts`) stores full envelopes but does NOT extract `source` into the `pde:default:session:{id}` Redis hash. `SessionListItem` in `dashboard/lib/queries.ts` has no `source` field.
+
+**Fix (Wave 0):**
+1. In ingest route: on `session_start` event, extract `source` field and `hset` it to session metadata
+2. In `queries.ts`: add `source: 'local' | 'remote-ssh' | 'remote-managed'` to `SessionListItem`
+3. In `getSessions()`: read `source` from Redis hash
+
+**No relay daemon changes needed** — source already flows through via `.passthrough()`.
+
+### 2. What are the 7 named panes for the laptop grid?
+
+**Status:** RESOLVED — derived from existing components + DSH requirements.
+
+**Existing dashboard components (6 functional building blocks):**
+- `SessionCard` — session summary (status, phase, plan, runtime)
+- `PhaseProgress` — current phase with indeterminate progress bar
+- `CostMeter` — input tokens, output tokens, estimated USD cost
+- `EventLog` — chronological event stream with filter tabs
+- `ApprovalCard` — approval gate with Approve/Deny actions
+- `StatusBadge` — color-coded session status indicator
+
+**7-Pane Grid Layout:**
+
+```
+┌─────────────────┬─────────────────┬─────────────────┐
+│   Pane 1        │   Pane 2        │   Pane 3        │
+│ SESSION HEALTH  │  EVENT LOG      │  PHASE PROGRESS │
+│ MATRIX          │  (Filtered)     │  (Multi-phase)  │
+│ (DSH-01)        │  (DSH-02, 03)   │  (DSH-04, 09)   │
+├─────────────────┼─────────────────┼─────────────────┤
+│   Pane 4        │   Pane 5        │   Pane 6        │
+│ AGGREGATE       │  FAILURE CARDS  │  ACTION CHEVRON │
+│ STATUS / COST   │  (DSH-06)       │  STATE TIMELINE │
+│ (DSH-05)        │  Retry/Abandon  │  (DSH-08)       │
+├─────────────────┴─────────────────┴─────────────────┤
+│   Pane 7 (Full Width)                               │
+│ AGGREGATE STATUS BAR — Active | Queued | Total Cost  │
+│ (DSH-05 summary, DSH-10 actions)                    │
+└─────────────────────────────────────────────────────┘
+```
+
+| # | Name | Requirements | New Component? |
+|---|------|-------------|----------------|
+| 1 | Session Health Matrix | DSH-01, DSH-12 | Yes: `SessionHealthMatrix` |
+| 2 | Event Log (Multi-Session) | DSH-02, DSH-03, DSH-12 | Extend existing `EventLog` |
+| 3 | Multi-Phase Progress | DSH-04, DSH-09 | Yes: `MultiPhaseProgress` |
+| 4 | Aggregate Cost/Status | DSH-05 | Yes: `AggregateStatusBar` |
+| 5 | Failure Cards | DSH-06 | Yes: `FailureCard` |
+| 6 | Action Chevron | DSH-08, DSH-10 | Yes: `ActionChevron` |
+| 7 | Status Bar (full-width) | DSH-05, DSH-10 | Yes: `StatusBar` |
+
+**Responsive degradation:**
+- **Phone** (`<640px`): Bottom tab bar, single pane visible at a time
+- **Tablet** (`640-1023px`): 2×2 grid showing 4 panes, tab navigation for others
+- **Laptop** (`≥1024px`): Full 3-row grid, keyboard shortcuts 1-7
+
+### 3. `session_end` event timing for merge notifications (DSH-07)
+
+**Status:** RESOLVED — merge completes BEFORE session_end is emitted.
+
+**Exact sequence traced through codebase:**
+
+```
+1. Claude subprocess exits (spawn.cjs child.on('close'))
+       ↓
+2. onExit(sessionId, exitCode) fires
+       ↓
+3. _handleExit() runs (coordinator.cjs)
+   → exitCode === 0: _mergeSession() completes synchronously
+   → aggregator.unwatch() stops tailing
+       ↓
+4. Claude Code SessionEnd hook fires
+       ↓
+5. emit-event.cjs writes "session_end" to NDJSON file
+       ↓
+6. stop-relay.cjs sends SIGTERM to relay daemon
+       ↓
+7. Relay daemon's batchQueue.stop() flushes final batch (session_end included)
+       ↓
+8. HTTP POST to dashboard /api/ingest
+```
+
+**Key files:**
+- `packages/dispatcher/lib/coordinator.cjs` lines 355-414 — `_handleExit()` merges before hook fires
+- `hooks/emit-event.cjs` line 23 — `SessionEnd` → `session_end` mapping
+- `hooks/stop-relay.cjs` — runs AFTER emit-event.cjs (sequential in hooks.json)
+
+**Implication for DSH-07:** Push notification on `session_end` is safe — it correctly signals "session completed and merged." The merge is already done when `session_end` reaches the dashboard.
+
+**Current gap:** Ingest route only sends push for `approval_request` and `error`/`critical_error` events. Must add `session_end` to the push notification trigger list for DSH-07.
 
 ---
 
