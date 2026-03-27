@@ -133,6 +133,16 @@ export async function POST(request: Request): Promise<NextResponse> {
         tag: 'error-notification',
       }).catch(() => {});
       break;
+    } else if (event.event_type === 'session_end') {
+      const { sendPushToOwner } = await import('@/app/actions');
+      const eventPayload = event as Record<string, unknown>;
+      sendPushToOwner({
+        title: 'Session Merged',
+        body: `Phase ${String(eventPayload.phase_name ?? '')} completed and merged`,
+        url: '/',
+        tag: `merge-${event.session_id}`,
+      }).catch(() => {});
+      break;
     }
   }
 
