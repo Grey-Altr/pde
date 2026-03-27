@@ -182,7 +182,9 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. Coordinator spawns a relay.cjs child process per dispatched session, tagged with session_id, that POSTs NDJSON events to `/api/ingest`
   2. Dashboard `/api/sessions` returns parallel-dispatched sessions with live status updates from Redis
-**Plans**: 0 plans
+**Plans**: 1 plan
+Plans:
+- [ ] 152-01-PLAN.md — Relay spawn wiring in coordinator, session-start UUID alignment, and relay lifecycle tests
 
 ### Phase 153: Dashboard Auth UX
 **Goal**: useAllSessions hook surfaces 401 errors with a redirect to sign-in instead of showing a blank dashboard
@@ -210,5 +212,5 @@ Note: Phase 152 and Phase 153 can execute in parallel (independent gap closure p
 | 149. Configuration & Commands | 2/3 | Complete    | 2026-03-27 |
 | 150. Dashboard Hardening | 1/1 | Complete    | 2026-03-27 |
 | 151. Test & Validation Cleanup | 1/1 | Complete    | 2026-03-27 |
-| 152. Parallel Session Relay Wiring | 0/0 | Not Started | — |
+| 152. Parallel Session Relay Wiring | 0/1 | Not Started | — |
 | 153. Dashboard Auth UX | 0/0 | Not Started | — |
