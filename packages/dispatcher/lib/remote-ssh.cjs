@@ -36,6 +36,7 @@ const os = require('node:os');
  *
  * @param {object} opts
  * @param {string} opts.sessionId       - PDE session ID (e.g. "p146-1-abc12345")
+ * @param {string} [opts.relayId]       - UUID relay ID for NDJSON correlation (matches spawn.cjs pattern)
  * @param {number|string} opts.phase    - Phase number (e.g. 146)
  * @param {number|string} opts.plan     - Plan number (e.g. 1)
  * @param {string} opts.branch          - Session branch (pde/session/{sessionId})
@@ -100,11 +101,19 @@ function spawnRemoteSession(opts) {
       '. Run /gsd:execute-plan ' + opts.phase + ' ' + opts.plan + '.';
 
     // CLAUDECODE= (empty) prevents nested-session error; PDE_* vars communicate context to executor
+    // Phase 154: Use relayId (UUID) for PDE_SESSION_ID so relay schema validation passes (SSH-02)
+    const effectiveSessionId = opts.relayId || opts.sessionId;
+    const ingestUrl = (opts.remoteConfig && opts.remoteConfig.ingest_url) || process.env.PDE_REMOTE || '';
+    const relayToken = (opts.remoteConfig && opts.remoteConfig.relay_token) || process.env.PDE_RELAY_TOKEN || '';
+
     const envPrefix =
       'CLAUDECODE= ' +
-      'PDE_SESSION_ID=' + opts.sessionId + ' ' +
+      'PDE_SESSION_ID=' + effectiveSessionId + ' ' +
       'PDE_PHASE=' + opts.phase + ' ' +
-      'PDE_PLAN=' + opts.plan +
+      'PDE_PLAN=' + opts.plan + ' ' +
+      'PDE_BACKEND=remote-ssh' +
+      (ingestUrl ? ' PDE_REMOTE=' + ingestUrl : '') +
+      (relayToken ? ' PDE_RELAY_TOKEN=' + relayToken : '') +
       (extraEnv ? ' ' + extraEnv : '');
 
     const cmd =
@@ -117,7 +126,8 @@ function spawnRemoteSession(opts) {
       '"' + prompt + '"';
 
     // Step 5: Open local NDJSON file (Aggregator TailCursor watches this path)
-    const ndjsonPath = path.join(os.tmpdir(), 'pde-session-' + opts.sessionId + '.ndjson');
+    // Phase 154: Use effectiveSessionId (relayId UUID) so aggregator.watch(relayId) matches (SSH-02)
+    const ndjsonPath = path.join(os.tmpdir(), 'pde-session-' + effectiveSessionId + '.ndjson');
     const ndjsonStream = fs.createWriteStream(ndjsonPath, { flags: 'a' });
 
     // Step 6: Execute via SSH channel (streaming, pty: false -- prevents NDJSON corruption)

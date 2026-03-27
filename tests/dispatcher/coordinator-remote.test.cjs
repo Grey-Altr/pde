@@ -212,4 +212,36 @@ describe('DispatchCoordinator remote dispatch routing', () => {
       remoteConfig: null,
     });
   });
+
+  // ─── Test 8: SSH dispatch passes relayId (UUID) to spawnRemoteSession ─────
+
+  it('Test 8: SSH dispatch passes relayId (UUID) to spawnRemoteSession', async () => {
+    const { coordinator, deps } = createTestCoordinator({
+      depOverrides: {
+        routeSession: vi.fn().mockResolvedValue('ssh'),
+        readPlanAutonomous: vi.fn().mockReturnValue(true),
+      },
+    });
+    await coordinator.dispatch(146, 1);
+    await new Promise(r => setImmediate(r));
+    expect(deps.spawnRemoteSession).toHaveBeenCalled();
+    const opts = deps.spawnRemoteSession.mock.calls[0][0];
+    // relayId must be a valid UUID v4
+    expect(opts.relayId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i);
+  });
+
+  // ─── Test 9: SSH dispatch relayId differs from sessionId ─────────────────
+
+  it('Test 9: SSH dispatch relayId differs from sessionId', async () => {
+    const { coordinator, deps } = createTestCoordinator({
+      depOverrides: {
+        routeSession: vi.fn().mockResolvedValue('ssh'),
+        readPlanAutonomous: vi.fn().mockReturnValue(true),
+      },
+    });
+    await coordinator.dispatch(146, 1);
+    await new Promise(r => setImmediate(r));
+    const opts = deps.spawnRemoteSession.mock.calls[0][0];
+    expect(opts.relayId).not.toBe(opts.sessionId);
+  });
 });

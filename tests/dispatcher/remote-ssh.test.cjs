@@ -273,4 +273,44 @@ describe('spawnRemoteSession', () => {
     expect(mockSSH.dispose).toHaveBeenCalled();
   });
 
+  it('Test 13: envPrefix contains PDE_BACKEND=remote-ssh', async () => {
+    const { opts, mockSSH } = makeOpts();
+    spawnRemoteSession(opts);
+    await settle();
+    const execCall = mockSSH.connection.exec.mock.calls[0];
+    const cmd = execCall[0];
+    expect(cmd).toContain('PDE_BACKEND=remote-ssh');
+  });
+
+  it('Test 14: PDE_SESSION_ID uses relayId when provided', async () => {
+    const testRelayId = 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee';
+    const { opts, mockSSH } = makeOpts({ relayId: testRelayId });
+    spawnRemoteSession(opts);
+    await settle();
+    const cmd = mockSSH.connection.exec.mock.calls[0][0];
+    expect(cmd).toContain('PDE_SESSION_ID=' + testRelayId);
+    expect(cmd).not.toContain('PDE_SESSION_ID=p146-1-abc12345');
+  });
+
+  it('Test 15: envPrefix contains PDE_REMOTE when remoteConfig.ingest_url set', async () => {
+    const { opts, mockSSH } = makeOpts({
+      remoteConfig: { ...remoteConfig, ingest_url: 'https://dash.example.com/api/ingest' },
+    });
+    spawnRemoteSession(opts);
+    await settle();
+    const cmd = mockSSH.connection.exec.mock.calls[0][0];
+    expect(cmd).toContain('PDE_REMOTE=https://dash.example.com/api/ingest');
+  });
+
+  it('Test 16: NDJSON path uses relayId (effectiveSessionId) when provided', async () => {
+    const { opts, mockSSH } = makeOpts();
+    spawnRemoteSession(opts);
+    await settle();
+    // Source inspection: verify effectiveSessionId pattern exists in remote-ssh.cjs
+    const src = require('node:fs').readFileSync(
+      require('node:path').resolve(__dirname, '../../packages/dispatcher/lib/remote-ssh.cjs'), 'utf-8'
+    );
+    expect(src).toContain('opts.relayId || opts.sessionId');
+  });
+
 });

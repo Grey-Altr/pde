@@ -251,7 +251,7 @@ class DispatchCoordinator {
 
       // 8. Queue the session — runs when a concurrency slot opens
       if (backend === 'ssh') {
-        this._queue.add(() => this._runRemoteSession(sessionId, phaseNum, plan, worktreePath, branch));
+        this._queue.add(() => this._runRemoteSession(sessionId, phaseNum, plan, worktreePath, branch, relayId));
       } else {
         this._queue.add(() => this._runSession(sessionId, phaseNum, plan, worktreePath, branch, relayId));
       }
@@ -347,13 +347,15 @@ class DispatchCoordinator {
    * @param {number|string} plan
    * @param {string} worktreePath - Local worktree path (used for merge after fetch)
    * @param {string} branch
+   * @param {string} [relayId] - UUID relay ID for NDJSON correlation (matches spawn.cjs pattern)
    * @returns {Promise<void>}
    * @private
    */
-  _runRemoteSession(sessionId, phase, plan, worktreePath, branch) {
+  _runRemoteSession(sessionId, phase, plan, worktreePath, branch, relayId) {
     return new Promise((resolve) => {
       const handle = this._spawnRemoteSession({
         sessionId,
+        relayId,
         phase,
         plan,
         branch,
