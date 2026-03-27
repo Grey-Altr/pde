@@ -15,7 +15,7 @@ Parse $ARGUMENTS to extract:
   ```
   Usage: /pde:connect <service>
 
-  Approved services: github, linear, figma, pencil, atlassian, stitch
+  Approved services: github, linear, figma, pencil, atlassian, stitch, greptile
 
   Run /pde:connect <service> to see auth instructions for that service.
   ```
@@ -364,6 +364,104 @@ If ANY entries have discrepancies:
 Regardless of verification outcome, proceed to Step 4 to record the connection.
 
 Then proceed to Step 4 (which uses the "all other services" branch — no extra fields needed for Stitch).
+
+## 3.11. Verify Greptile API Key and Live Tool Names (Greptile only, --confirm present)
+
+If `--confirm` flag IS present AND `SERVICE_KEY` equals `greptile`:
+
+Before recording the connection, verify GREPTILE_API_KEY is set in the environment.
+
+Display:
+```
+Verifying Greptile API key...
+```
+
+Check for the GREPTILE_API_KEY environment variable. If `process.env.GREPTILE_API_KEY` is set and non-empty: display:
+```
+GREPTILE_API_KEY detected.
+```
+
+Then proceed to the **MCP-GR live tool name verification gate** below.
+
+If `GREPTILE_API_KEY` is NOT set or is empty: display the AUTH_INSTRUCTIONS for greptile (from mcp-bridge.cjs), followed by:
+```
+GREPTILE_API_KEY is not set in the current environment.
+
+Complete the setup steps above, then run: /pde:connect greptile --confirm
+
+Important: Add GREPTILE_API_KEY to your shell profile (~/.zshrc or ~/.bashrc) so it persists across sessions.
+```
+
+Stop here. Do NOT proceed to Step 4.
+
+### MCP-GR: Live Tool Name Verification Gate
+
+After GREPTILE_API_KEY is confirmed, run the live tool name verification before recording the connection.
+
+**Step A: Test the Greptile MCP server.**
+
+Run:
+```bash
+claude mcp get greptile
+```
+
+If the server is not connected or not found, display:
+```
+WARNING: Greptile MCP server is not connected. Tool names could not be verified.
+Proceeding with connection — live verification can be retried with /pde:connect greptile --confirm.
+```
+
+Then proceed to Step 4 (connection is recorded but tool names are unverified).
+
+**Step B: Compare live tool names against TOOL_MAP.**
+
+If the server is connected, use ToolSearch to fetch all `mcp__greptile__*` tools and compare against all `greptile:*` entries in TOOL_MAP from mcp-bridge.cjs.
+
+For each greptile:* TOOL_MAP entry:
+1. Extract the raw MCP tool name (the value, e.g., `mcp__greptile__list_code_reviews`)
+2. Check if that tool exists in the live server's tool list via ToolSearch
+
+Display a comparison table:
+```
+MCP-GR Live Tool Name Verification:
+
+| Canonical Name                    | Expected Raw Name                              | Live | Status   |
+|-----------------------------------|-------------------------------------------------|------|----------|
+| greptile:probe                    | mcp__greptile__list_code_reviews                | YES  | VERIFIED |
+| greptile:list-code-reviews        | mcp__greptile__list_code_reviews                | YES  | VERIFIED |
+| greptile:get-code-review          | mcp__greptile__get_code_review                  | YES  | VERIFIED |
+| greptile:trigger-code-review      | mcp__greptile__trigger_code_review              | YES  | VERIFIED |
+| greptile:list-prs                 | mcp__greptile__list_pull_requests                | YES  | VERIFIED |
+| greptile:list-merge-requests      | mcp__greptile__list_merge_requests               | YES  | VERIFIED |
+| greptile:get-merge-request        | mcp__greptile__get_merge_request                 | YES  | VERIFIED |
+| greptile:list-mr-comments         | mcp__greptile__list_merge_request_comments       | YES  | VERIFIED |
+| greptile:search-comments          | mcp__greptile__search_greptile_comments          | YES  | VERIFIED |
+| greptile:create-custom-context    | mcp__greptile__create_custom_context             | YES  | VERIFIED |
+| greptile:get-custom-context       | mcp__greptile__get_custom_context                | YES  | VERIFIED |
+| greptile:list-custom-context      | mcp__greptile__list_custom_context               | YES  | VERIFIED |
+| greptile:search-custom-context    | mcp__greptile__search_custom_context             | YES  | VERIFIED |
+```
+
+For each discrepancy (tool not found in live server), display an explicit warning:
+```
+WARNING: TOOL_MAP entry 'greptile:<name>' expects '<raw_name>'
+but this tool was NOT found on the live server. Check if the tool name has changed.
+Possible alternative: [list any similar tool names from live server]
+```
+
+**Step C: Update TOOL_MAP markers in source.**
+
+If ALL greptile:* entries are verified against the live server:
+- Update each `// TOOL_MAP_VERIFY_REQUIRED` comment to `// TOOL_MAP_VERIFIED` in bin/lib/mcp-bridge.cjs
+- Display: "All 13 greptile:* TOOL_MAP entries verified against live server. Markers updated to TOOL_MAP_VERIFIED."
+
+If ANY entries have discrepancies:
+- Leave ALL markers as `TOOL_MAP_VERIFY_REQUIRED` (do not partially update)
+- Display: "N of 13 entries have discrepancies. All markers remain TOOL_MAP_VERIFY_REQUIRED. Resolve discrepancies and re-run /pde:connect greptile --confirm."
+
+Regardless of verification outcome, proceed to Step 4 to record the connection.
+
+Then proceed to Step 4 (which uses the "all other services" branch — no extra fields needed for Greptile).
 
 ## 4. Confirm Connection (--confirm present)
 

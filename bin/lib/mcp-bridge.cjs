@@ -74,6 +74,15 @@ const APPROVED_SERVERS = {
     probeTool: 'mcp__stitch__list_projects', // TOOL_MAP_VERIFY_REQUIRED — lightest read-only tool
     probeArgs: {},
   },
+  greptile: {
+    displayName: 'Greptile',
+    transport: 'http',
+    url: 'https://api.greptile.com/mcp',
+    installCmd: null, // Multi-step: env var + claude mcp add with --header — see AUTH_INSTRUCTIONS
+    probeTimeoutMs: 15000,
+    probeTool: 'mcp__greptile__list_code_reviews', // TOOL_MAP_VERIFIED — lightest read-only tool (no required args)
+    probeArgs: {},
+  },
   playwright: {
     displayName: 'Playwright',
     transport: 'stdio',
@@ -97,6 +106,7 @@ const APPROVED_SERVERS = {
  *   Atlassian — Phase 41 (verified from Atlassian Rovo MCP supported-tools docs)
  *   Figma — Phase 42 (verified from developers.figma.com/docs/figma-mcp-server/tools-and-prompts/)
  *   Pencil — Phase 43 (tool names from docs.pencil.dev/getting-started/ai-integration; raw mcp__pencil__* names MEDIUM confidence)
+ *   Greptile — verified against live MCP server 2026-03-27 (code review & PR analysis, not code search)
  *   Phase 44 will complete validation.
  */
 const TOOL_MAP = {
@@ -158,6 +168,21 @@ const TOOL_MAP = {
   'stitch:list-projects':           'mcp__stitch__list_projects',          // TOOL_MAP_VERIFY_REQUIRED
   'stitch:get-project':             'mcp__stitch__get_project',            // TOOL_MAP_VERIFY_REQUIRED
 
+  // Greptile — AI code review & PR analysis (verified against live MCP server 2026-03-27)
+  'greptile:probe':                    'mcp__greptile__list_code_reviews',           // TOOL_MAP_VERIFIED
+  'greptile:list-code-reviews':        'mcp__greptile__list_code_reviews',           // TOOL_MAP_VERIFIED
+  'greptile:get-code-review':          'mcp__greptile__get_code_review',             // TOOL_MAP_VERIFIED
+  'greptile:trigger-code-review':      'mcp__greptile__trigger_code_review',         // TOOL_MAP_VERIFIED
+  'greptile:list-prs':                 'mcp__greptile__list_pull_requests',           // TOOL_MAP_VERIFIED
+  'greptile:list-merge-requests':      'mcp__greptile__list_merge_requests',          // TOOL_MAP_VERIFIED
+  'greptile:get-merge-request':        'mcp__greptile__get_merge_request',            // TOOL_MAP_VERIFIED
+  'greptile:list-mr-comments':         'mcp__greptile__list_merge_request_comments',  // TOOL_MAP_VERIFIED
+  'greptile:search-comments':          'mcp__greptile__search_greptile_comments',     // TOOL_MAP_VERIFIED
+  'greptile:create-custom-context':    'mcp__greptile__create_custom_context',        // TOOL_MAP_VERIFIED
+  'greptile:get-custom-context':       'mcp__greptile__get_custom_context',           // TOOL_MAP_VERIFIED
+  'greptile:list-custom-context':      'mcp__greptile__list_custom_context',          // TOOL_MAP_VERIFIED
+  'greptile:search-custom-context':    'mcp__greptile__search_custom_context',        // TOOL_MAP_VERIFIED
+
   // Playwright — Phase 108 (MEDIUM confidence — tool names from official README + practitioner sources; MCP-08 live verification required before finalizing)
   'playwright:probe':      'mcp__playwright__browser_snapshot',        // TOOL_MAP_VERIFY_REQUIRED
   'playwright:navigate':   'mcp__playwright__browser_navigate',        // TOOL_MAP_VERIFY_REQUIRED
@@ -212,6 +237,15 @@ const AUTH_INSTRUCTIONS = {
     '5. Restart your terminal or run: source ~/.zshrc',
     '6. Register Stitch MCP server: claude mcp add stitch --transport stdio -- npx @_davideast/stitch-mcp proxy',
     '7. Return here and run /pde:connect stitch --confirm',
+  ],
+  greptile: [
+    '1. Go to app.greptile.com -> Settings -> Organization -> API Keys',
+    '2. Generate and copy your Greptile API key',
+    '3. Add export GREPTILE_API_KEY="your-api-key-here" to your shell profile (~/.zshrc or ~/.bashrc)',
+    '4. Restart your terminal or run: source ~/.zshrc',
+    '5. Register Greptile MCP server: claude mcp add --transport http greptile https://api.greptile.com/mcp --header "Authorization: Bearer $GREPTILE_API_KEY"',
+    '6. Optionally add a GitHub token for private repos: claude mcp add --transport http greptile https://api.greptile.com/mcp --header "Authorization: Bearer $GREPTILE_API_KEY" --header "X-GitHub-Token: $GITHUB_TOKEN"',
+    '7. Return here and run /pde:connect greptile --confirm',
   ],
   playwright: [
     '1. Run: claude mcp add playwright -- npx @playwright/mcp@latest --headless --allow-unrestricted-file-access',
