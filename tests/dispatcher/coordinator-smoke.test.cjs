@@ -53,6 +53,9 @@ function makeCoordWithDeps(root, extraOpts) {
     recalculateFromArtifacts: vi.fn(() => ({ updated: true })),
     acquireLock: vi.fn(() => ({ acquired: true, lockPath: '/fake/lock' })),
     releaseLock: vi.fn(),
+    // CLN-01: inject SDK orchestrator stubs — prevents real sdkQuery ESM import
+    analyzeDag: vi.fn(async () => ({ parallelizable: [], unsafe: [] })),
+    routeSession: vi.fn(async () => 'local'),
   };
 
   const coord = new DispatchCoordinator(root, {
