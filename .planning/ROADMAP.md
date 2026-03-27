@@ -110,7 +110,7 @@ Plans:
   5. On phone, navigation is a bottom tab bar; on tablet, a 2x2 grid; on laptop, the full 7-pane grid — all layouts share keyboard shortcuts on laptop (1-7 pane focus, s/a session cycle, Esc collapse)
 **Plans**: 5 plans
 Plans:
-- [ ] 147-01-PLAN.md — Foundation: deps, session_source gap, shared primitives (colors, filter hook, progress variant)
+- [x] 147-01-PLAN.md — Foundation: deps, session_source gap, shared primitives (colors, filter hook, progress variant)
 - [ ] 147-02-PLAN.md — Data components: SessionHealthMatrix, AggregateStatusBar, MultiPhaseProgress, ActionChevron
 - [ ] 147-03-PLAN.md — Event log multi-session filter, color tags, FailureCard, merge push notifications
 - [ ] 147-04-PLAN.md — Responsive PaneGrid layout, extended BottomNav, keyboard shortcuts hook
@@ -150,6 +150,6 @@ Note: Phase 147 (Dashboard) and Phase 148 (tmux) both depend on Phase 144 and ca
 | 144. Local CLI Dispatch | 3/3 | Complete    | 2026-03-26 |
 | 145. Agent SDK Orchestrator | 1/2 | Complete    | 2026-03-26 |
 | 146. Remote Dispatch | 2/3 | Complete    | 2026-03-27 |
-| 147. Dashboard Integration | 0/5 | Not started | - |
+| 147. Dashboard Integration | 1/5 | In Progress|  |
 | 148. tmux Integration | 0/TBD | Not started | - |
 | 149. Configuration & Commands | 0/TBD | Not started | - |
