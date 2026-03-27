@@ -108,6 +108,10 @@ class DispatchCoordinator {
     this._pluginDir = options.pluginDir || DispatchCoordinator.resolvePluginDir();
     this._sessions = new Map(); // sessionId → { pid, kill }
 
+    // Phase 152: Relay process tracking — one relay.cjs per local session (RLY-01)
+    this._relays = new Map();   // sessionId → { pid, kill }
+    this._relayIds = new Map(); // sessionId → relayId (UUID) — for aggregator unwatch
+
     // Dependency injection — allows test doubles without vi.mock() hoisting.
     // Production code never passes _deps; tests inject stubs here.
     const deps = options._deps || {};
@@ -131,6 +135,9 @@ class DispatchCoordinator {
     this._summarizeFailure = deps.summarizeFailure || summarizeFailure;
     this._triageConflicts = deps.triageConflicts || triageConflicts;
     this._dag = null; // cached DAG analysis result — computed once per coordinator lifetime
+
+    // Phase 152: Injectable child process spawner for relay (avoids vi.mock CJS hoisting)
+    this._spawnChildProcess = deps.spawnChildProcess || require('node:child_process').spawn;
 
     // Phase 146: Remote dispatch
     this._spawnRemoteSession = deps.spawnRemoteSession || spawnRemoteSession;
@@ -209,6 +216,9 @@ class DispatchCoordinator {
       // 3. Generate session ID
       const sessionId = `p${phaseNum}-${plan}-${crypto.randomUUID().slice(0, 8)}`;
 
+      // Phase 152 (RLY-01): Pre-assign relay UUID for NDJSON/relay correlation (D-01, D-02)
+      const relayId = crypto.randomUUID();
+
       // 4. Create git worktree
       const { worktreePath, branch } = this._createWorktree(this._root, sessionId);
 
@@ -226,14 +236,24 @@ class DispatchCoordinator {
       // 6. Release lock before spawning (spawn is slow; don't hold lock)
       this._releaseLock(this._root);
 
-      // 7. Start aggregator watch for this session's NDJSON file
-      this._aggregator.watch(sessionId);
+      // Phase 152: Store relayId mapping for aggregator unwatch in _handleExit
+      this._relayIds.set(sessionId, relayId);
+
+      // 7. Start aggregator watch — use relayId (UUID) so NDJSON path aligns with relay.cjs (D-11)
+      this._aggregator.watch(relayId);
+
+      // Phase 152 (RLY-01): Spawn relay immediately (synchronous) so it is available before session
+      // starts writing events. Keyed by coordinator sessionId for lookup in _handleExit.
+      if (backend !== 'ssh') {
+        const relayHandle = this._spawnRelay(relayId);
+        this._relays.set(sessionId, relayHandle || { pid: null, kill: () => {} });
+      }
 
       // 8. Queue the session — runs when a concurrency slot opens
       if (backend === 'ssh') {
         this._queue.add(() => this._runRemoteSession(sessionId, phaseNum, plan, worktreePath, branch));
       } else {
-        this._queue.add(() => this._runSession(sessionId, phaseNum, plan, worktreePath, branch));
+        this._queue.add(() => this._runSession(sessionId, phaseNum, plan, worktreePath, branch, relayId));
       }
 
       return sessionId;
@@ -294,11 +314,12 @@ class DispatchCoordinator {
    * @returns {Promise<void>}
    * @private
    */
-  _runSession(sessionId, phase, plan, worktreePath, branch) {
+  _runSession(sessionId, phase, plan, worktreePath, branch, relayId) {
     return new Promise((resolve) => {
       const handle = this._spawnSession({
         worktreePath,
         sessionId,
+        relayId,  // Phase 152: UUID for PDE_SESSION_ID env var (D-02)
         phase,
         plan,
         pluginDir: this._pluginDir,
@@ -361,9 +382,18 @@ class DispatchCoordinator {
    * @private
    */
   async _handleExit(sessionId, exitCode, worktreePath, branch) {
-    // Stop tailing the NDJSON file for this session
-    this._aggregator.unwatch(sessionId);
+    // Phase 152: Stop tailing using relayId (UUID) — aligns with watch(relayId) call in dispatch
+    const relayId = this._relayIds.get(sessionId);
+    this._aggregator.unwatch(relayId || sessionId);
+    this._relayIds.delete(sessionId);
     this._sessions.delete(sessionId);
+
+    // Phase 152: Kill relay process for this session (D-09)
+    const relayHandle = this._relays.get(sessionId);
+    if (relayHandle) {
+      relayHandle.kill();
+      this._relays.delete(sessionId);
+    }
 
     if (exitCode === 0) {
       // Success path: merge → recalculate → cleanup
@@ -429,8 +459,48 @@ class DispatchCoordinator {
     for (const { kill } of this._sessions.values()) {
       kill();
     }
+    // Phase 152: Kill all relay processes
+    for (const { kill } of this._relays.values()) {
+      kill();
+    }
     this._aggregator.stopAll();
     this._tmuxFanout.stop();
+  }
+
+  /**
+   * Spawn a relay.cjs child process for a session. Returns handle or null.
+   * Per D-04: detached + unref. Per D-06: returns null when PDE_REMOTE not set.
+   * Per D-07: all errors caught — relay failures never surface.
+   *
+   * @param {string} sessionId - UUID v4 for relay correlation
+   * @returns {{ pid: number, kill: Function }|null}
+   * @private
+   */
+  _spawnRelay(sessionId) {
+    const ingestUrl   = process.env.PDE_REMOTE || '';
+    const bearerToken = process.env.PDE_RELAY_TOKEN || '';
+    if (!ingestUrl) return null; // D-06: no dashboard — skip silently
+
+    const relayScript = path.resolve(__dirname, '..', '..', '..', 'bin', 'lib', 'relay.cjs');
+
+    try {
+      const child = this._spawnChildProcess(
+        process.execPath,
+        [relayScript, sessionId, ingestUrl, bearerToken],
+        {
+          detached: true,
+          stdio: ['ignore', 'ignore', 'ignore'],
+          env: { ...process.env },
+        }
+      );
+      child.unref();
+      return {
+        pid: child.pid,
+        kill: (sig = 'SIGTERM') => { try { child.kill(sig); } catch (_) {} },
+      };
+    } catch (_) {
+      return null; // D-07: relay spawn failure — never surfaces
+    }
   }
 
   /**
