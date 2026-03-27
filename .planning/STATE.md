@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.18
 milestone_name: Distributed Execution
-status: Ready to plan
-stopped_at: Completed 148-03-PLAN.md
-last_updated: "2026-03-27T03:57:42.240Z"
+status: Milestone complete
+stopped_at: Completed 149-03-PLAN.md
+last_updated: "2026-03-27T04:49:26.283Z"
 progress:
   total_phases: 7
-  completed_phases: 6
-  total_plans: 19
-  completed_plans: 19
+  completed_phases: 7
+  total_plans: 22
+  completed_plans: 22
 ---
 
 # Project State
@@ -19,7 +19,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-26)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 148 — tmux-integration
+**Current focus:** Phase 149 — configuration-commands
 
 ## Current Position
 
@@ -88,6 +88,12 @@ Plan: Not started
 - [Phase 148]: opts.fanoutPath constructor override used for TmuxFanout test isolation instead of vi.mock
 - [Phase 148]: TmuxFanout injectable via deps.TmuxFanout in coordinator — consistent with existing _deps DI pattern
 - [Phase 148]: MULTI_NDJSON_PATH set as shell-level constant in monitor-dashboard.sh — both layout functions reference it as outer-scope var without needing extra function args
+- [Phase 149]: dispatch.enabled guard uses strict equality === false — absent config block defaults to enabled (CFG-05 graceful degradation)
+- [Phase 149]: Source inspection tests used for pde-tools.cjs dispatch case and init.cjs — avoids process.exit() issues from output() and error() calls
+- [Phase 149]: config passed to DispatchCoordinator constructor as options.config — matches existing coordinator._remoteConfig consumption pattern
+- [Phase 149]: Tests extract listSessions/stopSession as local helper functions for testability — avoids requiring pde-tools.cjs monolith in tests
+- [Phase 149]: Test 9 uses process.pid (live PID) so loadFromDisk preserves running status before killSpy intercepts; Test 10 bypasses loadFromDisk by setting registry._map directly
+- [Phase 149-03]: Dispatch questions placed after git branching in AskUserQuestion wizard — preserves logical grouping and matches Max Local as 5 discrete labeled options
 
 ### Pending Todos
 
@@ -100,7 +106,7 @@ Plan: Not started
 
 ## Session Continuity
 
-Last session: 2026-03-27T03:48:50.446Z
-Stopped at: Completed 148-03-PLAN.md
+Last session: 2026-03-27T04:45:35.213Z
+Stopped at: Completed 149-03-PLAN.md
 Resume with: `/gsd:plan-phase 143`
 Resume file: None

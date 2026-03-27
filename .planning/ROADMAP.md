@@ -33,7 +33,7 @@
 - [x] **Phase 146: Remote Dispatch** - Dispatch autonomous sessions to a configured remote server via SSH or managed backend with git-based state sync (completed 2026-03-27)
 - [x] **Phase 147: Dashboard Integration** - Extend the v0.17 dashboard with multi-session session cards, filter pills, chevron progress, animated progress bars, and responsive action controls (completed 2026-03-27)
 - [x] **Phase 148: tmux Integration** - Multiplex all active session events into the existing tmux panes with color-prefixed session tags and aggregate cost/token display (completed 2026-03-27)
-- [ ] **Phase 149: Configuration & Commands** - Wire the dispatch config block, session management slash commands, and graceful degradation path
+- [x] **Phase 149: Configuration & Commands** - Wire the dispatch config block, session management slash commands, and graceful degradation path (completed 2026-03-27)
 
 ## Phase Details
 
@@ -142,8 +142,8 @@ Plans:
   4. Setting dispatch.enabled: false produces zero behavioral difference from the current pre-v0.18 workflow — no extra steps, no new prompts, no changed output
 **Plans**: 3 plans
 Plans:
-- [ ] 149-01-PLAN.md — Config keys extension, dispatch wiring fix, and graceful degradation guards
-- [ ] 149-02-PLAN.md — Session list/stop subcommands and /pde:sessions command
+- [x] 149-01-PLAN.md — Config keys extension, dispatch wiring fix, and graceful degradation guards
+- [x] 149-02-PLAN.md — Session list/stop subcommands and /pde:sessions command
 - [ ] 149-03-PLAN.md — Settings workflow dispatch configuration extension
 
 ## Progress
@@ -160,4 +160,4 @@ Note: Phase 147 (Dashboard) and Phase 148 (tmux) both depend on Phase 144 and ca
 | 146. Remote Dispatch | 2/3 | Complete    | 2026-03-27 |
 | 147. Dashboard Integration | 4/5 | Complete    | 2026-03-27 |
 | 148. tmux Integration | 3/3 | Complete    | 2026-03-27 |
-| 149. Configuration & Commands | 0/3   | Not started | - |
+| 149. Configuration & Commands | 2/3 | Complete    | 2026-03-27 |
