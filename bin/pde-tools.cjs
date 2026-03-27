@@ -1085,6 +1085,72 @@ async function main() {
       break;
     }
 
+    case 'list-sessions': {
+      const { SessionRegistry } = require('../packages/dispatcher/lib/registry.cjs');
+      const { loadConfig } = require('./lib/core.cjs');
+      const config = loadConfig(cwd);
+      if (config.dispatch && config.dispatch.enabled === false) {
+        output([], raw, 'Dispatch is disabled — no sessions to list');
+        break;
+      }
+      const registry = new SessionRegistry(cwd);
+      registry.loadFromDisk();
+      const sessions = [];
+      for (const [id, entry] of registry.getAll()) {
+        let liveStatus = entry.status;
+        if (entry.status === 'running' && entry.pid > 0) {
+          try { process.kill(entry.pid, 0); }
+          catch (e) { if (e.code === 'ESRCH') liveStatus = 'orphaned'; }
+        }
+        const elapsed = entry.startedAt
+          ? Math.floor((Date.now() - new Date(entry.startedAt).getTime()) / 1000)
+          : null;
+        sessions.push({
+          id, phase: entry.phase, plan: entry.plan,
+          status: liveStatus, backend: entry.backend || 'local',
+          pid: entry.pid || null, startedAt: entry.startedAt || null,
+          elapsedSeconds: elapsed,
+        });
+      }
+      sessions.sort((a, b) => (a.startedAt || '').localeCompare(b.startedAt || ''));
+      output(sessions, raw, sessions.length === 0
+        ? 'No active sessions'
+        : sessions.map(s => {
+            const el = s.elapsedSeconds !== null
+              ? `${Math.floor(s.elapsedSeconds / 60)}m ${s.elapsedSeconds % 60}s`
+              : '—';
+            return `${s.id.padEnd(20)} phase=${s.phase} plan=${s.plan} status=${s.status} backend=${s.backend} elapsed=${el} pid=${s.pid || '—'}`;
+          }).join('\n'));
+      break;
+    }
+
+    case 'stop-session': {
+      const sessionId = args[1];
+      if (!sessionId) error('Usage: pde-tools stop-session <sessionId>');
+      const { SessionRegistry } = require('../packages/dispatcher/lib/registry.cjs');
+      const registry = new SessionRegistry(cwd);
+      registry.loadFromDisk();
+      const entry = registry.get(sessionId);
+      if (!entry) error(`Session not found: ${sessionId}`);
+      if (entry.status !== 'running') {
+        output({ stopped: false, reason: `Session already ${entry.status}` }, raw,
+          `Session already ${entry.status}`);
+        break;
+      }
+      if (entry.backend && entry.backend !== 'local') {
+        const msg = `Cannot stop remote session via CLI. SSH to ${entry.remoteHost || 'remote host'} and kill manually.`;
+        output({ stopped: false, remote: true, instructions: msg }, raw, msg);
+        break;
+      }
+      if (entry.pid > 0) {
+        try { process.kill(entry.pid, 'SIGTERM'); } catch (_) {}
+      }
+      registry.update(sessionId, { status: 'stopped' });
+      output({ stopped: true, sessionId, worktreePath: entry.worktreePath }, raw,
+        `Session ${sessionId} stopped. Worktree preserved at ${entry.worktreePath}`);
+      break;
+    }
+
     default:
       error(`Unknown command: ${command}`);
   }
