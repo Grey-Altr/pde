@@ -169,6 +169,8 @@ Plans:
   1. coordinator-smoke.test.cjs Test 7 passes with proper SDK stubs injected
   2. Phase 149 VALIDATION.md reaches nyquist_compliant: true
 **Plans**: 1 plan
+Plans:
+- [ ] 151-01-PLAN.md — Fix coordinator-smoke Test 7 SDK stubs and finalize Phase 149 VALIDATION.md
 
 ## Progress
 
