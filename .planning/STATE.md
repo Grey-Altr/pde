@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.18
 milestone_name: Distributed Execution
-status: Milestone complete
-stopped_at: Completed 153-01-PLAN.md
-last_updated: "2026-03-27T21:22:28.602Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 154-01-PLAN.md
+last_updated: "2026-03-27T23:30:00.537Z"
 progress:
-  total_phases: 11
-  completed_phases: 11
-  total_plans: 26
-  completed_plans: 26
+  total_phases: 13
+  completed_phases: 12
+  total_plans: 27
+  completed_plans: 27
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-26)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 153 — dashboard-auth-ux
+**Current focus:** Phase 154 — ssh-source-propagation
 
 ## Current Position
 
-Phase: 153
-Plan: Not started
+Phase: 154 (ssh-source-propagation) — EXECUTING
+Plan: 1 of 1
 
 ## Performance Metrics
 
@@ -105,6 +105,8 @@ Plan: Not started
 - [Phase 152]: aggregator.watch(relayId) replaces watch(sessionId) — aligns NDJSON tail path with relay.cjs argv UUID
 - [Phase 153-dashboard-auth-ux]: useAllSessions uses async tick() with explicit status checks instead of .then().catch() chain — enables res.status inspection before parsing JSON
 - [Phase 153-dashboard-auth-ux]: clearInterval(id) called before router.push on 401 — prevents orphaned polling intervals after redirect
+- [Phase 154]: effectiveSessionId = opts.relayId || opts.sessionId in remote-ssh.cjs — UUID flows from coordinator to SSH envPrefix and NDJSON path for relay schema alignment
+- [Phase 154]: PDE_BACKEND=remote-ssh unconditionally in SSH envPrefix; emit-event.cjs two-step fallback pattern: const source = hookData.source || process.env.PDE_BACKEND; if (source) payload.source = source
 
 ### Pending Todos
 
@@ -117,7 +119,7 @@ Plan: Not started
 
 ## Session Continuity
 
-Last session: 2026-03-27T21:18:35.919Z
-Stopped at: Completed 153-01-PLAN.md
+Last session: 2026-03-27T23:30:00.534Z
+Stopped at: Completed 154-01-PLAN.md
 Resume with: `/gsd:plan-phase 143`
 Resume file: None

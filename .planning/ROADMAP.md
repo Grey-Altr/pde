@@ -38,7 +38,7 @@
 - [x] **Phase 151: Test & Validation Cleanup** - Fix coordinator-smoke Test 7 SDK stubs and complete Phase 149 Nyquist validation (completed 2026-03-27)
 - [x] **Phase 152: Parallel Session Relay Wiring** - Launch relay process alongside spawned sessions so dashboard receives parallel session data (completed 2026-03-27)
 - [x] **Phase 153: Dashboard Auth UX** - Surface 401 errors in useAllSessions with sign-in redirect instead of blank dashboard (completed 2026-03-27)
-- [ ] **Phase 154: SSH Source Propagation** - Propagate remote-ssh source through event stream so dashboard shows correct session origin
+- [x] **Phase 154: SSH Source Propagation** - Propagate remote-ssh source through event stream so dashboard shows correct session origin (completed 2026-03-27)
 - [ ] **Phase 155: Retry & Documentation Polish** - Disable retry button when unavailable, document PDE_REMOTE env var for dispatcher
 
 ## Phase Details
@@ -209,7 +209,7 @@ Plans:
   2. Ingest route propagates source field from relay NDJSON events instead of defaulting to `'local'`
 **Plans**: 1 plan
 Plans:
-- [ ] 154-01-PLAN.md — SSH source propagation: relayId wiring, PDE_BACKEND envPrefix, emit-event fallback
+- [x] 154-01-PLAN.md — SSH source propagation: relayId wiring, PDE_BACKEND envPrefix, emit-event fallback
 
 ### Phase 155: Retry & Documentation Polish
 **Goal**: Make retry limitation explicit in UI and document PDE_REMOTE env var for operator setup
@@ -240,5 +240,5 @@ Note: Phase 154 and Phase 155 can execute in parallel (independent gap closure p
 | 151. Test & Validation Cleanup | 1/1 | Complete    | 2026-03-27 |
 | 152. Parallel Session Relay Wiring | 1/1 | Complete    | 2026-03-27 |
 | 153. Dashboard Auth UX | 1/1 | Complete    | 2026-03-27 |
-| 154. SSH Source Propagation | 0/1 | Pending | — |
+| 154. SSH Source Propagation | 1/1 | Complete   | 2026-03-27 |
 | 155. Retry & Documentation Polish | 0/0 | Pending | — |
