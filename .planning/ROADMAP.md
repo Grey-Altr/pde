@@ -19,7 +19,7 @@
 - ✅ **v0.15 Multi-Editor Integration** — Phases 118-125 (shipped 2026-03-24)
 - ✅ **v0.16 Multi-Editor Context Sync** — Phases 126-133 (shipped 2026-03-24)
 - ✅ **v0.17 Remote Dashboard** — Phases 134-142 (shipped 2026-03-26)
-- 🚧 **v0.18 Distributed Execution** — Phases 143-151 (in progress)
+- 🚧 **v0.18 Distributed Execution** — Phases 143-153 (in progress)
 
 ## Phases
 
@@ -36,6 +36,8 @@
 - [x] **Phase 149: Configuration & Commands** - Wire the dispatch config block, session management slash commands, and graceful degradation path (completed 2026-03-27)
 - [x] **Phase 150: Dashboard Hardening** - Add auth guard to /api/sessions, wire FailureCard action handlers with server actions, close integration gaps from milestone audit (completed 2026-03-27)
 - [x] **Phase 151: Test & Validation Cleanup** - Fix coordinator-smoke Test 7 SDK stubs and complete Phase 149 Nyquist validation (completed 2026-03-27)
+- [ ] **Phase 152: Parallel Session Relay Wiring** - Launch relay process alongside spawned sessions so dashboard receives parallel session data
+- [ ] **Phase 153: Dashboard Auth UX** - Surface 401 errors in useAllSessions with sign-in redirect instead of blank dashboard
 
 ## Phase Details
 
@@ -172,11 +174,30 @@ Plans:
 Plans:
 - [x] 151-01-PLAN.md — Fix coordinator-smoke Test 7 SDK stubs and finalize Phase 149 VALIDATION.md
 
+### Phase 152: Parallel Session Relay Wiring
+**Goal**: Coordinator launches a relay process for each spawned parallel session so the web dashboard receives real-time session data via Redis
+**Depends on**: Phase 144, Phase 147
+**Requirements**: RLY-01, RLY-02
+**Gap Closure**: Closes INT-RELAY and flow "Dashboard monitoring (parallel dispatch)"
+**Success Criteria** (what must be TRUE):
+  1. Coordinator spawns a relay.cjs child process per dispatched session, tagged with session_id, that POSTs NDJSON events to `/api/ingest`
+  2. Dashboard `/api/sessions` returns parallel-dispatched sessions with live status updates from Redis
+**Plans**: 0 plans
+
+### Phase 153: Dashboard Auth UX
+**Goal**: useAllSessions hook surfaces 401 errors with a redirect to sign-in instead of showing a blank dashboard
+**Depends on**: Phase 150
+**Requirements**: AUX-01
+**Gap Closure**: Closes INT-AUTH-SILENT and flow "Dashboard auth UX"
+**Success Criteria** (what must be TRUE):
+  1. When `/api/sessions` returns 401, the dashboard redirects to sign-in page instead of rendering empty state
+**Plans**: 0 plans
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 143 → 144 → 145 → 146 → 147 → 148 → 149 → 150 → 151
-Note: Phase 150 and Phase 151 can execute in parallel (independent gap closure phases).
+Phases execute in numeric order: 143 → 144 → 145 → 146 → 147 → 148 → 149 → 150 → 151 → 152 → 153
+Note: Phase 152 and Phase 153 can execute in parallel (independent gap closure phases).
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -189,3 +210,5 @@ Note: Phase 150 and Phase 151 can execute in parallel (independent gap closure p
 | 149. Configuration & Commands | 2/3 | Complete    | 2026-03-27 |
 | 150. Dashboard Hardening | 1/1 | Complete    | 2026-03-27 |
 | 151. Test & Validation Cleanup | 1/1 | Complete    | 2026-03-27 |
+| 152. Parallel Session Relay Wiring | 0/0 | Not Started | — |
+| 153. Dashboard Auth UX | 0/0 | Not Started | — |

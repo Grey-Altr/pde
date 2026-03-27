@@ -90,6 +90,15 @@ Requirements for Distributed Execution milestone. Each maps to roadmap phases.
 - [x] **CLN-01**: coordinator-smoke.test.cjs Test 7 passes with analyzeDag and routeSession stubs injected into makeCoordWithDeps
 - [x] **CLN-02**: Phase 149 VALIDATION.md reaches nyquist_compliant: true with wave_0_complete: true
 
+### Parallel Session Relay Wiring (Gap Closure)
+
+- [ ] **RLY-01**: Coordinator spawns a relay.cjs child process per dispatched session tagged with session_id that POSTs NDJSON events to /api/ingest
+- [ ] **RLY-02**: Dashboard /api/sessions returns parallel-dispatched sessions with live status updates from Redis
+
+### Dashboard Auth UX (Gap Closure)
+
+- [ ] **AUX-01**: When /api/sessions returns 401, dashboard redirects to sign-in page instead of rendering empty state
+
 ## Future Requirements
 
 Deferred to future release.
@@ -179,10 +188,13 @@ Deferred to future release.
 | HDN-02 | Phase 150 | Complete |
 | CLN-01 | Phase 151 | Complete |
 | CLN-02 | Phase 151 | Complete |
+| RLY-01 | Phase 152 | Pending |
+| RLY-02 | Phase 152 | Pending |
+| AUX-01 | Phase 153 | Pending |
 
 **Coverage:**
-- v0.18 requirements: 51 total (47 original + 4 gap closure)
-- Mapped to phases: 51
+- v0.18 requirements: 54 total (47 original + 7 gap closure)
+- Mapped to phases: 54
 - Unmapped: 0
 
 ---
