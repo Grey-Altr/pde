@@ -207,7 +207,9 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. SSH-dispatched sessions appear with `source='remote-ssh'` in the session health matrix and event log
   2. Ingest route propagates source field from relay NDJSON events instead of defaulting to `'local'`
-**Plans**: 0 plans
+**Plans**: 1 plan
+Plans:
+- [ ] 154-01-PLAN.md — SSH source propagation: relayId wiring, PDE_BACKEND envPrefix, emit-event fallback
 
 ### Phase 155: Retry & Documentation Polish
 **Goal**: Make retry limitation explicit in UI and document PDE_REMOTE env var for operator setup
@@ -238,5 +240,5 @@ Note: Phase 154 and Phase 155 can execute in parallel (independent gap closure p
 | 151. Test & Validation Cleanup | 1/1 | Complete    | 2026-03-27 |
 | 152. Parallel Session Relay Wiring | 1/1 | Complete    | 2026-03-27 |
 | 153. Dashboard Auth UX | 1/1 | Complete    | 2026-03-27 |
-| 154. SSH Source Propagation | 0/0 | Pending | — |
+| 154. SSH Source Propagation | 0/1 | Pending | — |
 | 155. Retry & Documentation Polish | 0/0 | Pending | — |
