@@ -149,6 +149,9 @@ Any user can go from idea to shipped product through a single platform that hand
 - ✓ 575 Nyquist tests across all v0.15 phases, zero v0.14 regressions — v0.15
 - ✓ Full Nyquist traceability: all 8 VALIDATION.md files compliant, all 14 SUMMARY.md files with requirements-completed, isStitchSource production consumer wired — v0.15
 
+- ✓ coordinator-smoke Test 7 fixed with analyzeDag and routeSession DI stubs — v0.18
+- ✓ Phase 149 VALIDATION.md Nyquist compliance finalized (nyquist_compliant: true, wave_0_complete: true) — v0.18
+
 ### Active
 
 ## Current Milestone: v0.18 Distributed Execution
@@ -177,7 +180,7 @@ Any user can go from idea to shipped product through a single platform that hand
 
 ## Current State
 
-**v0.18 Distributed Execution in progress** — Phases 143-149 shipped. Phase 150 (Dashboard Hardening) added Clerk auth guard to /api/sessions (401 for unauthenticated) and wired FailureCard action buttons to real server actions (kill/abandon/retry) interacting with the dispatcher SessionRegistry. 212 dashboard tests passing. Remaining: Phase 151 (Test & Validation Cleanup).
+**v0.18 Distributed Execution complete** — All 9 phases (143-151) shipped. Phase 150 (Dashboard Hardening) added Clerk auth guard and wired FailureCard action buttons. Phase 151 (Test & Validation Cleanup) fixed coordinator-smoke Test 7 SDK stub gap and finalized Phase 149 Nyquist validation. 221 dispatcher tests passing, all VALIDATION.md files compliant.
 
 ### Out of Scope
 
