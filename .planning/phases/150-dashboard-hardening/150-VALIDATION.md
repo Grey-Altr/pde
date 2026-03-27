@@ -1,10 +1,11 @@
 ---
 phase: 150
 slug: dashboard-hardening
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-26
+updated: 2026-03-27
 ---
 
 # Phase 150 — Validation Strategy
@@ -38,8 +39,8 @@ created: 2026-03-26
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 150-01-01 | 01 | 1 | HDN-01 | unit | `cd dashboard && npx vitest run __tests__/hardening.test.ts` | ❌ W0 | ⬜ pending |
-| 150-01-02 | 01 | 1 | HDN-02 | unit | `cd dashboard && npx vitest run __tests__/hardening.test.ts` | ❌ W0 | ⬜ pending |
+| 150-01-01 | 01 | 1 | HDN-01 | unit | `cd dashboard && npx vitest run __tests__/hardening-hdn.test.ts` | ✅ | ✅ green |
+| 150-01-02 | 01 | 1 | HDN-02 | unit | `cd dashboard && npx vitest run __tests__/hardening-hdn.test.ts` | ✅ | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -47,9 +48,9 @@ created: 2026-03-26
 
 ## Wave 0 Requirements
 
-- [ ] `dashboard/__tests__/hardening.test.ts` — test stubs for HDN-01 (auth guard) and HDN-02 (action handlers)
+- [x] `dashboard/__tests__/hardening-hdn.test.ts` — 7 tests for HDN-01 (auth guard) and HDN-02 (action handlers)
 
-*Existing test infrastructure covers framework setup. Only test file stubs needed.*
+*Note: Test file named `hardening-hdn.test.ts` (not `hardening.test.ts`) to avoid mock conflicts with pre-existing ingest/cron tests.*
 
 ---
 
@@ -63,11 +64,23 @@ created: 2026-03-26
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 10s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 10s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved
+
+---
+
+## Validation Audit 2026-03-27
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+
+All 7 tests in `hardening-hdn.test.ts` cover both requirements (HDN-01: 2 tests, HDN-02: 5 tests). Full dashboard suite (212 tests, 28 files) green.
