@@ -177,7 +177,7 @@ Any user can go from idea to shipped product through a single platform that hand
 
 ## Current State
 
-**Building v0.18 Distributed Execution** — Phase 146 (Remote Dispatch) complete. Autonomous sessions can be routed to configured SSH remote hosts with fallback chain (managed→SSH→local). SSH backend via node-ssh dispatches sessions to remote worktrees, streams NDJSON back for dashboard consumption. Managed backend deferred as detection stub. Router reads dispatch.remote config. 27 new tests (143 total across dispatcher). Phase 145 (Agent SDK Orchestrator) also complete — SDK bridge, DAG analysis, file overlap, failure summaries, conflict triage.
+**Building v0.18 Distributed Execution** — Phase 147 (Dashboard Integration) complete. Full dashboard surfaces all active parallel sessions with per-session health matrix, multi-phase progress bars (striped animations), event log with session filtering and color tags, failure cards with retry/abandon/kill actions (44px touch targets, AlertDialog confirmation), responsive layout (phone bottom tabs, tablet 2x2 grid, laptop 7-pane grid), and keyboard shortcuts (1-7 pane focus, s/a session cycle, Esc collapse). 163 tests across 22 files. Phase 146 (Remote Dispatch) also complete — SSH backend, session router, managed stub, coordinator wiring.
 
 ### Out of Scope
 
@@ -337,4 +337,4 @@ This document evolves at phase transitions and milestone boundaries.
 3. Audit Out of Scope — reasons still valid?
 4. Update Context with current state
 
-*Last updated: 2026-03-27 after Phase 146 — Remote Dispatch: SSH backend, session router, managed stub, coordinator wiring (3 plans, 6 requirements, 27 new tests)*
+*Last updated: 2026-03-27 after Phase 147 — Dashboard Integration: session health matrix, progress bars, event log, failure cards, responsive layout, keyboard shortcuts (5 plans, 13 requirements, 163 tests)*
