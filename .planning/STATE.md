@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.18
 milestone_name: Distributed Execution
-status: Ready to plan
-stopped_at: Completed 152-01-PLAN.md
-last_updated: "2026-03-27T20:57:31.155Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 153-01-PLAN.md
+last_updated: "2026-03-27T21:18:35.923Z"
 progress:
   total_phases: 11
-  completed_phases: 10
-  total_plans: 25
-  completed_plans: 25
+  completed_phases: 11
+  total_plans: 26
+  completed_plans: 26
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-26)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 152 — parallel-relay-wiring
+**Current focus:** Phase 153 — dashboard-auth-ux
 
 ## Current Position
 
-Phase: 153
-Plan: Not started
+Phase: 153 (dashboard-auth-ux) — EXECUTING
+Plan: 1 of 1
 
 ## Performance Metrics
 
@@ -103,6 +103,8 @@ Plan: Not started
 - [Phase 152]: Relay spawned synchronously in dispatch() before queue.add() — relay ready before session writes events
 - [Phase 152]: child.kill(sig) used in relay handle (not process.kill(pid)) — preserves mock fidelity in DI tests
 - [Phase 152]: aggregator.watch(relayId) replaces watch(sessionId) — aligns NDJSON tail path with relay.cjs argv UUID
+- [Phase 153-dashboard-auth-ux]: useAllSessions uses async tick() with explicit status checks instead of .then().catch() chain — enables res.status inspection before parsing JSON
+- [Phase 153-dashboard-auth-ux]: clearInterval(id) called before router.push on 401 — prevents orphaned polling intervals after redirect
 
 ### Pending Todos
 
@@ -115,7 +117,7 @@ Plan: Not started
 
 ## Session Continuity
 
-Last session: 2026-03-27T20:54:04.344Z
-Stopped at: Completed 152-01-PLAN.md
+Last session: 2026-03-27T21:18:35.919Z
+Stopped at: Completed 153-01-PLAN.md
 Resume with: `/gsd:plan-phase 143`
 Resume file: None

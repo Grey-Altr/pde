@@ -37,7 +37,7 @@
 - [x] **Phase 150: Dashboard Hardening** - Add auth guard to /api/sessions, wire FailureCard action handlers with server actions, close integration gaps from milestone audit (completed 2026-03-27)
 - [x] **Phase 151: Test & Validation Cleanup** - Fix coordinator-smoke Test 7 SDK stubs and complete Phase 149 Nyquist validation (completed 2026-03-27)
 - [x] **Phase 152: Parallel Session Relay Wiring** - Launch relay process alongside spawned sessions so dashboard receives parallel session data (completed 2026-03-27)
-- [ ] **Phase 153: Dashboard Auth UX** - Surface 401 errors in useAllSessions with sign-in redirect instead of blank dashboard
+- [x] **Phase 153: Dashboard Auth UX** - Surface 401 errors in useAllSessions with sign-in redirect instead of blank dashboard (completed 2026-03-27)
 
 ## Phase Details
 
@@ -195,7 +195,7 @@ Plans:
   1. When `/api/sessions` returns 401, the dashboard redirects to sign-in page instead of rendering empty state
 **Plans**: 1 plan
 Plans:
-- [ ] 153-01-PLAN.md — 401 detection in useAllSessions with sign-in redirect
+- [x] 153-01-PLAN.md — 401 detection in useAllSessions with sign-in redirect
 
 ## Progress
 
@@ -215,4 +215,4 @@ Note: Phase 152 and Phase 153 can execute in parallel (independent gap closure p
 | 150. Dashboard Hardening | 1/1 | Complete    | 2026-03-27 |
 | 151. Test & Validation Cleanup | 1/1 | Complete    | 2026-03-27 |
 | 152. Parallel Session Relay Wiring | 1/1 | Complete    | 2026-03-27 |
-| 153. Dashboard Auth UX | 0/0 | Not Started | — |
+| 153. Dashboard Auth UX | 1/1 | Complete   | 2026-03-27 |

@@ -97,7 +97,7 @@ Requirements for Distributed Execution milestone. Each maps to roadmap phases.
 
 ### Dashboard Auth UX (Gap Closure)
 
-- [ ] **AUX-01**: When /api/sessions returns 401, dashboard redirects to sign-in page instead of rendering empty state
+- [x] **AUX-01**: When /api/sessions returns 401, dashboard redirects to sign-in page instead of rendering empty state
 
 ## Future Requirements
 
@@ -190,7 +190,7 @@ Deferred to future release.
 | CLN-02 | Phase 151 | Complete |
 | RLY-01 | Phase 152 | Complete |
 | RLY-02 | Phase 152 | Complete |
-| AUX-01 | Phase 153 | Pending |
+| AUX-01 | Phase 153 | Complete |
 
 **Coverage:**
 - v0.18 requirements: 54 total (47 original + 7 gap closure)
