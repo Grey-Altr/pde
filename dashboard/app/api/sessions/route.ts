@@ -1,10 +1,14 @@
 import { NextResponse } from 'next/server';
-import { requireAuth } from '@/lib/auth';
+import { auth } from '@clerk/nextjs/server';
 import { getSessions } from '@/lib/queries';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
-  const authError = await requireAuth();
-  if (authError) return authError;
+  const { isAuthenticated } = await auth();
+  if (!isAuthenticated) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
 
   const sessions = await getSessions();
   return NextResponse.json(sessions);
