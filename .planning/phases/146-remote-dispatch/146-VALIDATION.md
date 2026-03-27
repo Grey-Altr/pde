@@ -1,7 +1,7 @@
 ---
 phase: 146
 slug: remote-dispatch
-status: active
+status: validated
 nyquist_compliant: true
 wave_0_complete: true
 created: 2026-03-26
@@ -38,12 +38,12 @@ created: 2026-03-26
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 146-01-01 | 01 | 1 | RMT-04, RMT-05, RMT-06 | unit | `node -e "require('./packages/dispatcher/lib/remote-managed.cjs')"` | ✅ inline | ⬜ pending |
-| 146-01-02 | 01 | 1 | RMT-04, RMT-05, RMT-06 | unit | `npx vitest run tests/dispatcher/remote-router.test.cjs` | TDD T2 | ⬜ pending |
-| 146-02-01 | 02 | 1 | RMT-01, RMT-02, RMT-03 | unit | `node -e "require('./packages/dispatcher/lib/remote-ssh.cjs')"` | ✅ inline | ⬜ pending |
-| 146-02-02 | 02 | 1 | RMT-01, RMT-02, RMT-03 | unit | `npx vitest run tests/dispatcher/remote-ssh.test.cjs` | TDD T2 | ⬜ pending |
-| 146-03-01 | 03 | 2 | RMT-01 thru RMT-06 | unit | `node -e "require('./packages/dispatcher/lib/coordinator.cjs')"` | ✅ inline | ⬜ pending |
-| 146-03-02 | 03 | 2 | RMT-01 thru RMT-06 | integration | `npx vitest run tests/dispatcher/ --reporter=verbose` | TDD T2 | ⬜ pending |
+| 146-01-01 | 01 | 1 | RMT-04, RMT-05, RMT-06 | unit | `node -e "require('./packages/dispatcher/lib/remote-managed.cjs')"` | ✅ inline | ✅ green |
+| 146-01-02 | 01 | 1 | RMT-04, RMT-05, RMT-06 | unit | `npx vitest run tests/dispatcher/remote-router.test.cjs` | ✅ 8 tests | ✅ green |
+| 146-02-01 | 02 | 1 | RMT-01, RMT-02, RMT-03 | unit | `node -e "require('./packages/dispatcher/lib/remote-ssh.cjs')"` | ✅ inline | ✅ green |
+| 146-02-02 | 02 | 1 | RMT-01, RMT-02, RMT-03 | unit | `npx vitest run tests/dispatcher/remote-ssh.test.cjs` | ✅ 12 tests | ✅ green |
+| 146-03-01 | 03 | 2 | RMT-01 thru RMT-06 | unit | `node -e "require('./packages/dispatcher/lib/coordinator.cjs')"` | ✅ inline | ✅ green |
+| 146-03-02 | 03 | 2 | RMT-01 thru RMT-06 | integration | `npx vitest run tests/dispatcher/ --reporter=verbose` | ✅ 7 tests | ✅ green |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -75,3 +75,19 @@ Existing vitest infrastructure covers framework — no framework install needed.
 - [x] `nyquist_compliant: true` set in frontmatter
 
 **Approval:** approved 2026-03-26
+
+---
+
+## Validation Audit 2026-03-26
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 0 |
+| Resolved | 0 |
+| Escalated | 0 |
+| Tests run | 27 |
+| Tests passed | 27 |
+| Test files | 3 |
+| Runtime | 951ms |
+
+All 6 tasks verified green. No gaps to fill.
