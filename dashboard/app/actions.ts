@@ -2,6 +2,9 @@
 
 import { webpush } from "@/lib/push";
 import { redis } from "@/lib/redis";
+import { auth } from '@clerk/nextjs/server';
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
+import path from 'node:path';
 
 const PUSH_SUB_KEY = "push:sub:owner";
 
@@ -38,4 +41,130 @@ export async function sendPushToOwner(payload: {
     }
     return { success: false, reason: error.message ?? "unknown error" };
   }
+}
+
+// --- Session control actions ---
+
+type ActionResult = { ok: boolean; error?: string };
+
+type RegistryEntry = {
+  pid: number;
+  phase: number;
+  plan: number;
+  worktreePath: string;
+  branch: string;
+  status: string;
+  startedAt: string;
+};
+
+type Registry = {
+  sessions: Record<string, RegistryEntry>;
+};
+
+function readRegistry(): Registry | null {
+  const projectRoot = process.env.PDE_PROJECT_ROOT;
+  if (!projectRoot) return null;
+  const pidFile = path.join(projectRoot, '.planning', 'dispatcher.pids');
+  try {
+    return JSON.parse(readFileSync(pidFile, 'utf-8')) as Registry;
+  } catch {
+    return null;
+  }
+}
+
+function writeRegistry(data: Registry | null): boolean {
+  const projectRoot = process.env.PDE_PROJECT_ROOT;
+  if (!projectRoot || !data) return false;
+  const pidFile = path.join(projectRoot, '.planning', 'dispatcher.pids');
+  try {
+    writeFileSync(pidFile, JSON.stringify(data, null, 2));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function retrySession(sessionId: string): Promise<ActionResult> {
+  const { isAuthenticated } = await auth();
+  if (!isAuthenticated) {
+    return { ok: false, error: 'Unauthorized' };
+  }
+
+  const registry = readRegistry();
+  if (!registry) {
+    return { ok: false, error: 'PDE_PROJECT_ROOT not set — session actions only work locally' };
+  }
+
+  const entry = registry.sessions[sessionId];
+  if (!entry) {
+    return { ok: false, error: 'Session not found' };
+  }
+
+  return { ok: false, error: 'retry-requires-local-dispatcher' };
+}
+
+export async function abandonSession(sessionId: string): Promise<ActionResult> {
+  const { isAuthenticated } = await auth();
+  if (!isAuthenticated) {
+    return { ok: false, error: 'Unauthorized' };
+  }
+
+  const registry = readRegistry();
+  if (!registry) {
+    return { ok: false, error: 'PDE_PROJECT_ROOT not set — session actions only work locally' };
+  }
+
+  const entry = registry.sessions[sessionId];
+  if (!entry) {
+    return { ok: false, error: 'Session not found' };
+  }
+
+  entry.status = 'abandoned';
+  writeRegistry(registry);
+
+  const projectRoot = process.env.PDE_PROJECT_ROOT!;
+  const cleanupDir = path.join(projectRoot, '.planning', 'cleanup-requests');
+  mkdirSync(cleanupDir, { recursive: true });
+  const cleanupFile = path.join(cleanupDir, sessionId);
+  writeFileSync(
+    cleanupFile,
+    JSON.stringify({
+      sessionId,
+      worktreePath: entry.worktreePath,
+      branch: entry.branch,
+      requestedAt: new Date().toISOString(),
+    })
+  );
+
+  return { ok: true };
+}
+
+export async function killSession(sessionId: string): Promise<ActionResult> {
+  const { isAuthenticated } = await auth();
+  if (!isAuthenticated) {
+    return { ok: false, error: 'Unauthorized' };
+  }
+
+  const registry = readRegistry();
+  if (!registry) {
+    return { ok: false, error: 'PDE_PROJECT_ROOT not set — session actions only work locally' };
+  }
+
+  const entry = registry.sessions[sessionId];
+  if (!entry) {
+    return { ok: false, error: 'Session not found' };
+  }
+
+  if (entry.pid > 0) {
+    try {
+      process.kill(entry.pid, 'SIGTERM');
+    } catch {
+      // ignore ESRCH — process already dead
+    }
+  }
+
+  entry.status = 'stopped';
+  writeRegistry(registry);
+
+  return { ok: true };
 }

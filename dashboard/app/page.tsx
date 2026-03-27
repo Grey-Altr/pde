@@ -13,6 +13,7 @@ import { MultiPhaseProgress } from '@/components/multi-phase-progress';
 import { ActionChevron } from '@/components/action-chevron';
 import { EventLog } from '@/components/event-log';
 import { FailureCard } from '@/components/failure-card';
+import { retrySession, abandonSession, killSession } from '@/app/actions';
 
 export default function HomePage() {
   const { sessionFilter, setSessionFilter } = useGlobalFilter();
@@ -140,7 +141,13 @@ export default function HomePage() {
             </div>
           ) : (
             failedSessions.map(s => (
-              <FailureCard key={s.id} session={s} />
+              <FailureCard
+                  key={s.id}
+                  session={s}
+                  onRetry={retrySession}
+                  onAbandon={abandonSession}
+                  onKill={killSession}
+                />
             ))
           )}
         </div>

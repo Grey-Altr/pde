@@ -5,11 +5,13 @@ import { AlertDialog } from '@base-ui/react/alert-dialog';
 import { Card, CardContent } from '@/components/ui/card';
 import type { SessionListItem } from '@/lib/queries';
 
+type ActionResult = { ok: boolean; error?: string };
+
 interface FailureCardProps {
   session: SessionListItem;
-  onRetry?: (sessionId: string) => void;
-  onAbandon?: (sessionId: string) => void;
-  onKill?: (sessionId: string) => void;
+  onRetry?: (sessionId: string) => Promise<ActionResult> | void;
+  onAbandon?: (sessionId: string) => Promise<ActionResult> | void;
+  onKill?: (sessionId: string) => Promise<ActionResult> | void;
 }
 
 function formatElapsed(startedAt: number): string {
@@ -25,11 +27,14 @@ function formatElapsed(startedAt: number): string {
 export function FailureCard({ session, onRetry, onAbandon, onKill }: FailureCardProps) {
   const [killDialogOpen, setKillDialogOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   async function handleRetry() {
     setSubmitting(true);
+    setError(null);
     try {
-      onRetry?.(session.id);
+      const result = await onRetry?.(session.id);
+      if (result && !result.ok) setError(result.error ?? 'Action failed');
     } finally {
       setSubmitting(false);
     }
@@ -37,8 +42,10 @@ export function FailureCard({ session, onRetry, onAbandon, onKill }: FailureCard
 
   async function handleAbandon() {
     setSubmitting(true);
+    setError(null);
     try {
-      onAbandon?.(session.id);
+      const result = await onAbandon?.(session.id);
+      if (result && !result.ok) setError(result.error ?? 'Action failed');
     } finally {
       setSubmitting(false);
     }
@@ -47,8 +54,10 @@ export function FailureCard({ session, onRetry, onAbandon, onKill }: FailureCard
   async function handleKill() {
     setSubmitting(true);
     setKillDialogOpen(false);
+    setError(null);
     try {
-      onKill?.(session.id);
+      const result = await onKill?.(session.id);
+      if (result && !result.ok) setError(result.error ?? 'Action failed');
     } finally {
       setSubmitting(false);
     }
@@ -98,6 +107,10 @@ export function FailureCard({ session, onRetry, onAbandon, onKill }: FailureCard
               Kill
             </button>
           </div>
+
+          {error && (
+            <p className="text-xs text-destructive">{error}</p>
+          )}
         </CardContent>
       </Card>
 

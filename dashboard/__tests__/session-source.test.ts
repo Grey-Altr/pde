@@ -42,6 +42,10 @@ vi.mock('@/lib/auth', () => ({
   validateRelayToken: vi.fn().mockReturnValue(true),
 }));
 
+vi.mock('@clerk/nextjs/server', () => ({
+  auth: vi.fn().mockResolvedValue({ isAuthenticated: true }),
+}));
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function makeValidEnvelope(overrides: Record<string, unknown> = {}): Record<string, unknown> {
