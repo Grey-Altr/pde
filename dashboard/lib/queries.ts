@@ -12,6 +12,7 @@ export interface SessionListItem {
   lastEventTs: number;
   startedAt: number;
   pendingApprovalId: string | null;  // APR-01: non-null when approval pending
+  source: 'local' | 'remote-ssh' | 'remote-managed';
 }
 
 /**
@@ -52,6 +53,12 @@ export async function getSessions(): Promise<SessionListItem[]> {
     const startedAt = Number(raw.started_at ?? 0);
     const pendingApprovalId = raw.pending_approval_id || null;
 
+    const rawSource = raw.session_source ?? 'local';
+    const source: 'local' | 'remote-ssh' | 'remote-managed' =
+      rawSource === 'remote-ssh' ? 'remote-ssh'
+      : rawSource === 'remote-managed' ? 'remote-managed'
+      : 'local';
+
     sessions.push({
       id,
       status: deriveStatus(lastEventType, lastEventTs),
@@ -61,6 +68,7 @@ export async function getSessions(): Promise<SessionListItem[]> {
       lastEventTs,
       startedAt,
       pendingApprovalId,
+      source,
     });
   }
   return sessions;
@@ -75,6 +83,12 @@ export async function getSessionMeta(sessionId: string): Promise<SessionListItem
   const startedAt = Number(raw.started_at ?? 0);
   const pendingApprovalId = raw.pending_approval_id || null;
 
+  const rawSource = raw.session_source ?? 'local';
+  const source: 'local' | 'remote-ssh' | 'remote-managed' =
+    rawSource === 'remote-ssh' ? 'remote-ssh'
+    : rawSource === 'remote-managed' ? 'remote-managed'
+    : 'local';
+
   return {
     id: sessionId,
     status: deriveStatus(lastEventType, lastEventTs),
@@ -84,6 +98,7 @@ export async function getSessionMeta(sessionId: string): Promise<SessionListItem
     lastEventTs,
     startedAt,
     pendingApprovalId,
+    source,
   };
 }
 

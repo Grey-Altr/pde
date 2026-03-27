@@ -6,10 +6,12 @@ interface StatusBadgeProps {
 }
 
 const statusConfig: Record<SessionStatus, { dotClass: string; label: string }> = {
-  active: { dotClass: 'bg-green-500 animate-pulse', label: 'Active' },
-  idle:   { dotClass: 'bg-amber-500',               label: 'Idle' },
-  error:  { dotClass: 'bg-red-500',                 label: 'Error' },
-  complete: { dotClass: 'bg-zinc-500',              label: 'Complete' },
+  active:   { dotClass: 'bg-green-500 animate-pulse', label: 'Active' },
+  idle:     { dotClass: 'bg-amber-500',               label: 'Idle' },
+  error:    { dotClass: 'bg-red-500',                 label: 'Error' },
+  complete: { dotClass: 'bg-zinc-500',                label: 'Complete' },
+  failed:   { dotClass: 'bg-red-700',                 label: 'Failed' },
+  queued:   { dotClass: 'bg-sky-500',                 label: 'Queued' },
 };
 
 export function StatusBadge({ status }: StatusBadgeProps) {

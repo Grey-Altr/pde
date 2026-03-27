@@ -3,7 +3,8 @@ import { GeistSans } from 'geist/font/sans';
 import { GeistMono } from 'geist/font/mono';
 import { ClerkProvider } from '@clerk/nextjs';
 import { ThemeProvider } from '@/components/theme-provider';
-import { BottomNav } from '@/components/layout/bottom-nav';
+import { Providers } from '@/components/providers';
+import { DashboardShell } from '@/components/dashboard-shell';
 import { SwRegister } from '@/components/pwa/sw-register';
 import './globals.css';
 
@@ -45,8 +46,11 @@ export default function RootLayout({
             enableSystem={false}
             disableTransitionOnChange
           >
-            {children}
-            <BottomNav />
+            <Providers>
+              <DashboardShell>
+                {children}
+              </DashboardShell>
+            </Providers>
           </ThemeProvider>
           <SwRegister />
         </body>
