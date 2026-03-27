@@ -1067,15 +1067,21 @@ async function main() {
       // node pde-tools.cjs dispatch <phase> <plan> [--max-concurrent N]
       // Lazy-require coordinator to avoid loading dispatcher when not needed
       const { DispatchCoordinator } = require('../packages/dispatcher/lib/coordinator.cjs');
+      const { loadConfig } = require('./lib/core.cjs');
       const dispatchPhase = parseInt(args[1], 10);
       const dispatchPlan = parseInt(args[2], 10);
       if (isNaN(dispatchPhase) || isNaN(dispatchPlan)) {
         error('Usage: pde-tools dispatch <phase> <plan> [--max-concurrent N]');
       }
+      const config = loadConfig(cwd);
+      if (config.dispatch && config.dispatch.enabled === false) {
+        error('Dispatch is disabled (dispatch.enabled=false in config.json). Use standard execution instead.');
+      }
       const maxConcurrentIdx = args.indexOf('--max-concurrent');
-      const maxConcurrent = maxConcurrentIdx !== -1 ? parseInt(args[maxConcurrentIdx + 1], 10) : 3;
+      const configMax = (config.dispatch && config.dispatch.max_local_sessions) || 3;
+      const maxConcurrent = maxConcurrentIdx !== -1 ? parseInt(args[maxConcurrentIdx + 1], 10) : configMax;
       const pluginDir = DispatchCoordinator.resolvePluginDir();
-      const coord = new DispatchCoordinator(cwd, { maxConcurrent, pluginDir });
+      const coord = new DispatchCoordinator(cwd, { maxConcurrent, pluginDir, config });
       coord.dispatch(dispatchPhase, dispatchPlan).then(sid => {
         console.log(JSON.stringify({ ok: true, sessionId: sid }));
       }).catch(err => {

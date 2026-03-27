@@ -14,6 +14,9 @@ function cmdInitExecutePhase(cwd, phase, raw, opts) {
   const isParallel = !!(opts && opts.parallel);
 
   const config = loadConfig(cwd);
+  if (isParallel && config.dispatch && config.dispatch.enabled === false) {
+    error('Dispatch disabled (dispatch.enabled=false in .planning/config.json). Cannot use --parallel flag.');
+  }
   const phaseInfo = findPhaseInternal(cwd, phase);
   const milestone = getMilestoneInfo(cwd);
 
