@@ -2,6 +2,7 @@
 # pane-token-meter.sh — live token estimate and cost meter
 # TOKN-01: chars/4 heuristic, all values labeled "~est."
 # TOKN-02: per-model pricing from model-profiles config
+# TMX-04: Pane 5 aggregates all sessions or filters to one session
 
 NDJSON="${1:-}"
 if [ -z "$NDJSON" ]; then
@@ -11,6 +12,9 @@ fi
 
 # Resolve plugin root from env var or relative to this script
 PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
+
+# Filter file path (Phase 148: tmux session filter)
+FILTER_FILE="${TMPDIR:-/tmp}/pde-tmux-filter.txt"
 
 # Model/pricing resolution — runs ONCE at startup
 # Requires model-profiles.cjs and reads .planning/config.json
@@ -54,8 +58,17 @@ INPUT_PRICE="${INPUT_PRICE:-3.00}"
 OUTPUT_PRICE="${OUTPUT_PRICE:-15.00}"
 CONTEXT_WINDOW="${CONTEXT_WINDOW:-1000000}"
 
+show_header() {
+  local filter="$1"
+  if [ "$filter" = "all" ]; then
+    printf "\r[ token / cost ]  model: %s  (~est.) [ALL SESSIONS]    " "$MODEL_NAME"
+  else
+    printf "\r[ token / cost ]  model: %s  (~est.) [%s]    " "$MODEL_NAME" "${filter:0:16}"
+  fi
+}
+
 # Header display
-echo "[ token / cost ]  model: ${MODEL_NAME}  (~est.)"
+show_header "all"
 echo ""
 
 # Accumulator loop
@@ -63,6 +76,15 @@ TOTAL_TOKENS=0
 EVENT_COUNT=0
 
 tail -F "${NDJSON}" 2>/dev/null | while IFS= read -r line; do
+  # Read current filter on each event
+  FILTER=$(cat "$FILTER_FILE" 2>/dev/null || echo "all")
+
+  # Filter by session if not "all"
+  if [ "$FILTER" != "all" ]; then
+    line_sid=$(echo "$line" | jq -r '._pde_session_id // ""' 2>/dev/null)
+    [ "$line_sid" != "$FILTER" ] && continue
+  fi
+
   # chars/4 heuristic (TOKN-01)
   line_len=${#line}
   est_tokens=$(( line_len / 4 ))
@@ -82,6 +104,8 @@ process.stdout.write('\$' + cost.toFixed(4) + ' ~est.');
 
     # Move cursor to line 3 (after header) and clear downward
     printf '\033[3;1H\033[J'
+    show_header "$FILTER"
+    echo ""
     printf '  Events:      %d\n' "$EVENT_COUNT"
     printf '  Tokens:      %d (~est.)\n' "$TOTAL_TOKENS"
     printf '  Cost:        %s\n' "$COST"
