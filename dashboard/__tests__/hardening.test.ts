@@ -5,6 +5,13 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 // Rate limit mock — controlled per-test
 const mockRatelimitLimit = vi.fn();
 
+// sendPushToOwner mock — for push notification tests
+const mockSendPushToOwner = vi.fn().mockResolvedValue({ success: true });
+
+vi.mock('@/app/actions', () => ({
+  sendPushToOwner: mockSendPushToOwner,
+}));
+
 vi.mock('@/lib/ratelimit', () => ({
   ratelimit: {
     limit: mockRatelimitLimit,
@@ -140,6 +147,27 @@ describe('POST /api/ingest — rate limiting and TTL', () => {
     const expireCalls = mockExpire.mock.calls;
     const globalExpire = expireCalls.find((c) => c[0] === 'pde:default:sessions');
     expect(globalExpire).toBeUndefined();
+  });
+
+  it('Test H-11: calls sendPushToOwner with "Session Merged" title when batch contains session_end event', async () => {
+    mockRatelimitLimit.mockResolvedValue({ success: true, reset: 0 });
+    mockSendPushToOwner.mockResolvedValue({ success: true });
+
+    const sessionId = '550e8400-e29b-41d4-a716-446655440000';
+    const req = makeIngestRequest([
+      makeValidEnvelope({ session_id: sessionId, event_type: 'session_end', phase_name: 'phase-147' }),
+    ]);
+    await POST(req);
+
+    // Give fire-and-forget time to run
+    await new Promise(resolve => setTimeout(resolve, 10));
+
+    expect(mockSendPushToOwner).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: 'Session Merged',
+        tag: `merge-${sessionId}`,
+      })
+    );
   });
 });
 
