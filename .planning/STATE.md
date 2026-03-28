@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.19
 milestone_name: WebMCP Integration
-status: Ready to execute
-stopped_at: Completed 160-01-PLAN.md
-last_updated: "2026-03-28T21:52:29.521Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 160-02-PLAN.md
+last_updated: "2026-03-28T21:56:01.030Z"
 progress:
   total_phases: 7
-  completed_phases: 4
+  completed_phases: 5
   total_plans: 12
-  completed_plans: 11
+  completed_plans: 12
 ---
 
 # Project State
@@ -67,6 +67,8 @@ Plan: 2 of 2
 - [Phase 159]: CostMeter import removed from session-detail.tsx but cost-meter.tsx retained for cleanup in future phase
 - [Phase 159]: 5-second debounce on persistSessionCost prevents Upstash command exhaustion under rapid token events
 - [Phase 160]: inputSchema const defined at module level outside hook function — prevents zombie re-registration on re-renders (extends Phase 157 pattern to approval gate tool)
+- [Phase 160]: Phase 160-02: WebMCP Context section is additive-only — appended after standard output when --webmcp flag present, no behavior change otherwise (per D-06)
+- [Phase 160]: Phase 160-02: Gate ID format for workflow gates: {workflow}-{PHASE_NUMBER}-{YYYYMMDD}-{4_HEX} (wireframe/mockup/critique/competitive)
 
 ### Pending Todos
 
@@ -80,7 +82,7 @@ Plan: 2 of 2
 
 ## Session Continuity
 
-Last session: 2026-03-28T21:52:29.518Z
-Stopped at: Completed 160-01-PLAN.md
+Last session: 2026-03-28T21:56:01.027Z
+Stopped at: Completed 160-02-PLAN.md
 Resume with: `/gsd:plan-phase 156`
 Resume file: None

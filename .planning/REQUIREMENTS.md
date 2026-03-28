@@ -37,10 +37,10 @@ Requirements for WebMCP Integration milestone. Each maps to roadmap phases.
 ### Workflow Integration
 
 - [x] **WFL-01**: Approval gates exposed as declarative WebMCP tool forms replacing imperative approval flow
-- [ ] **WFL-02**: --webmcp flag added to wireframe.md for WebMCP-enhanced output
-- [ ] **WFL-03**: --webmcp flag added to mockup.md for WebMCP-enhanced output
-- [ ] **WFL-04**: --webmcp flag added to critique.md for WebMCP-enhanced output
-- [ ] **WFL-05**: --webmcp flag added to competitive.md for WebMCP-enhanced output
+- [x] **WFL-02**: --webmcp flag added to wireframe.md for WebMCP-enhanced output
+- [x] **WFL-03**: --webmcp flag added to mockup.md for WebMCP-enhanced output
+- [x] **WFL-04**: --webmcp flag added to critique.md for WebMCP-enhanced output
+- [x] **WFL-05**: --webmcp flag added to competitive.md for WebMCP-enhanced output
 
 ### Advanced Tools
 
@@ -105,10 +105,10 @@ Requirements for WebMCP Integration milestone. Each maps to roadmap phases.
 | RUI-04 | Phase 159 | Complete |
 | RUI-05 | Phase 159 | Complete |
 | WFL-01 | Phase 160 | Complete |
-| WFL-02 | Phase 160 | Pending |
-| WFL-03 | Phase 160 | Pending |
-| WFL-04 | Phase 160 | Pending |
-| WFL-05 | Phase 160 | Pending |
+| WFL-02 | Phase 160 | Complete |
+| WFL-03 | Phase 160 | Complete |
+| WFL-04 | Phase 160 | Complete |
+| WFL-05 | Phase 160 | Complete |
 | ADV-01 | Phase 161 | Pending |
 | ADV-02 | Phase 161 | Pending |
 | ADV-03 | Phase 161 | Pending |
