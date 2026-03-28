@@ -28,7 +28,7 @@
 
 **Milestone Goal:** PDE tools are accessible from any browser-based AI agent and any MCP-compatible desktop client via a publicly accessible Streamable HTTP remote server, with rich UI previews, declarative approval gates, auto-generated competitor tools, and multi-editor relay support.
 
-- [ ] **Phase 156: Remote MCP Server Foundation** — Streamable HTTP endpoint with Clerk auth, Origin validation, stateless Vercel transport, shared server factory, and desktop relay bridge
+- [x] **Phase 156: Remote MCP Server Foundation** — Streamable HTTP endpoint with Clerk auth, Origin validation, stateless Vercel transport, shared server factory, and desktop relay bridge (completed 2026-03-28)
 - [ ] **Phase 157: Dashboard WebMCP Tools** — useMcpTool() lifecycle hook, use-mcp-client.ts, initial tool registrations, and context-sync .webmcp emitter
 - [ ] **Phase 158: MCP Apps Rich UI + Design Artifact Preview** — type: 'resource' rich return blocks with MCP Apps HTML MIME, CSP declarations, and ui:// artifact resource scheme
 - [ ] **Phase 159: Token Playground** — Per-tool cost breakdown UI and session context window utilization view via @ai-sdk/mcp and Upstash Redis
@@ -48,9 +48,9 @@
   3. Requests from origins not on the explicit allowlist are rejected on every request type including GET and SSE
   4. Long-running tool calls complete within Vercel timeout limits via a polling handoff rather than a hung connection
   5. Desktop clients (Claude Code, Cursor) connect to the remote server using the documented npx relay with zero code changes in PDE
-**Plans:** 3 plans
+**Plans:** 3/3 plans complete
 Plans:
-- [ ] 156-01-PLAN.md — Install MCP packages, server factory, origin guard, Wave 0 test scaffolds
+- [x] 156-01-PLAN.md — Install MCP packages, server factory, origin guard, Wave 0 test scaffolds
 - [ ] 156-02-PLAN.md — MCP route handler with Clerk auth, .well-known endpoints, proxy update
 - [ ] 156-03-PLAN.md — Polling tool pair for long-running ops, desktop client config docs
 
@@ -126,7 +126,7 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 156. Remote MCP Server Foundation | v0.19 | 0/3 | Planning complete | - |
+| 156. Remote MCP Server Foundation | v0.19 | 1/3 | Complete    | 2026-03-28 |
 | 157. Dashboard WebMCP Tools | v0.19 | 0/TBD | Not started | - |
 | 158. MCP Apps Rich UI + Design Artifact Preview | v0.19 | 0/TBD | Not started | - |
 | 159. Token Playground | v0.19 | 0/TBD | Not started | - |

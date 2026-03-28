@@ -9,13 +9,13 @@ Requirements for WebMCP Integration milestone. Each maps to roadmap phases.
 
 ### Remote Infrastructure
 
-- [ ] **RMT-01**: User can access PDE tools via Streamable HTTP endpoint at dashboard/app/api/mcp/route.ts
-- [ ] **RMT-02**: Remote MCP server authenticates requests via Clerk-issued tokens with mcp-auth RFC 9728 validation
-- [ ] **RMT-03**: Remote MCP server validates Origin header against explicit allowlist on every request
-- [ ] **RMT-04**: Remote MCP server uses stateless per-request transport (sessionIdGenerator: undefined) for Vercel compatibility
-- [ ] **RMT-05**: Shared server-factory.ts extracts McpServer construction for reuse by both stdio and HTTP transports
-- [ ] **RMT-06**: Long-running tool calls use polling pattern to stay within Vercel timeout limits
-- [ ] **RMT-07**: Desktop clients can connect via documented npx @mcp-b/webmcp-local-relay bridge (zero code change)
+- [x] **RMT-01**: User can access PDE tools via Streamable HTTP endpoint at dashboard/app/api/mcp/route.ts
+- [x] **RMT-02**: Remote MCP server authenticates requests via Clerk-issued tokens with mcp-auth RFC 9728 validation
+- [x] **RMT-03**: Remote MCP server validates Origin header against explicit allowlist on every request
+- [x] **RMT-04**: Remote MCP server uses stateless per-request transport (sessionIdGenerator: undefined) for Vercel compatibility
+- [x] **RMT-05**: Shared server-factory.ts extracts McpServer construction for reuse by both stdio and HTTP transports
+- [x] **RMT-06**: Long-running tool calls use polling pattern to stay within Vercel timeout limits
+- [x] **RMT-07**: Desktop clients can connect via documented npx @mcp-b/webmcp-local-relay bridge (zero code change)
 
 ### Browser Integration
 
@@ -86,13 +86,13 @@ Requirements for WebMCP Integration milestone. Each maps to roadmap phases.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| RMT-01 | Phase 156 | Pending |
-| RMT-02 | Phase 156 | Pending |
-| RMT-03 | Phase 156 | Pending |
-| RMT-04 | Phase 156 | Pending |
-| RMT-05 | Phase 156 | Pending |
-| RMT-06 | Phase 156 | Pending |
-| RMT-07 | Phase 156 | Pending |
+| RMT-01 | Phase 156 | Complete |
+| RMT-02 | Phase 156 | Complete |
+| RMT-03 | Phase 156 | Complete |
+| RMT-04 | Phase 156 | Complete |
+| RMT-05 | Phase 156 | Complete |
+| RMT-06 | Phase 156 | Complete |
+| RMT-07 | Phase 156 | Complete |
 | BRW-01 | Phase 157 | Pending |
 | BRW-02 | Phase 157 | Pending |
 | BRW-03 | Phase 157 | Pending |

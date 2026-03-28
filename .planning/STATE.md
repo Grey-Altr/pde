@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.19
 milestone_name: WebMCP Integration
 status: Ready to plan
-stopped_at: null
-last_updated: "2026-03-28"
+stopped_at: Completed 156-02-PLAN.md
+last_updated: "2026-03-28T18:14:12.075Z"
 progress:
   total_phases: 7
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  completed_phases: 1
+  total_plans: 3
+  completed_plans: 3
 ---
 
 # Project State
@@ -19,16 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-28)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** v0.19 WebMCP Integration — Phase 156 ready to plan
+**Current focus:** Phase 156 — remote-mcp-server-foundation
 
 ## Current Position
 
-Phase: 156 of 162 (Remote MCP Server Foundation)
-Plan: — (not yet planned)
-Status: Ready to plan
-Last activity: 2026-03-28 — Roadmap created, 7 phases defined, 30/30 requirements mapped
-
-Progress: [░░░░░░░░░░] 0%
+Phase: 157
+Plan: Not started
 
 ## Performance Metrics
 
@@ -50,6 +46,13 @@ Progress: [░░░░░░░░░░] 0%
 - Phase 157: useMcpTool() central hook is the only registration path — provideContext() is deprecated since March 5, 2026
 - Phase 158: All tool handlers emit both type: 'resource' rich blocks AND type: 'text' fallbacks — preserves stdio backward compatibility
 - Phase 161: Auto-generated competitor tools require explicit human approval gate — never auto-activate
+- [Phase 156]: mcp-handler@1.1.0 installed with --legacy-peer-deps to resolve SDK version pin conflict (1.26.0 vs 1.28.0, backward-compatible)
+- [Phase 156]: Origin guard allows null origin for CLI/relay clients that don't send Origin header (MCP spec compliant)
+- [Phase 156]: server-factory.ts is pure (registers tools only, no transport) - HTTP route handler owns transport lifecycle
+- [Phase 156]: Redis key pattern pde:mcp:job:{uuid} namespaced to avoid collisions, 3600s TTL for auto-expiry
+- [Phase 156]: after() from next/server used for fire-and-forget pipeline stub within same maxDuration budget
+- [Phase 156]: MCP route uses acceptsToken=oauth_token not default — plain auth() returns session tokens which MCP clients cannot provide
+- [Phase 156]: Origin guard wraps auth handler (validateOrigin first) — bad-origin requests rejected before Clerk token processing
 
 ### Pending Todos
 
@@ -63,7 +66,7 @@ Progress: [░░░░░░░░░░] 0%
 
 ## Session Continuity
 
-Last session: 2026-03-28
-Stopped at: Roadmap created for v0.19
+Last session: 2026-03-28T18:08:49.870Z
+Stopped at: Completed 156-02-PLAN.md
 Resume with: `/gsd:plan-phase 156`
 Resume file: None
