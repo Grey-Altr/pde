@@ -137,10 +137,10 @@ Plans:
   1. Cursor and Gemini CLI can call PDE tools through the WebMCP relay endpoint with correct authentication
   2. A relay request that would create a circular chain is detected and rejected via the X-PDE-Relay-Depth header guard
   3. The PDE remote MCP server appears in mcp-bridge.cjs APPROVED_SERVERS so Claude Code can route requests to it via the existing bridge
-**Plans**: 2 plans
+**Plans:** 2 plans
 Plans:
-- [ ] 158-01-PLAN.md — Install ext-apps SDK, rich tool+resource registration, CSP connectDomains, server-factory wiring
-- [ ] 158-02-PLAN.md — Dynamic ui://pde/{artifact} resource template with format-specific rendering
+- [ ] 162-01-PLAN.md — Relay depth guard module, APPROVED_SERVERS pde_remote entry, and tests for both
+- [ ] 162-02-PLAN.md — Wire relay guard into route.ts guardedHandler, Gemini CLI docs
 
 ## Progress
 
@@ -152,4 +152,4 @@ Plans:
 | 159. Token Playground | v0.19 | 2/2 | Complete    | 2026-03-28 |
 | 160. Declarative Approval Gates + Workflow Flags | v0.19 | 2/2 | Complete    | 2026-03-28 |
 | 161. Auto-Generated Competitor Tools | v0.19 | 1/2 | Complete    | 2026-03-28 |
-| 162. Multi-Editor Bridge | v0.19 | 0/TBD | Not started | - |
+| 162. Multi-Editor Bridge | v0.19 | 0/2 | Not started | - |
