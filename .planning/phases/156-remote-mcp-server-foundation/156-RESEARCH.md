@@ -2,7 +2,7 @@
 
 **Researched:** 2026-03-28
 **Domain:** MCP Streamable HTTP / Vercel Functions / Clerk OAuth / Upstash Redis
-**Confidence:** HIGH (core stack verified against official docs and npm registry)
+**Confidence:** HIGH (core stack verified against official docs and npm registry; all 3 open questions resolved via maxdepth research pass 2026-03-28)
 
 ---
 
@@ -36,7 +36,7 @@
 | RMT-04 | Remote MCP server uses stateless per-request transport (`sessionIdGenerator: undefined`) | StreamableHTTPServerTransport stateless mode — verified in SDK docs |
 | RMT-05 | Shared server-factory.ts extracts McpServer construction for reuse by both stdio and HTTP transports | Factory pattern — server registers tools once, transport layer is swapped |
 | RMT-06 | Long-running tool calls use polling pattern to stay within Vercel timeout limits | Two-tool pattern: start_* returns job_id, check_* queries Upstash Redis |
-| RMT-07 | Desktop clients can connect via documented `npx @mcp-b/webmcp-local-relay` bridge (zero code change) | @mcp-b/webmcp-local-relay v2.2.0 — bridges browser WebMCP to stdio MCP clients |
+| RMT-07 | Desktop clients can connect via documented config with zero PDE code changes: Claude Code and Cursor via native `"url"` config; legacy clients via `npx mcp-remote` | Claude Code `--transport http` (native); Cursor `"url"` key (native); `mcp-remote@0.1.38` relay for legacy stdio-only clients |
 </phase_requirements>
 
 ---
@@ -49,7 +49,7 @@ Origin header validation is a MUST in the MCP Streamable HTTP spec (explicitly t
 
 For long-running tool calls that exceed Vercel's 300s Hobby limit or require background execution, the established pattern is a two-tool split: `start_<operation>` enqueues work and returns a `job_id` immediately, and `check_<operation>` queries Upstash Redis for status. This project already has Upstash Redis wired up (`lib/redis.ts`) making this pattern low-effort to implement.
 
-Desktop clients (Claude Code, Cursor) connect via `npx @mcp-b/webmcp-local-relay@latest` added to their MCP config — no PDE code changes required.
+Desktop clients connect with zero PDE code changes: Claude Code uses `claude mcp add --transport http <url>` (native Streamable HTTP); Cursor uses a `"url"` key in `.cursor/mcp.json` (native Streamable HTTP). Legacy stdio-only clients use `npx mcp-remote <url>` as a relay. `@mcp-b/webmcp-local-relay` is Phase 157 only (browser WebMCP bridge).
 
 **Primary recommendation:** Use `mcp-handler` + `@clerk/mcp-tools/next` as the complete stack. Do not hand-roll JSON-RPC parsing, session ID generation, OAuth metadata endpoints, or CORS headers.
 
@@ -72,7 +72,8 @@ Desktop clients (Claude Code, Cursor) connect via `npx @mcp-b/webmcp-local-relay
 | Library | Version | Purpose | When to Use |
 |---------|---------|---------|-------------|
 | `@upstash/redis` | latest (already installed) | Job state for polling pattern | Required for RMT-06 long-running tool calls |
-| `@mcp-b/webmcp-local-relay` | 2.2.0 | npx relay for desktop clients | Referenced in client config only — no server-side install |
+| `mcp-remote` | 0.1.38 | stdio-to-HTTP/SSE relay for legacy clients | npx relay — no server-side install; fallback for clients without native Streamable HTTP |
+| `@mcp-b/webmcp-local-relay` | 2.2.0 | Browser WebMCP bridge | Phase 157 only — NOT for Phase 156 desktop client connectivity |
 
 ### Alternatives Considered
 
@@ -85,9 +86,10 @@ Desktop clients (Claude Code, Cursor) connect via `npx @mcp-b/webmcp-local-relay
 **Installation (new packages only):**
 ```bash
 cd dashboard
-npm install mcp-handler @clerk/mcp-tools
-# Note: mcp-handler peerDep requires @modelcontextprotocol/sdk@1.26.0
-# but project already has 1.28.0 installed — verify compatibility before locking
+npm install mcp-handler@1.1.0 @clerk/mcp-tools@0.3.1 --legacy-peer-deps
+# mcp-handler peerDep pins SDK to "1.26.0" (exact, no caret) but project has 1.28.0
+# SDK 1.27.0–1.28.0 are backward-compatible with 1.26.0 for all mcp-handler interfaces
+# --legacy-peer-deps is safe and confirmed; no downgrade needed
 ```
 
 **Version verification (confirmed 2026-03-28):**
@@ -319,9 +321,27 @@ export const PUBLIC_ROUTES = [
 
 ### Pattern 7: Desktop Client Config (RMT-07)
 
-The `@mcp-b/webmcp-local-relay` bridges browser WebMCP tool registrations to stdio MCP clients. For Claude Code and Cursor connecting to the *remote HTTP server* (not browser WebMCP), the standard Streamable HTTP config is used directly.
+Claude Code and Cursor both support Streamable HTTP natively — no relay package needed for Phase 156. The `@mcp-b/webmcp-local-relay` is for Phase 157 (browser WebMCP) and must NOT appear here.
 
-**Claude Code (`~/.config/claude-code/mcp_servers.json` or `.mcp.json`):**
+**Claude Code — native Streamable HTTP (preferred):**
+```bash
+# CLI method (adds to user-scope MCP config)
+claude mcp add pde-remote --transport http https://your-dashboard.vercel.app/api/mcp
+```
+Or in `.mcp.json` (project-scope):
+```json
+{
+  "mcpServers": {
+    "pde-remote": {
+      "type": "http",
+      "url": "https://your-dashboard.vercel.app/api/mcp"
+    }
+  }
+}
+```
+Source: `code.claude.com/docs/en/mcp` — `--transport http` is the native Streamable HTTP flag.
+
+**Cursor — native Streamable HTTP (preferred):**
 ```json
 {
   "mcpServers": {
@@ -331,31 +351,24 @@ The `@mcp-b/webmcp-local-relay` bridges browser WebMCP tool registrations to std
   }
 }
 ```
+Cursor attempts Streamable HTTP automatically when a `"url"` key is present (no transport field needed). Known Cursor 2.6.x bug: SSE fallback is broken in V2 client — but PDE is a Streamable HTTP endpoint, so this does not affect Phase 156.
 
-**Cursor (`.cursor/mcp.json`):**
+**Legacy stdio-only clients — `mcp-remote` relay (fallback only):**
+
+For clients that do not support remote HTTP URLs natively:
 ```json
 {
   "mcpServers": {
     "pde-remote": {
-      "url": "https://your-dashboard.vercel.app/api/mcp"
-    }
-  }
-}
-```
-
-**When stdio-only clients need a relay** (older clients that don't support Streamable HTTP natively):
-```json
-{
-  "mcpServers": {
-    "pde-remote-relay": {
       "command": "npx",
-      "args": ["-y", "@mcp-b/webmcp-local-relay@latest"]
+      "args": ["mcp-remote", "https://your-dashboard.vercel.app/api/mcp"]
     }
   }
 }
 ```
+`mcp-remote` (npm: `mcp-remote@0.1.38`, by Glen Maddern) is a stdio-to-HTTP/SSE proxy. It handles OAuth flows and stores credentials in `~/.mcp-auth`. Source: `github.com/geelen/mcp-remote`.
 
-**Important distinction:** `@mcp-b/webmcp-local-relay` is for the *browser WebMCP* use case (Phase 157). For the remote HTTP server in Phase 156, direct Streamable HTTP URL config is the primary path. The relay is the fallback for clients that cannot use HTTP URLs. RMT-07 requires documenting both.
+**`@mcp-b/webmcp-local-relay` is Phase 157 only.** It bridges browser WebMCP registrations to stdio MCP clients — a completely different use case from connecting a desktop IDE to a remote HTTP server. Do not reference it in Phase 156 documentation.
 
 ### Anti-Patterns to Avoid
 
@@ -387,13 +400,17 @@ The `@mcp-b/webmcp-local-relay` bridges browser WebMCP tool registrations to std
 
 ### Pitfall 1: mcp-handler peerDep Version Conflict
 
-**What goes wrong:** `npm install mcp-handler` resolves `@modelcontextprotocol/sdk@1.26.0` as a peerDep, but the project already has `1.28.0`. npm may warn or silently use the wrong version.
+**What goes wrong:** `npm install mcp-handler` exits with a peer dependency conflict because mcp-handler@1.1.0 pins `@modelcontextprotocol/sdk` to `"1.26.0"` (exact, no caret) while the project has `1.28.0`.
 
-**Why it happens:** mcp-handler pins a specific SDK version as a peerDep. The project has a newer version installed globally.
+**Why it happens:** mcp-handler uses an exact peerDep pin (no `^`). npm treats this as a conflict when a different version is installed, even if newer.
 
-**How to avoid:** Install with `--legacy-peer-deps` OR verify that mcp-handler 1.1.0 works with SDK 1.28.0 (both are the Vercel/Anthropic maintained stack — minor version increment should be backward compatible). Pin explicitly: `npm install mcp-handler@1.1.0`.
+**How to avoid:** Always install with `--legacy-peer-deps`:
+```bash
+npm install mcp-handler@1.1.0 @clerk/mcp-tools@0.3.1 --legacy-peer-deps
+```
+This is safe. MCP SDK 1.27.0–1.28.0 are backward-compatible with 1.26.0 for all interfaces used by mcp-handler (verified: no breaking changes to AuthInfo, withMcpAuth, or StreamableHTTPServerTransport in these versions). The `--legacy-peer-deps` flag tells npm to use the installed version (1.28.0) rather than re-resolving.
 
-**Warning signs:** TypeScript errors on `AuthInfo` type import; `withMcpAuth` type mismatch on `verifyToken` return.
+**Warning signs:** TypeScript errors on `AuthInfo` type import; `withMcpAuth` signature mismatch. If these appear, downgrade SDK: `npm install @modelcontextprotocol/sdk@1.26.0`.
 
 ### Pitfall 2: Clerk Middleware Blocking MCP Requests
 
@@ -417,7 +434,7 @@ The `@mcp-b/webmcp-local-relay` bridges browser WebMCP tool registrations to std
 
 ### Pitfall 4: Origin Guard Blocking the npx Relay
 
-**What goes wrong:** Desktop clients using `npx @mcp-b/webmcp-local-relay` cannot connect because their HTTP requests have no `Origin` header.
+**What goes wrong:** Desktop clients using `npx mcp-remote` (or any Node.js-based relay) cannot connect because their HTTP requests have no `Origin` header.
 
 **Why it happens:** The relay is a Node.js process making standard HTTP requests — browsers set Origin, Node.js does not.
 
@@ -604,20 +621,118 @@ export function registerPipelineTools(server: McpServer): void {
 
 ## Open Questions
 
-1. **mcp-handler peerDep SDK version**
-   - What we know: mcp-handler@1.1.0 has `peerDependencies: { "@modelcontextprotocol/sdk": "1.26.0" }` but project has 1.28.0
-   - What's unclear: Whether this is a hard pin or a minimum — npm semver treats exact pins as `>=1.26.0 <2.0.0` when using `^`, but the peerDep here has no `^`
-   - Recommendation: Test install with `--legacy-peer-deps` flag; if TypeScript types are compatible, proceed. If not, downgrade SDK to 1.26.0.
+> All three open questions from initial research are now resolved (2026-03-28 maxdepth pass).
 
-2. **Origin allowlist for Clerk OAuth flow**
-   - What we know: When Claude Desktop or Cursor initiates the Clerk OAuth flow, the browser redirects through `clerk.com` — the Origin may be `https://clerk.com` or the app's own origin
-   - What's unclear: Whether Clerk's OAuth redirect adds origins that need to be in the allowlist
-   - Recommendation: Start with strict allowlist (app URL + localhost). Monitor 403 errors in Vercel logs during first OAuth flow test. Add origins as needed.
+### Resolved: mcp-handler peerDep SDK version compatibility
 
-3. **Background worker for RMT-06 polling jobs**
-   - What we know: The start/check tool pair is confirmed. The `start_pipeline_run` enqueues a job_id in Redis but needs something to execute the actual pipeline work
-   - What's unclear: Phase 156 scope — does "long-running tool" mean the tool triggers an existing PDE workflow (which runs as a separate process), or does it run directly in the Vercel function with the polling pattern providing the timeout buffer?
-   - Recommendation: For Phase 156, implement the Redis job state schema and the two-tool pattern. Wire the actual execution in a subsequent task or note it as a stub — the requirement (RMT-06) is about the timeout-safe pattern, not a specific pipeline feature.
+**Answer (HIGH confidence):** The peerDep `"@modelcontextprotocol/sdk": "1.26.0"` in mcp-handler@1.1.0 is an exact pin with no caret — npm will raise a peer dependency conflict when the project has 1.28.0. **However, this is safe to override with `--legacy-peer-deps` at install time.** MCP SDK versions 1.27.0, 1.27.1, and 1.28.0 introduced only additive changes: `url` property added to `RequestInfo`, OAuth discovery backports, auth/conformance improvements, and scopes_supported defaults. No TypeScript types relevant to mcp-handler were broken (AuthInfo, withMcpAuth, StreamableHTTPServerTransport interfaces are unchanged). All three post-1.26.0 releases explicitly preserved backward compatibility.
+
+**SDK version timeline (confirmed from npm registry):**
+- `1.26.0` — 2026-02-04 (mcp-handler peerDep target)
+- `1.27.0` — 2026-02-16 (additive: RequestInfo.url, OAuth discovery)
+- `1.27.1` — 2026-02-24 (security: prevent command injection, conformance fixes)
+- `1.28.0` — 2026-03-25 (additive: scopes_supported from resource metadata by default)
+
+**Install command (confirmed):**
+```bash
+cd dashboard
+npm install mcp-handler@1.1.0 @clerk/mcp-tools@0.3.1 --legacy-peer-deps
+```
+
+**Warning signs if types ARE incompatible:** TypeScript error on `AuthInfo` import from `mcp-handler`; `withMcpAuth` signature mismatch. In that case, downgrade `@modelcontextprotocol/sdk` to `1.26.0` and add the note to package.json.
+
+---
+
+### Resolved: Relay package for RMT-07 (desktop client connectivity)
+
+**Answer (HIGH confidence):** `@mcp-b/webmcp-local-relay` is the WRONG package for Phase 156. It bridges browser WebMCP registrations to stdio clients — that is Phase 157's use case. For Phase 156 (remote HTTP server), the correct packages depend on the client:
+
+**Claude Code (native Streamable HTTP — NO relay needed):**
+```bash
+claude mcp add pde-remote --transport http https://your-dashboard.vercel.app/api/mcp
+```
+Or in `.mcp.json`:
+```json
+{ "mcpServers": { "pde-remote": { "type": "http", "url": "https://your-dashboard.vercel.app/api/mcp" } } }
+```
+Claude Code supports Streamable HTTP natively as of mid-2025. Source: official Claude Code docs at `code.claude.com/docs/en/mcp`.
+
+**Cursor (native Streamable HTTP — NO relay needed):**
+```json
+{ "mcpServers": { "pde-remote": { "url": "https://your-dashboard.vercel.app/api/mcp" } } }
+```
+Cursor attempts Streamable HTTP natively when a `"url"` key is present in `.cursor/mcp.json`. Known issue in Cursor 2.6.x: fallback from Streamable HTTP to SSE is broken in V2 client — but since PDE's endpoint IS Streamable HTTP, this doesn't affect Phase 156.
+
+**Legacy stdio-only clients (relay needed — use `mcp-remote`):**
+```json
+{
+  "mcpServers": {
+    "pde-remote": {
+      "command": "npx",
+      "args": ["mcp-remote", "https://your-dashboard.vercel.app/api/mcp"]
+    }
+  }
+}
+```
+`mcp-remote` (latest: `0.1.38`, by Glen Maddern) is the standard relay for connecting stdio-only MCP clients to remote HTTP/SSE servers. It handles OAuth flows, stores credentials in `~/.mcp-auth`, and supports both SSE and Streamable HTTP endpoints. Source: `github.com/geelen/mcp-remote`.
+
+**RMT-07 documentation scope:** Phase 156 documentation should cover:
+1. Native URL config for Claude Code (`--transport http`) — primary path
+2. Native URL config for Cursor (`"url"` key) — primary path
+3. `npx mcp-remote` fallback — for legacy clients only
+
+**`@mcp-b/webmcp-local-relay` is not used in Phase 156.** Remove it from Pattern 7 and the Supporting stack table entry.
+
+---
+
+### Resolved: Background worker scope for RMT-06
+
+**Answer (HIGH confidence):** The correct pattern uses Next.js `after()` from `next/server` (stable since Next.js 15.1.0) for fire-and-forget execution within the same Vercel function invocation. **Critical constraint: `after()` does NOT extend lifetime beyond `maxDuration`.** The callback runs in the background but is cancelled if the function hits its timeout cap (300s Hobby, 800s Pro).
+
+**What this means for RMT-06:**
+
+- For work that completes within maxDuration (e.g., running a short PDE pipeline step): use `after()` in the `start_pipeline_run` tool — write job_id to Redis, return immediately, then run the work in `after()`. The poll tool checks Redis for completion.
+- For work that may exceed maxDuration (true long-running jobs): the correct pattern is a **separate `/api/mcp/run-job` endpoint** that the `start_pipeline_run` tool triggers via a fire-and-forget `fetch()` call (or via Vercel Cron / QStash). This endpoint has its own `maxDuration` budget.
+
+**For Phase 156 scope (RMT-06 stub):** Implement the two-tool pattern with `after()` for the execution slot. The actual pipeline execution can be a stub (`setTimeout(resolve, 2000)` or real logic). The requirement is to demonstrate the pattern, not to wire the full PDE pipeline.
+
+**`after()` usage in Route Handler:**
+```typescript
+import { after } from 'next/server';
+
+// Inside start_pipeline_run tool:
+async ({ stage }, { authInfo }) => {
+  const jobId = crypto.randomUUID();
+  await redis.hset(`pde:mcp:job:${jobId}`, { status: 'running', stage });
+  await redis.expire(`pde:mcp:job:${jobId}`, 3600);
+
+  // Fire-and-forget: runs after response sent, within same maxDuration budget
+  after(async () => {
+    try {
+      const result = await runPipelineStage(stage); // actual work here
+      await redis.hset(`pde:mcp:job:${jobId}`, { status: 'complete', result: JSON.stringify(result) });
+    } catch (err) {
+      await redis.hset(`pde:mcp:job:${jobId}`, { status: 'error', error: String(err) });
+    }
+  });
+
+  return {
+    content: [{ type: 'text', text: JSON.stringify({ job_id: jobId, status: 'running', poll_interval_ms: 3000 }) }],
+  };
+}
+```
+Source: `nextjs.org/docs/app/api-reference/functions/after` (Next.js 15.1+, stable)
+Source: `vercel.com/docs/functions/functions-api-reference/vercel-functions-package` (waitUntil — `after()` is the Next.js 15.1+ equivalent)
+
+**`waitUntil` vs `after()`:** For this project (Next.js + Vercel), use `after()` from `next/server`. The `waitUntil` from `@vercel/functions` is the fallback for non-Next.js or Next.js < 15.1. Both are subject to the same maxDuration constraint.
+
+---
+
+### Remaining open question: Origin allowlist for Clerk OAuth flow
+
+- What we know: When Claude Desktop or Cursor initiates the Clerk OAuth flow, the browser redirects through `clerk.com` — the Origin may be `https://clerk.com` or the app's own origin
+- What's unclear: Whether Clerk's OAuth redirect adds origins that need to be in the allowlist
+- Recommendation: Start with strict allowlist (app URL + localhost). Monitor 403 errors in Vercel logs during first OAuth flow test. Add origins as needed. This is low-risk — the OAuth flow uses the browser, not the MCP transport channel, so the Origin on the MCP POST requests comes from the client app (Claude Code, Cursor), not clerk.com.
 
 ---
 
@@ -701,19 +816,25 @@ Test infrastructure (Vitest, `next-test-api-route-handler`) is already installed
 - `https://community.vercel.com/t/mcp-servers-fluid-compute-and-800-second-timout/12069` — connection hold-open bug fixed in latest mcp-handler
 - `https://workos.com/blog/mcp-async-tasks-ai-agent-workflows` — polling job pattern with Redis
 - `https://medium.com/@kumaran.isk/dual-transport-mcp-servers-stdio-vs-http-explained` — server factory / dual transport TypeScript patterns
+- `https://code.claude.com/docs/en/mcp` — Claude Code native Streamable HTTP support (`--transport http`); no relay required
+- `https://github.com/geelen/mcp-remote` — mcp-remote v0.1.38: stdio-to-HTTP/SSE relay for legacy clients; OAuth via `~/.mcp-auth`
+- `https://nextjs.org/docs/app/api-reference/functions/after` — after() stable in Next.js 15.1+; runs after response, within maxDuration
+- `https://vercel.com/docs/functions/functions-api-reference/vercel-functions-package` — waitUntil: extends function lifetime for promises, cancelled at maxDuration
+- `https://forum.cursor.com/t/cursor-fails-to-fall-back-from-streamable-http-to-sse-transport-for-remote-mcp-servers/154390` — Cursor 2.6.x Streamable HTTP native support; V2 fallback regression (does not affect Phase 156)
+- `https://github.com/modelcontextprotocol/typescript-sdk/releases` — MCP SDK 1.27.0–1.28.0: additive only, backward-compatible with 1.26.0 for mcp-handler usage
 
 ### Tertiary (LOW confidence — flag for validation)
-- `@mcp-b/webmcp-local-relay` relay behavior for remote HTTP servers: GitHub README content not directly fetched; version confirmed from npm but CLI argument documentation was not found. The package's primary purpose is WebMCP browser-to-desktop bridge (Phase 157), not HTTP relay. **Validate:** whether RMT-07 intends the WebMCP relay or `mcp-remote` package for stdio clients connecting to HTTP servers.
+- None remaining after maxdepth pass.
 
 ---
 
 ## Metadata
 
 **Confidence breakdown:**
-- Standard stack: HIGH — mcp-handler, @clerk/mcp-tools, SDK versions all confirmed from npm registry and official Vercel/Clerk docs
-- Architecture patterns: HIGH — createMcpHandler, withMcpAuth, verifyClerkToken code from official Clerk docs; stateless sessionIdGenerator from MCP spec
+- Standard stack: HIGH — mcp-handler, @clerk/mcp-tools, SDK versions all confirmed from npm registry and official Vercel/Clerk docs; relay packages confirmed from npm registry and GitHub READMEs
+- Architecture patterns: HIGH — createMcpHandler, withMcpAuth, verifyClerkToken code from official Clerk docs; stateless sessionIdGenerator from MCP spec; Claude Code `--transport http` from official Claude Code docs; after() from official Next.js docs
 - Pitfalls: HIGH (pitfalls 1-4) / MEDIUM (pitfalls 5-7) — core pitfalls from community reports and official docs; edge cases from reasoning
-- Polling pattern: MEDIUM — established community pattern; Redis key schema is Claude's discretion per STATE.md
+- Polling pattern: HIGH — after() confirmed from official Next.js 15.1 docs; waitUntil constraints confirmed from official Vercel Functions API docs; maxDuration interaction documented explicitly
 
 **Research date:** 2026-03-28
 **Valid until:** 2026-04-28 (30 days — these libraries are active but stable)
