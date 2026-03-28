@@ -80,7 +80,10 @@ Plans:
   2. Tool responses include a plain text fallback that works in stdio MCP clients with no behavior change
   3. Design artifacts are accessible in AI chat clients as renderable resources at ui://pde/[artifact] without downloading files
   4. MCP App HTML panels can call back to PDE's own domain without CSP errors
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 158-01-PLAN.md — Install ext-apps SDK, rich tool+resource registration, CSP connectDomains, server-factory wiring
+- [ ] 158-02-PLAN.md — Dynamic ui://pde/{artifact} resource template with format-specific rendering
 
 ### Phase 159: Token Playground
 **Goal**: Users can see the token cost of each PDE tool call and their cumulative session spending directly in the dashboard
@@ -90,7 +93,10 @@ Plans:
   1. The token playground UI shows a breakdown of token cost per tool call, attributed to the specific tool that was called
   2. The token playground shows total session context window usage as a percentage with an aggregated cost figure
   3. Session cost data persists across page refreshes using Upstash Redis so the running total is not lost on navigation
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 158-01-PLAN.md — Install ext-apps SDK, rich tool+resource registration, CSP connectDomains, server-factory wiring
+- [ ] 158-02-PLAN.md — Dynamic ui://pde/{artifact} resource template with format-specific rendering
 **UI hint**: yes
 
 ### Phase 160: Declarative Approval Gates + Workflow Flags
@@ -102,7 +108,10 @@ Plans:
   2. Running /pde:wireframe --webmcp produces output sections that include WebMCP-specific tooling context
   3. Running /pde:mockup --webmcp, /pde:critique --webmcp, and /pde:competitive --webmcp each produce analogous WebMCP-enhanced output
   4. Existing approval flow continues to work unchanged for users not using the --webmcp flag
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 158-01-PLAN.md — Install ext-apps SDK, rich tool+resource registration, CSP connectDomains, server-factory wiring
+- [ ] 158-02-PLAN.md — Dynamic ui://pde/{artifact} resource template with format-specific rendering
 **UI hint**: yes
 
 ### Phase 161: Auto-Generated Competitor Tools
@@ -114,7 +123,10 @@ Plans:
   2. Generated tool descriptions are sanitized — instruction syntax stripped, capped at 512 characters, and tagged source: "auto-generated"
   3. No auto-generated tool can be called by any agent until a human explicitly approves it through the review gate
   4. Approved and pending competitor tool stubs are persisted in .webmcp/competitor-tools-registry.json between sessions
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 158-01-PLAN.md — Install ext-apps SDK, rich tool+resource registration, CSP connectDomains, server-factory wiring
+- [ ] 158-02-PLAN.md — Dynamic ui://pde/{artifact} resource template with format-specific rendering
 
 ### Phase 162: Multi-Editor Bridge
 **Goal**: Cursor and Gemini CLI users can access PDE tools via the WebMCP relay without circular relay loops or unauthorized access
@@ -124,7 +136,10 @@ Plans:
   1. Cursor and Gemini CLI can call PDE tools through the WebMCP relay endpoint with correct authentication
   2. A relay request that would create a circular chain is detected and rejected via the X-PDE-Relay-Depth header guard
   3. The PDE remote MCP server appears in mcp-bridge.cjs APPROVED_SERVERS so Claude Code can route requests to it via the existing bridge
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 158-01-PLAN.md — Install ext-apps SDK, rich tool+resource registration, CSP connectDomains, server-factory wiring
+- [ ] 158-02-PLAN.md — Dynamic ui://pde/{artifact} resource template with format-specific rendering
 
 ## Progress
 
@@ -132,7 +147,7 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 156. Remote MCP Server Foundation | v0.19 | 1/3 | Complete    | 2026-03-28 |
 | 157. Dashboard WebMCP Tools | v0.19 | 2/3 | Complete    | 2026-03-28 |
-| 158. MCP Apps Rich UI + Design Artifact Preview | v0.19 | 0/TBD | Not started | - |
+| 158. MCP Apps Rich UI + Design Artifact Preview | v0.19 | 0/2 | Not started | - |
 | 159. Token Playground | v0.19 | 0/TBD | Not started | - |
 | 160. Declarative Approval Gates + Workflow Flags | v0.19 | 0/TBD | Not started | - |
 | 161. Auto-Generated Competitor Tools | v0.19 | 0/TBD | Not started | - |
