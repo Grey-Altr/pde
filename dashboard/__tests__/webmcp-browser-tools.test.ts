@@ -84,9 +84,9 @@ describe('WebMCP browser tool stubs (BRW-03)', () => {
     expect(barrelSrc).toContain('useDesignStateTool');
     expect(barrelSrc).toContain('useProjectInfoTool');
     expect(barrelSrc).toContain('useArtifactListTool');
-    // Verify exactly 3 export lines
+    // Verify exactly 4 export lines (3 original + approval gate)
     const exportLines = barrelSrc.split('\n').filter(l => l.startsWith('export'));
-    expect(exportLines.length).toBe(3);
+    expect(exportLines.length).toBe(4);
   });
 
   it('useWebMcpTools registers all three tools', () => {
