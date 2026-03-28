@@ -86,42 +86,42 @@ Requirements for WebMCP Integration milestone. Each maps to roadmap phases.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| RMT-01 | — | Pending |
-| RMT-02 | — | Pending |
-| RMT-03 | — | Pending |
-| RMT-04 | — | Pending |
-| RMT-05 | — | Pending |
-| RMT-06 | — | Pending |
-| RMT-07 | — | Pending |
-| BRW-01 | — | Pending |
-| BRW-02 | — | Pending |
-| BRW-03 | — | Pending |
-| BRW-04 | — | Pending |
-| BRW-05 | — | Pending |
-| BRW-06 | — | Pending |
-| RUI-01 | — | Pending |
-| RUI-02 | — | Pending |
-| RUI-03 | — | Pending |
-| RUI-04 | — | Pending |
-| RUI-05 | — | Pending |
-| WFL-01 | — | Pending |
-| WFL-02 | — | Pending |
-| WFL-03 | — | Pending |
-| WFL-04 | — | Pending |
-| WFL-05 | — | Pending |
-| ADV-01 | — | Pending |
-| ADV-02 | — | Pending |
-| ADV-03 | — | Pending |
-| ADV-04 | — | Pending |
-| MEB-01 | — | Pending |
-| MEB-02 | — | Pending |
-| MEB-03 | — | Pending |
+| RMT-01 | Phase 156 | Pending |
+| RMT-02 | Phase 156 | Pending |
+| RMT-03 | Phase 156 | Pending |
+| RMT-04 | Phase 156 | Pending |
+| RMT-05 | Phase 156 | Pending |
+| RMT-06 | Phase 156 | Pending |
+| RMT-07 | Phase 156 | Pending |
+| BRW-01 | Phase 157 | Pending |
+| BRW-02 | Phase 157 | Pending |
+| BRW-03 | Phase 157 | Pending |
+| BRW-04 | Phase 157 | Pending |
+| BRW-05 | Phase 157 | Pending |
+| BRW-06 | Phase 157 | Pending |
+| RUI-01 | Phase 158 | Pending |
+| RUI-02 | Phase 158 | Pending |
+| RUI-03 | Phase 158 | Pending |
+| RUI-04 | Phase 159 | Pending |
+| RUI-05 | Phase 159 | Pending |
+| WFL-01 | Phase 160 | Pending |
+| WFL-02 | Phase 160 | Pending |
+| WFL-03 | Phase 160 | Pending |
+| WFL-04 | Phase 160 | Pending |
+| WFL-05 | Phase 160 | Pending |
+| ADV-01 | Phase 161 | Pending |
+| ADV-02 | Phase 161 | Pending |
+| ADV-03 | Phase 161 | Pending |
+| ADV-04 | Phase 161 | Pending |
+| MEB-01 | Phase 162 | Pending |
+| MEB-02 | Phase 162 | Pending |
+| MEB-03 | Phase 162 | Pending |
 
 **Coverage:**
 - v0.19 requirements: 30 total
-- Mapped to phases: 0
-- Unmapped: 30 ⚠️
+- Mapped to phases: 30
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-28*
-*Last updated: 2026-03-28 after initial definition*
+*Last updated: 2026-03-28 — traceability complete, all 30 requirements mapped to phases 156-162*

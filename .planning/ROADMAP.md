@@ -20,7 +20,112 @@
 - ✅ **v0.16 Multi-Editor Context Sync** — Phases 126-133 (shipped 2026-03-24)
 - ✅ **v0.17 Remote Dashboard** — Phases 134-142 (shipped 2026-03-26)
 - ✅ **v0.18 Distributed Execution** — Phases 143-155 (shipped 2026-03-28)
+- 🚧 **v0.19 WebMCP Integration** — Phases 156-162 (in progress)
 
 ## Phases
 
-*No active milestone. Run `/gsd:new-milestone` to start the next milestone.*
+### v0.19 WebMCP Integration
+
+**Milestone Goal:** PDE tools are accessible from any browser-based AI agent and any MCP-compatible desktop client via a publicly accessible Streamable HTTP remote server, with rich UI previews, declarative approval gates, auto-generated competitor tools, and multi-editor relay support.
+
+- [ ] **Phase 156: Remote MCP Server Foundation** — Streamable HTTP endpoint with Clerk auth, Origin validation, stateless Vercel transport, shared server factory, and desktop relay bridge
+- [ ] **Phase 157: Dashboard WebMCP Tools** — useMcpTool() lifecycle hook, use-mcp-client.ts, initial tool registrations, and context-sync .webmcp emitter
+- [ ] **Phase 158: MCP Apps Rich UI + Design Artifact Preview** — type: 'resource' rich return blocks with MCP Apps HTML MIME, CSP declarations, and ui:// artifact resource scheme
+- [ ] **Phase 159: Token Playground** — Per-tool cost breakdown UI and session context window utilization view via @ai-sdk/mcp and Upstash Redis
+- [ ] **Phase 160: Declarative Approval Gates + Workflow Flags** — Approval gate WebMCP tool forms and --webmcp flag across all four design workflow commands
+- [ ] **Phase 161: Auto-Generated Competitor Tools** — competitive.md tool stub generation with sanitization pipeline, mandatory human review gate, and competitor registry
+- [ ] **Phase 162: Multi-Editor Bridge** — Cursor and Gemini CLI relay to PDE via WebMCP, relay depth guard, and mcp-bridge.cjs APPROVED_SERVERS update
+
+## Phase Details
+
+### Phase 156: Remote MCP Server Foundation
+**Goal**: PDE tools are reachable via a publicly accessible, authenticated, stateless Streamable HTTP endpoint that is safe to deploy on Vercel
+**Depends on**: Nothing (first phase of v0.19)
+**Requirements**: RMT-01, RMT-02, RMT-03, RMT-04, RMT-05, RMT-06, RMT-07
+**Success Criteria** (what must be TRUE):
+  1. An MCP client can call PDE tools by pointing at the dashboard /api/mcp URL — no local process required
+  2. Requests without a valid Clerk token are rejected with an auth error before any tool handler runs
+  3. Requests from origins not on the explicit allowlist are rejected on every request type including GET and SSE
+  4. Long-running tool calls complete within Vercel timeout limits via a polling handoff rather than a hung connection
+  5. Desktop clients (Claude Code, Cursor) connect to the remote server using the documented npx relay with zero code changes in PDE
+**Plans**: TBD
+
+### Phase 157: Dashboard WebMCP Tools
+**Goal**: The PDE dashboard registers live tools with any browser-based AI agent via the WebMCP API, with safe lifecycle management that prevents zombie registrations
+**Depends on**: Phase 156
+**Requirements**: BRW-01, BRW-02, BRW-03, BRW-04, BRW-05, BRW-06
+**Success Criteria** (what must be TRUE):
+  1. A browser AI agent sees PDE tools (design state, project info, artifact listing) available in navigator.modelContext after the dashboard loads
+  2. Navigating away from a dashboard section unregisters that section's tools — no stale tools remain after unmount
+  3. The dashboard makes MCP JSON-RPC calls without loading the full MCP SDK into the browser bundle
+  4. Any WebMCP client can discover the PDE server endpoint by reading .webmcp/config.json without manual configuration
+  5. Changes to .planning/ files trigger .webmcp/config.json regeneration automatically
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 158: MCP Apps Rich UI + Design Artifact Preview
+**Goal**: PDE tool responses render as interactive HTML inside MCP Apps-capable AI chat clients, and design artifacts are directly previewable via a resource URI scheme
+**Depends on**: Phase 157
+**Requirements**: RUI-01, RUI-02, RUI-03
+**Success Criteria** (what must be TRUE):
+  1. Tool responses in MCP Apps-capable clients display a rendered HTML panel rather than raw text for artifacts that support rich display
+  2. Tool responses include a plain text fallback that works in stdio MCP clients with no behavior change
+  3. Design artifacts are accessible in AI chat clients as renderable resources at ui://pde/[artifact] without downloading files
+  4. MCP App HTML panels can call back to PDE's own domain without CSP errors
+**Plans**: TBD
+
+### Phase 159: Token Playground
+**Goal**: Users can see the token cost of each PDE tool call and their cumulative session spending directly in the dashboard
+**Depends on**: Phase 157
+**Requirements**: RUI-04, RUI-05
+**Success Criteria** (what must be TRUE):
+  1. The token playground UI shows a breakdown of token cost per tool call, attributed to the specific tool that was called
+  2. The token playground shows total session context window usage as a percentage with an aggregated cost figure
+  3. Session cost data persists across page refreshes using Upstash Redis so the running total is not lost on navigation
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 160: Declarative Approval Gates + Workflow Flags
+**Goal**: Approval gates are presented as browser-native WebMCP tool forms rather than imperative approval flows, and all four design workflow commands produce WebMCP-enhanced output when requested
+**Depends on**: Phase 157
+**Requirements**: WFL-01, WFL-02, WFL-03, WFL-04, WFL-05
+**Success Criteria** (what must be TRUE):
+  1. A browser AI agent can approve or reject a pending PDE gate by calling a declarative WebMCP tool form — no need to navigate to the dashboard UI separately
+  2. Running /pde:wireframe --webmcp produces output sections that include WebMCP-specific tooling context
+  3. Running /pde:mockup --webmcp, /pde:critique --webmcp, and /pde:competitive --webmcp each produce analogous WebMCP-enhanced output
+  4. Existing approval flow continues to work unchanged for users not using the --webmcp flag
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 161: Auto-Generated Competitor Tools
+**Goal**: The competitive analysis workflow can optionally generate WebMCP tool stubs from competitor data, with mandatory human review before any tool becomes active
+**Depends on**: Phase 160
+**Requirements**: ADV-01, ADV-02, ADV-03, ADV-04
+**Success Criteria** (what must be TRUE):
+  1. Running /pde:competitive produces an optional set of WebMCP tool stub definitions derived from competitor analysis
+  2. Generated tool descriptions are sanitized — instruction syntax stripped, capped at 512 characters, and tagged source: "auto-generated"
+  3. No auto-generated tool can be called by any agent until a human explicitly approves it through the review gate
+  4. Approved and pending competitor tool stubs are persisted in .webmcp/competitor-tools-registry.json between sessions
+**Plans**: TBD
+
+### Phase 162: Multi-Editor Bridge
+**Goal**: Cursor and Gemini CLI users can access PDE tools via the WebMCP relay without circular relay loops or unauthorized access
+**Depends on**: Phase 156
+**Requirements**: MEB-01, MEB-02, MEB-03
+**Success Criteria** (what must be TRUE):
+  1. Cursor and Gemini CLI can call PDE tools through the WebMCP relay endpoint with correct authentication
+  2. A relay request that would create a circular chain is detected and rejected via the X-PDE-Relay-Depth header guard
+  3. The PDE remote MCP server appears in mcp-bridge.cjs APPROVED_SERVERS so Claude Code can route requests to it via the existing bridge
+**Plans**: TBD
+
+## Progress
+
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 156. Remote MCP Server Foundation | v0.19 | 0/TBD | Not started | - |
+| 157. Dashboard WebMCP Tools | v0.19 | 0/TBD | Not started | - |
+| 158. MCP Apps Rich UI + Design Artifact Preview | v0.19 | 0/TBD | Not started | - |
+| 159. Token Playground | v0.19 | 0/TBD | Not started | - |
+| 160. Declarative Approval Gates + Workflow Flags | v0.19 | 0/TBD | Not started | - |
+| 161. Auto-Generated Competitor Tools | v0.19 | 0/TBD | Not started | - |
+| 162. Multi-Editor Bridge | v0.19 | 0/TBD | Not started | - |
