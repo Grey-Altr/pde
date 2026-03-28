@@ -199,7 +199,7 @@ Any user can go from idea to shipped product through a single platform that hand
 
 ## Current State
 
-**v0.19 WebMCP Integration Phase 159 complete** (2026-03-28) — Token Playground: per-tool cost breakdown UI with `deriveToolBreakdown()` grouping token_usage events by agent, context window utilization gauge via `deriveContextUsage()`, and cumulative session cost persisted in Upstash Redis via atomic HINCRBY pipeline. SSR-hydrated cost survives page refreshes. CostMeter replaced with 3-card TokenPlayground layout (Context Window, Session Cost, Per-Agent Breakdown).
+**v0.19 WebMCP Integration Phase 160 complete** (2026-03-28) — Declarative Approval Gates + Workflow Flags: `pde_approval_gate` WebMCP browser tool with Clerk-authenticated `/api/planning/gates` API route for file-based gate state in `.planning/gates/`. `--webmcp` flag added to wireframe, mockup, critique, and competitive workflows producing WebMCP Context sections with tool metadata for browser AI agents. 36 source-inspection tests, 346/346 suite green.
 
 **v0.18 Distributed Execution shipped** (2026-03-28) — 13 phases, 28 plans, 54 requirements, 129 commits, 142 files, +19,639 LOC. PDE can now dispatch parallel sessions to local/remote worktrees, coordinate via Agent SDK, and surface all activity in the web dashboard and tmux panes. All integration gaps closed (INT-RETRY-STUB, INT-PDE-REMOTE-DOC, INT-AUTH-SILENT, INT-SSH-SOURCE).
 
@@ -370,4 +370,4 @@ This document evolves at phase transitions and milestone boundaries.
 3. Audit Out of Scope — reasons still valid?
 4. Update Context with current state
 
-*Last updated: 2026-03-28 after Phase 159 — Token Playground: per-tool cost breakdown, context window gauge, Redis-persisted session cost*
+*Last updated: 2026-03-28 after Phase 160 — Declarative Approval Gates + Workflow Flags: pde_approval_gate tool, --webmcp flag on 4 design workflows*
