@@ -48,7 +48,11 @@
   3. Requests from origins not on the explicit allowlist are rejected on every request type including GET and SSE
   4. Long-running tool calls complete within Vercel timeout limits via a polling handoff rather than a hung connection
   5. Desktop clients (Claude Code, Cursor) connect to the remote server using the documented npx relay with zero code changes in PDE
-**Plans**: TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 156-01-PLAN.md — Install MCP packages, server factory, origin guard, Wave 0 test scaffolds
+- [ ] 156-02-PLAN.md — MCP route handler with Clerk auth, .well-known endpoints, proxy update
+- [ ] 156-03-PLAN.md — Polling tool pair for long-running ops, desktop client config docs
 
 ### Phase 157: Dashboard WebMCP Tools
 **Goal**: The PDE dashboard registers live tools with any browser-based AI agent via the WebMCP API, with safe lifecycle management that prevents zombie registrations
@@ -122,7 +126,7 @@
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 156. Remote MCP Server Foundation | v0.19 | 0/TBD | Not started | - |
+| 156. Remote MCP Server Foundation | v0.19 | 0/3 | Planning complete | - |
 | 157. Dashboard WebMCP Tools | v0.19 | 0/TBD | Not started | - |
 | 158. MCP Apps Rich UI + Design Artifact Preview | v0.19 | 0/TBD | Not started | - |
 | 159. Token Playground | v0.19 | 0/TBD | Not started | - |
