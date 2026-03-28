@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.19
 milestone_name: WebMCP Integration
-status: Ready to plan
-stopped_at: Phase 160 context gathered
-last_updated: "2026-03-28T21:32:59.297Z"
+status: Ready to execute
+stopped_at: Completed 160-01-PLAN.md
+last_updated: "2026-03-28T21:52:29.521Z"
 progress:
   total_phases: 7
   completed_phases: 4
-  total_plans: 10
-  completed_plans: 10
+  total_plans: 12
+  completed_plans: 11
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-28)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 159 — token-playground
+**Current focus:** Phase 160 — declarative-approval-gates-workflow-flags
 
 ## Current Position
 
-Phase: 160
-Plan: Not started
+Phase: 160 (declarative-approval-gates-workflow-flags) — EXECUTING
+Plan: 2 of 2
 
 ## Performance Metrics
 
@@ -66,6 +66,7 @@ Plan: Not started
 - [Phase 159]: Cost stored as integer * 10000 in Redis to avoid HINCRBY float limitation
 - [Phase 159]: CostMeter import removed from session-detail.tsx but cost-meter.tsx retained for cleanup in future phase
 - [Phase 159]: 5-second debounce on persistSessionCost prevents Upstash command exhaustion under rapid token events
+- [Phase 160]: inputSchema const defined at module level outside hook function — prevents zombie re-registration on re-renders (extends Phase 157 pattern to approval gate tool)
 
 ### Pending Todos
 
@@ -79,7 +80,7 @@ Plan: Not started
 
 ## Session Continuity
 
-Last session: 2026-03-28T21:32:59.294Z
-Stopped at: Phase 160 context gathered
+Last session: 2026-03-28T21:52:29.518Z
+Stopped at: Completed 160-01-PLAN.md
 Resume with: `/gsd:plan-phase 156`
-Resume file: .planning/phases/160-declarative-approval-gates-workflow-flags/160-CONTEXT.md
+Resume file: None

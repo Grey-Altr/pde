@@ -108,9 +108,9 @@ Plans:
   2. Running /pde:wireframe --webmcp produces output sections that include WebMCP-specific tooling context
   3. Running /pde:mockup --webmcp, /pde:critique --webmcp, and /pde:competitive --webmcp each produce analogous WebMCP-enhanced output
   4. Existing approval flow continues to work unchanged for users not using the --webmcp flag
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 Plans:
-- [ ] 160-01-PLAN.md — Approval gate browser tool hook, gates API route, composite hook wiring, tests
+- [x] 160-01-PLAN.md — Approval gate browser tool hook, gates API route, composite hook wiring, tests
 - [ ] 160-02-PLAN.md — --webmcp flag on wireframe, mockup, critique, and competitive workflows
 
 
@@ -153,6 +153,6 @@ Plans:
 | 157. Dashboard WebMCP Tools | v0.19 | 2/3 | Complete    | 2026-03-28 |
 | 158. MCP Apps Rich UI + Design Artifact Preview | v0.19 | 1/2 | Complete    | 2026-03-28 |
 | 159. Token Playground | v0.19 | 2/2 | Complete    | 2026-03-28 |
-| 160. Declarative Approval Gates + Workflow Flags | v0.19 | 0/2 | Not started | - |
+| 160. Declarative Approval Gates + Workflow Flags | v0.19 | 1/2 | In Progress|  |
 | 161. Auto-Generated Competitor Tools | v0.19 | 0/TBD | Not started | - |
 | 162. Multi-Editor Bridge | v0.19 | 0/TBD | Not started | - |
