@@ -1,5 +1,5 @@
 'use client';
-import { useDesignStateTool, useProjectInfoTool, useArtifactListTool, useApprovalGateTool } from '@/lib/mcp/browser-tools';
+import { useDesignStateTool, useProjectInfoTool, useArtifactListTool, useApprovalGateTool, useCompetitorTools } from '@/lib/mcp/browser-tools';
 
 /**
  * Composite hook that registers all PDE WebMCP browser tools.
@@ -11,4 +11,5 @@ export function useWebMcpTools() {
   useProjectInfoTool();
   useArtifactListTool();
   useApprovalGateTool();
+  useCompetitorTools();
 }
