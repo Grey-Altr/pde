@@ -199,6 +199,8 @@ Any user can go from idea to shipped product through a single platform that hand
 
 ## Current State
 
+**v0.19 WebMCP Integration Phase 156 complete** (2026-03-28) — Remote MCP Server Foundation: PDE tools reachable via authenticated Streamable HTTP endpoint (`/api/mcp`) using `mcp-handler` + `@clerk/mcp-tools`, origin validation per MCP spec, polling pattern for long-running ops via Upstash Redis, desktop client docs for Claude Code/Cursor/mcp-remote relay. 4 human verification items pending (live deployment testing).
+
 **v0.18 Distributed Execution shipped** (2026-03-28) — 13 phases, 28 plans, 54 requirements, 129 commits, 142 files, +19,639 LOC. PDE can now dispatch parallel sessions to local/remote worktrees, coordinate via Agent SDK, and surface all activity in the web dashboard and tmux panes. All integration gaps closed (INT-RETRY-STUB, INT-PDE-REMOTE-DOC, INT-AUTH-SILENT, INT-SSH-SOURCE).
 
 ### Out of Scope
