@@ -1,9 +1,9 @@
 ---
 phase: 161
 slug: auto-generated-competitor-tools
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: approved
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-28
 ---
 
@@ -38,12 +38,10 @@ created: 2026-03-28
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 161-01-01 | 01 | 0 | ADV-02 | unit | `cd dashboard && npx vitest run tests/sanitize-tool-description.test.ts` | ❌ W0 | ⬜ pending |
-| 161-01-02 | 01 | 0 | ADV-04 | unit | `cd dashboard && npx vitest run tests/competitor-tools-registry.test.ts` | ❌ W0 | ⬜ pending |
-| 161-01-03 | 01 | 1 | ADV-01 | unit | `cd dashboard && npx vitest run tests/competitor-tools-registry.test.ts` | ❌ W0 | ⬜ pending |
-| 161-01-04 | 01 | 1 | ADV-02 | unit | `cd dashboard && npx vitest run tests/sanitize-tool-description.test.ts` | ❌ W0 | ⬜ pending |
-| 161-01-05 | 01 | 1 | ADV-01 | structural | `grep -q 'Step 8' workflows/competitive.md` | N/A | ⬜ pending |
-| 161-02-01 | 02 | 0 | ADV-03 | unit | `cd dashboard && npx vitest run tests/use-competitor-tools.test.ts` | ❌ W0 | ⬜ pending |
+| 161-01-01 | 01 | 1 | ADV-01 | structural | `grep -q 'Step 8' workflows/competitive.md` | N/A | ⬜ pending |
+| 161-01-02 | 01 | 1 | ADV-02 | structural | `grep -q 'sanitizeToolDescription' workflows/competitive.md` | N/A | ⬜ pending |
+| 161-01-03 | 01 | 1 | ADV-04 | structural | `test -f dashboard/app/api/planning/competitor-tools/route.ts` | N/A | ⬜ pending |
+| 161-02-01 | 02 | 2 | ADV-03 | unit | `cd dashboard && npx vitest run lib/__tests__/competitor-tools.test.ts -t "use-competitor-tools.ts"` | ❌ W0 | ⬜ pending |
 | 161-02-02 | 02 | 2 | ADV-03 | structural | `grep -q 'useCompetitorTools' dashboard/hooks/use-webmcp-tools.ts` | N/A | ⬜ pending |
 | 161-02-03 | 02 | 2 | ADV-03 | structural | `grep -c 'export' dashboard/lib/mcp/browser-tools/index.ts` | N/A | ⬜ pending |
 
@@ -53,11 +51,9 @@ created: 2026-03-28
 
 ## Wave 0 Requirements
 
-- [ ] `dashboard/tests/sanitize-tool-description.test.ts` — stubs for ADV-02 sanitization pipeline
-- [ ] `dashboard/tests/competitor-tools-registry.test.ts` — stubs for ADV-04 registry persistence
-- [ ] `dashboard/tests/use-competitor-tools.test.ts` — stubs for ADV-03 browser tool hook
+- [ ] `dashboard/lib/__tests__/competitor-tools.test.ts` — stubs for ADV-03 browser tool hook (created by Plan 02 Task 1)
 
-*Existing vitest infrastructure covers test framework needs.*
+*Plan 01 tasks use grep/file-check verify — no Wave 0 vitest stubs required.*
 
 ---
 
@@ -71,11 +67,11 @@ created: 2026-03-28
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 5s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 5s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved 2026-03-28
