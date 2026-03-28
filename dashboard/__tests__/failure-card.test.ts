@@ -57,4 +57,41 @@ describe('FailureCard component structure', () => {
   it('AlertDialog description mentions worktree removal', () => {
     expect(source).toContain('worktree will be removed');
   });
+
+  it('Retry button has RETRY_AVAILABLE guard constant', () => {
+    expect(source).toContain('const RETRY_AVAILABLE = false');
+  });
+
+  it('Retry button has aria-disabled for unavailable state', () => {
+    expect(source).toContain('aria-disabled={!RETRY_AVAILABLE');
+  });
+
+  it('Retry button has title tooltip explaining limitation', () => {
+    expect(source).toContain('title={!RETRY_AVAILABLE');
+    expect(source).toContain('local dispatcher');
+  });
+
+  it('Retry button has disabled:cursor-not-allowed class', () => {
+    expect(source).toContain('disabled:cursor-not-allowed');
+  });
+});
+
+describe('PDE_REMOTE env var documentation', () => {
+  const envSource = readFileSync(
+    path.resolve(import.meta.dirname, '../.env.example'),
+    'utf-8'
+  );
+
+  it('.env.example documents PDE_REMOTE', () => {
+    expect(envSource).toContain('PDE_REMOTE=');
+  });
+
+  it('.env.example explains PDE_REMOTE is for dispatcher relay', () => {
+    expect(envSource).toContain('dispatcher');
+    expect(envSource).toContain('relay');
+  });
+
+  it('.env.example notes PDE_REMOTE is local-only', () => {
+    expect(envSource).toMatch(/not.*vercel/i);
+  });
 });
