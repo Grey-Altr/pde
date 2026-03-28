@@ -76,6 +76,7 @@ ELSE:
 | `--no-websearch` | Boolean | Skip WebSearch MCP specifically while allowing other MCPs. |
 | `--no-sequential-thinking` | Boolean | Skip Sequential Thinking MCP specifically while allowing other MCPs. |
 | `--force` | Boolean | Skip the confirmation prompt when a CMP artifact already exists and auto-increment to the next version. |
+| `--webmcp` | Boolean | Append WebMCP tool context section to output for browser AI agent consumption. Also triggers competitor tool stub generation (Step 8). Does not affect competitive analysis. |
 
 </flags>
 
@@ -83,7 +84,7 @@ ELSE:
 
 ## /pde:competitive — Competitive Landscape Analysis Pipeline
 
-Check for flags in $ARGUMENTS before beginning: `--dry-run`, `--quick`, `--standard`, `--deep`, `--verbose`, `--no-mcp`, `--no-websearch`, `--no-sequential-thinking`, `--force`.
+Check for flags in $ARGUMENTS before beginning: `--dry-run`, `--quick`, `--standard`, `--deep`, `--verbose`, `--no-mcp`, `--no-websearch`, `--no-sequential-thinking`, `--force`, `--webmcp`.
 
 **Scope resolution (resolve ONCE, use throughout):**
 ```
@@ -94,7 +95,7 @@ DEFAULT (--standard or none): SCOPE = standard; COMPETITOR_COUNT_TARGET = "3-5"
 
 ---
 
-### Step 1/7: Initialize design directories
+### Step 1/8: Initialize design directories
 
 ```bash
 INIT=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" design ensure-dirs)
@@ -109,11 +110,11 @@ Error: Failed to initialize design directories.
   Check that .planning/ exists and is writable, then re-run /pde:competitive.
 ```
 
-Halt on error. On success, display: `Step 1/7: Design directories initialized.`
+Halt on error. On success, display: `Step 1/8: Design directories initialized.`
 
 ---
 
-### Step 2/7: Check prerequisites and determine scope
+### Step 2/8: Check prerequisites and determine scope
 
 **Read PROJECT.md (hard requirement):**
 
@@ -173,11 +174,17 @@ Estimated token usage: ~{estimate}
 MCP enhancements planned: WebSearch (live competitor data), Sequential Thinking (analysis depth)
 ```
 
-Display: `Step 2/7: Prerequisites satisfied. PROJECT.md loaded. Scope: {scope}. Version: v{N}.`
+Display: `Step 2/8: Prerequisites satisfied. PROJECT.md loaded. Scope: {scope}. Version: v{N}.`
+
+#### Parse --webmcp flag
+
+Check $ARGUMENTS for `--webmcp`:
+- If present: SET USE_WEBMCP = true. Log: `  -> --webmcp detected: WebMCP context section will be appended to output and competitor tool stubs will be generated (Step 8).`
+- If absent: SET USE_WEBMCP = false.
 
 ---
 
-### Step 3/7: Probe MCP capabilities
+### Step 3/8: Probe MCP capabilities
 
 **Check flags first:**
 
@@ -220,13 +227,13 @@ If not disabled via flags, attempt to call `mcp__sequential-thinking__think` wit
   - If retry succeeds: `SEQUENTIAL_THINKING_AVAILABLE = true`
   - If retry fails: `SEQUENTIAL_THINKING_AVAILABLE = false`. Log: `  -> Sequential Thinking MCP: unavailable (degraded mode)`
 
-Display: `Step 3/7: MCP probes complete. WebSearch: {available|unavailable}. Sequential Thinking: {available|unavailable}.`
+Display: `Step 3/8: MCP probes complete. WebSearch: {available|unavailable}. Sequential Thinking: {available|unavailable}.`
 
 ---
 <!-- /LOCKED -->
 
 <!-- OPTIMIZABLE: competitive analysis guidance, comparison framing, analysis structure, output prose -->
-### Step 4/7: Competitive analysis
+### Step 4/8: Competitive analysis
 
 This is the core logic of the skill. Apply confidence labels to EVERY factual competitor claim throughout this step.
 
@@ -460,13 +467,13 @@ After the Mermaid chart, include a **Differentiation Analysis** section interpre
 ELSE:
   Skip silently. Continue to next step.
 
-Display: `Step 4/7: Competitive analysis complete. {N} competitors analyzed, {M} gaps identified.`
+Display: `Step 4/8: Competitive analysis complete. {N} competitors analyzed, {M} gaps identified.`
 
 ---
 <!-- /OPTIMIZABLE -->
 
 <!-- LOCKED: artifact writes, CMP artifact code, MLS artifact, DESIGN-STATE updates, hasCompetitive coverage write, manifest registration -->
-### Step 5/7: Write competitive artifact
+### Step 5/8: Write competitive artifact
 
 Write the competitive analysis to `.planning/design/strategy/CMP-competitive-v{N}.md`.
 
@@ -598,13 +605,13 @@ ELSE:
 
 Display:
 ```
-Step 5/7: Competitive artifact written.
+Step 5/8: Competitive artifact written.
   -> Created: .planning/design/strategy/CMP-competitive-v{N}.md
 ```
 
 ---
 
-### Step 6/7: Update domain DESIGN-STATE
+### Step 6/8: Update domain DESIGN-STATE
 
 Check if `.planning/design/strategy/DESIGN-STATE.md` exists using the Glob tool.
 
@@ -630,11 +637,11 @@ IF MLS_WRITTEN == true:
   - Cross-Domain Dependency Map: `| MLS | Market Landscape Sizing | v{N} | CMP |`
   - Iteration History: `| MLS | v{N} | Business market landscape sizing |`
 
-Display: `Step 6/7: Strategy DESIGN-STATE.md updated with CMP artifact entry.`
+Display: `Step 6/8: Strategy DESIGN-STATE.md updated with CMP artifact entry.`
 
 ---
 
-### Step 7/7: Update root DESIGN-STATE and manifest
+### Step 7/8: Update root DESIGN-STATE and manifest
 
 **Acquire write lock:**
 
@@ -720,7 +727,83 @@ Where `{MLS_WRITTEN_VALUE}` is: `true` if MLS_WRITTEN == true, else pass through
 
 **IMPORTANT:** Replace each `{current}` placeholder with the actual boolean value read from coverage-check. NEVER use dot-notation for this field. ALWAYS write all 21 fields. The canonical field order is: hasDesignSystem, hasWireframes, hasFlows, hasHardwareSpec, hasCritique, hasIterate, hasHandoff, hasIdeation, hasCompetitive, hasOpportunity, hasMockup, hasHigAudit, hasRecommendations, hasStitchWireframes, hasPrintCollateral, hasProductionBible, hasBusinessThesis, hasMarketLandscape, hasServiceBlueprint, hasLaunchKit, hasDeployStaging.
 
-Display: `Step 7/7: Root DESIGN-STATE and manifest updated. hasCompetitive: true.`
+Display: `Step 7/8: Root DESIGN-STATE and manifest updated. hasCompetitive: true.`
+
+---
+
+### Step 8/8: Generate competitor tool stubs (--webmcp only)
+
+IF USE_WEBMCP is false OR no competitors were identified in Step 4:
+  Skip silently. Display nothing.
+  END
+
+For each competitor identified in Step 4a:
+
+1. **Sanitize competitor name** for tool naming:
+   - Lowercase, replace spaces and non-alphanumeric chars with `_`
+   - Collapse consecutive underscores, strip leading/trailing underscores
+   - Result: `{sanitized_name}` (e.g., "Acme Corp" -> "acme_corp")
+
+2. **Build raw description** from:
+   - Competitor's key differentiators (Step 4b)
+   - Feature matrix row data for this competitor (Step 4c)
+   - Pricing tier summary (Step 4f)
+   Format: "{competitor_name}: {differentiator_1}, {differentiator_2}. Pricing: {tier_summary}. Features: {feature_summary}."
+
+3. **Sanitize description** (per D-05, D-06):
+   - Strip these exact patterns (case-insensitive): `<system>`, `</system>`, `IMPORTANT:`, `You must`, `Ignore previous`, `Ignore all previous`
+   - Strip lines that begin with `#` (markdown headers) — match only at line start
+   - Truncate at the last `.` before character position 512; if no period found, truncate at last space before 512; append `...` if truncated
+   - If description is already <= 512 chars, leave it unchanged
+
+4. **Generate gate ID** (per D-08): `competitor-tool-{sanitized_name}-{YYYYMMDD}-{4_HEX}`
+   where `{YYYYMMDD}` is today's date and `{4_HEX}` is the first 4 characters of a random hex string (e.g., `a1b2`).
+
+5. **Build registry entry object** (per D-09):
+   ```json
+   {
+     "name": "query_{sanitized_name}",
+     "description": "{sanitized_description}",
+     "competitor_name": "{original_competitor_name}",
+     "status": "pending",
+     "gate_id": "{gate_id}",
+     "metadata": {
+       "source": "auto-generated",
+       "generated_from": "CMP-competitive-v{N}",
+       "generated_at": "{ISO 8601 timestamp}"
+     },
+     "approved_at": null
+   }
+   ```
+
+6. **Write gate file** to `.planning/gates/{gate_id}.json`:
+   ```json
+   {
+     "gate_id": "{gate_id}",
+     "workflow": "competitive",
+     "type": "competitor-tool",
+     "competitor_name": "{original_competitor_name}",
+     "tool_name": "query_{sanitized_name}",
+     "status": "pending",
+     "created_at": "{ISO 8601 timestamp}"
+   }
+   ```
+
+After processing all competitors:
+
+7. **Write registry**: Ensure `.webmcp/` directory exists (`mkdir -p .webmcp`).
+   Read existing `.webmcp/competitor-tools-registry.json` if present.
+   Merge new entries into existing array — skip any entry whose `gate_id` already exists in the array.
+   Write the merged array back to `.webmcp/competitor-tools-registry.json`.
+   If file was absent, write the new array as the full registry.
+
+Display:
+```
+Step 8/8: Generated {N} competitor tool stubs.
+  -> Registry: .webmcp/competitor-tools-registry.json
+  -> Pending gates: {gate_id_1}, {gate_id_2}, ...
+  -> Approve via: pde_approval_gate with gate_id and action: "approve"
+```
 
 ---
 
@@ -740,6 +823,47 @@ Display the final summary table (always the last output):
 | Estimated tokens | ~{count} |
 | MCP enhancements | {comma-separated list of MCPs actually used, or "none"} |
 ```
+
+IF USE_WEBMCP is true, append this section after the standard output summary:
+
+---
+
+## WebMCP Context
+
+This output includes context for browser AI agents accessing PDE via WebMCP.
+
+**Available tools registered in this browser session:**
+
+| Tool | Call When | Required Input |
+|------|-----------|----------------|
+| `pde_approval_gate` | To approve or reject this competitive analysis output | `gate_id` (shown below), `action` (`approve` or `reject`) |
+| `get_design_state` | To check current PDE design phase | (none) |
+| `list_artifacts` | To enumerate all design artifacts | `filter` (optional) |
+| `get_project_info` | To get project name and milestone | (none) |
+| `query_competitor_data` | To query approved competitor analysis data | `competitor_name` (name of an approved competitor) |
+
+**Pending gate for this run:**
+
+Gate ID: `competitive-{PHASE_NUMBER}-{YYYYMMDD}-{4_HEX}`
+
+To approve via WebMCP tool call:
+```json
+{
+  "name": "pde_approval_gate",
+  "arguments": { "gate_id": "competitive-{PHASE_NUMBER}-{YYYYMMDD}-{4_HEX}", "action": "approve" }
+}
+```
+
+To reject via WebMCP tool call:
+```json
+{
+  "name": "pde_approval_gate",
+  "arguments": { "gate_id": "competitive-{PHASE_NUMBER}-{YYYYMMDD}-{4_HEX}", "action": "reject", "reason": "..." }
+}
+```
+
+> Gate state file: `.planning/gates/{GATE_ID}.json`
+> Fallback: Users not using WebMCP can approve via the dashboard approval UI.
 
 ---
 
@@ -767,4 +891,6 @@ Display the final summary table (always the last output):
 - `.planning/design/strategy/DESIGN-STATE.md` — strategy domain state (created if absent, updated with CMP entry)
 - `.planning/design/DESIGN-STATE.md` — root state updated (Cross-Domain Dependency Map, Decision Log, Iteration History)
 - `.planning/design/design-manifest.json` — manifest updated with CMP artifact entry and hasCompetitive coverage flag
+- `.webmcp/competitor-tools-registry.json` — competitor tool registry (created/updated when --webmcp flag active)
+- `.planning/gates/competitor-tool-*.json` — approval gates for auto-generated tools (when --webmcp flag active)
 </output>
