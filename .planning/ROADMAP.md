@@ -30,7 +30,7 @@
 
 - [x] **Phase 156: Remote MCP Server Foundation** — Streamable HTTP endpoint with Clerk auth, Origin validation, stateless Vercel transport, shared server factory, and desktop relay bridge (completed 2026-03-28)
 - [x] **Phase 157: Dashboard WebMCP Tools** — useMcpTool() lifecycle hook, use-mcp-client.ts, initial tool registrations, and context-sync .webmcp emitter (completed 2026-03-28)
-- [ ] **Phase 158: MCP Apps Rich UI + Design Artifact Preview** — type: 'resource' rich return blocks with MCP Apps HTML MIME, CSP declarations, and ui:// artifact resource scheme
+- [x] **Phase 158: MCP Apps Rich UI + Design Artifact Preview** — type: 'resource' rich return blocks with MCP Apps HTML MIME, CSP declarations, and ui:// artifact resource scheme (completed 2026-03-28)
 - [ ] **Phase 159: Token Playground** — Per-tool cost breakdown UI and session context window utilization view via @ai-sdk/mcp and Upstash Redis
 - [ ] **Phase 160: Declarative Approval Gates + Workflow Flags** — Approval gate WebMCP tool forms and --webmcp flag across all four design workflow commands
 - [ ] **Phase 161: Auto-Generated Competitor Tools** — competitive.md tool stub generation with sanitization pipeline, mandatory human review gate, and competitor registry
@@ -82,7 +82,7 @@ Plans:
   4. MCP App HTML panels can call back to PDE's own domain without CSP errors
 **Plans**: 2 plans
 Plans:
-- [ ] 158-01-PLAN.md — Install ext-apps SDK, rich tool+resource registration, CSP connectDomains, server-factory wiring
+- [x] 158-01-PLAN.md — Install ext-apps SDK, rich tool+resource registration, CSP connectDomains, server-factory wiring
 - [ ] 158-02-PLAN.md — Dynamic ui://pde/{artifact} resource template with format-specific rendering
 
 ### Phase 159: Token Playground
@@ -147,7 +147,7 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 156. Remote MCP Server Foundation | v0.19 | 1/3 | Complete    | 2026-03-28 |
 | 157. Dashboard WebMCP Tools | v0.19 | 2/3 | Complete    | 2026-03-28 |
-| 158. MCP Apps Rich UI + Design Artifact Preview | v0.19 | 0/2 | Not started | - |
+| 158. MCP Apps Rich UI + Design Artifact Preview | v0.19 | 1/2 | Complete    | 2026-03-28 |
 | 159. Token Playground | v0.19 | 0/TBD | Not started | - |
 | 160. Declarative Approval Gates + Workflow Flags | v0.19 | 0/TBD | Not started | - |
 | 161. Auto-Generated Competitor Tools | v0.19 | 0/TBD | Not started | - |

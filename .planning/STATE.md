@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.19
 milestone_name: WebMCP Integration
 status: Ready to plan
-stopped_at: Completed 157-03-PLAN.md
-last_updated: "2026-03-28T19:09:42.388Z"
+stopped_at: Completed 158-02-PLAN.md
+last_updated: "2026-03-28T20:25:09.465Z"
 progress:
   total_phases: 7
-  completed_phases: 2
-  total_plans: 6
-  completed_plans: 6
+  completed_phases: 3
+  total_plans: 8
+  completed_plans: 8
 ---
 
 # Project State
@@ -19,11 +19,11 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-28)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 157 — dashboard-webmcp-tools
+**Current focus:** Phase 158 — mcp-apps-rich-ui-design-artifact-preview
 
 ## Current Position
 
-Phase: 158
+Phase: 159
 Plan: Not started
 
 ## Performance Metrics
@@ -58,6 +58,10 @@ Plan: Not started
 - [Phase 157]: Used source-inspection (readFileSync) tests instead of renderHook — project vitest config uses node environment, jsdom not available
 - [Phase 157]: Source inspection tests used instead of renderHook — vitest runs in node environment (no DOM/jsdom)
 - [Phase 157]: inputSchema constants defined at module level in browser tool hooks — prevents zombie re-registration on re-renders
+- [Phase 158]: CSP _meta.ui.csp belongs in contents[]._meta (read callback return value) not registerAppResource config — config-level is listing-level fallback only
+- [Phase 158]: registerAppTool signature: (server, name, config, handler) — name is second positional arg per SDK declaration
+- [Phase 158]: ResourceTemplate.uriTemplate is a UriTemplate object — use .uriTemplate.template for string, not String(rt)
+- [Phase 158]: vi.mock must share vi.fn() instances between ESM default and named exports for default-import modules
 
 ### Pending Todos
 
@@ -71,7 +75,7 @@ Plan: Not started
 
 ## Session Continuity
 
-Last session: 2026-03-28T18:58:09.918Z
-Stopped at: Completed 157-03-PLAN.md
+Last session: 2026-03-28T20:18:38.187Z
+Stopped at: Completed 158-02-PLAN.md
 Resume with: `/gsd:plan-phase 156`
 Resume file: None
