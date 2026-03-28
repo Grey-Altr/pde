@@ -92,6 +92,17 @@ const APPROVED_SERVERS = {
     probeTool: 'mcp__plugin_playwright_playwright__browser_snapshot', // TOOL_MAP_VERIFIED — lightest read-only tool
     probeArgs: {},
   },
+  pde_remote: {
+    displayName: 'PDE Remote',
+    transport: 'http',
+    url: process.env.NEXT_PUBLIC_APP_URL
+      ? `${process.env.NEXT_PUBLIC_APP_URL}/api/mcp`
+      : null,
+    installCmd: 'claude mcp add pde-remote --transport http https://your-dashboard.vercel.app/api/mcp',
+    probeTimeoutMs: 10000,
+    probeTool: 'mcp__pde_remote__get_project_state', // Phase 162 — lightest read-only tool (no args, no Redis, no side effects)
+    probeArgs: {},
+  },
 };
 
 // ─── Canonical tool name map ──────────────────────────────────────────────────
