@@ -72,22 +72,24 @@ describe('registerArtifactPreviewTools — RUI-01 dual-mode responses', () => {
 describe('registerArtifactPreviewTools — RUI-02 CSP connectDomains', () => {
   it('resource read callback returns contents with _meta.ui.csp.connectDomains', async () => {
     const { registerArtifactPreviewTools } = await import('../lib/mcp/apps/artifact-preview');
-    let resourceReadCallback: ((...args: any[]) => Promise<any>) | null = null;
+    let staticViewerCallback: ((...args: any[]) => Promise<any>) | null = null;
     const mockServer = {
       tool: vi.fn(),
       registerTool: vi.fn(),
       registerResource: vi.fn((...args: any[]) => {
-        // The read callback is the last argument
+        // Capture the static pde-artifact-viewer resource callback (first string-URI call)
+        // The dynamic ResourceTemplate call uses an object as second arg, not a string
+        const secondArg = args[1];
         const lastArg = args[args.length - 1];
-        if (typeof lastArg === 'function') {
-          resourceReadCallback = lastArg;
+        if (typeof secondArg === 'string' && typeof lastArg === 'function') {
+          staticViewerCallback = lastArg;
         }
       }),
     };
     registerArtifactPreviewTools(mockServer as any);
-    expect(resourceReadCallback).not.toBeNull();
+    expect(staticViewerCallback).not.toBeNull();
 
-    const result = await resourceReadCallback!();
+    const result = await staticViewerCallback!();
     expect(result.contents).toBeDefined();
     expect(result.contents[0]._meta.ui.csp.connectDomains).toBeDefined();
     expect(Array.isArray(result.contents[0]._meta.ui.csp.connectDomains)).toBe(true);

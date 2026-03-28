@@ -23,6 +23,7 @@
     "clsx": "^2.1.1",
     "geist": "latest",
     "lucide-react": "^1.6.0",
+    "marked": "^17.0.5",
     "mcp-handler": "^1.1.0",
     "next": "latest",
     "next-themes": "latest",
