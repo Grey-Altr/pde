@@ -51,8 +51,8 @@
 **Plans:** 3/3 plans complete
 Plans:
 - [x] 156-01-PLAN.md — Install MCP packages, server factory, origin guard, Wave 0 test scaffolds
-- [ ] 156-02-PLAN.md — MCP route handler with Clerk auth, .well-known endpoints, proxy update
-- [ ] 156-03-PLAN.md — Polling tool pair for long-running ops, desktop client config docs
+- [x] 156-02-PLAN.md — MCP route handler with Clerk auth, .well-known endpoints, proxy update
+- [x] 156-03-PLAN.md — Polling tool pair for long-running ops, desktop client config docs
 
 ### Phase 157: Dashboard WebMCP Tools
 **Goal**: The PDE dashboard registers live tools with any browser-based AI agent via the WebMCP API, with safe lifecycle management that prevents zombie registrations
@@ -68,7 +68,7 @@ Plans:
 Plans:
 - [x] 157-01-PLAN.md — Install WebMCP packages, providers.tsx initialization, use-mcp-client.ts hook, Wave 0 test scaffolds
 - [x] 157-02-PLAN.md — context-sync.cjs emitWebMcpConfig emitter, MONITORED_FILES entry, .webmcp/config.json generation
-- [ ] 157-03-PLAN.md — Browser tool hooks (design state, project info, artifacts), API routes, composite hook
+- [x] 157-03-PLAN.md — Browser tool hooks (design state, project info, artifacts), API routes, composite hook
 **UI hint**: yes
 
 ### Phase 158: MCP Apps Rich UI + Design Artifact Preview
@@ -83,7 +83,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 - [x] 158-01-PLAN.md — Install ext-apps SDK, rich tool+resource registration, CSP connectDomains, server-factory wiring
-- [ ] 158-02-PLAN.md — Dynamic ui://pde/{artifact} resource template with format-specific rendering
+- [x] 158-02-PLAN.md — Dynamic ui://pde/{artifact} resource template with format-specific rendering
 
 ### Phase 159: Token Playground
 **Goal**: Users can see the token cost of each PDE tool call and their cumulative session spending directly in the dashboard
@@ -127,7 +127,7 @@ Plans:
 **Plans:** 2/2 plans complete
 Plans:
 - [x] 161-01-PLAN.md — Workflow Step 8 competitor tool stub generation, sanitization pipeline, registry write, competitor-tools API route
-- [ ] 161-02-PLAN.md — useCompetitorTools browser hook, barrel export, composite hook wiring, test updates
+- [x] 161-02-PLAN.md — useCompetitorTools browser hook, barrel export, composite hook wiring, test updates
 
 ### Phase 162: Multi-Editor Bridge
 **Goal**: Cursor and Gemini CLI users can access PDE tools via the WebMCP relay without circular relay loops or unauthorized access
@@ -140,16 +140,16 @@ Plans:
 **Plans:** 2/2 plans complete
 Plans:
 - [x] 162-01-PLAN.md — Relay depth guard module, APPROVED_SERVERS pde_remote entry, and tests for both
-- [ ] 162-02-PLAN.md — Wire relay guard into route.ts guardedHandler, Gemini CLI docs
+- [x] 162-02-PLAN.md — Wire relay guard into route.ts guardedHandler, Gemini CLI docs
 
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 156. Remote MCP Server Foundation | v0.19 | 1/3 | Complete    | 2026-03-28 |
-| 157. Dashboard WebMCP Tools | v0.19 | 2/3 | Complete    | 2026-03-28 |
-| 158. MCP Apps Rich UI + Design Artifact Preview | v0.19 | 1/2 | Complete    | 2026-03-28 |
+| 156. Remote MCP Server Foundation | v0.19 | 3/3 | Complete    | 2026-03-28 |
+| 157. Dashboard WebMCP Tools | v0.19 | 3/3 | Complete    | 2026-03-28 |
+| 158. MCP Apps Rich UI + Design Artifact Preview | v0.19 | 2/2 | Complete    | 2026-03-28 |
 | 159. Token Playground | v0.19 | 2/2 | Complete    | 2026-03-28 |
 | 160. Declarative Approval Gates + Workflow Flags | v0.19 | 2/2 | Complete    | 2026-03-28 |
-| 161. Auto-Generated Competitor Tools | v0.19 | 1/2 | Complete    | 2026-03-28 |
-| 162. Multi-Editor Bridge | v0.19 | 1/2 | Complete    | 2026-03-28 |
+| 161. Auto-Generated Competitor Tools | v0.19 | 2/2 | Complete    | 2026-03-28 |
+| 162. Multi-Editor Bridge | v0.19 | 2/2 | Complete    | 2026-03-28 |

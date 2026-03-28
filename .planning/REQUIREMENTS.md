@@ -15,7 +15,7 @@ Requirements for WebMCP Integration milestone. Each maps to roadmap phases.
 - [x] **RMT-04**: Remote MCP server uses stateless per-request transport (sessionIdGenerator: undefined) for Vercel compatibility
 - [x] **RMT-05**: Shared server-factory.ts extracts McpServer construction for reuse by both stdio and HTTP transports
 - [x] **RMT-06**: Long-running tool calls use polling pattern to stay within Vercel timeout limits
-- [x] **RMT-07**: Desktop clients can connect via documented npx @mcp-b/webmcp-local-relay bridge (zero code change)
+- [x] **RMT-07**: Desktop clients can connect via documented npx mcp-remote relay bridge (zero code change)
 
 ### Browser Integration
 

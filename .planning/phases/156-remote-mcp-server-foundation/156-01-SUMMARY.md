@@ -45,9 +45,7 @@ metrics:
   tasks_total: 2
   files_created: 9
   files_modified: 2
-requirements_covered:
-  - RMT-05
-  - RMT-03
+requirements-completed: [RMT-05, RMT-03]
 ---
 
 # Phase 156 Plan 01: MCP Foundation — Server Factory and Origin Guard Summary

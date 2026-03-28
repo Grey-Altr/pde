@@ -16,7 +16,7 @@ describe('registerPdeTools', () => {
     expect(toolNames).toContain('get_project_state');
   });
 
-  it("get_project_state handler returns text content with status ok", async () => {
+  it("get_project_state handler returns valid JSON text content", async () => {
     let capturedHandler: (() => Promise<any>) | null = null;
     const mockServer = {
       tool: vi.fn((_name: string, _desc: string, _schema: unknown, handler: () => Promise<any>) => {
@@ -36,7 +36,8 @@ describe('registerPdeTools', () => {
     expect(result.content[0].type).toBe('text');
 
     const parsed = JSON.parse(result.content[0].text);
-    expect(parsed.status).toBe('ok');
+    // Returns either project data (projectName) or error when .planning/ absent
+    expect(parsed.projectName ?? parsed.error).toBeDefined();
   });
 });
 

@@ -19,14 +19,20 @@ export function registerPipelineTools(server: McpServer): void {
       });
       await redis.expire(`pde:mcp:job:${jobId}`, 3600); // 1hr TTL
 
-      // Fire-and-forget: runs after response sent, within same maxDuration budget
+      // Fire-and-forget: runs after response sent, within same maxDuration budget.
+      // Pipeline stages (wireframe, mockup, critique, etc.) are shell-based PDE skills
+      // that require a local Claude Code session. The remote MCP server cannot execute
+      // them directly. This handler records the request; actual execution must be
+      // triggered by a connected desktop client polling check_pipeline_run.
       after(async () => {
         try {
-          // Stub: simulate pipeline work (replace with real pipeline execution in later phases)
-          await new Promise((resolve) => setTimeout(resolve, 2000));
           await redis.hset(`pde:mcp:job:${jobId}`, {
-            status: 'complete',
-            result: JSON.stringify({ message: `Pipeline stage '${stage}' completed` }),
+            status: 'pending_desktop',
+            result: JSON.stringify({
+              message: `Pipeline stage '${stage}' queued — requires desktop client execution`,
+              stage,
+              queued_at: new Date().toISOString(),
+            }),
           });
         } catch (err) {
           await redis.hset(`pde:mcp:job:${jobId}`, {

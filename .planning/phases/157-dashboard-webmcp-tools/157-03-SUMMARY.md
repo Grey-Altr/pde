@@ -34,6 +34,7 @@ metrics:
   files_modified: 1
   tests_added: 7
   tests_total: 11
+requirements-completed: [BRW-02, BRW-03]
 ---
 
 # Phase 157 Plan 03: Browser Tool Hooks and Planning API Routes Summary

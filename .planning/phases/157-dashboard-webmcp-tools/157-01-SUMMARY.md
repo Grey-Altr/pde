@@ -36,6 +36,7 @@ metrics:
   tasks_total: 2
   files_created: 4
   files_modified: 2
+requirements-completed: [BRW-01, BRW-04]
 ---
 
 # Phase 157 Plan 01: WebMCP Foundation Setup Summary
