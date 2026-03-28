@@ -19,12 +19,12 @@ Requirements for WebMCP Integration milestone. Each maps to roadmap phases.
 
 ### Browser Integration
 
-- [ ] **BRW-01**: Dashboard registers WebMCP tools via useWebMCP() hooks with @mcp-b/global polyfill initialization
-- [ ] **BRW-02**: useMcpTool() hook enforces strict mount/unmount lifecycle preventing zombie tool registrations
-- [ ] **BRW-03**: Dashboard provides initial tool registrations for design state, project info, and artifact listing
-- [ ] **BRW-04**: use-mcp-client.ts provides thin fetch-based MCP JSON-RPC hook (no SDK in browser bundle)
-- [ ] **BRW-05**: 7th context-sync.cjs emitter writes .webmcp/config.json for WebMCP client discovery
-- [ ] **BRW-06**: .webmcp/config.json added to MONITORED_FILES for auto-regeneration on .planning/ changes
+- [x] **BRW-01**: Dashboard registers WebMCP tools via useWebMCP() hooks with @mcp-b/global polyfill initialization
+- [x] **BRW-02**: useMcpTool() hook enforces strict mount/unmount lifecycle preventing zombie tool registrations
+- [x] **BRW-03**: Dashboard provides initial tool registrations for design state, project info, and artifact listing
+- [x] **BRW-04**: use-mcp-client.ts provides thin fetch-based MCP JSON-RPC hook (no SDK in browser bundle)
+- [x] **BRW-05**: 7th context-sync.cjs emitter writes .webmcp/config.json for WebMCP client discovery
+- [x] **BRW-06**: .webmcp/config.json added to MONITORED_FILES for auto-regeneration on .planning/ changes
 
 ### Rich UI & Previews
 
@@ -93,12 +93,12 @@ Requirements for WebMCP Integration milestone. Each maps to roadmap phases.
 | RMT-05 | Phase 156 | Complete |
 | RMT-06 | Phase 156 | Complete |
 | RMT-07 | Phase 156 | Complete |
-| BRW-01 | Phase 157 | Pending |
-| BRW-02 | Phase 157 | Pending |
-| BRW-03 | Phase 157 | Pending |
-| BRW-04 | Phase 157 | Pending |
-| BRW-05 | Phase 157 | Pending |
-| BRW-06 | Phase 157 | Pending |
+| BRW-01 | Phase 157 | Complete |
+| BRW-02 | Phase 157 | Complete |
+| BRW-03 | Phase 157 | Complete |
+| BRW-04 | Phase 157 | Complete |
+| BRW-05 | Phase 157 | Complete |
+| BRW-06 | Phase 157 | Complete |
 | RUI-01 | Phase 158 | Pending |
 | RUI-02 | Phase 158 | Pending |
 | RUI-03 | Phase 158 | Pending |

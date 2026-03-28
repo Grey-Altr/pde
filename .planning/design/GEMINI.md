@@ -1,4 +1,4 @@
-<!-- PDE-GENERATED | hash:b63adc2031bf14a3883c07398e19255af1feac40d88821fdd69a43221a70ef40 | generated:2026-03-24T22:26:41.789Z -->
+<!-- PDE-GENERATED | hash:c04775f27a7eadf307fbeaa398fbb698e6733ce58bb7dba4c8167dd4a55a1c15 | generated:2026-03-28T19:02:09.489Z -->
 # PDE Design System
 
 ## Design Tokens
