@@ -168,3 +168,22 @@ export async function killSession(sessionId: string): Promise<ActionResult> {
 
   return { ok: true };
 }
+
+export async function persistSessionCost(
+  sessionId: string,
+  inputTokensDelta: number,
+  outputTokensDelta: number
+): Promise<void> {
+  const key = `pde:default:session:${sessionId}`;
+  const INPUT_COST_PER_M  = 3;   // Sonnet 4.6 pricing
+  const OUTPUT_COST_PER_M = 15;
+  const costDeltaCents = Math.round(
+    ((inputTokensDelta  / 1_000_000) * INPUT_COST_PER_M +
+     (outputTokensDelta / 1_000_000) * OUTPUT_COST_PER_M) * 10_000
+  );
+  const p = redis.pipeline();
+  p.hincrby(key, 'total_input_tokens',  inputTokensDelta);
+  p.hincrby(key, 'total_output_tokens', outputTokensDelta);
+  p.hincrby(key, 'cost_usd_cents',      costDeltaCents);
+  await p.exec();
+}
