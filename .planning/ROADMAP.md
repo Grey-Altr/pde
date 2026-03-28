@@ -113,9 +113,6 @@ Plans:
 - [x] 160-01-PLAN.md — Approval gate browser tool hook, gates API route, composite hook wiring, tests
 - [x] 160-02-PLAN.md — --webmcp flag on wireframe, mockup, critique, and competitive workflows
 
-
-
-
 **UI hint**: yes
 
 ### Phase 161: Auto-Generated Competitor Tools
@@ -127,10 +124,10 @@ Plans:
   2. Generated tool descriptions are sanitized — instruction syntax stripped, capped at 512 characters, and tagged source: "auto-generated"
   3. No auto-generated tool can be called by any agent until a human explicitly approves it through the review gate
   4. Approved and pending competitor tool stubs are persisted in .webmcp/competitor-tools-registry.json between sessions
-**Plans**: 2 plans
+**Plans:** 2 plans
 Plans:
-- [ ] 158-01-PLAN.md — Install ext-apps SDK, rich tool+resource registration, CSP connectDomains, server-factory wiring
-- [ ] 158-02-PLAN.md — Dynamic ui://pde/{artifact} resource template with format-specific rendering
+- [ ] 161-01-PLAN.md — Workflow Step 8 competitor tool stub generation, sanitization pipeline, registry write, competitor-tools API route
+- [ ] 161-02-PLAN.md — useCompetitorTools browser hook, barrel export, composite hook wiring, test updates
 
 ### Phase 162: Multi-Editor Bridge
 **Goal**: Cursor and Gemini CLI users can access PDE tools via the WebMCP relay without circular relay loops or unauthorized access
@@ -154,5 +151,5 @@ Plans:
 | 158. MCP Apps Rich UI + Design Artifact Preview | v0.19 | 1/2 | Complete    | 2026-03-28 |
 | 159. Token Playground | v0.19 | 2/2 | Complete    | 2026-03-28 |
 | 160. Declarative Approval Gates + Workflow Flags | v0.19 | 2/2 | Complete    | 2026-03-28 |
-| 161. Auto-Generated Competitor Tools | v0.19 | 0/TBD | Not started | - |
+| 161. Auto-Generated Competitor Tools | v0.19 | 0/2 | Not started | - |
 | 162. Multi-Editor Bridge | v0.19 | 0/TBD | Not started | - |
