@@ -39,7 +39,7 @@
 - [x] **Phase 152: Parallel Session Relay Wiring** - Launch relay process alongside spawned sessions so dashboard receives parallel session data (completed 2026-03-27)
 - [x] **Phase 153: Dashboard Auth UX** - Surface 401 errors in useAllSessions with sign-in redirect instead of blank dashboard (completed 2026-03-27)
 - [x] **Phase 154: SSH Source Propagation** - Propagate remote-ssh source through event stream so dashboard shows correct session origin (completed 2026-03-27)
-- [ ] **Phase 155: Retry & Documentation Polish** - Disable retry button when unavailable, document PDE_REMOTE env var for dispatcher
+- [x] **Phase 155: Retry & Documentation Polish** - Disable retry button when unavailable, document PDE_REMOTE env var for dispatcher (completed 2026-03-28)
 
 ## Phase Details
 
@@ -221,7 +221,7 @@ Plans:
   2. PDE_REMOTE env var is documented in dispatcher help text and dashboard/.env.example
 **Plans**: 1 plan
 Plans:
-- [ ] 155-01-PLAN.md — Disable Retry button with tooltip, document PDE_REMOTE in .env.example and coordinator JSDoc
+- [x] 155-01-PLAN.md — Disable Retry button with tooltip, document PDE_REMOTE in .env.example and coordinator JSDoc
 
 ## Progress
 
@@ -243,4 +243,4 @@ Note: Phase 154 and Phase 155 can execute in parallel (independent gap closure p
 | 152. Parallel Session Relay Wiring | 1/1 | Complete    | 2026-03-27 |
 | 153. Dashboard Auth UX | 1/1 | Complete    | 2026-03-27 |
 | 154. SSH Source Propagation | 1/1 | Complete    | 2026-03-27 |
-| 155. Retry & Documentation Polish | 0/1 | Pending | — |
+| 155. Retry & Documentation Polish | 1/1 | Complete   | 2026-03-28 |

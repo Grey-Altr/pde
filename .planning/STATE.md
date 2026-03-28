@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.18
 milestone_name: Distributed Execution
-status: Ready to plan
-stopped_at: Completed 154-01-PLAN.md
-last_updated: "2026-03-27T23:36:59.952Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 155-01-PLAN.md
+last_updated: "2026-03-28T00:41:32.181Z"
 progress:
   total_phases: 13
-  completed_phases: 12
-  total_plans: 27
-  completed_plans: 27
+  completed_phases: 13
+  total_plans: 28
+  completed_plans: 28
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-26)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 154 — ssh-source-propagation
+**Current focus:** Phase 155 — retry-documentation-polish
 
 ## Current Position
 
-Phase: 155
-Plan: Not started
+Phase: 155 (retry-documentation-polish) — EXECUTING
+Plan: 1 of 1
 
 ## Performance Metrics
 
@@ -107,6 +107,9 @@ Plan: Not started
 - [Phase 153-dashboard-auth-ux]: clearInterval(id) called before router.push on 401 — prevents orphaned polling intervals after redirect
 - [Phase 154]: effectiveSessionId = opts.relayId || opts.sessionId in remote-ssh.cjs — UUID flows from coordinator to SSH envPrefix and NDJSON path for relay schema alignment
 - [Phase 154]: PDE_BACKEND=remote-ssh unconditionally in SSH envPrefix; emit-event.cjs two-step fallback pattern: const source = hookData.source || process.env.PDE_BACKEND; if (source) payload.source = source
+- [Phase 155-retry-documentation-polish]: Keep disabled={submitting} unchanged on all buttons — used aria-disabled for RETRY_AVAILABLE gate to preserve existing test regex count
+- [Phase 155-retry-documentation-polish]: RETRY_AVAILABLE as module-level constant (not prop) — architectural limitation applies unconditionally
+- [Phase 155-retry-documentation-polish]: HTML title attribute over @base-ui/react/tooltip — disabled button swallows pointer events; native title renders regardless
 
 ### Pending Todos
 
@@ -119,7 +122,7 @@ Plan: Not started
 
 ## Session Continuity
 
-Last session: 2026-03-27T23:30:00.534Z
-Stopped at: Completed 154-01-PLAN.md
+Last session: 2026-03-28T00:41:32.178Z
+Stopped at: Completed 155-01-PLAN.md
 Resume with: `/gsd:plan-phase 143`
 Resume file: None
