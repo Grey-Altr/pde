@@ -54,6 +54,7 @@ const MONITORED_FILES = [
   { path: '.cursor/rules/pde-pipeline.mdc',      parser: 'mdc', filename: 'pde-pipeline.mdc' },
   { path: '.agent/skills/pde-design/SKILL.md',   parser: 'skill' },
   { path: 'DESIGN.md',                           parser: 'design' },
+  { path: '.webmcp/config.json',                 parser: 'webmcp' },
 ];
 
 const SOURCE_FILES = [
@@ -1203,6 +1204,40 @@ function normalizeDesignTokensForComparison(value) {
 }
 
 
+// ─── WebMCP emitter (BRW-05) ─────────────────────────────────────────────────
+
+/**
+ * Emit .webmcp/config.json for WebMCP client discovery.
+ * Allows @mcp-b/webmcp-local-relay and browser AI agents to discover
+ * the PDE MCP server endpoint without manual configuration.
+ *
+ * @param {object} ir - Context IR from buildContextIR()
+ * @param {string} projectRoot - Absolute path to project root
+ * @returns {{ written: boolean, path: string }}
+ */
+function emitWebMcpConfig(ir, projectRoot) {
+  var webmcpDir = path.join(projectRoot, '.webmcp');
+  var configPath = path.join(webmcpDir, 'config.json');
+
+  var config = {
+    _generated: ir.generatedAt,
+    _sourceHash: ir.sourceHash,
+    mcpServer: {
+      url: 'http://localhost:3000/api/mcp',
+      name: 'PDE \u2014 ' + (ir.projectName || 'Unknown Project'),
+      transport: 'streamable-http',
+    },
+  };
+
+  try {
+    fs.mkdirSync(webmcpDir, { recursive: true });
+    fs.writeFileSync(configPath, JSON.stringify(config, null, 2) + '\n', 'utf-8');
+    return { written: true, path: '.webmcp/config.json' };
+  } catch (err) {
+    return { written: false, path: '.webmcp/config.json', error: err.message };
+  }
+}
+
 // ─── Orchestrator ───────────────────────────────────────────────────────────
 
 /**
@@ -1222,6 +1257,7 @@ function emitAll(cwd) {
   const geminiMd = emitGeminiMd(ir, projectRoot, planningDir);
   const antigravitySkill = emitAntigravitySkill(ir, projectRoot, planningDir);
   const designMd = emitDesignMd(ir, projectRoot, planningDir);
+  const webMcpConfig = emitWebMcpConfig(ir, projectRoot);
 
   // Phase 126: Write persistent state file for 3-way merge base (SYN-01, SYN-03)
   writeStateFile(ir, planningDir);
@@ -1233,6 +1269,7 @@ function emitAll(cwd) {
     geminiMd,
     antigravitySkill,
     designMd,
+    webMcpConfig,
     sourceHash: ir.sourceHash,
     generatedAt: ir.generatedAt,
   };
@@ -2123,7 +2160,7 @@ function cmdSyncRollback(cwd, args) {
 module.exports = {
   buildContextIR, emitAll, emitAgentsMd, emitCursorRules, emitCursorrules,
   emitGeminiMd, computeSourceHash, cmdContextSync, oklchToHex,
-  isStitchSource, emitAntigravitySkill, emitDesignMd, writeMdcRule,
+  isStitchSource, emitAntigravitySkill, emitDesignMd, emitWebMcpConfig, writeMdcRule,
   writeStateFile, readStateFile, computeLoopBreak,
   parseMdcContent, parseSkillMd, parseDesignMd,
   mergePartialIR, appendConflictLog, readFieldPolicy, normalizeDesignTokensForComparison,
