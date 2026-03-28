@@ -174,7 +174,16 @@ Any user can go from idea to shipped product through a single platform that hand
 
 ### Active
 
-(Requirements being defined — see REQUIREMENTS.md)
+(Phase 162 remaining — see REQUIREMENTS.md)
+
+### Validated (v0.19 — in progress)
+
+- ✓ Remote MCP Server Foundation: Streamable HTTP endpoint with Clerk auth, Origin validation, stateless transport, desktop relay bridge — Phase 156
+- ✓ Dashboard WebMCP Tools: useMcpTool() lifecycle hook, initial tool registrations, .webmcp config emitter — Phase 157
+- ✓ MCP Apps Rich UI: type: 'resource' rich return blocks with HTML MIME, CSP declarations, ui:// resource scheme — Phase 158
+- ✓ Token Playground: per-tool cost breakdown, session context window utilization, Upstash Redis persistence — Phase 159
+- ✓ Declarative Approval Gates + Workflow Flags: WebMCP tool forms, --webmcp flag on 4 design workflows — Phase 160
+- ✓ Auto-Generated Competitor Tools: competitive.md Step 8, sanitization pipeline, human review gate, competitor-tools-registry.json — Phase 161
 
 ### Validated (v0.18)
 
