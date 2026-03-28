@@ -28,11 +28,11 @@ Requirements for WebMCP Integration milestone. Each maps to roadmap phases.
 
 ### Rich UI & Previews
 
-- [ ] **RUI-01**: Tool handlers return type: 'resource' blocks with text/html;profile=mcp-app MIME plus text fallback
-- [ ] **RUI-02**: MCP App HTML resources declare required origins in _meta.ui.csp.connectDomains
-- [ ] **RUI-03**: Design artifacts accessible via ui://pde/[artifact] resource scheme in AI chat clients
-- [ ] **RUI-04**: Token playground UI component displays per-tool cost breakdown via @ai-sdk/mcp
-- [ ] **RUI-05**: Token playground shows session context window utilization view with cost aggregation in Upstash Redis
+- [x] **RUI-01**: Tool handlers return type: 'resource' blocks with text/html;profile=mcp-app MIME plus text fallback
+- [x] **RUI-02**: MCP App HTML resources declare required origins in _meta.ui.csp.connectDomains
+- [x] **RUI-03**: Design artifacts accessible via ui://pde/[artifact] resource scheme in AI chat clients
+- [x] **RUI-04**: Token playground UI component displays per-tool cost breakdown via @ai-sdk/mcp
+- [x] **RUI-05**: Token playground shows session context window utilization view with cost aggregation in Upstash Redis
 
 ### Workflow Integration
 
@@ -99,11 +99,11 @@ Requirements for WebMCP Integration milestone. Each maps to roadmap phases.
 | BRW-04 | Phase 157 | Complete |
 | BRW-05 | Phase 157 | Complete |
 | BRW-06 | Phase 157 | Complete |
-| RUI-01 | Phase 158 | Pending |
-| RUI-02 | Phase 158 | Pending |
-| RUI-03 | Phase 158 | Pending |
-| RUI-04 | Phase 159 | Pending |
-| RUI-05 | Phase 159 | Pending |
+| RUI-01 | Phase 158 | Complete |
+| RUI-02 | Phase 158 | Complete |
+| RUI-03 | Phase 158 | Complete |
+| RUI-04 | Phase 159 | Complete |
+| RUI-05 | Phase 159 | Complete |
 | WFL-01 | Phase 160 | Pending |
 | WFL-02 | Phase 160 | Pending |
 | WFL-03 | Phase 160 | Pending |

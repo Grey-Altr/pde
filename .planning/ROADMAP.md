@@ -95,7 +95,7 @@ Plans:
   3. Session cost data persists across page refreshes using Upstash Redis so the running total is not lost on navigation
 **Plans**: 2 plans
 Plans:
-- [ ] 159-01-PLAN.md — TDD deriveToolBreakdown/deriveContextUsage + persistSessionCost server action
+- [x] 159-01-PLAN.md — TDD deriveToolBreakdown/deriveContextUsage + persistSessionCost server action
 - [ ] 159-02-PLAN.md — TokenPlayground component, session-detail wiring, SSR Redis hydration
 **UI hint**: yes
 
@@ -148,7 +148,7 @@ Plans:
 | 156. Remote MCP Server Foundation | v0.19 | 1/3 | Complete    | 2026-03-28 |
 | 157. Dashboard WebMCP Tools | v0.19 | 2/3 | Complete    | 2026-03-28 |
 | 158. MCP Apps Rich UI + Design Artifact Preview | v0.19 | 1/2 | Complete    | 2026-03-28 |
-| 159. Token Playground | v0.19 | 0/2 | Not started | - |
+| 159. Token Playground | v0.19 | 1/2 | In Progress|  |
 | 160. Declarative Approval Gates + Workflow Flags | v0.19 | 0/TBD | Not started | - |
 | 161. Auto-Generated Competitor Tools | v0.19 | 0/TBD | Not started | - |
 | 162. Multi-Editor Bridge | v0.19 | 0/TBD | Not started | - |
