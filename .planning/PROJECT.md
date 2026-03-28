@@ -199,7 +199,7 @@ Any user can go from idea to shipped product through a single platform that hand
 
 ## Current State
 
-**v0.19 WebMCP Integration Phase 158 complete** (2026-03-28) — MCP Apps Rich UI + Design Artifact Preview: PDE tool responses render as interactive HTML inside MCP Apps-capable AI chat clients via `@modelcontextprotocol/ext-apps` SDK. Dual-mode responses (rich HTML + text fallback) for stdio compatibility. Design artifacts previewable at `ui://pde/{artifact}` with format-specific rendering (Markdown, JSON, HTML, SVG, CSS). CSP `connectDomains` declared for cross-origin callbacks. 3 human verification items pending (live MCP Apps client testing).
+**v0.19 WebMCP Integration Phase 159 complete** (2026-03-28) — Token Playground: per-tool cost breakdown UI with `deriveToolBreakdown()` grouping token_usage events by agent, context window utilization gauge via `deriveContextUsage()`, and cumulative session cost persisted in Upstash Redis via atomic HINCRBY pipeline. SSR-hydrated cost survives page refreshes. CostMeter replaced with 3-card TokenPlayground layout (Context Window, Session Cost, Per-Agent Breakdown).
 
 **v0.18 Distributed Execution shipped** (2026-03-28) — 13 phases, 28 plans, 54 requirements, 129 commits, 142 files, +19,639 LOC. PDE can now dispatch parallel sessions to local/remote worktrees, coordinate via Agent SDK, and surface all activity in the web dashboard and tmux panes. All integration gaps closed (INT-RETRY-STUB, INT-PDE-REMOTE-DOC, INT-AUTH-SILENT, INT-SSH-SOURCE).
 
@@ -370,4 +370,4 @@ This document evolves at phase transitions and milestone boundaries.
 3. Audit Out of Scope — reasons still valid?
 4. Update Context with current state
 
-*Last updated: 2026-03-28 after Phase 158 — MCP Apps Rich UI + Design Artifact Preview: ext-apps SDK, dual-mode tool responses, ui://pde/{artifact} resource template, format-specific rendering*
+*Last updated: 2026-03-28 after Phase 159 — Token Playground: per-tool cost breakdown, context window gauge, Redis-persisted session cost*
