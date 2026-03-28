@@ -148,7 +148,7 @@ Plans:
 | 156. Remote MCP Server Foundation | v0.19 | 1/3 | Complete    | 2026-03-28 |
 | 157. Dashboard WebMCP Tools | v0.19 | 2/3 | Complete    | 2026-03-28 |
 | 158. MCP Apps Rich UI + Design Artifact Preview | v0.19 | 1/2 | Complete    | 2026-03-28 |
-| 159. Token Playground | v0.19 | 2/2 | Complete   | 2026-03-28 |
+| 159. Token Playground | v0.19 | 2/2 | Complete    | 2026-03-28 |
 | 160. Declarative Approval Gates + Workflow Flags | v0.19 | 0/TBD | Not started | - |
 | 161. Auto-Generated Competitor Tools | v0.19 | 0/TBD | Not started | - |
 | 162. Multi-Editor Bridge | v0.19 | 0/TBD | Not started | - |
