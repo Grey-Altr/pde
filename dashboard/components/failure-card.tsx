@@ -24,12 +24,16 @@ function formatElapsed(startedAt: number): string {
   return `${elapsedH}h`;
 }
 
+/** Retry requires a local dispatcher process — not available from the dashboard. */
+const RETRY_AVAILABLE = false;
+
 export function FailureCard({ session, onRetry, onAbandon, onKill }: FailureCardProps) {
   const [killDialogOpen, setKillDialogOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function handleRetry() {
+    if (!RETRY_AVAILABLE) return;
     setSubmitting(true);
     setError(null);
     try {
@@ -84,9 +88,11 @@ export function FailureCard({ session, onRetry, onAbandon, onKill }: FailureCard
           <div className="flex gap-2">
             <button
               type="button"
-              className="flex-1 min-h-[44px] min-w-[44px] rounded-md bg-green-600 hover:bg-green-700 text-white text-sm font-medium transition-colors disabled:opacity-50"
+              className="flex-1 min-h-[44px] min-w-[44px] rounded-md bg-green-600 hover:bg-green-700 text-white text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               onClick={handleRetry}
               disabled={submitting}
+              aria-disabled={!RETRY_AVAILABLE || undefined}
+              title={!RETRY_AVAILABLE ? 'Retry requires a local dispatcher — use the CLI to re-dispatch' : undefined}
             >
               Retry
             </button>

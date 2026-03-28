@@ -474,6 +474,12 @@ class DispatchCoordinator {
    * Per D-04: detached + unref. Per D-06: returns null when PDE_REMOTE not set.
    * Per D-07: all errors caught — relay failures never surface.
    *
+   * Required env vars (set on dispatcher machine, not Vercel):
+   *   PDE_REMOTE      — Dashboard ingest URL (e.g. https://your-dashboard.vercel.app/api/ingest).
+   *                     When absent, relay is silently skipped.
+   *   PDE_RELAY_TOKEN — Bearer token matching the dashboard's PDE_RELAY_TOKEN env var.
+   *                     When absent, ingest route rejects with 401.
+   *
    * @param {string} sessionId - UUID v4 for relay correlation
    * @returns {{ pid: number, kill: Function }|null}
    * @private
