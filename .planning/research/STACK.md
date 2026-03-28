@@ -1,140 +1,134 @@
-# Stack Research
+# Stack Research: WebMCP Integration
 
-**Domain:** Distributed execution — git worktree orchestration, Claude CLI subprocess management, Agent SDK integration, SSH remote dispatch
-**Researched:** 2026-03-26
-**Confidence:** HIGH (Agent SDK verified against official docs; Node.js built-ins verified against Node.js docs; all package names confirmed on npm)
+**Domain:** WebMCP browser-native MCP integration, remote MCP servers, MCP Apps rich UI, design artifact preview, dashboard WebMCP tools, token playground
+**Researched:** 2026-03-27
+**Confidence:** MEDIUM (WebMCP spec is production-ready; browser ecosystem packages are still evolving rapidly — verify versions at install time)
 
 ---
 
 ## Context: What Already Exists (Do Not Re-Add)
 
-The PDE root plugin is zero-npm-dependency by design. The following are already validated and must not be changed:
+The following are validated and must NOT be reinstalled or changed:
 
-- Node.js CJS plugin architecture at root (`lib/`, `hooks/`, `bin/`) — zero npm deps
-- NDJSON event bus (`hooks/emit-event.cjs`, session-scoped `/tmp/` files)
-- Relay daemon (`hooks/start-relay.cjs`, circuit breaker, batching, approval polling)
-- Upstash Redis transport (sorted sets, pub/sub) — in `dashboard/`
-- Next.js 16 PWA dashboard with Clerk auth, SSE/polling — in `dashboard/`
-- `packages/pde-mcp-server/` — ESM TypeScript, `@modelcontextprotocol/sdk ^1.26.0`, `zod ^3.25.0`
+- `dashboard/package.json`: Next.js (latest), React (latest), `@clerk/nextjs`, `@upstash/redis`, `zod` (latest), Tailwind CSS, `lucide-react`, `shadcn`
+- `packages/pde-mcp-server/`: ESM TypeScript, `@modelcontextprotocol/sdk ^1.26.0`, `zod ^3.25.0`, 14 read-only tools, stdio transport only
+- Plugin root: zero-npm-deps constraint — do NOT install any WebMCP deps at root
+- `mcp-bridge.cjs`: 7 approved servers (GitHub, Linear, Figma, Pencil, Atlassian, Stitch, Playwright)
 
-The new `packages/dispatcher/` package is the ONLY new package. Everything else is either unchanged or a dashboard UI addition.
+All new packages install into `dashboard/package.json` ONLY.
 
 ---
 
 ## Recommended Stack
 
-### packages/dispatcher/ — New Package
-
-This is a CJS Node.js package (matching plugin root conventions) with minimal external dependencies. Agent SDK is its only non-trivial dependency.
+### Core: WebMCP Browser Layer
 
 | Technology | Version | Purpose | Why Recommended |
 |------------|---------|---------|-----------------|
-| `@anthropic-ai/claude-agent-sdk` | `^0.2.84` | Lightweight reasoning tier: dependency analysis, routing decisions, merge conflict analysis, progress summarization | Official Anthropic SDK for in-process Claude reasoning without spawning a full interactive session. Verified: `query()` async generator API, `cwd` option for directory scoping, `permissionMode: 'bypassPermissions'` for headless use, `persistSession: false` for stateless calls. Parity with Claude Code CLI 2.1.84. |
-| `node:child_process` | Node.js built-in | Spawn `claude --print` subprocesses in worktrees; git and SSH CLI calls | `spawn()` with `detached: true` + `stdio: ['ignore', 'pipe', 'pipe']` + `.unref()` is the correct pattern for fire-and-forget CLI sessions. Use `execFile()` (not `exec()`) for all git/ssh calls to prevent shell injection — arguments passed as array, no shell interpolation. |
-| `node:fs` / `node:fs/promises` | Node.js built-in | Lock files, worktree registry, session state files | Sufficient for all file I/O: lock file creation, registry reads/writes, NDJSON event file creation. |
-| `node:path` | Node.js built-in | Worktree path construction, `.sessions/` directory management | No dep needed. |
-| `node:os` | Node.js built-in | `os.tmpdir()` for session NDJSON paths | No dep needed. |
-| `node:test` | Node.js built-in (18.x+) | Unit tests for session manager, worktree manager, merge strategies | Matches existing Nyquist test pattern in plugin root. No vitest needed for dispatcher. |
+| `@mcp-b/global` | latest (~2.x) | One-import WebMCP runtime: polyfill + bridge transport | Self-contained 285KB bundle, auto-initializes `navigator.modelContext`, covers all non-Chrome browsers via polyfill, no-op on Chrome 146+ (detects native support). Single import replaces manually wiring `@mcp-b/webmcp-polyfill` + transports. Use this instead of the strict polyfill alone. |
+| `@mcp-b/react-webmcp` | latest | React hooks for tool registration and MCP client consumption | `useWebMCP()` registers tools with Zod schema validation; `useWebMCPContext()` for read-only context; `useMcpClient()` for consuming MCP servers; `McpClientProvider` wraps components. Automatic lifecycle management — cleanup on unmount. |
+| `@mcp-b/webmcp-types` | latest | TypeScript types for W3C `navigator.modelContext` surface | Pure types, zero runtime cost. Required for TypeScript correctness when accessing `window.navigator.modelContext` directly in non-React code paths. |
 
-### packages/dispatcher/ — Agent SDK Integration Pattern
+### Core: Remote MCP Server (Streamable HTTP on Vercel)
 
-The Agent SDK is used for **reasoning only** (read-only analysis, routing decisions). It never writes files. This keeps it clearly separated from CLI sessions that do real work.
+| Technology | Version | Purpose | Why Recommended |
+|------------|---------|---------|-----------------|
+| `mcp-handler` | 1.1.0 | Vercel/Next.js MCP route handler | Official Vercel package (renamed from `@vercel/mcp-adapter`). Single `createMcpHandler()` call at `app/api/[transport]/route.ts`. Handles Streamable HTTP + SSE transports automatically. Optional Redis integration for session resumability — `@upstash/redis` already installed. |
+| `@modelcontextprotocol/sdk` | 1.28.0 | MCP protocol primitives: `StreamableHTTPServerTransport`, `Server`, `McpError` | The canonical SDK. `mcp-handler` requires `>=1.26.0` (1.25.x has security vulnerabilities). `pde-mcp-server` already pins `^1.26.0` — upgrade to `1.28.0` for latest. Streamable HTTP transport is now the spec standard for remote MCP, replacing the older SSE-only transport. |
 
-```javascript
-// packages/dispatcher/lib/orchestrator.cjs
-const { query } = require('@anthropic-ai/claude-agent-sdk');
+### Core: MCP Apps Rich UI
 
-async function analyzeDependencies(roadmapContent) {
-  const results = [];
-  for await (const message of query({
-    prompt: `Analyze this ROADMAP.md and identify independent phases that can run in parallel.
-Return JSON: { parallelizable: [[phaseA, phaseB], ...], sequential: [phaseC, ...] }
+No additional npm packages needed. MCP Apps is a protocol extension on top of `@modelcontextprotocol/sdk`.
 
-${roadmapContent}`,
-    options: {
-      cwd: process.cwd(),
-      allowedTools: [],                          // read-only: no tools needed for analysis
-      permissionMode: 'bypassPermissions',
-      allowDangerouslySkipPermissions: true,     // required pair for bypassPermissions
-      persistSession: false,                     // stateless — no session files written
-      maxTurns: 3,                               // bounded: routing decision, not open-ended
-    }
-  })) {
-    if (message.type === 'result' && message.subtype === 'success') {
-      results.push(message.result);
-    }
-  }
-  return results;
-}
-```
+What IS needed in code:
+- Tools declare `_meta.ui.resourceUri` field pointing to a `ui://[server]/[name]` resource
+- Resources are served via `resources/read` MCP response with `text/html;profile=mcp-app` MIME type
+- `connectDomains` / `resourceDomains` fields declared in resource metadata (CSP)
+- Communication via `postMessage` JSON-RPC between sandboxed iframe and host
 
-Key `Options` fields used by the dispatcher (all verified against official TypeScript SDK reference):
+The spec lives at `modelcontextprotocol/ext-apps` — no SDK needed beyond `@modelcontextprotocol/sdk`.
 
-| Option | Value | Why |
-|--------|-------|-----|
-| `cwd` | project root or worktree path | Scopes session to correct directory |
-| `allowedTools` | `[]` for analysis; `['Read', 'Glob', 'Grep']` for merge analysis | Read-only; no writes from orchestrator |
-| `permissionMode` | `'bypassPermissions'` | Headless, no interactive prompts |
-| `allowDangerouslySkipPermissions` | `true` | Required alongside `bypassPermissions` per official docs |
-| `persistSession` | `false` | Stateless calls; no session accumulation |
-| `maxTurns` | `3-5` | Bounded reasoning, not open-ended |
-| `systemPrompt` | Custom per task | Override default Claude Code system prompt for focused tasks |
+### Supporting: OAuth / Remote MCP Auth
 
-### Node.js Built-ins Sufficient for Each Feature
+| Library | Version | Purpose | When to Use |
+|---------|---------|---------|-------------|
+| `mcp-auth` | latest | RFC 9728 Protected Resource Metadata, OAuth 2.1 resource server validation | Use when the PDE remote MCP endpoint needs to validate tokens issued by external OAuth providers (Clerk, Auth0). Mounts `/.well-known/oauth-protected-resource` automatically. This is the minimal addition — start here. |
+| `better-auth` (with `oauth-provider` plugin) | 1.5+ | Full OAuth 2.1 provider — PDE issues tokens to MCP clients directly | Only add if PDE needs to *issue* tokens (not just validate). `mcp` plugin will migrate to `oauth-provider` plugin; use `oauth-provider` for new implementations. Has first-class Next.js + Clerk compatibility. |
 
-| Feature | Built-ins Used | External Dep Needed? |
-|---------|---------------|----------------------|
-| CLI subprocess spawn (claude --print) | `node:child_process` spawn | NO |
-| Worktree creation/removal | `node:child_process` execFile (git binary) | NO |
-| Session registry (in-memory + file) | `node:fs`, `node:path` | NO |
-| Lock file (dispatcher singleton) | `node:fs` O_EXCL flag | NO |
-| NDJSON event emission | `node:fs` appendFileSync | NO |
-| SSH remote dispatch | `node:child_process` execFile (ssh binary) | NO |
-| Git push/pull for remote sync | `node:child_process` execFile (git binary) | NO |
-| Session timeout (hung process detection) | `node:timers` setTimeout | NO |
-| Orphan detection on startup | `node:fs` readdir + process.kill(pid, 0) | NO |
-| Merge strategy (STATE.md, REQUIREMENTS.md) | `node:fs` read/write | NO |
-| Agent SDK reasoning | `@anthropic-ai/claude-agent-sdk` | YES — the only external dep |
+Clerk handles user-facing auth already. These packages handle machine-to-machine OAuth for programmatic MCP clients.
 
-### Dashboard Additions (Existing Next.js App)
+### Supporting: Auto-Generated Competitor Tools
 
-The dashboard already uses Next.js 16, Tailwind CSS, Clerk, Upstash Redis, and SSE. The additions for v0.18 are UI-only — no new infrastructure dependencies.
+| Library | Version | Purpose | When to Use |
+|---------|---------|---------|-------------|
+| `@keak/webmcp-core` | latest | Crawl any URL, auto-generate `navigator.modelContext` tool definitions | Use for the auto-generated competitor tools feature. `generateToolDefinitions(url, options)` pipeline: scan → propose → LLM-enhance → export. Outputs TypeScript snippets, React hooks, JSON manifests, HTML embeds. Requires Node.js >= 18, TypeScript 5.7+. |
 
-| Addition | Mechanism | New Dep? |
-|----------|-----------|----------|
-| Multi-session cards with chevron progress | Tailwind CSS + existing component patterns | NO |
-| Session filter pill | React state + existing UI primitives | NO |
-| Striped animated progress bars | CSS `@keyframes` + Tailwind arbitrary values | NO |
-| Session-tagged event log | Filter existing SSE stream by `session_id` field | NO |
-| Action buttons (Retry, Stop, Merge, Abandon) | Existing API route pattern + Upstash | NO |
-| Dispatch event types in ingest API | Wire envelope `extensions` field (already supported) | NO |
+### Supporting: Token Playground
+
+| Library | Version | Purpose | When to Use |
+|---------|---------|---------|-------------|
+| `@ai-sdk/mcp` | 1.0.25 | AI SDK 6 MCP client — connects to MCP servers with token usage tracking | Use for the token playground UI data source. Part of AI SDK 6; provides OAuth auth, resources, prompts, elicitation. Returns structured token usage per tool call. Do not mix with AI SDK 4/5. |
+
+### Supporting: Desktop Client Bridge (No Dashboard Install)
+
+| Tool | Version | Purpose | How to Use |
+|------|---------|---------|------------|
+| `@mcp-b/webmcp-local-relay` | 2.2.0 | Bridges browser-registered tools to Claude Desktop / Cursor via WebSocket+stdio | No dashboard install. Users run `npx @mcp-b/webmcp-local-relay@latest` locally. PDE dashboard tools exposed via `@mcp-b/global` become callable from desktop AI clients automatically. Document in GETTING-STARTED.md. |
+
+### Development Tools
+
+| Tool | Purpose | Notes |
+|------|---------|-------|
+| `@mcp-b/chrome-devtools-mcp` | MCP server exposing Chrome DevTools to agents | Run during development: `npx @mcp-b/chrome-devtools-mcp@latest`. Inspect WebMCP tool registration. No install needed. |
+| Model Context Tool Inspector (Chrome extension) | Inspect `navigator.modelContext` registrations in DevTools | Not an npm package. Install from `GoogleChromeLabs/webmcp-tools` repo. Verifies tool registration is working correctly. |
 
 ---
 
 ## Installation
 
 ```bash
-# Create packages/dispatcher as isolated CJS package
-mkdir packages/dispatcher && cd packages/dispatcher
-npm init -y
-# Edit package.json: set "type": "commonjs", add @anthropic-ai/claude-agent-sdk dep
-npm install @anthropic-ai/claude-agent-sdk@^0.2.84
+# All WebMCP installs go inside dashboard/ — not plugin root
+cd /path/to/pde/dashboard
+
+# WebMCP browser layer
+npm install @mcp-b/global @mcp-b/react-webmcp @mcp-b/webmcp-types
+
+# Remote MCP server (Streamable HTTP)
+# Note: upgrade @modelcontextprotocol/sdk from ^1.26.0 to 1.28.0 in packages/pde-mcp-server too
+npm install mcp-handler @modelcontextprotocol/sdk@1.28.0
+# zod@^3 already in dashboard/package.json — do not upgrade to zod v4
+
+# AI SDK for token playground
+npm install @ai-sdk/mcp
+
+# OAuth for remote MCP auth (choose one or neither)
+npm install mcp-auth          # resource server only (validate external tokens)
+# OR
+npm install better-auth       # if PDE needs to issue tokens to MCP clients
+
+# Competitor tool auto-generation (add to packages/ or scripts/, not dashboard)
+npm install @keak/webmcp-core
+# Requires Node.js >= 18, TypeScript 5.7+
 ```
 
-The dispatcher has exactly one external dependency. No TypeScript compilation step — CJS throughout, matching the relay.cjs and other plugin infrastructure.
+```bash
+# Local relay — document for users, no dashboard dep
+# Add to docs:
+npx @mcp-b/webmcp-local-relay@latest
+```
 
 ---
 
 ## Alternatives Considered
 
-| Recommended | Alternative | Why Not |
-|-------------|-------------|---------|
-| `@anthropic-ai/claude-agent-sdk` for reasoning | `@anthropic-ai/sdk` (raw API) | Agent SDK wraps the full Claude Code tool loop with session management, worktree awareness, and tool execution. Raw API would require reimplementing all of that. Agent SDK is the correct abstraction for orchestrating Claude Code work. |
-| `node:child_process` spawn for CLI sessions | Agent SDK for all sessions | Agent SDK is in-process and lightweight. Heavyweight sessions that need filesystem access, git, and Claude's full tool suite must use CLI subprocesses in isolated worktrees. Mixing would lose isolation guarantees. |
-| CJS throughout dispatcher | ESM / TypeScript | Plugin root is CJS. Dispatcher integrates with existing CJS infrastructure (relay.cjs, emit-event.cjs). Adding a build step would complicate the zero-friction install story. pde-mcp-server uses TypeScript because it ships as an npm package; dispatcher is internal infrastructure. |
-| `node:test` for dispatcher tests | vitest | Built-in test runner is sufficient for file parse assertions and session lifecycle tests. Using `node:test` in dispatcher avoids cross-package dev dep coupling with root vitest. |
-| SSH via `execFile('ssh', [...])` | `node-ssh` or `ssh2` npm package | Two additional npm deps for what is fundamentally `execFile('ssh', [...])`. SSH dispatch protocol is simple (push branch, run command, pull). Node.js built-in is sufficient. |
-| Git operations via `execFile('git', [...])` | `simple-git` or `isomorphic-git` | Same reasoning. Git worktree add/remove, push, pull, merge — all straightforward CLI calls. `simple-git` adds a dep for an abstraction over the CLI it calls anyway. |
+| Recommended | Alternative | When to Use Alternative |
+|-------------|-------------|-------------------------|
+| `@mcp-b/global` | `@mcp-b/webmcp-polyfill` (strict spec surface) | Only when you need spec-exact `navigator.modelContext` behavior without MCP-B bridge extensions. PDE needs bridge transport for local relay connectivity — `global` is the right choice. |
+| `mcp-handler@1.1.0` | Manual `StreamableHTTPServerTransport` wiring | Only when deploying to non-Vercel infra (raw Express, Cloudflare Workers). `mcp-handler` is the Vercel-optimized path and matches the existing `dashboard/` deployment target. |
+| `mcp-auth` (validate only) | `better-auth` oauth-provider | `mcp-auth` when PDE is a resource server validating Clerk-issued tokens. `better-auth` only if PDE must issue its own tokens to MCP clients — a more complex setup. Default to `mcp-auth`. |
+| `@keak/webmcp-core` | `GoogleChromeLabs/webmcp-tools` evals CLI | Chrome Labs tools are for testing/inspecting existing WebMCP implementations, not auto-generating definitions from arbitrary URLs. `@keak/webmcp-core` is the right choice for competitor site scraping. |
+| `@ai-sdk/mcp@1.0.25` | `@modelcontextprotocol/sdk` client directly | `@ai-sdk/mcp` wraps client connection + token usage tracking in one. For the token playground, you want the usage data — use the AI SDK wrapper, not raw SDK client. |
+| `useWebMCP()` React hook | `navigator.modelContext.registerTool()` directly | `useWebMCP()` provides React lifecycle cleanup automatically. Direct API is fine for non-React code (scripts, workers). In React components, always use the hook. |
 
 ---
 
@@ -142,143 +136,134 @@ The dispatcher has exactly one external dependency. No TypeScript compilation st
 
 | Avoid | Why | Use Instead |
 |-------|-----|-------------|
-| `@anthropic-ai/sdk` (raw Anthropic API) for orchestration | Bypasses Claude Code's tool infrastructure; reimplements what Agent SDK provides | `@anthropic-ai/claude-agent-sdk` |
-| Any npm package for git operations | Adds deps; all git operations are 1-3 CLI calls | `node:child_process` execFile with `git` binary |
-| Agent SDK for heavyweight plan/phase execution | In-process; plan execution needs isolated filesystem, real git history, full tool suite | `claude --print` CLI subprocess in a dedicated worktree |
-| Adding deps to plugin root | Root must stay zero-dep (installable without npm install) | Keep all new deps inside `packages/dispatcher/` |
-| TypeScript for packages/dispatcher | No build step needed; dispatcher is internal CJS infrastructure | Plain `.cjs` files matching relay.cjs pattern |
-| `exec()` for subprocess calls | Shell interpolation creates injection risk | `execFile()` with args as array — no shell, no injection |
-| `node-ssh` or `ssh2` | Extra deps for `execFile('ssh', [...args])` | `node:child_process` execFile with ssh binary |
-| `simple-git` | Obscures which git commands run; extra dep | `node:child_process` execFile with explicit git args |
+| `@vercel/mcp-adapter` (old package name) | Renamed to `mcp-handler`; old package may stagnate | `mcp-handler@1.1.0` |
+| `@modelcontextprotocol/sdk` < 1.26.0 | Security vulnerabilities documented in `mcp-handler` 1.1.0 release notes | `@modelcontextprotocol/sdk@1.28.0` |
+| SSE-only transport (pre-2025-03-26 MCP spec) | Deprecated by the MCP spec; `StreamableHTTPServerTransport` is the standard | `StreamableHTTPServerTransport` via `mcp-handler` |
+| `@mcp-b/webmcp-polyfill` standalone | Strict spec surface only — no bridge transport, no MCP-B extensions. Requires manual transport wiring that `@mcp-b/global` handles. | `@mcp-b/global` |
+| `provideContext()` on `@mcp-b/global` | Deprecated March 5, 2026 per upstream WebMCP spec change. Logs deprecation warning; removed in next major. | `registerTool()` / `unregisterTool()` |
+| Installing WebMCP packages at plugin root | Root has zero-npm-deps constraint for zero-friction Claude Code install | Install everything in `dashboard/package.json` only |
+| Loosening MCP Apps iframe sandbox (`allow-same-origin`) | MCP Apps spec 2026-01-26 explicitly prohibits loosening; hosts may only restrict further | Declare external domain needs in `connectDomains` / `resourceDomains` resource metadata |
+| `zod@^4` | `mcp-handler` and `@mcp-b/react-webmcp` specify `zod@^3`. v4 is a breaking API change. | Keep `zod@^3` in `dashboard/package.json` |
+| `@ai-sdk/mcp` with AI SDK 4 or 5 | `@ai-sdk/mcp@1.0.25` is part of AI SDK 6 ecosystem — incompatible APIs across major versions | `ai@^6` + `@ai-sdk/mcp@^1.0.25` together |
 
 ---
 
 ## Stack Patterns by Variant
 
-**For dependency DAG analysis (read-only reasoning):**
-- Use Agent SDK with `allowedTools: ['Read', 'Glob']`, `persistSession: false`, `maxTurns: 3`
-- Because: bounded, stateless, read-only — exactly what Agent SDK is optimized for
+**Exposing PDE dashboard tools to browser-based AI agents (WebMCP imperative):**
+- `@mcp-b/global` for runtime + `@mcp-b/react-webmcp` `useWebMCP()` hook in React components
+- Tools register on mount, clean up on unmount — automatic lifecycle
+- HTTPS required; same-origin security enforced by browser natively on Chrome 146+
+- Non-Chrome browsers: polyfill from `@mcp-b/global` covers without native security model
 
-**For plan/phase execution (heavyweight):**
-- Use `claude --print --prompt "..." --cwd <worktree>` via `child_process.spawn()`
-- Because: needs full filesystem access, git history, all Claude Code tools, long-running
+**Exposing PDE as a Streamable HTTP remote MCP server:**
+- `mcp-handler` → `createMcpHandler()` at `app/api/[transport]/route.ts`
+- Route exports: `export { handler as GET, handler as POST }`
+- Add Redis session key to `createMcpHandler()` options for resumability (Upstash already available)
+- `maxDuration: 60` in handler options for Vercel function timeout
 
-**For SSH remote dispatch:**
-- Sequence: execFile git push, then execFile ssh with command array, then execFile git pull
-- All via `node:child_process` execFile — no ssh library needed, no shell injection risk
+**Building MCP Apps rich UI (design artifact preview inside AI chat clients):**
+- Serve HTML via `resources/read` with MIME `text/html;profile=mcp-app`
+- Tool declares `_meta.ui.resourceUri: "ui://pde/[artifact-name]"`
+- Set `_meta.ui.visibility: ["model", "app"]` to expose to both agent reasoning and UI rendering
+- Declare external asset domains in resource metadata (CSP); default is `default-src 'none'`
+- Communicate with the MCP server from inside iframe via `postMessage` JSON-RPC only — no direct SDK calls inside iframe
 
-**For merge conflict analysis (hybrid):**
-- Use Agent SDK with `allowedTools: ['Read', 'Grep']`, pass diff content in prompt
-- Because: lightweight reasoning task; no file writes needed from orchestrator
+**Auto-generating competitor WebMCP tool definitions:**
+- `@keak/webmcp-core` `generateToolDefinitions(url, { depth: 2, headless: true, minConfidence: 0.5 })`
+- Output format: TypeScript snippets or React hook code ready to drop into dashboard
+- Run as a CLI script / API route, not as a persistent server dependency
+- Playwright-based crawling internally — `headless: true` for CI
 
-**For session monitoring (polling):**
-- Poll session NDJSON files via `node:fs` readFileSync; check process liveness via `process.kill(pid, 0)`
-- Because: relay.cjs already handles event streaming; dispatcher just needs liveness checks
+**Desktop AI client bridge (Claude Desktop / Cursor users):**
+- No code change needed in dashboard — `@mcp-b/global` exposes tools automatically
+- `@mcp-b/webmcp-local-relay@2.2.0` forwards registered tools to desktop clients via WebSocket+stdio
+- Document `npx @mcp-b/webmcp-local-relay@latest` in GETTING-STARTED.md
+- Users add to their `claude_desktop_config.json` or Cursor MCP settings
+
+**Token playground:**
+- `@ai-sdk/mcp` client connects to the PDE remote MCP server
+- Structured tool call response includes token usage per call
+- Dashboard UI reads usage data and renders per-tool cost breakdown
+- No new backend routes needed — playground consumes the Streamable HTTP endpoint
+
+---
+
+## Browser Compatibility
+
+| Browser | `navigator.modelContext` | With `@mcp-b/global` | Notes |
+|---------|--------------------------|----------------------|-------|
+| Chrome 146+ | Native | Native (no-op polyfill) | Full WebMCP, production-ready |
+| Chrome < 146 | None | Polyfill active | No browser-native security model |
+| Edge (Chromium) | Pending | Polyfill active | Expected ~Q2 2026 |
+| Firefox | None | Polyfill active | W3C Recommendation expected Q3 2026; polyfill works today |
+| Safari | None | Polyfill active | Apple in W3C WG; no timeline committed; 6-12 months behind Chrome realistic |
+
+Recommended strategy: Use `@mcp-b/global` unconditionally — Chrome 146+ uses native, all others get polyfill. Design with graceful degradation: most dashboard visitors will have no MCP client listening, which is normal.
+
+---
+
+## MCP Apps Specification Constraints (Protocol Level)
+
+These are constraints from the `modelcontextprotocol/ext-apps` spec (2026-01-26), not npm config:
+
+| Constraint | Value | Implication |
+|------------|-------|-------------|
+| Supported content type | `text/html;profile=mcp-app` only | No external URL iframes, no native widgets in initial spec |
+| Resource scheme | `ui://[server-id]/[resource-name]` | Must serve via `resources/read`, not arbitrary HTTP |
+| Default CSP | `default-src 'none'` | All external access must be declared upfront in metadata |
+| External domain declaration | `connectDomains`, `resourceDomains`, `frameDomains`, `baseUriDomains` | Omitting = "none" = blocked |
+| iframe sandbox | Mandatory; cannot loosen | Host enforces; server declares needs only |
+| Tool visibility | `["model"]`, `["app"]`, or `["model","app"]` | Controls whether agent or UI (or both) can call the tool |
+
+---
+
+## OAuth / Remote MCP Auth Requirements (Protocol Level)
+
+Per MCP spec authorization draft (2025-03-26):
+
+1. Remote MCP servers MUST implement RFC 9728 Protected Resource Metadata at `/.well-known/oauth-protected-resource`
+2. MCP clients MUST use RFC 8707 `resource` parameter on token requests (audience binding)
+3. Servers MUST validate token audience as specifically issued for the MCP server
+4. Discovery: clients check `WWW-Authenticate` headers on 401/403 for `resource_metadata` param OR fetch well-known URI
+
+PDE already has Clerk for user sessions. For machine-to-machine: `mcp-auth` (validates external tokens) is the minimal addition. Add `better-auth` only if PDE must issue its own tokens.
 
 ---
 
 ## Version Compatibility
 
-| Package | Version | Node.js Requirement | Notes |
-|---------|---------|---------------------|-------|
-| `@anthropic-ai/claude-agent-sdk` | `^0.2.84` | 18.0.0+ | Parity with Claude Code CLI 2.1.84. `persistSession: false` confirmed. `bypassPermissions` + `allowDangerouslySkipPermissions: true` pair required for headless. |
-| `node:test` | Built-in | 18.x+ (stable in 20.x) | Use `node --test` flag. Fully stable in Node 20+; avoid nested `describe` if targeting Node 18. |
-| `node:child_process` | Built-in | Any | `spawn` with `detached: true` + `.unref()` for fire-and-forget. `execFile()` not `exec()` for git/ssh. |
-| Existing `zod ^3.25.0` (pde-mcp-server) | zod v3 | — | Agent SDK `tool()` accepts both Zod 3 and Zod 4 per official docs. No version conflict if dispatcher uses Agent SDK tool definitions. |
-
----
-
-## Critical Integration Points
-
-### 1. Dispatcher as CJS Module Called by Plugin Root
-
-The plugin root calls dispatcher via `require()`. Since dispatcher is CJS, this works directly:
-
-```javascript
-// lib/execute-phase.cjs (existing — integration point)
-const dispatcher = require('../packages/dispatcher/index.cjs');
-
-if (config.dispatch?.enabled && flags.parallel) {
-  await dispatcher.dispatch({ phase: phaseNum, config });
-} else {
-  // existing sequential execution path — unchanged
-}
-```
-
-### 2. Agent SDK `cwd` Must Match Worktree Path
-
-Sessions are stored at `~/.claude/projects/<encoded-cwd>/` where `<encoded-cwd>` replaces non-alphanumeric chars with `-`. If dispatcher calls Agent SDK to analyze a session from a specific worktree, `cwd` in the options must match that worktree's path exactly — otherwise the SDK looks in the wrong location.
-
-### 3. ANTHROPIC_API_KEY Required for Agent SDK
-
-The Agent SDK requires `ANTHROPIC_API_KEY`. This is the same key used by Claude Code CLI — no additional auth setup. Dispatcher should fail fast with a clear error if the key is absent rather than proceeding to a confusing auth error later.
-
-### 4. Dispatcher Lock File Pattern (Atomic, No Library)
-
-```javascript
-// packages/dispatcher/lib/lock.cjs
-const fs = require('node:fs');
-const path = require('node:path');
-
-const LOCK_PATH = path.join(process.cwd(), '.planning', 'dispatcher.lock');
-
-function acquireLock() {
-  try {
-    fs.writeFileSync(LOCK_PATH, String(process.pid), { flag: 'wx' }); // O_EXCL: atomic
-  } catch (e) {
-    if (e.code !== 'EEXIST') throw e;
-    const existingPid = parseInt(fs.readFileSync(LOCK_PATH, 'utf8'), 10);
-    try {
-      process.kill(existingPid, 0); // throws if process not running
-      throw new Error(`Dispatcher already running (PID ${existingPid})`);
-    } catch (killErr) {
-      if (killErr.code === 'ESRCH') {
-        fs.unlinkSync(LOCK_PATH); // stale lock, clean and retry
-        return acquireLock();
-      }
-      throw killErr;
-    }
-  }
-}
-
-function releaseLock() {
-  try { fs.unlinkSync(LOCK_PATH); } catch { /* already gone */ }
-}
-
-module.exports = { acquireLock, releaseLock };
-```
-
-### 5. CLI Subprocess Fire-and-Forget Pattern
-
-```javascript
-// packages/dispatcher/lib/session.cjs
-const { spawn } = require('node:child_process');
-
-function spawnSession({ worktreePath, prompt, sessionId }) {
-  const child = spawn('claude', ['--print', '--prompt', prompt], {
-    cwd: worktreePath,
-    detached: true,
-    stdio: ['ignore', 'pipe', 'pipe'],
-    env: { ...process.env, PDE_SESSION_ID: sessionId }
-  });
-  child.unref(); // parent can exit independently
-  return { pid: child.pid, sessionId, worktreePath };
-}
-```
-
-Note: `spawn()` is appropriate here (not `execFile`) because the prompt is passed as a separate `--prompt` argument (no shell interpolation). `spawn` with an args array is already injection-safe.
+| Package | Compatible With | Notes |
+|---------|-----------------|-------|
+| `mcp-handler@1.1.0` | `@modelcontextprotocol/sdk@>=1.26.0` | Explicitly documented; 1.25.x has security vulnerabilities |
+| `mcp-handler@1.1.0` | `zod@^3` | Does NOT support zod v4 |
+| `@mcp-b/react-webmcp` | `@mcp-b/global` (must initialize first) | `useWebMCP()` requires `navigator.modelContext` to exist; initialize `@mcp-b/global` before any hook calls |
+| `@ai-sdk/mcp@1.0.25` | `ai@^6` (AI SDK 6) | Do not mix with AI SDK 4 or 5 — breaking API changes across majors |
+| `@keak/webmcp-core` | `typescript@5.7+`, `node@>=18` | TypeScript version constraint is strict — affects `packages/` target only |
+| `zod@^3` | All above packages | mcp-handler, @mcp-b/react-webmcp, existing pde-mcp-server all require ^3; do not upgrade to v4 |
 
 ---
 
 ## Sources
 
-- `https://platform.claude.com/docs/en/agent-sdk/quickstart` — Agent SDK installation, `query()` API, `Options` fields, permission modes (HIGH confidence — official Anthropic docs, verified 2026-03-26)
-- `https://platform.claude.com/docs/en/agent-sdk/typescript` — Full TypeScript SDK reference: all `Options` fields including `cwd`, `persistSession`, `maxTurns`, `permissionMode`, `allowDangerouslySkipPermissions`, `systemPrompt`, `allowedTools`; `Query` object methods (HIGH confidence — official Anthropic docs, verified 2026-03-26)
-- `https://platform.claude.com/docs/en/agent-sdk/sessions` — Session management: `continue`, `resume`, `forkSession`, `persistSession`, session ID capture, cwd encoding for session file paths (HIGH confidence — official Anthropic docs, verified 2026-03-26)
-- `https://deepwiki.com/anthropics/claude-agent-sdk-typescript` — Version 0.2.84, Node.js 18+ requirement (MEDIUM confidence — third-party documentation)
-- `https://nodejs.org/api/child_process.html` — `spawn()` with `detached` + `unref()` pattern; `execFile()` vs `exec()` for injection safety (HIGH confidence — official Node.js docs)
-- `/packages/pde-mcp-server/package.json` — Existing `zod ^3.25.0` and `@modelcontextprotocol/sdk ^1.26.0` versions confirmed by direct file read
+- [WebMCP-org/npm-packages GitHub](https://github.com/WebMCP-org/npm-packages) — Package list and purposes (MEDIUM — docs don't expose explicit version numbers)
+- [docs.mcp-b.ai](https://docs.mcp-b.ai/) — `@mcp-b` package descriptions, `@mcp-b/webmcp-local-relay` v2.2.0, `@mcp-b/global` 285KB size + auto-detection behavior (HIGH)
+- [docs.mcp-b.ai/packages/react-webmcp/reference](https://docs.mcp-b.ai/packages/react-webmcp/reference) — Complete hook signatures for `useWebMCP`, `useWebMCPContext`, `useMcpClient`, `McpClientProvider` (HIGH)
+- [vercel/mcp-handler GitHub](https://github.com/vercel/mcp-handler) — v1.1.0 (March 24, 2026), route handler pattern, peer dep `@modelcontextprotocol/sdk@1.26.0` (HIGH)
+- [mcp-handler npm](https://www.npmjs.com/package/mcp-handler) — v1.0.7 current on npm; v1.1.0 from GitHub releases (MEDIUM — npm may lag GitHub)
+- [modelcontextprotocol/ext-apps spec 2026-01-26](https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/2026-01-26/apps.mdx) — MCP Apps content types, sandbox constraints, CSP rules, `ui://` scheme, tool metadata (HIGH — official Anthropic spec)
+- [modelcontextprotocol.io authorization spec](https://modelcontextprotocol.io/specification/draft/basic/authorization) — RFC 9728 requirements for remote MCP auth (HIGH — official spec)
+- [Chrome for Developers: When to use WebMCP and MCP](https://developer.chrome.com/blog/webmcp-mcp-usage) — Declarative vs imperative API distinction (HIGH)
+- [Chrome for Developers: WebMCP early preview](https://developer.chrome.com/blog/webmcp-epp) — Browser API overview (HIGH)
+- [keak-ai/webmcp-core GitHub](https://github.com/keak-ai/webmcp-core) — `generateToolDefinitions()` API, pipeline steps, Node.js/TypeScript requirements (MEDIUM)
+- [@ai-sdk/mcp npm](https://www.npmjs.com/package/@ai-sdk/mcp) — v1.0.25, AI SDK 6 (HIGH)
+- [Vercel AI SDK 6 announcement](https://vercel.com/blog/ai-sdk-6) — MCP OAuth + resources + elicitation in `@ai-sdk/mcp` (HIGH)
+- [WebMCP Browser Status 2026](https://dev.to/ai-agent-economy/webmcp-in-2026-which-browsers-support-navigatormodelcontext-complete-compatibility-status-1oe4) — Browser compatibility matrix (MEDIUM)
+- [mcp-auth.dev docs](https://mcp-auth.dev/docs/configure-server/mcp-auth) — `mcp-auth` package, RFC 9728 integration pattern (MEDIUM)
+- [better-auth MCP plugin](https://better-auth.com/docs/plugins/mcp) — OAuth provider path, deprecation note toward `oauth-provider` plugin (MEDIUM)
+- [@mcp-b/global deprecation note](https://www.npmjs.com/package/@mcp-b/global) — `provideContext()` deprecated March 5, 2026 (HIGH — npm package page)
 
 ---
-*Stack research for: PDE v0.18 Distributed Execution (Layers 2-3)*
-*Researched: 2026-03-26*
+
+*Stack research for: WebMCP Integration (remote MCP server, MCP Apps rich UI, design artifact preview, dashboard WebMCP tools, token playground, declarative approval gates, auto-generated competitor tools, multi-editor bridge, remote collaboration)*
+*Researched: 2026-03-27*
