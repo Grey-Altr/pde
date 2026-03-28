@@ -32,9 +32,7 @@ export function TokenPlayground({ events, connectionStatus, sessionId, initialPe
     return () => { if (pendingRef.current) clearTimeout(pendingRef.current); };
   }, [sessionId, costState.inputTokens, costState.outputTokens]);
 
-  // Suppress unused variable warning — initialPersistedCostUsd is received from SSR
-  // and available for future use (e.g., displaying total accumulated cost across refreshes)
-  void initialPersistedCostUsd;
+  const displayCostUsd = Math.max(costState.estimatedCostUsd, initialPersistedCostUsd);
 
   const dimmed = connectionStatus === 'reconnecting';
 
@@ -69,7 +67,7 @@ export function TokenPlayground({ events, connectionStatus, sessionId, initialPe
               <p className="text-xs text-muted-foreground">Output</p>
             </div>
             <div>
-              <p className="text-lg font-mono font-semibold">{formatCost(costState.estimatedCostUsd)}</p>
+              <p className="text-lg font-mono font-semibold">{formatCost(displayCostUsd)}</p>
               <p className="text-xs text-muted-foreground">Est. Cost</p>
             </div>
           </div>
