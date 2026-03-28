@@ -1,5 +1,25 @@
 # Milestones
 
+## v0.18 Distributed Execution (Shipped: 2026-03-28)
+
+**Phases completed:** 13 phases, 28 plans, 34 tasks
+**Commits:** 129 | **Files:** 142 | **LOC:** +19,639
+**Timeline:** 2 days (2026-03-26 → 2026-03-28)
+**Requirements:** 54/54 satisfied (47 original + 7 gap closure)
+
+**Delivered:** PDE can dispatch parallel sessions to git worktrees (local and remote), coordinate them with Agent SDK intelligence, and surface all session activity in a unified dashboard and tmux panes.
+
+**Key accomplishments:**
+
+1. Session isolation with atomic worktree lifecycle (create/merge/cleanup), single-writer protocol, and COMPLETE.json-driven post-merge recalculation of shared state files
+2. Local CLI dispatch with concurrency queue, crash-recoverable session registry, and NDJSON aggregation across parallel `claude` subprocesses
+3. Agent SDK orchestrator for DAG analysis, file-overlap detection, failure summarization, and merge conflict triage — ESM-to-CJS bridge pattern
+4. SSH remote dispatch routing autonomous sessions to configured servers with git-based state sync and managed backend fallback chain
+5. Dashboard multi-session integration: session health matrix, striped animated progress bars, failure cards with server actions, responsive pane grid, keyboard shortcuts
+6. tmux multi-session fan-out with color-prefixed session tags, [L]/[R] source labels, aggregate cost display, and session cycling
+
+---
+
 ## v0.17 Remote Dashboard (Shipped: 2026-03-26)
 
 **Phases completed:** 13 phases, 27 plans, 38 tasks

@@ -2,6 +2,53 @@
 
 *A living document updated after each milestone. Lessons feed forward into future planning.*
 
+## Milestone: v0.18 — Distributed Execution
+
+**Shipped:** 2026-03-28
+**Phases:** 13 | **Plans:** 28 | **Commits:** 129
+
+### What Was Built
+- Git worktree isolation with atomic lifecycle, single-writer protocol, and post-merge recalculation
+- Local CLI dispatch with concurrency queue, crash-recoverable registry, NDJSON aggregation
+- Agent SDK orchestrator for DAG analysis, file-overlap detection, failure summarization, conflict triage
+- SSH remote dispatch with managed backend fallback chain and git-based state sync
+- Multi-session dashboard: health matrix, striped progress bars, failure cards, responsive pane grid, keyboard shortcuts
+- tmux multi-session fan-out with color-prefixed tags, [L]/[R] source labels, session cycling
+- Dispatch configuration with graceful degradation (dispatch disabled = exact pre-v0.18 behavior)
+
+### What Worked
+- **Milestone audit → gap closure phases** — audit at Phase 153 found 5 integration gaps and 1 broken flow; Phases 150-155 systematically closed every one before shipping
+- **DI via opts._deps pattern** — consistent constructor injection across all dispatcher modules (spawn, SSH, SDK, coordinator) eliminated vi.mock CJS hoisting issues entirely
+- **Source inspection tests** — readFileSync-based tests for CJS modules avoided process.exit() crashes and DOM requirements, matching existing project patterns
+- **Single-writer protocol** — designing COMPLETE.json + COMPLETED-REQS.md as session-scoped artifacts eliminated race conditions by construction rather than locking
+
+### What Was Inefficient
+- **SUMMARY.md one-liner extraction** — many summaries had empty "One-liner:" fields, causing noisy MILESTONES.md auto-extraction; manual cleanup needed
+- **Plan completion markers in ROADMAP.md** — some plans show `[ ]` unchecked despite phase being complete (145-02, 146-03, 147-04, 149-03) — the plan completed in a worktree but roadmap wasn't updated
+- **Phase count grew from 11 to 13** — 5 gap closure phases (150-155) added after audit; better upfront integration planning could reduce post-audit phases
+
+### Patterns Established
+- `packages/dispatcher/` as isolated CJS package with its own node_modules (Agent SDK lives here only)
+- ESM-to-CJS bridge via dynamic `import()` cached in bridge module
+- `pde/session/` git branch prefix for PDE worktree isolation
+- Session-scoped artifacts (COMPLETE.json, COMPLETED-REQS.md) as write protocol
+- `recalculateFromArtifacts()` as single writer for shared state post-merge
+- CSS-only animated progress bars via repeating-linear-gradient (no framer-motion)
+- Relay-per-session architecture for dashboard event delivery
+
+### Key Lessons
+1. **Integration gaps surface late** — the milestone audit at Phase 153 found that relay wiring, auth UX, SSH source propagation, and retry UX all had gaps. Running the audit earlier (at Phase 149) would have consolidated gap closure into fewer phases.
+2. **CJS + ESM interop requires explicit bridge** — `require()` on ESM packages throws `ERR_REQUIRE_ESM`; the dynamic `import()` + cache pattern in `sdk-bridge.cjs` is the reliable solution for CJS plugins consuming ESM dependencies.
+3. **SSH is more reliable than managed backends** — `claude --remote` had active bugs (#38066, #38049, #37713); SSH-primary architecture shipped reliably while keeping managed backend as future upgrade path.
+4. **Worktree isolation eliminates concurrency bugs by design** — no locks needed for .planning/ files when each session writes to its own branch; merge-time recalculation is simpler than runtime coordination.
+
+### Cost Observations
+- Model mix: opus for orchestration and milestone completion, sonnet for execution agents
+- Timeline: 2 days (2026-03-26 → 2026-03-28)
+- Notable: 129 commits, 13 phases in 2 days — consistent with v0.17 velocity (224 commits, 13 phases, 2 days)
+
+---
+
 ## Milestone: v0.1 — PDE MVP
 
 **Shipped:** 2026-03-15

@@ -2,7 +2,7 @@
 
 ## What This Is
 
-A full professional product design and development platform delivered as a Claude Code plugin. PDE takes users from raw idea to shipped product through AI-assisted research, design, planning, coding, testing, and deployment. Includes a complete 13-stage design pipeline (recommend → competitive → opportunity → ideate → brief → system → flows → wireframe → critique → iterate → mockup → hig → handoff) orchestrable via a single `/pde:build` command. Supports multiple product types — software, hardware, hybrid, experience (events, festivals, installations), and business — with type-specific artifacts including physical design tokens, floor plan/timeline wireframes, print collateral, production bible handoff, and venture design engine (business thesis, lean canvas, brand system, landing page spec, pricing config, pitch deck, launch kit, deploy scaffolding). Features browser-based visual optimization via Playwright MCP: automatic screenshot capture for wireframes and mockups, browser AOM accessibility analysis for critique, 5 visual metric scripts (DOM structure, a11y violations, WCAG contrast, responsive compliance, Mermaid readability), and AutoResearch experiment templates for all 14 design skills with visual regression circuit breaker, multi-candidate A/B variant selection, meta-optimization strategy self-calibration, ideation visual diversity scoring, and brief reference screenshot capture. Self-improvement fleet audits, validates, and elevates output quality against Awwwards-level standards. Integrates with external development tools (GitHub, Linear, Jira, Figma, Pencil) via MCP for bidirectional sync. Advanced workflow methodology with story-file sharding, acceptance-criteria-first planning, post-execution reconciliation, readiness gating, and persistent agent memory. Real-time observability via structured event infrastructure with NDJSON event bus, persistent 7-pane tmux monitoring dashboard, and idle-time suggestion display. Multi-editor integration: generates context files for Cursor (.mdc rules), Gemini CLI (GEMINI.md), Google Antigravity (SKILL.md + Design DNA), and AGENTS.md; standalone MCP server with 10 read-only tools for programmatic state queries; hook-driven auto-sync on .planning/ changes; 3-tier handoff-vs-code divergence detection; DTCG-to-Tailwind v4 artifact formatting with framework-detected component stubs — zero npm dependencies.
+A full professional product design and development platform delivered as a Claude Code plugin. PDE takes users from raw idea to shipped product through AI-assisted research, design, planning, coding, testing, and deployment. Includes a complete 13-stage design pipeline (recommend → competitive → opportunity → ideate → brief → system → flows → wireframe → critique → iterate → mockup → hig → handoff) orchestrable via a single `/pde:build` command. Supports multiple product types — software, hardware, hybrid, experience (events, festivals, installations), and business — with type-specific artifacts including physical design tokens, floor plan/timeline wireframes, print collateral, production bible handoff, and venture design engine (business thesis, lean canvas, brand system, landing page spec, pricing config, pitch deck, launch kit, deploy scaffolding). Features browser-based visual optimization via Playwright MCP: automatic screenshot capture for wireframes and mockups, browser AOM accessibility analysis for critique, 5 visual metric scripts (DOM structure, a11y violations, WCAG contrast, responsive compliance, Mermaid readability), and AutoResearch experiment templates for all 14 design skills with visual regression circuit breaker, multi-candidate A/B variant selection, meta-optimization strategy self-calibration, ideation visual diversity scoring, and brief reference screenshot capture. Self-improvement fleet audits, validates, and elevates output quality against Awwwards-level standards. Integrates with external development tools (GitHub, Linear, Jira, Figma, Pencil) via MCP for bidirectional sync. Advanced workflow methodology with story-file sharding, acceptance-criteria-first planning, post-execution reconciliation, readiness gating, and persistent agent memory. Real-time observability via structured event infrastructure with NDJSON event bus, persistent 7-pane tmux monitoring dashboard, and idle-time suggestion display. Multi-editor integration: generates context files for Cursor (.mdc rules), Gemini CLI (GEMINI.md), Google Antigravity (SKILL.md + Design DNA), and AGENTS.md; standalone MCP server with 10 read-only tools for programmatic state queries; hook-driven auto-sync on .planning/ changes; 3-tier handoff-vs-code divergence detection; DTCG-to-Tailwind v4 artifact formatting with framework-detected component stubs — zero npm dependencies. Distributed execution via git worktree isolation, parallel CLI dispatch with concurrency queue, Agent SDK orchestrator (DAG analysis, file-overlap detection, failure summarization), SSH remote dispatch with managed backend fallback, multi-session dashboard integration (health matrix, animated progress bars, failure cards, responsive pane grid), and tmux multi-session fan-out.
 
 ## Core Value
 
@@ -158,19 +158,18 @@ Any user can go from idea to shipped product through a single platform that hand
 
 ### Active
 
-## Current Milestone: v0.18 Distributed Execution
+(Next milestone not yet started — run `/gsd:new-milestone` to begin)
 
-**Goal:** Enable parallel and remote execution of PDE phases via git worktree isolation, tiered CLI/Agent SDK dispatch, and hybrid git+relay cloud offloading.
+### Validated (v0.18)
 
-**Target features:**
-- Session isolation via git worktrees (branch per session, merge on completion)
-- Local parallel dispatch (phase-level + plan-level via CLI subprocesses)
-- Agent SDK orchestrator for lightweight reasoning (dependency analysis, routing, merge assistance)
-- Remote dispatch to `claude --remote` or SSH servers with hybrid git+relay sync
-- Multi-session dashboard views (session matrix, color-coded events, aggregate costs)
-- Mobile-first UI with tiered action chevrons, striped progress bars, touch-friendly buttons
-- Zero merge conflicts for `.planning/` metadata by construction
-- tmux pane multi-session aggregation with session switching
+- ✓ Session isolation with atomic worktree lifecycle, single-writer protocol, and post-merge recalculation — v0.18
+- ✓ Local CLI dispatch with concurrency queue, crash-recoverable registry, NDJSON aggregation — v0.18
+- ✓ Agent SDK orchestrator: DAG analysis, file-overlap detection, failure summarization, conflict triage — v0.18
+- ✓ SSH remote dispatch with managed backend fallback chain and git-based state sync — v0.18
+- ✓ Multi-session dashboard: health matrix, striped progress bars, failure cards with server actions, responsive pane grid — v0.18
+- ✓ tmux multi-session fan-out with color-prefixed tags, [L]/[R] source labels, session cycling — v0.18
+- ✓ Dispatch configuration block with graceful degradation (dispatch disabled = exact pre-v0.18 behavior) — v0.18
+- ✓ 54/54 requirements satisfied, 224 dashboard tests, all VALIDATION.md files Nyquist compliant — v0.18
 
 ### Validated (v0.17)
 
@@ -184,7 +183,7 @@ Any user can go from idea to shipped product through a single platform that hand
 
 ## Current State
 
-**v0.18 Distributed Execution complete** — All 13 phases (143-155) shipped. Phase 154 (SSH Source Propagation) and Phase 155 (Retry & Documentation Polish) closed final integration gaps: INT-RETRY-STUB (Retry button disabled with tooltip), INT-PDE-REMOTE-DOC (env var documented in .env.example and coordinator JSDoc), INT-AUTH-SILENT, INT-SSH-SOURCE. 224 dashboard tests passing, all VALIDATION.md files compliant.
+**v0.18 Distributed Execution shipped** (2026-03-28) — 13 phases, 28 plans, 54 requirements, 129 commits, 142 files, +19,639 LOC. PDE can now dispatch parallel sessions to local/remote worktrees, coordinate via Agent SDK, and surface all activity in the web dashboard and tmux panes. All integration gaps closed (INT-RETRY-STUB, INT-PDE-REMOTE-DOC, INT-AUTH-SILENT, INT-SSH-SOURCE).
 
 ### Out of Scope
 
@@ -208,13 +207,14 @@ Any user can go from idea to shipped product through a single platform that hand
 
 ## Context
 
+- **Shipped v0.18** on 2026-03-28: 13 phases, 28 plans, 54 requirements, 129 commits, 142 files, +19,639 LOC (Distributed Execution: worktree isolation, parallel CLI dispatch, Agent SDK orchestrator, SSH remote dispatch, multi-session dashboard and tmux integration)
 - **Shipped v0.17** on 2026-03-26: 13 phases, 27 plans, 27 requirements, 224 commits, 308 files, +44,337 LOC (Remote Dashboard: relay daemon, Next.js 16 PWA, approval gates, Web Push, production hardening)
 - **Shipped v0.16** on 2026-03-24: 7 phases, 14 plans, 26 requirements, 48 commits (Multi-Editor Context Sync: bidirectional sync, 3-way merge, conflict detection, sync audit trail, user content preservation)
 - **Shipped v0.15** on 2026-03-24: 8 phases, 16 plans, 25 requirements, 162 Nyquist tests (Multi-Editor Integration: context sync engine, standalone MCP server, DTCG-to-Tailwind v4, divergence detection)
 - **Shipped v0.14** on 2026-03-24: 10 phases, 21 plans, 78 requirements, 441+ Nyquist assertions (Visual AutoResearch: Playwright MCP, visual metrics, multi-candidate A/B, meta-optimization)
 - **Shipped v0.13** on 2026-03-23: 9 phases, 15 plans (AutoResearch: safety boundaries, experiment schema, mutation agent, circuit breakers)
 - **Shipped v0.12** on 2026-03-23: 15 phases, 24 plans, 59 requirements, 235 Nyquist assertions (Business product type with venture design engine)
-- **Planned roadmap:** v0.18 Stakeholder Presentations → v1.0 Standalone CLI
+- **Planned roadmap:** Next milestone TBD → v1.0 Standalone CLI
 - **v0.11** shipped 2026-03-22: 112 files changed, 116 commits (experience product type: detection, brief, tokens, flows, wireframes, critique, HIG, print, handoff, 48 requirements)
 - **v0.10** shipped 2026-03-21: 107 files changed, 56 commits (idle-time productivity: suggestion engine, catalog, context notes, 7-pane dashboard)
 - **v0.9** shipped 2026-03-21: 91 files changed, 76 commits (Google Stitch integration across 5 pipeline skills)
@@ -327,6 +327,14 @@ Zero npm deps at plugin root**: Any new dependencies go in isolated subdirectori
 | Serwist for PWA service worker (Turbopack) | @serwist/turbopack esbuild + route handler for Turbopack dev mode | ✓ Good — /serwist/sw.js path, no webpack collision |
 | fd-based spawn stdio for relay daemon | Named file descriptor redirect instead of pipe+unref pattern | ✓ Good — avoids EPIPE, approval responses captured |
 | TOCTOU-safe approval with 1h TTL + one-shot delete | Cryptographic approval_id, Redis single-read-delete pattern | ✓ Good — prevents replay attacks and stale responses |
+| Single-writer protocol for .planning/ | Session agents write COMPLETE.json + COMPLETED-REQS.md; dispatcher recalculates shared state post-merge | ✓ Good — eliminates race conditions by construction |
+| pde/session/ branch prefix | Isolates PDE worktrees from Claude Code's .claude/worktrees/ system | ✓ Good — clean namespace separation |
+| ESM-to-CJS bridge for Agent SDK | Dynamic import() cached in sdk-bridge.cjs — CJS plugin consuming ESM package | ✓ Good — avoids ERR_REQUIRE_ESM, single import per process |
+| SSH-primary architecture for remote dispatch | claude --remote deferred (research preview with active bugs); SSH is production-ready | ✓ Good — reliable path; managed backend available as future upgrade |
+| DI via opts._deps pattern | Constructor injection for test isolation in CJS (spawn, SSH, SDK) — no vi.mock hoisting issues | ✓ Good — consistent across all dispatcher modules |
+| CSS-only striped progress bars | repeating-linear-gradient instead of framer-motion dependency | ✓ Good — zero runtime overhead, visual state-as-signal |
+| Relay spawned before session | Relay.cjs child process started synchronously before queue.add() — relay ready before first event | ✓ Good — no event loss window |
+
 ## Evolution
 
 This document evolves at phase transitions and milestone boundaries.
@@ -344,4 +352,4 @@ This document evolves at phase transitions and milestone boundaries.
 3. Audit Out of Scope — reasons still valid?
 4. Update Context with current state
 
-*Last updated: 2026-03-27 after Phase 154 — SSH Source Propagation: relayId UUID wiring, PDE_BACKEND envPrefix injection, PDE_REMOTE/PDE_RELAY_TOKEN conditional injection, emit-event.cjs fallback — SSH sessions now display source='remote-ssh' in dashboard*
+*Last updated: 2026-03-28 after v0.18 milestone — Distributed Execution: worktree isolation, parallel CLI dispatch, Agent SDK orchestrator, SSH remote dispatch, multi-session dashboard and tmux integration*
