@@ -151,6 +151,10 @@ Any user can go from idea to shipped product through a single platform that hand
 
 - ✓ coordinator-smoke Test 7 fixed with analyzeDag and routeSession DI stubs — v0.18
 - ✓ Phase 149 VALIDATION.md Nyquist compliance finalized (nyquist_compliant: true, wave_0_complete: true) — v0.18
+- ✓ SSH source propagation: PDE_SSH_SOURCE env var forwarded to remote sessions, ssh-source.test.ts assertions — v0.18
+- ✓ Retry button disabled with aria-disabled + title tooltip explaining local dispatcher limitation (INT-RETRY-STUB) — v0.18
+- ✓ PDE_REMOTE documented in dashboard/.env.example and coordinator.cjs _spawnRelay JSDoc (INT-PDE-REMOTE-DOC) — v0.18
+- ✓ 224 dashboard tests across 29 files, all integration gaps closed — v0.18
 
 ### Active
 
@@ -180,7 +184,7 @@ Any user can go from idea to shipped product through a single platform that hand
 
 ## Current State
 
-**v0.18 Distributed Execution complete** — All 11 phases (143-153) shipped. Phase 152 (Parallel Session Relay Wiring) wired relay lifecycle end-to-end with PDE_SESSION_ID passthrough. Phase 153 (Dashboard Auth UX) added 401 detection to useAllSessions hook with sign-in redirect — closes INT-AUTH-SILENT gap. 217 dashboard tests passing, all VALIDATION.md files compliant.
+**v0.18 Distributed Execution complete** — All 13 phases (143-155) shipped. Phase 154 (SSH Source Propagation) and Phase 155 (Retry & Documentation Polish) closed final integration gaps: INT-RETRY-STUB (Retry button disabled with tooltip), INT-PDE-REMOTE-DOC (env var documented in .env.example and coordinator JSDoc), INT-AUTH-SILENT, INT-SSH-SOURCE. 224 dashboard tests passing, all VALIDATION.md files compliant.
 
 ### Out of Scope
 
