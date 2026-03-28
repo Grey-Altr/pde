@@ -84,9 +84,10 @@ describe('WebMCP browser tool stubs (BRW-03)', () => {
     expect(barrelSrc).toContain('useDesignStateTool');
     expect(barrelSrc).toContain('useProjectInfoTool');
     expect(barrelSrc).toContain('useArtifactListTool');
-    // Verify exactly 4 export lines (3 original + approval gate)
+    expect(barrelSrc).toContain('useCompetitorTools');
+    // Verify exactly 5 export lines (3 original + approval gate + competitor tools)
     const exportLines = barrelSrc.split('\n').filter(l => l.startsWith('export'));
-    expect(exportLines.length).toBe(4);
+    expect(exportLines.length).toBe(5);
   });
 
   it('useWebMcpTools registers all three tools', () => {
@@ -95,6 +96,10 @@ describe('WebMCP browser tool stubs (BRW-03)', () => {
     expect(compositeHookSrc).toContain('useProjectInfoTool()');
     expect(compositeHookSrc).toContain('useArtifactListTool()');
     expect(compositeHookSrc).toContain("from '@/lib/mcp/browser-tools'");
+  });
+
+  it('useWebMcpTools registers competitor tools', () => {
+    expect(compositeHookSrc).toContain('useCompetitorTools()');
   });
 
   it('tool handlers call correct API routes (source verification)', () => {
