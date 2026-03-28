@@ -1,9 +1,9 @@
 ---
 phase: 159
 slug: token-playground
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
+status: complete
+nyquist_compliant: true
+wave_0_complete: true
 created: 2026-03-28
 ---
 
@@ -38,12 +38,12 @@ created: 2026-03-28
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 159-01-01 | 01 | 0 | RUI-04 | unit | `cd dashboard && npm test -- lib/__tests__/derive-cost.test.ts` | ✅ extend | ⬜ pending |
-| 159-01-02 | 01 | 1 | RUI-04 | unit | `cd dashboard && npm test -- lib/__tests__/derive-cost.test.ts` | ✅ extend | ⬜ pending |
-| 159-01-03 | 01 | 1 | RUI-04 | unit | `cd dashboard && npm test -- lib/__tests__/derive-cost.test.ts` | ✅ extend | ⬜ pending |
-| 159-02-01 | 02 | 1 | RUI-05 | unit | `cd dashboard && npm test -- lib/__tests__/derive-cost.test.ts` | ✅ extend | ⬜ pending |
-| 159-02-02 | 02 | 1 | RUI-05 | unit | `cd dashboard && npm test -- lib/__tests__/derive-cost.test.ts` | ✅ extend | ⬜ pending |
-| 159-02-03 | 02 | 2 | RUI-04, RUI-05 | source | manual: CostMeter replaced by TokenPlayground | N/A | ⬜ pending |
+| 159-01-01 | 01 | 0 | RUI-04 | unit | `cd dashboard && npm test -- lib/__tests__/derive-cost.test.ts` | ✅ extend | ✅ green |
+| 159-01-02 | 01 | 1 | RUI-04 | unit | `cd dashboard && npm test -- lib/__tests__/derive-cost.test.ts` | ✅ extend | ✅ green |
+| 159-01-03 | 01 | 1 | RUI-04 | unit | `cd dashboard && npm test -- lib/__tests__/actions.test.ts` | ✅ new | ✅ green |
+| 159-02-01 | 02 | 1 | RUI-05 | unit | `cd dashboard && npm test -- lib/__tests__/derive-cost.test.ts` | ✅ extend | ✅ green |
+| 159-02-02 | 02 | 1 | RUI-05 | unit | `cd dashboard && npm test -- lib/__tests__/derive-cost.test.ts` | ✅ extend | ✅ green |
+| 159-02-03 | 02 | 2 | RUI-04, RUI-05 | source | manual: CostMeter replaced by TokenPlayground | N/A | ✅ verified |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -51,9 +51,8 @@ created: 2026-03-28
 
 ## Wave 0 Requirements
 
-- [ ] `dashboard/lib/__tests__/derive-cost.test.ts` — append `describe('deriveToolBreakdown', ...)` and `describe('deriveContextUsage', ...)` blocks (file exists; do not recreate)
-
-*Existing test infrastructure covers all phase requirements. No new test files needed.*
+- [x] `dashboard/lib/__tests__/derive-cost.test.ts` — `describe('deriveToolBreakdown')` (6 tests) and `describe('deriveContextUsage')` (4 tests) and `describe('displayCostUsd Math.max')` (3 tests)
+- [x] `dashboard/lib/__tests__/actions.test.ts` — `describe('persistSessionCost')` (4 tests: pipeline, HINCRBY, key pattern, cost*10000)
 
 ---
 
@@ -68,11 +67,24 @@ created: 2026-03-28
 
 ## Validation Sign-Off
 
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 5s
-- [ ] `nyquist_compliant: true` set in frontmatter
+- [x] All tasks have `<automated>` verify or Wave 0 dependencies
+- [x] Sampling continuity: no 3 consecutive tasks without automated verify
+- [x] Wave 0 covers all MISSING references
+- [x] No watch-mode flags
+- [x] Feedback latency < 5s
+- [x] `nyquist_compliant: true` set in frontmatter
 
-**Approval:** pending
+**Approval:** approved (2026-03-28)
+
+---
+
+## Validation Audit 2026-03-28
+
+| Metric | Count |
+|--------|-------|
+| Gaps found | 2 |
+| Resolved | 2 |
+| Escalated | 0 |
+
+**Tests added:** 7 (4 in actions.test.ts, 3 in derive-cost.test.ts)
+**Suite total:** 310 tests, 0 failures
