@@ -219,7 +219,9 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. Retry button renders disabled with tooltip explaining the limitation when no local dispatcher is available
   2. PDE_REMOTE env var is documented in dispatcher help text and dashboard/.env.example
-**Plans**: 0 plans
+**Plans**: 1 plan
+Plans:
+- [ ] 155-01-PLAN.md — Disable Retry button with tooltip, document PDE_REMOTE in .env.example and coordinator JSDoc
 
 ## Progress
 
@@ -241,4 +243,4 @@ Note: Phase 154 and Phase 155 can execute in parallel (independent gap closure p
 | 152. Parallel Session Relay Wiring | 1/1 | Complete    | 2026-03-27 |
 | 153. Dashboard Auth UX | 1/1 | Complete    | 2026-03-27 |
 | 154. SSH Source Propagation | 1/1 | Complete    | 2026-03-27 |
-| 155. Retry & Documentation Polish | 0/0 | Pending | — |
+| 155. Retry & Documentation Polish | 0/1 | Pending | — |
