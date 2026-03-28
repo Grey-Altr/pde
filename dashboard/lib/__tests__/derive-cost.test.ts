@@ -193,3 +193,34 @@ describe('deriveContextUsage', () => {
     expect(result.percentUsed).toBe(50);
   });
 });
+
+describe('displayCostUsd Math.max pattern (page-refresh persistence)', () => {
+  it('uses live cost when it exceeds the persisted cost from Redis SSR', () => {
+    // Simulates: user has been watching a session and accumulated more cost live
+    // than what was last persisted to Redis
+    const liveCost = deriveCost([
+      mockEnvelope({ event_type: 'token_usage', input_tokens: 1_000_000, output_tokens: 1_000_000 } as any),
+    ]);
+    const initialPersistedCostUsd = 5.00; // stale Redis value
+    const displayCostUsd = Math.max(liveCost.estimatedCostUsd, initialPersistedCostUsd);
+    // liveCost = $18, persisted = $5 → should show live
+    expect(displayCostUsd).toBe(18);
+  });
+
+  it('uses persisted cost when live cost is lower (page refresh scenario)', () => {
+    // Simulates: user just refreshed the page, events haven't replayed yet
+    // Redis has the accumulated cost from the previous session view
+    const liveCost = deriveCost([]); // no events after refresh yet
+    const initialPersistedCostUsd = 12.50; // previously persisted via Redis hydration
+    const displayCostUsd = Math.max(liveCost.estimatedCostUsd, initialPersistedCostUsd);
+    // liveCost = $0, persisted = $12.50 → should show persisted (survives refresh)
+    expect(displayCostUsd).toBe(12.50);
+  });
+
+  it('returns zero when both live and persisted costs are zero', () => {
+    const liveCost = deriveCost([]);
+    const initialPersistedCostUsd = 0;
+    const displayCostUsd = Math.max(liveCost.estimatedCostUsd, initialPersistedCostUsd);
+    expect(displayCostUsd).toBe(0);
+  });
+});
