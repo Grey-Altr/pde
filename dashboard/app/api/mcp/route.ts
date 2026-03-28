@@ -3,6 +3,7 @@ import { verifyClerkToken } from '@clerk/mcp-tools/next';
 import { auth } from '@clerk/nextjs/server';
 import { registerPdeTools } from '@/lib/mcp/server-factory';
 import { validateOrigin } from '@/lib/mcp/origin-guard';
+import { validateRelayDepth } from '@/lib/mcp/relay-depth-guard';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 300;
@@ -26,8 +27,12 @@ const authHandler = withMcpAuth(
 );
 
 async function guardedHandler(req: Request) {
-  const rejection = validateOrigin(req);
-  if (rejection) return rejection;
+  const originRejection = validateOrigin(req);
+  if (originRejection) return originRejection;
+
+  const relayRejection = validateRelayDepth(req);
+  if (relayRejection) return relayRejection;
+
   return authHandler(req);
 }
 
