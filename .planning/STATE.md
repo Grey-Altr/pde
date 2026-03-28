@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.19
 milestone_name: WebMCP Integration
 status: Ready to plan
-stopped_at: Completed 156-02-PLAN.md
-last_updated: "2026-03-28T18:14:12.075Z"
+stopped_at: Completed 157-03-PLAN.md
+last_updated: "2026-03-28T19:09:42.388Z"
 progress:
   total_phases: 7
-  completed_phases: 1
-  total_plans: 3
-  completed_plans: 3
+  completed_phases: 2
+  total_plans: 6
+  completed_plans: 6
 ---
 
 # Project State
@@ -19,11 +19,11 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-28)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 156 — remote-mcp-server-foundation
+**Current focus:** Phase 157 — dashboard-webmcp-tools
 
 ## Current Position
 
-Phase: 157
+Phase: 158
 Plan: Not started
 
 ## Performance Metrics
@@ -53,6 +53,11 @@ Plan: Not started
 - [Phase 156]: after() from next/server used for fire-and-forget pipeline stub within same maxDuration budget
 - [Phase 156]: MCP route uses acceptsToken=oauth_token not default — plain auth() returns session tokens which MCP clients cannot provide
 - [Phase 156]: Origin guard wraps auth handler (validateOrigin first) — bad-origin requests rejected before Clerk token processing
+- [Phase 157]: Test file placed in tests/ not __tests__/ — vitest.config.js only scans tests/ path
+- [Phase 157]: emitWebMcpConfig() added as 7th emitter — .webmcp/config.json regenerates on every emitAll() cycle for WebMCP client discovery
+- [Phase 157]: Used source-inspection (readFileSync) tests instead of renderHook — project vitest config uses node environment, jsdom not available
+- [Phase 157]: Source inspection tests used instead of renderHook — vitest runs in node environment (no DOM/jsdom)
+- [Phase 157]: inputSchema constants defined at module level in browser tool hooks — prevents zombie re-registration on re-renders
 
 ### Pending Todos
 
@@ -66,7 +71,7 @@ Plan: Not started
 
 ## Session Continuity
 
-Last session: 2026-03-28T18:08:49.870Z
-Stopped at: Completed 156-02-PLAN.md
+Last session: 2026-03-28T18:58:09.918Z
+Stopped at: Completed 157-03-PLAN.md
 Resume with: `/gsd:plan-phase 156`
 Resume file: None

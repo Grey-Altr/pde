@@ -29,7 +29,7 @@
 **Milestone Goal:** PDE tools are accessible from any browser-based AI agent and any MCP-compatible desktop client via a publicly accessible Streamable HTTP remote server, with rich UI previews, declarative approval gates, auto-generated competitor tools, and multi-editor relay support.
 
 - [x] **Phase 156: Remote MCP Server Foundation** — Streamable HTTP endpoint with Clerk auth, Origin validation, stateless Vercel transport, shared server factory, and desktop relay bridge (completed 2026-03-28)
-- [ ] **Phase 157: Dashboard WebMCP Tools** — useMcpTool() lifecycle hook, use-mcp-client.ts, initial tool registrations, and context-sync .webmcp emitter
+- [x] **Phase 157: Dashboard WebMCP Tools** — useMcpTool() lifecycle hook, use-mcp-client.ts, initial tool registrations, and context-sync .webmcp emitter (completed 2026-03-28)
 - [ ] **Phase 158: MCP Apps Rich UI + Design Artifact Preview** — type: 'resource' rich return blocks with MCP Apps HTML MIME, CSP declarations, and ui:// artifact resource scheme
 - [ ] **Phase 159: Token Playground** — Per-tool cost breakdown UI and session context window utilization view via @ai-sdk/mcp and Upstash Redis
 - [ ] **Phase 160: Declarative Approval Gates + Workflow Flags** — Approval gate WebMCP tool forms and --webmcp flag across all four design workflow commands
@@ -64,10 +64,10 @@ Plans:
   3. The dashboard makes MCP JSON-RPC calls without loading the full MCP SDK into the browser bundle
   4. Any WebMCP client can discover the PDE server endpoint by reading .webmcp/config.json without manual configuration
   5. Changes to .planning/ files trigger .webmcp/config.json regeneration automatically
-**Plans:** 3 plans
+**Plans:** 3/3 plans complete
 Plans:
-- [ ] 157-01-PLAN.md — Install WebMCP packages, providers.tsx initialization, use-mcp-client.ts hook, Wave 0 test scaffolds
-- [ ] 157-02-PLAN.md — context-sync.cjs emitWebMcpConfig emitter, MONITORED_FILES entry, .webmcp/config.json generation
+- [x] 157-01-PLAN.md — Install WebMCP packages, providers.tsx initialization, use-mcp-client.ts hook, Wave 0 test scaffolds
+- [x] 157-02-PLAN.md — context-sync.cjs emitWebMcpConfig emitter, MONITORED_FILES entry, .webmcp/config.json generation
 - [ ] 157-03-PLAN.md — Browser tool hooks (design state, project info, artifacts), API routes, composite hook
 **UI hint**: yes
 
@@ -131,7 +131,7 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 156. Remote MCP Server Foundation | v0.19 | 1/3 | Complete    | 2026-03-28 |
-| 157. Dashboard WebMCP Tools | v0.19 | 0/3 | In progress | - |
+| 157. Dashboard WebMCP Tools | v0.19 | 2/3 | Complete    | 2026-03-28 |
 | 158. MCP Apps Rich UI + Design Artifact Preview | v0.19 | 0/TBD | Not started | - |
 | 159. Token Playground | v0.19 | 0/TBD | Not started | - |
 | 160. Declarative Approval Gates + Workflow Flags | v0.19 | 0/TBD | Not started | - |
