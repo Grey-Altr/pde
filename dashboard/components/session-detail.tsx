@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { StatusBadge } from '@/components/status-badge';
 import { PhaseProgress } from '@/components/phase-progress';
-import { CostMeter } from '@/components/cost-meter';
+import { TokenPlayground } from '@/components/token-playground';
 import { EventLog } from '@/components/event-log';
 import { findPendingApproval } from '@/lib/queries';
 import type { SessionListItem } from '@/lib/queries';
@@ -16,6 +16,8 @@ interface SessionDetailProps {
   session: SessionListItem;
   connectionStatus: ConnectionStatus;
   events: WireEnvelope[];
+  sessionId: string;
+  initialPersistedCostUsd: number;
 }
 
 function formatDuration(startedAt: number): string {
@@ -26,7 +28,7 @@ function formatDuration(startedAt: number): string {
   return `${minutes}m ${seconds}s`;
 }
 
-export function SessionDetail({ session, connectionStatus, events }: SessionDetailProps) {
+export function SessionDetail({ session, connectionStatus, events, sessionId, initialPersistedCostUsd }: SessionDetailProps) {
   const pendingApproval = findPendingApproval(events);
 
   return (
@@ -65,7 +67,12 @@ export function SessionDetail({ session, connectionStatus, events }: SessionDeta
       <PhaseProgress events={events} connectionStatus={connectionStatus} />
 
       {/* Token/cost meter (MON-02) */}
-      <CostMeter events={events} connectionStatus={connectionStatus} />
+      <TokenPlayground
+        events={events}
+        connectionStatus={connectionStatus}
+        sessionId={sessionId}
+        initialPersistedCostUsd={initialPersistedCostUsd}
+      />
 
       {/* Live event log with filtering (MON-03) */}
       <EventLog events={events} connectionStatus={connectionStatus} />

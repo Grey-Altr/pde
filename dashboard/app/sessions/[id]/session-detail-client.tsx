@@ -13,12 +13,14 @@ interface SessionDetailClientProps {
   sessionId: string;
   initialSession: SessionListItem;
   initialEvents: WireEnvelope[];
+  initialPersistedCostUsd: number;
 }
 
 export function SessionDetailClient({
   sessionId,
   initialSession,
   initialEvents,
+  initialPersistedCostUsd,
 }: SessionDetailClientProps) {
   const { events: liveEvents, connectionStatus } = useEventStream(sessionId);
 
@@ -70,6 +72,8 @@ export function SessionDetailClient({
         session={session}
         connectionStatus={connectionStatus}
         events={mergedEvents}
+        sessionId={sessionId}
+        initialPersistedCostUsd={initialPersistedCostUsd}
       />
     </main>
   );
