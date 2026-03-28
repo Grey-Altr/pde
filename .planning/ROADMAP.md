@@ -64,7 +64,11 @@ Plans:
   3. The dashboard makes MCP JSON-RPC calls without loading the full MCP SDK into the browser bundle
   4. Any WebMCP client can discover the PDE server endpoint by reading .webmcp/config.json without manual configuration
   5. Changes to .planning/ files trigger .webmcp/config.json regeneration automatically
-**Plans**: TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 157-01-PLAN.md — Install WebMCP packages, providers.tsx initialization, use-mcp-client.ts hook, Wave 0 test scaffolds
+- [ ] 157-02-PLAN.md — context-sync.cjs emitWebMcpConfig emitter, MONITORED_FILES entry, .webmcp/config.json generation
+- [ ] 157-03-PLAN.md — Browser tool hooks (design state, project info, artifacts), API routes, composite hook
 **UI hint**: yes
 
 ### Phase 158: MCP Apps Rich UI + Design Artifact Preview
@@ -127,7 +131,7 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 156. Remote MCP Server Foundation | v0.19 | 1/3 | Complete    | 2026-03-28 |
-| 157. Dashboard WebMCP Tools | v0.19 | 0/TBD | Not started | - |
+| 157. Dashboard WebMCP Tools | v0.19 | 0/3 | In progress | - |
 | 158. MCP Apps Rich UI + Design Artifact Preview | v0.19 | 0/TBD | Not started | - |
 | 159. Token Playground | v0.19 | 0/TBD | Not started | - |
 | 160. Declarative Approval Gates + Workflow Flags | v0.19 | 0/TBD | Not started | - |
