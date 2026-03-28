@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.19
 milestone_name: WebMCP Integration
-status: Ready to plan
-stopped_at: Completed 161-02-PLAN.md
-last_updated: "2026-03-28T22:51:40.484Z"
+status: Milestone complete
+stopped_at: Completed 162-02-PLAN.md
+last_updated: "2026-03-28T23:18:06.324Z"
 progress:
   total_phases: 7
-  completed_phases: 6
-  total_plans: 14
-  completed_plans: 14
+  completed_phases: 7
+  total_plans: 16
+  completed_plans: 16
 ---
 
 # Project State
@@ -19,7 +19,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-28)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 161 — auto-generated-competitor-tools
+**Current focus:** Phase 162 — multi-editor-bridge
 
 ## Current Position
 
@@ -72,6 +72,10 @@ Plan: Not started
 - [Phase 161]: Phase 160-02 workflow changes to competitive.md were not merged to main — absorbed into Phase 161-01 as auto-fix (Rule 3)
 - [Phase 161]: competitor-tools GET route is unauthenticated (read-only, matches gates GET pattern)
 - [Phase 161]: Single dispatcher query_competitor_data tool accepts competitor_name param — avoids hooks-in-loop for dynamic per-competitor registration (D-04 resolution)
+- [Phase 162]: validateRelayDepth extracted to relay-depth-guard.ts (mirrors origin-guard.ts) for direct import testing; RELAY_DEPTH_LIMIT=1; pde_remote uses underscore key for mcp__pde_remote__ prefix alignment
+- [Phase 162]: relay-depth-guard.ts created in Plan 02 as Rule 3 auto-fix (Plan 01 artifact was missing but required by Plan 02)
+- [Phase 162]: Gemini CLI uses httpUrl field (not url) for Streamable HTTP — url selects SSE transport which PDE does not support
+- [Phase 162]: Guard pipeline order: origin (cheapest) -> relay depth (header check) -> auth (Clerk RPC, expensive)
 
 ### Pending Todos
 
@@ -85,7 +89,7 @@ Plan: Not started
 
 ## Session Continuity
 
-Last session: 2026-03-28T22:46:44.920Z
-Stopped at: Completed 161-02-PLAN.md
+Last session: 2026-03-28T23:13:21.955Z
+Stopped at: Completed 162-02-PLAN.md
 Resume with: `/gsd:plan-phase 156`
 Resume file: None

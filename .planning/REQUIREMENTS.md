@@ -46,14 +46,14 @@ Requirements for WebMCP Integration milestone. Each maps to roadmap phases.
 
 - [x] **ADV-01**: competitive.md generates optional WebMCP tool stubs from competitor analysis
 - [x] **ADV-02**: Auto-generated tools pass through sanitization pipeline (strip instruction syntax, 512-char limit, source: "auto-generated")
-- [ ] **ADV-03**: Auto-generated competitor tools require mandatory human review gate before activation
+- [x] **ADV-03**: Auto-generated competitor tools require mandatory human review gate before activation
 - [x] **ADV-04**: Competitor tool registry stored in .webmcp/competitor-tools-registry.json
 
 ### Multi-Editor Bridge
 
-- [ ] **MEB-01**: Cursor and Gemini CLI can access PDE tools via WebMCP relay endpoint
-- [ ] **MEB-02**: Relay includes X-PDE-Relay-Depth header guard preventing circular relay cycles
-- [ ] **MEB-03**: mcp-bridge.cjs APPROVED_SERVERS updated with remote MCP server entry
+- [x] **MEB-01**: Cursor and Gemini CLI can access PDE tools via WebMCP relay endpoint
+- [x] **MEB-02**: Relay includes X-PDE-Relay-Depth header guard preventing circular relay cycles
+- [x] **MEB-03**: mcp-bridge.cjs APPROVED_SERVERS updated with remote MCP server entry
 
 ## Future Requirements
 
@@ -111,11 +111,11 @@ Requirements for WebMCP Integration milestone. Each maps to roadmap phases.
 | WFL-05 | Phase 160 | Complete |
 | ADV-01 | Phase 161 | Complete |
 | ADV-02 | Phase 161 | Complete |
-| ADV-03 | Phase 161 | Pending |
+| ADV-03 | Phase 161 | Complete |
 | ADV-04 | Phase 161 | Complete |
-| MEB-01 | Phase 162 | Pending |
-| MEB-02 | Phase 162 | Pending |
-| MEB-03 | Phase 162 | Pending |
+| MEB-01 | Phase 162 | Complete |
+| MEB-02 | Phase 162 | Complete |
+| MEB-03 | Phase 162 | Complete |
 
 **Coverage:**
 - v0.19 requirements: 30 total
