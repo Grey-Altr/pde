@@ -33,7 +33,7 @@
 - [x] **Phase 158: MCP Apps Rich UI + Design Artifact Preview** — type: 'resource' rich return blocks with MCP Apps HTML MIME, CSP declarations, and ui:// artifact resource scheme (completed 2026-03-28)
 - [x] **Phase 159: Token Playground** — Per-tool cost breakdown UI and session context window utilization view via @ai-sdk/mcp and Upstash Redis (completed 2026-03-28)
 - [x] **Phase 160: Declarative Approval Gates + Workflow Flags** — Approval gate WebMCP tool forms and --webmcp flag across all four design workflow commands (completed 2026-03-28)
-- [ ] **Phase 161: Auto-Generated Competitor Tools** — competitive.md tool stub generation with sanitization pipeline, mandatory human review gate, and competitor registry
+- [x] **Phase 161: Auto-Generated Competitor Tools** — competitive.md tool stub generation with sanitization pipeline, mandatory human review gate, and competitor registry (completed 2026-03-28)
 - [ ] **Phase 162: Multi-Editor Bridge** — Cursor and Gemini CLI relay to PDE via WebMCP, relay depth guard, and mcp-bridge.cjs APPROVED_SERVERS update
 
 ## Phase Details
@@ -124,9 +124,9 @@ Plans:
   2. Generated tool descriptions are sanitized — instruction syntax stripped, capped at 512 characters, and tagged source: "auto-generated"
   3. No auto-generated tool can be called by any agent until a human explicitly approves it through the review gate
   4. Approved and pending competitor tool stubs are persisted in .webmcp/competitor-tools-registry.json between sessions
-**Plans:** 0/2 plans executed
+**Plans:** 2/2 plans complete
 Plans:
-- [ ] 161-01-PLAN.md — Workflow Step 8 competitor tool stub generation, sanitization pipeline, registry write, competitor-tools API route
+- [x] 161-01-PLAN.md — Workflow Step 8 competitor tool stub generation, sanitization pipeline, registry write, competitor-tools API route
 - [ ] 161-02-PLAN.md — useCompetitorTools browser hook, barrel export, composite hook wiring, test updates
 
 ### Phase 162: Multi-Editor Bridge
@@ -151,5 +151,5 @@ Plans:
 | 158. MCP Apps Rich UI + Design Artifact Preview | v0.19 | 1/2 | Complete    | 2026-03-28 |
 | 159. Token Playground | v0.19 | 2/2 | Complete    | 2026-03-28 |
 | 160. Declarative Approval Gates + Workflow Flags | v0.19 | 2/2 | Complete    | 2026-03-28 |
-| 161. Auto-Generated Competitor Tools | v0.19 | 0/2 | Planned    |  |
+| 161. Auto-Generated Competitor Tools | v0.19 | 1/2 | Complete    | 2026-03-28 |
 | 162. Multi-Editor Bridge | v0.19 | 0/TBD | Not started | - |
