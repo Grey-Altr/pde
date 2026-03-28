@@ -156,9 +156,25 @@ Any user can go from idea to shipped product through a single platform that hand
 - ✓ PDE_REMOTE documented in dashboard/.env.example and coordinator.cjs _spawnRelay JSDoc (INT-PDE-REMOTE-DOC) — v0.18
 - ✓ 224 dashboard tests across 29 files, all integration gaps closed — v0.18
 
+## Current Milestone: v0.19 WebMCP Integration
+
+**Goal:** Make PDE agent-native across browser, remote, and chat surfaces via WebMCP and Streamable HTTP — enabling universal access, rich visual responses, and zero-config design interaction for end users.
+
+**Target features:**
+- Remote PDE MCP Server on Vercel (Streamable HTTP endpoint)
+- MCP Apps: Rich UI tool responses in chat
+- Design Artifact Interactive Preview with WebMCP tools
+- Dashboard WebMCP Tools (browser-native agent interface)
+- Design Token Playground with agent tools
+- Declarative Approval Gate Forms
+- WebMCP-Enhanced Critique Pipeline
+- Auto-Generated Competitor Tools from sites
+- Multi-Editor Universal Bridge via WebMCP relay
+- Remote Collaboration Surface
+
 ### Active
 
-(Next milestone not yet started — run `/gsd:new-milestone` to begin)
+(Requirements being defined — see REQUIREMENTS.md)
 
 ### Validated (v0.18)
 
