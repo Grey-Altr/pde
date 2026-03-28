@@ -101,6 +101,19 @@ Minor: Vitest verification command in plan runs from main project's dashboard (`
 - pde_approval_gate tool referenced in gate tables — requires phase 160-01 infrastructure (approval gate MCP tool) to be present at runtime
 - Ready for phase 161 which may consume these WebMCP-enabled workflow outputs
 
+## Self-Check: PASSED
+
+- FOUND: 160-02-SUMMARY.md
+- FOUND: dashboard/lib/__tests__/workflow-flags.test.ts (worktree)
+- FOUND: workflows/wireframe.md (worktree, modified)
+- FOUND: workflows/mockup.md (worktree, modified)
+- FOUND: workflows/critique.md (worktree, modified)
+- FOUND: workflows/competitive.md (worktree, modified)
+- FOUND: commit 3886fa4 (test: workflow-flags scaffold + wireframe + mockup)
+- FOUND: commit c99ccd5 (feat: critique + competitive --webmcp)
+- FOUND: commit eb3febc (docs: metadata)
+- VERIFIED: All 16 workflow-flags tests pass green
+
 ---
 *Phase: 160-declarative-approval-gates-workflow-flags*
 *Completed: 2026-03-28*

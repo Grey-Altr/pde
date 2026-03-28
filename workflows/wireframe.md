@@ -30,13 +30,14 @@ Generate browser-viewable HTML/CSS wireframes for each screen in the flow invent
 | `--midfi` | Boolean | Set fidelity to midfi. Equivalent to positional argument "midfi". |
 | `--hifi` | Boolean | Set fidelity to hifi. Equivalent to positional argument "hifi". |
 | `--use-stitch` | Boolean | Route generation through Google Stitch MCP instead of Claude HTML/CSS. Requires Stitch connection via /pde:connect stitch. |
+| `--webmcp` | Boolean | Append WebMCP tool context section to output for browser AI agent consumption. Does not affect artifact generation. |
 </flags>
 
 <process>
 
 ## /pde:wireframe — Wireframe Generation Pipeline
 
-Check for flags in $ARGUMENTS before beginning: `--dry-run`, `--quick`, `--verbose`, `--no-mcp`, `--no-sequential-thinking`, `--no-playwright`, `--force`, `--lofi`, `--midfi`, `--hifi`.
+Check for flags in $ARGUMENTS before beginning: `--dry-run`, `--quick`, `--verbose`, `--no-mcp`, `--no-sequential-thinking`, `--no-playwright`, `--force`, `--lofi`, `--midfi`, `--hifi`, `--webmcp`.
 
 ---
 
@@ -209,6 +210,12 @@ Use the Glob tool to check for `.planning/design/assets/tokens.css`.
 Check $ARGUMENTS for `--use-stitch`:
 - If present: SET USE_STITCH = true. Log: `  -> --use-stitch detected: Stitch generation mode enabled.`
 - If absent: SET USE_STITCH = false. Proceed with standard Claude HTML/CSS generation.
+
+#### 2h. Parse --webmcp flag
+
+Check $ARGUMENTS for `--webmcp`:
+- If present: SET USE_WEBMCP = true. Log: `  -> --webmcp detected: WebMCP context section will be appended to output.`
+- If absent: SET USE_WEBMCP = false.
 
 **If `--dry-run` flag is active:** Display planned output at end of Step 2 and HALT (do not write files):
 
@@ -2495,6 +2502,46 @@ Next steps:
 ```
 
 Display: `Step 7/7: Root DESIGN-STATE and manifest updated.`
+
+IF USE_WEBMCP is true, append this section after the standard output summary:
+
+---
+
+## WebMCP Context
+
+This output includes context for browser AI agents accessing PDE via WebMCP.
+
+**Available tools registered in this browser session:**
+
+| Tool | Call When | Required Input |
+|------|-----------|----------------|
+| `pde_approval_gate` | To approve or reject this wireframe output | `gate_id` (shown below), `action` (`approve` or `reject`) |
+| `get_design_state` | To check current PDE design phase | (none) |
+| `list_artifacts` | To enumerate all design artifacts | `filter` (optional) |
+| `get_project_info` | To get project name and milestone | (none) |
+
+**Pending gate for this run:**
+
+Gate ID: `wireframe-{PHASE_NUMBER}-{YYYYMMDD}-{4_HEX}`
+
+To approve via WebMCP tool call:
+```json
+{
+  "name": "pde_approval_gate",
+  "arguments": { "gate_id": "wireframe-{PHASE_NUMBER}-{YYYYMMDD}-{4_HEX}", "action": "approve" }
+}
+```
+
+To reject via WebMCP tool call:
+```json
+{
+  "name": "pde_approval_gate",
+  "arguments": { "gate_id": "wireframe-{PHASE_NUMBER}-{YYYYMMDD}-{4_HEX}", "action": "reject", "reason": "..." }
+}
+```
+
+> Gate state file: `.planning/gates/{GATE_ID}.json`
+> Fallback: Users not using WebMCP can approve via the dashboard approval UI.
 
 ---
 

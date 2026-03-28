@@ -1,4 +1,4 @@
-<!-- PDE-GENERATED | hash:b63adc2031bf14a3883c07398e19255af1feac40d88821fdd69a43221a70ef40 | generated:2026-03-24T22:26:41.789Z -->
+<!-- PDE-GENERATED | hash:c04775f27a7eadf307fbeaa398fbb698e6733ce58bb7dba4c8167dd4a55a1c15 | generated:2026-03-28T19:02:09.489Z -->
 ---
 name: pde-design
 description: PDE design system context -- query palette colors, typography rules, spacing scale, and component patterns for the current project
@@ -44,3 +44,4 @@ Zero npm deps at plugin root**: Any new dependencies go in isolated subdirectori
 - **MCP security**: Verified-sources-only policy — only official MCP servers from approved vendors
 
 <!-- AGENT-ADDITIONS: DO NOT EDIT THIS LINE -->
+

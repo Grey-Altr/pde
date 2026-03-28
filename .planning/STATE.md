@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v0.19
 milestone_name: WebMCP Integration
-status: Ready to plan
+status: Ready to execute
 stopped_at: Completed 161-01-PLAN.md
-last_updated: "2026-03-28T22:38:00Z"
+last_updated: "2026-03-28T22:39:10.417Z"
 progress:
   total_phases: 7
   completed_phases: 5
-  total_plans: 12
+  total_plans: 14
   completed_plans: 12
 ---
 
@@ -23,8 +23,8 @@ See: .planning/PROJECT.md (updated 2026-03-28)
 
 ## Current Position
 
-Phase: 161
-Plan: 2
+Phase: 161 (auto-generated-competitor-tools) — EXECUTING
+Plan: 2 of 2
 
 ## Performance Metrics
 
@@ -69,9 +69,8 @@ Plan: 2
 - [Phase 160]: inputSchema const defined at module level outside hook function — prevents zombie re-registration on re-renders (extends Phase 157 pattern to approval gate tool)
 - [Phase 160]: Phase 160-02: WebMCP Context section is additive-only — appended after standard output when --webmcp flag present, no behavior change otherwise (per D-06)
 - [Phase 160]: Phase 160-02: Gate ID format for workflow gates: {workflow}-{PHASE_NUMBER}-{YYYYMMDD}-{4_HEX} (wireframe/mockup/critique/competitive)
-- [Phase 161]: Phase 160-02 workflow changes to competitive.md were not merged to main — absorbed into Phase 161-01 as auto-fix (Rule 3 blocking)
-- [Phase 161]: competitor-tools GET route is unauthenticated (read-only, matches gates GET pattern — no Clerk auth)
-- [Phase 161]: Gate ID format for competitor tools: competitor-tool-{sanitized_name}-{YYYYMMDD}-{4_HEX}
+- [Phase 161]: Phase 160-02 workflow changes to competitive.md were not merged to main — absorbed into Phase 161-01 as auto-fix (Rule 3)
+- [Phase 161]: competitor-tools GET route is unauthenticated (read-only, matches gates GET pattern)
 
 ### Pending Todos
 
@@ -85,7 +84,7 @@ Plan: 2
 
 ## Session Continuity
 
-Last session: 2026-03-28T22:38:00Z
+Last session: 2026-03-28T22:39:10.413Z
 Stopped at: Completed 161-01-PLAN.md
-Resume with: `/gsd:execute-phase 161`
+Resume with: `/gsd:plan-phase 156`
 Resume file: None

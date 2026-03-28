@@ -67,6 +67,7 @@ IF --screen flag present:
 | `--force` | Boolean | Overwrite existing mockup files without prompting for confirmation. |
 | `--quick` | Boolean | Skip MCP enhancements for faster execution. |
 | `--use-stitch` | Boolean | Route generation through Google Stitch MCP instead of Claude HTML/CSS. Requires Stitch connection via /pde:connect stitch. |
+| `--webmcp` | Boolean | Append WebMCP tool context section to output for browser AI agent consumption. Does not affect artifact generation. |
 
 </flags>
 
@@ -74,7 +75,7 @@ IF --screen flag present:
 
 ## /pde:mockup -- Hi-Fi Mockup Generation Pipeline
 
-Check for flags in $ARGUMENTS before beginning: `--dry-run`, `--screen`, `--verbose`, `--no-mcp`, `--no-playwright`, `--force`, `--quick`, `--use-stitch`.
+Check for flags in $ARGUMENTS before beginning: `--dry-run`, `--screen`, `--verbose`, `--no-mcp`, `--no-playwright`, `--force`, `--quick`, `--use-stitch`, `--webmcp`.
 
 ---
 
@@ -168,6 +169,12 @@ Use the Read tool to load `.planning/PROJECT.md` as fallback.
 Check $ARGUMENTS for `--use-stitch`:
 - If present: SET USE_STITCH = true. Log: `  -> --use-stitch detected: Stitch generation mode enabled.`
 - If absent: SET USE_STITCH = false. Proceed with standard Claude HTML/CSS generation.
+
+#### 2f. Parse --webmcp flag
+
+Check $ARGUMENTS for `--webmcp`:
+- If present: SET USE_WEBMCP = true. Log: `  -> --webmcp detected: WebMCP context section will be appended to output.`
+- If absent: SET USE_WEBMCP = false.
 
 **If `--dry-run` flag is active:** Display planned output and HALT:
 
@@ -1524,6 +1531,46 @@ No error, no failure — workflow continues normally.
 ```
 
 Display: `Step 7/7: Root DESIGN-STATE and manifest updated. hasMockup: true.`
+
+IF USE_WEBMCP is true, append this section after the standard output summary:
+
+---
+
+## WebMCP Context
+
+This output includes context for browser AI agents accessing PDE via WebMCP.
+
+**Available tools registered in this browser session:**
+
+| Tool | Call When | Required Input |
+|------|-----------|----------------|
+| `pde_approval_gate` | To approve or reject this mockup output | `gate_id` (shown below), `action` (`approve` or `reject`) |
+| `get_design_state` | To check current PDE design phase | (none) |
+| `list_artifacts` | To enumerate all design artifacts | `filter` (optional) |
+| `get_project_info` | To get project name and milestone | (none) |
+
+**Pending gate for this run:**
+
+Gate ID: `mockup-{PHASE_NUMBER}-{YYYYMMDD}-{4_HEX}`
+
+To approve via WebMCP tool call:
+```json
+{
+  "name": "pde_approval_gate",
+  "arguments": { "gate_id": "mockup-{PHASE_NUMBER}-{YYYYMMDD}-{4_HEX}", "action": "approve" }
+}
+```
+
+To reject via WebMCP tool call:
+```json
+{
+  "name": "pde_approval_gate",
+  "arguments": { "gate_id": "mockup-{PHASE_NUMBER}-{YYYYMMDD}-{4_HEX}", "action": "reject", "reason": "..." }
+}
+```
+
+> Gate state file: `.planning/gates/{GATE_ID}.json`
+> Fallback: Users not using WebMCP can approve via the dashboard approval UI.
 
 ---
 

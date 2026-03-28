@@ -26,13 +26,14 @@ Multi-perspective design critique of wireframes grounded in the project's brief 
 | `--no-axe` | Boolean | Skip Axe a11y MCP specifically. Fall back to manual WCAG checklist from wcag-baseline.md. |
 | `--force` | Boolean | Skip confirmation when critique report already exists — overwrite without prompting. |
 | `--focused "perspective"` | String | Evaluate only the named perspective(s). Comma-separated. Valid values: ux, hierarchy, accessibility, business. |
+| `--webmcp` | Boolean | Append WebMCP tool context section to output for browser AI agent consumption. Does not affect critique analysis. |
 </flags>
 
 <process>
 
 ## /pde:critique — Design Critique Pipeline
 
-Check for flags in $ARGUMENTS before beginning: `--dry-run`, `--quick`, `--verbose`, `--no-mcp`, `--no-sequential-thinking`, `--no-axe`, `--force`, `--focused`.
+Check for flags in $ARGUMENTS before beginning: `--dry-run`, `--quick`, `--verbose`, `--no-mcp`, `--no-sequential-thinking`, `--no-axe`, `--force`, `--focused`, `--webmcp`.
 
 ---
 
@@ -163,6 +164,12 @@ If STITCH_ARTIFACTS is non-empty:
   Display: `Step 2/7: {N} Stitch artifact(s) detected: {comma-separated slug list}. Stitch-aware evaluation mode active.`
 Else:
   Display: `Step 2/7: No Stitch artifacts detected. Standard evaluation mode.`
+
+#### 2h. Parse --webmcp flag
+
+Check $ARGUMENTS for `--webmcp`:
+- If present: SET USE_WEBMCP = true. Log: `  -> --webmcp detected: WebMCP context section will be appended to output.`
+- If absent: SET USE_WEBMCP = false.
 
 ---
 
@@ -1335,6 +1342,46 @@ Next steps:
 ```
 
 Display: `Step 7/7: Manifest updated. Coverage: hasCritique = true. Done.`
+
+IF USE_WEBMCP is true, append this section after the standard output summary:
+
+---
+
+## WebMCP Context
+
+This output includes context for browser AI agents accessing PDE via WebMCP.
+
+**Available tools registered in this browser session:**
+
+| Tool | Call When | Required Input |
+|------|-----------|----------------|
+| `pde_approval_gate` | To approve or reject this critique output | `gate_id` (shown below), `action` (`approve` or `reject`) |
+| `get_design_state` | To check current PDE design phase | (none) |
+| `list_artifacts` | To enumerate all design artifacts | `filter` (optional) |
+| `get_project_info` | To get project name and milestone | (none) |
+
+**Pending gate for this run:**
+
+Gate ID: `critique-{PHASE_NUMBER}-{YYYYMMDD}-{4_HEX}`
+
+To approve via WebMCP tool call:
+```json
+{
+  "name": "pde_approval_gate",
+  "arguments": { "gate_id": "critique-{PHASE_NUMBER}-{YYYYMMDD}-{4_HEX}", "action": "approve" }
+}
+```
+
+To reject via WebMCP tool call:
+```json
+{
+  "name": "pde_approval_gate",
+  "arguments": { "gate_id": "critique-{PHASE_NUMBER}-{YYYYMMDD}-{4_HEX}", "action": "reject", "reason": "..." }
+}
+```
+
+> Gate state file: `.planning/gates/{GATE_ID}.json`
+> Fallback: Users not using WebMCP can approve via the dashboard approval UI.
 
 ---
 

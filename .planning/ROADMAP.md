@@ -124,9 +124,9 @@ Plans:
   2. Generated tool descriptions are sanitized — instruction syntax stripped, capped at 512 characters, and tagged source: "auto-generated"
   3. No auto-generated tool can be called by any agent until a human explicitly approves it through the review gate
   4. Approved and pending competitor tool stubs are persisted in .webmcp/competitor-tools-registry.json between sessions
-**Plans:** 2 plans
+**Plans:** 0/2 plans executed
 Plans:
-- [x] 161-01-PLAN.md — Workflow Step 8 competitor tool stub generation, sanitization pipeline, registry write, competitor-tools API route
+- [ ] 161-01-PLAN.md — Workflow Step 8 competitor tool stub generation, sanitization pipeline, registry write, competitor-tools API route
 - [ ] 161-02-PLAN.md — useCompetitorTools browser hook, barrel export, composite hook wiring, test updates
 
 ### Phase 162: Multi-Editor Bridge
@@ -151,5 +151,5 @@ Plans:
 | 158. MCP Apps Rich UI + Design Artifact Preview | v0.19 | 1/2 | Complete    | 2026-03-28 |
 | 159. Token Playground | v0.19 | 2/2 | Complete    | 2026-03-28 |
 | 160. Declarative Approval Gates + Workflow Flags | v0.19 | 2/2 | Complete    | 2026-03-28 |
-| 161. Auto-Generated Competitor Tools | v0.19 | 1/2 | In progress | ADV-01 ADV-02 ADV-04 |
+| 161. Auto-Generated Competitor Tools | v0.19 | 0/2 | Planned    |  |
 | 162. Multi-Editor Bridge | v0.19 | 0/TBD | Not started | - |
