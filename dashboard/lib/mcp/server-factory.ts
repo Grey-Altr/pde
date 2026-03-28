@@ -1,6 +1,7 @@
 import type { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { registerPipelineTools } from './tools/index';
+import { registerArtifactPreviewTools } from './apps/artifact-preview';
 
 /**
  * Registers all PDE tools on the given McpServer instance.
@@ -25,4 +26,5 @@ export function registerPdeTools(server: McpServer): void {
   );
 
   registerPipelineTools(server);
+  registerArtifactPreviewTools(server);
 }
