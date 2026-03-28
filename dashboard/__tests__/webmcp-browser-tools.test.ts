@@ -17,7 +17,10 @@ describe('WebMCP browser initialization (BRW-01)', () => {
   it('initializeWebModelContext is called inside useEffect (not at module level)', () => {
     // Verify the call is inside a useEffect block, not at module scope
     const lines = providersSource.split('\n');
-    const initLine = lines.findIndex(l => l.includes('initializeWebModelContext()'));
+    // Find non-comment lines that contain the function call
+    const initLine = lines.findIndex(
+      l => l.includes('initializeWebModelContext()') && !l.trimStart().startsWith('//')
+    );
     expect(initLine).toBeGreaterThan(-1);
 
     // The line should have indentation (inside a function/block), not at column 0
