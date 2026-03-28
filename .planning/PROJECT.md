@@ -199,7 +199,7 @@ Any user can go from idea to shipped product through a single platform that hand
 
 ## Current State
 
-**v0.19 WebMCP Integration Phase 156 complete** (2026-03-28) — Remote MCP Server Foundation: PDE tools reachable via authenticated Streamable HTTP endpoint (`/api/mcp`) using `mcp-handler` + `@clerk/mcp-tools`, origin validation per MCP spec, polling pattern for long-running ops via Upstash Redis, desktop client docs for Claude Code/Cursor/mcp-remote relay. 4 human verification items pending (live deployment testing).
+**v0.19 WebMCP Integration Phase 157 complete** (2026-03-28) — Dashboard WebMCP Tools: PDE dashboard registers live tools (`get_design_state`, `get_project_info`, `list_artifacts`) with browser-based AI agents via `@mcp-b/react-webmcp` hooks, thin fetch-based JSON-RPC client (no SDK bundle), `emitWebMcpConfig()` auto-generates `.webmcp/config.json` for endpoint discovery. 2 human verification items pending (runtime browser testing).
 
 **v0.18 Distributed Execution shipped** (2026-03-28) — 13 phases, 28 plans, 54 requirements, 129 commits, 142 files, +19,639 LOC. PDE can now dispatch parallel sessions to local/remote worktrees, coordinate via Agent SDK, and surface all activity in the web dashboard and tmux panes. All integration gaps closed (INT-RETRY-STUB, INT-PDE-REMOTE-DOC, INT-AUTH-SILENT, INT-SSH-SOURCE).
 
@@ -370,4 +370,4 @@ This document evolves at phase transitions and milestone boundaries.
 3. Audit Out of Scope — reasons still valid?
 4. Update Context with current state
 
-*Last updated: 2026-03-28 after v0.18 milestone — Distributed Execution: worktree isolation, parallel CLI dispatch, Agent SDK orchestrator, SSH remote dispatch, multi-session dashboard and tmux integration*
+*Last updated: 2026-03-28 after Phase 157 — Dashboard WebMCP Tools: browser tool registration via @mcp-b/react-webmcp, fetch-based MCP client, context-sync WebMCP config emitter*
