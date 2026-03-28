@@ -1,5 +1,5 @@
 import type { WireEnvelope } from '../wire-schema';
-import { deriveCost, formatTokens, formatCost } from '../derive-cost';
+import { deriveCost, deriveToolBreakdown, deriveContextUsage, formatTokens, formatCost } from '../derive-cost';
 
 function mockEnvelope(overrides: Partial<WireEnvelope> & { event_type: string }): WireEnvelope {
   return {
@@ -88,5 +88,108 @@ describe('formatCost', () => {
 
   it('returns "$1.50" for 1.50', () => {
     expect(formatCost(1.50)).toBe('$1.50');
+  });
+});
+
+describe('deriveToolBreakdown', () => {
+  it('returns empty array for events with no token_usage', () => {
+    const events = [
+      mockEnvelope({ event_type: 'tool_called' }),
+      mockEnvelope({ event_type: 'bash_called' }),
+    ];
+    const result = deriveToolBreakdown(events);
+    expect(result.length).toBe(0);
+  });
+
+  it('groups by agent_id and takes max tokens', () => {
+    const events = [
+      mockEnvelope({ event_type: 'token_usage', agent_id: 'agent-1', input_tokens: 1000, output_tokens: 400 } as any),
+      mockEnvelope({ event_type: 'token_usage', agent_id: 'agent-1', input_tokens: 2500, output_tokens: 900 } as any),
+    ];
+    const result = deriveToolBreakdown(events);
+    expect(result.length).toBe(1);
+    expect(result[0].agentId).toBe('agent-1');
+    expect(result[0].inputTokens).toBe(2500);
+    expect(result[0].outputTokens).toBe(900);
+  });
+
+  it('counts tool calls per agent', () => {
+    const events = [
+      mockEnvelope({ event_type: 'token_usage', agent_id: 'agent-1', input_tokens: 100, output_tokens: 50 } as any),
+      mockEnvelope({ event_type: 'token_usage', agent_id: 'agent-2', input_tokens: 200, output_tokens: 80 } as any),
+      mockEnvelope({ event_type: 'tool_called', agent_id: 'agent-1' } as any),
+      mockEnvelope({ event_type: 'tool_called', agent_id: 'agent-1' } as any),
+      mockEnvelope({ event_type: 'tool_called', agent_id: 'agent-1' } as any),
+      mockEnvelope({ event_type: 'bash_called', agent_id: 'agent-1' } as any),
+      mockEnvelope({ event_type: 'file_changed', agent_id: 'agent-2' } as any),
+    ];
+    const result = deriveToolBreakdown(events);
+    const agent1 = result.find(r => r.agentId === 'agent-1');
+    const agent2 = result.find(r => r.agentId === 'agent-2');
+    expect(agent1?.toolCalls).toBe(4);
+    expect(agent2?.toolCalls).toBe(1);
+  });
+
+  it('calculates cost per agent', () => {
+    const events = [
+      mockEnvelope({ event_type: 'token_usage', agent_id: 'agent-1', input_tokens: 1_000_000, output_tokens: 1_000_000 } as any),
+    ];
+    const result = deriveToolBreakdown(events);
+    expect(result.length).toBe(1);
+    expect(result[0].estimatedCostUsd).toBe(18);
+  });
+
+  it('handles missing agent_id', () => {
+    const events = [
+      mockEnvelope({ event_type: 'token_usage', input_tokens: 500, output_tokens: 200 } as any),
+    ];
+    const result = deriveToolBreakdown(events);
+    expect(result.length).toBe(1);
+    expect(result[0].agentId).toBe('unknown');
+  });
+
+  it('multi-agent scenario with correct max-not-sum', () => {
+    const events = [
+      mockEnvelope({ event_type: 'token_usage', agent_id: 'agent-a', input_tokens: 1000, output_tokens: 300 } as any),
+      mockEnvelope({ event_type: 'token_usage', agent_id: 'agent-a', input_tokens: 2000, output_tokens: 600 } as any),
+      mockEnvelope({ event_type: 'token_usage', agent_id: 'agent-b', input_tokens: 500, output_tokens: 150 } as any),
+      mockEnvelope({ event_type: 'token_usage', agent_id: 'agent-b', input_tokens: 1500, output_tokens: 450 } as any),
+    ];
+    const result = deriveToolBreakdown(events);
+    const agentA = result.find(r => r.agentId === 'agent-a');
+    const agentB = result.find(r => r.agentId === 'agent-b');
+    expect(agentA?.inputTokens).toBe(2000);
+    expect(agentB?.inputTokens).toBe(1500);
+  });
+});
+
+describe('deriveContextUsage', () => {
+  it('returns 0 for empty events', () => {
+    const result = deriveContextUsage([]);
+    expect(result.percentUsed).toBe(0);
+  });
+
+  it('calculates percentage with default 1M window', () => {
+    const events = [
+      mockEnvelope({ event_type: 'token_usage', input_tokens: 500_000, output_tokens: 0 } as any),
+    ];
+    const result = deriveContextUsage(events);
+    expect(result.percentUsed).toBe(50);
+  });
+
+  it('clamps to 100 when exceeding window', () => {
+    const events = [
+      mockEnvelope({ event_type: 'token_usage', input_tokens: 1_500_000, output_tokens: 0 } as any),
+    ];
+    const result = deriveContextUsage(events);
+    expect(result.percentUsed).toBe(100);
+  });
+
+  it('accepts custom context window size', () => {
+    const events = [
+      mockEnvelope({ event_type: 'token_usage', input_tokens: 100_000, output_tokens: 0 } as any),
+    ];
+    const result = deriveContextUsage(events, 200_000);
+    expect(result.percentUsed).toBe(50);
   });
 });
