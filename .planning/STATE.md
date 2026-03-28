@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v0.19
 milestone_name: WebMCP Integration
 status: Ready to plan
-stopped_at: Completed 159-02-PLAN.md
-last_updated: "2026-03-28T21:23:36.129Z"
+stopped_at: Phase 160 context gathered
+last_updated: "2026-03-28T21:32:59.297Z"
 progress:
   total_phases: 7
   completed_phases: 4
@@ -79,7 +79,7 @@ Plan: Not started
 
 ## Session Continuity
 
-Last session: 2026-03-28T21:09:07.657Z
-Stopped at: Completed 159-02-PLAN.md
+Last session: 2026-03-28T21:32:59.294Z
+Stopped at: Phase 160 context gathered
 Resume with: `/gsd:plan-phase 156`
-Resume file: None
+Resume file: .planning/phases/160-declarative-approval-gates-workflow-flags/160-CONTEXT.md
