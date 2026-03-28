@@ -1,5 +1,30 @@
 # Milestones
 
+## v0.19 WebMCP Integration (Shipped: 2026-03-28)
+
+**Phases completed:** 7 phases, 16 plans, 21 tasks
+
+**Key accomplishments:**
+
+- One-liner:
+- Streamable HTTP MCP endpoint at /api/mcp with Clerk OAuth auth, RFC 9728 .well-known discovery routes, and 15-test suite verifying export shapes and auth wiring
+- start_pipeline_run/check_pipeline_run MCP tools using Upstash Redis job store with 1hr TTL, plus desktop client config docs for Claude Code, Cursor, and mcp-remote relay
+- One-liner:
+- emitWebMcpConfig() added as the 7th context-sync emitter, writing .webmcp/config.json for WebMCP browser agent discovery on every emitAll() cycle
+- 1. [Rule 3 - Blocking] Wave 1 files not available in worktree
+- @modelcontextprotocol/ext-apps installed with registerArtifactPreviewTools wiring two dual-mode tools (preview_artifact, list_design_artifacts) and a CSP-declared HTML resource into the PDE MCP server
+- ResourceTemplate registered at ui://pde/{artifact} serving design artifacts as HTML previews via marked (Markdown), JSON pre blocks, and HTML pass-through with inlined tokens.css
+- One-liner:
+- One-liner:
+- One-liner:
+- --webmcp flag added to all four design workflows (wireframe, mockup, critique, competitive) with USE_WEBMCP parse step and conditional WebMCP Context section containing pde_approval_gate tool table and gate ID
+- Step 8/8 added to competitive.md with full sanitization pipeline (injection stripping, 512-char truncation), registry write to .webmcp/competitor-tools-registry.json, gate file creation, and GET /api/planning/competitor-tools route serving approved entries
+- useCompetitorTools hook registered as query_competitor_data WebMCP dispatcher tool, wired into barrel and composite hook, with full source inspection test coverage
+- X-PDE-Relay-Depth circular relay guard module and pde_remote APPROVED_SERVERS entry enabling Claude Code bridge routing to PDE remote MCP server
+- Relay depth guard wired into MCP guardedHandler pipeline (origin -> relay depth -> auth) and Gemini CLI httpUrl config documented
+
+---
+
 ## v0.18 Distributed Execution (Shipped: 2026-03-28)
 
 **Phases completed:** 13 phases, 28 plans, 34 tasks
