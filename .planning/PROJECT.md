@@ -184,6 +184,7 @@ Any user can go from idea to shipped product through a single platform that hand
 - ✓ Token Playground: per-tool cost breakdown, session context window utilization, Upstash Redis persistence — Phase 159
 - ✓ Declarative Approval Gates + Workflow Flags: WebMCP tool forms, --webmcp flag on 4 design workflows — Phase 160
 - ✓ Auto-Generated Competitor Tools: competitive.md Step 8, sanitization pipeline, human review gate, competitor-tools-registry.json — Phase 161
+- ✓ Multi-Editor Bridge: relay depth guard (X-PDE-Relay-Depth), pde_remote APPROVED_SERVERS entry, Gemini CLI config docs — Phase 162
 
 ### Validated (v0.18)
 
