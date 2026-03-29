@@ -51,7 +51,7 @@
 - [x] **Phase 165: Image Generation Pipeline** — OG images via Satori, social cards, device mockup composites, Playwright screenshots, background removal via remove.bg free tier, and .planning/design/assets/ storage (completed 2026-03-29)
 - [x] **Phase 166: Visual Diff + Asset Reporting** — Branch-level visual diff with perceptual hashing, comparison report with changed/unchanged/new/deleted asset classification (completed 2026-03-29)
 - [x] **Phase 167: Video Production Pipeline** — Playwright UI capture, FFmpeg assembly with transitions/overlays/captions, Remotion branded video composition with PDE design tokens, MP4 output (completed 2026-03-29)
-- [ ] **Phase 168: AI 3D Generation + Web Embedding** — Text-to-3D and image-to-3D via TripoSR/SF3D, GLB output, model-viewer web embedding with AR fallback (USDZ/WebXR), 3D asset storage
+- [x] **Phase 168: AI 3D Generation + Web Embedding** — Text-to-3D and image-to-3D via TripoSR/SF3D, GLB output, model-viewer web embedding with AR fallback (USDZ/WebXR), 3D asset storage (completed 2026-03-29)
 - [ ] **Phase 169: Parametric CAD Generation** — CadQuery Python scripts for hardware product CAD models, STEP file output for engineering handoff
 - [ ] **Phase 170: PDE Utilities** — mmdr Mermaid renderer, DTCG token validator with OKLCH/APCA checks, visual diff command, test scaffold generation from flows, handoff spec verification with gap report
 
@@ -254,10 +254,10 @@ Plans:
   4. User can embed any generated GLB in a web page via a model-viewer component snippet with a single command
   5. The model-viewer integration automatically includes AR fallback: USDZ for iOS and WebXR for Android, without manual configuration
   6. All 3D assets are stored in .planning/design/3d/ with generation metadata (source model, input, timestamp, parameters)
-**Plans:** 1/3 plans executed
+**Plans:** 3/3 plans complete
 Plans:
 - [x] 168-01-PLAN.md — Foundation: deps install, asset storage (save3DAsset/list), GLB optimization (gltf-transform), model-viewer embed generation
-- [ ] 168-02-PLAN.md — AI generation: image-to-3D via Gradio Space fallback chain, text-to-3D two-step pipeline (FLUX.1-schnell + convert)
+- [x] 168-02-PLAN.md — AI generation: image-to-3D via Gradio Space fallback chain, text-to-3D two-step pipeline (FLUX.1-schnell + convert)
 - [ ] 168-03-PLAN.md — pde-tools.cjs 3d subcommand wiring + /pde:3d command documentation
 
 ### Phase 169: Parametric CAD Generation
@@ -299,6 +299,6 @@ Plans:
 | 165. Image Generation Pipeline | 3/3 | Complete   | Complete    | 2026-03-29 |
 | 166. Visual Diff + Asset Reporting | v0.20 | 1/2 | Complete    | 2026-03-29 |
 | 167. Video Production Pipeline | v0.20 | 2/3 | Complete    | 2026-03-29 |
-| 168. AI 3D Generation + Web Embedding | v0.20 | 1/3 | In Progress|  |
+| 168. AI 3D Generation + Web Embedding | v0.20 | 2/3 | Complete    | 2026-03-29 |
 | 169. Parametric CAD Generation | v0.20 | 0/TBD | Not started | - |
 | 170. PDE Utilities | v0.20 | 0/TBD | Not started | - |

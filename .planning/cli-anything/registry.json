@@ -1,0 +1,15 @@
+{
+  "version": "1.0",
+  "entries": [
+    {
+      "name": "git",
+      "version": "1.0.0",
+      "description": "GIT-CLONE(1)                      Git Manual                      GIT-CLONE(1)\n\nN\bNA\bAM\bME\bE\n       git-clone - Clone a repository into a new directory\n\nS\bSY\bYN\bNO\bOP\bPS\bSI\bIS\bS\n       g\bgi\bit\bt c\bcl\blo\bon\bne\be [-\b--\b-t\bte\bem\bmp\bpl\bla\bat\bte\be=\b=_\b<_\bt_\be_\bm_\bp_\bl_\ba_\bt_\be_\b-_\bd_\bi_\br_\be_\bc_\bt_\bo_\br_\by_\b>]\n              [-\b-l\bl] [-\b-s\bs] [-\b--\b-n\bno\bo-\b-h\bha\bar\brd\bdl\bli\bin\bnk\bks\bs] [-\b-q\bq] [-\b-n\bn] [-\b--\b-b\bba\bar\bre\be] [-\b--\b-m\bmi\bir\brr\bro\bor\br]\n              [-\b-o\bo _\b<_\bn_\ba_\bm_\be_\b>] [-\b-b\bb _\b<_\bn_\ba_\bm_\be_\b>] [-\b-u\bu _\b<_\bu_\bp_\bl_\bo_\ba_\bd_\b-_\bp_\ba_\bc_\bk_\b>] [-\b--\b-r\bre\bef\bfe\ber\bre\ben\bnc\bce\be _\b<_\br_\be_\bp_\bo_\bs_\bi_\bt_\bo_\br_\by_\b>]\n              [-\b--\b-d\bdi\bis\bss\bso\boc\bci\bia\bat\bte\be] [-\b--\b-s\bse\bep\bpa\bar\bra\bat\bte\be-\b-g\bgi\bit\bt-\b-d\bdi\bir\br _\b<_\bg_\bi_\bt_\b-_\bd_\bi_\br_\b>]\n              [-\b--\b-d\bde\bep\bpt\bth\bh _\b<_\bd_\be_\bp_\bt_\bh_\b>] [-\b--\b-[n\bno\bo-\b-]s\bsi\bin\bng\bgl\ble\be-\b-b\bbr\bra\ban\bnc\bch\bh] [-\b--\b-n\bno\bo-\b-t\bta\bag\bgs\bs]\n              [-\b--\b-r\bre\bec\bcu\bur\brs\bse\be-\b-s\bsu\bub\bbm\bmo\bod\bdu\bul\ble\b",
+      "binary": "/opt/homebrew/bin/git",
+      "capabilities_count": 22,
+      "skill_path": "/Users/greyaltaer/code/projects/Platform Development Engine/.planning/cli-anything/git/server/SKILL.md",
+      "server_path": "/Users/greyaltaer/code/projects/Platform Development Engine/.planning/cli-anything/git/server/server.cjs",
+      "published_at": "2026-03-29T02:04:43.074Z"
+    }
+  ]
+}

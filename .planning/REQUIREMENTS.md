@@ -43,8 +43,8 @@ Requirements for CLI-Anything + Asset Engine milestone. Each maps to roadmap pha
 
 ### 3D Generation
 
-- [ ] **TRD-01**: User can generate 3D models from text descriptions via TripoSR/SF3D
-- [ ] **TRD-02**: User can generate 3D models from product images via image-to-3D
+- [x] **TRD-01**: User can generate 3D models from text descriptions via TripoSR/SF3D
+- [x] **TRD-02**: User can generate 3D models from product images via image-to-3D
 - [x] **TRD-03**: Generated models output in GLB format with optimized geometry
 - [x] **TRD-04**: User can embed 3D models in web pages via model-viewer component
 - [x] **TRD-05**: model-viewer integration includes automatic AR fallback (USDZ/WebXR)
@@ -119,8 +119,8 @@ Deferred to future milestone. Tracked but not in current roadmap.
 | VID-04 | Phase 167 | Complete |
 | VID-05 | Phase 167 | Complete |
 | VID-06 | Phase 167 | Complete |
-| TRD-01 | Phase 168 | Pending |
-| TRD-02 | Phase 168 | Pending |
+| TRD-01 | Phase 168 | Complete |
+| TRD-02 | Phase 168 | Complete |
 | TRD-03 | Phase 168 | Complete |
 | TRD-04 | Phase 168 | Complete |
 | TRD-05 | Phase 168 | Complete |

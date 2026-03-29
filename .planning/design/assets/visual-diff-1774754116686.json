@@ -1,0 +1,52 @@
+{
+  "branchA": "HEAD",
+  "branchB": "HEAD",
+  "generatedAt": "2026-03-29T03:15:16.685Z",
+  "summary": {
+    "total": 9,
+    "unchanged": 9,
+    "minor": 0,
+    "significant": 0,
+    "major": 0,
+    "new": 0,
+    "deleted": 0
+  },
+  "assets": [
+    {
+      "path": "dashboard/public/icon-192x192.png",
+      "status": "unchanged"
+    },
+    {
+      "path": "dashboard/public/icon-512x512.png",
+      "status": "unchanged"
+    },
+    {
+      "path": "dashboard/public/icon-maskable-512x512.png",
+      "status": "unchanged"
+    },
+    {
+      "path": "templates/mockup-frames/browser.png",
+      "status": "unchanged"
+    },
+    {
+      "path": "templates/mockup-frames/phone.png",
+      "status": "unchanged"
+    },
+    {
+      "path": "tests/phase-165/fixtures/frame-100x100.png",
+      "status": "unchanged"
+    },
+    {
+      "path": "tests/phase-166/fixtures/blue-100x100.png",
+      "status": "unchanged"
+    },
+    {
+      "path": "tests/phase-166/fixtures/red-100x100.png",
+      "status": "unchanged"
+    },
+    {
+      "path": "tests/phase-166/fixtures/red-slight-100x100.png",
+      "status": "unchanged"
+    }
+  ]
+}
