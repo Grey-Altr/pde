@@ -68,6 +68,7 @@ IF --screen flag present:
 | `--quick` | Boolean | Skip MCP enhancements for faster execution. |
 | `--use-stitch` | Boolean | Route generation through Google Stitch MCP instead of Claude HTML/CSS. Requires Stitch connection via /pde:connect stitch. |
 | `--webmcp` | Boolean | Append WebMCP tool context section to output for browser AI agent consumption. Does not affect artifact generation. |
+| `--no-app-tools` | Boolean | Skip all optional desktop app tool probes (GIMP, etc.). Steps 3.5 and 4-GIMP are disabled. |
 
 </flags>
 
@@ -75,7 +76,7 @@ IF --screen flag present:
 
 ## /pde:mockup -- Hi-Fi Mockup Generation Pipeline
 
-Check for flags in $ARGUMENTS before beginning: `--dry-run`, `--screen`, `--verbose`, `--no-mcp`, `--no-playwright`, `--force`, `--quick`, `--use-stitch`, `--webmcp`.
+Check for flags in $ARGUMENTS before beginning: `--dry-run`, `--screen`, `--verbose`, `--no-mcp`, `--no-playwright`, `--force`, `--quick`, `--use-stitch`, `--webmcp`, `--no-app-tools`.
 
 ---
 
@@ -251,6 +252,38 @@ Attempt to call `mcp__stitch__list_projects` (the Stitch probe tool) with a 10-s
   Display: `  -> Stitch MCP: unavailable — falling back to Claude generation`
 
 Display: `Step 3/7: MCP probes complete. Playwright: {available | unavailable}. Stitch: {available | unavailable | not requested}.`
+
+---
+
+### Step 3.5/7: Probe optional desktop app tools
+
+**Check flags first:**
+
+```
+IF --no-app-tools in $ARGUMENTS:
+  SET GIMP_AVAILABLE = false
+  SET GIMP_SKIP_REASON = "disabled by --no-app-tools flag"
+  SKIP app tool probes
+  continue to Step 4
+```
+
+**Probe GIMP** (if not skipped):
+
+```bash
+node --input-type=module <<'PROBE_EOF'
+import { createRequire } from 'module';
+const req = createRequire(import.meta.url);
+const { probeAppTool } = req(`${process.env.CLAUDE_PLUGIN_ROOT}/bin/lib/design-pipeline/probe-app-tool.cjs`);
+const result = probeAppTool('gimp', `${process.env.CLAUDE_PLUGIN_ROOT}/.planning/app-registry.json`);
+process.stdout.write(JSON.stringify(result));
+PROBE_EOF
+```
+
+Parse JSON result:
+- If `available: true`: SET `GIMP_AVAILABLE = true`, SET `GIMP_ENTRY = result.entry`. Log: `  -> GIMP: available (approved, version {entry.version})`
+- If `available: false`: SET `GIMP_AVAILABLE = false`, SET `GIMP_SKIP_REASON = result.reason`. Log: `  -> GIMP: unavailable ({reason})`
+
+Display: `Step 3.5/7: App tool probes complete. GIMP: {available | unavailable}.`
 
 ---
 
@@ -1286,6 +1319,52 @@ Use the Write tool to write the index.html file.
 Display: `Step 4/7: Generated {N} mockup screen(s) + index.html.`
 
 ---
+
+#### Step 4-GIMP: Optional GIMP retouch (if available)
+
+IF GIMP_AVAILABLE is false: SKIP this step. Log:
+```
+Step 4-GIMP: Skipped -- {GIMP_SKIP_REASON}
+```
+For each mockup HTML file: append skip comment before `</body>`:
+`<!-- SKIP: Optional GIMP retouch step not executed. Reason: {GIMP_SKIP_REASON}. To enable: run /pde:cli-wrap gimp, approve in .planning/app-registry.json, re-run /pde:mockup. -->`
+Continue to Step 5.
+
+IF GIMP_AVAILABLE is true:
+
+For each mockup screen, check for an existing screenshot PNG:
+- Glob for `.planning/design/assets/screenshot/{screen-slug}-*.png`
+- If no screenshot found: log `  -> GIMP retouch: skipped for {screen-slug} (no screenshot PNG found -- run pde-tools image screenshot first)`. Continue to next screen.
+
+For each screen that has a screenshot PNG:
+
+```bash
+node --input-type=module <<'GIMP_EOF'
+import { createRequire } from 'module';
+const req = createRequire(import.meta.url);
+const { runGIMPRetouchChain } = req(`${process.env.CLAUDE_PLUGIN_ROOT}/bin/lib/design-pipeline/gimp-chain.cjs`);
+
+const result = await runGIMPRetouchChain({
+  inputPngPath: '${SCREENSHOT_PNG_PATH}',
+  slug: '${SCREEN_SLUG}',
+  registryEntry: ${JSON.stringify(GIMP_ENTRY)},
+});
+
+process.stdout.write(JSON.stringify(result));
+GIMP_EOF
+```
+
+Parse result JSON:
+- Log: `  -> GIMP retouch: ${result.path} (retouched mockup saved to asset pipeline)`
+- The retouched PNG is saved via Phase 165 saveAsset to `.planning/design/assets/mockup/{slug}-gimp-retouched-{timestamp}.png`
+
+If runGIMPRetouchChain throws: catch the error, log warning, append error skip note to HTML, continue (do NOT halt workflow):
+```
+Warning: GIMP retouch failed for {screen-slug}: {error.message}. Continuing without retouch.
+```
+
+Display: `Step 4-GIMP: {N} screens processed, {M} screenshots found, {K} retouched images produced.`
+
 <!-- /OPTIMIZABLE -->
 
 <!-- LOCKED: artifact writes, MCK artifact code, DESIGN-STATE updates, hasMockup coverage write, manifest registration -->
