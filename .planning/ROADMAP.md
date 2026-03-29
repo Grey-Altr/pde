@@ -268,7 +268,10 @@ Plans:
   1. User can provide a product description and receive a working CadQuery Python script that generates a parametric 3D model
   2. Running the CadQuery script produces a valid STEP file that opens without errors in standard CAD tools (FreeCAD, Fusion 360, SOLIDWORKS)
   3. Generated CadQuery scripts are parameterized — changing dimension variables in the script produces correctly scaled geometry
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 169-01-PLAN.md — Core cad.cjs module: CadQuery script generation, STEP validation, asset storage with tests
+- [ ] 169-02-PLAN.md — pde-tools.cjs 3d cad subcommand wiring + /pde:3d cad command documentation
 
 ### Phase 170: PDE Utilities
 **Goal**: Users gain a fast Mermaid renderer, a design token validator with gamut/contrast checks, a visual diff command, flow-derived test scaffolds, and a handoff spec verifier — all as first-class /pde: commands
@@ -300,5 +303,5 @@ Plans:
 | 166. Visual Diff + Asset Reporting | v0.20 | 1/2 | Complete    | 2026-03-29 |
 | 167. Video Production Pipeline | v0.20 | 2/3 | Complete    | 2026-03-29 |
 | 168. AI 3D Generation + Web Embedding | v0.20 | 2/3 | Complete    | 2026-03-29 |
-| 169. Parametric CAD Generation | v0.20 | 0/TBD | Not started | - |
+| 169. Parametric CAD Generation | v0.20 | 0/2 | In progress | - |
 | 170. PDE Utilities | v0.20 | 0/TBD | Not started | - |
