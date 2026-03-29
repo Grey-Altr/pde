@@ -1,5 +1,41 @@
 # Milestones
 
+## v0.21 Desktop App Integration (Shipped: 2026-03-29)
+
+**Phases completed:** 12 phases, 28 plans, 35 tasks
+
+**Key accomplishments:**
+
+- One-liner:
+- Streamable HTTP MCP endpoint at /api/mcp with Clerk OAuth auth, RFC 9728 .well-known discovery routes, and 15-test suite verifying export shapes and auth wiring
+- start_pipeline_run/check_pipeline_run MCP tools using Upstash Redis job store with 1hr TTL, plus desktop client config docs for Claude Code, Cursor, and mcp-remote relay
+- One-liner:
+- emitWebMcpConfig() added as the 7th context-sync emitter, writing .webmcp/config.json for WebMCP browser agent discovery on every emitAll() cycle
+- 1. [Rule 3 - Blocking] Wave 1 files not available in worktree
+- @modelcontextprotocol/ext-apps installed with registerArtifactPreviewTools wiring two dual-mode tools (preview_artifact, list_design_artifacts) and a CSP-declared HTML resource into the PDE MCP server
+- ResourceTemplate registered at ui://pde/{artifact} serving design artifacts as HTML previews via marked (Markdown), JSON pre blocks, and HTML pass-through with inlined tokens.css
+- One-liner:
+- One-liner:
+- One-liner:
+- --webmcp flag added to all four design workflows (wireframe, mockup, critique, competitive) with USE_WEBMCP parse step and conditional WebMCP Context section containing pde_approval_gate tool table and gate ID
+- Step 8/8 added to competitive.md with full sanitization pipeline (injection stripping, 512-char truncation), registry write to .webmcp/competitor-tools-registry.json, gate file creation, and GET /api/planning/competitor-tools route serving approved entries
+- useCompetitorTools hook registered as query_competitor_data WebMCP dispatcher tool, wired into barrel and composite hook, with full source inspection test coverage
+- X-PDE-Relay-Depth circular relay guard module and pde_remote APPROVED_SERVERS entry enabling Claude Code bridge routing to PDE remote MCP server
+- Relay depth guard wired into MCP guardedHandler pipeline (origin -> relay depth -> auth) and Gemini CLI httpUrl config documented
+- Five-tier binary probe with display detection, col-b preprocessing, and executionMode classification for cross-platform desktop app discovery
+- Two-tier approval registry with pending/approved/rejected state machine, SHA-256 hash verification at approval time, and checkApproved guard with actionable CLI error messages
+- pde-tools app subcommands wired for discover/probe/list/approve with known design app catalog documenting Blender, GIMP, and Inkscape
+- One-liner:
+- Blender and Inkscape CapabilityModel builders with TDD coverage — Blender has 3 headless capabilities (render/python-exec/export) with asyncRequired true + 5s startup, Inkscape has 1 pure CLI export capability with no deprecated flags.
+- GIMP 2.x/3.x version-conditional Script-Fu wrapper (parseMajorVersion + buildGimpArgs + getScriptFuTemplates) and pde-tools app wrap subcommand routing to generateAppWrapper pipeline
+- One-liner:
+- One-liner:
+- Dual-strategy CLI-Anything router with harness detection, pipx setup, approval-gated wrapping pipeline, and pde-tools subcommand wiring
+- commands/cli-wrap.md
+- probeAppTool (never-throwing registry probe), Blender bpy GLB export script, and two pipeline chains (Blender->optimize->embed, GIMP->saveAsset) with 16 passing tests
+
+---
+
 ## v0.20 CLI-Anything + Asset Engine (Shipped: 2026-03-29)
 
 **Phases completed:** 15 phases, 39 plans, 51 tasks
