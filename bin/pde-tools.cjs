@@ -717,6 +717,18 @@ async function main() {
       break;
     }
 
+    case 'cli-anything': {
+      const { cmdIngest } = require('./lib/cli-anything/ingest.cjs');
+      const subcommand = args[1];
+      if (subcommand === 'ingest') {
+        await cmdIngest(cwd, args.slice(2));
+      } else {
+        console.error(`Unknown cli-anything subcommand: ${subcommand}. Available: ingest`);
+        process.exit(1);
+      }
+      break;
+    }
+
     case 'phase-plan-index': {
       phase.cmdPhasePlanIndex(cwd, args[1], raw);
       break;

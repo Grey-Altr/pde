@@ -61,12 +61,37 @@ async function cmdIngest(cwd, args) {
   const content = await loadSource(source);
 
   // Step 2: Detect spec type
-  const specType = detectSpecType(source, content);
+  let specType = detectSpecType(source, content);
 
-  // Step 3: Handle http-probe (try GraphQL introspection first, then OpenAPI)
+  // Step 3: Handle http-probe — try GraphQL introspection first, then OpenAPI/JSON Schema
   if (specType === 'http-probe') {
-    // Will be implemented when parsers are wired in Plan 04
-    throw new Error('HTTP URL probing not yet implemented — specify file type explicitly');
+    const graphqlParser = require('./parsers/graphql.cjs');
+    let resolvedContent = content;
+    try {
+      // Try GraphQL introspection first
+      const gqlCapabilities = await graphqlParser.parse(source, null);
+      if (gqlCapabilities && gqlCapabilities.length > 0) {
+        specType = 'graphql';
+        // Return early with GraphQL path (content stays null for graphql parser)
+      } else {
+        throw new Error('No GraphQL capabilities found');
+      }
+    } catch (gqlErr) {
+      // Not GraphQL — try loading as JSON and re-detecting
+      console.log(`[cli-anything] GraphQL probe failed (${gqlErr.message}), trying JSON...`);
+      try {
+        const res = await fetch(source, { headers: { Accept: 'application/json' } });
+        if (res.ok) {
+          resolvedContent = await res.json();
+          specType = detectSpecType(source, resolvedContent);
+          if (specType === 'http-probe' || specType === 'unknown') {
+            throw new Error(`Cannot determine spec type for URL: ${source}`);
+          }
+        }
+      } catch (jsonErr) {
+        throw new Error(`Cannot probe URL ${source}: ${jsonErr.message}`);
+      }
+    }
   }
 
   if (specType === 'unknown') {
@@ -79,9 +104,58 @@ async function cmdIngest(cwd, args) {
 
   console.log(`[cli-anything] Detected spec type: ${specType}`);
 
-  // Step 4-7: Parser wiring, model assembly, output, codegen
-  // Placeholder until parsers are wired in Plan 04
-  throw new Error(`Parser for ${specType} not yet wired — will be completed in Plan 04`);
+  // Step 4: Select parser based on specType
+  const parsers = {
+    openapi: require('./parsers/openapi.cjs'),
+    jsonschema: require('./parsers/jsonschema.cjs'),
+    graphql: require('./parsers/graphql.cjs'),
+    mcp: require('./parsers/mcp.cjs'),
+  };
+  const parser = parsers[specType];
+  if (!parser) throw new Error(`No parser for spec type: ${specType}`);
+  const capabilities = await parser.parse(source, content);
+
+  if (capabilities.length > 500) {
+    console.warn(`[cli-anything] Warning: ${capabilities.length} capabilities — large spec`);
+  }
+
+  // Step 5: Extract auth info
+  let authInfo = {};
+  if (specType === 'openapi' && content) {
+    authInfo = require('./parsers/openapi.cjs').extractAuth(content);
+  }
+
+  // Step 6: Assemble capability model
+  const slug = slugify(source);
+  const model = {
+    meta: {
+      source,
+      type: specType,
+      version: (content && (content.openapi || content?.info?.version)) || '1.0.0',
+      auth: authInfo,
+      generatedAt: new Date().toISOString(),
+    },
+    capabilities,
+  };
+
+  // Step 7: Validate model
+  const validated = validateCapabilityModel(model);
+
+  // Step 8: Write output
+  const outputDir = path.join(cwd, '.planning', 'cli-anything', slug);
+  fs.mkdirSync(outputDir, { recursive: true });
+  fs.writeFileSync(
+    path.join(outputDir, 'capability-model.json'),
+    JSON.stringify(validated, null, 2)
+  );
+  console.log(`[cli-anything] Wrote capability-model.json (${capabilities.length} capabilities)`);
+
+  // Step 9: Generate tools via codegen
+  await require('./codegen.cjs').generateTools(validated, outputDir);
+
+  // Step 10: Print summary
+  console.log(`[cli-anything] Done. Output: ${outputDir}`);
+  console.log(`[cli-anything] Files: capability-model.json, tools.ts`);
 }
 
 module.exports = { cmdIngest, loadSource, slugify };
