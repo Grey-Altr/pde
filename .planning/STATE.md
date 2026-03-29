@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.19
-milestone_name: WebMCP Integration
-status: v0.19 milestone complete
-stopped_at: Completed 162-02-PLAN.md
-last_updated: "2026-03-28T23:24:08.578Z"
+milestone: v0.20
+milestone_name: CLI-Anything + Asset Engine
+status: Defining requirements
+stopped_at: null
+last_updated: "2026-03-28T23:45:00.000Z"
 progress:
-  total_phases: 7
-  completed_phases: 7
-  total_plans: 16
-  completed_plans: 16
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
 # Project State
@@ -19,12 +19,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-28)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 162 — multi-editor-bridge
+**Current focus:** Defining requirements for v0.20
 
 ## Current Position
 
-Phase: 162
-Plan: Not started
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-28 — Milestone v0.20 started
 
 ## Performance Metrics
 

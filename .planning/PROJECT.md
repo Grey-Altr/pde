@@ -156,27 +156,35 @@ Any user can go from idea to shipped product through a single platform that hand
 - ✓ PDE_REMOTE documented in dashboard/.env.example and coordinator.cjs _spawnRelay JSDoc (INT-PDE-REMOTE-DOC) — v0.18
 - ✓ 224 dashboard tests across 29 files, all integration gaps closed — v0.18
 
-## Current Milestone: v0.19 WebMCP Integration
+## Current Milestone: v0.20 CLI-Anything + Asset Engine
 
-**Goal:** Make PDE agent-native across browser, remote, and chat surfaces via WebMCP and Streamable HTTP — enabling universal access, rich visual responses, and zero-config design interaction for end users.
+**Goal:** PDE auto-generates agent-native CLIs from any source (MCP, OpenAPI, GraphQL, --help, source code) and produces product assets (images, video, 3D models) through the design pipeline — all using free/open-source tools with no paid API dependencies.
 
 **Target features:**
-- Remote PDE MCP Server on Vercel (Streamable HTTP endpoint)
-- MCP Apps: Rich UI tool responses in chat
-- Design Artifact Interactive Preview with WebMCP tools
-- Dashboard WebMCP Tools (browser-native agent interface)
-- Design Token Playground with agent tools
-- Declarative Approval Gate Forms
-- WebMCP-Enhanced Critique Pipeline
-- Auto-Generated Competitor Tools from sites
-- Multi-Editor Universal Bridge via WebMCP relay
-- Remote Collaboration Surface
+- Schema ingestion layer (OpenAPI, JSON Schema, GraphQL, MCP server introspection)
+- AI SDK tool() code generation from any schema source
+- MCP server wrapper auto-generation (any CLI → MCP via --help parsing)
+- SKILL.md agent discovery metadata for every generated CLI
+- CLI-Hub registry integration for publishing/discovery
+- Satori/next/og dynamic image generation (OG cards, social images, device mockups)
+- Playwright screenshot pipeline (product captures, visual diff across branches)
+- remove.bg integration (50 free/month background removal)
+- Playwright screen recording → FFmpeg assembly → product demo videos
+- Remotion React video composition (captions, branding, transitions)
+- TripoSR/SF3D open-source 3D model generation (text-to-3D, image-to-3D)
+- model-viewer web component for 3D display with AR
+- CadQuery Python CAD generation for hardware product type
+- mmdr Rust Mermaid renderer (500-1000x faster diagram rendering)
+- DTCG token validators from design artifacts
+- Visual diff (Playwright perceptual hash comparison)
+- Flow-to-test pipeline (generate test scaffolds from /pde:flows output)
+- Handoff verify (check implementation matches spec)
 
 ### Active
 
-(Phase 162 remaining — see REQUIREMENTS.md)
+(See REQUIREMENTS.md)
 
-### Validated (v0.19 — in progress)
+### Validated (v0.19)
 
 - ✓ Remote MCP Server Foundation: Streamable HTTP endpoint with Clerk auth, Origin validation, stateless transport, desktop relay bridge — Phase 156
 - ✓ Dashboard WebMCP Tools: useMcpTool() lifecycle hook, initial tool registrations, .webmcp config emitter — Phase 157
@@ -209,9 +217,11 @@ Any user can go from idea to shipped product through a single platform that hand
 
 ## Current State
 
-**v0.19 WebMCP Integration Phase 160 complete** (2026-03-28) — Declarative Approval Gates + Workflow Flags: `pde_approval_gate` WebMCP browser tool with Clerk-authenticated `/api/planning/gates` API route for file-based gate state in `.planning/gates/`. `--webmcp` flag added to wireframe, mockup, critique, and competitive workflows producing WebMCP Context sections with tool metadata for browser AI agents. 36 source-inspection tests, 346/346 suite green.
+**v0.20 CLI-Anything + Asset Engine started** (2026-03-28) — Defining requirements. Free/open-source only: CLI generation from any schema, asset generation (image/video/3D), PDE utilities.
 
-**v0.18 Distributed Execution shipped** (2026-03-28) — 13 phases, 28 plans, 54 requirements, 129 commits, 142 files, +19,639 LOC. PDE can now dispatch parallel sessions to local/remote worktrees, coordinate via Agent SDK, and surface all activity in the web dashboard and tmux panes. All integration gaps closed (INT-RETRY-STUB, INT-PDE-REMOTE-DOC, INT-AUTH-SILENT, INT-SSH-SOURCE).
+**v0.19 WebMCP Integration shipped** (2026-03-28) — 7 phases, 16 plans, 30 requirements. Remote MCP server, MCP Apps rich UI, dashboard WebMCP tools, token playground, approval gates, competitor tools, multi-editor bridge.
+
+**v0.18 Distributed Execution shipped** (2026-03-28) — 13 phases, 28 plans, 54 requirements, 129 commits, 142 files, +19,639 LOC. Worktree isolation, parallel CLI dispatch, Agent SDK orchestrator, SSH remote dispatch, multi-session dashboard and tmux integration.
 
 ### Out of Scope
 
@@ -235,6 +245,7 @@ Any user can go from idea to shipped product through a single platform that hand
 
 ## Context
 
+- **Shipped v0.19** on 2026-03-28: 7 phases, 16 plans, 30 requirements (WebMCP Integration: remote MCP server, MCP Apps rich UI, dashboard WebMCP tools, token playground, approval gates, competitor tools, multi-editor bridge)
 - **Shipped v0.18** on 2026-03-28: 13 phases, 28 plans, 54 requirements, 129 commits, 142 files, +19,639 LOC (Distributed Execution: worktree isolation, parallel CLI dispatch, Agent SDK orchestrator, SSH remote dispatch, multi-session dashboard and tmux integration)
 - **Shipped v0.17** on 2026-03-26: 13 phases, 27 plans, 27 requirements, 224 commits, 308 files, +44,337 LOC (Remote Dashboard: relay daemon, Next.js 16 PWA, approval gates, Web Push, production hardening)
 - **Shipped v0.16** on 2026-03-24: 7 phases, 14 plans, 26 requirements, 48 commits (Multi-Editor Context Sync: bidirectional sync, 3-way merge, conflict detection, sync audit trail, user content preservation)
