@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.20
 milestone_name: CLI-Anything + Asset Engine
-status: Ready to plan
-stopped_at: null
-last_updated: "2026-03-28T00:00:00.000Z"
+status: Ready to execute
+stopped_at: Completed 163-02-PLAN.md
+last_updated: "2026-03-29T01:03:59.881Z"
 progress:
-  total_phases: 8
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_phases: 15
+  completed_phases: 7
+  total_plans: 20
+  completed_plans: 18
 ---
 
 # Project State
@@ -23,12 +23,8 @@ See: .planning/PROJECT.md (updated 2026-03-28)
 
 ## Current Position
 
-Phase: 163 of 170 (CLI Ingestion + Capability Model)
-Plan: Not started
-Status: Ready to plan
-Last activity: 2026-03-28 — Roadmap created for v0.20 (Phases 163-170, 41 requirements)
-
-Progress: [░░░░░░░░░░] 0%
+Phase: 163 (CLI Ingestion + Capability Model) — EXECUTING
+Plan: 3 of 4
 
 ## Performance Metrics
 
@@ -51,6 +47,11 @@ Progress: [░░░░░░░░░░] 0%
 - 3D pipeline: .planning/design/3d/ is the canonical output directory for generated GLB/STEP files with generation metadata
 - Visual diff (IMG-05/06) is the engine layer; UTL-04 is the /pde: command surface that calls it — clean separation across phases
 - Phase 169 (CAD) depends on Phase 168 (3D) because CadQuery output lives in the same 3D asset directory and builds on the 3D pipeline conventions
+- [Phase 163]: Zod v4.3.6 requires z.record(z.string(), z.unknown()) — one-arg z.record(z.unknown()) crashes on non-trivial values; fixed in model.cjs
+- [Phase 163]: vitest.config.ts server.deps.inline zod — prevents dual Zod instance issue between CJS modules and ESM test files
+- [Phase 163]: resolveRefs for OpenAPI: paths starting with 'components/' resolved relative to spec.components to handle '#/components/schemas/X' format
+- [Phase 163]: buildInputSchema flattens requestBody object properties directly into inputSchema.properties (not nested under 'body') for type:object with properties
+- [Phase 163]: JSON Schema parser uses path.basename(source) slug as root capability name;  entries use their definition key names
 
 ### Pending Todos
 
@@ -64,7 +65,7 @@ Progress: [░░░░░░░░░░] 0%
 
 ## Session Continuity
 
-Last session: 2026-03-28
-Stopped at: Roadmap written for v0.20 — 8 phases, 41 requirements mapped
+Last session: 2026-03-29T01:03:59.878Z
+Stopped at: Completed 163-02-PLAN.md
 Resume with: `/gsd:plan-phase 163`
 Resume file: None
