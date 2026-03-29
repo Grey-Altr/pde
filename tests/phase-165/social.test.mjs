@@ -44,13 +44,14 @@ describe('generateSocialCards()', () => {
     expect(platforms).toContain('facebook');
 
     // Also verify file paths contain the platform suffix
+    // Filename format: {slug}-{platform}-{timestamp}.png — platform suffix appears before timestamp
     const twitterResult = results.find(r => r.meta.params.platform === 'twitter');
     const linkedinResult = results.find(r => r.meta.params.platform === 'linkedin');
     const facebookResult = results.find(r => r.meta.params.platform === 'facebook');
 
-    expect(twitterResult.path).toMatch(/-twitter\.png$/);
-    expect(linkedinResult.path).toMatch(/-linkedin\.png$/);
-    expect(facebookResult.path).toMatch(/-facebook\.png$/);
+    expect(twitterResult.path).toMatch(/-twitter-\d+\.png$/);
+    expect(linkedinResult.path).toMatch(/-linkedin-\d+\.png$/);
+    expect(facebookResult.path).toMatch(/-facebook-\d+\.png$/);
   });
 
   it('Test Social-3: each variant has correct dimensions in meta', async () => {

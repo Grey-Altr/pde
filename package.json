@@ -19,8 +19,10 @@
     "zod": "^4.3.6"
   },
   "dependencies": {
+    "@fontsource/inter": "^5.2.8",
     "@resvg/resvg-js": "^2.6.2",
     "htm": "^3.1.1",
+    "inter-ui": "^4.1.1",
     "playwright": "^1.58.2",
     "satori": "^0.26.0",
     "sharp": "^0.34.5"
