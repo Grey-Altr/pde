@@ -18,19 +18,19 @@ Requirements for Desktop App Integration milestone. Each maps to roadmap phases.
 
 ### Core App Wrappers
 
-- [ ] **WRAP-01**: Blender CLI wrapper with `--background` headless mode, version-aware (3.x vs 4.x), `startupMs` declaration, async-only MCP server
-- [ ] **WRAP-02**: GIMP CLI wrapper with `--no-interface --batch` Script-Fu mode, GIMP 2.x vs 3.x version detection and flag adaptation
-- [ ] **WRAP-03**: Inkscape CLI wrapper with `inkscape --export-type` pure CLI mode, no headless flags needed
+- [x] **WRAP-01**: Blender CLI wrapper with `--background` headless mode, version-aware (3.x vs 4.x), `startupMs` declaration, async-only MCP server
+- [x] **WRAP-02**: GIMP CLI wrapper with `--no-interface --batch` Script-Fu mode, GIMP 2.x vs 3.x version detection and flag adaptation
+- [x] **WRAP-03**: Inkscape CLI wrapper with `inkscape --export-type` pure CLI mode, no headless flags needed
 - [x] **WRAP-04**: SKILL.md auto-generation for all three wrapped apps extending Phase 164 machinery
 - [x] **WRAP-05**: JSON structured output mode for every wrapped app command (required for pipeline chaining)
-- [ ] **WRAP-06**: Version-aware capability models that reflect the actual installed version's API surface
+- [x] **WRAP-06**: Version-aware capability models that reflect the actual installed version's API surface
 
 ### MCP Bridge & Registration
 
-- [ ] **REG-01**: `mcp-bridge.cjs` gains `loadDynamicServers(registryPath)` reading registry.json at module init, populating APPROVED_SERVERS + TOOL_MAP for `approved` entries only
+- [x] **REG-01**: `mcp-bridge.cjs` gains `loadDynamicServers(registryPath)` reading registry.json at module init, populating APPROVED_SERVERS + TOOL_MAP for `approved` entries only
 - [ ] **REG-02**: `pde-tools app discover|wrap|register|list|probe` subcommand as user-facing CLI entry point
 - [ ] **REG-03**: `server-gen.cjs` gains `generatePythonModuleHandler()` for pip CLIs using `python -m {tool}` spawn pattern
-- [ ] **REG-04**: Dynamic registration uses `registerDynamicServer(slug, serverPath, caps)` for single-app registration path
+- [x] **REG-04**: Dynamic registration uses `registerDynamicServer(slug, serverPath, caps)` for single-app registration path
 
 ### Design Pipeline Integration
 
@@ -84,16 +84,16 @@ Deferred to future release. Tracked but not in current roadmap.
 | DISC-04 | Phase 171 | Complete |
 | DISC-05 | Phase 171 | Complete |
 | DISC-06 | Phase 171 | Complete |
-| WRAP-01 | Phase 172 | Pending |
-| WRAP-02 | Phase 172 | Pending |
-| WRAP-03 | Phase 172 | Pending |
+| WRAP-01 | Phase 172 | Complete |
+| WRAP-02 | Phase 172 | Complete |
+| WRAP-03 | Phase 172 | Complete |
 | WRAP-04 | Phase 172 | Complete |
 | WRAP-05 | Phase 172 | Complete |
-| WRAP-06 | Phase 172 | Pending |
-| REG-01 | Phase 173 | Pending |
+| WRAP-06 | Phase 172 | Complete |
+| REG-01 | Phase 173 | Complete |
 | REG-02 | Phase 173 | Pending |
 | REG-03 | Phase 173 | Pending |
-| REG-04 | Phase 173 | Pending |
+| REG-04 | Phase 173 | Complete |
 | CLI-01 | Phase 174 | Pending |
 | CLI-02 | Phase 174 | Pending |
 | CLI-03 | Phase 174 | Pending |

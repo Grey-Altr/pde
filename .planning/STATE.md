@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.21
 milestone_name: Desktop App Integration
-status: Ready to plan
-stopped_at: Completed 172-03-PLAN.md
-last_updated: "2026-03-29T18:45:47.554Z"
+status: Ready to execute
+stopped_at: Completed 173-01-PLAN.md
+last_updated: "2026-03-29T19:23:53.279Z"
 progress:
   total_phases: 12
   completed_phases: 9
-  total_plans: 22
-  completed_plans: 22
+  total_plans: 24
+  completed_plans: 23
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-29)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 172 — core-app-wrappers
+**Current focus:** Phase 173 — mcp-bridge-dynamic-registration
 
 ## Current Position
 
-Phase: 173
-Plan: Not started
+Phase: 173 (mcp-bridge-dynamic-registration) — EXECUTING
+Plan: 2 of 2
 
 ## Performance Metrics
 
@@ -54,6 +54,8 @@ Plan: Not started
 - [Phase 172-core-app-wrappers]: Blender asyncRequired=true and startupMs=5000 in getMetadata — CapabilityModel meta is strings-only per Zod schema
 - [Phase 172-core-app-wrappers]: Inkscape --without-gui and --batch-process absent — deprecated since 1.0; GUI auto-suppressed by export flags
 - [Phase 172]: GIMP 3.x uses --quit flag (introduced 2.99.12); GIMP 2.x uses --batch '(gimp-quit 0)' — enforced via parseMajorVersion() branch
+- [Phase 173]: Used separate DYNAMIC_SERVERS map instead of merging into APPROVED_SERVERS to keep static security policy boundary clean
+- [Phase 173]: loadDynamicServers accepts optional projectRoot param for testability without mocking process.cwd()
 
 ### Pending Todos
 
@@ -66,7 +68,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-29T18:41:14.729Z
-Stopped at: Completed 172-03-PLAN.md
+Last session: 2026-03-29T19:23:53.275Z
+Stopped at: Completed 173-01-PLAN.md
 Resume with: `/gsd:plan-phase 171`
 Resume file: None
