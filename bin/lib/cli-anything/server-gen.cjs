@@ -109,6 +109,61 @@ function generateToolHandler(cap) {
 }
 
 /**
+ * Validate a pip module name — rejects shell metacharacters and path traversal.
+ * Allows only alphanumeric, underscore, and hyphen characters.
+ *
+ * @param {string} moduleName - The pip module name to validate
+ * @throws {Error} If moduleName is not a non-empty string or contains invalid characters
+ */
+function validateModuleName(moduleName) {
+  if (typeof moduleName !== 'string' || moduleName.length === 0) {
+    throw new Error('moduleName must be a non-empty string');
+  }
+  if (!/^[a-zA-Z0-9_-]+$/.test(moduleName)) {
+    throw new Error(
+      `Invalid pip module name "${moduleName}". Only alphanumeric, underscore, and hyphen characters are allowed.`
+    );
+  }
+}
+
+/**
+ * Generate a tool handler body for a pip CLI capability using python3 -m.
+ * Uses spawnSync with argument array (no shell string concatenation) to prevent injection.
+ *
+ * @param {string} moduleName - The pip module name (e.g. 'rembg', 'imageio-ffmpeg')
+ * @param {object} cap - Capability object
+ * @returns {string} JavaScript async handler body
+ */
+function generatePythonModuleHandler(moduleName, cap) {
+  validateModuleName(moduleName);
+  const subPath = cap.extensions && cap.extensions.subcommandPath
+    ? JSON.stringify(cap.extensions.subcommandPath)
+    : JSON.stringify(cap.path ? cap.path.split(' ').slice(1) : []);
+  const safeModuleLiteral = JSON.stringify(moduleName);
+
+  return `async (input) => {
+    const args = [...${subPath}];
+    if (input && input.useJson) args.push('--json');
+    if (input) {
+      for (const [key, val] of Object.entries(input)) {
+        if (key === 'useJson') continue;
+        if (val !== undefined && val !== null && val !== false) {
+          args.push('--' + key);
+          if (val !== true) args.push(String(val));
+        }
+      }
+    }
+    if (DRY_RUN) {
+      return { content: [{ type: 'text', text: JSON.stringify({ dryRun: true, command: ['python3', '-m', ${safeModuleLiteral}, ...args] }) }] };
+    }
+    const r = spawnSync('python3', ['-m', ${safeModuleLiteral}, ...args], { encoding: 'utf8', timeout: 30000 });
+    let data;
+    try { data = JSON.parse(r.stdout); } catch (_) { data = { stdout: (r.stdout || '').trim(), stderr: (r.stderr || '').trim(), exitCode: r.status !== null ? r.status : -1 }; }
+    return { content: [{ type: 'text', text: JSON.stringify(data) }] };
+  }`;
+}
+
+/**
  * Generate a complete CJS MCP server source string.
  *
  * @param {Array} capabilities - Array of CapabilitySchema-shaped objects
@@ -200,4 +255,4 @@ function writeServer(outputDir, capabilities, meta, projectRoot, options = {}) {
   return serverPath;
 }
 
-module.exports = { generateServerSource, generateAsyncToolHandler, writeServer };
+module.exports = { generateServerSource, generateAsyncToolHandler, writeServer, validateModuleName, generatePythonModuleHandler };
