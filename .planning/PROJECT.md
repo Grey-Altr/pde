@@ -212,7 +212,7 @@ Any user can go from idea to shipped product through a single platform that hand
 
 ## Current State
 
-**v0.21 Desktop App Integration in progress** — Phase 171 complete (Security Architecture + Discovery Foundation). Five-tier binary probe, two-tier approval registry, executionMode classification, col -b preprocessing, and known app catalog (Blender, GIMP, Inkscape) implemented. Next: Phase 172 Core App Wrappers.
+**v0.21 Desktop App Integration in progress** — Phase 172 complete (Core App Wrappers). Blender, GIMP, and Inkscape wrapper modules build validated CapabilityModels from approved registry entries. asyncMode server generator for long-running apps, version-conditional GIMP 2.x/3.x Script-Fu, `pde-tools app wrap` CLI, SKILL.md path fix. 78 tests, zero regressions. Next: Phase 173 MCP Bridge + Dynamic Registration.
 
 **v0.20 CLI-Anything + Asset Engine shipped** (2026-03-29) — 8 phases, 23 plans, 41 requirements. Auto-generated CLIs/MCP servers from any API spec (OpenAPI, JSON Schema, GraphQL, MCP), full asset engine (OG images, social cards, video production, 3D generation, parametric CAD), visual diff, and PDE utility commands. All free/open-source toolchains.
 
@@ -388,4 +388,4 @@ This document evolves at phase transitions and milestone boundaries.
 3. Audit Out of Scope — reasons still valid?
 4. Update Context with current state
 
-*Last updated: 2026-03-29 after Phase 171 — Security Architecture + Discovery Foundation complete*
+*Last updated: 2026-03-29 after Phase 172 — Core App Wrappers complete*
