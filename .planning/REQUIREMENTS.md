@@ -27,8 +27,8 @@ Requirements for CLI-Anything + Asset Engine milestone. Each maps to roadmap pha
 - [x] **IMG-02**: User can generate social media card images from product data
 - [x] **IMG-03**: User can generate device mockup composites (browser frame, phone frame) from screenshots
 - [x] **IMG-04**: User can capture product screenshots via Playwright at configurable viewports
-- [ ] **IMG-05**: User can run visual diff across git branches using perceptual hashing
-- [ ] **IMG-06**: Visual diff produces a comparison report with changed/unchanged/new/deleted assets
+- [x] **IMG-05**: User can run visual diff across git branches using perceptual hashing
+- [x] **IMG-06**: Visual diff produces a comparison report with changed/unchanged/new/deleted assets
 - [x] **IMG-07**: User can remove image backgrounds via remove.bg free tier (50/month)
 - [x] **IMG-08**: Image pipeline stores assets in .planning/design/assets/ with metadata JSON
 
@@ -36,8 +36,8 @@ Requirements for CLI-Anything + Asset Engine milestone. Each maps to roadmap pha
 
 - [ ] **VID-01**: User can record product UI interactions via Playwright screen capture
 - [ ] **VID-02**: User can assemble video clips with FFmpeg (transitions, overlays, captions)
-- [ ] **VID-03**: User can compose branded product videos via Remotion React components
-- [ ] **VID-04**: Remotion templates include PDE design tokens (colors, fonts, spacing)
+- [x] **VID-03**: User can compose branded product videos via Remotion React components
+- [x] **VID-04**: Remotion templates include PDE design tokens (colors, fonts, spacing)
 - [ ] **VID-05**: Video pipeline produces MP4 output with configurable resolution
 - [ ] **VID-06**: User can add text captions/subtitles to generated videos
 
@@ -109,14 +109,14 @@ Deferred to future milestone. Tracked but not in current roadmap.
 | IMG-02 | Phase 165 | Complete |
 | IMG-03 | Phase 165 | Complete |
 | IMG-04 | Phase 165 | Complete |
-| IMG-05 | Phase 166 | Pending |
-| IMG-06 | Phase 166 | Pending |
+| IMG-05 | Phase 166 | Complete |
+| IMG-06 | Phase 166 | Complete |
 | IMG-07 | Phase 165 | Complete |
 | IMG-08 | Phase 165 | Complete |
 | VID-01 | Phase 167 | Pending |
 | VID-02 | Phase 167 | Pending |
-| VID-03 | Phase 167 | Pending |
-| VID-04 | Phase 167 | Pending |
+| VID-03 | Phase 167 | Complete |
+| VID-04 | Phase 167 | Complete |
 | VID-05 | Phase 167 | Pending |
 | VID-06 | Phase 167 | Pending |
 | TRD-01 | Phase 168 | Pending |

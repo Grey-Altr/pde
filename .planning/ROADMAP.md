@@ -237,10 +237,10 @@ Plans:
   3. User can compose a branded product video using Remotion React components that automatically apply PDE design tokens (colors, fonts, spacing)
   4. Video pipeline produces an MP4 file at a configurable resolution without requiring a paid video service
   5. User can add text captions or subtitles to any generated video and see them rendered in the final MP4
-**Plans:** 3 plans
+**Plans:** 1/3 plans executed
 Plans:
 - [ ] 167-01-PLAN.md — FFmpeg pipeline: deps install, video assets, record, assemble, caption modules with tests
-- [ ] 167-02-PLAN.md — Remotion branded video: isolated project, compositions, compose.cjs with token extraction
+- [x] 167-02-PLAN.md — Remotion branded video: isolated project, compositions, compose.cjs with token extraction
 - [ ] 167-03-PLAN.md — pde-tools.cjs video subcommand wiring + /pde:video command doc
 
 ### Phase 168: AI 3D Generation + Web Embedding
@@ -294,7 +294,7 @@ Plans:
 | 164. CLI Wrapping + Publishing | v0.20 | 2/3 | Complete    | 2026-03-29 |
 | 165. Image Generation Pipeline | 3/3 | Complete   | Complete    | 2026-03-29 |
 | 166. Visual Diff + Asset Reporting | v0.20 | 1/2 | Complete    | 2026-03-29 |
-| 167. Video Production Pipeline | v0.20 | 0/3 | In progress | - |
+| 167. Video Production Pipeline | v0.20 | 1/3 | In Progress|  |
 | 168. AI 3D Generation + Web Embedding | v0.20 | 0/TBD | Not started | - |
 | 169. Parametric CAD Generation | v0.20 | 0/TBD | Not started | - |
 | 170. PDE Utilities | v0.20 | 0/TBD | Not started | - |

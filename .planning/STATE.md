@@ -1,15 +1,15 @@
 ---
-pde_state_version: 1.0
+gsd_state_version: 1.0
 milestone: v0.20
 milestone_name: CLI-Anything + Asset Engine
-status: unknown
-stopped_at: Completed 165-03-PLAN.md
-last_updated: "2026-03-29T02:47:41.872Z"
+status: Ready to execute
+stopped_at: Completed 167-02-PLAN.md
+last_updated: "2026-03-29T03:42:38.038Z"
 progress:
   total_phases: 15
-  completed_phases: 10
-  total_plans: 26
-  completed_plans: 26
+  completed_phases: 11
+  total_plans: 31
+  completed_plans: 29
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-28)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 164 — CLI Wrapping + Publishing
+**Current focus:** Phase 167 — Video Production Pipeline
 
 ## Current Position
 
-Phase: 164 (CLI Wrapping + Publishing) — EXECUTING
-Plan: 3 of 3
+Phase: 167 (Video Production Pipeline) — EXECUTING
+Plan: 2 of 3
 
 ## Performance Metrics
 
@@ -62,6 +62,10 @@ Plan: 3 of 3
 - [Phase 164]: server-gen embeds absolute SDK path via JSON.stringify in generated server.cjs — fully self-contained MCP stdio server
 - [Phase 165]: Pass ASSETS_DIR from assets.cjs to all saving subcommands so CLI always persists output to .planning/design/assets/
 - [Phase 165]: image subcommand routing in pde-tools.cjs uses case 'image' following cli-anything pattern with args.indexOf() for flag parsing
+- [Phase 166]: pHash uses 32x32 resize to full DCT then top-left 8x8 (not 8x8 resize) for proper 64-bit hash with adequate frequency information
+- [Phase 166]: Solid-color synthetic images produce degenerate pHash outputs (Pitfall 5) — relative distance ordering unreliable; tests assert only non-zero distance
+- [Phase 166-visual-diff-asset-reporting]: diff subcommand added after existing image subcommands before the default else block; missing args produce usage error and exit 1
+- [Phase 167-video-production-pipeline]: Isolated Remotion package.json with exact pinned versions; walkTokens() maps DTCG color/fontFamily tokens to BrandedVideo props; assets.cjs created in parallel to unblock compose.cjs
 
 ### Pending Todos
 
@@ -75,7 +79,7 @@ Plan: 3 of 3
 
 ## Session Continuity
 
-Last session: 2026-03-29T02:47:41.869Z
-Stopped at: Completed 165-03-PLAN.md
+Last session: 2026-03-29T03:42:38.035Z
+Stopped at: Completed 167-02-PLAN.md
 Resume with: `/gsd:plan-phase 163`
 Resume file: None
