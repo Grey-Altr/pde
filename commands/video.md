@@ -183,14 +183,7 @@ For `compose` (Remotion):
 npm install remotion @remotion/renderer @remotion/bundler
 ```
 
-For `assemble` and `caption` (FFmpeg): FFmpeg must be installed and available on `PATH`:
-```bash
-# macOS
-brew install ffmpeg
-
-# Ubuntu/Debian
-apt-get install ffmpeg
-```
+For `assemble` and `caption` (FFmpeg): `ffmpeg-static` is bundled as an npm dependency — no system FFmpeg installation required. It is installed automatically with `npm install`.
 
 ## Implementation
 
