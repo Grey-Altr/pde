@@ -281,6 +281,6 @@ Plans:
 | 170. PDE Utilities | v0.20 | 3/3 | Complete | 2026-03-29 |
 | 171. Security Architecture + Discovery Foundation | v0.21 | 2/3 | Complete    | 2026-03-29 |
 | 172. Core App Wrappers | v0.21 | 1/3 | Complete    | 2026-03-29 |
-| 173. MCP Bridge Dynamic Registration | v0.21 | 2/2 | Complete   | 2026-03-29 |
+| 173. MCP Bridge Dynamic Registration | v0.21 | 2/2 | Complete    | 2026-03-29 |
 | 174. CLI Wrap Skill | v0.21 | 0/TBD | Not started | - |
 | 175. Design Pipeline Integration | v0.21 | 0/TBD | Not started | - |
