@@ -34,23 +34,23 @@ Requirements for CLI-Anything + Asset Engine milestone. Each maps to roadmap pha
 
 ### Video Generation
 
-- [ ] **VID-01**: User can record product UI interactions via Playwright screen capture
-- [ ] **VID-02**: User can assemble video clips with FFmpeg (transitions, overlays, captions)
+- [x] **VID-01**: User can record product UI interactions via Playwright screen capture
+- [x] **VID-02**: User can assemble video clips with FFmpeg (transitions, overlays, captions)
 - [x] **VID-03**: User can compose branded product videos via Remotion React components
 - [x] **VID-04**: Remotion templates include PDE design tokens (colors, fonts, spacing)
-- [ ] **VID-05**: Video pipeline produces MP4 output with configurable resolution
-- [ ] **VID-06**: User can add text captions/subtitles to generated videos
+- [x] **VID-05**: Video pipeline produces MP4 output with configurable resolution
+- [x] **VID-06**: User can add text captions/subtitles to generated videos
 
 ### 3D Generation
 
 - [ ] **TRD-01**: User can generate 3D models from text descriptions via TripoSR/SF3D
 - [ ] **TRD-02**: User can generate 3D models from product images via image-to-3D
-- [ ] **TRD-03**: Generated models output in GLB format with optimized geometry
-- [ ] **TRD-04**: User can embed 3D models in web pages via model-viewer component
-- [ ] **TRD-05**: model-viewer integration includes automatic AR fallback (USDZ/WebXR)
+- [x] **TRD-03**: Generated models output in GLB format with optimized geometry
+- [x] **TRD-04**: User can embed 3D models in web pages via model-viewer component
+- [x] **TRD-05**: model-viewer integration includes automatic AR fallback (USDZ/WebXR)
 - [ ] **TRD-06**: User can generate parametric CAD models via CadQuery Python scripts for hardware products
 - [ ] **TRD-07**: CadQuery outputs STEP files for engineering handoff
-- [ ] **TRD-08**: 3D assets stored in .planning/design/3d/ with generation metadata
+- [x] **TRD-08**: 3D assets stored in .planning/design/3d/ with generation metadata
 
 ### PDE Utilities
 
@@ -113,20 +113,20 @@ Deferred to future milestone. Tracked but not in current roadmap.
 | IMG-06 | Phase 166 | Complete |
 | IMG-07 | Phase 165 | Complete |
 | IMG-08 | Phase 165 | Complete |
-| VID-01 | Phase 167 | Pending |
-| VID-02 | Phase 167 | Pending |
+| VID-01 | Phase 167 | Complete |
+| VID-02 | Phase 167 | Complete |
 | VID-03 | Phase 167 | Complete |
 | VID-04 | Phase 167 | Complete |
-| VID-05 | Phase 167 | Pending |
-| VID-06 | Phase 167 | Pending |
+| VID-05 | Phase 167 | Complete |
+| VID-06 | Phase 167 | Complete |
 | TRD-01 | Phase 168 | Pending |
 | TRD-02 | Phase 168 | Pending |
-| TRD-03 | Phase 168 | Pending |
-| TRD-04 | Phase 168 | Pending |
-| TRD-05 | Phase 168 | Pending |
+| TRD-03 | Phase 168 | Complete |
+| TRD-04 | Phase 168 | Complete |
+| TRD-05 | Phase 168 | Complete |
 | TRD-06 | Phase 169 | Pending |
 | TRD-07 | Phase 169 | Pending |
-| TRD-08 | Phase 168 | Pending |
+| TRD-08 | Phase 168 | Complete |
 | UTL-01 | Phase 170 | Pending |
 | UTL-02 | Phase 170 | Pending |
 | UTL-03 | Phase 170 | Pending |

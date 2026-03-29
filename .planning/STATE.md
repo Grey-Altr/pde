@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.20
 milestone_name: CLI-Anything + Asset Engine
 status: Ready to execute
-stopped_at: Completed 167-02-PLAN.md
-last_updated: "2026-03-29T03:42:38.038Z"
+stopped_at: Completed 168-01-PLAN.md
+last_updated: "2026-03-29T04:13:28.538Z"
 progress:
   total_phases: 15
-  completed_phases: 11
-  total_plans: 31
-  completed_plans: 29
+  completed_phases: 12
+  total_plans: 34
+  completed_plans: 32
 ---
 
 # Project State
@@ -19,11 +19,11 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-28)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 167 — Video Production Pipeline
+**Current focus:** Phase 168 — AI 3D Generation + Web Embedding
 
 ## Current Position
 
-Phase: 167 (Video Production Pipeline) — EXECUTING
+Phase: 168 (AI 3D Generation + Web Embedding) — EXECUTING
 Plan: 2 of 3
 
 ## Performance Metrics
@@ -66,6 +66,12 @@ Plan: 2 of 3
 - [Phase 166]: Solid-color synthetic images produce degenerate pHash outputs (Pitfall 5) — relative distance ordering unreliable; tests assert only non-zero distance
 - [Phase 166-visual-diff-asset-reporting]: diff subcommand added after existing image subcommands before the default else block; missing args produce usage error and exit 1
 - [Phase 167-video-production-pipeline]: Isolated Remotion package.json with exact pinned versions; walkTokens() maps DTCG color/fontFamily tokens to BrandedVideo props; assets.cjs created in parallel to unblock compose.cjs
+- [Phase 167]: ffmpeg-static used as bundled binary source — no system FFmpeg required
+- [Phase 167]: spawnSync used in getClipDuration to reliably capture FFmpeg stderr (exits code 1 for -f null -)
+- [Phase 167]: Playwright video path only accessible after context.close() — video ref saved before close
+- [Phase 167]: video case block placed after image case block, before phase-plan-index — maintains consistent ordering of media commands in pde-tools.cjs
+- [Phase 168-ai-3d-generation-web-embedding]: No ios-src in model-viewer embed — model-viewer 4.x auto-generates USDZ for iOS Quick Look
+- [Phase 168-ai-3d-generation-web-embedding]: gltf-transform used as CLI (spawnSync) not programmatic API to avoid ESM/CJS boundary issues in CJS modules
 
 ### Pending Todos
 
@@ -79,7 +85,7 @@ Plan: 2 of 3
 
 ## Session Continuity
 
-Last session: 2026-03-29T03:42:38.035Z
-Stopped at: Completed 167-02-PLAN.md
+Last session: 2026-03-29T04:13:28.534Z
+Stopped at: Completed 168-01-PLAN.md
 Resume with: `/gsd:plan-phase 163`
 Resume file: None
