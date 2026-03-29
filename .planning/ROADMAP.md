@@ -251,11 +251,10 @@ Plans:
   1. Running `/pde:wireframe` or `/pde:mockup` on a machine without Blender, GIMP, or Inkscape completes without error — each optional app-tool step is skipped with a documented "tool not available" note rather than a failure
   2. On a machine where Blender is approved in the registry, a 3D wireframe step can pass its render output directly into the Phase 168 GLB optimize → model-viewer pipeline without manual file transfer
   3. On a machine where GIMP is approved in the registry, a mockup workflow can invoke GIMP retouch as an editing step within the Phase 165 image pipeline, producing a retouched artifact in the pipeline output directory
-**Plans**: 3 plans
+**Plans**: 2 plans
 Plans:
-- [ ] 171-01-PLAN.md — Five-tier binary probe, display detection, col-b preprocessing, APP_CATALOG
-- [ ] 171-02-PLAN.md — Two-tier approval registry with state machine and SHA-256 verification
-- [ ] 171-03-PLAN.md — pde-tools app CLI routing and known design app catalog
+- [ ] 175-01-PLAN.md — probeAppTool utility, Blender GLB export + chain, GIMP retouch chain, tests
+- [ ] 175-02-PLAN.md — Wire Blender step into wireframe.md, GIMP step into mockup.md
 
 ---
 
@@ -282,4 +281,4 @@ Plans:
 | 172. Core App Wrappers | v0.21 | 1/3 | Complete    | 2026-03-29 |
 | 173. MCP Bridge Dynamic Registration | v0.21 | 2/2 | Complete    | 2026-03-29 |
 | 174. CLI Wrap Skill | v0.21 | 0/2 | Complete    | 2026-03-29 |
-| 175. Design Pipeline Integration | v0.21 | 0/TBD | Not started | - |
+| 175. Design Pipeline Integration | v0.21 | 0/2 | Not started | - |
