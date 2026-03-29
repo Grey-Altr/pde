@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.21
 milestone_name: Desktop App Integration
-status: Ready to plan
-stopped_at: Completed 173-02-PLAN.md
-last_updated: "2026-03-29T20:06:30.299Z"
+status: Milestone complete
+stopped_at: Completed 175-02-PLAN.md
+last_updated: "2026-03-29T20:39:15.857Z"
 progress:
   total_phases: 12
-  completed_phases: 11
-  total_plans: 26
-  completed_plans: 26
+  completed_phases: 12
+  total_plans: 28
+  completed_plans: 28
 ---
 
 # Project State
@@ -19,7 +19,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-29)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 173 — mcp-bridge-dynamic-registration
+**Current focus:** Phase 175 — design-pipeline-integration
 
 ## Current Position
 
@@ -57,6 +57,8 @@ Plan: Not started
 - [Phase 173]: Used separate DYNAMIC_SERVERS map instead of merging into APPROVED_SERVERS to keep static security policy boundary clean
 - [Phase 173]: loadDynamicServers accepts optional projectRoot param for testability without mocking process.cwd()
 - [Phase 173]: Use safeReadFile (not fs.readFileSync) in register case — returns null on ENOENT instead of throwing
+- [Phase 175]: vi.spyOn on module.exports (not vi.mock) for CJS-in-CJS mocking: vi.mock factory doesn't intercept require() calls inside lazy CJS modules
+- [Phase 175]: GIMP version strings require 'GIMP X.Y.Z' format for parseMajorVersion() — bare version numbers return null and default to 2.x
 
 ### Pending Todos
 
@@ -69,7 +71,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-29T19:32:27.091Z
-Stopped at: Completed 173-02-PLAN.md
+Last session: 2026-03-29T20:35:58.209Z
+Stopped at: Completed 175-02-PLAN.md
 Resume with: `/gsd:plan-phase 171`
 Resume file: None

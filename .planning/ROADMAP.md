@@ -69,7 +69,7 @@
 - [x] **Phase 172: Core App Wrappers** — Blender, GIMP, and Inkscape wrappers with version-aware headless modes, SKILL.md generation, JSON output, and display server probe (completed 2026-03-29)
 - [x] **Phase 173: MCP Bridge Dynamic Registration** — loadDynamicServers() and registerDynamicServer() in mcp-bridge.cjs, pde-tools app subcommand, and pip CLI server-gen handler (completed 2026-03-29)
 - [x] **Phase 174: CLI Wrap Skill** — /pde:cli-wrap one-command workflow with dual strategy routing (CLI-Anything fast path + native fallback) and pipx canonical install (completed 2026-03-29)
-- [ ] **Phase 175: Design Pipeline Integration** — Optional app-tool steps in wireframe.md and mockup.md, Blender → 3D pipeline chaining, and GIMP → image pipeline chaining
+- [x] **Phase 175: Design Pipeline Integration** — Optional app-tool steps in wireframe.md and mockup.md, Blender → 3D pipeline chaining, and GIMP → image pipeline chaining (completed 2026-03-29)
 
 ## Phase Details
 
@@ -253,7 +253,7 @@ Plans:
   3. On a machine where GIMP is approved in the registry, a mockup workflow can invoke GIMP retouch as an editing step within the Phase 165 image pipeline, producing a retouched artifact in the pipeline output directory
 **Plans**: 2 plans
 Plans:
-- [ ] 175-01-PLAN.md — probeAppTool utility, Blender GLB export + chain, GIMP retouch chain, tests
+- [x] 175-01-PLAN.md — probeAppTool utility, Blender GLB export + chain, GIMP retouch chain, tests
 - [ ] 175-02-PLAN.md — Wire Blender step into wireframe.md, GIMP step into mockup.md
 
 ---
@@ -281,4 +281,4 @@ Plans:
 | 172. Core App Wrappers | v0.21 | 1/3 | Complete    | 2026-03-29 |
 | 173. MCP Bridge Dynamic Registration | v0.21 | 2/2 | Complete    | 2026-03-29 |
 | 174. CLI Wrap Skill | v0.21 | 0/2 | Complete    | 2026-03-29 |
-| 175. Design Pipeline Integration | v0.21 | 0/2 | Not started | - |
+| 175. Design Pipeline Integration | v0.21 | 1/2 | Complete    | 2026-03-29 |
