@@ -50,7 +50,7 @@
 - [x] **Phase 164: CLI Wrapping + Publishing** — Auto-wrap any CLI as an MCP server via --help parsing, SKILL.md generation, --json flag, and CLI-Hub registry publishing (completed 2026-03-29)
 - [x] **Phase 165: Image Generation Pipeline** — OG images via Satori, social cards, device mockup composites, Playwright screenshots, background removal via remove.bg free tier, and .planning/design/assets/ storage (completed 2026-03-29)
 - [x] **Phase 166: Visual Diff + Asset Reporting** — Branch-level visual diff with perceptual hashing, comparison report with changed/unchanged/new/deleted asset classification (completed 2026-03-29)
-- [ ] **Phase 167: Video Production Pipeline** — Playwright UI capture, FFmpeg assembly with transitions/overlays/captions, Remotion branded video composition with PDE design tokens, MP4 output
+- [x] **Phase 167: Video Production Pipeline** — Playwright UI capture, FFmpeg assembly with transitions/overlays/captions, Remotion branded video composition with PDE design tokens, MP4 output (completed 2026-03-29)
 - [ ] **Phase 168: AI 3D Generation + Web Embedding** — Text-to-3D and image-to-3D via TripoSR/SF3D, GLB output, model-viewer web embedding with AR fallback (USDZ/WebXR), 3D asset storage
 - [ ] **Phase 169: Parametric CAD Generation** — CadQuery Python scripts for hardware product CAD models, STEP file output for engineering handoff
 - [ ] **Phase 170: PDE Utilities** — mmdr Mermaid renderer, DTCG token validator with OKLCH/APCA checks, visual diff command, test scaffold generation from flows, handoff spec verification with gap report
@@ -237,9 +237,9 @@ Plans:
   3. User can compose a branded product video using Remotion React components that automatically apply PDE design tokens (colors, fonts, spacing)
   4. Video pipeline produces an MP4 file at a configurable resolution without requiring a paid video service
   5. User can add text captions or subtitles to any generated video and see them rendered in the final MP4
-**Plans:** 1/3 plans executed
+**Plans:** 3/3 plans complete
 Plans:
-- [ ] 167-01-PLAN.md — FFmpeg pipeline: deps install, video assets, record, assemble, caption modules with tests
+- [x] 167-01-PLAN.md — FFmpeg pipeline: deps install, video assets, record, assemble, caption modules with tests
 - [x] 167-02-PLAN.md — Remotion branded video: isolated project, compositions, compose.cjs with token extraction
 - [ ] 167-03-PLAN.md — pde-tools.cjs video subcommand wiring + /pde:video command doc
 
@@ -254,7 +254,11 @@ Plans:
   4. User can embed any generated GLB in a web page via a model-viewer component snippet with a single command
   5. The model-viewer integration automatically includes AR fallback: USDZ for iOS and WebXR for Android, without manual configuration
   6. All 3D assets are stored in .planning/design/3d/ with generation metadata (source model, input, timestamp, parameters)
-**Plans**: TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 168-01-PLAN.md — Foundation: deps install, asset storage (save3DAsset/list), GLB optimization (gltf-transform), model-viewer embed generation
+- [ ] 168-02-PLAN.md — AI generation: image-to-3D via Gradio Space fallback chain, text-to-3D two-step pipeline (FLUX.1-schnell + convert)
+- [ ] 168-03-PLAN.md — pde-tools.cjs 3d subcommand wiring + /pde:3d command documentation
 
 ### Phase 169: Parametric CAD Generation
 **Goal**: Users building hardware products can generate engineering-grade CAD models from Python scripts and export STEP files ready for manufacturing handoff
@@ -294,7 +298,7 @@ Plans:
 | 164. CLI Wrapping + Publishing | v0.20 | 2/3 | Complete    | 2026-03-29 |
 | 165. Image Generation Pipeline | 3/3 | Complete   | Complete    | 2026-03-29 |
 | 166. Visual Diff + Asset Reporting | v0.20 | 1/2 | Complete    | 2026-03-29 |
-| 167. Video Production Pipeline | v0.20 | 1/3 | In Progress|  |
-| 168. AI 3D Generation + Web Embedding | v0.20 | 0/TBD | Not started | - |
+| 167. Video Production Pipeline | v0.20 | 2/3 | Complete    | 2026-03-29 |
+| 168. AI 3D Generation + Web Embedding | v0.20 | 0/3 | Not started | - |
 | 169. Parametric CAD Generation | v0.20 | 0/TBD | Not started | - |
 | 170. PDE Utilities | v0.20 | 0/TBD | Not started | - |
