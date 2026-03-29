@@ -1,15 +1,15 @@
 ---
-gsd_state_version: 1.0
+pde_state_version: 1.0
 milestone: v0.20
 milestone_name: CLI-Anything + Asset Engine
-status: Ready to execute
-stopped_at: Completed 165-02-PLAN.md
-last_updated: "2026-03-29T02:40:58.270Z"
+status: unknown
+stopped_at: Completed 165-03-PLAN.md
+last_updated: "2026-03-29T02:47:41.872Z"
 progress:
   total_phases: 15
-  completed_phases: 9
+  completed_phases: 10
   total_plans: 26
-  completed_plans: 24
+  completed_plans: 26
 ---
 
 # Project State
@@ -19,11 +19,11 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-28)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 165 — Image Generation Pipeline
+**Current focus:** Phase 164 — CLI Wrapping + Publishing
 
 ## Current Position
 
-Phase: 165 (Image Generation Pipeline) — EXECUTING
+Phase: 164 (CLI Wrapping + Publishing) — EXECUTING
 Plan: 3 of 3
 
 ## Performance Metrics
@@ -60,11 +60,8 @@ Plan: 3 of 3
 - [Phase 164]: generateServerSource accepts full model object { meta, capabilities } matching test call signature, with optional sdkBasePath second param
 - [Phase 164]: help-parser uses spawnSync with array args (no shell) to prevent injection; cmdWrap added to help-parser.cjs for pipeline cohesion
 - [Phase 164]: server-gen embeds absolute SDK path via JSON.stringify in generated server.cjs — fully self-contained MCP stdio server
-- [Phase 165]: Satori requires WOFF (not WOFF2 or variable TTF) for font loading — use @fontsource/inter WOFF files, not rsms/inter variable TTF
-- [Phase 165]: Social card filename format: {slug}-{platform}-{timestamp}.png — platform suffix embedded in slug passed to saveAsset()
-- [Phase 165]: rembg USAGE_PATH computed dynamically via getUsagePath() (not module load) to allow process.cwd() patching in tests
-- [Phase 165]: prevMonth() uses string arithmetic to avoid JS Date.setMonth overflow on non-leap month boundaries
-- [Phase 165]: Playwright Chromium skipIf detection: synchronous execFileSync at module load so test.skipIf evaluates correctly
+- [Phase 165]: Pass ASSETS_DIR from assets.cjs to all saving subcommands so CLI always persists output to .planning/design/assets/
+- [Phase 165]: image subcommand routing in pde-tools.cjs uses case 'image' following cli-anything pattern with args.indexOf() for flag parsing
 
 ### Pending Todos
 
@@ -78,7 +75,7 @@ Plan: 3 of 3
 
 ## Session Continuity
 
-Last session: 2026-03-29T02:40:58.266Z
-Stopped at: Completed 165-02-PLAN.md
+Last session: 2026-03-29T02:47:41.869Z
+Stopped at: Completed 165-03-PLAN.md
 Resume with: `/gsd:plan-phase 163`
 Resume file: None

@@ -165,6 +165,15 @@
  *   experiment status --slug SLUG                         Show current experiment state
  *   experiment cleanup --slug SLUG                        Delete experiment branch
  *
+ * Image Pipeline:
+ *   image og|social|screenshot|mockup|rembg|list  Image pipeline operations
+ *     og --title T --description D --slug S        Generate OG image (1200x630)
+ *     social --title T --description D --slug S    Generate social cards (3 variants)
+ *     screenshot <url> [--viewport V] [--slug S]   Capture URL screenshot
+ *     mockup <screenshot> [--frame F] [--slug S]   Composite device mockup
+ *     rembg <image> [--slug S]                     Remove background (remove.bg)
+ *     list [--type og|social|mockup|screenshot|rembg]  List generated assets
+ *
  * Suggestions:
  *   suggestions                        Print current idle suggestions to stdout
  */
@@ -733,6 +742,79 @@ async function main() {
         await cmdList(cwd, args.slice(2));
       } else {
         console.error(`Unknown cli-anything subcommand: ${subcommand}. Available: ingest, wrap, publish, list`);
+        process.exit(1);
+      }
+      break;
+    }
+
+    case 'image': {
+      const subcommand = args[1];
+      if (subcommand === 'og') {
+        const { generateOgImage } = require('./lib/image-pipeline/og.cjs');
+        const { ASSETS_DIR } = require('./lib/image-pipeline/assets.cjs');
+        const titleIdx = args.indexOf('--title');
+        const descIdx = args.indexOf('--description');
+        const slugIdx = args.indexOf('--slug');
+        const title = titleIdx !== -1 ? args[titleIdx + 1] : 'Untitled';
+        const description = descIdx !== -1 ? args[descIdx + 1] : '';
+        const slug = slugIdx !== -1 ? args[slugIdx + 1] : 'og-image';
+        const result = await generateOgImage({ title, description, slug, assetsDir: ASSETS_DIR });
+        console.log(JSON.stringify(result.meta, null, 2));
+      } else if (subcommand === 'social') {
+        const { generateSocialCards } = require('./lib/image-pipeline/social.cjs');
+        const { ASSETS_DIR } = require('./lib/image-pipeline/assets.cjs');
+        const titleIdx = args.indexOf('--title');
+        const descIdx = args.indexOf('--description');
+        const slugIdx = args.indexOf('--slug');
+        const title = titleIdx !== -1 ? args[titleIdx + 1] : 'Untitled';
+        const description = descIdx !== -1 ? args[descIdx + 1] : '';
+        const slug = slugIdx !== -1 ? args[slugIdx + 1] : 'social-card';
+        const results = await generateSocialCards({ title, description, slug, assetsDir: ASSETS_DIR });
+        console.log(JSON.stringify(results.map(r => r.meta), null, 2));
+      } else if (subcommand === 'screenshot') {
+        const { captureScreenshot } = require('./lib/image-pipeline/screenshot.cjs');
+        const { ASSETS_DIR } = require('./lib/image-pipeline/assets.cjs');
+        const url = args[2];
+        const viewportIdx = args.indexOf('--viewport');
+        const slugIdx = args.indexOf('--slug');
+        const formatIdx = args.indexOf('--format');
+        const timeoutIdx = args.indexOf('--timeout');
+        const viewport = viewportIdx !== -1 ? args[viewportIdx + 1] : 'desktop';
+        const slug = slugIdx !== -1 ? args[slugIdx + 1] : 'screenshot';
+        const format = formatIdx !== -1 ? args[formatIdx + 1] : 'png';
+        const timeout = timeoutIdx !== -1 ? parseInt(args[timeoutIdx + 1], 10) : 30000;
+        const result = await captureScreenshot({ url, viewport, slug, format, timeout, assetsDir: ASSETS_DIR });
+        console.log(JSON.stringify(result.meta, null, 2));
+      } else if (subcommand === 'mockup') {
+        const { generateMockup } = require('./lib/image-pipeline/mockup.cjs');
+        const { ASSETS_DIR } = require('./lib/image-pipeline/assets.cjs');
+        const screenshotPath = args[2];
+        const frameIdx = args.indexOf('--frame');
+        const slugIdx = args.indexOf('--slug');
+        const frame = frameIdx !== -1 ? args[frameIdx + 1] : 'browser';
+        const slug = slugIdx !== -1 ? args[slugIdx + 1] : 'mockup';
+        const result = await generateMockup({ screenshotPath, frame, slug, assetsDir: ASSETS_DIR });
+        console.log(JSON.stringify(result.meta, null, 2));
+      } else if (subcommand === 'rembg') {
+        const { removeBackground } = require('./lib/image-pipeline/rembg.cjs');
+        const { ASSETS_DIR } = require('./lib/image-pipeline/assets.cjs');
+        const inputPath = args[2];
+        const slugIdx = args.indexOf('--slug');
+        const slug = slugIdx !== -1 ? args[slugIdx + 1] : 'rembg';
+        const result = await removeBackground({ inputPath, slug, assetsDir: ASSETS_DIR });
+        if (result) {
+          console.log(JSON.stringify(result.meta, null, 2));
+        } else {
+          console.log(JSON.stringify({ status: 'skipped', reason: 'no API key' }));
+        }
+      } else if (subcommand === 'list') {
+        const { listAssets } = require('./lib/image-pipeline/assets.cjs');
+        const typeIdx = args.indexOf('--type');
+        const type = typeIdx !== -1 ? args[typeIdx + 1] : undefined;
+        const assets = listAssets({ type });
+        console.log(JSON.stringify(assets, null, 2));
+      } else {
+        console.error(`Unknown image subcommand: ${subcommand}. Available: og, social, screenshot, mockup, rembg, list`);
         process.exit(1);
       }
       break;
