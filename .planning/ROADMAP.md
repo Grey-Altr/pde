@@ -222,7 +222,10 @@ Plans:
   1. User can run a visual diff command targeting two git branches and receive perceptual hash comparison results for all matched assets
   2. Visual diff produces a comparison report that classifies every asset as changed, unchanged, new, or deleted — no ambiguous output
   3. Changed assets in the report include a visual indicator or score showing the degree of change, not just a binary changed/unchanged flag
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 166-01-PLAN.md — pHash engine, git branch diff, report generation with tests
+- [ ] 166-02-PLAN.md — pde-tools.cjs image diff subcommand wiring + /pde:visual-diff command doc
 
 ### Phase 167: Video Production Pipeline
 **Goal**: Users can record product UI interactions and assemble them into branded videos with captions — all using free, local toolchains
@@ -285,8 +288,8 @@ Plans:
 | 162. Multi-Editor Bridge | v0.19 | 2/2 | Complete | 2026-03-28 |
 | 163. CLI Ingestion + Capability Model | 4/4 | Complete   | 2026-03-29 |  |
 | 164. CLI Wrapping + Publishing | v0.20 | 2/3 | Complete    | 2026-03-29 |
-| 165. Image Generation Pipeline | 3/3 | Complete   | 2026-03-29 | - |
-| 166. Visual Diff + Asset Reporting | v0.20 | 0/TBD | Not started | - |
+| 165. Image Generation Pipeline | 3/3 | Complete   | Complete    | 2026-03-29 |
+| 166. Visual Diff + Asset Reporting | v0.20 | 0/2 | Not started | - |
 | 167. Video Production Pipeline | v0.20 | 0/TBD | Not started | - |
 | 168. AI 3D Generation + Web Embedding | v0.20 | 0/TBD | Not started | - |
 | 169. Parametric CAD Generation | v0.20 | 0/TBD | Not started | - |
