@@ -2,6 +2,80 @@
 
 *A living document updated after each milestone. Lessons feed forward into future planning.*
 
+## Milestone: v0.20 — CLI-Anything + Asset Engine
+
+**Shipped:** 2026-03-29
+**Phases:** 8 | **Plans:** 23 | **Commits:** ~37
+
+### What Was Built
+- CLI ingestion pipeline: OpenAPI, JSON Schema, GraphQL, MCP parsers → unified capability model → AI SDK tool() codegen
+- CLI wrapping: any --help output → MCP server + SKILL.md + registry publishing
+- Image pipeline: OG cards, social images, device mockups, Playwright screenshots, background removal via Satori + resvg-js + Sharp
+- Visual diff engine: 64-bit perceptual hashing with branch-level comparison and structured Markdown/JSON reports
+- Video production: Playwright recording, FFmpeg assembly with transitions/captions, Remotion branded composition with design tokens
+- 3D pipeline: text/image-to-3D via Gradio Space fallback chain, GLB optimization via gltf-transform, model-viewer AR embed
+- Parametric CAD: CadQuery Python script generation → STEP file output for manufacturing handoff
+- PDE utilities: mmdr Mermaid renderer, DTCG token validator (OKLCH gamut + APCA contrast), flow-to-test scaffolds, handoff verifier
+
+### What Worked
+- **Dependency injection pattern** — `_hfClient`, `_convertFn`, `_gradioClient`, `_execFn` injection enabled full unit testing of CJS modules without live network/process dependencies; consistent with v0.18's `opts._deps` pattern
+- **Free/open-source constraint** — forced creative solutions (Satori for OG images, ffmpeg-static for video, Gradio Spaces for 3D) that removed any paid API key requirement
+- **Single-day execution** — 8 phases, 23 plans completed in one session (2026-03-28 17:21 → 2026-03-29 06:19), fastest per-phase velocity yet
+- **Fixture-driven testing** — real CLI --help captures, real OpenAPI specs, and hand-built GLB fixtures made tests deterministic without mocking
+
+### What Was Inefficient
+- **SUMMARY.md one-liner extraction** — continues to produce noisy output with empty "One-liner:" fields, same issue as v0.18
+- **Plan completion checkboxes in ROADMAP.md** — many plans show `[ ]` unchecked despite being complete; worktree-based execution doesn't update ROADMAP plan checkboxes consistently
+- **Gradio Space availability** — TripoSR and SF3D Spaces were down during development; fallback chain design was correct but required testing against synthetic responses
+
+### Patterns Established
+- `bin/lib/` as location for media pipeline modules (assets.cjs, visual-diff.cjs, video-pipeline.cjs, three-d.cjs, cad.cjs)
+- `createRequire(import.meta.url)` bridge for ESM test files loading CJS modules
+- `.planning/design/assets/` with SHA-256 sidecar metadata for image assets
+- `.planning/design/3d/` for GLB/STEP files with generation metadata
+- `packages/remotion-video/` as isolated Remotion package with pinned deps
+- `SPACE_CHAIN` fallback pattern for Gradio Space API resilience
+- `_execFn` dependency injection for subprocess-heavy CJS modules
+
+### Key Lessons
+1. **Free toolchains are production-viable** — Satori + resvg-js produces OG images comparable to paid services; ffmpeg-static bundles the binary; Gradio Spaces provide GPU inference without API keys. The constraint was productive, not limiting.
+2. **CJS + ESM test bridge is stable** — `createRequire(import.meta.url)` in vitest test files reliably loads CJS modules; combined with `server.deps.inline` in vitest.config, this eliminates dual-instance issues (proven with Zod).
+3. **Perceptual hashing needs careful fixture design** — solid-color synthetic images produce degenerate pHash outputs; tests must assert relative ordering rather than absolute distances for edge cases.
+4. **ROADMAP plan checkbox sync is a recurring issue** — same as v0.18; worktree-based execution completes plans but doesn't reliably update ROADMAP.md checkboxes. Consider automating this in the commit workflow.
+
+### Cost Observations
+- Model mix: opus for orchestration, sonnet for execution agents
+- Timeline: 1 day (2026-03-28 → 2026-03-29)
+- Notable: 8 phases in ~13 hours — fastest per-phase velocity (1.6 hours/phase vs v0.18's 3.7 hours/phase)
+
+---
+
+## Milestone: v0.19 — WebMCP Integration
+
+**Shipped:** 2026-03-28
+**Phases:** 7 | **Plans:** 16 | **Commits:** ~7
+
+### What Was Built
+- Remote MCP server: Streamable HTTP endpoint with Clerk auth, Origin validation, stateless Vercel transport
+- Dashboard WebMCP tools: useMcpTool() lifecycle hook, browser tool registrations, .webmcp config emitter
+- MCP Apps rich UI: HTML resource blocks, ui:// artifact scheme, CSP declarations
+- Token playground: per-tool cost breakdown, session context window utilization, Upstash Redis persistence
+- Declarative approval gates: WebMCP tool forms, --webmcp flag on 4 design workflows
+- Auto-generated competitor tools: sanitization pipeline, human review gate, competitor-tools-registry.json
+- Multi-editor bridge: relay depth guard, pde_remote APPROVED_SERVERS entry
+
+### What Worked
+- **Shipped same day as v0.18** — rapid milestone turnover demonstrates pipeline maturity
+- **Reuse of existing patterns** — Clerk auth, Upstash Redis, MCP bridge patterns from v0.17/v0.18 made v0.19 implementation straightforward
+
+### What Was Inefficient
+- **Minimal commit count** — 7 commits for 7 phases suggests heavy batching; individual phase commits would improve traceability
+
+### Key Lessons
+1. **WebMCP is a natural extension** — browser-based AI agents accessing PDE tools via the same MCP protocol used by CLI agents creates genuine cross-surface consistency.
+
+---
+
 ## Milestone: v0.18 — Distributed Execution
 
 **Shipped:** 2026-03-28
@@ -708,6 +782,9 @@ Google Stitch AI UI design tool fully integrated into PDE's 13-stage design pipe
 | v0.15 | ~40 | 8 | Multi-Editor Integration — context sync, MCP server, divergence detection, artifact formatting |
 | v0.16 | 48 | 8 | Context Sync — bidirectional sync, 3-way merge, loop prevention, Antigravity write-back, MCP writes |
 | v0.17 | 224 | 13 | Remote Dashboard — relay daemon, Next.js 16 PWA, approval gates, Web Push, production hardening |
+| v0.18 | 129 | 13 | Distributed Execution — worktree isolation, CLI dispatch, Agent SDK, SSH remote, multi-session dashboard |
+| v0.19 | ~7 | 7 | WebMCP Integration — remote MCP server, rich UI, token playground, approval gates, competitor tools |
+| v0.20 | ~37 | 8 | CLI-Anything + Asset Engine — CLI generation, image/video/3D/CAD pipelines, PDE utilities |
 
 ### Cumulative Quality
 
@@ -730,3 +807,6 @@ Google Stitch AI UI design tool fully integrated into PDE's 13-stage design pipe
 | v0.15 | 25/25 | 100% | 1 (phase 125, gap closure) | 162 (8 suites) |
 | v0.16 | 26/26 | 100% | 1 (phase 133, AGR-03 gap) | 6/8 compliant, 2 partial |
 | v0.17 | 27/27 | 100% | 7 (phases 134.1, 136.1-136.3, 140-142) | Full Nyquist compliance |
+| v0.18 | 54/54 | 100% | 5 (phases 150-155, audit-driven) | 224 dashboard tests |
+| v0.19 | 30/30 | 100% | 0 | — |
+| v0.20 | 41/41 | 100% | 0 | — |
