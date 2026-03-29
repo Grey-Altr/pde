@@ -1,17 +1,17 @@
 # Project Research Summary
 
-**Project:** PDE v0.19 WebMCP Integration
-**Domain:** Browser-native MCP interface, Streamable HTTP remote MCP, MCP Apps rich UI, design artifact preview, dashboard WebMCP tools, token playground
-**Researched:** 2026-03-27
-**Confidence:** HIGH (all 4 research files grounded in official specs and verified source code)
+**Project:** PDE Desktop App CLI Integration + Design Pipeline Binding
+**Domain:** Desktop app discovery, CLI wrapping, design pipeline orchestration
+**Researched:** 2026-03-28
+**Confidence:** HIGH (stack and architecture verified against existing codebase; CLI-Anything verified against live repo; pitfalls from CVE reports and confirmed GitHub issues)
 
 ## Executive Summary
 
-v0.19 adds a browser-native agent interface (WebMCP) and a publicly accessible Streamable HTTP remote MCP server onto PDE's working v0.18 foundation. The approach is additive by design: the same `McpServer` instance serves both stdio and HTTP transports via a shared server factory; the existing NDJSON/SSE/PWA pipeline requires zero wire protocol changes; and all new npm dependencies are scoped exclusively to `dashboard/package.json` or `packages/pde-mcp-server/`, preserving the plugin root's zero-dep constraint. The WebMCP ecosystem converged on a stable pattern in early 2026 — `@mcp-b/global` for polyfilled browser runtime, `mcp-handler` for Vercel Streamable HTTP, and `registerTool()`/`unregisterTool()` lifecycle hooks for React — with Chrome 146+ native support and full polyfill coverage for all other browsers.
+This milestone adds three capabilities on top of the validated v0.20 CLI-Anything foundation: (1) cross-platform discovery of installed GUI applications, (2) a fast path that detects when HKUDS CLI-Anything has already produced a Python harness for a discovered app, and (3) design-pipeline integration that lets `/pde:build` workflows invoke Blender, GIMP, and Inkscape as first-class tools. The architecture is additive — one new module (`discover.cjs`), targeted modifications to `mcp-bridge.cjs` and `pde-tools.cjs`, and new optional steps in `wireframe.md`/`mockup.md`. No npm dependencies are added anywhere; all subprocess work uses Node.js built-ins following the `execFileNoThrow` pattern already established across v0.15–v0.20.
 
-The recommended sequence is Remote MCP Server first, then Dashboard WebMCP Tools, then MCP Apps and Design Artifact Preview together, then the remaining features (token playground, approval gates, competitor tools, multi-editor bridge, remote collaboration). This ordering is driven by hard dependencies: the remote endpoint must exist before browser hooks can call it; the CSP and sandboxing architecture must be set before any iframe UI is built; OAuth architecture must be final before any auth code ships.
+The recommended approach is a five-step pipeline: discover binary on the system → parse `--help` with `help-parser.cjs` or read the CLI-Anything harness SKILL.md → validate capability model via `model.cjs` → generate stdio MCP server via `server-gen.cjs` → register in `registry.json` for `mcp-bridge.cjs` to pick up at session init. This pipeline reuses every existing CLI-Anything module without modification to their core contracts. The only architectural extension is `loadDynamicServers()` in `mcp-bridge.cjs`, which reads `registry.json` at module load time and populates `APPROVED_SERVERS` and `TOOL_MAP` programmatically — replacing hardcoded entries for user-installed apps.
 
-The primary risks are architectural, not technical: dual-transport process proliferation (stdio and HTTP running simultaneously), Vercel stateless session pitfalls, `provideContext()` replacing all registered tools (deprecated since March 5, 2026), DNS rebinding attacks via missing Origin validation, OAuth CSRF via shared client IDs, and MCP Apps CSP silently blocking all network calls. Every one of these has caused production failures in comparable projects. They are all avoidable if the architecture is specified correctly before implementation begins.
+The dominant risk is the GUI-app mock-wrapping trap: CLI-Anything wraps the filesystem interface of an app, not the running app itself. Blender and GIMP only have genuine headless modes via specific flags (`--background`, `--no-interface --batch`). Without explicit `executionMode` classification at discovery time, the agent will believe it controlled an app that was never involved. The second critical risk is security boundary collapse from wrapping arbitrary discovered executables without human approval. Both risks have clear mitigations (per-app `executionMode` field, two-tier `pending`/`approved` registry) that must be built into the first phase, not retrofitted.
 
 ---
 
@@ -19,142 +19,149 @@ The primary risks are architectural, not technical: dual-transport process proli
 
 ### Recommended Stack
 
-The browser integration layer requires three packages in `dashboard/`: `@mcp-b/global` (one-import WebMCP runtime + polyfill, 285KB, no-op on Chrome 146+), `@mcp-b/react-webmcp` (React hooks: `useWebMCP()`, `useMcpClient()`, `McpClientProvider`), and `@mcp-b/webmcp-types` (TypeScript types for `navigator.modelContext`). The remote server layer requires `mcp-handler@1.1.0` (Vercel-optimized Streamable HTTP route handler) with `@modelcontextprotocol/sdk@1.28.0` (upgrade from the currently pinned `^1.26.0`; 1.25.x has documented security vulnerabilities). The token playground requires `@ai-sdk/mcp@1.0.25` (AI SDK 6 MCP client with structured token usage per call). Remote auth requires `mcp-auth` for resource server validation of Clerk-issued tokens. Auto-generated competitor tools require `@keak/webmcp-core` installed in `packages/` only. MCP Apps rich UI requires zero new packages — it is a protocol extension on the existing SDK.
+The entire milestone runs on Node.js 20.20.0 built-ins plus the binaries already present on the user's OS. `child_process.execFileSync` and `spawnSync` with args-as-array (never shell-mode invocations) handle all subprocess work for discovery and invocation. macOS discovery uses `system_profiler -json SPApplicationsDataType` as the primary source (structured JSON, full metadata) with `mdfind` as a fast existence probe (~50ms vs ~3s). Linux uses `find` + `fs.readFileSync` on XDG `.desktop` files. Windows uses PowerShell `Get-StartApps | ConvertTo-Json` supplemented by the Uninstall registry key.
+
+The CLI-Anything (HKUDS) fast path requires Python 3.10+ on the host and `pipx install cli-anything` (not `pip install` — PEP-668 breaks pip on Homebrew Python 3.12+). The fast path is gated behind an availability check: `execFileSync('python3', ['--version'])` with semver parse. If unavailable, `help-parser.cjs` is the fallback. The existing `CADQUERY_PYTHON` env-var pattern from `cad.cjs` extends cleanly to `BLENDER_BIN`, `REMBG_PYTHON`, and any new pip CLI, maintaining zero Python at plugin root.
 
 **Core technologies:**
-- `@mcp-b/global`: WebMCP browser runtime — zero-config polyfill, native passthrough on Chrome 146+, covers all non-Chrome browsers
-- `@mcp-b/react-webmcp`: React lifecycle management for tool registration — prevents stale closure and zombie-tool failures via automatic cleanup
-- `mcp-handler@1.1.0`: Vercel Streamable HTTP adapter — single `createMcpHandler()` call, SSE + Redis session resumability with Upstash (already installed)
-- `@modelcontextprotocol/sdk@1.28.0`: MCP protocol primitives including `WebStandardStreamableHTTPServerTransport` (already in installed 1.27.1)
-- `mcp-auth`: RFC 9728 Protected Resource Metadata — required by MCP spec for any remote MCP server; minimal addition for validating Clerk-issued tokens
-- `@ai-sdk/mcp@1.0.25`: Token-usage-aware MCP client for the token playground; part of AI SDK 6 only
-
-**Critical version constraints:**
-- `zod@^3` only — `mcp-handler` and `@mcp-b/react-webmcp` both require it; zod v4 breaks both
-- `@ai-sdk/mcp@1.0.25` requires `ai@^6`; incompatible with AI SDK 4 or 5
-- `@mcp-b/global` must initialize before any `useWebMCP()` hook calls
-- `provideContext()` is deprecated (March 5, 2026) — use `registerTool()` / `unregisterTool()` exclusively
-- All new packages install into `dashboard/package.json` ONLY; plugin root retains zero-dep constraint
+- `execFileSync` / `spawnSync` (args-as-array): all subprocess work — zero npm deps, no shell injection risk; consistent with the `execFileNoThrow` pattern already in the codebase
+- `system_profiler -json SPApplicationsDataType`: macOS app inventory — structured JSON, covers /Applications + MAS + ~/Applications
+- `mdfind 'kMDItemKind == "Application"'`: macOS fast probe — ~50ms, used for existence check only
+- `/usr/libexec/PlistBuddy`: macOS executable resolution inside `.app` bundles
+- XDG `.desktop` parsing via `find` + `fs.readFileSync`: Linux app discovery — stable since 2003
+- PowerShell `Get-StartApps | ConvertTo-Json`: Windows app discovery
+- Python 3.10+ via `spawnSync` (not imported): CLI-Anything harness invocation — always args-as-array
+- `pipx`: CLI-Anything install path — required over pip on macOS 14+/Homebrew Python 3.12+
 
 ### Expected Features
 
 **Must have (table stakes):**
-- Remote Streamable HTTP MCP endpoint at `dashboard/app/api/mcp/route.ts` with Clerk auth and Origin validation — users expect a remote-accessible PDE server
-- WebMCP browser tools in dashboard React components via `useWebMCP()` hook — browser-based AI agents expect `navigator.modelContext` tool access
-- MCP Apps rich UI return format: `type: 'resource'` blocks with `text/html;profile=mcp-app` MIME plus text fallback — AI chat clients supporting MCP Apps expect rendered artifacts
-- Token playground UI with per-call cost breakdown — users expect token cost visibility on tool calls
-- Desktop client bridge documentation (`npx @mcp-b/webmcp-local-relay@latest`) — zero code change needed; just document
+- App presence detection + version check — foundation for every wrapper; probe by executable before generating any capability model
+- Blender CLI wrapper with `--background` headless mode — highest-value design pipeline integration
+- GIMP CLI wrapper with `--no-interface --batch` Script-Fu mode — connects to image pipeline (Phase 165)
+- Inkscape CLI wrapper — pure CLI (`inkscape --export-type=png`), no headless flags needed; lowest-friction wrap
+- `executionMode` classification at discovery time — `"headless" | "gui-required" | "mock"` per capability model; gates all tool calls
+- SKILL.md generation for all wrapped apps — extends Phase 164 machinery; required for agent discoverability
+- JSON output mode for every wrapped app command — structured output required for pipeline chaining
+- MCP tool map registration — wrapped apps appear in `APPROVED_SERVERS` / `TOOL_MAP` via `loadDynamicServers()`
+- Two-tier approval registry (`pending` → `approved`) — security gate; required before agents can invoke discovered tools
 
-**Should have (differentiators):**
-- Design artifact preview inside AI chat clients via `ui://pde/[artifact]` resource scheme — differentiates PDE from static file export workflows
-- Declarative approval gate forms as WebMCP tools — replaces current imperative approval flow with browser-native forms
-- Auto-generated competitor tool stubs from competitive.md workflow (with mandatory human review gate — never auto-activate)
-- Multi-editor bridge (Cursor/Gemini via WebMCP relay) — extends PDE's reach beyond Claude Code
-- `.webmcp/config.json` emitter as 7th `context-sync.cjs` emitter — gives any WebMCP client a discovery endpoint
+**Should have (competitive):**
+- Design-pipeline-aware app chaining — Blender → 3D pipeline (Phase 168), GIMP → image pipeline (Phase 165)
+- FreeCAD → CadQuery bridge — visual modeling to parametric CAD (Phase 169) pipeline closure
+- `pde-tools app discover|wrap|register|list|probe` subcommand — user-facing entry point for all app management
+- `parseQuality` annotation on capability models + `col -b` preprocessing — prevents corrupt tool descriptions from poisoning agent context
 
 **Defer (v2+):**
-- Full OAuth provider (PDE issuing tokens to external MCP clients) — use `mcp-auth` validate-only for now
-- Real-time cross-session state sharing during execution
-- Running full PDE plugin in the cloud (PDE Standalone CLI milestone scope)
-- Cost controls and spend caps (requires accurate token counting + API integration)
+- ComfyUI workflow-as-code — high complexity, niche workflow; defer until AI image generation is a validated frequent use case
+- Autonomous CLI-Hub discovery (agent-driven pip install) — requires security review; meaningful prompt injection risk
+- App catalog dashboard pane — valuable once 5+ apps wrapped; premature before wrappers are stable
+- OBS Studio, Krita, Audacity wrappers — lower design-pipeline priority
 
 ### Architecture Approach
 
-The architecture is strict layering with additive-only integration points. A new `packages/pde-mcp-server/src/server-factory.ts` extracts `McpServer` construction for reuse by both the existing stdio entrypoint and the new dashboard route handler. The dashboard route at `app/api/mcp/route.ts` creates a fresh stateless `WebStandardStreamableHTTPServerTransport` (with `sessionIdGenerator: undefined` for Vercel compatibility) per request. The existing SSE event pipeline, ingest endpoint, relay daemon, and all 6 context-sync emitters are untouched. The `mcp-bridge.cjs` allowlist is explicitly NOT updated for v0.19 — the remote endpoint is consumed by browser clients, not the Claude Code MCP runtime. Tool handlers emit both `type: 'resource'` rich blocks and `type: 'text'` fallbacks — backward-compatible with all stdio consumers.
+The architecture is a five-step discovery-to-registration pipeline built on existing infrastructure. A new `discover.cjs` module handles cross-platform binary resolution using a five-tier probe (env var → `which`/`where` → pip module check → `mdfind` → well-known paths). `discover.cjs` writes to `registry.json` via existing `registry.cjs`. A new `loadDynamicServers()` function in `mcp-bridge.cjs` reads `registry.json` at module load and programmatically populates `APPROVED_SERVERS` and `TOOL_MAP` — avoiding the startup-hang anti-pattern of probing uninstalled apps. Design workflow files (`wireframe.md`, `mockup.md`) gain optional app-tool steps gated by `probeServer()`, following the identical probe/degrade contract used for Stitch and Figma today.
 
 **Major components:**
-1. `packages/pde-mcp-server/src/server-factory.ts` (NEW) — Shared `McpServer` construction; zero changes to existing tool handlers
-2. `dashboard/app/api/mcp/route.ts` (NEW) — Stateless per-request Streamable HTTP endpoint; Clerk auth; Origin allowlist
-3. `dashboard/hooks/use-mcp-client.ts` (NEW) — Thin fetch-based MCP JSON-RPC hook; no SDK in browser bundle
-4. WebMCP tool registration layer (dashboard components) — `useMcpTool()` wrapper enforcing strict mount/unmount lifecycle
-5. MCP Apps content layer (selected `pde-mcp-server` tool handlers) — `type: 'resource'` rich blocks with text fallback
-6. `bin/lib/context-sync.cjs` 7th emitter — `emitWebMcpConfig()` writing `.webmcp/config.json`; zero changes to existing 6 emitters
-7. `--webmcp` flag in wireframe.md, mockup.md, critique.md, competitive.md — additive prose; no existing step logic changes
+1. `bin/lib/cli-anything/discover.cjs` (NEW) — cross-platform binary resolution, pip module check, five-tier probe, writes `status`/`executionMode` to registry
+2. `bin/lib/mcp-bridge.cjs` (MODIFY) — add `loadDynamicServers(registryPath)` and `registerDynamicServer(slug, serverPath, caps)` for registry-driven APPROVED_SERVERS
+3. `bin/pde-tools.cjs` (MODIFY) — add `case 'app':` routing block for discover/wrap/register/list/probe subcommands
+4. `bin/lib/cli-anything/server-gen.cjs` (MODIFY) — add `generatePythonModuleHandler()` for pip CLIs (`python -m {tool}` spawn pattern)
+5. `bin/lib/cli-anything/registry.cjs` (MODIFY) — add `status`, `install_hint`, `executionMode`, `requiresDisplay`, `startupMs` fields
+6. `references/app-integrations.md` (NEW) — catalog of known design app CLIs with bundle IDs, pip status, discovery hints
+7. `workflows/wireframe.md`, `workflows/mockup.md` (MODIFY) — optional app-tool steps with probe/degrade
+
+**Build order (critical path):** Phase A `discover.cjs` → Phase B `mcp-bridge.cjs loadDynamicServers()` → Phase E workflow integrations. Phases C (`pde-tools app`) and D (`server-gen.cjs pip handler`) are off the critical path and can develop in parallel with Phase B.
 
 ### Critical Pitfalls
 
-1. **Dual Transport Process Proliferation** — Treat stdio and HTTP as mutually exclusive per deployment context. Add startup assertion rejecting HTTP mode when `MCP_TRANSPORT=stdio` is not set. Document explicit migration path from stdio to HTTP in install instructions. Missing this: N+1 MCP server processes accumulate per session.
+1. **GUI app mock wrapping** — CLI-Anything wraps the filesystem interface, not the running app. Avoid by classifying every discovered app as `executionMode: "headless" | "gui-required" | "mock"` at discovery time, before writing any capability model. Reject `"mock"` entries at tool call time with a visible error. Verify Blender uses `--background` and GIMP uses `--no-interface --batch` explicitly. (Source: CLI-Anything issue #16, gedit wrapping post-mortem)
 
-2. **Vercel Stateless Session Anti-Pattern** — Use `sessionIdGenerator: undefined` in `WebStandardStreamableHTTPServerTransport`. Never store session state in module-level variables. Route-level session state goes in Upstash Redis (already available) with a signed JWT key. Missing this: works locally, fails intermittently on Vercel with re-initialization loops.
+2. **Unapproved executables executed by agents** — Discovery intentionally finds arbitrary binaries, which collapses the APPROVED_SERVERS security boundary if treated as trusted. Avoid by implementing a two-tier registry (`pending` → human `/pde:cli-approve` → `approved`) before any discovery code is written. Store binary SHA-256 hash alongside the approved path; detect binary substitution at tool call time. (Source: OWASP MCP05:2025, CVE-2025-53109 symlink bypass pattern)
 
-3. **`provideContext()` Replaces All Registered Tools** — Use `registerTool()` / `unregisterTool()` exclusively. Create a central `useMcpTool(name, handler, schema)` React hook that enforces mount/unmount lifecycle. Missing this: tools from one dashboard section silently disappear when another section renders.
+3. **pip PATH isolation failure on Homebrew Python 3.12+** — PEP-668 rejects global pip installs; PATH inherited by Node.js subprocesses does not include `~/.local/bin` when custom env objects are passed. Avoid by using `pipx` (not `pip`) as the canonical install method, resolving the CLI-Anything binary to an absolute path at setup time, and always spreading `process.env` before adding custom keys (`{ ...process.env, MY_VAR: value }`) — never a bare custom env object. (Source: Node.js issue #58290, Homebrew PEP-668 thread)
 
-4. **DNS Rebinding Attack via Missing Origin Validation** — Validate the `Origin` header on every request including GET/SSE. Maintain an explicit allowlist. MCP spec makes this MUST-level. Local dev binds to `127.0.0.1` only. Missing this: attacker executes tool calls on victim's behalf via DNS rebinding.
+4. **`--help` output parsing failures producing corrupt capability models** — Tools like Blender and git emit nroff/backspace-escaped man page output that pollutes tool descriptions (confirmed in existing `.planning/cli-anything/git/capability-model.json`). Avoid by preprocessing all `--help` output through `col -b` to strip backspace sequences, adding a `parseQuality: "degraded"` annotation when parse quality is low, and maintaining curated override models in `.planning/config/capability-overrides/` for known complex apps. (Source: CLI-Anything issue #154, local registry.json inspection)
 
-5. **OAuth CSRF via Shared Client ID** — Use per-session `state` parameters bound to the initiating session cookie. Restrict `redirect_uri` to a static allowlist. Harden cookies with `__Host-` prefix. Missing this: one-click account takeover via consent flow hijacking.
-
-6. **MCP Apps CSP Silently Blocks All Network Calls** — Declare all required external origins in `_meta.ui.csp.connectDomains` at tool registration. Add a test asserting the declaration is present on every tool that makes network calls. Default CSP is `connect-src 'none'`. Missing this: fetch calls hang indefinitely with no error in the app UI.
-
-7. **WebMCP Spec Instability** — Use `@mcp-b/global` as the abstraction layer. Design all `navigator.modelContext` calls behind a central `mcpToolRegistry.ts` service. Check `webmachinelearning/webmcp` commits before each WebMCP phase. Missing this: a breaking spec change requires patching every component.
+5. **Long-startup apps blocking the MCP response loop** — Blender takes 2-8 seconds per invocation; GIMP takes 3-10 seconds. Multiple sequential tool calls in one agent turn compound to 30-60 second hangs. Avoid by using only async `spawn` (never synchronous variants) in generated MCP servers, declaring `startupMs` in capability model metadata, and setting explicit per-call timeouts (default 30 seconds).
 
 ---
 
 ## Implications for Roadmap
 
-Phase structure is determined by hard dependency chains. The remote endpoint is the root. OAuth/security architecture is foundational and cannot be retrofitted. MCP Apps iframe/CSP constraints must be understood before any iframe UI is built.
+Based on research, the build order is driven by two hard constraints: (1) security architecture must be established before any discovery code runs — the two-tier registry must exist before it can be written to; (2) `discover.cjs` must populate `registry.json` before `mcp-bridge.cjs` can load dynamic servers. The ARCHITECTURE.md critical path maps cleanly to four phases.
 
-### Phase 1: Remote MCP Server Foundation
-**Rationale:** All browser-facing features depend on this endpoint existing and being secure. OAuth, Origin validation, stateless session design, and Vercel timeout patterns must be finalized here — they cannot be retrofitted without rework.
-**Delivers:** `dashboard/app/api/mcp/route.ts`, `packages/pde-mcp-server/src/server-factory.ts`, `mcp-auth` RFC 9728 well-known endpoint, Clerk auth, Origin allowlist, stateless session architecture, long-running tool polling pattern
-**Addresses:** Remote Streamable HTTP MCP server (Feature 1)
-**Avoids:** Pitfalls 1 (dual transport), 2 (Vercel stateless session), 4 (DNS rebinding), 5 (OAuth CSRF), 8 (SSE timeout), 10 (zero-npm-dep constraint)
+### Phase 1: Security Architecture + Discovery Foundation
 
-### Phase 2: Dashboard WebMCP Tools
-**Rationale:** Browser tools can be built once the remote endpoint exists. The `useMcpTool()` lifecycle hook must be the first deliverable — it sets the registration pattern for all subsequent dashboard components.
-**Delivers:** `useMcpTool()` hook, `use-mcp-client.ts`, initial tool registrations (design state, project info, artifact listing), SSE connection audit
-**Addresses:** Dashboard WebMCP Tools (Feature 4)
-**Avoids:** Pitfalls 3 (`provideContext()` overwrite), 9 (6-connection SSE limit), 11 (spec instability abstraction), 13 (SPA navigation zombie tools)
+**Rationale:** The two-tier approval registry and `executionMode` classification are foundational — every subsequent phase writes into this schema. Building discovery without this gate would require a retrofit that touches every component. This phase also establishes `discover.cjs` as the single binary-resolution source of truth, and adds `col -b` preprocessing to `help-parser.cjs` to prevent corrupt capability models from the start.
 
-### Phase 3: MCP Apps Rich UI + Design Artifact Preview
-**Rationale:** These two features share the same `type: 'resource'` return format change in tool handlers and the same CSP/sandbox constraints. Building them together prevents inconsistent CSP patterns. Library audit for `unsafe-eval` compatibility is a prerequisite.
-**Delivers:** Enhanced return blocks in `get-artifact`, `get-tokens`, `get-handoff`, `list-artifacts`; MCP App HTML resources at `ui://pde/[artifact]`; `connectDomains` and `resourceDomains` declarations; iframe-safe library audit
-**Addresses:** MCP Apps rich UI (Feature 2), Design artifact preview (Feature 3)
-**Avoids:** Pitfalls 6 (MCP Apps CSP), 14 (unsafe-eval in iframe libraries)
+**Delivers:**
+- Two-tier registry schema (`status: "pending" | "approved" | "rejected"`, `executionMode`, `requiresDisplay`, `startupMs`, `install_hint`, binary SHA-256)
+- `discover.cjs` with five-tier probe (env var → which/where → pip module → mdfind → well-known path)
+- `references/app-integrations.md` with known design app CLIs, bundle IDs, and discovery hints
+- `col -b` preprocessing in `help-parser.cjs` + `parseQuality` annotation on capability models
 
-### Phase 4: Token Playground
-**Rationale:** Depends on the remote endpoint (Phase 1) and dashboard component patterns (Phase 2). Straightforward once the server is running.
-**Delivers:** Token playground UI component, `@ai-sdk/mcp` wired to `/api/mcp`, per-tool cost breakdown, session context window utilization view
-**Addresses:** Token playground (Feature 5)
-**Uses:** `@ai-sdk/mcp@1.0.25`, Upstash Redis for session cost aggregation
+**Addresses:** App presence detection, version-aware capability model foundation, cross-platform discovery
+**Avoids:** Unapproved-executable security regression, mock-wrapping silent success, corrupt capability model descriptions
 
-### Phase 5: Declarative Approval Gates + Workflow Flags
-**Rationale:** Approval gates as WebMCP tools build on the established `useMcpTool()` pattern. Workflow flags and the 7th context-sync emitter are low-complexity additive changes.
-**Delivers:** Approval gate forms as WebMCP tools; `--webmcp` flag in wireframe.md, mockup.md, critique.md, competitive.md; `emitWebMcpConfig()` 7th emitter; `.webmcp/config.json` in MONITORED_FILES
-**Addresses:** Declarative approval gates (Feature 6), workflow integration (Feature 7)
-**Avoids:** Pitfall 12 (token refresh — OAuth token expiry in approval flow)
+### Phase 2: Core App Wrappers (Blender, GIMP, Inkscape)
 
-### Phase 6: Auto-Generated Competitor Tools
-**Rationale:** Depends on workflow flag infrastructure (Phase 5) and tool security patterns (Phases 1-3). Sanitization pipeline is a prerequisite — no scraping ships without it.
-**Delivers:** Optional Step 7 in competitive.md; `@keak/webmcp-core` in `packages/`; sanitization pipeline (strip instruction syntax, 512-char description limit, `source: "auto-generated"` flag); human review gate; `.webmcp/competitor-tools-registry.json`
-**Addresses:** Auto-generated competitor tools (Feature 8)
-**Avoids:** Pitfall 7 (tool poisoning via competitor descriptions)
+**Rationale:** These three apps deliver the highest design pipeline value and cover all three `executionMode` patterns: Blender (headless via `--background`), GIMP (conditional headless via `--no-interface --batch`, version-sensitive), Inkscape (pure CLI, no headless flag needed). Shipping all three in one phase validates the wrapper template before applying it to lower-priority apps.
 
-### Phase 7: Multi-Editor Bridge + Remote Collaboration
-**Rationale:** Most complex integration surface — builds on all prior phases. Relay cycle detection and Clerk org-level namespace scoping benefit from the full system being stable.
-**Delivers:** WebMCP relay from Cursor/Gemini to PDE MCP (unidirectional with `X-PDE-Relay-Depth` guard); desktop client bridge documentation; Clerk org-level namespace scoping; `mcp-bridge.cjs` APPROVED_SERVERS entry for the remote server
-**Addresses:** Multi-editor bridge (Feature 9), Remote collaboration (Feature 10)
-**Avoids:** Pitfall 15 (mcp-bridge allowlist omission), Pitfall 16 (circular MCP relay)
+**Delivers:**
+- Blender wrapper with `--background` headless mode, `startupMs: 5000`, async-only MCP server
+- GIMP wrapper with `--no-interface --batch` Script-Fu, GIMP 2.x vs 3.x version detection
+- Inkscape wrapper with `inkscape --export-type` pure CLI
+- SKILL.md generation for all three (extending Phase 164 machinery)
+- JSON output mode per wrapper
+- Display server probe integrated into probe/degrade contract
+
+**Addresses:** Headless execution mode, JSON output, SKILL.md generation, display server dependency handling
+**Avoids:** Mock wrapping silent success, display server failure, GIMP 2/3 version mismatch
+
+### Phase 3: MCP Bridge Dynamic Registration + pde-tools app Subcommand
+
+**Rationale:** Once wrappers exist in `registry.json`, the bridge must load them dynamically. This phase enables agents to invoke the Phase 2 wrappers and provides the user-facing `pde-tools app` entry point. `loadDynamicServers()` is a targeted modification to `mcp-bridge.cjs` — its implementation depends on stable registry schema from Phase 1.
+
+**Delivers:**
+- `mcp-bridge.cjs` `loadDynamicServers(registryPath)` — reads registry, populates `APPROVED_SERVERS` + `TOOL_MAP` for `status: "approved"` entries only
+- `mcp-bridge.cjs` `registerDynamicServer(slug, serverPath, caps)` — single-app registration path
+- `pde-tools app discover|wrap|register|list|probe` subcommand
+- `server-gen.cjs` `generatePythonModuleHandler()` for pip CLIs (`python -m {tool}` spawn pattern)
+
+**Uses:** Five-tier discovery from Phase 1, registry schema from Phase 1, wrappers from Phase 2
+**Avoids:** Startup-hang from probing uninstalled apps, hardcoded APPROVED_SERVERS growth, pip PATH isolation failure
+
+### Phase 4: Design Pipeline Integration
+
+**Rationale:** Workflow integration is last because it depends on all tools being available in `TOOL_MAP` (Phase 3) and wrappers being stable (Phase 2). Optional steps in `wireframe.md` and `mockup.md` are low-risk additions — they are gated by `probeServer()` and degrade to no-op with a documented skip, following existing Stitch/Figma patterns exactly.
+
+**Delivers:**
+- `workflows/wireframe.md` optional Blender 3D preview step (gated by `probeServer('blender')`)
+- `workflows/mockup.md` optional GIMP retouch and Inkscape SVG export steps
+- Blender → Phase 168 (3D pipeline) chaining: render output fed into GLB optimize → model-viewer
+- GIMP → Phase 165 (image pipeline) chaining: GIMP retouch as an editing step within existing image pipeline
+
+**Addresses:** Design-pipeline-aware app chaining, pipeline integration with existing v0.20 asset pipelines
+**Avoids:** Direct shell command invocation in workflow markdown, bypassing TOOL_MAP
 
 ### Phase Ordering Rationale
 
-- Phase 1 is the root dependency; OAuth and security architecture cannot be deferred or retrofitted
-- Phases 3 and 4 can be parallelized after Phase 2, but Phase 3 is sequenced before Phase 4 because the MCP Apps `type: 'resource'` format is easier to validate before the token tracking layer is active
-- Phase 5 (workflow flags) follows Phases 2-4 so the team knows the full WebMCP surface before writing workflow prose
-- Phase 6 is gated on Phase 5 (competitive.md needs the `--webmcp` flag infrastructure) and Phase 1 security patterns (same risk surface)
-- Phase 7 is last: has the most architectural unknowns and depends on the full system being stable
+- Security architecture (Phase 1) is non-negotiable first because the two-tier registry must exist before any binary can be written to it. Retrofitting approval status after discovery data exists is a policy violation, not just technical debt.
+- Discovery (`discover.cjs`) comes in Phase 1 rather than its own phase because the security schema and discovery module are developed against each other — the `executionMode` and `status` fields are outputs of the discovery classifier.
+- Wrappers (Phase 2) come before bridge registration (Phase 3) because `loadDynamicServers()` needs real registry entries to test against. Building the bridge reader against an empty registry produces an untestable module.
+- Workflow integration (Phase 4) is last because it is the highest-level consumer of all lower layers. A bug in any lower phase surfaces immediately in workflow integration tests.
 
 ### Research Flags
 
-Needs `/gsd:research-phase` before planning:
-- **Phase 6 (Competitor Tools):** `@keak/webmcp-core` is MEDIUM confidence; `generateToolDefinitions()` API details need verification at implementation time; sanitization design for tool poisoning prevention needs deeper research
-- **Phase 7 (Multi-Editor Bridge):** Limited production examples of WebMCP relay implementations; relay depth detection and cycle prevention patterns are not well-documented; Clerk org-scoping for multi-tenant MCP sessions needs API verification
+**Phases needing deeper research during planning:**
+- **Phase 2 (GIMP wrapper):** GIMP 3.x changed the batch interpreter and Script-Fu API significantly from 2.10. The exact `--batch` invocation must be verified against the installed version on the target machine before writing the wrapper contract. Research notes the flag names but the exact GIMP 3.x batch sequence needs hands-on validation.
+- **Phase 3 (pip CLI server-gen handler):** The `generatePythonModuleHandler()` variant in `server-gen.cjs` has not been prototyped. The invocation pattern is straightforward but the MCP server template changes need validation against an actual pip CLI (rembg is the obvious test case) before committing to the template design.
 
-Standard patterns (skip research):
-- **Phase 1:** All patterns verified against official specs (HIGH confidence); `mcp-handler` source read directly
-- **Phase 2:** `@mcp-b/react-webmcp` hooks are fully documented; React lifecycle patterns are standard
-- **Phase 3:** MCP Apps spec is the official Anthropic extension document; iframe/CSP patterns are well-established
-- **Phase 4:** `@ai-sdk/mcp` is released, documented, and HIGH confidence
-- **Phase 5:** Workflow prose changes are additive and low-risk; `context-sync.cjs` emitter pattern is established
+**Phases with standard patterns (skip research-phase):**
+- **Phase 1 (discovery):** Cross-platform binary detection patterns verified against official Apple/Microsoft/ArchWiki documentation. The five-tier probe order is stable and well-documented.
+- **Phase 3 (mcp-bridge loadDynamicServers):** APPROVED_SERVERS and TOOL_MAP patterns are fully established in the existing codebase. `loadDynamicServers()` is a straightforward extension of the existing module-load pattern.
+- **Phase 4 (workflow integration):** `probeServer()` + `resolveToolName()` + degrade patterns are identical to how Stitch and Figma tools are invoked today. No new patterns needed.
 
 ---
 
@@ -162,46 +169,48 @@ Standard patterns (skip research):
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | Core packages verified against official docs, source code, and npm release notes; version compatibility matrix traced to peer dependency declarations |
-| Features | HIGH | Feature scope verified against existing codebase source files and official MCP spec; existing system components traced to exact file paths |
-| Architecture | HIGH | Integration points traced to actual source code (`packages/pde-mcp-server/src/index.ts`, `dashboard/app/api/events/route.ts`, `bin/lib/mcp-bridge.cjs`, `bin/lib/context-sync.cjs`); transport choice verified against installed SDK source |
-| Pitfalls | HIGH | 16 pitfalls documented; 7 critical, 9 moderate; all verified against official spec warnings, production post-mortems (Obsidian Security, Invariant Labs), or documented community issue threads |
+| Stack | HIGH | All technologies are either existing Node.js built-ins (zero-dep constraint confirmed across v0.15–v0.20) or OS-native commands verified against official Apple/Microsoft/ArchWiki documentation. Python/pipx risk explicitly documented with PEP-668 mitigation. |
+| Features | MEDIUM-HIGH | CLI-Anything feature set verified directly from live HKUDS repo and HARNESS.md. Blender/GIMP/Inkscape headless invocations verified from official docs. Pipeline integration value judgments are based on existing v0.20 architecture — well-grounded but not yet user-validated. |
+| Architecture | HIGH | Architecture derived from direct examination of the existing codebase (`mcp-bridge.cjs`, `cad.cjs`, `help-parser.cjs`, `registry.cjs`, `wireframe.md`). Every component extension follows an established precedent in the codebase. No speculative patterns. |
+| Pitfalls | HIGH | Sourced from verified CVEs (CVE-2025-53109, CVE-2025-31199), OWASP MCP Top 10 2025, confirmed GitHub issues (CLI-Anything #16/#143/#154), Node.js issue #58290, and Homebrew PEP-668 discussion. These are documented failures in directly relevant contexts, not inferences. |
 
 **Overall confidence:** HIGH
 
 ### Gaps to Address
 
-- **`@keak/webmcp-core` API surface:** MEDIUM confidence only — validate `generateToolDefinitions()` signature and supported output formats at the start of Phase 6 before writing any plan
-- **`mcp-handler` npm vs GitHub version gap:** npm shows v1.0.7; GitHub releases show v1.1.0 — verify the npm-available version at install time and pin explicitly
-- **Vercel plan tier timeout:** Research assumes 60s timeout available on Pro plan for long-running tools; confirm plan tier before Phase 1 deployment
-- **Clerk org-level namespace scoping:** Exact Clerk API for org membership gating on the Redis namespace key needs verification against current Clerk Next.js SDK docs before Phase 7
-- **WebMCP spec stability during development:** The spec broke once on March 5, 2026; check `webmachinelearning/webmcp` commits before each WebMCP phase — estimated 1-3 further breaking changes possible before W3C Recommendation
+- **GIMP 3.x batch API surface:** GIMP 3.0 changed the Script-Fu batch interpreter. The exact `--batch` flag and interpreter syntax for GIMP 3.x should be confirmed against `gimp --help` output on the target machine during Phase 2 planning.
+- **Claude Code MCP server slot limit:** The research flags the Claude Code MCP server slot limit as the first bottleneck at 20+ wrapped apps. The exact limit is not documented publicly. Validate during Phase 3 integration testing with 10+ registered apps.
+- **Blender 3.x vs 4.x Python API delta:** The `--background --python script.py` path differs between Blender 3.x and 4.x. Version-conditional script templates or two separate scripts may be needed; confirm against Blender 4.x release notes before Phase 2 implementation.
+- **Linux Flatpak/Snap discovery testing:** The research documents the probe paths (`flatpak list`, `snap list`, `~/.local/bin`) but they have not been tested on an actual Linux environment with Flatpak/Snap-installed apps. Validate during Phase 1 implementation on a Linux CI environment.
 
 ---
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- [vercel/mcp-handler GitHub](https://github.com/vercel/mcp-handler) — v1.1.0 route handler pattern, peer deps, stateless mode
-- [modelcontextprotocol/ext-apps spec 2026-01-26](https://github.com/modelcontextprotocol/ext-apps/blob/main/specification/2026-01-26/apps.mdx) — MCP Apps content types, CSP rules, sandbox constraints, `ui://` scheme, tool metadata
-- [modelcontextprotocol.io authorization spec](https://modelcontextprotocol.io/specification/draft/basic/authorization) — RFC 9728, RFC 8707, MUST-level Origin validation
-- [docs.mcp-b.ai](https://docs.mcp-b.ai/) — `@mcp-b` package descriptions, hook signatures, relay v2.2.0, `@mcp-b/global` internals
-- [@ai-sdk/mcp npm](https://www.npmjs.com/package/@ai-sdk/mcp) — v1.0.25, AI SDK 6 ecosystem confirmation
-- [Chrome for Developers: WebMCP early preview](https://developer.chrome.com/blog/webmcp-epp) — Browser API overview, Chrome 146+ native support
-- [@mcp-b/global deprecation note](https://www.npmjs.com/package/@mcp-b/global) — `provideContext()` deprecated March 5, 2026
-- Installed source: `packages/pde-mcp-server/` at `@modelcontextprotocol/sdk@1.27.1` — `WebStandardStreamableHTTPServerTransport` confirmed present
-- Source files read: `dashboard/app/api/events/route.ts`, `bin/lib/mcp-bridge.cjs`, `bin/lib/context-sync.cjs` — integration boundaries verified
+- Existing PDE codebase: `bin/lib/cli-anything/`, `bin/lib/mcp-bridge.cjs`, `bin/lib/3d-pipeline/cad.cjs`, `workflows/wireframe.md` — verified 2026-03-28
+- [HKUDS/CLI-Anything HARNESS.md](https://github.com/HKUDS/CLI-Anything/blob/main/cli-anything-plugin/HARNESS.md) — 7-phase pipeline, SKILL.md schema, JSON output format
+- [Apple Developer — CFBundles](https://developer.apple.com/library/archive/documentation/CoreFoundation/Conceptual/CFBundles/) — `.app` bundle structure, Info.plist, `CFBundleExecutable`
+- [ArchWiki — Desktop entries](https://wiki.archlinux.org/title/Desktop_entries) — XDG `.desktop` format, `Exec=` field, storage paths
+- [Microsoft Learn — Get-StartApps](https://learn.microsoft.com/en-us/powershell/module/startlayout/get-startapps) — Windows app discovery via PowerShell
+- [OWASP MCP Top 10 2025](https://owasp.org/www-project-mcp-top-10/2025/) — MCP05 Command Injection, MCP02 Privilege Escalation
+- [CVE-2025-53109/53110](https://cymulate.com/blog/cve-2025-53109-53110-escaperoute-anthropic/) — Anthropic Filesystem MCP symlink bypass (symlink canonicalization requirement)
+- [Blender CLI docs](https://docs.blender.org/manual/en/latest/advanced/command_line/render.html) — `--background` flag, headless rendering
 
 ### Secondary (MEDIUM confidence)
-- [keak-ai/webmcp-core GitHub](https://github.com/keak-ai/webmcp-core) — `generateToolDefinitions()` API, pipeline steps, TypeScript/Node requirements
-- [mcp-auth.dev docs](https://mcp-auth.dev/docs/configure-server/mcp-auth) — `mcp-auth` RFC 9728 integration pattern
-- [better-auth MCP plugin](https://better-auth.com/docs/plugins/mcp) — OAuth provider path, deprecation note toward `oauth-provider`
-- [WebMCP Browser Status 2026](https://dev.to/ai-agent-economy/webmcp-in-2026-which-browsers-support-navigatormodelcontext-complete-compatibility-status-1oe4) — Browser compatibility matrix
+- [HKUDS/CLI-Anything GitHub](https://github.com/HKUDS/CLI-Anything) — registry.json app list (27 apps), issues #16/#143/#144/#154
+- [HKUDS/CLI-Anything skill_generator.py](https://github.com/HKUDS/CLI-Anything/blob/main/cli-anything-plugin/skill_generator.py) — Python imports, jinja2 optional fallback
+- [FastMCP PyPI](https://pypi.org/project/fastmcp/) — v3.1.1 production-grade Python MCP SDK (referenced as alternative; not a PDE dependency)
+- [Node.js issue #58290](https://github.com/nodejs/node/issues/58290) — PATH not inherited when custom env passed to spawn
+- [Homebrew PEP-668 discussion](https://discuss.python.org/t/on-macos-14-pip-install-throws-error-externally-managed-environment/50352) — pip breakage on macOS 14+
+- [Blender headless forum](https://devtalk.blender.org/t/solved-2-90-headless-rendering-ignoring-script-selecting-gpus-falls-back-on-the-cpu/16886) — GPU fallback in headless mode
+- [Python venv docs — Real Python](https://realpython.com/python-virtual-environments-a-primer/) — isolation pattern rationale
 
 ### Tertiary (LOW confidence)
-- Obsidian Security OAuth CSRF post-mortems — one-click account takeover via shared client_id in production MCP deployments (cited in PITFALLS.md; primary source not directly verified)
-- Invariant Labs MCPTox benchmark — 72.8% tool poisoning attack success rate against o1-mini (cited in PITFALLS.md; primary paper not directly verified)
+- [MCP Dynamic Tool Discovery — Speakeasy](https://www.speakeasy.com/mcp/tool-design/dynamic-tool-discovery) — dynamic registration patterns
+- [Manus Desktop App launch](https://manus.im/blog/manus-my-computer-desktop) — desktop-to-CLI invocation in agent context
+- [How to sandbox AI agents 2026 — Northflank](https://northflank.com/blog/how-to-sandbox-ai-agents) — subprocess isolation patterns
 
 ---
-*Research completed: 2026-03-27*
+*Research completed: 2026-03-28*
 *Ready for roadmap: yes*

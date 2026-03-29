@@ -1,31 +1,127 @@
-# Feature Research: PDE v0.18 Distributed Execution
+# Feature Research
 
-**Domain:** Distributed task execution — git worktree session isolation, CLI subprocess orchestration, multi-session monitoring, remote dispatch
-**Researched:** 2026-03-26
-**Confidence:** HIGH (core patterns verified against Claude Code official docs and 2026 ecosystem research)
-
----
-
-## Context: What Already Exists (Not in Scope)
-
-These features are the foundation this milestone builds on — do NOT re-build:
-
-- Single-session phase execution with wave-based plan parallelism (Task() subagents)
-- NDJSON event streaming via relay daemon to Upstash Redis
-- PWA dashboard with real-time monitoring via SSE, session cards, event log
-- Approval gate push notifications (Web Push + VAPID)
-- Production hardening: rate limiting, TTL, downsampling, GC on relay
-- Existing tmux 7-pane monitoring dashboard
-
-The v0.18 milestone adds **parallel session dispatch** (Layer 2) and **remote execution** (Layer 3).
+**Domain:** Desktop App CLI Integration + Design Pipeline — PDE next milestone
+**Researched:** 2026-03-28
+**Confidence:** MEDIUM-HIGH (CLI-Anything verified against live repo; integration patterns from current ecosystem)
 
 ---
 
-## Ecosystem Context (2026)
+## Context: What Already Exists
 
-The ecosystem has converged on git worktrees as the standard session isolation primitive for parallel AI coding agents. Tools validated this year: ccswarm (Rust, CLI orchestrator), Mux (desktop with conflict visualization), Superset (multi-agent dispatcher), Parallel Worktrees (GitHub), and critically, Anthropic's own experimental "Agent Teams" feature (v2.1.32+). The pattern is proven and table stakes — the differentiation is in the orchestration logic, merge conflict prevention, and observability layer on top.
+Before listing new features, the following are already built and must not be redone:
 
-**Key finding from official Claude Code Agent Teams docs (HIGH confidence):** Agent teams use significantly more tokens than single sessions, require experimental flag (`CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS`), have known limitations around session resumption, and are not recommended for sequential tasks, same-file edits, or work with many dependencies. PDE's CLI-subprocess + worktree approach is architecturally sounder than the native Agent Teams feature for its use case.
+| Already Shipped | Version |
+|----------------|---------|
+| OpenAPI/JSON Schema/GraphQL/MCP parsers → unified capability model | v0.20 Phase 163 |
+| AI SDK tool() codegen from capability models | v0.20 Phase 163 |
+| --help → MCP server + SKILL.md + registry publishing | v0.20 Phase 164 |
+| Image pipeline (OG/social/mockup/screenshot/rembg) | v0.20 Phase 165 |
+| Video pipeline (record/assemble/compose/caption) | v0.20 Phase 167 |
+| 3D pipeline (text-to-3D, image-to-3D, GLB optimize, model-viewer) | v0.20 Phase 168 |
+| Parametric CAD (CadQuery → STEP) | v0.20 Phase 169 |
+| Playwright MCP for browser automation | v0.14 |
+| MCP bridge with 7 APPROVED_SERVERS, 57 TOOL_MAP entries | v0.5 |
+
+---
+
+## CLI-Anything (HKUDS) — Verified Findings
+
+Source: https://github.com/HKUDS/CLI-Anything (verified 2026-03-28, repo active)
+
+### Supported Applications (27 registered in registry.json)
+
+| Category | Apps |
+|----------|------|
+| AI/ML | Ollama, ComfyUI, NotebookLM, Novita |
+| 3D & Graphics | Blender, FreeCAD, RenderDoc |
+| Image Editing | GIMP, Inkscape, Krita |
+| Video Editing | Kdenlive, Shotcut |
+| Audio | Audacity |
+| Music Notation | MuseScore |
+| Office | LibreOffice, Mubu |
+| Design | Sketch, Draw.io |
+| Diagrams | Mermaid |
+| Web/Browser | Browser (DOMShell) |
+| Network | AdGuardHome, RMS |
+| Communication | Zoom |
+| Content Gen | AnyGen |
+| Streaming | OBS Studio |
+| Development | iTerm2 |
+
+**Design-pipeline-relevant apps** (highest value for PDE):
+- **Blender** — 3D modeling, scene rendering, compositing (integrates with existing 3D pipeline)
+- **GIMP** — Raster image editing, batch processing, scripting via Script-Fu
+- **Inkscape** — SVG vector editing, icon production, design token export
+- **Krita** — Digital painting, texture creation, concept art
+- **FreeCAD** — Parametric modeling, Python scripting (integrates with CAD pipeline)
+- **ComfyUI** — Diffusion workflow nodes, image generation pipeline control
+- **OBS Studio** — Screen recording, scene composition (integrates with video pipeline)
+- **LibreOffice** — Document export, presentation generation, calc scripting
+
+### The 7-Phase Pipeline (verified from HARNESS.md)
+
+```
+Phase 1: Codebase Analysis
+  - Identify backend engine, map GUI actions to APIs
+  - Catalog existing CLI entry points
+  - Document undo/command system
+
+Phase 2: CLI Architecture Design
+  - Stateful REPL vs subcommand CLI decision
+  - Command group taxonomy
+  - Output schema: human-readable + JSON dual format
+
+Phase 3: Implementation
+  - Data layer + probe/info commands
+  - Mutation commands via subprocess to real software
+  - Rendering/export pipelines
+  - Session management + REPL interface
+
+Phase 4: Test Planning (TEST.md written before code)
+  - Unit test inventory
+  - E2E test plans with real software
+  - Realistic workflow scenarios
+
+Phase 5: Test Implementation
+  - Unit tests, E2E tests invoking actual application
+  - Subprocess tests, output verification
+
+Phase 6: Test Documentation
+  - Append results + coverage analysis to TEST.md
+
+Phase 6.5: SKILL.md Generation (added 2026-03-16)
+  - YAML frontmatter + markdown doc
+  - Auto-discoverable by AI agents after pip install
+  - REPL banner displays absolute path to skill file
+
+Phase 7: PyPI Publishing
+  - setup.py, pip install cli-anything-<software>
+  - Entry point: cli-anything-<software> <command> [options]
+```
+
+### Output Format
+
+Every generated CLI produces:
+- `--json` flag — structured JSON for agent consumption
+- Default — human-readable text for debugging
+- REPL mode — stateful interactive session
+
+### Discovery/Registration/Invocation Lifecycle
+
+```
+Discovery:    Agent reads cli-hub-meta-skill/SKILL.md (catalog index)
+              OR reads installed package's SKILL.md directly
+Registration: PR to registry.json -> GitHub Actions -> CLI-Hub catalog update
+              Published at: https://hkuds.github.io/CLI-Anything/SKILL.txt
+Installation: pip install cli-anything-<software>
+Invocation:   cli-anything-blender render scene.blend --output=out.png --json
+              OR enter REPL: cli-anything-blender repl
+Agent Use:    Agent reads SKILL.md path from REPL banner
+              Executes commands with --json output
+              Parses structured response
+```
+
+**Critical architectural constraint:** CLI wrappers invoke REAL software via subprocess — they do not reimplement functionality. The target application must be installed on the host. This is a hard dependency.
 
 ---
 
@@ -33,240 +129,213 @@ The ecosystem has converged on git worktrees as the standard session isolation p
 
 ### Table Stakes (Users Expect These)
 
-Features users assume exist in any parallel execution system. Missing these = system feels broken.
+Features that make desktop app integration feel complete. Missing any of these makes the milestone feel half-done.
 
-| Feature | Why Expected | Complexity | Infrastructure Dependency |
-|---------|--------------|------------|---------------------------|
-| **Git worktree per session** | The universal isolation primitive — every parallel agent tool uses this; anything less causes file conflicts | LOW | git CLI (always present) |
-| **Session lifecycle management (spawn/track/complete/cleanup)** | Users need to know which sessions are running, which finished, and have confidence nothing is leaked | MEDIUM | Dispatcher session registry |
-| **Exit code detection + failure surfacing** | If a CLI subprocess crashes silently, user cannot recover; must be visible | LOW | Node.js child_process exit event |
-| **Opt-in flag (`--parallel`)** | Without explicit opt-in, parallel execution changes behavior in surprising ways; users expect existing sequential flow to be untouched | LOW | PDE plugin config |
-| **Session-scoped event tagging** | Events from parallel sessions must be distinguishable in the dashboard; unlabeled events from multiple sessions are unusable | LOW | Existing NDJSON `session_id` field (already supported) |
-| **Orphan detection on startup** | Detached processes surviving a PDE crash are a hazard; users expect the system to find and surface these on next launch | MEDIUM | `.sessions/` dir scan + PID check |
-| **Nuclear reset command** | When parallel execution goes wrong (stuck sessions, bad merges), users need a single command to restore clean state | LOW | Session registry + worktree cleanup |
-| **Non-overlapping phase assignment** | Dispatching the same phase to two sessions simultaneously is a fundamental correctness violation; must be prevented by construction | MEDIUM | Dispatcher routing logic |
-| **Session status in dashboard** | "What is each session doing right now?" is the baseline query for any multi-session system | LOW | Existing SSE pipeline + session card component |
-| **Graceful degradation when dispatch is disabled** | `dispatch.enabled: false` must make the system behave exactly as today with zero behavioral change | LOW | Feature gate in config |
+| Feature | Why Expected | Complexity | Dependencies | Notes |
+|---------|--------------|------------|--------------|-------|
+| App presence detection | Before invoking any desktop app, agent must know if it's installed | LOW | — | `which blender`, `blender --version`, platform-specific paths; fail gracefully if absent |
+| Version-aware capability model | Different versions expose different APIs; stale SKILL.md is a runtime error | MEDIUM | App detection | Blender 3.x vs 4.x Python API differs substantially |
+| SKILL.md auto-generation for wrapped apps | Existing v0.20 Phase 164 already does --help → SKILL.md; must also handle Python API surface | MEDIUM | Phase 164 | Extend to CLI-Anything-style YAML frontmatter format |
+| JSON output mode for all wrapped CLIs | Agents need structured output; --json flag is the standard | LOW | Phase 164 wrapper | Already in v0.20 wrapper pattern |
+| Headless execution mode | Design pipeline apps (Blender, GIMP, LibreOffice) must run without display | MEDIUM | App detection | Blender uses `--background`; GIMP uses `--no-interface`; must be verified per app |
+| Error propagation with structured output | Subprocess failures must surface as JSON error objects, not raw stderr | LOW | JSON output mode | Wrap subprocess CalledProcessError into structured `{error, code, stderr}` |
+| Registration in PDE MCP tool map | Wrapped desktop apps should appear in APPROVED_SERVERS / TOOL_MAP for agent access | MEDIUM | MCP bridge (v0.5) | Each app CLI becomes an MCP tool group |
+| Idempotent install/setup script | Running the integration setup twice must not break anything | LOW | — | Standard but often skipped; critical for CI |
 
 ### Differentiators (Competitive Advantage)
 
-Features that distinguish PDE's distributed execution from generic parallel agent tools.
+Features that set PDE's desktop app integration apart from generic CLI wrapping tools.
 
-| Feature | Value Proposition | Complexity | Infrastructure Dependency |
-|---------|-------------------|------------|---------------------------|
-| **Zero merge conflict guarantee for `.planning/` metadata** | Generic tools surface conflicts as a problem; PDE eliminates them by construction (single-writer pattern per shared file, session-scoped writes during execution) | HIGH | Dispatcher post-merge collector; requires changing STATE.md, ROADMAP.md, REQUIREMENTS.md write semantics in executor agents |
-| **Static file analysis at dispatch** | Most tools discover conflicts at merge time; PDE detects file overlap at dispatch time by reading PLAN.md file lists, preventing conflicts before they start | MEDIUM | Agent SDK (read-only reasoning); PLAN.md file-list convention |
-| **Two-tier execution routing (CLI vs Agent SDK)** | Heavyweight work (filesystem, tools, git) runs as CLI subprocesses; lightweight work (dependency analysis, routing decisions, merge resolution, summarization) runs as Agent SDK. Cost-optimized: SDK calls are cheaper than full CLI sessions | HIGH | `@anthropic-ai/agent-sdk` in `packages/dispatcher/` |
-| **Tiered remote dispatch with fallback (managed → SSH → local)** | Most agent tools are local-only; PDE routes autonomous work to remote machines with zero additional infrastructure cost (git + existing relay) and automatic fallback | HIGH | git push/pull for state sync; existing relay for real-time events; SSH or `claude --remote` |
-| **Session-source tagging in dashboard** | Users can see whether a session is `local`, `remote-managed`, or `remote-ssh` with relationship context ("Phase 5, Plan 2") | LOW | Existing SSE pipeline; new `dispatch.session_spawned` event type |
-| **Interactive vs autonomous routing** | Sessions with approval gates stay local (can't prompt user remotely); fully autonomous sessions route to remote. Routing decision is automatic based on PLAN.md checkpoint field | MEDIUM | Dispatcher routing; PLAN.md checkpoint convention |
-| **Tiered chevron progress per session card** | Visual state machine showing last 3 transitions (Spawned → Wave 1 → Wave 2, each with Y/*/X/o symbols) gives at-a-glance session state without opening detail views | MEDIUM | Dashboard session card component; existing dispatch events |
-| **Aggregate multi-session progress view** | "3/7 phases complete, 2 running, 2 queued" — single-number summary across all active sessions for the phone home screen widget use case | LOW | Dashboard state derived from session registry events |
-| **Dispatcher events in existing event bus** | New `dispatch.*` event types flow through the existing NDJSON → relay → Redis → SSE pipeline with zero wire protocol changes; extensions field absorbs new data | LOW | Existing relay + SSE pipeline (no changes needed) |
-| **Session context window utilization per session (stacked bars)** | Token visibility for multiple sessions simultaneously; no CI/CD tool or agent orchestration tool shows this | MEDIUM | Existing token/cost events; multi-session aggregation in dashboard |
-| **Failure preservation + Agent SDK failure summary** | Failed sessions preserve exit log (last 50 lines stderr), NDJSON tail (last 100 events), and worktree; Agent SDK generates human-readable failure summary | MEDIUM | Agent SDK; worktree lifecycle (no cleanup on failure) |
-| **Concurrent phase + plan parallelism** | Two levels: independent phases run as separate sessions; plans within a wave run as sessions in worktrees. Most tools offer one level | HIGH | Dependency DAG from ROADMAP.md; Dispatcher routing logic |
-| **Striped animated progress bars with speed-as-signal** | Active work: animated diagonal stripes; slow animation = waiting at gate; no animation + solid = failed. Animation speed communicates health, not just progress | LOW | Dashboard CSS; existing progress bar component |
+| Feature | Value Proposition | Complexity | Dependencies | Notes |
+|---------|-------------------|------------|--------------|-------|
+| Design-pipeline-aware app chaining | Blender → image-to-3D → GLB optimize → model-viewer is a single orchestrated flow, not manual steps | HIGH | 3D pipeline (Phase 168), Blender CLI wrapper | The v0.20 asset pipelines become composable with desktop apps |
+| GIMP batch pipeline integration | Connect GIMP scriptable editing to image pipeline (Phase 165): background removal → GIMP retouch → OG card output | HIGH | Image pipeline (Phase 165), GIMP CLI wrapper | High value for design teams; GIMP Script-Fu is Python-callable |
+| Inkscape as design token exporter | SVG → DTCG token extraction; export artboards as named SVG assets into .planning/design/ | HIGH | Design system (v0.2), Inkscape CLI wrapper | Differentiates PDE as the only platform connecting vector design to token pipeline |
+| ComfyUI workflow-as-code | Serialize ComfyUI diffusion pipelines to JSON, replay them as CLI commands, integrate with image pipeline | HIGH | Image pipeline (Phase 165), ComfyUI wrapper | ComfyUI already has JSON API; CLI-Anything wrapper exists in catalog |
+| FreeCAD → CadQuery bridge | FreeCAD visual modeling session → export Python CadQuery script → feed into Phase 169 parametric CAD pipeline | HIGH | CAD pipeline (Phase 169), FreeCAD CLI wrapper | Closes the loop between visual and parametric CAD |
+| App catalog UI in PDE dashboard | Show installed/available apps, health status, version info; one-click register into MCP tool map | MEDIUM | Remote dashboard (v0.17), app detection | Visibility into what desktop app capabilities are available |
+| Cross-app visual comparison | Use Phase 166 visual diff (perceptual hash) to compare outputs from different apps or settings | MEDIUM | Visual diff (Phase 166) | "Did changing this Blender light setting actually improve the render?" |
+| Autonomous app discovery via CLI-Hub | Agent can browse CLI-Anything catalog, install missing app CLI, and immediately use it — zero human config | HIGH | SKILL.md generation, pip subprocess | CLI-Hub meta-skill + PDE orchestration = fully autonomous tool acquisition |
 
 ### Anti-Features (Commonly Requested, Often Problematic)
 
-Features that seem beneficial but create problems in this context.
-
 | Feature | Why Requested | Why Problematic | Alternative |
 |---------|---------------|-----------------|-------------|
-| **Using native Claude Code Agent Teams feature** | Anthropic already built multi-agent coordination — why not use it? | Experimental, gated behind env flag, no session resumption, task status lags, no nested teams, all teammates inherit lead's permissions, does not support worktree-isolated subprocess execution model PDE needs | PDE's own CLI-subprocess + worktree pattern; more control, no experimental flags |
-| **Shared `.planning/` state during parallel execution** | "All sessions should see the same state" | Creates race conditions and merge conflicts by definition; the whole point of worktree isolation is independent writes | Single-writer pattern: sessions write completion markers to their own phase dir; dispatcher aggregates post-merge |
-| **Auto-resolve all merge conflicts silently** | "Zero interruptions during autonomous execution" | Silent auto-resolution of source code conflicts corrupts state in ways that are hard to diagnose; user trust requires visibility when conflicts occur | Auto-resolve only `.planning/` metadata (provably safe strategies); surface source code conflicts to user with worktree preserved |
-| **Real-time cross-session state sharing during execution** | "Sessions should know what other sessions are doing" | Cross-session communication during execution adds synchronization overhead and coupling that defeats the purpose of isolation; the only safe shared state is the pre-dispatch snapshot | Sessions are fully isolated during execution; coordination happens at dispatch (pre-execution) and merge (post-execution) |
-| **More than 3 concurrent local sessions** | "Maximize parallelism = maximize speed" | Claude Code sessions are memory-intensive; 3+ concurrent sessions on a typical developer machine causes resource contention, slowdowns, and context thrashing that negates parallelism gains | Configurable `max_local_sessions: 3` default; queue excess work; user can raise limit explicitly |
-| **Persistent background dispatcher daemon** | "Dispatcher should always be running to pick up new work" | A persistent daemon creates orphan processes, complicates session model, conflicts with Claude Code's session-based execution model | Lock-file-based single-dispatcher pattern; dispatcher spawns on demand, runs until all sessions complete |
-| **Bidirectional relay between remote and local dispatchers** | "Remote sessions should be able to spawn more sessions locally" | Creates a distributed coordination problem with failure modes that require a full distributed systems solution (leader election, network partition handling) | One-way dispatch: local dispatcher → remote session. Remote session reports back via git push + relay events |
-| **Real-time streaming of remote session filesystem** | "Show me what files the remote session is changing in real-time" | Streaming filesystem events over SSH adds bandwidth, latency, and complexity; file changes on remote are meaningful only after merge | Show git diff stats post-merge; relay events show logical progress (phase/plan/wave); file changes visible in dashboard after session completes |
-| **Cost controls and spend caps** | "Stop sessions when they exceed budget" | Requires real-time token counting accuracy (current heuristic is chars/4, labeled ~est.) and Anthropic API rate-limit integration; incorrect cutoffs abort work mid-execution in hard-to-recover states | Placeholder only; surface aggregate cost per session; let user stop sessions manually from dashboard |
-| **Running full PDE plugin in the cloud** | "I want zero local dependencies" | Requires packaging the entire Claude Code plugin as a deployable artifact, MCP server hosting, auth, and multi-tenant isolation — v1.0 Standalone CLI milestone scope | SSH to a machine that has Claude Code installed; that machine runs PDE locally |
+| Reimplementing app logic in Python | Avoid requiring Blender installed — lighter dependency | CLI-Anything's explicit architecture principle: never reimplement, always subprocess to real app. Reimplementation creates permanent maintenance burden and misses app updates | Require app installation; provide clear setup instructions and version detection |
+| GUI automation (screenshot + click) | Some apps resist CLI scripting; vision models can drive them | Brittle, resolution-dependent, breaks on app updates, extreme latency. Playwright MCP is already present for web; desktop GUI automation is a different problem domain | Focus on apps with Python API or native CLI (Blender scripting, GIMP Script-Fu, LibreOffice UNO) |
+| Universal app detection via OS APIs | Discover everything installed, like a full app catalog | Platform-specific (macOS /Applications, Windows registry, Linux PATH/XDG), inconsistent results, security surface, not worth the complexity for a small known app set | Whitelist-based detection for PDE's 8-10 priority apps; probe by running `<app> --version` |
+| Real-time sync with app state | Live update when user changes something in Blender | Requires IPC socket, polling, or file-watch loops — massive complexity, app-specific protocols, race conditions | File-based exchange: agent writes scene file, app renders, agent reads output |
+| Multi-app concurrent sessions | Run Blender + GIMP + LibreOffice simultaneously in one pipeline | Process management complexity, port conflicts, resource contention on a developer workstation | Sequential pipeline steps; use v0.18 worktree dispatch for true parallelism if needed |
+| Packaging wrapped CLIs for end-user distribution | Ship the PDE app with bundled Blender CLI | License conflicts (GPL Blender), binary size, version pinning nightmares | Treat desktop apps as host-installed dependencies; document minimum versions |
 
 ---
 
 ## Feature Dependencies
 
 ```
-[Git Worktree Per Session]
-    |-- requires --> [git CLI]
-    |-- enables --> [Session Lifecycle Management]
-    |-- enables --> [Non-Overlapping Phase Assignment]
-    |-- enables --> [Static File Analysis at Dispatch]
+App Presence Detection
+    +--required-by--> All Desktop App Wrappers
+                          +--required-by--> SKILL.md Auto-generation
+                                                +--required-by--> MCP Tool Map Registration
+                                                                       +--required-by--> Agent Autonomous Discovery
 
-[Session Lifecycle Management]
-    |-- requires --> [Git Worktree Per Session]
-    |-- requires --> [Session Registry (in-memory Map)]
-    |-- enables --> [Exit Code Detection]
-    |-- enables --> [Orphan Detection]
-    |-- enables --> [Nuclear Reset Command]
-    |-- enables --> [Session Status in Dashboard]
+Headless Execution Mode
+    +--required-by--> Blender CLI Wrapper (3D pipeline integration)
+    +--required-by--> GIMP CLI Wrapper (image pipeline integration)
+    +--required-by--> LibreOffice CLI Wrapper (document export)
 
-[Dispatcher Events in Existing Event Bus]
-    |-- requires --> [Session Lifecycle Management]
-    |-- requires --> [Existing NDJSON relay pipeline (NO CHANGES)]
-    |-- enables --> [Session Source Tagging in Dashboard]
-    |-- enables --> [Tiered Chevron Progress per Session Card]
-    |-- enables --> [Aggregate Multi-Session Progress View]
+Version-Aware Capability Model
+    +--required-by--> SKILL.md generation (must reflect actual available commands)
+    +--required-by--> Correct subprocess flags (--background vs -b changed in Blender versions)
 
-[Two-Tier Execution Routing]
-    |-- requires --> [@anthropic-ai/agent-sdk]
-    |-- requires --> [packages/dispatcher/ isolation]
-    |-- enables --> [Interactive vs Autonomous Routing]
-    |-- enables --> [Static File Analysis at Dispatch]
-    |-- enables --> [Failure Preservation + Agent SDK Summary]
-    |-- enables --> [Tiered Remote Dispatch with Fallback]
+JSON Output Mode
+    +--required-by--> Design Pipeline Chaining (structured data between steps)
+    +--required-by--> App Catalog Dashboard (parse CLI output for health display)
 
-[Zero Merge Conflict Guarantee (.planning/)]
-    |-- requires --> [Non-Overlapping Phase Assignment]
-    |-- requires --> [Single-writer pattern for STATE.md, ROADMAP.md, REQUIREMENTS.md]
-    |-- requires --> [Session-scoped COMPLETED-REQS.md and memories-{id}.md]
-    |-- enables --> [Auto-resolve .planning/ metadata conflicts]
-    |-- conflicts_with --> [Shared .planning/ state during execution]
+Phase 164 CLI Wrapper (v0.20)
+    +--enhances--> All CLI-Anything-style wrappers (reuse --help -> SKILL.md machinery)
 
-[Tiered Remote Dispatch]
-    |-- requires --> [Session Lifecycle Management]
-    |-- requires --> [Two-Tier Execution Routing]
-    |-- requires --> [Interactive vs Autonomous Routing]
-    |-- requires --> [git push/pull for state sync]
-    |-- requires --> [Existing relay (zero changes, remote points to same ingest URL)]
-    |-- enables --> [SSH dispatch sequence]
-    |-- enables --> [managed dispatch (claude --remote)]
+Phase 165 Image Pipeline (v0.20)
+    +--enhances--> GIMP CLI Wrapper (GIMP becomes an editing step within image pipeline)
 
-[Multi-Session Dashboard Integration]
-    |-- requires --> [Dispatcher Events in Existing Event Bus]
-    |-- requires --> [Session source tagging]
-    |-- enhances --> [Existing v0.17 PWA (additive, no rewrites)]
-    |-- enables --> [Striped Animated Progress Bars]
-    |-- enables --> [Tiered Chevron Progress per Session Card]
-    |-- enables --> [Session Context Window Bars (stacked)]
-    |-- enables --> [Merge Notifications (push)]
+Phase 168 3D Pipeline (v0.20)
+    +--enhances--> Blender CLI Wrapper (Blender becomes advanced step in 3D pipeline)
 
-[Orphan Detection]
-    |-- requires --> [Session Lifecycle Management]
-    |-- requires --> [.sessions/ directory scan on startup]
-    |-- requires --> [PID check from dispatcher.lock]
-    |-- enables --> [Adopt / Kill / Ignore prompt on startup]
-    |-- enables --> [Nuclear Reset Command]
+Phase 169 CAD Pipeline (v0.20)
+    +--enhances--> FreeCAD CLI Wrapper (visual -> parametric bridge)
+
+Blender CLI Wrapper
+    +--resource-conflict--> GIMP CLI Wrapper
+        (not a code conflict; resource conflict: both GPU-intensive, should not run concurrently)
 ```
 
 ### Dependency Notes
 
-- **Git worktree is the root dependency.** Everything in Layer 2 flows from this. It must be the first thing built and tested.
-- **Dispatcher events require zero wire protocol changes.** The extensions field in existing NDJSON envelope absorbs all new data. This is the lowest-risk integration point.
-- **Zero merge conflict guarantee requires executor agent changes.** STATE.md, ROADMAP.md, REQUIREMENTS.md write semantics must change in executor agents — this is a cross-cutting change across existing workflows, not just new dispatcher code.
-- **Remote dispatch depends on interactive vs autonomous routing.** Cannot safely dispatch to remote without first classifying each session's interactivity requirement. Build routing before remote.
-- **Two-tier routing requires Agent SDK.** `packages/dispatcher/` must be an isolated subdirectory to keep plugin root zero-dependency. Do not add `@anthropic-ai/agent-sdk` to the plugin root.
-- **Multi-session dashboard is additive.** The v0.17 PWA does not need rewrites — new session cards, chevrons, and progress bars extend the existing component tree.
+- **App detection required before all wrappers:** A wrapper that assumes an app is installed will hard-crash agents. Detection must be the first gate.
+- **Headless mode is not optional for pipelines:** Blender's `--background` flag disables the GUI and is required for unattended operation. Without it, the process hangs waiting for a display.
+- **Version awareness prevents silent failures:** Blender 3.x uses `bpy.ops.*` differently from 4.x; GIMP Script-Fu changed between 2.10 and 3.0. SKILL.md must be generated against the installed version.
+- **Phase 164 reuse:** The existing `--help → MCP server + SKILL.md` machinery from Phase 164 is the foundation. Desktop app wrappers extend it with: version detection, headless-mode flags, and Python API introspection.
 
 ---
 
 ## MVP Definition
 
-### Launch With (Layer 2 — Local Parallel Execution)
+### Launch With (this milestone)
 
-Minimum viable: independent phases and plans execute in parallel locally, user can monitor all sessions from existing dashboard.
+Minimum viable product for desktop app integration that delivers real value to the design pipeline.
 
-- [ ] **Git worktree lifecycle (spawn/track/complete/cleanup)** — Foundation; everything else depends on this
-- [ ] **Session registry** — Track active sessions, status, phase/plan assignment; enable `canSpawn()` concurrency check
-- [ ] **Non-overlapping phase assignment** — Dispatch never assigns the same phase to two sessions; correctness invariant
-- [ ] **CLI subprocess spawning in worktree** — `spawn('claude', ['--print', '--prompt', '...', '--cwd', worktreePath])` with detached: true
-- [ ] **Exit code detection and failure surfacing** — Dashboard failure card; worktree preserved on failure
-- [ ] **Dispatcher events in event bus** — `dispatch.session_spawned`, `dispatch.session_completed`, `dispatch.session_failed` through existing NDJSON pipeline
-- [ ] **Session-scoped event tagging in dashboard** — Filter dropdown; color-coded session tags; interleaved chronological timeline
-- [ ] **Zero merge conflict guarantee for `.planning/`** — Single-writer pattern; session-scoped COMPLETED-REQS.md and memories-{id}.md; dispatcher aggregates post-merge
-- [ ] **Orphan detection on startup** — Scan `.sessions/`, PID check, Adopt/Kill/Ignore prompt
-- [ ] **`--parallel` opt-in flag** — Zero behavioral change without flag; existing sequential flow untouched
-- [ ] **Nuclear reset command (`/gsd:sessions reset`)** — Kill all, remove worktrees, prune branches, restore clean state
+- [ ] App presence detection + version check — Foundation for everything; single probe function covering 8 priority apps
+- [ ] Blender CLI wrapper — Highest value: render scenes headlessly, export to formats consumed by Phase 168 (GLB, OBJ, PNG)
+- [ ] GIMP CLI wrapper — Connects to existing image pipeline (Phase 165); Script-Fu batch mode well-documented
+- [ ] Inkscape CLI wrapper — SVG export + DTCG integration; pure CLI (`inkscape --export-png`), lowest friction app to wrap
+- [ ] SKILL.md generation for all wrapped apps — Required for agent discoverability; extend Phase 164 machinery
+- [ ] MCP tool map registration — Each app CLI registered as APPROVED_SERVER entries so agents can invoke them
+- [ ] JSON output mode — Structured output from every wrapped app command; required for pipeline chaining
 
-### Add After Layer 2 Validates (Layer 3 — Remote Dispatch)
+### Add After Validation (v1.x / next milestone)
 
-Add once local parallel execution is stable and merged conflicts are confirmed zero.
-
-- [ ] **Two-tier execution routing (CLI vs Agent SDK)** — `packages/dispatcher/` with Agent SDK; routing table for task types
-- [ ] **Interactive vs autonomous routing** — Tag sessions based on PLAN.md checkpoint field; interactive stays local
-- [ ] **SSH remote dispatch** — git push branch → SSH execute → git push result → local merge; full round-trip
-- [ ] **Managed remote dispatch (`claude --remote`)** — Try managed first, fallback to SSH, fallback to local
-- [ ] **Remote relay integration** — Remote machine runs relay.cjs pointed at same dashboard ingest URL; no dashboard changes
-- [ ] **SSH failure fallback** — Graceful local re-routing on SSH refused or relay heartbeat timeout
+- [ ] ComfyUI workflow-as-code — Trigger: if AI image generation is a frequent design pipeline step
+- [ ] FreeCAD → CadQuery bridge — Trigger: if physical product design users are active
+- [ ] App catalog dashboard pane — Trigger: once 5+ apps are wrapped; visibility becomes valuable
+- [ ] Cross-app visual comparison — Trigger: after Blender + GIMP wrappers ship and pipeline chaining is working
 
 ### Future Consideration (v2+)
 
-Defer until Layer 2 + Layer 3 have real usage data.
-
-- [ ] **Cost controls and spend caps** — Requires accurate token counting and API integration; placeholder only in v0.18
-- [ ] **Cross-session state sharing during execution** — Dangerous without distributed consensus; not worth the complexity
-- [ ] **Nested dispatcher (remote spawning local sessions)** — Full distributed systems problem; out of scope for single-user trust model
+- [ ] OBS Studio CLI wrapper — Video pipeline is already strong (Phase 167); OBS adds streaming/recording not yet covered
+- [ ] Autonomous CLI-Hub discovery — Full agent-driven app installation and SKILL.md acquisition; requires security review
+- [ ] Krita + Audacity wrappers — Lower priority; digital painting and audio editing are edge cases in PDE's current user profile
 
 ---
 
 ## Feature Prioritization Matrix
 
-| Feature | User Value | Implementation Cost | Priority |
-|---------|------------|---------------------|----------|
-| Git worktree lifecycle | HIGH | LOW | P1 |
-| Session registry | HIGH | LOW | P1 |
-| Non-overlapping phase assignment | HIGH | LOW | P1 |
-| CLI subprocess spawning | HIGH | LOW | P1 |
-| Exit code detection + failure surfacing | HIGH | LOW | P1 |
-| Dispatcher events in event bus | HIGH | LOW | P1 |
-| Session-scoped event tagging in dashboard | HIGH | LOW | P1 |
-| Zero merge conflict guarantee (.planning/) | HIGH | HIGH | P1 |
-| Orphan detection | MEDIUM | MEDIUM | P1 |
-| `--parallel` opt-in flag | HIGH | LOW | P1 |
-| Nuclear reset command | HIGH | LOW | P1 |
-| Interactive vs autonomous routing | HIGH | MEDIUM | P2 |
-| Two-tier execution routing (CLI vs Agent SDK) | HIGH | HIGH | P2 |
-| Tiered chevron progress per session card | MEDIUM | MEDIUM | P2 |
-| Aggregate multi-session progress view | MEDIUM | LOW | P2 |
-| Striped animated progress bars | LOW | LOW | P2 |
-| SSH remote dispatch | HIGH | HIGH | P2 |
-| Managed remote dispatch | MEDIUM | MEDIUM | P2 |
-| Remote relay integration | MEDIUM | LOW | P2 |
-| Static file analysis at dispatch | MEDIUM | MEDIUM | P2 |
-| Session context window bars (stacked) | MEDIUM | LOW | P2 |
-| Failure preservation + Agent SDK summary | MEDIUM | MEDIUM | P2 |
-| Cost controls / spend caps | LOW | HIGH | P3 |
-| Session comparison view | LOW | MEDIUM | P3 |
-| Nested dispatcher | LOW | HIGH | P3 |
-
-**Priority key:**
-- P1: Must have for Layer 2 launch — local parallel execution
-- P2: Layer 3 launch — remote dispatch + dashboard polish
-- P3: Future consideration — defer until usage data exists
+| Feature | User Value | Implementation Cost | Priority | Phase Placement |
+|---------|------------|---------------------|----------|-----------------|
+| App presence detection | HIGH | LOW | P1 | Phase 1 of milestone |
+| Blender CLI wrapper (headless render) | HIGH | MEDIUM | P1 | Phase 2 |
+| GIMP CLI wrapper (batch, Script-Fu) | HIGH | MEDIUM | P1 | Phase 2 |
+| Inkscape CLI wrapper | HIGH | LOW | P1 | Phase 2 |
+| SKILL.md generation for desktop apps | HIGH | LOW | P1 | Phase 1-2 (extends Phase 164) |
+| MCP tool map registration | HIGH | LOW | P1 | Phase 3 |
+| JSON output mode | HIGH | LOW | P1 | Phase 2 (per wrapper) |
+| Headless execution mode verification | HIGH | LOW | P1 | Phase 2 (per wrapper) |
+| Design pipeline chaining (Blender → 3D pipeline) | HIGH | HIGH | P2 | Phase 4 |
+| GIMP → image pipeline integration | HIGH | HIGH | P2 | Phase 4 |
+| FreeCAD → CAD pipeline bridge | MEDIUM | HIGH | P2 | Phase 4 or deferred |
+| ComfyUI workflow-as-code | MEDIUM | HIGH | P2 | Phase 4 or deferred |
+| App catalog dashboard pane | MEDIUM | MEDIUM | P3 | After validation |
+| Autonomous CLI-Hub discovery | HIGH | HIGH | P3 | v2+ |
+| Cross-app visual comparison | MEDIUM | LOW | P3 | After wrappers stable |
 
 ---
 
-## Ecosystem Comparison
+## Competitor Feature Analysis
 
-| Feature | ccswarm | Mux | Claude Code Agent Teams | PDE v0.18 (Our Approach) |
-|---------|---------|-----|------------------------|--------------------------|
-| Session isolation | Git worktrees | Git worktrees (auto) | Separate context windows (no worktrees by default) | Git worktrees (explicit `.sessions/<id>`) |
-| Merge conflict prevention | Manual | Visual divergence detection | Task claiming with file locks | Zero by construction for `.planning/`; static analysis for source |
-| Remote execution | No | No | No | Yes (SSH + managed) |
-| Event observability | Terminal UI | Desktop app | In-process or tmux split panes | Existing NDJSON/SSE/PWA pipeline (no new infra) |
-| Mobile control | No | No | No | Existing PWA (action buttons on session cards) |
-| Failure recovery | Manual | Manual | Manual worktree inspection | Worktree preserved; Agent SDK summary; retry button in dashboard |
-| Token cost visibility | No | No | Per-session (experimental) | Per-session + aggregate; existing cost infrastructure |
-| Routing intelligence | None | None | Claude decides team structure | Dispatcher: interactive vs autonomous; file overlap analysis |
-| Orphan handling | Manual | Manual | Prompt on conflict | Auto-detect on startup; Adopt/Kill/Ignore |
-| Infrastructure cost | Runtime only | Desktop app required | None | Runtime only (git + existing Upstash relay) |
+| Feature | CLI-Anything (HKUDS) | Generic MCP Wrappers | PDE Approach |
+|---------|---------------------|----------------------|--------------|
+| App discovery | CLI-Hub catalog (agent-browsable) | Manual config | Whitelist-based probe + MCP registration |
+| SKILL.md format | YAML frontmatter + markdown | Varies | Extend Phase 164 format to match CLI-Anything standard |
+| Output format | JSON + human-readable dual mode | Varies | JSON mandatory, human readable for debug |
+| Pipeline integration | None (standalone CLIs) | None | First-class design pipeline integration (unique to PDE) |
+| Version awareness | Not documented | Not documented | Required — probe version before generating SKILL.md |
+| Headless mode | Per-app (documented in harness) | Not addressed | Explicit per-app headless flag in wrapper |
+| Registration | PyPI + CLI-Hub registry | Manual APPROVED_SERVERS | APPROVED_SERVERS + SKILL.md auto-publish |
+| Real software requirement | Strict (subprocess, not reimplemented) | Varies | Follow CLI-Anything pattern: always subprocess |
+
+---
+
+## Phase-Specific Implementation Notes
+
+### App Detection Pattern
+
+```bash
+# Pattern for each app:
+which blender && blender --version 2>&1 | head -1
+# Returns: "Blender 4.1.0 (hash abc123)" -- parse major.minor
+# macOS path fallback: /Applications/Blender.app/Contents/MacOS/blender
+# Windows fallback: %PROGRAMFILES%\Blender Foundation\Blender\blender.exe
+```
+
+### Blender Headless Invocation Pattern
+
+```bash
+blender --background scene.blend --python render_script.py -- --output /tmp/out.png
+# --background: no GUI, exits when script finishes
+# --python: execute Python script in Blender's embedded Python
+# --: separator for user script args
+```
+
+### GIMP Headless Pattern
+
+```bash
+gimp --no-interface --batch '(gimp-version)' --batch '(gimp-quit 0)'
+# Script-Fu batch mode; GIMP 3.0+ uses --script-fu-batch
+# Alternate for GIMP 2.10: gimp -i -b '...'
+```
+
+### Inkscape Pure CLI (No Headless Needed)
+
+```bash
+inkscape --export-type=png --export-filename=out.png input.svg
+# Inkscape 1.x: fully CLI-driven, no display required
+# Inkscape 0.91: different flag set -- version check mandatory
+```
 
 ---
 
 ## Sources
 
-- [Claude Code Agent Teams (official docs, current)](https://code.claude.com/docs/en/agent-teams) — Architecture, limitations, session resumption known issues, token cost guidance
-- [Claude Code Worktrees Guide](https://claudefa.st/blog/guide/development/worktree-guide) — Standard isolation patterns, subagent isolation, cleanup mechanics (MEDIUM confidence)
-- [Claude Code Remote Control Guide](https://claudefa.st/blog/guide/development/remote-control-guide) — Remote control architecture, limitations (single session restriction, no SSH dispatch) (HIGH confidence)
-- [ccswarm: AI Multi-Agent Orchestration](https://crates.io/crates/ccswarm) — Community orchestration tool; session persistence patterns (LOW confidence, WebSearch only)
-- [Process Supervision for AI Agents (Zylos Research, 2026-02-20)](https://zylos.ai/research/2026-02-20-process-supervision-health-monitoring-ai-agents) — Application-level heartbeats vs crude metrics; state persistence across restarts (MEDIUM confidence)
-- [Parallel Coding Agents with Git Worktree x tmux (Medium, 2026)](https://medium.com/@sean0628/parallel-coding-agents-with-git-worktree-x-tmux-be2a5a290f18) — Confirms tmux + worktree as standard parallel agent pattern (LOW confidence, WebSearch summary)
-- [Four Design Patterns for Event-Driven Multi-Agent Systems (Confluent)](https://www.confluent.io/blog/event-driven-multi-agent-systems/) — Orchestrator-worker, parallel fan-out/gather, event aggregation (MEDIUM confidence)
-- [Design spec: 2026-03-26-distributed-execution-design.md](../docs/superpowers/specs/2026-03-26-distributed-execution-design.md) — PRIMARY SOURCE for v0.18 feature definitions
+- [CLI-Anything GitHub repo (HKUDS)](https://github.com/HKUDS/CLI-Anything) — registry.json app list, HARNESS.md pipeline, confidence: HIGH
+- [CLI-Anything HARNESS.md](https://github.com/HKUDS/CLI-Anything/blob/main/cli-anything-plugin/HARNESS.md) — 7-phase pipeline verified directly, confidence: HIGH
+- [Figma MCP Server Guide](https://help.figma.com/hc/en-us/articles/32132100833559-Guide-to-the-Figma-MCP-server) — MCP integration pattern for design tools, confidence: HIGH
+- [MCP Skills (modelcontextprotocol.io)](https://modelcontextprotocol.io/docs/develop/build-with-agent-skills) — SKILL.md standard for agent discoverability, confidence: HIGH
+- [Agent Auto-Discovery Bug (Claude Code #9930)](https://github.com/anthropics/claude-code/issues/9930) — Known discovery failure modes, confidence: MEDIUM
+- [Manus Desktop App launch](https://manus.im/blog/manus-my-computer-desktop) — Desktop app to CLI invocation pattern in agent context, confidence: MEDIUM
+- [How to sandbox AI agents 2026 (Northflank)](https://northflank.com/blog/how-to-sandbox-ai-agents) — Subprocess isolation patterns, confidence: MEDIUM
+- PDE .planning/PROJECT.md — Existing v0.20 capabilities (verified locally 2026-03-28), confidence: HIGH
 
 ---
-*Feature research for: PDE v0.18 Distributed Execution (Layers 2-3)*
-*Researched: 2026-03-26*
+
+*Feature research for: PDE desktop app CLI integration milestone*
+*Researched: 2026-03-28*
+*Confidence: MEDIUM-HIGH — CLI-Anything findings HIGH (verified from live repo); integration pattern findings MEDIUM (ecosystem search + official docs); pitfall avoidance recommendations MEDIUM (patterns from multiple sources)*
