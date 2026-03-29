@@ -1,17 +1,17 @@
 # Project Research Summary
 
-**Project:** PDE Desktop App CLI Integration + Design Pipeline Binding
-**Domain:** Desktop app discovery, CLI wrapping, design pipeline orchestration
-**Researched:** 2026-03-28
-**Confidence:** HIGH (stack and architecture verified against existing codebase; CLI-Anything verified against live repo; pitfalls from CVE reports and confirmed GitHub issues)
+**Project:** PDE Stakeholder Presentation & Portfolio Synthesis Engine
+**Domain:** Automated document synthesis from structured project artifacts
+**Researched:** 2026-03-29
+**Confidence:** HIGH
 
 ## Executive Summary
 
-This milestone adds three capabilities on top of the validated v0.20 CLI-Anything foundation: (1) cross-platform discovery of installed GUI applications, (2) a fast path that detects when HKUDS CLI-Anything has already produced a Python harness for a discovered app, and (3) design-pipeline integration that lets `/pde:build` workflows invoke Blender, GIMP, and Inkscape as first-class tools. The architecture is additive — one new module (`discover.cjs`), targeted modifications to `mcp-bridge.cjs` and `pde-tools.cjs`, and new optional steps in `wireframe.md`/`mockup.md`. No npm dependencies are added anywhere; all subprocess work uses Node.js built-ins following the `execFileNoThrow` pattern already established across v0.15–v0.20.
+The Stakeholder Presentation Synthesis Engine is a reader-and-narrator system that transforms existing PDE artifacts (`.planning/` state files, event bus records, design manifests, git history) into audience-specific communication documents. Experts in this domain — drawing lessons from Notion AI, Linear, Jira ARNR, and GitHub Project Insights — converge on the same principle: document generation must be pipeline-structured, not freeform. The recommended approach is a three-stage pipeline: deterministic data extraction into a structured Intermediate Representation (IR) first, persona-specific narrative framing second, and format rendering (HTML/Markdown) last. Each stage must be independently testable and the LLM must only touch stage two.
 
-The recommended approach is a five-step pipeline: discover binary on the system → parse `--help` with `help-parser.cjs` or read the CLI-Anything harness SKILL.md → validate capability model via `model.cjs` → generate stdio MCP server via `server-gen.cjs` → register in `registry.json` for `mcp-bridge.cjs` to pick up at session init. This pipeline reuses every existing CLI-Anything module without modification to their core contracts. The only architectural extension is `loadDynamicServers()` in `mcp-bridge.cjs`, which reads `registry.json` at module load time and populates `APPROVED_SERVERS` and `TOOL_MAP` programmatically — replacing hardcoded entries for user-installed apps.
+The recommended stack is minimal by design. `ejs@5.0.1` handles all template rendering (CJS-native, zero config, handles 10 persona types without a framework), `markdown-it@14.1.1` converts `.planning/` Markdown state files to HTML sections, and all charts are hand-coded SVG (pure parametric functions — no library justifies the dependency footprint for 4–6 chart types). PDF export uses already-installed `playwright` behind an opt-in flag. No new packages enter the plugin root: the two new packages install into an isolated `bin/lib/presentation-pipeline/` subdirectory, following the established image-pipeline and video-pipeline pattern.
 
-The dominant risk is the GUI-app mock-wrapping trap: CLI-Anything wraps the filesystem interface of an app, not the running app itself. Blender and GIMP only have genuine headless modes via specific flags (`--background`, `--no-interface --batch`). Without explicit `executionMode` classification at discovery time, the agent will believe it controlled an app that was never involved. The second critical risk is security boundary collapse from wrapping arbitrary discovered executables without human approval. Both risks have clear mitigations (per-app `executionMode` field, two-tier `pending`/`approved` registry) that must be built into the first phase, not retrofitted.
+The single largest risk is LLM narrative hallucination about project state. Research confirms GPT-class models hallucinate 28–39% of facts even when given source material (Stanford Legal RAG, 2025). This risk is fully preventable with strict pipeline discipline: all quantitative claims must be extracted by deterministic code before any LLM call, every numeric statement in generated prose must be verified against the extraction JSON, and the LLM must never read `.planning/` files directly. The second major risk is premature persona abstraction: building all 10 personas simultaneously creates an untestable shared engine. The research mandate is clear — build exactly two reference personas end-to-end first, then extract abstractions from confirmed duplication only.
 
 ---
 
@@ -19,149 +19,125 @@ The dominant risk is the GUI-app mock-wrapping trap: CLI-Anything wraps the file
 
 ### Recommended Stack
 
-The entire milestone runs on Node.js 20.20.0 built-ins plus the binaries already present on the user's OS. `child_process.execFileSync` and `spawnSync` with args-as-array (never shell-mode invocations) handle all subprocess work for discovery and invocation. macOS discovery uses `system_profiler -json SPApplicationsDataType` as the primary source (structured JSON, full metadata) with `mdfind` as a fast existence probe (~50ms vs ~3s). Linux uses `find` + `fs.readFileSync` on XDG `.desktop` files. Windows uses PowerShell `Get-StartApps | ConvertTo-Json` supplemented by the Uninstall registry key.
-
-The CLI-Anything (HKUDS) fast path requires Python 3.10+ on the host and `pipx install cli-anything` (not `pip install` — PEP-668 breaks pip on Homebrew Python 3.12+). The fast path is gated behind an availability check: `execFileSync('python3', ['--version'])` with semver parse. If unavailable, `help-parser.cjs` is the fallback. The existing `CADQUERY_PYTHON` env-var pattern from `cad.cjs` extends cleanly to `BLENDER_BIN`, `REMBG_PYTHON`, and any new pip CLI, maintaining zero Python at plugin root.
+The stack is deliberately minimal, leveraging PDE's existing dependencies wherever possible. Two new packages are needed: `ejs` for template rendering and `markdown-it` for Markdown-to-HTML conversion. Everything else is already present in the plugin root or is a Node.js built-in.
 
 **Core technologies:**
-- `execFileSync` / `spawnSync` (args-as-array): all subprocess work — zero npm deps, no shell injection risk; consistent with the `execFileNoThrow` pattern already in the codebase
-- `system_profiler -json SPApplicationsDataType`: macOS app inventory — structured JSON, covers /Applications + MAS + ~/Applications
-- `mdfind 'kMDItemKind == "Application"'`: macOS fast probe — ~50ms, used for existence check only
-- `/usr/libexec/PlistBuddy`: macOS executable resolution inside `.app` bundles
-- XDG `.desktop` parsing via `find` + `fs.readFileSync`: Linux app discovery — stable since 2003
-- PowerShell `Get-StartApps | ConvertTo-Json`: Windows app discovery
-- Python 3.10+ via `spawnSync` (not imported): CLI-Anything harness invocation — always args-as-array
-- `pipx`: CLI-Anything install path — required over pip on macOS 14+/Homebrew Python 3.12+
+- `ejs@5.0.1`: HTML and Markdown template rendering — CJS-native, zero peer deps, 25M weekly downloads, sufficient for all 10 persona output types without a framework
+- `markdown-it@14.1.1`: `.planning/` Markdown state → structured HTML sections — strict CommonMark compliance handles edge cases in nested planning files that `marked` mishandles
+- Hand-coded SVG (zero dep): velocity, burndown, timeline, and effort charts as pure functions returning inline SVG strings — no library justified for 4–6 chart types
+- `playwright@1.58.2` (already installed): on-demand PDF export from generated HTML via `page.pdf()` — gated behind `--pdf` flag, not auto-generated
+- Node.js `fs.readdirSync` with `{ recursive: true }` (built-in, Node 18.17+): cross-project directory walking for portfolio synthesis — no `fast-glob` needed at expected scale
+
+**What to avoid:** `puppeteer` (duplicate Chromium when `playwright` is already installed), `vega`/`vega-lite` (requires `canvas` native binary, fails in clean CI), `jsdom` (28MB for a DOM shim), `chart.js` (browser-canvas dependent, no headless SVG path), `wkhtmltopdf`/`html-pdf` (system binary or archived project), any CDN-linked CSS or JS in generated HTML (breaks self-contained constraint).
 
 ### Expected Features
 
 **Must have (table stakes):**
-- App presence detection + version check — foundation for every wrapper; probe by executable before generating any capability model
-- Blender CLI wrapper with `--background` headless mode — highest-value design pipeline integration
-- GIMP CLI wrapper with `--no-interface --batch` Script-Fu mode — connects to image pipeline (Phase 165)
-- Inkscape CLI wrapper — pure CLI (`inkscape --export-type=png`), no headless flags needed; lowest-friction wrap
-- `executionMode` classification at discovery time — `"headless" | "gui-required" | "mock"` per capability model; gates all tool calls
-- SKILL.md generation for all wrapped apps — extends Phase 164 machinery; required for agent discoverability
-- JSON output mode for every wrapped app command — structured output required for pipeline chaining
-- MCP tool map registration — wrapped apps appear in `APPROVED_SERVERS` / `TOOL_MAP` via `loadDynamicServers()`
-- Two-tier approval registry (`pending` → `approved`) — security gate; required before agents can invoke discovered tools
+- Per-persona document generation (`/pde:present [persona]`) — each of 10 personas has distinct information needs and narrative arc
+- Dual HTML + Markdown output — HTML is derived from Markdown; one generation path, not two separate LLM calls
+- Phase completion status summary — every stakeholder report requires progress at a glance
+- Key metrics extraction — dates, token cost, task counts from existing event bus records
+- Design artifact embedding — wireframes and mockups from `.planning/design/` as evidence
+- Git commit velocity summary — proves engineering cadence from existing git history integration
+- Blocker and risk callouts — extracted from phase plans and RECONCILIATION.md files
+- Output persistence in `.planning/presentations/` with timestamp-versioned filenames (never overwrite)
 
-**Should have (competitive):**
-- Design-pipeline-aware app chaining — Blender → 3D pipeline (Phase 168), GIMP → image pipeline (Phase 165)
-- FreeCAD → CadQuery bridge — visual modeling to parametric CAD (Phase 169) pipeline closure
-- `pde-tools app discover|wrap|register|list|probe` subcommand — user-facing entry point for all app management
-- `parseQuality` annotation on capability models + `col -b` preprocessing — prevents corrupt tool descriptions from poisoning agent context
+**Should have (competitive differentiators):**
+- Persona-driven narrative arc — same data, fundamentally different story structure per audience (no existing tool does this from structured dev artifacts)
+- Research validation sourcing — claims backed by v0.7 validated research, not asserted (unique to PDE)
+- Cost transparency narrative — "built X for $Y in token costs" is novel; no competitor reports LLM cost per deliverable
+- Auto-generation on phase completion — hook-triggered via existing Claude Code hooks infrastructure
+- Acceptance-criteria proof table — AC→VERIFICATION.md traceability, unique to PDE methodology
+- Product-type-aware framing — experience/business/hardware products get domain-specific narrative
 
-**Defer (v2+):**
-- ComfyUI workflow-as-code — high complexity, niche workflow; defer until AI image generation is a validated frequent use case
-- Autonomous CLI-Hub discovery (agent-driven pip install) — requires security review; meaningful prompt injection risk
-- App catalog dashboard pane — valuable once 5+ apps wrapped; premature before wrappers are stable
-- OBS Studio, Krita, Audacity wrappers — lower design-pipeline priority
+**Defer to v2+:**
+- Cross-project portfolio synthesis — requires single-project synthesis stable first; introduces schema version complexity
+- Timeline confidence scoring with velocity projection — deferred to P3; depends on stable portfolio infrastructure
+- Launch Announcement persona — depends on cross-project synthesis infrastructure
+- Interactive slide deck editor, real-time collaborative editing, email/Slack delivery — anti-features; scope traps adding months of orthogonal work with no PDE infrastructure
 
 ### Architecture Approach
 
-The architecture is a five-step discovery-to-registration pipeline built on existing infrastructure. A new `discover.cjs` module handles cross-platform binary resolution using a five-tier probe (env var → `which`/`where` → pip module check → `mdfind` → well-known paths). `discover.cjs` writes to `registry.json` via existing `registry.cjs`. A new `loadDynamicServers()` function in `mcp-bridge.cjs` reads `registry.json` at module load and programmatically populates `APPROVED_SERVERS` and `TOOL_MAP` — avoiding the startup-hang anti-pattern of probing uninstalled apps. Design workflow files (`wireframe.md`, `mockup.md`) gain optional app-tool steps gated by `probeServer()`, following the identical probe/degrade contract used for Stitch and Figma today.
+The architecture follows the established context-sync.cjs emitter pattern. A single `presentation.cjs` library reads all `.planning/` artifacts into an IR object once; all 10 personas consume from the same IR. Individual persona modules (`bin/lib/personas/*.cjs`) are pure functions: `render(ir) → sections[]`. A separate `present-render.cjs` module wraps sections into the target format (HTML or Markdown). `pde-tools.cjs` gains a `presentation` subcommand family. Auto-generation fires via a new hook file (`hooks/present-on-phase.cjs`) registered with `async: true` — never blocking Claude Code execution.
 
 **Major components:**
-1. `bin/lib/cli-anything/discover.cjs` (NEW) — cross-platform binary resolution, pip module check, five-tier probe, writes `status`/`executionMode` to registry
-2. `bin/lib/mcp-bridge.cjs` (MODIFY) — add `loadDynamicServers(registryPath)` and `registerDynamicServer(slug, serverPath, caps)` for registry-driven APPROVED_SERVERS
-3. `bin/pde-tools.cjs` (MODIFY) — add `case 'app':` routing block for discover/wrap/register/list/probe subcommands
-4. `bin/lib/cli-anything/server-gen.cjs` (MODIFY) — add `generatePythonModuleHandler()` for pip CLIs (`python -m {tool}` spawn pattern)
-5. `bin/lib/cli-anything/registry.cjs` (MODIFY) — add `status`, `install_hint`, `executionMode`, `requiresDisplay`, `startupMs` fields
-6. `references/app-integrations.md` (NEW) — catalog of known design app CLIs with bundle IDs, pip status, discovery hints
-7. `workflows/wireframe.md`, `workflows/mockup.md` (MODIFY) — optional app-tool steps with probe/degrade
+1. `bin/lib/presentation.cjs` — artifact reader (`readArtifacts(cwd)`), IR builder, persona dispatcher, portfolio reader; sole file-system reader; reuses `cmdHistoryDigest` from `commands.cjs`
+2. `bin/lib/personas/*.cjs` — 10 isolated persona modules, each a pure `render(ir) → sections[]` function; mirrors the emitter architecture of context-sync.cjs
+3. `bin/lib/present-render.cjs` — dual-format renderer: `renderMarkdown(sections, meta)` and `renderHtml(sections, meta)`; format is a rendering concern, not a persona concern
+4. `bin/pde-tools.cjs` (extended) — `presentation` subcommand block routing to above libs; additive case block, isolated from existing subcommands
+5. `hooks/present-on-phase.cjs` — PostToolUse listener with SessionEnd/cooldown gate, detects `phase_complete` event in NDJSON, triggers background generation; `async: true`
+6. `commands/present.md` + `workflows/present.md` — slash command entry and execution workflow
 
-**Build order (critical path):** Phase A `discover.cjs` → Phase B `mcp-bridge.cjs loadDynamicServers()` → Phase E workflow integrations. Phases C (`pde-tools app`) and D (`server-gen.cjs pip handler`) are off the critical path and can develop in parallel with Phase B.
+**Key data flows:**
+- `readArtifacts()` reuses `cmdHistoryDigest` from `commands.cjs` for phase traversal — no re-implementation of phase directory walking
+- `presentation_generated` event emitted to NDJSON; surfaces in tmux dashboard Pane 4 automatically
+- Milestone archive `.planning/milestones/v*-ROADMAP.md` files are the richest "what shipped when" source
+- Portfolio mode: `portfolioReader(cwdList)` calls `readArtifacts()` per project, returns IR array tagged with project paths
 
 ### Critical Pitfalls
 
-1. **GUI app mock wrapping** — CLI-Anything wraps the filesystem interface, not the running app. Avoid by classifying every discovered app as `executionMode: "headless" | "gui-required" | "mock"` at discovery time, before writing any capability model. Reject `"mock"` entries at tool call time with a visible error. Verify Blender uses `--background` and GIMP uses `--no-interface --batch` explicitly. (Source: CLI-Anything issue #16, gedit wrapping post-mortem)
+1. **LLM narrative hallucination about project state** — extract all quantitative claims deterministically first (structured JSON), verify each against its source file, only then call the LLM with "generate narrative only from this data; say '[data not available]' for missing fields." A post-generation pass must verify every numeric claim in generated prose matches the extraction JSON. Never allow the LLM to read `.planning/` files directly. (Stanford Legal RAG, 2025: 28–39% hallucination rate even with source material provided.)
 
-2. **Unapproved executables executed by agents** — Discovery intentionally finds arbitrary binaries, which collapses the APPROVED_SERVERS security boundary if treated as trusted. Avoid by implementing a two-tier registry (`pending` → human `/pde:cli-approve` → `approved`) before any discovery code is written. Store binary SHA-256 hash alongside the approved path; detect binary substitution at tool call time. (Source: OWASP MCP05:2025, CVE-2025-53109 symlink bypass pattern)
+2. **Chart data divergence from actual records** — define one authoritative source per metric (phase completion → STATE.md frontmatter only; commit velocity → git log only). Validate extracted numbers against cross-references before rendering. All chart generation must be deterministic code, never LLM. Every chart value must pass a Nyquist assertion against its source before any persona can use it. (VectorGym benchmark, 2025: LLMs produce inaccurate path counts and incomplete SVGs in generated vector graphics.)
 
-3. **pip PATH isolation failure on Homebrew Python 3.12+** — PEP-668 rejects global pip installs; PATH inherited by Node.js subprocesses does not include `~/.local/bin` when custom env objects are passed. Avoid by using `pipx` (not `pip`) as the canonical install method, resolving the CLI-Anything binary to an absolute path at setup time, and always spreading `process.env` before adding custom keys (`{ ...process.env, MY_VAR: value }`) — never a bare custom env object. (Source: Node.js issue #58290, Homebrew PEP-668 thread)
+3. **Auto-generation firing on every PostToolUse event** — a normal `pde:plan-phase` execution triggers 20–40 Write events to `.planning/`. Wiring auto-generation to PostToolUse blocks workflows with stale mid-execution snapshots and fills the dashboard with noise. Wire to SessionEnd or a 30s idle cooldown instead. Gate additionally on STATE.md showing `status: Completed`. Default `auto_generate: false` in config.json; opt-in only.
 
-4. **`--help` output parsing failures producing corrupt capability models** — Tools like Blender and git emit nroff/backspace-escaped man page output that pollutes tool descriptions (confirmed in existing `.planning/cli-anything/git/capability-model.json`). Avoid by preprocessing all `--help` output through `col -b` to strip backspace sequences, adding a `parseQuality: "degraded"` annotation when parse quality is low, and maintaining curated override models in `.planning/config/capability-overrides/` for known complex apps. (Source: CLI-Anything issue #154, local registry.json inspection)
+4. **Premature persona abstraction creating an untestable engine** — build exactly two reference personas (executive summary + case study — the internal/external poles) end-to-end before extracting any shared abstractions. The 10 personas differ primarily in what data they need, not in rendering logic. A shared `PersonaConfig` built for all 10 personas before any is proven produces an engine that is correct structurally and wrong semantically.
 
-5. **Long-startup apps blocking the MCP response loop** — Blender takes 2-8 seconds per invocation; GIMP takes 3-10 seconds. Multiple sequential tool calls in one agent turn compound to 30-60 second hangs. Avoid by using only async `spawn` (never synchronous variants) in generated MCP servers, declaring `startupMs` in capability model metadata, and setting explicit per-call timeouts (default 30 seconds).
+5. **Self-contained HTML edge cases** — enforce a 500KB hard file size budget on generated HTML; no inline `<script>` blocks (eliminates corporate CSP failures); no external URLs (no CDN fonts, no stylesheet links); no base64-embedded images by default; test in Chrome, Safari, and a text-based renderer. These constraints must be established before any HTML template is built — retrofitting them breaks all existing templates. (cucumber/html-formatter issue #62: reports growing from 7MB to 310MB in production.)
 
 ---
 
 ## Implications for Roadmap
 
-Based on research, the build order is driven by two hard constraints: (1) security architecture must be established before any discovery code runs — the two-tier registry must exist before it can be written to; (2) `discover.cjs` must populate `registry.json` before `mcp-bridge.cjs` can load dynamic servers. The ARCHITECTURE.md critical path maps cleanly to four phases.
+The research identifies four natural phases, driven by strict dependency ordering. The data extraction foundation must precede persona rendering; two reference personas must be proven before the shared engine is abstracted; HTML rendering constraints must be locked in early; and portfolio synthesis is last due to schema version complexity and cross-project risk.
 
-### Phase 1: Security Architecture + Discovery Foundation
+### Phase 1: Data Extraction Foundation and Core Pipeline Infrastructure
 
-**Rationale:** The two-tier approval registry and `executionMode` classification are foundational — every subsequent phase writes into this schema. Building discovery without this gate would require a retrofit that touches every component. This phase also establishes `discover.cjs` as the single binary-resolution source of truth, and adds `col -b` preprocessing to `help-parser.cjs` to prevent corrupt capability models from the start.
+**Rationale:** This is the critical path. All persona output depends on correct data extraction. Building personas before the extraction layer is validated is the most common cause of hallucinated presentations (Pitfall 1). The hook trigger logic also belongs here so it is designed correctly before any generation code runs (Pitfall 3). The IR object shape must accommodate all 10 personas before the first persona is built.
+**Delivers:** `bin/lib/presentation.cjs` with `readArtifacts(cwd)` and IR object; phase completion % calculator; metric extractor (dates, cost, task counts, blockers); `pde-tools.cjs presentation artifact-read` subcommand; `.planning/presentations/` output directory with file naming convention; hook trigger design (SessionEnd/cooldown, not PostToolUse); `auto_generate: false` default in config; data cross-reference validation layer
+**Addresses:** Per-persona document generation (prerequisite), phase completion status summary, key metrics extraction, output persistence, blocker/risk extraction
+**Avoids:** LLM narrative hallucination (extraction-first architecture established before any LLM call), auto-generation workflow noise (trigger logic designed upfront), chart data divergence (source-of-truth mapping defined at extraction layer)
 
-**Delivers:**
-- Two-tier registry schema (`status: "pending" | "approved" | "rejected"`, `executionMode`, `requiresDisplay`, `startupMs`, `install_hint`, binary SHA-256)
-- `discover.cjs` with five-tier probe (env var → which/where → pip module → mdfind → well-known path)
-- `references/app-integrations.md` with known design app CLIs, bundle IDs, and discovery hints
-- `col -b` preprocessing in `help-parser.cjs` + `parseQuality` annotation on capability models
+### Phase 2: Two Reference Personas and Dual-Format Rendering
 
-**Addresses:** App presence detection, version-aware capability model foundation, cross-platform discovery
-**Avoids:** Unapproved-executable security regression, mock-wrapping silent success, corrupt capability model descriptions
+**Rationale:** Build executive summary (Cluster A: internal/forward-looking) and case study (Cluster B: external/retrospective) as independent end-to-end implementations before abstracting any shared logic. These are the poles of the persona spectrum; duplication between them is the only valid basis for shared abstractions (Pitfall 4). HTML rendering constraints must be locked here before any other persona adds templates (Pitfall 5). FEATURES.md identifies 80% shared logic for executive summary and 60% shared logic for case study — validating these estimates requires both to exist first.
+**Delivers:** `personas/executive.cjs` and `personas/case-study.cjs` as proven reference implementations; `bin/lib/present-render.cjs` with `renderMarkdown()` and `renderHtml()` (500KB budget, no JS, no external URLs, self-contained enforced); `commands/present.md` + `workflows/present.md`; `/pde:present` slash command; EJS templates for both personas in HTML and Markdown; design artifact embedding from `.planning/design/`; product-type-aware framing applied as enrichment layer
+**Uses:** `ejs@5.0.1`, `markdown-it@14.1.1`, hand-coded SVG chart functions installed into `bin/lib/presentation-pipeline/`
+**Implements:** Common artifact-reading pipeline (IR pattern), pde-tools subcommand extension, dual HTML+Markdown renderer
+**Avoids:** Premature persona abstraction (two independent implementations first — shared abstractions extracted after both pass), self-contained HTML edge cases (constraints locked before additional templates)
 
-### Phase 2: Core App Wrappers (Blender, GIMP, Inkscape)
+### Phase 3: Remaining 8 Personas and Shared Engine
 
-**Rationale:** These three apps deliver the highest design pipeline value and cover all three `executionMode` patterns: Blender (headless via `--background`), GIMP (conditional headless via `--no-interface --batch`, version-sensitive), Inkscape (pure CLI, no headless flag needed). Shipping all three in one phase validates the wrapper template before applying it to lower-priority apps.
+**Rationale:** With two reference personas proven and duplication confirmed, extract shared abstractions and build the remaining 8 personas. The shared engine is built from observed duplication, not anticipated duplication. FEATURES.md groups personas into Cluster A (internal/forward-looking: sprint review, client deliverable, investor update, stakeholder status) and Cluster B (external/retrospective: post-mortem, ADR summary, launch announcement) with ~70% cross-cluster shared logic estimated — confirm this against the two reference implementations before committing to an abstraction boundary.
+**Delivers:** Full 10-persona suite (all `bin/lib/personas/*.cjs`); shared extraction utilities extracted from confirmed duplication; sprint review, client deliverable, investor update, stakeholder status, post-mortem, ADR summary, portfolio overview, launch announcement personas; auto-generation hook (`hooks/present-on-phase.cjs`) with SessionEnd/cooldown trigger registered in hooks.json; research validation sourcing integration (v0.7 agent output); acceptance-criteria proof table from VERIFICATION.md
+**Addresses:** All Cluster A and Cluster B personas; auto-generation on phase completion; research validation sourcing; cost transparency narrative
+**Avoids:** Premature abstraction (built from confirmed duplication only); context bleeding between persona narrative calls (isolated LLM contexts per persona)
 
-**Delivers:**
-- Blender wrapper with `--background` headless mode, `startupMs: 5000`, async-only MCP server
-- GIMP wrapper with `--no-interface --batch` Script-Fu, GIMP 2.x vs 3.x version detection
-- Inkscape wrapper with `inkscape --export-type` pure CLI
-- SKILL.md generation for all three (extending Phase 164 machinery)
-- JSON output mode per wrapper
-- Display server probe integrated into probe/degrade contract
+### Phase 4: Cross-Project Portfolio Synthesis
 
-**Addresses:** Headless execution mode, JSON output, SKILL.md generation, display server dependency handling
-**Avoids:** Mock wrapping silent success, display server failure, GIMP 2/3 version mismatch
-
-### Phase 3: MCP Bridge Dynamic Registration + pde-tools app Subcommand
-
-**Rationale:** Once wrappers exist in `registry.json`, the bridge must load them dynamically. This phase enables agents to invoke the Phase 2 wrappers and provides the user-facing `pde-tools app` entry point. `loadDynamicServers()` is a targeted modification to `mcp-bridge.cjs` — its implementation depends on stable registry schema from Phase 1.
-
-**Delivers:**
-- `mcp-bridge.cjs` `loadDynamicServers(registryPath)` — reads registry, populates `APPROVED_SERVERS` + `TOOL_MAP` for `status: "approved"` entries only
-- `mcp-bridge.cjs` `registerDynamicServer(slug, serverPath, caps)` — single-app registration path
-- `pde-tools app discover|wrap|register|list|probe` subcommand
-- `server-gen.cjs` `generatePythonModuleHandler()` for pip CLIs (`python -m {tool}` spawn pattern)
-
-**Uses:** Five-tier discovery from Phase 1, registry schema from Phase 1, wrappers from Phase 2
-**Avoids:** Startup-hang from probing uninstalled apps, hardcoded APPROVED_SERVERS growth, pip PATH isolation failure
-
-### Phase 4: Design Pipeline Integration
-
-**Rationale:** Workflow integration is last because it depends on all tools being available in `TOOL_MAP` (Phase 3) and wrappers being stable (Phase 2). Optional steps in `wireframe.md` and `mockup.md` are low-risk additions — they are gated by `probeServer()` and degrade to no-op with a documented skip, following existing Stitch/Figma patterns exactly.
-
-**Delivers:**
-- `workflows/wireframe.md` optional Blender 3D preview step (gated by `probeServer('blender')`)
-- `workflows/mockup.md` optional GIMP retouch and Inkscape SVG export steps
-- Blender → Phase 168 (3D pipeline) chaining: render output fed into GLB optimize → model-viewer
-- GIMP → Phase 165 (image pipeline) chaining: GIMP retouch as an editing step within existing image pipeline
-
-**Addresses:** Design-pipeline-aware app chaining, pipeline integration with existing v0.20 asset pipelines
-**Avoids:** Direct shell command invocation in workflow markdown, bypassing TOOL_MAP
+**Rationale:** This phase is last because it depends on all single-project synthesis being stable, and it introduces the highest-risk new failure mode: schema version heterogeneity across older PDE projects (Pitfall 6 from PITFALLS.md — PDE schema has changed across every milestone v0.12–v0.21). Schema version detection must be built before any cross-project extraction runs. Portfolio synthesis is a compositional extension of single-project synthesis, not a rewrite.
+**Delivers:** `portfolioReader(cwdList)` in `presentation.cjs`; schema version detector (reads `gsd_state_version` from STATE.md frontmatter, selects extraction adapter); defensive cross-project extraction (null for absent fields, structured error for failed projects, never crash on missing keys); `commands/portfolio.md` + `workflows/portfolio.md`; `/pde:portfolio` slash command; portfolio-level narrative for executive and investor personas; IR caching with STATE.md mtime as cache key; parallel extraction for multiple projects
+**Addresses:** Cross-project portfolio synthesis; portfolio overview persona; scalability for 4–20 projects
+**Avoids:** Cross-project path/schema assumptions (version detection gate before any extraction); auto-discovery glob (explicit path list only — never traverse filesystem to find `.planning/` dirs); path traversal via user-supplied roots (validate absolute path with readable `.planning/` before processing)
 
 ### Phase Ordering Rationale
 
-- Security architecture (Phase 1) is non-negotiable first because the two-tier registry must exist before any binary can be written to it. Retrofitting approval status after discovery data exists is a policy violation, not just technical debt.
-- Discovery (`discover.cjs`) comes in Phase 1 rather than its own phase because the security schema and discovery module are developed against each other — the `executionMode` and `status` fields are outputs of the discovery classifier.
-- Wrappers (Phase 2) come before bridge registration (Phase 3) because `loadDynamicServers()` needs real registry entries to test against. Building the bridge reader against an empty registry produces an untestable module.
-- Workflow integration (Phase 4) is last because it is the highest-level consumer of all lower layers. A bug in any lower phase surfaces immediately in workflow integration tests.
+- **Extraction before rendering:** The research is unambiguous — LLM hallucination is the highest-damage failure mode, and the only prevention is strict extraction-first architecture. No persona can be built before the extraction layer is validated. Building personas first and adding verification later consistently fails in analogous systems.
+- **HTML constraints before additional templates:** Self-contained HTML edge cases (Pitfall 5) require constraints to be established before any template is built; retrofitting them breaks all existing templates. Phase 2 locks this in for the first two personas; all subsequent personas inherit the constraint.
+- **Two reference personas before shared engine:** Pitfall 4 (premature abstraction) is a confirmed failure mode. Building the shared engine from observed duplication rather than anticipated duplication is the primary guard.
+- **Portfolio synthesis last:** Pitfall 6 (schema version heterogeneity) is the highest-complexity failure. The schema version detection work has no dependencies on Phases 2–3 internals, but the integration risk warrants isolation in its own phase, after single-project synthesis is stable.
+- **Feature groupings match research clusters:** FEATURES.md identifies Cluster A (internal/forward-looking) and Cluster B (external/retrospective) personas with ~70% shared logic within each cluster. Phase 3 builds along these natural groupings after the reference implementations confirm the pattern.
 
 ### Research Flags
 
-**Phases needing deeper research during planning:**
-- **Phase 2 (GIMP wrapper):** GIMP 3.x changed the batch interpreter and Script-Fu API significantly from 2.10. The exact `--batch` invocation must be verified against the installed version on the target machine before writing the wrapper contract. Research notes the flag names but the exact GIMP 3.x batch sequence needs hands-on validation.
-- **Phase 3 (pip CLI server-gen handler):** The `generatePythonModuleHandler()` variant in `server-gen.cjs` has not been prototyped. The invocation pattern is straightforward but the MCP server template changes need validation against an actual pip CLI (rembg is the obvious test case) before committing to the template design.
+Phases likely needing deeper research during planning:
+- **Phase 1 (IR design):** The specific set of fields needed across all 10 personas should be validated before finalizing the IR object shape. Recommended pre-planning exercise: list what each persona needs, deduplicate, confirm all fields are deterministically extractable from current `.planning/` artifacts. A persona-to-field mapping table is a worthwhile pre-planning artifact.
+- **Phase 4 (portfolio synthesis):** Schema version detection across PDE v0.12–v0.21 needs specific mapping of which frontmatter keys changed per milestone. Audit STATE.md frontmatter across representative older projects before planning this phase to build the version detection mapping.
 
-**Phases with standard patterns (skip research-phase):**
-- **Phase 1 (discovery):** Cross-platform binary detection patterns verified against official Apple/Microsoft/ArchWiki documentation. The five-tier probe order is stable and well-documented.
-- **Phase 3 (mcp-bridge loadDynamicServers):** APPROVED_SERVERS and TOOL_MAP patterns are fully established in the existing codebase. `loadDynamicServers()` is a straightforward extension of the existing module-load pattern.
-- **Phase 4 (workflow integration):** `probeServer()` + `resolveToolName()` + degrade patterns are identical to how Stitch and Figma tools are invoked today. No new patterns needed.
+Phases with standard patterns (skip `/gsd:research-phase`):
+- **Phase 2 (dual-format rendering):** EJS + markdown-it integration follows well-documented CJS patterns; HTML rendering constraints are enumerated explicitly in PITFALLS.md. No additional research needed.
+- **Phase 3 (persona engine):** Patterns are fully defined by the Phase 2 reference implementations. The task is execution against proven patterns, not discovery.
 
 ---
 
@@ -169,48 +145,46 @@ Based on research, the build order is driven by two hard constraints: (1) securi
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | All technologies are either existing Node.js built-ins (zero-dep constraint confirmed across v0.15–v0.20) or OS-native commands verified against official Apple/Microsoft/ArchWiki documentation. Python/pipx risk explicitly documented with PEP-668 mitigation. |
-| Features | MEDIUM-HIGH | CLI-Anything feature set verified directly from live HKUDS repo and HARNESS.md. Blender/GIMP/Inkscape headless invocations verified from official docs. Pipeline integration value judgments are based on existing v0.20 architecture — well-grounded but not yet user-validated. |
-| Architecture | HIGH | Architecture derived from direct examination of the existing codebase (`mcp-bridge.cjs`, `cad.cjs`, `help-parser.cjs`, `registry.cjs`, `wireframe.md`). Every component extension follows an established precedent in the codebase. No speculative patterns. |
-| Pitfalls | HIGH | Sourced from verified CVEs (CVE-2025-53109, CVE-2025-31199), OWASP MCP Top 10 2025, confirmed GitHub issues (CLI-Anything #16/#143/#154), Node.js issue #58290, and Homebrew PEP-668 discussion. These are documented failures in directly relevant contexts, not inferences. |
+| Stack | HIGH | All package versions verified against npm registry; integration patterns verified against existing PDE codebase (image-pipeline pattern, pde-tools.cjs subcommand routing, hooks/hooks.json format confirmed via source inspection) |
+| Features | MEDIUM | Ecosystem patterns verified via web search and competitive analysis (Notion AI, Linear, Jira ARNR, GitHub Insights); persona feature sets are research-informed judgments without a single authoritative spec source |
+| Architecture | HIGH | Based on direct inspection of existing PDE source code (pde-tools.cjs 1681 lines, context-sync.cjs emitter pattern, hooks.json registration format, event-bus.cjs event schema, commands.cjs cmdHistoryDigest); all integration points confirmed against actual code |
+| Pitfalls | HIGH | Hallucination rates from Stanford Legal RAG (2025); SVG generation pitfalls from VectorGym benchmark (2025); HTML file size failures from cucumber/html-formatter production issue #62; hook noise patterns from Claude Code hook contracts and PDE's own context-sync-hook.cjs source; cross-project schema pitfalls from PDE milestone history |
 
 **Overall confidence:** HIGH
 
 ### Gaps to Address
 
-- **GIMP 3.x batch API surface:** GIMP 3.0 changed the Script-Fu batch interpreter. The exact `--batch` flag and interpreter syntax for GIMP 3.x should be confirmed against `gimp --help` output on the target machine during Phase 2 planning.
-- **Claude Code MCP server slot limit:** The research flags the Claude Code MCP server slot limit as the first bottleneck at 20+ wrapped apps. The exact limit is not documented publicly. Validate during Phase 3 integration testing with 10+ registered apps.
-- **Blender 3.x vs 4.x Python API delta:** The `--background --python script.py` path differs between Blender 3.x and 4.x. Version-conditional script templates or two separate scripts may be needed; confirm against Blender 4.x release notes before Phase 2 implementation.
-- **Linux Flatpak/Snap discovery testing:** The research documents the probe paths (`flatpak list`, `snap list`, `~/.local/bin`) but they have not been tested on an actual Linux environment with Flatpak/Snap-installed apps. Validate during Phase 1 implementation on a Linux CI environment.
+- **IR field completeness validation:** The IR object shape is defined architecturally but the complete field list across all 10 personas has not been enumerated. Map each persona's data requirements before finalizing Phase 1 implementation to avoid IR schema churn during Phase 2–3.
+- **Schema version inventory for portfolio synthesis:** The exact frontmatter key changes across PDE milestones v0.12–v0.21 are known qualitatively but not mapped to specific keys. Run a targeted audit of STATE.md frontmatter across representative older projects before Phase 4 planning.
+- **EJS vs template literals trade-off:** STACK.md recommends EJS but notes that persona output structures may be simple enough that EJS adds complexity without benefit. Validate during Phase 2 implementation; falling back to template literals in CJS modules is legitimate if EJS overhead is not justified.
+- **Default UX for `/pde:present`:** The default command behavior (which persona, which format, behavior when no presentations directory exists, behavior when artifacts are incomplete) should be finalized during Phase 1 planning rather than discovered during Phase 2 implementation.
 
 ---
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- Existing PDE codebase: `bin/lib/cli-anything/`, `bin/lib/mcp-bridge.cjs`, `bin/lib/3d-pipeline/cad.cjs`, `workflows/wireframe.md` — verified 2026-03-28
-- [HKUDS/CLI-Anything HARNESS.md](https://github.com/HKUDS/CLI-Anything/blob/main/cli-anything-plugin/HARNESS.md) — 7-phase pipeline, SKILL.md schema, JSON output format
-- [Apple Developer — CFBundles](https://developer.apple.com/library/archive/documentation/CoreFoundation/Conceptual/CFBundles/) — `.app` bundle structure, Info.plist, `CFBundleExecutable`
-- [ArchWiki — Desktop entries](https://wiki.archlinux.org/title/Desktop_entries) — XDG `.desktop` format, `Exec=` field, storage paths
-- [Microsoft Learn — Get-StartApps](https://learn.microsoft.com/en-us/powershell/module/startlayout/get-startapps) — Windows app discovery via PowerShell
-- [OWASP MCP Top 10 2025](https://owasp.org/www-project-mcp-top-10/2025/) — MCP05 Command Injection, MCP02 Privilege Escalation
-- [CVE-2025-53109/53110](https://cymulate.com/blog/cve-2025-53109-53110-escaperoute-anthropic/) — Anthropic Filesystem MCP symlink bypass (symlink canonicalization requirement)
-- [Blender CLI docs](https://docs.blender.org/manual/en/latest/advanced/command_line/render.html) — `--background` flag, headless rendering
+
+- PDE codebase direct inspection: `bin/pde-tools.cjs`, `bin/lib/context-sync.cjs`, `bin/lib/commands.cjs`, `hooks/hooks.json`, `hooks/context-sync-hook.cjs`, `hooks/emit-event.cjs`, `hooks/archive-session.cjs`, `bin/lib/event-bus.cjs`, `.planning/PROJECT.md`, `workflows/execute-phase.md`, `.planning/config.json` — architecture patterns and integration points (2026-03-29)
+- npm registry direct query: `ejs@5.0.1`, `markdown-it@14.1.1`, `playwright@1.58.2`, `d3@7.9.0`, `linkedom@0.18.12`, `pdfkit@0.18.0`, `jsdom@29.0.1`, `@observablehq/plot@0.6.17` — version and compatibility verification (2026-03-29)
+- Node.js release history: `fs.readdirSync` recursive option added in Node 18.17.0 LTS
 
 ### Secondary (MEDIUM confidence)
-- [HKUDS/CLI-Anything GitHub](https://github.com/HKUDS/CLI-Anything) — registry.json app list (27 apps), issues #16/#143/#144/#154
-- [HKUDS/CLI-Anything skill_generator.py](https://github.com/HKUDS/CLI-Anything/blob/main/cli-anything-plugin/skill_generator.py) — Python imports, jinja2 optional fallback
-- [FastMCP PyPI](https://pypi.org/project/fastmcp/) — v3.1.1 production-grade Python MCP SDK (referenced as alternative; not a PDE dependency)
-- [Node.js issue #58290](https://github.com/nodejs/node/issues/58290) — PATH not inherited when custom env passed to spawn
-- [Homebrew PEP-668 discussion](https://discuss.python.org/t/on-macos-14-pip-install-throws-error-externally-managed-environment/50352) — pip breakage on macOS 14+
-- [Blender headless forum](https://devtalk.blender.org/t/solved-2-90-headless-rendering-ignoring-script-selecting-gpus-falls-back-on-the-cpu/16886) — GPU fallback in headless mode
-- [Python venv docs — Real Python](https://realpython.com/python-virtual-environments-a-primer/) — isolation pattern rationale
+
+- Stanford Legal RAG Hallucinations (2025) — 28–39% hallucination rate even with source material; basis for extraction-first pipeline design
+- VectorGym benchmark (OpenReview, 2025) — LLM SVG generation pitfalls: inaccurate path counts, incomplete SVGs; basis for deterministic chart generation mandate
+- cucumber/html-formatter GitHub issue #62 — self-contained HTML file size explosion (7MB to 310MB in production); basis for 500KB budget
+- Notion AI Review 2026, Linear Changelog (initiative updates Feb 2025), Jira ARNR Atlassian Marketplace Q4 2025 updates, GitHub community discussion #38840 (missing burndown chart) — competitive feature analysis
+- "The Double-Edged Sword of Abstraction in Software Engineering" (blog.chinaza.dev, 2024) — basis for two-personas-before-abstraction recommendation
+- designmodo.com "HTML and CSS in Emails: What Works in 2026" — inline CSS constraints for email-safe generated HTML
+- Digital Project Manager AI reporting guide, Agile Seekers automation guide — AI project status reporting best practices
 
 ### Tertiary (LOW confidence)
-- [MCP Dynamic Tool Discovery — Speakeasy](https://www.speakeasy.com/mcp/tool-design/dynamic-tool-discovery) — dynamic registration patterns
-- [Manus Desktop App launch](https://manus.im/blog/manus-my-computer-desktop) — desktop-to-CLI invocation in agent context
-- [How to sandbox AI agents 2026 — Northflank](https://northflank.com/blog/how-to-sandbox-ai-agents) — subprocess isolation patterns
+
+- Observable Plot GitHub discussions #847, #1759 — jsdom compatibility for server-side SVG (referenced for alternatives analysis)
+- Cursor 1.7 Hooks release (InfoQ, 2025) — hook event noise patterns in analogous hook system
+- Allure issue #755 on single-file HTML portability — corroborating evidence for file size constraints
 
 ---
-*Research completed: 2026-03-28*
+*Research completed: 2026-03-29*
 *Ready for roadmap: yes*

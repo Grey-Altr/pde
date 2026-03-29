@@ -1,189 +1,166 @@
-# Pitfalls Research: Desktop App CLI Integration
+# Pitfalls Research: Stakeholder Presentation Generation Engine
 
-**Domain:** Adding desktop app discovery, CLI-Anything (HKUDS) wrapping, and design pipeline integration (Blender/GIMP) to an existing MCP-based Claude Code plugin
-**Researched:** 2026-03-28
-**Confidence:** HIGH (patterns verified against HKUDS GitHub issues, Node.js subprocess docs, macOS TCC/Spotlight CVE reports, OWASP MCP Top 10, Blender headless dev forum, pip/venv PEP-668 docs, and community post-mortems)
+**Domain:** Adding automated report/presentation generation with LLM narratives, 10 personas, dual HTML+Markdown output, auto-generation, chart generation, and cross-project portfolio synthesis to an existing Claude Code plugin (PDE v0.22)
+**Researched:** 2026-03-29
+**Confidence:** HIGH (patterns verified against LLM hallucination research, SVG generation benchmarks, HTML report engineering post-mortems, hook system source analysis, and cross-project state sync community discussions)
 
 ---
 
-## Context: The Integration Trap
+## Context: Why Presentation Generation Is Different From Everything Else PDE Does
 
-This milestone adds desktop app discovery and execution as a new capability surface on top of a working MCP bridge with a verified-sources-only security policy. The danger is not the individual features but the assumption that "CLI wrapping is just more MCP tools." Every pitfall below was produced by that assumption in the wild. PDE's existing APPROVED_SERVERS allowlist, CJS-only root constraint, probe/degrade contracts, and markdown-based state each create specific friction against arbitrary subprocess execution, Python dependencies, and display-server-dependent GUI apps. The failures are ordered by damage-before-detection.
+Every prior PDE feature generates *artifacts that describe future intent* (plans, wireframes, tokens) or *records actual actions* (event logs, git commits). Presentation generation is the first feature that synthesizes those artifacts into *claims about what happened*. This inversion creates a category of failure that does not exist anywhere else in the codebase: the output can be coherent, well-formatted, and completely wrong about the project's actual state. A broken chart is obvious; a chart showing the wrong velocity is not.
+
+The six failure categories below are ordered by damage-before-detection — the worst failures are those that survive review.
 
 ---
 
 ## Critical Pitfalls
 
-### Pitfall 1: GUI App CLI Is Not Headless CLI — The Mock Wrapping Trap
+### Pitfall 1: LLM Narrative Hallucination About Project State
 
 **What goes wrong:**
-When CLI-Anything (or the native --help parser) wraps a GUI app like GIMP or Blender, the generated harness wraps the *filesystem interface* of the app, not the running app itself. Tool calls appear to succeed: they write files, read configs, manipulate paths. But the underlying app is never controlled. The agent believes GIMP "exported the layer" because a file operation succeeded; GIMP was never involved. Confirmed in CLI-Anything issue #16 (gedit wrapping): "the implementation is a mock/simulation, rather than truly controlling the gedit GUI application."
+The synthesis agent generates fluent, plausible-sounding narrative prose that contradicts the actual project record. Examples that have been observed in analogous systems: "All planned features were delivered on time" when RECONCILIATION.md shows scope reductions; "The team resolved three major blockers" when STATE.md shows two blockers are still open; "Tests pass at 98% coverage" when the actual figure is from a different milestone. The prose reads professionally and passes a casual review.
 
 **Why it happens:**
-CLI-Anything's approach works cleanly for apps with well-defined backend interfaces, APIs, or Python modules (git, ffmpeg, ImageMagick). GUI apps that interact via D-Bus, X11 events, or in-memory buffers have no clean CLI surface to parse. The --help output is real; the capability model is synthetic.
+LLMs interpolate between structured data points using training priors. When the prompt instructs "write an executive summary," the model fills gaps with what executive summaries usually say rather than what the data actually shows. PDE artifact files use markdown with inconsistent schemas across milestones (e.g., the RECONCILIATION.md format changed between v0.17 and v0.19). When the parser finds a missing field, the LLM infers a plausible value instead of surfacing a gap. Research confirms GPT-class models hallucinate 28–39% of references even when given source material (Stanford Legal RAG study, 2025).
 
 **How to avoid:**
-- Classify apps at discovery time into three tiers: (1) true CLI (git, ffmpeg, convert) — full wrapping supported; (2) CLI-accessible GUI (Blender -b, GIMP --no-interface) — limited but genuine headless mode; (3) GUI-only apps (gedit, Inkscape without --actions) — mock wrapping only, flag as `headless: false` in capability model.
-- Require each capability model entry to declare `executionMode: "headless" | "gui-required" | "mock"`.
-- During skill execution, reject `mock` entries with a user-visible error rather than silently proceeding.
-- For Blender: use `blender --background --python script.py` path explicitly, not the generic CLI wrap.
-- For GIMP: use `gimp --no-interface --batch` with Script-Fu explicitly. GIMP 3.x changed the batch interpreter; verify the exact invocation against installed version at wrap time.
+- Separate data extraction from narrative generation. Extract all quantitative claims (phases completed, requirements count, dates, test counts) into a structured JSON object *first*, using deterministic code — not the LLM. Verify each field against its source file before passing the JSON to the narrative stage.
+- Prompt the narrative LLM with: "Generate narrative only from the structured data below. If a field is null or missing, say '[data not available]' rather than inferring a value."
+- Add a post-generation verification pass: extract all numeric claims from the generated prose using regex, compare each against the source JSON, and block output if any claim differs by more than a threshold.
+- Never allow the LLM to read raw .planning/ files directly. Always mediate through the structured extraction layer.
 
 **Warning signs:**
-- Tool call returns exit code 0 but produces no observable artifact change.
-- Capability model has rich tool descriptions but every tool has identical inputSchema (only `useJson` flag).
-- Agent reports success but the file system shows no new outputs in the expected location.
+- Generated prose mentions milestone names, dates, or version numbers that differ from the source STATE.md.
+- Narrative uses round numbers (100%, "on time", "all requirements") when source data shows partial completion.
+- Different runs of the same generation produce different claims about the same project state.
 
 **Phase to address:**
-App discovery and classification phase — before any capability model is written to disk. The `headless` classification must be a gate, not a post-hoc annotation.
+Data extraction layer phase (Phase 1 of roadmap). The extraction → verification → narrative pipeline must be the architectural foundation before any persona output is built. Building personas first and adding verification later consistently fails.
 
 ---
 
-### Pitfall 2: Display Server Dependency in Headless Environments
+### Pitfall 2: Chart Data Divergence From Actual Records
 
 **What goes wrong:**
-Spawning GUI apps that require X11 or Wayland fails silently or with cryptic errors (`No X11 DISPLAY variable was set`, `cannot open display`, `GDK_BACKEND not set`) when Claude Code runs in an SSH session, CI/CD, or any context without a display server. The process exits with code 1, but stderr is often swallowed by the MCP tool wrapper's output buffering. The agent receives a tool error and either retries or proceeds as if successful depending on the error-handling path.
+Velocity charts, milestone progress bars, and burndown graphs display values that differ from what the underlying PDE records contain. The most common failure: a velocity chart shows commits-per-day trending upward, but the git log shows the final week had no commits because the project was complete. Or a phases-completed chart shows 8/8 phases done, but the STATE.md shows 7 completed and 1 archived without completion. The chart is SVG and looks correct; the data it encodes is wrong.
 
 **Why it happens:**
-Node.js `spawn()` inherits the parent process environment. Claude Code's environment when launched headlessly does not carry `DISPLAY` or `WAYLAND_DISPLAY`. GUI apps check these variables at startup before accepting any CLI arguments. Blender with `-b` flag is the exception (genuinely headless); GIMP without `--no-interface` is the rule (requires display).
+Two mechanisms cause this. First, if chart data extraction is LLM-assisted, the model rounds, interpolates, or infers missing data points — confirmed failure mode in SVG generation benchmarks (VectorGym, 2025: LLMs produce "inaccurate path counts" and "incomplete SVGs" when generating complex graphics). Second, even with deterministic extraction, different source files can contradict each other: MILESTONES.md may list phase 7 as complete while STATE.md still shows it in-progress due to a sync gap between writes.
 
 **How to avoid:**
-- At app wrap time, probe for display server availability: `process.env.DISPLAY || process.env.WAYLAND_DISPLAY`. Emit a capability model annotation `requiresDisplay: true/false`.
-- For apps requiring display: either (a) require Xvfb as a dependency and document this clearly, or (b) mark tools as `unavailable` in the capability model when no display is detected, triggering the probe/degrade contract already established in PDE's MCP bridge.
-- Never pass user-visible tool descriptions implying the app will operate when `requiresDisplay: true` and no display is available.
-- Forward `process.env` explicitly when spawning — do not pass a custom `env` object without preserving `DISPLAY`.
+- All chart data must come from a single authoritative source per metric. Define the source-of-truth for each chart type: phase completion count → STATE.md frontmatter only; commit velocity → git log command only; requirement count → PROJECT.md requirements section only. Document these mappings explicitly and enforce them in the extraction module.
+- Validate extracted numbers against cross-references before rendering: if STATE.md says 8/8 phases complete but MILESTONES.md has 7 entries, surface a data conflict rather than silently choosing one.
+- Never generate chart data from narrative text (e.g., reading "we completed 8 phases" from a summary). Always go to the primary structured source.
+- SVG chart rendering must be done with deterministic code (a minimal SVG generator function, not an LLM call). The LLM determines the narrative; the code generates the chart from verified numbers.
 
 **Warning signs:**
-- App discovery succeeds (binary found on PATH) but all tool invocations fail.
-- Exit code 1 with empty stdout and non-empty stderr containing "display" or "GDK".
-- macOS-only: apps succeed; Linux CI fails. The asymmetry is the display server, not the app.
+- Chart values differ from what `grep` of STATE.md frontmatter would produce.
+- Charts show "perfect" trends (linear progress, no gaps) that real projects never exhibit.
+- Re-running generation with the same project state produces different chart values.
 
 **Phase to address:**
-Probe/degrade integration phase — the display server check should be part of the same probe contract that already governs MCP server availability.
+Chart generation phase. All chart types must pass a "data matches source" assertion in the Nyquist test suite before any persona can use them. A chart with wrong data is worse than no chart.
 
 ---
 
-### Pitfall 3: pip Dependency in a Node.js/CJS Plugin — PATH and Environment Isolation
+### Pitfall 3: Auto-Generation Firing on Every Hook Event Creates Workflow Noise
 
 **What goes wrong:**
-`pip install cli-anything` or `pipx install cli-anything` is invoked from a Node.js subprocess. The installed binary lands in `~/.local/bin` (Linux) or `~/Library/Python/3.x/bin` (macOS Homebrew). This directory is not in the PATH of Claude Code's spawned child processes. The invocation throws `ENOENT`. Alternatively, if the pip install runs system-wide on a Homebrew Python (macOS 14+, PEP-668 enforced), it throws `error: externally-managed-environment` and fails entirely, silently breaking the fast path.
+Presentation auto-generation is wired to the existing PostToolUse hook (which fires on every Write/Edit to `.planning/`). During a normal `/pde:plan-phase` execution, 20–40 individual Write calls touch `.planning/` files. Each triggers auto-generation, blocking with LLM calls or queuing N generation jobs. The user's workflow stalls waiting for reports that become stale before they finish generating. The tmux dashboard fills with generation status events. Worse: the user opens a presentation that was generated mid-execution and reads "Phase 3 complete" when Phase 3 was still being written at generation time.
 
 **Why it happens:**
-Node.js `spawn()` uses `process.env.PATH` by default. When `env` is passed to `spawn()` options (which PDE does for controlled subprocess environments), `PATH` is only carried forward if explicitly included in the options object — a known Node.js 2025 issue (nodejs/node#58290). Homebrew Python 3.12+ enforces PEP-668 by default: global pip installs are rejected unless `--break-system-packages` is passed (which itself is the wrong fix). The combination means CLI-Anything's "pip install" documentation breaks silently on modern macOS.
+The context-sync-hook.cjs pattern (SHA-256 hash comparison to skip redundant regeneration) works well for context file sync because that operation is fast (<2s, deterministic CJS). LLM generation is 5–30s and non-deterministic. Applying the same hook wiring to slow generation creates a different class of problem: the hash check prevents redundant starts, but each individual write still queues a generation if the hash changed — and it changes on every file write.
 
 **How to avoid:**
-- Use `pipx install cli-anything` as the canonical install path — pipx manages its own venv and adds to PATH via `~/.local/bin` with a shim, reducing the breakage surface.
-- At startup, resolve the CLI-Anything binary path explicitly: `which cli-anything` or `$(pipx environment --value PIPX_BIN_DIR)/cli-anything`. Store the resolved absolute path; never rely on PATH lookup at tool invocation time.
-- When spawning from Node.js, always pass `{ env: { ...process.env, PATH: process.env.PATH } }` explicitly. Never pass a bare custom env object.
-- Document the pip vs pipx distinction in SKILL.md for `/pde:cli-wrap`. Treat pipx as required, pip as unsupported.
-- Consider detecting Python version at setup time: if `python3 --version` returns 3.12+ and Homebrew owns the binary, redirect to pipx unconditionally.
+- Auto-generation must NOT fire on PostToolUse. Wire to SessionEnd only (already in hooks.json as a lifecycle event) or implement a cooldown/debounce: after the last .planning/ write, wait a configurable idle period (default: 30s) before triggering generation. This prevents mid-execution stale reports.
+- Add an explicit gate: auto-generation only fires when STATE.md frontmatter shows `status: Completed` or `status: Milestone complete`. Do not generate during active execution phases.
+- Support manual-trigger-only mode as the default (`auto_generate: false` in config.json), with opt-in auto-generation. Developers who want quiet workflows get quiet workflows.
+- Emit generation events to the event bus (NDJSON) so they appear in the tmux dashboard — but do not write to stdout, preserving the zero-stdout contract.
 
 **Warning signs:**
-- `ENOENT` on `cli-anything` invocation despite user reporting successful install.
-- `error: externally-managed-environment` in stderr during setup.
-- Binary found in interactive shell (`which cli-anything` works) but not in PDE subprocess context.
+- `pde-events-*.ndjson` session file grows by `presentation_generate` events during active planning phases.
+- Generation lock files accumulate in `.planning/presentations/` without corresponding completions.
+- User reports that `/pde:plan-phase` feels slower than before the feature was added.
 
 **Phase to address:**
-CLI-Anything integration phase, specifically the dependency setup and path resolution step. The resolved binary path should be persisted to `.planning/config/` alongside other MCP server configs.
+Auto-generation trigger phase. The trigger logic must be designed before any generation code runs, because retrofitting debounce onto an already-wired hook requires coordinated changes across hooks.json, the hook handler, and the generation entry point.
 
 ---
 
-### Pitfall 4: Verified-Sources-Only Policy vs. Auto-Discovered Executables
+### Pitfall 4: Premature Persona Abstraction Creates an Untestable Engine
 
 **What goes wrong:**
-PDE's existing MCP security model enforces an APPROVED_SERVERS allowlist. Desktop app discovery intentionally finds and wraps arbitrary executables from `mdfind`/`find` results. These are by definition not pre-approved sources. If the wrapping pipeline treats discovered binaries with the same trust level as approved MCP servers, the security boundary collapses. An attacker (or a confused agent) could wrap a malicious binary that happens to be on the system, then execute it with agent-constructed arguments.
+The synthesis engine is designed upfront with a fully abstract persona system: a `PersonaConfig` type, a `renderForPersona(data, persona)` function, a registry of 10 persona definitions. Each persona is tested only as "a persona instance." Testing reveals the engine produces correct structure for all 10 personas but incorrect content for 6 of them, because the abstraction obscures the specific data requirements each persona has. Fixing one persona breaks another because they share state through the common config object.
 
 **Why it happens:**
-The CLI-Anything wrapping pipeline does not distinguish between vetted and unvetted executables. The capability model format is identical regardless of source. When PDE's executor agent receives a capability model, it issues tool calls against it. There is no layer checking whether the underlying binary was human-approved before the capability model was created.
+Ten personas sound like a classic case for an abstraction. But the personas differ not in rendering logic but in *what data they need and how they weight it*: an investor update needs velocity and technical moat; a sprint review needs what shipped and what demos exist; a case study needs before/after outcomes. A "shared engine" that handles all of these through a single interface ends up with all 10 data requirements in scope for every persona, creating a config object that is never fully populated for any single persona and confusing the extraction layer.
 
 **How to avoid:**
-- Establish a two-tier registry: `system-discovered` (no-execute until human approved) vs. `human-approved` (full tool call rights). Implement a `status: "pending" | "approved" | "rejected"` field in the registry JSON. The `/pde:cli-wrap` skill should write to `pending` by default and require explicit `/pde:cli-approve <tool>` before the executor agent can issue tool calls.
-- The APPROVED_SERVERS pattern already exists — extend it to cover app executables. Store approved binary paths (with SHA-256 hash of the binary) in an `APPROVED_EXECUTABLES` block in the MCP config.
-- At tool call time, verify the binary's current hash against the stored hash. Binary substitution (symlink swap, PATH hijacking) would be caught by hash mismatch.
-- CLI-Anything issue #143 confirms this risk explicitly: "SKILL.md prompt injection risk via auto-install in cli-hub-meta-skill." Tool descriptions sourced from --help output can contain adversarial text that poisons the agent's context.
+- Build two personas end-to-end first (recommended: executive summary and case study — the poles of the internal/external spectrum). Identify exactly what data each needs. Only then extract the common patterns into shared abstractions.
+- Persona configuration should be additive (each persona declares what it needs), not subtractive (a full config with fields zeroed out for unused personas).
+- The shared engine should handle: reading source artifacts, LLM call management, output format rendering, file writing. Each persona should own: data requirements declaration, narrative prompt template, section ordering. Keep persona-specific logic inside the persona module, not inside the shared engine conditionals.
+- Test each persona independently against a fixed project state fixture before integration testing the shared engine.
 
 **Warning signs:**
-- Capability model registry grows without corresponding human approval events.
-- Tool descriptions contain imperative sentences, URL references, or instructions to the agent (prompt injection in `--help` output).
-- A discovered binary is in an unusual path (not `/Applications/`, `/usr/local/bin/`, `/opt/homebrew/bin/`).
+- The shared `PersonaConfig` type has more than 20 fields.
+- A persona test must mock more than 3 other persona's data requirements to run.
+- Adding a new persona requires changes to the shared engine's core logic rather than only adding a new persona module.
 
 **Phase to address:**
-Security design phase, before any discovery or wrapping code is written. The two-tier registry architecture must be established as the foundation.
+Shared engine architecture phase (Phase 2 of roadmap, after data extraction). Build the first two personas as fully independent implementations, then extract shared abstractions only where duplication is confirmed.
 
 ---
 
-### Pitfall 5: --help Output Parsing Fails on Unpredictable Formats
+### Pitfall 5: Self-Contained HTML Breaks Silently in Edge Cases
 
 **What goes wrong:**
-The native --help parser assumes structured output: flags with descriptions, subcommands listed consistently, USAGE: header present. Real-world tools output man pages with backspace-formatting escape sequences (Blender, git), interactive TUI paginators (some older tools), single-line summaries with no subcommand listing, or nothing at all (some GUI launchers). The parser either produces an empty capability model (zero tools) or a corrupt one (binary-escaped descriptions in tool names). The agent then issues tool calls against garbage tool names that fail.
-
-The CLI-Anything git capability model in `.planning/cli-anything/git/capability-model.json` already shows this: descriptions contain raw backspace-encoded man page output (e.g., `G\bGI\bIT\bT-\b-C\bCL\bLO\bON\bNE\bE`), which is nonfunctional as a tool description and will confuse any model trying to interpret it.
+The generated HTML presentation opens correctly in the developer's browser, passes internal review, and is then sent to a stakeholder who opens it in a corporate environment and sees: a blank page (Content Security Policy blocked inline scripts), missing chart sections (the inline SVG exceeded a browser-specific rendering threshold), or broken layout (the base64-encoded fonts pushed the file to 8MB and the mail client truncated it). These failures are invisible until the presentation reaches an external recipient.
 
 **Why it happens:**
-`--help` output is designed for human terminals, not machine parsing. Tools that use nroff/groff formatting, less/more paginators, or multi-column layouts are common. There is no standard for machine-readable CLI help. The HKUDS CLI-Anything fast path and the native parser both face this; CLI-Anything has better heuristics but still fails on truly edge-case output (confirmed in issue #154: "default generated CLI for new applications is limited and lacks accuracy").
+Self-contained HTML reports have known failure modes at scale. Real-world reports have grown from 7MB to 310MB (cucumber/html-formatter issue #62). Inline SVG charts with complex paths can hit browser memory limits. Base64 fonts dramatically inflate file size. Some corporate email clients strip `<style>` blocks entirely. CSP headers in some organizations block all inline scripts, breaking interactive charts. The file appears valid from the generator's perspective and fails at the recipient's.
 
 **How to avoid:**
-- Add a post-parse validation step: if capability count is 0, or if any tool description contains backslash-b sequences, flag the capability model as `parseQuality: "degraded"` and fall back to a minimal capability model with a single `run_raw` tool that passes arguments through directly.
-- Strip man page formatting before parsing: `col -b` (on macOS/Linux) strips backspace overprint sequences. Run output through this filter before any parsing step.
-- For known apps with complex --help output (Blender, GIMP, FFmpeg), maintain a curated capability model override in `.planning/config/capability-overrides/` that takes precedence over auto-generated ones.
-- Test the parser against at least three output format types: standard POSIX (`--flag <value>  description`), GNU long-form, and nroff-escaped man page output.
+- Set a hard file size budget for the generated HTML: 500KB maximum for the complete presentation (no fonts embedded, SVG charts only with path-count limits, no base64 images unless explicitly enabled). Fail generation with a clear error if the budget is exceeded.
+- No inline `<script>` blocks in generated HTML. All interactivity must work without JavaScript (CSS-only transitions, static SVG charts). This eliminates the CSP failure class entirely.
+- Test HTML output in at least: Chrome (latest), Safari (latest), and a text-based renderer (lynx or w3m) to verify the document degrades gracefully. Add this as a Nyquist assertion.
+- Use `<style>` blocks (not inline style attributes) for layout, but ensure the document renders acceptably without styles by using semantic HTML structure. This handles the "mail client strips styles" failure.
+- Never embed external URLs in generated HTML (fonts from Google Fonts CDN, chart libraries from CDN). Every resource must be inline or absent. A report that requires network access to render is not self-contained.
 
 **Warning signs:**
-- Capability model descriptions contain `\b` sequences or unprintable characters.
-- Tool count for a known-complex app (git, blender) is suspiciously low (fewer than 5).
-- Agent tool calls fail with "unknown tool" because the tool name was parsed from malformed output.
+- Generated HTML file exceeds 1MB.
+- HTML includes `<script src=` or `<link rel="stylesheet" href=` pointing to external URLs.
+- Charts are generated using a JavaScript charting library (Chart.js, D3, Highcharts) rather than static SVG.
+- The file renders differently when opened from the filesystem vs. a web server.
 
 **Phase to address:**
---help parser implementation phase. The `parseQuality` annotation and `col -b` preprocessing should be in the initial implementation, not added as a fix later.
+HTML rendering phase. File size budget and no-JavaScript constraint must be established before any HTML template is built. Retrofitting these constraints breaks all existing templates.
 
 ---
 
-### Pitfall 6: Long Startup Apps Block the MCP Response Loop
+### Pitfall 6: Cross-Project Portfolio Synthesis With Path Assumptions
 
 **What goes wrong:**
-Each MCP tool call that wraps a desktop app CLI creates a new subprocess. Some desktop apps have long startup times: Blender takes 2-8 seconds to initialize even in headless mode; GIMP with plugins takes 3-10 seconds. If the MCP server awaits these synchronously per tool call, the Claude Code response loop blocks. With multiple tool calls in a single agent turn (which PDE executor agents routinely make), total wait times compound to 30-60 seconds. Claude Code has no visible progress indicator for hanging tool calls; the user sees nothing and assumes failure.
+The portfolio synthesis feature is built assuming all PDE projects follow the current `.planning/` schema. When run against older projects (v0.15 schema had 16 designCoverage fields vs v0.21's 21 fields), the extractor either crashes on missing fields or silently returns zeros. A portfolio presentation that shows Project A with "0 phases completed" because that project's STATE.md used an older frontmatter key is worse than not including that project at all.
 
 **Why it happens:**
-PDE's CLI wrapping uses a per-invocation subprocess pattern (as seen in the git server under `.planning/cli-anything/git/server/`). This is correct for fast CLIs. It becomes a blocking bottleneck for apps with significant initialization overhead. The problem is compounded by the `execSync` pattern, which some wrapping generators emit — this blocks the entire event loop, not just the current operation.
+PDE's schema has evolved across every milestone. STATE.md frontmatter added the `milestone_name` key in v0.17. MILESTONES.md replaced a flat format with a structured table in v0.18. designCoverage grew from 16 to 21 fields across v0.12–v0.21. Cross-project reading assumes schema homogeneity that does not exist across a real user's project history. Additionally, projects may be on different drives, use symlinks, or have `.planning/` in non-standard locations.
 
 **How to avoid:**
-- Never use synchronous variants in the MCP server implementation. Always use async `spawn` with promise wrappers.
-- For apps with known long startup times, implement a process pool: spawn one persistent process at MCP server startup, keep it warm, route tool calls to the running process via stdin/stdout protocol or a Unix socket.
-- Add a timeout per tool call (default 30 seconds, configurable per capability model entry). Emit a structured timeout error rather than hanging indefinitely.
-- Declare startup time in the capability model: `startupMs: 5000`. The executor agent can use this to batch tool calls rather than calling sequentially.
-- For the design pipeline (Blender render, GIMP export), expect these to be long-running operations and document expected durations in the SKILL.md.
+- Implement a schema version detector: read the `gsd_state_version` field from STATE.md frontmatter (currently `1.0`). For each project, select the appropriate extraction adapter based on schema version. Define extractors for versions 1.0 and a fallback "unknown" mode that returns only fields provably present.
+- All cross-project extraction must use defensive reads: if a field is absent, return `null` explicitly, not a default value. Distinguish "field absent" from "field is zero."
+- The portfolio synthesis must not crash if any individual project extraction fails. Wrap each project extraction in a try/catch, include the project in the portfolio with a `[data unavailable — schema incompatible]` marker, and continue.
+- Path resolution: accept project roots as explicit paths (absolute). Never attempt to discover sibling projects automatically by traversing the filesystem. Auto-discovery creates false positives (finding `.planning/` dirs inside `node_modules`, test fixtures, or archived projects).
+- Respect file system permissions: attempt to read each project path and surface a clear error if access is denied rather than silently omitting the project.
 
 **Warning signs:**
-- Agent tool calls timeout at the Claude Code level (no response after 60 seconds).
-- CPU usage spikes repeatedly (each tool call launching a new heavy process).
-- Log shows the same app binary being launched and terminated for each tool call.
+- Portfolio extractor uses `.planning/STATE.md` keys without version checking.
+- Tests for cross-project synthesis only use projects at the current schema version.
+- The synthesis feature accepts a glob pattern (`~/projects/*/.planning`) rather than an explicit list of project roots.
+- An older PDE project directory appears in the portfolio with all metrics showing 0.
 
 **Phase to address:**
-MCP server generation phase. The timeout and async-only constraint should be part of the server generation template. Process pooling can be addressed in a later phase for specific heavy apps.
-
----
-
-### Pitfall 7: Cross-Platform App Detection Inconsistencies
-
-**What goes wrong:**
-macOS detection (`mdfind "kMDItemContentType == 'com.apple.application-bundle'"`) finds `.app` bundles; the associated CLI binary may be at `Contents/MacOS/AppName`, `Contents/MacOS/appname-cli`, or a shell script wrapper at `/usr/local/bin`. Linux detection (`find /usr/bin /usr/local/bin /opt`) finds binaries directly but misses Snap/Flatpak/AppImage installs (`/snap/bin`, `~/Applications/*.AppImage`, `~/.local/bin`). A discovery algorithm that works on the developer's machine silently misses half the installed app surface on the user's machine.
-
-**Why it happens:**
-There is no cross-platform standard for app discovery. macOS uses bundle directories. Linux has five or more installation paths depending on the package manager. AppImage and Flatpak add user-local paths not in the standard system PATH. The `which` command finds only PATH-registered binaries, missing GUI apps that install no shell wrapper.
-
-**How to avoid:**
-- Implement platform-specific discovery strategies with explicit probing: macOS uses `mdfind` plus `/Applications/` enumeration plus Homebrew Cask list; Linux probes standard PATH plus Snap (`snap list`) plus Flatpak (`flatpak list`) plus `~/.local/bin` plus `~/Applications/`.
-- For each discovered `.app` bundle on macOS, look for CLI entry points in this priority order: `Contents/MacOS/<BundleName>-cli`, `Contents/MacOS/<BundleName>`, Homebrew Cask shim in `/opt/homebrew/bin/`.
-- Test discovery on macOS Sequoia, Ubuntu 24.04, and a Snap-heavy environment before declaring the feature complete.
-- The discovery result is not authoritative: always validate that the found binary is executable (`fs.accessSync(path, fs.constants.X_OK)`) before writing it to the registry.
-
-**Warning signs:**
-- Discovery works on macOS but finds zero apps on Linux CI.
-- Blender or GIMP found via `mdfind` but spawn fails (bundle path returned, not the binary path inside the bundle).
-- App listed in registry but the execute permission check fails (GUI launcher script, not executable directly).
-
-**Phase to address:**
-App discovery implementation phase. Platform-specific strategies should be separate functions tested independently, not a unified function with ad-hoc conditionals.
+Cross-project synthesis phase (last major phase). All single-project extraction must be stable before attempting cross-project. Schema version detection should be a prerequisite gate before the phase begins.
 
 ---
 
@@ -193,32 +170,26 @@ Shortcuts that seem reasonable but create long-term problems.
 
 | Shortcut | Immediate Benefit | Long-term Cost | When Acceptable |
 |----------|-------------------|----------------|-----------------|
-| Use `shell: true` in spawn for convenience | Avoids argument array construction | Command injection vector; never safe with agent-constructed args | Never — always use argument arrays |
-| Write capability models with generic `useJson` inputSchema only | Fast to implement | Agent cannot construct valid tool calls; effectively useless | Never for production tools |
-| Trust discovered binary paths without hash verification | Simple implementation | Binary substitution attack; PATH hijacking goes undetected | Never when security policy exists |
-| Parse --help synchronously at tool call time | No caching needed | 2-8 second delay per first call per tool; blocks MCP loop | Only in development/prototyping |
-| Use `pip install` without venv for CLI-Anything | One fewer setup step | Breaks on Homebrew Python 3.12+ (PEP-668); system package corruption | Never — always use pipx |
-| Skip `headless` classification for all discovered apps | Simpler discovery | Mock tools succeed silently; agent produces no actual output | Never — classification is required |
-| Auto-discovered tools without human approval gate | Faster UX | Violates PDE's verified-sources-only policy; security regression | Only if scope explicitly limited to known-safe app categories |
-
----
+| Let LLM read .planning/ files directly | No extraction code to write | Hallucinated claims about project state in every presentation | Never |
+| Generate HTML with Chart.js from CDN | Rich interactive charts quickly | Breaks offline, fails CSP, adds external dependency | Never — use static SVG |
+| Build all 10 personas simultaneously | Feature-complete at launch | 6+ personas with wrong data requirements, untestable abstraction | Never — build 2 first |
+| Auto-generate on every PostToolUse | Always-fresh presentations | Workflow blocked, stale mid-execution snapshots, dashboard noise | Never |
+| Skip schema version detection for cross-project | Simpler code | Silent zero-data for older projects, misleading portfolio | Never — schema has changed 6x |
+| Embed base64 fonts in HTML output | Matches design spec fonts exactly | File size explosion, broken in email clients | Never — use system fonts stack |
+| Share narrative LLM context across persona calls | Fewer LLM calls | Persona A's phrasing bleeds into Persona B's output, inconsistent tone | Only for shared data extraction, not narrative |
 
 ## Integration Gotchas
 
-Common mistakes when connecting to external services.
+Common mistakes when connecting to the existing PDE hook/event system.
 
 | Integration | Common Mistake | Correct Approach |
-|-------------|----------------|-----------------|
-| CLI-Anything fast path | Calling `cli-anything` by name and relying on PATH | Resolve absolute path at setup time via `which cli-anything` after pipx install; store in config |
-| Blender headless | Using `blender <file>` without `-b` flag | Always use `blender --background` for headless; `-b` is the headless gate |
-| GIMP batch mode | Using GIMP 2.x Script-Fu syntax on GIMP 3.x | GIMP 3.x changed batch interpreter; verify `gimp --version` and use appropriate `--batch` syntax |
-| Node.js spawn with custom env | Passing `env: { MY_VAR: value }` | Always pass `env: { ...process.env, MY_VAR: value }` to preserve PATH and DISPLAY |
-| MCP probe/degrade contract | Treating spawn failure as a hard error | Wrap all subprocess failures in the existing probe/degrade pattern; degrade to no-op with user message |
-| macOS app bundle CLI | Using the `.app` path directly | Resolve to the executable inside the bundle: `app.app/Contents/MacOS/binary` |
-| Agent tool call arguments | Passing raw user text as CLI arguments | Always construct argument arrays; never concatenate strings; validate against inputSchema before invocation |
-| SKILL.md generation from --help | Including raw man page escape sequences in descriptions | Run output through `col -b` before generating SKILL.md; strip all backspace sequences |
-
----
+|-------------|----------------|------------------|
+| PostToolUse hook | Wiring generation directly to Write/Edit events | Gate on SessionEnd or cooldown timer; never fire during active execution |
+| hooks.json | Adding `async: false` to generation hook to ensure completion | Always `async: true` — generation must never block Claude Code execution |
+| emit-event.cjs pattern | Writing to stdout from generation hook | Zero stdout contract is absolute; write only to NDJSON event bus |
+| context-sync-hook.cjs hash check | Assuming hash check prevents all redundant generation | Hash changes on every file write during planning; LLM generation needs a different debounce strategy |
+| NDJSON session log | Appending large JSON blobs to event bus for generation output | Emit small status events only (generation_started, generation_complete, generation_failed); store output in separate file |
+| config.json | Reading project config without cwd resolution | Use `hookData.cwd || process.cwd()` — same pattern as existing hooks |
 
 ## Performance Traps
 
@@ -226,58 +197,47 @@ Patterns that work at small scale but fail as usage grows.
 
 | Trap | Symptoms | Prevention | When It Breaks |
 |------|----------|------------|----------------|
-| Per-call heavy app launch | Tool calls take 5-10 seconds each; agent turn takes 60+ seconds | Process pool for heavy apps; declare `startupMs` in capability model | Every call to Blender/GIMP |
-| Synchronous subprocess wait | Node.js event loop blocked; MCP server unresponsive to other requests | Use async spawn with promise wrapper; never use synchronous variants | Immediately on first heavy tool call |
-| Recursive --help parsing | Parser calls `app subcommand --help` for every subcommand to build full capability model | Limit depth to 2 levels; parse top-level --help only; defer subcommand discovery | Apps with 50+ subcommands (git) |
-| Capability model regeneration on every use | Slow startup for cached tools | Cache capability models to disk; only regenerate on binary version change (hash check) | After 3+ tools are wrapped |
-| stdout buffer overflow | Large command output (render logs, verbose mode) blocks pipe buffer; deadlock | Always pipe stdout/stderr to consuming streams; never accumulate full output in memory | Commands producing more than 64KB output |
-
----
+| Synchronous LLM calls in hook handler | Hook stalls Claude Code for 5–30s per Write event | Always `async: true`; generation runs in background process | Immediately on first use |
+| Loading all .planning/ files for every generation | 15s+ startup time as project grows | Selective loading: each persona declares which files it needs | Projects with 50+ planning files |
+| Embedding screenshots/images in HTML without size check | 50MB+ HTML files that fail to open | Hard file size budget (500KB) enforced before write | First project with design artifacts |
+| Re-running full extraction on every auto-generation trigger | LLM costs multiply with event frequency | Cache extraction results with STATE.md modification time as cache key | Projects with frequent saves |
+| Cross-project synthesis without parallel extraction | Portfolio generation takes minutes for 5+ projects | Run project extractions in parallel; set per-project timeout (10s) | Portfolios with more than 3 projects |
 
 ## Security Mistakes
 
-Domain-specific security issues beyond general web security.
+Domain-specific security issues for a tool that reads project state and generates external-facing documents.
 
 | Mistake | Risk | Prevention |
 |---------|------|------------|
-| Treating all discovered executables as trusted | Arbitrary code execution via PATH hijacking or symlink substitution | Two-tier registry (pending/approved) plus binary hash verification |
-| Passing agent-constructed strings to shell | Command injection (OWASP MCP05:2025, CVE-2026-33475 Langflow pattern) | Always use argument arrays with spawn(); never use shell mode |
-| Inlining --help tool descriptions verbatim into agent context | Prompt injection via adversarial `--help` output (CLI-Anything issue #143) | Sanitize descriptions: strip imperative sentences, URLs, angle-bracket placeholders before writing SKILL.md |
-| Storing discovered binary paths as-is without canonicalization | Symlink bypass (CVE-2025-53109 Anthropic Filesystem MCP pattern) | Use `fs.realpath()` to resolve symlinks; store canonical path plus hash |
-| Auto-approving CLI-Anything generated tools without review | Tool poisoning via malformed capability model | Require human `/pde:cli-approve` before any tool enters approved tier |
-| Wrapping apps with OAuth token storage (e.g., Zoom) | OAuth token exfiltration via tool call (CLI-Anything issue #144) | Flag apps with credential files in capability model; require explicit user consent before wrapping |
-| Ignoring `requiresDisplay` when in headless context | Unexpected process spawning in production; potential privilege escalation if display forwarding misconfigured | Probe display availability at tool call time; hard-fail rather than attempt spawn |
-
----
+| Including raw API keys or secrets from .planning/ files in generated presentations | Secrets in stakeholder-readable HTML/Markdown | Scrub patterns matching common secret formats (API keys, tokens, passwords) before passing to LLM; never include raw .env or config.json content |
+| Writing generated presentations to a world-readable path | Portfolio documents accessible outside project boundary | Write to `.planning/presentations/` only; respect the same path isolation as existing artifacts |
+| Cross-project path traversal via user-supplied project roots | Access to arbitrary filesystem paths | Validate each supplied project root is an absolute path with a readable `.planning/` directory; reject paths containing `..` |
+| Generated HTML containing user-supplied content without sanitization | XSS if the HTML is served via a web server | Escape all project-sourced string values when inserting into HTML templates; treat all .planning/ content as untrusted |
 
 ## UX Pitfalls
 
-Common user experience mistakes in this domain.
+Common experience mistakes when adding generation to a developer tool.
 
 | Pitfall | User Impact | Better Approach |
 |---------|-------------|-----------------|
-| Silent mock success (GUI-only app returns exit 0, no actual operation) | User believes GIMP edited the image; it did not; hours of work based on false state | Require explicit artifact verification: check that expected output file exists and has changed after tool call |
-| No feedback during long Blender render | User sees spinner for 2 minutes; assumes failure; cancels | Stream stderr to the agent context as incremental progress; surface render completion percentage |
-| Discovery finds app but wrapping fails silently | `/pde:cli-wrap` returns "done" but no SKILL.md generated | Use probe/degrade: if wrapping fails, emit a visible WARN entry to the event bus with diagnosis |
-| Version-specific capability models become stale | GIMP 2 to 3 upgrade breaks all Script-Fu tool calls silently | Store binary version in capability model metadata; warn when binary version changes |
-| Unhelpful ENOENT errors | User sees "Error: spawn ENOENT" with no diagnosis | Resolve ENOENT to human-readable: "CLI-Anything binary not found. Run: pipx install cli-anything" |
-
----
+| Generation runs without any progress indication | User runs command, waits 30s with no feedback, assumes it crashed | Emit progress events: "Extracting project data...", "Generating executive summary...", "Writing HTML..." |
+| Output file overwrites previous version without warning | Stakeholder-reviewed version replaced by new generation mid-milestone | Version outputs by timestamp suffix; never overwrite; user explicitly promotes a version |
+| All 10 personas generated by default | 10 files written, most irrelevant to user's current need, confusion about which to share | Default to one persona (executive summary); explicit flag to generate others |
+| Persona output includes PDE-internal terminology | Stakeholder reads about "Nyquist tests", "designCoverage fields", "RECONCILIATION.md" | Persona prompt must translate all PDE-internal terms to audience-appropriate language |
+| Markdown and HTML outputs tell slightly different stories | Reader opens both formats, finds inconsistencies, loses trust in both | Generate Markdown first from structured data; render HTML from Markdown, not from a separate LLM call |
 
 ## "Looks Done But Isn't" Checklist
 
 Things that appear complete but are missing critical pieces.
 
-- [ ] **App discovery:** Found the `.app` bundle — but did not verify the executable binary inside the bundle is runnable. `mdfind` returns bundles; agents need binaries.
-- [ ] **Capability model written:** File exists at `.planning/cli-anything/<app>/capability-model.json` — but `parseQuality` not set; tool descriptions contain backspace sequences; agent context will be poisoned.
-- [ ] **CLI-Anything installed:** `pipx install cli-anything` succeeded — but absolute binary path not resolved and stored; PATH-lookup will fail in subprocess context.
-- [ ] **Blender tool works:** Blender exits 0 — but no `-b` flag was used; Blender opened GUI window (or failed silently in headless), did not execute the script.
-- [ ] **GIMP batch works:** GIMP exits 0 — but `RUN-NONINTERACTIVE` mode was not specified; Script-Fu ran in interactive mode and blocked waiting for user input.
-- [ ] **Tool approved:** Capability model written to registry — but `status: "pending"` was not checked before tool call; agent executed against unapproved binary.
-- [ ] **Cross-platform tested:** Works on macOS — but Linux discovery paths not implemented; `/snap/bin` and Flatpak not probed; Linux users see zero apps discovered.
-- [ ] **Error handling done:** Try/catch around subprocess — but stderr not captured; binary hash not checked; timeout not set; probe/degrade not triggered on failure.
-
----
+- [ ] **Data extraction layer:** Often missing cross-reference validation — verify that extracted values are checked against at least 2 source files before passing to LLM
+- [ ] **Chart generation:** Often missing data accuracy test — verify that every chart value has a corresponding assertion against the source file it was extracted from
+- [ ] **HTML output:** Often missing no-JavaScript constraint verification — verify document renders correctly with JavaScript disabled in Chrome
+- [ ] **Auto-generation trigger:** Often missing mid-execution protection — verify that generation does not fire while a pde:plan-phase execution is in progress
+- [ ] **Persona narrative:** Often missing post-generation claim verification — verify that all numeric claims in prose match the extracted data JSON
+- [ ] **Cross-project synthesis:** Often missing schema version gate — verify that extraction of a v0.15-era project returns null for absent fields rather than zeros or defaults
+- [ ] **File size budget:** Often missing at completion — verify that generated HTML file is below 500KB for a typical project state
+- [ ] **Markdown/HTML consistency:** Often missing format parity check — verify that summary statistics (phase count, requirement count, dates) are identical between the two output formats
 
 ## Recovery Strategies
 
@@ -285,14 +245,12 @@ When pitfalls occur despite prevention, how to recover.
 
 | Pitfall | Recovery Cost | Recovery Steps |
 |---------|---------------|----------------|
-| Mock wrapping produced false state | HIGH | Audit all tool call outputs in current session for affected app; identify which design pipeline artifacts are contaminated; regenerate from last known-good state |
-| CLI-Anything pip breakage on Homebrew Python | LOW | `brew install pipx && pipx install cli-anything`; re-resolve binary path; no capability model changes needed |
-| Binary hash mismatch after app update | LOW | Revoke approval in registry; re-run `/pde:cli-wrap <app>`; require re-approval |
-| Agent injected adversarial --help content into SKILL.md | MEDIUM | Delete SKILL.md for affected app; regenerate with sanitization pass; audit agent context for any tool calls issued against poisoned descriptions |
-| stdout buffer overflow deadlock | MEDIUM | Kill hung process; fix piping to use streaming; increase timeout; restart MCP server |
-| Full capability model registry corruption | HIGH | Restore from last committed registry.json; re-run discovery and approval flow; no user data lost if design artifacts are separate |
-
----
+| LLM hallucinated project facts in distributed presentation | HIGH | Immediately retract presentation; regenerate with stricter extraction-first prompt; add post-generation claim verification to prevent recurrence; manually verify next 3 generations |
+| Chart data diverged from source | MEDIUM | Identify which source file was authoritative for the incorrect metric; add explicit source-of-truth annotation to chart extraction module; regenerate and diff against previous output |
+| Auto-generation noise blocked workflow | LOW | Disable auto_generate in config.json; clear generation queue; re-enable with cooldown configured |
+| HTML broke for stakeholder due to CSP/size | MEDIUM | Regenerate without inline scripts; check file size budget; send Markdown version as fallback while HTML is fixed |
+| Cross-project portfolio showed wrong data for old project | MEDIUM | Add schema version detection for that project's version; re-run portfolio extraction with explicit null returns for absent fields; regenerate |
+| 10-persona abstraction broke when adding persona 3 | HIGH | Revert to 2-persona baseline; extract shared abstractions only from confirmed duplication; rebuild personas 3–10 against stable shared layer |
 
 ## Pitfall-to-Phase Mapping
 
@@ -300,33 +258,23 @@ How roadmap phases should address these pitfalls.
 
 | Pitfall | Prevention Phase | Verification |
 |---------|------------------|--------------|
-| GUI app mock wrapping | App classification and discovery phase | Each capability model must have `executionMode` field; test a `headless: false` app and verify error is surfaced |
-| Display server dependency | Probe/degrade integration phase | Run tool call against display-dependent app in `DISPLAY=` env; verify probe/degrade fires, not silent failure |
-| pip PATH isolation | CLI-Anything setup phase | Test binary resolution in a subprocess context with a clean env; verify absolute path lookup works |
-| Unapproved executables in tool calls | Security architecture phase (first phase) | Attempt tool call against `status: "pending"` entry; verify hard rejection |
-| --help parsing failures | Parser implementation phase | Test parser against git (nroff output), blender (long output), and a minimal tool; verify `parseQuality` annotation |
-| Long-startup app blocking | MCP server generation phase | Run 3 sequential Blender tool calls; verify total time is less than 3x single-call time (async, not sequential blocking) |
-| Cross-platform detection failures | Discovery implementation phase | Run discovery against macOS and Linux; verify Flatpak/Snap paths probed on Linux |
-| Agent argument injection | Security architecture phase (first phase) | Attempt tool call with shell metacharacters in an argument field; verify argument array prevents shell expansion |
-
----
+| LLM narrative hallucination | Phase 1: Data extraction layer | Assertion: every LLM-generated numeric claim matches corresponding extraction JSON field |
+| Chart data divergence | Phase 2: Chart generation with source-of-truth mapping | Assertion: chart values for standard project state match `grep` of STATE.md frontmatter |
+| Auto-generation workflow noise | Phase 1: Hook integration design | Assertion: PostToolUse hook does NOT trigger generation; SessionEnd or idle gate does |
+| Premature persona abstraction | Phase 2: Two reference personas before shared engine | Assertion: executive summary and case study pass all tests before PersonaRegistry abstraction is introduced |
+| Self-contained HTML edge cases | Phase 3: HTML rendering | Assertion: output file < 500KB, no external URLs, passes render with JS disabled |
+| Cross-project path/schema assumptions | Phase 4: Portfolio synthesis | Assertion: extraction of v0.15-era fixture returns null for absent fields; extraction of non-existent path returns structured error, not exception |
 
 ## Sources
 
-- HKUDS/CLI-Anything GitHub Issues: #16 (gedit mock wrapping), #143 (SKILL.md prompt injection), #144 (OAuth token exposure), #154 (capability model accuracy) — https://github.com/HKUDS/CLI-Anything/issues
-- Node.js spawn PATH environment issue — https://github.com/nodejs/node/issues/58290
-- Node.js spawn ENOENT diagnosis — https://thecodersblog.com/demystifying-error-spawn-enoent-node-js
-- Homebrew Python PEP-668 externally-managed-environment — https://discuss.python.org/t/on-macos-14-pip-install-throws-error-externally-managed-environment/50352
-- stdout deadlock with PIPE — https://thraxil.org/users/anders/posts/2008/03/13/Subprocess-Hanging-PIPE-is-your-enemy/
-- OWASP MCP Top 10 2025 — MCP05 Command Injection, MCP02 Privilege Escalation — https://owasp.org/www-project-mcp-top-10/2025/
-- CVE-2025-53109/53110 Anthropic Filesystem MCP symlink bypass — https://cymulate.com/blog/cve-2025-53109-53110-escaperoute-anthropic/
-- macOS Spotlight TCC vulnerability CVE-2025-31199 (Sploitlight) — https://www.microsoft.com/en-us/security/blog/2025/07/28/sploitlight-analyzing-a-spotlight-based-macos-tcc-vulnerability/
-- Blender headless GPU fallback issue — https://devtalk.blender.org/t/solved-2-90-headless-rendering-ignoring-script-selecting-gpus-falls-back-on-the-cpu/16886
-- Blender CLI automation guide — https://renderday.com/blog/mastering-the-blender-cli
-- GIMP Script-Fu batch mode differences — https://discuss.pixls.us/t/script-fu-example-batch-script-explained-for-beginners/7341
-- X11 DISPLAY errors in headless context — https://www.baeldung.com/linux/no-x11-display-error
-- MCP security post-mortems (Supabase incident, CVE-2025-6514 mcp-remote) — https://www.practical-devsecops.com/mcp-security-vulnerabilities/
+- LLM hallucination rates: Stanford Legal RAG Hallucinations (2025) — 28–39% hallucination rates even with source material provided
+- SVG generation pitfalls: VectorGym benchmark (OpenReview, 2025) — "inaccurate path counts", "incomplete SVGs" in LLM-generated vector graphics
+- Self-contained HTML file size: cucumber/html-formatter issue #62 (GitHub) — reports growing from 7MB to 310MB; Allure issue #755 on single-file portability
+- Abstraction maintenance overhead: "The Double-Edged Sword of Abstraction in Software Engineering" (blog.chinaza.dev, 2024)
+- Event hook noise patterns: Cursor 1.7 Hooks release (InfoQ, 2025); Claude Code hook contracts from PDE's own context-sync-hook.cjs
+- Cross-project sync pitfalls: MintLify monorepo guide and kinsta.com monorepo-vs-multi-repo (2024) — "breaking changes surface late" in cross-repo dependency
+- HTML CSS rendering inconsistencies: designmodo.com "HTML and CSS in Emails: What Works in 2026" — inline CSS, no-flex, no-grid constraints
 
 ---
-*Pitfalls research for: Desktop App CLI Integration — PDE v0.21 milestone*
-*Researched: 2026-03-28*
+*Pitfalls research for: Stakeholder Presentation Generation Engine (PDE v0.22)*
+*Researched: 2026-03-29*

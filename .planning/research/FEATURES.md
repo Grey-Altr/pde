@@ -1,127 +1,66 @@
 # Feature Research
 
-**Domain:** Desktop App CLI Integration + Design Pipeline — PDE next milestone
-**Researched:** 2026-03-28
-**Confidence:** MEDIUM-HIGH (CLI-Anything verified against live repo; integration patterns from current ecosystem)
+**Domain:** Stakeholder Presentation & Portfolio Synthesis Engine — PDE synthesis milestone
+**Researched:** 2026-03-29
+**Confidence:** MEDIUM (ecosystem patterns verified via web search; no single authoritative spec source for this domain)
 
 ---
 
-## Context: What Already Exists
+## Context: What Already Exists in PDE
 
-Before listing new features, the following are already built and must not be redone:
+The synthesis engine reads existing PDE artifacts — it does not generate them. All of the following are already built:
 
-| Already Shipped | Version |
-|----------------|---------|
-| OpenAPI/JSON Schema/GraphQL/MCP parsers → unified capability model | v0.20 Phase 163 |
-| AI SDK tool() codegen from capability models | v0.20 Phase 163 |
-| --help → MCP server + SKILL.md + registry publishing | v0.20 Phase 164 |
-| Image pipeline (OG/social/mockup/screenshot/rembg) | v0.20 Phase 165 |
-| Video pipeline (record/assemble/compose/caption) | v0.20 Phase 167 |
-| 3D pipeline (text-to-3D, image-to-3D, GLB optimize, model-viewer) | v0.20 Phase 168 |
-| Parametric CAD (CadQuery → STEP) | v0.20 Phase 169 |
-| Playwright MCP for browser automation | v0.14 |
-| MCP bridge with 7 APPROVED_SERVERS, 57 TOOL_MAP entries | v0.5 |
+| Already Shipped | Where It Lives | Relevance to Synthesis |
+|----------------|---------------|----------------------|
+| PROJECT.md — vision, goals, requirements | `.planning/PROJECT.md` | Core input: project identity |
+| ROADMAP.md — phase breakdown | `.planning/ROADMAP.md` | Phase timeline source |
+| Phase plans — task details, ACs | `.planning/phases/` | Task completion evidence |
+| VERIFICATION.md — test results, goal achievement | `.planning/phases/*/VERIFICATION.md` | Proof of work |
+| Design artifacts — wireframes, flows, mockups | `.planning/design/` | Visual evidence |
+| Git history integration | PDE git tooling | Commit velocity, contributor data |
+| NDJSON event bus + session archival | `.planning/events/` | Phase timing, cost metering |
+| Token/cost metering per session | Event bus extensions field | Budget narrative |
+| Research validation with claim extraction | v0.7 research-validation agent | Credibility layer |
+| tmux dashboard with 7 panes | `/pde:monitor` | Live status source |
+| Context sync (AGENTS.md, .mdc, GEMINI.md, SKILL.md) | v0.15 context-sync | Editor file sources |
+| Idle-time suggestion engine | v0.10 suggestion catalog | Opportunity surface |
+| All 5 product types (software/hardware/hybrid/experience/business) | v0.11–v0.12 | Type-conditional output |
+
+**Implication:** The synthesis engine is a reader + narrator, not a generator. It transforms structured artifacts into audience-appropriate communication documents. No new data collection infrastructure is needed.
 
 ---
 
-## CLI-Anything (HKUDS) — Verified Findings
+## Persona Types: Logic Sharing Analysis
 
-Source: https://github.com/HKUDS/CLI-Anything (verified 2026-03-28, repo active)
+The 10 output personas break into two clusters with heavy shared logic:
 
-### Supported Applications (27 registered in registry.json)
+### Cluster A: Internal / Forward-Looking (Status-Oriented)
 
-| Category | Apps |
-|----------|------|
-| AI/ML | Ollama, ComfyUI, NotebookLM, Novita |
-| 3D & Graphics | Blender, FreeCAD, RenderDoc |
-| Image Editing | GIMP, Inkscape, Krita |
-| Video Editing | Kdenlive, Shotcut |
-| Audio | Audacity |
-| Music Notation | MuseScore |
-| Office | LibreOffice, Mubu |
-| Design | Sketch, Draw.io |
-| Diagrams | Mermaid |
-| Web/Browser | Browser (DOMShell) |
-| Network | AdGuardHome, RMS |
-| Communication | Zoom |
-| Content Gen | AnyGen |
-| Streaming | OBS Studio |
-| Development | iTerm2 |
+| Persona | Audience | Timing | Primary Arc |
+|---------|----------|--------|-------------|
+| Executive Summary | C-suite, founders | During project | Problem → Progress → Blockers → Timeline confidence |
+| Investor Update | Angels, VCs, board | During project | Milestone velocity → Technical moat → Market positioning |
+| Sprint Review Deck | Team, PM, stakeholders | End of sprint | What shipped → Demos → What's next |
+| Client Deliverable Report | External client | Sprint or milestone | Feature specs → ACs met → Screenshots |
+| Stakeholder Status Update | Mixed internal | Weekly/biweekly | RAG status → Decisions needed → Risks |
 
-**Design-pipeline-relevant apps** (highest value for PDE):
-- **Blender** — 3D modeling, scene rendering, compositing (integrates with existing 3D pipeline)
-- **GIMP** — Raster image editing, batch processing, scripting via Script-Fu
-- **Inkscape** — SVG vector editing, icon production, design token export
-- **Krita** — Digital painting, texture creation, concept art
-- **FreeCAD** — Parametric modeling, Python scripting (integrates with CAD pipeline)
-- **ComfyUI** — Diffusion workflow nodes, image generation pipeline control
-- **OBS Studio** — Screen recording, scene composition (integrates with video pipeline)
-- **LibreOffice** — Document export, presentation generation, calc scripting
+**Shared logic in Cluster A:** Phase completion % calculation, blocker extraction, timeline confidence scoring, next-phase preview, cost/budget narrative from token metering.
 
-### The 7-Phase Pipeline (verified from HARNESS.md)
+### Cluster B: External / Retrospective (Proof-Oriented)
 
-```
-Phase 1: Codebase Analysis
-  - Identify backend engine, map GUI actions to APIs
-  - Catalog existing CLI entry points
-  - Document undo/command system
+| Persona | Audience | Timing | Primary Arc |
+|---------|----------|--------|-------------|
+| Case Study / Portfolio Piece | Prospects, community, hiring managers | Post-completion | Problem → Approach → Outcome → Lessons |
+| Technical Post-Mortem | Engineering community | Post-completion | What broke → Root cause → Prevention |
+| Architecture Decision Record (ADR) Summary | New team members, future engineers | Evergreen | Context → Options → Decision → Consequences |
+| Portfolio Overview | Recruiters, investors | Evergreen | Cross-project pattern → Skills demonstrated |
+| Launch Announcement | Public / press | At launch | What it is → Who it's for → How to start |
 
-Phase 2: CLI Architecture Design
-  - Stateful REPL vs subcommand CLI decision
-  - Command group taxonomy
-  - Output schema: human-readable + JSON dual format
+**Shared logic in Cluster B:** Retrospective framing, outcome measurement (actual vs planned), lessons synthesis, artifact linking (screenshots, design files), before/after narrative.
 
-Phase 3: Implementation
-  - Data layer + probe/info commands
-  - Mutation commands via subprocess to real software
-  - Rendering/export pipelines
-  - Session management + REPL interface
+### Cross-Cluster Shared Logic (~70%)
 
-Phase 4: Test Planning (TEST.md written before code)
-  - Unit test inventory
-  - E2E test plans with real software
-  - Realistic workflow scenarios
-
-Phase 5: Test Implementation
-  - Unit tests, E2E tests invoking actual application
-  - Subprocess tests, output verification
-
-Phase 6: Test Documentation
-  - Append results + coverage analysis to TEST.md
-
-Phase 6.5: SKILL.md Generation (added 2026-03-16)
-  - YAML frontmatter + markdown doc
-  - Auto-discoverable by AI agents after pip install
-  - REPL banner displays absolute path to skill file
-
-Phase 7: PyPI Publishing
-  - setup.py, pip install cli-anything-<software>
-  - Entry point: cli-anything-<software> <command> [options]
-```
-
-### Output Format
-
-Every generated CLI produces:
-- `--json` flag — structured JSON for agent consumption
-- Default — human-readable text for debugging
-- REPL mode — stateful interactive session
-
-### Discovery/Registration/Invocation Lifecycle
-
-```
-Discovery:    Agent reads cli-hub-meta-skill/SKILL.md (catalog index)
-              OR reads installed package's SKILL.md directly
-Registration: PR to registry.json -> GitHub Actions -> CLI-Hub catalog update
-              Published at: https://hkuds.github.io/CLI-Anything/SKILL.txt
-Installation: pip install cli-anything-<software>
-Invocation:   cli-anything-blender render scene.blend --output=out.png --json
-              OR enter REPL: cli-anything-blender repl
-Agent Use:    Agent reads SKILL.md path from REPL banner
-              Executes commands with --json output
-              Parses structured response
-```
-
-**Critical architectural constraint:** CLI wrappers invoke REAL software via subprocess — they do not reimplement functionality. The target application must be installed on the host. This is a hard dependency.
+Both clusters share: artifact inventory scan, design artifact embedding, Git commit stats, phase summary extraction, cost/timeline extraction from event bus, PDE product-type detection.
 
 ---
 
@@ -129,213 +68,234 @@ Agent Use:    Agent reads SKILL.md path from REPL banner
 
 ### Table Stakes (Users Expect These)
 
-Features that make desktop app integration feel complete. Missing any of these makes the milestone feel half-done.
+Features that must exist for the synthesis engine to feel useful at all. Missing these = the output is a toy.
 
-| Feature | Why Expected | Complexity | Dependencies | Notes |
-|---------|--------------|------------|--------------|-------|
-| App presence detection | Before invoking any desktop app, agent must know if it's installed | LOW | — | `which blender`, `blender --version`, platform-specific paths; fail gracefully if absent |
-| Version-aware capability model | Different versions expose different APIs; stale SKILL.md is a runtime error | MEDIUM | App detection | Blender 3.x vs 4.x Python API differs substantially |
-| SKILL.md auto-generation for wrapped apps | Existing v0.20 Phase 164 already does --help → SKILL.md; must also handle Python API surface | MEDIUM | Phase 164 | Extend to CLI-Anything-style YAML frontmatter format |
-| JSON output mode for all wrapped CLIs | Agents need structured output; --json flag is the standard | LOW | Phase 164 wrapper | Already in v0.20 wrapper pattern |
-| Headless execution mode | Design pipeline apps (Blender, GIMP, LibreOffice) must run without display | MEDIUM | App detection | Blender uses `--background`; GIMP uses `--no-interface`; must be verified per app |
-| Error propagation with structured output | Subprocess failures must surface as JSON error objects, not raw stderr | LOW | JSON output mode | Wrap subprocess CalledProcessError into structured `{error, code, stderr}` |
-| Registration in PDE MCP tool map | Wrapped desktop apps should appear in APPROVED_SERVERS / TOOL_MAP for agent access | MEDIUM | MCP bridge (v0.5) | Each app CLI becomes an MCP tool group |
-| Idempotent install/setup script | Running the integration setup twice must not break anything | LOW | — | Standard but often skipped; critical for CI |
+| Feature | Why Expected | Complexity | PDE Artifact Source | Notes |
+|---------|--------------|------------|--------------------|----|
+| Per-persona document generation | Each persona has different information needs | MEDIUM | PROJECT.md + ROADMAP.md + phase plans | Core command: `/pde:present [persona]` |
+| Dual HTML + Markdown output | HTML for sharing/presentation, Markdown for editing/version control | LOW | All text outputs | HTML rendered from Markdown; not a separate generation step |
+| Phase completion status summary | Every stakeholder report needs progress at a glance | LOW | VERIFICATION.md + phase plans | Count tasks completed vs planned |
+| Key metrics extraction | Dates, cost, task counts — the numbers that matter | LOW | Event bus sessions + phase plans | Token metering already captures cost |
+| Design artifact embedding | Wireframes and mockups are worth more than prose descriptions | MEDIUM | `.planning/design/` files | Reference screenshots already captured via Playwright |
+| Git commit velocity summary | Proves engineering cadence, not just claims | LOW | Git history (already integrated) | Commits per phase, contributors |
+| Blocker and risk callouts | Stakeholders need to know what's at risk | MEDIUM | Phase plans, RECONCILIATION.md files | Unresolved tasks + overdue phases |
+| Output file persistence | Reports must be saved, not ephemeral | LOW | `.planning/presentations/` directory | Filename includes persona + date |
+| Regeneration / refresh | Project state changes; reports must stay current | LOW | Re-run command, overwrite with timestamp | Not streaming — snapshot semantics |
+| Table of contents / navigation | Long reports need navigation, especially HTML | LOW | Auto-generated from section headers | Anchor links in HTML |
 
 ### Differentiators (Competitive Advantage)
 
-Features that set PDE's desktop app integration apart from generic CLI wrapping tools.
+What makes PDE's synthesis engine meaningfully better than Notion AI summaries, Jira release notes, or Linear updates.
 
-| Feature | Value Proposition | Complexity | Dependencies | Notes |
-|---------|-------------------|------------|--------------|-------|
-| Design-pipeline-aware app chaining | Blender → image-to-3D → GLB optimize → model-viewer is a single orchestrated flow, not manual steps | HIGH | 3D pipeline (Phase 168), Blender CLI wrapper | The v0.20 asset pipelines become composable with desktop apps |
-| GIMP batch pipeline integration | Connect GIMP scriptable editing to image pipeline (Phase 165): background removal → GIMP retouch → OG card output | HIGH | Image pipeline (Phase 165), GIMP CLI wrapper | High value for design teams; GIMP Script-Fu is Python-callable |
-| Inkscape as design token exporter | SVG → DTCG token extraction; export artboards as named SVG assets into .planning/design/ | HIGH | Design system (v0.2), Inkscape CLI wrapper | Differentiates PDE as the only platform connecting vector design to token pipeline |
-| ComfyUI workflow-as-code | Serialize ComfyUI diffusion pipelines to JSON, replay them as CLI commands, integrate with image pipeline | HIGH | Image pipeline (Phase 165), ComfyUI wrapper | ComfyUI already has JSON API; CLI-Anything wrapper exists in catalog |
-| FreeCAD → CadQuery bridge | FreeCAD visual modeling session → export Python CadQuery script → feed into Phase 169 parametric CAD pipeline | HIGH | CAD pipeline (Phase 169), FreeCAD CLI wrapper | Closes the loop between visual and parametric CAD |
-| App catalog UI in PDE dashboard | Show installed/available apps, health status, version info; one-click register into MCP tool map | MEDIUM | Remote dashboard (v0.17), app detection | Visibility into what desktop app capabilities are available |
-| Cross-app visual comparison | Use Phase 166 visual diff (perceptual hash) to compare outputs from different apps or settings | MEDIUM | Visual diff (Phase 166) | "Did changing this Blender light setting actually improve the render?" |
-| Autonomous app discovery via CLI-Hub | Agent can browse CLI-Anything catalog, install missing app CLI, and immediately use it — zero human config | HIGH | SKILL.md generation, pip subprocess | CLI-Hub meta-skill + PDE orchestration = fully autonomous tool acquisition |
+| Feature | Value Proposition | Complexity | PDE Advantage | Notes |
+|---------|-------------------|------------|---------------|-------|
+| Persona-driven narrative arc | Same data, fundamentally different story structure per audience | HIGH | No existing tool does problem→approach→outcome arc from structured dev artifacts | Two arc templates: forward-looking (status) and retrospective (proof) |
+| Design artifact integration | Wireframes and mockups embedded as evidence, not just linked | MEDIUM | PDE already owns `.planning/design/` | GitHub Insights, Linear, Jira have no design artifact awareness |
+| Research validation sourcing | Claims are backed by verified research, not just asserted | MEDIUM | v0.7 research-validation agent provides three-tier claim classification | Unique to PDE — no competitor has this |
+| Cost transparency narrative | "We built X for $Y in token costs" is a genuine differentiator | LOW | Event bus + token metering already exists | Novel in this domain — no tool reports LLM cost per deliverable |
+| Cross-project portfolio synthesis | Single command generates portfolio-level case study from multiple `.planning/` directories | HIGH | Multi-project reading + pattern synthesis across projects | Requires scanning sibling directories; most tools are per-project only |
+| Product-type-aware framing | Experience products get venue/production narrative; business products get GTM/revenue narrative | MEDIUM | PDE product type detection already exists | No competitor has domain-specific stakeholder framing |
+| Auto-generation on phase completion | Reports triggered by phase verification gate passing, not manual request | MEDIUM | Claude Code hooks infrastructure already exists (v0.10) | Notion AI requires manual trigger; Linear updates are manually written |
+| Acceptance-criteria proof table | "Here are the ACs we committed to; here's the verification result" | LOW | AC-first planning (v0.6) + VERIFICATION.md already produces this data | Unique to PDE's methodology — most tools don't have AC→verification traceability |
+| Timeline confidence scoring | "We're 73% through planned phases; estimated completion based on velocity" | MEDIUM | Phase event timestamps + task completion rates | Derived from existing event data; no new instrumentation needed |
 
 ### Anti-Features (Commonly Requested, Often Problematic)
 
-| Feature | Why Requested | Why Problematic | Alternative |
-|---------|---------------|-----------------|-------------|
-| Reimplementing app logic in Python | Avoid requiring Blender installed — lighter dependency | CLI-Anything's explicit architecture principle: never reimplement, always subprocess to real app. Reimplementation creates permanent maintenance burden and misses app updates | Require app installation; provide clear setup instructions and version detection |
-| GUI automation (screenshot + click) | Some apps resist CLI scripting; vision models can drive them | Brittle, resolution-dependent, breaks on app updates, extreme latency. Playwright MCP is already present for web; desktop GUI automation is a different problem domain | Focus on apps with Python API or native CLI (Blender scripting, GIMP Script-Fu, LibreOffice UNO) |
-| Universal app detection via OS APIs | Discover everything installed, like a full app catalog | Platform-specific (macOS /Applications, Windows registry, Linux PATH/XDG), inconsistent results, security surface, not worth the complexity for a small known app set | Whitelist-based detection for PDE's 8-10 priority apps; probe by running `<app> --version` |
-| Real-time sync with app state | Live update when user changes something in Blender | Requires IPC socket, polling, or file-watch loops — massive complexity, app-specific protocols, race conditions | File-based exchange: agent writes scene file, app renders, agent reads output |
-| Multi-app concurrent sessions | Run Blender + GIMP + LibreOffice simultaneously in one pipeline | Process management complexity, port conflicts, resource contention on a developer workstation | Sequential pipeline steps; use v0.18 worktree dispatch for true parallelism if needed |
-| Packaging wrapped CLIs for end-user distribution | Ship the PDE app with bundled Blender CLI | License conflicts (GPL Blender), binary size, version pinning nightmares | Treat desktop apps as host-installed dependencies; document minimum versions |
+Scope traps to explicitly avoid in this milestone.
+
+| Anti-Feature | Why Requested | Why Problematic | Alternative |
+|--------------|---------------|-----------------|-------------|
+| Interactive slide deck editor | "Make it look like Pitch or Google Slides" | Requires a full UI framework, drag-and-drop, layout engine — months of work orthogonal to PDE's value | Ship HTML with clean CSS; Markdown can be imported into any slide tool |
+| Real-time collaborative editing | "Multiple people should edit the report" | Requires auth, presence, CRDT, websockets — none of which PDE has | Markdown output is editable in any editor; HTML is a shareable artifact |
+| PDF export with pixel-perfect layout | "I need to attach this to an email" | Headless PDF generation (Puppeteer/wkhtmltopdf) has endless CSS quirks and viewport issues | Deliver HTML; browser print-to-PDF is sufficient for stakeholder use |
+| AI-generated charts from raw data | "Auto-generate Gantt charts and pie charts" | Chart generation from unstructured data is unreliable and produces misleading visuals | Use Mermaid for structural charts (already used in PDE); link to existing design artifacts for visuals |
+| Email delivery / Slack posting | "Send the report to the team automatically" | Outbound email/Slack requires auth, delivery confirmation, formatting per platform — separate project | Output the file; user pastes or attaches. Integrate in a later milestone. |
+| NPS / stakeholder feedback collection | "Include a way for stakeholders to respond" | Requires a web service, form handling, response storage | Not a document feature; build separately if needed |
+| Version control for reports | "Show me what changed between last week's report and this week's" | Diff-ing generated prose is unreliable — context changes, sentences shift | Reports are snapshots with date-stamped filenames; diff the source artifacts instead |
+| Full narrative prose for every section | "Write me a complete 2000-word case study automatically" | LLM-generated long-form prose requires heavy prompt engineering and produces inconsistent quality | Use structured templates with prose fills for key sections; keep data tables for factual content |
+| Burndown chart image generation | "I want a burndown chart image embedded in the report" | Image generation from data requires a charting library with browser rendering or canvas — significant dependency | Use Mermaid gantt or xychart syntax; renders in markdown, embeds cleanly in HTML |
 
 ---
 
 ## Feature Dependencies
 
 ```
-App Presence Detection
-    +--required-by--> All Desktop App Wrappers
-                          +--required-by--> SKILL.md Auto-generation
-                                                +--required-by--> MCP Tool Map Registration
-                                                                       +--required-by--> Agent Autonomous Discovery
+[Phase completion % calculation]
+    └──requires──> [VERIFICATION.md exists per phase]
+                       └──requires──> [AC-first planning — already shipped v0.6]
 
-Headless Execution Mode
-    +--required-by--> Blender CLI Wrapper (3D pipeline integration)
-    +--required-by--> GIMP CLI Wrapper (image pipeline integration)
-    +--required-by--> LibreOffice CLI Wrapper (document export)
+[Design artifact embedding]
+    └──requires──> [Playwright screenshot capture — already shipped v0.14]
 
-Version-Aware Capability Model
-    +--required-by--> SKILL.md generation (must reflect actual available commands)
-    +--required-by--> Correct subprocess flags (--background vs -b changed in Blender versions)
+[Cost transparency narrative]
+    └──requires──> [Event bus token metering — already shipped v0.8]
 
-JSON Output Mode
-    +--required-by--> Design Pipeline Chaining (structured data between steps)
-    +--required-by--> App Catalog Dashboard (parse CLI output for health display)
+[Timeline confidence scoring]
+    └──requires──> [Phase event timestamps — already shipped v0.8]
+    └──requires──> [Phase completion % calculation]
 
-Phase 164 CLI Wrapper (v0.20)
-    +--enhances--> All CLI-Anything-style wrappers (reuse --help -> SKILL.md machinery)
+[Cross-project portfolio synthesis]
+    └──requires──> [Single-project synthesis working] (must come first)
+    └──requires──> [Multi-directory artifact scan]
 
-Phase 165 Image Pipeline (v0.20)
-    +--enhances--> GIMP CLI Wrapper (GIMP becomes an editing step within image pipeline)
+[Auto-generation on phase completion]
+    └──requires──> [Claude Code hooks infrastructure — already shipped v0.10]
+    └──requires──> [Single-project synthesis working]
 
-Phase 168 3D Pipeline (v0.20)
-    +--enhances--> Blender CLI Wrapper (Blender becomes advanced step in 3D pipeline)
+[Product-type-aware framing]
+    └──requires──> [Product type detection — already shipped v0.11–v0.12]
 
-Phase 169 CAD Pipeline (v0.20)
-    +--enhances--> FreeCAD CLI Wrapper (visual -> parametric bridge)
+[Research validation sourcing]
+    └──requires──> [Research validation agent — already shipped v0.7]
+    └──enhances──> [Case study / portfolio piece persona]
 
-Blender CLI Wrapper
-    +--resource-conflict--> GIMP CLI Wrapper
-        (not a code conflict; resource conflict: both GPU-intensive, should not run concurrently)
+[Dual HTML + Markdown output]
+    └──requires──> [Markdown generation] (Markdown is primary; HTML derived)
 ```
 
 ### Dependency Notes
 
-- **App detection required before all wrappers:** A wrapper that assumes an app is installed will hard-crash agents. Detection must be the first gate.
-- **Headless mode is not optional for pipelines:** Blender's `--background` flag disables the GUI and is required for unattended operation. Without it, the process hangs waiting for a display.
-- **Version awareness prevents silent failures:** Blender 3.x uses `bpy.ops.*` differently from 4.x; GIMP Script-Fu changed between 2.10 and 3.0. SKILL.md must be generated against the installed version.
-- **Phase 164 reuse:** The existing `--help → MCP server + SKILL.md` machinery from Phase 164 is the foundation. Desktop app wrappers extend it with: version detection, headless-mode flags, and Python API introspection.
+- **All persona output requires phase completion % calculation:** This is the shared kernel. Build it first.
+- **Cross-project portfolio synthesis requires single-project synthesis:** Do not build portfolio synthesis in the same phase as core synthesis — too much risk.
+- **Auto-generation requires synthesis to be stable:** Hook-triggered generation on flaky synthesis creates noise. Gate auto-generation behind validated synthesis output.
+- **HTML output is derived from Markdown:** Generate Markdown first, convert to HTML with a templating pass. Do not maintain two separate generation paths.
+- **Product-type-aware framing enhances all personas:** It is a conditional enrichment layer, not a separate pipeline. Apply it after base persona template is rendered.
+
+---
+
+## Persona Complexity and "Good Enough" vs Gold-Plated
+
+The key question for scoping: what does "good enough" look like per persona before gold-plating it?
+
+| Persona | Good Enough (v1) | Gold-Plated (v2+) | Shared Logic % |
+|---------|-----------------|-------------------|---------------|
+| Executive Summary | 1-page: status RAG, key metrics, top 3 blockers, timeline confidence | Trend lines, risk heat map, board-ready formatting | 80% shared |
+| Sprint Review Deck | What shipped (task list + ACs), what's next (next phase preview) | Demo screenshots embedded, animated progress bars | 75% shared |
+| Client Deliverable Report | Feature list with AC verification status, design artifacts linked | Annotated screenshots, change log per sprint | 70% shared |
+| Investor Update | Milestone velocity, technical moat paragraph, cost efficiency | Comparable metrics to competitors, traction graphs | 65% shared |
+| Stakeholder Status Update | RAG status, decisions needed, risks table | Trend analysis, historical comparison | 85% shared |
+| Case Study | Problem → approach → outcome → lessons, key artifacts embedded | SEO-optimized HTML, metrics graphs, social share card | 60% shared |
+| Technical Post-Mortem | What broke, root cause, prevention — extracted from RECONCILIATION.md | Timeline replay, impact analysis | 55% shared |
+| ADR Summary | Design decisions from brief + design artifacts, rationale | Links to rejected alternatives, consequence tracking | 50% shared |
+| Portfolio Overview | Project list with product type, key metrics, tech stack | Visual timeline, skill frequency analysis | 40% shared (cross-project) |
+| Launch Announcement | What it is, who it's for, key features, how to start | Press kit, media assets, embargoed preview | 45% shared |
+
+**Implication for phase ordering:** Build Executive Summary + Sprint Review + Client Deliverable Report in Phase 1 (they share 75–85% of logic). Build Case Study + Post-Mortem in Phase 2 (retrospective arc differs). Portfolio Overview and Launch Announcement in Phase 3 (distinct inputs: cross-project scan and launch artifact set).
+
+---
+
+## Competitor Feature Analysis: What Works and What Doesn't
+
+### Notion AI
+
+**What works:** Autonomous multi-step agent can synthesize across hundreds of pages simultaneously. Research Mode generates detailed reports with minimal input. Meeting summaries are genuinely useful. Consistent tone and structure.
+
+**What works poorly:** Requires manual trigger — no lifecycle awareness (doesn't know a phase just completed). No structured artifact awareness — it reads prose, not structured verification tables. No persona differentiation — same output structure regardless of audience. No cost transparency. No design artifact integration.
+
+**PDE advantage:** Lifecycle-aware (hooks trigger on phase completion), structured artifact awareness (reads VERIFICATION.md tables, not prose), persona differentiation is the core design.
+
+### Linear Project Updates
+
+**What works:** Initiative updates with cross-project health monitoring. Slack cross-posting with bidirectional sync. Cycle (sprint) tracking with automated rollover. Changelog-style release notes.
+
+**What works poorly:** Report depth is shallow for enterprise use. Analytics lack granular performance metrics. No AI narration — updates are written by humans. Single hierarchy limits cross-team portfolio views. No design artifact awareness.
+
+**PDE advantage:** AI-narrated updates with structured data backing. Design artifact embedding. Cross-project portfolio synthesis with no hierarchy constraints.
+
+### GitHub Project Insights
+
+**What works:** Burnup chart for overall project progress. Custom fields for advanced chart creation (via third-party tools like Screenful). Milestone-based velocity via Zenhub integration.
+
+**What works poorly:** No native burndown chart (highly requested, still missing as of 2025). Insights charts are considered "almost useless" by power users. Requires third-party plugins for standard agile metrics. No narrative generation — only raw charts.
+
+**PDE advantage:** Mermaid-based charts embedded in narrative context (not just raw data). Git commit velocity as proof of engineering cadence, not just issue closure rates.
+
+### Jira / ARNR
+
+**What works:** AI-powered release notes generation with persona-based prompt gallery. Grouping issues by Jira field for structured views. Good issue-type taxonomy for categorizing what shipped.
+
+**What works poorly:** Release pages grow large and hard to scan as releases accumulate. Reporting is issue-centric — no design artifact awareness, no cost/velocity narrative, no forward-looking confidence scoring. Stakeholder accessibility requires separate export step.
+
+**PDE advantage:** Phase-centric (not issue-centric) narrative that includes design artifacts, verification results, and timeline confidence in a single document.
 
 ---
 
 ## MVP Definition
 
-### Launch With (this milestone)
+### Launch With (v1) — Phase 1 of Milestone
 
-Minimum viable product for desktop app integration that delivers real value to the design pipeline.
+Core synthesis engine with Cluster A personas.
 
-- [ ] App presence detection + version check — Foundation for everything; single probe function covering 8 priority apps
-- [ ] Blender CLI wrapper — Highest value: render scenes headlessly, export to formats consumed by Phase 168 (GLB, OBJ, PNG)
-- [ ] GIMP CLI wrapper — Connects to existing image pipeline (Phase 165); Script-Fu batch mode well-documented
-- [ ] Inkscape CLI wrapper — SVG export + DTCG integration; pure CLI (`inkscape --export-png`), lowest friction app to wrap
-- [ ] SKILL.md generation for all wrapped apps — Required for agent discoverability; extend Phase 164 machinery
-- [ ] MCP tool map registration — Each app CLI registered as APPROVED_SERVER entries so agents can invoke them
-- [ ] JSON output mode — Structured output from every wrapped app command; required for pipeline chaining
+- [ ] Artifact scanner: reads PROJECT.md, ROADMAP.md, phase plans, VERIFICATION.md, event bus sessions — builds in-memory project state object
+- [ ] Phase completion % calculator: tasks completed vs planned per phase, overall project %
+- [ ] Metric extractor: dates, cost (from token metering), task counts, blocker count
+- [ ] Base narrative templates for 5 Cluster A personas (Executive Summary, Sprint Review, Client Deliverable, Investor Update, Stakeholder Status)
+- [ ] Dual Markdown + HTML output with CSS template
+- [ ] `/pde:present [persona]` slash command
+- [ ] Output persistence in `.planning/presentations/[persona]-[date].md` and `.html`
+- [ ] Product-type-aware framing applied as enrichment layer
 
-### Add After Validation (v1.x / next milestone)
+### Add After Validation (v1.x) — Phase 2
 
-- [ ] ComfyUI workflow-as-code — Trigger: if AI image generation is a frequent design pipeline step
-- [ ] FreeCAD → CadQuery bridge — Trigger: if physical product design users are active
-- [ ] App catalog dashboard pane — Trigger: once 5+ apps are wrapped; visibility becomes valuable
-- [ ] Cross-app visual comparison — Trigger: after Blender + GIMP wrappers ship and pipeline chaining is working
+Retrospective personas and design artifact embedding.
 
-### Future Consideration (v2+)
+- [ ] Case Study persona with retrospective arc — trigger: when project marked complete
+- [ ] Technical Post-Mortem persona — reads RECONCILIATION.md files
+- [ ] ADR Summary persona — reads design artifact briefs and decision rationale
+- [ ] Design artifact embedding (screenshots from `.planning/design/`) in HTML output
+- [ ] Research validation sourcing — pulls verified claims from v0.7 validation agent output
+- [ ] Auto-generation hook: trigger synthesis on phase VERIFICATION.md completion
 
-- [ ] OBS Studio CLI wrapper — Video pipeline is already strong (Phase 167); OBS adds streaming/recording not yet covered
-- [ ] Autonomous CLI-Hub discovery — Full agent-driven app installation and SKILL.md acquisition; requires security review
-- [ ] Krita + Audacity wrappers — Lower priority; digital painting and audio editing are edge cases in PDE's current user profile
+### Future Consideration (v2+) — Phase 3
+
+Cross-project synthesis and external-facing personas.
+
+- [ ] Cross-project portfolio synthesis: multi-directory scan, portfolio-level narrative
+- [ ] Launch Announcement persona — reads launch artifacts (LDP, LKT, CNT from v0.12)
+- [ ] Timeline confidence scoring with velocity-based projection
+- [ ] Mermaid-based burndown/velocity chart generation from event timestamps
+- [ ] Portfolio Overview persona (requires cross-project scan to be working)
 
 ---
 
 ## Feature Prioritization Matrix
 
-| Feature | User Value | Implementation Cost | Priority | Phase Placement |
-|---------|------------|---------------------|----------|-----------------|
-| App presence detection | HIGH | LOW | P1 | Phase 1 of milestone |
-| Blender CLI wrapper (headless render) | HIGH | MEDIUM | P1 | Phase 2 |
-| GIMP CLI wrapper (batch, Script-Fu) | HIGH | MEDIUM | P1 | Phase 2 |
-| Inkscape CLI wrapper | HIGH | LOW | P1 | Phase 2 |
-| SKILL.md generation for desktop apps | HIGH | LOW | P1 | Phase 1-2 (extends Phase 164) |
-| MCP tool map registration | HIGH | LOW | P1 | Phase 3 |
-| JSON output mode | HIGH | LOW | P1 | Phase 2 (per wrapper) |
-| Headless execution mode verification | HIGH | LOW | P1 | Phase 2 (per wrapper) |
-| Design pipeline chaining (Blender → 3D pipeline) | HIGH | HIGH | P2 | Phase 4 |
-| GIMP → image pipeline integration | HIGH | HIGH | P2 | Phase 4 |
-| FreeCAD → CAD pipeline bridge | MEDIUM | HIGH | P2 | Phase 4 or deferred |
-| ComfyUI workflow-as-code | MEDIUM | HIGH | P2 | Phase 4 or deferred |
-| App catalog dashboard pane | MEDIUM | MEDIUM | P3 | After validation |
-| Autonomous CLI-Hub discovery | HIGH | HIGH | P3 | v2+ |
-| Cross-app visual comparison | MEDIUM | LOW | P3 | After wrappers stable |
+| Feature | User Value | Implementation Cost | Priority |
+|---------|------------|---------------------|----------|
+| Artifact scanner + project state object | HIGH | MEDIUM | P1 |
+| Phase completion % + metric extractor | HIGH | LOW | P1 |
+| Cluster A persona templates (5 personas) | HIGH | MEDIUM | P1 |
+| Dual Markdown + HTML output | HIGH | LOW | P1 |
+| `/pde:present` slash command | HIGH | LOW | P1 |
+| Product-type-aware framing | MEDIUM | LOW | P1 |
+| Design artifact embedding | HIGH | MEDIUM | P2 |
+| Case Study persona | HIGH | MEDIUM | P2 |
+| Post-Mortem persona | MEDIUM | LOW | P2 |
+| Auto-generation hook on phase completion | MEDIUM | MEDIUM | P2 |
+| Research validation sourcing | MEDIUM | LOW | P2 |
+| Timeline confidence scoring | MEDIUM | HIGH | P3 |
+| Cross-project portfolio synthesis | HIGH | HIGH | P3 |
+| Mermaid chart generation | LOW | MEDIUM | P3 |
+| Launch Announcement persona | MEDIUM | LOW | P3 |
 
----
-
-## Competitor Feature Analysis
-
-| Feature | CLI-Anything (HKUDS) | Generic MCP Wrappers | PDE Approach |
-|---------|---------------------|----------------------|--------------|
-| App discovery | CLI-Hub catalog (agent-browsable) | Manual config | Whitelist-based probe + MCP registration |
-| SKILL.md format | YAML frontmatter + markdown | Varies | Extend Phase 164 format to match CLI-Anything standard |
-| Output format | JSON + human-readable dual mode | Varies | JSON mandatory, human readable for debug |
-| Pipeline integration | None (standalone CLIs) | None | First-class design pipeline integration (unique to PDE) |
-| Version awareness | Not documented | Not documented | Required — probe version before generating SKILL.md |
-| Headless mode | Per-app (documented in harness) | Not addressed | Explicit per-app headless flag in wrapper |
-| Registration | PyPI + CLI-Hub registry | Manual APPROVED_SERVERS | APPROVED_SERVERS + SKILL.md auto-publish |
-| Real software requirement | Strict (subprocess, not reimplemented) | Varies | Follow CLI-Anything pattern: always subprocess |
-
----
-
-## Phase-Specific Implementation Notes
-
-### App Detection Pattern
-
-```bash
-# Pattern for each app:
-which blender && blender --version 2>&1 | head -1
-# Returns: "Blender 4.1.0 (hash abc123)" -- parse major.minor
-# macOS path fallback: /Applications/Blender.app/Contents/MacOS/blender
-# Windows fallback: %PROGRAMFILES%\Blender Foundation\Blender\blender.exe
-```
-
-### Blender Headless Invocation Pattern
-
-```bash
-blender --background scene.blend --python render_script.py -- --output /tmp/out.png
-# --background: no GUI, exits when script finishes
-# --python: execute Python script in Blender's embedded Python
-# --: separator for user script args
-```
-
-### GIMP Headless Pattern
-
-```bash
-gimp --no-interface --batch '(gimp-version)' --batch '(gimp-quit 0)'
-# Script-Fu batch mode; GIMP 3.0+ uses --script-fu-batch
-# Alternate for GIMP 2.10: gimp -i -b '...'
-```
-
-### Inkscape Pure CLI (No Headless Needed)
-
-```bash
-inkscape --export-type=png --export-filename=out.png input.svg
-# Inkscape 1.x: fully CLI-driven, no display required
-# Inkscape 0.91: different flag set -- version check mandatory
-```
+**Priority key:**
+- P1: Must have for milestone launch — these validate the core concept
+- P2: Should have — adds significant value once core is working
+- P3: Defer — high complexity or dependent on P2 being stable
 
 ---
 
 ## Sources
 
-- [CLI-Anything GitHub repo (HKUDS)](https://github.com/HKUDS/CLI-Anything) — registry.json app list, HARNESS.md pipeline, confidence: HIGH
-- [CLI-Anything HARNESS.md](https://github.com/HKUDS/CLI-Anything/blob/main/cli-anything-plugin/HARNESS.md) — 7-phase pipeline verified directly, confidence: HIGH
-- [Figma MCP Server Guide](https://help.figma.com/hc/en-us/articles/32132100833559-Guide-to-the-Figma-MCP-server) — MCP integration pattern for design tools, confidence: HIGH
-- [MCP Skills (modelcontextprotocol.io)](https://modelcontextprotocol.io/docs/develop/build-with-agent-skills) — SKILL.md standard for agent discoverability, confidence: HIGH
-- [Agent Auto-Discovery Bug (Claude Code #9930)](https://github.com/anthropics/claude-code/issues/9930) — Known discovery failure modes, confidence: MEDIUM
-- [Manus Desktop App launch](https://manus.im/blog/manus-my-computer-desktop) — Desktop app to CLI invocation pattern in agent context, confidence: MEDIUM
-- [How to sandbox AI agents 2026 (Northflank)](https://northflank.com/blog/how-to-sandbox-ai-agents) — Subprocess isolation patterns, confidence: MEDIUM
-- PDE .planning/PROJECT.md — Existing v0.20 capabilities (verified locally 2026-03-28), confidence: HIGH
+- Notion AI review and Notion 3.0 autonomous agent features: [Notion AI Review 2026](https://max-productive.ai/ai-tools/notion-ai/), [Notion product page](https://www.notion.com/product/ai)
+- Linear project updates and initiative health: [Linear Changelog — Initiative Updates](https://linear.app/changelog/2025-02-13-initiative-updates), [Linear reviews analysis](https://thedigitalprojectmanager.com/tools/linear-review/)
+- GitHub Projects Insights burndown limitations: [GitHub community discussion #38840](https://github.com/orgs/community/discussions/38840), [Screenful advanced charts](https://screenful.com/blog/create-advanced-charts-with-github-projects-custom-fields)
+- Jira ARNR release notes automation: [ARNR Atlassian Marketplace](https://marketplace.atlassian.com/apps/1215431/ai-powered-automated-release-notes-reports-for-jira), [Q4 2025 updates](https://amoeboids.com/blog/quarterly-update-q4-2025-arnr/)
+- AI project status reporting best practices: [Digital Project Manager AI reporting guide](https://thedigitalprojectmanager.com/project-management/ai-in-project-status-reporting/), [Agile Seekers automation guide](https://agileseekers.com/blog/how-project-managers-can-automate-status-reporting-with-ai)
+- Burndown chart generation from git history: [Zenhub burndown + velocity](https://www.zenhub.com/blog-posts/burndown-charts-in-github), [DEV community burndown guide 2025](https://dev.to/naik_sejal/free-burndown-chart-generator-the-developers-guide-to-agile-sprint-tracking-in-2025-2hbm)
+- PDE stakeholder presentations concept: `.claude/projects/memory/project_stakeholder_presentations.md`
+- PDE existing artifact inventory: `.planning/PROJECT.md`
 
 ---
-
-*Feature research for: PDE desktop app CLI integration milestone*
-*Researched: 2026-03-28*
-*Confidence: MEDIUM-HIGH — CLI-Anything findings HIGH (verified from live repo); integration pattern findings MEDIUM (ecosystem search + official docs); pitfall avoidance recommendations MEDIUM (patterns from multiple sources)*
+*Feature research for: Stakeholder Presentation & Portfolio Synthesis Engine*
+*Researched: 2026-03-29*
