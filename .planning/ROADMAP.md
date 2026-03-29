@@ -284,7 +284,11 @@ Plans:
   4. User can run a visual diff command comparing Playwright screenshots across two branches or commits and receive the same structured report as Phase 166
   5. User can run /pde:gen-tests on a flows diagram output and receive Playwright E2E test skeleton files with navigation paths derived from the flow
   6. User can run /pde:verify-handoff and receive a gap report listing every component where the implementation diverges from or is absent from the handoff spec
-**Plans**: TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 170-01-PLAN.md — Mermaid renderer + DTCG token validator modules with tests
+- [ ] 170-02-PLAN.md — Flow test generator + handoff verifier modules with tests
+- [ ] 170-03-PLAN.md — pde-tools.cjs utils wiring + skill files for all commands
 
 ## Progress
 
@@ -304,4 +308,4 @@ Plans:
 | 167. Video Production Pipeline | v0.20 | 2/3 | Complete    | 2026-03-29 |
 | 168. AI 3D Generation + Web Embedding | v0.20 | 2/3 | Complete    | 2026-03-29 |
 | 169. Parametric CAD Generation | v0.20 | 1/2 | Complete    | 2026-03-29 |
-| 170. PDE Utilities | v0.20 | 0/TBD | Not started | - |
+| 170. PDE Utilities | v0.20 | 0/3 | Not started | - |
