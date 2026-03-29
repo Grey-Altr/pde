@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.21
 milestone_name: Desktop App Integration
-status: Ready to execute
-stopped_at: Completed 172-01-PLAN.md
-last_updated: "2026-03-29T18:35:15.302Z"
+status: Ready to plan
+stopped_at: Completed 172-03-PLAN.md
+last_updated: "2026-03-29T18:45:47.554Z"
 progress:
   total_phases: 12
-  completed_phases: 8
+  completed_phases: 9
   total_plans: 22
-  completed_plans: 20
+  completed_plans: 22
 ---
 
 # Project State
@@ -23,8 +23,8 @@ See: .planning/PROJECT.md (updated 2026-03-29)
 
 ## Current Position
 
-Phase: 172 (core-app-wrappers) — EXECUTING
-Plan: 2 of 3
+Phase: 173
+Plan: Not started
 
 ## Performance Metrics
 
@@ -51,6 +51,9 @@ Plan: 2 of 3
 - [Phase 171]: Discover writes pending entries automatically; approve is separate explicit step for security
 - [Phase 172-01]: asyncMode driven by metadata.asyncRequired field — wrappers declare startup characteristics
 - [Phase 172-01]: index.cjs lazy require avoids errors when wrapper files not yet implemented
+- [Phase 172-core-app-wrappers]: Blender asyncRequired=true and startupMs=5000 in getMetadata — CapabilityModel meta is strings-only per Zod schema
+- [Phase 172-core-app-wrappers]: Inkscape --without-gui and --batch-process absent — deprecated since 1.0; GUI auto-suppressed by export flags
+- [Phase 172]: GIMP 3.x uses --quit flag (introduced 2.99.12); GIMP 2.x uses --batch '(gimp-quit 0)' — enforced via parseMajorVersion() branch
 
 ### Pending Todos
 
@@ -63,7 +66,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-29T18:35:15.299Z
-Stopped at: Completed 172-01-PLAN.md
+Last session: 2026-03-29T18:41:14.729Z
+Stopped at: Completed 172-03-PLAN.md
 Resume with: `/gsd:plan-phase 171`
 Resume file: None

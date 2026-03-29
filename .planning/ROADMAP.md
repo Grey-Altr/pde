@@ -66,7 +66,7 @@
 **Milestone Goal:** PDE can discover installed GUI applications, wrap them as agent-native CLI tools with safety-gated approval, and integrate Blender, GIMP, and Inkscape directly into the design pipeline — using the existing CLI-Anything infrastructure with no new npm dependencies.
 
 - [x] **Phase 171: Security Architecture + Discovery Foundation** — Two-tier approval registry, five-tier binary probe, executionMode classification, col -b help preprocessing, and known-app catalog (completed 2026-03-29)
-- [ ] **Phase 172: Core App Wrappers** — Blender, GIMP, and Inkscape wrappers with version-aware headless modes, SKILL.md generation, JSON output, and display server probe
+- [x] **Phase 172: Core App Wrappers** — Blender, GIMP, and Inkscape wrappers with version-aware headless modes, SKILL.md generation, JSON output, and display server probe (completed 2026-03-29)
 - [ ] **Phase 173: MCP Bridge Dynamic Registration** — loadDynamicServers() and registerDynamicServer() in mcp-bridge.cjs, pde-tools app subcommand, and pip CLI server-gen handler
 - [ ] **Phase 174: CLI Wrap Skill** — /pde:cli-wrap one-command workflow with dual strategy routing (CLI-Anything fast path + native fallback) and pipx canonical install
 - [ ] **Phase 175: Design Pipeline Integration** — Optional app-tool steps in wireframe.md and mockup.md, Blender → 3D pipeline chaining, and GIMP → image pipeline chaining
@@ -281,7 +281,7 @@ Plans:
 | 169. Parametric CAD Generation | v0.20 | 2/2 | Complete | 2026-03-29 |
 | 170. PDE Utilities | v0.20 | 3/3 | Complete | 2026-03-29 |
 | 171. Security Architecture + Discovery Foundation | v0.21 | 2/3 | Complete    | 2026-03-29 |
-| 172. Core App Wrappers | v0.21 | 1/3 | In Progress|  |
+| 172. Core App Wrappers | v0.21 | 1/3 | Complete    | 2026-03-29 |
 | 173. MCP Bridge Dynamic Registration | v0.21 | 0/TBD | Not started | - |
 | 174. CLI Wrap Skill | v0.21 | 0/TBD | Not started | - |
 | 175. Design Pipeline Integration | v0.21 | 0/TBD | Not started | - |
