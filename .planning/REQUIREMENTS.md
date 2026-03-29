@@ -94,53 +94,53 @@ Deferred to future milestone. Tracked but not in current roadmap.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CLI-01 | TBD | Pending |
-| CLI-02 | TBD | Pending |
-| CLI-03 | TBD | Pending |
-| CLI-04 | TBD | Pending |
-| CLI-05 | TBD | Pending |
-| CLI-06 | TBD | Pending |
-| CLI-07 | TBD | Pending |
-| CLI-08 | TBD | Pending |
-| CLI-09 | TBD | Pending |
-| CLI-10 | TBD | Pending |
-| CLI-11 | TBD | Pending |
-| IMG-01 | TBD | Pending |
-| IMG-02 | TBD | Pending |
-| IMG-03 | TBD | Pending |
-| IMG-04 | TBD | Pending |
-| IMG-05 | TBD | Pending |
-| IMG-06 | TBD | Pending |
-| IMG-07 | TBD | Pending |
-| IMG-08 | TBD | Pending |
-| VID-01 | TBD | Pending |
-| VID-02 | TBD | Pending |
-| VID-03 | TBD | Pending |
-| VID-04 | TBD | Pending |
-| VID-05 | TBD | Pending |
-| VID-06 | TBD | Pending |
-| TRD-01 | TBD | Pending |
-| TRD-02 | TBD | Pending |
-| TRD-03 | TBD | Pending |
-| TRD-04 | TBD | Pending |
-| TRD-05 | TBD | Pending |
-| TRD-06 | TBD | Pending |
-| TRD-07 | TBD | Pending |
-| TRD-08 | TBD | Pending |
-| UTL-01 | TBD | Pending |
-| UTL-02 | TBD | Pending |
-| UTL-03 | TBD | Pending |
-| UTL-04 | TBD | Pending |
-| UTL-05 | TBD | Pending |
-| UTL-06 | TBD | Pending |
-| UTL-07 | TBD | Pending |
-| UTL-08 | TBD | Pending |
+| CLI-01 | Phase 163 | Pending |
+| CLI-02 | Phase 163 | Pending |
+| CLI-03 | Phase 163 | Pending |
+| CLI-04 | Phase 163 | Pending |
+| CLI-05 | Phase 163 | Pending |
+| CLI-06 | Phase 163 | Pending |
+| CLI-07 | Phase 164 | Pending |
+| CLI-08 | Phase 164 | Pending |
+| CLI-09 | Phase 164 | Pending |
+| CLI-10 | Phase 164 | Pending |
+| CLI-11 | Phase 164 | Pending |
+| IMG-01 | Phase 165 | Pending |
+| IMG-02 | Phase 165 | Pending |
+| IMG-03 | Phase 165 | Pending |
+| IMG-04 | Phase 165 | Pending |
+| IMG-05 | Phase 166 | Pending |
+| IMG-06 | Phase 166 | Pending |
+| IMG-07 | Phase 165 | Pending |
+| IMG-08 | Phase 165 | Pending |
+| VID-01 | Phase 167 | Pending |
+| VID-02 | Phase 167 | Pending |
+| VID-03 | Phase 167 | Pending |
+| VID-04 | Phase 167 | Pending |
+| VID-05 | Phase 167 | Pending |
+| VID-06 | Phase 167 | Pending |
+| TRD-01 | Phase 168 | Pending |
+| TRD-02 | Phase 168 | Pending |
+| TRD-03 | Phase 168 | Pending |
+| TRD-04 | Phase 168 | Pending |
+| TRD-05 | Phase 168 | Pending |
+| TRD-06 | Phase 169 | Pending |
+| TRD-07 | Phase 169 | Pending |
+| TRD-08 | Phase 168 | Pending |
+| UTL-01 | Phase 170 | Pending |
+| UTL-02 | Phase 170 | Pending |
+| UTL-03 | Phase 170 | Pending |
+| UTL-04 | Phase 170 | Pending |
+| UTL-05 | Phase 170 | Pending |
+| UTL-06 | Phase 170 | Pending |
+| UTL-07 | Phase 170 | Pending |
+| UTL-08 | Phase 170 | Pending |
 
 **Coverage:**
 - v0.20 requirements: 41 total
-- Mapped to phases: 0
-- Unmapped: 41
+- Mapped to phases: 41
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-28*
-*Last updated: 2026-03-28 after milestone v0.20 definition*
+*Last updated: 2026-03-28 after roadmap creation for v0.20*

@@ -20,9 +20,13 @@
 - ✅ **v0.16 Multi-Editor Context Sync** — Phases 126-133 (shipped 2026-03-24)
 - ✅ **v0.17 Remote Dashboard** — Phases 134-142 (shipped 2026-03-26)
 - ✅ **v0.18 Distributed Execution** — Phases 143-155 (shipped 2026-03-28)
-- 🚧 **v0.19 WebMCP Integration** — Phases 156-162 (in progress)
+- ✅ **v0.19 WebMCP Integration** — Phases 156-162 (shipped 2026-03-28)
+- 🚧 **v0.20 CLI-Anything + Asset Engine** — Phases 163-170 (in progress)
 
 ## Phases
+
+<details>
+<summary>✅ v0.19 WebMCP Integration (Phases 156-162) - SHIPPED 2026-03-28</summary>
 
 ### v0.19 WebMCP Integration
 
@@ -35,6 +39,21 @@
 - [x] **Phase 160: Declarative Approval Gates + Workflow Flags** — Approval gate WebMCP tool forms and --webmcp flag across all four design workflow commands (completed 2026-03-28)
 - [x] **Phase 161: Auto-Generated Competitor Tools** — competitive.md tool stub generation with sanitization pipeline, mandatory human review gate, and competitor registry (completed 2026-03-28)
 - [x] **Phase 162: Multi-Editor Bridge** — Cursor and Gemini CLI relay to PDE via WebMCP, relay depth guard, and mcp-bridge.cjs APPROVED_SERVERS update (completed 2026-03-28)
+
+</details>
+
+### v0.20 CLI-Anything + Asset Engine
+
+**Milestone Goal:** PDE can auto-generate agent-native CLIs and MCP servers from any API spec, and produce production-ready visual assets (images, video, 3D models, CAD files) using free/open-source toolchains — zero paid API keys required.
+
+- [ ] **Phase 163: CLI Ingestion + Capability Model** — Ingest OpenAPI, JSON Schema, GraphQL, and MCP specs into a unified capability model with AI SDK tool() definitions and Zod schemas
+- [ ] **Phase 164: CLI Wrapping + Publishing** — Auto-wrap any CLI as an MCP server via --help parsing, SKILL.md generation, --json flag, and CLI-Hub registry publishing
+- [ ] **Phase 165: Image Generation Pipeline** — OG images via Satori, social cards, device mockup composites, Playwright screenshots, background removal via remove.bg free tier, and .planning/design/assets/ storage
+- [ ] **Phase 166: Visual Diff + Asset Reporting** — Branch-level visual diff with perceptual hashing, comparison report with changed/unchanged/new/deleted asset classification
+- [ ] **Phase 167: Video Production Pipeline** — Playwright UI capture, FFmpeg assembly with transitions/overlays/captions, Remotion branded video composition with PDE design tokens, MP4 output
+- [ ] **Phase 168: AI 3D Generation + Web Embedding** — Text-to-3D and image-to-3D via TripoSR/SF3D, GLB output, model-viewer web embedding with AR fallback (USDZ/WebXR), 3D asset storage
+- [ ] **Phase 169: Parametric CAD Generation** — CadQuery Python scripts for hardware product CAD models, STEP file output for engineering handoff
+- [ ] **Phase 170: PDE Utilities** — mmdr Mermaid renderer, DTCG token validator with OKLCH/APCA checks, visual diff command, test scaffold generation from flows, handoff spec verification with gap report
 
 ## Phase Details
 
@@ -142,14 +161,120 @@ Plans:
 - [x] 162-01-PLAN.md — Relay depth guard module, APPROVED_SERVERS pde_remote entry, and tests for both
 - [x] 162-02-PLAN.md — Wire relay guard into route.ts guardedHandler, Gemini CLI docs
 
+---
+
+### Phase 163: CLI Ingestion + Capability Model
+**Goal**: Users can ingest any API spec or MCP server and get a unified capability model with typed AI SDK tool definitions ready for agent consumption
+**Depends on**: Phase 162
+**Requirements**: CLI-01, CLI-02, CLI-03, CLI-04, CLI-05, CLI-06
+**Success Criteria** (what must be TRUE):
+  1. User can point CLI-Anything at an OpenAPI spec file and receive a unified capability model JSON with all endpoints represented
+  2. User can point CLI-Anything at a JSON Schema file and receive an equivalent unified capability model
+  3. User can point CLI-Anything at a GraphQL endpoint and receive a capability model derived from introspection without manual schema writing
+  4. User can point CLI-Anything at a running MCP server and receive a capability model listing all available tools
+  5. Generated AI SDK tool() definitions compile without TypeScript errors and include Zod inputSchema with fully typed execute functions
+**Plans**: TBD
+
+### Phase 164: CLI Wrapping + Publishing
+**Goal**: Users can wrap any command-line tool as an agent-native MCP server and publish it so other agents can discover it
+**Depends on**: Phase 163
+**Requirements**: CLI-07, CLI-08, CLI-09, CLI-10, CLI-11
+**Success Criteria** (what must be TRUE):
+  1. User can run CLI-Anything on any CLI binary and get a working MCP server that exposes every subcommand as an MCP tool — derived entirely from --help output
+  2. Every command exposed by the auto-wrapped MCP server returns structured JSON, not raw stdout text
+  3. Every generated CLI or tool produces a SKILL.md that an agent can read to understand what the tool does and how to call it
+  4. User can publish a generated CLI to a CLI-Hub compatible registry and have it appear in registry listings
+  5. Any generated tool accepts a --json flag and returns machine-parseable output when that flag is present
+**Plans**: TBD
+
+### Phase 165: Image Generation Pipeline
+**Goal**: Users can generate OG images, social cards, device mockups, and product screenshots, with background removal and organized asset storage — all using free toolchains
+**Depends on**: Phase 163
+**Requirements**: IMG-01, IMG-02, IMG-03, IMG-04, IMG-07, IMG-08
+**Success Criteria** (what must be TRUE):
+  1. User can generate an OG image from a template by providing product data — output is a valid PNG suitable for og:image meta tags
+  2. User can generate a social media card image from product data fields without writing any code
+  3. User can produce a device mockup composite (browser frame or phone frame) by supplying a product screenshot as input
+  4. User can capture a product screenshot via Playwright at any configured viewport size with a single command
+  5. User can remove the background from any product image using the remove.bg free tier and receive a PNG with transparent background
+  6. All generated image assets are stored in .planning/design/assets/ with an accompanying metadata JSON file
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 166: Visual Diff + Asset Reporting
+**Goal**: Users can detect visual regressions between git branches or commits and get a structured report showing exactly what changed
+**Depends on**: Phase 165
+**Requirements**: IMG-05, IMG-06
+**Success Criteria** (what must be TRUE):
+  1. User can run a visual diff command targeting two git branches and receive perceptual hash comparison results for all matched assets
+  2. Visual diff produces a comparison report that classifies every asset as changed, unchanged, new, or deleted — no ambiguous output
+  3. Changed assets in the report include a visual indicator or score showing the degree of change, not just a binary changed/unchanged flag
+**Plans**: TBD
+
+### Phase 167: Video Production Pipeline
+**Goal**: Users can record product UI interactions and assemble them into branded videos with captions — all using free, local toolchains
+**Depends on**: Phase 165
+**Requirements**: VID-01, VID-02, VID-03, VID-04, VID-05, VID-06
+**Success Criteria** (what must be TRUE):
+  1. User can record a product UI interaction sequence via Playwright screen capture and receive a video clip file as output
+  2. User can assemble multiple video clips into a single video with configurable transitions, overlays, and captions using FFmpeg
+  3. User can compose a branded product video using Remotion React components that automatically apply PDE design tokens (colors, fonts, spacing)
+  4. Video pipeline produces an MP4 file at a configurable resolution without requiring a paid video service
+  5. User can add text captions or subtitles to any generated video and see them rendered in the final MP4
+**Plans**: TBD
+
+### Phase 168: AI 3D Generation + Web Embedding
+**Goal**: Users can generate 3D models from text or images and embed them directly in web pages with automatic AR fallback — using open-source models only
+**Depends on**: Phase 163
+**Requirements**: TRD-01, TRD-02, TRD-03, TRD-04, TRD-05, TRD-08
+**Success Criteria** (what must be TRUE):
+  1. User can describe a product in text and receive a downloadable GLB file generated by TripoSR or SF3D — no paid API key required
+  2. User can supply a product image and receive a GLB file representing the 3D model inferred from that image
+  3. Generated GLB files have optimized geometry — filesize is within a reasonable bound for web delivery and loads without errors in model-viewer
+  4. User can embed any generated GLB in a web page via a model-viewer component snippet with a single command
+  5. The model-viewer integration automatically includes AR fallback: USDZ for iOS and WebXR for Android, without manual configuration
+  6. All 3D assets are stored in .planning/design/3d/ with generation metadata (source model, input, timestamp, parameters)
+**Plans**: TBD
+
+### Phase 169: Parametric CAD Generation
+**Goal**: Users building hardware products can generate engineering-grade CAD models from Python scripts and export STEP files ready for manufacturing handoff
+**Depends on**: Phase 168
+**Requirements**: TRD-06, TRD-07
+**Success Criteria** (what must be TRUE):
+  1. User can provide a product description and receive a working CadQuery Python script that generates a parametric 3D model
+  2. Running the CadQuery script produces a valid STEP file that opens without errors in standard CAD tools (FreeCAD, Fusion 360, SOLIDWORKS)
+  3. Generated CadQuery scripts are parameterized — changing dimension variables in the script produces correctly scaled geometry
+**Plans**: TBD
+
+### Phase 170: PDE Utilities
+**Goal**: Users gain a fast Mermaid renderer, a design token validator with gamut/contrast checks, a visual diff command, flow-derived test scaffolds, and a handoff spec verifier — all as first-class /pde: commands
+**Depends on**: Phase 166
+**Requirements**: UTL-01, UTL-02, UTL-03, UTL-04, UTL-05, UTL-06, UTL-07, UTL-08
+**Success Criteria** (what must be TRUE):
+  1. Mermaid diagrams in PDE render via the mmdr Rust renderer and complete noticeably faster than the previous mermaid-cli path
+  2. User can run /pde:validate-tokens and receive a report flagging any DTCG token that violates schema completeness or naming conventions
+  3. Token validation report includes OKLCH gamut violations and APCA contrast ratio failures with specific token names and values
+  4. User can run a visual diff command comparing Playwright screenshots across two branches or commits and receive the same structured report as Phase 166
+  5. User can run /pde:gen-tests on a flows diagram output and receive Playwright E2E test skeleton files with navigation paths derived from the flow
+  6. User can run /pde:verify-handoff and receive a gap report listing every component where the implementation diverges from or is absent from the handoff spec
+**Plans**: TBD
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 156. Remote MCP Server Foundation | v0.19 | 3/3 | Complete    | 2026-03-28 |
-| 157. Dashboard WebMCP Tools | v0.19 | 3/3 | Complete    | 2026-03-28 |
-| 158. MCP Apps Rich UI + Design Artifact Preview | v0.19 | 2/2 | Complete    | 2026-03-28 |
-| 159. Token Playground | v0.19 | 2/2 | Complete    | 2026-03-28 |
-| 160. Declarative Approval Gates + Workflow Flags | v0.19 | 2/2 | Complete    | 2026-03-28 |
-| 161. Auto-Generated Competitor Tools | v0.19 | 2/2 | Complete    | 2026-03-28 |
-| 162. Multi-Editor Bridge | v0.19 | 2/2 | Complete    | 2026-03-28 |
+| 156. Remote MCP Server Foundation | v0.19 | 3/3 | Complete | 2026-03-28 |
+| 157. Dashboard WebMCP Tools | v0.19 | 3/3 | Complete | 2026-03-28 |
+| 158. MCP Apps Rich UI + Design Artifact Preview | v0.19 | 2/2 | Complete | 2026-03-28 |
+| 159. Token Playground | v0.19 | 2/2 | Complete | 2026-03-28 |
+| 160. Declarative Approval Gates + Workflow Flags | v0.19 | 2/2 | Complete | 2026-03-28 |
+| 161. Auto-Generated Competitor Tools | v0.19 | 2/2 | Complete | 2026-03-28 |
+| 162. Multi-Editor Bridge | v0.19 | 2/2 | Complete | 2026-03-28 |
+| 163. CLI Ingestion + Capability Model | v0.20 | 0/TBD | Not started | - |
+| 164. CLI Wrapping + Publishing | v0.20 | 0/TBD | Not started | - |
+| 165. Image Generation Pipeline | v0.20 | 0/TBD | Not started | - |
+| 166. Visual Diff + Asset Reporting | v0.20 | 0/TBD | Not started | - |
+| 167. Video Production Pipeline | v0.20 | 0/TBD | Not started | - |
+| 168. AI 3D Generation + Web Embedding | v0.20 | 0/TBD | Not started | - |
+| 169. Parametric CAD Generation | v0.20 | 0/TBD | Not started | - |
+| 170. PDE Utilities | v0.20 | 0/TBD | Not started | - |
