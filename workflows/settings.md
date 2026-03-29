@@ -1,5 +1,5 @@
 <purpose>
-Interactive configuration of PDE workflow agents (research, plan_check, verifier) and model profile selection via multi-question prompt. Updates .planning/config.json with user preferences. Optionally saves settings as global defaults (~/.pde/defaults.json) for future projects.
+Interactive configuration of GSD workflow agents (research, plan_check, verifier) and model profile selection via multi-question prompt. Updates .planning/config.json with user preferences. Optionally saves settings as global defaults (~/.gsd/defaults.json) for future projects.
 </purpose>
 
 <required_reading>
@@ -12,8 +12,8 @@ Read all files referenced by the invoking prompt's execution_context before star
 Ensure config exists and load current state:
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" config-ensure-section
-INIT=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" state load)
+node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" config-ensure-section
+INIT=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" state load)
 if [[ "$INIT" == @file:* ]]; then INIT=$(cat "${INIT#@file:}"); fi
 ```
 
@@ -34,8 +34,6 @@ Parse current values (default to `true` if not present):
 - `workflow.ui_safety_gate` — prompt to run /pde:ui-phase before planning frontend phases (default: true if absent)
 - `model_profile` — which model each agent uses (default: `balanced`)
 - `git.branching_strategy` — branching approach (default: `"none"`)
-- `dispatch.enabled` — enable/disable parallel dispatch (default: true if absent)
-- `dispatch.max_local_sessions` — max concurrent local sessions (default: 3 if absent)
 </step>
 
 <step name="present_settings">
@@ -49,9 +47,9 @@ AskUserQuestion([
     multiSelect: false,
     options: [
       { label: "Quality", description: "Opus everywhere except verification (highest cost)" },
-      { label: "Balanced (Recommended)", description: "Opus for planning, Sonnet for execution/verification" },
+      { label: "Balanced (Recommended)", description: "Opus for planning, Sonnet for research/execution/verification" },
       { label: "Budget", description: "Sonnet for writing, Haiku for research/verification (lowest cost)" },
-      { label: "Inherit", description: "Use current session model for all agents (best for OpenCode /model)" }
+      { label: "Inherit", description: "Use current session model for all agents (best for OpenRouter, local models, or runtime model switching)" }
     ]
   },
   {
@@ -82,7 +80,7 @@ AskUserQuestion([
     ]
   },
   {
-    question: "Auto-advance pipeline? (discuss → plan → execute automatically)",
+    question: "Auto-advance pipeline? (discuss -> plan -> execute automatically)",
     header: "Auto",
     multiSelect: false,
     options: [
@@ -99,8 +97,6 @@ AskUserQuestion([
       { label: "No", description: "Skip validation research. Good for rapid prototyping or no-test phases." }
     ]
   },
-  // Note: Nyquist validation depends on research output. If research is disabled,
-  // plan-phase automatically skips Nyquist steps (no RESEARCH.md to extract from).
   {
     question: "Enable UI Phase? (generates UI-SPEC.md design contracts for frontend phases)",
     header: "UI Phase",
@@ -125,29 +121,35 @@ AskUserQuestion([
     multiSelect: false,
     options: [
       { label: "None (Recommended)", description: "Commit directly to current branch" },
-      { label: "Per Phase", description: "Create branch for each phase (pde/phase-{N}-{name})" },
-      { label: "Per Milestone", description: "Create branch for entire milestone (pde/{version}-{name})" }
+      { label: "Per Phase", description: "Create branch for each phase (gsd/phase-{N}-{name})" },
+      { label: "Per Milestone", description: "Create branch for entire milestone (gsd/{version}-{name})" }
     ]
   },
   {
-    question: "Enable dispatch (parallel session execution)?",
-    header: "Dispatch",
+    question: "Enable context window warnings? (injects advisory messages when context is getting full)",
+    header: "Ctx Warnings",
     multiSelect: false,
     options: [
-      { label: "Enabled (Default)", description: "Use --parallel flag to dispatch concurrent sessions to worktrees" },
-      { label: "Disabled", description: "Single-session mode — exact pre-v0.18 behavior, --parallel flag blocked" }
+      { label: "Yes (Recommended)", description: "Warn when context usage exceeds 65%. Helps avoid losing work." },
+      { label: "No", description: "Disable warnings. Allows Claude to reach auto-compact naturally. Good for long unattended runs." }
     ]
   },
   {
-    question: "Max local concurrent sessions (when dispatch enabled)?",
-    header: "Max Local",
+    question: "Research best practices before asking questions? (web search during new-project and discuss-phase)",
+    header: "Research Qs",
     multiSelect: false,
     options: [
-      { label: "1", description: "One session at a time" },
-      { label: "2", description: "Two concurrent sessions" },
-      { label: "3 (Default)", description: "Three concurrent sessions (recommended)" },
-      { label: "4", description: "Four concurrent sessions" },
-      { label: "5", description: "Five concurrent sessions (heavy workloads)" }
+      { label: "No (Recommended)", description: "Ask questions directly. Faster, uses fewer tokens." },
+      { label: "Yes", description: "Search web for best practices before each question group. More informed questions but uses more tokens." }
+    ]
+  },
+  {
+    question: "Skip discuss-phase in autonomous mode? (use ROADMAP phase goals as spec)",
+    header: "Skip Discuss",
+    multiSelect: false,
+    options: [
+      { label: "No (Recommended)", description: "Run smart discuss before each phase — surfaces gray areas and captures decisions." },
+      { label: "Yes", description: "Skip discuss in autonomous mode — chain directly to plan. Best for backend/pipeline work where phase descriptions are the spec." }
     ]
   }
 ])
@@ -168,25 +170,23 @@ Merge new settings into existing config.json:
     "auto_advance": true/false,
     "nyquist_validation": true/false,
     "ui_phase": true/false,
-    "ui_safety_gate": true/false
+    "ui_safety_gate": true/false,
+    "research_before_questions": true/false,
+    "discuss_mode": "discuss" | "assumptions",
+    "skip_discuss": true/false
   },
   "git": {
-    "branching_strategy": "none" | "phase" | "milestone"
+    "branching_strategy": "none" | "phase" | "milestone",
+    "quick_branch_template": <string|null>
   },
-  "dispatch": {
-    "enabled": true/false,
-    "max_local_sessions": 1-5
+  "hooks": {
+    "context_warnings": true/false,
+    "workflow_guard": true/false
   }
 }
 ```
 
 Write updated config to `.planning/config.json`.
-
-Write dispatch settings using pde-tools config-set:
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" config-set dispatch.enabled true
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" config-set dispatch.max_local_sessions 3
-```
 </step>
 
 <step name="save_as_defaults">
@@ -199,20 +199,20 @@ AskUserQuestion([
     header: "Defaults",
     multiSelect: false,
     options: [
-      { label: "Yes", description: "New projects start with these settings (saved to ~/.pde/defaults.json)" },
+      { label: "Yes", description: "New projects start with these settings (saved to ~/.gsd/defaults.json)" },
       { label: "No", description: "Only apply to this project" }
     ]
   }
 ])
 ```
 
-If "Yes": write the same config object (minus project-specific fields like `brave_search`) to `~/.pde/defaults.json`:
+If "Yes": write the same config object (minus project-specific fields like `brave_search`) to `~/.gsd/defaults.json`:
 
 ```bash
-mkdir -p ~/.pde
+mkdir -p ~/.gsd
 ```
 
-Write `~/.pde/defaults.json` with:
+Write `~/.gsd/defaults.json` with:
 ```json
 {
   "mode": <current>,
@@ -221,6 +221,7 @@ Write `~/.pde/defaults.json` with:
   "commit_docs": <current>,
   "parallelization": <current>,
   "branching_strategy": <current>,
+  "quick_branch_template": <current>,
   "workflow": {
     "research": <current>,
     "plan_check": <current>,
@@ -228,11 +229,8 @@ Write `~/.pde/defaults.json` with:
     "auto_advance": <current>,
     "nyquist_validation": <current>,
     "ui_phase": <current>,
-    "ui_safety_gate": <current>
-  },
-  "dispatch": {
-    "enabled": <current>,
-    "max_local_sessions": <current>
+    "ui_safety_gate": <current>,
+    "skip_discuss": <current>
   }
 }
 ```
@@ -242,7 +240,7 @@ Write `~/.pde/defaults.json` with:
 Display:
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" banner "SETTINGS UPDATED"
+node "$HOME/.claude/pde-os/lib/ui/render.cjs" banner "SETTINGS UPDATED"
 ```
 | Setting              | Value |
 |----------------------|-------|
@@ -255,8 +253,8 @@ node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" banner "SETTINGS UPDATED"
 | UI Phase             | {On/Off} |
 | UI Safety Gate       | {On/Off} |
 | Git Branching        | {None/Per Phase/Per Milestone} |
-| Dispatch             | {Enabled/Disabled} |
-| Max Local Sessions   | {1/2/3/4/5} |
+| Skip Discuss         | {On/Off} |
+| Context Warnings     | {On/Off} |
 | Saved as Defaults    | {Yes/No} |
 
 These settings apply to future /pde:plan-phase and /pde:execute-phase runs.
@@ -272,8 +270,9 @@ Quick commands:
 
 <success_criteria>
 - [ ] Current config read
-- [ ] User presented with 11 settings (profile + 7 workflow toggles + git branching + 2 dispatch settings)
-- [ ] Config updated with model_profile, workflow, and git sections
-- [ ] User offered to save as global defaults (~/.pde/defaults.json)
+- [ ] User presented with 10+ settings (profile + workflow toggles + git branching)
+- [ ] Config updated with model_profile, workflow, git, and hooks sections
+- [ ] User offered to save as global defaults (~/.gsd/defaults.json)
 - [ ] Changes confirmed to user
 </success_criteria>
+</output>

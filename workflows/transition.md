@@ -1,3 +1,19 @@
+<internal_workflow>
+
+**This is an INTERNAL workflow — NOT a user-facing command.**
+
+There is no `/pde:transition` command. This workflow is invoked automatically by
+`execute-phase` during auto-advance, or inline by the orchestrator after phase
+verification. Users should never be told to run `/pde:transition`.
+
+**Valid user commands for phase progression:**
+- `/pde:discuss-phase {N}` — discuss a phase before planning
+- `/pde:plan-phase {N}` — plan a phase
+- `/pde:execute-phase {N}` — execute a phase
+- `/pde:progress` — see roadmap progress
+
+</internal_workflow>
+
 <required_reading>
 
 **Read these files NOW:**
@@ -25,8 +41,8 @@ Mark current phase complete and advance to next. This is the natural point where
 Before transition, read project state:
 
 ```bash
-cat .planning/STATE.md 2>/dev/null
-cat .planning/PROJECT.md 2>/dev/null
+cat .planning/STATE.md 2>/dev/null || true
+cat .planning/PROJECT.md 2>/dev/null || true
 ```
 
 Parse current position to verify we're transitioning the right phase.
@@ -39,8 +55,8 @@ Note accumulated context that may need updating after transition.
 Check current phase has all plan summaries:
 
 ```bash
-ls .planning/phases/XX-current/*-PLAN.md 2>/dev/null | sort
-ls .planning/phases/XX-current/*-SUMMARY.md 2>/dev/null | sort
+(ls .planning/phases/XX-current/*-PLAN.md 2>/dev/null || true) | sort
+(ls .planning/phases/XX-current/*-SUMMARY.md 2>/dev/null || true) | sort
 ```
 
 **Verification logic:**
@@ -53,17 +69,41 @@ ls .planning/phases/XX-current/*-SUMMARY.md 2>/dev/null | sort
 <config-check>
 
 ```bash
-cat .planning/config.json 2>/dev/null
+cat .planning/config.json 2>/dev/null || true
 ```
 
 </config-check>
+
+**Check for verification debt in this phase:**
+
+```bash
+# Count outstanding items in current phase
+OUTSTANDING=""
+for f in .planning/phases/XX-current/*-UAT.md .planning/phases/XX-current/*-VERIFICATION.md; do
+  [ -f "$f" ] || continue
+  grep -q "result: pending\|result: blocked\|status: partial\|status: human_needed\|status: diagnosed" "$f" && OUTSTANDING="$OUTSTANDING\n$(basename $f)"
+done
+```
+
+**If OUTSTANDING is not empty:**
+
+Append to the completion confirmation message (regardless of mode):
+
+```
+Outstanding verification items in this phase:
+{list filenames}
+
+These will carry forward as debt. Review: `/pde:audit-uat`
+```
+
+This does NOT block transition — it ensures the user sees the debt before confirming.
 
 **If all plans complete:**
 
 <if mode="yolo">
 
 ```
-⚡ Auto-approved: Transition Phase [X] → Phase [X+1]
+Auto-approved: Transition Phase [X] -> Phase [X+1]
 Phase [X] complete — all [Y] plans finished.
 
 Proceeding to mark done and advance...
@@ -90,11 +130,11 @@ Present:
 
 ```
 Phase [X] has incomplete plans:
-- {phase}-01-SUMMARY.md ✓ Complete
-- {phase}-02-SUMMARY.md ✗ Missing
-- {phase}-03-SUMMARY.md ✗ Missing
+- {phase}-01-SUMMARY.md Complete
+- {phase}-02-SUMMARY.md Missing
+- {phase}-03-SUMMARY.md Missing
 
-⚠️ Safety rail: Skipping plans requires confirmation (destructive action)
+Safety rail: Skipping plans requires confirmation (destructive action)
 
 Options:
 1. Continue current phase (execute remaining plans)
@@ -111,7 +151,7 @@ Wait for user decision.
 Check for lingering handoffs:
 
 ```bash
-ls .planning/phases/XX-current/.continue-here*.md 2>/dev/null
+ls .planning/phases/XX-current/.continue-here*.md 2>/dev/null || true
 ```
 
 If found, delete them — phase is complete, handoffs are stale.
@@ -120,17 +160,17 @@ If found, delete them — phase is complete, handoffs are stale.
 
 <step name="update_roadmap_and_state">
 
-**Delegate ROADMAP.md and STATE.md updates to pde-tools:**
+**Delegate ROADMAP.md and STATE.md updates to gsd-tools:**
 
 ```bash
-TRANSITION=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" phase complete "${current_phase}")
+TRANSITION=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" phase complete "${current_phase}")
 ```
 
 The CLI handles:
 - Marking the phase checkbox as `[x]` complete with today's date
 - Updating plan count to final (e.g., "3/3 plans complete")
-- Updating the Progress table (Status → Complete, adding date)
-- Advancing STATE.md to next phase (Current Phase, Status → Ready to plan, Current Plan → Not started)
+- Updating the Progress table (Status -> Complete, adding date)
+- Advancing STATE.md to next phase (Current Phase, Status -> Ready to plan, Current Plan -> Not started)
 - Detecting if this is the last phase in the milestone
 
 Extract from result: `completed_phase`, `plans_executed`, `next_phase`, `next_phase_name`, `is_last_phase`.
@@ -158,7 +198,7 @@ cat .planning/phases/XX-current/*-SUMMARY.md
 
 1. **Requirements validated?**
    - Any Active requirements shipped in this phase?
-   - Move to Validated with phase reference: `- ✓ [Requirement] — Phase X`
+   - Move to Validated with phase reference: `- Requirement — Phase X`
 
 2. **Requirements invalidated?**
    - Any Active requirements discovered to be unnecessary or wrong?
@@ -206,7 +246,7 @@ After (Phase 2 shipped JWT auth, discovered rate limiting needed):
 ```markdown
 ### Validated
 
-- ✓ JWT authentication — Phase 2
+- JWT authentication — Phase 2
 
 ### Active
 
@@ -233,12 +273,12 @@ After (Phase 2 shipped JWT auth, discovered rate limiting needed):
 
 <step name="update_current_position_after_transition">
 
-**Note:** Basic position updates (Current Phase, Status, Current Plan, Last Activity) were already handled by `pde-tools phase complete` in the update_roadmap_and_state step.
+**Note:** Basic position updates (Current Phase, Status, Current Plan, Last Activity) were already handled by `gsd-tools phase complete` in the update_roadmap_and_state step.
 
 Verify the updates are correct by reading STATE.md. If the progress bar needs updating, use:
 
 ```bash
-PROGRESS=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" progress bar --raw)
+PROGRESS=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" progress bar --raw)
 ```
 
 Update the progress bar line in STATE.md with the result.
@@ -292,8 +332,8 @@ Before:
 ```markdown
 ### Blockers/Concerns
 
-- ⚠️ [Phase 1] Database schema not indexed for common queries
-- ⚠️ [Phase 2] WebSocket reconnection behavior on flaky networks unknown
+- [Phase 1] Database schema not indexed for common queries
+- [Phase 2] WebSocket reconnection behavior on flaky networks unknown
 ```
 
 After (if database indexing was addressed in Phase 2):
@@ -301,7 +341,7 @@ After (if database indexing was addressed in Phase 2):
 ```markdown
 ### Blockers/Concerns
 
-- ⚠️ [Phase 2] WebSocket reconnection behavior on flaky networks unknown
+- [Phase 2] WebSocket reconnection behavior on flaky networks unknown
 ```
 
 **Step complete when:**
@@ -337,17 +377,17 @@ Resume file: None
 
 **MANDATORY: Verify milestone status before presenting next steps.**
 
-**Use the transition result from `pde-tools phase complete`:**
+**Use the transition result from `gsd-tools phase complete`:**
 
 The `is_last_phase` field from the phase complete result tells you directly:
-- `is_last_phase: false` → More phases remain → Go to **Route A**
-- `is_last_phase: true` → Milestone complete → Go to **Route B**
+- `is_last_phase: false` -> More phases remain -> Go to **Route A**
+- `is_last_phase: true` -> Milestone complete -> Go to **Route B**
 
 The `next_phase` and `next_phase_name` fields give you the next phase details.
 
 If you need additional context, use:
 ```bash
-ROADMAP=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" roadmap analyze)
+ROADMAP=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" roadmap analyze)
 ```
 
 This returns all phases with goals, disk status, and completion info.
@@ -361,8 +401,7 @@ Read ROADMAP.md to get the next phase's name and goal.
 **Check if next phase has CONTEXT.md:**
 
 ```bash
-ls .planning/phases/*[X+1]*/*-CONTEXT.md 2>/dev/null
-```
+ls .planning/phases/*[X+1]*/*-CONTEXT.md 2>/dev/null || true
 
 **If next phase exists:**
 
@@ -375,7 +414,7 @@ Phase [X] marked complete.
 
 Next: Phase [X+1] — [Name]
 
-⚡ Auto-continuing: Plan Phase [X+1] in detail
+Auto-continuing: Plan Phase [X+1] in detail
 ```
 
 Exit skill and invoke SlashCommand("/pde:plan-phase [X+1] --auto")
@@ -387,7 +426,7 @@ Phase [X] marked complete.
 
 Next: Phase [X+1] — [Name]
 
-⚡ Auto-continuing: Discuss Phase [X+1] first
+Auto-continuing: Discuss Phase [X+1] first
 ```
 
 Exit skill and invoke SlashCommand("/pde:discuss-phase [X+1] --auto")
@@ -399,17 +438,17 @@ Exit skill and invoke SlashCommand("/pde:discuss-phase [X+1] --auto")
 **If CONTEXT.md does NOT exist:**
 
 ```
-## ✓ Phase [X] Complete
+## Phase [X] Complete
 
 ---
 
-## ▶ Next Up
+## Next Up
 
 **Phase [X+1]: [Name]** — [Goal from ROADMAP.md]
 
 `/pde:discuss-phase [X+1]` — gather context and clarify approach
 
-<sub>`/clear` first → fresh context window</sub>
+<sub>`/clear` first -> fresh context window</sub>
 
 ---
 
@@ -423,18 +462,18 @@ Exit skill and invoke SlashCommand("/pde:discuss-phase [X+1] --auto")
 **If CONTEXT.md exists:**
 
 ```
-## ✓ Phase [X] Complete
+## Phase [X] Complete
 
 ---
 
-## ▶ Next Up
+## Next Up
 
 **Phase [X+1]: [Name]** — [Goal from ROADMAP.md]
-<sub>✓ Context gathered, ready to plan</sub>
+<sub>Context gathered, ready to plan</sub>
 
 `/pde:plan-phase [X+1]`
 
-<sub>`/clear` first → fresh context window</sub>
+<sub>`/clear` first -> fresh context window</sub>
 
 ---
 
@@ -453,7 +492,7 @@ Exit skill and invoke SlashCommand("/pde:discuss-phase [X+1] --auto")
 
 **Clear auto-advance chain flag** — milestone boundary is the natural stopping point:
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" config-set workflow._auto_chain_active false
+node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" config-set workflow._auto_chain_active false
 ```
 
 <if mode="yolo">
@@ -461,9 +500,9 @@ node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" config-set workflow._auto_chain_a
 ```
 Phase {X} marked complete.
 
-🎉 Milestone {version} is 100% complete — all {N} phases finished!
+Milestone {version} is 100% complete — all {N} phases finished!
 
-⚡ Auto-continuing: Complete milestone and archive
+Auto-continuing: Complete milestone and archive
 ```
 
 Exit skill and invoke SlashCommand("/pde:complete-milestone {version}")
@@ -473,19 +512,19 @@ Exit skill and invoke SlashCommand("/pde:complete-milestone {version}")
 <if mode="interactive" OR="custom with gates.confirm_transition true">
 
 ```
-## ✓ Phase {X}: {Phase Name} Complete
+## Phase {X}: {Phase Name} Complete
 
-🎉 Milestone {version} is 100% complete — all {N} phases finished!
+Milestone {version} is 100% complete — all {N} phases finished!
 
 ---
 
-## ▶ Next Up
+## Next Up
 
 **Complete Milestone {version}** — archive and prepare for next
 
 `/pde:complete-milestone {version}`
 
-<sub>`/clear` first → fresh context window</sub>
+<sub>`/clear` first -> fresh context window</sub>
 
 ---
 
@@ -542,3 +581,4 @@ Transition is complete when:
 - [ ] User knows next steps
 
 </success_criteria>
+</output>

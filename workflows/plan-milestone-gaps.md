@@ -12,7 +12,7 @@ Read all files referenced by the invoking prompt's execution_context before star
 
 ```bash
 # Find the most recent audit file
-ls -t .planning/v*-MILESTONE-AUDIT.md 2>/dev/null | head -1
+(ls -t .planning/v*-MILESTONE-AUDIT.md 2>/dev/null || true) | head -1
 ```
 
 Parse YAML frontmatter to extract structured gaps:
@@ -42,18 +42,18 @@ For integration/flow gaps, infer priority from affected requirements.
 Cluster related gaps into logical phases:
 
 **Grouping rules:**
-- Same affected phase → combine into one fix phase
-- Same subsystem (auth, API, UI) → combine
+- Same affected phase -> combine into one fix phase
+- Same subsystem (auth, API, UI) -> combine
 - Dependency order (fix stubs before wiring)
 - Keep phases focused: 2-4 tasks each
 
 **Example grouping:**
 ```
 Gap: DASH-01 unsatisfied (Dashboard doesn't fetch)
-Gap: Integration Phase 1→3 (Auth not passed to API calls)
+Gap: Integration Phase 1->3 (Auth not passed to API calls)
 Gap: Flow "View dashboard" broken at data fetch
 
-→ Phase 6: "Wire Dashboard to API"
+-> Phase 6: "Wire Dashboard to API"
   - Add fetch to Dashboard.tsx
   - Include auth header in fetch
   - Handle response, update state
@@ -65,7 +65,7 @@ Gap: Flow "View dashboard" broken at data fetch
 Find highest existing phase:
 ```bash
 # Get sorted phase list, extract last one
-PHASES=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" phases list)
+PHASES=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" phases list)
 HIGHEST=$(printf '%s\n' "$PHASES" | jq -r '.directories[-1]')
 ```
 
@@ -85,7 +85,7 @@ New phases continue from there:
 **Phase {N}: {Name}**
 Closes:
 - {REQ-ID}: {description}
-- Integration: {from} → {to}
+- Integration: {from} -> {to}
 Tasks: {count}
 
 **Phase {N+1}: {Name}**
@@ -130,7 +130,7 @@ For each REQ-ID assigned to a gap closure phase:
 - Reset Status to `Pending`
 
 Reset checked-off requirements the audit found unsatisfied:
-- Change `[x]` → `[ ]` for any requirement marked unsatisfied in the audit
+- Change `[x]` -> `[ ]` for any requirement marked unsatisfied in the audit
 - Update coverage count at top of REQUIREMENTS.md
 
 ```bash
@@ -147,26 +147,26 @@ mkdir -p ".planning/phases/{NN}-{name}"
 ## 9. Commit Roadmap and Requirements Update
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" commit "docs(roadmap): add gap closure phases {N}-{M}" --files .planning/ROADMAP.md .planning/REQUIREMENTS.md
+node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" commit "docs(roadmap): add gap closure phases {N}-{M}" --files .planning/ROADMAP.md .planning/REQUIREMENTS.md
 ```
 
 ## 10. Offer Next Steps
 
 ```markdown
-## ✓ Gap Closure Phases Created
+## Gap Closure Phases Created
 
 **Phases added:** {N} - {M}
 **Gaps addressed:** {count} requirements, {count} integration, {count} flows
 
 ---
 
-## ▶ Next Up
+## Next Up
 
 **Plan first gap closure phase**
 
 `/pde:plan-phase {N}`
 
-<sub>`/clear` first → fresh context window</sub>
+<sub>`/clear` first -> fresh context window</sub>
 
 ---
 
@@ -188,7 +188,7 @@ node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" commit "docs(roadmap): add gap cl
 
 ## How Gaps Become Tasks
 
-**Requirement gap → Tasks:**
+**Requirement gap -> Tasks:**
 ```yaml
 gap:
   id: DASH-01
@@ -216,12 +216,12 @@ tasks:
     action: "Replace placeholder with userData.map rendering"
 ```
 
-**Integration gap → Tasks:**
+**Integration gap -> Tasks:**
 ```yaml
 gap:
   from_phase: 1
   to_phase: 3
-  connection: "Auth token → API calls"
+  connection: "Auth token -> API calls"
   reason: "Dashboard API calls don't include auth header"
   missing:
     - "Auth header in fetch calls"
@@ -240,7 +240,7 @@ tasks:
     action: "Add interceptor to refresh token or redirect to login on 401"
 ```
 
-**Flow gap → Tasks:**
+**Flow gap -> Tasks:**
 ```yaml
 gap:
   name: "User views dashboard after login"
@@ -266,9 +266,10 @@ becomes:
 - [ ] User confirmed phase plan
 - [ ] ROADMAP.md updated with new phases
 - [ ] REQUIREMENTS.md traceability table updated with gap closure phase assignments
-- [ ] Unsatisfied requirement checkboxes reset (`[x]` → `[ ]`)
+- [ ] Unsatisfied requirement checkboxes reset (`[x]` -> `[ ]`)
 - [ ] Coverage count updated in REQUIREMENTS.md
 - [ ] Phase directories created
 - [ ] Changes committed (includes REQUIREMENTS.md)
 - [ ] User knows to run `/pde:plan-phase` next
 </success_criteria>
+</output>

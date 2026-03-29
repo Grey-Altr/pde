@@ -147,8 +147,8 @@ Acknowledge the corrections:
 
 ```
 Key corrections:
-- [area]: [correction text]
-- [area]: [correction text]
+- [correction 1]
+- [correction 2]
 
 This changes my understanding significantly. [Summarize new understanding]
 ```
@@ -191,7 +191,7 @@ Present next steps:
 What's next?
 1. Discuss context (/pde:discuss-phase ${PHASE}) - Let me ask you questions to build comprehensive context
 2. Plan this phase (/pde:plan-phase ${PHASE}) - Create detailed execution plans
-3. Re-examine assumptions (/pde:assumptions ${PHASE}) - I'll analyze again with your corrections
+3. Re-examine assumptions (/pde:list-phase-assumptions ${PHASE}) - I'll analyze again with your corrections
 4. Done for now
 ```
 

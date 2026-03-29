@@ -1,11 +1,11 @@
 <purpose>
-Display the complete PDE command reference. Output ONLY the reference content. Do NOT add project-specific analysis, git status, next-step suggestions, or any commentary beyond the reference.
+Display the complete GSD command reference. Output ONLY the reference content. Do NOT add project-specific analysis, git status, next-step suggestions, or any commentary beyond the reference.
 </purpose>
 
 <reference>
-# PDE Command Reference
+# GSD Command Reference
 
-**PDE** (PDE) creates hierarchical project plans optimized for solo agentic development with Claude Code.
+**GSD** (Get Shit Done) creates hierarchical project plans optimized for solo agentic development with Claude Code.
 
 ## Quick Start
 
@@ -15,10 +15,10 @@ Display the complete PDE command reference. Output ONLY the reference content. D
 
 ## Staying Updated
 
-PDE evolves fast. Update periodically:
+GSD evolves fast. Update periodically:
 
 ```bash
-npx pde-engine-pde@latest
+npx pde-os-engine-gsd@latest
 ```
 
 ## Core Workflow
@@ -107,19 +107,21 @@ Result: Creates `.planning/phases/01-foundation/01-01-PLAN.md`
 ### Execution
 
 **`/pde:execute-phase <phase-number>`**
-Execute all plans in a phase.
+Execute all plans in a phase, or run a specific wave.
 
 - Groups plans by wave (from frontmatter), executes waves sequentially
 - Plans within each wave run in parallel via Task tool
+- Optional `--wave N` flag executes only Wave `N` and stops unless the phase is now fully complete
 - Verifies phase goal after all plans complete
 - Updates REQUIREMENTS.md, ROADMAP.md, STATE.md
 
 Usage: `/pde:execute-phase 5`
+Usage: `/pde:execute-phase 5 --wave 2`
 
 ### Quick Mode
 
 **`/pde:quick [--full] [--discuss] [--research]`**
-Execute small, ad-hoc tasks with PDE guarantees but skip optional agents.
+Execute small, ad-hoc tasks with GSD guarantees but skip optional agents.
 
 Quick mode uses the same system with a shorter path:
 - Spawns planner + executor (skips researcher, checker, verifier by default)
@@ -136,6 +138,21 @@ Flags are composable: `--discuss --research --full` gives the complete quality p
 Usage: `/pde:quick`
 Usage: `/pde:quick --research --full`
 Result: Creates `.planning/quick/NNN-slug/PLAN.md`, `.planning/quick/NNN-slug/SUMMARY.md`
+
+---
+
+**`/pde:fast [description]`**
+Execute a trivial task inline — no subagents, no planning files, no overhead.
+
+For tasks too small to justify planning: typo fixes, config changes, forgotten commits, simple additions. Runs in the current context, makes the change, commits, and logs to STATE.md.
+
+- No PLAN.md or SUMMARY.md created
+- No subagent spawned (runs inline)
+- ≤ 3 file edits — redirects to `/pde:quick` if task is non-trivial
+- Atomic commit with conventional message
+
+Usage: `/pde:fast "fix the typo in README"`
+Usage: `/pde:fast "add .env to gitignore"`
 
 ### Roadmap Management
 
@@ -179,9 +196,12 @@ Start a new milestone through unified flow.
 - Requirements definition with scoping
 - Roadmap creation with phase breakdown
 
+- Optional `--reset-phase-numbers` flag restarts numbering at Phase 1 and archives old phase dirs first for safety
+
 Mirrors `/pde:new-project` flow for brownfield projects (existing PROJECT.md).
 
 Usage: `/pde:new-milestone "v2.0 Features"`
+Usage: `/pde:new-milestone --reset-phase-numbers "v2.0 Features"`
 
 **`/pde:complete-milestone <version>`**
 Archive completed milestone and prepare for next version.
@@ -301,6 +321,53 @@ Create phases to close gaps identified by audit.
 
 Usage: `/pde:plan-milestone-gaps`
 
+### Ship Work
+
+**`/pde:ship [phase]`**
+Create a PR from completed phase work with an auto-generated body.
+
+- Pushes branch to remote
+- Creates PR with summary from SUMMARY.md, VERIFICATION.md, REQUIREMENTS.md
+- Optionally requests code review
+- Updates STATE.md with shipping status
+
+Prerequisites: Phase verified, `gh` CLI installed and authenticated.
+
+Usage: `/pde:ship 4` or `/pde:ship 4 --draft`
+
+---
+
+**`/pde:pr-branch [target]`**
+Create a clean branch for pull requests by filtering out .planning/ commits.
+
+- Classifies commits: code-only (include), planning-only (exclude), mixed (include sans .planning/)
+- Cherry-picks code commits onto a clean branch
+- Reviewers see only code changes, no GSD artifacts
+
+Usage: `/pde:pr-branch` or `/pde:pr-branch main`
+
+---
+
+**`/pde:plant-seed [idea]`**
+Capture a forward-looking idea with trigger conditions for automatic surfacing.
+
+- Seeds preserve WHY, WHEN to surface, and breadcrumbs to related code
+- Auto-surfaces during `/pde:new-milestone` when trigger conditions match
+- Better than deferred items — triggers are checked, not forgotten
+
+Usage: `/pde:plant-seed "add real-time notifications when we build the events system"`
+
+---
+
+**`/pde:audit-uat`**
+Cross-phase audit of all outstanding UAT and verification items.
+- Scans every phase for pending, skipped, blocked, and human_needed items
+- Cross-references against codebase to detect stale documentation
+- Produces prioritized human test plan grouped by testability
+- Use before starting a new milestone to clear verification debt
+
+Usage: `/pde:audit-uat`
+
 ### Configuration
 
 **`/pde:settings`**
@@ -313,7 +380,7 @@ Configure workflow toggles and model profile interactively.
 Usage: `/pde:settings`
 
 **`/pde:set-profile <profile>`**
-Quick switch model profile for PDE agents.
+Quick switch model profile for GSD agents.
 
 - `quality` — Opus everywhere except verification
 - `balanced` — Opus for planning, Sonnet for execution (default)
@@ -338,21 +405,21 @@ Usage: `/pde:cleanup`
 Show this command reference.
 
 **`/pde:update`**
-Update PDE to latest version with changelog preview.
+Update GSD to latest version with changelog preview.
 
 - Shows installed vs latest version comparison
 - Displays changelog entries for versions you've missed
 - Highlights breaking changes
 - Confirms before running install
-- Better than raw `npx pde-engine-pde`
+- Better than raw `npx pde-os-engine-gsd`
 
 Usage: `/pde:update`
 
 **`/pde:join-discord`**
-Join the PDE Discord community.
+Join the GSD Discord community.
 
 - Get help, share what you're building, stay updated
-- Connect with other PDE users
+- Connect with other GSD users
 
 Usage: `/pde:join-discord`
 

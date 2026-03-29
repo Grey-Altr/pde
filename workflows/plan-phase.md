@@ -5,8 +5,15 @@ Create executable phase prompts (PLAN.md files) for a roadmap phase with integra
 <required_reading>
 Read all files referenced by the invoking prompt's execution_context before starting.
 
-@${CLAUDE_PLUGIN_ROOT}/references/ui-brand.md
+@$HOME/.claude/pde-os/engines/gsd/references/ui-brand.md
 </required_reading>
+
+<available_agent_types>
+Valid GSD subagent types (use exact names — do not fall back to 'general-purpose'):
+- pde-phase-researcher — Researches technical approaches for a phase
+- pde-planner — Creates detailed plans from phase scope
+- pde-plan-checker — Reviews plan quality before execution
+</available_agent_types>
 
 <process>
 
@@ -15,19 +22,24 @@ Read all files referenced by the invoking prompt's execution_context before star
 Load all context in one call (paths only to minimize orchestrator context):
 
 ```bash
-INIT=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" init plan-phase "$PHASE")
+INIT=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" init plan-phase "$PHASE")
 if [[ "$INIT" == @file:* ]]; then INIT=$(cat "${INIT#@file:}"); fi
+AGENT_SKILLS_RESEARCHER=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" agent-skills pde-researcher 2>/dev/null)
+AGENT_SKILLS_PLANNER=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" agent-skills pde-planner 2>/dev/null)
+AGENT_SKILLS_CHECKER=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" agent-skills pde-checker 2>/dev/null)
 ```
 
-Parse JSON for: `researcher_model`, `planner_model`, `checker_model`, `research_enabled`, `plan_checker_enabled`, `nyquist_validation_enabled`, `commit_docs`, `phase_found`, `phase_dir`, `phase_number`, `phase_name`, `phase_slug`, `padded_phase`, `has_research`, `has_context`, `has_plans`, `plan_count`, `planning_exists`, `roadmap_exists`, `phase_req_ids`.
+Parse JSON for: `researcher_model`, `planner_model`, `checker_model`, `research_enabled`, `plan_checker_enabled`, `nyquist_validation_enabled`, `commit_docs`, `text_mode`, `phase_found`, `phase_dir`, `phase_number`, `phase_name`, `phase_slug`, `padded_phase`, `has_research`, `has_context`, `has_reviews`, `has_plans`, `plan_count`, `planning_exists`, `roadmap_exists`, `phase_req_ids`.
 
-**File paths (for <files_to_read> blocks):** `state_path`, `roadmap_path`, `requirements_path`, `context_path`, `research_path`, `verification_path`, `uat_path`. These are null if files don't exist.
+**File paths (for <files_to_read> blocks):** `state_path`, `roadmap_path`, `requirements_path`, `context_path`, `research_path`, `verification_path`, `uat_path`, `reviews_path`. These are null if files don't exist.
 
 **If `planning_exists` is false:** Error — run `/pde:new-project` first.
 
 ## 2. Parse and Normalize Arguments
 
-Extract from $ARGUMENTS: phase number (integer or decimal like `2.1`), flags (`--research`, `--skip-research`, `--gaps`, `--skip-verify`, `--skip-assumptions`, `--prd <filepath>`).
+Extract from $ARGUMENTS: phase number (integer or decimal like `2.1`), flags (`--research`, `--skip-research`, `--gaps`, `--skip-verify`, `--prd <filepath>`, `--reviews`, `--text`).
+
+Set `TEXT_MODE=true` if `--text` is present in $ARGUMENTS OR `text_mode` from init JSON is `true`. When `TEXT_MODE` is active, replace every `AskUserQuestion` call with a plain-text numbered list and ask the user to type their choice number. This is required for Claude Code remote sessions (`/rc` mode) where TUI menus don't work through the Claude App.
 
 Extract `--prd <filepath>` from $ARGUMENTS. If present, set PRD_FILE to the filepath.
 
@@ -40,10 +52,28 @@ mkdir -p ".planning/phases/${padded_phase}-${phase_slug}"
 
 **Existing artifacts from init:** `has_research`, `has_plans`, `plan_count`.
 
+## 2.5. Validate `--reviews` Prerequisite
+
+**Skip if:** No `--reviews` flag.
+
+**If `--reviews` AND `--gaps`:** Error — cannot combine `--reviews` with `--gaps`. These are conflicting modes.
+
+**If `--reviews` AND `has_reviews` is false (no REVIEWS.md in phase dir):**
+
+Error:
+```
+No REVIEWS.md found for Phase {N}. Run reviews first:
+
+/pde:review --phase {N}
+
+Then re-run /pde:plan-phase {N} --reviews
+```
+Exit workflow.
+
 ## 3. Validate Phase
 
 ```bash
-PHASE_INFO=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" roadmap get-phase "${PHASE}")
+PHASE_INFO=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" roadmap get-phase "${PHASE}")
 ```
 
 **If `found` is false:** Error with available phases. **If `found` is true:** Extract `phase_number`, `phase_name`, `goal` from JSON.
@@ -64,11 +94,14 @@ fi
 ```
 
 2. Display banner:
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" banner "PRD EXPRESS PATH"
 ```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► PRD EXPRESS PATH
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 Using PRD: {PRD_FILE}
 Generating CONTEXT.md from requirements...
+```
 
 3. Parse the PRD content and generate CONTEXT.md. The orchestrator should:
    - Extract all requirements, user stories, acceptance criteria, and constraints from the PRD
@@ -142,7 +175,7 @@ Use full relative paths. Group by topic area.]
 
 5. Commit:
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" commit "docs(${padded_phase}): generate context from PRD" --files "${phase_dir}/${padded_phase}-CONTEXT.md"
+node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" commit "docs(${padded_phase}): generate context from PRD" --files "${phase_dir}/${padded_phase}-CONTEXT.md"
 ```
 
 6. Set `context_content` to the generated CONTEXT.md content and continue to step 5 (Handle Research).
@@ -159,34 +192,99 @@ If `context_path` is not null, display: `Using phase context from: ${context_pat
 
 **If `context_path` is null (no CONTEXT.md exists):**
 
-Use AskUserQuestion:
+Read discuss mode for context gate label:
+```bash
+DISCUSS_MODE=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" config-get workflow.discuss_mode 2>/dev/null || echo "discuss")
+```
+
+If `TEXT_MODE` is true, present as a plain-text numbered list:
+```
+No CONTEXT.md found for Phase {X}. Plans will use research and requirements only — your design preferences won't be included.
+
+1. Continue without context — Plan using research + requirements only
+[If DISCUSS_MODE is "assumptions":]
+2. Gather context (assumptions mode) — Analyze codebase and surface assumptions before planning
+[If DISCUSS_MODE is "discuss" or unset:]
+2. Run discuss-phase first — Capture design decisions before planning
+
+Enter number:
+```
+
+Otherwise use AskUserQuestion:
 - header: "No context"
 - question: "No CONTEXT.md found for Phase {X}. Plans will use research and requirements only — your design preferences won't be included. Continue or capture context first?"
 - options:
   - "Continue without context" — Plan using research + requirements only
+  If `DISCUSS_MODE` is `"assumptions"`:
+  - "Gather context (assumptions mode)" — Analyze codebase and surface assumptions before planning
+  If `DISCUSS_MODE` is `"discuss"` (or unset):
   - "Run discuss-phase first" — Capture design decisions before planning
 
 If "Continue without context": Proceed to step 5.
-If "Run discuss-phase first": Display `/pde:discuss-phase {X}` and exit workflow.
+If "Run discuss-phase first":
+  **IMPORTANT:** Do NOT invoke discuss-phase as a nested Skill/Task call — AskUserQuestion
+  does not work correctly in nested subcontexts (#1009). Instead, display the command
+  and exit so the user runs it as a top-level command:
+  ```
+  Run this command first, then re-run /pde:plan-phase {X} ${GSD_WS}:
+
+  /pde:discuss-phase {X} ${GSD_WS}
+  ```
+  **Exit the plan-phase workflow. Do not continue.**
 
 ## 5. Handle Research
 
-**Skip if:** `--gaps` flag, `--skip-research` flag, or `research_enabled` is false (from init) without `--research` override.
+**Skip if:** `--gaps` flag or `--skip-research` flag or `--reviews` flag.
 
 **If `has_research` is true (from init) AND no `--research` flag:** Use existing, skip to step 6.
 
 **If RESEARCH.md missing OR `--research` flag:**
 
-Display banner:
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" banner "RESEARCHING PHASE {X}"
+**If no explicit flag (`--research` or `--skip-research`) and not `--auto`:**
+Ask the user whether to research, with a contextual recommendation based on the phase:
+
+If `TEXT_MODE` is true, present as a plain-text numbered list:
 ```
+Research before planning Phase {X}: {phase_name}?
+
+1. Research first (Recommended) — Investigate domain, patterns, and dependencies before planning. Best for new features, unfamiliar integrations, or architectural changes.
+2. Skip research — Plan directly from context and requirements. Best for bug fixes, simple refactors, or well-understood tasks.
+
+Enter number:
+```
+
+Otherwise use AskUserQuestion:
+```
+AskUserQuestion([
+  {
+    question: "Research before planning Phase {X}: {phase_name}?",
+    header: "Research",
+    multiSelect: false,
+    options: [
+      { label: "Research first (Recommended)", description: "Investigate domain, patterns, and dependencies before planning. Best for new features, unfamiliar integrations, or architectural changes." },
+      { label: "Skip research", description: "Plan directly from context and requirements. Best for bug fixes, simple refactors, or well-understood tasks." }
+    ]
+  }
+])
+```
+
+If user selects "Skip research": skip to step 6.
+
+**If `--auto` and `research_enabled` is false:** Skip research silently (preserves automated behavior).
+
+Display banner:
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► RESEARCHING PHASE {X}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 ◆ Spawning researcher...
+```
 
 ### Spawn pde-phase-researcher
 
 ```bash
-PHASE_DESC=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" roadmap get-phase "${PHASE}" | jq -r '.section')
+PHASE_DESC=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" roadmap get-phase "${PHASE}" --pick section)
 ```
 
 Research prompt:
@@ -198,11 +296,12 @@ Answer: "What do I need to know to PLAN this phase well?"
 </objective>
 
 <files_to_read>
-- .planning/project-context.md (Project context — compact project baseline, if exists)
 - {context_path} (USER DECISIONS from /pde:discuss-phase)
 - {requirements_path} (Project requirements)
 - {state_path} (Project decisions and history)
 </files_to_read>
+
+${AGENT_SKILLS_RESEARCHER}
 
 <additional_context>
 **Phase description:** {phase_description}
@@ -231,84 +330,6 @@ Task(
 - **`## RESEARCH COMPLETE`:** Display confirmation, continue to step 6
 - **`## RESEARCH BLOCKED`:** Display blocker, offer: 1) Provide context, 2) Skip research, 3) Abort
 
-## 5.7. Research Validation Gate
-
-**Skip if:** `--gaps` flag, `--skip-research` flag, `research_enabled` is false, `has_research` is false, or RESEARCH-VALIDATION.md already present.
-
-**If `--research` flag was active AND Step 5 just wrote a new RESEARCH.md:**
-Delete stale RESEARCH-VALIDATION.md before detection:
-```bash
-rm -f "${PHASE_DIR}"/*-RESEARCH-VALIDATION.md
-```
-
-**Detect existing validation artifact:**
-```bash
-RV_ARTIFACT=$(ls "${PHASE_DIR}"/*-RESEARCH-VALIDATION.md 2>/dev/null | head -1)
-```
-
-If `RV_ARTIFACT` is non-empty, skip — validation already exists.
-
-**Display banner:**
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" banner "VALIDATING RESEARCH"
-```
-
-### Spawn pde-research-validator
-
-Research validation prompt:
-
-```markdown
-<objective>
-Validate the research claims in {research_path} against the current codebase.
-</objective>
-
-<files_to_read>
-- {research_path}
-</files_to_read>
-
-<additional_context>
-**validated_at_phase:** {phase_number}
-</additional_context>
-```
-
-```
-Task(
-  prompt=validation_prompt,
-  subagent_type="pde-research-validator",
-  model="{researcher_model}",
-  description="Validate research for Phase {phase}"
-)
-```
-
-### Handle Validator Return
-
-**Post-spawn orchestrator responsibilities:**
-
-1. Parse JSON return from agent — extract `summary` and `artifact_content`
-2. Write `artifact_content` to `${PHASE_DIR}/${PADDED_PHASE}-RESEARCH-VALIDATION.md` using the Write tool (agent is read-only per RVAL-05 — orchestrator MUST write)
-3. If `commit_docs`: `node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" commit "docs(phase-${PHASE}): add research validation" --files ${PHASE_DIR}/${PADDED_PHASE}-RESEARCH-VALIDATION.md`
-4. Parse `summary.contradicted_count` and `summary.unverifiable_count`
-
-**Blocking gate (RVAL-08):**
-
-```markdown
-IF summary.contradicted_count > 0:
-  Use AskUserQuestion:
-  - header: "Research Validation: FAIL"
-  - question: "Research validation found {contradicted_count} contradicted claims. Plans built on contradicted claims risk incorrect implementation."
-  - options:
-    - "View contradictions and fix research" -> Display RESEARCH-VALIDATION.md contents. Exit workflow.
-    - "Proceed anyway" -> Continue to Step 5.5.
-
-ELIF summary.unverifiable_count > 0:
-  Display non-blocking warning: "{unverifiable_count} unverifiable claims will appear as CONCERNS in READINESS.md."
-  Continue to Step 5.5.
-
-ELSE:
-  Display: "Research validation: PASS — all claims verified."
-  Continue to Step 5.5.
-```
-
 ## 5.5. Create Validation Strategy
 
 Skip if `nyquist_validation_enabled` is false OR `research_enabled` is false.
@@ -323,11 +344,11 @@ If `research_enabled` is false and `nyquist_validation_enabled` is true: warn "N
 In that case: **skip validation-strategy creation entirely**. Do **not** expect `RESEARCH.md` or `VALIDATION.md` for this run, and continue to Step 6.
 
 ```bash
-grep -l "## Validation Architecture" "${PHASE_DIR}"/*-RESEARCH.md 2>/dev/null
+grep -l "## Validation Architecture" "${PHASE_DIR}"/*-RESEARCH.md 2>/dev/null || true
 ```
 
 **If found:**
-1. Read template: `${CLAUDE_PLUGIN_ROOT}/templates/VALIDATION.md`
+1. Read template: `$HOME/.claude/pde-os/engines/gsd/templates/VALIDATION.md`
 2. Write to `${PHASE_DIR}/${PADDED_PHASE}-VALIDATION.md` (use Write tool)
 3. Fill frontmatter: `{N}` → phase number, `{phase-slug}` → slug, `{date}` → current date
 4. Verify:
@@ -335,7 +356,7 @@ grep -l "## Validation Architecture" "${PHASE_DIR}"/*-RESEARCH.md 2>/dev/null
 test -f "${PHASE_DIR}/${PADDED_PHASE}-VALIDATION.md" && echo "VALIDATION_CREATED=true" || echo "VALIDATION_CREATED=false"
 ```
 5. If `VALIDATION_CREATED=false`: STOP — do not proceed to Step 6
-6. If `commit_docs`: `commit-docs "docs(phase-${PHASE}): add validation strategy"`
+6. If `commit_docs`: `commit "docs(phase-${PHASE}): add validation strategy"`
 
 **If not found:** Warn and continue — plans may fail Dimension 8.
 
@@ -344,8 +365,8 @@ test -f "${PHASE_DIR}/${PADDED_PHASE}-VALIDATION.md" && echo "VALIDATION_CREATED
 > Skip if `workflow.ui_phase` is explicitly `false` AND `workflow.ui_safety_gate` is explicitly `false` in `.planning/config.json`. If keys are absent, treat as enabled.
 
 ```bash
-UI_PHASE_CFG=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" config-get workflow.ui_phase 2>/dev/null || echo "true")
-UI_GATE_CFG=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" config-get workflow.ui_safety_gate 2>/dev/null || echo "true")
+UI_PHASE_CFG=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" config-get workflow.ui_phase 2>/dev/null || echo "true")
+UI_GATE_CFG=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" config-get workflow.ui_safety_gate 2>/dev/null || echo "true")
 ```
 
 **If both are `false`:** Skip to step 6.
@@ -353,7 +374,7 @@ UI_GATE_CFG=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" config-get workflow
 Check if phase has frontend indicators:
 
 ```bash
-PHASE_SECTION=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" roadmap get-phase "${PHASE}" 2>/dev/null)
+PHASE_SECTION=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" roadmap get-phase "${PHASE}" 2>/dev/null)
 echo "$PHASE_SECTION" | grep -iE "UI|interface|frontend|component|layout|page|screen|view|form|dashboard|widget" > /dev/null 2>&1
 HAS_UI=$?
 ```
@@ -369,11 +390,22 @@ UI_SPEC_FILE=$(ls "${PHASE_DIR}"/*-UI-SPEC.md 2>/dev/null | head -1)
 
 **If UI-SPEC.md missing AND `UI_GATE_CFG` is `true`:**
 
-Use AskUserQuestion:
+If `TEXT_MODE` is true, present as a plain-text numbered list:
+```
+Phase {N} has frontend indicators but no UI-SPEC.md. Generate a design contract before planning?
+
+1. Generate UI-SPEC first — Run /pde:ui-phase {N} then re-run /pde:plan-phase {N}
+2. Continue without UI-SPEC
+3. Not a frontend phase
+
+Enter number:
+```
+
+Otherwise use AskUserQuestion:
 - header: "UI Design Contract"
 - question: "Phase {N} has frontend indicators but no UI-SPEC.md. Generate a design contract before planning?"
 - options:
-  - "Generate UI-SPEC first" → Display: "Run `/pde:ui-phase {N}` then re-run `/pde:plan-phase {N}`". Exit workflow.
+  - "Generate UI-SPEC first" → Display: "Run `/pde:ui-phase {N} ${GSD_WS}` then re-run `/pde:plan-phase {N} ${GSD_WS}`". Exit workflow.
   - "Continue without UI-SPEC" → Continue to step 6.
   - "Not a frontend phase" → Continue to step 6.
 
@@ -382,40 +414,28 @@ Use AskUserQuestion:
 ## 6. Check Existing Plans
 
 ```bash
-ls "${PHASE_DIR}"/*-PLAN.md 2>/dev/null
+ls "${PHASE_DIR}"/*-PLAN.md 2>/dev/null || true
 ```
 
-**If exists:** Offer: 1) Add more plans, 2) View existing, 3) Replan from scratch.
+**If exists AND `--reviews` flag:** Skip prompt — go straight to replanning (the purpose of `--reviews` is to replan with review feedback).
+
+**If exists AND no `--reviews` flag:** Offer: 1) Add more plans, 2) View existing, 3) Replan from scratch.
 
 ## 7. Use Context Paths from INIT
 
 Extract from INIT JSON:
 
 ```bash
-STATE_PATH=$(printf '%s\n' "$INIT" | jq -r '.state_path // empty')
-ROADMAP_PATH=$(printf '%s\n' "$INIT" | jq -r '.roadmap_path // empty')
-REQUIREMENTS_PATH=$(printf '%s\n' "$INIT" | jq -r '.requirements_path // empty')
-RESEARCH_PATH=$(printf '%s\n' "$INIT" | jq -r '.research_path // empty')
-VERIFICATION_PATH=$(printf '%s\n' "$INIT" | jq -r '.verification_path // empty')
-UAT_PATH=$(printf '%s\n' "$INIT" | jq -r '.uat_path // empty')
-CONTEXT_PATH=$(printf '%s\n' "$INIT" | jq -r '.context_path // empty')
+_gsd_field() { node -e "const o=JSON.parse(process.argv[1]); const v=o[process.argv[2]]; process.stdout.write(v==null?'':String(v))" "$1" "$2"; }
+STATE_PATH=$(_gsd_field "$INIT" state_path)
+ROADMAP_PATH=$(_gsd_field "$INIT" roadmap_path)
+REQUIREMENTS_PATH=$(_gsd_field "$INIT" requirements_path)
+RESEARCH_PATH=$(_gsd_field "$INIT" research_path)
+VERIFICATION_PATH=$(_gsd_field "$INIT" verification_path)
+UAT_PATH=$(_gsd_field "$INIT" uat_path)
+CONTEXT_PATH=$(_gsd_field "$INIT" context_path)
+REVIEWS_PATH=$(_gsd_field "$INIT" reviews_path)
 ```
-
-## 7.2. Probe Context Notes
-
-Soft probe — never halt. If `.planning/context-notes/` does not exist or has no `.md` files, skip silently.
-
-Use the Glob tool to find `.planning/context-notes/*.md` files. Exclude `README.md` from results.
-
-If matching files found:
-1. Sort alphabetically
-2. Read each file's content
-3. Build CONTEXT_NOTES_CONTENT by concatenating each file's content under a `### {filename}` subheading
-4. Log: `"  -> Context notes found: {N} file(s) from .planning/context-notes/ — will inject into planner prompt"`
-
-If no matching files (or directory absent):
-- SET CONTEXT_NOTES_CONTENT = "" (empty string). Continue silently.
-- Log: `"  -> No context notes found in .planning/context-notes/ — continuing without user-authored enrichment"`
 
 ## 7.5. Verify Nyquist Artifacts
 
@@ -433,77 +453,32 @@ VALIDATION_EXISTS=$(ls "${PHASE_DIR}"/*-VALIDATION.md 2>/dev/null | head -1)
 ```
 
 If missing and Nyquist is still enabled/applicable — ask user:
-1. Re-run: `/pde:plan-phase {PHASE} --research`
+1. Re-run: `/pde:plan-phase {PHASE} --research ${GSD_WS}`
 2. Disable Nyquist with the exact command:
-   `node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" config-set workflow.nyquist_validation false`
+   `node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" config-set workflow.nyquist_validation false`
 3. Continue anyway (plans fail Dimension 8)
 
 Proceed to Step 8 only if user selects 2 or 3.
 
-## 7.6. Assumptions Gate
-
-Skip if: `--skip-assumptions` flag OR `--auto` mode OR `--gaps` mode OR `--prd` mode.
-
-Display banner:
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" banner "SURFACING ASSUMPTIONS"
-```
-
-Run the assumptions analysis inline (same session, not as a subagent):
-
-1. Read ROADMAP.md phase section for phase goal, requirements, success criteria
-2. Read REQUIREMENTS.md for the phase requirement IDs ({phase_req_ids})
-3. Read CONTEXT.md if it exists ({context_path})
-4. Read RESEARCH.md if it exists ({research_path})
-
-Generate structured assumptions across 5 areas following the same analysis as list-phase-assumptions.md:
-- **Technical Approach** — libraries, patterns, tools
-- **Implementation Order** — what gets built first/second/third
-- **Scope Boundaries** — in scope, out of scope, ambiguous
-- **Risk Areas** — complexity, challenges, gotchas
-- **Dependencies** — what must exist, external needs
-
-Each assumption prefixed with confidence marker: [confident], [assuming], or [unclear].
-
-Present via AskUserQuestion:
-- header: "Phase {phase_number} Assumptions"
-- question: "Review these assumptions. Confirm if accurate, or describe corrections."
-- options:
-  - "Confirmed — proceed to planning" — Assumptions accepted as-is
-  - "Corrections below" — User will type corrections in next message
-
-**If confirmed:** Set ASSUMPTIONS_CONTEXT = null. Proceed to Step 8.
-
-**If corrections:** Capture the user's corrections. Build an assumptions context block:
-```
-<assumptions_context>
-The user reviewed planner assumptions and provided these corrections:
-{user corrections text}
-
-Honor these corrections when creating the plan. They override any assumptions
-the planner would otherwise make.
-</assumptions_context>
-```
-Set ASSUMPTIONS_CONTEXT = the block above. Proceed to Step 8.
-
 ## 8. Spawn pde-planner Agent
 
 Display banner:
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" banner "PLANNING PHASE {X}"
 ```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► PLANNING PHASE {X}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 ◆ Spawning planner...
+```
 
 Planner prompt:
 
 ```markdown
 <planning_context>
 **Phase:** {phase_number}
-**Mode:** {standard | gap_closure}
+**Mode:** {standard | gap_closure | reviews}
 
 <files_to_read>
-- .planning/project-context.md (Project context — compact project baseline, if exists)
-- references/workflow-methodology.md (Methodology patterns — BMAD/PAUL-derived conventions, if exists)
 - {state_path} (Project State)
 - {roadmap_path} (Roadmap)
 - {requirements_path} (Requirements)
@@ -511,19 +486,11 @@ Planner prompt:
 - {research_path} (Technical Research)
 - {verification_path} (Verification Gaps - if --gaps)
 - {uat_path} (UAT Gaps - if --gaps)
+- {reviews_path} (Cross-AI Review Feedback - if --reviews)
 - {UI_SPEC_PATH} (UI Design Contract — visual/interaction specs, if exists)
-- .planning/agent-memory/planner/memories.md (Agent memory — planning patterns from prior phases, if exists)
 </files_to_read>
 
-{If CONTEXT_NOTES_CONTENT is non-empty, include this block:}
-<context_notes>
-## Context Notes
-
-The user has authored the following domain knowledge notes. Honor these during planning —
-they represent business rules, edge cases, and constraints PDE cannot infer from code.
-
-{CONTEXT_NOTES_CONTENT}
-</context_notes>
+${AGENT_SKILLS_PLANNER}
 
 **Phase requirement IDs (every ID MUST appear in a plan's `requirements` field):** {phase_req_ids}
 
@@ -531,16 +498,12 @@ they represent business rules, edge cases, and constraints PDE cannot infer from
 **Project skills:** Check .claude/skills/ or .agents/skills/ directory (if either exists) — read SKILL.md files, plans should account for project skill rules
 </planning_context>
 
-{If ASSUMPTIONS_CONTEXT is not null:}
-{ASSUMPTIONS_CONTEXT}
-
 <downstream_consumer>
 Output consumed by /pde:execute-phase. Plans need:
 - Frontmatter (wave, depends_on, files_modified, autonomous)
 - Tasks in XML format with read_first and acceptance_criteria fields (MANDATORY on every task)
 - Verification criteria
 - must_haves for goal-backward verification
-- Plan-level `<acceptance_criteria>` block with BDD AC-N entries; tasks have `<ac_refs>` and optional `<boundaries>`
 </downstream_consumer>
 
 <deep_work_rules>
@@ -569,53 +532,6 @@ Every task MUST include these fields — they are NOT optional:
    - If CONTEXT.md has a comparison table or expected values, copy them into the action verbatim
    - The executor should be able to complete the task from the action text alone, without needing to read CONTEXT.md or reference files (read_first is for verification, not discovery)
 
-4. **`<acceptance_criteria>` (plan-level, BEFORE `<tasks>`)** — BDD-format behavioral
-   statements that define what success looks like for the plan as a whole. Rules:
-   - Place the block AFTER `<context>` and BEFORE `<tasks>` — this is the definition,
-     not a per-task check
-   - Each entry: `**AC-N:** Given {condition}, when {action}, then {observable outcome}`
-   - Sequential numbering starting at AC-1, unique within the plan
-   - The "then" clause must be observable/verifiable (not subjective)
-   - Typical count: 3-8 ACs per plan (one per significant capability delivered)
-   - If adding new ACs during revision, append with higher numbers (do not renumber
-     existing ACs that tasks already reference)
-
-5. **`<ac_refs>` per task** — lists which plan-level AC-N identifiers this task satisfies.
-   Rules:
-   - Every task MUST reference at least one AC-N
-   - Every AC-N in the plan's <acceptance_criteria> block MUST appear in some task's
-     <ac_refs> (full coverage required — no orphaned ACs)
-   - Format: comma-separated (e.g., `AC-1, AC-3`) — exact match, case-sensitive
-
-6. **`<boundaries>` per task (optional)** — lists paths/sections this task must NOT modify.
-   Rules:
-   - Use when a task is adjacent to fragile/recently-changed code that must not regress
-   - Each entry is a file path or a comment describing a section (e.g.,
-     `# Phase 47 sharding logic in sharding.cjs`)
-   - Executor will warn and require confirmation before modifying listed paths
-
-7. **`risk` attribute on high-risk tasks** — Tag tasks `risk="high"` when any of these
-   apply to the task's `<files>` list or action description:
-
-   Auto-tag criteria:
-   - Files matching: `*/migrations/*`, `*migration*.sql`, `*migration*.ts`, `*migration*.js`
-   - Files matching: `*/auth/*`, `*authentication*`, `*oauth*`, `*jwt*`, `*session*`, `*password*`
-   - Files matching: `.github/workflows/*`, `.circleci/*`, `Jenkinsfile`, `*ci*.yml`
-   - Files matching: `*seed*.sql`, `*seed*.ts`, `*seed*.js`, `*data-loss*`, `*drop-table*`
-   - Actions containing: "delete all", "truncate", "drop table", "destroy", "irrecoverable"
-   - Files matching: `*/scripts/deploy*`, `*deploy.sh*`, `*release.sh*`
-   - Files modifying external integrations with live production data
-
-   Format: `<task type="auto" risk="high">`
-
-   When tagging `risk="high"`, add a `<risk_reason>` child element explaining why:
-   `<risk_reason>Database migration — potentially irreversible schema change</risk_reason>`
-
-   Tasks that are NOT `risk="high"` even if they touch adjacent files:
-   - Test files only (`*.test.ts`, `*.spec.ts`, `*.test.mjs`)
-   - Documentation only (`*.md`)
-   - Configuration comment updates (no logic changes)
-
 **Why this matters:** Executor agents work from the plan text. Vague instructions like "update the config to match production" produce shallow one-line changes. Concrete instructions like "add DATABASE_URL=postgresql://... , set POOL_SIZE=20, add REDIS_URL=redis://..." produce complete work. The cost of verbose plans is far less than the cost of re-doing shallow execution.
 </deep_work_rules>
 
@@ -629,17 +545,7 @@ Every task MUST include these fields — they are NOT optional:
 - [ ] Dependencies correctly identified
 - [ ] Waves assigned for parallel execution
 - [ ] must_haves derived from phase goal
-- [ ] Plan-level `<acceptance_criteria>` block exists BEFORE `<tasks>`, with each AC in **AC-N:** Given/When/Then format
-- [ ] Every task has `<ac_refs>` referencing at least one AC-N
-- [ ] Every AC-N in the plan-level block is referenced by at least one task
 </quality_gate>
-
-<memory_instructions>
-After completing the plan, append a memory entry to .planning/agent-memory/planner/memories.md (create file if missing, with header: "# planner Agent Memory\n\n> Loaded at agent spawn. Append-only. Max 50 entries.\n> Oldest entries archived automatically.\n\n").
-Entry format:
-### {ISO timestamp} | Phase {phase_number} | tags: {2-4 relevance tags}
-{1-3 sentences on planning patterns: task sizing insights, dependency patterns, scope decisions, what worked/didn't.}
-</memory_instructions>
 ```
 
 ```
@@ -653,46 +559,20 @@ Task(
 
 ## 9. Handle Planner Return
 
-- **`## PLANNING COMPLETE`:** Display plan count. Proceed to step 9.5 (shard). If `--skip-verify` or `plan_checker_enabled` is false (from init): skip to step 13 after sharding. Otherwise: step 10.
+- **`## PLANNING COMPLETE`:** Display plan count. If `--skip-verify` or `plan_checker_enabled` is false (from init): skip to step 13. Otherwise: step 10.
 - **`## CHECKPOINT REACHED`:** Present to user, get response, spawn continuation (step 12)
 - **`## PLANNING INCONCLUSIVE`:** Show attempts, offer: Add context / Retry / Manual
-
-## 9.5. Shard Large Plans
-
-For each new PLAN.md created by the planner, run the sharding step:
-
-```bash
-for PLAN_FILE in "${PHASE_DIR}"/*-PLAN.md; do
-  SHARD_RESULT=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" shard-plan "$PLAN_FILE")
-  SHARDED=$(echo "$SHARD_RESULT" | grep -o '"sharded":true')
-  if [ -n "$SHARDED" ]; then
-    TASK_COUNT=$(echo "$SHARD_RESULT" | grep -o '"task_count":[0-9]*' | cut -d: -f2)
-    echo "Sharded: $(basename "$PLAN_FILE") → ${TASK_COUNT} task files"
-  fi
-done
-```
-
-This runs AFTER the planner returns and BEFORE the plan checker. Task files exist by the time the checker validates plans.
-
-`shard-plan` is idempotent — it overwrites existing task files on each call, so re-running is always safe.
-
-After sharding, commit any task file directories that were created:
-
-```bash
-# Commit task files alongside plans (only if sharding occurred)
-TASK_DIRS=$(ls -d "${PHASE_DIR}"/*-tasks 2>/dev/null)
-if [ -n "$TASK_DIRS" ]; then
-  node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" commit "docs(${PADDED_PHASE}): shard plans into task files" --files ${TASK_DIRS}/*
-fi
-```
 
 ## 10. Spawn pde-plan-checker Agent
 
 Display banner:
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" banner "VERIFYING PLANS"
 ```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► VERIFYING PLANS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 ◆ Spawning plan checker...
+```
 
 Checker prompt:
 
@@ -702,13 +582,14 @@ Checker prompt:
 **Phase Goal:** {goal from ROADMAP}
 
 <files_to_read>
-- .planning/project-context.md (Project context — compact project baseline, if exists)
 - {PHASE_DIR}/*-PLAN.md (Plans to verify)
 - {roadmap_path} (Roadmap)
 - {requirements_path} (Requirements)
 - {context_path} (USER DECISIONS from /pde:discuss-phase)
 - {research_path} (Technical Research — includes Validation Architecture)
 </files_to_read>
+
+${AGENT_SKILLS_CHECKER}
 
 **Phase requirement IDs (MUST ALL be covered):** {phase_req_ids}
 
@@ -733,64 +614,8 @@ Task(
 
 ## 11. Handle Checker Return
 
-- **`## VERIFICATION PASSED`:** Display confirmation, proceed to step 11.5 then step 13.
-- **`## ISSUES FOUND`:** Display issues, check iteration count, proceed to step 11.5 then step 12.
-
-After parsing checker return, extract edge case ACs for Step 11.5:
-```
-# Extract edge case ACs for Step 11.5
-HIGH_ACS={extract high_severity_acs from checker return if present}
-```
-
-## 11.5. Edge Case AC Approval Gate
-
-**Skip if:** Checker return does not contain `high_severity_acs` field, or `high_severity_acs` array is empty.
-
-**If `high_severity_acs` present and non-empty:**
-
-1. Display banner:
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" banner "EDGE CASE REVIEW"
-```
-
-2. For each entry in `high_severity_acs`, display:
-
-```
-**Edge Case:** {plan_element}
-**Plan:** {plan}
-**Task:** {task_name}
-
-Suggested acceptance criteria:
-
-{For each bdd_candidate:}
-  {N}. Given {precondition}
-     When {action}
-     Then {expected behavior}
-
-```
-
-3. Prompt user for approval:
-
-Use AskUserQuestion:
-- header: "Edge Case ACs"
-- question: "Which acceptance criteria would you like to add to the plan? (Enter numbers like '1,3' or 'all' or 'none')"
-- options: free-form input
-
-4. Parse user response:
-   - "none" or empty → skip, proceed to Step 12
-   - "all" → approve all candidates
-   - Comma-separated numbers → approve only those candidates
-
-5. For each approved AC, append to the relevant PLAN.md task's `<acceptance_criteria>` block using the Edit tool:
-   - Find the task by matching `task_name` in the plan file
-   - Append the BDD AC as a new bullet: `- Given {precondition} When {action} Then {expected behavior}`
-
-6. If any ACs were appended, commit:
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/gsd-tools.cjs" commit "docs(${padded_phase}): append approved edge case ACs" --files ${PHASE_DIR}/*-PLAN.md
-```
-
-**CRITICAL:** This step does NOT re-invoke the checker. The AC append is additive-only. After this step, proceed directly to Step 12 (or Step 13 if checker already passed).
+- **`## VERIFICATION PASSED`:** Display confirmation, proceed to step 13.
+- **`## ISSUES FOUND`:** Display issues, check iteration count, proceed to step 12.
 
 ## 12. Revision Loop (Max 3 Iterations)
 
@@ -808,10 +633,11 @@ Revision prompt:
 **Mode:** revision
 
 <files_to_read>
-- .planning/project-context.md (Project context — compact project baseline, if exists)
 - {PHASE_DIR}/*-PLAN.md (Existing plans)
 - {context_path} (USER DECISIONS from /pde:discuss-phase)
 </files_to_read>
+
+${AGENT_SKILLS_PLANNER}
 
 **Checker issues:** {structured_issues_from_checker}
 </revision_context>
@@ -832,9 +658,7 @@ Task(
 )
 ```
 
-After planner returns -> re-run Step 9.5 (Shard Large Plans) before spawning checker again (step 10), increment iteration_count.
-
-**Important:** Re-run Step 9.5 (Shard Large Plans) after each revision iteration. The planner may have changed task count or content, so task files must be regenerated. `shard-plan` is idempotent — it overwrites existing task files.
+After planner returns -> spawn checker again (step 10), increment iteration_count.
 
 **If iteration_count >= 3:**
 
@@ -842,11 +666,62 @@ Display: `Max iterations reached. {N} issues remain:` + issue list
 
 Offer: 1) Force proceed, 2) Provide guidance and retry, 3) Abandon
 
-## 13. Present Final Status
+## 13. Requirements Coverage Gate
+
+After plans pass the checker (or checker is skipped), verify that all phase requirements are covered by at least one plan.
+
+**Skip if:** `phase_req_ids` is null or TBD (no requirements mapped to this phase).
+
+**Step 1: Extract requirement IDs claimed by plans**
+```bash
+# Collect all requirement IDs from plan frontmatter
+PLAN_REQS=$(grep -h "requirements_addressed\|requirements:" ${PHASE_DIR}/*-PLAN.md 2>/dev/null | tr -d '[]' | tr ',' '\n' | sed 's/^[[:space:]]*//' | sort -u)
+```
+
+**Step 2: Compare against phase requirements from ROADMAP**
+
+For each REQ-ID in `phase_req_ids`:
+- If REQ-ID appears in `PLAN_REQS` → covered ✓
+- If REQ-ID does NOT appear in any plan → uncovered ✗
+
+**Step 3: Check CONTEXT.md features against plan objectives**
+
+Read CONTEXT.md `<decisions>` section. Extract feature/capability names. Check each against plan `<objective>` blocks. Features not mentioned in any plan objective → potentially dropped.
+
+**Step 4: Report**
+
+If all requirements covered and no dropped features:
+```
+✓ Requirements coverage: {N}/{N} REQ-IDs covered by plans
+```
+→ Proceed to step 14.
+
+If gaps found:
+```
+## ⚠ Requirements Coverage Gap
+
+{M} of {N} phase requirements are not assigned to any plan:
+
+| REQ-ID | Description | Plans |
+|--------|-------------|-------|
+| {id} | {from REQUIREMENTS.md} | None |
+
+{K} CONTEXT.md features not found in plan objectives:
+- {feature_name} — described in CONTEXT.md but no plan covers it
+
+Options:
+1. Re-plan to include missing requirements (recommended)
+2. Move uncovered requirements to next phase
+3. Proceed anyway — accept coverage gaps
+```
+
+If `TEXT_MODE` is true, present as a plain-text numbered list (options already shown in the block above). Otherwise use AskUserQuestion to present the options.
+
+## 14. Present Final Status
 
 Route to `<offer_next>` OR `auto_advance` depending on flags/config.
 
-## 14. Auto-Advance Check
+## 15. Auto-Advance Check
 
 Check for auto-advance trigger:
 
@@ -854,44 +729,50 @@ Check for auto-advance trigger:
 2. **Sync chain flag with intent** — if user invoked manually (no `--auto`), clear the ephemeral chain flag from any previous interrupted `--auto` chain. This does NOT touch `workflow.auto_advance` (the user's persistent settings preference):
    ```bash
    if [[ ! "$ARGUMENTS" =~ --auto ]]; then
-     node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" config-set workflow._auto_chain_active false 2>/dev/null
+     node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" config-set workflow._auto_chain_active false 2>/dev/null
    fi
    ```
 3. Read both the chain flag and user preference:
    ```bash
-   AUTO_CHAIN=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" config-get workflow._auto_chain_active 2>/dev/null || echo "false")
-   AUTO_CFG=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" config-get workflow.auto_advance 2>/dev/null || echo "false")
+   AUTO_CHAIN=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" config-get workflow._auto_chain_active 2>/dev/null || echo "false")
+   AUTO_CFG=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" config-get workflow.auto_advance 2>/dev/null || echo "false")
    ```
 
 **If `--auto` flag present OR `AUTO_CHAIN` is true OR `AUTO_CFG` is true:**
 
 Display banner:
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" banner "AUTO-ADVANCING TO EXECUTE"
 ```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► AUTO-ADVANCING TO EXECUTE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 Plans ready. Launching execute-phase...
+```
 
 Launch execute-phase using the Skill tool to avoid nested Task sessions (which cause runtime freezes due to deep agent nesting):
 ```
-Skill(skill="pde:execute-phase", args="${PHASE} --auto --no-transition")
+Skill(skill="gsd:execute-phase", args="${PHASE} --auto --no-transition ${GSD_WS}")
 ```
 
 The `--no-transition` flag tells execute-phase to return status after verification instead of chaining further. This keeps the auto-advance chain flat — each phase runs at the same nesting level rather than spawning deeper Task agents.
 
 **Handle execute-phase return:**
-- **PHASE COMPLETE** → Display final summary by running:
-  ```bash
-  node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" banner "PHASE ${PHASE} COMPLETE"
+- **PHASE COMPLETE** → Display final summary:
   ```
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   GSD ► PHASE ${PHASE} COMPLETE ✓
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
   Auto-advance pipeline finished.
 
-  Next: /pde:discuss-phase ${NEXT_PHASE} --auto
+  Next: /pde:discuss-phase ${NEXT_PHASE} --auto ${GSD_WS}
+  ```
 - **GAPS FOUND / VERIFICATION FAILED** → Display result, stop chain:
   ```
   Auto-advance stopped: Execution needs review.
 
   Review the output above and continue manually:
-  /pde:execute-phase ${PHASE}
+  /pde:execute-phase ${PHASE} ${GSD_WS}
   ```
 
 **If neither `--auto` nor config enabled:**
@@ -902,9 +783,9 @@ Route to `<offer_next>` (existing behavior).
 <offer_next>
 Output this markdown directly (not as a code block):
 
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" banner "PHASE {X} PLANNED"
-```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► PHASE {X} PLANNED ✓
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 **Phase {X}: {Name}** — {N} plan(s) in {M} wave(s)
 
@@ -916,30 +797,50 @@ node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" banner "PHASE {X} PLANNED"
 Research: {Completed | Used existing | Skipped}
 Verification: {Passed | Passed with override | Skipped}
 
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" divider
-```
+───────────────────────────────────────────────────────────────
 
 ## ▶ Next Up
 
 **Execute Phase {X}** — run all {N} plans
 
-/pde:execute-phase {X}
+/pde:execute-phase {X} ${GSD_WS}
 
 <sub>/clear first → fresh context window</sub>
 
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" divider
-```
+───────────────────────────────────────────────────────────────
 
 **Also available:**
 - cat .planning/phases/{phase-dir}/*-PLAN.md — review plans
 - /pde:plan-phase {X} --research — re-research first
+- /pde:review --phase {X} --all — peer review plans with external AIs
+- /pde:plan-phase {X} --reviews — replan incorporating review feedback
 
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" divider
-```
+───────────────────────────────────────────────────────────────
 </offer_next>
+
+<windows_troubleshooting>
+**Windows users:** If plan-phase freezes during agent spawning (common on Windows due to
+stdio deadlocks with MCP servers — see Claude Code issue anthropics/claude-code#28126):
+
+1. **Force-kill:** Close the terminal (Ctrl+C may not work)
+2. **Clean up orphaned processes:**
+   ```powershell
+   # Kill orphaned node processes from stale MCP servers
+   Get-Process node -ErrorAction SilentlyContinue | Where-Object {$_.StartTime -lt (Get-Date).AddHours(-1)} | Stop-Process -Force
+   ```
+3. **Clean up stale task directories:**
+   ```powershell
+   # Remove stale subagent task dirs (Claude Code never cleans these on crash)
+   Remove-Item -Recurse -Force "$env:USERPROFILE\.claude\tasks\*" -ErrorAction SilentlyContinue
+   ```
+4. **Reduce MCP server count:** Temporarily disable non-essential MCP servers in settings.json
+5. **Retry:** Restart Claude Code and run `/pde:plan-phase` again
+
+If freezes persist, try `--skip-research` to reduce the agent chain from 3 to 2 agents:
+```
+/pde:plan-phase N --skip-research
+```
+</windows_troubleshooting>
 
 <success_criteria>
 - [ ] .planning/ directory validated

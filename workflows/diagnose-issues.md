@@ -6,6 +6,11 @@ After UAT finds gaps, spawn one debug agent per gap. Each agent investigates aut
 Orchestrator stays lean: parse gaps, spawn agents, collect results, update UAT.
 </purpose>
 
+<available_agent_types>
+Valid GSD subagent types (use exact names — do not fall back to 'general-purpose'):
+- pde-debugger — Diagnoses and fixes issues
+</available_agent_types>
+
 <paths>
 DEBUG_DIR=.planning/debug
 
@@ -73,14 +78,21 @@ This runs in parallel - all gaps investigated simultaneously.
 </step>
 
 <step name="spawn_agents">
+**Load agent skills:**
+
+```bash
+AGENT_SKILLS_DEBUGGER=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" agent-skills pde-debugger 2>/dev/null)
+```
+
 **Spawn debug agents in parallel:**
 
 For each gap, fill the debug-subagent-prompt template and spawn:
 
 ```
 Task(
-  prompt=filled_debug_subagent_prompt + "\n\n<files_to_read>\n- {phase_dir}/{phase_num}-UAT.md\n- .planning/STATE.md\n- .planning/agent-memory/debugger/memories.md (Agent memory — debugging patterns, if exists)\n</files_to_read>\n\n<memory_instructions>\nAfter completing diagnosis, append a memory entry to .planning/agent-memory/debugger/memories.md (create file if missing, with header: \"# debugger Agent Memory\\n\\n> Loaded at agent spawn. Append-only. Max 50 entries.\\n> Oldest entries archived automatically.\\n\\n\").\nEntry format: ### {ISO timestamp} | Phase {phase_number} | tags: {2-4 comma-separated relevance tags}\n{1-3 sentences on debugging patterns: common root causes, diagnostic approaches that worked, project-specific failure modes.}\n</memory_instructions>",
+  prompt=filled_debug_subagent_prompt + "\n\n<files_to_read>\n- {phase_dir}/{phase_num}-UAT.md\n- .planning/STATE.md\n</files_to_read>\n${AGENT_SKILLS_DEBUGGER}",
   subagent_type="pde-debugger",
+  isolation="worktree",
   description="Debug: {truth_short}"
 )
 ```
@@ -158,7 +170,7 @@ Update status in frontmatter to "diagnosed".
 
 Commit the updated UAT.md:
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" commit "docs({phase_num}): add root causes from diagnosis" --files ".planning/phases/XX-name/{phase_num}-UAT.md"
+node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" commit "docs({phase_num}): add root causes from diagnosis" --files ".planning/phases/XX-name/{phase_num}-UAT.md"
 ```
 </step>
 
@@ -166,9 +178,11 @@ node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" commit "docs({phase_num}): add ro
 **Report diagnosis results and hand off:**
 
 Display:
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" banner "DIAGNOSIS COMPLETE"
 ```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► DIAGNOSIS COMPLETE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 | Gap (Truth) | Root Cause | Files |
 |-------------|------------|-------|
 | Comment appears immediately | useEffect missing dependency | CommentList.tsx |
@@ -178,6 +192,7 @@ node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" banner "DIAGNOSIS COMPLETE"
 Debug sessions: ${DEBUG_DIR}/
 
 Proceeding to plan fixes...
+```
 
 Return to verify-work orchestrator for automatic planning.
 Do NOT offer manual next steps - verify-work handles the rest.

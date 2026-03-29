@@ -11,7 +11,7 @@ Instantly restore full project context so "Where were we?" has an immediate, com
 </purpose>
 
 <required_reading>
-@${CLAUDE_PLUGIN_ROOT}/references/continuation-format.md
+@/Users/greyaltaer/.claude/pde-os/engines/gsd/references/continuation-format.md
 </required_reading>
 
 <process>
@@ -20,7 +20,7 @@ Instantly restore full project context so "Where were we?" has an immediate, com
 Load all context in one call:
 
 ```bash
-INIT=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" init resume)
+INIT=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" init resume)
 if [[ "$INIT" == @file:* ]]; then INIT=$(cat "${INIT#@file:}"); fi
 ```
 
@@ -63,14 +63,17 @@ cat .planning/PROJECT.md
 Look for incomplete work that needs attention:
 
 ```bash
+# Check for structured handoff (preferred — machine-readable)
+cat .planning/HANDOFF.json 2>/dev/null || true
+
 # Check for continue-here files (mid-plan resumption)
-ls .planning/phases/*/.continue-here*.md 2>/dev/null
+ls .planning/phases/*/.continue-here*.md 2>/dev/null || true
 
 # Check for plans without summaries (incomplete execution)
 for plan in .planning/phases/*/*-PLAN.md; do
-  summary="${plan/PLAN/SUMMARY}"
+  [ -e "$plan" ] || continue
   [ ! -f "$summary" ] && echo "Incomplete: $plan"
-done 2>/dev/null
+done 2>/dev/null || true
 
 # Check for interrupted agents (use has_interrupted_agent and interrupted_agent_id from init)
 if [ "$has_interrupted_agent" = "true" ]; then
@@ -78,7 +81,18 @@ if [ "$has_interrupted_agent" = "true" ]; then
 fi
 ```
 
-**If .continue-here file exists:**
+**If HANDOFF.json exists:**
+
+- This is the primary resumption source — structured data from `/pde:pause-work`
+- Parse `status`, `phase`, `plan`, `task`, `total_tasks`, `next_action`
+- Check `blockers` and `human_actions_pending` — surface these immediately
+- Check `completed_tasks` for `in_progress` items — these need attention first
+- Validate `uncommitted_files` against `git status` — flag divergence
+- Use `context_notes` to restore mental model
+- Flag: "Found structured handoff — resuming from task {task}/{total_tasks}"
+- **After successful resumption, delete HANDOFF.json** (it's a one-shot artifact)
+
+**If .continue-here file exists (fallback):**
 
 - This is a mid-plan resumption point
 - Read the file for specific resumption context
@@ -100,7 +114,7 @@ fi
 Present complete project status to user:
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" panel "PROJECT STATUS" --type checkpoint --content "Building: [one-liner from PROJECT.md]"
+node "$HOME/.claude/pde-os/lib/ui/render.cjs" panel "PROJECT STATUS" --type checkpoint --content "Building: [one-liner from PROJECT.md]"
 ```
 
 Then display as markdown:
@@ -110,11 +124,11 @@ Then display as markdown:
   Last activity: [date] - [what happened]
 
 [If incomplete work found:]
-⚠️  Incomplete work detected:
+Incomplete work detected:
     - [.continue-here file or incomplete plan]
 
 [If interrupted agent found:]
-⚠️  Interrupted agent detected:
+Interrupted agent detected:
     Agent ID: [id]
     Task: [task description from agent-history.json]
     Interrupted: [timestamp]
@@ -122,15 +136,15 @@ Then display as markdown:
     Resume with: Task tool (resume parameter with agent ID)
 
 [If pending todos exist:]
-📋 [N] pending todos — /pde:check-todos to review
+[N] pending todos — /pde:check-todos to review
 
 [If blockers exist:]
-⚠️  Carried concerns:
+Carried concerns:
     - [blocker 1]
     - [blocker 2]
 
-[If alignment is not ✓:]
-⚠️  Brief alignment: [status] - [assessment]
+[If alignment is not good:]
+Brief alignment: [status] - [assessment]
 ```
 
 </step>
@@ -139,34 +153,38 @@ Then display as markdown:
 Based on project state, determine the most logical next action:
 
 **If interrupted agent exists:**
-→ Primary: Resume interrupted agent (Task tool with resume parameter)
-→ Option: Start fresh (abandon agent work)
+-> Primary: Resume interrupted agent (Task tool with resume parameter)
+-> Option: Start fresh (abandon agent work)
+
+**If HANDOFF.json exists:**
+-> Primary: Resume from structured handoff (highest priority — specific task/blocker context)
+-> Option: Discard handoff and reassess from files
 
 **If .continue-here file exists:**
-→ Primary: Resume from checkpoint
-→ Option: Start fresh on current plan
+-> Fallback: Resume from checkpoint
+-> Option: Start fresh on current plan
 
 **If incomplete plan (PLAN without SUMMARY):**
-→ Primary: Complete the incomplete plan
-→ Option: Abandon and move on
+-> Primary: Complete the incomplete plan
+-> Option: Abandon and move on
 
 **If phase in progress, all plans complete:**
-→ Primary: Transition to next phase
-→ Option: Review completed work
+-> Primary: Advance to next phase (via internal transition workflow)
+-> Option: Review completed work
 
 **If phase ready to plan:**
-→ Check if CONTEXT.md exists for this phase:
+-> Check if CONTEXT.md exists for this phase:
 
 - If CONTEXT.md missing:
-  → Primary: Discuss phase vision (how user imagines it working)
-  → Secondary: Plan directly (skip context gathering)
+  -> Primary: Discuss phase vision (how user imagines it working)
+  -> Secondary: Plan directly (skip context gathering)
 - If CONTEXT.md exists:
-  → Primary: Plan the phase
-  → Option: Review roadmap
+  -> Primary: Plan the phase
+  -> Option: Review roadmap
 
 **If phase ready to execute:**
-→ Primary: Execute next plan
-→ Option: Review the plan first
+-> Primary: Execute next plan
+-> Option: Review the plan first
 </step>
 
 <step name="offer_options">
@@ -194,8 +212,7 @@ What would you like to do?
 **Note:** When offering phase planning, check for CONTEXT.md existence first:
 
 ```bash
-ls .planning/phases/XX-name/*-CONTEXT.md 2>/dev/null
-```
+ls .planning/phases/XX-name/*-CONTEXT.md 2>/dev/null || true
 
 If missing, suggest discuss-phase before plan. If exists, offer plan directly.
 
@@ -205,31 +222,31 @@ Wait for user selection.
 <step name="route_to_workflow">
 Based on user selection, route to appropriate workflow:
 
-- **Execute plan** → Show command for user to run after clearing:
+- **Execute plan** -> Show command for user to run after clearing:
   ```
   ---
 
-  ## ▶ Next Up
+  ## Next Up
 
   **{phase}-{plan}: [Plan Name]** — [objective from PLAN.md]
 
   `/pde:execute-phase {phase}`
 
-  <sub>`/clear` first → fresh context window</sub>
+  <sub>`/clear` first -> fresh context window</sub>
 
   ---
   ```
-- **Plan phase** → Show command for user to run after clearing:
+- **Plan phase** -> Show command for user to run after clearing:
   ```
   ---
 
-  ## ▶ Next Up
+  ## Next Up
 
   **Phase [N]: [Name]** — [Goal from ROADMAP.md]
 
   `/pde:plan-phase [phase-number]`
 
-  <sub>`/clear` first → fresh context window</sub>
+  <sub>`/clear` first -> fresh context window</sub>
 
   ---
 
@@ -239,10 +256,10 @@ Based on user selection, route to appropriate workflow:
 
   ---
   ```
-- **Transition** → ./transition.md
-- **Check todos** → Read .planning/todos/pending/, present summary
-- **Review alignment** → Read PROJECT.md, compare to current state
-- **Something else** → Ask what they need
+- **Advance to next phase** -> ./transition.md (internal workflow, invoked inline — NOT a user command)
+- **Check todos** -> Read .planning/todos/pending/, present summary
+- **Review alignment** -> Read PROJECT.md, compare to current state
+- **Something else** -> Ask what they need
 </step>
 
 <step name="update_session">
@@ -268,11 +285,11 @@ If STATE.md is missing but other artifacts exist:
 
 "STATE.md missing. Reconstructing from artifacts..."
 
-1. Read PROJECT.md → Extract "What This Is" and Core Value
-2. Read ROADMAP.md → Determine phases, find current position
-3. Scan \*-SUMMARY.md files → Extract decisions, concerns
+1. Read PROJECT.md -> Extract "What This Is" and Core Value
+2. Read ROADMAP.md -> Determine phases, find current position
+3. Scan \*-SUMMARY.md files -> Extract decisions, concerns
 4. Count pending todos in .planning/todos/pending/
-5. Check for .continue-here files → Session continuity
+5. Check for .continue-here files -> Session continuity
 
 Reconstruct and write STATE.md, then proceed normally.
 
@@ -302,3 +319,4 @@ Resume is complete when:
 - [ ] User knows exactly where project stands
 - [ ] Session continuity updated
       </success_criteria>
+</output>

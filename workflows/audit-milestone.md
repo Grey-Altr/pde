@@ -6,27 +6,33 @@ Verify milestone achieved its definition of done by aggregating phase verificati
 Read all files referenced by the invoking prompt's execution_context before starting.
 </required_reading>
 
+<available_agent_types>
+Valid GSD subagent types (use exact names — do not fall back to 'general-purpose'):
+- pde-integration-checker — Checks cross-phase integration
+</available_agent_types>
+
 <process>
 
 ## 0. Initialize Milestone Context
 
 ```bash
-INIT=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" init milestone-op)
+INIT=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" init milestone-op)
 if [[ "$INIT" == @file:* ]]; then INIT=$(cat "${INIT#@file:}"); fi
+AGENT_SKILLS_CHECKER=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" agent-skills pde-integration-checker 2>/dev/null)
 ```
 
 Extract from init JSON: `milestone_version`, `milestone_name`, `phase_count`, `completed_phases`, `commit_docs`.
 
 Resolve integration checker model:
 ```bash
-integration_checker_model=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" resolve-model pde-integration-checker --raw)
+integration_checker_model=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" resolve-model pde-integration-checker --raw)
 ```
 
 ## 1. Determine Milestone Scope
 
 ```bash
 # Get phases in milestone (sorted numerically, handles decimals)
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" phases list
+node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" phases list
 ```
 
 - Parse version from arguments or detect current from ROADMAP.md
@@ -40,7 +46,7 @@ For each phase directory, read the VERIFICATION.md:
 
 ```bash
 # For each phase, use find-phase to resolve the directory (handles archived phases)
-PHASE_INFO=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" find-phase 01 --raw)
+PHASE_INFO=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" find-phase 01 --raw)
 # Extract directory from JSON, then read VERIFICATION.md from that directory
 # Repeat for each phase number from ROADMAP.md
 ```
@@ -73,7 +79,8 @@ Milestone Requirements:
 
 MUST map each integration finding to affected requirement IDs where applicable.
 
-Verify cross-phase wiring and E2E user flows.",
+Verify cross-phase wiring and E2E user flows.
+${AGENT_SKILLS_CHECKER}",
   subagent_type="pde-integration-checker",
   model="{integration_checker_model}"
 )
@@ -105,7 +112,8 @@ For each phase's VERIFICATION.md, extract the expanded requirements table:
 For each phase's SUMMARY.md, extract `requirements-completed` from YAML frontmatter:
 ```bash
 for summary in .planning/phases/*-*/*-SUMMARY.md; do
-  node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" summary-extract "$summary" --fields requirements_completed | jq -r '.requirements_completed'
+  [ -e "$summary" ] || continue
+  node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" summary-extract "$summary" --fields requirements_completed --pick requirements_completed
 done
 ```
 
@@ -133,7 +141,7 @@ For each REQ-ID, determine status using all three sources:
 Skip if `workflow.nyquist_validation` is explicitly `false` (absent = enabled).
 
 ```bash
-NYQUIST_CONFIG=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" config get workflow.nyquist_validation --raw 2>/dev/null)
+NYQUIST_CONFIG=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" config-get workflow.nyquist_validation --raw 2>/dev/null)
 ```
 
 If `false`: skip entirely.
@@ -215,9 +223,7 @@ Output this markdown directly (not as a code block). Route based on status:
 
 All requirements covered. Cross-phase integration verified. E2E flows complete.
 
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" divider
-```
+───────────────────────────────────────────────────────────────
 
 ## ▶ Next Up
 
@@ -227,9 +233,7 @@ node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" divider
 
 <sub>/clear first → fresh context window</sub>
 
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" divider
-```
+───────────────────────────────────────────────────────────────
 
 ---
 
@@ -264,9 +268,7 @@ node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" divider
 
 Phases needing validation: run `/pde:validate-phase {N}` for each flagged phase.
 
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" divider
-```
+───────────────────────────────────────────────────────────────
 
 ## ▶ Next Up
 
@@ -276,17 +278,13 @@ node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" divider
 
 <sub>/clear first → fresh context window</sub>
 
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" divider
-```
+───────────────────────────────────────────────────────────────
 
 **Also available:**
 - cat .planning/v{version}-MILESTONE-AUDIT.md — see full report
 - /pde:complete-milestone {version} — proceed anyway (accept tech debt)
 
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" divider
-```
+───────────────────────────────────────────────────────────────
 
 ---
 
@@ -308,9 +306,7 @@ All requirements met. No critical blockers. Accumulated tech debt needs review.
 
 ### Total: {N} items across {M} phases
 
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" divider
-```
+───────────────────────────────────────────────────────────────
 
 ## ▶ Options
 
@@ -324,9 +320,7 @@ node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" divider
 
 <sub>/clear first → fresh context window</sub>
 
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" divider
-```
+───────────────────────────────────────────────────────────────
 </offer_next>
 
 <success_criteria>

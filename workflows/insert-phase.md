@@ -34,7 +34,7 @@ Validate first argument is an integer.
 Load phase operation context:
 
 ```bash
-INIT=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" init phase-op "${after_phase}")
+INIT=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" init phase-op "${after_phase}")
 if [[ "$INIT" == @file:* ]]; then INIT=$(cat "${INIT#@file:}"); fi
 ```
 
@@ -46,10 +46,10 @@ Exit.
 </step>
 
 <step name="insert_phase">
-**Delegate the phase insertion to pde-tools:**
+**Delegate the phase insertion to gsd-tools:**
 
 ```bash
-RESULT=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" phase insert "${after_phase}" "${description}")
+RESULT=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" phase insert "${after_phase}" "${description}")
 ```
 
 The CLI handles:
@@ -122,7 +122,7 @@ Project state updated: .planning/STATE.md
 <success_criteria>
 Phase insertion is complete when:
 
-- [ ] `pde-tools phase insert` executed successfully
+- [ ] `gsd-tools phase insert` executed successfully
 - [ ] Phase directory created
 - [ ] Roadmap updated with new phase entry (includes "(INSERTED)" marker)
 - [ ] STATE.md updated with roadmap evolution note

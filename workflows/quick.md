@@ -1,5 +1,5 @@
 <purpose>
-Execute small, ad-hoc tasks with PDE guarantees (atomic commits, STATE.md tracking). Quick mode spawns pde-planner (quick mode) + pde-executor(s), tracks tasks in `.planning/quick/`, and updates STATE.md's "Quick Tasks Completed" table.
+Execute small, ad-hoc tasks with GSD guarantees (atomic commits, STATE.md tracking). Quick mode spawns pde-planner (quick mode) + pde-executor(s), tracks tasks in `.planning/quick/`, and updates STATE.md's "Quick Tasks Completed" table.
 
 With `--discuss` flag: lightweight discussion phase before planning. Surfaces assumptions, clarifies gray areas, captures decisions in CONTEXT.md so the planner treats them as locked.
 
@@ -13,6 +13,15 @@ Flags are composable: `--discuss --research --full` gives discussion + research 
 <required_reading>
 Read all files referenced by the invoking prompt's execution_context before starting.
 </required_reading>
+
+<available_agent_types>
+Valid GSD subagent types (use exact names — do not fall back to 'general-purpose'):
+- pde-phase-researcher — Researches technical approaches for a phase
+- pde-planner — Creates detailed plans from phase scope
+- pde-plan-checker — Reviews plan quality before execution
+- pde-executor — Executes plan tasks, commits, creates SUMMARY.md
+- pde-verifier — Verifies phase completion, checks quality gates
+</available_agent_types>
 
 <process>
 **Step 1: Parse arguments and get task description**
@@ -40,61 +49,100 @@ If still empty, re-prompt: "Please provide a task description."
 Display banner based on active flags:
 
 If `$DISCUSS_MODE` and `$RESEARCH_MODE` and `$FULL_MODE`:
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" banner "QUICK TASK (DISCUSS + RESEARCH + FULL)"
 ```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► QUICK TASK (DISCUSS + RESEARCH + FULL)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 ◆ Discussion + research + plan checking + verification enabled
+```
 
 If `$DISCUSS_MODE` and `$FULL_MODE` (no research):
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" banner "QUICK TASK (DISCUSS + FULL)"
 ```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► QUICK TASK (DISCUSS + FULL)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 ◆ Discussion + plan checking + verification enabled
+```
 
 If `$DISCUSS_MODE` and `$RESEARCH_MODE` (no full):
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" banner "QUICK TASK (DISCUSS + RESEARCH)"
 ```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► QUICK TASK (DISCUSS + RESEARCH)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 ◆ Discussion + research enabled
+```
 
 If `$RESEARCH_MODE` and `$FULL_MODE` (no discuss):
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" banner "QUICK TASK (RESEARCH + FULL)"
 ```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► QUICK TASK (RESEARCH + FULL)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 ◆ Research + plan checking + verification enabled
+```
 
 If `$DISCUSS_MODE` only:
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" banner "QUICK TASK (DISCUSS)"
 ```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► QUICK TASK (DISCUSS)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 ◆ Discussion phase enabled — surfacing gray areas before planning
+```
 
 If `$RESEARCH_MODE` only:
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" banner "QUICK TASK (RESEARCH)"
 ```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► QUICK TASK (RESEARCH)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 ◆ Research phase enabled — investigating approaches before planning
+```
 
 If `$FULL_MODE` only:
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" banner "QUICK TASK (FULL MODE)"
 ```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► QUICK TASK (FULL MODE)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 ◆ Plan checking + verification enabled
+```
 
 ---
 
 **Step 2: Initialize**
 
 ```bash
-INIT=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" init quick "$DESCRIPTION")
+INIT=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" init quick "$DESCRIPTION")
 if [[ "$INIT" == @file:* ]]; then INIT=$(cat "${INIT#@file:}"); fi
+AGENT_SKILLS_PLANNER=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" agent-skills pde-planner 2>/dev/null)
+AGENT_SKILLS_EXECUTOR=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" agent-skills pde-executor 2>/dev/null)
+AGENT_SKILLS_CHECKER=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" agent-skills pde-checker 2>/dev/null)
+AGENT_SKILLS_VERIFIER=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" agent-skills pde-verifier 2>/dev/null)
 ```
 
-Parse JSON for: `planner_model`, `executor_model`, `checker_model`, `verifier_model`, `commit_docs`, `quick_id`, `slug`, `date`, `timestamp`, `quick_dir`, `task_dir`, `roadmap_exists`, `planning_exists`.
+Parse JSON for: `planner_model`, `executor_model`, `checker_model`, `verifier_model`, `commit_docs`, `branch_name`, `quick_id`, `slug`, `date`, `timestamp`, `quick_dir`, `task_dir`, `roadmap_exists`, `planning_exists`.
 
 **If `roadmap_exists` is false:** Error — Quick mode requires an active project with ROADMAP.md. Run `/pde:new-project` first.
 
 Quick tasks can run mid-phase - validation only checks ROADMAP.md exists, not phase status.
+
+---
+
+**Step 2.5: Handle quick-task branching**
+
+**If `branch_name` is empty/null:** Skip and continue on the current branch.
+
+**If `branch_name` is set:** Check out the quick-task branch before any planning commits:
+
+```bash
+git checkout -b "$branch_name" 2>/dev/null || git checkout "$branch_name"
+```
+
+All quick-task commits for this run stay on that branch. User handles merge/rebase afterward.
 
 ---
 
@@ -130,10 +178,13 @@ Store `$QUICK_DIR` for use in orchestration.
 Skip this step entirely if NOT `$DISCUSS_MODE`.
 
 Display banner:
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" banner "DISCUSSING QUICK TASK"
 ```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► DISCUSSING QUICK TASK
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 ◆ Surfacing gray areas for: ${DESCRIPTION}
+```
 
 **4.5a. Identify gray areas**
 
@@ -254,10 +305,13 @@ Report: `Context captured: ${QUICK_DIR}/${quick_id}-CONTEXT.md`
 Skip this step entirely if NOT `$RESEARCH_MODE`.
 
 Display banner:
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" banner "RESEARCHING QUICK TASK"
 ```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► RESEARCHING QUICK TASK
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 ◆ Investigating approaches for: ${DESCRIPTION}
+```
 
 Spawn a single focused researcher (not 4 parallel researchers like full phases — quick tasks need targeted research, not broad domain surveys):
 
@@ -276,6 +330,8 @@ Task(
 - ./CLAUDE.md (if exists — project-specific guidelines)
 ${DISCUSS_MODE ? '- ' + QUICK_DIR + '/' + quick_id + '-CONTEXT.md (User decisions — research should align with these)' : ''}
 </files_to_read>
+
+${AGENT_SKILLS_PLANNER}
 
 </research_context>
 
@@ -331,6 +387,8 @@ ${DISCUSS_MODE ? '- ' + QUICK_DIR + '/' + quick_id + '-CONTEXT.md (User decision
 ${RESEARCH_MODE ? '- ' + QUICK_DIR + '/' + quick_id + '-RESEARCH.md (Research findings — use to inform implementation choices)' : ''}
 </files_to_read>
 
+${AGENT_SKILLS_PLANNER}
+
 **Project skills:** Check .claude/skills/ or .agents/skills/ directory (if either exists) — read SKILL.md files, plans should account for project skill rules
 
 </planning_context>
@@ -369,10 +427,13 @@ If plan not found, error: "Planner failed to create ${quick_id}-PLAN.md"
 Skip this step entirely if NOT `$FULL_MODE`.
 
 Display banner:
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" banner "CHECKING PLAN"
 ```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► CHECKING PLAN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 ◆ Spawning plan checker...
+```
 
 Checker prompt:
 
@@ -384,6 +445,8 @@ Checker prompt:
 <files_to_read>
 - ${QUICK_DIR}/${quick_id}-PLAN.md (Plan to verify)
 </files_to_read>
+
+${AGENT_SKILLS_CHECKER}
 
 **Scope:** This is a quick task, not a full phase. Skip checks that require a ROADMAP phase goal.
 </verification_context>
@@ -437,6 +500,8 @@ Revision prompt:
 - ${QUICK_DIR}/${quick_id}-PLAN.md (Existing plan)
 </files_to_read>
 
+${AGENT_SKILLS_PLANNER}
+
 **Checker issues:** ${structured_issues_from_checker}
 
 </revision_context>
@@ -483,6 +548,8 @@ Execute quick task ${quick_id}.
 - .claude/skills/ or .agents/skills/ (Project skills, if either exists — list skills, read SKILL.md for each, follow relevant rules during implementation)
 </files_to_read>
 
+${AGENT_SKILLS_EXECUTOR}
+
 <constraints>
 - Execute all tasks in the plan
 - Commit each task atomically
@@ -492,6 +559,7 @@ Execute quick task ${quick_id}.
 ",
   subagent_type="pde-executor",
   model="{executor_model}",
+  isolation="worktree",
   description="Execute: ${DESCRIPTION}"
 )
 ```
@@ -514,10 +582,13 @@ Note: For quick tasks producing multiple plans (rare), spawn executors in parall
 Skip this step entirely if NOT `$FULL_MODE`.
 
 Display banner:
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" banner "VERIFYING RESULTS"
 ```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► VERIFYING RESULTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 ◆ Spawning verifier...
+```
 
 ```
 Task(
@@ -528,6 +599,8 @@ Task goal: ${DESCRIPTION}
 <files_to_read>
 - ${QUICK_DIR}/${quick_id}-PLAN.md (Plan)
 </files_to_read>
+
+${AGENT_SKILLS_VERIFIER}
 
 Check must_haves against actual codebase. Create VERIFICATION.md at ${QUICK_DIR}/${quick_id}-VERIFICATION.md.",
   subagent_type="pde-verifier",
@@ -619,7 +692,7 @@ Build file list:
 - If `$FULL_MODE` and verification file exists: `${QUICK_DIR}/${quick_id}-VERIFICATION.md`
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" commit "docs(quick-${quick_id}): ${DESCRIPTION}" --files ${file_list}
+node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" commit "docs(quick-${quick_id}): ${DESCRIPTION}" --files ${file_list}
 ```
 
 Get final commit hash:
@@ -633,7 +706,7 @@ Display completion output:
 ```
 ---
 
-PDE > QUICK TASK COMPLETE (FULL MODE)
+GSD > QUICK TASK COMPLETE (FULL MODE)
 
 Quick Task ${quick_id}: ${DESCRIPTION}
 
@@ -644,14 +717,14 @@ Commit: ${commit_hash}
 
 ---
 
-Ready for next task: /pde:quick
+Ready for next task: /pde:quick ${GSD_WS}
 ```
 
 **If NOT `$FULL_MODE`:**
 ```
 ---
 
-PDE > QUICK TASK COMPLETE
+GSD > QUICK TASK COMPLETE
 
 Quick Task ${quick_id}: ${DESCRIPTION}
 
@@ -661,7 +734,7 @@ Commit: ${commit_hash}
 
 ---
 
-Ready for next task: /pde:quick
+Ready for next task: /pde:quick ${GSD_WS}
 ```
 
 </process>

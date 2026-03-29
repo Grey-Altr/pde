@@ -29,7 +29,7 @@ Exit.
 Load phase operation context:
 
 ```bash
-INIT=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" init phase-op "0")
+INIT=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" init phase-op "0")
 if [[ "$INIT" == @file:* ]]; then INIT=$(cat "${INIT#@file:}"); fi
 ```
 
@@ -42,10 +42,10 @@ Exit.
 </step>
 
 <step name="add_phase">
-**Delegate the phase addition to pde-tools:**
+**Delegate the phase addition to gsd-tools:**
 
 ```bash
-RESULT=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" phase add "${description}")
+RESULT=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" phase add "${description}")
 ```
 
 The CLI handles:
@@ -104,7 +104,7 @@ Roadmap updated: .planning/ROADMAP.md
 </process>
 
 <success_criteria>
-- [ ] `pde-tools phase add` executed successfully
+- [ ] `gsd-tools phase add` executed successfully
 - [ ] Phase directory created
 - [ ] Roadmap updated with new phase entry
 - [ ] STATE.md updated with roadmap evolution note

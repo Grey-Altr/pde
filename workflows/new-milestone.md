@@ -10,9 +10,15 @@ Read all files referenced by the invoking prompt's execution_context before star
 
 </required_reading>
 
-<process>
+<available_agent_types>
+Valid GSD subagent types (use exact names — do not fall back to 'general-purpose'):
+- gsd-project-researcher — Researches project-level technical decisions
+- gsd-research-synthesizer — Synthesizes findings from parallel research agents
+- gsd-roadmapper — Creates phased execution roadmaps
+</available_agent_types>
 
-## 1. Load Context
+
+If the flag is absent, keep the current behavior of continuing phase numbering from the previous milestone.
 
 - Read PROJECT.md (existing project, validated requirements, decisions)
 - Read MILESTONES.md (what shipped previously)
@@ -31,51 +37,39 @@ Read all files referenced by the invoking prompt's execution_context before star
 - Wait for their response, then use AskUserQuestion to probe specifics
 - If user selects "Other" at any point to provide freeform input, ask follow-up as plain text — not another AskUserQuestion
 
-## 2.5. Analyst Interview (Optional)
-
-Skip if: `--auto` mode.
-
-Use AskUserQuestion:
-- header: "Analysis"
-- question: "Run a structured analysis to surface hidden assumptions for this milestone?"
-- options:
-  - "Yes (Recommended)" — Analyst probes for unstated requirements and edge cases
-  - "Skip" — Proceed with milestone setup
-
-**If "Skip":** Continue to Step 3.
-
-**If "Yes":**
-Spawn analyst interview:
-```
-Task(
-  subagent_type="pde-analyst",
-  model="{researcher_model}",
-  prompt="
-    <execution_context>
-    @${CLAUDE_PLUGIN_ROOT}/agents/pde-analyst.md
-    @${CLAUDE_PLUGIN_ROOT}/workflows/analyst-interview.md
-    </execution_context>
-
-    <interview_context>
-    Milestone goals: {from Step 2 goal gathering}
-    Project context: {from Step 1 loaded PROJECT.md}
-    </interview_context>
-
-    <objective>
-    Conduct a probing MECE interview to surface unstated requirements
-    and edge cases for this milestone. Produce ANL-analyst-brief-v{N}.md.
-    </objective>
-  "
-)
-```
-
-Continue to Step 3.
-
 ## 3. Determine Milestone Version
 
 - Parse last version from MILESTONES.md
-- Suggest next version (v1.0 → v1.1, or v2.0 for major)
+- Suggest next version (v1.0 -> v1.1, or v2.0 for major)
 - Confirm with user
+
+## 3.5. Verify Milestone Understanding
+
+Before writing any files, present a summary of what was gathered and ask for confirmation.
+
+```
+Milestone v[X.Y]: [Name]
+
+Goal: [One sentence]
+
+Target features:
+- [Feature 1]
+- [Feature 2]
+- [Feature 3]
+
+Key context: [Any important constraints, decisions, or notes from questioning]
+```
+
+AskUserQuestion:
+- header: "Confirm?"
+- question: "Does this capture what you want to build in this milestone?"
+- options:
+  - "Looks good" — Proceed to write PROJECT.md
+  - "Adjust" — Let me correct or add details
+
+**If "Adjust":** Ask what needs changing (plain text, NOT AskUserQuestion). Incorporate changes, re-present the summary. Loop until "Looks good" is selected.
+
+**If "Looks good":** Proceed to Step 4.
 
 ## 4. Update PROJECT.md
 
@@ -93,6 +87,27 @@ Add/update:
 ```
 
 Update Active requirements section and "Last updated" footer.
+
+Ensure the `## Evolution` section exists in PROJECT.md. If missing (projects created before this feature), add it before the footer:
+
+```markdown
+## Evolution
+
+This document evolves at phase transitions and milestone boundaries.
+
+**After each phase transition** (via transition workflow):
+1. Requirements invalidated? -> Move to Out of Scope with reason
+2. Requirements validated? -> Move to Validated with phase reference
+3. New requirements emerged? -> Add to Active
+4. Decisions to log? -> Add to Key Decisions
+5. "What This Is" still accurate? -> Update if drifted
+
+**After each milestone** (via `/pde:complete-milestone`):
+1. Full review of all sections
+2. Core Value check — still the right priority?
+3. Audit Out of Scope — reasons still valid?
+4. Update Context with current state
+```
 
 ## 5. Update STATE.md
 
@@ -112,17 +127,26 @@ Keep Accumulated Context section from previous milestone.
 Delete MILESTONE-CONTEXT.md if exists (consumed).
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" commit "docs: start milestone v[X.Y] [Name]" --files .planning/PROJECT.md .planning/STATE.md
+node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" commit "docs: start milestone v[X.Y] [Name]" --files .planning/PROJECT.md .planning/STATE.md
 ```
 
 ## 7. Load Context and Resolve Models
 
 ```bash
-INIT=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" init new-milestone)
+INIT=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" init new-milestone)
 if [[ "$INIT" == @file:* ]]; then INIT=$(cat "${INIT#@file:}"); fi
+AGENT_SKILLS_RESEARCHER=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" agent-skills gsd-project-researcher 2>/dev/null)
+AGENT_SKILLS_SYNTHESIZER=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" agent-skills gsd-synthesizer 2>/dev/null)
+AGENT_SKILLS_ROADMAPPER=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" agent-skills gsd-roadmapper 2>/dev/null)
+mkdir -p "${phase_archive_path}"
+find .planning/phases -mindepth 1 -maxdepth 1 -type d -exec mv {} "${phase_archive_path}/" \;
 ```
 
-Extract from init JSON: `researcher_model`, `synthesizer_model`, `roadmapper_model`, `commit_docs`, `research_enabled`, `current_milestone`, `project_exists`, `roadmap_exists`.
+Then verify `.planning/phases/` no longer contains old milestone directories before continuing.
+
+If `phase_dir_count > 0` but `phase_archive_path` is missing:
+- Stop and explain that reset numbering is unsafe without a completed milestone archive target.
+- Tell the user to complete/archive the previous milestone first, then rerun `/pde:new-milestone --reset-phase-numbers`.
 
 ## 8. Research Decision
 
@@ -145,10 +169,10 @@ AskUserQuestion: "Research the domain ecosystem for new features before defining
 **If user chose "Research first":**
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" banner "RESEARCHING"
+node "$HOME/.claude/pde-os/lib/ui/render.cjs" banner "RESEARCHING"
 ```
-◆ Spawning 4 researchers in parallel...
-  → Stack, Features, Architecture, Pitfalls
+Spawning 4 researchers in parallel...
+  -> Stack, Features, Architecture, Pitfalls
 
 ```bash
 mkdir -p .planning/research
@@ -173,25 +197,8 @@ Focus ONLY on what's needed for the NEW features.
 - .planning/PROJECT.md (Project context)
 </files_to_read>
 
-<downstream_consumer>{CONSUMER}</downstream_consumer>
+${AGENT_SKILLS_RESEARCHER}
 
-<quality_gate>{GATES}</quality_gate>
-
-<output>
-Write to: .planning/research/{FILE}
-Use template: ${CLAUDE_PLUGIN_ROOT}/templates/research-project/{FILE}
-</output>
-", subagent_type="pde-project-researcher", model="{researcher_model}", description="{DIMENSION} research")
-```
-
-**Dimension-specific fields:**
-
-| Field | Stack | Features | Architecture | Pitfalls |
-|-------|-------|----------|-------------|----------|
-| EXISTING_CONTEXT | Existing validated capabilities (DO NOT re-research): [from PROJECT.md] | Existing features (already built): [from PROJECT.md] | Existing architecture: [from PROJECT.md or codebase map] | Focus on common mistakes when ADDING these features to existing system |
-| QUESTION | What stack additions/changes are needed for [new features]? | How do [target features] typically work? Expected behavior? | How do [target features] integrate with existing architecture? | Common mistakes when adding [target features] to [domain]? |
-| CONSUMER | Specific libraries with versions for NEW capabilities, integration points, what NOT to add | Table stakes vs differentiators vs anti-features, complexity noted, dependencies on existing | Integration points, new components, data flow changes, suggested build order | Warning signs, prevention strategy, which phase should address it |
-| GATES | Versions current (verify with Context7), rationale explains WHY, integration considered | Categories clear, complexity noted, dependencies identified | Integration points identified, new vs modified explicit, build order considers deps | Pitfalls specific to adding these features, integration pitfalls covered, prevention actionable |
 | FILE | STACK.md | FEATURES.md | ARCHITECTURE.md | PITFALLS.md |
 
 After all 4 complete, spawn synthesizer:
@@ -207,15 +214,17 @@ Synthesize research outputs into SUMMARY.md.
 - .planning/research/PITFALLS.md
 </files_to_read>
 
+${AGENT_SKILLS_SYNTHESIZER}
+
 Write to: .planning/research/SUMMARY.md
-Use template: ${CLAUDE_PLUGIN_ROOT}/templates/research-project/SUMMARY.md
+Use template: /Users/greyaltaer/.claude/pde-os/engines/gsd/templates/research-project/SUMMARY.md
 Commit after writing.
 ", subagent_type="pde-research-synthesizer", model="{synthesizer_model}", description="Synthesize research")
 ```
 
 Display key findings from SUMMARY.md:
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" banner "RESEARCH COMPLETE ✓"
+node "$HOME/.claude/pde-os/lib/ui/render.cjs" banner "RESEARCH COMPLETE"
 ```
 **Stack additions:** [from SUMMARY.md]
 **Feature table stakes:** [from SUMMARY.md]
@@ -226,8 +235,7 @@ node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" banner "RESEARCH COMPLETE ✓"
 ## 9. Define Requirements
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" banner "DEFINING REQUIREMENTS"
-```
+node "$HOME/.claude/pde-os/lib/ui/render.cjs" banner "DEFINING REQUIREMENTS"
 ```
 
 Read PROJECT.md: core value, current milestone goals, validated requirements (what exists).
@@ -235,6 +243,7 @@ Read PROJECT.md: core value, current milestone goals, validated requirements (wh
 **If research exists:** Read FEATURES.md, extract feature categories.
 
 Present features by category:
+```
 ## [Category 1]
 **Table stakes:** Feature A, Feature B
 **Differentiators:** Feature C, Feature D
@@ -248,7 +257,7 @@ Present features by category:
 - "[Feature 2]" — [brief description]
 - "None for this milestone" — Defer entire category
 
-Track: Selected → this milestone. Unselected table stakes → future. Unselected differentiators → out of scope.
+Track: Selected -> this milestone. Unselected table stakes -> future. Unselected differentiators -> out of scope.
 
 **Identify gaps** via AskUserQuestion:
 - "No, research covered it" — Proceed
@@ -289,17 +298,19 @@ If "adjust": Return to scoping.
 
 **Commit requirements:**
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" commit "docs: define milestone v[X.Y] requirements" --files .planning/REQUIREMENTS.md
+node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" commit "docs: define milestone v[X.Y] requirements" --files .planning/REQUIREMENTS.md
 ```
 
 ## 10. Create Roadmap
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" banner "CREATING ROADMAP"
+node "$HOME/.claude/pde-os/lib/ui/render.cjs" banner "CREATING ROADMAP"
 ```
-◆ Spawning roadmapper...
+Spawning roadmapper...
 
-**Starting phase number:** Read MILESTONES.md for last phase number. Continue from there (v1.0 ended at phase 5 → v1.1 starts at phase 6).
+**Starting phase number:**
+- If `--reset-phase-numbers` is active, start at **Phase 1**
+- Otherwise, continue from the previous milestone's last phase number (v1.0 ended at phase 5 -> v1.1 starts at phase 6)
 
 ```
 Task(prompt="
@@ -311,37 +322,9 @@ Task(prompt="
 - .planning/config.json
 - .planning/MILESTONES.md
 </files_to_read>
-</planning_context>
 
-<instructions>
-Create roadmap for milestone v[X.Y]:
-1. Start phase numbering from [N]
-2. Derive phases from THIS MILESTONE's requirements only
-3. Map every requirement to exactly one phase
-4. Derive 2-5 success criteria per phase (observable user behaviors)
-5. Validate 100% coverage
-6. Write files immediately (ROADMAP.md, STATE.md, update REQUIREMENTS.md traceability)
-7. Return ROADMAP CREATED with summary
+${AGENT_SKILLS_ROADMAPPER}
 
-Write files first, then return.
-</instructions>
-", subagent_type="pde-roadmapper", model="{roadmapper_model}", description="Create roadmap")
-```
-
-**Handle return:**
-
-**If `## ROADMAP BLOCKED`:** Present blocker, work with user, re-spawn.
-
-**If `## ROADMAP CREATED`:** Read ROADMAP.md, present inline:
-
-```
-## Proposed Roadmap
-
-**[N] phases** | **[X] requirements mapped** | All covered ✓
-
-| # | Phase | Goal | Requirements | Success Criteria |
-|---|-------|------|--------------|------------------|
-| [N] | [Name] | [Goal] | [REQ-IDs] | [count] |
 
 ### Phase Details
 
@@ -363,73 +346,13 @@ Success criteria:
 
 **Commit roadmap** (after approval):
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" commit "docs: create milestone v[X.Y] roadmap ([N] phases)" --files .planning/ROADMAP.md .planning/STATE.md .planning/REQUIREMENTS.md
-```
-
-## 10.5. Generate Project Context
-
-Regenerate `.planning/project-context.md` for the new milestone. If the file already exists from a previous milestone, overwrite it — the new milestone context supersedes.
-
-**Synthesis steps:**
-
-1. Read `.planning/PROJECT.md` — extract these sections verbatim:
-   - **Tech Stack** block (from `## Context` — the line starting "**Tech stack:**" through the end of that bullet)
-   - **Constraints** section (full `## Constraints` section content)
-   - **Key Decisions** table (last 10 rows from `## Key Decisions` table, include header row)
-
-2. Read `.planning/REQUIREMENTS.md` — extract all unchecked requirement lines (`- [ ] **REQ-ID**:...`), max 20 entries
-
-3. Read `.planning/STATE.md` — extract:
-   - Current milestone name and version (from `## Current Position` or frontmatter)
-   - Decisions subsection content (from `### Decisions`)
-
-4. Assemble into this template:
-
-```markdown
-# Project Context — {project-name}
-
-> Auto-generated baseline for subagent context. Do not edit manually.
-> Regenerate with /pde:new-milestone or /pde:new-project.
-
-## Tech Stack
-{tech stack line from PROJECT.md Context section}
-
-## Conventions
-- CommonJS (.cjs) modules in bin/lib/
-- Markdown-based state in .planning/
-- Zero npm dependencies at plugin root
-{any additional conventions from PROJECT.md Constraints}
-
-## Constraints
-{constraints section from PROJECT.md}
-
-## Current Milestone
-{milestone name} ({version}) — {phase count} phases
-Status: {from STATE.md progress}
-
-## Key Decisions
-{last 10 decisions table rows with header}
-
-## Active Requirements
-{unchecked requirement lines, max 20}
-```
-
-5. **Enforce 4KB limit:** Check `Buffer.from(content, 'utf-8').length`. If over 4096 bytes:
-   - First pass: Trim Key Decisions to last 5 rows
-   - Second pass: Trim Active Requirements to first 10 entries
-   - Never truncate Tech Stack, Conventions, or Constraints
-
-6. Write the file to `.planning/project-context.md`
-
-7. Commit:
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" commit "docs: generate project context" --files .planning/project-context.md
+node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" commit "docs: create milestone v[X.Y] roadmap ([N] phases)" --files .planning/ROADMAP.md .planning/STATE.md .planning/REQUIREMENTS.md
 ```
 
 ## 11. Done
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" banner "MILESTONE INITIALIZED ✓"
+node "$HOME/.claude/pde-os/lib/ui/render.cjs" banner "MILESTONE INITIALIZED"
 ```
 **Milestone v[X.Y]: [Name]**
 
@@ -439,17 +362,16 @@ node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" banner "MILESTONE INITIALIZED ✓
 | Research       | `.planning/research/`       |
 | Requirements   | `.planning/REQUIREMENTS.md` |
 | Roadmap        | `.planning/ROADMAP.md`      |
-| Context        | `.planning/project-context.md` |
 
-**[N] phases** | **[X] requirements** | Ready to build ✓
+**[N] phases** | **[X] requirements** | Ready to build
 
-## ▶ Next Up
+## Next Up
 
 **Phase [N]: [Phase Name]** — [Goal]
 
 `/pde:discuss-phase [N]` — gather context and clarify approach
 
-<sub>`/clear` first → fresh context window</sub>
+<sub>`/clear` first -> fresh context window</sub>
 
 Also: `/pde:plan-phase [N]` — skip discussion, plan directly
 
@@ -465,9 +387,10 @@ Also: `/pde:plan-phase [N]` — skip discussion, plan directly
 - [ ] pde-roadmapper spawned with phase numbering context
 - [ ] Roadmap files written immediately (not draft)
 - [ ] User feedback incorporated (if any)
-- [ ] ROADMAP.md phases continue from previous milestone
+- [ ] Phase numbering mode respected (continued or reset)
 - [ ] All commits made (if planning docs committed)
 - [ ] User knows next step: `/pde:discuss-phase [N]`
 
 **Atomic commits:** Each phase commits its artifacts immediately.
 </success_criteria>
+</output>

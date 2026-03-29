@@ -6,33 +6,67 @@ Execute all plans in a phase using wave-based parallel execution. Orchestrator s
 Orchestrator coordinates, not executes. Each subagent loads the full execute-plan context. Orchestrator: discover plans → analyze deps → group waves → spawn agents → handle checkpoints → collect results.
 </core_principle>
 
+<runtime_compatibility>
+**Subagent spawning is runtime-specific:**
+- **Claude Code:** Uses `Task(subagent_type="pde-executor", ...)` — blocks until complete, returns result
+- **Copilot:** Subagent spawning does not reliably return completion signals. **Default to
+  sequential inline execution**: read and follow execute-plan.md directly for each plan
+  instead of spawning parallel agents. Only attempt parallel spawning if the user
+  explicitly requests it — and in that case, rely on the spot-check fallback in step 3
+  to detect completion.
+- **Other runtimes:** If `Task`/`task` tool is unavailable, use sequential inline execution as the
+  fallback. Check for tool availability at runtime rather than assuming based on runtime name.
+
+**Fallback rule:** If a spawned agent completes its work (commits visible, SUMMARY.md exists) but
+the orchestrator never receives the completion signal, treat it as successful based on spot-checks
+and continue to the next wave/plan. Never block indefinitely waiting for a signal — always verify
+via filesystem and git state.
+</runtime_compatibility>
+
 <required_reading>
 Read STATE.md before any operation to load project context.
 </required_reading>
 
+<available_agent_types>
+These are the valid GSD subagent types registered in .claude/agents/ (or equivalent for your runtime).
+Always use the exact name from this list — do not fall back to 'general-purpose' or other built-in types:
+
+- pde-executor — Executes plan tasks, commits, creates SUMMARY.md
+- pde-verifier — Verifies phase completion, checks quality gates
+- pde-planner — Creates detailed plans from phase scope
+- pde-phase-researcher — Researches technical approaches for a phase
+- pde-plan-checker — Reviews plan quality before execution
+- pde-debugger — Diagnoses and fixes issues
+- pde-codebase-mapper — Maps project structure and dependencies
+- pde-integration-checker — Checks cross-phase integration
+- pde-nyquist-auditor — Validates verification coverage
+- gsd-ui-researcher — Researches UI/UX approaches
+- gsd-ui-checker — Reviews UI implementation quality
+- gsd-ui-auditor — Audits UI against design requirements
+</available_agent_types>
+
 <process>
+
+<step name="parse_args" priority="first">
+Parse `$ARGUMENTS` before loading any context:
+
+- First positional token → `PHASE_ARG`
+- Optional `--wave N` → `WAVE_FILTER`
+- Optional `--gaps-only` keeps its current meaning
+
+If `--wave` is absent, preserve the current behavior of executing all incomplete waves in the phase.
+</step>
 
 <step name="initialize" priority="first">
 Load all context in one call:
 
 ```bash
-INIT=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" init execute-phase "${PHASE_ARG}")
+INIT=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" init execute-phase "${PHASE_ARG}")
 if [[ "$INIT" == @file:* ]]; then INIT=$(cat "${INIT#@file:}"); fi
+AGENT_SKILLS=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" agent-skills pde-executor 2>/dev/null)
 ```
 
 Parse JSON for: `executor_model`, `verifier_model`, `commit_docs`, `parallelization`, `branching_strategy`, `branch_name`, `phase_found`, `phase_dir`, `phase_number`, `phase_name`, `phase_slug`, `plans`, `incomplete_plans`, `plan_count`, `incomplete_count`, `state_exists`, `roadmap_exists`, `phase_req_ids`.
-
-**Context staleness check:**
-```bash
-if [ -f ".planning/project-context.md" ] && [ -f ".planning/PROJECT.md" ]; then
-  PC_MTIME=$(stat -f "%m" ".planning/project-context.md" 2>/dev/null || stat -c "%Y" ".planning/project-context.md" 2>/dev/null)
-  PJ_MTIME=$(stat -f "%m" ".planning/PROJECT.md" 2>/dev/null || stat -c "%Y" ".planning/PROJECT.md" 2>/dev/null)
-  if [ "$PJ_MTIME" -gt "$PC_MTIME" ]; then
-    echo "Warning: project-context.md may be stale — PROJECT.md was modified more recently."
-    echo "  Run /pde:new-milestone to regenerate, or continue with current context."
-  fi
-fi
-```
 
 **If `phase_found` is false:** Error — phase directory not found.
 **If `plan_count` is 0:** Error — no plans found in phase.
@@ -40,72 +74,69 @@ fi
 
 When `parallelization` is false, plans within a wave execute sequentially.
 
+**Runtime detection for Copilot:**
+Check if the current runtime is Copilot by testing for the `@pde-executor` agent pattern
+or absence of the `Task()` subagent API. If running under Copilot, force sequential inline
+execution regardless of the `parallelization` setting — Copilot's subagent completion
+signals are unreliable (see `<runtime_compatibility>`). Set `COPILOT_SEQUENTIAL=true`
+internally and skip the `execute_waves` step in favor of `check_interactive_mode`'s
+inline path for each plan.
+
 **REQUIRED — Sync chain flag with intent.** If user invoked manually (no `--auto`), clear the ephemeral chain flag from any previous interrupted `--auto` chain. This prevents stale `_auto_chain_active: true` from causing unwanted auto-advance. This does NOT touch `workflow.auto_advance` (the user's persistent settings preference). You MUST execute this bash block before any config reads:
 ```bash
 # REQUIRED: prevents stale auto-chain from previous --auto runs
 if [[ ! "$ARGUMENTS" =~ --auto ]]; then
-  node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" config-set workflow._auto_chain_active false 2>/dev/null
+  node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" config-set workflow._auto_chain_active false 2>/dev/null
 fi
 ```
+</step>
 
-**Readiness gate check:**
-```bash
-READINESS_RESULT="none"
-READINESS_FILE=""
+<step name="check_interactive_mode">
+**Parse `--interactive` flag from $ARGUMENTS.**
 
-# Check for existing READINESS.md in the phase directory
-READINESS_FILE=$(ls "${phase_dir}"/*-READINESS.md 2>/dev/null | head -1)
+**If `--interactive` flag present:** Switch to interactive execution mode.
 
-if [ -n "$READINESS_FILE" ]; then
-  # Check for staleness: is READINESS.md older than newest PLAN.md?
-  NEWEST_PLAN=$(ls -t "${phase_dir}"/*-PLAN.md 2>/dev/null | head -1)
-  if [ -n "$NEWEST_PLAN" ]; then
-    R_MTIME=$(stat -f "%m" "$READINESS_FILE" 2>/dev/null || stat -c "%Y" "$READINESS_FILE" 2>/dev/null)
-    P_MTIME=$(stat -f "%m" "$NEWEST_PLAN" 2>/dev/null || stat -c "%Y" "$NEWEST_PLAN" 2>/dev/null)
-    if [ "$P_MTIME" -gt "$R_MTIME" ]; then
-      echo "WARNING: READINESS.md may be stale — PLAN.md was modified after the last readiness check."
-      echo "  Run /pde:check-readiness ${PHASE_NUMBER} to refresh."
-    fi
-  fi
+Interactive mode executes plans sequentially **inline** (no subagent spawning) with user
+checkpoints between tasks. The user can review, modify, or redirect work at any point.
 
-  # Read the result from READINESS.md frontmatter
-  READINESS_RESULT=$(grep "^result:" "$READINESS_FILE" 2>/dev/null | head -1 | sed 's/^result:[[:space:]]*//')
-fi
-```
+**Interactive execution flow:**
 
-Apply gate logic based on READINESS_RESULT:
+1. Load plan inventory as normal (discover_and_group_plans)
+2. For each plan (sequentially, ignoring wave grouping):
 
-**If READINESS_RESULT is "fail":**
-HALT — do not proceed to handle_branching or any subsequent step. Display:
-```
-HALT: Readiness Gate FAIL
-Phase: {phase_number} — {phase_name}
-Readiness report: {READINESS_FILE}
+   a. **Present the plan to the user:**
+      ```
+      ## Plan {plan_id}: {plan_name}
 
-The last readiness check found critical issues that must be fixed before executing.
-Run /pde:check-readiness {phase_number} to see the current status.
+      Objective: {from plan file}
+      Tasks: {task_count}
 
-To override (not recommended): delete the READINESS.md file and re-run execute-phase.
-```
-Stop execution entirely. Do NOT spawn any executors or create any branches.
+      Options:
+      - Execute (proceed with all tasks)
+      - Review first (show task breakdown before starting)
+      - Skip (move to next plan)
+      - Stop (end execution, save progress)
+      ```
 
-**If READINESS_RESULT is "concerns":**
-Use AskUserQuestion to present:
-```
-WARNING: Readiness Gate CONCERNS
-Phase: {phase_number} — {phase_name}
+   b. **If "Review first":** Read and display the full plan file. Ask again: Execute, Modify, Skip.
 
-The readiness check found non-blocking concerns. Review them before continuing.
-See: {READINESS_FILE}
+   c. **If "Execute":** Read and follow `$HOME/.claude/pde-os/engines/gsd/workflows/execute-plan.md` **inline**
+      (do NOT spawn a subagent). Execute tasks one at a time.
 
-Type 'proceed' to execute with these concerns, or 'abort' to fix them first.
-```
-If user responds 'abort' (or equivalent): stop execution.
-If user responds 'proceed' (or equivalent): continue normally, log "Proceeding with readiness concerns acknowledged."
+   d. **After each task:** Pause briefly. If the user intervenes (types anything), stop and address
+      their feedback before continuing. Otherwise proceed to next task.
 
-**If READINESS_RESULT is "pass":** Continue silently (no user interaction).
+   e. **After plan complete:** Show results, commit, create SUMMARY.md, then present next plan.
 
-**If READINESS_RESULT is "none"** (no READINESS.md found): Continue normally. The gate is opt-in.
+3. After all plans: proceed to verification (same as normal mode).
+
+**Benefits of interactive mode:**
+- No subagent overhead — dramatically lower token usage
+- User catches mistakes early — saves costly verification cycles
+- Maintains GSD's planning/tracking structure
+- Best for: small phases, bug fixes, verification gaps, learning GSD
+
+**Skip to handle_branching step** (interactive plans execute inline after grouping).
 </step>
 
 <step name="handle_branching">
@@ -126,27 +157,35 @@ From init JSON: `phase_dir`, `plan_count`, `incomplete_count`.
 
 Report: "Found {plan_count} plans in {phase_dir} ({incomplete_count} incomplete)"
 
+**Update STATE.md for phase start:**
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" event-emit phase_started '{"phase_number":"'"${PHASE_NUMBER}"'","phase_name":"'"${PHASE_NAME}"'"}' 2>/dev/null || true
+node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" state begin-phase --phase "${PHASE_NUMBER}" --name "${PHASE_NAME}" --plans "${PLAN_COUNT}"
 ```
+This updates Status, Last Activity, Current focus, Current Position, and plan counts in STATE.md so frontmatter and body text reflect the active phase immediately.
 </step>
 
 <step name="discover_and_group_plans">
 Load plan inventory with wave grouping in one call:
 
 ```bash
-PLAN_INDEX=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" phase-plan-index "${PHASE_NUMBER}")
+PLAN_INDEX=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" phase-plan-index "${PHASE_NUMBER}")
 ```
 
 Parse JSON for: `phase`, `plans[]` (each with `id`, `wave`, `autonomous`, `objective`, `files_modified`, `task_count`, `has_summary`), `waves` (map of wave number → plan IDs), `incomplete`, `has_checkpoints`.
 
-**Filtering:** Skip plans where `has_summary: true`. If `--gaps-only`: also skip non-gap_closure plans. If all filtered: "No matching incomplete plans" → exit.
+**Filtering:** Skip plans where `has_summary: true`. If `--gaps-only`: also skip non-gap_closure plans. If `WAVE_FILTER` is set: also skip plans whose `wave` does not equal `WAVE_FILTER`.
+
+**Wave safety check:** If `WAVE_FILTER` is set and there are still incomplete plans in any lower wave that match the current execution mode, STOP and tell the user to finish earlier waves first. Do not let Wave 2+ execute while prerequisite earlier-wave plans remain incomplete.
+
+If all filtered: "No matching incomplete plans" → exit.
 
 Report:
 ```
 ## Execution Plan
 
-**Phase {X}: {Name}** — {total_plans} plans across {wave_count} waves
+**Phase {X}: {Name}** — {total_plans} matching plans across {wave_count} wave(s)
+
+{If WAVE_FILTER is set: `Wave filter active: executing only Wave {WAVE_FILTER}`.}
 
 | Wave | Plans | What it builds |
 |------|-------|----------------|
@@ -156,15 +195,9 @@ Report:
 </step>
 
 <step name="execute_waves">
-Execute each wave in sequence. Within a wave: parallel if `PARALLELIZATION=true`, sequential if `false`.
-
-**Sharded vs Standard execution:** Plans with a `{plan-prefix}-tasks/` directory use per-task spawning (one executor per task file, ~90% context reduction). Plans without a tasks directory use the standard single-executor-per-plan flow. The orchestrator checks for the tasks directory before spawning — it never reads task file contents to stay lean.
+Execute each selected wave in sequence. Within a wave: parallel if `PARALLELIZATION=true`, sequential if `false`.
 
 **For each wave:**
-
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" event-emit wave_started '{"phase_number":"'"${PHASE_NUMBER}"'","wave_number":"'"${WAVE_NUM}"'"}' 2>/dev/null || true
-```
 
 1. **Describe what's being built (BEFORE spawning):**
 
@@ -186,199 +219,54 @@ node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" event-emit wave_started '{"phase_
 
 2. **Spawn executor agents:**
 
-   Pass paths only — executors read files themselves with their fresh 200k context.
-   This keeps orchestrator context lean (~10-15%).
-
-   **For each plan in the wave, determine execution mode:**
-
-   ```bash
-   PLAN_PREFIX=$(echo "$PLAN_FILE" | sed 's/-PLAN\.md$//')
-   TASKS_DIR="${PHASE_DIR}/${PLAN_PREFIX}-tasks"
-   ```
-
-   **Mode A — Sharded plan (tasks directory exists):**
-
-   When `TASKS_DIR` exists and contains task-NNN.md files, spawn one executor per task file. The orchestrator resolves paths only — it does NOT read task file contents.
-
-   ```bash
-   TASK_FILES=$(ls "${TASKS_DIR}"/task-*.md 2>/dev/null | sort)
-   if [ -z "$TASK_FILES" ]; then TASK_TOTAL=0; else TASK_TOTAL=$(echo "$TASK_FILES" | wc -l | tr -d ' '); fi
-   ```
-
-   **Tracking initialization for sharded plans:**
-
-   ```bash
-   # Extract task names from task file H1 headings
-   TASK_NAME_LIST=""
-   if [ "$TASK_TOTAL" -gt 0 ]; then
-     for TASK_FILE in $TASK_FILES; do
-       TNAME=$(grep "^# Task [0-9]*:" "$TASK_FILE" | sed 's/^# Task [0-9]*: //' | head -1)
-       if [ -n "$TASK_NAME_LIST" ]; then TASK_NAME_LIST="${TASK_NAME_LIST}|${TNAME}"; else TASK_NAME_LIST="$TNAME"; fi
-     done
-   fi
-
-   [ "$TASK_TOTAL" -gt 0 ] && node "$CLAUDE_PLUGIN_ROOT/bin/pde-tools.cjs" tracking init \
-     --tasks-dir "$TASKS_DIR" \
-     --plan "$PLAN_PREFIX" \
-     --phase "$PHASE_SLUG" \
-     --total "$TASK_TOTAL" \
-     --names "$TASK_NAME_LIST"
-   ```
-
-   This creates workflow-status.md with all tasks set to TODO. If workflow-status.md already exists (resume after interruption), existing DONE/SKIPPED rows are preserved.
-
-   For each task file in TASK_FILES, spawn sequentially (task 1 before task 2):
-
-   **Track task start:**
-
-   ```bash
-   TASK_NUM=$(echo "$TASK_FILE" | grep -oP '\d+' | sed 's/^0*//' | head -1)
-   node "$CLAUDE_PLUGIN_ROOT/bin/pde-tools.cjs" tracking set-status \
-     --tasks-dir "$TASKS_DIR" \
-     --task "$TASK_NUM" \
-     --status "IN_PROGRESS"
-   ```
-
-   **Risk:high HALT for sharded plans (before spawn):**
-   Before spawning each task executor, check the task file header for risk:
-   ```bash
-   TASK_RISK=$(grep "^\*\*Risk level:\*\*" "{task_file_path}" 2>/dev/null || echo "")
-   ```
-
-   If TASK_RISK is non-empty (contains "Risk level: HIGH"):
-   - Extract the risk reason from the line: `RISK_REASON=$(echo "$TASK_RISK" | sed 's/.*HIGH — //')`
-   - Present pre-execution HALT to user:
-     ```
-     HALT: High-Risk Task (Sharded Plan)
-     Task file: {task_file_path}
-     Task: {task name from filename or first heading}
-     Why high-risk: {RISK_REASON}
-
-     Type 'proceed' to execute this task or 'skip' to skip it.
-     ```
-   - Wait for user response via AskUserQuestion.
-   - If 'skip': do not spawn task executor, record as SKIPPED, continue to next task file.
-   - If 'proceed': spawn task executor as normal.
+   Pass paths only — executors read files themselves with their fresh context window.
+   For 200k models, this keeps orchestrator context lean (~10-15%).
+   For 1M+ models (Opus 4.6, Sonnet 4.6), richer context can be passed directly.
 
    ```
    Task(
      subagent_type="pde-executor",
      model="{executor_model}",
-     prompt="
-       <objective>
-       Execute task {task_num} of {task_total} from plan {plan_number}, phase {phase_number}-{phase_name}.
-       Commit this task atomically. Do NOT create SUMMARY.md — the orchestrator handles that.
-       </objective>
-
-       <execution_context>
-       @${CLAUDE_PLUGIN_ROOT}/workflows/execute-plan.md
-       @${CLAUDE_PLUGIN_ROOT}/templates/summary.md
-       @${CLAUDE_PLUGIN_ROOT}/references/checkpoints.md
-       @${CLAUDE_PLUGIN_ROOT}/references/tdd.md
-       </execution_context>
-
-       <files_to_read>
-       Read these files at execution start using the Read tool:
-       - .planning/project-context.md (Project context — compact project baseline, if exists)
-       - {task_file_path} (Task {task_num} of {task_total} — self-contained task instructions)
-       - .planning/STATE.md (State — position and recent decisions)
-       - .planning/config.json (Config, if exists)
-       - ./CLAUDE.md (Project instructions, if exists — follow project-specific guidelines and coding conventions)
-       - .claude/skills/ or .agents/skills/ (Project skills, if either exists — list skills, read SKILL.md for each, follow relevant rules during implementation)
-       - .planning/agent-memory/executor/memories.md (Agent memory — operational patterns learned in prior sessions, if exists)
-       </files_to_read>
-
-       <success_criteria>
-       - [ ] Task {task_num} implementation complete
-       - [ ] Task {task_num} committed atomically
-       - [ ] All acceptance criteria from task file verified
-       - [ ] STATE.md updated with position
-       </success_criteria>
-
-       <memory_instructions>
-       After completing your task, append a memory entry to .planning/agent-memory/executor/memories.md (create file if missing, with header: "# executor Agent Memory\n\n> Loaded at agent spawn. Append-only. Max 50 entries.\n> Oldest entries archived automatically.\n\n").
-       Entry format — one entry per task, append at end of file:
-       ### {ISO timestamp} | Phase {phase_number} | tags: {2-4 comma-separated relevance tags}
-       {1-3 sentences capturing an operational pattern learned during this task.}
-       Good entries: project conventions, file patterns, gotchas encountered, tool behaviors.
-       Bad entries: "task completed successfully", status updates, full context dumps.
-       </memory_instructions>
-     "
-   )
-   ```
-
-   **Post-execution HALT for sharded risk:high tasks:**
-   After the task executor returns (and IF the task file was risk:high, i.e. TASK_RISK was non-empty):
-   - Check the executor return for commit hash
-   - Present post-execution HALT via AskUserQuestion:
-     ```
-     HALT: High-Risk Task Completed (Sharded Plan)
-     Task: {task name}
-     Changes committed: {commit hash from executor return}
-     Review: git diff {hash}^ {hash}
-
-     Type 'approved' to continue to the next task, or describe any issues found.
-     ```
-   - Wait for user response before proceeding to next task file spawn.
-   - If user describes issues: note them in the SUMMARY.md deviations section; do not re-spawn the task executor unless the issue is blocking.
-
-   **Track task completion:**
-
-   ```bash
-   TASK_FINAL_STATUS="DONE"
-   # If task was skipped (user chose to skip during HALT), set TASK_FINAL_STATUS="SKIPPED"
-   node "$CLAUDE_PLUGIN_ROOT/bin/pde-tools.cjs" tracking set-status \
-     --tasks-dir "$TASKS_DIR" \
-     --task "$TASK_NUM" \
-     --status "$TASK_FINAL_STATUS" \
-     --commit "$TASK_COMMIT_HASH"
-   ```
-
-   Where TASK_COMMIT_HASH comes from the executor return (already available in the existing flow from the commit step).
-
-   Execute task spawns sequentially within a plan (task 1 before task 2), but plans within a wave still run parallel if `PARALLELIZATION=true`.
-
-   **Sharded plan SUMMARY.md aggregation:**
-
-   After the last task executor returns for a sharded plan, create SUMMARY.md in the plan directory. The orchestrator has the plan objective and task file list in context. Write a SUMMARY.md that:
-   - Lists each task by number and name
-   - Records commit hashes from task executor returns
-   - Notes any deviations reported by individual task executors
-   - Updates ROADMAP.md plan progress via `roadmap update-plan-progress`
-
-   Include `$TASKS_DIR/workflow-status.md` in the plan completion commit alongside SUMMARY.md.
-
-   **Mode B — Standard plan (no tasks directory):**
-
-   Execute with existing single-agent-per-plan behavior (unchanged):
-
-   ```
-   Task(
-     subagent_type="pde-executor",
-     model="{executor_model}",
+     isolation="worktree",
      prompt="
        <objective>
        Execute plan {plan_number} of phase {phase_number}-{phase_name}.
        Commit each task atomically. Create SUMMARY.md. Update STATE.md and ROADMAP.md.
        </objective>
 
+       <parallel_execution>
+       You are running as a PARALLEL executor agent. Use --no-verify on all git
+       commits to avoid pre-commit hook contention with other agents. The
+       orchestrator validates hooks once after all agents complete.
+       For gsd-tools commits: add --no-verify flag.
+       For direct git commits: use git commit --no-verify -m "..."
+       </parallel_execution>
+
        <execution_context>
-       @${CLAUDE_PLUGIN_ROOT}/workflows/execute-plan.md
-       @${CLAUDE_PLUGIN_ROOT}/templates/summary.md
-       @${CLAUDE_PLUGIN_ROOT}/references/checkpoints.md
-       @${CLAUDE_PLUGIN_ROOT}/references/tdd.md
+       @$HOME/.claude/pde-os/engines/gsd/workflows/execute-plan.md
+       @$HOME/.claude/pde-os/engines/gsd/templates/summary.md
+       @$HOME/.claude/pde-os/engines/gsd/references/checkpoints.md
+       @$HOME/.claude/pde-os/engines/gsd/references/tdd.md
        </execution_context>
 
        <files_to_read>
        Read these files at execution start using the Read tool:
-       - .planning/project-context.md (Project context — compact project baseline, if exists)
        - {phase_dir}/{plan_file} (Plan)
-       - .planning/STATE.md (State — position and recent decisions)
+       - .planning/PROJECT.md (Project context — core value, requirements, evolution rules)
+       - .planning/STATE.md (State)
        - .planning/config.json (Config, if exists)
        - ./CLAUDE.md (Project instructions, if exists — follow project-specific guidelines and coding conventions)
        - .claude/skills/ or .agents/skills/ (Project skills, if either exists — list skills, read SKILL.md for each, follow relevant rules during implementation)
-       - .planning/agent-memory/executor/memories.md (Agent memory — operational patterns learned in prior sessions, if exists)
        </files_to_read>
+
+       ${AGENT_SKILLS}
+
+       <mcp_tools>
+       If CLAUDE.md or project instructions reference MCP tools (e.g. jCodeMunch, context7,
+       or other MCP servers), prefer those tools over Grep/Glob for code navigation when available.
+       MCP tools often save significant tokens by providing structured code indexes.
+       Check tool availability first — if MCP tools are not accessible, fall back to Grep/Glob.
+       </mcp_tools>
 
        <success_criteria>
        - [ ] All tasks executed
@@ -387,29 +275,50 @@ node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" event-emit wave_started '{"phase_
        - [ ] STATE.md updated with position and decisions
        - [ ] ROADMAP.md updated with plan progress (via `roadmap update-plan-progress`)
        </success_criteria>
-
-       <memory_instructions>
-       After completing your task, append a memory entry to .planning/agent-memory/executor/memories.md (create file if missing, with header: "# executor Agent Memory\n\n> Loaded at agent spawn. Append-only. Max 50 entries.\n> Oldest entries archived automatically.\n\n").
-       Entry format — one entry per task, append at end of file:
-       ### {ISO timestamp} | Phase {phase_number} | tags: {2-4 comma-separated relevance tags}
-       {1-3 sentences capturing an operational pattern learned during this task.}
-       Good entries: project conventions, file patterns, gotchas encountered, tool behaviors.
-       Bad entries: "task completed successfully", status updates, full context dumps.
-       </memory_instructions>
      "
    )
    ```
 
 3. **Wait for all agents in wave to complete.**
 
-4. **Report completion — spot-check claims first:**
+   **Completion signal fallback (Copilot and runtimes where Task() may not return):**
+
+   If a spawned agent does not return a completion signal but appears to have finished
+   its work, do NOT block indefinitely. Instead, verify completion via spot-checks:
+
+   ```bash
+   # For each plan in this wave, check if the executor finished:
+   SUMMARY_EXISTS=$(test -f "{phase_dir}/{plan_number}-{plan_padded}-SUMMARY.md" && echo "true" || echo "false")
+   COMMITS_FOUND=$(git log --oneline --all --grep="{phase_number}-{plan_padded}" --since="1 hour ago" | head -1)
+   ```
+
+   **If SUMMARY.md exists AND commits are found:** The agent completed successfully —
+   treat as done and proceed to step 4. Log: `"✓ {Plan ID} completed (verified via spot-check — completion signal not received)"`
+
+   **If SUMMARY.md does NOT exist after a reasonable wait:** The agent may still be
+   running or may have failed silently. Check `git log --oneline -5` for recent
+   activity. If commits are still appearing, wait longer. If no activity, report
+   the plan as failed and route to the failure handler in step 5.
+
+   **This fallback applies automatically to all runtimes.** Claude Code's Task() normally
+   returns synchronously, but the fallback ensures resilience if it doesn't.
+
+4. **Post-wave hook validation (parallel mode only):**
+
+   When agents committed with `--no-verify`, run pre-commit hooks once after the wave:
+   ```bash
+   # Run project's pre-commit hooks on the current state
+   git diff --cached --quiet || git stash  # stash any unstaged changes
+   git hook run pre-commit 2>&1 || echo "⚠ Pre-commit hooks failed — review before continuing"
+   ```
+   If hooks fail: report the failure and ask "Fix hook issues now?" or "Continue to next wave?"
+
+5. **Report completion — spot-check claims first:**
 
    For each SUMMARY.md:
    - Verify first 2 files from `key-files.created` exist on disk
    - Check `git log --oneline --all --grep="{phase}-{plan}"` returns ≥1 commit
    - Check for `## Self-Check: FAILED` marker
-
-   For sharded plans (where orchestrator created SUMMARY.md): spot-check the last task executor's commit exists in git log.
 
    If ANY spot-check fails: report which plan failed, route to failure handler — ask "Retry plan?" or "Continue with remaining waves?"
 
@@ -429,29 +338,36 @@ node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" event-emit wave_started '{"phase_
    - Bad: "Wave 2 complete. Proceeding to Wave 3."
    - Good: "Terrain system complete — 3 biome types, height-based texturing, physics collision meshes. Vehicle physics (Wave 3) can now reference ground surfaces."
 
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" event-emit wave_complete '{"phase_number":"'"${PHASE_NUMBER}"'","wave_number":"'"${WAVE_NUM}"'"}' 2>/dev/null || true
-```
-
 5. **Handle failures:**
 
-   **Known Claude Code bug (classifyHandoffIfNeeded):** If an agent reports "failed" with error containing `classifyHandoffIfNeeded is not defined`, this is a Claude Code runtime bug — not a PDE or agent issue. The error fires in the completion handler AFTER all tool calls finish. In this case: run the same spot-checks as step 4 (SUMMARY.md exists, git commits present, no Self-Check: FAILED). If spot-checks PASS → treat as **successful**. If spot-checks FAIL → treat as real failure below.
+   **Known Claude Code bug (classifyHandoffIfNeeded):** If an agent reports "failed" with error containing `classifyHandoffIfNeeded is not defined`, this is a Claude Code runtime bug — not a GSD or agent issue. The error fires in the completion handler AFTER all tool calls finish. In this case: run the same spot-checks as step 4 (SUMMARY.md exists, git commits present, no Self-Check: FAILED). If spot-checks PASS → treat as **successful**. If spot-checks FAIL → treat as real failure below.
 
    For real failures: report which plan failed → ask "Continue?" or "Stop?" → if continue, dependent plans may also fail. If stop, partial completion report.
+
+5b. **Pre-wave dependency check (waves 2+ only):**
+
+    Before spawning wave N+1, for each plan in the upcoming wave:
+    ```bash
+    node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" verify key-links {phase_dir}/{plan}-PLAN.md
+    ```
+
+    If any key-link from a PRIOR wave's artifact fails verification:
+
+    ## Cross-Plan Wiring Gap
+
+    | Plan | Link | From | Expected Pattern | Status |
+    |------|------|------|-----------------|--------|
+    | {plan} | {via} | {from} | {pattern} | NOT FOUND |
+
+    Wave {N} artifacts may not be properly wired. Options:
+    1. Investigate and fix before continuing
+    2. Continue (may cause cascading failures in wave {N+1})
+
+    Key-links referencing files in the CURRENT (upcoming) wave are skipped.
 
 6. **Execute checkpoint plans between waves** — see `<checkpoint_handling>`.
 
 7. **Proceed to next wave.**
-
-<!-- Memory write serialization: Agent memory writes happen within each subagent's
-     own execution context. Since waves run plans sequentially within a wave
-     (parallelization=false default) or in parallel, and each agent type writes to
-     its own memories.md file (executor/memories.md, verifier/memories.md),
-     there is no write conflict. If future changes allow multiple executors to run
-     in parallel within the same wave, orchestrator should collect memory entries
-     and serialize writes post-wave using:
-     node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" memory append {agentType} {entry}
--->
 </step>
 
 <step name="checkpoint_handling">
@@ -461,8 +377,8 @@ Plans with `autonomous: false` require user interaction.
 
 Read auto-advance config (chain flag + user preference):
 ```bash
-AUTO_CHAIN=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" config-get workflow._auto_chain_active 2>/dev/null || echo "false")
-AUTO_CFG=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" config-get workflow.auto_advance 2>/dev/null || echo "false")
+AUTO_CHAIN=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" config-get workflow._auto_chain_active 2>/dev/null || echo "false")
+AUTO_CFG=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" config-get workflow.auto_advance 2>/dev/null || echo "false")
 ```
 
 When executor returns a checkpoint AND (`AUTO_CHAIN` is `"true"` OR `AUTO_CFG` is `"true"`):
@@ -520,8 +436,37 @@ After all waves:
 ### Issues Encountered
 [Aggregate from SUMMARYs, or "None"]
 ```
+</step>
 
-After aggregate_results: proceed to close_parent_artifacts (decimal phases only), then reconcile_phase, then verify_phase_goal.
+<step name="handle_partial_wave_execution">
+If `WAVE_FILTER` was used, re-run plan discovery after execution:
+
+```bash
+POST_PLAN_INDEX=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" phase-plan-index "${PHASE_NUMBER}")
+```
+
+Apply the same "incomplete" filtering rules as earlier:
+- ignore plans with `has_summary: true`
+- if `--gaps-only`, only consider `gap_closure: true` plans
+
+**If incomplete plans still remain anywhere in the phase:**
+- STOP here
+- Do NOT run phase verification
+- Do NOT mark the phase complete in ROADMAP/STATE
+- Present:
+
+```markdown
+## Wave {WAVE_FILTER} Complete
+
+Selected wave finished successfully. This phase still has incomplete plans, so phase-level verification and completion were intentionally skipped.
+
+/pde:execute-phase {phase} ${GSD_WS}                # Continue remaining waves
+/pde:execute-phase {phase} --wave {next} ${GSD_WS}  # Run the next wave explicitly
+```
+
+**If no incomplete plans remain after the selected wave finishes:**
+- continue with the normal phase-level verification and completion flow below
+- this means the selected wave happened to be the last remaining work in the phase
 </step>
 
 <step name="close_parent_artifacts">
@@ -539,7 +484,7 @@ fi
 
 **2. Find parent UAT file:**
 ```bash
-PARENT_INFO=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" find-phase "${PARENT_PHASE}" --raw)
+PARENT_INFO=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" find-phase "${PARENT_PHASE}" --raw)
 # Extract directory from PARENT_INFO JSON, then find UAT file in that directory
 ```
 
@@ -570,79 +515,77 @@ mv .planning/debug/{slug}.md .planning/debug/resolved/
 
 **6. Commit updated artifacts:**
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" commit "docs(phase-${PARENT_PHASE}): resolve UAT gaps and debug sessions after ${PHASE_NUMBER} gap closure" --files .planning/phases/*${PARENT_PHASE}*/*-UAT.md .planning/debug/resolved/*.md
+node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" commit "docs(phase-${PARENT_PHASE}): resolve UAT gaps and debug sessions after ${PHASE_NUMBER} gap closure" --files .planning/phases/*${PARENT_PHASE}*/*-UAT.md .planning/debug/resolved/*.md
 ```
 </step>
 
-<step name="reconcile_phase">
-Gather execution evidence and produce RECONCILIATION.md before verification.
+<step name="regression_gate">
+Run prior phases' test suites to catch cross-phase regressions BEFORE verification.
 
-1. Find the first commit from the phase execution:
+**Skip if:** This is the first phase (no prior phases), or no prior VERIFICATION.md files exist.
+
+**Step 1: Discover prior phases' test files**
 ```bash
-PHASE_FIRST_COMMIT=$(git log --oneline --grep="(${PHASE_NUMBER}-" --reverse --all | head -1 | cut -d' ' -f1)
+# Find all VERIFICATION.md files from prior phases in current milestone
+PRIOR_VERIFICATIONS=$(find .planning/phases/ -name "*-VERIFICATION.md" ! -path "*${PHASE_NUMBER}*" 2>/dev/null)
 ```
 
-2. If PHASE_FIRST_COMMIT is empty (no phase commits found), skip reconciliation:
+**Step 2: Extract test file lists from prior verifications**
+
+For each VERIFICATION.md found, look for test file references:
+- Lines containing `test`, `spec`, or `__tests__` paths
+- The "Test Suite" or "Automated Checks" section
+- File patterns from `key-files.created` in corresponding SUMMARY.md files that match `*.test.*` or `*.spec.*`
+
+Collect all unique test file paths into `REGRESSION_FILES`.
+
+**Step 3: Run regression tests (if any found)**
+
 ```bash
-if [ -z "$PHASE_FIRST_COMMIT" ]; then
-  echo "No phase commits found — skipping reconciliation"
+# Detect test runner and run prior phase tests
+if [ -f "package.json" ]; then
+  # Node.js — use project's test runner
+  npx jest ${REGRESSION_FILES} --passWithNoTests --no-coverage -q 2>&1 || npx vitest run ${REGRESSION_FILES} 2>&1
+elif [ -f "Cargo.toml" ]; then
+  cargo test 2>&1
+elif [ -f "requirements.txt" ] || [ -f "pyproject.toml" ]; then
+  python -m pytest ${REGRESSION_FILES} -q --tb=short 2>&1
 fi
 ```
 
-3. Spawn reconciliation agent:
+**Step 4: Report results**
+
+If all tests pass:
 ```
-Task(
-  subagent_type="pde-reconciler",
-  model="{executor_model}",
-  prompt="
-    <objective>
-    Generate RECONCILIATION.md for Phase {phase_number}.
-    </objective>
+✓ Regression gate: {N} prior-phase test files passed — no regressions detected
+```
+→ Proceed to verify_phase_goal
 
-    <execution_context>
-    @${CLAUDE_PLUGIN_ROOT}/workflows/reconcile-phase.md
-    </execution_context>
+If any tests fail:
+```
+## ⚠ Cross-Phase Regression Detected
 
-    <files_to_read>
-    - {phase_dir}/*-PLAN.md (plans with task definitions and ac_refs)
-    - {phase_dir}/*-SUMMARY.md (executor reports with deviations)
-    - .planning/STATE.md
-    - .planning/project-context.md (if exists)
-    </files_to_read>
+Phase {X} execution may have broken functionality from prior phases.
 
-    <inputs>
-    Phase dir: {phase_dir}
-    Phase number: {phase_number}
-    Phase name: {phase_name}
-    Phase slug: {phase_slug}
-    Phase first commit: {PHASE_FIRST_COMMIT}
-    </inputs>
-  "
-)
+| Test File | Phase | Status | Detail |
+|-----------|-------|--------|--------|
+| {file} | {origin_phase} | FAILED | {first_failure_line} |
+
+Options:
+1. Fix regressions before verification (recommended)
+2. Continue to verification anyway (regressions will compound)
+3. Abort phase — roll back and re-plan
 ```
 
-4. Verify RECONCILIATION.md was created:
-```bash
-ls "{phase_dir}"/*-RECONCILIATION.md 2>/dev/null || echo "WARNING: RECONCILIATION.md not found after reconciliation step"
-```
-
-5. Read reconciliation status:
-```bash
-RECON_STATUS=$(grep "^status:" "{phase_dir}"/*-RECONCILIATION.md 2>/dev/null | head -1 | cut -d: -f2 | tr -d ' ')
-```
-
-6. If `RECON_STATUS` is not "clean", surface a brief summary to the user before proceeding to verification:
-```
-## Reconciliation: {RECON_STATUS}
-{Read the ## Verifier Handoff section and display it}
-Proceeding to verification...
-```
-
-If "clean": proceed silently to verify_phase_goal.
+Use AskUserQuestion to present the options.
 </step>
 
 <step name="verify_phase_goal">
 Verify phase achieved its GOAL, not just completed tasks.
+
+```bash
+VERIFIER_SKILLS=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" agent-skills pde-verifier 2>/dev/null)
+```
 
 ```
 Task(
@@ -653,19 +596,9 @@ Phase requirement IDs: {phase_req_ids}
 Check must_haves against actual codebase.
 Cross-reference requirement IDs from PLAN frontmatter against REQUIREMENTS.md — every ID MUST be accounted for.
 Create VERIFICATION.md.
-If RECONCILIATION.md exists, include its ## Verifier Handoff content under a new ## Reconciliation Summary section in VERIFICATION.md. If RECONCILIATION.md does not exist, note 'No RECONCILIATION.md found — reconciliation step may not have run' and continue with normal verification.
-
-<memory_instructions>
-After completing verification, append a memory entry to .planning/agent-memory/verifier/memories.md (create file if missing, with header: \"# verifier Agent Memory\n\n> Loaded at agent spawn. Append-only. Max 50 entries.\n> Oldest entries archived automatically.\n\n\").
-Entry format: ### {ISO timestamp} | Phase {phase_number} | tags: {2-4 comma-separated relevance tags}
-{1-3 sentences on verification patterns, common gaps found, project-specific quality signals.}
-</memory_instructions>",
+${VERIFIER_SKILLS}",
   subagent_type="pde-verifier",
-  model="{verifier_model}",
-  files_to_read=[
-    "{phase_dir}/*-RECONCILIATION.md (Reconciliation report — read ## Verifier Handoff section and include in VERIFICATION.md under a ## Reconciliation Summary heading)",
-    ".planning/agent-memory/verifier/memories.md (Agent memory, if exists)"
-  ]
+  model="{verifier_model}"
 )
 ```
 
@@ -678,9 +611,54 @@ grep "^status:" "$PHASE_DIR"/*-VERIFICATION.md | cut -d: -f2 | tr -d ' '
 |--------|--------|
 | `passed` | → update_roadmap |
 | `human_needed` | Present items for human testing, get approval or feedback |
-| `gaps_found` | Present gap summary, offer `/pde:plan-phase {phase} --gaps` |
+| `gaps_found` | Present gap summary, offer `/pde:plan-phase {phase} --gaps ${GSD_WS}` |
 
 **If human_needed:**
+
+**Step A: Persist human verification items as UAT file.**
+
+Create `{phase_dir}/{phase_num}-HUMAN-UAT.md` using UAT template format:
+
+```markdown
+---
+status: partial
+phase: {phase_num}-{phase_name}
+source: [{phase_num}-VERIFICATION.md]
+started: [now ISO]
+updated: [now ISO]
+---
+
+## Current Test
+
+[awaiting human testing]
+
+## Tests
+
+{For each human_verification item from VERIFICATION.md:}
+
+### {N}. {item description}
+expected: {expected behavior from VERIFICATION.md}
+result: [pending]
+
+## Summary
+
+total: {count}
+passed: 0
+issues: 0
+pending: {count}
+skipped: 0
+blocked: 0
+
+## Gaps
+```
+
+Commit the file:
+```bash
+node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" commit "test({phase_num}): persist human verification items as UAT" --files "{phase_dir}/{phase_num}-HUMAN-UAT.md"
+```
+
+**Step B: Present to user:**
+
 ```
 ## ✓ Phase {X}: {Name} — Human Verification Required
 
@@ -688,8 +666,14 @@ All automated checks passed. {N} items need human testing:
 
 {From VERIFICATION.md human_verification section}
 
+Items saved to `{phase_num}-HUMAN-UAT.md` — they will appear in `/pde:progress` and `/pde:audit-uat`.
+
 "approved" → continue | Report issues → gap closure
 ```
+
+**If user says "approved":** Proceed to `update_roadmap`. The HUMAN-UAT.md file persists with `status: partial` and will surface in future progress checks until the user runs `/pde:verify-work` on it.
+
+**If user reports issues:** Proceed to gap closure as currently implemented.
 
 **If gaps_found:**
 ```
@@ -704,22 +688,22 @@ All automated checks passed. {N} items need human testing:
 ---
 ## ▶ Next Up
 
-`/pde:plan-phase {X} --gaps`
+`/pde:plan-phase {X} --gaps ${GSD_WS}`
 
 <sub>`/clear` first → fresh context window</sub>
 
 Also: `cat {phase_dir}/{phase_num}-VERIFICATION.md` — full report
-Also: `/pde:verify-work {X}` — manual testing first
+Also: `/pde:verify-work {X} ${GSD_WS}` — manual testing first
 ```
 
-Gap closure cycle: `/pde:plan-phase {X} --gaps` reads VERIFICATION.md → creates gap plans with `gap_closure: true` → user runs `/pde:execute-phase {X} --gaps-only` → verifier re-runs.
+Gap closure cycle: `/pde:plan-phase {X} --gaps ${GSD_WS}` reads VERIFICATION.md → creates gap plans with `gap_closure: true` → user runs `/pde:execute-phase {X} --gaps-only ${GSD_WS}` → verifier re-runs.
 </step>
 
 <step name="update_roadmap">
 **Mark phase complete and update all tracking files:**
 
 ```bash
-COMPLETION=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" phase complete "${PHASE_NUMBER}")
+COMPLETION=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" phase complete "${PHASE_NUMBER}")
 ```
 
 The CLI handles:
@@ -728,16 +712,44 @@ The CLI handles:
 - Updating plan count to final
 - Advancing STATE.md to next phase
 - Updating REQUIREMENTS.md traceability
+- Scanning for verification debt (returns `warnings` array)
 
-Extract from result: `next_phase`, `next_phase_name`, `is_last_phase`.
+Extract from result: `next_phase`, `next_phase_name`, `is_last_phase`, `warnings`, `has_warnings`.
 
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" event-emit phase_complete '{"phase_number":"'"${PHASE_NUMBER}"'","phase_name":"'"${PHASE_NAME}"'"}' 2>/dev/null || true
+**If has_warnings is true:**
+```
+## Phase {X} marked complete with {N} warnings:
+
+{list each warning}
+
+These items are tracked and will appear in `/pde:progress` and `/pde:audit-uat`.
 ```
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" commit "docs(phase-{X}): complete phase execution" --files .planning/ROADMAP.md .planning/STATE.md .planning/REQUIREMENTS.md {phase_dir}/*-VERIFICATION.md
+node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" commit "docs(phase-{X}): complete phase execution" --files .planning/ROADMAP.md .planning/STATE.md .planning/REQUIREMENTS.md {phase_dir}/*-VERIFICATION.md
 ```
+</step>
+
+<step name="update_project_md">
+**Evolve PROJECT.md to reflect phase completion (prevents planning document drift — #956):**
+
+PROJECT.md tracks validated requirements, decisions, and current state. Without this step,
+PROJECT.md falls behind silently over multiple phases.
+
+1. Read `.planning/PROJECT.md`
+2. If the file exists and has a `## Validated Requirements` or `## Requirements` section:
+   - Move any requirements validated by this phase from Active → Validated
+   - Add a brief note: `Validated in Phase {X}: {Name}`
+3. If the file has a `## Current State` or similar section:
+   - Update it to reflect this phase's completion (e.g., "Phase {X} complete — {one-liner}")
+4. Update the `Last updated:` footer to today's date
+5. Commit the change:
+
+```bash
+node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" commit "docs(phase-{X}): evolve PROJECT.md after phase completion" --files .planning/PROJECT.md
+```
+
+**Skip this step if** `.planning/PROJECT.md` does not exist.
 </step>
 
 <step name="offer_next">
@@ -772,41 +784,55 @@ STOP. Do not proceed to auto-advance or transition.
 1. Parse `--auto` flag from $ARGUMENTS
 2. Read both the chain flag and user preference (chain flag already synced in init step):
    ```bash
-   AUTO_CHAIN=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" config-get workflow._auto_chain_active 2>/dev/null || echo "false")
-   AUTO_CFG=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" config-get workflow.auto_advance 2>/dev/null || echo "false")
+   AUTO_CHAIN=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" config-get workflow._auto_chain_active 2>/dev/null || echo "false")
+   AUTO_CFG=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" config-get workflow.auto_advance 2>/dev/null || echo "false")
    ```
 
 **If `--auto` flag present OR `AUTO_CHAIN` is true OR `AUTO_CFG` is true (AND verification passed with no gaps):**
 
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" panel "AUTO-ADVANCING" --type checkpoint --content "Phase {X} verified, continuing chain"
+```
+╔══════════════════════════════════════════╗
+║  AUTO-ADVANCING → TRANSITION             ║
+║  Phase {X} verified, continuing chain    ║
+╚══════════════════════════════════════════╝
 ```
 
 Execute the transition workflow inline (do NOT use Task — orchestrator context is ~10-15%, transition needs phase completion data already in context):
 
-Read and follow `${CLAUDE_PLUGIN_ROOT}/workflows/transition.md`, passing through the `--auto` flag so it propagates to the next phase invocation.
+Read and follow `$HOME/.claude/pde-os/engines/gsd/workflows/transition.md`, passing through the `--auto` flag so it propagates to the next phase invocation.
 
 **If none of `--auto`, `AUTO_CHAIN`, or `AUTO_CFG` is true:**
 
 **STOP. Do not auto-advance. Do not execute transition. Do not plan next phase. Present options to the user and wait.**
 
+**IMPORTANT: There is NO `/pde:transition` command. Never suggest it. The transition workflow is internal only.**
+
 ```
 ## ✓ Phase {X}: {Name} Complete
 
-/pde:progress — see updated roadmap
-/pde:transition — plan next phase transition
-/pde:execute-phase {next} — execute next phase
+/pde:progress ${GSD_WS} — see updated roadmap
+/pde:discuss-phase {next} ${GSD_WS} — discuss next phase before planning
+/pde:plan-phase {next} ${GSD_WS} — plan next phase
+/pde:execute-phase {next} ${GSD_WS} — execute next phase
 ```
+
+Only suggest the commands listed above. Do not invent or hallucinate command names.
 </step>
 
 </process>
 
 <context_efficiency>
-Orchestrator: ~10-15% context. Subagents: fresh 200k each. No polling (Task blocks). No context bleed.
+Orchestrator: ~10-15% context for 200k windows, can use more for 1M+ windows.
+Subagents: fresh context each (200k-1M depending on model). No polling (Task blocks). No context bleed.
+
+For 1M+ context models, consider:
+- Passing richer context (code snippets, dependency outputs) directly to executors instead of just file paths
+- Running small phases (≤3 plans, no dependencies) inline without subagent spawning overhead
+- Relaxing /clear recommendations — context rot onset is much further out with 5x window
 </context_efficiency>
 
 <failure_handling>
-- **classifyHandoffIfNeeded false failure:** Agent reports "failed" but error is `classifyHandoffIfNeeded is not defined` → Claude Code bug, not PDE. Spot-check (SUMMARY exists, commits present) → if pass, treat as success
+- **classifyHandoffIfNeeded false failure:** Agent reports "failed" but error is `classifyHandoffIfNeeded is not defined` → Claude Code bug, not GSD. Spot-check (SUMMARY exists, commits present) → if pass, treat as success
 - **Agent fails mid-plan:** Missing SUMMARY.md → report, ask user how to proceed
 - **Dependency chain breaks:** Wave 1 fails → Wave 2 dependents likely fail → user chooses attempt or skip
 - **All agents in wave fail:** Systemic issue → stop, report for investigation

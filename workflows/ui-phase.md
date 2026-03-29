@@ -5,33 +5,33 @@ UI-SPEC.md locks spacing, typography, color, copywriting, and design system deci
 </purpose>
 
 <required_reading>
-@${CLAUDE_PLUGIN_ROOT}/references/ui-brand.md
+@$HOME/.claude/pde-os/engines/gsd/references/ui-brand.md
 </required_reading>
+
+<available_agent_types>
+Valid GSD subagent types (use exact names — do not fall back to 'general-purpose'):
+- gsd-ui-researcher — Researches UI/UX approaches
+- gsd-ui-checker — Reviews UI implementation quality
+</available_agent_types>
 
 <process>
 
 ## 1. Initialize
 
 ```bash
-INIT=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" init plan-phase "$PHASE")
+INIT=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" init plan-phase "$PHASE")
 if [[ "$INIT" == @file:* ]]; then INIT=$(cat "${INIT#@file:}"); fi
-```
-
-Parse JSON for: `phase_dir`, `phase_number`, `phase_name`, `phase_slug`, `padded_phase`, `has_context`, `has_research`, `commit_docs`.
-
-**File paths:** `state_path`, `roadmap_path`, `requirements_path`, `context_path`, `research_path`.
-
-Resolve UI agent models:
-
+AGENT_SKILLS_UI=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" agent-skills gsd-ui-researcher 2>/dev/null)
+AGENT_SKILLS_UI_CHECKER=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" agent-skills gsd-ui-checker 2>/dev/null)
 ```bash
-UI_RESEARCHER_MODEL=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" resolve-model pde-ui-researcher --raw)
-UI_CHECKER_MODEL=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" resolve-model pde-ui-checker --raw)
+UI_RESEARCHER_MODEL=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" resolve-model pde-ui-researcher --raw)
+UI_CHECKER_MODEL=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" resolve-model pde-ui-checker --raw)
 ```
 
 Check config:
 
 ```bash
-UI_ENABLED=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" config-get workflow.ui_phase 2>/dev/null || echo "true")
+UI_ENABLED=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" config-get workflow.ui_phase 2>/dev/null || echo "true")
 ```
 
 **If `UI_ENABLED` is `false`:**
@@ -47,7 +47,7 @@ Exit workflow.
 Extract phase number from $ARGUMENTS. If not provided, detect next unplanned phase.
 
 ```bash
-PHASE_INFO=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" roadmap get-phase "${PHASE}")
+PHASE_INFO=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" roadmap get-phase "${PHASE}")
 ```
 
 **If `found` is false:** Error with available phases.
@@ -90,18 +90,18 @@ If "Update": continue to step 5.
 ## 5. Spawn pde-ui-researcher
 
 Display:
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" banner "UI DESIGN CONTRACT — PHASE {N}"
 ```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► UI DESIGN CONTRACT — PHASE {N}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-```
-Spawning UI researcher...
+◆ Spawning UI researcher...
 ```
 
 Build prompt:
 
 ```markdown
-Read ${CLAUDE_PLUGIN_ROOT}/agents/pde-ui-researcher.md for instructions.
+Read $HOME/.claude/agents/pde-ui-researcher.md for instructions.
 
 <objective>
 Create UI design contract for Phase {phase_number}: {phase_name}
@@ -116,15 +116,7 @@ Answer: "What visual and interaction contracts does this phase need?"
 - {research_path} (Technical Research — stack decisions)
 </files_to_read>
 
-<output>
-Write to: {phase_dir}/{padded_phase}-UI-SPEC.md
-Template: ${CLAUDE_PLUGIN_ROOT}/templates/UI-SPEC.md
-</output>
-
-<config>
-commit_docs: {commit_docs}
-phase_dir: {phase_dir}
-padded_phase: {padded_phase}
+${AGENT_SKILLS_UI}
 </config>
 ```
 
@@ -150,18 +142,18 @@ Display blocker details and options. Exit workflow.
 ## 7. Spawn pde-ui-checker
 
 Display:
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" banner "VERIFYING UI-SPEC"
 ```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► VERIFYING UI-SPEC
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-```
-Spawning UI checker...
+◆ Spawning UI checker...
 ```
 
 Build prompt:
 
 ```markdown
-Read ${CLAUDE_PLUGIN_ROOT}/agents/pde-ui-checker.md for instructions.
+Read $HOME/.claude/agents/pde-ui-checker.md for instructions.
 
 <objective>
 Validate UI design contract for Phase {phase_number}: {phase_name}
@@ -174,19 +166,8 @@ Check all 6 dimensions. Return APPROVED or BLOCKED.
 - {research_path} (Technical Research — check stack alignment)
 </files_to_read>
 
-<config>
-ui_safety_gate: {ui_safety_gate config value}
-</config>
-```
+${AGENT_SKILLS_UI_CHECKER}
 
-```
-Task(
-  prompt=ui_checker_prompt,
-  subagent_type="pde-ui-checker",
-  model="{UI_CHECKER_MODEL}",
-  description="Verify UI-SPEC Phase {N}"
-)
-```
 
 ## 8. Handle Checker Return
 
@@ -235,20 +216,19 @@ Use AskUserQuestion for the choice.
 ## 10. Present Final Status
 
 Display:
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" banner "UI-SPEC READY"
 ```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► UI-SPEC READY ✓
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 **Phase {N}: {Name}** — UI design contract approved
 
 Dimensions: 6/6 passed
 {If any FLAGs: "Recommendations: {N} (non-blocking)"}
 
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" divider
-```
+───────────────────────────────────────────────────────────────
 
-## Next Up
+## ▶ Next Up
 
 **Plan Phase {N}** — planner will use UI-SPEC.md as design context
 
@@ -256,20 +236,19 @@ node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" divider
 
 <sub>/clear first → fresh context window</sub>
 
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" divider
+───────────────────────────────────────────────────────────────
 ```
 
 ## 11. Commit (if configured)
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" commit "docs(${padded_phase}): UI design contract" --files "${PHASE_DIR}/${PADDED_PHASE}-UI-SPEC.md"
+node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" commit "docs(${padded_phase}): UI design contract" --files "${PHASE_DIR}/${PADDED_PHASE}-UI-SPEC.md"
 ```
 
 ## 12. Update State
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" state record-session \
+node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" state record-session \
   --stopped-at "Phase ${PHASE} UI-SPEC approved" \
   --resume-file "${PHASE_DIR}/${PADDED_PHASE}-UI-SPEC.md"
 ```

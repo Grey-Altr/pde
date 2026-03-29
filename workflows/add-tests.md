@@ -33,7 +33,7 @@ Exit.
 Load phase operation context:
 
 ```bash
-INIT=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" init phase-op "${PHASE_ARG}")
+INIT=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" init phase-op "${PHASE_ARG}")
 if [[ "$INIT" == @file:* ]]; then INIT=$(cat "${INIT#@file:}"); fi
 ```
 
@@ -60,7 +60,7 @@ Exit.
 
 Present banner:
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" banner "ADD TESTS — Phase ${phase_number}: ${phase_name}"
+node "$HOME/.claude/pde-os/lib/ui/render.cjs" banner "ADD TESTS — Phase ${phase_number}: ${phase_name}"
 ```
 ```
 </step>
@@ -144,7 +144,7 @@ find . -type d -name "*test*" -o -name "*spec*" -o -name "*__tests__*" 2>/dev/nu
 # Find existing test files for convention matching
 find . -type f \( -name "*.test.*" -o -name "*.spec.*" -o -name "*Tests.fs" -o -name "*Test.fs" \) 2>/dev/null | head -20
 # Check for test runners
-ls package.json *.sln 2>/dev/null
+ls package.json *.sln 2>/dev/null || true
 ```
 
 Identify:
@@ -227,7 +227,7 @@ For each approved TDD test:
    - **Test passes**: Good — the implementation satisfies the test. Verify the test checks meaningful behavior (not just that it compiles).
    - **Test fails with assertion error**: This may be a genuine bug discovered by the test. Flag it:
      ```
-     ⚠️ Potential bug found: {test name}
+     Potential bug found: {test name}
      Expected: {expected}
      Actual: {actual}
      File: {implementation file}
@@ -241,8 +241,7 @@ For each approved E2E test:
 
 1. **Check for existing tests** covering the same scenario:
    ```bash
-   grep -r "{scenario keyword}" {e2e test directory} 2>/dev/null
-   ```
+   grep -r "{scenario keyword}" {e2e test directory} 2>/dev/null || true
    If found, extend rather than duplicate.
 
 2. **Create test file** targeting the user scenario from CONTEXT.md/VERIFICATION.md
@@ -256,13 +255,13 @@ For each approved E2E test:
    - **GREEN (passes)**: Record success
    - **RED (fails)**: Determine if it's a test issue or a genuine application bug. Flag bugs:
      ```
-     ⚠️ E2E failure: {test name}
+     E2E failure: {test name}
      Scenario: {description}
      Error: {error message}
      ```
    - **Cannot run**: Report blocker. Do NOT mark as complete.
      ```
-     🛑 E2E blocker: {reason tests cannot run}
+     E2E blocker: {reason tests cannot run}
      ```
 
 **No-skip rule:** If E2E tests cannot execute (missing dependencies, environment issues), report the blocker and mark the test as incomplete. Never mark success without actually running the test.
@@ -272,7 +271,7 @@ For each approved E2E test:
 Create a test coverage report and present to user:
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" banner "TEST GENERATION COMPLETE"
+node "$HOME/.claude/pde-os/lib/ui/render.cjs" banner "TEST GENERATION COMPLETE"
 ```
 ## Results
 
@@ -292,7 +291,7 @@ node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" banner "TEST GENERATION COMPLETE"
 
 Record test generation in project state:
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" state-snapshot
+node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" state-snapshot
 ```
 
 If there are passing tests to commit:

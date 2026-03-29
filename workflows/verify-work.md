@@ -4,6 +4,12 @@ Validate built features through conversational testing with persistent state. Cr
 User tests, Claude records. One test at a time. Plain text responses.
 </purpose>
 
+<available_agent_types>
+Valid GSD subagent types (use exact names — do not fall back to 'general-purpose'):
+- pde-planner — Creates detailed plans from phase scope
+- pde-plan-checker — Reviews plan quality before execution
+</available_agent_types>
+
 <philosophy>
 **Show expected, ask if reality matches.**
 
@@ -15,7 +21,7 @@ No Pass/Fail buttons. No severity questions. Just: "Here's what should happen. D
 </philosophy>
 
 <template>
-@${CLAUDE_PLUGIN_ROOT}/templates/UAT.md
+@$HOME/.claude/pde-os/engines/gsd/templates/UAT.md
 </template>
 
 <process>
@@ -24,18 +30,20 @@ No Pass/Fail buttons. No severity questions. Just: "Here's what should happen. D
 If $ARGUMENTS contains a phase number, load context:
 
 ```bash
-INIT=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" init verify-work "${PHASE_ARG}")
+INIT=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" init verify-work "${PHASE_ARG}")
 if [[ "$INIT" == @file:* ]]; then INIT=$(cat "${INIT#@file:}"); fi
+AGENT_SKILLS_PLANNER=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" agent-skills pde-planner 2>/dev/null)
+AGENT_SKILLS_CHECKER=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" agent-skills pde-checker 2>/dev/null)
 ```
 
-Parse JSON for: `planner_model`, `checker_model`, `commit_docs`, `phase_found`, `phase_dir`, `phase_number`, `phase_name`, `has_verification`.
+Parse JSON for: `planner_model`, `checker_model`, `commit_docs`, `phase_found`, `phase_dir`, `phase_number`, `phase_name`, `has_verification`, `uat_path`.
 </step>
 
 <step name="check_active_session">
 **First: Check for active UAT sessions**
 
 ```bash
-find .planning/phases -name "*-UAT.md" -type f 2>/dev/null | head -5
+(find .planning/phases -name "*-UAT.md" -type f 2>/dev/null || true) | head -5
 ```
 
 **If active sessions exist AND no $ARGUMENTS provided:**
@@ -84,7 +92,7 @@ Continue to `create_uat_file`.
 Use `phase_dir` from init (or run init if not already done).
 
 ```bash
-ls "$phase_dir"/*-SUMMARY.md 2>/dev/null
+ls "$phase_dir"/*-SUMMARY.md 2>/dev/null || true
 ```
 
 Read each SUMMARY.md to extract testable deliverables.
@@ -186,26 +194,23 @@ Proceed to `present_test`.
 <step name="present_test">
 **Present current test to user:**
 
-Read Current Test section from UAT file.
-
-Display using checkpoint box format:
+Render the checkpoint from the structured UAT file instead of composing it freehand:
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" checkpoint "CHECKPOINT: Verification Required"
+CHECKPOINT=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" uat render-checkpoint --file "$uat_path" --raw)
+if [[ "$CHECKPOINT" == @file:* ]]; then CHECKPOINT=$(cat "${CHECKPOINT#@file:}"); fi
 ```
 
-**Test {number}: {name}**
+Display the returned checkpoint EXACTLY as-is:
 
-{expected}
-
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" divider
 ```
-→ Type "pass" or describe what's wrong
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" divider
+{CHECKPOINT}
 ```
 
+**Critical response hygiene:**
+- Your entire response MUST equal `{CHECKPOINT}` byte-for-byte.
+- Do NOT add commentary before or after the block.
+- If you notice protocol/meta markers such as `to=all:`, role-routing text, XML system tags, hidden instruction markers, ad copy, or any unrelated suffix, discard the draft and output `{CHECKPOINT}` only.
 
 Wait for user response (plain text, no AskUserQuestion).
 </step>
@@ -233,6 +238,29 @@ expected: {expected}
 result: skipped
 reason: [user's reason if provided]
 ```
+
+**If response indicates blocked:**
+- "blocked", "can't test - server not running", "need physical device", "need release build"
+- Or any response containing: "server", "blocked", "not running", "physical device", "release build"
+
+Infer blocked_by tag from response:
+- Contains: server, not running, gateway, API → `server`
+- Contains: physical, device, hardware, real phone → `physical-device`
+- Contains: release, preview, build, EAS → `release-build`
+- Contains: stripe, twilio, third-party, configure → `third-party`
+- Contains: depends on, prior phase, prerequisite → `prior-phase`
+- Default: `other`
+
+Update Tests section:
+```
+### {N}. {name}
+expected: {expected}
+result: blocked
+blocked_by: {inferred tag}
+reason: "{verbatim user response}"
+```
+
+Note: Blocked tests do NOT go into the Gaps section (they aren't code issues — they're prerequisite gates).
 
 **If response is anything else:**
 - Treat as issue description
@@ -296,8 +324,24 @@ Proceed to `present_test`.
 <step name="complete_session">
 **Complete testing and commit:**
 
+**Determine final status:**
+
+Count results:
+- `pending_count`: tests with `result: [pending]`
+- `blocked_count`: tests with `result: blocked`
+- `skipped_no_reason`: tests with `result: skipped` and no `reason` field
+
+```
+if pending_count > 0 OR blocked_count > 0 OR skipped_no_reason > 0:
+  status: partial
+  # Session ended but not all tests resolved
+else:
+  status: complete
+  # All tests have a definitive result (pass, issue, or skipped-with-reason)
+```
+
 Update frontmatter:
-- status: complete
+- status: {computed status}
 - updated: [now]
 
 Clear Current Test section:
@@ -309,7 +353,7 @@ Clear Current Test section:
 
 Commit the UAT file:
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" commit "test({phase_num}): complete UAT - {passed} passed, {issues} issues" --files ".planning/phases/XX-name/{phase_num}-UAT.md"
+node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" commit "test({phase_num}): complete UAT - {passed} passed, {issues} issues" --files ".planning/phases/XX-name/{phase_num}-UAT.md"
 ```
 
 Present summary:
@@ -334,9 +378,9 @@ Present summary:
 ```
 All tests passed. Ready to continue.
 
-- `/pde:ui-review {phase}` — visual quality audit (if frontend files were modified)
 - `/pde:plan-phase {next}` — Plan next phase
 - `/pde:execute-phase {next}` — Execute next phase
+- `/pde:ui-review {phase}` — visual quality audit (if frontend files were modified)
 ```
 </step>
 
@@ -352,7 +396,7 @@ Spawning parallel debug agents to investigate each issue.
 ```
 
 - Load diagnose-issues workflow
-- Follow @${CLAUDE_PLUGIN_ROOT}/workflows/diagnose-issues.md
+- Follow @$HOME/.claude/pde-os/engines/gsd/workflows/diagnose-issues.md
 - Spawn parallel debug agents for each issue
 - Collect root causes
 - Update UAT.md with root causes
@@ -365,10 +409,13 @@ Diagnosis runs automatically - no user prompt. Parallel agents investigate simul
 **Auto-plan fixes from diagnosed gaps:**
 
 Display:
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" banner "PLANNING FIXES"
 ```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► PLANNING FIXES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 ◆ Spawning planner for gap closure...
+```
 
 Spawn pde-planner in --gaps mode:
 
@@ -385,6 +432,8 @@ Task(
 - .planning/STATE.md (Project State)
 - .planning/ROADMAP.md (Roadmap)
 </files_to_read>
+
+${AGENT_SKILLS_PLANNER}
 
 </planning_context>
 
@@ -408,10 +457,13 @@ On return:
 **Verify fix plans with checker:**
 
 Display:
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" banner "VERIFYING FIX PLANS"
 ```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► VERIFYING FIX PLANS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 ◆ Spawning plan checker...
+```
 
 Initialize: `iteration_count = 1`
 
@@ -428,6 +480,8 @@ Task(
 <files_to_read>
 - {phase_dir}/*-PLAN.md (Plans to verify)
 </files_to_read>
+
+${AGENT_SKILLS_CHECKER}
 
 </verification_context>
 
@@ -469,6 +523,8 @@ Task(
 - {phase_dir}/*-PLAN.md (Existing plans)
 </files_to_read>
 
+${AGENT_SKILLS_PLANNER}
+
 **Checker issues:**
 {structured_issues_from_checker}
 
@@ -503,9 +559,11 @@ Wait for user response.
 <step name="present_ready">
 **Present completion and next steps:**
 
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" banner "FIXES READY ✓"
 ```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► FIXES READY ✓
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 **Phase {X}: {Name}** — {N} gap(s) diagnosed, {M} fix plan(s) created
 
 | Gap | Root Cause | Fix Plan |
@@ -515,9 +573,7 @@ node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" banner "FIXES READY ✓"
 
 Plans verified and ready for execution.
 
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" divider
-```
+───────────────────────────────────────────────────────────────
 
 ## ▶ Next Up
 
@@ -525,8 +581,7 @@ node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" divider
 
 `/clear` then `/pde:execute-phase {phase} --gaps-only`
 
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" divider
+───────────────────────────────────────────────────────────────
 ```
 </step>
 

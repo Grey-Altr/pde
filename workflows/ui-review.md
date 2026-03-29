@@ -1,29 +1,26 @@
 <purpose>
-Retroactive 6-pillar visual audit of implemented frontend code. Standalone command that works on any project — PDE-managed or not. Produces scored UI-REVIEW.md with actionable findings.
+Retroactive 6-pillar visual audit of implemented frontend code. Standalone command that works on any project — GSD-managed or not. Produces scored UI-REVIEW.md with actionable findings.
 </purpose>
 
 <required_reading>
-@${CLAUDE_PLUGIN_ROOT}/references/ui-brand.md
+@$HOME/.claude/pde-os/engines/gsd/references/ui-brand.md
 </required_reading>
 
-<process>
+<available_agent_types>
+Valid GSD subagent types (use exact names — do not fall back to 'general-purpose'):
+- gsd-ui-auditor — Audits UI against design requirements
+</available_agent_types>
 
-## 0. Initialize
-
-```bash
-INIT=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" init phase-op "${PHASE_ARG}")
+INIT=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" init phase-op "${PHASE_ARG}")
 if [[ "$INIT" == @file:* ]]; then INIT=$(cat "${INIT#@file:}"); fi
-```
-
-Parse: `phase_dir`, `phase_number`, `phase_name`, `phase_slug`, `padded_phase`, `commit_docs`.
-
-```bash
-UI_AUDITOR_MODEL=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" resolve-model pde-ui-auditor --raw)
+AGENT_SKILLS_UI_REVIEWER=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" agent-skills gsd-ui-reviewer 2>/dev/null)
 ```
 
 Display banner:
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" banner "UI AUDIT — PHASE {N}: {name}"
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► UI AUDIT — PHASE {N}: {name}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
 ## 1. Detect Input State
@@ -57,13 +54,13 @@ Build file list for auditor:
 ## 3. Spawn pde-ui-auditor
 
 ```
-Spawning UI auditor...
+◆ Spawning UI auditor...
 ```
 
 Build prompt:
 
 ```markdown
-Read ${CLAUDE_PLUGIN_ROOT}/agents/pde-ui-auditor.md for instructions.
+Read $HOME/.claude/agents/pde-ui-auditor.md for instructions.
 
 <objective>
 Conduct 6-pillar visual audit of Phase {phase_number}: {phase_name}
@@ -78,15 +75,8 @@ Conduct 6-pillar visual audit of Phase {phase_number}: {phase_name}
 - {context_path} (User decisions, if exists)
 </files_to_read>
 
-<config>
-phase_dir: {phase_dir}
-padded_phase: {padded_phase}
-</config>
-```
+${AGENT_SKILLS_UI_REVIEWER}
 
-Omit null file paths.
-
-```
 Task(
   prompt=ui_audit_prompt,
   subagent_type="pde-ui-auditor",
@@ -101,9 +91,10 @@ Task(
 
 Display score summary:
 
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" banner "UI AUDIT COMPLETE"
 ```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► UI AUDIT COMPLETE ✓
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 **Phase {N}: {Name}** — Overall: {score}/24
 
@@ -123,25 +114,22 @@ Top fixes:
 
 Full review: {path to UI-REVIEW.md}
 
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" divider
-```
+───────────────────────────────────────────────────────────────
 
-## Next
+## ▶ Next
 
 - `/pde:verify-work {N}` — UAT testing
 - `/pde:plan-phase {N+1}` — plan next phase
 
 <sub>/clear first → fresh context window</sub>
 
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" divider
+───────────────────────────────────────────────────────────────
 ```
 
 ## 5. Commit (if configured)
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" commit "docs(${padded_phase}): UI audit review" --files "${PHASE_DIR}/${PADDED_PHASE}-UI-REVIEW.md"
+node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" commit "docs(${padded_phase}): UI audit review" --files "${PHASE_DIR}/${PADDED_PHASE}-UI-REVIEW.md"
 ```
 
 </process>

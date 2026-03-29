@@ -1,5 +1,5 @@
 <purpose>
-Check for PDE updates via npm, display changelog for versions between installed and latest, obtain user confirmation, and execute clean installation with cache clearing.
+Check for GSD updates via npm, display changelog for versions between installed and latest, obtain user confirmation, and execute clean installation with cache clearing.
 </purpose>
 
 <required_reading>
@@ -9,7 +9,7 @@ Read all files referenced by the invoking prompt's execution_context before star
 <process>
 
 <step name="get_installed_version">
-Detect whether PDE is installed locally or globally by checking both locations and validating install integrity.
+Detect whether GSD is installed locally or globally by checking both locations and validating install integrity.
 
 First, derive `PREFERRED_RUNTIME` from the invoking prompt's `execution_context` path:
 - Path contains `/.codex/` -> `codex`
@@ -20,8 +20,11 @@ First, derive `PREFERRED_RUNTIME` from the invoking prompt's `execution_context`
 Use `PREFERRED_RUNTIME` as the first runtime checked so `/pde:update` targets the runtime that invoked it.
 
 ```bash
-# Runtime candidates: "<runtime>:<config-dir>"
-RUNTIME_DIRS="claude:.claude opencode:.config/opencode opencode:.opencode gemini:.gemini codex:.codex"
+# Runtime candidates: "<runtime>:<config-dir>" stored as an array.
+# Using an array instead of a space-separated string ensures correct
+# iteration in both bash and zsh (zsh does not word-split unquoted
+# variables by default). Fixes #1173.
+RUNTIME_DIRS=( "claude:.claude" "opencode:.config/opencode" "opencode:.opencode" "gemini:.gemini" "codex:.codex" )
 
 # PREFERRED_RUNTIME should be set from execution_context before running this block.
 # If not set, infer from runtime env vars; fallback to claude.
@@ -40,42 +43,42 @@ if [ -z "$PREFERRED_RUNTIME" ]; then
 fi
 
 # Reorder entries so preferred runtime is checked first.
-ORDERED_RUNTIME_DIRS=""
-for entry in $RUNTIME_DIRS; do
+ORDERED_RUNTIME_DIRS=()
+for entry in "${RUNTIME_DIRS[@]}"; do
   runtime="${entry%%:*}"
   if [ "$runtime" = "$PREFERRED_RUNTIME" ]; then
-    ORDERED_RUNTIME_DIRS="$ORDERED_RUNTIME_DIRS $entry"
+    ORDERED_RUNTIME_DIRS+=( "$entry" )
   fi
 done
-for entry in $RUNTIME_DIRS; do
+for entry in "${RUNTIME_DIRS[@]}"; do
   runtime="${entry%%:*}"
   if [ "$runtime" != "$PREFERRED_RUNTIME" ]; then
-    ORDERED_RUNTIME_DIRS="$ORDERED_RUNTIME_DIRS $entry"
+    ORDERED_RUNTIME_DIRS+=( "$entry" )
   fi
 done
 
 # Check local first (takes priority only if valid and distinct from global)
 LOCAL_VERSION_FILE="" LOCAL_MARKER_FILE="" LOCAL_DIR="" LOCAL_RUNTIME=""
-for entry in $ORDERED_RUNTIME_DIRS; do
+for entry in "${ORDERED_RUNTIME_DIRS[@]}"; do
   runtime="${entry%%:*}"
   dir="${entry#*:}"
-  if [ -f "./$dir/pde/VERSION" ] || [ -f "./$dir/pde/workflows/update.md" ]; then
+  if [ -f "./$dir/pde-os/VERSION" ] || [ -f "./$dir/pde-os/workflows/update.md" ]; then
     LOCAL_RUNTIME="$runtime"
-    LOCAL_VERSION_FILE="./$dir/pde/VERSION"
-    LOCAL_MARKER_FILE="./$dir/pde/workflows/update.md"
+    LOCAL_VERSION_FILE="./$dir/pde-os/VERSION"
+    LOCAL_MARKER_FILE="./$dir/pde-os/workflows/update.md"
     LOCAL_DIR="$(cd "./$dir" 2>/dev/null && pwd)"
     break
   fi
 done
 
 GLOBAL_VERSION_FILE="" GLOBAL_MARKER_FILE="" GLOBAL_DIR="" GLOBAL_RUNTIME=""
-for entry in $ORDERED_RUNTIME_DIRS; do
+for entry in "${ORDERED_RUNTIME_DIRS[@]}"; do
   runtime="${entry%%:*}"
   dir="${entry#*:}"
-  if [ -f "$HOME/$dir/pde/VERSION" ] || [ -f "$HOME/$dir/pde/workflows/update.md" ]; then
+  if [ -f "$HOME/$dir/pde-os/VERSION" ] || [ -f "$HOME/$dir/pde-os/workflows/update.md" ]; then
     GLOBAL_RUNTIME="$runtime"
-    GLOBAL_VERSION_FILE="$HOME/$dir/pde/VERSION"
-    GLOBAL_MARKER_FILE="$HOME/$dir/pde/workflows/update.md"
+    GLOBAL_VERSION_FILE="$HOME/$dir/pde-os/VERSION"
+    GLOBAL_MARKER_FILE="$HOME/$dir/pde-os/workflows/update.md"
     GLOBAL_DIR="$(cd "$HOME/$dir" 2>/dev/null && pwd)"
     break
   fi
@@ -127,7 +130,7 @@ If multiple runtime installs are detected and the invoking runtime cannot be det
 
 **If VERSION file missing:**
 ```
-## PDE Update
+## GSD Update
 
 **Installed version:** Unknown
 
@@ -143,14 +146,14 @@ Proceed to install step (treat as version 0.0.0 for comparison).
 Check npm for latest version:
 
 ```bash
-npm view pde-engine-pde version 2>/dev/null
+npm view pde-os-engine-gsd version 2>/dev/null
 ```
 
 **If npm check fails:**
 ```
 Couldn't check for updates (offline or npm unavailable).
 
-To update manually: `npx pde-engine-pde --global`
+To update manually: `npx pde-os-engine-gsd --global`
 ```
 
 Exit.
@@ -161,7 +164,7 @@ Compare installed vs latest:
 
 **If installed == latest:**
 ```
-## PDE Update
+## GSD Update
 
 **Installed:** X.Y.Z
 **Latest:** X.Y.Z
@@ -173,7 +176,7 @@ Exit.
 
 **If installed > latest:**
 ```
-## PDE Update
+## GSD Update
 
 **Installed:** X.Y.Z
 **Latest:** A.B.C
@@ -192,15 +195,13 @@ Exit.
 3. Display preview and ask for confirmation:
 
 ```
-## PDE Update Available
+## GSD Update Available
 
 **Installed:** 1.5.10
 **Latest:** 1.5.15
 
 ### What's New
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" divider
-```
+────────────────────────────────────────────────────────────
 
 ## [1.5.15] - 2026-01-20
 
@@ -212,26 +213,24 @@ node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" divider
 ### Fixed
 - Bug fix Y
 
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" divider
-```
+────────────────────────────────────────────────────────────
 
-⚠️  **Note:** The installer performs a clean install of PDE folders:
-- `commands/pde/` will be wiped and replaced
-- `pde/` will be wiped and replaced
-- `agents/pde-*` files will be replaced
+⚠️  **Note:** The installer performs a clean install of GSD folders:
+- `commands/gsd/` will be wiped and replaced
+- `pde-os/` will be wiped and replaced
+- `agents/gsd-*` files will be replaced
 
 (Paths are relative to detected runtime install location:
-global: `/Users/greyaltaer/.claude/`, `~/.config/opencode/`, `~/.opencode/`, `~/.gemini/`, or `~/.codex/`
+global: `$HOME/.claude/`, `~/.config/opencode/`, `~/.opencode/`, `~/.gemini/`, or `~/.codex/`
 local: `./.claude/`, `./.config/opencode/`, `./.opencode/`, `./.gemini/`, or `./.codex/`)
 
 Your custom files in other locations are preserved:
-- Custom commands not in `commands/pde/` ✓
-- Custom agents not prefixed with `pde-` ✓
+- Custom commands not in `commands/gsd/` ✓
+- Custom agents not prefixed with `gsd-` ✓
 - Custom hooks ✓
 - Your CLAUDE.md files ✓
 
-If you've modified any PDE files directly, they'll be automatically backed up to `pde-local-patches/` and can be reapplied with `/pde:reapply-patches` after the update.
+If you've modified any GSD files directly, they'll be automatically backed up to `gsd-local-patches/` and can be reapplied with `/pde:reapply-patches` after the update.
 ```
 
 Use AskUserQuestion:
@@ -241,61 +240,6 @@ Use AskUserQuestion:
   - "No, cancel"
 
 **If user cancels:** Exit.
-</step>
-
-<step name="hash_based_safe_update">
-
-## Hash-Based Safe File Update
-
-Before overwriting installed files with the new version, consult the manifest to preserve user modifications.
-
-1. Check if `.planning/config/files-manifest.csv` exists:
-```bash
-MANIFEST_PATH=".planning/config/files-manifest.csv"
-if [ ! -f "$MANIFEST_PATH" ]; then
-  echo "No manifest found — will generate after update (first run with manifest support)"
-  MANIFEST_EXISTS=false
-else
-  MANIFEST_EXISTS=true
-fi
-```
-
-2. If manifest exists, for each file being updated:
-```bash
-# For each file in the update set:
-# Use pde-tools.cjs to classify each file
-RESULT=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" manifest check)
-```
-
-Parse the JSON result. For each file in the `files` array:
-- If `modified: false` (hash matches manifest) → **auto-update**: overwrite silently with the new version, then update the manifest entry with the new hash
-- If `modified: true` (hash differs from manifest) → **preserve**: skip overwriting, add to conflict list
-
-3. After all files processed, display conflict summary if any files were preserved:
-```
-## User-Modified Files Preserved
-
-The following files were modified by you and NOT overwritten during this update:
-
-| File | Action |
-|------|--------|
-| workflows/execute-phase.md | Preserved (user-modified) |
-| references/quality-standards.md | Preserved (user-modified) |
-
-To manually merge upstream changes into your modified files:
-  1. Check the changelog for what changed
-  2. Compare your version with the new stock version
-  3. Apply relevant changes manually
-```
-
-4. After the update completes (whether manifest existed or not), regenerate the manifest:
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" manifest init
-```
-
-This ensures:
-- First update with manifest support: all files updated normally (no manifest to check), manifest created for next time
-- Subsequent updates: hash comparison protects user modifications
 </step>
 
 <step name="run_update">
@@ -308,17 +252,17 @@ RUNTIME_FLAG="--$TARGET_RUNTIME"
 
 **If LOCAL install:**
 ```bash
-npx -y pde-engine-pde@latest "$RUNTIME_FLAG" --local
+npx -y pde-os-engine-gsd@latest "$RUNTIME_FLAG" --local
 ```
 
 **If GLOBAL install:**
 ```bash
-npx -y pde-engine-pde@latest "$RUNTIME_FLAG" --global
+npx -y pde-os-engine-gsd@latest "$RUNTIME_FLAG" --global
 ```
 
 **If UNKNOWN install:**
 ```bash
-npx -y pde-engine-pde@latest --claude --global
+npx -y pde-os-engine-gsd@latest --claude --global
 ```
 
 Capture output. If install fails, show error and exit.
@@ -328,29 +272,33 @@ Clear the update cache so statusline indicator disappears:
 ```bash
 # Clear update cache across all runtime directories
 for dir in .claude .config/opencode .opencode .gemini .codex; do
-  rm -f "./$dir/cache/pde-update-check.json"
-  rm -f "$HOME/$dir/cache/pde-update-check.json"
+  rm -f "./$dir/cache/gsd-update-check.json"
+  rm -f "$HOME/$dir/cache/gsd-update-check.json"
 done
 ```
 
-The SessionStart hook (`pde-check-update.js`) writes to the detected runtime's cache directory, so all paths must be cleared to prevent stale update indicators.
+The SessionStart hook (`gsd-check-update.js`) writes to the detected runtime's cache directory, so all paths must be cleared to prevent stale update indicators.
 </step>
 
 <step name="display_result">
 Format completion message (changelog was already shown in confirmation step):
 
-```bash
-node "${CLAUDE_PLUGIN_ROOT}/lib/ui/render.cjs" checkpoint "PDE Updated: v{old} -> v{new}"
 ```
+╔═══════════════════════════════════════════════════════════╗
+║  GSD Updated: v1.5.10 → v1.5.15                           ║
+╚═══════════════════════════════════════════════════════════╝
 
-Restart your runtime to pick up the new commands.
+⚠️  Restart your runtime to pick up the new commands.
+
+[View full changelog](https://github.com/gsd-build/pde-os/blob/main/CHANGELOG.md)
+```
 </step>
 
 
 <step name="check_local_patches">
 After update completes, check if the installer detected and backed up any locally modified files:
 
-Check for pde-local-patches/backup-meta.json in the config directory.
+Check for gsd-local-patches/backup-meta.json in the config directory.
 
 **If patches found:**
 
