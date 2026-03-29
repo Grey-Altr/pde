@@ -212,6 +212,8 @@ Any user can go from idea to shipped product through a single platform that hand
 
 ## Current State
 
+**v0.21 Desktop App Integration in progress** — Phase 171 complete (Security Architecture + Discovery Foundation). Five-tier binary probe, two-tier approval registry, executionMode classification, col -b preprocessing, and known app catalog (Blender, GIMP, Inkscape) implemented. Next: Phase 172 Core App Wrappers.
+
 **v0.20 CLI-Anything + Asset Engine shipped** (2026-03-29) — 8 phases, 23 plans, 41 requirements. Auto-generated CLIs/MCP servers from any API spec (OpenAPI, JSON Schema, GraphQL, MCP), full asset engine (OG images, social cards, video production, 3D generation, parametric CAD), visual diff, and PDE utility commands. All free/open-source toolchains.
 
 **v0.19 WebMCP Integration shipped** (2026-03-28) — 7 phases, 16 plans, 30 requirements. Remote MCP server, MCP Apps rich UI, dashboard WebMCP tools, token playground, approval gates, competitor tools, multi-editor bridge.
@@ -386,4 +388,4 @@ This document evolves at phase transitions and milestone boundaries.
 3. Audit Out of Scope — reasons still valid?
 4. Update Context with current state
 
-*Last updated: 2026-03-29 after v0.20 milestone — CLI-Anything + Asset Engine shipped*
+*Last updated: 2026-03-29 after Phase 171 — Security Architecture + Discovery Foundation complete*
