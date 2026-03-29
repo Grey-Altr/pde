@@ -813,8 +813,21 @@ async function main() {
         const type = typeIdx !== -1 ? args[typeIdx + 1] : undefined;
         const assets = listAssets({ type });
         console.log(JSON.stringify(assets, null, 2));
+      } else if (subcommand === 'diff') {
+        const { runVisualDiff } = require('./lib/image-pipeline/visual-diff.cjs');
+        const { ASSETS_DIR } = require('./lib/image-pipeline/assets.cjs');
+        const branchA = args[2];
+        const branchB = args[3];
+        if (!branchA || !branchB) {
+          console.error('Usage: image diff <branch-a> <branch-b>');
+          process.exit(1);
+        }
+        const result = await runVisualDiff({ branchA, branchB, assetsDir: ASSETS_DIR, cwd: process.cwd() });
+        console.log(JSON.stringify(result.summary, null, 2));
+        console.log(`\nReport: ${result.reportPath}`);
+        console.log(`JSON:   ${result.jsonPath}`);
       } else {
-        console.error(`Unknown image subcommand: ${subcommand}. Available: og, social, screenshot, mockup, rembg, list`);
+        console.error(`Unknown image subcommand: ${subcommand}. Available: og, social, screenshot, mockup, rembg, list, diff`);
         process.exit(1);
       }
       break;
