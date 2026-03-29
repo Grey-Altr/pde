@@ -26,9 +26,11 @@ function currentMonth() {
 }
 
 function prevMonth() {
-  const d = new Date();
-  d.setMonth(d.getMonth() - 1);
-  return d.toISOString().slice(0, 7);
+  // Compute YYYY-MM for the previous month using string arithmetic — avoids
+  // JavaScript Date overflow bugs (e.g. March 29 - 1 month = Feb 29 (non-leap) = March 1).
+  const [year, month] = new Date().toISOString().slice(0, 7).split('-').map(Number);
+  if (month === 1) return `${year - 1}-12`;
+  return `${year}-${String(month - 1).padStart(2, '0')}`;
 }
 
 /**
