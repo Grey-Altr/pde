@@ -19,7 +19,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-29)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 175 — design-pipeline-integration
+**Current focus:** Planning next milestone
 
 ## Current Position
 

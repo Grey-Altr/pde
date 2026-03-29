@@ -156,6 +156,15 @@ Any user can go from idea to shipped product through a single platform that hand
 - ✓ PDE_REMOTE documented in dashboard/.env.example and coordinator.cjs _spawnRelay JSDoc (INT-PDE-REMOTE-DOC) — v0.18
 - ✓ 224 dashboard tests across 29 files, all integration gaps closed — v0.18
 
+### Validated (v0.21)
+
+- ✓ Five-tier binary probe for desktop app discovery (DISC-01–06) — v0.21
+- ✓ Two-tier approval registry with SHA-256 hash verification — v0.21
+- ✓ Blender, GIMP, Inkscape CLI wrappers with version-aware capabilities (WRAP-01–06) — v0.21
+- ✓ MCP bridge dynamic registration with loadDynamicServers (REG-01–04) — v0.21
+- ✓ `/pde:cli-wrap` one-command skill with dual strategy routing (CLI-01–03) — v0.21
+- ✓ Design pipeline graceful degradation and Blender/GIMP chain integration (PIPE-01–03) — v0.21
+
 ### Validated (v0.20)
 
 - ✓ CLI ingestion: OpenAPI, JSON Schema, GraphQL, MCP parsers producing unified capability models — Phase 163
@@ -199,20 +208,11 @@ Any user can go from idea to shipped product through a single platform that hand
 - ✓ Production hardening: rate limiting, 7-day Redis TTL, event downsampling, 1000-event buffer cap, daily cron GC — v0.17
 - ✓ 107 tests across 15 files, 27/27 requirements satisfied, full Nyquist compliance — v0.17
 
-## Current Milestone: v0.21 Desktop App Integration
-
-**Goal:** PDE agents can discover, wrap, and drive any installed desktop application through auto-generated agent-native CLIs — with CLI-Anything as fast path and native generation as fallback.
-
-**Target features:**
-- Discovery + auto-install: detect installed desktop apps, check CLI-Anything coverage, auto-generate CLIs, register as available tools
-- Design pipeline integration: wireframe/mockup/3D stages can drive Blender, GIMP, Inkscape directly instead of static artifacts
-- Executor tool access: any PDE executor agent can call desktop app tools during plan execution
-- `/pde:cli-wrap` skill: one-command app wrapping → agent-native CLI + MCP server + SKILL.md
-- Dual strategy: CLI-Anything pre-built CLIs (pip) as fast path, v0.20 native `--help` → capability model → codegen as fallback
-
 ## Current State
 
-**v0.21 Desktop App Integration complete** — All 5 phases (171-175) shipped. Security architecture with two-tier approval registry, core app wrappers (Blender/GIMP/Inkscape), MCP bridge dynamic registration, `/pde:cli-wrap` one-command skill with dual strategy routing, and design pipeline integration with graceful degradation. 16 design-pipeline tests, 37 CLI-wrap tests, 38 bridge tests, zero regressions.
+**All milestones through v0.21 shipped.** No active milestone — next milestone TBD.
+
+**v0.21 Desktop App Integration shipped** (2026-03-29) — 5 phases (171-175), 12 plans, 22 requirements. Security architecture with two-tier approval registry, core app wrappers (Blender/GIMP/Inkscape), MCP bridge dynamic registration, `/pde:cli-wrap` one-command skill with dual strategy routing, and design pipeline integration with graceful degradation. All tech debt resolved, full Nyquist compliance.
 
 **v0.20 CLI-Anything + Asset Engine shipped** (2026-03-29) — 8 phases, 23 plans, 41 requirements. Auto-generated CLIs/MCP servers from any API spec (OpenAPI, JSON Schema, GraphQL, MCP), full asset engine (OG images, social cards, video production, 3D generation, parametric CAD), visual diff, and PDE utility commands. All free/open-source toolchains.
 
@@ -388,4 +388,4 @@ This document evolves at phase transitions and milestone boundaries.
 3. Audit Out of Scope — reasons still valid?
 4. Update Context with current state
 
-*Last updated: 2026-03-29 after Phase 172 — Core App Wrappers complete*
+*Last updated: 2026-03-29 after v0.21 milestone — Desktop App Integration complete*

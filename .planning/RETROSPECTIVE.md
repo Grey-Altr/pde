@@ -2,6 +2,48 @@
 
 *A living document updated after each milestone. Lessons feed forward into future planning.*
 
+## Milestone: v0.21 — Desktop App Integration
+
+**Shipped:** 2026-03-29
+**Phases:** 5 | **Plans:** 12
+
+### What Was Built
+- Five-tier binary probe for cross-platform desktop app discovery with display server detection
+- Two-tier approval registry with SHA-256 hash verification and pending/approved/rejected state machine
+- Blender, GIMP, Inkscape wrappers with version-aware capability models and async MCP servers
+- MCP bridge dynamic registration: `loadDynamicServers()` at module scope populates DYNAMIC_SERVERS + TOOL_MAP
+- `/pde:cli-wrap` one-command skill with dual strategy routing (CLI-Anything harness vs native --help fallback)
+- Design pipeline integration: `probeAppTool()` never-throwing probe, Blender→GLB→embed and GIMP→saveAsset chains
+
+### What Worked
+- **Stacked on v0.20 infrastructure** — server-gen.cjs, skill-gen.cjs, mcp-bridge.cjs were all extended rather than rebuilt; v0.20's CLI wrapping machinery was directly reused
+- **Security-first phase ordering** — building the approval registry (Phase 171) before wrappers (172) and bridge (173) ensured no binary could be invoked without explicit approval at any point
+- **Test-first approach** — 91 tests across phases 171-175; Phase 174 re-verification caught and fixed async test issues
+- **Tech debt resolution before completion** — identified 5 items in audit, fixed all in a single commit before completing milestone
+
+### What Was Inefficient
+- **SUMMARY.md files not generated** — v0.21 phases shipped without SUMMARY.md files, making `summary-extract` data noisy in MILESTONES.md
+- **Same MILESTONES.md noise** — "One-liner:" empty fields and v0.19/v0.20 data leaking into v0.21 entry (from stale SUMMARY files in phases/)
+
+### Patterns Established
+- `bin/lib/app-wrappers/` for wrapper modules (blender, gimp, inkscape) with index.cjs registry
+- `bin/lib/app-discovery.cjs` and `bin/lib/app-registry.cjs` for app lifecycle
+- `DYNAMIC_SERVERS` map parallel to `APPROVED_SERVERS` in mcp-bridge.cjs
+- `probeAppTool()` never-throwing pattern for workflow integration
+- Pipeline chains (blender-chain.cjs, gimp-chain.cjs) as composable pipeline steps
+
+### Key Lessons
+1. **Two-map architecture is clean** — DYNAMIC_SERVERS separate from APPROVED_SERVERS preserves the static security policy boundary while allowing runtime extension. The initial tech debt (status functions not checking dynamic map) was caught by audit.
+2. **Dual-strategy wrapping works well** — CLI-Anything pre-built CLIs as fast path with native fallback provides both speed and coverage. The `detectHarness()` 3-tier probe is reliable.
+3. **Phase archival timing matters** — archiving phases before the audit was updated left stale data in the milestone archive. Better to resolve all tech debt, re-audit, then archive.
+
+### Cost Observations
+- Model mix: opus for orchestration, sonnet for execution agents
+- Timeline: 1 day (2026-03-29)
+- Notable: 5 phases in ~12 hours including tech debt resolution and milestone completion
+
+---
+
 ## Milestone: v0.20 — CLI-Anything + Asset Engine
 
 **Shipped:** 2026-03-29
