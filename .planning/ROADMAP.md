@@ -47,7 +47,7 @@
 **Milestone Goal:** PDE can auto-generate agent-native CLIs and MCP servers from any API spec, and produce production-ready visual assets (images, video, 3D models, CAD files) using free/open-source toolchains — zero paid API keys required.
 
 - [x] **Phase 163: CLI Ingestion + Capability Model** — Ingest OpenAPI, JSON Schema, GraphQL, and MCP specs into a unified capability model with AI SDK tool() definitions and Zod schemas (completed 2026-03-29)
-- [ ] **Phase 164: CLI Wrapping + Publishing** — Auto-wrap any CLI as an MCP server via --help parsing, SKILL.md generation, --json flag, and CLI-Hub registry publishing
+- [x] **Phase 164: CLI Wrapping + Publishing** — Auto-wrap any CLI as an MCP server via --help parsing, SKILL.md generation, --json flag, and CLI-Hub registry publishing (completed 2026-03-29)
 - [ ] **Phase 165: Image Generation Pipeline** — OG images via Satori, social cards, device mockup composites, Playwright screenshots, background removal via remove.bg free tier, and .planning/design/assets/ storage
 - [ ] **Phase 166: Visual Diff + Asset Reporting** — Branch-level visual diff with perceptual hashing, comparison report with changed/unchanged/new/deleted asset classification
 - [ ] **Phase 167: Video Production Pipeline** — Playwright UI capture, FFmpeg assembly with transitions/overlays/captions, Remotion branded video composition with PDE design tokens, MP4 output
@@ -207,7 +207,11 @@ Plans:
   4. User can capture a product screenshot via Playwright at any configured viewport size with a single command
   5. User can remove the background from any product image using the remove.bg free tier and receive a PNG with transparent background
   6. All generated image assets are stored in .planning/design/assets/ with an accompanying metadata JSON file
-**Plans**: TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 165-01-PLAN.md — Foundation: deps install, asset storage, OG + social card generation
+- [ ] 165-02-PLAN.md — Screenshot capture, device mockup compositing, background removal
+- [ ] 165-03-PLAN.md — pde-tools.cjs image subcommand wiring + /pde:image command docs
 **UI hint**: yes
 
 ### Phase 166: Visual Diff + Asset Reporting
@@ -280,8 +284,8 @@ Plans:
 | 161. Auto-Generated Competitor Tools | v0.19 | 2/2 | Complete | 2026-03-28 |
 | 162. Multi-Editor Bridge | v0.19 | 2/2 | Complete | 2026-03-28 |
 | 163. CLI Ingestion + Capability Model | 4/4 | Complete   | 2026-03-29 |  |
-| 164. CLI Wrapping + Publishing | v0.20 | 2/3 | In Progress|  |
-| 165. Image Generation Pipeline | v0.20 | 0/TBD | Not started | - |
+| 164. CLI Wrapping + Publishing | v0.20 | 2/3 | Complete    | 2026-03-29 |
+| 165. Image Generation Pipeline | v0.20 | 0/3 | In progress | - |
 | 166. Visual Diff + Asset Reporting | v0.20 | 0/TBD | Not started | - |
 | 167. Video Production Pipeline | v0.20 | 0/TBD | Not started | - |
 | 168. AI 3D Generation + Web Embedding | v0.20 | 0/TBD | Not started | - |
