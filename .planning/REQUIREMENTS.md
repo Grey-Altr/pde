@@ -15,11 +15,11 @@ Requirements for CLI-Anything + Asset Engine milestone. Each maps to roadmap pha
 - [x] **CLI-04**: User can introspect any MCP server and produce a unified capability model
 - [x] **CLI-05**: User can generate AI SDK tool() definitions from any unified capability model
 - [x] **CLI-06**: Generated tool definitions include Zod inputSchema and typed execute functions
-- [ ] **CLI-07**: User can auto-wrap any CLI as an MCP server via --help parsing
-- [ ] **CLI-08**: Auto-generated MCP servers expose structured JSON output for every command
-- [ ] **CLI-09**: Every generated CLI/tool produces a SKILL.md for agent discovery
-- [ ] **CLI-10**: User can publish generated CLIs to a CLI-Hub compatible registry
-- [ ] **CLI-11**: Generated tools support --json flag for machine consumption
+- [x] **CLI-07**: User can auto-wrap any CLI as an MCP server via --help parsing
+- [x] **CLI-08**: Auto-generated MCP servers expose structured JSON output for every command
+- [x] **CLI-09**: Every generated CLI/tool produces a SKILL.md for agent discovery
+- [x] **CLI-10**: User can publish generated CLIs to a CLI-Hub compatible registry
+- [x] **CLI-11**: Generated tools support --json flag for machine consumption
 
 ### Image Generation
 
@@ -100,11 +100,11 @@ Deferred to future milestone. Tracked but not in current roadmap.
 | CLI-04 | Phase 163 | Complete |
 | CLI-05 | Phase 163 | Complete |
 | CLI-06 | Phase 163 | Complete |
-| CLI-07 | Phase 164 | Pending |
-| CLI-08 | Phase 164 | Pending |
-| CLI-09 | Phase 164 | Pending |
-| CLI-10 | Phase 164 | Pending |
-| CLI-11 | Phase 164 | Pending |
+| CLI-07 | Phase 164 | Complete |
+| CLI-08 | Phase 164 | Complete |
+| CLI-09 | Phase 164 | Complete |
+| CLI-10 | Phase 164 | Complete |
+| CLI-11 | Phase 164 | Complete |
 | IMG-01 | Phase 165 | Pending |
 | IMG-02 | Phase 165 | Pending |
 | IMG-03 | Phase 165 | Pending |

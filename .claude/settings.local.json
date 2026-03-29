@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh auth:*)",
+      "Bash(while read:*)",
+      "Bash(do echo:*)",
+      "Read(//Users/greyaltaer/code/projects/Platform Development Engine/**)",
+      "Bash(done)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\({k:v for k,v in d.items\\(\\) if ''''env'''' in k.lower\\(\\) or ''''token'''' in k.lower\\(\\) or ''''github'''' in k.lower\\(\\)}, indent=2\\)\\)\")"
+    ]
+  }
+}

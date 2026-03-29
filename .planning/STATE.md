@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.20
 milestone_name: CLI-Anything + Asset Engine
-status: Ready to execute
-stopped_at: Completed 163-03-PLAN.md
-last_updated: "2026-03-29T01:06:01.549Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 164-03-PLAN.md
+last_updated: "2026-03-29T02:02:33.829Z"
 progress:
   total_phases: 15
-  completed_phases: 7
-  total_plans: 20
-  completed_plans: 18
+  completed_phases: 8
+  total_plans: 23
+  completed_plans: 22
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-28)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 163 — CLI Ingestion + Capability Model
+**Current focus:** Phase 164 — CLI Wrapping + Publishing
 
 ## Current Position
 
-Phase: 163 (CLI Ingestion + Capability Model) — EXECUTING
-Plan: 4 of 4
+Phase: 164 (CLI Wrapping + Publishing) — EXECUTING
+Plan: 3 of 3
 
 ## Performance Metrics
 
@@ -54,6 +54,12 @@ Plan: 4 of 4
 - [Phase 163]: JSON Schema parser uses path.basename(source) slug as root capability name;  entries use their definition key names
 - [Phase 163]: GraphQL and MCP parsers expose unit-testable helper functions (parseIntrospectionResult, parseMCPToolsList) to avoid live network/process dependencies in tests
 - [Phase 163]: MCP SDK must be required from packages/pde-mcp-server/node_modules absolute path — bare require('@modelcontextprotocol/sdk') fails
+- [Phase 164]: Fixture files are plain text captures of real CLI --help output (git, gh) plus one synthetic minimal fixture for deterministic testing
+- [Phase 164]: Test scaffolds use createRequire(import.meta.url) pattern to bridge ESM/CJS boundary; registry tests use mkdtempSync for fs isolation
+- [Phase 164]: parseFlags returns { flag, short, long, arg, description } with flag as primary key (long || short) — test contract from 164-01 scaffolds
+- [Phase 164]: generateServerSource accepts full model object { meta, capabilities } matching test call signature, with optional sdkBasePath second param
+- [Phase 164]: help-parser uses spawnSync with array args (no shell) to prevent injection; cmdWrap added to help-parser.cjs for pipeline cohesion
+- [Phase 164]: server-gen embeds absolute SDK path via JSON.stringify in generated server.cjs — fully self-contained MCP stdio server
 
 ### Pending Todos
 
@@ -67,7 +73,7 @@ Plan: 4 of 4
 
 ## Session Continuity
 
-Last session: 2026-03-29T01:06:01.546Z
-Stopped at: Completed 163-03-PLAN.md
+Last session: 2026-03-29T02:02:33.826Z
+Stopped at: Completed 164-03-PLAN.md
 Resume with: `/gsd:plan-phase 163`
 Resume file: None

@@ -718,12 +718,21 @@ async function main() {
     }
 
     case 'cli-anything': {
-      const { cmdIngest } = require('./lib/cli-anything/ingest.cjs');
       const subcommand = args[1];
       if (subcommand === 'ingest') {
+        const { cmdIngest } = require('./lib/cli-anything/ingest.cjs');
         await cmdIngest(cwd, args.slice(2));
+      } else if (subcommand === 'wrap') {
+        const { cmdWrap } = require('./lib/cli-anything/help-parser.cjs');
+        await cmdWrap(cwd, args.slice(2));
+      } else if (subcommand === 'publish') {
+        const { cmdPublish } = require('./lib/cli-anything/registry.cjs');
+        await cmdPublish(cwd, args.slice(2));
+      } else if (subcommand === 'list') {
+        const { cmdList } = require('./lib/cli-anything/registry.cjs');
+        await cmdList(cwd, args.slice(2));
       } else {
-        console.error(`Unknown cli-anything subcommand: ${subcommand}. Available: ingest`);
+        console.error(`Unknown cli-anything subcommand: ${subcommand}. Available: ingest, wrap, publish, list`);
         process.exit(1);
       }
       break;

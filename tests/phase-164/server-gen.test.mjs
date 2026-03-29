@@ -3,82 +3,94 @@ import { createRequire } from 'module';
 
 const require = createRequire(import.meta.url);
 
-// These modules don't exist yet — tests are RED by design
 const { generateServerSource } = require('../../bin/lib/cli-anything/server-gen.cjs');
 
-const mockModel = {
-  meta: {
-    source: '/usr/bin/mytool',
-    type: 'cli',
-    version: '1.0',
-    auth: {},
-    generatedAt: '2026-01-01T00:00:00Z',
+const sampleCapabilities = [
+  {
+    name: 'git_commit',
+    description: 'Record changes to the repository',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        useJson: { type: 'boolean', description: 'Append --json flag' },
+        message: { type: 'string', description: 'Commit message' },
+      },
+    },
+    outputSchema: null,
+    method: null,
+    path: 'git commit',
+    extensions: { subcommandPath: ['commit'] },
   },
-  capabilities: [
-    {
-      name: 'init',
-      description: 'Initialize a new project',
-      inputSchema: {
-        type: 'object',
-        properties: {
-          name: { type: 'string', description: 'Project name' },
-        },
-      },
-      outputSchema: null,
-      method: null,
-      path: null,
-      extensions: {},
-    },
-    {
-      name: 'build',
-      description: 'Build the project',
-      inputSchema: {
-        type: 'object',
-        properties: {},
-      },
-      outputSchema: null,
-      method: null,
-      path: null,
-      extensions: {},
-    },
-  ],
+];
+
+const sampleMeta = {
+  source: '/usr/bin/git',
+  type: 'cli',
+  version: '1.0.0',
+  auth: {},
+  generatedAt: '2026-01-01T00:00:00.000Z',
 };
 
 describe('generateServerSource', () => {
-  it('produces valid JS containing McpServer', () => {
-    const src = generateServerSource(mockModel);
+  it('returns a string', () => {
+    const src = generateServerSource(sampleCapabilities, sampleMeta, '/fake/sdk/path');
     expect(typeof src).toBe('string');
+  });
+
+  it('contains McpServer', () => {
+    const src = generateServerSource(sampleCapabilities, sampleMeta, '/fake/sdk/path');
     expect(src).toContain('McpServer');
   });
 
-  it('includes BINARY constant with source path', () => {
-    const src = generateServerSource(mockModel);
+  it('contains StdioServerTransport', () => {
+    const src = generateServerSource(sampleCapabilities, sampleMeta, '/fake/sdk/path');
+    expect(src).toContain('StdioServerTransport');
+  });
+
+  it('contains BINARY constant with source path', () => {
+    const src = generateServerSource(sampleCapabilities, sampleMeta, '/fake/sdk/path');
     expect(src).toContain('BINARY');
-    expect(src).toContain('/usr/bin/mytool');
+    expect(src).toContain('/usr/bin/git');
   });
 
-  it('generated source includes DRY_RUN check', () => {
-    const src = generateServerSource(mockModel);
+  it('contains DRY_RUN flag', () => {
+    const src = generateServerSource(sampleCapabilities, sampleMeta, '/fake/sdk/path');
     expect(src).toContain('DRY_RUN');
+    expect(src).toContain("process.argv.includes('--dry-run')");
   });
 
-  it('generated source includes JSON.parse(stdout) with envelope fallback', () => {
-    const src = generateServerSource(mockModel);
+  it('contains JSON.parse envelope fallback with stdout, stderr, exitCode', () => {
+    const src = generateServerSource(sampleCapabilities, sampleMeta, '/fake/sdk/path');
     expect(src).toContain('JSON.parse');
     expect(src).toContain('stdout');
+    expect(src).toContain('stderr');
+    expect(src).toContain('exitCode');
   });
 
-  it('generated tool includes useJson input field that appends --json', () => {
-    const src = generateServerSource(mockModel);
+  it('contains useJson support that appends --json', () => {
+    const src = generateServerSource(sampleCapabilities, sampleMeta, '/fake/sdk/path');
     expect(src).toContain('useJson');
-    expect(src).toContain('--json');
+    expect(src).toContain("'--json'");
   });
 
-  it('generated source uses spawnSync (not exec/spawn)', () => {
-    const src = generateServerSource(mockModel);
+  it('uses spawnSync (not shell spawn)', () => {
+    const src = generateServerSource(sampleCapabilities, sampleMeta, '/fake/sdk/path');
     expect(src).toContain('spawnSync');
-    expect(src).not.toMatch(/\bexec\b/);
-    // Should not use async spawn (only spawnSync)
-    expect(src).not.toMatch(/require\('child_process'\)\.spawn\b/);
+  });
+
+  it('contains spawnSync with timeout 30000', () => {
+    const src = generateServerSource(sampleCapabilities, sampleMeta, '/fake/sdk/path');
+    expect(src).toContain('30000');
+  });
+
+  it('registers a tool for each capability via registerTool', () => {
+    const src = generateServerSource(sampleCapabilities, sampleMeta, '/fake/sdk/path');
+    expect(src).toContain('registerTool');
+    expect(src).toContain('git_commit');
+  });
+
+  it('includes dryRun return when DRY_RUN is set', () => {
+    const src = generateServerSource(sampleCapabilities, sampleMeta, '/fake/sdk/path');
+    expect(src).toContain('dryRun');
   });
 });

@@ -1,60 +1,60 @@
 'use strict';
 
 /**
- * help-parser.cjs — CLI --help output parser
+ * help-parser.cjs — CLI --help text parser and recursive capability discoverer
  *
- * Extracts subcommands, flags, and capabilities from any CLI's --help output.
- * Used by the CLI wrapping pipeline to generate MCP server tools.
+ * Parses --help output from any CLI binary to extract subcommands and flags,
+ * building CapabilitySchema-shaped objects for the capability model.
  */
 
+const fs = require('fs');
+const path = require('path');
 const { spawnSync } = require('child_process');
 
 /**
- * Spawn a CLI binary with --help and return its output.
- * Returns stdout if non-empty, else stderr. Ignores exit code (many CLIs
- * return non-zero for --help).
+ * Spawn a CLI binary with --help and return the help text.
+ * Falls back to stderr when stdout is empty (many CLIs write help to stderr).
  *
- * @param {string} binary - Path or name of the binary
- * @param {string[]} cmdPath - Subcommand path to prepend before --help
- * @returns {string} Help text output
+ * @param {string} binary - Absolute path to binary
+ * @param {string[]} cmdPath - Subcommand path (e.g., ['remote', 'add'])
+ * @returns {string} Help text
  */
-function spawnHelpText(binary, cmdPath = []) {
-  const result = spawnSync(binary, [...cmdPath, '--help'], {
-    encoding: 'utf8',
-    timeout: 5000,
-  });
+function spawnHelpText(binary, cmdPath) {
+  const args = [...cmdPath, '--help'];
+  const result = spawnSync(binary, args, { encoding: 'utf8', timeout: 5000 });
   return (result.stdout || result.stderr || '').trim();
 }
 
 /**
  * Parse subcommands from --help output.
- * Extracts {name, description} pairs from two-column format lines.
+ * Extracts name+description pairs from two-column format like:
+ *   init        Initialize a new project
  *
- * @param {string} helpText - CLI --help output
- * @returns {{ name: string, description: string }[]}
+ * @param {string} helpText - Raw --help text
+ * @returns {Array<{name: string, description: string}>}
  */
 function parseSubcommands(helpText) {
   if (!helpText) return [];
 
-  const results = [];
   const lines = helpText.split('\n');
+  const results = [];
 
   for (const line of lines) {
-    // Skip ALL_CAPS section headers (e.g., "COMMANDS:", "CORE COMMANDS", "OPTIONS:")
-    if (/^[A-Z][A-Z\s]+:?\s*$/.test(line.trim())) continue;
+    // Skip ALL_CAPS section headers (e.g., COMMANDS:, OPTIONS:)
+    if (/^[A-Z][A-Z\s]+:/.test(line.trim())) continue;
 
-    // Skip lines starting with - or -- (flags)
+    // Skip lines starting with dashes (flags)
     if (/^\s*-/.test(line)) continue;
 
-    // Match two-column format: 0-4 leading spaces, word, 2+ spaces, description
-    const match = line.match(/^ {0,4}(\w[-\w]*)  {2,}(.+)/);
-    if (!match) continue;
+    // Match two-column format: 0-4 spaces, word chars, 2+ spaces, description
+    const m = line.match(/^ {0,4}(\w[-\w]*)  {2,}(.+)/);
+    if (!m) continue;
 
-    const name = match[1].trim();
-    const description = match[2].trim();
+    const name = m[1];
+    const description = m[2].trim();
 
-    // Skip if first token contains special chars: :, (, )
-    if (/[:()]/.test(name)) continue;
+    // Skip if first token contains special chars
+    if (/[:()"]/.test(name)) continue;
 
     results.push({ name, description });
   }
@@ -64,50 +64,43 @@ function parseSubcommands(helpText) {
 
 /**
  * Parse flags from --help output.
- * Extracts {flag, short, long, arg, description} for each flag.
+ * Extracts short, long, arg, and description for each flag.
  *
- * @param {string} helpText - CLI --help output
- * @returns {{ flag: string, short: string|null, long: string|null, arg: string|null, description: string }[]}
+ * @param {string} helpText - Raw --help text
+ * @returns {Array<{short: string|null, long: string, arg: string|null, description: string}>}
  */
 function parseFlags(helpText) {
   if (!helpText) return [];
 
-  const results = [];
   const lines = helpText.split('\n');
+  const results = [];
 
   for (const line of lines) {
-    // Match flag lines: optional short flag, optional long flag, optional arg, description
-    const match = line.match(
-      /^\s+(-\w)?(?:,\s*)?(-{1,2}[\w-]+)(?:\s+<([^>]+)>)?\s{2,}(.+)?/
-    );
-    if (!match) continue;
+    // Match flag pattern: optional short flag, long flag, optional <arg>, description
+    const m = line.match(/^\s+(-\w)?(?:,\s*)?(-{1,2}[\w-]+)(?:\s+<([^>]+)>)?\s{2,}(.+)?/);
+    if (!m) continue;
 
-    const short = match[1] || null;
-    const long = match[2] || null;
-    const arg = match[3] || null;
-    const description = (match[4] || '').trim();
+    const short = m[1] || null;
+    const long = m[2];
+    const arg = m[3] || null;
+    const description = (m[4] || '').trim();
 
-    // The primary flag name (long if available, else short)
-    const flag = long || short;
-    if (!flag) continue;
+    // Must be a proper long flag (--something or -single-char that matches --help pattern)
+    if (!long.startsWith('-')) continue;
 
-    // Only include actual flags (starting with -)
-    if (!flag.startsWith('-')) continue;
-
-    results.push({ flag, short, long, arg, description });
+    results.push({ short, long, arg, description });
   }
 
   return results;
 }
 
 /**
- * Recursively discover all capabilities of a binary by traversing its
- * subcommand tree via --help output.
+ * Recursively discover capabilities from a binary by parsing --help output.
  *
- * @param {string} binary - Path or name of the binary
- * @param {string[]} prefix - Current subcommand path (for recursion)
- * @param {number} depth - Current recursion depth (max 3)
- * @returns {object[]} Array of CapabilitySchema-shaped objects
+ * @param {string} binary - Absolute path to binary
+ * @param {string[]} prefix - Current subcommand path (e.g., ['remote'])
+ * @param {number} depth - Current recursion depth
+ * @returns {Array} Array of CapabilitySchema-shaped objects
  */
 function discoverCapabilities(binary, prefix = [], depth = 0) {
   if (depth > 3) return [];
@@ -118,72 +111,142 @@ function discoverCapabilities(binary, prefix = [], depth = 0) {
 
   // Build flag properties for inputSchema
   const flagProperties = {};
-  for (const f of flags) {
-    const key = (f.long || f.short || '').replace(/^-+/, '').replace(/-/g, '_');
-    if (!key) continue;
-    flagProperties[key] = {
-      type: f.arg ? 'string' : 'boolean',
-      description: f.description || `Flag ${f.flag}`,
+  for (const flag of flags) {
+    const flagName = flag.long.replace(/^--?/, '');
+    flagProperties[flagName] = {
+      type: flag.arg ? 'string' : 'boolean',
+      description: flag.description || flag.long,
     };
-  }
-
-  // Fallback: if no subcommands at root depth, create a single capability for the binary
-  if (subcommands.length === 0 && depth === 0) {
-    const name = binary.split('/').pop() || binary;
-    const description = helpText.slice(0, 1000);
-    return [
-      {
-        name,
-        description,
-        inputSchema: {
-          type: 'object',
-          properties: {
-            useJson: { type: 'boolean', description: 'Append --json flag' },
-            ...flagProperties,
-          },
-        },
-        outputSchema: null,
-        method: null,
-        path: name,
-        extensions: { subcommandPath: [] },
-      },
-    ];
   }
 
   const capabilities = [];
 
-  for (const sub of subcommands) {
-    const subPath = prefix.concat(sub.name);
-    const capName = subPath.join('_');
+  if (subcommands.length === 0) {
+    // Fallback: create a single capability for the binary/subcommand itself
+    const name = prefix.length > 0
+      ? [path.basename(binary), ...prefix].join('_')
+      : path.basename(binary);
+    const commandPath = prefix.length > 0 ? prefix.join(' ') : path.basename(binary);
 
-    // Build subcommand capability
-    const cap = {
-      name: capName,
-      description: sub.description,
+    capabilities.push({
+      name,
+      description: helpText.slice(0, 1000) || `CLI command: ${commandPath}`,
       inputSchema: {
         type: 'object',
         properties: {
-          useJson: { type: 'boolean', description: 'Append --json flag' },
+          useJson: { type: 'boolean', description: 'Append --json flag to command' },
           ...flagProperties,
         },
       },
       outputSchema: null,
       method: null,
-      path: subPath.join(' '),
-      extensions: { subcommandPath: subPath },
-    };
+      path: commandPath,
+      extensions: { subcommandPath: prefix },
+    });
+  } else {
+    for (const sub of subcommands) {
+      const subPath = [...prefix, sub.name];
+      const name = [path.basename(binary), ...subPath].join('_');
+      const commandPath = [path.basename(binary), ...subPath.slice(0)].join(' ');
 
-    capabilities.push(cap);
+      // Check if this subcommand has further subcommands (recursion)
+      const deeper = discoverCapabilities(binary, subPath, depth + 1);
 
-    // Recurse to discover sub-subcommands
-    const childCaps = discoverCapabilities(binary, subPath, depth + 1);
-    // Only add child caps if they have their own subcommands (avoid duplicates)
-    if (childCaps.length > 0) {
-      capabilities.push(...childCaps);
+      if (deeper.length > 0 && depth < 2) {
+        // Has deeper subcommands — use those instead of a stub for this level
+        capabilities.push(...deeper);
+      } else {
+        // Leaf subcommand — create capability
+        capabilities.push({
+          name,
+          description: sub.description,
+          inputSchema: {
+            type: 'object',
+            properties: {
+              useJson: { type: 'boolean', description: 'Append --json flag to command' },
+              ...flagProperties,
+            },
+          },
+          outputSchema: null,
+          method: null,
+          path: commandPath,
+          extensions: { subcommandPath: subPath },
+        });
+      }
     }
   }
 
   return capabilities;
 }
 
-module.exports = { parseSubcommands, parseFlags, spawnHelpText, discoverCapabilities };
+/**
+ * Orchestrate the full CLI wrapping pipeline.
+ *
+ * @param {string} cwd - Current working directory
+ * @param {string[]} args - CLI arguments: [binaryInput]
+ */
+async function cmdWrap(cwd, args) {
+  const binaryInput = args[0];
+  if (!binaryInput) {
+    console.error('Usage: pde-tools cli-anything wrap <binary-path>');
+    process.exit(1);
+  }
+
+  // 1. Resolve binary path
+  let binary = binaryInput;
+  if (!path.isAbsolute(binaryInput)) {
+    try {
+      binary = spawnSync('which', [binaryInput], { encoding: 'utf8' }).stdout.trim();
+    } catch (_) {
+      binary = binaryInput;
+    }
+  }
+  if (!fs.existsSync(binary)) {
+    throw new Error(`Binary not found: ${binary}`);
+  }
+
+  // 2. Slugify
+  const { slugify } = require('./ingest.cjs');
+  const slug = slugify(path.basename(binary));
+
+  // 3. Discover capabilities
+  const capabilities = discoverCapabilities(binary);
+  console.log(`Discovered ${capabilities.length} capabilities from ${binary}`);
+
+  // 4. Build capability model
+  const { validateCapabilityModel } = require('./model.cjs');
+  const model = validateCapabilityModel({
+    meta: {
+      source: binary,
+      type: 'cli',
+      version: '1.0.0',
+      auth: {},
+      generatedAt: new Date().toISOString(),
+    },
+    capabilities,
+  });
+
+  // 5. Write capability model
+  const outDir = path.join(cwd, '.planning/cli-anything', slug);
+  fs.mkdirSync(outDir, { recursive: true });
+  fs.writeFileSync(path.join(outDir, 'capability-model.json'), JSON.stringify(model, null, 2));
+
+  // 6. Generate server
+  const { writeServer } = require('./server-gen.cjs');
+  const serverDir = path.join(outDir, 'server');
+  writeServer(serverDir, capabilities, model.meta, cwd);
+
+  // 7. Generate SKILL.md
+  const { writeSkillMd } = require('./skill-gen.cjs');
+  writeSkillMd(serverDir, model);
+
+  // 8. Summary
+  console.log(`\nWrapped ${slug}:`);
+  console.log(`  Capabilities: ${capabilities.length}`);
+  console.log(`  Server: ${serverDir}/server.cjs`);
+  console.log(`  SKILL.md: ${serverDir}/SKILL.md`);
+  console.log(`  Model: ${outDir}/capability-model.json`);
+  console.log(`\nPublish with: pde-tools cli-anything publish ${slug}`);
+}
+
+module.exports = { parseSubcommands, parseFlags, spawnHelpText, discoverCapabilities, cmdWrap };
