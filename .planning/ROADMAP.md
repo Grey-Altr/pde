@@ -49,7 +49,7 @@
 - [x] **Phase 163: CLI Ingestion + Capability Model** — Ingest OpenAPI, JSON Schema, GraphQL, and MCP specs into a unified capability model with AI SDK tool() definitions and Zod schemas (completed 2026-03-29)
 - [x] **Phase 164: CLI Wrapping + Publishing** — Auto-wrap any CLI as an MCP server via --help parsing, SKILL.md generation, --json flag, and CLI-Hub registry publishing (completed 2026-03-29)
 - [x] **Phase 165: Image Generation Pipeline** — OG images via Satori, social cards, device mockup composites, Playwright screenshots, background removal via remove.bg free tier, and .planning/design/assets/ storage (completed 2026-03-29)
-- [ ] **Phase 166: Visual Diff + Asset Reporting** — Branch-level visual diff with perceptual hashing, comparison report with changed/unchanged/new/deleted asset classification
+- [x] **Phase 166: Visual Diff + Asset Reporting** — Branch-level visual diff with perceptual hashing, comparison report with changed/unchanged/new/deleted asset classification (completed 2026-03-29)
 - [ ] **Phase 167: Video Production Pipeline** — Playwright UI capture, FFmpeg assembly with transitions/overlays/captions, Remotion branded video composition with PDE design tokens, MP4 output
 - [ ] **Phase 168: AI 3D Generation + Web Embedding** — Text-to-3D and image-to-3D via TripoSR/SF3D, GLB output, model-viewer web embedding with AR fallback (USDZ/WebXR), 3D asset storage
 - [ ] **Phase 169: Parametric CAD Generation** — CadQuery Python scripts for hardware product CAD models, STEP file output for engineering handoff
@@ -222,9 +222,9 @@ Plans:
   1. User can run a visual diff command targeting two git branches and receive perceptual hash comparison results for all matched assets
   2. Visual diff produces a comparison report that classifies every asset as changed, unchanged, new, or deleted — no ambiguous output
   3. Changed assets in the report include a visual indicator or score showing the degree of change, not just a binary changed/unchanged flag
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 Plans:
-- [ ] 166-01-PLAN.md — pHash engine, git branch diff, report generation with tests
+- [x] 166-01-PLAN.md — pHash engine, git branch diff, report generation with tests
 - [ ] 166-02-PLAN.md — pde-tools.cjs image diff subcommand wiring + /pde:visual-diff command doc
 
 ### Phase 167: Video Production Pipeline
@@ -237,7 +237,11 @@ Plans:
   3. User can compose a branded product video using Remotion React components that automatically apply PDE design tokens (colors, fonts, spacing)
   4. Video pipeline produces an MP4 file at a configurable resolution without requiring a paid video service
   5. User can add text captions or subtitles to any generated video and see them rendered in the final MP4
-**Plans**: TBD
+**Plans:** 3 plans
+Plans:
+- [ ] 167-01-PLAN.md — FFmpeg pipeline: deps install, video assets, record, assemble, caption modules with tests
+- [ ] 167-02-PLAN.md — Remotion branded video: isolated project, compositions, compose.cjs with token extraction
+- [ ] 167-03-PLAN.md — pde-tools.cjs video subcommand wiring + /pde:video command doc
 
 ### Phase 168: AI 3D Generation + Web Embedding
 **Goal**: Users can generate 3D models from text or images and embed them directly in web pages with automatic AR fallback — using open-source models only
@@ -289,8 +293,8 @@ Plans:
 | 163. CLI Ingestion + Capability Model | 4/4 | Complete   | 2026-03-29 |  |
 | 164. CLI Wrapping + Publishing | v0.20 | 2/3 | Complete    | 2026-03-29 |
 | 165. Image Generation Pipeline | 3/3 | Complete   | Complete    | 2026-03-29 |
-| 166. Visual Diff + Asset Reporting | v0.20 | 0/2 | Not started | - |
-| 167. Video Production Pipeline | v0.20 | 0/TBD | Not started | - |
+| 166. Visual Diff + Asset Reporting | v0.20 | 1/2 | Complete    | 2026-03-29 |
+| 167. Video Production Pipeline | v0.20 | 0/3 | In progress | - |
 | 168. AI 3D Generation + Web Embedding | v0.20 | 0/TBD | Not started | - |
 | 169. Parametric CAD Generation | v0.20 | 0/TBD | Not started | - |
 | 170. PDE Utilities | v0.20 | 0/TBD | Not started | - |
