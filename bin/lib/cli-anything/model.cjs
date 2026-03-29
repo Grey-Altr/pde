@@ -29,7 +29,7 @@ const CapabilitySchema = z.object({
 const CapabilityModelSchema = z.object({
   meta: z.object({
     source: z.string(),
-    type: z.enum(['openapi', 'jsonschema', 'graphql', 'mcp']),
+    type: z.enum(['openapi', 'jsonschema', 'graphql', 'mcp', 'cli']),
     version: z.string(),
     auth: z.record(z.string(), z.unknown()),
     generatedAt: z.string(),
