@@ -211,9 +211,9 @@ Plans:
   6. A missing or incompatible display server is detected at probe time and surface as a capability degradation in the tool map rather than a runtime crash
 **Plans**: 3 plans
 Plans:
-- [ ] 171-01-PLAN.md — Five-tier binary probe, display detection, col-b preprocessing, APP_CATALOG
-- [ ] 171-02-PLAN.md — Two-tier approval registry with state machine and SHA-256 verification
-- [ ] 171-03-PLAN.md — pde-tools app CLI routing and known design app catalog
+- [ ] 172-01-PLAN.md — asyncMode server-gen extension, app-wrappers orchestrator, Wave 0 test scaffolds
+- [ ] 172-02-PLAN.md — Blender and Inkscape wrapper modules with version-aware CapabilityModels
+- [ ] 172-03-PLAN.md — GIMP version-conditional wrapper and pde-tools app wrap subcommand
 
 ### Phase 173: MCP Bridge Dynamic Registration
 **Goal**: Approved wrappers from the registry load automatically into mcp-bridge.cjs at session init, and users have a single `pde-tools app` entry point for all discovery and registration operations
@@ -281,7 +281,7 @@ Plans:
 | 169. Parametric CAD Generation | v0.20 | 2/2 | Complete | 2026-03-29 |
 | 170. PDE Utilities | v0.20 | 3/3 | Complete | 2026-03-29 |
 | 171. Security Architecture + Discovery Foundation | v0.21 | 2/3 | Complete    | 2026-03-29 |
-| 172. Core App Wrappers | v0.21 | 0/TBD | Not started | - |
+| 172. Core App Wrappers | v0.21 | 0/3 | Not started | - |
 | 173. MCP Bridge Dynamic Registration | v0.21 | 0/TBD | Not started | - |
 | 174. CLI Wrap Skill | v0.21 | 0/TBD | Not started | - |
 | 175. Design Pipeline Integration | v0.21 | 0/TBD | Not started | - |
