@@ -192,7 +192,11 @@ _Phases 163-170 archived to milestones/v0.20-ROADMAP.md_
   3. Each registry entry carries a `executionMode` field (`headless`, `gui-required`, or `mock`) set at discovery time — a tool call against a `mock` entry produces a visible error before any subprocess runs
   4. The `col -b` preprocessing step strips backspace-escaped man page sequences from `--help` output, and capability models generated from degraded output carry a `parseQuality: "degraded"` annotation
   5. `references/app-integrations.md` exists and documents bundle IDs, pip status, executionMode, and discovery hints for at least Blender, GIMP, and Inkscape
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 171-01-PLAN.md — Five-tier binary probe, display detection, col-b preprocessing, APP_CATALOG
+- [ ] 171-02-PLAN.md — Two-tier approval registry with state machine and SHA-256 verification
+- [ ] 171-03-PLAN.md — pde-tools app CLI routing and known design app catalog
 
 ### Phase 172: Core App Wrappers
 **Goal**: Blender, GIMP, and Inkscape are wrapped as agent-invokable MCP tools with version-aware headless modes, structured JSON output, and auto-generated SKILL.md files — covering all three executionMode patterns in one phase
@@ -205,7 +209,11 @@ _Phases 163-170 archived to milestones/v0.20-ROADMAP.md_
   4. SKILL.md files for all three wrapped apps are auto-generated using Phase 164 machinery — an agent reading the SKILL.md knows the available commands, required flags, and output format without inspecting the binary
   5. Every wrapped app command returns JSON-structured output when invoked via MCP — raw stdout is not passed through to the agent unprocessed
   6. A missing or incompatible display server is detected at probe time and surface as a capability degradation in the tool map rather than a runtime crash
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 171-01-PLAN.md — Five-tier binary probe, display detection, col-b preprocessing, APP_CATALOG
+- [ ] 171-02-PLAN.md — Two-tier approval registry with state machine and SHA-256 verification
+- [ ] 171-03-PLAN.md — pde-tools app CLI routing and known design app catalog
 
 ### Phase 173: MCP Bridge Dynamic Registration
 **Goal**: Approved wrappers from the registry load automatically into mcp-bridge.cjs at session init, and users have a single `pde-tools app` entry point for all discovery and registration operations
@@ -216,7 +224,11 @@ _Phases 163-170 archived to milestones/v0.20-ROADMAP.md_
   2. Apps with status `pending` or `rejected` in the registry do not appear in TOOL_MAP — only `approved` entries are loaded
   3. `pde-tools app discover|wrap|register|list|probe` commands are all available and documented — a user can manage the full app lifecycle from the CLI without editing registry.json by hand
   4. A pip CLI (e.g., rembg) can be registered via `generatePythonModuleHandler()` using `python -m {tool}` spawn pattern — the generated MCP server correctly handles the module invocation without shell injection risk
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 171-01-PLAN.md — Five-tier binary probe, display detection, col-b preprocessing, APP_CATALOG
+- [ ] 171-02-PLAN.md — Two-tier approval registry with state machine and SHA-256 verification
+- [ ] 171-03-PLAN.md — pde-tools app CLI routing and known design app catalog
 
 ### Phase 174: CLI Wrap Skill
 **Goal**: Any installed application can be wrapped as an agent-native CLI tool in one command — `/pde:cli-wrap` handles discovery, capability model generation, MCP server creation, and SKILL.md publishing automatically
@@ -227,7 +239,11 @@ _Phases 163-170 archived to milestones/v0.20-ROADMAP.md_
   2. When a CLI-Anything pre-built harness is available via pipx, `/pde:cli-wrap` uses it as the fast path and skips native `--help` parsing — the routing decision is visible in the command output
   3. When no CLI-Anything harness is available, `/pde:cli-wrap` falls back to native `--help` → capability model → codegen — the fallback path produces a valid (potentially degraded) capability model
   4. pipx is used as the canonical install method for CLI-Anything CLIs — the absolute path to the installed binary is resolved at setup time and stored in config so it is not subject to PATH variations in Node.js subprocesses
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 171-01-PLAN.md — Five-tier binary probe, display detection, col-b preprocessing, APP_CATALOG
+- [ ] 171-02-PLAN.md — Two-tier approval registry with state machine and SHA-256 verification
+- [ ] 171-03-PLAN.md — pde-tools app CLI routing and known design app catalog
 
 ### Phase 175: Design Pipeline Integration
 **Goal**: Design workflows that invoke Blender, GIMP, or Inkscape degrade gracefully when those apps are absent — and chain their output into existing v0.20 asset pipelines when they are present
@@ -237,7 +253,11 @@ _Phases 163-170 archived to milestones/v0.20-ROADMAP.md_
   1. Running `/pde:wireframe` or `/pde:mockup` on a machine without Blender, GIMP, or Inkscape completes without error — each optional app-tool step is skipped with a documented "tool not available" note rather than a failure
   2. On a machine where Blender is approved in the registry, a 3D wireframe step can pass its render output directly into the Phase 168 GLB optimize → model-viewer pipeline without manual file transfer
   3. On a machine where GIMP is approved in the registry, a mockup workflow can invoke GIMP retouch as an editing step within the Phase 165 image pipeline, producing a retouched artifact in the pipeline output directory
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 171-01-PLAN.md — Five-tier binary probe, display detection, col-b preprocessing, APP_CATALOG
+- [ ] 171-02-PLAN.md — Two-tier approval registry with state machine and SHA-256 verification
+- [ ] 171-03-PLAN.md — pde-tools app CLI routing and known design app catalog
 
 ---
 
