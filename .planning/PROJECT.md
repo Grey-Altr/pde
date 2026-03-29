@@ -212,7 +212,7 @@ Any user can go from idea to shipped product through a single platform that hand
 
 ## Current State
 
-**v0.21 Desktop App Integration in progress** — Phase 174 complete (CLI Wrap Skill). `/pde:cli-wrap` one-command skill wraps any installed app as agent-native CLI. Dual-strategy router: CLI-Anything harness via pipx fast path + native `--help` → capability model fallback. `app-cli-wrap.cjs` with 6 exports, `pde-tools app cli-wrap` and `pipx-setup` subcommands. 37 phase tests, zero regressions. Next: Phase 175 Design Pipeline Integration.
+**v0.21 Desktop App Integration complete** — All 5 phases (171-175) shipped. Security architecture with two-tier approval registry, core app wrappers (Blender/GIMP/Inkscape), MCP bridge dynamic registration, `/pde:cli-wrap` one-command skill with dual strategy routing, and design pipeline integration with graceful degradation. 16 design-pipeline tests, 37 CLI-wrap tests, 38 bridge tests, zero regressions.
 
 **v0.20 CLI-Anything + Asset Engine shipped** (2026-03-29) — 8 phases, 23 plans, 41 requirements. Auto-generated CLIs/MCP servers from any API spec (OpenAPI, JSON Schema, GraphQL, MCP), full asset engine (OG images, social cards, video production, 3D generation, parametric CAD), visual diff, and PDE utility commands. All free/open-source toolchains.
 
