@@ -912,6 +912,64 @@ async function main() {
       break;
     }
 
+    case '3d': {
+      const subcommand = args[1];
+      if (subcommand === 'generate') {
+        const { generate3D } = require('./lib/3d-pipeline/generate.cjs');
+        const { THREE_D_DIR } = require('./lib/3d-pipeline/assets.cjs');
+        const promptIdx = args.indexOf('--prompt');
+        const slugIdx = args.indexOf('--slug');
+        const prompt = promptIdx !== -1 ? args[promptIdx + 1] : undefined;
+        if (!prompt) { console.error('Usage: 3d generate --prompt <text> [--slug <slug>]'); process.exit(1); }
+        const slug = slugIdx !== -1 ? args[slugIdx + 1] : 'model';
+        const result = await generate3D({ prompt, slug, assetsDir: THREE_D_DIR });
+        console.log(JSON.stringify(result.meta, null, 2));
+      } else if (subcommand === 'convert') {
+        const { convert3D } = require('./lib/3d-pipeline/convert.cjs');
+        const { THREE_D_DIR } = require('./lib/3d-pipeline/assets.cjs');
+        const fs = require('fs');
+        const imageIdx = args.indexOf('--image');
+        const slugIdx = args.indexOf('--slug');
+        const imagePath = imageIdx !== -1 ? args[imageIdx + 1] : undefined;
+        if (!imagePath) { console.error('Usage: 3d convert --image <path> [--slug <slug>]'); process.exit(1); }
+        const imageBuffer = fs.readFileSync(imagePath);
+        const slug = slugIdx !== -1 ? args[slugIdx + 1] : 'model';
+        const result = await convert3D({ imageBuffer, slug, assetsDir: THREE_D_DIR });
+        console.log(JSON.stringify(result.meta, null, 2));
+      } else if (subcommand === 'optimize') {
+        const { optimizeGLB } = require('./lib/3d-pipeline/optimize.cjs');
+        const inputIdx = args.indexOf('--input');
+        const outputIdx = args.indexOf('--output');
+        const texIdx = args.indexOf('--texture-max');
+        const inputPath = inputIdx !== -1 ? args[inputIdx + 1] : undefined;
+        if (!inputPath) { console.error('Usage: 3d optimize --input <path.glb> [--output <path.glb>] [--texture-max <px>]'); process.exit(1); }
+        const outputPath = outputIdx !== -1 ? args[outputIdx + 1] : inputPath.replace('.glb', '-opt.glb');
+        const textureMaxSize = texIdx !== -1 ? parseInt(args[texIdx + 1], 10) : 1024;
+        const result = optimizeGLB({ inputPath, outputPath, textureMaxSize });
+        console.log(JSON.stringify(result, null, 2));
+      } else if (subcommand === 'embed') {
+        const { generateEmbed } = require('./lib/3d-pipeline/embed.cjs');
+        const { THREE_D_DIR } = require('./lib/3d-pipeline/assets.cjs');
+        const glbIdx = args.indexOf('--glb');
+        const slugIdx = args.indexOf('--slug');
+        const orbitIdx = args.indexOf('--camera-orbit');
+        const glbPath = glbIdx !== -1 ? args[glbIdx + 1] : undefined;
+        if (!glbPath) { console.error('Usage: 3d embed --glb <path.glb> [--slug <slug>] [--camera-orbit <orbit>]'); process.exit(1); }
+        const slug = slugIdx !== -1 ? args[slugIdx + 1] : 'model';
+        const cameraOrbit = orbitIdx !== -1 ? args[orbitIdx + 1] : undefined;
+        const result = generateEmbed({ glbPath, slug, cameraOrbit, assetsDir: THREE_D_DIR });
+        console.log(JSON.stringify({ embedPath: result.embedPath, snippet: result.snippet }, null, 2));
+      } else if (subcommand === 'list') {
+        const { list3DAssets, THREE_D_DIR } = require('./lib/3d-pipeline/assets.cjs');
+        const assets = list3DAssets({ assetsDir: THREE_D_DIR });
+        console.log(JSON.stringify(assets, null, 2));
+      } else {
+        console.error('Usage: 3d <generate|convert|optimize|embed|list> [options]');
+        process.exit(1);
+      }
+      break;
+    }
+
     case 'phase-plan-index': {
       phase.cmdPhasePlanIndex(cwd, args[1], raw);
       break;
