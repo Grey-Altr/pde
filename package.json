@@ -21,6 +21,7 @@
   "dependencies": {
     "@fontsource/inter": "^5.2.8",
     "@resvg/resvg-js": "^2.6.2",
+    "ffmpeg-static": "5.3.0",
     "htm": "^3.1.1",
     "inter-ui": "^4.1.1",
     "playwright": "^1.58.2",
