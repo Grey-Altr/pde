@@ -48,7 +48,7 @@
 
 - [x] **Phase 163: CLI Ingestion + Capability Model** — Ingest OpenAPI, JSON Schema, GraphQL, and MCP specs into a unified capability model with AI SDK tool() definitions and Zod schemas (completed 2026-03-29)
 - [x] **Phase 164: CLI Wrapping + Publishing** — Auto-wrap any CLI as an MCP server via --help parsing, SKILL.md generation, --json flag, and CLI-Hub registry publishing (completed 2026-03-29)
-- [ ] **Phase 165: Image Generation Pipeline** — OG images via Satori, social cards, device mockup composites, Playwright screenshots, background removal via remove.bg free tier, and .planning/design/assets/ storage
+- [x] **Phase 165: Image Generation Pipeline** — OG images via Satori, social cards, device mockup composites, Playwright screenshots, background removal via remove.bg free tier, and .planning/design/assets/ storage (completed 2026-03-29)
 - [ ] **Phase 166: Visual Diff + Asset Reporting** — Branch-level visual diff with perceptual hashing, comparison report with changed/unchanged/new/deleted asset classification
 - [ ] **Phase 167: Video Production Pipeline** — Playwright UI capture, FFmpeg assembly with transitions/overlays/captions, Remotion branded video composition with PDE design tokens, MP4 output
 - [ ] **Phase 168: AI 3D Generation + Web Embedding** — Text-to-3D and image-to-3D via TripoSR/SF3D, GLB output, model-viewer web embedding with AR fallback (USDZ/WebXR), 3D asset storage
@@ -207,7 +207,7 @@ Plans:
   4. User can capture a product screenshot via Playwright at any configured viewport size with a single command
   5. User can remove the background from any product image using the remove.bg free tier and receive a PNG with transparent background
   6. All generated image assets are stored in .planning/design/assets/ with an accompanying metadata JSON file
-**Plans:** 3 plans
+**Plans:** 3/3 plans complete
 Plans:
 - [ ] 165-01-PLAN.md — Foundation: deps install, asset storage, OG + social card generation
 - [ ] 165-02-PLAN.md — Screenshot capture, device mockup compositing, background removal
@@ -285,7 +285,7 @@ Plans:
 | 162. Multi-Editor Bridge | v0.19 | 2/2 | Complete | 2026-03-28 |
 | 163. CLI Ingestion + Capability Model | 4/4 | Complete   | 2026-03-29 |  |
 | 164. CLI Wrapping + Publishing | v0.20 | 2/3 | Complete    | 2026-03-29 |
-| 165. Image Generation Pipeline | v0.20 | 0/3 | In progress | - |
+| 165. Image Generation Pipeline | 3/3 | Complete   | 2026-03-29 | - |
 | 166. Visual Diff + Asset Reporting | v0.20 | 0/TBD | Not started | - |
 | 167. Video Production Pipeline | v0.20 | 0/TBD | Not started | - |
 | 168. AI 3D Generation + Web Embedding | v0.20 | 0/TBD | Not started | - |

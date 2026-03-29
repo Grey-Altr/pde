@@ -1,15 +1,15 @@
 ---
-gsd_state_version: 1.0
+pde_state_version: 1.0
 milestone: v0.20
 milestone_name: CLI-Anything + Asset Engine
-status: Phase complete — ready for verification
-stopped_at: Completed 164-03-PLAN.md
-last_updated: "2026-03-29T02:02:33.829Z"
+status: unknown
+stopped_at: Completed 165-03-PLAN.md
+last_updated: "2026-03-29T02:47:41.872Z"
 progress:
   total_phases: 15
-  completed_phases: 8
-  total_plans: 23
-  completed_plans: 22
+  completed_phases: 10
+  total_plans: 26
+  completed_plans: 26
 ---
 
 # Project State
@@ -60,6 +60,8 @@ Plan: 3 of 3
 - [Phase 164]: generateServerSource accepts full model object { meta, capabilities } matching test call signature, with optional sdkBasePath second param
 - [Phase 164]: help-parser uses spawnSync with array args (no shell) to prevent injection; cmdWrap added to help-parser.cjs for pipeline cohesion
 - [Phase 164]: server-gen embeds absolute SDK path via JSON.stringify in generated server.cjs — fully self-contained MCP stdio server
+- [Phase 165]: Pass ASSETS_DIR from assets.cjs to all saving subcommands so CLI always persists output to .planning/design/assets/
+- [Phase 165]: image subcommand routing in pde-tools.cjs uses case 'image' following cli-anything pattern with args.indexOf() for flag parsing
 
 ### Pending Todos
 
@@ -73,7 +75,7 @@ Plan: 3 of 3
 
 ## Session Continuity
 
-Last session: 2026-03-29T02:02:33.826Z
-Stopped at: Completed 164-03-PLAN.md
+Last session: 2026-03-29T02:47:41.869Z
+Stopped at: Completed 165-03-PLAN.md
 Resume with: `/gsd:plan-phase 163`
 Resume file: None
