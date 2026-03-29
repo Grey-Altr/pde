@@ -31,13 +31,14 @@ Generate browser-viewable HTML/CSS wireframes for each screen in the flow invent
 | `--hifi` | Boolean | Set fidelity to hifi. Equivalent to positional argument "hifi". |
 | `--use-stitch` | Boolean | Route generation through Google Stitch MCP instead of Claude HTML/CSS. Requires Stitch connection via /pde:connect stitch. |
 | `--webmcp` | Boolean | Append WebMCP tool context section to output for browser AI agent consumption. Does not affect artifact generation. |
+| `--no-app-tools` | Boolean | Skip all optional desktop app tool probes (Blender, GIMP, etc.). Steps 3.5 and 4-BLENDER are disabled. |
 </flags>
 
 <process>
 
 ## /pde:wireframe — Wireframe Generation Pipeline
 
-Check for flags in $ARGUMENTS before beginning: `--dry-run`, `--quick`, `--verbose`, `--no-mcp`, `--no-sequential-thinking`, `--no-playwright`, `--force`, `--lofi`, `--midfi`, `--hifi`, `--webmcp`.
+Check for flags in $ARGUMENTS before beginning: `--dry-run`, `--quick`, `--verbose`, `--no-mcp`, `--no-sequential-thinking`, `--no-playwright`, `--force`, `--lofi`, `--midfi`, `--hifi`, `--webmcp`, `--no-app-tools`.
 
 ---
 
@@ -311,6 +312,39 @@ Attempt to call `mcp__stitch__list_projects` (the Stitch probe tool) with a 10-s
   Display: `  -> Stitch MCP: unavailable — falling back to Claude generation`
 
 Display: `Step 3/7: MCP probes complete. Sequential Thinking: {available | unavailable}. Playwright: {available | unavailable}. Stitch: {available | unavailable | not requested}.`
+
+---
+
+### Step 3.5/7: Probe optional desktop app tools
+
+**Check flags first:**
+
+```
+IF --no-app-tools in $ARGUMENTS:
+  SET BLENDER_AVAILABLE = false
+  SET BLENDER_SKIP_REASON = "disabled by --no-app-tools flag"
+  SKIP app tool probes
+  continue to Step 4
+```
+
+**Probe Blender** (if not skipped):
+
+```bash
+REGISTRY_PATH="${CLAUDE_PLUGIN_ROOT}/.planning/app-registry.json"
+node --input-type=module <<'PROBE_EOF'
+import { createRequire } from 'module';
+const req = createRequire(import.meta.url);
+const { probeAppTool } = req(`${process.env.CLAUDE_PLUGIN_ROOT}/bin/lib/design-pipeline/probe-app-tool.cjs`);
+const result = probeAppTool('blender', `${process.env.CLAUDE_PLUGIN_ROOT}/.planning/app-registry.json`);
+process.stdout.write(JSON.stringify(result));
+PROBE_EOF
+```
+
+Parse JSON result:
+- If `available: true`: SET `BLENDER_AVAILABLE = true`, SET `BLENDER_ENTRY = result.entry`. Log: `  -> Blender: available (approved, headless mode)`
+- If `available: false`: SET `BLENDER_AVAILABLE = false`, SET `BLENDER_SKIP_REASON = result.reason`. Log: `  -> Blender: unavailable ({reason})`
+
+Display: `Step 3.5/7: App tool probes complete. Blender: {available | unavailable}.`
 
 ---
 
@@ -2016,6 +2050,52 @@ Display: `Step 4g: Print collateral generated — FLY artifact ready. {GENERATE_
 
 Display per screen: `Step 4/7: Generated wireframe for {Screen Label} ({FIDELITY}).`
 <!-- /OPTIMIZABLE -->
+
+---
+
+#### Step 4-BLENDER: Optional Blender 3D wireframe render (if available)
+
+IF BLENDER_AVAILABLE is false: SKIP this step. Log:
+```
+Step 4-BLENDER: Skipped -- {BLENDER_SKIP_REASON}
+```
+For each wireframe HTML file: append skip comment before `</body>`:
+`<!-- SKIP: Optional Blender 3D wireframe step not executed. Reason: {BLENDER_SKIP_REASON}. To enable: run /pde:cli-wrap blender, approve in .planning/app-registry.json, re-run /pde:wireframe. -->`
+Continue to Step 5.
+
+IF BLENDER_AVAILABLE is true:
+
+For each wireframe that has an associated .blend file (check for `.planning/design/3d/{screen-slug}.blend`):
+
+```bash
+node --input-type=module <<'BLENDER_EOF'
+import { createRequire } from 'module';
+const req = createRequire(import.meta.url);
+const { runBlenderGLBChain } = req(`${process.env.CLAUDE_PLUGIN_ROOT}/bin/lib/design-pipeline/blender-chain.cjs`);
+
+const result = await runBlenderGLBChain({
+  blendFile: '${BLEND_FILE_PATH}',
+  slug: '${SCREEN_SLUG}',
+  registryEntry: ${JSON.stringify(BLENDER_ENTRY)},
+  projectRoot: process.env.CLAUDE_PLUGIN_ROOT,
+});
+
+process.stdout.write(JSON.stringify(result));
+BLENDER_EOF
+```
+
+Parse result JSON:
+- Log: `  -> Blender 3D render: ${result.glbPath} (optimized GLB + model-viewer embed)`
+- The GLB is written to `.planning/design/3d/{slug}-{timestamp}.glb`
+- The model-viewer embed is written alongside at `{slug}-embed.html`
+- Append model-viewer snippet to the wireframe HTML as a `<!-- 3D-PREVIEW: ... -->` comment before `</body>`
+
+If runBlenderGLBChain throws: catch the error, log warning, append error skip note to HTML, continue (do NOT halt workflow):
+```
+Warning: Blender 3D render failed for {screen-slug}: {error.message}. Continuing without 3D preview.
+```
+
+Display: `Step 4-BLENDER: {N} screens processed, {M} .blend files found, {K} GLB renders produced.`
 
 ---
 
