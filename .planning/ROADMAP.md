@@ -23,6 +23,7 @@
 - ✅ **v0.19 WebMCP Integration** — Phases 156-162 (shipped 2026-03-28)
 - ✅ **v0.20 CLI-Anything + Asset Engine** — Phases 163-170 (shipped 2026-03-29)
 - ✅ **v0.21 Desktop App Integration** — Phases 171-175 (shipped 2026-03-29)
+- 🚧 **v0.22 Stakeholder Presentations** — Phases 176-184 (in progress)
 
 ## Phases
 
@@ -75,6 +76,20 @@
 - [x] Phase 175: Design Pipeline Integration (2/2 plans) — completed 2026-03-29
 
 </details>
+
+### 🚧 v0.22 Stakeholder Presentations (In Progress)
+
+**Milestone Goal:** PDE can transform any project's `.planning/` artifacts into audience-specific communication documents — executive summaries, case studies, investor updates, post-mortems, and more — using a deterministic extraction-first pipeline that eliminates LLM hallucination about project state, with dual HTML+Markdown output, inline SVG charts, PDF export, claim verification, auto-generation on phase completion, and cross-project portfolio synthesis.
+
+- [ ] **Phase 176: Data Extraction IR Foundation** — artifact reader, IR builder, pde-tools subcommand, source-of-truth mapping, output directory, auto-gen gate design
+- [ ] **Phase 177: Command Interface + Workflow Shell** — /pde:present command, workflow file, persona listing, persona dispatch routing
+- [ ] **Phase 178: Reference Personas + Rendering Engine** — executive summary and case study reference implementations, dual-format renderer (HTML+Markdown), EJS templates, self-contained HTML constraints, design artifact embedding
+- [ ] **Phase 179: SVG Charts** — burndown, velocity, phase timeline, effort breakdown charts as parametric inline SVG; accessible text alternatives
+- [ ] **Phase 180: Claim Verification + PDF Export** — post-generation claim verification against IR, mismatch flagging, verification footer, PDF export via Playwright
+- [ ] **Phase 181: Remaining Cluster A Personas** — investor update, sprint review, client deliverable, stakeholder status update, product manager view, project manager view
+- [ ] **Phase 182: Remaining Cluster B Personas** — agile project report, design persona report, research persona report, technical post-mortem, ADR summary, launch announcement, portfolio overview
+- [ ] **Phase 183: Auto-Generation** — phase-completion hook, milestone-archive hook, state completion gate, configurable persona set, opt-out config flag
+- [ ] **Phase 184: Cross-Project Portfolio Synthesis** — multi-project reader, schema version detection, defensive extraction, /pde:portfolio command, portfolio narrative
 
 ## Phase Details
 
@@ -188,8 +203,148 @@ _Phases 163-170 archived to milestones/v0.20-ROADMAP.md_
 ---
 
 _Phases 171-175 archived to milestones/v0.21-ROADMAP.md_
-| 171. Security Architecture + Discovery Foundation | v0.21 | 2/3 | Complete    | 2026-03-29 |
-| 172. Core App Wrappers | v0.21 | 1/3 | Complete    | 2026-03-29 |
-| 173. MCP Bridge Dynamic Registration | v0.21 | 2/2 | Complete    | 2026-03-29 |
-| 174. CLI Wrap Skill | v0.21 | 0/2 | Complete    | 2026-03-29 |
-| 175. Design Pipeline Integration | v0.21 | 1/2 | Complete    | 2026-03-29 |
+
+---
+
+### Phase 176: Data Extraction IR Foundation
+**Goal**: All quantitative project state is deterministically extracted from .planning/ artifacts into a structured IR object that every persona can consume — no LLM touches source files directly
+**Depends on**: Phase 175 (v0.21 complete)
+**Requirements**: EXT-01, EXT-02, EXT-03, EXT-04, EXT-05, EXT-06, EXT-07, EXT-08, EXT-09, EXT-10, CMD-03, CMD-04
+**Success Criteria** (what must be TRUE):
+  1. Running `pde-tools presentation artifact-read` produces a JSON IR object containing project identity, phase completion percentages, requirement coverage, git velocity metrics, cost/timing data, blockers, verification results, research findings, and key decisions — all from deterministic file reads with no LLM involvement
+  2. The IR object validates against a documented schema with typed fields; missing or unreadable source files produce explicit "data unavailable" markers rather than silently omitting data
+  3. The .planning/presentations/ output directory is created if absent, and generated files follow the [persona]-[date].html / [persona]-[date].md naming convention
+  4. The `pde-tools presentation` subcommand routes correctly and is isolated from existing subcommand blocks
+  5. Cross-reference validation runs before any persona call: extracted numbers are compared against their source files and mismatches are logged as warnings
+**Plans**: TBD
+
+### Phase 177: Command Interface + Workflow Shell
+**Goal**: Users can invoke `/pde:present [persona]` to generate a presentation, or `/pde:present` (no argument) to see all available personas with descriptions
+**Depends on**: Phase 176
+**Requirements**: CMD-01, CMD-02
+**Success Criteria** (what must be TRUE):
+  1. Running `/pde:present executive-summary` triggers the full generation pipeline and produces output files in .planning/presentations/
+  2. Running `/pde:present` with no argument displays a formatted list of all 15 available personas, each with a one-line description of its audience and purpose
+  3. Running `/pde:present [unknown-persona]` produces a clear error message with the list of valid persona names
+  4. The workflow reads from the IR (not raw .planning/ files) and passes structured data to the LLM for narration only
+**Plans**: TBD
+
+### Phase 178: Reference Personas + Rendering Engine
+**Goal**: Users can generate a self-contained executive summary HTML/Markdown document and a case study HTML/Markdown document — the two reference implementations that prove the rendering pipeline and lock in all HTML constraints before any other persona is built
+**Depends on**: Phase 177
+**Requirements**: CLU-01, CLR-01, RND-01, RND-02, RND-03, RND-04, RND-05, RND-06, RND-07
+**Success Criteria** (what must be TRUE):
+  1. Running `/pde:present executive-summary` produces a self-contained HTML file under 500KB with embedded CSS using PDE design tokens, an auto-generated table of contents with anchor links, and no external URLs or JavaScript
+  2. Running `/pde:present case-study` produces a self-contained HTML file with the same constraints, structured as a problem-approach-outcome-lessons narrative
+  3. Both personas produce a Markdown companion file alongside the HTML, written to .planning/presentations/ with the [persona]-[date] naming convention
+  4. Design artifact screenshots from .planning/design/ are embedded as inline base64 images where the persona calls for visual evidence
+  5. Regenerating either presentation overwrites the prior output with the current project state
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 179: SVG Charts
+**Goal**: Presentations can include inline burndown, velocity, phase timeline, and effort breakdown charts generated as pure parametric SVG — no external chart library, no runtime JavaScript
+**Depends on**: Phase 176
+**Requirements**: CHT-01, CHT-02, CHT-03, CHT-04, CHT-05, CHT-06
+**Success Criteria** (what must be TRUE):
+  1. A burndown chart showing remaining tasks/requirements over time renders as valid inline SVG inside an HTML presentation
+  2. A velocity chart showing tasks completed per phase renders as valid inline SVG
+  3. A phase timeline chart showing planned vs actual duration per phase renders as valid inline SVG
+  4. An effort breakdown chart showing token cost or task count by category renders as valid inline SVG
+  5. Every chart includes an aria-label and a fallback data table so the information is accessible without visual rendering
+**Plans**: TBD
+
+### Phase 180: Claim Verification + PDF Export
+**Goal**: Every generated presentation has been verified for factual accuracy against the IR before the user sees it, and any presentation can be exported to PDF on demand
+**Depends on**: Phase 178
+**Requirements**: VER-01, VER-02, VER-03, PDF-01, PDF-02, PDF-03
+**Success Criteria** (what must be TRUE):
+  1. After narrative generation, a post-generation pass compares every numeric claim in the prose against the extracted IR values — mismatches (wrong counts, dates, status) are flagged before the file is written
+  2. The verification result (claims checked, mismatches found, overall pass/fail) appears as a metadata footer section in the generated HTML and Markdown output
+  3. Running `/pde:present executive-summary --pdf` produces a PDF file in .planning/presentations/ alongside the HTML output using Playwright page.pdf()
+  4. The PDF preserves chart SVGs, embedded base64 images, and table formatting from the HTML source without requiring additional dependencies
+**Plans**: TBD
+
+### Phase 181: Remaining Cluster A Personas
+**Goal**: Users can generate all six remaining internal/forward-looking personas — investor update, sprint review, client deliverable, stakeholder status update, product manager view, and project manager view — using the shared engine proven by the reference implementations
+**Depends on**: Phase 178, Phase 179
+**Requirements**: CLU-02, CLU-03, CLU-04, CLU-05, CLU-06, CLU-07
+**Success Criteria** (what must be TRUE):
+  1. Running `/pde:present investor-update` produces a milestone-velocity and technical moat narrative backed by extracted IR data
+  2. Running `/pde:present sprint-review` produces a what-shipped, demo screenshots, and what's-next document
+  3. Running `/pde:present client-deliverable` produces a feature-specs and ACs-met report with verification evidence
+  4. Running `/pde:present stakeholder-status` produces a RAG-status, decisions-needed, and risks document
+  5. Running `/pde:present pm-view` and `/pde:present project-manager-view` each produce their respective persona documents with the correct data emphasis and narrative arc
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 182: Remaining Cluster B Personas
+**Goal**: Users can generate all seven remaining external/retrospective personas — agile project report, design persona report, research persona report, technical post-mortem, ADR summary, launch announcement, and portfolio overview — completing the full 15-persona suite
+**Depends on**: Phase 178, Phase 179
+**Requirements**: CLR-02, CLR-03, CLR-04, CLR-05, CLR-06, CLR-07, CLR-08
+**Success Criteria** (what must be TRUE):
+  1. Running `/pde:present agile-report` produces a retro narrative with burndown and velocity chart embeds
+  2. Running `/pde:present design-report` produces a design decisions, token evolution, and visual direction rationale document
+  3. Running `/pde:present research-report` produces a findings summary with evidence-backed recommendations sourced from the research/ directory
+  4. Running `/pde:present post-mortem`, `/pde:present adr-summary`, `/pde:present launch-announcement`, and `/pde:present portfolio-overview` each produce their respective documents with correct narrative arc and IR data
+  5. All 15 personas are listed in the output of `/pde:present` (no argument) with accurate descriptions
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 183: Auto-Generation
+**Goal**: Presentations auto-generate when a phase is marked complete or a milestone is archived, without interrupting Claude Code execution or flooding the dashboard with noise from mid-execution file writes
+**Depends on**: Phase 181, Phase 182
+**Requirements**: AUTO-01, AUTO-02, AUTO-03, AUTO-04, AUTO-05
+**Success Criteria** (what must be TRUE):
+  1. Completing a phase triggers background presentation generation (using the default persona set from config.json) without blocking Claude Code execution — the generation runs async and logs a `presentation_generated` event to the NDJSON bus
+  2. Running `/gsd:complete-milestone` triggers presentation generation for all default personas and writes outputs to .planning/presentations/
+  3. Auto-generation only fires when STATE.md shows `status: Completed` — it does not fire on every PostToolUse Write event during mid-phase execution
+  4. The default persona set for auto-generation is configurable in config.json and used when no explicit persona is specified
+  5. Setting `auto_generate: false` in config.json disables auto-generation entirely without affecting on-demand `/pde:present`
+**Plans**: TBD
+
+### Phase 184: Cross-Project Portfolio Synthesis
+**Goal**: Users can synthesize a portfolio narrative across multiple PDE projects by passing a list of .planning/ directory paths — with schema version detection ensuring older projects are extracted correctly regardless of which milestone they were built on
+**Depends on**: Phase 183
+**Requirements**: PORT-01, PORT-02, PORT-03, PORT-04, PORT-05, PORT-06
+**Success Criteria** (what must be TRUE):
+  1. Running `/pde:portfolio /path/to/project-a /path/to/project-b` produces a cross-project portfolio document showing patterns, skills demonstrated, and cumulative outcomes across all supplied projects
+  2. Each project's STATE.md is read with schema version detection — projects built on older PDE milestones are extracted using the correct adapter for their schema version, not the current schema
+  3. Missing or incompatible fields in any project surface a "data unavailable" marker in the output rather than silently zeroing or crashing
+  4. A project directory that cannot be read (wrong path, missing .planning/) is skipped with an explicit error message, and the remaining projects are still synthesized
+  5. The portfolio command validates all supplied paths as absolute paths with readable .planning/ directories before starting any extraction
+**Plans**: TBD
+
+## Progress
+
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 156. Remote MCP Server Foundation | v0.19 | 3/3 | Complete | 2026-03-28 |
+| 157. Dashboard WebMCP Tools | v0.19 | 3/3 | Complete | 2026-03-28 |
+| 158. MCP Apps Rich UI + Design Artifact Preview | v0.19 | 2/2 | Complete | 2026-03-28 |
+| 159. Token Playground | v0.19 | 2/2 | Complete | 2026-03-28 |
+| 160. Declarative Approval Gates + Workflow Flags | v0.19 | 2/2 | Complete | 2026-03-28 |
+| 161. Auto-Generated Competitor Tools | v0.19 | 2/2 | Complete | 2026-03-28 |
+| 162. Multi-Editor Bridge | v0.19 | 2/2 | Complete | 2026-03-28 |
+| 163. CLI Ingestion + Capability Model | v0.20 | 4/4 | Complete | 2026-03-29 |
+| 164. CLI Wrapping + Publishing | v0.20 | 3/3 | Complete | 2026-03-29 |
+| 165. Image Generation Pipeline | v0.20 | 3/3 | Complete | 2026-03-29 |
+| 166. Visual Diff + Asset Reporting | v0.20 | 2/2 | Complete | 2026-03-29 |
+| 167. Video Production Pipeline | v0.20 | 3/3 | Complete | 2026-03-29 |
+| 168. AI 3D Generation + Web Embedding | v0.20 | 3/3 | Complete | 2026-03-29 |
+| 169. Parametric CAD Generation | v0.20 | 2/2 | Complete | 2026-03-29 |
+| 170. PDE Utilities | v0.20 | 3/3 | Complete | 2026-03-29 |
+| 171. Security Architecture + Discovery Foundation | v0.21 | 3/3 | Complete | 2026-03-29 |
+| 172. Core App Wrappers | v0.21 | 3/3 | Complete | 2026-03-29 |
+| 173. MCP Bridge Dynamic Registration | v0.21 | 2/2 | Complete | 2026-03-29 |
+| 174. CLI Wrap Skill | v0.21 | 2/2 | Complete | 2026-03-29 |
+| 175. Design Pipeline Integration | v0.21 | 2/2 | Complete | 2026-03-29 |
+| 176. Data Extraction IR Foundation | v0.22 | 0/TBD | Not started | - |
+| 177. Command Interface + Workflow Shell | v0.22 | 0/TBD | Not started | - |
+| 178. Reference Personas + Rendering Engine | v0.22 | 0/TBD | Not started | - |
+| 179. SVG Charts | v0.22 | 0/TBD | Not started | - |
+| 180. Claim Verification + PDF Export | v0.22 | 0/TBD | Not started | - |
+| 181. Remaining Cluster A Personas | v0.22 | 0/TBD | Not started | - |
+| 182. Remaining Cluster B Personas | v0.22 | 0/TBD | Not started | - |
+| 183. Auto-Generation | v0.22 | 0/TBD | Not started | - |
+| 184. Cross-Project Portfolio Synthesis | v0.22 | 0/TBD | Not started | - |

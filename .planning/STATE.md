@@ -2,11 +2,11 @@
 gsd_state_version: 1.0
 milestone: v0.22
 milestone_name: Stakeholder Presentations
-status: Defining requirements
-stopped_at: null
+status: Ready to plan
+stopped_at: Phase 176
 last_updated: "2026-03-29T22:00:00.000Z"
 progress:
-  total_phases: 0
+  total_phases: 9
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -19,23 +19,25 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-29)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Defining requirements for v0.22 Stakeholder Presentations
+**Current focus:** v0.22 Stakeholder Presentations — Phase 176: Data Extraction IR Foundation
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 176 of 184 (Data Extraction IR Foundation)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-03-29 — Milestone v0.22 started
+Status: Ready to plan
+Last activity: 2026-03-29 — Roadmap created for v0.22 Stakeholder Presentations (9 phases, 58 requirements)
+
+Progress: [░░░░░░░░░░] 0%
 
 ## Performance Metrics
 
 **Prior milestone reference:**
 
-- v0.20: 8 phases, 23 plans, 41 requirements, ~37 commits (1 day)
-- v0.19: 7 phases, 16 plans, 30 requirements, 7 commits (1 day)
-- v0.18: 13 phases, 28 plans, 54 requirements, 129 commits (2 days)
-- v0.17: 13 phases, 27 plans, 27 requirements, 224 commits (2 days)
+- v0.21: 5 phases, 12 plans, ~20 requirements (1 day)
+- v0.20: 8 phases, 23 plans, 41 requirements (1 day)
+- v0.19: 7 phases, 16 plans, 30 requirements (1 day)
+- v0.18: 13 phases, 28 plans, 54 requirements (2 days)
 
 *Updated after each plan completion*
 
@@ -43,24 +45,12 @@ Last activity: 2026-03-29 — Milestone v0.22 started
 
 ### Decisions
 
-- Roadmap: CLI Wrap Skill (CLI-01–03) is Phase 174, separate from MCP Bridge (Phase 173) — the skill depends on bridge registration being stable before the one-command wrapper is built
-- Security: Two-tier approval registry (Phase 171) is non-negotiable first — no binary can be discovered before the pending/approved/rejected schema exists
-- pipx over pip: Canonical install method for CLI-Anything CLIs due to PEP-668 on Homebrew Python 3.12+
-- [Phase 171]: SHA-256 computed at approval time only - discovery-time hashing expensive for 200MB+ binaries
-- [Phase 171]: checkApproved checks mock executionMode before status - mock apps never invokable regardless of approval
-- [Phase 171]: APP_CATALOG uses static array for known app definitions (blender, gimp, inkscape)
-- [Phase 171]: Registry path defaults to .planning/app-registry.json relative to cwd
-- [Phase 171]: Discover writes pending entries automatically; approve is separate explicit step for security
-- [Phase 172-01]: asyncMode driven by metadata.asyncRequired field — wrappers declare startup characteristics
-- [Phase 172-01]: index.cjs lazy require avoids errors when wrapper files not yet implemented
-- [Phase 172-core-app-wrappers]: Blender asyncRequired=true and startupMs=5000 in getMetadata — CapabilityModel meta is strings-only per Zod schema
-- [Phase 172-core-app-wrappers]: Inkscape --without-gui and --batch-process absent — deprecated since 1.0; GUI auto-suppressed by export flags
-- [Phase 172]: GIMP 3.x uses --quit flag (introduced 2.99.12); GIMP 2.x uses --batch '(gimp-quit 0)' — enforced via parseMajorVersion() branch
-- [Phase 173]: Used separate DYNAMIC_SERVERS map instead of merging into APPROVED_SERVERS to keep static security policy boundary clean
-- [Phase 173]: loadDynamicServers accepts optional projectRoot param for testability without mocking process.cwd()
-- [Phase 173]: Use safeReadFile (not fs.readFileSync) in register case — returns null on ENOENT instead of throwing
-- [Phase 175]: vi.spyOn on module.exports (not vi.mock) for CJS-in-CJS mocking: vi.mock factory doesn't intercept require() calls inside lazy CJS modules
-- [Phase 175]: GIMP version strings require 'GIMP X.Y.Z' format for parseMajorVersion() — bare version numbers return null and default to 2.x
+- [Roadmap]: Extraction-first architecture — LLM never reads .planning/ files directly; all quantitative claims extracted by deterministic code before any LLM call (prevents 28–39% hallucination rate per Stanford Legal RAG 2025)
+- [Roadmap]: Two reference personas (CLU-01 executive summary + CLR-01 case study) built end-to-end independently in Phase 178 before any shared abstractions are extracted — proven duplication only
+- [Roadmap]: CMD-01/CMD-02 split into Phase 177 (command shell) separate from Phase 176 (IR extraction) so extraction is testable standalone before command routing is wired
+- [Roadmap]: SVG charts (Phase 179) run in parallel dependency with reference personas (Phase 178) — both depend on Phase 176 IR, neither depends on the other
+- [Roadmap]: Auto-generation (Phase 183) after ALL personas are proven (Phase 181+182) — hook trigger depends on stable generation, not vice versa
+- [Roadmap]: Portfolio synthesis (Phase 184) last — schema version heterogeneity across v0.12–v0.21 is highest-complexity risk; isolated after single-project synthesis is stable
 
 ### Pending Todos
 
@@ -68,12 +58,12 @@ None.
 
 ### Blockers/Concerns
 
-- Phase 172 (GIMP wrapper): GIMP 3.x changed Script-Fu batch API significantly; exact `--batch` invocation must be verified against installed version during planning
-- Phase 173 (pip server-gen): `generatePythonModuleHandler()` pattern has not been prototyped; validate against rembg before committing template design
+- [Phase 176]: IR field completeness validation needed before finalizing schema — map each persona's data requirements to confirm all fields are deterministically extractable from current .planning/ artifacts
+- [Phase 184]: Schema version inventory for portfolio synthesis — exact frontmatter key changes across PDE milestones v0.12–v0.21 need targeted audit before planning
 
 ## Session Continuity
 
-Last session: 2026-03-29T20:35:58.209Z
-Stopped at: Completed 175-02-PLAN.md
-Resume with: `/gsd:plan-phase 171`
+Last session: 2026-03-29T22:00:00.000Z
+Stopped at: Roadmap written — v0.22 phases 176-184 defined
+Resume with: `/gsd:plan-phase 176`
 Resume file: None

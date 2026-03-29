@@ -130,13 +130,71 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| — | — | Pending |
+| EXT-01 | Phase 176 | Pending |
+| EXT-02 | Phase 176 | Pending |
+| EXT-03 | Phase 176 | Pending |
+| EXT-04 | Phase 176 | Pending |
+| EXT-05 | Phase 176 | Pending |
+| EXT-06 | Phase 176 | Pending |
+| EXT-07 | Phase 176 | Pending |
+| EXT-08 | Phase 176 | Pending |
+| EXT-09 | Phase 176 | Pending |
+| EXT-10 | Phase 176 | Pending |
+| CMD-03 | Phase 176 | Pending |
+| CMD-04 | Phase 176 | Pending |
+| CMD-01 | Phase 177 | Pending |
+| CMD-02 | Phase 177 | Pending |
+| CLU-01 | Phase 178 | Pending |
+| CLR-01 | Phase 178 | Pending |
+| RND-01 | Phase 178 | Pending |
+| RND-02 | Phase 178 | Pending |
+| RND-03 | Phase 178 | Pending |
+| RND-04 | Phase 178 | Pending |
+| RND-05 | Phase 178 | Pending |
+| RND-06 | Phase 178 | Pending |
+| RND-07 | Phase 178 | Pending |
+| CHT-01 | Phase 179 | Pending |
+| CHT-02 | Phase 179 | Pending |
+| CHT-03 | Phase 179 | Pending |
+| CHT-04 | Phase 179 | Pending |
+| CHT-05 | Phase 179 | Pending |
+| CHT-06 | Phase 179 | Pending |
+| VER-01 | Phase 180 | Pending |
+| VER-02 | Phase 180 | Pending |
+| VER-03 | Phase 180 | Pending |
+| PDF-01 | Phase 180 | Pending |
+| PDF-02 | Phase 180 | Pending |
+| PDF-03 | Phase 180 | Pending |
+| CLU-02 | Phase 181 | Pending |
+| CLU-03 | Phase 181 | Pending |
+| CLU-04 | Phase 181 | Pending |
+| CLU-05 | Phase 181 | Pending |
+| CLU-06 | Phase 181 | Pending |
+| CLU-07 | Phase 181 | Pending |
+| CLR-02 | Phase 182 | Pending |
+| CLR-03 | Phase 182 | Pending |
+| CLR-04 | Phase 182 | Pending |
+| CLR-05 | Phase 182 | Pending |
+| CLR-06 | Phase 182 | Pending |
+| CLR-07 | Phase 182 | Pending |
+| CLR-08 | Phase 182 | Pending |
+| AUTO-01 | Phase 183 | Pending |
+| AUTO-02 | Phase 183 | Pending |
+| AUTO-03 | Phase 183 | Pending |
+| AUTO-04 | Phase 183 | Pending |
+| AUTO-05 | Phase 183 | Pending |
+| PORT-01 | Phase 184 | Pending |
+| PORT-02 | Phase 184 | Pending |
+| PORT-03 | Phase 184 | Pending |
+| PORT-04 | Phase 184 | Pending |
+| PORT-05 | Phase 184 | Pending |
+| PORT-06 | Phase 184 | Pending |
 
 **Coverage:**
 - v1 requirements: 58 total
-- Mapped to phases: 0
-- Unmapped: 58
+- Mapped to phases: 58
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-29*
-*Last updated: 2026-03-29 after initial definition*
+*Last updated: 2026-03-29 — traceability populated after roadmap creation*
