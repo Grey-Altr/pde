@@ -238,11 +238,10 @@ Plans:
   2. When a CLI-Anything pre-built harness is available via pipx, `/pde:cli-wrap` uses it as the fast path and skips native `--help` parsing — the routing decision is visible in the command output
   3. When no CLI-Anything harness is available, `/pde:cli-wrap` falls back to native `--help` → capability model → codegen — the fallback path produces a valid (potentially degraded) capability model
   4. pipx is used as the canonical install method for CLI-Anything CLIs — the absolute path to the installed binary is resolved at setup time and stored in config so it is not subject to PATH variations in Node.js subprocesses
-**Plans**: 3 plans
+**Plans**: 2 plans
 Plans:
-- [ ] 171-01-PLAN.md — Five-tier binary probe, display detection, col-b preprocessing, APP_CATALOG
-- [ ] 171-02-PLAN.md — Two-tier approval registry with state machine and SHA-256 verification
-- [ ] 171-03-PLAN.md — pde-tools app CLI routing and known design app catalog
+- [ ] 174-01-PLAN.md — Dual-strategy router module (app-cli-wrap.cjs), pipx setup, pde-tools routing, unit tests
+- [ ] 174-02-PLAN.md — /pde:cli-wrap slash command and integration test
 
 ### Phase 175: Design Pipeline Integration
 **Goal**: Design workflows that invoke Blender, GIMP, or Inkscape degrade gracefully when those apps are absent — and chain their output into existing v0.20 asset pipelines when they are present
@@ -282,5 +281,5 @@ Plans:
 | 171. Security Architecture + Discovery Foundation | v0.21 | 2/3 | Complete    | 2026-03-29 |
 | 172. Core App Wrappers | v0.21 | 1/3 | Complete    | 2026-03-29 |
 | 173. MCP Bridge Dynamic Registration | v0.21 | 2/2 | Complete    | 2026-03-29 |
-| 174. CLI Wrap Skill | v0.21 | 0/TBD | Not started | - |
+| 174. CLI Wrap Skill | v0.21 | 0/2 | Not started | - |
 | 175. Design Pipeline Integration | v0.21 | 0/TBD | Not started | - |
