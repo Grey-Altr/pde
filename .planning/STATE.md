@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.20
 milestone_name: CLI-Anything + Asset Engine
 status: Ready to execute
-stopped_at: Completed 163-04-PLAN.md
-last_updated: "2026-03-29T01:12:00.000Z"
+stopped_at: Completed 163-03-PLAN.md
+last_updated: "2026-03-29T01:06:01.549Z"
 progress:
   total_phases: 15
   completed_phases: 7
   total_plans: 20
-  completed_plans: 19
+  completed_plans: 18
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-28)
 ## Current Position
 
 Phase: 163 (CLI Ingestion + Capability Model) — EXECUTING
-Plan: 4 of 4 (COMPLETE)
+Plan: 4 of 4
 
 ## Performance Metrics
 
@@ -52,10 +52,8 @@ Plan: 4 of 4 (COMPLETE)
 - [Phase 163]: resolveRefs for OpenAPI: paths starting with 'components/' resolved relative to spec.components to handle '#/components/schemas/X' format
 - [Phase 163]: buildInputSchema flattens requestBody object properties directly into inputSchema.properties (not nested under 'body') for type:object with properties
 - [Phase 163]: JSON Schema parser uses path.basename(source) slug as root capability name;  entries use their definition key names
-- [Phase 163 Plan 04]: z.enum uses array form z.enum(["a","b"]) — Zod v4 dropped object form support; enforced in codegen walker and tests
-- [Phase 163 Plan 04]: AI SDK tool() uses inputSchema: property name (NOT parameters:) — codegen template and tests both enforce this
-- [Phase 163 Plan 04]: execFileSync (not exec) for tsc subprocess — avoids shell injection
-- [Phase 163 Plan 04]: http-probe: GraphQL introspection first, fall back to JSON re-detection
+- [Phase 163]: GraphQL and MCP parsers expose unit-testable helper functions (parseIntrospectionResult, parseMCPToolsList) to avoid live network/process dependencies in tests
+- [Phase 163]: MCP SDK must be required from packages/pde-mcp-server/node_modules absolute path — bare require('@modelcontextprotocol/sdk') fails
 
 ### Pending Todos
 
@@ -69,7 +67,7 @@ Plan: 4 of 4 (COMPLETE)
 
 ## Session Continuity
 
-Last session: 2026-03-29T01:12:00Z
-Stopped at: Completed 163-04-PLAN.md
-Resume with: `/gsd:plan-phase 163` (phase 163 complete — all 4 plans done)
+Last session: 2026-03-29T01:06:01.546Z
+Stopped at: Completed 163-03-PLAN.md
+Resume with: `/gsd:plan-phase 163`
 Resume file: None

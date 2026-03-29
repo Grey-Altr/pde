@@ -9,10 +9,10 @@ Requirements for CLI-Anything + Asset Engine milestone. Each maps to roadmap pha
 
 ### CLI Generation
 
-- [ ] **CLI-01**: User can ingest an OpenAPI spec and produce a unified capability model
-- [ ] **CLI-02**: User can ingest a JSON Schema file and produce a unified capability model
-- [ ] **CLI-03**: User can ingest a GraphQL endpoint (introspection) and produce a unified capability model
-- [ ] **CLI-04**: User can introspect any MCP server and produce a unified capability model
+- [x] **CLI-01**: User can ingest an OpenAPI spec and produce a unified capability model
+- [x] **CLI-02**: User can ingest a JSON Schema file and produce a unified capability model
+- [x] **CLI-03**: User can ingest a GraphQL endpoint (introspection) and produce a unified capability model
+- [x] **CLI-04**: User can introspect any MCP server and produce a unified capability model
 - [x] **CLI-05**: User can generate AI SDK tool() definitions from any unified capability model
 - [x] **CLI-06**: Generated tool definitions include Zod inputSchema and typed execute functions
 - [ ] **CLI-07**: User can auto-wrap any CLI as an MCP server via --help parsing
@@ -94,10 +94,10 @@ Deferred to future milestone. Tracked but not in current roadmap.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CLI-01 | Phase 163 | Pending |
-| CLI-02 | Phase 163 | Pending |
-| CLI-03 | Phase 163 | Pending |
-| CLI-04 | Phase 163 | Pending |
+| CLI-01 | Phase 163 | Complete |
+| CLI-02 | Phase 163 | Complete |
+| CLI-03 | Phase 163 | Complete |
+| CLI-04 | Phase 163 | Complete |
 | CLI-05 | Phase 163 | Complete |
 | CLI-06 | Phase 163 | Complete |
 | CLI-07 | Phase 164 | Pending |

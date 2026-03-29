@@ -120,3 +120,13 @@ None — no external service configuration required.
 ---
 *Phase: 163-cli-ingestion-capability-model*
 *Completed: 2026-03-29*
+
+## Self-Check: PASSED
+
+- FOUND: bin/lib/cli-anything/parsers/openapi.cjs
+- FOUND: bin/lib/cli-anything/parsers/jsonschema.cjs
+- FOUND: tests/phase-163/openapi-parser.test.mjs
+- FOUND: tests/phase-163/jsonschema-parser.test.mjs
+- FOUND: .planning/phases/163-cli-ingestion-capability-model/163-02-SUMMARY.md
+- FOUND commit c8f25b1: feat(163-02): implement OpenAPI 3.x parser with $ref resolution
+- FOUND commit 3c56a38: feat(163-02): implement JSON Schema parser with $defs handling
