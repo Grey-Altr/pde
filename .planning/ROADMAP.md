@@ -46,7 +46,7 @@
 
 **Milestone Goal:** PDE can auto-generate agent-native CLIs and MCP servers from any API spec, and produce production-ready visual assets (images, video, 3D models, CAD files) using free/open-source toolchains — zero paid API keys required.
 
-- [ ] **Phase 163: CLI Ingestion + Capability Model** — Ingest OpenAPI, JSON Schema, GraphQL, and MCP specs into a unified capability model with AI SDK tool() definitions and Zod schemas
+- [x] **Phase 163: CLI Ingestion + Capability Model** — Ingest OpenAPI, JSON Schema, GraphQL, and MCP specs into a unified capability model with AI SDK tool() definitions and Zod schemas (completed 2026-03-29)
 - [ ] **Phase 164: CLI Wrapping + Publishing** — Auto-wrap any CLI as an MCP server via --help parsing, SKILL.md generation, --json flag, and CLI-Hub registry publishing
 - [ ] **Phase 165: Image Generation Pipeline** — OG images via Satori, social cards, device mockup composites, Playwright screenshots, background removal via remove.bg free tier, and .planning/design/assets/ storage
 - [ ] **Phase 166: Visual Diff + Asset Reporting** — Branch-level visual diff with perceptual hashing, comparison report with changed/unchanged/new/deleted asset classification
@@ -173,7 +173,7 @@ Plans:
   3. User can point CLI-Anything at a GraphQL endpoint and receive a capability model derived from introspection without manual schema writing
   4. User can point CLI-Anything at a running MCP server and receive a capability model listing all available tools
   5. Generated AI SDK tool() definitions compile without TypeScript errors and include Zod inputSchema with fully typed execute functions
-**Plans:** 2/4 plans executed
+**Plans:** 4/4 plans complete
 Plans:
 - [x] 163-01-PLAN.md — Foundation: capability model schema, detect module, test scaffolds, ingest skeleton, command file
 - [x] 163-02-PLAN.md — OpenAPI + JSON Schema parsers
@@ -275,7 +275,7 @@ Plans:
 | 160. Declarative Approval Gates + Workflow Flags | v0.19 | 2/2 | Complete | 2026-03-28 |
 | 161. Auto-Generated Competitor Tools | v0.19 | 2/2 | Complete | 2026-03-28 |
 | 162. Multi-Editor Bridge | v0.19 | 2/2 | Complete | 2026-03-28 |
-| 163. CLI Ingestion + Capability Model | v0.20 | 2/4 | In Progress|  |
+| 163. CLI Ingestion + Capability Model | 4/4 | Complete   | 2026-03-29 |  |
 | 164. CLI Wrapping + Publishing | v0.20 | 0/TBD | Not started | - |
 | 165. Image Generation Pipeline | v0.20 | 0/TBD | Not started | - |
 | 166. Visual Diff + Asset Reporting | v0.20 | 0/TBD | Not started | - |

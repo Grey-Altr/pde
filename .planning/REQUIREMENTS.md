@@ -13,8 +13,8 @@ Requirements for CLI-Anything + Asset Engine milestone. Each maps to roadmap pha
 - [ ] **CLI-02**: User can ingest a JSON Schema file and produce a unified capability model
 - [ ] **CLI-03**: User can ingest a GraphQL endpoint (introspection) and produce a unified capability model
 - [ ] **CLI-04**: User can introspect any MCP server and produce a unified capability model
-- [ ] **CLI-05**: User can generate AI SDK tool() definitions from any unified capability model
-- [ ] **CLI-06**: Generated tool definitions include Zod inputSchema and typed execute functions
+- [x] **CLI-05**: User can generate AI SDK tool() definitions from any unified capability model
+- [x] **CLI-06**: Generated tool definitions include Zod inputSchema and typed execute functions
 - [ ] **CLI-07**: User can auto-wrap any CLI as an MCP server via --help parsing
 - [ ] **CLI-08**: Auto-generated MCP servers expose structured JSON output for every command
 - [ ] **CLI-09**: Every generated CLI/tool produces a SKILL.md for agent discovery
@@ -98,8 +98,8 @@ Deferred to future milestone. Tracked but not in current roadmap.
 | CLI-02 | Phase 163 | Pending |
 | CLI-03 | Phase 163 | Pending |
 | CLI-04 | Phase 163 | Pending |
-| CLI-05 | Phase 163 | Pending |
-| CLI-06 | Phase 163 | Pending |
+| CLI-05 | Phase 163 | Complete |
+| CLI-06 | Phase 163 | Complete |
 | CLI-07 | Phase 164 | Pending |
 | CLI-08 | Phase 164 | Pending |
 | CLI-09 | Phase 164 | Pending |
