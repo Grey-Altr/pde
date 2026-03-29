@@ -190,7 +190,11 @@ Plans:
   3. Every generated CLI or tool produces a SKILL.md that an agent can read to understand what the tool does and how to call it
   4. User can publish a generated CLI to a CLI-Hub compatible registry and have it appear in registry listings
   5. Any generated tool accepts a --json flag and returns machine-parseable output when that flag is present
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 164-01-PLAN.md — Wave 0: model.cjs cli type, test scaffolds, fixtures
+- [ ] 164-02-PLAN.md — help-parser.cjs + server-gen.cjs
+- [ ] 164-03-PLAN.md — skill-gen.cjs + registry.cjs + pde-tools wiring + commands
 
 ### Phase 165: Image Generation Pipeline
 **Goal**: Users can generate OG images, social cards, device mockups, and product screenshots, with background removal and organized asset storage — all using free toolchains
@@ -276,7 +280,7 @@ Plans:
 | 161. Auto-Generated Competitor Tools | v0.19 | 2/2 | Complete | 2026-03-28 |
 | 162. Multi-Editor Bridge | v0.19 | 2/2 | Complete | 2026-03-28 |
 | 163. CLI Ingestion + Capability Model | 4/4 | Complete   | 2026-03-29 |  |
-| 164. CLI Wrapping + Publishing | v0.20 | 0/TBD | Not started | - |
+| 164. CLI Wrapping + Publishing | v0.20 | 0/3 | Planned | - |
 | 165. Image Generation Pipeline | v0.20 | 0/TBD | Not started | - |
 | 166. Visual Diff + Asset Reporting | v0.20 | 0/TBD | Not started | - |
 | 167. Video Production Pipeline | v0.20 | 0/TBD | Not started | - |
