@@ -174,6 +174,12 @@
  *     rembg <image> [--slug S]                     Remove background (remove.bg)
  *     list [--type og|social|mockup|screenshot|rembg]  List generated assets
  *
+ * App Discovery:
+ *   app discover [slug]                Discover installed apps (all catalog or specific)
+ *   app probe <slug>                   Verify binary still exists at recorded path
+ *   app list [status]                  List registry entries (optional status filter)
+ *   app approve <slug>                 Approve app for agent invocation (computes SHA-256)
+ *
  * Suggestions:
  *   suggestions                        Print current idle suggestions to stdout
  */
@@ -1503,6 +1509,90 @@ async function main() {
       registry.update(sessionId, { status: 'stopped' });
       output({ stopped: true, sessionId, worktreePath: entry.worktreePath }, raw,
         `Session ${sessionId} stopped. Worktree preserved at ${entry.worktreePath}`);
+      break;
+    }
+
+    case 'app': {
+      const sub = args[1];
+      const discovery = require('./lib/app-discovery.cjs');
+      const registry = require('./lib/app-registry.cjs');
+      const registryPath = path.join(cwd, '.planning', 'app-registry.json');
+
+      switch (sub) {
+        case 'discover': {
+          // Discover all catalog apps or a specific slug
+          const targetSlug = args[2]; // optional
+          const slugs = targetSlug
+            ? [targetSlug]
+            : discovery.APP_CATALOG.map(a => a.slug);
+          const results = [];
+          for (const slug of slugs) {
+            try {
+              const result = discovery.discoverApp(slug);
+              registry.addPendingEntry(registryPath, result);
+              results.push(result);
+              const mode = result.executionMode;
+              const loc = result.binaryPath || 'not found';
+              console.log(`  ${result.slug}: ${mode} (${loc})`);
+            } catch (e) {
+              console.error(`  ${slug}: error - ${e.message}`);
+            }
+          }
+          if (raw) console.log(JSON.stringify(results, null, 2));
+          else console.log(`\nDiscovered ${results.length} app(s). All entries are pending approval.`);
+          console.log('Run: pde-tools app approve <slug> to approve.');
+          break;
+        }
+        case 'probe': {
+          const slug = args[2];
+          if (!slug) { console.error('Usage: pde-tools app probe <slug>'); process.exit(1); }
+          const entry = registry.getEntry(registryPath, slug);
+          if (!entry) { console.error('App "' + slug + '" not in registry. Run: pde-tools app discover'); process.exit(1); }
+          // Check binary still exists
+          const exists = fs.existsSync(entry.binaryPath);
+          const hashOk = entry.binaryHash
+            ? registry.verifyBinaryHash(entry.binaryPath, entry.binaryHash)
+            : { ok: true, note: 'no hash yet (pending)' };
+          const result = { slug, binaryPath: entry.binaryPath, exists, status: entry.status, hashVerification: hashOk };
+          if (raw) console.log(JSON.stringify(result, null, 2));
+          else {
+            console.log(`${slug}: binary ${exists ? 'exists' : 'MISSING'} at ${entry.binaryPath}`);
+            console.log(`  status: ${entry.status}, hash: ${hashOk.ok ? 'OK' : 'MISMATCH'}`);
+          }
+          break;
+        }
+        case 'list': {
+          const statusFilter = args[2]; // optional: 'pending', 'approved', 'rejected'
+          const entries = registry.listEntries(registryPath);
+          const filtered = statusFilter ? entries.filter(e => e.status === statusFilter) : entries;
+          if (raw) console.log(JSON.stringify(filtered, null, 2));
+          else {
+            if (filtered.length === 0) { console.log('No entries' + (statusFilter ? ' with status ' + statusFilter : '') + '.'); }
+            for (const e of filtered) {
+              console.log(`  ${e.slug}: ${e.status} | ${e.executionMode} | ${e.binaryPath || 'not found'}`);
+            }
+          }
+          break;
+        }
+        case 'approve': {
+          const slug = args[2];
+          if (!slug) { console.error('Usage: pde-tools app approve <slug>'); process.exit(1); }
+          try {
+            registry.approveEntry(registryPath, slug);
+            const entry = registry.getEntry(registryPath, slug);
+            console.log(`Approved: ${slug}`);
+            console.log(`  hash: ${entry.binaryHash}`);
+            console.log(`  path: ${entry.binaryPath}`);
+          } catch (e) {
+            console.error(e.message);
+            process.exit(1);
+          }
+          break;
+        }
+        default:
+          console.error('Unknown app subcommand: ' + sub + '. Available: discover, probe, list, approve');
+          process.exit(1);
+      }
       break;
     }
 
