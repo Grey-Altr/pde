@@ -52,7 +52,7 @@
 - [x] **Phase 166: Visual Diff + Asset Reporting** — Branch-level visual diff with perceptual hashing, comparison report with changed/unchanged/new/deleted asset classification (completed 2026-03-29)
 - [x] **Phase 167: Video Production Pipeline** — Playwright UI capture, FFmpeg assembly with transitions/overlays/captions, Remotion branded video composition with PDE design tokens, MP4 output (completed 2026-03-29)
 - [x] **Phase 168: AI 3D Generation + Web Embedding** — Text-to-3D and image-to-3D via TripoSR/SF3D, GLB output, model-viewer web embedding with AR fallback (USDZ/WebXR), 3D asset storage (completed 2026-03-29)
-- [ ] **Phase 169: Parametric CAD Generation** — CadQuery Python scripts for hardware product CAD models, STEP file output for engineering handoff
+- [x] **Phase 169: Parametric CAD Generation** — CadQuery Python scripts for hardware product CAD models, STEP file output for engineering handoff (completed 2026-03-29)
 - [ ] **Phase 170: PDE Utilities** — mmdr Mermaid renderer, DTCG token validator with OKLCH/APCA checks, visual diff command, test scaffold generation from flows, handoff spec verification with gap report
 
 ## Phase Details
@@ -268,9 +268,9 @@ Plans:
   1. User can provide a product description and receive a working CadQuery Python script that generates a parametric 3D model
   2. Running the CadQuery script produces a valid STEP file that opens without errors in standard CAD tools (FreeCAD, Fusion 360, SOLIDWORKS)
   3. Generated CadQuery scripts are parameterized — changing dimension variables in the script produces correctly scaled geometry
-**Plans:** 2 plans
+**Plans:** 2/2 plans complete
 Plans:
-- [ ] 169-01-PLAN.md — Core cad.cjs module: CadQuery script generation, STEP validation, asset storage with tests
+- [x] 169-01-PLAN.md — Core cad.cjs module: CadQuery script generation, STEP validation, asset storage with tests
 - [ ] 169-02-PLAN.md — pde-tools.cjs 3d cad subcommand wiring + /pde:3d cad command documentation
 
 ### Phase 170: PDE Utilities
@@ -303,5 +303,5 @@ Plans:
 | 166. Visual Diff + Asset Reporting | v0.20 | 1/2 | Complete    | 2026-03-29 |
 | 167. Video Production Pipeline | v0.20 | 2/3 | Complete    | 2026-03-29 |
 | 168. AI 3D Generation + Web Embedding | v0.20 | 2/3 | Complete    | 2026-03-29 |
-| 169. Parametric CAD Generation | v0.20 | 0/2 | In progress | - |
+| 169. Parametric CAD Generation | v0.20 | 1/2 | Complete    | 2026-03-29 |
 | 170. PDE Utilities | v0.20 | 0/TBD | Not started | - |

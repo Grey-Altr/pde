@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v0.20
 milestone_name: CLI-Anything + Asset Engine
 status: Ready to plan
-stopped_at: Completed 168-03-PLAN.md
-last_updated: "2026-03-29T04:31:36.647Z"
+stopped_at: Completed 169-02-PLAN.md
+last_updated: "2026-03-29T05:25:59.719Z"
 progress:
   total_phases: 15
-  completed_phases: 13
-  total_plans: 34
-  completed_plans: 34
+  completed_phases: 14
+  total_plans: 36
+  completed_plans: 36
 ---
 
 # Project State
@@ -19,11 +19,11 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-28)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 168 — AI 3D Generation + Web Embedding
+**Current focus:** Phase 169 — parametric-cad-generation
 
 ## Current Position
 
-Phase: 169
+Phase: 170
 Plan: Not started
 
 ## Performance Metrics
@@ -75,6 +75,10 @@ Plan: Not started
 - [Phase 168]: Dependency injection (_hfClient, _convertFn, _gradioClient, etc.) used in generate3D/convert3D for CJS test mocking — vi.mock() cannot intercept require() in CJS files loaded via Node's native loader
 - [Phase 168]: SPACE_CHAIN tries multiple Gradio route names (/run, /predict, /generate) per space — different HF Spaces expose different function names and SF3D/TripoSR spaces confirmed down as of 2026-03-29
 - [Phase 168]: 3d.md placed in commands/ (root) not bin/lib/commands/ — all command docs follow root commands/ pattern
+- [Phase 169-parametric-cad-generation]: execFileSync (not exec) used for CadQuery subprocess -- prevents shell injection, _execFn injection enables full unit testing without Python/CadQuery
+- [Phase 169-parametric-cad-generation]: saveCADAsset writes .step + .cq.py + .meta.json triple to .planning/design/3d/ with timestamp-based filenames -- mirrors assets.cjs GLB convention
+- [Phase 169-02]: cad subcommand default slug set to 'cad-model' to avoid collision with GLB outputs in the shared 3d/ directory
+- [Phase 169-02]: cad subcommand block inserted after 'list' and before default else -- maintains consistent ordering in pde-tools.cjs 3d case block
 
 ### Pending Todos
 
@@ -88,7 +92,7 @@ Plan: Not started
 
 ## Session Continuity
 
-Last session: 2026-03-29T04:27:55.403Z
-Stopped at: Completed 168-03-PLAN.md
+Last session: 2026-03-29T05:21:38.839Z
+Stopped at: Completed 169-02-PLAN.md
 Resume with: `/gsd:plan-phase 163`
 Resume file: None

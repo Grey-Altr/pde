@@ -48,8 +48,8 @@ Requirements for CLI-Anything + Asset Engine milestone. Each maps to roadmap pha
 - [x] **TRD-03**: Generated models output in GLB format with optimized geometry
 - [x] **TRD-04**: User can embed 3D models in web pages via model-viewer component
 - [x] **TRD-05**: model-viewer integration includes automatic AR fallback (USDZ/WebXR)
-- [ ] **TRD-06**: User can generate parametric CAD models via CadQuery Python scripts for hardware products
-- [ ] **TRD-07**: CadQuery outputs STEP files for engineering handoff
+- [x] **TRD-06**: User can generate parametric CAD models via CadQuery Python scripts for hardware products
+- [x] **TRD-07**: CadQuery outputs STEP files for engineering handoff
 - [x] **TRD-08**: 3D assets stored in .planning/design/3d/ with generation metadata
 
 ### PDE Utilities
@@ -124,8 +124,8 @@ Deferred to future milestone. Tracked but not in current roadmap.
 | TRD-03 | Phase 168 | Complete |
 | TRD-04 | Phase 168 | Complete |
 | TRD-05 | Phase 168 | Complete |
-| TRD-06 | Phase 169 | Pending |
-| TRD-07 | Phase 169 | Pending |
+| TRD-06 | Phase 169 | Complete |
+| TRD-07 | Phase 169 | Complete |
 | TRD-08 | Phase 168 | Complete |
 | UTL-01 | Phase 170 | Pending |
 | UTL-02 | Phase 170 | Pending |
