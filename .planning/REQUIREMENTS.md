@@ -9,20 +9,20 @@ Requirements for Desktop App Integration milestone. Each maps to roadmap phases.
 
 ### Discovery & Security
 
-- [ ] **DISC-01**: PDE can detect installed desktop applications via five-tier probe (env var → which/where → pip module → mdfind → well-known paths) on macOS, Linux, and Windows
-- [ ] **DISC-02**: Discovered apps are written to a two-tier approval registry with `pending`/`approved`/`rejected` status and binary SHA-256 hash verification
-- [ ] **DISC-03**: Every discovered app is classified with `executionMode` (`headless`/`gui-required`/`mock`) at discovery time, gating all subsequent tool calls
-- [ ] **DISC-04**: `--help` output is preprocessed with `col -b` to strip backspace sequences, with `parseQuality` annotation on degraded capability models
-- [ ] **DISC-05**: Display server availability probe is integrated into the existing probe/degrade contract for GUI-requiring apps
-- [ ] **DISC-06**: Known design app catalog (`references/app-integrations.md`) documents bundle IDs, pip status, executionMode, discovery hints for priority apps
+- [x] **DISC-01**: PDE can detect installed desktop applications via five-tier probe (env var → which/where → pip module → mdfind → well-known paths) on macOS, Linux, and Windows
+- [x] **DISC-02**: Discovered apps are written to a two-tier approval registry with `pending`/`approved`/`rejected` status and binary SHA-256 hash verification
+- [x] **DISC-03**: Every discovered app is classified with `executionMode` (`headless`/`gui-required`/`mock`) at discovery time, gating all subsequent tool calls
+- [x] **DISC-04**: `--help` output is preprocessed with `col -b` to strip backspace sequences, with `parseQuality` annotation on degraded capability models
+- [x] **DISC-05**: Display server availability probe is integrated into the existing probe/degrade contract for GUI-requiring apps
+- [x] **DISC-06**: Known design app catalog (`references/app-integrations.md`) documents bundle IDs, pip status, executionMode, discovery hints for priority apps
 
 ### Core App Wrappers
 
 - [ ] **WRAP-01**: Blender CLI wrapper with `--background` headless mode, version-aware (3.x vs 4.x), `startupMs` declaration, async-only MCP server
 - [ ] **WRAP-02**: GIMP CLI wrapper with `--no-interface --batch` Script-Fu mode, GIMP 2.x vs 3.x version detection and flag adaptation
 - [ ] **WRAP-03**: Inkscape CLI wrapper with `inkscape --export-type` pure CLI mode, no headless flags needed
-- [ ] **WRAP-04**: SKILL.md auto-generation for all three wrapped apps extending Phase 164 machinery
-- [ ] **WRAP-05**: JSON structured output mode for every wrapped app command (required for pipeline chaining)
+- [x] **WRAP-04**: SKILL.md auto-generation for all three wrapped apps extending Phase 164 machinery
+- [x] **WRAP-05**: JSON structured output mode for every wrapped app command (required for pipeline chaining)
 - [ ] **WRAP-06**: Version-aware capability models that reflect the actual installed version's API surface
 
 ### MCP Bridge & Registration
@@ -78,17 +78,17 @@ Deferred to future release. Tracked but not in current roadmap.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DISC-01 | Phase 171 | Pending |
-| DISC-02 | Phase 171 | Pending |
-| DISC-03 | Phase 171 | Pending |
-| DISC-04 | Phase 171 | Pending |
-| DISC-05 | Phase 171 | Pending |
-| DISC-06 | Phase 171 | Pending |
+| DISC-01 | Phase 171 | Complete |
+| DISC-02 | Phase 171 | Complete |
+| DISC-03 | Phase 171 | Complete |
+| DISC-04 | Phase 171 | Complete |
+| DISC-05 | Phase 171 | Complete |
+| DISC-06 | Phase 171 | Complete |
 | WRAP-01 | Phase 172 | Pending |
 | WRAP-02 | Phase 172 | Pending |
 | WRAP-03 | Phase 172 | Pending |
-| WRAP-04 | Phase 172 | Pending |
-| WRAP-05 | Phase 172 | Pending |
+| WRAP-04 | Phase 172 | Complete |
+| WRAP-05 | Phase 172 | Complete |
 | WRAP-06 | Phase 172 | Pending |
 | REG-01 | Phase 173 | Pending |
 | REG-02 | Phase 173 | Pending |

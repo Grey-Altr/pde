@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.21
 milestone_name: Desktop App Integration
-status: Ready to plan
-stopped_at: Completed 171-03-PLAN.md
-last_updated: "2026-03-29T09:09:36.112Z"
+status: Ready to execute
+stopped_at: Completed 172-01-PLAN.md
+last_updated: "2026-03-29T18:35:15.302Z"
 progress:
   total_phases: 12
   completed_phases: 8
-  total_plans: 19
-  completed_plans: 19
+  total_plans: 22
+  completed_plans: 20
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-29)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 171 — security-architecture-discovery-foundation
+**Current focus:** Phase 172 — core-app-wrappers
 
 ## Current Position
 
-Phase: 172
-Plan: Not started
+Phase: 172 (core-app-wrappers) — EXECUTING
+Plan: 2 of 3
 
 ## Performance Metrics
 
@@ -49,6 +49,8 @@ Plan: Not started
 - [Phase 171]: APP_CATALOG uses static array for known app definitions (blender, gimp, inkscape)
 - [Phase 171]: Registry path defaults to .planning/app-registry.json relative to cwd
 - [Phase 171]: Discover writes pending entries automatically; approve is separate explicit step for security
+- [Phase 172-01]: asyncMode driven by metadata.asyncRequired field — wrappers declare startup characteristics
+- [Phase 172-01]: index.cjs lazy require avoids errors when wrapper files not yet implemented
 
 ### Pending Todos
 
@@ -61,7 +63,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-29T09:05:24.480Z
-Stopped at: Completed 171-03-PLAN.md
+Last session: 2026-03-29T18:35:15.299Z
+Stopped at: Completed 172-01-PLAN.md
 Resume with: `/gsd:plan-phase 171`
 Resume file: None
