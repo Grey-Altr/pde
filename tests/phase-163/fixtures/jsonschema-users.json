@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "name": { "type": "string", "description": "User full name" },
+    "email": { "type": "string", "description": "Email address" },
+    "age": { "type": "integer" }
+  },
+  "required": ["name", "email"],
+  "$defs": {
+    "Address": {
+      "type": "object",
+      "properties": {
+        "street": { "type": "string" },
+        "city": { "type": "string" },
+        "zip": { "type": "string" }
+      },
+      "required": ["street", "city"]
+    },
+    "Preferences": {
+      "type": "object",
+      "properties": {
+        "theme": { "type": "string", "enum": ["light", "dark"] },
+        "notifications": { "type": "boolean" }
+      }
+    }
+  }
+}

@@ -1,0 +1,48 @@
+{
+  "data": {
+    "__schema": {
+      "queryType": { "name": "Query" },
+      "mutationType": { "name": "Mutation" },
+      "types": [
+        {
+          "name": "Query", "kind": "OBJECT", "description": "",
+          "fields": [
+            {
+              "name": "user",
+              "description": "Get a user by ID",
+              "args": [{ "name": "id", "description": "User ID", "type": { "name": "String", "kind": "SCALAR", "ofType": null } }],
+              "type": { "name": "User", "kind": "OBJECT", "ofType": null }
+            },
+            {
+              "name": "users",
+              "description": "List all users",
+              "args": [],
+              "type": { "name": null, "kind": "LIST", "ofType": { "name": "User", "kind": "OBJECT" } }
+            }
+          ]
+        },
+        {
+          "name": "Mutation", "kind": "OBJECT", "description": "",
+          "fields": [
+            {
+              "name": "createUser",
+              "description": "Create a new user",
+              "args": [
+                { "name": "name", "description": "User name", "type": { "name": "String", "kind": "SCALAR", "ofType": null } },
+                { "name": "email", "description": "Email", "type": { "name": "String", "kind": "SCALAR", "ofType": null } }
+              ],
+              "type": { "name": "User", "kind": "OBJECT", "ofType": null }
+            }
+          ]
+        },
+        {
+          "name": "User", "kind": "OBJECT", "description": "A user account",
+          "fields": [
+            { "name": "id", "description": "", "args": [], "type": { "name": "ID", "kind": "SCALAR", "ofType": null } },
+            { "name": "name", "description": "", "args": [], "type": { "name": "String", "kind": "SCALAR", "ofType": null } }
+          ]
+        }
+      ]
+    }
+  }
+}

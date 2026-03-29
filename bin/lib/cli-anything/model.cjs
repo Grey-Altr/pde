@@ -16,11 +16,11 @@ const { z } = require('zod');
 const CapabilitySchema = z.object({
   name: z.string(),
   description: z.string(),
-  inputSchema: z.record(z.unknown()),
-  outputSchema: z.record(z.unknown()).nullable(),
+  inputSchema: z.record(z.string(), z.unknown()),
+  outputSchema: z.record(z.string(), z.unknown()).nullable(),
   method: z.string().nullable(),
   path: z.string().nullable(),
-  extensions: z.record(z.unknown()),
+  extensions: z.record(z.string(), z.unknown()),
 });
 
 /**
@@ -31,7 +31,7 @@ const CapabilityModelSchema = z.object({
     source: z.string(),
     type: z.enum(['openapi', 'jsonschema', 'graphql', 'mcp']),
     version: z.string(),
-    auth: z.record(z.unknown()),
+    auth: z.record(z.string(), z.unknown()),
     generatedAt: z.string(),
   }),
   capabilities: z.array(CapabilitySchema),

@@ -1,0 +1,25 @@
+{
+  "tools": [
+    {
+      "name": "get_design_state",
+      "description": "Get the current design pipeline state",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "product": { "type": "string", "description": "Product name" }
+        },
+        "required": ["product"]
+      }
+    },
+    {
+      "name": "list_artifacts",
+      "description": "List design artifacts in the planning directory",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "filter": { "type": "string", "description": "Glob filter pattern" }
+        }
+      }
+    }
+  ]
+}
