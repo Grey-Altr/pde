@@ -76,7 +76,7 @@ async function wrapViaHarness(cwd, slug, harnessBinaryPath, registryEntry) {
   const { discoverCapabilities } = require('./cli-anything/help-parser.cjs');
   const { validateCapabilityModel } = require('./cli-anything/model.cjs');
   const { writeServer } = require('./cli-anything/server-gen.cjs');
-  const { writeSkillMd } = require('./cli-anything/skill-gen.cjs');
+  const { generateSkillMd } = require('./cli-anything/skill-gen.cjs');
 
   const capabilities = discoverCapabilities(harnessBinaryPath);
 
@@ -103,7 +103,14 @@ async function wrapViaHarness(cwd, slug, harnessBinaryPath, registryEntry) {
   fs.mkdirSync(serverDir, { recursive: true });
 
   writeServer(serverDir, capabilities, model.meta, cwd);
-  writeSkillMd(serverDir, model);
+
+  // Fix SKILL.md path: generateSkillMd bakes .planning/cli-anything/ but we use .planning/app-wrappers/
+  let skillContent = generateSkillMd(model);
+  skillContent = skillContent.replace(
+    `.planning/cli-anything/${slug}/server/server.cjs`,
+    `.planning/app-wrappers/${slug}/server/server.cjs`
+  );
+  fs.writeFileSync(path.join(serverDir, 'SKILL.md'), skillContent, 'utf8');
 
   return { strategy: 'harness', outDir, serverDir, capabilities: capabilities.length };
 }
@@ -124,7 +131,7 @@ async function wrapViaNativeHelp(cwd, slug, registryEntry) {
   const { discoverCapabilities } = require('./cli-anything/help-parser.cjs');
   const { validateCapabilityModel } = require('./cli-anything/model.cjs');
   const { writeServer } = require('./cli-anything/server-gen.cjs');
-  const { writeSkillMd } = require('./cli-anything/skill-gen.cjs');
+  const { generateSkillMd } = require('./cli-anything/skill-gen.cjs');
 
   const capabilities = discoverCapabilities(registryEntry.binaryPath);
 
@@ -158,7 +165,14 @@ async function wrapViaNativeHelp(cwd, slug, registryEntry) {
   fs.mkdirSync(serverDir, { recursive: true });
 
   writeServer(serverDir, capabilities, model.meta, cwd);
-  writeSkillMd(serverDir, model);
+
+  // Fix SKILL.md path: generateSkillMd bakes .planning/cli-anything/ but we use .planning/app-wrappers/
+  let skillContent = generateSkillMd(model);
+  skillContent = skillContent.replace(
+    `.planning/cli-anything/${slug}/server/server.cjs`,
+    `.planning/app-wrappers/${slug}/server/server.cjs`
+  );
+  fs.writeFileSync(path.join(serverDir, 'SKILL.md'), skillContent, 'utf8');
 
   return { strategy: 'fallback', outDir, serverDir, capabilities: capabilities.length, parseQuality };
 }

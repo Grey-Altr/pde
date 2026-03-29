@@ -443,12 +443,12 @@ function getStatus(serverKey) {
   return {
     status: 'not_configured',
     server_key: serverKey,
-    display_name: APPROVED_SERVERS[serverKey].displayName,
+    display_name: (APPROVED_SERVERS[serverKey] || DYNAMIC_SERVERS[serverKey] || {}).displayName || serverKey,
   };
 }
 
 /**
- * Returns connection statuses for all approved servers.
+ * Returns connection statuses for all approved servers (static + dynamic).
  *
  * @returns {Object} map of server key → status entry
  */
@@ -456,6 +456,11 @@ function getAllStatuses() {
   const result = {};
   for (const serverKey of Object.keys(APPROVED_SERVERS)) {
     result[serverKey] = getStatus(serverKey);
+  }
+  for (const serverKey of Object.keys(DYNAMIC_SERVERS)) {
+    if (!result[serverKey]) {
+      result[serverKey] = getStatus(serverKey);
+    }
   }
   return result;
 }
@@ -474,8 +479,8 @@ function getAllStatuses() {
  */
 function probe(serverKey) {
   assertApproved(serverKey);
-  const server = APPROVED_SERVERS[serverKey];
-  if (server.probeTool === null) {
+  const server = APPROVED_SERVERS[serverKey] || DYNAMIC_SERVERS[serverKey];
+  if (!server || server.probeTool === null) {
     return {
       available: false,
       status: 'not_configured',
@@ -524,7 +529,7 @@ function call(canonicalName, args) {
  */
 function updateConnectionStatus(serverKey, status, extraFields) {
   assertApproved(serverKey);
-  const server = APPROVED_SERVERS[serverKey];
+  const server = APPROVED_SERVERS[serverKey] || DYNAMIC_SERVERS[serverKey] || {};
   const data = loadConnections();
   if (!data.connections) data.connections = {};
 
