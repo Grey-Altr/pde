@@ -34,15 +34,15 @@ Requirements for Desktop App Integration milestone. Each maps to roadmap phases.
 
 ### Design Pipeline Integration
 
-- [ ] **PIPE-01**: `wireframe.md` and `mockup.md` gain optional app-tool steps gated by `probeServer()`, degrading to no-op with documented skip
-- [ ] **PIPE-02**: Blender → 3D pipeline chaining: render output feeds into GLB optimize → model-viewer (Phase 168 integration)
-- [ ] **PIPE-03**: GIMP → image pipeline chaining: GIMP retouch as an editing step within existing Phase 165 image pipeline
+- [x] **PIPE-01**: `wireframe.md` and `mockup.md` gain optional app-tool steps gated by `probeServer()`, degrading to no-op with documented skip
+- [x] **PIPE-02**: Blender → 3D pipeline chaining: render output feeds into GLB optimize → model-viewer (Phase 168 integration)
+- [x] **PIPE-03**: GIMP → image pipeline chaining: GIMP retouch as an editing step within existing Phase 165 image pipeline
 
 ### CLI Wrap Skill
 
-- [ ] **CLI-01**: `/pde:cli-wrap` skill takes any installed app and produces agent-native CLI + MCP server + SKILL.md in one command
-- [ ] **CLI-02**: Dual strategy routing: CLI-Anything pre-built CLIs (pipx) as fast path when available, native `--help` → capability model → codegen as fallback
-- [ ] **CLI-03**: pipx (not pip) as canonical install method for CLI-Anything CLIs, with absolute path resolution stored in config
+- [x] **CLI-01**: `/pde:cli-wrap` skill takes any installed app and produces agent-native CLI + MCP server + SKILL.md in one command
+- [x] **CLI-02**: Dual strategy routing: CLI-Anything pre-built CLIs (pipx) as fast path when available, native `--help` → capability model → codegen as fallback
+- [x] **CLI-03**: pipx (not pip) as canonical install method for CLI-Anything CLIs, with absolute path resolution stored in config
 
 ## Future Requirements
 
@@ -94,12 +94,12 @@ Deferred to future release. Tracked but not in current roadmap.
 | REG-02 | Phase 173 | Complete |
 | REG-03 | Phase 173 | Complete |
 | REG-04 | Phase 173 | Complete |
-| CLI-01 | Phase 174 | Pending |
-| CLI-02 | Phase 174 | Pending |
-| CLI-03 | Phase 174 | Pending |
-| PIPE-01 | Phase 175 | Pending |
-| PIPE-02 | Phase 175 | Pending |
-| PIPE-03 | Phase 175 | Pending |
+| CLI-01 | Phase 174 | Complete |
+| CLI-02 | Phase 174 | Complete |
+| CLI-03 | Phase 174 | Complete |
+| PIPE-01 | Phase 175 | Complete |
+| PIPE-02 | Phase 175 | Complete |
+| PIPE-03 | Phase 175 | Complete |
 
 **Coverage:**
 - v0.21 requirements: 22 total
