@@ -108,7 +108,7 @@ describe('fast path: harness available via pipx_bin_dir', () => {
     expect(fs.existsSync(modelPath)).toBe(true);
   });
 
-  it('fast path result has strategy: harness when harness binary exists', () => {
+  it('fast path result has strategy: harness when harness binary exists', async () => {
     tempDir = createTempDir();
 
     const pipxDir = path.join(tempDir, 'pipx-bin');
@@ -116,7 +116,7 @@ describe('fast path: harness available via pipx_bin_dir', () => {
     const harnessBin = createFakeHarness(pipxDir, 'testapp', RICH_HELP);
 
     const entry = { ...APPROVED_ENTRY, binaryPath: '/usr/bin/testapp' };
-    const result = wrapViaHarness(tempDir, 'testapp', harnessBin, entry);
+    const result = await wrapViaHarness(tempDir, 'testapp', harnessBin, entry);
 
     expect(result.strategy).toBe('harness');
   });
@@ -163,13 +163,13 @@ describe('fallback path: no harness available', () => {
     expect(model.meta.parseQuality).toBeUndefined();
   });
 
-  it('fallback result includes strategy: fallback', () => {
+  it('fallback result includes strategy: fallback', async () => {
     tempDir = createTempDir();
 
     const appBin = createFakeBinary(tempDir, 'testapp', RICH_HELP);
     const entry = { ...APPROVED_ENTRY, binaryPath: appBin };
 
-    const result = wrapViaNativeHelp(tempDir, 'testapp', entry);
+    const result = await wrapViaNativeHelp(tempDir, 'testapp', entry);
     expect(result.strategy).toBe('fallback');
     expect(result.parseQuality).toBeDefined();
   });
@@ -239,24 +239,24 @@ describe('security: rejects unapproved apps', () => {
 // ─── Output directory: uses app-wrappers not cli-anything ────────────────────
 
 describe('output directory: uses app-wrappers not cli-anything', () => {
-  it('wrapViaNativeHelp writes to .planning/app-wrappers/<slug>/', () => {
+  it('wrapViaNativeHelp writes to .planning/app-wrappers/<slug>/', async () => {
     tempDir = createTempDir();
 
     const appBin = createFakeBinary(tempDir, 'testapp', RICH_HELP);
     const entry = { ...APPROVED_ENTRY, binaryPath: appBin };
 
-    const result = wrapViaNativeHelp(tempDir, 'testapp', entry);
+    const result = await wrapViaNativeHelp(tempDir, 'testapp', entry);
     expect(result.outDir).toContain('app-wrappers');
     expect(result.outDir).not.toContain('cli-anything');
   });
 
-  it('wrapViaHarness writes to .planning/app-wrappers/<slug>/', () => {
+  it('wrapViaHarness writes to .planning/app-wrappers/<slug>/', async () => {
     tempDir = createTempDir();
 
     const harnessBin = createFakeBinary(tempDir, 'cli-anything-testapp', RICH_HELP);
     const entry = { ...APPROVED_ENTRY, binaryPath: '/usr/bin/testapp' };
 
-    const result = wrapViaHarness(tempDir, 'testapp', harnessBin, entry);
+    const result = await wrapViaHarness(tempDir, 'testapp', harnessBin, entry);
     expect(result.outDir).toContain('app-wrappers');
     expect(result.outDir).not.toContain('cli-anything');
   });
