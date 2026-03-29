@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.21
-milestone_name: Desktop App Integration
-status: v0.21 milestone complete
-stopped_at: Completed 175-02-PLAN.md
-last_updated: "2026-03-29T21:18:20.409Z"
+milestone: v0.22
+milestone_name: Stakeholder Presentations
+status: Defining requirements
+stopped_at: null
+last_updated: "2026-03-29T22:00:00.000Z"
 progress:
-  total_phases: 12
-  completed_phases: 12
-  total_plans: 28
-  completed_plans: 28
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
 # Project State
@@ -19,12 +19,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-29)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Planning next milestone
+**Current focus:** Defining requirements for v0.22 Stakeholder Presentations
 
 ## Current Position
 
-Phase: 175
-Plan: Not started
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-29 — Milestone v0.22 started
 
 ## Performance Metrics
 

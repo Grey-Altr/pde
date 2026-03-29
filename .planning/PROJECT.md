@@ -208,9 +208,21 @@ Any user can go from idea to shipped product through a single platform that hand
 - ✓ Production hardening: rate limiting, 7-day Redis TTL, event downsampling, 1000-event buffer cap, daily cron GC — v0.17
 - ✓ 107 tests across 15 files, 27/27 requirements satisfied, full Nyquist compliance — v0.17
 
+## Current Milestone: v0.22 Stakeholder Presentations
+
+**Goal:** Synthesis engine that generates communication documents from PDE project artifacts, with persona-driven output and auto-generation at key moments.
+
+**Target features:**
+- Synthesis engine core — reads `.planning/` artifacts (PROJECT.md, ROADMAP.md, phase plans, designs, VERIFICATION.md, git history) and produces structured narratives
+- 10 output personas: executive summary, investor update, sprint review, client deliverable report, case study/portfolio piece, agile project report, design persona, product manager, project manager, research persona
+- Dual format output — HTML (primary, self-contained with embedded CSS) + Markdown (secondary, portable/diffable)
+- Auto-generation — snapshots at phase completions and milestone archives, plus `/pde:present [persona]` on-demand
+- Cross-project portfolio synthesis — reads multiple `.planning/` directories for portfolio-level narratives
+- Agile project report — sprint retrospective narrative + burndown/velocity metrics
+
 ## Current State
 
-**All milestones through v0.21 shipped.** No active milestone — next milestone TBD.
+**All milestones through v0.21 shipped.** v0.22 Stakeholder Presentations in progress.
 
 **v0.21 Desktop App Integration shipped** (2026-03-29) — 5 phases (171-175), 12 plans, 22 requirements. Security architecture with two-tier approval registry, core app wrappers (Blender/GIMP/Inkscape), MCP bridge dynamic registration, `/pde:cli-wrap` one-command skill with dual strategy routing, and design pipeline integration with graceful degradation. All tech debt resolved, full Nyquist compliance.
 
@@ -250,7 +262,7 @@ Any user can go from idea to shipped product through a single platform that hand
 - **Shipped v0.14** on 2026-03-24: 10 phases, 21 plans, 78 requirements, 441+ Nyquist assertions (Visual AutoResearch: Playwright MCP, visual metrics, multi-candidate A/B, meta-optimization)
 - **Shipped v0.13** on 2026-03-23: 9 phases, 15 plans (AutoResearch: safety boundaries, experiment schema, mutation agent, circuit breakers)
 - **Shipped v0.12** on 2026-03-23: 15 phases, 24 plans, 59 requirements, 235 Nyquist assertions (Business product type with venture design engine)
-- **Planned roadmap:** Next milestone TBD → v1.0 Standalone CLI
+- **Planned roadmap:** v0.22 Stakeholder Presentations → v1.0 Standalone CLI
 - **v0.11** shipped 2026-03-22: 112 files changed, 116 commits (experience product type: detection, brief, tokens, flows, wireframes, critique, HIG, print, handoff, 48 requirements)
 - **v0.10** shipped 2026-03-21: 107 files changed, 56 commits (idle-time productivity: suggestion engine, catalog, context notes, 7-pane dashboard)
 - **v0.9** shipped 2026-03-21: 91 files changed, 76 commits (Google Stitch integration across 5 pipeline skills)
