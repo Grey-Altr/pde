@@ -65,7 +65,7 @@
 
 **Milestone Goal:** PDE can discover installed GUI applications, wrap them as agent-native CLI tools with safety-gated approval, and integrate Blender, GIMP, and Inkscape directly into the design pipeline — using the existing CLI-Anything infrastructure with no new npm dependencies.
 
-- [ ] **Phase 171: Security Architecture + Discovery Foundation** — Two-tier approval registry, five-tier binary probe, executionMode classification, col -b help preprocessing, and known-app catalog
+- [x] **Phase 171: Security Architecture + Discovery Foundation** — Two-tier approval registry, five-tier binary probe, executionMode classification, col -b help preprocessing, and known-app catalog (completed 2026-03-29)
 - [ ] **Phase 172: Core App Wrappers** — Blender, GIMP, and Inkscape wrappers with version-aware headless modes, SKILL.md generation, JSON output, and display server probe
 - [ ] **Phase 173: MCP Bridge Dynamic Registration** — loadDynamicServers() and registerDynamicServer() in mcp-bridge.cjs, pde-tools app subcommand, and pip CLI server-gen handler
 - [ ] **Phase 174: CLI Wrap Skill** — /pde:cli-wrap one-command workflow with dual strategy routing (CLI-Anything fast path + native fallback) and pipx canonical install
@@ -194,8 +194,8 @@ _Phases 163-170 archived to milestones/v0.20-ROADMAP.md_
   5. `references/app-integrations.md` exists and documents bundle IDs, pip status, executionMode, and discovery hints for at least Blender, GIMP, and Inkscape
 **Plans**: 3 plans
 Plans:
-- [ ] 171-01-PLAN.md — Five-tier binary probe, display detection, col-b preprocessing, APP_CATALOG
-- [ ] 171-02-PLAN.md — Two-tier approval registry with state machine and SHA-256 verification
+- [x] 171-01-PLAN.md — Five-tier binary probe, display detection, col-b preprocessing, APP_CATALOG
+- [x] 171-02-PLAN.md — Two-tier approval registry with state machine and SHA-256 verification
 - [ ] 171-03-PLAN.md — pde-tools app CLI routing and known design app catalog
 
 ### Phase 172: Core App Wrappers
@@ -280,7 +280,7 @@ Plans:
 | 168. AI 3D Generation + Web Embedding | v0.20 | 3/3 | Complete | 2026-03-29 |
 | 169. Parametric CAD Generation | v0.20 | 2/2 | Complete | 2026-03-29 |
 | 170. PDE Utilities | v0.20 | 3/3 | Complete | 2026-03-29 |
-| 171. Security Architecture + Discovery Foundation | v0.21 | 0/TBD | Not started | - |
+| 171. Security Architecture + Discovery Foundation | v0.21 | 2/3 | Complete    | 2026-03-29 |
 | 172. Core App Wrappers | v0.21 | 0/TBD | Not started | - |
 | 173. MCP Bridge Dynamic Registration | v0.21 | 0/TBD | Not started | - |
 | 174. CLI Wrap Skill | v0.21 | 0/TBD | Not started | - |

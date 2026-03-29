@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.21
 milestone_name: Desktop App Integration
-status: ready to plan
-stopped_at: Phase 171
-last_updated: "2026-03-29T12:00:00.000Z"
+status: Ready to plan
+stopped_at: Completed 171-03-PLAN.md
+last_updated: "2026-03-29T09:09:36.112Z"
 progress:
-  total_phases: 5
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_phases: 12
+  completed_phases: 8
+  total_plans: 19
+  completed_plans: 19
 ---
 
 # Project State
@@ -19,16 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-29)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** v0.21 Desktop App Integration — Phase 171 ready to plan
+**Current focus:** Phase 171 — security-architecture-discovery-foundation
 
 ## Current Position
 
-Phase: 171 of 175 (Security Architecture + Discovery Foundation)
-Plan: — (not yet planned)
-Status: Ready to plan
-Last activity: 2026-03-29 — Roadmap created for v0.21 (5 phases, 22 requirements mapped)
-
-Progress: [░░░░░░░░░░] 0%
+Phase: 172
+Plan: Not started
 
 ## Performance Metrics
 
@@ -48,6 +44,11 @@ Progress: [░░░░░░░░░░] 0%
 - Roadmap: CLI Wrap Skill (CLI-01–03) is Phase 174, separate from MCP Bridge (Phase 173) — the skill depends on bridge registration being stable before the one-command wrapper is built
 - Security: Two-tier approval registry (Phase 171) is non-negotiable first — no binary can be discovered before the pending/approved/rejected schema exists
 - pipx over pip: Canonical install method for CLI-Anything CLIs due to PEP-668 on Homebrew Python 3.12+
+- [Phase 171]: SHA-256 computed at approval time only - discovery-time hashing expensive for 200MB+ binaries
+- [Phase 171]: checkApproved checks mock executionMode before status - mock apps never invokable regardless of approval
+- [Phase 171]: APP_CATALOG uses static array for known app definitions (blender, gimp, inkscape)
+- [Phase 171]: Registry path defaults to .planning/app-registry.json relative to cwd
+- [Phase 171]: Discover writes pending entries automatically; approve is separate explicit step for security
 
 ### Pending Todos
 
@@ -60,7 +61,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-29T12:00:00.000Z
-Stopped at: Roadmap written — ready to plan Phase 171
+Last session: 2026-03-29T09:05:24.480Z
+Stopped at: Completed 171-03-PLAN.md
 Resume with: `/gsd:plan-phase 171`
 Resume file: None
