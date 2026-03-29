@@ -7,10 +7,13 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createRequire } from 'module';
+import { createRequire, createRequire as cr } from 'module';
+import { fileURLToPath } from 'url';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const require = createRequire(import.meta.url);
 
@@ -84,7 +87,7 @@ describe('wrapViaNativeHelp - parseQuality', () => {
   it('parseQuality degraded/ok thresholds are correct (< 3 = degraded, >= 3 = ok)', () => {
     // Test the exported logic directly through the source
     const src = fs.readFileSync(
-      new URL('../../bin/lib/app-cli-wrap.cjs', import.meta.url).pathname,
+      path.join(__dirname, '../../bin/lib/app-cli-wrap.cjs'),
       'utf8'
     );
     // Verify parseQuality logic is present
@@ -96,7 +99,7 @@ describe('wrapViaNativeHelp - parseQuality', () => {
 
   it('parseQuality is stored at JSON top level, NOT inside meta', () => {
     const src = fs.readFileSync(
-      new URL('../../bin/lib/app-cli-wrap.cjs', import.meta.url).pathname,
+      path.join(__dirname, '../../bin/lib/app-cli-wrap.cjs'),
       'utf8'
     );
     // The serialization pattern must put parseQuality outside the model
@@ -113,11 +116,15 @@ describe('wrapViaNativeHelp - parseQuality', () => {
 describe('cmdCliWrap security gate ordering', () => {
   it('calls checkApproved before detectHarness — verified by source analysis', () => {
     const src = fs.readFileSync(
-      new URL('../../bin/lib/app-cli-wrap.cjs', import.meta.url).pathname,
+      path.join(__dirname, '../../bin/lib/app-cli-wrap.cjs'),
       'utf8'
     );
-    const checkApprovedIdx = src.indexOf('checkApproved(');
-    const detectHarnessIdx = src.indexOf('detectHarness(');
+    // Extract just the cmdCliWrap function body for ordering check
+    const cmdStart = src.indexOf('async function cmdCliWrap(');
+    expect(cmdStart).toBeGreaterThan(-1);
+    const cmdBody = src.slice(cmdStart);
+    const checkApprovedIdx = cmdBody.indexOf('checkApproved(');
+    const detectHarnessIdx = cmdBody.indexOf('detectHarness(');
     expect(checkApprovedIdx).toBeGreaterThan(-1);
     expect(detectHarnessIdx).toBeGreaterThan(-1);
     // checkApproved must appear BEFORE detectHarness in cmdCliWrap body
@@ -145,7 +152,7 @@ describe('app-cli-wrap.cjs exports', () => {
 
   it('does NOT use VALID_CONFIG_KEYS (must write config directly)', () => {
     const src = fs.readFileSync(
-      new URL('../../bin/lib/app-cli-wrap.cjs', import.meta.url).pathname,
+      path.join(__dirname, '../../bin/lib/app-cli-wrap.cjs'),
       'utf8'
     );
     expect(src).not.toContain('VALID_CONFIG_KEYS');
@@ -153,7 +160,7 @@ describe('app-cli-wrap.cjs exports', () => {
 
   it('uses app-wrappers output directory, NOT cli-anything', () => {
     const src = fs.readFileSync(
-      new URL('../../bin/lib/app-cli-wrap.cjs', import.meta.url).pathname,
+      path.join(__dirname, '../../bin/lib/app-cli-wrap.cjs'),
       'utf8'
     );
     expect(src).toContain('app-wrappers');
@@ -161,7 +168,7 @@ describe('app-cli-wrap.cjs exports', () => {
 
   it('includes registerDynamicServer call', () => {
     const src = fs.readFileSync(
-      new URL('../../bin/lib/app-cli-wrap.cjs', import.meta.url).pathname,
+      path.join(__dirname, '../../bin/lib/app-cli-wrap.cjs'),
       'utf8'
     );
     expect(src).toContain('registerDynamicServer');
