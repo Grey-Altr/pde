@@ -1,0 +1,142 @@
+# Requirements: PDE v0.22 Stakeholder Presentations
+
+**Defined:** 2026-03-29
+**Core Value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
+
+## v1 Requirements
+
+Requirements for this milestone. Each maps to roadmap phases.
+
+### Data Extraction
+
+- [ ] **EXT-01**: System can extract project identity (name, goal, core value, product type) from PROJECT.md into structured IR
+- [ ] **EXT-02**: System can extract phase completion status (total/completed phases, plans, tasks) from STATE.md and ROADMAP.md into IR
+- [ ] **EXT-03**: System can extract requirement coverage (total/completed/blocked, per-category breakdown) from REQUIREMENTS.md into IR
+- [ ] **EXT-04**: System can extract design artifact inventory (wireframes, mockups, flows, tokens) from design-manifest.json into IR
+- [ ] **EXT-05**: System can extract git velocity metrics (commits per phase, total LOC, contributor stats) from git history into IR
+- [ ] **EXT-06**: System can extract cost/timing data (token usage, session durations, phase timelines) from NDJSON event bus into IR
+- [ ] **EXT-07**: System can extract blocker and risk data (unresolved tasks, overdue phases, reconciliation gaps) from phase plans into IR
+- [ ] **EXT-08**: System can extract verification results (AC pass/fail, goal achievement, Nyquist compliance) from VERIFICATION.md files into IR
+- [ ] **EXT-09**: System can extract research findings (validated claims, technology evaluations, competitive landscape) from research/ directory into IR
+- [ ] **EXT-10**: System can extract key decisions with rationale from PROJECT.md and STATE.md into IR
+
+### Cluster A Personas (Internal / Forward-Looking)
+
+- [ ] **CLU-01**: User can generate an executive summary (progress, blockers, timeline confidence, 1-page format)
+- [ ] **CLU-02**: User can generate an investor update (milestone velocity, technical moat, market positioning)
+- [ ] **CLU-03**: User can generate a sprint review (what shipped, demo screenshots, what's next)
+- [ ] **CLU-04**: User can generate a client deliverable report (feature specs, ACs met, screenshots)
+- [ ] **CLU-05**: User can generate a stakeholder status update (RAG status, decisions needed, risks)
+- [ ] **CLU-06**: User can generate a product manager view (feature prioritization, requirement coverage, roadmap health, scope trade-offs)
+- [ ] **CLU-07**: User can generate a project manager view (timeline tracking, dependency analysis, risk register, resource allocation)
+
+### Cluster B Personas (External / Retrospective)
+
+- [ ] **CLR-01**: User can generate a case study / portfolio piece (problem, approach, outcome, lessons)
+- [ ] **CLR-02**: User can generate an agile project report (retro narrative + burndown/velocity metrics)
+- [ ] **CLR-03**: User can generate a design persona report (design decisions, system tokens, wireframe evolution, visual direction rationale)
+- [ ] **CLR-04**: User can generate a research persona report (findings summary, tech evaluations, competitive landscape, evidence-backed recommendations)
+- [ ] **CLR-05**: User can generate a technical post-mortem (what broke, root cause, prevention)
+- [ ] **CLR-06**: User can generate an ADR summary (context, options considered, decision, consequences)
+- [ ] **CLR-07**: User can generate a launch announcement (what it is, who it's for, how to start)
+- [ ] **CLR-08**: User can generate a portfolio overview (cross-project patterns, skills demonstrated)
+
+### Rendering & Output
+
+- [ ] **RND-01**: Each persona generates self-contained HTML output (embedded CSS, no external URLs, no JavaScript, <500KB)
+- [ ] **RND-02**: Each persona generates Markdown output as secondary format (portable, diffable, git-friendly)
+- [ ] **RND-03**: HTML output includes auto-generated table of contents with anchor navigation
+- [ ] **RND-04**: HTML output embeds design artifact screenshots as inline base64 images where relevant
+- [ ] **RND-05**: HTML output uses PDE design tokens (colors, typography, spacing from DESIGN.md) for consistent branding
+- [ ] **RND-06**: Presentations persist to `.planning/presentations/` with `[persona]-[date].html` and `.md` naming
+- [ ] **RND-07**: User can regenerate/refresh a presentation (re-run overwrites with current project state)
+
+### SVG Charts
+
+- [ ] **CHT-01**: System can generate a burndown chart (remaining tasks/requirements over time) as inline SVG
+- [ ] **CHT-02**: System can generate a velocity chart (tasks completed per phase/sprint) as inline SVG
+- [ ] **CHT-03**: System can generate a phase timeline chart (planned vs actual duration per phase) as inline SVG
+- [ ] **CHT-04**: System can generate an effort breakdown chart (token cost or task count by category) as inline SVG
+- [ ] **CHT-05**: Charts are embedded directly in HTML presentations (no external dependencies)
+- [ ] **CHT-06**: Charts include accessible text alternatives (aria-labels, data tables as fallback)
+
+### PDF Export
+
+- [ ] **PDF-01**: User can export any HTML presentation to PDF via `--pdf` flag
+- [ ] **PDF-02**: PDF export uses Playwright page.pdf() (already installed, no new deps)
+- [ ] **PDF-03**: PDF preserves chart SVGs, embedded images, and table formatting
+
+### Claim Verification
+
+- [ ] **VER-01**: Post-generation verification compares LLM narrative claims against the structured IR
+- [ ] **VER-02**: Factual mismatches (wrong counts, dates, status) are flagged before output is finalized
+- [ ] **VER-03**: Verification result is appended as metadata footer in generated presentations
+
+### Command & Workflow
+
+- [ ] **CMD-01**: `/pde:present [persona]` generates a presentation for the specified persona
+- [ ] **CMD-02**: `/pde:present` (no argument) lists available personas with descriptions
+- [ ] **CMD-03**: `pde-tools.cjs presentation` subcommand handles IR extraction and file operations
+- [ ] **CMD-04**: Workflow reads all `.planning/` artifacts and passes structured IR (not raw files) to LLM for narration
+
+### Auto-Generation
+
+- [ ] **AUTO-01**: Presentations auto-generate when a phase is marked complete (via phase completion event)
+- [ ] **AUTO-02**: Presentations auto-generate when a milestone is archived (via `/gsd:complete-milestone`)
+- [ ] **AUTO-03**: Auto-generation is gated on state completion check (not PostToolUse frequency)
+- [ ] **AUTO-04**: Auto-generated presentations use a default persona set (configurable in config.json)
+- [ ] **AUTO-05**: Auto-generation can be disabled in config.json without affecting on-demand `/pde:present`
+
+### Cross-Project Portfolio
+
+- [ ] **PORT-01**: User can specify multiple `.planning/` directory paths for portfolio synthesis
+- [ ] **PORT-02**: Portfolio synthesis reads project identity, milestone history, and key outcomes from each project
+- [ ] **PORT-03**: Portfolio generates a cross-project narrative showing patterns, skills, and cumulative outcomes
+- [ ] **PORT-04**: Schema version detection identifies `.planning/` directory versions and adapts extraction accordingly
+- [ ] **PORT-05**: Missing or incompatible fields surface "data unavailable" markers (never silently zeros)
+- [ ] **PORT-06**: `/pde:portfolio [path1] [path2] ...` command triggers portfolio synthesis
+
+## Future Requirements
+
+Deferred to a later milestone. Tracked but not in current roadmap.
+
+### Enhanced Output
+
+- **FUT-01**: Interactive HTML slide deck format (reveal.js or similar)
+- **FUT-02**: Native iOS/Android rendering
+- **FUT-03**: Real-time collaborative editing of generated presentations
+
+### Integration
+
+- **FUT-04**: Direct Slack/Teams posting of executive summaries
+- **FUT-05**: Notion page creation from generated Markdown
+- **FUT-06**: Figma deck generation from design persona output
+
+## Out of Scope
+
+| Feature | Reason |
+|---------|--------|
+| Interactive slide editor | Requires separate platform capabilities; would dominate milestone |
+| Pixel-perfect PDF layout | Playwright page.pdf() is good enough; pixel-perfect requires dedicated layout engine |
+| Real-time collaborative editing | Conflicts with snapshot semantics; presentations are point-in-time artifacts |
+| External CDN dependencies in HTML | Breaks under CSP policies, makes output non-self-contained |
+| JavaScript in HTML output | Increases attack surface, breaks in restricted environments |
+| Streaming/live presentation updates | Snapshot semantics — regenerate to refresh |
+| Custom persona creation by users | 15 built-in personas cover known use cases; custom personas add abstraction overhead |
+
+## Traceability
+
+Which phases cover which requirements. Updated during roadmap creation.
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| — | — | Pending |
+
+**Coverage:**
+- v1 requirements: 58 total
+- Mapped to phases: 0
+- Unmapped: 58
+
+---
+*Requirements defined: 2026-03-29*
+*Last updated: 2026-03-29 after initial definition*
