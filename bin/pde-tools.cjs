@@ -1610,8 +1610,46 @@ async function main() {
           }
           break;
         }
+        case 'register': {
+          const slug = args[2];
+          if (!slug) { console.error('Usage: pde-tools app register <slug>'); process.exit(1); }
+          try {
+            registry.approveEntry(registryPath, slug);
+            const entry = registry.getEntry(registryPath, slug);
+
+            const modelPath = path.join(cwd, '.planning', 'app-wrappers', slug, 'capability-model.json');
+            const { safeReadFile } = require('./lib/core.cjs');
+            let caps = [];
+            const modelRaw = safeReadFile(modelPath);
+            if (modelRaw) {
+              try {
+                caps = JSON.parse(modelRaw).capabilities || [];
+              } catch (_) {
+                console.log('  Warning: capability-model.json is malformed for ' + slug);
+              }
+            } else {
+              console.log('  Warning: no capability-model found. Run: pde-tools app wrap ' + slug + ' first.');
+            }
+
+            const serverPath = path.join(cwd, '.planning', 'app-wrappers', slug, 'server', 'server.cjs');
+            const { registerDynamicServer } = require('./lib/mcp-bridge.cjs');
+            registerDynamicServer(slug, serverPath, caps, {
+              displayName: entry.displayName,
+              startupMs: 5000,
+            });
+
+            console.log('Registered: ' + slug);
+            console.log('  server: ' + serverPath);
+            console.log('  tools: ' + caps.length + ' capabilities loaded into TOOL_MAP');
+            console.log('  Note: Registration is in-process only. Restart session for mcp-bridge auto-load.');
+          } catch (e) {
+            console.error(e.message);
+            process.exit(1);
+          }
+          break;
+        }
         default:
-          console.error('Unknown app subcommand: ' + sub + '. Available: discover, probe, list, approve, wrap');
+          console.error('Unknown app subcommand: ' + sub + '. Available: discover, probe, list, approve, wrap, register');
           process.exit(1);
       }
       break;
