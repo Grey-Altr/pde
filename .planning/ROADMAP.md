@@ -53,7 +53,7 @@
 - [x] **Phase 167: Video Production Pipeline** — Playwright UI capture, FFmpeg assembly with transitions/overlays/captions, Remotion branded video composition with PDE design tokens, MP4 output (completed 2026-03-29)
 - [x] **Phase 168: AI 3D Generation + Web Embedding** — Text-to-3D and image-to-3D via TripoSR/SF3D, GLB output, model-viewer web embedding with AR fallback (USDZ/WebXR), 3D asset storage (completed 2026-03-29)
 - [x] **Phase 169: Parametric CAD Generation** — CadQuery Python scripts for hardware product CAD models, STEP file output for engineering handoff (completed 2026-03-29)
-- [ ] **Phase 170: PDE Utilities** — mmdr Mermaid renderer, DTCG token validator with OKLCH/APCA checks, visual diff command, test scaffold generation from flows, handoff spec verification with gap report
+- [x] **Phase 170: PDE Utilities** — mmdr Mermaid renderer, DTCG token validator with OKLCH/APCA checks, visual diff command, test scaffold generation from flows, handoff spec verification with gap report (completed 2026-03-29)
 
 ## Phase Details
 
@@ -284,10 +284,10 @@ Plans:
   4. User can run a visual diff command comparing Playwright screenshots across two branches or commits and receive the same structured report as Phase 166
   5. User can run /pde:gen-tests on a flows diagram output and receive Playwright E2E test skeleton files with navigation paths derived from the flow
   6. User can run /pde:verify-handoff and receive a gap report listing every component where the implementation diverges from or is absent from the handoff spec
-**Plans:** 3 plans
+**Plans:** 3/3 plans complete
 Plans:
-- [ ] 170-01-PLAN.md — Mermaid renderer + DTCG token validator modules with tests
-- [ ] 170-02-PLAN.md — Flow test generator + handoff verifier modules with tests
+- [x] 170-01-PLAN.md — Mermaid renderer + DTCG token validator modules with tests
+- [x] 170-02-PLAN.md — Flow test generator + handoff verifier modules with tests
 - [ ] 170-03-PLAN.md — pde-tools.cjs utils wiring + skill files for all commands
 
 ## Progress
@@ -308,4 +308,4 @@ Plans:
 | 167. Video Production Pipeline | v0.20 | 2/3 | Complete    | 2026-03-29 |
 | 168. AI 3D Generation + Web Embedding | v0.20 | 2/3 | Complete    | 2026-03-29 |
 | 169. Parametric CAD Generation | v0.20 | 1/2 | Complete    | 2026-03-29 |
-| 170. PDE Utilities | v0.20 | 0/3 | Not started | - |
+| 170. PDE Utilities | v0.20 | 2/3 | Complete    | 2026-03-29 |

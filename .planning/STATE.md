@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.20
 milestone_name: CLI-Anything + Asset Engine
-status: Ready to plan
-stopped_at: Completed 169-02-PLAN.md
-last_updated: "2026-03-29T05:25:59.719Z"
+status: Milestone complete
+stopped_at: Completed 170-03-PLAN.md
+last_updated: "2026-03-29T06:09:38.052Z"
 progress:
   total_phases: 15
-  completed_phases: 14
-  total_plans: 36
-  completed_plans: 36
+  completed_phases: 15
+  total_plans: 39
+  completed_plans: 39
 ---
 
 # Project State
@@ -19,7 +19,7 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-28)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 169 — parametric-cad-generation
+**Current focus:** Phase 170 — pde-utilities
 
 ## Current Position
 
@@ -79,6 +79,11 @@ Plan: Not started
 - [Phase 169-parametric-cad-generation]: saveCADAsset writes .step + .cq.py + .meta.json triple to .planning/design/3d/ with timestamp-based filenames -- mirrors assets.cjs GLB convention
 - [Phase 169-02]: cad subcommand default slug set to 'cad-model' to avoid collision with GLB outputs in the shared 3d/ directory
 - [Phase 169-02]: cad subcommand block inserted after 'list' and before default else -- maintains consistent ordering in pde-tools.cjs 3d case block
+- [Phase 170-pde-utilities]: mermaid-renderer.cjs uses process.env.MMDR_PATH env var override; _execFn injection for mmdr/mmdc binary detection following cad.cjs pattern
+- [Phase 170-pde-utilities]: token-validator.cjs: checkApcaContrast first arg is always text (foreground) — apca-w3 calcAPCA is directional; body text threshold 60 Lc, large text 45 Lc
+- [Phase 170-pde-utilities]: Edge regex updated to allow optional bracket/paren/diamond after node ID before arrow — handles inline node labels like A[Label] --> B[Label] in Mermaid flowcharts
+- [Phase 170-pde-utilities]: handoff-verifier searchForExport catches all errors (not just exit-1) to safely handle missing srcDir — prevents unhandled rejection in verifyHandoff
+- [Phase 170]: case 'utils' block inserted after case '3d' in pde-tools.cjs — all four utility modules wired following established pattern
 
 ### Pending Todos
 
@@ -92,7 +97,7 @@ Plan: Not started
 
 ## Session Continuity
 
-Last session: 2026-03-29T05:21:38.839Z
-Stopped at: Completed 169-02-PLAN.md
+Last session: 2026-03-29T06:06:11.937Z
+Stopped at: Completed 170-03-PLAN.md
 Resume with: `/gsd:plan-phase 163`
 Resume file: None

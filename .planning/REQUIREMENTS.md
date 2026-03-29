@@ -54,14 +54,14 @@ Requirements for CLI-Anything + Asset Engine milestone. Each maps to roadmap pha
 
 ### PDE Utilities
 
-- [ ] **UTL-01**: Mermaid diagrams render via mmdr Rust renderer (500-1000x faster than mermaid-cli)
-- [ ] **UTL-02**: User can validate DTCG design tokens against schema completeness and naming conventions
-- [ ] **UTL-03**: Token validator checks OKLCH gamut ranges and APCA contrast ratios
-- [ ] **UTL-04**: User can run visual diff comparing Playwright screenshots across branches/commits
-- [ ] **UTL-05**: User can generate test scaffolds from /pde:flows flow diagram output
-- [ ] **UTL-06**: Generated tests include Playwright E2E skeletons with flow-derived navigation paths
-- [ ] **UTL-07**: User can verify implementation matches handoff spec (component APIs, TypeScript interfaces)
-- [ ] **UTL-08**: Handoff verify produces a gap report listing unimplemented/divergent components
+- [x] **UTL-01**: Mermaid diagrams render via mmdr Rust renderer (500-1000x faster than mermaid-cli)
+- [x] **UTL-02**: User can validate DTCG design tokens against schema completeness and naming conventions
+- [x] **UTL-03**: Token validator checks OKLCH gamut ranges and APCA contrast ratios
+- [x] **UTL-04**: User can run visual diff comparing Playwright screenshots across branches/commits
+- [x] **UTL-05**: User can generate test scaffolds from /pde:flows flow diagram output
+- [x] **UTL-06**: Generated tests include Playwright E2E skeletons with flow-derived navigation paths
+- [x] **UTL-07**: User can verify implementation matches handoff spec (component APIs, TypeScript interfaces)
+- [x] **UTL-08**: Handoff verify produces a gap report listing unimplemented/divergent components
 
 ## Future Requirements
 
@@ -127,14 +127,14 @@ Deferred to future milestone. Tracked but not in current roadmap.
 | TRD-06 | Phase 169 | Complete |
 | TRD-07 | Phase 169 | Complete |
 | TRD-08 | Phase 168 | Complete |
-| UTL-01 | Phase 170 | Pending |
-| UTL-02 | Phase 170 | Pending |
-| UTL-03 | Phase 170 | Pending |
-| UTL-04 | Phase 170 | Pending |
-| UTL-05 | Phase 170 | Pending |
-| UTL-06 | Phase 170 | Pending |
-| UTL-07 | Phase 170 | Pending |
-| UTL-08 | Phase 170 | Pending |
+| UTL-01 | Phase 170 | Complete |
+| UTL-02 | Phase 170 | Complete |
+| UTL-03 | Phase 170 | Complete |
+| UTL-04 | Phase 170 | Complete |
+| UTL-05 | Phase 170 | Complete |
+| UTL-06 | Phase 170 | Complete |
+| UTL-07 | Phase 170 | Complete |
+| UTL-08 | Phase 170 | Complete |
 
 **Coverage:**
 - v0.20 requirements: 41 total
