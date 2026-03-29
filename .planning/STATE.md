@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v0.21
 milestone_name: Desktop App Integration
-status: Ready to execute
-stopped_at: Completed 173-01-PLAN.md
-last_updated: "2026-03-29T19:23:53.279Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 173-02-PLAN.md
+last_updated: "2026-03-29T19:32:27.094Z"
 progress:
   total_phases: 12
-  completed_phases: 9
+  completed_phases: 10
   total_plans: 24
-  completed_plans: 23
+  completed_plans: 24
 ---
 
 # Project State
@@ -56,6 +56,7 @@ Plan: 2 of 2
 - [Phase 172]: GIMP 3.x uses --quit flag (introduced 2.99.12); GIMP 2.x uses --batch '(gimp-quit 0)' — enforced via parseMajorVersion() branch
 - [Phase 173]: Used separate DYNAMIC_SERVERS map instead of merging into APPROVED_SERVERS to keep static security policy boundary clean
 - [Phase 173]: loadDynamicServers accepts optional projectRoot param for testability without mocking process.cwd()
+- [Phase 173]: Use safeReadFile (not fs.readFileSync) in register case — returns null on ENOENT instead of throwing
 
 ### Pending Todos
 
@@ -68,7 +69,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-29T19:23:53.275Z
-Stopped at: Completed 173-01-PLAN.md
+Last session: 2026-03-29T19:32:27.091Z
+Stopped at: Completed 173-02-PLAN.md
 Resume with: `/gsd:plan-phase 171`
 Resume file: None

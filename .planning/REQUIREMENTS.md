@@ -28,8 +28,8 @@ Requirements for Desktop App Integration milestone. Each maps to roadmap phases.
 ### MCP Bridge & Registration
 
 - [x] **REG-01**: `mcp-bridge.cjs` gains `loadDynamicServers(registryPath)` reading registry.json at module init, populating APPROVED_SERVERS + TOOL_MAP for `approved` entries only
-- [ ] **REG-02**: `pde-tools app discover|wrap|register|list|probe` subcommand as user-facing CLI entry point
-- [ ] **REG-03**: `server-gen.cjs` gains `generatePythonModuleHandler()` for pip CLIs using `python -m {tool}` spawn pattern
+- [x] **REG-02**: `pde-tools app discover|wrap|register|list|probe` subcommand as user-facing CLI entry point
+- [x] **REG-03**: `server-gen.cjs` gains `generatePythonModuleHandler()` for pip CLIs using `python -m {tool}` spawn pattern
 - [x] **REG-04**: Dynamic registration uses `registerDynamicServer(slug, serverPath, caps)` for single-app registration path
 
 ### Design Pipeline Integration
@@ -91,8 +91,8 @@ Deferred to future release. Tracked but not in current roadmap.
 | WRAP-05 | Phase 172 | Complete |
 | WRAP-06 | Phase 172 | Complete |
 | REG-01 | Phase 173 | Complete |
-| REG-02 | Phase 173 | Pending |
-| REG-03 | Phase 173 | Pending |
+| REG-02 | Phase 173 | Complete |
+| REG-03 | Phase 173 | Complete |
 | REG-04 | Phase 173 | Complete |
 | CLI-01 | Phase 174 | Pending |
 | CLI-02 | Phase 174 | Pending |

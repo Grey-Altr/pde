@@ -67,7 +67,7 @@
 
 - [x] **Phase 171: Security Architecture + Discovery Foundation** — Two-tier approval registry, five-tier binary probe, executionMode classification, col -b help preprocessing, and known-app catalog (completed 2026-03-29)
 - [x] **Phase 172: Core App Wrappers** — Blender, GIMP, and Inkscape wrappers with version-aware headless modes, SKILL.md generation, JSON output, and display server probe (completed 2026-03-29)
-- [ ] **Phase 173: MCP Bridge Dynamic Registration** — loadDynamicServers() and registerDynamicServer() in mcp-bridge.cjs, pde-tools app subcommand, and pip CLI server-gen handler
+- [x] **Phase 173: MCP Bridge Dynamic Registration** — loadDynamicServers() and registerDynamicServer() in mcp-bridge.cjs, pde-tools app subcommand, and pip CLI server-gen handler (completed 2026-03-29)
 - [ ] **Phase 174: CLI Wrap Skill** — /pde:cli-wrap one-command workflow with dual strategy routing (CLI-Anything fast path + native fallback) and pipx canonical install
 - [ ] **Phase 175: Design Pipeline Integration** — Optional app-tool steps in wireframe.md and mockup.md, Blender → 3D pipeline chaining, and GIMP → image pipeline chaining
 
@@ -227,7 +227,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 - [x] 173-01-PLAN.md — loadDynamicServers, registerDynamicServer, DYNAMIC_SERVERS in mcp-bridge.cjs
-- [ ] 173-02-PLAN.md — generatePythonModuleHandler in server-gen.cjs, pde-tools app register subcommand
+- [x] 173-02-PLAN.md — generatePythonModuleHandler in server-gen.cjs, pde-tools app register subcommand
 
 ### Phase 174: CLI Wrap Skill
 **Goal**: Any installed application can be wrapped as an agent-native CLI tool in one command — `/pde:cli-wrap` handles discovery, capability model generation, MCP server creation, and SKILL.md publishing automatically
@@ -281,6 +281,6 @@ Plans:
 | 170. PDE Utilities | v0.20 | 3/3 | Complete | 2026-03-29 |
 | 171. Security Architecture + Discovery Foundation | v0.21 | 2/3 | Complete    | 2026-03-29 |
 | 172. Core App Wrappers | v0.21 | 1/3 | Complete    | 2026-03-29 |
-| 173. MCP Bridge Dynamic Registration | v0.21 | 1/2 | In Progress|  |
+| 173. MCP Bridge Dynamic Registration | v0.21 | 2/2 | Complete   | 2026-03-29 |
 | 174. CLI Wrap Skill | v0.21 | 0/TBD | Not started | - |
 | 175. Design Pipeline Integration | v0.21 | 0/TBD | Not started | - |
