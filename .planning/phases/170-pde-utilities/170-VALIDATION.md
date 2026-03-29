@@ -38,22 +38,22 @@ created: 2026-03-29
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 170-01-01 | 01 | 1 | UTL-01 | unit | `npx vitest run tests/phase-170/mermaid.test.mjs` | ❌ W0 | ⬜ pending |
+| 170-01-01 | 01 | 1 | UTL-01 | unit | `npx vitest run tests/phase-170/mermaid-renderer.test.mjs` | ❌ W0 | ⬜ pending |
 | 170-01-02 | 01 | 1 | UTL-02,UTL-03 | unit | `npx vitest run tests/phase-170/token-validator.test.mjs` | ❌ W0 | ⬜ pending |
-| 170-02-01 | 02 | 1 | UTL-04 | unit | `npx vitest run tests/phase-170/visual-diff-cmd.test.mjs` | ❌ W0 | ⬜ pending |
-| 170-02-02 | 02 | 1 | UTL-05,UTL-06 | unit | `npx vitest run tests/phase-170/flow-test-gen.test.mjs` | ❌ W0 | ⬜ pending |
-| 170-03-01 | 03 | 2 | UTL-07,UTL-08 | unit | `npx vitest run tests/phase-170/handoff-verifier.test.mjs` | ❌ W0 | ⬜ pending |
-| 170-03-02 | 03 | 2 | UTL-01-08 | integration | `npx vitest run tests/phase-170/` | ❌ W0 | ⬜ pending |
+| 170-02-01 | 02 | 1 | UTL-05,UTL-06 | unit | `npx vitest run tests/phase-170/flow-test-gen.test.mjs` | ❌ W0 | ⬜ pending |
+| 170-02-02 | 02 | 1 | UTL-07,UTL-08 | unit | `npx vitest run tests/phase-170/handoff-verifier.test.mjs` | ❌ W0 | ⬜ pending |
+| 170-03-01 | 03 | 2 | UTL-01-08 | integration | `npx vitest run tests/phase-170/` | ❌ W0 | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
+
+*Note: UTL-04 (visual diff) is satisfied by the existing `pde-tools.cjs image diff` command and `commands/visual-diff.md` skill file. No dedicated test file needed — verified by `grep -q "pde-tools.cjs image diff" commands/visual-diff.md` in Plan 03 Task 2.*
 
 ---
 
 ## Wave 0 Requirements
 
-- [ ] `tests/phase-170/mermaid.test.mjs` — stubs for UTL-01
+- [ ] `tests/phase-170/mermaid-renderer.test.mjs` — stubs for UTL-01
 - [ ] `tests/phase-170/token-validator.test.mjs` — stubs for UTL-02, UTL-03
-- [ ] `tests/phase-170/visual-diff-cmd.test.mjs` — stubs for UTL-04
 - [ ] `tests/phase-170/flow-test-gen.test.mjs` — stubs for UTL-05, UTL-06
 - [ ] `tests/phase-170/handoff-verifier.test.mjs` — stubs for UTL-07, UTL-08
 
