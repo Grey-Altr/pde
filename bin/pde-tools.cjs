@@ -983,6 +983,89 @@ async function main() {
       break;
     }
 
+    case 'utils': {
+      const subcommand = args[1];
+      if (subcommand === 'render-mermaid') {
+        const { renderMermaid } = require('./lib/utils/mermaid-renderer.cjs');
+        const inputIdx = args.indexOf('--input');
+        const outputIdx = args.indexOf('--output');
+        const formatIdx = args.indexOf('--format');
+        const input = inputIdx !== -1 ? args[inputIdx + 1] : undefined;
+        const outputPath = outputIdx !== -1 ? args[outputIdx + 1] : undefined;
+        if (!input || !outputPath) {
+          console.error('Usage: utils render-mermaid --input <file.mmd> --output <file.svg> [--format svg|png]');
+          process.exit(1);
+        }
+        const format = formatIdx !== -1 ? args[formatIdx + 1] : 'svg';
+        renderMermaid({ input, outputPath, format });
+        console.log(JSON.stringify({ input, output: outputPath, format }, null, 2));
+      } else if (subcommand === 'validate-tokens') {
+        const { runTokenValidation } = require('./lib/utils/token-validator.cjs');
+        const fs = require('fs');
+        const tokensIdx = args.indexOf('--tokens-file');
+        const tokensFile = tokensIdx !== -1 ? args[tokensIdx + 1] : undefined;
+        if (!tokensFile) {
+          console.error('Usage: utils validate-tokens --tokens-file <tokens.json>');
+          process.exit(1);
+        }
+        const tokens = JSON.parse(fs.readFileSync(tokensFile, 'utf8'));
+        const result = runTokenValidation(tokens);
+        console.log(result.summary);
+        console.log(JSON.stringify(result.stats, null, 2));
+      } else if (subcommand === 'gen-tests') {
+        const { parseFlowchart, generateTestScaffold, findLatestFlowsFile } = require('./lib/utils/flow-test-gen.cjs');
+        const fs = require('fs');
+        const path = require('path');
+        const flowsIdx = args.indexOf('--flows-file');
+        const outputIdx = args.indexOf('--output');
+        const baseUrlIdx = args.indexOf('--base-url');
+        let flowsFile = flowsIdx !== -1 ? args[flowsIdx + 1] : null;
+        if (!flowsFile) {
+          flowsFile = findLatestFlowsFile(path.join(cwd, '.planning/design/ux'));
+        }
+        if (!flowsFile) {
+          console.error('No flows file found. Run /pde:flows first or pass --flows-file <path>');
+          process.exit(1);
+        }
+        const content = fs.readFileSync(flowsFile, 'utf8');
+        // Extract mermaid blocks from markdown
+        const mermaidMatch = content.match(/```mermaid\n([\s\S]*?)```/);
+        const mermaidText = mermaidMatch ? mermaidMatch[1] : content;
+        const { nodes, edges } = parseFlowchart(mermaidText);
+        const baseUrl = baseUrlIdx !== -1 ? args[baseUrlIdx + 1] : 'http://localhost:3000';
+        const scaffold = generateTestScaffold({ nodes, edges, baseUrl });
+        const outputPath = outputIdx !== -1 ? args[outputIdx + 1] : path.join(cwd, 'tests/e2e/flow-navigation.spec.ts');
+        fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+        fs.writeFileSync(outputPath, scaffold, 'utf8');
+        console.log(JSON.stringify({ output: outputPath, tests: edges.length, nodes: nodes.size }, null, 2));
+      } else if (subcommand === 'verify-handoff') {
+        const { verifyHandoff, findLatestHandoffSpec } = require('./lib/utils/handoff-verifier.cjs');
+        const path = require('path');
+        const specIdx = args.indexOf('--spec');
+        const srcIdx = args.indexOf('--src-dir');
+        let specPath = specIdx !== -1 ? args[specIdx + 1] : null;
+        if (!specPath) {
+          specPath = findLatestHandoffSpec(path.join(cwd, '.planning/design/handoff'));
+        }
+        if (!specPath) {
+          console.error('No handoff spec found. Run /pde:handoff first or pass --spec <path>');
+          process.exit(1);
+        }
+        const srcDir = srcIdx !== -1 ? args[srcIdx + 1] : path.join(cwd, 'src');
+        const result = verifyHandoff({ specPath, srcDir });
+        if (result.status === 'no-spec') {
+          console.error(result.message);
+          process.exit(1);
+        }
+        console.log(result.markdown);
+        console.log(JSON.stringify(result.stats, null, 2));
+      } else {
+        console.error('Usage: utils <render-mermaid|validate-tokens|gen-tests|verify-handoff> [options]');
+        process.exit(1);
+      }
+      break;
+    }
+
     case 'phase-plan-index': {
       phase.cmdPhasePlanIndex(cwd, args[1], raw);
       break;
