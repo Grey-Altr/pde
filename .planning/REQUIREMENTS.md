@@ -78,34 +78,34 @@ Deferred to future release. Tracked but not in current roadmap.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DISC-01 | — | Pending |
-| DISC-02 | — | Pending |
-| DISC-03 | — | Pending |
-| DISC-04 | — | Pending |
-| DISC-05 | — | Pending |
-| DISC-06 | — | Pending |
-| WRAP-01 | — | Pending |
-| WRAP-02 | — | Pending |
-| WRAP-03 | — | Pending |
-| WRAP-04 | — | Pending |
-| WRAP-05 | — | Pending |
-| WRAP-06 | — | Pending |
-| REG-01 | — | Pending |
-| REG-02 | — | Pending |
-| REG-03 | — | Pending |
-| REG-04 | — | Pending |
-| PIPE-01 | — | Pending |
-| PIPE-02 | — | Pending |
-| PIPE-03 | — | Pending |
-| CLI-01 | — | Pending |
-| CLI-02 | — | Pending |
-| CLI-03 | — | Pending |
+| DISC-01 | Phase 171 | Pending |
+| DISC-02 | Phase 171 | Pending |
+| DISC-03 | Phase 171 | Pending |
+| DISC-04 | Phase 171 | Pending |
+| DISC-05 | Phase 171 | Pending |
+| DISC-06 | Phase 171 | Pending |
+| WRAP-01 | Phase 172 | Pending |
+| WRAP-02 | Phase 172 | Pending |
+| WRAP-03 | Phase 172 | Pending |
+| WRAP-04 | Phase 172 | Pending |
+| WRAP-05 | Phase 172 | Pending |
+| WRAP-06 | Phase 172 | Pending |
+| REG-01 | Phase 173 | Pending |
+| REG-02 | Phase 173 | Pending |
+| REG-03 | Phase 173 | Pending |
+| REG-04 | Phase 173 | Pending |
+| CLI-01 | Phase 174 | Pending |
+| CLI-02 | Phase 174 | Pending |
+| CLI-03 | Phase 174 | Pending |
+| PIPE-01 | Phase 175 | Pending |
+| PIPE-02 | Phase 175 | Pending |
+| PIPE-03 | Phase 175 | Pending |
 
 **Coverage:**
 - v0.21 requirements: 22 total
-- Mapped to phases: 0
-- Unmapped: 22
+- Mapped to phases: 22
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-03-29*
-*Last updated: 2026-03-29 after initial definition*
+*Last updated: 2026-03-29 — traceability complete, all 22 requirements mapped to phases 171-175*
