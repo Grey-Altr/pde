@@ -173,7 +173,12 @@ Plans:
   3. User can point CLI-Anything at a GraphQL endpoint and receive a capability model derived from introspection without manual schema writing
   4. User can point CLI-Anything at a running MCP server and receive a capability model listing all available tools
   5. Generated AI SDK tool() definitions compile without TypeScript errors and include Zod inputSchema with fully typed execute functions
-**Plans**: TBD
+**Plans:** 4 plans
+Plans:
+- [ ] 163-01-PLAN.md — Foundation: capability model schema, detect module, test scaffolds, ingest skeleton, command file
+- [ ] 163-02-PLAN.md — OpenAPI + JSON Schema parsers
+- [ ] 163-03-PLAN.md — GraphQL + MCP parsers
+- [ ] 163-04-PLAN.md — Codegen (JSON Schema to Zod + tool generation) + pde-tools.cjs wiring
 
 ### Phase 164: CLI Wrapping + Publishing
 **Goal**: Users can wrap any command-line tool as an agent-native MCP server and publish it so other agents can discover it
@@ -270,7 +275,7 @@ Plans:
 | 160. Declarative Approval Gates + Workflow Flags | v0.19 | 2/2 | Complete | 2026-03-28 |
 | 161. Auto-Generated Competitor Tools | v0.19 | 2/2 | Complete | 2026-03-28 |
 | 162. Multi-Editor Bridge | v0.19 | 2/2 | Complete | 2026-03-28 |
-| 163. CLI Ingestion + Capability Model | v0.20 | 0/TBD | Not started | - |
+| 163. CLI Ingestion + Capability Model | v0.20 | 0/4 | In progress | - |
 | 164. CLI Wrapping + Publishing | v0.20 | 0/TBD | Not started | - |
 | 165. Image Generation Pipeline | v0.20 | 0/TBD | Not started | - |
 | 166. Visual Diff + Asset Reporting | v0.20 | 0/TBD | Not started | - |
