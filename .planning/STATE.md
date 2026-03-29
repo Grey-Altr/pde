@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v0.20
 milestone_name: CLI-Anything + Asset Engine
-status: Milestone complete
+status: v0.20 milestone complete
 stopped_at: Completed 170-03-PLAN.md
-last_updated: "2026-03-29T06:09:38.052Z"
+last_updated: "2026-03-29T06:19:02.083Z"
 progress:
   total_phases: 15
   completed_phases: 15

@@ -1,5 +1,51 @@
 # Milestones
 
+## v0.20 CLI-Anything + Asset Engine (Shipped: 2026-03-29)
+
+**Phases completed:** 15 phases, 39 plans, 51 tasks
+
+**Key accomplishments:**
+
+- One-liner:
+- Streamable HTTP MCP endpoint at /api/mcp with Clerk OAuth auth, RFC 9728 .well-known discovery routes, and 15-test suite verifying export shapes and auth wiring
+- start_pipeline_run/check_pipeline_run MCP tools using Upstash Redis job store with 1hr TTL, plus desktop client config docs for Claude Code, Cursor, and mcp-remote relay
+- One-liner:
+- emitWebMcpConfig() added as the 7th context-sync emitter, writing .webmcp/config.json for WebMCP browser agent discovery on every emitAll() cycle
+- 1. [Rule 3 - Blocking] Wave 1 files not available in worktree
+- @modelcontextprotocol/ext-apps installed with registerArtifactPreviewTools wiring two dual-mode tools (preview_artifact, list_design_artifacts) and a CSP-declared HTML resource into the PDE MCP server
+- ResourceTemplate registered at ui://pde/{artifact} serving design artifacts as HTML previews via marked (Markdown), JSON pre blocks, and HTML pass-through with inlined tokens.css
+- One-liner:
+- One-liner:
+- One-liner:
+- --webmcp flag added to all four design workflows (wireframe, mockup, critique, competitive) with USE_WEBMCP parse step and conditional WebMCP Context section containing pde_approval_gate tool table and gate ID
+- Step 8/8 added to competitive.md with full sanitization pipeline (injection stripping, 512-char truncation), registry write to .webmcp/competitor-tools-registry.json, gate file creation, and GET /api/planning/competitor-tools route serving approved entries
+- useCompetitorTools hook registered as query_competitor_data WebMCP dispatcher tool, wired into barrel and composite hook, with full source inspection test coverage
+- X-PDE-Relay-Depth circular relay guard module and pde_remote APPROVED_SERVERS entry enabling Claude Code bridge routing to PDE remote MCP server
+- Relay depth guard wired into MCP guardedHandler pipeline (origin -> relay depth -> auth) and Gemini CLI httpUrl config documented
+- One-liner:
+- OpenAPI 3.x parser with recursive $ref resolution and JSON Schema parser with $defs expansion — both produce CapabilitySchema-validated arrays from real fixture files, 22 tests green
+- One-liner:
+- JSON Schema to Zod codegen walker + AI SDK tool() generator wiring all 4 parsers into a complete end-to-end ingest pipeline
+- [Rule 2 - Auto-fix] Merged main into worktree branch
+- One-liner:
+- Satori+resvg-js OG/social image pipeline with SHA-256 asset sidecar storage — 15 tests green in 4 minutes
+- One-liner:
+- `node bin/pde-tools.cjs image og|social|screenshot|mockup|rembg|list` fully wired into pde-tools.cjs with /pde:image command documentation for agent discovery
+- 64-bit pHash engine using Sharp + 2D DCT over git branches, classifying image assets as changed/unchanged/new/deleted with Markdown + JSON reports
+- `pde-tools.cjs image diff <branchA> <branchB>` subcommand wired to runVisualDiff with JSON summary stdout output and /pde:visual-diff command documentation
+- One-liner:
+- One-liner:
+- pde-tools.cjs wired with case 'video' routing record|assemble|compose|caption to video-pipeline modules, plus /pde:video command documentation with SRT/JSON captions, Remotion compose, and resolution aliases
+- Three CJS foundation modules for GLB storage, draco optimization via gltf-transform CLI, and model-viewer AR embed — 27 tests passing with a hand-built GLB fixture
+- convert3D (image-to-3D via @gradio/client SPACE_CHAIN fallback) and generate3D (text-to-3D via FLUX.1-schnell + convert3D) with 14 mocked unit tests using dependency injection
+- One-liner:
+- One-liner:
+- `3d cad` CLI subcommand wired into pde-tools.cjs routing generateCAD from cad.cjs, with full /pde:3d cad documentation added to commands/3d.md including setup, options, examples, and CadQuery requirement note.
+- 1. [Rule 1 - Bug] Edge regex did not match inline node label syntax
+- One-liner:
+
+---
+
 ## v0.19 WebMCP Integration (Shipped: 2026-03-28)
 
 **Phases completed:** 7 phases, 16 plans, 21 tasks

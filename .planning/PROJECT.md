@@ -156,33 +156,17 @@ Any user can go from idea to shipped product through a single platform that hand
 - ✓ PDE_REMOTE documented in dashboard/.env.example and coordinator.cjs _spawnRelay JSDoc (INT-PDE-REMOTE-DOC) — v0.18
 - ✓ 224 dashboard tests across 29 files, all integration gaps closed — v0.18
 
-## Current Milestone: v0.20 CLI-Anything + Asset Engine
+### Validated (v0.20)
 
-**Goal:** PDE auto-generates agent-native CLIs from any source (MCP, OpenAPI, GraphQL, --help, source code) and produces product assets (images, video, 3D models) through the design pipeline — all using free/open-source tools with no paid API dependencies.
-
-**Target features:**
-- Schema ingestion layer (OpenAPI, JSON Schema, GraphQL, MCP server introspection)
-- AI SDK tool() code generation from any schema source
-- MCP server wrapper auto-generation (any CLI → MCP via --help parsing)
-- SKILL.md agent discovery metadata for every generated CLI
-- CLI-Hub registry integration for publishing/discovery
-- Satori/next/og dynamic image generation (OG cards, social images, device mockups)
-- Playwright screenshot pipeline (product captures, visual diff across branches)
-- remove.bg integration (50 free/month background removal)
-- Playwright screen recording → FFmpeg assembly → product demo videos
-- Remotion React video composition (captions, branding, transitions)
-- TripoSR/SF3D open-source 3D model generation (text-to-3D, image-to-3D)
-- model-viewer web component for 3D display with AR
-- CadQuery Python CAD generation for hardware product type
-- mmdr Rust Mermaid renderer (500-1000x faster diagram rendering)
-- DTCG token validators from design artifacts
-- Visual diff (Playwright perceptual hash comparison)
-- Flow-to-test pipeline (generate test scaffolds from /pde:flows output)
-- Handoff verify (check implementation matches spec)
-
-### Active
-
-(See REQUIREMENTS.md)
+- ✓ CLI ingestion: OpenAPI, JSON Schema, GraphQL, MCP parsers producing unified capability models — Phase 163
+- ✓ AI SDK tool() code generation with Zod inputSchema from any capability model — Phase 163
+- ✓ CLI wrapping: any --help → MCP server + SKILL.md + registry publishing — Phase 164
+- ✓ Image pipeline: OG cards, social images, device mockups, screenshots, background removal — Phase 165
+- ✓ Visual diff: perceptual hash comparison across git branches with structured reports — Phase 166
+- ✓ Video pipeline: Playwright recording, FFmpeg assembly, Remotion composition, captioning — Phase 167
+- ✓ 3D pipeline: text/image-to-3D via TripoSR/SF3D, GLB optimization, model-viewer AR embed — Phase 168
+- ✓ Parametric CAD: CadQuery Python scripts producing STEP files for manufacturing handoff — Phase 169
+- ✓ Utilities: mmdr Mermaid renderer, DTCG token validator, flow-to-test scaffolds, handoff verifier — Phase 170
 
 ### Validated (v0.19)
 
