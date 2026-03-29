@@ -158,7 +158,11 @@ describe('probeBinary', () => {
 // ---------------------------------------------------------------------------
 describe('executionMode classification', () => {
   it('sets executionMode to mock when probeBinary returns null', () => {
-    const spawnFn = vi.fn().mockReturnValue({ stdout: 'WindowServer\n', status: 0 });
+    const spawnFn = vi.fn().mockImplementation((cmd) => {
+      if (cmd === 'ps') return { stdout: 'WindowServer\n', status: 0 };
+      // python3 pip check returns 'none' (not found)
+      return { stdout: 'none\n', status: 0 };
+    });
     const result = mod.discoverApp('blender', {
       env: {},
       existsFn: vi.fn().mockReturnValue(false),
