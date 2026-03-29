@@ -1589,8 +1589,29 @@ async function main() {
           }
           break;
         }
+        case 'wrap': {
+          const slug = args[2];
+          if (!slug) { console.error('Usage: pde-tools app wrap <slug>'); process.exit(1); }
+          const { generateAppWrapper } = require('./lib/app-wrappers/generate.cjs');
+          try {
+            const result = generateAppWrapper(slug, registryPath, cwd);
+            if (raw) {
+              console.log(JSON.stringify(result, null, 2));
+            } else {
+              console.log('Wrapped: ' + slug);
+              console.log('  capability-model: ' + result.modelPath);
+              console.log('  server: ' + result.serverPath);
+              console.log('  SKILL.md: ' + result.skillPath);
+              console.log('  metadata: ' + result.metadataPath);
+            }
+          } catch (e) {
+            console.error(e.message);
+            process.exit(1);
+          }
+          break;
+        }
         default:
-          console.error('Unknown app subcommand: ' + sub + '. Available: discover, probe, list, approve');
+          console.error('Unknown app subcommand: ' + sub + '. Available: discover, probe, list, approve, wrap');
           process.exit(1);
       }
       break;
