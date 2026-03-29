@@ -963,8 +963,21 @@ async function main() {
         const { list3DAssets, THREE_D_DIR } = require('./lib/3d-pipeline/assets.cjs');
         const assets = list3DAssets({ assetsDir: THREE_D_DIR });
         console.log(JSON.stringify(assets, null, 2));
+      } else if (subcommand === 'cad') {
+        const { generateCAD } = require('./lib/3d-pipeline/cad.cjs');
+        const { THREE_D_DIR } = require('./lib/3d-pipeline/assets.cjs');
+        const descIdx = args.indexOf('--description');
+        const slugIdx = args.indexOf('--slug');
+        const description = descIdx !== -1 ? args[descIdx + 1] : undefined;
+        if (!description) {
+          console.error('Usage: 3d cad --description <text> [--slug <slug>]');
+          process.exit(1);
+        }
+        const slug = slugIdx !== -1 ? args[slugIdx + 1] : 'cad-model';
+        const result = await generateCAD({ description, slug, assetsDir: THREE_D_DIR });
+        console.log(JSON.stringify(result.meta, null, 2));
       } else {
-        console.error('Usage: 3d <generate|convert|optimize|embed|list> [options]');
+        console.error('Usage: 3d <generate|convert|optimize|embed|list|cad> [options]');
         process.exit(1);
       }
       break;
