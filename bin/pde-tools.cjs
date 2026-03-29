@@ -1648,8 +1648,26 @@ async function main() {
           }
           break;
         }
+        case 'cli-wrap': {
+          const slug = args[2];
+          if (!slug) { console.error('Usage: pde-tools app cli-wrap <slug>'); process.exit(1); }
+          const { cmdCliWrap } = require('./lib/app-cli-wrap.cjs');
+          await cmdCliWrap(cwd, args.slice(2));
+          break;
+        }
+        case 'pipx-setup': {
+          const { resolvePipxBinDir, storePipxBinDir } = require('./lib/app-cli-wrap.cjs');
+          const binDir = resolvePipxBinDir();
+          if (!binDir) {
+            console.error('[pipx-setup] pipx not found. Install via: brew install pipx (macOS) or pip install pipx --user');
+            process.exit(1);
+          }
+          storePipxBinDir(cwd, binDir);
+          console.log('[pipx-setup] PIPX_BIN_DIR stored: ' + binDir);
+          break;
+        }
         default:
-          console.error('Unknown app subcommand: ' + sub + '. Available: discover, probe, list, approve, wrap, register');
+          console.error('Unknown app subcommand: ' + sub + '. Available: discover, probe, list, approve, wrap, register, cli-wrap, pipx-setup');
           process.exit(1);
       }
       break;
