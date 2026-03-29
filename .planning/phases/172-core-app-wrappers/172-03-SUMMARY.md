@@ -89,6 +89,16 @@ None. The GIMP wrapper produces a fully valid CapabilityModel that passes valida
 - Phase 173 (MCP Bridge dynamic registration) can rely on the complete app-wrappers output directory structure: `.planning/app-wrappers/{slug}/server/server.cjs`
 - No blockers. All three wrapper modules (blender, gimp, inkscape) are registered in index.cjs.
 
+## Self-Check: PASSED
+
+- [x] `bin/lib/app-wrappers/gimp-wrapper.cjs` exists and exports buildCapabilityModel, buildGimpArgs, getScriptFuTemplates, parseMajorVersion, getMetadata
+- [x] `bin/pde-tools.cjs` contains `case 'wrap':` and routes to generateAppWrapper
+- [x] `tests/phase-172/gimp-wrapper.test.mjs` has 25 real tests (not .todo), all passing
+- [x] `tests/phase-172/skill-gen-integration.test.mjs` has 8 real tests, all passing
+- [x] Commits `16aa3c0` and `9c56a10` confirmed in git log
+- [x] Phase 171 regression: 31 tests pass, 0 failed
+- [x] Phase 172 total: 43 tests pass, 30 todo (blender/inkscape scaffolds), 0 failed
+
 ---
 *Phase: 172-core-app-wrappers*
 *Completed: 2026-03-29*
