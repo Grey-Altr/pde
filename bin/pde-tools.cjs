@@ -833,6 +833,85 @@ async function main() {
       break;
     }
 
+    case 'video': {
+      const subcommand = args[1];
+      if (subcommand === 'record') {
+        const { recordUIInteraction } = require('./lib/video-pipeline/record.cjs');
+        const { ASSETS_DIR } = require('./lib/video-pipeline/assets.cjs');
+        const url = args[2];
+        if (!url) { console.error('Usage: video record <url> [--slug <slug>] [--resolution <WxH|720p|1080p|4k>] [--duration <ms>]'); process.exit(1); }
+        const slugIdx = args.indexOf('--slug');
+        const resIdx = args.indexOf('--resolution');
+        const durIdx = args.indexOf('--duration');
+        const slug = slugIdx !== -1 ? args[slugIdx + 1] : 'recording';
+        const resolution = resIdx !== -1 ? args[resIdx + 1] : '1920x1080';
+        const durationMs = durIdx !== -1 ? parseInt(args[durIdx + 1], 10) : 5000;
+        const result = await recordUIInteraction({ url, slug, resolution, durationMs, assetsDir: ASSETS_DIR });
+        console.log(JSON.stringify(result.meta, null, 2));
+      } else if (subcommand === 'assemble') {
+        const { assembleClips } = require('./lib/video-pipeline/assemble.cjs');
+        const { saveVideoAsset, ASSETS_DIR } = require('./lib/video-pipeline/assets.cjs');
+        // clips are positional args after 'assemble' until a flag
+        const clips = [];
+        for (let i = 2; i < args.length; i++) {
+          if (args[i].startsWith('--')) break;
+          clips.push(args[i]);
+        }
+        if (clips.length < 2) { console.error('Usage: video assemble <clip1.mp4> <clip2.mp4> [...] [--transition crossfade] [--transition-dur <sec>] [--slug <slug>]'); process.exit(1); }
+        const transIdx = args.indexOf('--transition');
+        const tdurIdx = args.indexOf('--transition-dur');
+        const slugIdx = args.indexOf('--slug');
+        const transition = transIdx !== -1 ? args[transIdx + 1] : 'none';
+        const transitionDur = tdurIdx !== -1 ? parseFloat(args[tdurIdx + 1]) : 1;
+        const slug = slugIdx !== -1 ? args[slugIdx + 1] : 'assembled';
+        const os = require('os');
+        const path = require('path');
+        const outputPath = path.join(os.tmpdir(), `${slug}-${Date.now()}.mp4`);
+        const result = assembleClips({ clips, outputPath, transition, transitionDur });
+        const saved = saveVideoAsset({ slug, mp4Path: result, dimensions: { width: 1920, height: 1080 }, source: 'assemble', params: { clips: clips.length, transition }, assetsDir: ASSETS_DIR });
+        console.log(JSON.stringify(saved.meta, null, 2));
+      } else if (subcommand === 'compose') {
+        const { composeVideo } = require('./lib/video-pipeline/compose.cjs');
+        const { ASSETS_DIR } = require('./lib/video-pipeline/assets.cjs');
+        const titleIdx = args.indexOf('--title');
+        const subIdx = args.indexOf('--subtitle');
+        const slugIdx = args.indexOf('--slug');
+        const resIdx = args.indexOf('--resolution');
+        const durIdx = args.indexOf('--duration-frames');
+        const title = titleIdx !== -1 ? args[titleIdx + 1] : 'Product Demo';
+        const subtitle = subIdx !== -1 ? args[subIdx + 1] : '';
+        const slug = slugIdx !== -1 ? args[slugIdx + 1] : 'branded';
+        const resolution = resIdx !== -1 ? args[resIdx + 1] : '1920x1080';
+        const durationFrames = durIdx !== -1 ? parseInt(args[durIdx + 1], 10) : 150;
+        const result = await composeVideo({ title, subtitle, slug, resolution, durationFrames, assetsDir: ASSETS_DIR });
+        console.log(JSON.stringify(result.meta, null, 2));
+      } else if (subcommand === 'caption') {
+        const { captionVideo } = require('./lib/video-pipeline/caption.cjs');
+        const { saveVideoAsset, ASSETS_DIR } = require('./lib/video-pipeline/assets.cjs');
+        const inputPath = args[2];
+        if (!inputPath) { console.error('Usage: video caption <input.mp4> [--srt <file.srt>] [--captions <json>] [--font-size <n>] [--slug <slug>]'); process.exit(1); }
+        const srtIdx = args.indexOf('--srt');
+        const capsIdx = args.indexOf('--captions');
+        const fsIdx = args.indexOf('--font-size');
+        const slugIdx = args.indexOf('--slug');
+        const srt = srtIdx !== -1 ? args[srtIdx + 1] : undefined;
+        const captions = capsIdx !== -1 ? JSON.parse(args[capsIdx + 1]) : undefined;
+        const fontSize = fsIdx !== -1 ? parseInt(args[fsIdx + 1], 10) : 24;
+        const slug = slugIdx !== -1 ? args[slugIdx + 1] : 'captioned';
+        if (!srt && !captions) { console.error('Provide --srt <file.srt> or --captions \'[{"start":0,"end":3,"text":"Hello"}]\''); process.exit(1); }
+        const os = require('os');
+        const path = require('path');
+        const outputPath = path.join(os.tmpdir(), `${slug}-${Date.now()}.mp4`);
+        captionVideo({ inputPath, outputPath, srt, captions, fontSize });
+        const saved = saveVideoAsset({ slug, mp4Path: outputPath, dimensions: { width: 1920, height: 1080 }, source: 'caption', params: { srt: !!srt, captions: !!captions, fontSize }, assetsDir: ASSETS_DIR });
+        console.log(JSON.stringify(saved.meta, null, 2));
+      } else {
+        console.error('Usage: video <record|assemble|compose|caption> [options]');
+        process.exit(1);
+      }
+      break;
+    }
+
     case 'phase-plan-index': {
       phase.cmdPhasePlanIndex(cwd, args[1], raw);
       break;
