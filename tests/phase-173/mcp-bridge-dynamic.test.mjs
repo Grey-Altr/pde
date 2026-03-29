@@ -47,7 +47,8 @@ function setupTempDir(slug, registryEntries, capabilities, wrapperMeta) {
   fs.writeFileSync(registryPath, createMockRegistry(registryEntries));
 
   if (capabilities !== null) {
-    const appWrapperDir = path.join(dir, 'app-wrappers', slug);
+    // loadDynamicServers resolves paths as path.join(projectRoot, '.planning', 'app-wrappers', slug, ...)
+    const appWrapperDir = path.join(dir, '.planning', 'app-wrappers', slug);
     fs.mkdirSync(appWrapperDir, { recursive: true });
     fs.writeFileSync(
       path.join(appWrapperDir, 'capability-model.json'),
@@ -160,7 +161,7 @@ describe('loadDynamicServers', () => {
     fs.writeFileSync(registryPath, createMockRegistry([
       { slug: 'blender', displayName: 'Blender', status: 'approved', binaryPath: '/usr/bin/blender', executionMode: 'headless' }
     ]));
-    // No capability-model.json created — just registry
+    // No capability-model.json created in .planning/app-wrappers/blender/ — just registry
 
     loadDynamicServers(registryPath, dir);
 

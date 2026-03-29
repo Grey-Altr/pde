@@ -105,6 +105,11 @@ const APPROVED_SERVERS = {
   },
 };
 
+// ─── Dynamic Servers (populated by loadDynamicServers / registerDynamicServer) ─
+
+const DYNAMIC_SERVERS = {};
+const APP_REGISTRY_PATH = path.join(process.cwd(), '.planning', 'app-registry.json');
+
 // ─── Canonical tool name map ──────────────────────────────────────────────────
 
 /**
@@ -229,6 +234,83 @@ const TOOL_MAP = {
   'playwright:install':           'mcp__plugin_playwright_playwright__browser_install',          // TOOL_MAP_VERIFIED
 };
 
+// ─── Dynamic server loading ────────────────────────────────────────────────────
+
+/**
+ * Reads app-registry.json and populates DYNAMIC_SERVERS + TOOL_MAP for approved entries.
+ * Never throws — all errors are handled silently (mirrors loadConnections pattern).
+ *
+ * @param {string} [registryPath] Override registry path (defaults to APP_REGISTRY_PATH)
+ * @param {string} [projectRoot]  Override project root for app-wrappers resolution (defaults to process.cwd())
+ */
+function loadDynamicServers(registryPath, projectRoot) {
+  const rPath = registryPath || APP_REGISTRY_PATH;
+  const root = projectRoot || process.cwd();
+  const raw = safeReadFile(rPath);
+  if (!raw) return;
+  let registry;
+  try { registry = JSON.parse(raw); } catch { return; }
+  const entries = registry.entries || [];
+  for (const entry of entries) {
+    if (entry.status !== 'approved') continue;
+    const metaPath = path.join(root, '.planning', 'app-wrappers', entry.slug, 'wrapper-metadata.json');
+    let startupMs = 5000;
+    const metaRaw = safeReadFile(metaPath);
+    if (metaRaw) { try { startupMs = JSON.parse(metaRaw).startupMs || 5000; } catch { /* skip */ } }
+    const serverPath = path.join(root, '.planning', 'app-wrappers', entry.slug, 'server', 'server.cjs');
+    DYNAMIC_SERVERS[entry.slug] = {
+      displayName: entry.displayName || entry.slug,
+      transport: 'stdio',
+      serverPath,
+      probeTimeoutMs: startupMs,
+      probeTool: `mcp__app_${entry.slug}__probe`,
+      probeArgs: {},
+    };
+    const modelPath = path.join(root, '.planning', 'app-wrappers', entry.slug, 'capability-model.json');
+    const modelRaw = safeReadFile(modelPath);
+    if (!modelRaw) continue;
+    let caps = [];
+    try { const model = JSON.parse(modelRaw); caps = model.capabilities || []; } catch { continue; }
+    for (const cap of caps) {
+      const canonical = `${entry.slug}:${cap.name.replace(/_/g, '-')}`;
+      const rawName = `mcp__app_${entry.slug}__${cap.name}`;
+      TOOL_MAP[canonical] = rawName;
+    }
+  }
+}
+
+/**
+ * Registers a single dynamic app server at runtime, populating DYNAMIC_SERVERS + TOOL_MAP.
+ * Idempotent — calling twice with the same slug overwrites the previous registration.
+ *
+ * @param {string}   slug        Unique app identifier (e.g. 'blender')
+ * @param {string}   serverPath  Absolute path to server.cjs
+ * @param {Array}    caps        Array of capability objects with at least { name: string }
+ * @param {Object}  [opts]       Optional: { displayName, startupMs }
+ * @throws {Error} When slug, serverPath, or caps are invalid
+ */
+function registerDynamicServer(slug, serverPath, caps, opts = {}) {
+  if (!slug || typeof slug !== 'string') throw new Error('slug is required');
+  if (!serverPath || typeof serverPath !== 'string') throw new Error('serverPath is required');
+  if (!Array.isArray(caps)) throw new Error('caps must be an array');
+  DYNAMIC_SERVERS[slug] = {
+    displayName: opts.displayName || slug,
+    transport: 'stdio',
+    serverPath,
+    probeTimeoutMs: opts.startupMs || 5000,
+    probeTool: `mcp__app_${slug}__probe`,
+    probeArgs: {},
+  };
+  for (const cap of caps) {
+    const canonical = `${slug}:${cap.name.replace(/_/g, '-')}`;
+    const rawName = `mcp__app_${slug}__${cap.name}`;
+    TOOL_MAP[canonical] = rawName;
+  }
+}
+
+// Load approved registry entries at module init (no-op if registry missing)
+loadDynamicServers();
+
 // ─── Per-server auth instructions ─────────────────────────────────────────────
 
 const AUTH_INSTRUCTIONS = {
@@ -301,8 +383,8 @@ const CONNECTIONS_PATH = path.join(process.cwd(), '.planning', 'mcp-connections.
  * @throws {Error} with code 'POLICY_VIOLATION'
  */
 function assertApproved(serverKey) {
-  if (!APPROVED_SERVERS[serverKey]) {
-    const approvedList = Object.keys(APPROVED_SERVERS).join(', ');
+  if (!APPROVED_SERVERS[serverKey] && !DYNAMIC_SERVERS[serverKey]) {
+    const approvedList = [...Object.keys(APPROVED_SERVERS), ...Object.keys(DYNAMIC_SERVERS)].join(', ');
     const err = new Error(
       `"${serverKey}" is not an approved MCP server. ` +
       `PDE only connects to: ${approvedList}. ` +
@@ -576,9 +658,12 @@ function checkStitchQuota(generationType, configPath) {
 module.exports = {
   APPROVED_SERVERS,
   TOOL_MAP,
+  DYNAMIC_SERVERS,
   AUTH_INSTRUCTIONS,
   CONNECTIONS_PATH,
   assertApproved,
+  loadDynamicServers,
+  registerDynamicServer,
   loadConnections,
   saveConnections,
   getStatus,
