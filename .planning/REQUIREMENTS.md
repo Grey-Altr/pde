@@ -23,14 +23,14 @@ Requirements for CLI-Anything + Asset Engine milestone. Each maps to roadmap pha
 
 ### Image Generation
 
-- [ ] **IMG-01**: User can generate dynamic OG images from templates via Satori/next/og
-- [ ] **IMG-02**: User can generate social media card images from product data
-- [ ] **IMG-03**: User can generate device mockup composites (browser frame, phone frame) from screenshots
-- [ ] **IMG-04**: User can capture product screenshots via Playwright at configurable viewports
+- [x] **IMG-01**: User can generate dynamic OG images from templates via Satori/next/og
+- [x] **IMG-02**: User can generate social media card images from product data
+- [x] **IMG-03**: User can generate device mockup composites (browser frame, phone frame) from screenshots
+- [x] **IMG-04**: User can capture product screenshots via Playwright at configurable viewports
 - [ ] **IMG-05**: User can run visual diff across git branches using perceptual hashing
 - [ ] **IMG-06**: Visual diff produces a comparison report with changed/unchanged/new/deleted assets
-- [ ] **IMG-07**: User can remove image backgrounds via remove.bg free tier (50/month)
-- [ ] **IMG-08**: Image pipeline stores assets in .planning/design/assets/ with metadata JSON
+- [x] **IMG-07**: User can remove image backgrounds via remove.bg free tier (50/month)
+- [x] **IMG-08**: Image pipeline stores assets in .planning/design/assets/ with metadata JSON
 
 ### Video Generation
 
@@ -105,14 +105,14 @@ Deferred to future milestone. Tracked but not in current roadmap.
 | CLI-09 | Phase 164 | Complete |
 | CLI-10 | Phase 164 | Complete |
 | CLI-11 | Phase 164 | Complete |
-| IMG-01 | Phase 165 | Pending |
-| IMG-02 | Phase 165 | Pending |
-| IMG-03 | Phase 165 | Pending |
-| IMG-04 | Phase 165 | Pending |
+| IMG-01 | Phase 165 | Complete |
+| IMG-02 | Phase 165 | Complete |
+| IMG-03 | Phase 165 | Complete |
+| IMG-04 | Phase 165 | Complete |
 | IMG-05 | Phase 166 | Pending |
 | IMG-06 | Phase 166 | Pending |
-| IMG-07 | Phase 165 | Pending |
-| IMG-08 | Phase 165 | Pending |
+| IMG-07 | Phase 165 | Complete |
+| IMG-08 | Phase 165 | Complete |
 | VID-01 | Phase 167 | Pending |
 | VID-02 | Phase 167 | Pending |
 | VID-03 | Phase 167 | Pending |

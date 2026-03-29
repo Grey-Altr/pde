@@ -207,9 +207,9 @@ Plans:
   4. User can capture a product screenshot via Playwright at any configured viewport size with a single command
   5. User can remove the background from any product image using the remove.bg free tier and receive a PNG with transparent background
   6. All generated image assets are stored in .planning/design/assets/ with an accompanying metadata JSON file
-**Plans:** 3 plans
+**Plans:** 1/3 plans executed
 Plans:
-- [ ] 165-01-PLAN.md — Foundation: deps install, asset storage, OG + social card generation
+- [x] 165-01-PLAN.md — Foundation: deps install, asset storage, OG + social card generation
 - [ ] 165-02-PLAN.md — Screenshot capture, device mockup compositing, background removal
 - [ ] 165-03-PLAN.md — pde-tools.cjs image subcommand wiring + /pde:image command docs
 **UI hint**: yes
@@ -285,7 +285,7 @@ Plans:
 | 162. Multi-Editor Bridge | v0.19 | 2/2 | Complete | 2026-03-28 |
 | 163. CLI Ingestion + Capability Model | 4/4 | Complete   | 2026-03-29 |  |
 | 164. CLI Wrapping + Publishing | v0.20 | 2/3 | Complete    | 2026-03-29 |
-| 165. Image Generation Pipeline | v0.20 | 0/3 | In progress | - |
+| 165. Image Generation Pipeline | v0.20 | 1/3 | In Progress|  |
 | 166. Visual Diff + Asset Reporting | v0.20 | 0/TBD | Not started | - |
 | 167. Video Production Pipeline | v0.20 | 0/TBD | Not started | - |
 | 168. AI 3D Generation + Web Embedding | v0.20 | 0/TBD | Not started | - |
