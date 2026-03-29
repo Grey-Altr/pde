@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.20
-milestone_name: CLI-Anything + Asset Engine
-status: v0.20 milestone archived
-stopped_at: Milestone complete and archived
-last_updated: "2026-03-29T07:00:00.000Z"
+milestone: v0.21
+milestone_name: Desktop App Integration
+status: defining requirements
+stopped_at: null
+last_updated: "2026-03-29T12:00:00.000Z"
 progress:
-  total_phases: 15
-  completed_phases: 15
-  total_plans: 39
-  completed_plans: 39
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
 # Project State
@@ -19,12 +19,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-29)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Planning next milestone
+**Current focus:** v0.21 Desktop App Integration — defining requirements
 
 ## Current Position
 
-Phase: None — between milestones
-Plan: N/A
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-29 — Milestone v0.21 started
 
 ## Performance Metrics
 

@@ -199,6 +199,17 @@ Any user can go from idea to shipped product through a single platform that hand
 - ✓ Production hardening: rate limiting, 7-day Redis TTL, event downsampling, 1000-event buffer cap, daily cron GC — v0.17
 - ✓ 107 tests across 15 files, 27/27 requirements satisfied, full Nyquist compliance — v0.17
 
+## Current Milestone: v0.21 Desktop App Integration
+
+**Goal:** PDE agents can discover, wrap, and drive any installed desktop application through auto-generated agent-native CLIs — with CLI-Anything as fast path and native generation as fallback.
+
+**Target features:**
+- Discovery + auto-install: detect installed desktop apps, check CLI-Anything coverage, auto-generate CLIs, register as available tools
+- Design pipeline integration: wireframe/mockup/3D stages can drive Blender, GIMP, Inkscape directly instead of static artifacts
+- Executor tool access: any PDE executor agent can call desktop app tools during plan execution
+- `/pde:cli-wrap` skill: one-command app wrapping → agent-native CLI + MCP server + SKILL.md
+- Dual strategy: CLI-Anything pre-built CLIs (pip) as fast path, v0.20 native `--help` → capability model → codegen as fallback
+
 ## Current State
 
 **v0.20 CLI-Anything + Asset Engine shipped** (2026-03-29) — 8 phases, 23 plans, 41 requirements. Auto-generated CLIs/MCP servers from any API spec (OpenAPI, JSON Schema, GraphQL, MCP), full asset engine (OG images, social cards, video production, 3D generation, parametric CAD), visual diff, and PDE utility commands. All free/open-source toolchains.
