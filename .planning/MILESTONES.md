@@ -1,5 +1,32 @@
 # Milestones
 
+## v0.22 Stakeholder Presentations (Shipped: 2026-03-30)
+
+**Phases completed:** 9 phases, 18 plans, 16 tasks
+
+**Key accomplishments:**
+
+- One-liner:
+- One-liner:
+- One-liner:
+- `/pde:present` command wired with 15-persona registry, three-branch dispatch (LIST/GENERATE/ERROR), IR acquisition from pde-tools, and Phase 178 generation stub — 32 integration tests all green
+- One-liner:
+- One-liner:
+- Four parametric SVG chart generators (burndown, velocity, phase timeline, effort breakdown) with accessibility attributes and HTML fallback tables, wired into the executive-summary and case-study presentation personas.
+- Non-blocking claim verification engine that fact-checks every numeric IR value against rendered section content, appending a pass/fail footer section to both HTML and Markdown output via word-boundary regex scanning on stripHtml'd content.
+- One-liner:
+- One-liner:
+- One-liner:
+- One-liner:
+- Three Cluster B persona builders added to render-presentation.cjs: agile-report (retro + burndown + velocity), design-report (design-filtered decisions + token evolution), research-report (findings + recommendations + landscape) — 28 tests passing, 11 switch cases total
+- buildPostMortem (CLR-05) and buildAdrSummary (CLR-06) added to render-presentation.cjs with ADR-formatted decisions, cause-effect root-cause analysis, and full test coverage (44 passing)
+- Two final persona builders (launch-announcement + portfolio-overview) complete the full 15-persona suite with all slugs registered in personaDisplayName(), render() switch, and module.exports — 66 Phase 182 tests green, 0 skipped.
+- presentations.auto_generate config toggle and auto_generate_presentations lifecycle hooks wired to phase-complete and milestone-complete workflows with non-blocking persona rendering
+- bin/lib/portfolio.cjs
+- bin/lib/render-presentation.cjs
+
+---
+
 ## v0.21 Desktop App Integration (Shipped: 2026-03-29)
 
 **Phases completed:** 12 phases, 28 plans, 35 tasks
