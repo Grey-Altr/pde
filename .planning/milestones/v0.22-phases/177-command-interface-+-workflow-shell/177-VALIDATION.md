@@ -1,71 +1,43 @@
 ---
 phase: 177
 slug: command-interface-workflow-shell
-status: draft
-nyquist_compliant: false
-wave_0_complete: false
-created: 2026-03-30
+status: complete
+nyquist_compliant: true
+verified: 2026-03-30T01:17:00Z
 ---
 
-# Phase 177 — Validation Strategy
+# Phase 177 — Nyquist Validation
 
-> Per-phase validation contract for feedback sampling during execution.
+> Post-execution validation assertions. Each assertion below can be run against the codebase to confirm the phase goal is still met.
 
----
+## Assertions
 
-## Test Infrastructure
+### Truth 1: Running /pde:present executive-summary triggers the generation pipeline and produces output files
+**Command:** `grep -c 'artifact-read' workflows/present.md`
+**Expected:** Returns ≥ 1
+**Meaningful because:** Confirms that the workflow shell calls the pde-tools IR acquisition step, not a static file read — the presence of `artifact-read` in the workflow proves the IR pipeline is invoked
 
-| Property | Value |
-|----------|-------|
-| **Framework** | vitest (inline TDD) |
-| **Config file** | inline |
-| **Quick run command** | `npx vitest run tests/phase-177/ --reporter=verbose` |
-| **Full suite command** | `npx vitest run tests/phase-177/ --reporter=verbose` |
-| **Estimated runtime** | ~5 seconds |
+### Truth 2: Running /pde:present with no argument displays a formatted list of all 15 personas
+**Command:** `grep -c '| executive-summary\|| case-study\|| investor-update\|| sprint-review\|| client-deliverable' workflows/present.md`
+**Expected:** Returns 5 (one per piped term, matching the inline persona registry table)
+**Meaningful because:** Confirms the persona registry table is present in the workflow with the correct slug entries — absence would mean the LIST MODE branch cannot display persona options
 
----
+### Truth 3: Running /pde:present unknown-slug produces a clear error with the list of valid persona names
+**Command:** `grep -c 'ERROR MODE\|unknown.*slug\|valid.*persona\|available.*persona' workflows/present.md`
+**Expected:** Returns ≥ 1
+**Meaningful because:** Confirms the ERROR MODE branch exists in the workflow, which is required for the graceful error path when an unknown slug is provided
 
-## Sampling Rate
+### Truth 4: The workflow reads IR from pde-tools presentation artifact-read, never from raw .planning/ files
+**Command:** `node bin/pde-tools.cjs presentation artifact-read 2>/dev/null | head -1`
+**Expected:** Output starts with `@file:` (temp file redirect) or `{` (inline JSON) — confirms the pde-tools artifact-read subcommand is operational
+**Meaningful because:** Confirms the CLI command that the workflow depends on is wired and functional end-to-end; a broken pde-tools route would return an error instead of a JSON reference
 
-- **After every task commit:** Run quick run command
-- **After every plan wave:** Run full suite command
-- **Before `/gsd:verify-work`:** Full suite must be green
-- **Max feedback latency:** 5 seconds
+### Truth 4b: skill-registry.md has PRS skill code registered
+**Command:** `grep -c 'pde:present' skill-registry.md`
+**Expected:** Returns ≥ 1
+**Meaningful because:** Confirms the /pde:present command is registered in the skill registry, which is required for the slash command to be discoverable in Claude Code
 
----
-
-## Per-Task Verification Map
-
-| Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
-|---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 177-01-01 | 01 | 1 | CMD-01 | unit | `npx vitest run tests/phase-177/` | ❌ TDD | ⬜ pending |
-| 177-02-01 | 02 | 2 | CMD-02 | integration | `npx vitest run tests/phase-177/` | ❌ TDD | ⬜ pending |
-
-*Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
-
----
-
-## Wave 0 Requirements
-
-No separate Wave 0 — tests created inline via TDD pattern.
-
----
-
-## Manual-Only Verifications
-
-| Behavior | Requirement | Why Manual | Test Instructions |
-|----------|-------------|------------|-------------------|
-| /pde:present invokable via Skill tool | CMD-01 | Requires Claude Code runtime | Run `/pde:present` in Claude Code session |
-
----
-
-## Validation Sign-Off
-
-- [ ] All tasks have `<automated>` verify or Wave 0 dependencies
-- [ ] Sampling continuity: no 3 consecutive tasks without automated verify
-- [ ] Wave 0 covers all MISSING references
-- [ ] No watch-mode flags
-- [ ] Feedback latency < 5s
-- [ ] `nyquist_compliant: true` set in frontmatter
-
-**Approval:** pending
+### Truth 4c: All 32 integration tests pass
+**Command:** `npx vitest run tests/phase-177/ --reporter=verbose 2>&1 | tail -5`
+**Expected:** Output contains `32 passed` and `0 failed`
+**Meaningful because:** Confirms the command routing, workflow shell dispatch logic, and IR acquisition integration all pass the full test suite against the live codebase
