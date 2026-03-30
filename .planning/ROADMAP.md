@@ -555,8 +555,8 @@ Plans:
   3. cwd encoding is portable across hosts — a session started in /Users/alice/project resumes correctly on /home/alice/project via cwd normalization
 **Plans:** 1/2 plans executed
 Plans:
-- [x] 197-01-PLAN.md — session-persist.cjs module (sanitization, persist, restore) + config keys + unit tests
-- [ ] 197-02-PLAN.md — Coordinator integration: capture claudeSessionId, persist on exit, restore on resume
+- [ ] 197-01-PLAN.md — session-persist.cjs module (sanitization, persist, restore) + config keys + unit tests
+- [x] 197-02-PLAN.md — Coordinator integration: capture claudeSessionId, persist on exit, restore on resume
 
 
 
