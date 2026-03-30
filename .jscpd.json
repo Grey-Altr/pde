@@ -1,0 +1,18 @@
+{
+  "threshold": 0,
+  "minLines": 10,
+  "minTokens": 100,
+  "reporters": ["json", "console"],
+  "output": ".planning/phases/189-technical-debt-cleanup/jscpd-report",
+  "ignore": [
+    "**/.planning/**",
+    "**/node_modules/**",
+    "**/coverage/**",
+    "**/dashboard/.next/**",
+    "**/.claude/**",
+    "**/*.md",
+    "**/*.json",
+    "**/*.sh"
+  ],
+  "path": ["bin", "lib", "packages"]
+}
