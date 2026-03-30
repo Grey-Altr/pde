@@ -1678,8 +1678,11 @@ async function main() {
       const presentation = require('./lib/presentation.cjs');
       if (subcommand === 'artifact-read') {
         presentation.cmdPresentationArtifactRead(cwd, raw);
+      } else if (subcommand === 'render') {
+        const renderPresentation = require('./lib/render-presentation.cjs');
+        renderPresentation.cmdPresentationRender(cwd, args[2], args[3], args[4], args[5]);
       } else {
-        error('Unknown presentation subcommand. Available: artifact-read');
+        error('Unknown presentation subcommand. Available: artifact-read, render');
       }
       break;
     }
