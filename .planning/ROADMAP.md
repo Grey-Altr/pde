@@ -23,7 +23,7 @@
 - ✅ **v0.19 WebMCP Integration** — Phases 156-162 (shipped 2026-03-28)
 - ✅ **v0.20 CLI-Anything + Asset Engine** — Phases 163-170 (shipped 2026-03-29)
 - ✅ **v0.21 Desktop App Integration** — Phases 171-175 (shipped 2026-03-29)
-- 🚧 **v0.22 Stakeholder Presentations** — Phases 176-184 (in progress)
+- ✅ **v0.22 Stakeholder Presentations** — Phases 176-184 (shipped 2026-03-30)
 
 ## Phases
 
@@ -77,7 +77,7 @@
 
 </details>
 
-### 🚧 v0.22 Stakeholder Presentations (In Progress)
+### ✅ v0.22 Stakeholder Presentations — SHIPPED 2026-03-30
 
 **Milestone Goal:** PDE can transform any project's `.planning/` artifacts into audience-specific communication documents — executive summaries, case studies, investor updates, post-mortems, and more — using a deterministic extraction-first pipeline that eliminates LLM hallucination about project state, with dual HTML+Markdown output, inline SVG charts, PDF export, claim verification, auto-generation on phase completion, and cross-project portfolio synthesis.
 
@@ -218,8 +218,8 @@ _Phases 171-175 archived to milestones/v0.21-ROADMAP.md_
   5. Cross-reference validation runs before any persona call: extracted numbers are compared against their source files and mismatches are logged as warnings
 **Plans:** 3/3 plans complete
 Plans:
-- [ ] 176-01-PLAN.md — Core extractors (project identity, phases, requirements, design artifacts) + unit tests
-- [ ] 176-02-PLAN.md — Remaining extractors (git velocity, cost/timing, blockers, verification, research, decisions) + unit tests
+- [x] 176-01-PLAN.md — Core extractors (project identity, phases, requirements, design artifacts) + unit tests
+- [x] 176-02-PLAN.md — Remaining extractors (git velocity, cost/timing, blockers, verification, research, decisions) + unit tests
 - [x] 176-03-PLAN.md — IR composer, cross-ref validation, pde-tools CLI routing, integration tests
 
 ### Phase 177: Command Interface + Workflow Shell
@@ -276,7 +276,7 @@ Plans:
   4. The PDF preserves chart SVGs, embedded base64 images, and table formatting from the HTML source without requiring additional dependencies
 **Plans:** 2/2 plans complete
 Plans:
-- [ ] 180-01-PLAN.md — Claim verification engine (verify-presentation.cjs), render() integration, verification footer CSS, unit + integration tests
+- [x] 180-01-PLAN.md — Claim verification engine (verify-presentation.cjs), render() integration, verification footer CSS, unit + integration tests
 - [x] 180-02-PLAN.md — PDF export module (export-pdf.cjs), pde-tools presentation pdf subcommand, workflow --pdf flag, smoke tests
 
 ### Phase 181: Remaining Cluster A Personas
@@ -291,8 +291,8 @@ Plans:
   5. Running `/pde:present pm-view` and `/pde:present project-manager-view` each produce their respective persona documents with the correct data emphasis and narrative arc
 **Plans:** 3/3 plans complete
 Plans:
-- [ ] 181-01-PLAN.md — Investor update + sprint review builders, test scaffold
-- [ ] 181-02-PLAN.md — Client deliverable + stakeholder status builders, RAG logic
+- [x] 181-01-PLAN.md — Investor update + sprint review builders, test scaffold
+- [x] 181-02-PLAN.md — Client deliverable + stakeholder status builders, RAG logic
 - [x] 181-03-PLAN.md — Product manager + project manager builders, complete test suite
 
 **UI hint**: yes
