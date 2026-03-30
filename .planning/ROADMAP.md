@@ -82,7 +82,7 @@
 **Milestone Goal:** PDE can transform any project's `.planning/` artifacts into audience-specific communication documents — executive summaries, case studies, investor updates, post-mortems, and more — using a deterministic extraction-first pipeline that eliminates LLM hallucination about project state, with dual HTML+Markdown output, inline SVG charts, PDF export, claim verification, auto-generation on phase completion, and cross-project portfolio synthesis.
 
 - [x] **Phase 176: Data Extraction IR Foundation** — artifact reader, IR builder, pde-tools subcommand, source-of-truth mapping, output directory, auto-gen gate design (completed 2026-03-30)
-- [ ] **Phase 177: Command Interface + Workflow Shell** — /pde:present command, workflow file, persona listing, persona dispatch routing
+- [x] **Phase 177: Command Interface + Workflow Shell** — /pde:present command, workflow file, persona listing, persona dispatch routing (completed 2026-03-30)
 - [ ] **Phase 178: Reference Personas + Rendering Engine** — executive summary and case study reference implementations, dual-format renderer (HTML+Markdown), EJS templates, self-contained HTML constraints, design artifact embedding
 - [ ] **Phase 179: SVG Charts** — burndown, velocity, phase timeline, effort breakdown charts as parametric inline SVG; accessible text alternatives
 - [ ] **Phase 180: Claim Verification + PDF Export** — post-generation claim verification against IR, mismatch flagging, verification footer, PDF export via Playwright
@@ -231,9 +231,9 @@ Plans:
   2. Running `/pde:present` with no argument displays a formatted list of all 15 available personas, each with a one-line description of its audience and purpose
   3. Running `/pde:present [unknown-persona]` produces a clear error message with the list of valid persona names
   4. The workflow reads from the IR (not raw .planning/ files) and passes structured data to the LLM for narration only
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 Plans:
-- [ ] 177-01-PLAN.md — Command file, workflow with persona registry and dispatch, skill-registry update
+- [x] 177-01-PLAN.md — Command file, workflow with persona registry and dispatch, skill-registry update
 
 ### Phase 178: Reference Personas + Rendering Engine
 **Goal**: Users can generate a self-contained executive summary HTML/Markdown document and a case study HTML/Markdown document — the two reference implementations that prove the rendering pipeline and lock in all HTML constraints before any other persona is built
@@ -360,7 +360,7 @@ Plans:
 | 174. CLI Wrap Skill | v0.21 | 2/2 | Complete | 2026-03-29 |
 | 175. Design Pipeline Integration | v0.21 | 2/2 | Complete | 2026-03-29 |
 | 176. Data Extraction IR Foundation | v0.22 | 1/3 | Complete    | 2026-03-30 |
-| 177. Command Interface + Workflow Shell | v0.22 | 0/1 | Not started | - |
+| 177. Command Interface + Workflow Shell | v0.22 | 1/1 | Complete   | 2026-03-30 |
 | 178. Reference Personas + Rendering Engine | v0.22 | 0/TBD | Not started | - |
 | 179. SVG Charts | v0.22 | 0/TBD | Not started | - |
 | 180. Claim Verification + PDF Export | v0.22 | 0/TBD | Not started | - |
