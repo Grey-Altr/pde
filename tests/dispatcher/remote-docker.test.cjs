@@ -45,22 +45,25 @@ function makeMockDockerode({ exitCode = 0, stdoutLines = [], stderrLines = [] } 
       return Promise.resolve();
     }),
     wait: vi.fn().mockImplementation(() => {
-      // Schedule stdout/stderr emission before exit
-      setImmediate(() => {
-        // Emit stdout lines
-        for (const line of stdoutLines) {
-          stdoutPass.push(line + '\n');
-        }
-        // Emit stderr lines
-        for (const line of stderrLines) {
-          stderrPass.push(Buffer.from(line + '\n'));
-        }
-        // End streams to trigger readline 'close'
-        stdoutPass.end();
-        stderrPass.end();
-        logStream.destroy();
-      });
-      return Promise.resolve({ StatusCode: exitCode });
+      // Push data into the PassThroughs that the implementation registered via demuxStream.
+      // Note: demuxStream mock stores these as mockContainer._stdoutPass / _stderrPass.
+      // We push data and end streams BEFORE the wait() promise resolves so that
+      // readline processes all lines before the implementation calls rl.close().
+      const actualStdout = mockContainer._stdoutPass;
+      const actualStderr = mockContainer._stderrPass;
+      // Emit stdout lines to the stream the impl reads from
+      for (const line of stdoutLines) {
+        if (actualStdout) actualStdout.push(line + '\n');
+      }
+      // Emit stderr lines
+      for (const line of stderrLines) {
+        if (actualStderr) actualStderr.push(Buffer.from(line + '\n'));
+      }
+      // End streams so readline processes all pending lines and emits 'close'
+      if (actualStdout) actualStdout.end();
+      if (actualStderr) actualStderr.end();
+      // Resolve asynchronously to allow readline event loop tick to process lines
+      return new Promise(resolve => setImmediate(() => resolve({ StatusCode: exitCode })));
     }),
     logs: vi.fn().mockImplementation((opts, cb) => {
       cb(null, logStream);
@@ -78,8 +81,10 @@ function makeMockDockerode({ exitCode = 0, stdoutLines = [], stderrLines = [] } 
     _getKillCallCount: () => killCallCount,
     _getCapturedConfig: () => capturedContainerConfig,
     _logStream: logStream,
-    _stdoutPass: stdoutPass,
-    _stderrPass: stderrPass,
+    // These are set by demuxStream mock to point to whatever the impl passes in.
+    // Initially null; set when container.modem.demuxStream() is called.
+    _stdoutPass: null,
+    _stderrPass: null,
   };
 
   const mockDocker = {

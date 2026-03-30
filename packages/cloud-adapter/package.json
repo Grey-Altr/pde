@@ -3,5 +3,7 @@
   "version": "0.1.0",
   "description": "PDE cloud dispatch adapter (Phase 190 scaffold)",
   "main": "index.cjs",
-  "dependencies": {}
+  "dependencies": {
+    "dockerode": "^4.0.10"
+  }
 }
