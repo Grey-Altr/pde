@@ -13,6 +13,11 @@ export interface SessionListItem {
   startedAt: number;
   pendingApprovalId: string | null;  // APR-01: non-null when approval pending
   source: 'local' | 'remote-ssh' | 'remote-managed' | 'remote-cloud' | 'docker';
+  syncStatus: 'pending' | 'synced' | 'conflict' | null;
+  syncLastTs: string | null;
+  syncConflicts: string[];
+  cloudSessionUrl: string | null;
+  infraCostUsdCents: number;
 }
 
 const VALID_SOURCES: readonly string[] = ['local', 'remote-ssh', 'remote-managed', 'remote-cloud', 'docker'];
@@ -69,6 +74,11 @@ export async function getSessions(): Promise<SessionListItem[]> {
       startedAt,
       pendingApprovalId,
       source,
+      syncStatus: (raw.sync_status || null) as 'pending' | 'synced' | 'conflict' | null,
+      syncLastTs: raw.sync_last_ts || null,
+      syncConflicts: raw.sync_conflicts ? JSON.parse(raw.sync_conflicts) : [],
+      cloudSessionUrl: raw.cloud_session_url || null,
+      infraCostUsdCents: raw.infra_cost_usd_cents ? Number(raw.infra_cost_usd_cents) : 0,
     });
   }
   return sessions;
@@ -97,6 +107,11 @@ export async function getSessionMeta(sessionId: string): Promise<SessionListItem
     startedAt,
     pendingApprovalId,
     source,
+    syncStatus: (raw.sync_status || null) as 'pending' | 'synced' | 'conflict' | null,
+    syncLastTs: raw.sync_last_ts || null,
+    syncConflicts: raw.sync_conflicts ? JSON.parse(raw.sync_conflicts) : [],
+    cloudSessionUrl: raw.cloud_session_url || null,
+    infraCostUsdCents: raw.infra_cost_usd_cents ? Number(raw.infra_cost_usd_cents) : 0,
   };
 }
 

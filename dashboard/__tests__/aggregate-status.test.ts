@@ -20,6 +20,11 @@ function makeSession(overrides: Partial<SessionListItem>): SessionListItem {
     startedAt: Date.now() - 60_000,
     pendingApprovalId: null,
     source: 'local',
+    syncStatus: null,
+    syncLastTs: null,
+    syncConflicts: [],
+    cloudSessionUrl: null,
+    infraCostUsdCents: 0,
     ...overrides,
   };
 }

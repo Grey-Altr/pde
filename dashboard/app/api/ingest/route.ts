@@ -86,7 +86,41 @@ export async function POST(request: Request): Promise<NextResponse> {
       p.hset(`pde:default:session:${sessionId}`, {
         session_source: sessionSource,
       });
+      // Store cloud_session_url if present on session_start (DSH-03)
+      if (evPayload.cloud_session_url) {
+        p.hset(`pde:default:session:${sessionId}`, {
+          cloud_session_url: String(evPayload.cloud_session_url),
+        });
+      }
       break;
+    }
+  }
+
+  // Handle cloud_sync_complete events (DSH-02)
+  for (const event of validatedBatch) {
+    if (event.event_type === 'cloud_sync_complete') {
+      const evPayload = event as Record<string, unknown>;
+      p.hset(`pde:default:session:${sessionId}`, {
+        sync_status: String(evPayload.sync_status ?? 'synced'),
+        sync_last_ts: String(evPayload.sync_ts ?? new Date().toISOString()),
+        sync_conflicts: JSON.stringify(evPayload.conflicts ?? []),
+      });
+    }
+  }
+
+  // Handle session_end: compute infra cost from container_uptime_s (DSH-05)
+  for (const event of validatedBatch) {
+    if (event.event_type === 'session_end') {
+      const evPayload = event as Record<string, unknown>;
+      if (typeof evPayload.container_uptime_s === 'number') {
+        const uptimeSec = evPayload.container_uptime_s;
+        const ratePerHour = Number(process.env.PDE_INFRA_COST_RATE_CENTS_PER_HOUR ?? '0');
+        const costCents = Math.round((uptimeSec / 3600) * ratePerHour);
+        p.hset(`pde:default:session:${sessionId}`, {
+          container_uptime_s: String(uptimeSec),
+          infra_cost_usd_cents: String(costCents),
+        });
+      }
     }
   }
 
