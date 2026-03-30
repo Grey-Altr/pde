@@ -116,8 +116,14 @@ ${links}
  */
 function personaDisplayName(slug) {
   const names = {
-    'executive-summary': 'Executive Summary',
-    'case-study': 'Case Study / Portfolio Piece',
+    'executive-summary':    'Executive Summary',
+    'case-study':           'Case Study / Portfolio Piece',
+    'investor-update':      'Investor Update',
+    'sprint-review':        'Sprint Review',
+    'client-deliverable':   'Client Deliverable Report',
+    'stakeholder-status':   'Stakeholder Status Update',
+    'pm-view':              'Product Manager View',
+    'project-manager-view': 'Project Manager View',
   };
   return names[slug] || slug;
 }
@@ -398,6 +404,212 @@ function buildTechnical(ir) {
   return `<ul>${list}</ul>`;
 }
 
+// ─── Phase 181 Cluster A section builder helpers ─────────────────────────────
+
+function buildMilestoneVelocity(ir) {
+  const sentinel = sentinelHtml(ir.phases, 'Phase progress');
+  if (sentinel) return sentinel;
+
+  const completed = ir.phases.completed || 0;
+  const total = ir.phases.total || 0;
+  const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+  const milestone = escHtml(ir.phases.milestone_name || ir.phases.milestone || '');
+  const velSentinel = sentinelHtml(ir.git_velocity, 'Git velocity');
+  const commitsHtml = velSentinel || (() => {
+    const v = ir.git_velocity;
+    return `<p><strong>Commits:</strong> ${v.total_commits || 0} total · ${v.commits_per_phase || 0} avg/phase</p>`;
+  })();
+
+  return `<p><strong>Milestone:</strong> ${milestone || 'In progress'} — ${pct}% complete (${completed}/${total} phases)</p>
+${commitsHtml}`.trim();
+}
+
+function buildShipped(ir) {
+  const sentinel = sentinelHtml(ir.phases, 'Phase progress');
+  if (sentinel) return sentinel;
+
+  const shipped = Array.isArray(ir.phases.phase_list)
+    ? ir.phases.phase_list.filter(p => p.completed)
+    : [];
+
+  if (shipped.length === 0) return '<p>No phases completed yet.</p>';
+
+  const rows = shipped.map(p =>
+    `<tr><td>${escHtml(p.name)}</td><td>&#x2713;</td></tr>`
+  ).join('\n');
+
+  return `<p>${shipped.length} phase(s) shipped.</p>
+<table>
+  <thead><tr><th>Phase</th><th>Status</th></tr></thead>
+  <tbody>${rows}</tbody>
+</table>`;
+}
+
+function buildWhatsNext(ir) {
+  const sentinel = sentinelHtml(ir.phases, 'Phase progress');
+  if (sentinel) return sentinel;
+
+  const upcoming = Array.isArray(ir.phases.phase_list)
+    ? ir.phases.phase_list.filter(p => !p.completed)
+    : [];
+
+  const currentName = escHtml(ir.phases.current_phase_name || ir.phases.current_phase || '');
+
+  if (upcoming.length === 0 && !currentName) {
+    return '<p>All phases complete.</p>';
+  }
+
+  const items = upcoming.slice(0, 5).map(p =>
+    `<li>${escHtml(p.name)}</li>`
+  ).join('\n');
+
+  return `${currentName ? `<p><strong>Current focus:</strong> ${currentName}</p>` : ''}
+${items ? `<ul>${items}</ul>` : ''}`.trim();
+}
+
+function buildVerificationEvidence(ir) {
+  const sentinel = sentinelHtml(ir.verification, 'Verification');
+  if (sentinel) return sentinel;
+
+  const v = ir.verification;
+  const verified = v.phases_verified || 0;
+  const total = v.total_phases || 0;
+  const pct = v.pct || (total > 0 ? Math.round((verified / total) * 100) : 0);
+
+  return `<p><strong>Verification coverage:</strong> ${verified}/${total} phases verified (${pct}%)</p>`;
+}
+
+function buildRAGStatus(ir) {
+  const sentinel = sentinelHtml(ir.phases, 'Phase progress');
+  if (sentinel) return sentinel;
+
+  const pct = ir.phases.total > 0
+    ? Math.round((ir.phases.completed / ir.phases.total) * 100)
+    : 0;
+
+  let rag, ragClass;
+  if (pct >= 75) { rag = 'GREEN'; ragClass = 'pde-success'; }
+  else if (pct >= 40) { rag = 'AMBER'; ragClass = 'pde-warning'; }
+  else { rag = 'RED'; ragClass = 'pde-danger'; }
+
+  return `<p><strong>Status:</strong> <span class="${escHtml(ragClass)}">${rag}</span> — ${pct}% complete (${ir.phases.completed}/${ir.phases.total} phases)</p>`;
+}
+
+function buildCurrentFocus(ir) {
+  const sentinel = sentinelHtml(ir.phases, 'Phase progress');
+  if (sentinel) return sentinel;
+
+  const currentName = escHtml(ir.phases.current_phase_name || ir.phases.current_phase || '');
+  const milestone = escHtml(ir.phases.milestone_name || ir.phases.milestone || '');
+
+  return `${milestone ? `<p><strong>Milestone:</strong> ${milestone}</p>` : ''}
+${currentName ? `<p><strong>Current phase:</strong> ${currentName}</p>` : '<p>No active phase.</p>'}`.trim();
+}
+
+function buildRiskRegister(ir) {
+  const riskSentinel = sentinelHtml(ir.risks, 'Risks');
+  if (riskSentinel) return riskSentinel;
+
+  const items = Array.isArray(ir.risks && ir.risks.items) ? ir.risks.items : [];
+
+  if (items.length === 0) {
+    return '<p>No risks identified.</p>';
+  }
+
+  const rows = items.map(r =>
+    `<tr><td>${escHtml(r.text || String(r))}</td><td>${escHtml(r.source || '')}</td></tr>`
+  ).join('\n');
+
+  return `<table>
+  <thead><tr><th>Risk</th><th>Source</th></tr></thead>
+  <tbody>${rows}</tbody>
+</table>`;
+}
+
+function buildRoadmapHealth(ir) {
+  const sentinel = sentinelHtml(ir.phases, 'Phase progress');
+  if (sentinel) return sentinel;
+
+  const total = ir.phases.total || 0;
+  const completed = ir.phases.completed || 0;
+  const inProgress = total - completed > 0 ? total - completed : 0;
+  const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+  const milestone = escHtml(ir.phases.milestone_name || ir.phases.milestone || '');
+
+  let rag, ragClass;
+  if (pct >= 75) { rag = 'GREEN'; ragClass = 'pde-success'; }
+  else if (pct >= 40) { rag = 'AMBER'; ragClass = 'pde-warning'; }
+  else { rag = 'RED'; ragClass = 'pde-danger'; }
+
+  return `${milestone ? `<p><strong>Milestone:</strong> ${milestone}</p>` : ''}
+<p><strong>Health:</strong> <span class="${escHtml(ragClass)}">${rag}</span> — ${pct}% complete</p>
+<p>${completed} of ${total} phases done · ${inProgress} remaining</p>`.trim();
+}
+
+function buildCategoryBreakdown(ir) {
+  const sentinel = sentinelHtml(ir.requirements, 'Requirements');
+  if (sentinel) return sentinel;
+
+  const categories = Array.isArray(ir.requirements.categories) ? ir.requirements.categories : [];
+
+  if (categories.length === 0) {
+    return '<p>No category data available.</p>';
+  }
+
+  const rows = categories.map(cat => {
+    const total = cat.total || 0;
+    const completed = cat.completed || 0;
+    const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+    return `<tr><td>${escHtml(cat.name)}</td><td>${total}</td><td>${completed}</td><td>${pct}%</td></tr>`;
+  }).join('\n');
+
+  return `<table>
+  <thead><tr><th>Category</th><th>Total</th><th>Completed</th><th>Coverage %</th></tr></thead>
+  <tbody>${rows}</tbody>
+</table>`;
+}
+
+function buildPhaseTracking(ir) {
+  const sentinel = sentinelHtml(ir.phases, 'Phase progress');
+  if (sentinel) return sentinel;
+
+  const phaseList = Array.isArray(ir.phases.phase_list) ? ir.phases.phase_list : [];
+
+  if (phaseList.length === 0) {
+    const completed = ir.phases.completed || 0;
+    const total = ir.phases.total || 0;
+    return `<p>${completed} of ${total} phases complete (no phase list available).</p>`;
+  }
+
+  const rows = phaseList.map(p => {
+    const status = p.completed ? 'completed' : (p.in_progress ? 'in-progress' : 'planned');
+    return `<tr><td>${escHtml(p.name)}</td><td>${escHtml(status)}</td></tr>`;
+  }).join('\n');
+
+  return `<table>
+  <thead><tr><th>Phase</th><th>Status</th></tr></thead>
+  <tbody>${rows}</tbody>
+</table>`;
+}
+
+function buildCostDuration(ir) {
+  const sentinel = sentinelHtml(ir.cost_timing, 'Cost timing data');
+  if (sentinel) return sentinel;
+
+  const t = ir.cost_timing;
+  const totalMin = t.total_duration_min || 0;
+  const durationDisplay = totalMin > 120
+    ? `${(totalMin / 60).toFixed(1)} hours`
+    : `${totalMin} min`;
+  const phasesWith = t.phases_with_timing || 0;
+  const avgMin = t.avg_duration_min || 0;
+  const sessionCount = t.session_count;
+
+  return `<p><strong>Total duration:</strong> ${durationDisplay} across ${phasesWith} phases</p>
+${avgMin ? `<p><strong>Avg phase duration:</strong> ${avgMin} min</p>` : ''}
+${sessionCount ? `<p><strong>Sessions:</strong> ${sessionCount}</p>` : ''}`.trim();
+}
+
 // ─── 6. buildExecutiveSummary ─────────────────────────────────────────────────
 
 /**
@@ -439,6 +651,108 @@ function buildCaseStudy(ir) {
     { id: 'lessons',    title: 'Lessons Learned',      level: 2, content: buildLessons(ir) },
     { id: 'technical',  title: 'Technical Decisions',  level: 2, content: buildTechnical(ir) },
     { id: 'artifacts',  title: 'Design Evidence',      level: 2, content: buildArtifacts(ir) },
+  ];
+}
+
+// ─── Phase 181 Cluster A persona builders ────────────────────────────────────
+
+/**
+ * Build investor update sections (CLU-02).
+ *
+ * @param {object} ir - IR from buildPresentationIR()
+ * @returns {Array<{id: string, title: string, level: number, content: string}>}
+ */
+function buildInvestorUpdate(ir) {
+  return [
+    { id: 'vision',    title: 'Product Vision',       level: 1, content: buildOverview(ir) },
+    { id: 'velocity',  title: 'Milestone Velocity',   level: 2, content: buildMilestoneVelocity(ir) },
+    { id: 'delivery',  title: 'Delivery Proof',       level: 2, content: buildRequirements(ir) },
+    { id: 'moat',      title: 'Technical Moat',       level: 2, content: buildTechnical(ir) },
+    { id: 'activity',  title: 'Development Activity', level: 2, content: buildTimeline(ir) },
+    { id: 'v-chart',   title: 'Velocity Chart',       level: 2, content: charts.velocityChart(ir) },
+  ];
+}
+
+/**
+ * Build sprint review sections (CLU-03).
+ *
+ * @param {object} ir - IR from buildPresentationIR()
+ * @returns {Array<{id: string, title: string, level: number, content: string}>}
+ */
+function buildSprintReview(ir) {
+  return [
+    { id: 'shipped',    title: 'What Shipped',          level: 1, content: buildShipped(ir) },
+    { id: 'artifacts',  title: 'Demo Artifacts',        level: 2, content: buildArtifacts(ir) },
+    { id: 'acceptance', title: 'Acceptance Criteria',   level: 2, content: buildRequirements(ir) },
+    { id: 'next',       title: "What's Next",           level: 2, content: buildWhatsNext(ir) },
+    { id: 'burndown',   title: 'Burndown',              level: 2, content: charts.burndownChart(ir) },
+  ];
+}
+
+/**
+ * Build client deliverable report sections (CLU-04).
+ *
+ * @param {object} ir - IR from buildPresentationIR()
+ * @returns {Array<{id: string, title: string, level: number, content: string}>}
+ */
+function buildClientDeliverable(ir) {
+  return [
+    { id: 'scope',        title: 'Project Scope',           level: 1, content: buildOverview(ir) },
+    { id: 'features',     title: 'Features Delivered',      level: 2, content: buildProgress(ir) },
+    { id: 'acceptance',   title: 'Acceptance Criteria Met', level: 2, content: buildRequirements(ir) },
+    { id: 'verification', title: 'Verification Evidence',   level: 2, content: buildVerificationEvidence(ir) },
+    { id: 'artifacts',    title: 'Design Artifacts',        level: 2, content: buildArtifacts(ir) },
+  ];
+}
+
+/**
+ * Build stakeholder status update sections (CLU-05).
+ *
+ * @param {object} ir - IR from buildPresentationIR()
+ * @returns {Array<{id: string, title: string, level: number, content: string}>}
+ */
+function buildStakeholderStatus(ir) {
+  return [
+    { id: 'rag',       title: 'RAG Status',         level: 1, content: buildRAGStatus(ir) },
+    { id: 'focus',     title: 'Current Focus',      level: 2, content: buildCurrentFocus(ir) },
+    { id: 'blockers',  title: 'Active Blockers',    level: 2, content: buildBlockers(ir) },
+    { id: 'risks',     title: 'Risk Register',      level: 2, content: buildRiskRegister(ir) },
+    { id: 'decisions', title: 'Decisions Log',      level: 2, content: buildDecisions(ir) },
+    { id: 'next',      title: 'Next Actions',       level: 2, content: buildWhatsNext(ir) },
+  ];
+}
+
+/**
+ * Build product manager view sections (CLU-06).
+ *
+ * @param {object} ir - IR from buildPresentationIR()
+ * @returns {Array<{id: string, title: string, level: number, content: string}>}
+ */
+function buildProductManager(ir) {
+  return [
+    { id: 'coverage',     title: 'Requirement Coverage',     level: 1, content: buildRequirements(ir) },
+    { id: 'roadmap',      title: 'Roadmap Health',           level: 2, content: buildRoadmapHealth(ir) },
+    { id: 'categories',   title: 'Feature Category Breakdown', level: 2, content: buildCategoryBreakdown(ir) },
+    { id: 'scope',        title: 'Scope Trade-offs',         level: 2, content: buildBlockers(ir) },
+    { id: 'decisions',    title: 'Product Decisions',        level: 2, content: buildDecisions(ir) },
+    { id: 'effort-chart', title: 'Effort Distribution',      level: 2, content: charts.effortBreakdownChart(ir) },
+  ];
+}
+
+/**
+ * Build project manager view sections (CLU-07).
+ *
+ * @param {object} ir - IR from buildPresentationIR()
+ * @returns {Array<{id: string, title: string, level: number, content: string}>}
+ */
+function buildProjectManager(ir) {
+  return [
+    { id: 'timeline',        title: 'Timeline Status',      level: 1, content: buildProgress(ir) },
+    { id: 'tracking',        title: 'Phase Tracking',       level: 2, content: buildPhaseTracking(ir) },
+    { id: 'resources',       title: 'Resource Activity',    level: 2, content: buildTimeline(ir) },
+    { id: 'risk-register',   title: 'Risk Register',        level: 2, content: buildRiskRegister(ir) },
+    { id: 'cost',            title: 'Cost & Duration',      level: 2, content: buildCostDuration(ir) },
+    { id: 'timeline-chart',  title: 'Phase Timeline Chart', level: 2, content: charts.phaseTimelineChart(ir) },
   ];
 }
 
@@ -720,8 +1034,26 @@ function render(ir, persona, htmlPath, mdPath) {
     case 'case-study':
       sections = buildCaseStudy(ir);
       break;
+    case 'investor-update':
+      sections = buildInvestorUpdate(ir);
+      break;
+    case 'sprint-review':
+      sections = buildSprintReview(ir);
+      break;
+    case 'client-deliverable':
+      sections = buildClientDeliverable(ir);
+      break;
+    case 'stakeholder-status':
+      sections = buildStakeholderStatus(ir);
+      break;
+    case 'pm-view':
+      sections = buildProductManager(ir);
+      break;
+    case 'project-manager-view':
+      sections = buildProjectManager(ir);
+      break;
     default:
-      throw new Error(`Unknown persona: ${persona}. Available: executive-summary, case-study`);
+      throw new Error(`Unknown persona: ${persona}. Available: executive-summary, case-study, investor-update, sprint-review, client-deliverable, stakeholder-status, pm-view, project-manager-view`);
   }
 
   // Claim verification (VER-01/02/03): compare rendered content against canonical IR
@@ -816,6 +1148,12 @@ module.exports = {
   personaDisplayName,
   buildExecutiveSummary,
   buildCaseStudy,
+  buildInvestorUpdate,
+  buildSprintReview,
+  buildClientDeliverable,
+  buildStakeholderStatus,
+  buildProductManager,
+  buildProjectManager,
   renderHTML,
   renderMarkdown,
   render,
