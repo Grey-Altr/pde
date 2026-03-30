@@ -1,0 +1,52 @@
+import js from '@eslint/js';
+import n from 'eslint-plugin-n';
+
+export default [
+  {
+    ignores: [
+      'node_modules/**',
+      'coverage/**',
+      'dashboard/**',
+      '.planning/**',
+      '.claude/**',
+      'packages/pde-mcp-server/src/**',
+      'packages/pde-mcp-server/dist/**',
+      'bin/lib/video-pipeline/remotion/**',
+      '*.mjs',
+    ],
+  },
+  {
+    files: ['bin/**/*.cjs', 'lib/**/*.cjs', 'packages/**/*.cjs'],
+    ...js.configs.recommended,
+    plugins: { n },
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: 'commonjs',
+      globals: {
+        require: 'readonly',
+        module: 'writable',
+        exports: 'writable',
+        __dirname: 'readonly',
+        __filename: 'readonly',
+        process: 'readonly',
+        console: 'readonly',
+        Buffer: 'readonly',
+        setTimeout: 'readonly',
+        clearTimeout: 'readonly',
+        setInterval: 'readonly',
+        clearInterval: 'readonly',
+        setImmediate: 'readonly',
+        Promise: 'readonly',
+        URL: 'readonly',
+        URLSearchParams: 'readonly',
+        globalThis: 'readonly',
+      },
+    },
+    rules: {
+      'no-unused-vars': ['warn', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+      'no-undef': 'error',
+      'n/no-missing-require': 'error',
+      'n/no-extraneous-require': 'warn',
+    },
+  },
+];
