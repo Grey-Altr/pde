@@ -76,8 +76,8 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 - [ ] **CMD-01**: `/pde:present [persona]` generates a presentation for the specified persona
 - [ ] **CMD-02**: `/pde:present` (no argument) lists available personas with descriptions
-- [ ] **CMD-03**: `pde-tools.cjs presentation` subcommand handles IR extraction and file operations
-- [ ] **CMD-04**: Workflow reads all `.planning/` artifacts and passes structured IR (not raw files) to LLM for narration
+- [x] **CMD-03**: `pde-tools.cjs presentation` subcommand handles IR extraction and file operations
+- [x] **CMD-04**: Workflow reads all `.planning/` artifacts and passes structured IR (not raw files) to LLM for narration
 
 ### Auto-Generation
 
@@ -140,8 +140,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | EXT-08 | Phase 176 | Pending |
 | EXT-09 | Phase 176 | Pending |
 | EXT-10 | Phase 176 | Pending |
-| CMD-03 | Phase 176 | Pending |
-| CMD-04 | Phase 176 | Pending |
+| CMD-03 | Phase 176 | Complete |
+| CMD-04 | Phase 176 | Complete |
 | CMD-01 | Phase 177 | Pending |
 | CMD-02 | Phase 177 | Pending |
 | CLU-01 | Phase 178 | Pending |
