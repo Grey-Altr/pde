@@ -24,6 +24,7 @@
 - ✅ **v0.20 CLI-Anything + Asset Engine** — Phases 163-170 (shipped 2026-03-29)
 - ✅ **v0.21 Desktop App Integration** — Phases 171-175 (shipped 2026-03-29)
 - ✅ **v0.22 Stakeholder Presentations** — Phases 176-184 (shipped 2026-03-30)
+- 🚧 **v0.23 Quality & Reliability Hardening** — Phases 185-189 (in progress)
 
 ## Phases
 
@@ -90,6 +91,17 @@
 - [x] **Phase 182: Remaining Cluster B Personas** — agile project report, design persona report, research persona report, technical post-mortem, ADR summary, launch announcement, portfolio overview (completed 2026-03-30)
 - [x] **Phase 183: Auto-Generation** — phase-completion hook, milestone-archive hook, state completion gate, configurable persona set, opt-out config flag (completed 2026-03-30)
 - [x] **Phase 184: Cross-Project Portfolio Synthesis** — multi-project reader, schema version detection, defensive extraction, /pde:portfolio command, portfolio narrative (completed 2026-03-30)
+
+
+### 🚧 v0.23 Quality & Reliability Hardening (In Progress)
+
+**Milestone Goal:** The PDE codebase has accurate state documents, reliable test infrastructure, complete Nyquist verification coverage for v0.22, and documented static-analysis baselines — eliminating the accumulated data drift, false test failures, IR field mismatches, and stale workflow paths from 22 prior milestones of rapid shipping.
+
+- [x] **Phase 185: Data Integrity Baseline** — correct ROADMAP.md milestone status, MILESTONES.md one-liners, REQUIREMENTS.md checkbox reconciliation, Phase 180 VERIFICATION.md status (completed 2026-03-30)
+- [ ] **Phase 186: Test Infrastructure** — vitest exclude config for node:test files, @vitest/coverage-v8 coverage baseline, ESLint 10 flat config for CJS codebase (not started)
+- [ ] **Phase 187: IR Field Fix + Mock Reconciliation** — buildCrossPatterns field name fix, Phase 184 test mock shape alignment, 23 portfolio tests confirmed green (not started)
+- [ ] **Phase 188: Verification Coverage** — Nyquist VALIDATION.md backfill for all 9 v0.22 phases, v0.7 SUMMARY.md one-liner frontmatter, pde-tools health consistency subcommand (not started)
+- [ ] **Phase 189: Technical Debt Cleanup** — correct $CLAUDE_PLUGIN_ROOT paths in workflow files, knip dead-code report, jscpd duplication report, ESLint clean pass (not started)
 
 ## Phase Details
 
@@ -343,6 +355,64 @@ Plans:
 - [x] 184-01-PLAN.md — Multi-project IR extraction (portfolio.cjs), schema version detection, milestone history, TDD tests
 - [x] 184-02-PLAN.md — Cross-project render function, pde-tools subcommand, /pde:portfolio command + workflow
 
+### Phase 185: Data Integrity Baseline
+**Goal**: State documents accurately reflect what shipped — ROADMAP.md, MILESTONES.md, REQUIREMENTS.md, and Phase 180 VERIFICATION.md all contain correct data that downstream IR extractors can consume without producing false portfolio narratives
+**Depends on**: Phase 184
+**Requirements**: INT-01, INT-02, INT-03, INT-04
+**Success Criteria** (what must be TRUE):
+  1. ROADMAP.md shows v0.22 status as shipped with all 9 phase plan boxes checked, verified against git log and SUMMARY.md completion timestamps
+  2. MILESTONES.md one-liner fields for v0.19 through v0.22 contain accurate human-readable descriptions (not placeholder text), sourced from archived SUMMARY.md files
+  3. REQUIREMENTS.md checkboxes for EXT-01 through EXT-10 are checked with inline phase references matching the VERIFICATION.md evidence entries
+  4. Phase 180 VERIFICATION.md frontmatter shows status: complete, with the root cause of the prior gaps_found value documented
+**Plans**: 2/2 plans complete
+Plans:
+- [x] 185-01-PLAN.md — Fix Phase 180 VERIFICATION.md, ROADMAP.md plan boxes, v0.22-REQUIREMENTS.md phase refs
+- [x] 185-02-PLAN.md — Populate MILESTONES.md one-liners for v0.19-v0.22
+
+### Phase 186: Test Infrastructure
+**Goal**: Running npx vitest run reports zero false "No test suite found" failures and npx vitest run --coverage produces a coverage baseline report, giving reliable regression signal before any code changes are made
+**Depends on**: Phase 185
+**Requirements**: TST-01, TST-02
+**Success Criteria** (what must be TRUE):
+  1. Running npx vitest run reports pass/fail results only for vitest-compatible test files — the 137 node:test files no longer produce false "No test suite found" entries
+  2. node:test files remain runnable via node --test and are not deleted or disabled — only excluded from vitest
+  3. Running npx vitest run --coverage produces a coverage report showing lines and branch percentages per module in bin/lib/
+**Plans**: TBD
+
+### Phase 187: IR Field Fix + Mock Reconciliation
+**Goal**: buildCrossPatterns reads the correct IR field names and produces non-empty cross-patterns sections for real PDE projects, and Phase 184 portfolio test mocks match the real IR shape so the test suite accurately reflects production behavior
+**Depends on**: Phase 186
+**Requirements**: INT-05, INT-06
+**Success Criteria** (what must be TRUE):
+  1. Running /pde:portfolio on two real PDE project directories produces a cross-patterns section with actual content (not an empty section)
+  2. buildCrossPatterns accesses ir.topics and ir.project_research_files instead of ir.research.findings — confirmed by reading the updated source
+  3. All 23 Phase 184 portfolio tests pass after mock shapes are updated to match buildPresentationIR output — zero regressions
+  4. The mock update is atomic with the code fix — no intermediate state where tests pass against wrong shapes
+**Plans**: TBD
+
+### Phase 188: Verification Coverage
+**Goal**: All 9 v0.22 phases have Nyquist-compliant VALIDATION.md files, v0.7 SUMMARY.md files include one-liner frontmatter, and a pde-tools health consistency subcommand exists for detecting cross-artifact mismatches
+**Depends on**: Phase 185
+**Requirements**: VER-01, VER-02, VER-03
+**Success Criteria** (what must be TRUE):
+  1. Each of the 9 phases (176 through 184) has a VALIDATION.md file with nyquist_compliant: true frontmatter and assertions derived from that phase's VERIFICATION.md observable truths table
+  2. Running any assertion from a VALIDATION.md file against its target produces a meaningful pass or fail — not just a key-existence check
+  3. All 5 v0.7 SUMMARY.md files include a one-liner: frontmatter field with an accurate single-sentence description
+  4. Running pde-tools health consistency [version] reports any mismatches between requirements file checkboxes, roadmap phase entries, and milestone plan entries for the given milestone version
+**Plans**: TBD
+
+### Phase 189: Technical Debt Cleanup
+**Goal**: Stale workflow paths are corrected, dead-code and duplication reports are produced and triaged, and ESLint runs clean — establishing documented static-analysis baselines for future milestones
+**Depends on**: Phase 186
+**Requirements**: DEB-01, DEB-02, DEB-03, DEB-04
+**Success Criteria** (what must be TRUE):
+  1. execute-phase.md and complete-milestone.md reference $CLAUDE_PLUGIN_ROOT/bin/pde-tools.cjs — the stale $HOME/.claude/pde-os path is gone from both files
+  2. Running npx knip produces a dead-code report with each finding triaged as keep, remove, or defer — the report is committed as a tracked artifact
+  3. Running npx jscpd produces a duplication report identifying copy-paste blocks above the configured threshold — the report is committed as a tracked artifact
+  4. Running npx eslint . produces a clean pass or a documented exceptions file explaining each suppressed rule — no undocumented suppressions
+**Plans**: TBD
+
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -376,3 +446,8 @@ Plans:
 | 182. Remaining Cluster B Personas | v0.22 | 3/3 | Complete    | 2026-03-30 |
 | 183. Auto-Generation | v0.22 | 1/1 | Complete    | 2026-03-30 |
 | 184. Cross-Project Portfolio Synthesis | v0.22 | 2/2 | Complete    | 2026-03-30 |
+| 185. Data Integrity Baseline | v0.23 | 2/2 | Complete | 2026-03-30 |
+| 186. Test Infrastructure | v0.23 | 0/? | Not started | - |
+| 187. IR Field Fix + Mock Reconciliation | v0.23 | 0/? | Not started | - |
+| 188. Verification Coverage | v0.23 | 0/? | Not started | - |
+| 189. Technical Debt Cleanup | v0.23 | 0/? | Not started | - |
