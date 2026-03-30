@@ -10,7 +10,7 @@ Requirements for Quality & Reliability Hardening. Each maps to roadmap phases.
 ### Data Integrity
 
 - [ ] **INT-01**: ROADMAP.md milestone status for v0.22 shows "shipped" (not "in progress") and all completed phase entries have checked plan boxes
-- [ ] **INT-02**: MILESTONES.md has accurate one-liner descriptions (not placeholder text) for every plan entry across v0.19–v0.22 milestones
+- [x] **INT-02**: MILESTONES.md has accurate one-liner descriptions (not placeholder text) for every plan entry across v0.19–v0.22 milestones
 - [ ] **INT-03**: REQUIREMENTS.md checkboxes for EXT-01 through EXT-10 are checked with phase references matching their VERIFICATION.md evidence
 - [ ] **INT-04**: Phase 180 VERIFICATION.md frontmatter shows `status: complete` (not `gaps_found`) reflecting the resolved admin checkbox issue
 - [ ] **INT-05**: `buildCrossPatterns` in render-presentation.cjs reads the correct IR field names (`topics`/`project_research_files` instead of `research.findings`) and produces non-empty cross-patterns sections for real PDE projects
@@ -66,7 +66,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | INT-01 | Phase 185 | Pending |
-| INT-02 | Phase 185 | Pending |
+| INT-02 | Phase 185 | Complete |
 | INT-03 | Phase 185 | Pending |
 | INT-04 | Phase 185 | Pending |
 | INT-05 | Phase 187 | Pending |

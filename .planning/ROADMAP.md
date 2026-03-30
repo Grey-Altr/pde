@@ -367,7 +367,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 - [ ] 185-01-PLAN.md — Fix Phase 180 VERIFICATION.md status, ROADMAP.md plan boxes, v0.22-REQUIREMENTS.md inline phase references
-- [ ] 185-02-PLAN.md — Populate MILESTONES.md one-liners for v0.19 through v0.22
+- [x] 185-02-PLAN.md — Populate MILESTONES.md one-liners for v0.19 through v0.22
 
 ### Phase 186: Test Infrastructure
 **Goal**: Running npx vitest run reports zero false "No test suite found" failures and npx vitest run --coverage produces a coverage baseline report, giving reliable regression signal before any code changes are made
@@ -446,7 +446,7 @@ Plans:
 | 182. Remaining Cluster B Personas | v0.22 | 3/3 | Complete    | 2026-03-30 |
 | 183. Auto-Generation | v0.22 | 1/1 | Complete    | 2026-03-30 |
 | 184. Cross-Project Portfolio Synthesis | v0.22 | 2/2 | Complete    | 2026-03-30 |
-| 185. Data Integrity Baseline | v0.23 | 0/? | Not started | - |
+| 185. Data Integrity Baseline | v0.23 | 1/2 | In Progress|  |
 | 186. Test Infrastructure | v0.23 | 0/? | Not started | - |
 | 187. IR Field Fix + Mock Reconciliation | v0.23 | 0/? | Not started | - |
 | 188. Verification Coverage | v0.23 | 0/? | Not started | - |
