@@ -455,9 +455,9 @@ Plans:
   3. aggregator.cjs routes cloud session IDs to RemoteAggregator instead of TailCursor — no ghost cursors accumulate for cloud session IDs
   4. packages/cloud-adapter/ directory exists with package.json and the root plugin passes node require check with no extra npm packages at root
   5. Dispatch config block accepts cloud and docker settings — verified by config schema parse test
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 Plans:
-- [ ] 190-01-PLAN.md — CJS dispatcher infrastructure (lock, aggregator, config) + cloud-adapter package scaffold
+- [x] 190-01-PLAN.md — CJS dispatcher infrastructure (lock, aggregator, config) + cloud-adapter package scaffold
 - [ ] 190-02-PLAN.md — Dashboard SessionSource enum + queries.ts narrowing fix
 
 ### Phase 191: Docker Container Backend
@@ -578,7 +578,7 @@ Plans:
 | 187. IR Field Fix + Mock Reconciliation | v0.23 | 1/1 | Complete    | 2026-03-30 |
 | 188. Verification Coverage | v0.23 | 3/3 | Complete    | 2026-03-30 |
 | 189. Technical Debt Cleanup | v0.23 | 2/2 | Complete    | 2026-03-30 |
-| 190. Infrastructure Foundation | v0.24 | 0/TBD | Not started | - |
+| 190. Infrastructure Foundation | v0.24 | 1/2 | In Progress|  |
 | 191. Docker Container Backend | v0.24 | 0/TBD | Not started | - |
 | 192. Git-Based State Sync | v0.24 | 0/TBD | Not started | - |
 | 193. Cloud Web Backend | v0.24 | 0/TBD | Not started | - |

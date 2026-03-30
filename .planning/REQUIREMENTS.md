@@ -14,7 +14,7 @@ Requirements for Cloud Dispatch & State Sync. Each maps to roadmap phases.
 - [ ] **CLD-03**: Cloud session emits NDJSON events consumable by existing event bus infrastructure
 - [ ] **CLD-04**: User can dispatch a plan to a local Docker container via dockerode with NDJSON stdout relay
 - [ ] **CLD-05**: Docker container dispatch mirrors spawn.cjs interface (onLine/onExit callbacks, same NDJSON format)
-- [ ] **CLD-06**: Cloud adapter package lives in isolated `packages/cloud-adapter/` respecting zero-npm root constraint
+- [x] **CLD-06**: Cloud adapter package lives in isolated `packages/cloud-adapter/` respecting zero-npm root constraint
 - [ ] **CLD-07**: Graceful fallback chain: cloud → SSH → local with same degradation UX as v0.18 SSH fallback
 - [ ] **CLD-08**: Cloud session auth uses claude.ai OAuth (not ANTHROPIC_API_KEY), with probe before dispatch
 
@@ -48,12 +48,12 @@ Requirements for Cloud Dispatch & State Sync. Each maps to roadmap phases.
 
 ### Infrastructure
 
-- [ ] **INF-01**: lock.cjs extended with cloud-aware PID handling (no process.kill for cloud sessions)
-- [ ] **INF-02**: aggregator.cjs uses RemoteAggregator for cloud sessions instead of file-based TailCursor
+- [x] **INF-01**: lock.cjs extended with cloud-aware PID handling (no process.kill for cloud sessions)
+- [x] **INF-02**: aggregator.cjs uses RemoteAggregator for cloud sessions instead of file-based TailCursor
 - [ ] **INF-03**: SessionSource registry enum extended for cloud and docker dispatch types
 - [ ] **INF-04**: Containerized MCP servers wrap APPROVED_SERVERS in per-server Docker containers with pinned runtimes
 - [ ] **INF-05**: MCP probe/degrade contracts extended for container startup latency
-- [ ] **INF-06**: Dispatch configuration block extended with cloud and docker settings
+- [x] **INF-06**: Dispatch configuration block extended with cloud and docker settings
 
 ## Future Requirements
 
@@ -95,7 +95,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CLD-03 | Phase 191 | Pending |
 | CLD-04 | Phase 191 | Pending |
 | CLD-05 | Phase 191 | Pending |
-| CLD-06 | Phase 190 | Pending |
+| CLD-06 | Phase 190 | Complete |
 | CLD-07 | Phase 193 | Pending |
 | CLD-08 | Phase 193 | Pending |
 | SYN-01 | Phase 192 | Pending |
@@ -117,12 +117,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DSH-04 | Phase 195 | Pending |
 | DSH-05 | Phase 195 | Pending |
 | DSH-06 | Phase 195 | Pending |
-| INF-01 | Phase 190 | Pending |
-| INF-02 | Phase 190 | Pending |
+| INF-01 | Phase 190 | Complete |
+| INF-02 | Phase 190 | Complete |
 | INF-03 | Phase 190 | Pending |
 | INF-04 | Phase 196 | Pending |
 | INF-05 | Phase 196 | Pending |
-| INF-06 | Phase 190 | Pending |
+| INF-06 | Phase 190 | Complete |
 
 **Coverage:**
 - v0.24 requirements: 33 total
