@@ -541,7 +541,9 @@ Plans:
   1. Each entry in APPROVED_SERVERS runs in its own per-server Docker container with a pinned runtime version — verified by reading updated MCP server launch code
   2. Probe/degrade contract extends startup timeout to accommodate container cold start — probe does not trigger degraded state during normal container startup
   3. MCP server containers degrade gracefully if Docker daemon is unavailable, falling back to the existing non-containerized behavior
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 196-01-PLAN.md — Container blocks on APPROVED_SERVERS, isDockerAvailable/getInstallCmd/getProbeTimeoutMs functions, unit tests (INF-04, INF-05)
 
 ### Phase 197: Cross-Host Session Resume
 **Goal**: Agent SDK session .jsonl files are persisted to shared storage so a session started on one machine can be resumed on a different host with matching cwd encoding
@@ -551,7 +553,9 @@ Plans:
   1. Agent SDK .jsonl session files are persisted to configured shared storage on session completion — verified by reading the updated session persistence code
   2. Session resume on a different host succeeds when the shared storage entry exists — coordinator loads .jsonl from shared storage and resumes with matching cwd encoding
   3. cwd encoding is portable across hosts — a session started in /Users/alice/project resumes correctly on /home/alice/project via cwd normalization
-**Plans**: TBD
+**Plans**: 1 plan
+Plans:
+- [ ] 196-01-PLAN.md — Container blocks on APPROVED_SERVERS, isDockerAvailable/getInstallCmd/getProbeTimeoutMs functions, unit tests (INF-04, INF-05)
 
 
 ## Progress
