@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.2.85",
+    "dockerode": "^4.0.10",
     "node-ssh": "^13.2.1"
   }
 }
