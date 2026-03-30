@@ -2,14 +2,16 @@
 gsd_state_version: 1.0
 milestone: v0.22
 milestone_name: Stakeholder Presentations
-status: Ready to plan
-stopped_at: Phase 176
-last_updated: "2026-03-29T22:00:00.000Z"
+status: planning
+stopped_at: Completed 176-02-PLAN.md — EXT-05 through EXT-10 implemented
+last_updated: "2026-03-30T00:40:09.943Z"
+last_activity: 2026-03-29 — Roadmap created for v0.22 Stakeholder Presentations (9 phases, 58 requirements)
 progress:
-  total_phases: 9
+  total_phases: 16
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 3
+  completed_plans: 1
+  percent: 0
 ---
 
 # Project State
@@ -51,6 +53,8 @@ Progress: [░░░░░░░░░░] 0%
 - [Roadmap]: SVG charts (Phase 179) run in parallel dependency with reference personas (Phase 178) — both depend on Phase 176 IR, neither depends on the other
 - [Roadmap]: Auto-generation (Phase 183) after ALL personas are proven (Phase 181+182) — hook trigger depends on stable generation, not vice versa
 - [Roadmap]: Portfolio synthesis (Phase 184) last — schema version heterogeneity across v0.12–v0.21 is highest-complexity risk; isolated after single-project synthesis is stable
+- [Phase 176]: EXT-06 reads SUMMARY.md frontmatter duration fields — not /tmp NDJSON event files
+- [Phase 176]: Blockers/decisions return empty arrays (valid state), not unavailable sentinels
 
 ### Pending Todos
 
@@ -63,7 +67,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-29T22:00:00.000Z
-Stopped at: Roadmap written — v0.22 phases 176-184 defined
+Last session: 2026-03-30T00:40:09.940Z
+Stopped at: Completed 176-02-PLAN.md — EXT-05 through EXT-10 implemented
 Resume with: `/gsd:plan-phase 176`
 Resume file: None
