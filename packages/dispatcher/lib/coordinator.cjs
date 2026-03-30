@@ -55,6 +55,9 @@ const { analyzeDag, checkFileOverlap, summarizeFailure, triageConflicts } = requ
 const { routeSession } = require('./remote-router.cjs');
 const { spawnRemoteSession } = require('./remote-ssh.cjs');
 
+// Phase 191: Docker container dispatch
+const { spawnDockerSession } = require('../../cloud-adapter/index.cjs');
+
 // Phase 148: tmux pane integration fan-out writer
 const { TmuxFanout } = require('./tmux-fanout.cjs');
 
@@ -144,6 +147,10 @@ class DispatchCoordinator {
     this._routeSession = deps.routeSession || routeSession;
     this._remoteConfig = (options.config && options.config.dispatch && options.config.dispatch.remote) || null;
     this._readPlanAutonomous = deps.readPlanAutonomous || readPlanAutonomous;
+
+    // Phase 191: Docker container dispatch
+    this._spawnDockerSession = deps.spawnDockerSession || spawnDockerSession;
+    this._dockerConfig = (options.config && options.config.dispatch && options.config.dispatch.docker) || null;
   }
 
   /**
@@ -199,6 +206,7 @@ class DispatchCoordinator {
     const backend = await this._routeSession({
       isAutonomous,
       remoteConfig: this._remoteConfig,
+      dockerConfig: this._dockerConfig,
     });
 
     // 1. Acquire dispatcher lock
@@ -244,7 +252,7 @@ class DispatchCoordinator {
 
       // Phase 152 (RLY-01): Spawn relay immediately (synchronous) so it is available before session
       // starts writing events. Keyed by coordinator sessionId for lookup in _handleExit.
-      if (backend !== 'ssh') {
+      if (backend !== 'ssh' && backend !== 'docker') {
         const relayHandle = this._spawnRelay(relayId);
         this._relays.set(sessionId, relayHandle || { pid: null, kill: () => {} });
       }
@@ -252,6 +260,8 @@ class DispatchCoordinator {
       // 8. Queue the session — runs when a concurrency slot opens
       if (backend === 'ssh') {
         this._queue.add(() => this._runRemoteSession(sessionId, phaseNum, plan, worktreePath, branch, relayId));
+      } else if (backend === 'docker') {
+        this._queue.add(() => this._runDockerSession(sessionId, phaseNum, plan, worktreePath, branch, relayId));
       } else {
         this._queue.add(() => this._runSession(sessionId, phaseNum, plan, worktreePath, branch, relayId));
       }
@@ -369,6 +379,45 @@ class DispatchCoordinator {
         },
       });
       // Note: no pid update for remote sessions — SSH has no local PID. kill() uses ssh.dispose()
+      this._sessions.set(sessionId, handle);
+    });
+  }
+
+  /**
+   * Internal: spawn and manage a Docker container session. Returns a Promise that
+   * resolves when the container completes (success or failure).
+   *
+   * Docker sessions write NDJSON to local /tmp/pde-session-{relayId}.ndjson,
+   * so TailCursor is used (not RemoteAggregator). No relay is spawned — container
+   * manages its own lifecycle via kill().
+   *
+   * @param {string} sessionId
+   * @param {number} phase
+   * @param {number|string} plan
+   * @param {string} worktreePath
+   * @param {string} branch
+   * @param {string} [relayId] - UUID relay ID for NDJSON correlation
+   * @returns {Promise<void>}
+   * @private
+   */
+  _runDockerSession(sessionId, phase, plan, worktreePath, branch, relayId) {
+    return new Promise((resolve) => {
+      const handle = this._spawnDockerSession({
+        sessionId,
+        relayId,
+        phase,
+        plan,
+        worktreePath,
+        pluginDir: this._pluginDir,
+        dockerConfig: this._dockerConfig || {},
+        onLine: (sid, event) => {
+          this._aggregator.emit('event', sid, event);
+        },
+        onExit: (sid, exitCode) => {
+          this._handleExit(sid, exitCode, worktreePath, branch).then(resolve);
+        },
+      });
+      // Note: no pid update for docker — container has no local PID. kill() uses containerInstance.kill()
       this._sessions.set(sessionId, handle);
     });
   }

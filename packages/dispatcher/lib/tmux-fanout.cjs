@@ -41,12 +41,14 @@ const FILTER_PATH = path.join(os.tmpdir(), 'pde-tmux-filter.txt');
  * Map backend type to a single-character source label.
  * Defaults to 'L' when backend is undefined (unknown session — assume local).
  *
- * @param {string|undefined} backend - 'local', 'ssh', 'managed', or undefined
- * @returns {'L'|'R'}
+ * @param {string|undefined} backend - 'local', 'docker', 'ssh', 'managed', or undefined
+ * @returns {'L'|'D'|'R'}
  */
 function sourceLabel(backend) {
   if (backend === undefined || backend === null) return 'L';
-  return backend === 'local' ? 'L' : 'R';
+  if (backend === 'local') return 'L';
+  if (backend === 'docker') return 'D';
+  return 'R';
 }
 
 /**
@@ -123,4 +125,4 @@ class TmuxFanout {
   }
 }
 
-module.exports = { TmuxFanout, FANOUT_PATH, FILTER_PATH };
+module.exports = { TmuxFanout, FANOUT_PATH, FILTER_PATH, sourceLabel };

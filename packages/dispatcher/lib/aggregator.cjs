@@ -64,7 +64,7 @@ class Aggregator extends EventEmitter {
     if (this._cursors.has(sessionId)) return;
 
     const filePath = path.join(os.tmpdir(), `pde-session-${sessionId}.ndjson`);
-    const isRemote = sessionType === 'cloud' || sessionType === 'docker';
+    const isRemote = sessionType === 'cloud';
     const CursorClass = isRemote ? this._RemoteAggregator : this._TailCursor;
     const cursor = new CursorClass(filePath, (line) => {
       try {

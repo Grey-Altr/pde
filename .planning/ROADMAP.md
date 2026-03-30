@@ -471,8 +471,8 @@ Plans:
   4. Container is torn down after the task completes — no dangling containers after coordinator-docker test run
 **Plans**: 2 plans
 Plans:
-- [x] 191-01-PLAN.md — spawnDockerSession implementation in cloud-adapter with dockerode + unit tests
-- [ ] 191-02-PLAN.md — Coordinator dispatch branch, router rule, aggregator fix, tmux label, dashboard tests
+- [ ] 191-01-PLAN.md — spawnDockerSession implementation in cloud-adapter with dockerode + unit tests
+- [x] 191-02-PLAN.md — Coordinator dispatch branch, router rule, aggregator fix, tmux label, dashboard tests
 
 ### Phase 192: Git-Based State Sync
 **Goal**: Planning state (.planning/) is pushed to a remote git branch before cloud dispatch and merged back locally after completion, with correct merge direction so cloud-written STATE.md content survives the merge
