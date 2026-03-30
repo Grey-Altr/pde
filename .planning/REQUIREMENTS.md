@@ -33,9 +33,9 @@ Requirements for this milestone. Each maps to roadmap phases.
 ### Cluster B Personas (External / Retrospective)
 
 - [x] **CLR-01**: User can generate a case study / portfolio piece (problem, approach, outcome, lessons)
-- [ ] **CLR-02**: User can generate an agile project report (retro narrative + burndown/velocity metrics)
-- [ ] **CLR-03**: User can generate a design persona report (design decisions, system tokens, wireframe evolution, visual direction rationale)
-- [ ] **CLR-04**: User can generate a research persona report (findings summary, tech evaluations, competitive landscape, evidence-backed recommendations)
+- [x] **CLR-02**: User can generate an agile project report (retro narrative + burndown/velocity metrics)
+- [x] **CLR-03**: User can generate a design persona report (design decisions, system tokens, wireframe evolution, visual direction rationale)
+- [x] **CLR-04**: User can generate a research persona report (findings summary, tech evaluations, competitive landscape, evidence-backed recommendations)
 - [ ] **CLR-05**: User can generate a technical post-mortem (what broke, root cause, prevention)
 - [ ] **CLR-06**: User can generate an ADR summary (context, options considered, decision, consequences)
 - [ ] **CLR-07**: User can generate a launch announcement (what it is, who it's for, how to start)
@@ -171,9 +171,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CLU-05 | Phase 181 | Pending |
 | CLU-06 | Phase 181 | Complete |
 | CLU-07 | Phase 181 | Complete |
-| CLR-02 | Phase 182 | Pending |
-| CLR-03 | Phase 182 | Pending |
-| CLR-04 | Phase 182 | Pending |
+| CLR-02 | Phase 182 | Complete |
+| CLR-03 | Phase 182 | Complete |
+| CLR-04 | Phase 182 | Complete |
 | CLR-05 | Phase 182 | Pending |
 | CLR-06 | Phase 182 | Pending |
 | CLR-07 | Phase 182 | Pending |
