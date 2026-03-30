@@ -38,6 +38,7 @@ patterns-established:
   - "Tier-matched verification: claim tier determines tool strategy (T1=Glob/Bash, T2=Grep/Read, T3=Read+inference)"
 
 requirements-completed: [RVAL-01, RVAL-02, RVAL-04, RVAL-05]
+one-liner: "Read-only research validator agent with 7-step LLM claim extraction, three-tier classification (T1/T2/T3), and artifact_content return pattern for orchestrator-side RESEARCH-VALIDATION.md file writing"
 
 # Metrics
 duration: 2min

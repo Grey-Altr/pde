@@ -31,6 +31,7 @@ patterns-established:
   - "Known Exceptions subsection in MILESTONES.md: canonical location for documenting pre-convention commits"
 
 requirements-completed: [DEBT-01, DEBT-03]
+one-liner: "Plugin install path confirmed working via claude CLI v2.1.79, and commits e067974/efe3af0 documented as Co-Authored-By known exceptions in MILESTONES.md v0.6 section"
 
 # Metrics
 duration: 5min

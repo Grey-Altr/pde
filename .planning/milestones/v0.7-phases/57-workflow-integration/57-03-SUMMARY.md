@@ -46,6 +46,7 @@ patterns-established:
   - "Mode B verification: for each @-referenced code file, verify exported names appear in task action/files content"
 
 requirements-completed: [WIRE-02, WIRE-04, INTG-02]
+one-liner: "run_integration_checks step added to all three copies of check-readiness.md, consuming RESEARCH-VALIDATION, DEPENDENCY-GAPS, EDGE-CASES, and INTEGRATION-CHECK artifacts with Mode B codebase-time @-reference verification"
 
 # Metrics
 duration: 3min

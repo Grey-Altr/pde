@@ -32,6 +32,7 @@ metrics:
   completed: "2026-03-20"
   tasks_completed: 2
   files_modified: 2
+one-liner: "Step 5.7 Research Validation Gate wired into both copies of plan-phase.md, auto-spawning pde-research-validator when RESEARCH.md exists, blocking planning on contradicted claims and surfacing unverifiable claims as non-blocking warnings"
 ---
 
 # Phase 57 Plan 01: Research Validation Gate Wiring Summary
