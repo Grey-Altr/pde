@@ -78,7 +78,7 @@
 
 </details>
 
-### ✅ v0.22 Stakeholder Presentations — SHIPPED 2026-03-30
+### ✅ v0.22 Stakeholder Presentations (Shipped 2026-03-30)
 
 **Milestone Goal:** PDE can transform any project's `.planning/` artifacts into audience-specific communication documents — executive summaries, case studies, investor updates, post-mortems, and more — using a deterministic extraction-first pipeline that eliminates LLM hallucination about project state, with dual HTML+Markdown output, inline SVG charts, PDF export, claim verification, auto-generation on phase completion, and cross-project portfolio synthesis.
 
