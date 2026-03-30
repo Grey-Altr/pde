@@ -25,7 +25,7 @@ Requirements for v0.25 milestone. Each maps to roadmap phases.
 ### Deep Crawling & Ingestion
 
 - [ ] **CRL-01**: User can crawl entire sites via firecrawl_crawl with enforced --limit and --max-depth defaults preventing runaway credit burn
-- [ ] **CRL-02**: User can add URLs as source material via /pde:source add <url> which scrapes/crawls content into the source pipeline
+- [x] **CRL-02**: User can add URLs as source material via /pde:source add <url> which scrapes/crawls content into the source pipeline
 - [x] **CRL-03**: Scraped and crawled content is stored in .planning/research/firecrawl-cache/ via firecrawl-cache.cjs with slug-based access and gitignore
 
 ### Agent & Browser
@@ -83,7 +83,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FND-03 | Phase 198 | Complete |
 | FND-04 | Phase 198 | Complete |
 | CRL-03 | Phase 199 | Complete |
-| CRL-02 | Phase 199 | Pending |
+| CRL-02 | Phase 199 | Complete |
 | SCR-01 | Phase 200 | Pending |
 | SCR-02 | Phase 200 | Pending |
 | SCR-03 | Phase 200 | Pending |

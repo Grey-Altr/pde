@@ -133,7 +133,7 @@
 **Milestone Goal:** Firecrawl is PDE's eighth approved MCP server — the primary web intelligence layer for competitive analysis, source ingestion, research agents, and change monitoring. Users get JS-rendered scraping, structured extraction, full-site crawl, autonomous research agents, and competitor change tracking, all protected by credit guards and graceful degradation to WebSearch/WebFetch when the budget is exhausted.
 
 - [x] **Phase 198: Foundation — MCP Registration + Credit Guards** — firecrawl in APPROVED_SERVERS, 12 TOOL_MAP entries, probe/degrade contract, API key config, credit warning thresholds, graceful degradation, escalation ladder in mcp-integration.md (completed 2026-03-30)
-- [ ] **Phase 199: Data Layer — Cache Module + Source Pipeline** — firecrawl-cache.cjs (read/write/slug/diff/emit), .planning/research/firecrawl-cache/ directory structure, sources-manifest.json firecrawl source type, /pde:source add URL flow
+- [x] **Phase 199: Data Layer — Cache Module + Source Pipeline** — firecrawl-cache.cjs (read/write/slug/diff/emit), .planning/research/firecrawl-cache/ directory structure, sources-manifest.json firecrawl source type, /pde:source add URL flow (completed 2026-03-30)
 - [ ] **Phase 200: Core Scraping Tools + Competitive/Recommend Integration** — firecrawl_scrape/search/map/extract/search-with-scrape MCP tools available, firecrawl_crawl with enforced limit, competitive.md FIRECRAWL_AVAILABLE migration, recommend.md dual-probe, PIP-01 competitive extraction
 - [ ] **Phase 201: Brief + Phase Researcher + Design Reference Integration** — --source-url flag on brief.md (scrape→cache→BRF), pde-phase-researcher.md Web Evidence step, design reference URL scraping for wireframe/mockup/system context
 - [ ] **Phase 202: /pde:firecrawl Standalone Skill + Agent + Browser Sandbox** — workflows/firecrawl.md with scrape/search/map/crawl/watch/agent subcommands, firecrawl_agent with consent gate and maxCredits cap, firecrawl_agent_status, firecrawl_interact browser sessions, Playwright code execution in sandbox
@@ -617,7 +617,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 - [x] 199-01-PLAN.md -- firecrawl-cache.cjs TDD (cache module with slug, write/read, manifest, gitignore)
-- [ ] 199-02-PLAN.md -- /pde:source command + source ingestion workflow
+- [x] 199-02-PLAN.md -- /pde:source command + source ingestion workflow
 
 ### Phase 200: Core Scraping Tools + Competitive/Recommend Integration
 **Goal**: All five Firecrawl scraping/search MCP tools are available inline, firecrawl_crawl enforces its credit safety cap, and the two highest-value existing workflows (competitive analysis, recommend) use Firecrawl as their primary web intelligence layer
@@ -631,7 +631,7 @@ Plans:
   5. Running `/pde:competitive` uses firecrawl_search and firecrawl_extract to pull competitor pricing, features, and positioning — output quality visibly improves over the prior WebSearch-only result
 **Plans**: 2 plans
 Plans:
-- [ ] 199-01-PLAN.md -- firecrawl-cache.cjs TDD (cache module with slug, write/read, manifest, gitignore)
+- [x] 199-01-PLAN.md -- firecrawl-cache.cjs TDD (cache module with slug, write/read, manifest, gitignore)
 - [ ] 199-02-PLAN.md -- /pde:source command + source ingestion workflow
 
 ### Phase 201: Brief + Phase Researcher + Design Reference Integration
@@ -722,7 +722,7 @@ Plans:
 | 196. Containerized MCP Servers | v0.24 | 1/1 | Complete | 2026-03-30 |
 | 197. Cross-Host Session Resume | v0.24 | 1/2 | Complete | 2026-03-30 |
 | 198. Foundation — MCP Registration + Credit Guards | v0.25 | 3/3 | Complete | 2026-03-30 |
-| 199. Data Layer — Cache Module + Source Pipeline | v0.25 | 1/2 | In Progress|  |
+| 199. Data Layer — Cache Module + Source Pipeline | v0.25 | 2/2 | Complete   | 2026-03-30 |
 | 200. Core Scraping Tools + Competitive/Recommend Integration | v0.25 | 0/2 | Not started | - |
 | 201. Brief + Phase Researcher + Design Reference Integration | v0.25 | 0/2 | Not started | - |
 | 202. /pde:firecrawl Standalone Skill + Agent + Browser Sandbox | v0.25 | 0/2 | Not started | - |
