@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { StatusBadge } from '@/components/status-badge';
 import { sessionColor } from '@/lib/session-colors';
 import { cn } from '@/lib/utils';
+import { formatCost } from '@/lib/derive-cost';
 import type { SessionListItem } from '@/lib/queries';
 
 interface SessionHealthMatrixProps {
@@ -20,12 +21,12 @@ function formatElapsed(startedAt: number, status: SessionListItem['status']): st
   return minutes < 1 ? 'Running <1m' : `Running ${minutes}m`;
 }
 
-const sourceLabels: Record<SessionListItem['source'], string> = {
-  'local': 'Local',
-  'remote-ssh': 'SSH',
-  'remote-managed': 'Managed',
-  'remote-cloud': 'Cloud',
-  'docker': 'Docker',
+const sourceBadges: Record<SessionListItem['source'], { label: string; className: string }> = {
+  'local':          { label: 'Local', className: 'text-muted-foreground' },
+  'remote-ssh':     { label: 'SSH',   className: 'text-blue-500' },
+  'remote-managed': { label: 'Mgd',   className: 'text-purple-500' },
+  'remote-cloud':   { label: '[C]',   className: 'text-orange-500 font-mono font-bold' },
+  'docker':         { label: '[D]',   className: 'text-cyan-500 font-mono font-bold' },
 };
 
 export function SessionHealthMatrix({ sessions }: SessionHealthMatrixProps) {
@@ -48,6 +49,8 @@ export function SessionHealthMatrix({ sessions }: SessionHealthMatrixProps) {
               <th className="py-2 pl-4 pr-2 text-left font-medium">Status</th>
               <th className="py-2 px-2 text-left font-medium">Phase</th>
               <th className="py-2 px-2 text-left font-medium">Source</th>
+              <th className="py-2 px-2 text-left font-medium">Sync</th>
+              <th className="py-2 px-2 text-right font-medium">Cost</th>
               <th className="py-2 pl-2 pr-4 text-right font-medium">Runtime</th>
             </tr>
           </thead>
@@ -78,9 +81,35 @@ export function SessionHealthMatrix({ sessions }: SessionHealthMatrixProps) {
                     )}
                   </Link>
                 </td>
-                <td className="py-2 px-2 text-muted-foreground">
+                <td className="py-2 px-2">
                   <Link href={`/sessions/${session.id}`} className="block">
-                    {sourceLabels[session.source]}
+                    <span className={sourceBadges[session.source].className}>
+                      {sourceBadges[session.source].label}
+                    </span>
+                  </Link>
+                </td>
+                <td className="py-2 px-2">
+                  <Link href={`/sessions/${session.id}`} className="block">
+                    {session.syncStatus ? (
+                      <span className={
+                        session.syncStatus === 'conflict' ? 'text-red-500 font-semibold' :
+                        session.syncStatus === 'pending' ? 'text-yellow-500' :
+                        'text-green-500'
+                      }>
+                        {session.syncStatus}
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
+                  </Link>
+                </td>
+                <td className="py-2 px-2 text-right">
+                  <Link href={`/sessions/${session.id}`} className="block">
+                    {session.infraCostUsdCents > 0 ? (
+                      <span className="font-mono text-xs">{formatCost(session.infraCostUsdCents / 100)}</span>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
                   </Link>
                 </td>
                 <td className="py-2 pl-2 pr-4 text-right font-mono text-muted-foreground">
