@@ -13,8 +13,8 @@ Requirements for Quality & Reliability Hardening. Each maps to roadmap phases.
 - [x] **INT-02**: MILESTONES.md has accurate one-liner descriptions (not placeholder text) for every plan entry across v0.19–v0.22 milestones
 - [x] **INT-03**: REQUIREMENTS.md checkboxes for EXT-01 through EXT-10 are checked with phase references matching their VERIFICATION.md evidence
 - [x] **INT-04**: Phase 180 VERIFICATION.md frontmatter shows `status: complete` (not `gaps_found`) reflecting the resolved admin checkbox issue
-- [ ] **INT-05**: `buildCrossPatterns` in render-presentation.cjs reads the correct IR field names (`topics`/`project_research_files` instead of `research.findings`) and produces non-empty cross-patterns sections for real PDE projects
-- [ ] **INT-06**: Test mocks for Phase 184 portfolio tests use the real IR shape (matching `buildPresentationIR` output) rather than diverged mock structures
+- [x] **INT-05**: `buildCrossPatterns` in render-presentation.cjs reads the correct IR field names (`topics`/`project_research_files` instead of `research.findings`) and produces non-empty cross-patterns sections for real PDE projects
+- [x] **INT-06**: Test mocks for Phase 184 portfolio tests use the real IR shape (matching `buildPresentationIR` output) rather than diverged mock structures
 
 ### Verification Coverage
 
@@ -69,8 +69,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | INT-02 | Phase 185 | Complete |
 | INT-03 | Phase 185 | Complete |
 | INT-04 | Phase 185 | Complete |
-| INT-05 | Phase 187 | Pending |
-| INT-06 | Phase 187 | Pending |
+| INT-05 | Phase 187 | Complete |
+| INT-06 | Phase 187 | Complete |
 | VER-01 | Phase 188 | Pending |
 | VER-02 | Phase 188 | Pending |
 | VER-03 | Phase 188 | Pending |
