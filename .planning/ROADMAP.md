@@ -338,9 +338,10 @@ Plans:
   3. Missing or incompatible fields in any project surface a "data unavailable" marker in the output rather than silently zeroing or crashing
   4. A project directory that cannot be read (wrong path, missing .planning/) is skipped with an explicit error message, and the remaining projects are still synthesized
   5. The portfolio command validates all supplied paths as absolute paths with readable .planning/ directories before starting any extraction
-**Plans:** 1 plan
+**Plans:** 2 plans
 Plans:
-- [ ] 177-01-PLAN.md — Command file, workflow with persona registry and dispatch, skill-registry update
+- [ ] 184-01-PLAN.md — Multi-project IR extraction (portfolio.cjs), schema version detection, milestone history, TDD tests
+- [ ] 184-02-PLAN.md — Cross-project render function, pde-tools subcommand, /pde:portfolio command + workflow
 
 ## Progress
 
@@ -374,4 +375,4 @@ Plans:
 | 181. Remaining Cluster A Personas | v0.22 | 1/3 | Complete    | 2026-03-30 |
 | 182. Remaining Cluster B Personas | v0.22 | 3/3 | Complete    | 2026-03-30 |
 | 183. Auto-Generation | v0.22 | 1/1 | Complete    | 2026-03-30 |
-| 184. Cross-Project Portfolio Synthesis | v0.22 | 0/TBD | Not started | - |
+| 184. Cross-Project Portfolio Synthesis | v0.22 | 0/2 | Not started | - |
