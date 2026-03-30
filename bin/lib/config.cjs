@@ -38,6 +38,10 @@ const VALID_CONFIG_KEYS = new Set([
   'dispatch.remote.preferred_backend', // Phase 149: preferred backend type for remote dispatch
   'dispatch.remote.env', // Phase 149: environment variables to pass to remote sessions
   'dispatch.routing.fallback_to_local', // Phase 149: fall back to local execution if remote dispatch fails
+  'dispatch.routing.cost_ceiling',          // Phase 194: global $/session ceiling (null = no ceiling)
+  'dispatch.routing.cost_per_minute.cloud', // Phase 194: $/min for cloud backend (default: 0.50)
+  'dispatch.routing.cost_per_minute.docker',// Phase 194: $/min for docker backend (default: 0.10)
+  'dispatch.routing.fast_path_local',       // Phase 194: fast-path always routes to local (default: true)
   'dispatch.cloud.enabled',       // Phase 190: enable cloud dispatch backend
   'dispatch.cloud.provider',      // Phase 190: cloud provider identifier (e.g. 'anthropic')
   'dispatch.cloud.idle_timeout',  // Phase 190: idle timeout seconds before container teardown
@@ -212,7 +216,7 @@ function cmdConfigSet(cwd, keyPath, value, raw) {
 
   validateKnownConfigKeyPath(keyPath);
 
-  if (!VALID_CONFIG_KEYS.has(keyPath)) {
+  if (!VALID_CONFIG_KEYS.has(keyPath) && !keyPath.startsWith('dispatch.routing.override.')) {
     error(`Unknown config key: "${keyPath}". Valid keys: ${[...VALID_CONFIG_KEYS].sort().join(', ')}`);
   }
 

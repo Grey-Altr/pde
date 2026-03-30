@@ -34,7 +34,7 @@ Requirements for Cloud Dispatch & State Sync. Each maps to roadmap phases.
 - [x] **RTG-02**: Auto-classify tasks as interactive/autonomous from PLAN.md metadata (agent_type, estimated_minutes)
 - [x] **RTG-03**: User can override auto-classification for any plan or phase
 - [x] **RTG-04**: Cost-aware routing respects user-configured cost ceiling per dispatch target
-- [ ] **RTG-05**: Routing decision is logged as a structured event for observability
+- [x] **RTG-05**: Routing decision is logged as a structured event for observability
 - [x] **RTG-06**: Fast-path commands (/pde:quick, /pde:fast) always route to local regardless of config
 
 ### Dashboard Integration
@@ -109,7 +109,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | RTG-02 | Phase 194 | Complete |
 | RTG-03 | Phase 194 | Complete |
 | RTG-04 | Phase 194 | Complete |
-| RTG-05 | Phase 194 | Pending |
+| RTG-05 | Phase 194 | Complete |
 | RTG-06 | Phase 194 | Complete |
 | DSH-01 | Phase 195 | Pending |
 | DSH-02 | Phase 195 | Pending |

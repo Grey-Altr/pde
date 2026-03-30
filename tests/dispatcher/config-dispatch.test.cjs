@@ -86,6 +86,32 @@ describe('VALID_CONFIG_KEYS dispatch keys', () => {
   it('Test 11: VALID_CONFIG_KEYS contains dispatch.routing.fallback_to_local', () => {
     expect(configSource).toContain("'dispatch.routing.fallback_to_local'");
   });
+
+  // Phase 194: Intelligent Routing config keys
+  it('Test 11b: VALID_CONFIG_KEYS contains dispatch.routing.cost_ceiling', () => {
+    expect(configSource).toContain("'dispatch.routing.cost_ceiling'");
+  });
+
+  it('Test 11c: VALID_CONFIG_KEYS contains dispatch.routing.cost_per_minute.cloud', () => {
+    expect(configSource).toContain("'dispatch.routing.cost_per_minute.cloud'");
+  });
+
+  it('Test 11d: VALID_CONFIG_KEYS contains dispatch.routing.cost_per_minute.docker', () => {
+    expect(configSource).toContain("'dispatch.routing.cost_per_minute.docker'");
+  });
+
+  it('Test 11e: VALID_CONFIG_KEYS contains dispatch.routing.fast_path_local', () => {
+    expect(configSource).toContain("'dispatch.routing.fast_path_local'");
+  });
+
+  it('Test 11f: cmdConfigSet accepts dispatch.routing.override.{phase} via prefix match', () => {
+    // The prefix match allows dynamic per-phase override keys
+    expect(configSource).toContain("dispatch.routing.override.");
+    // Verify the prefix match appears in the validation logic, not just a comment
+    const cmdConfigSetIdx = configSource.indexOf('function cmdConfigSet');
+    const prefixMatchSection = configSource.slice(cmdConfigSetIdx, cmdConfigSetIdx + 500);
+    expect(prefixMatchSection).toContain("dispatch.routing.override.");
+  });
 });
 
 // ─── setConfigValue dispatch nested write ─────────────────────────────────────

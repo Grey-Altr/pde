@@ -1446,9 +1446,18 @@ async function main() {
       const maxConcurrentIdx = args.indexOf('--max-concurrent');
       const configMax = (config.dispatch && config.dispatch.max_local_sessions) || 3;
       const maxConcurrent = maxConcurrentIdx !== -1 ? parseInt(args[maxConcurrentIdx + 1], 10) : configMax;
+      // Phase 194: --dispatch=<backend> overrides auto-classification (RTG-01, RTG-03)
+      const dispatchIdx = args.indexOf('--dispatch');
+      const dispatchOverride = dispatchIdx !== -1 ? args[dispatchIdx + 1] : null;
+      const VALID_DISPATCH_TARGETS = new Set(['cloud', 'local', 'ssh', 'docker']);
+      if (dispatchOverride && !VALID_DISPATCH_TARGETS.has(dispatchOverride)) {
+        error(`Invalid --dispatch target: ${dispatchOverride}. Valid: cloud, local, ssh, docker`);
+      }
+      // Phase 194: --fast-path routes to local regardless of config (RTG-06)
+      const isFastPath = args.includes('--fast-path');
       const pluginDir = DispatchCoordinator.resolvePluginDir();
       const coord = new DispatchCoordinator(cwd, { maxConcurrent, pluginDir, config });
-      coord.dispatch(dispatchPhase, dispatchPlan).then(sid => {
+      coord.dispatch(dispatchPhase, dispatchPlan, { dispatchOverride, isFastPath }).then(sid => {
         console.log(JSON.stringify({ ok: true, sessionId: sid }));
       }).catch(err => {
         console.error(JSON.stringify({ ok: false, error: err.message }));

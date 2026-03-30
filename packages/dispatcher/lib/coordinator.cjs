@@ -64,12 +64,54 @@ const { spawnCloudSession } = require('./remote-cloud.cjs');
 // Phase 192: Git-based state sync
 const { pushPlanningState, fetchPlanningState, mergePlanningFromCloud } = require('./sync.cjs');
 
+// Phase 194: Intelligent routing classifier
+const { classifyTaskRouting } = require('./classify.cjs');
+
 // Phase 148: tmux pane integration fan-out writer
 const { TmuxFanout } = require('./tmux-fanout.cjs');
 
 /**
- * Read autonomous: true/false from PLAN.md YAML frontmatter.
- * Pure static regex parse -- same pattern as orchestrator.cjs checkFileOverlap.
+ * Read full PLAN.md frontmatter metadata including autonomous, estimated_minutes, agent_type, wave.
+ * Pure static regex parse — extends the old readPlanAutonomous() pattern.
+ *
+ * Phase 194: Replaces readPlanAutonomous() as the primary metadata reader.
+ *
+ * @param {string} projectRoot
+ * @param {number} phase
+ * @param {number|string} plan
+ * @returns {{ autonomous: boolean, estimated_minutes: number, agent_type: string|null, wave: number|null }}
+ */
+function readPlanMetadata(projectRoot, phase, plan) {
+  const phasesDir = path.join(projectRoot, '.planning', 'phases');
+  const padded = String(phase).padStart(3, '0');
+  const planPadded = String(plan).padStart(2, '0');
+  const defaults = { autonomous: false, estimated_minutes: 30, agent_type: null, wave: null };
+  try {
+    const phaseDirs = fs.readdirSync(phasesDir).filter(d => d.startsWith(padded + '-'));
+    if (phaseDirs.length === 0) return defaults;
+    const planFile = path.join(phasesDir, phaseDirs[0], padded + '-' + planPadded + '-PLAN.md');
+    const content = fs.readFileSync(planFile, 'utf8');
+    const fmMatch = content.match(/^---\n([\s\S]*?)\n---/);
+    if (!fmMatch) return defaults;
+    const fm = fmMatch[1];
+    const autonomous = /^autonomous:\s*true/m.test(fm);
+    const minutesMatch = fm.match(/^estimated_minutes:\s*(\d+)/m);
+    const agentTypeMatch = fm.match(/^agent_type:\s*(\S+)/m);
+    const waveMatch = fm.match(/^wave:\s*(\d+)/m);
+    return {
+      autonomous,
+      estimated_minutes: minutesMatch ? parseInt(minutesMatch[1], 10) : 30,
+      agent_type: agentTypeMatch ? agentTypeMatch[1] : (autonomous ? 'autonomous' : null),
+      wave: waveMatch ? parseInt(waveMatch[1], 10) : null,
+    };
+  } catch (_) {
+    return defaults;
+  }
+}
+
+/**
+ * Backward-compatible wrapper — returns just the autonomous boolean.
+ * Kept for existing tests and callers that only need the boolean.
  *
  * @param {string} projectRoot
  * @param {number} phase
@@ -77,20 +119,7 @@ const { TmuxFanout } = require('./tmux-fanout.cjs');
  * @returns {boolean}
  */
 function readPlanAutonomous(projectRoot, phase, plan) {
-  const phasesDir = path.join(projectRoot, '.planning', 'phases');
-  const padded = String(phase).padStart(3, '0');
-  const planPadded = String(plan).padStart(2, '0');
-  try {
-    const phaseDirs = fs.readdirSync(phasesDir).filter(d => d.startsWith(padded + '-'));
-    if (phaseDirs.length === 0) return false;
-    const planFile = path.join(phasesDir, phaseDirs[0], padded + '-' + planPadded + '-PLAN.md');
-    const content = fs.readFileSync(planFile, 'utf8');
-    const fmMatch = content.match(/^---\n([\s\S]*?)\n---/);
-    if (!fmMatch) return false;
-    return /^autonomous:\s*true/m.test(fmMatch[1]);
-  } catch (_) {
-    return false;
-  }
+  return readPlanMetadata(projectRoot, phase, plan).autonomous;
 }
 
 class DispatchCoordinator {
@@ -105,7 +134,8 @@ class DispatchCoordinator {
    *   Shape: { spawnSession, createWorktree, removeWorktree, deleteBranch,
    *            mergeSession, recalculateFromArtifacts, acquireLock, releaseLock,
    *            analyzeDag, checkFileOverlap, summarizeFailure, triageConflicts,
-   *            spawnRemoteSession, routeSession, readPlanAutonomous,
+   *            spawnRemoteSession, routeSession, readPlanAutonomous, readPlanMetadata,
+   *            classifyTaskRouting,
    *            pushPlanningState, fetchPlanningState, mergePlanningFromCloud }
    *   When omitted, production module-level requires are used.
    */
@@ -154,6 +184,10 @@ class DispatchCoordinator {
     this._routeSession = deps.routeSession || routeSession;
     this._remoteConfig = (options.config && options.config.dispatch && options.config.dispatch.remote) || null;
     this._readPlanAutonomous = deps.readPlanAutonomous || readPlanAutonomous;
+
+    // Phase 194: Intelligent routing classifier — injectable for testability
+    this._readPlanMetadata = deps.readPlanMetadata || readPlanMetadata;
+    this._classifyTaskRouting = deps.classifyTaskRouting || classifyTaskRouting;
 
     // Phase 192: State sync — injectable for testability
     this._pushPlanningState = deps.pushPlanningState || pushPlanningState;
@@ -219,9 +253,11 @@ class DispatchCoordinator {
     const planNum = typeof plan === 'string' ? parseInt(plan, 10) : plan;
 
     // Phase 146: Determine backend BEFORE lock (routing is async, lock window must stay narrow)
+    // Phase 194: Use readPlanMetadata() to get full frontmatter (extends readPlanAutonomous)
+    const planMeta = this._readPlanMetadata(this._root, phaseNum, planNum);
     const isAutonomous = (opts && opts.isAutonomous !== undefined)
       ? opts.isAutonomous
-      : this._readPlanAutonomous(this._root, phaseNum, planNum);
+      : planMeta.autonomous;
     let backend = await this._routeSession({
       isAutonomous,
       remoteConfig: this._remoteConfig,
@@ -242,6 +278,38 @@ class DispatchCoordinator {
         to: backend,
       });
     }
+
+    // Phase 194: Intelligent routing classification
+    // Runs after routeSession() (which provides initialBackend) and before acquireLock()
+    // (so no resources are allocated for a backend that might be downgraded).
+    const routingConfig = this._routingConfig || {};
+    const classifyResult = this._classifyTaskRouting({
+      initialBackend: backend,
+      planMetadata: planMeta,
+      dispatchOverride: (opts && opts.dispatchOverride) || null,
+      configOverrides: routingConfig,
+      costConfig: {
+        ceiling: routingConfig.cost_ceiling !== undefined ? routingConfig.cost_ceiling : null,
+        costPerMinute: routingConfig.cost_per_minute || { cloud: 0.50, docker: 0.10, ssh: 0.05, local: 0.00 },
+      },
+      isFastPath: (opts && opts.isFastPath) || false,
+      fastPathLocal: routingConfig.fast_path_local !== false,
+      phase: phaseNum,
+    });
+    backend = classifyResult.backend;
+    for (const evt of classifyResult.events) {
+      this._aggregator.emit('event', 'system', evt);
+    }
+    // RTG-05: Always emit routing_decision event for every dispatch call
+    this._aggregator.emit('event', 'system', {
+      type: 'system',
+      subtype: 'routing_decision',
+      phase: phaseNum,
+      plan: planNum,
+      backend: classifyResult.backend,
+      reason: classifyResult.reason,
+      estimatedCost: classifyResult.estimatedCost,
+    });
 
     // 1. Acquire dispatcher lock
     const lockResult = this._acquireLock(this._root);
@@ -684,4 +752,4 @@ class DispatchCoordinator {
   }
 }
 
-module.exports = { DispatchCoordinator, readPlanAutonomous };
+module.exports = { DispatchCoordinator, readPlanAutonomous, readPlanMetadata };
