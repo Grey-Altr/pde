@@ -43,6 +43,11 @@ function acquireLock(projectRoot) {
       return acquireLock(projectRoot);
     }
 
+    // INF-01: Cloud/docker sessions have no local PID — never reclaim as stale
+    if (holder.sessionType === 'cloud' || holder.sessionType === 'docker') {
+      return { acquired: false };
+    }
+
     const isAlive = isPidAlive(holder.pid);
     if (isAlive) {
       return { acquired: false };
