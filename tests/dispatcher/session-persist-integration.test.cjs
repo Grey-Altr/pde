@@ -232,8 +232,14 @@ describe('DispatchCoordinator — session-persist integration', () => {
 
     onLine(sessionId, { type: 'system', subtype: 'init', session_id: 'some-uuid' });
 
-    // Should NOT throw
-    await expect(onExit(sessionId, 0)).resolves.not.toThrow();
+    // Should NOT throw — non-fatal error is caught in _handleExit
+    let threw = false;
+    try {
+      await onExit(sessionId, 0);
+    } catch (_) {
+      threw = true;
+    }
+    expect(threw).toBe(false);
 
     // Session should still be cleaned up (merge + removeWorktree called)
     expect(deps.mergeSession).toHaveBeenCalled();

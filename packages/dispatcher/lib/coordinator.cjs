@@ -67,6 +67,9 @@ const { pushPlanningState, fetchPlanningState, mergePlanningFromCloud } = requir
 // Phase 194: Intelligent routing classifier
 const { classifyTaskRouting } = require('./classify.cjs');
 
+// Phase 197: Session JSONL persistence and restore for cross-host resume
+const { persistSession: _persistSessionDefault, restoreSession: _restoreSessionDefault } = require('./session-persist.cjs');
+
 // Phase 148: tmux pane integration fan-out writer
 const { TmuxFanout } = require('./tmux-fanout.cjs');
 
@@ -136,7 +139,8 @@ class DispatchCoordinator {
    *            analyzeDag, checkFileOverlap, summarizeFailure, triageConflicts,
    *            spawnRemoteSession, routeSession, readPlanAutonomous, readPlanMetadata,
    *            classifyTaskRouting,
-   *            pushPlanningState, fetchPlanningState, mergePlanningFromCloud }
+   *            pushPlanningState, fetchPlanningState, mergePlanningFromCloud,
+   *            persistSession, restoreSession }
    *   When omitted, production module-level requires are used.
    */
   constructor(projectRoot, opts) {
@@ -151,6 +155,9 @@ class DispatchCoordinator {
     // Phase 152: Relay process tracking — one relay.cjs per local session (RLY-01)
     this._relays = new Map();   // sessionId → { pid, kill }
     this._relayIds = new Map(); // sessionId → relayId (UUID) — for aggregator unwatch
+
+    // Phase 197 (SYN-05, SYN-06): claudeSessionId mapping — captured from system:init NDJSON event
+    this._claudeSessionIds = new Map(); // PDE sessionId → Claude session UUID
 
     // Dependency injection — allows test doubles without vi.mock() hoisting.
     // Production code never passes _deps; tests inject stubs here.
@@ -204,6 +211,11 @@ class DispatchCoordinator {
     // Phase 193: Cloud web backend dispatch
     this._spawnCloudSession = deps.spawnCloudSession || spawnCloudSession;
     this._cloudConfig = (options.config && options.config.dispatch && options.config.dispatch.cloud) || null;
+
+    // Phase 197 (SYN-05, SYN-06): Session-persist injectable deps and config
+    this._persistSession = deps.persistSession || _persistSessionDefault;
+    this._restoreSession = deps.restoreSession || _restoreSessionDefault;
+    this._sessionPersistConfig = (options.config && options.config.dispatch && options.config.dispatch.session_persist) || null;
   }
 
   /**
@@ -382,6 +394,19 @@ class DispatchCoordinator {
         this._relays.set(sessionId, relayHandle || { pid: null, kill: () => {} });
       }
 
+      // Phase 197 (SYN-06): Restore session JSONL from shared storage before spawn when resuming.
+      // opts.resume contains the claudeSessionId to restore (or undefined if not resuming).
+      if (opts && opts.resume && this._sessionPersistConfig && this._sessionPersistConfig.enabled) {
+        const storagePath = this._sessionPersistConfig.storage_path;
+        if (storagePath) {
+          try {
+            await this._restoreSession(opts.resume, storagePath, worktreePath);
+          } catch (_restoreErr) {
+            // Non-fatal — resume will fail gracefully if JSONL not found
+          }
+        }
+      }
+
       // 8. Queue the session — runs when a concurrency slot opens
       if (backend === 'ssh') {
         this._queue.add(() => this._runRemoteSession(sessionId, phaseNum, plan, worktreePath, branch, relayId));
@@ -461,6 +486,11 @@ class DispatchCoordinator {
         plan,
         pluginDir: this._pluginDir,
         onLine: (sid, event) => {
+          // Phase 197 (SYN-05): Capture claudeSessionId from system:init NDJSON event
+          if (event && event.type === 'system' && event.subtype === 'init' && event.session_id) {
+            this._claudeSessionIds.set(sid, event.session_id);
+            this._registry.update(sid, { claudeSessionId: event.session_id });
+          }
           // Forward events to aggregator for dashboard/tmux consumers
           this._aggregator.emit('event', sid, event);
         },
@@ -499,6 +529,11 @@ class DispatchCoordinator {
         projectRoot: this._root,
         remoteConfig: this._remoteConfig,
         onLine: (sid, event) => {
+          // Phase 197 (SYN-05): Capture claudeSessionId from system:init NDJSON event
+          if (event && event.type === 'system' && event.subtype === 'init' && event.session_id) {
+            this._claudeSessionIds.set(sid, event.session_id);
+            this._registry.update(sid, { claudeSessionId: event.session_id });
+          }
           this._aggregator.emit('event', sid, event);
         },
         onExit: (sid, exitCode) => {
@@ -538,6 +573,11 @@ class DispatchCoordinator {
         pluginDir: this._pluginDir,
         dockerConfig: this._dockerConfig || {},
         onLine: (sid, event) => {
+          // Phase 197 (SYN-05): Capture claudeSessionId from system:init NDJSON event
+          if (event && event.type === 'system' && event.subtype === 'init' && event.session_id) {
+            this._claudeSessionIds.set(sid, event.session_id);
+            this._registry.update(sid, { claudeSessionId: event.session_id });
+          }
           this._aggregator.emit('event', sid, event);
         },
         onExit: (sid, exitCode) => {
@@ -575,6 +615,11 @@ class DispatchCoordinator {
         worktreePath,
         cloudConfig: this._cloudConfig || {},
         onLine: (sid, event) => {
+          // Phase 197 (SYN-05): Capture claudeSessionId from system:init NDJSON event
+          if (event && event.type === 'system' && event.subtype === 'init' && event.session_id) {
+            this._claudeSessionIds.set(sid, event.session_id);
+            this._registry.update(sid, { claudeSessionId: event.session_id });
+          }
           this._aggregator.emit('event', sid, event);
         },
         onExit: (sid, exitCode) => {
@@ -629,15 +674,33 @@ class DispatchCoordinator {
         }
       }
 
-      // Success path: merge → recalculate → cleanup
+      // Success path: merge → recalculate → persist → cleanup
       const result = this._mergeSession(this._root, sessionId);
       if (result.ok) {
         this._recalculateFromArtifacts(this._root);
+
+        // Phase 197 (SYN-05): Persist session JSONL to shared storage for cross-host resume.
+        // MUST happen BEFORE removeWorktree (worktree cwd is needed to locate JSONL source path).
+        const claudeSessionId = this._claudeSessionIds.get(sessionId);
+        if (claudeSessionId && this._sessionPersistConfig && this._sessionPersistConfig.enabled) {
+          try {
+            const storagePath = this._sessionPersistConfig.storage_path;
+            const maxSizeMb = this._sessionPersistConfig.max_size_mb || 10;
+            if (storagePath) {
+              await this._persistSession(worktreePath, claudeSessionId, storagePath, { maxSizeMb });
+            }
+          } catch (_persistErr) {
+            // Non-fatal — session work already merged. Log but don't abort exit handler.
+          }
+        }
+        this._claudeSessionIds.delete(sessionId);
+
         this._removeWorktree(this._root, sessionId);
         this._deleteBranch(this._root, branch);
         this._registry.remove(sessionId);
       } else {
         // merge returned needsHuman — preserve worktree for manual resolution
+        this._claudeSessionIds.delete(sessionId);
         this._registry.update(sessionId, {
           status: 'merge_failed',
           conflicts: result.conflicts || [],
@@ -653,6 +716,8 @@ class DispatchCoordinator {
       }
     } else {
       // Failure path: write FAILED.json, preserve worktree (DSP-09)
+      this._claudeSessionIds.delete(sessionId);
+
       const planningDir = path.join(worktreePath, '.planning', 'phases');
       try {
         fs.mkdirSync(planningDir, { recursive: true });
