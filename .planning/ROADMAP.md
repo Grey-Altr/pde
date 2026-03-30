@@ -527,7 +527,10 @@ Plans:
   3. User can start, stop, and inspect a cloud session from the dashboard UI — stop terminates the cloud VM, inspect shows sessionUrl
   4. Sync state panel shows pending merges, last sync time, and conflict indicators — visible after a cloud session completes and before local merge
   5. Token Playground shows container uptime times provider rate alongside token cost for cloud and Docker sessions
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 195-01-PLAN.md — Data layer extension, cloud session actions, test scaffold (DSH-03, DSH-06)
+- [ ] 195-02-PLAN.md — Health matrix UI, SyncStatePanel, PaneGrid 8-pane, Token Playground infra cost (DSH-01, DSH-02, DSH-04, DSH-05)
 **UI hint**: yes
 
 ### Phase 196: Containerized MCP Servers
