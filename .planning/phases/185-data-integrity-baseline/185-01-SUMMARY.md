@@ -106,6 +106,17 @@ None - no external service configuration required.
 - All v0.22 state documents now accurately reflect shipped status
 - Ready for Phase 185 Plan 02 (additional integrity checks as defined in the phase)
 
+## Self-Check: PASSED
+
+- FOUND: `.planning/milestones/v0.22-phases/180-claim-verification-+-pdf-export/180-VERIFICATION.md`
+- FOUND: `.planning/ROADMAP.md`
+- FOUND: `.planning/milestones/v0.22-REQUIREMENTS.md`
+- FOUND: `.planning/phases/185-data-integrity-baseline/185-01-SUMMARY.md`
+- FOUND: commit d2c6fd6 (Task 1)
+- FOUND: commit c7d3d93 (Task 2)
+- FOUND: commit 4f7e1d0 (Task 3)
+- FOUND: commit 2633326 (metadata)
+
 ---
 *Phase: 185-data-integrity-baseline*
 *Completed: 2026-03-30*
