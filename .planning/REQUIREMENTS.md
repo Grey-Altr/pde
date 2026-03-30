@@ -19,7 +19,7 @@ Requirements for Quality & Reliability Hardening. Each maps to roadmap phases.
 ### Verification Coverage
 
 - [x] **VER-01**: All 9 v0.22 phases (176–184) have VALIDATION.md files with `nyquist_compliant: true` frontmatter, derived from their existing VERIFICATION.md observable truths
-- [ ] **VER-02**: All 5 v0.7 SUMMARY.md files include the `one-liner` frontmatter field with accurate descriptions
+- [x] **VER-02**: All 5 v0.7 SUMMARY.md files include the `one-liner` frontmatter field with accurate descriptions
 - [ ] **VER-03**: A `pde-tools health consistency` subcommand reports mismatches between requirements files, roadmap entries, and milestone entries for any given milestone version
 
 ### Test Infrastructure
@@ -72,7 +72,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | INT-05 | Phase 187 | Complete |
 | INT-06 | Phase 187 | Complete |
 | VER-01 | Phase 188 | Complete |
-| VER-02 | Phase 188 | Pending |
+| VER-02 | Phase 188 | Complete |
 | VER-03 | Phase 188 | Pending |
 | TST-01 | Phase 186 | Pending |
 | TST-02 | Phase 186 | Pending |
