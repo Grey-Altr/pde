@@ -362,7 +362,7 @@ Plans:
 | 175. Design Pipeline Integration | v0.21 | 2/2 | Complete | 2026-03-29 |
 | 176. Data Extraction IR Foundation | v0.22 | 1/3 | Complete    | 2026-03-30 |
 | 177. Command Interface + Workflow Shell | v0.22 | 1/1 | Complete    | 2026-03-30 |
-| 178. Reference Personas + Rendering Engine | v0.22 | 2/2 | Complete   | 2026-03-30 |
+| 178. Reference Personas + Rendering Engine | v0.22 | 2/2 | Complete    | 2026-03-30 |
 | 179. SVG Charts | v0.22 | 0/TBD | Not started | - |
 | 180. Claim Verification + PDF Export | v0.22 | 0/TBD | Not started | - |
 | 181. Remaining Cluster A Personas | v0.22 | 0/TBD | Not started | - |
