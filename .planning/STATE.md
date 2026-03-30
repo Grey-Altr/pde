@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v0.24
 milestone_name: Cloud Dispatch & State Sync
 status: verifying
-stopped_at: Completed 196-01-PLAN.md
-last_updated: "2026-03-30T18:30:22.461Z"
+stopped_at: Completed 197-01-PLAN.md
+last_updated: "2026-03-30T18:35:11.550Z"
 last_activity: 2026-03-30
 progress:
   total_phases: 29
   completed_phases: 7
   total_plans: 15
-  completed_plans: 13
+  completed_plans: 14
   percent: 0
 ---
 
@@ -67,6 +67,8 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 195]: formatCost takes USD float not cents — divide infraCostUsdCents by 100 at all call sites
 - [Phase 195]: PaneGrid row 3 backwards-compat: col-span-3 on pane 6 when children[7] absent
 - [Phase 196-containerized-mcp-servers]: container block absent from pencil (VS Code managed) and all HTTP/SSE servers; dockerode require() in try/catch; callers pass dockerAvailable boolean explicitly
+- [Phase 197]: SHA256-base64url used for >200-char cwd hash suffix in session-persist.cjs (SDK vJ uses base-36 but source unavailable; divergence only affects paths >200 chars sanitized)
+- [Phase 197]: restoreSession accepts optional storageSubDir — defaults to sanitizeCwdForProjectDir(resumingCwd); callers can override for cross-host restore where source cwd differs
 
 ### Pending Todos
 
@@ -79,7 +81,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-30T18:27:16.065Z
-Stopped at: Completed 196-01-PLAN.md
+Last session: 2026-03-30T18:35:11.547Z
+Stopped at: Completed 197-01-PLAN.md
 Resume with: /gsd:plan-phase 190
 Resume file: None
