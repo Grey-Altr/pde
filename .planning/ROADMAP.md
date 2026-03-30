@@ -484,7 +484,10 @@ Plans:
   3. Cloud-written STATE.md content survives the merge (direction-aware: --theirs for STATE.md, --ours for ROADMAP.md and REQUIREMENTS.md) — explicit test confirms remote state is not overwritten
   4. Concurrent cloud sessions push to separate branches and sequential merge ordering is enforced — two simultaneous sync operations do not corrupt main
   5. simple-git is installed in packages/ directory, not at plugin root — verified by checking root package.json
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 192-01-PLAN.md — Install simple-git, create sync.cjs (push/fetch/merge), real-git integration tests
+- [ ] 192-02-PLAN.md — Wire sync.cjs into coordinator dispatch/exit lifecycle, concurrency tests
 
 ### Phase 193: Cloud Web Backend
 **Goal**: Users can dispatch an autonomous phase to an Anthropic-managed cloud VM via claude --remote, receive synthetic NDJSON progress events via CloudPoller, and have the container auto-teardown with state synced back on completion
