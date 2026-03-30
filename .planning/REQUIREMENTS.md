@@ -65,26 +65,26 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INT-01 | — | Pending |
-| INT-02 | — | Pending |
-| INT-03 | — | Pending |
-| INT-04 | — | Pending |
-| INT-05 | — | Pending |
-| INT-06 | — | Pending |
-| VER-01 | — | Pending |
-| VER-02 | — | Pending |
-| VER-03 | — | Pending |
-| TST-01 | — | Pending |
-| TST-02 | — | Pending |
-| DEB-01 | — | Pending |
-| DEB-02 | — | Pending |
-| DEB-03 | — | Pending |
-| DEB-04 | — | Pending |
+| INT-01 | Phase 185 | Pending |
+| INT-02 | Phase 185 | Pending |
+| INT-03 | Phase 185 | Pending |
+| INT-04 | Phase 185 | Pending |
+| INT-05 | Phase 187 | Pending |
+| INT-06 | Phase 187 | Pending |
+| VER-01 | Phase 188 | Pending |
+| VER-02 | Phase 188 | Pending |
+| VER-03 | Phase 188 | Pending |
+| TST-01 | Phase 186 | Pending |
+| TST-02 | Phase 186 | Pending |
+| DEB-01 | Phase 189 | Pending |
+| DEB-02 | Phase 189 | Pending |
+| DEB-03 | Phase 189 | Pending |
+| DEB-04 | Phase 189 | Pending |
 
 **Coverage:**
 - v0.23 requirements: 15 total
-- Mapped to phases: 0
-- Unmapped: 15 ⚠️
+- Mapped to phases: 15
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-29*
