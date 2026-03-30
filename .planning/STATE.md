@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v0.24
 milestone_name: Cloud Dispatch & State Sync
 status: planning
-stopped_at: Completed 190-02-PLAN.md
-last_updated: "2026-03-30T10:52:24.773Z"
+stopped_at: Completed 191-02-PLAN.md
+last_updated: "2026-03-30T15:06:35.777Z"
 last_activity: 2026-03-30
 progress:
   total_phases: 29
   completed_phases: 1
-  total_plans: 2
-  completed_plans: 2
+  total_plans: 4
+  completed_plans: 3
   percent: 0
 ---
 
@@ -53,6 +53,7 @@ Progress: [░░░░░░░░░░] 0%
 - [Roadmap]: cloud adapter in packages/ — zero-npm constraint at plugin root; coordinator invokes cloud SDK via spawn, never require()
 - [Roadmap]: RemoteAggregator never creates TailCursor for cloud session IDs — prevents ghost cursor accumulation
 - [Phase 190]: SessionListItem.source kept as inline union (not importing SessionSource type) to avoid TypeScript/CJS cross-module import chain per research anti-pattern guidance
+- [Phase 191]: Docker sessions use TailCursor (not RemoteAggregator): container writes NDJSON to local /tmp/, RemoteAggregator reserved for cloud HTTP push (Phase 193)
 
 ### Pending Todos
 
@@ -65,7 +66,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-30T10:44:07.408Z
-Stopped at: Completed 190-02-PLAN.md
+Last session: 2026-03-30T15:06:35.774Z
+Stopped at: Completed 191-02-PLAN.md
 Resume with: /gsd:plan-phase 190
 Resume file: None
