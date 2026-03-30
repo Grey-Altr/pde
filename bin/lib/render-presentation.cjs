@@ -124,6 +124,9 @@ function personaDisplayName(slug) {
     'stakeholder-status':   'Stakeholder Status Update',
     'pm-view':              'Product Manager View',
     'project-manager-view': 'Project Manager View',
+    'agile-report':         'Agile Project Report',
+    'design-report':        'Design Persona Report',
+    'research-report':      'Research Persona Report',
   };
   return names[slug] || slug;
 }
@@ -756,6 +759,262 @@ function buildProjectManager(ir) {
   ];
 }
 
+// ─── Phase 182 Cluster B section helpers ─────────────────────────────────────
+
+/**
+ * Build retrospective narrative for agile-report (CLR-02).
+ * Lists completed phases as "what went well", blockers as "what could improve",
+ * decisions as "action items taken".
+ */
+function buildRetroNarrative(ir) {
+  const phasesSentinel = sentinelHtml(ir.phases, 'Phase progress');
+  const blockersSentinel = sentinelHtml(ir.blockers, 'Blockers');
+  const decisionsSentinel = sentinelHtml(ir.decisions, 'Decisions');
+
+  const wentWellHtml = phasesSentinel || (() => {
+    const phaseList = Array.isArray(ir.phases.phase_list) ? ir.phases.phase_list : [];
+    const completed = phaseList.filter(p => p.completed);
+    if (completed.length === 0) {
+      return '<p>No completed phases recorded.</p>';
+    }
+    const list = completed.map(p => `<li>${escHtml(p.name)}</li>`).join('\n');
+    return `<h3>What Went Well (Completed)</h3><ul>${list}</ul>`;
+  })();
+
+  const improveHtml = blockersSentinel || (() => {
+    const items = Array.isArray(ir.blockers && ir.blockers.items) ? ir.blockers.items : [];
+    if (items.length === 0) return '<p>No blockers identified this sprint.</p>';
+    const list = items.map(b => `<li>${escHtml(b.text || b)} <em>${escHtml(b.source || '')}</em></li>`).join('\n');
+    return `<h3>What Could Improve (Blockers)</h3><ul>${list}</ul>`;
+  })();
+
+  const actionItemsHtml = decisionsSentinel || (() => {
+    const items = Array.isArray(ir.decisions && ir.decisions.items) ? ir.decisions.items : [];
+    if (items.length === 0) return '<p>No decisions recorded as action items.</p>';
+    const list = items.slice(0, 10).map(d => `<li>${escHtml(d.text || d)} <em>${escHtml(d.source || '')}</em></li>`).join('\n');
+    return `<h3>Action Items Taken (Decisions)</h3><ul>${list}</ul>`;
+  })();
+
+  return `${wentWellHtml}\n${improveHtml}\n${actionItemsHtml}`.trim();
+}
+
+/**
+ * Build design-focused decisions for design-report (CLR-03).
+ * Filters ir.decisions items for design-related keywords.
+ * Falls back to all decisions if no design-specific ones found.
+ */
+function buildDesignDecisions(ir) {
+  const sentinel = sentinelHtml(ir.decisions, 'Decisions');
+  if (sentinel) return sentinel;
+
+  const items = Array.isArray(ir.decisions && ir.decisions.items) ? ir.decisions.items : [];
+  if (items.length === 0) return '<p>No decisions recorded.</p>';
+
+  const designKeywords = ['design', 'token', 'color', 'typography', 'wireframe', 'mockup',
+    'layout', 'css', 'theme', 'visual', 'ux', 'ui'];
+
+  const designItems = items.filter(d => {
+    const text = (d.text || d || '').toLowerCase();
+    return designKeywords.some(kw => text.includes(kw));
+  });
+
+  const displayItems = designItems.length > 0 ? designItems : items;
+  const list = displayItems.slice(0, 15).map(d =>
+    `<li>${escHtml(d.text || d)} <em class="source">[${escHtml(d.source || '')}]</em></li>`
+  ).join('\n');
+
+  const label = designItems.length > 0
+    ? `<p><strong>Design-specific decisions (${designItems.length}):</strong></p>`
+    : '<p><em>No design-specific decisions found — showing all decisions.</em></p>';
+
+  return `${label}<ul>${list}</ul>`;
+}
+
+/**
+ * Build token evolution section for design-report (CLR-03).
+ * If ir.design_artifacts has token-related entries, lists them.
+ * Otherwise shows sentinel "no token data available".
+ */
+function buildTokenEvolution(ir) {
+  const sentinel = sentinelHtml(ir.design_artifacts, 'Design artifacts');
+  if (sentinel) return sentinel;
+
+  const da = ir.design_artifacts;
+  if (!da || !da.available) {
+    return '<p class="unavailable"><strong>Design tokens unavailable:</strong> No design system manifest found. Token evolution tracking requires design-manifest.json.</p>';
+  }
+
+  const artifacts = Array.isArray(da.artifacts) ? da.artifacts : [];
+  const tokenArtifacts = artifacts.filter(a => {
+    const name = (a.name || a.path || '').toLowerCase();
+    return name.includes('token') || name.includes('theme') || name.includes('color');
+  });
+
+  if (tokenArtifacts.length === 0) {
+    return '<p>No token-specific artifacts found in design system.</p>';
+  }
+
+  const list = tokenArtifacts.map(a => `<li>${escHtml(a.name || a.path || 'Token artifact')}</li>`).join('\n');
+  return `<ul>${list}</ul>`;
+}
+
+/**
+ * Build research findings section for research-report (CLR-04).
+ * Reads ir.research (sentinel-check first).
+ */
+function buildResearchFindings(ir) {
+  const sentinel = sentinelHtml(ir.research, 'Research');
+  if (sentinel) return sentinel;
+
+  const research = ir.research;
+
+  // Handle array of findings strings
+  if (Array.isArray(research.findings)) {
+    if (research.findings.length === 0) return '<p>No research findings recorded.</p>';
+    const list = research.findings.map(f => `<li>${escHtml(String(f))}</li>`).join('\n');
+    return `<ul>${list}</ul>`;
+  }
+
+  // Handle array of finding objects
+  if (Array.isArray(research)) {
+    if (research.length === 0) return '<p>No research findings recorded.</p>';
+    const list = research.map(item => {
+      const title = escHtml(item.title || item.finding || String(item));
+      const summary = item.summary ? `<br><em>${escHtml(item.summary)}</em>` : '';
+      const source = item.source ? ` <small>[${escHtml(item.source)}]</small>` : '';
+      return `<li>${title}${summary}${source}</li>`;
+    }).join('\n');
+    return `<ul>${list}</ul>`;
+  }
+
+  return '<p>No structured research findings available.</p>';
+}
+
+/**
+ * Build research recommendations for research-report (CLR-04).
+ * Reads ir.research items looking for recommendation-like fields.
+ * Falls back to a descriptive message.
+ */
+function buildResearchRecommendations(ir) {
+  const sentinel = sentinelHtml(ir.research, 'Research');
+  if (sentinel) return sentinel;
+
+  const research = ir.research;
+
+  // Check for array of finding objects with recommendation fields
+  if (Array.isArray(research)) {
+    const withRecs = research.filter(item => item.recommendation || item.recommendations);
+    if (withRecs.length > 0) {
+      const list = withRecs.map(item => {
+        const rec = item.recommendation || (Array.isArray(item.recommendations) ? item.recommendations.join('; ') : item.recommendations);
+        return `<li>${escHtml(String(rec))}</li>`;
+      }).join('\n');
+      return `<ul>${list}</ul>`;
+    }
+  }
+
+  // Check for top-level recommendations field
+  if (research.recommendations) {
+    if (Array.isArray(research.recommendations)) {
+      const list = research.recommendations.map(r => `<li>${escHtml(String(r))}</li>`).join('\n');
+      return `<ul>${list}</ul>`;
+    }
+    return `<p>${escHtml(String(research.recommendations))}</p>`;
+  }
+
+  return '<p>No specific recommendations extracted from research data. Review findings manually for actionable insights.</p>';
+}
+
+/**
+ * Build competitive landscape section for research-report (CLR-04).
+ * Reads ir.research for competitive/landscape items.
+ */
+function buildCompetitiveLandscape(ir) {
+  const sentinel = sentinelHtml(ir.research, 'Research');
+  if (sentinel) return sentinel;
+
+  const research = ir.research;
+
+  // Check for competitive field
+  if (research.competitive || research.landscape) {
+    const data = research.competitive || research.landscape;
+    if (Array.isArray(data)) {
+      const list = data.map(item => `<li>${escHtml(String(item.name || item))}</li>`).join('\n');
+      return `<ul>${list}</ul>`;
+    }
+    return `<p>${escHtml(String(data))}</p>`;
+  }
+
+  // Look through research items for competitive keywords
+  if (Array.isArray(research)) {
+    const competitiveItems = research.filter(item => {
+      const text = ((item.title || item.finding || '') + ' ' + (item.summary || '')).toLowerCase();
+      return text.includes('competi') || text.includes('landscape') || text.includes('alternative') || text.includes('comparison');
+    });
+    if (competitiveItems.length > 0) {
+      const list = competitiveItems.map(item =>
+        `<li>${escHtml(item.title || item.finding || String(item))}</li>`
+      ).join('\n');
+      return `<ul>${list}</ul>`;
+    }
+  }
+
+  return '<p class="unavailable"><strong>Competitive landscape unavailable:</strong> No competitive analysis data found in research IR.</p>';
+}
+
+// ─── Phase 182 Cluster B persona builders ────────────────────────────────────
+
+/**
+ * Build agile project report sections (CLR-02).
+ * Target audience: Scrum masters, agile coaches, retrospective participants.
+ *
+ * @param {object} ir - IR from buildPresentationIR()
+ * @returns {Array<{id: string, title: string, level: number, content: string}>}
+ */
+function buildAgileReport(ir) {
+  return [
+    { id: 'overview',       title: 'Project Overview',    level: 1, content: buildOverview(ir) },
+    { id: 'retrospective',  title: 'Retrospective Narrative', level: 2, content: buildRetroNarrative(ir) },
+    { id: 'burndown',       title: 'Burndown Chart',      level: 2, content: charts.burndownChart(ir) },
+    { id: 'velocity',       title: 'Velocity Chart',      level: 2, content: charts.velocityChart(ir) },
+    { id: 'metrics',        title: 'Sprint Metrics',      level: 2, content: buildProgress(ir) },
+  ];
+}
+
+/**
+ * Build design persona report sections (CLR-03).
+ * Target audience: Design leads, UX reviewers, brand stakeholders.
+ *
+ * @param {object} ir - IR from buildPresentationIR()
+ * @returns {Array<{id: string, title: string, level: number, content: string}>}
+ */
+function buildDesignReport(ir) {
+  return [
+    { id: 'overview',          title: 'Design Overview',          level: 1, content: buildOverview(ir) },
+    { id: 'design-decisions',  title: 'Design Decisions',         level: 2, content: buildDesignDecisions(ir) },
+    { id: 'artifacts',         title: 'Design Artifacts',         level: 2, content: buildArtifacts(ir) },
+    { id: 'tokens',            title: 'Design Token Evolution',   level: 2, content: buildTokenEvolution(ir) },
+    { id: 'direction',         title: 'Visual Direction Rationale', level: 2, content: buildTechnical(ir) },
+  ];
+}
+
+/**
+ * Build research persona report sections (CLR-04).
+ * Target audience: Technical leads, architecture reviewers, research consumers.
+ *
+ * @param {object} ir - IR from buildPresentationIR()
+ * @returns {Array<{id: string, title: string, level: number, content: string}>}
+ */
+function buildResearchReport(ir) {
+  return [
+    { id: 'overview',        title: 'Research Overview',      level: 1, content: buildOverview(ir) },
+    { id: 'findings',        title: 'Research Findings',      level: 2, content: buildResearchFindings(ir) },
+    { id: 'recommendations', title: 'Recommendations',        level: 2, content: buildResearchRecommendations(ir) },
+    { id: 'tech-eval',       title: 'Technology Evaluations', level: 2, content: buildTechnical(ir) },
+    { id: 'landscape',       title: 'Competitive Landscape',  level: 2, content: buildCompetitiveLandscape(ir) },
+  ];
+}
+
 // ─── CSS: PDE design tokens ───────────────────────────────────────────────────
 
 const PDE_CSS = `
@@ -1052,8 +1311,17 @@ function render(ir, persona, htmlPath, mdPath) {
     case 'project-manager-view':
       sections = buildProjectManager(ir);
       break;
+    case 'agile-report':
+      sections = buildAgileReport(ir);
+      break;
+    case 'design-report':
+      sections = buildDesignReport(ir);
+      break;
+    case 'research-report':
+      sections = buildResearchReport(ir);
+      break;
     default:
-      throw new Error(`Unknown persona: ${persona}. Available: executive-summary, case-study, investor-update, sprint-review, client-deliverable, stakeholder-status, pm-view, project-manager-view`);
+      throw new Error(`Unknown persona: ${persona}. Available: executive-summary, case-study, investor-update, sprint-review, client-deliverable, stakeholder-status, pm-view, project-manager-view, agile-report, design-report, research-report`);
   }
 
   // Claim verification (VER-01/02/03): compare rendered content against canonical IR
@@ -1154,6 +1422,9 @@ module.exports = {
   buildStakeholderStatus,
   buildProductManager,
   buildProjectManager,
+  buildAgileReport,
+  buildDesignReport,
+  buildResearchReport,
   renderHTML,
   renderMarkdown,
   render,
