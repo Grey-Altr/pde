@@ -471,7 +471,7 @@ Plans:
   4. Container is torn down after the task completes — no dangling containers after coordinator-docker test run
 **Plans**: 2 plans
 Plans:
-- [ ] 191-01-PLAN.md — spawnDockerSession implementation in cloud-adapter with dockerode + unit tests
+- [x] 191-01-PLAN.md — spawnDockerSession implementation in cloud-adapter with dockerode + unit tests
 - [ ] 191-02-PLAN.md — Coordinator dispatch branch, router rule, aggregator fix, tmux label, dashboard tests
 
 ### Phase 192: Git-Based State Sync
@@ -582,7 +582,7 @@ Plans:
 | 188. Verification Coverage | v0.23 | 3/3 | Complete    | 2026-03-30 |
 | 189. Technical Debt Cleanup | v0.23 | 2/2 | Complete    | 2026-03-30 |
 | 190. Infrastructure Foundation | v0.24 | 1/2 | Complete    | 2026-03-30 |
-| 191. Docker Container Backend | v0.24 | 0/TBD | Not started | - |
+| 191. Docker Container Backend | v0.24 | 1/2 | In Progress|  |
 | 192. Git-Based State Sync | v0.24 | 0/TBD | Not started | - |
 | 193. Cloud Web Backend | v0.24 | 0/TBD | Not started | - |
 | 194. Intelligent Routing | v0.24 | 0/TBD | Not started | - |
