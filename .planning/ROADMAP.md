@@ -403,9 +403,11 @@ Plans:
   2. Running any assertion from a VALIDATION.md file against its target produces a meaningful pass or fail — not just a key-existence check
   3. All 5 v0.7 SUMMARY.md files include a one-liner: frontmatter field with an accurate single-sentence description
   4. Running pde-tools health consistency [version] reports any mismatches between requirements file checkboxes, roadmap phase entries, and milestone plan entries for the given milestone version
-**Plans**: 1/1 plans
+**Plans**: 3 plans
 Plans:
-- [ ] 187-01-PLAN.md — Fix buildCrossPatterns field access + reconcile Phase 184 test mock shape
+- [ ] 188-01-PLAN.md — Nyquist VALIDATION.md backfill for v0.22 phases 176-180
+- [ ] 188-02-PLAN.md — Nyquist VALIDATION.md backfill for v0.22 phases 181-184 + v0.7 SUMMARY.md one-liners
+- [ ] 188-03-PLAN.md — pde-tools health consistency subcommand implementation
 
 ### Phase 189: Technical Debt Cleanup
 **Goal**: Stale workflow paths are corrected, dead-code and duplication reports are produced and triaged, and ESLint runs clean — establishing documented static-analysis baselines for future milestones
