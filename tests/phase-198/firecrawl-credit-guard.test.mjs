@@ -306,12 +306,18 @@ describe('Concurrency: acquireFirecrawlSemaphore', () => {
     try {
       const s1 = acquireFirecrawlSemaphore({ semaphoreDir: semDir });
       const s2 = acquireFirecrawlSemaphore({ semaphoreDir: semDir });
+      // Verify we have 2 locks
+      const locks = readdirSync(semDir).filter(f => f.endsWith('.lock'));
+      assert.strictEqual(locks.length, 2, 'should have 2 lockfiles before third acquire');
       // Third should throw
-      assert.throws(
-        () => acquireFirecrawlSemaphore({ semaphoreDir: semDir }),
-        (err) => err.code === 'FIRECRAWL_CONCURRENCY_LIMIT',
-        'should throw with FIRECRAWL_CONCURRENCY_LIMIT code'
-      );
+      let threw = false;
+      try {
+        acquireFirecrawlSemaphore({ semaphoreDir: semDir });
+      } catch (err) {
+        threw = true;
+        assert.strictEqual(err.code, 'FIRECRAWL_CONCURRENCY_LIMIT');
+      }
+      assert.ok(threw, 'should have thrown FIRECRAWL_CONCURRENCY_LIMIT');
       s1.release();
       s2.release();
     } finally {

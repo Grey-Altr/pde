@@ -16,6 +16,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 const { safeReadFile } = require('./core.cjs');
 
 // ─── Dockerode (optional — graceful degradation when not installed) ───────────
@@ -705,6 +706,156 @@ function checkStitchQuota(generationType, configPath) {
   return { allowed: true, remaining, reason: 'ok' };
 }
 
+// ─── Firecrawl credit management ────────────────────────────────────────────
+
+/**
+ * Reads Firecrawl credit data from config.json cache. Read-only — does not call API or modify file.
+ * Returns null if no quota.firecrawl block exists.
+ *
+ * @param {string} [configPath] — override for testing; defaults to .planning/config.json
+ * @returns {null|{remaining:number, total:number, last_checked:string, cache_ttl_ms:number, warning_threshold_pct:number}}
+ */
+function readFirecrawlCredits(configPath) {
+  const cfgPath = configPath || path.join(process.cwd(), '.planning', 'config.json');
+  let config = {};
+  try { config = JSON.parse(fs.readFileSync(cfgPath, 'utf-8')); } catch { /* missing or invalid */ }
+  const quota = config?.quota?.firecrawl;
+  if (!quota) return null;
+  return { ...quota };
+}
+
+/**
+ * Pre-operation credit check with threshold warning and exhaustion detection.
+ * Does NOT modify config.json — use incrementFirecrawlUsage after a successful operation.
+ *
+ * Reasons returned:
+ *   'ok'                — credits available, below 80% usage threshold
+ *   'quota_warning'     — credits available but usage >= 80%; includes pct field
+ *   'quota_exhausted'   — remaining <= 0; allowed: false
+ *   'no_quota_configured' — no quota.firecrawl block in config.json; allowed: true (open access)
+ *
+ * @param {string} [configPath] — override for testing; defaults to .planning/config.json
+ * @returns {{allowed:boolean, remaining:number|null, reason:string, pct?:number}}
+ */
+function checkFirecrawlCredits(configPath) {
+  const cached = readFirecrawlCredits(configPath);
+  if (!cached) return { allowed: true, remaining: null, reason: 'no_quota_configured' };
+
+  const remaining = cached.remaining;
+  const total = cached.total || 100000;
+
+  if (remaining <= 0) {
+    return { allowed: false, remaining: 0, reason: 'quota_exhausted' };
+  }
+
+  const pct = Math.round(((total - remaining) / total) * 100);
+  if (pct >= (cached.warning_threshold_pct || 80)) {
+    return { allowed: true, remaining, reason: 'quota_warning', pct };
+  }
+
+  return { allowed: true, remaining, reason: 'ok' };
+}
+
+/**
+ * Decrements Firecrawl credits in config.json after a successful operation.
+ * Auto-initializes quota.firecrawl block if missing (total: 100000, remaining: 100000).
+ * Uses atomic write (write to .tmp, rename) to prevent concurrent corruption.
+ *
+ * @param {number} credits — number of credits consumed by the operation
+ * @param {string} [configPath] — override for testing; defaults to .planning/config.json
+ * @returns {{remaining:number, total:number, last_checked:string}}
+ */
+function incrementFirecrawlUsage(credits, configPath) {
+  const cfgPath = configPath || path.join(process.cwd(), '.planning', 'config.json');
+  let config = {};
+  try { config = JSON.parse(fs.readFileSync(cfgPath, 'utf-8')); } catch { /* missing or invalid */ }
+
+  if (!config.quota) config.quota = {};
+  if (!config.quota.firecrawl) {
+    config.quota.firecrawl = {
+      remaining: 100000,
+      total: 100000,
+      last_checked: new Date().toISOString(),
+      cache_ttl_ms: 300000,
+      warning_threshold_pct: 80,
+    };
+  }
+
+  config.quota.firecrawl.remaining = Math.max(0, config.quota.firecrawl.remaining - credits);
+  config.quota.firecrawl.last_checked = new Date().toISOString();
+
+  // Atomic write: write to temp, rename
+  const tmpPath = cfgPath + '.tmp';
+  fs.writeFileSync(tmpPath, JSON.stringify(config, null, 2), 'utf-8');
+  fs.renameSync(tmpPath, cfgPath);
+
+  return {
+    remaining: config.quota.firecrawl.remaining,
+    total: config.quota.firecrawl.total,
+    last_checked: config.quota.firecrawl.last_checked,
+  };
+}
+
+// ─── Firecrawl concurrency semaphore ────────────────────────────────────────
+
+const DEFAULT_SEMAPHORE_DIR = path.join(os.tmpdir(), 'pde-firecrawl-semaphore');
+const DEFAULT_MAX_CONCURRENT = 2;
+let _semaphoreCounter = 0;
+
+/**
+ * Acquires a filesystem-based semaphore slot for Firecrawl operations.
+ * Returns a release function on success. Throws if max concurrent slots are held.
+ *
+ * Lockfiles are PID-stamped and cleaned up on release or stale detection (>5min age).
+ *
+ * @param {Object} [opts] — { semaphoreDir, maxConcurrent }
+ * @returns {{release: Function, lockPath: string}}
+ * @throws {Error} with code 'FIRECRAWL_CONCURRENCY_LIMIT' when all slots are held
+ */
+function acquireFirecrawlSemaphore(opts = {}) {
+  const semDir = opts.semaphoreDir || DEFAULT_SEMAPHORE_DIR;
+  const maxConcurrent = opts.maxConcurrent || DEFAULT_MAX_CONCURRENT;
+
+  // Ensure semaphore directory exists
+  fs.mkdirSync(semDir, { recursive: true });
+
+  // Clean stale locks (older than 5 minutes)
+  const STALE_MS = 5 * 60 * 1000;
+  const now = Date.now();
+  let existing = [];
+  try {
+    existing = fs.readdirSync(semDir).filter(f => f.endsWith('.lock'));
+    for (const lock of existing) {
+      const lockPath = path.join(semDir, lock);
+      try {
+        const stat = fs.statSync(lockPath);
+        if (now - stat.mtimeMs > STALE_MS) {
+          fs.unlinkSync(lockPath);
+          existing = existing.filter(f => f !== lock);
+        }
+      } catch { /* already removed */ }
+    }
+  } catch { /* dir empty or missing */ }
+
+  // Check slot availability
+  if (existing.length >= maxConcurrent) {
+    const err = new Error(`Firecrawl concurrency limit reached (${maxConcurrent} active operations). Wait and retry.`);
+    err.code = 'FIRECRAWL_CONCURRENCY_LIMIT';
+    throw err;
+  }
+
+  // Acquire slot — counter ensures uniqueness even within same-millisecond calls
+  const lockName = `${process.pid}-${Date.now()}-${++_semaphoreCounter}.lock`;
+  const lockPath = path.join(semDir, lockName);
+  fs.writeFileSync(lockPath, String(process.pid), 'utf-8');
+
+  const release = () => {
+    try { fs.unlinkSync(lockPath); } catch { /* already removed */ }
+  };
+
+  return { release, lockPath };
+}
+
 // ─── Docker container mode helpers ───────────────────────────────────────────
 
 let _dockerAvailableCache = null;
@@ -796,6 +947,10 @@ module.exports = {
   readStitchQuota,
   incrementStitchQuota,
   checkStitchQuota,
+  readFirecrawlCredits,
+  checkFirecrawlCredits,
+  incrementFirecrawlUsage,
+  acquireFirecrawlSemaphore,
   isDockerAvailable,
   getInstallCmd,
   getProbeTimeoutMs,
