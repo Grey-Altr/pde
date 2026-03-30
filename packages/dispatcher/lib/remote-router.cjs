@@ -4,18 +4,28 @@
  * remote-router.cjs — Session routing decision layer for Phase 146 Remote Dispatch
  *
  * Satisfies: RMT-04 (routing decision tree), RMT-05 (interactive always local),
- *            RMT-06 (managed backend integration point)
+ *            RMT-06 (managed backend integration point),
+ *            CLD-07 (cloud routing with fallback chain)
  *
  * Determines whether a given session should run:
  *   - 'local'   — spawned in the current process (interactive or no remote config)
  *   - 'docker'  — dispatched to a Docker container on the local host
  *   - 'ssh'     — dispatched to a remote host over SSH
  *   - 'managed' — dispatched via claude --remote managed backend (deferred post-v0.18)
+ *   - 'cloud'   — dispatched to cloud web backend via claude.ai OAuth
  *
  * Decision tree (evaluated in order):
  *   1. !isAutonomous                         → 'local'  (RMT-05: interactive always local)
  *   2.5. remoteConfig.preferred_backend === 'docker' → 'docker'
  *   2.6. dockerConfig.enabled === true       → 'docker'
+ *   2.7. remoteConfig.preferred_backend === 'cloud'
+ *        → probe managed backend
+ *        → if available: 'cloud'
+ *        → if unavailable: fall through to SSH rules
+ *   2.8. cloudConfig.enabled === true
+ *        → probe managed backend
+ *        → if available: 'cloud'
+ *        → if unavailable: fall through
  *   2. !remoteConfig.host                    → 'local'  (no SSH target configured)
  *   3. preferred_backend === 'managed'
  *        → probe managed backend
@@ -37,11 +47,13 @@ const _defaultDetectManaged =
  *   Shape: { host, username, identity_file, repo_path, plugin_dir, preferred_backend, env }
  * @param {object|null|undefined} opts.dockerConfig - dispatch.docker config block from project config.
  *   Shape: { enabled, image, memory, cpus, failure_cleanup_ms }
+ * @param {object|null|undefined} opts.cloudConfig - dispatch.cloud config block from project config.
+ *   Shape: { enabled, poll_interval, idle_timeout }
  * @param {Function} [opts._detectManaged]  - Injectable override for detectManagedBackend (testing only)
  *
- * @returns {Promise<'local' | 'docker' | 'ssh' | 'managed'>}
+ * @returns {Promise<'local' | 'docker' | 'ssh' | 'managed' | 'cloud'>}
  */
-async function routeSession({ isAutonomous, remoteConfig, dockerConfig, _detectManaged }) {
+async function routeSession({ isAutonomous, remoteConfig, dockerConfig, cloudConfig, _detectManaged }) {
   const detectManaged = _detectManaged || _defaultDetectManaged;
 
   // Rule 1: Interactive sessions always run locally (RMT-05)
@@ -52,6 +64,20 @@ async function routeSession({ isAutonomous, remoteConfig, dockerConfig, _detectM
 
   // Rule 2.6: Docker explicitly enabled via dockerConfig
   if (dockerConfig && dockerConfig.enabled) return 'docker';
+
+  // Rule 2.7: Cloud preferred backend — probe availability, fall through to SSH rules if unavailable
+  if (remoteConfig && remoteConfig.preferred_backend === 'cloud') {
+    const probe = await detectManaged();
+    if (probe.available) return 'cloud';
+    // Cloud unavailable — fall through to SSH rules
+  }
+
+  // Rule 2.8: Cloud explicitly enabled via cloudConfig — probe availability
+  if (cloudConfig && cloudConfig.enabled) {
+    const probe = await detectManaged();
+    if (probe.available) return 'cloud';
+    // Cloud unavailable — fall through
+  }
 
   // Rule 2: No remote config or no host → local
   if (!remoteConfig || !remoteConfig.host) return 'local';

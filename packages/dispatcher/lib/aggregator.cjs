@@ -28,18 +28,43 @@ const { EventEmitter } = require('node:events');
 const path = require('node:path');
 const os = require('node:os');
 const { TailCursor } = require('../../../bin/lib/relay.cjs');
+const { CloudPoller } = require('./remote-cloud.cjs');
 
 /**
- * RemoteAggregator — drop-in replacement for TailCursor for cloud/docker sessions.
- * Phase 190: stub only. The shared event bus is wired in Phase 191.
- * Interface parity: constructor(filePath, onLine), start(ms), stop()
+ * RemoteAggregator — drop-in replacement for TailCursor for cloud sessions.
+ * Phase 193: wired to CloudPoller for cloud HTTP push event delivery.
+ * Interface parity: constructor(filePath, onLine), start(ms, opts), stop()
+ *
+ * CRITICAL: onLine receives STRINGS not objects — JSON.stringify(event) must be
+ * called before passing to onLine (Aggregator.watch() calls JSON.parse on receipt).
  */
 class RemoteAggregator {
-  constructor(_filePath, onLine) {
+  constructor(filePath, onLine) {
+    this._filePath = filePath;
     this._onLine = onLine;
+    this._poller = null;
   }
-  start(_ms) { /* no-op in Phase 190 — bus wired in Phase 191 */ }
-  stop() {}
+
+  /**
+   * @param {number} [pollInterval]  - Override poll interval in ms
+   * @param {object} [opts]          - Additional options passed to CloudPoller
+   */
+  start(pollInterval, opts) {
+    // Extract taskId from filePath: /tmp/pde-session-{taskId}.ndjson
+    const taskId = path.basename(this._filePath, '.ndjson').replace('pde-session-', '');
+    const onLine = this._onLine;
+    this._poller = new CloudPoller(taskId, (event) => {
+      onLine(JSON.stringify(event));
+    }, {
+      pollInterval: pollInterval || 5000,
+      ...(opts || {}),
+    });
+    this._poller.start();
+  }
+
+  stop() {
+    if (this._poller) this._poller.stop();
+  }
 }
 
 class Aggregator extends EventEmitter {
