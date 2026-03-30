@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
 milestone: v0.22
-milestone_name: Stakeholder Presentations
+milestone_name: Stakeholder Presentations — SHIPPED 2026-03-30
 status: completed
-stopped_at: Completed 184-02-PLAN.md
-last_updated: "2026-03-30T05:02:43.553Z"
+stopped_at: Completed 185-01-PLAN.md
+last_updated: "2026-03-30T06:19:38.963Z"
 last_activity: 2026-03-30
 progress:
   total_phases: 16
-  completed_phases: 9
-  total_plans: 18
-  completed_plans: 18
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
   percent: 50
 ---
 
@@ -74,6 +74,8 @@ Progress: [█████░░░░░] 50%
 - [Phase 183-01]: JSON persona array parsed via node -e pipe in bash to avoid jq dependency, with fallback to executive-summary,project-manager on parse error
 - [Phase 184-cross-project-portfolio-synthesis]: cmdPortfolioRender bypasses render() persona switch — calls renderHTML/renderMarkdown directly to keep single-project and multi-project IR shapes cleanly separated
 - [Phase 184-cross-project-portfolio-synthesis]: buildCrossProjectPortfolio returns 5-section array (header, projects, patterns, outcomes, timeline) for portfolioIR — distinct from single-project persona builders
+- [Phase 185]: Phase 180 VERIFICATION.md gap was administrative — code fully satisfied VER-01/02/03; only tracker was stale. gap_resolution field added to document fix history.
+- [Phase 185]: EXT-01..04 reference 176-01-PLAN and EXT-05..10 reference 176-02-PLAN — split per Phase 176 VERIFICATION.md evidence mapping showing which plan satisfied each requirement.
 
 ### Pending Todos
 
@@ -86,7 +88,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-30T04:46:54.428Z
-Stopped at: Completed 184-02-PLAN.md
+Last session: 2026-03-30T06:19:38.960Z
+Stopped at: Completed 185-01-PLAN.md
 Resume with: `/gsd:plan-phase 176`
 Resume file: None
