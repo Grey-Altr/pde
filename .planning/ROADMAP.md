@@ -132,7 +132,7 @@
 
 **Milestone Goal:** Firecrawl is PDE's eighth approved MCP server — the primary web intelligence layer for competitive analysis, source ingestion, research agents, and change monitoring. Users get JS-rendered scraping, structured extraction, full-site crawl, autonomous research agents, and competitor change tracking, all protected by credit guards and graceful degradation to WebSearch/WebFetch when the budget is exhausted.
 
-- [ ] **Phase 198: Foundation — MCP Registration + Credit Guards** — firecrawl in APPROVED_SERVERS, 12 TOOL_MAP entries, probe/degrade contract, API key config, credit warning thresholds, graceful degradation, escalation ladder in mcp-integration.md
+- [x] **Phase 198: Foundation — MCP Registration + Credit Guards** — firecrawl in APPROVED_SERVERS, 12 TOOL_MAP entries, probe/degrade contract, API key config, credit warning thresholds, graceful degradation, escalation ladder in mcp-integration.md (completed 2026-03-30)
 - [ ] **Phase 199: Data Layer — Cache Module + Source Pipeline** — firecrawl-cache.cjs (read/write/slug/diff/emit), .planning/research/firecrawl-cache/ directory structure, sources-manifest.json firecrawl source type, /pde:source add URL flow
 - [ ] **Phase 200: Core Scraping Tools + Competitive/Recommend Integration** — firecrawl_scrape/search/map/extract/search-with-scrape MCP tools available, firecrawl_crawl with enforced limit, competitive.md FIRECRAWL_AVAILABLE migration, recommend.md dual-probe, PIP-01 competitive extraction
 - [ ] **Phase 201: Brief + Phase Researcher + Design Reference Integration** — --source-url flag on brief.md (scrape→cache→BRF), pde-phase-researcher.md Web Evidence step, design reference URL scraping for wireframe/mockup/system context
@@ -603,7 +603,7 @@ Plans:
 Plans:
 - [x] 198-01-PLAN.md — Firecrawl APPROVED_SERVERS registration, 12 TOOL_MAP entries, AUTH_INSTRUCTIONS, docs updates
 - [x] 198-02-PLAN.md — Credit guard functions, concurrency semaphore, graceful degradation contract
-- [ ] 198-03-PLAN.md — Gap closure: probe gate, session summary, credit display, fallback routing
+- [x] 198-03-PLAN.md — Gap closure: probe gate, session summary, credit display, fallback routing
 
 ### Phase 199: Data Layer — Cache Module + Source Pipeline
 **Goal**: All Firecrawl output flows to disk through a single, tested CJS module before any workflow is modified — preventing context window overflow and establishing the source pipeline that brief, researcher, and /pde:source all depend on
@@ -706,7 +706,7 @@ Plans:
 | 195. Dashboard Integration | v0.24 | 2/2 | Complete | 2026-03-30 |
 | 196. Containerized MCP Servers | v0.24 | 1/1 | Complete | 2026-03-30 |
 | 197. Cross-Host Session Resume | v0.24 | 1/2 | Complete | 2026-03-30 |
-| 198. Foundation — MCP Registration + Credit Guards | v0.25 | 1/2 | In Progress|  |
+| 198. Foundation — MCP Registration + Credit Guards | v0.25 | 3/3 | Complete | 2026-03-30 |
 | 199. Data Layer — Cache Module + Source Pipeline | v0.25 | 0/TBD | Not started | - |
 | 200. Core Scraping Tools + Competitive/Recommend Integration | v0.25 | 0/TBD | Not started | - |
 | 201. Brief + Phase Researcher + Design Reference Integration | v0.25 | 0/TBD | Not started | - |
