@@ -807,6 +807,122 @@ function cmdValidateHealth(cwd, options, raw) {
   }, raw);
 }
 
+/**
+ * cmdHealthConsistency
+ * Compare requirement checkboxes against roadmap phase completion states
+ * for a given milestone version, reporting any cross-artifact mismatches.
+ *
+ * Usage: pde-tools health consistency [version]
+ *   version: e.g. "v0.22". If omitted, reads .planning/STATE.md milestone field.
+ *
+ * Output JSON: { version, passed, mismatches: [...], warnings: [...] }
+ */
+function cmdHealthConsistency(cwd, version, raw) {
+  const mismatches = [];
+  const warnings = [];
+
+  // Step 1: Resolve version from arg or STATE.md fallback
+  let resolvedVersion = version;
+  if (!resolvedVersion) {
+    const statePath = path.join(cwd, '.planning', 'STATE.md');
+    if (!fs.existsSync(statePath)) {
+      error('No version provided and .planning/STATE.md not found');
+      return;
+    }
+    const stateContent = fs.readFileSync(statePath, 'utf-8');
+    const fm = extractFrontmatter(stateContent);
+    if (!fm.milestone) {
+      error('No version provided and STATE.md has no milestone field');
+      return;
+    }
+    resolvedVersion = fm.milestone;
+  }
+
+  // Step 2: Load milestone REQUIREMENTS.md
+  const reqPath = path.join(cwd, '.planning', 'milestones', `${resolvedVersion}-REQUIREMENTS.md`);
+  if (!fs.existsSync(reqPath)) {
+    output({
+      version: resolvedVersion,
+      passed: false,
+      error: `Requirements file not found: .planning/milestones/${resolvedVersion}-REQUIREMENTS.md`,
+      mismatches: [],
+      warnings: [],
+    }, raw);
+    return;
+  }
+  const reqContent = fs.readFileSync(reqPath, 'utf-8');
+
+  // Step 3: Load milestone ROADMAP.md (optional — warns if missing)
+  const roadmapPath = path.join(cwd, '.planning', 'milestones', `${resolvedVersion}-ROADMAP.md`);
+  let roadmapContent = '';
+  if (!fs.existsSync(roadmapPath)) {
+    warnings.push(`Roadmap file not found: .planning/milestones/${resolvedVersion}-ROADMAP.md — phase completion checks skipped`);
+  } else {
+    roadmapContent = fs.readFileSync(roadmapPath, 'utf-8');
+  }
+
+  // Step 4: Parse requirement checkboxes from REQUIREMENTS.md
+  // Pattern matches: - [ ] **EXT-01**: description *(Phase 176, ...)*
+  // Two passes: first extract checkbox+ID, then optionally the Phase number from the same line
+  const reqLinePattern = /^- \[([ xX])\] \*\*([A-Z]+-\d+)\*\*(.*)$/gm;
+  const requirements = [];
+  let rm;
+  while ((rm = reqLinePattern.exec(reqContent)) !== null) {
+    const restOfLine = rm[3] || '';
+    const phaseMatch = restOfLine.match(/Phase (\d+)/);
+    requirements.push({
+      checked: rm[1].trim().toLowerCase() === 'x',
+      id: rm[2],
+      phase: phaseMatch ? parseInt(phaseMatch[1], 10) : null,
+    });
+  }
+
+  // Step 5: Parse roadmap phase completion states from ROADMAP.md
+  // Pattern matches: - [x] **Phase 176: ...** or - [ ] Phase 176 ...
+  const phasePattern = /^- \[([ xX])\] \*?\*?Phase (\d+)/gm;
+  const roadmapPhases = new Map();
+  if (roadmapContent) {
+    let pm;
+    while ((pm = phasePattern.exec(roadmapContent)) !== null) {
+      roadmapPhases.set(parseInt(pm[2], 10), pm[1].trim().toLowerCase() === 'x');
+    }
+  }
+
+  // Step 6: Cross-reference requirements against roadmap phase completion
+  for (const req of requirements) {
+    if (req.phase === null) continue;
+
+    const phaseComplete = roadmapPhases.get(req.phase);
+    if (phaseComplete === undefined) continue;
+
+    if (phaseComplete && !req.checked) {
+      mismatches.push({
+        type: 'requirement_not_checked',
+        requirement_id: req.id,
+        expected_state: 'checked',
+        actual_state: 'unchecked',
+        file: `.planning/milestones/${resolvedVersion}-REQUIREMENTS.md`,
+      });
+    } else if (!phaseComplete && req.checked) {
+      mismatches.push({
+        type: 'phase_not_complete',
+        requirement_id: req.id,
+        expected_state: 'phase_complete',
+        actual_state: 'phase_incomplete',
+        file: `.planning/milestones/${resolvedVersion}-ROADMAP.md`,
+      });
+    }
+  }
+
+  // Step 7: Output structured result
+  output({
+    version: resolvedVersion,
+    passed: mismatches.length === 0,
+    mismatches,
+    warnings,
+  }, raw);
+}
+
 module.exports = {
   cmdVerifySummary,
   cmdVerifyPlanStructure,
@@ -817,4 +933,5 @@ module.exports = {
   cmdVerifyKeyLinks,
   cmdValidateConsistency,
   cmdValidateHealth,
+  cmdHealthConsistency,
 };

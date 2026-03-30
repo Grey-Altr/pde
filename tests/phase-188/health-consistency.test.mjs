@@ -23,22 +23,28 @@ const require = createRequire(import.meta.url);
 const REPO_ROOT = path.resolve(__dirname, '../..');
 const verify = require('../../bin/lib/verify.cjs');
 
-// Helper: capture output from cmdHealthConsistency (it calls output() which writes to stdout)
+// Helper: capture output from cmdHealthConsistency.
+// output() in core.cjs always calls process.exit(0), so we must mock it.
 function captureOutput(fn) {
   const chunks = [];
   const origWrite = process.stdout.write.bind(process.stdout);
+  const origExit = process.exit.bind(process);
+
   process.stdout.write = (chunk, ...rest) => {
-    chunks.push(chunk);
+    chunks.push(typeof chunk === 'string' ? chunk : chunk.toString());
     return true;
   };
+  // Replace process.exit with a no-op so tests don't abort the process
+  process.exit = () => {};
+
   try {
     fn();
   } finally {
     process.stdout.write = origWrite;
+    process.exit = origExit;
   }
+
   const raw = chunks.join('');
-  // output() with raw=true emits JSON; without raw it may emit formatted text
-  // We call with raw=true so we get clean JSON
   try {
     return JSON.parse(raw);
   } catch {

@@ -644,6 +644,17 @@ async function main() {
       break;
     }
 
+    case 'health': {
+      const subcommand = args[1];
+      if (subcommand === 'consistency') {
+        const version = args[2]; // optional — falls back to STATE.md milestone
+        verify.cmdHealthConsistency(cwd, version, raw);
+      } else {
+        error('Unknown health subcommand. Available: consistency');
+      }
+      break;
+    }
+
     case 'validate-skill': {
       const skillPath = args[1];
       if (!skillPath) error('skill path required: validate-skill <path>');
