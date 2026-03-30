@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v0.25
 milestone_name: Firecrawl Deep Web Integration
-status: executing
-stopped_at: Completed 198-01-PLAN.md
-last_updated: "2026-03-30T21:34:49.818Z"
+status: verifying
+stopped_at: Completed 198-02-PLAN.md
+last_updated: "2026-03-30T21:45:00.000Z"
 last_activity: 2026-03-30
 progress:
   total_phases: 21
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-03-30)
 
 Phase: 198 (foundation-mcp-registration-credit-guards) — EXECUTING
 Plan: 2 of 2
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-03-30
 
 Progress: [░░░░░░░░░░] 0%
@@ -57,6 +57,9 @@ Progress: [░░░░░░░░░░] 0%
 - [Roadmap]: CRL-01 (full site crawl) placed in Phase 200 with scraping tools — crawl is a superset of map+scrape and belongs with the tool surface, not the cache infrastructure
 - [Roadmap]: AGT-03/AGT-04 (browser sandbox) placed in Phase 202 alongside standalone skill — browser sessions require the consent gate and TTL management that /pde:firecrawl workflow provides
 - [Phase 198]: Used mcp__firecrawl__search as probe tool (lightest read-only, 0.2 credits)
+- [Phase 198]: Firecrawl credits use remaining-decrement model (vs Stitch used-increment) to match API credit balance semantics
+- [Phase 198]: Filesystem semaphore with PID+timestamp+counter lockfiles for same-millisecond uniqueness in parallel agents
+- [Phase 198]: Atomic config.json writes via tmp+rename to prevent concurrent corruption
 
 ### Pending Todos
 
@@ -70,7 +73,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-30T21:34:49.815Z
-Stopped at: Completed 198-01-PLAN.md
+Last session: 2026-03-30T21:45:00.000Z
+Stopped at: Completed 198-02-PLAN.md
 Resume with: /gsd:plan-phase 198
 Resume file: None

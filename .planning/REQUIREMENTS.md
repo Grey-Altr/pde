@@ -11,8 +11,8 @@ Requirements for v0.25 milestone. Each maps to roadmap phases.
 
 - [x] **FND-01**: User can register Firecrawl as an approved MCP server in mcp-bridge.cjs with TOOL_MAP entries for all supported tools
 - [x] **FND-02**: User can configure Firecrawl API key via PDE config.json with probe/degrade contract validating connectivity on first use
-- [ ] **FND-03**: User can view remaining Firecrawl credits in the tmux dashboard and session summaries, with 80% depletion warning
-- [ ] **FND-04**: User experiences graceful degradation when Firecrawl credits are exhausted or API is unreachable, falling back to WebSearch/WebFetch
+- [x] **FND-03**: User can view remaining Firecrawl credits in the tmux dashboard and session summaries, with 80% depletion warning
+- [x] **FND-04**: User experiences graceful degradation when Firecrawl credits are exhausted or API is unreachable, falling back to WebSearch/WebFetch
 
 ### Core Scraping & Search
 
@@ -80,8 +80,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 |-------------|-------|--------|
 | FND-01 | Phase 198 | Complete |
 | FND-02 | Phase 198 | Complete |
-| FND-03 | Phase 198 | Pending |
-| FND-04 | Phase 198 | Pending |
+| FND-03 | Phase 198 | Complete |
+| FND-04 | Phase 198 | Complete |
 | CRL-03 | Phase 199 | Pending |
 | CRL-02 | Phase 199 | Pending |
 | SCR-01 | Phase 200 | Pending |

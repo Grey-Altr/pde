@@ -602,7 +602,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 - [x] 198-01-PLAN.md — Firecrawl APPROVED_SERVERS registration, 12 TOOL_MAP entries, AUTH_INSTRUCTIONS, docs updates
-- [ ] 198-02-PLAN.md — Credit guard functions, concurrency semaphore, graceful degradation contract
+- [x] 198-02-PLAN.md — Credit guard functions, concurrency semaphore, graceful degradation contract
 
 ### Phase 199: Data Layer — Cache Module + Source Pipeline
 **Goal**: All Firecrawl output flows to disk through a single, tested CJS module before any workflow is modified — preventing context window overflow and establishing the source pipeline that brief, researcher, and /pde:source all depend on
