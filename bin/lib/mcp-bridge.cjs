@@ -856,6 +856,67 @@ function acquireFirecrawlSemaphore(opts = {}) {
   return { release, lockPath };
 }
 
+// ─── Firecrawl workflow integration helper ──────────────────────────────────
+
+/**
+ * Combined probe + credit check for workflow-level Firecrawl gating.
+ * Returns { available, reason, credits, warning } that workflows use
+ * to set FIRECRAWL_AVAILABLE before their body executes.
+ *
+ * This function does NOT call the live MCP probe (that happens at the
+ * Claude Code MCP layer). It checks prerequisites: env var present,
+ * credits not exhausted. The actual MCP tool probe (mcp__firecrawl__search)
+ * is done by Claude Code's MCP runtime when the first tool call is made.
+ *
+ * @param {Object} [opts] — { configPath, skipProbe, skipMcpProbe }
+ *   skipProbe: true = --no-firecrawl flag, returns { available: false, reason: 'skipped' }
+ *   skipMcpProbe: true = skip live MCP call but still check env + credits (for testing)
+ *   configPath: override .planning/config.json path (for testing)
+ * @returns {{ available: boolean, reason: string, credits: object|null, warning?: boolean }}
+ */
+function probeFirecrawl(opts = {}) {
+  // --no-firecrawl flag: skip everything
+  if (opts.skipProbe) {
+    return { available: false, reason: 'skipped', credits: null };
+  }
+
+  // Check for API key in environment
+  if (!process.env.FIRECRAWL_API_KEY) {
+    return { available: false, reason: 'no_api_key', credits: null };
+  }
+
+  // Check credit status
+  const creditResult = checkFirecrawlCredits(opts.configPath);
+
+  if (creditResult.reason === 'quota_exhausted') {
+    return {
+      available: false,
+      reason: 'quota_exhausted',
+      credits: { remaining: creditResult.remaining, total: readFirecrawlCredits(opts.configPath)?.total || 100000 },
+      warning: false,
+    };
+  }
+
+  if (creditResult.reason === 'quota_warning') {
+    const cached = readFirecrawlCredits(opts.configPath);
+    return {
+      available: true,
+      reason: 'quota_warning',
+      credits: { remaining: creditResult.remaining, total: cached?.total || 100000 },
+      warning: true,
+    };
+  }
+
+  // ok or no_quota_configured — both allow usage
+  const cached = readFirecrawlCredits(opts.configPath);
+  return {
+    available: true,
+    reason: creditResult.reason,
+    credits: cached ? { remaining: cached.remaining, total: cached.total } : null,
+    warning: false,
+  };
+}
+
 // ─── Docker container mode helpers ───────────────────────────────────────────
 
 let _dockerAvailableCache = null;
@@ -951,6 +1012,7 @@ module.exports = {
   checkFirecrawlCredits,
   incrementFirecrawlUsage,
   acquireFirecrawlSemaphore,
+  probeFirecrawl,
   isDockerAvailable,
   getInstallCmd,
   getProbeTimeoutMs,
