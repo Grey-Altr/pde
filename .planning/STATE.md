@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v0.24
 milestone_name: Cloud Dispatch & State Sync
-status: ready_to_plan
-stopped_at: null
-last_updated: "2026-03-30T10:00:00.000Z"
-last_activity: 2026-03-30
+status: planning
+stopped_at: Completed 190-02-PLAN.md
+last_updated: "2026-03-30T10:44:07.412Z"
+last_activity: 2026-03-30 — Roadmap created for v0.24 Cloud Dispatch & State Sync
 progress:
-  total_phases: 8
+  total_phases: 29
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 2
+  completed_plans: 1
   percent: 0
 ---
 
@@ -52,6 +52,7 @@ Progress: [░░░░░░░░░░] 0%
 - [Roadmap]: direction-aware merge — cloud sync uses --theirs for STATE.md, --ours for ROADMAP.md and REQUIREMENTS.md (remote must not mutate planning artifacts)
 - [Roadmap]: cloud adapter in packages/ — zero-npm constraint at plugin root; coordinator invokes cloud SDK via spawn, never require()
 - [Roadmap]: RemoteAggregator never creates TailCursor for cloud session IDs — prevents ghost cursor accumulation
+- [Phase 190]: SessionListItem.source kept as inline union (not importing SessionSource type) to avoid TypeScript/CJS cross-module import chain per research anti-pattern guidance
 
 ### Pending Todos
 
@@ -64,7 +65,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-30
-Stopped at: Roadmap created — 8 phases (190-197), 33 requirements mapped, 100% coverage
+Last session: 2026-03-30T10:44:07.408Z
+Stopped at: Completed 190-02-PLAN.md
 Resume with: /gsd:plan-phase 190
 Resume file: None
