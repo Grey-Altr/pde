@@ -51,8 +51,8 @@ Requirements for Cloud Dispatch & State Sync. Each maps to roadmap phases.
 - [ ] **INF-01**: lock.cjs extended with cloud-aware PID handling (no process.kill for cloud sessions)
 - [ ] **INF-02**: aggregator.cjs uses RemoteAggregator for cloud sessions instead of file-based TailCursor
 - [x] **INF-03**: SessionSource registry enum extended for cloud and docker dispatch types
-- [ ] **INF-04**: Containerized MCP servers wrap APPROVED_SERVERS in per-server Docker containers with pinned runtimes
-- [ ] **INF-05**: MCP probe/degrade contracts extended for container startup latency
+- [x] **INF-04**: Containerized MCP servers wrap APPROVED_SERVERS in per-server Docker containers with pinned runtimes
+- [x] **INF-05**: MCP probe/degrade contracts extended for container startup latency
 - [ ] **INF-06**: Dispatch configuration block extended with cloud and docker settings
 
 ## Future Requirements
@@ -120,8 +120,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | INF-01 | Phase 190 | Pending |
 | INF-02 | Phase 190 | Pending |
 | INF-03 | Phase 190 | Complete |
-| INF-04 | Phase 196 | Pending |
-| INF-05 | Phase 196 | Pending |
+| INF-04 | Phase 196 | Complete |
+| INF-05 | Phase 196 | Complete |
 | INF-06 | Phase 190 | Pending |
 
 **Coverage:**

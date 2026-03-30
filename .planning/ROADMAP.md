@@ -440,7 +440,7 @@ Plans:
 - [x] **Phase 193: Cloud Web Backend** — remote-cloud.cjs with CloudPoller synthetic events, OAuth probe, cloud dispatch branch in coordinator, auto-teardown on completion, and graceful fallback chain (completed 2026-03-30)
 - [x] **Phase 194: Intelligent Routing** — Full classifyTaskRouting() integration, auto-classify from PLAN.md metadata, cost ceiling enforcement, manual --dispatch override, fast-path local guarantee, and routing event logging (completed 2026-03-30)
 - [x] **Phase 195: Dashboard Integration** — Cloud and Docker session labels, CloudPoller progress bars, start/stop/inspect UI, sync state display, cost tracking in Token Playground, and session_source type extension (completed 2026-03-30)
-- [ ] **Phase 196: Containerized MCP Servers** — Per-server Docker containers for APPROVED_SERVERS with pinned runtimes and probe/degrade contract extension for container startup latency
+- [x] **Phase 196: Containerized MCP Servers** — Per-server Docker containers for APPROVED_SERVERS with pinned runtimes and probe/degrade contract extension for container startup latency (completed 2026-03-30)
 - [ ] **Phase 197: Cross-Host Session Resume** — Agent SDK .jsonl persistence to shared storage and cwd encoding for cross-host session portability
 
 #### Phase Details
@@ -543,7 +543,7 @@ Plans:
   3. MCP server containers degrade gracefully if Docker daemon is unavailable, falling back to the existing non-containerized behavior
 **Plans**: 1 plan
 Plans:
-- [ ] 196-01-PLAN.md — Container blocks on APPROVED_SERVERS, isDockerAvailable/getInstallCmd/getProbeTimeoutMs functions, unit tests (INF-04, INF-05)
+- [x] 196-01-PLAN.md — Container blocks on APPROVED_SERVERS, isDockerAvailable/getInstallCmd/getProbeTimeoutMs functions, unit tests (INF-04, INF-05)
 
 ### Phase 197: Cross-Host Session Resume
 **Goal**: Agent SDK session .jsonl files are persisted to shared storage so a session started on one machine can be resumed on a different host with matching cwd encoding
@@ -553,7 +553,7 @@ Plans:
   1. Agent SDK .jsonl session files are persisted to configured shared storage on session completion — verified by reading the updated session persistence code
   2. Session resume on a different host succeeds when the shared storage entry exists — coordinator loads .jsonl from shared storage and resumes with matching cwd encoding
   3. cwd encoding is portable across hosts — a session started in /Users/alice/project resumes correctly on /home/alice/project via cwd normalization
-**Plans:** 2 plans
+**Plans:** 1/1 plans complete
 Plans:
 - [ ] 197-01-PLAN.md — session-persist.cjs module (sanitization, persist, restore) + config keys + unit tests
 - [ ] 197-02-PLAN.md — Coordinator integration: capture claudeSessionId, persist on exit, restore on resume
@@ -606,5 +606,5 @@ Plans:
 | 193. Cloud Web Backend | v0.24 | 1/2 | Complete    | 2026-03-30 |
 | 194. Intelligent Routing | v0.24 | 1/2 | Complete    | 2026-03-30 |
 | 195. Dashboard Integration | v0.24 | 2/2 | Complete    | 2026-03-30 |
-| 196. Containerized MCP Servers | v0.24 | 0/TBD | Not started | - |
+| 196. Containerized MCP Servers | v0.24 | 1/1 | Complete   | 2026-03-30 |
 | 197. Cross-Host Session Resume | v0.24 | 0/TBD | Not started | - |

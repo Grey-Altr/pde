@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v0.24
 milestone_name: Cloud Dispatch & State Sync
 status: verifying
-stopped_at: Completed 195-02-PLAN.md
-last_updated: "2026-03-30T18:08:21.696Z"
+stopped_at: Completed 196-01-PLAN.md
+last_updated: "2026-03-30T18:27:16.069Z"
 last_activity: 2026-03-30
 progress:
   total_phases: 29
-  completed_phases: 6
-  total_plans: 12
-  completed_plans: 12
+  completed_phases: 7
+  total_plans: 15
+  completed_plans: 13
   percent: 0
 ---
 
@@ -66,6 +66,7 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 195]: infraCostUsdCents computed at ingest time from container_uptime_s using PDE_INFRA_COST_RATE_CENTS_PER_HOUR env var on session_end event
 - [Phase 195]: formatCost takes USD float not cents — divide infraCostUsdCents by 100 at all call sites
 - [Phase 195]: PaneGrid row 3 backwards-compat: col-span-3 on pane 6 when children[7] absent
+- [Phase 196-containerized-mcp-servers]: container block absent from pencil (VS Code managed) and all HTTP/SSE servers; dockerode require() in try/catch; callers pass dockerAvailable boolean explicitly
 
 ### Pending Todos
 
@@ -78,7 +79,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-30T18:04:07.918Z
-Stopped at: Completed 195-02-PLAN.md
+Last session: 2026-03-30T18:27:16.065Z
+Stopped at: Completed 196-01-PLAN.md
 Resume with: /gsd:plan-phase 190
 Resume file: None
