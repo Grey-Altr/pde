@@ -38,4 +38,7 @@ const remoteSsh = require('./lib/remote-ssh.cjs');
 const remoteManaged = require('./lib/remote-managed.cjs');
 const remoteRouter = require('./lib/remote-router.cjs');
 
-module.exports = { ...worktree, ...lock, ...merge, ...orphan, ...spawn, ...registry, ...queue, ...aggregator, ...coordinator, ...orchestrator, ...remoteSsh, ...remoteManaged, ...remoteRouter };
+// Phase 192 modules
+const sync = require('./lib/sync.cjs');
+
+module.exports = { ...worktree, ...lock, ...merge, ...orphan, ...spawn, ...registry, ...queue, ...aggregator, ...coordinator, ...orchestrator, ...remoteSsh, ...remoteManaged, ...remoteRouter, ...sync };
