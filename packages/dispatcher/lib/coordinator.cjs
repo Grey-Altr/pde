@@ -58,6 +58,9 @@ const { spawnRemoteSession } = require('./remote-ssh.cjs');
 // Phase 191: Docker container dispatch
 const { spawnDockerSession } = require('../../cloud-adapter/index.cjs');
 
+// Phase 192: Git-based state sync
+const { pushPlanningState, fetchPlanningState, mergePlanningFromCloud } = require('./sync.cjs');
+
 // Phase 148: tmux pane integration fan-out writer
 const { TmuxFanout } = require('./tmux-fanout.cjs');
 
@@ -99,7 +102,8 @@ class DispatchCoordinator {
    *   Shape: { spawnSession, createWorktree, removeWorktree, deleteBranch,
    *            mergeSession, recalculateFromArtifacts, acquireLock, releaseLock,
    *            analyzeDag, checkFileOverlap, summarizeFailure, triageConflicts,
-   *            spawnRemoteSession, routeSession, readPlanAutonomous }
+   *            spawnRemoteSession, routeSession, readPlanAutonomous,
+   *            pushPlanningState, fetchPlanningState, mergePlanningFromCloud }
    *   When omitted, production module-level requires are used.
    */
   constructor(projectRoot, opts) {
@@ -147,6 +151,14 @@ class DispatchCoordinator {
     this._routeSession = deps.routeSession || routeSession;
     this._remoteConfig = (options.config && options.config.dispatch && options.config.dispatch.remote) || null;
     this._readPlanAutonomous = deps.readPlanAutonomous || readPlanAutonomous;
+
+    // Phase 192: State sync — injectable for testability
+    this._pushPlanningState = deps.pushPlanningState || pushPlanningState;
+    this._fetchPlanningState = deps.fetchPlanningState || fetchPlanningState;
+    this._mergePlanningFromCloud = deps.mergePlanningFromCloud || mergePlanningFromCloud;
+
+    // Phase 192: Routing config for fallback_to_local
+    this._routingConfig = (options.config && options.config.dispatch && options.config.dispatch.routing) || {};
 
     // Phase 191: Docker container dispatch
     this._spawnDockerSession = deps.spawnDockerSession || spawnDockerSession;
@@ -203,7 +215,7 @@ class DispatchCoordinator {
     const isAutonomous = (opts && opts.isAutonomous !== undefined)
       ? opts.isAutonomous
       : this._readPlanAutonomous(this._root, phaseNum, planNum);
-    const backend = await this._routeSession({
+    let backend = await this._routeSession({
       isAutonomous,
       remoteConfig: this._remoteConfig,
       dockerConfig: this._dockerConfig,
@@ -243,6 +255,26 @@ class DispatchCoordinator {
 
       // 6. Release lock before spawning (spawn is slow; don't hold lock)
       this._releaseLock(this._root);
+
+      // Phase 192 (SYN-01): Push planning state to remote before spawn
+      // Push happens AFTER lock release (push is a slow network op — don't hold lock)
+      // Push happens BEFORE spawn (cloud executor needs current .planning/ state)
+      const CLOUD_BACKENDS = ['docker', 'ssh', 'managed', 'cloud'];
+      if (CLOUD_BACKENDS.includes(backend)) {
+        const syncResult = await this._pushPlanningState(this._root, branch);
+        if (!syncResult.ok) {
+          if (this._routingConfig.fallback_to_local) {
+            // Downgrade to local dispatch — re-route
+            backend = 'local';
+          } else {
+            // Abort dispatch — cloud dispatch without state sync is useless
+            this._registry.remove(sessionId);
+            this._removeWorktree(this._root, sessionId);
+            this._deleteBranch(this._root, branch);
+            throw new Error('State sync push failed: ' + syncResult.error);
+          }
+        }
+      }
 
       // Phase 152: Store relayId mapping for aggregator unwatch in _handleExit
       this._relayIds.set(sessionId, relayId);
@@ -447,6 +479,25 @@ class DispatchCoordinator {
     }
 
     if (exitCode === 0) {
+      // Phase 192 (SYN-02, SYN-04): Fetch and merge cloud planning state BEFORE session merge
+      // CRITICAL call order: fetchPlanningState → mergePlanningFromCloud → THEN mergeSession()
+      // Cloud sync MUST complete before session merge runs (Pitfall 6 from research)
+      const entry = this._registry.get(sessionId);
+      if (entry && entry.backend && entry.backend !== 'local') {
+        const mergeLock = this._acquireLock(this._root);
+        try {
+          await this._fetchPlanningState(this._root, branch);
+          await this._mergePlanningFromCloud(this._root, branch);
+        } catch (syncErr) {
+          // Cloud sync failure is non-fatal — log and continue to session merge
+          // The session work is still in the worktree; session merge will handle it
+        } finally {
+          if (mergeLock.acquired) {
+            this._releaseLock(this._root);
+          }
+        }
+      }
+
       // Success path: merge → recalculate → cleanup
       const result = this._mergeSession(this._root, sessionId);
       if (result.ok) {

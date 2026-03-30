@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v0.24
 milestone_name: Cloud Dispatch & State Sync
 status: planning
-stopped_at: Completed 192-01-PLAN.md
-last_updated: "2026-03-30T15:52:05.939Z"
+stopped_at: Completed 192-02-PLAN.md
+last_updated: "2026-03-30T16:03:30.582Z"
 last_activity: 2026-03-30
 progress:
   total_phases: 29
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 6
-  completed_plans: 5
+  completed_plans: 6
   percent: 0
 ---
 
@@ -55,6 +55,9 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 190]: SessionListItem.source kept as inline union (not importing SessionSource type) to avoid TypeScript/CJS cross-module import chain per research anti-pattern guidance
 - [Phase 191]: Docker sessions use TailCursor (not RemoteAggregator): container writes NDJSON to local /tmp/, RemoteAggregator reserved for cloud HTTP push (Phase 193)
 - [Phase 192]: CLOUD_THEIRS=[STATE.md], CLOUD_OURS=[ROADMAP.md, REQUIREMENTS.md] — inverted from merge.cjs; cloud executor updates STATE.md but must not override orchestrator-owned planning artifacts
+- [Phase 192]: CLOUD_BACKENDS=['docker','ssh','managed','cloud'] defined inline in coordinator dispatch() — no separate constant, matches research Pattern 5
+- [Phase 192]: Push after releaseLock in dispatch(): push is a slow network op that must not hold the dispatcher mutex
+- [Phase 192]: _handleExit cloud sync failure is non-fatal: session work stays in worktree, session merge recovers it — degraded mode not data loss
 
 ### Pending Todos
 
@@ -67,7 +70,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-30T15:52:05.935Z
-Stopped at: Completed 192-01-PLAN.md
+Last session: 2026-03-30T16:03:30.578Z
+Stopped at: Completed 192-02-PLAN.md
 Resume with: /gsd:plan-phase 190
 Resume file: None

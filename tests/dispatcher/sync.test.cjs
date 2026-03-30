@@ -300,6 +300,220 @@ describe('fetchPlanningState + mergePlanningFromCloud — full round-trip', () =
   });
 });
 
+// ─── Coordinator sync wiring ─────────────────────────────────────────────────
+
+const { DispatchCoordinator } = require('../../packages/dispatcher/lib/coordinator.cjs');
+
+/**
+ * Create a DispatchCoordinator with all deps fully mocked via DI.
+ * Tracks call order across all mock functions.
+ *
+ * @param {object} [overrides] - Behavior overrides
+ * @returns {{ coord, deps, callOrder }}
+ */
+function makeCoordinator(overrides = {}) {
+  const tmpRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'pde-coord-sync-'));
+  fs.mkdirSync(path.join(tmpRoot, '.planning'), { recursive: true });
+
+  const callOrder = [];
+
+  function track(name, impl) {
+    return vi.fn((...args) => {
+      callOrder.push(name);
+      return impl(...args);
+    });
+  }
+
+  const deps = {
+    spawnSession: track('spawnSession', vi.fn(() => ({ pid: 999, kill: vi.fn() }))),
+    spawnRemoteSession: track('spawnRemoteSession', vi.fn(() => ({ kill: vi.fn() }))),
+    spawnDockerSession: track('spawnDockerSession', vi.fn(() => ({ kill: vi.fn() }))),
+    routeSession: track('routeSession', vi.fn(async () => overrides.backend || 'docker')),
+    readPlanAutonomous: track('readPlanAutonomous', vi.fn(() => true)),
+    createWorktree: track('createWorktree', vi.fn((r, sid) => ({
+      worktreePath: path.join(r, '.sessions', sid),
+      branch: 'pde/session/' + sid,
+    }))),
+    removeWorktree: track('removeWorktree', vi.fn()),
+    deleteBranch: track('deleteBranch', vi.fn()),
+    mergeSession: track('mergeSession', vi.fn(() => ({ ok: true, conflicts: [] }))),
+    recalculateFromArtifacts: track('recalculateFromArtifacts', vi.fn()),
+    acquireLock: track('acquireLock', vi.fn(() => ({ acquired: true, lockPath: path.join(tmpRoot, 'dispatcher.lock') }))),
+    releaseLock: track('releaseLock', vi.fn()),
+    analyzeDag: track('analyzeDag', vi.fn(async () => ({ parallelizable: [], unsafe: [] }))),
+    checkFileOverlap: track('checkFileOverlap', vi.fn(() => ({ overlapping: [] }))),
+    summarizeFailure: track('summarizeFailure', vi.fn(async () => '')),
+    triageConflicts: track('triageConflicts', vi.fn(async () => ({}))),
+    pushPlanningState: track('pushPlanningState', vi.fn(async () => overrides.pushResult || { ok: true })),
+    fetchPlanningState: track('fetchPlanningState', vi.fn(async () => overrides.fetchResult || { ok: true })),
+    mergePlanningFromCloud: track('mergePlanningFromCloud', vi.fn(async () => overrides.mergeCloudResult || { ok: true, conflicts: [], autoResolved: [] })),
+    // Override individual deps if provided
+    ...(overrides.deps || {}),
+  };
+
+  // For spawnDockerSession: simulate immediate exit with code 0
+  // The onExit is captured from the spawn call
+  if (!overrides.deps || !overrides.deps.spawnDockerSession) {
+    deps.spawnDockerSession = track('spawnDockerSession', vi.fn((opts) => {
+      setTimeout(() => opts.onExit(opts.sessionId, 0), 5);
+      return { kill: vi.fn() };
+    }));
+  }
+
+  const coord = new DispatchCoordinator(tmpRoot, {
+    config: {
+      dispatch: {
+        routing: { fallback_to_local: overrides.fallback_to_local || false },
+        docker: overrides.dockerConfig !== undefined ? overrides.dockerConfig : { enabled: true },
+      },
+    },
+    _deps: deps,
+  });
+
+  return { coord, deps, callOrder, tmpRoot };
+}
+
+/**
+ * Wait for microtasks and brief async ops to settle.
+ */
+function waitFor(ms = 50) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+describe('coordinator sync wiring', () => {
+  // ─── Test SW-01: dispatch() calls pushPlanningState for docker backend ──────
+
+  it('SW-01: dispatch() calls pushPlanningState for docker backend after releaseLock', async () => {
+    const { coord, deps, callOrder } = makeCoordinator({ backend: 'docker' });
+
+    await coord.dispatch(192, 2);
+
+    expect(deps.pushPlanningState).toHaveBeenCalledTimes(1);
+    // push first arg is projectRoot, second is branch
+    const pushArgs = deps.pushPlanningState.mock.calls[0];
+    expect(typeof pushArgs[0]).toBe('string'); // projectRoot
+    expect(pushArgs[1]).toMatch(/^pde\/session\//); // branch
+
+    // releaseLock must have been called before pushPlanningState
+    const releaseLockIdx = callOrder.indexOf('releaseLock');
+    const pushIdx = callOrder.indexOf('pushPlanningState');
+    expect(releaseLockIdx).toBeGreaterThanOrEqual(0);
+    expect(pushIdx).toBeGreaterThan(releaseLockIdx);
+  });
+
+  // ─── Test SW-02: dispatch() skips push for local backend ────────────────────
+
+  it('SW-02: dispatch() skips pushPlanningState for local backend', async () => {
+    const { coord, deps } = makeCoordinator({ backend: 'local' });
+
+    await coord.dispatch(192, 2);
+
+    expect(deps.pushPlanningState).not.toHaveBeenCalled();
+  });
+
+  // ─── Test SW-03: dispatch() fallback_to_local on push failure ───────────────
+
+  it('SW-03: dispatch() with fallback_to_local=true downgrades to local on push failure', async () => {
+    const { coord, deps } = makeCoordinator({
+      backend: 'docker',
+      pushResult: { ok: false, error: 'network timeout' },
+      fallback_to_local: true,
+      deps: {
+        // Override spawnDockerSession to NOT be called — verifies fallback routed to local
+        spawnDockerSession: vi.fn(),
+        // Local sessions use spawnSession
+        spawnSession: vi.fn((opts) => {
+          setTimeout(() => opts.onExit(opts.sessionId, 0), 5);
+          return { pid: 111, kill: vi.fn() };
+        }),
+      },
+    });
+
+    // Should not throw
+    await expect(coord.dispatch(192, 2)).resolves.toBeDefined();
+    // spawnDockerSession should NOT be called (backend downgraded to local)
+    expect(deps.spawnDockerSession).not.toHaveBeenCalled();
+  });
+
+  // ─── Test SW-04: dispatch() throws on push failure without fallback ──────────
+
+  it('SW-04: dispatch() throws "State sync push failed" on push failure without fallback', async () => {
+    const { coord } = makeCoordinator({
+      backend: 'docker',
+      pushResult: { ok: false, error: 'network timeout' },
+      fallback_to_local: false,
+    });
+
+    await expect(coord.dispatch(192, 2)).rejects.toThrow('State sync push failed');
+  });
+
+  // ─── Test SW-05: _handleExit() fetch+merge before mergeSession for non-local ─
+
+  it('SW-05: _handleExit() calls fetchPlanningState then mergePlanningFromCloud before mergeSession', async () => {
+    const { coord, deps, callOrder } = makeCoordinator({ backend: 'docker' });
+
+    await coord.dispatch(192, 2);
+    // Wait for spawnDockerSession's setTimeout(onExit, 5) to fire
+    await waitFor(80);
+
+    expect(deps.fetchPlanningState).toHaveBeenCalledTimes(1);
+    expect(deps.mergePlanningFromCloud).toHaveBeenCalledTimes(1);
+    expect(deps.mergeSession).toHaveBeenCalledTimes(1);
+
+    // Verify call order: fetchPlanningState → mergePlanningFromCloud → mergeSession
+    const fetchIdx = callOrder.indexOf('fetchPlanningState');
+    const mergeCloudIdx = callOrder.indexOf('mergePlanningFromCloud');
+    const mergeSessionIdx = callOrder.indexOf('mergeSession');
+
+    expect(fetchIdx).toBeGreaterThanOrEqual(0);
+    expect(mergeCloudIdx).toBeGreaterThan(fetchIdx);
+    expect(mergeSessionIdx).toBeGreaterThan(mergeCloudIdx);
+  });
+
+  // ─── Test SW-06: _handleExit() skips sync for local backend ────────────────
+
+  it('SW-06: _handleExit() skips fetchPlanningState and mergePlanningFromCloud for local backend', async () => {
+    const { coord, deps } = makeCoordinator({
+      backend: 'local',
+      deps: {
+        spawnSession: vi.fn((opts) => {
+          setTimeout(() => opts.onExit(opts.sessionId, 0), 5);
+          return { pid: 222, kill: vi.fn() };
+        }),
+      },
+    });
+
+    await coord.dispatch(192, 2);
+    await waitFor(80);
+
+    expect(deps.fetchPlanningState).not.toHaveBeenCalled();
+    expect(deps.mergePlanningFromCloud).not.toHaveBeenCalled();
+    expect(deps.mergeSession).toHaveBeenCalledTimes(1);
+  });
+
+  // ─── Test SW-07: _handleExit() sync failure does not block mergeSession ─────
+
+  it('SW-07: _handleExit() sync failure does not prevent mergeSession from running', async () => {
+    const { coord, deps } = makeCoordinator({
+      backend: 'docker',
+      deps: {
+        fetchPlanningState: vi.fn(async () => { throw new Error('network down'); }),
+        mergePlanningFromCloud: vi.fn(async () => { throw new Error('should not be called after fetch throw'); }),
+        spawnDockerSession: vi.fn((opts) => {
+          setTimeout(() => opts.onExit(opts.sessionId, 0), 5);
+          return { kill: vi.fn() };
+        }),
+      },
+    });
+
+    await coord.dispatch(192, 2);
+    await waitFor(80);
+
+    // mergeSession must still run despite sync failure
+    expect(deps.mergeSession).toHaveBeenCalledTimes(1);
+  });
+});
+
 // ─── SYN-07: Package location ─────────────────────────────────────────────────
 
 describe('SYN-07: simple-git package location', () => {

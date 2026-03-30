@@ -436,7 +436,7 @@ Plans:
 
 - [x] **Phase 190: Infrastructure Foundation** — Extended registry backend enum, SessionSource shared type, lock.cjs cloud-aware PID handling, aggregator RemoteAggregator stub, dispatch config block extension, and cloud adapter package scaffold (completed 2026-03-30)
 - [x] **Phase 191: Docker Container Backend** — remote-docker.cjs mirroring spawn.cjs interface, NDJSON stdout relay, coordinator Docker dispatch branch, [D] source label, and coordinator-docker tests (completed 2026-03-30)
-- [ ] **Phase 192: Git-Based State Sync** — sync.cjs with pushPlanningState/fetchPlanningState, direction-aware merge strategy, simple-git in packages/, concurrent branch ordering, and sync tests against real worktree fixtures
+- [x] **Phase 192: Git-Based State Sync** — sync.cjs with pushPlanningState/fetchPlanningState, direction-aware merge strategy, simple-git in packages/, concurrent branch ordering, and sync tests against real worktree fixtures (completed 2026-03-30)
 - [ ] **Phase 193: Cloud Web Backend** — remote-cloud.cjs with CloudPoller synthetic events, OAuth probe, cloud dispatch branch in coordinator, auto-teardown on completion, and graceful fallback chain
 - [ ] **Phase 194: Intelligent Routing** — Full classifyTaskRouting() integration, auto-classify from PLAN.md metadata, cost ceiling enforcement, manual --dispatch override, fast-path local guarantee, and routing event logging
 - [ ] **Phase 195: Dashboard Integration** — Cloud and Docker session labels, CloudPoller progress bars, start/stop/inspect UI, sync state display, cost tracking in Token Playground, and session_source type extension
@@ -487,7 +487,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 - [x] 192-01-PLAN.md — Install simple-git, create sync.cjs (push/fetch/merge), real-git integration tests
-- [ ] 192-02-PLAN.md — Wire sync.cjs into coordinator dispatch/exit lifecycle, concurrency tests
+- [x] 192-02-PLAN.md — Wire sync.cjs into coordinator dispatch/exit lifecycle, concurrency tests
 
 ### Phase 193: Cloud Web Backend
 **Goal**: Users can dispatch an autonomous phase to an Anthropic-managed cloud VM via claude --remote, receive synthetic NDJSON progress events via CloudPoller, and have the container auto-teardown with state synced back on completion
@@ -586,7 +586,7 @@ Plans:
 | 189. Technical Debt Cleanup | v0.23 | 2/2 | Complete    | 2026-03-30 |
 | 190. Infrastructure Foundation | v0.24 | 1/2 | Complete    | 2026-03-30 |
 | 191. Docker Container Backend | v0.24 | 1/2 | Complete    | 2026-03-30 |
-| 192. Git-Based State Sync | v0.24 | 1/2 | In Progress|  |
+| 192. Git-Based State Sync | v0.24 | 2/2 | Complete   | 2026-03-30 |
 | 193. Cloud Web Backend | v0.24 | 0/TBD | Not started | - |
 | 194. Intelligent Routing | v0.24 | 0/TBD | Not started | - |
 | 195. Dashboard Integration | v0.24 | 0/TBD | Not started | - |
