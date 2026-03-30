@@ -276,8 +276,8 @@ Plans:
   4. The PDF preserves chart SVGs, embedded base64 images, and table formatting from the HTML source without requiring additional dependencies
 **Plans:** 1/2 plans executed
 Plans:
-- [x] 180-01-PLAN.md — Claim verification engine (verify-presentation.cjs), render() integration, verification footer CSS, unit + integration tests
-- [ ] 180-02-PLAN.md — PDF export module (export-pdf.cjs), pde-tools presentation pdf subcommand, workflow --pdf flag, smoke tests
+- [ ] 180-01-PLAN.md — Claim verification engine (verify-presentation.cjs), render() integration, verification footer CSS, unit + integration tests
+- [x] 180-02-PLAN.md — PDF export module (export-pdf.cjs), pde-tools presentation pdf subcommand, workflow --pdf flag, smoke tests
 
 ### Phase 181: Remaining Cluster A Personas
 **Goal**: Users can generate all six remaining internal/forward-looking personas — investor update, sprint review, client deliverable, stakeholder status update, product manager view, and project manager view — using the shared engine proven by the reference implementations

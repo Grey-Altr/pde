@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v0.22
 milestone_name: Stakeholder Presentations
 status: verifying
-stopped_at: Completed 180-01-PLAN.md
-last_updated: "2026-03-30T02:37:11.049Z"
+stopped_at: Completed 180-02-PLAN.md
+last_updated: "2026-03-30T02:35:14.888Z"
 last_activity: 2026-03-30
 progress:
   total_phases: 16
@@ -60,8 +60,8 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 178]: Workflow Step 6 delegates rendering to pde-tools CLI — keeps workflow thin, rendering logic encapsulated in render-presentation.cjs
 - [Phase 179-svg-charts]: SVG chart colors hardcoded as hex values — CSS custom properties unreliable in SVG fill attributes in self-contained HTML
 - [Phase 179-svg-charts]: Burndown chart uses synthetic linear approximation from IR aggregate counts — per-phase snapshots not stored in IR
-- [Phase 180-01]: Claim verification uses stripHtml + word-boundary regex on section content only (not title/id) to prevent CSS/attribute numeric collisions
-- [Phase 180-01]: Percentage canonicalization in buildClaimsMap: Math.round((completed/total)*100) not raw IR pct field, matching renderer calculation
+- [Phase 180]: exportPdf uses page.goto('file://') not page.setContent() — matches screenshot.cjs pattern, ensures relative resources resolve
+- [Phase 180]: PDF failure in present.md is non-blocking — HTML and MD already written before PDF export attempt
 
 ### Pending Todos
 
@@ -74,7 +74,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-30T02:37:11.046Z
-Stopped at: Completed 180-01-PLAN.md
+Last session: 2026-03-30T02:35:14.884Z
+Stopped at: Completed 180-02-PLAN.md
 Resume with: `/gsd:plan-phase 176`
 Resume file: None

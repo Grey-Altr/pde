@@ -62,15 +62,15 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### PDF Export
 
-- [ ] **PDF-01**: User can export any HTML presentation to PDF via `--pdf` flag
-- [ ] **PDF-02**: PDF export uses Playwright page.pdf() (already installed, no new deps)
-- [ ] **PDF-03**: PDF preserves chart SVGs, embedded images, and table formatting
+- [x] **PDF-01**: User can export any HTML presentation to PDF via `--pdf` flag
+- [x] **PDF-02**: PDF export uses Playwright page.pdf() (already installed, no new deps)
+- [x] **PDF-03**: PDF preserves chart SVGs, embedded images, and table formatting
 
 ### Claim Verification
 
-- [x] **VER-01**: Post-generation verification compares LLM narrative claims against the structured IR
-- [x] **VER-02**: Factual mismatches (wrong counts, dates, status) are flagged before output is finalized
-- [x] **VER-03**: Verification result is appended as metadata footer in generated presentations
+- [ ] **VER-01**: Post-generation verification compares LLM narrative claims against the structured IR
+- [ ] **VER-02**: Factual mismatches (wrong counts, dates, status) are flagged before output is finalized
+- [ ] **VER-03**: Verification result is appended as metadata footer in generated presentations
 
 ### Command & Workflow
 
@@ -159,12 +159,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CHT-04 | Phase 179 | Complete |
 | CHT-05 | Phase 179 | Complete |
 | CHT-06 | Phase 179 | Complete |
-| VER-01 | Phase 180 | Complete |
-| VER-02 | Phase 180 | Complete |
-| VER-03 | Phase 180 | Complete |
-| PDF-01 | Phase 180 | Pending |
-| PDF-02 | Phase 180 | Pending |
-| PDF-03 | Phase 180 | Pending |
+| VER-01 | Phase 180 | Pending |
+| VER-02 | Phase 180 | Pending |
+| VER-03 | Phase 180 | Pending |
+| PDF-01 | Phase 180 | Complete |
+| PDF-02 | Phase 180 | Complete |
+| PDF-03 | Phase 180 | Complete |
 | CLU-02 | Phase 181 | Pending |
 | CLU-03 | Phase 181 | Pending |
 | CLU-04 | Phase 181 | Pending |

@@ -1681,8 +1681,11 @@ async function main() {
       } else if (subcommand === 'render') {
         const renderPresentation = require('./lib/render-presentation.cjs');
         renderPresentation.cmdPresentationRender(cwd, args[2], args[3], args[4], args[5]);
+      } else if (subcommand === 'pdf') {
+        const exportPdf = require('./lib/export-pdf.cjs');
+        await exportPdf.cmdPresentationPdf(cwd, args[2], args[3]);
       } else {
-        error('Unknown presentation subcommand. Available: artifact-read, render');
+        error('Unknown presentation subcommand. Available: artifact-read, render, pdf');
       }
       break;
     }

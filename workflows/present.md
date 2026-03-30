@@ -71,7 +71,7 @@ PDE > PRESENT
 
 Parse $ARGUMENTS:
 - Extract the first non-flag token as PERSONA_SLUG (e.g., `executive-summary`)
-- Detect flags: `--dry-run`, `--verbose`
+- Detect flags: `--dry-run`, `--verbose`, `--pdf`
 
 ---
 
@@ -166,6 +166,11 @@ MD_PATH=".planning/presentations/${PERSONA_SLUG}-${DATE}.md"
 mkdir -p .planning/presentations/
 ```
 
+IF `--pdf` flag is set:
+```bash
+PDF_PATH=".planning/presentations/${PERSONA_SLUG}-${DATE}.pdf"
+```
+
 If `--dry-run` flag is set, display planned output and HALT:
 
 ```
@@ -174,6 +179,8 @@ Dry run mode. No files will be written.
 Planned output:
   HTML: .planning/presentations/${PERSONA_SLUG}-${DATE}.html
   Markdown: .planning/presentations/${PERSONA_SLUG}-${DATE}.md
+  IF --pdf:
+    PDF: .planning/presentations/${PERSONA_SLUG}-${DATE}.pdf
 
 IR: schema_version={schema_version}, extracted_at={extracted_at}
 Persona: ${PERSONA_SLUG} ({display_name})
@@ -207,6 +214,26 @@ Presentation rendered:
   Markdown: ${MD_PATH}
 ```
 
+IF `--pdf` flag is set, run PDF export after render (HTML and MD are already written at this point):
+
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" presentation pdf "${HTML_PATH}" "${PDF_PATH}"
+```
+
+If this command fails (non-zero exit), display error but do NOT halt:
+
+```
+Error: PDF export failed for "${HTML_PATH}".
+  Ensure Playwright browsers are installed: npx playwright install chromium
+  HTML and Markdown output are available at the paths above.
+```
+
+If successful, log:
+
+```
+PDF: ${PDF_PATH}
+```
+
 ---
 
 ### Step 7/7: Complete
@@ -219,6 +246,8 @@ PDE > PRESENT > DONE
 Persona:  {display_name} ({PERSONA_SLUG})
 HTML:     {HTML_PATH}
 Markdown: {MD_PATH}
+IF --pdf:
+  PDF:      {PDF_PATH}
 ```
 
 </process>
