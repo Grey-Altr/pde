@@ -6,18 +6,18 @@
 
 **Key accomplishments:**
 
-- One-liner:
-- One-liner:
-- One-liner:
+- Four deterministic extractors reading PROJECT.md, STATE.md, ROADMAP.md, REQUIREMENTS.md, and design-manifest.json into structured IR with unavailable sentinels for missing files.
+- Six deterministic IR extractors (git velocity, cost/timing, blockers, verification, research, decisions) using execGit and SUMMARY.md frontmatter, with 29 unit tests.
+- buildPresentationIR composer wiring all 10 EXT functions into a single JSON IR with SHA-256 source hash and non-blocking cross-reference validation, accessible via `pde-tools presentation artifact-read`.
 - `/pde:present` command wired with 15-persona registry, three-branch dispatch (LIST/GENERATE/ERROR), IR acquisition from pde-tools, and Phase 178 generation stub — 32 integration tests all green
-- One-liner:
-- One-liner:
+- Dual-format HTML+Markdown rendering engine with executive-summary (CLU-01) and case-study (CLR-01) persona builders using section-based document model and PDE design token CSS.
+- Replaced workflows/present.md Step 6 stub with a single `pde-tools presentation render` CLI call, completing the end-to-end /pde:present pipeline.
 - Four parametric SVG chart generators (burndown, velocity, phase timeline, effort breakdown) with accessibility attributes and HTML fallback tables, wired into the executive-summary and case-study presentation personas.
 - Non-blocking claim verification engine that fact-checks every numeric IR value against rendered section content, appending a pass/fail footer section to both HTML and Markdown output via word-boundary regex scanning on stripHtml'd content.
-- One-liner:
-- One-liner:
-- One-liner:
-- One-liner:
+- Playwright page.pdf() PDF export from HTML presentations via pde-tools subcommand and --pdf workflow flag, with printBackground:true for PDE dark theme preservation.
+- Added investor-update (CLU-02) and sprint-review (CLU-03) persona builders with 5 new helpers, full test coverage, and CLU-04 through CLU-07 test scaffolds.
+- Client deliverable (CLU-04) and stakeholder status (CLU-05) persona builders with deterministic RAG status computation and full test coverage.
+- Complete Cluster A persona set with buildProductManager (CLU-06) and buildProjectManager (CLU-07) — requirement coverage with per-category breakdown, full phase tracking without truncation, and cost duration in hours.
 - Three Cluster B persona builders added to render-presentation.cjs: agile-report (retro + burndown + velocity), design-report (design-filtered decisions + token evolution), research-report (findings + recommendations + landscape) — 28 tests passing, 11 switch cases total
 - buildPostMortem (CLR-05) and buildAdrSummary (CLR-06) added to render-presentation.cjs with ADR-formatted decisions, cause-effect root-cause analysis, and full test coverage (44 passing)
 - Two final persona builders (launch-announcement + portfolio-overview) complete the full 15-persona suite with all slugs registered in personaDisplayName(), render() switch, and module.exports — 66 Phase 182 tests green, 0 skipped.
@@ -33,17 +33,17 @@
 
 **Key accomplishments:**
 
-- One-liner:
+- asyncMode spawn/Promise extension to server-gen.cjs plus app-wrappers orchestration layer (index.cjs + generate.cjs) with Wave 0 test scaffolds for all three wrapper plans.
 - Streamable HTTP MCP endpoint at /api/mcp with Clerk OAuth auth, RFC 9728 .well-known discovery routes, and 15-test suite verifying export shapes and auth wiring
 - start_pipeline_run/check_pipeline_run MCP tools using Upstash Redis job store with 1hr TTL, plus desktop client config docs for Claude Code, Cursor, and mcp-remote relay
-- One-liner:
+- Dynamic server registration in mcp-bridge.cjs with loadDynamicServers() reading approved app-registry entries into TOOL_MAP at module init and registerDynamicServer() for runtime single-app registration, with assertApproved extended to accept DYNAMIC_SERVERS keys.
 - emitWebMcpConfig() added as the 7th context-sync emitter, writing .webmcp/config.json for WebMCP browser agent discovery on every emitAll() cycle
 - 1. [Rule 3 - Blocking] Wave 1 files not available in worktree
 - @modelcontextprotocol/ext-apps installed with registerArtifactPreviewTools wiring two dual-mode tools (preview_artifact, list_design_artifacts) and a CSP-declared HTML resource into the PDE MCP server
 - ResourceTemplate registered at ui://pde/{artifact} serving design artifacts as HTML previews via marked (Markdown), JSON pre blocks, and HTML pass-through with inlined tokens.css
-- One-liner:
-- One-liner:
-- One-liner:
+- pip module handler for server-gen.cjs using spawnSync python3 -m argument array, plus pde-tools app register subcommand that approves and loads into bridge in one command.
+- Slash command and integration test suite for the one-command CLI wrap pipeline with dual-strategy routing (fast path via CLI-Anything harness, fallback via native --help).
+- Optional Blender 3D step wired into wireframe.md and optional GIMP retouch step wired into mockup.md, both gated by probeAppTool registry probe with graceful degradation via HTML skip comment annotations when tools are unavailable.
 - --webmcp flag added to all four design workflows (wireframe, mockup, critique, competitive) with USE_WEBMCP parse step and conditional WebMCP Context section containing pde_approval_gate tool table and gate ID
 - Step 8/8 added to competitive.md with full sanitization pipeline (injection stripping, 512-char truncation), registry write to .webmcp/competitor-tools-registry.json, gate file creation, and GET /api/planning/competitor-tools route serving approved entries
 - useCompetitorTools hook registered as query_competitor_data WebMCP dispatcher tool, wired into barrel and composite hook, with full source inspection test coverage
@@ -52,11 +52,8 @@
 - Five-tier binary probe with display detection, col-b preprocessing, and executionMode classification for cross-platform desktop app discovery
 - Two-tier approval registry with pending/approved/rejected state machine, SHA-256 hash verification at approval time, and checkApproved guard with actionable CLI error messages
 - pde-tools app subcommands wired for discover/probe/list/approve with known design app catalog documenting Blender, GIMP, and Inkscape
-- One-liner:
 - Blender and Inkscape CapabilityModel builders with TDD coverage — Blender has 3 headless capabilities (render/python-exec/export) with asyncRequired true + 5s startup, Inkscape has 1 pure CLI export capability with no deprecated flags.
 - GIMP 2.x/3.x version-conditional Script-Fu wrapper (parseMajorVersion + buildGimpArgs + getScriptFuTemplates) and pde-tools app wrap subcommand routing to generateAppWrapper pipeline
-- One-liner:
-- One-liner:
 - Dual-strategy CLI-Anything router with harness detection, pipx setup, approval-gated wrapping pipeline, and pde-tools subcommand wiring
 - commands/cli-wrap.md
 - probeAppTool (never-throwing registry probe), Blender bpy GLB export script, and two pipeline chains (Blender->optimize->embed, GIMP->saveAsset) with 16 passing tests
@@ -69,40 +66,40 @@
 
 **Key accomplishments:**
 
-- One-liner:
+- Zod-validated capability model schema, spec-type auto-detection, ingest orchestrator skeleton, /pde:ingest command, and vitest test infrastructure for all 4 spec types (OpenAPI, JSON Schema, GraphQL, MCP).
 - Streamable HTTP MCP endpoint at /api/mcp with Clerk OAuth auth, RFC 9728 .well-known discovery routes, and 15-test suite verifying export shapes and auth wiring
 - start_pipeline_run/check_pipeline_run MCP tools using Upstash Redis job store with 1hr TTL, plus desktop client config docs for Claude Code, Cursor, and mcp-remote relay
-- One-liner:
+- GraphQL HTTP introspection parser mapping Query/Mutation fields to capabilities, plus MCP StdioClientTransport parser using @modelcontextprotocol/sdk via absolute path require — 26 tests green.
 - emitWebMcpConfig() added as the 7th context-sync emitter, writing .webmcp/config.json for WebMCP browser agent discovery on every emitAll() cycle
 - 1. [Rule 3 - Blocking] Wave 1 files not available in worktree
 - @modelcontextprotocol/ext-apps installed with registerArtifactPreviewTools wiring two dual-mode tools (preview_artifact, list_design_artifacts) and a CSP-declared HTML resource into the PDE MCP server
 - ResourceTemplate registered at ui://pde/{artifact} serving design artifacts as HTML previews via marked (Markdown), JSON pre blocks, and HTML pass-through with inlined tokens.css
-- One-liner:
-- One-liner:
-- One-liner:
+- Extended CapabilityModelSchema to accept 'cli' type and established TDD RED scaffolds for all four new cli-anything modules (help-parser, server-gen, skill-gen, registry) with 3 fixture files for deterministic parser testing.
+- Implemented help-parser.cjs for extracting CLI subcommands/flags from --help output with recursive discovery, and server-gen.cjs for generating self-contained CJS MCP server files with JSON envelope output, --json flag support, and --dry-run mode.
+- Full wrap+publish pipeline: help-parser with recursive --help discovery, self-contained MCP server generator, SKILL.md generator with SHA256 provenance, and local CLI-Hub registry — wired end-to-end via pde-tools.cjs and skill command files.
 - --webmcp flag added to all four design workflows (wireframe, mockup, critique, competitive) with USE_WEBMCP parse step and conditional WebMCP Context section containing pde_approval_gate tool table and gate ID
 - Step 8/8 added to competitive.md with full sanitization pipeline (injection stripping, 512-char truncation), registry write to .webmcp/competitor-tools-registry.json, gate file creation, and GET /api/planning/competitor-tools route serving approved entries
 - useCompetitorTools hook registered as query_competitor_data WebMCP dispatcher tool, wired into barrel and composite hook, with full source inspection test coverage
 - X-PDE-Relay-Depth circular relay guard module and pde_remote APPROVED_SERVERS entry enabling Claude Code bridge routing to PDE remote MCP server
 - Relay depth guard wired into MCP guardedHandler pipeline (origin -> relay depth -> auth) and Gemini CLI httpUrl config documented
-- One-liner:
+- Playwright headless screenshot capture with named viewport presets, Sharp device-frame compositing, and remove.bg API client with monthly usage tracking (warn at 40/50, block at 50/50).
 - OpenAPI 3.x parser with recursive $ref resolution and JSON Schema parser with $defs expansion — both produce CapabilitySchema-validated arrays from real fixture files, 22 tests green
-- One-liner:
+- FFmpeg-static video pipeline with Playwright WebM-to-MP4 recording, concat/xfade assembly, SRT caption burn-in, and asset sidecar storage.
 - JSON Schema to Zod codegen walker + AI SDK tool() generator wiring all 4 parsers into a complete end-to-end ingest pipeline
 - [Rule 2 - Auto-fix] Merged main into worktree branch
-- One-liner:
+- Isolated Remotion 4.0.441 project with spring-animated BrandedVideo.tsx reading DTCG design tokens, orchestrated by compose.cjs driving `npx remotion render --codec h264`.
 - Satori+resvg-js OG/social image pipeline with SHA-256 asset sidecar storage — 15 tests green in 4 minutes
-- One-liner:
+- Wired all 3D pipeline modules into pde-tools.cjs as `case '3d'` with generate|convert|optimize|embed|list subcommands, plus /pde:3d command documentation.
 - `node bin/pde-tools.cjs image og|social|screenshot|mockup|rembg|list` fully wired into pde-tools.cjs with /pde:image command documentation for agent discovery
 - 64-bit pHash engine using Sharp + 2D DCT over git branches, classifying image assets as changed/unchanged/new/deleted with Markdown + JSON reports
 - `pde-tools.cjs image diff <branchA> <branchB>` subcommand wired to runVisualDiff with JSON summary stdout output and /pde:visual-diff command documentation
-- One-liner:
-- One-liner:
+- CadQuery subprocess module with execFileSync injection for STEP generation, validation, and .step+.cq.py+.meta.json triple asset storage.
+- Implemented `mermaid-renderer.cjs` (mmdr/mmdc auto-detection with _execFn injection) and `token-validator.cjs` (DTCG schema validation, OKLCH P3 gamut check via colorjs.io, APCA contrast check via apca-w3) — both in `bin/lib/utils/` with full vitest test coverage, 23 tests passing.
 - pde-tools.cjs wired with case 'video' routing record|assemble|compose|caption to video-pipeline modules, plus /pde:video command documentation with SRT/JSON captions, Remotion compose, and resolution aliases
 - Three CJS foundation modules for GLB storage, draco optimization via gltf-transform CLI, and model-viewer AR embed — 27 tests passing with a hand-built GLB fixture
 - convert3D (image-to-3D via @gradio/client SPACE_CHAIN fallback) and generate3D (text-to-3D via FLUX.1-schnell + convert3D) with 14 mocked unit tests using dependency injection
-- One-liner:
-- One-liner:
+- Mermaid flowchart parser + Playwright test scaffold generator; handoff spec grep-based gap detector with structured JSON + markdown report output.
+- CLI router wired to four utility modules (mermaid, tokens, flow-tests, handoff-verifier) with complete /pde: command skill files — Phase 170 milestone capstone complete.
 - `3d cad` CLI subcommand wired into pde-tools.cjs routing generateCAD from cad.cjs, with full /pde:3d cad documentation added to commands/3d.md including setup, options, examples, and CadQuery requirement note.
 - 1. [Rule 1 - Bug] Edge regex did not match inline node label syntax
 - One-liner:
@@ -115,17 +112,17 @@
 
 **Key accomplishments:**
 
-- One-liner:
+- Shared McpServer tool registration factory (RMT-05) with MCP-spec-compliant Origin header guard (RMT-03) plus six Wave 0 test scaffolds for all phase requirements.
 - Streamable HTTP MCP endpoint at /api/mcp with Clerk OAuth auth, RFC 9728 .well-known discovery routes, and 15-test suite verifying export shapes and auth wiring
 - start_pipeline_run/check_pipeline_run MCP tools using Upstash Redis job store with 1hr TTL, plus desktop client config docs for Claude Code, Cursor, and mcp-remote relay
-- One-liner:
+- WebMCP polyfill initialized in providers.tsx via SSR-safe useEffect, plus thin fetch-based JSON-RPC 2.0 hook (useMcpClient) with no SDK dependencies and source-inspection test scaffolds for BRW-01/BRW-02/BRW-04.
 - emitWebMcpConfig() added as the 7th context-sync emitter, writing .webmcp/config.json for WebMCP browser agent discovery on every emitAll() cycle
 - 1. [Rule 3 - Blocking] Wave 1 files not available in worktree
 - @modelcontextprotocol/ext-apps installed with registerArtifactPreviewTools wiring two dual-mode tools (preview_artifact, list_design_artifacts) and a CSP-declared HTML resource into the PDE MCP server
 - ResourceTemplate registered at ui://pde/{artifact} serving design artifacts as HTML previews via marked (Markdown), JSON pre blocks, and HTML pass-through with inlined tokens.css
-- One-liner:
-- One-liner:
-- One-liner:
+- Three WebMCP browser tool hooks (get_design_state, get_project_info, list_artifacts) registered via useWebMCP with API routes that serve .planning/ file data over HTTP.
+- Per-agent cost attribution using Math.max token aggregation, context window percentage, and atomic Redis HINCRBY persistence for the Token Playground UI.
+- TokenPlayground replaces CostMeter with 3-card UI (Context Window Progress bar, Session Cost grid, Per-Agent Breakdown table) backed by Redis SSR hydration and debounced persistence.
 - --webmcp flag added to all four design workflows (wireframe, mockup, critique, competitive) with USE_WEBMCP parse step and conditional WebMCP Context section containing pde_approval_gate tool table and gate ID
 - Step 8/8 added to competitive.md with full sanitization pipeline (injection stripping, 512-char truncation), registry write to .webmcp/competitor-tools-registry.json, gate file creation, and GET /api/planning/competitor-tools route serving approved entries
 - useCompetitorTools hook registered as query_competitor_data WebMCP dispatcher tool, wired into barrel and composite hook, with full source inspection test coverage
