@@ -89,12 +89,12 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Cross-Project Portfolio
 
-- [ ] **PORT-01**: User can specify multiple `.planning/` directory paths for portfolio synthesis
-- [ ] **PORT-02**: Portfolio synthesis reads project identity, milestone history, and key outcomes from each project
-- [ ] **PORT-03**: Portfolio generates a cross-project narrative showing patterns, skills, and cumulative outcomes
-- [ ] **PORT-04**: Schema version detection identifies `.planning/` directory versions and adapts extraction accordingly
-- [ ] **PORT-05**: Missing or incompatible fields surface "data unavailable" markers (never silently zeros)
-- [ ] **PORT-06**: `/pde:portfolio [path1] [path2] ...` command triggers portfolio synthesis
+- [x] **PORT-01**: User can specify multiple `.planning/` directory paths for portfolio synthesis
+- [x] **PORT-02**: Portfolio synthesis reads project identity, milestone history, and key outcomes from each project
+- [x] **PORT-03**: Portfolio generates a cross-project narrative showing patterns, skills, and cumulative outcomes
+- [x] **PORT-04**: Schema version detection identifies `.planning/` directory versions and adapts extraction accordingly
+- [x] **PORT-05**: Missing or incompatible fields surface "data unavailable" markers (never silently zeros)
+- [x] **PORT-06**: `/pde:portfolio [path1] [path2] ...` command triggers portfolio synthesis
 
 ## Future Requirements
 
@@ -183,12 +183,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AUTO-03 | Phase 183 | Complete |
 | AUTO-04 | Phase 183 | Complete |
 | AUTO-05 | Phase 183 | Complete |
-| PORT-01 | Phase 184 | Pending |
-| PORT-02 | Phase 184 | Pending |
-| PORT-03 | Phase 184 | Pending |
-| PORT-04 | Phase 184 | Pending |
-| PORT-05 | Phase 184 | Pending |
-| PORT-06 | Phase 184 | Pending |
+| PORT-01 | Phase 184 | Complete |
+| PORT-02 | Phase 184 | Complete |
+| PORT-03 | Phase 184 | Complete |
+| PORT-04 | Phase 184 | Complete |
+| PORT-05 | Phase 184 | Complete |
+| PORT-06 | Phase 184 | Complete |
 
 **Coverage:**
 - v1 requirements: 58 total
