@@ -512,7 +512,10 @@ Plans:
   3. User can set force override in config.json per plan or phase — override is respected and logged as a structured routing event
   4. When dispatch target cost exceeds user-configured ceiling, routing falls back to next target in chain and emits a routing_fallback event with cost reason
   5. /pde:quick and /pde:fast always route to local — confirmed by routing tests with fast-path flag set
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 194-01-PLAN.md — classify.cjs pure function module + TDD test suite (RTG-01, RTG-02, RTG-03, RTG-04, RTG-06)
+- [ ] 194-02-PLAN.md — Coordinator wiring, readPlanMetadata, config keys, CLI flags, integration tests (RTG-01-06)
 
 ### Phase 195: Dashboard Integration
 **Goal**: Cloud and Docker sessions are visible in the dashboard health matrix with source labels, sync state, and cost tracking, and users can start, stop, and inspect cloud sessions from the dashboard UI
