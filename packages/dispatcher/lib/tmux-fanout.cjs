@@ -48,6 +48,7 @@ function sourceLabel(backend) {
   if (backend === undefined || backend === null) return 'L';
   if (backend === 'local') return 'L';
   if (backend === 'docker') return 'D';
+  if (backend === 'cloud') return 'C';
   return 'R';
 }
 
