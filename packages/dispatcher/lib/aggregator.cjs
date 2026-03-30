@@ -29,26 +29,44 @@ const path = require('node:path');
 const os = require('node:os');
 const { TailCursor } = require('../../../bin/lib/relay.cjs');
 
+/**
+ * RemoteAggregator — drop-in replacement for TailCursor for cloud/docker sessions.
+ * Phase 190: stub only. The shared event bus is wired in Phase 191.
+ * Interface parity: constructor(filePath, onLine), start(ms), stop()
+ */
+class RemoteAggregator {
+  constructor(_filePath, onLine) {
+    this._onLine = onLine;
+  }
+  start(_ms) { /* no-op in Phase 190 — bus wired in Phase 191 */ }
+  stop() {}
+}
+
 class Aggregator extends EventEmitter {
   /**
    * @param {function} [TailCursorClass] - Optional TailCursor constructor override (for testing)
+   * @param {function} [RemoteAggregatorClass] - Optional RemoteAggregator constructor override (for testing)
    */
-  constructor(TailCursorClass) {
+  constructor(TailCursorClass, RemoteAggregatorClass) {
     super();
     this._TailCursor = TailCursorClass || TailCursor;
-    this._cursors = new Map(); // sessionId → TailCursor instance
+    this._RemoteAggregator = RemoteAggregatorClass || RemoteAggregator;
+    this._cursors = new Map(); // sessionId → TailCursor or RemoteAggregator instance
   }
 
   /**
    * Start tailing a session's NDJSON file. Idempotent — safe to call twice.
    *
    * @param {string} sessionId - Session identifier (e.g. "p144-abc123")
+   * @param {string} [sessionType] - Optional session type: 'cloud' | 'docker' | undefined (local)
    */
-  watch(sessionId) {
+  watch(sessionId, sessionType) {
     if (this._cursors.has(sessionId)) return;
 
     const filePath = path.join(os.tmpdir(), `pde-session-${sessionId}.ndjson`);
-    const cursor = new this._TailCursor(filePath, (line) => {
+    const isRemote = sessionType === 'cloud' || sessionType === 'docker';
+    const CursorClass = isRemote ? this._RemoteAggregator : this._TailCursor;
+    const cursor = new CursorClass(filePath, (line) => {
       try {
         const parsed = JSON.parse(line);
         this.emit('event', sessionId, parsed);
@@ -84,4 +102,4 @@ class Aggregator extends EventEmitter {
   }
 }
 
-module.exports = { Aggregator };
+module.exports = { Aggregator, RemoteAggregator };

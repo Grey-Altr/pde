@@ -38,6 +38,12 @@ const VALID_CONFIG_KEYS = new Set([
   'dispatch.remote.preferred_backend', // Phase 149: preferred backend type for remote dispatch
   'dispatch.remote.env', // Phase 149: environment variables to pass to remote sessions
   'dispatch.routing.fallback_to_local', // Phase 149: fall back to local execution if remote dispatch fails
+  'dispatch.cloud.enabled',       // Phase 190: enable cloud dispatch backend
+  'dispatch.cloud.provider',      // Phase 190: cloud provider identifier (e.g. 'anthropic')
+  'dispatch.cloud.idle_timeout',  // Phase 190: idle timeout seconds before container teardown
+  'dispatch.docker.enabled',      // Phase 190: enable Docker dispatch backend
+  'dispatch.docker.image',        // Phase 190: Docker image for dispatch containers
+  'dispatch.docker.idle_timeout', // Phase 190: idle timeout seconds before container teardown
   'presentations.auto_generate', // Phase 183: enable/disable auto-generation of presentations on phase/milestone complete
   'presentations.auto_generate_personas', // Phase 183: JSON array of persona slugs for auto-generation
 ]);
