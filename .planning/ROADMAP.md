@@ -405,8 +405,8 @@ Plans:
   4. Running pde-tools health consistency [version] reports any mismatches between requirements file checkboxes, roadmap phase entries, and milestone plan entries for the given milestone version
 **Plans**: 3 plans
 Plans:
-- [ ] 188-01-PLAN.md — Nyquist VALIDATION.md backfill for v0.22 phases 176-180
-- [ ] 188-02-PLAN.md — Nyquist VALIDATION.md backfill for v0.22 phases 181-184 + v0.7 SUMMARY.md one-liners
+- [x] 188-01-PLAN.md — Nyquist VALIDATION.md backfill for v0.22 phases 176-180
+- [x] 188-02-PLAN.md — Nyquist VALIDATION.md backfill for v0.22 phases 181-184 + v0.7 SUMMARY.md one-liners
 - [ ] 188-03-PLAN.md — pde-tools health consistency subcommand implementation
 
 ### Phase 189: Technical Debt Cleanup
@@ -459,5 +459,5 @@ Plans:
 | 185. Data Integrity Baseline | v0.23 | 2/2 | Complete | 2026-03-30 |
 | 186. Test Infrastructure | v0.23 | 0/? | Not started | - |
 | 187. IR Field Fix + Mock Reconciliation | v0.23 | 1/1 | Complete    | 2026-03-30 |
-| 188. Verification Coverage | v0.23 | 0/? | Not started | - |
+| 188. Verification Coverage | v0.23 | 2/3 | In Progress|  |
 | 189. Technical Debt Cleanup | v0.23 | 0/? | Not started | - |
