@@ -263,7 +263,7 @@ Plans:
   5. Every chart includes an aria-label and a fallback data table so the information is accessible without visual rendering
 **Plans:** 1 plan
 Plans:
-- [ ] 177-01-PLAN.md — Command file, workflow with persona registry and dispatch, skill-registry update
+- [ ] 179-01-PLAN.md — Four SVG chart generators (burndown, velocity, timeline, effort) + renderer integration
 
 ### Phase 180: Claim Verification + PDF Export
 **Goal**: Every generated presentation has been verified for factual accuracy against the IR before the user sees it, and any presentation can be exported to PDF on demand
@@ -363,7 +363,7 @@ Plans:
 | 176. Data Extraction IR Foundation | v0.22 | 1/3 | Complete    | 2026-03-30 |
 | 177. Command Interface + Workflow Shell | v0.22 | 1/1 | Complete    | 2026-03-30 |
 | 178. Reference Personas + Rendering Engine | v0.22 | 2/2 | Complete    | 2026-03-30 |
-| 179. SVG Charts | v0.22 | 0/TBD | Not started | - |
+| 179. SVG Charts | v0.22 | 0/1 | In progress | - |
 | 180. Claim Verification + PDF Export | v0.22 | 0/TBD | Not started | - |
 | 181. Remaining Cluster A Personas | v0.22 | 0/TBD | Not started | - |
 | 182. Remaining Cluster B Personas | v0.22 | 0/TBD | Not started | - |
