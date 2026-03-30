@@ -25,6 +25,7 @@
 - ✅ **v0.21 Desktop App Integration** — Phases 171-175 (shipped 2026-03-29)
 - ✅ **v0.22 Stakeholder Presentations** — Phases 176-184 (shipped 2026-03-30)
 - ✅ **v0.23 Quality & Reliability Hardening** — Phases 185-189 (shipped 2026-03-30)
+- 🚧 **v0.24 Cloud Dispatch & State Sync** — Phases 190-197 (in progress)
 
 ## Phases
 
@@ -429,6 +430,113 @@ Plans:
 - [x] 189-02-PLAN.md — ESLint 10 config + clean pass
 
 
+### 🚧 v0.24 Cloud Dispatch & State Sync (In Progress)
+
+**Milestone Goal:** PDE can dispatch autonomous phase executions to ephemeral cloud containers and local Docker containers, synchronize .planning/ state back to the local orchestrator via git, and route tasks intelligently across local, Docker, SSH, and cloud backends with full dashboard visibility and cost tracking.
+
+- [ ] **Phase 190: Infrastructure Foundation** — Extended registry backend enum, SessionSource shared type, lock.cjs cloud-aware PID handling, aggregator RemoteAggregator stub, dispatch config block extension, and cloud adapter package scaffold
+- [ ] **Phase 191: Docker Container Backend** — remote-docker.cjs mirroring spawn.cjs interface, NDJSON stdout relay, coordinator Docker dispatch branch, [D] source label, and coordinator-docker tests
+- [ ] **Phase 192: Git-Based State Sync** — sync.cjs with pushPlanningState/fetchPlanningState, direction-aware merge strategy, simple-git in packages/, concurrent branch ordering, and sync tests against real worktree fixtures
+- [ ] **Phase 193: Cloud Web Backend** — remote-cloud.cjs with CloudPoller synthetic events, OAuth probe, cloud dispatch branch in coordinator, auto-teardown on completion, and graceful fallback chain
+- [ ] **Phase 194: Intelligent Routing** — Full classifyTaskRouting() integration, auto-classify from PLAN.md metadata, cost ceiling enforcement, manual --dispatch override, fast-path local guarantee, and routing event logging
+- [ ] **Phase 195: Dashboard Integration** — Cloud and Docker session labels, CloudPoller progress bars, start/stop/inspect UI, sync state display, cost tracking in Token Playground, and session_source type extension
+- [ ] **Phase 196: Containerized MCP Servers** — Per-server Docker containers for APPROVED_SERVERS with pinned runtimes and probe/degrade contract extension for container startup latency
+- [ ] **Phase 197: Cross-Host Session Resume** — Agent SDK .jsonl persistence to shared storage and cwd encoding for cross-host session portability
+
+#### Phase Details
+
+### Phase 190: Infrastructure Foundation
+**Goal**: The type system, registry, lock, aggregator, and package structure accept cloud and Docker backends so all subsequent phases can be built without type drift or constraint violations
+**Depends on**: Phase 189
+**Requirements**: INF-01, INF-02, INF-03, INF-06, CLD-06
+**Success Criteria** (what must be TRUE):
+  1. SessionSource enum in wire-schema.ts includes 'remote-cloud' and 'docker' values and TypeScript compilation succeeds across coordinator and dashboard consumers
+  2. lock.cjs handles cloud session IDs without calling process.kill — verified by reading updated source and running existing lock tests
+  3. aggregator.cjs routes cloud session IDs to RemoteAggregator instead of TailCursor — no ghost cursors accumulate for cloud session IDs
+  4. packages/cloud-adapter/ directory exists with package.json and the root plugin passes node require check with no extra npm packages at root
+  5. Dispatch config block accepts cloud and docker settings — verified by config schema parse test
+**Plans**: TBD
+
+### Phase 191: Docker Container Backend
+**Goal**: Users can dispatch a plan to a local Docker container that streams real NDJSON events through the existing event bus, with the same onLine/onExit interface as local spawn
+**Depends on**: Phase 190
+**Requirements**: CLD-04, CLD-05, CLD-03
+**Success Criteria** (what must be TRUE):
+  1. Running --dispatch=docker on a plan spawns a Docker container and streams NDJSON events consumable by the existing event bus — verified in coordinator-docker.test.cjs
+  2. Docker container dispatch uses the same onLine/onExit callback interface as spawn.cjs — no caller changes needed at the coordinator dispatch site
+  3. Dashboard shows [D] source label for Docker-dispatched sessions
+  4. Container is torn down after the task completes — no dangling containers after coordinator-docker test run
+**Plans**: TBD
+
+### Phase 192: Git-Based State Sync
+**Goal**: Planning state (.planning/) is pushed to a remote git branch before cloud dispatch and merged back locally after completion, with correct merge direction so cloud-written STATE.md content survives the merge
+**Depends on**: Phase 191
+**Requirements**: SYN-01, SYN-02, SYN-03, SYN-04, SYN-07
+**Success Criteria** (what must be TRUE):
+  1. pushPlanningState() commits and pushes .planning/ to a session-scoped remote branch before dispatch — verified against real git worktree fixture
+  2. fetchPlanningState() fetches and merges the cloud branch using the v0.16 3-way merge engine — confirmed in sync.test.cjs
+  3. Cloud-written STATE.md content survives the merge (direction-aware: --theirs for STATE.md, --ours for ROADMAP.md and REQUIREMENTS.md) — explicit test confirms remote state is not overwritten
+  4. Concurrent cloud sessions push to separate branches and sequential merge ordering is enforced — two simultaneous sync operations do not corrupt main
+  5. simple-git is installed in packages/ directory, not at plugin root — verified by checking root package.json
+**Plans**: TBD
+
+### Phase 193: Cloud Web Backend
+**Goal**: Users can dispatch an autonomous phase to an Anthropic-managed cloud VM via claude --remote, receive synthetic NDJSON progress events via CloudPoller, and have the container auto-teardown with state synced back on completion
+**Depends on**: Phase 192
+**Requirements**: CLD-01, CLD-02, CLD-07, CLD-08
+**Success Criteria** (what must be TRUE):
+  1. Running --dispatch=cloud on an autonomous plan spawns a cloud session, captures the session ID, and starts CloudPoller emitting synthetic NDJSON events every 5 seconds — verified in coordinator-cloud.test.cjs with CLI stubs
+  2. Cloud session auth uses claude.ai OAuth probe (not ANTHROPIC_API_KEY) — detectManagedBackend() returns available:false on machines without claude.ai auth, confirmed by CLI stub test
+  3. Cloud container is torn down automatically on task completion with configurable idle timeout — no cloud sessions remain running after coordinator-cloud test completes
+  4. Fallback chain cloud -> SSH -> local activates automatically when cloud probe returns unavailable, emitting a routing_fallback event
+**Plans**: TBD
+
+### Phase 194: Intelligent Routing
+**Goal**: Tasks are automatically routed to the best execution backend based on PLAN.md metadata, user-configured cost ceilings, and manual overrides, with fast-path commands always staying local
+**Depends on**: Phase 193
+**Requirements**: RTG-01, RTG-02, RTG-03, RTG-04, RTG-05, RTG-06
+**Success Criteria** (what must be TRUE):
+  1. Passing --dispatch=cloud|local|ssh|docker routes to that target regardless of auto-classification — verified with all four targets in routing validation tests
+  2. Plans with agent_type: autonomous and estimated_minutes above threshold are auto-classified for cloud routing — classifyTaskRouting() reads PLAN.md frontmatter and returns routing decision in under 100ms with no LLM call
+  3. User can set force override in config.json per plan or phase — override is respected and logged as a structured routing event
+  4. When dispatch target cost exceeds user-configured ceiling, routing falls back to next target in chain and emits a routing_fallback event with cost reason
+  5. /pde:quick and /pde:fast always route to local — confirmed by routing tests with fast-path flag set
+**Plans**: TBD
+
+### Phase 195: Dashboard Integration
+**Goal**: Cloud and Docker sessions are visible in the dashboard health matrix with source labels, sync state, and cost tracking, and users can start, stop, and inspect cloud sessions from the dashboard UI
+**Depends on**: Phase 193
+**Requirements**: DSH-01, DSH-02, DSH-03, DSH-04, DSH-05, DSH-06
+**Success Criteria** (what must be TRUE):
+  1. Cloud sessions appear in the health matrix with [C] source label and Docker sessions appear with [D] label — visible in dashboard after dispatching one of each
+  2. Cloud session progress bars and agent activity display using CloudPoller synthetic events — progress updates without a local NDJSON file
+  3. User can start, stop, and inspect a cloud session from the dashboard UI — stop terminates the cloud VM, inspect shows sessionUrl
+  4. Sync state panel shows pending merges, last sync time, and conflict indicators — visible after a cloud session completes and before local merge
+  5. Token Playground shows container uptime times provider rate alongside token cost for cloud and Docker sessions
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 196: Containerized MCP Servers
+**Goal**: Each approved MCP server runs in its own Docker container with a pinned runtime, and the probe/degrade contract accounts for container startup latency so degradation does not fire on normal cold starts
+**Depends on**: Phase 191
+**Requirements**: INF-04, INF-05
+**Success Criteria** (what must be TRUE):
+  1. Each entry in APPROVED_SERVERS runs in its own per-server Docker container with a pinned runtime version — verified by reading updated MCP server launch code
+  2. Probe/degrade contract extends startup timeout to accommodate container cold start — probe does not trigger degraded state during normal container startup
+  3. MCP server containers degrade gracefully if Docker daemon is unavailable, falling back to the existing non-containerized behavior
+**Plans**: TBD
+
+### Phase 197: Cross-Host Session Resume
+**Goal**: Agent SDK session .jsonl files are persisted to shared storage so a session started on one machine can be resumed on a different host with matching cwd encoding
+**Depends on**: Phase 192
+**Requirements**: SYN-05, SYN-06
+**Success Criteria** (what must be TRUE):
+  1. Agent SDK .jsonl session files are persisted to configured shared storage on session completion — verified by reading the updated session persistence code
+  2. Session resume on a different host succeeds when the shared storage entry exists — coordinator loads .jsonl from shared storage and resumes with matching cwd encoding
+  3. cwd encoding is portable across hosts — a session started in /Users/alice/project resumes correctly on /home/alice/project via cwd normalization
+**Plans**: TBD
+
+
 ## Progress
 
 | Phase | Milestone | Plans Complete | Status | Completed |
@@ -467,3 +575,11 @@ Plans:
 | 187. IR Field Fix + Mock Reconciliation | v0.23 | 1/1 | Complete    | 2026-03-30 |
 | 188. Verification Coverage | v0.23 | 3/3 | Complete    | 2026-03-30 |
 | 189. Technical Debt Cleanup | v0.23 | 2/2 | Complete    | 2026-03-30 |
+| 190. Infrastructure Foundation | v0.24 | 0/TBD | Not started | - |
+| 191. Docker Container Backend | v0.24 | 0/TBD | Not started | - |
+| 192. Git-Based State Sync | v0.24 | 0/TBD | Not started | - |
+| 193. Cloud Web Backend | v0.24 | 0/TBD | Not started | - |
+| 194. Intelligent Routing | v0.24 | 0/TBD | Not started | - |
+| 195. Dashboard Integration | v0.24 | 0/TBD | Not started | - |
+| 196. Containerized MCP Servers | v0.24 | 0/TBD | Not started | - |
+| 197. Cross-Host Session Resume | v0.24 | 0/TBD | Not started | - |

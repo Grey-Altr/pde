@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v0.24
 milestone_name: Cloud Dispatch & State Sync
-status: defining_requirements
+status: ready_to_plan
 stopped_at: null
 last_updated: "2026-03-30T10:00:00.000Z"
 last_activity: 2026-03-30
 progress:
-  total_phases: 0
+  total_phases: 8
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-30)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Defining requirements for v0.24 Cloud Dispatch & State Sync
+**Current focus:** Phase 190 — Infrastructure Foundation (v0.24 start)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-03-30 — Milestone v0.24 started
+Phase: 190 of 197 (Infrastructure Foundation)
+Plan: — of TBD in current phase
+Status: Ready to plan
+Last activity: 2026-03-30 — Roadmap created for v0.24 Cloud Dispatch & State Sync
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -47,7 +47,11 @@ Progress: [░░░░░░░░░░] 0%
 
 ### Decisions
 
-None yet.
+- [Roadmap]: Docker before cloud — Docker backend validates the container dispatch interface without OAuth, enabling full test coverage before the harder cloud path
+- [Roadmap]: State sync before cloud — cloud VM clones from last pushed commit; stale .planning/ context breaks the milestone's primary value
+- [Roadmap]: direction-aware merge — cloud sync uses --theirs for STATE.md, --ours for ROADMAP.md and REQUIREMENTS.md (remote must not mutate planning artifacts)
+- [Roadmap]: cloud adapter in packages/ — zero-npm constraint at plugin root; coordinator invokes cloud SDK via spawn, never require()
+- [Roadmap]: RemoteAggregator never creates TailCursor for cloud session IDs — prevents ghost cursor accumulation
 
 ### Pending Todos
 
@@ -55,11 +59,12 @@ None.
 
 ### Blockers/Concerns
 
-None yet.
+- Phase 193 (Cloud Web Backend): claude --remote is research preview; verify claude auth status --output-format json schema and cloud VM GitHub push permissions before Phase 193 planning begins
+- Phase 192 (State Sync): OURS_ON_CONFLICT list interaction with cloud sync direction needs explicit test fixture design before implementation
 
 ## Session Continuity
 
 Last session: 2026-03-30
-Stopped at: Milestone v0.24 initialized
-Resume with: Define requirements
+Stopped at: Roadmap created — 8 phases (190-197), 33 requirements mapped, 100% coverage
+Resume with: /gsd:plan-phase 190
 Resume file: None

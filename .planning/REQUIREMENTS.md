@@ -90,45 +90,45 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CLD-01 | — | Pending |
-| CLD-02 | — | Pending |
-| CLD-03 | — | Pending |
-| CLD-04 | — | Pending |
-| CLD-05 | — | Pending |
-| CLD-06 | — | Pending |
-| CLD-07 | — | Pending |
-| CLD-08 | — | Pending |
-| SYN-01 | — | Pending |
-| SYN-02 | — | Pending |
-| SYN-03 | — | Pending |
-| SYN-04 | — | Pending |
-| SYN-05 | — | Pending |
-| SYN-06 | — | Pending |
-| SYN-07 | — | Pending |
-| RTG-01 | — | Pending |
-| RTG-02 | — | Pending |
-| RTG-03 | — | Pending |
-| RTG-04 | — | Pending |
-| RTG-05 | — | Pending |
-| RTG-06 | — | Pending |
-| DSH-01 | — | Pending |
-| DSH-02 | — | Pending |
-| DSH-03 | — | Pending |
-| DSH-04 | — | Pending |
-| DSH-05 | — | Pending |
-| DSH-06 | — | Pending |
-| INF-01 | — | Pending |
-| INF-02 | — | Pending |
-| INF-03 | — | Pending |
-| INF-04 | — | Pending |
-| INF-05 | — | Pending |
-| INF-06 | — | Pending |
+| CLD-01 | Phase 193 | Pending |
+| CLD-02 | Phase 193 | Pending |
+| CLD-03 | Phase 191 | Pending |
+| CLD-04 | Phase 191 | Pending |
+| CLD-05 | Phase 191 | Pending |
+| CLD-06 | Phase 190 | Pending |
+| CLD-07 | Phase 193 | Pending |
+| CLD-08 | Phase 193 | Pending |
+| SYN-01 | Phase 192 | Pending |
+| SYN-02 | Phase 192 | Pending |
+| SYN-03 | Phase 192 | Pending |
+| SYN-04 | Phase 192 | Pending |
+| SYN-05 | Phase 197 | Pending |
+| SYN-06 | Phase 197 | Pending |
+| SYN-07 | Phase 192 | Pending |
+| RTG-01 | Phase 194 | Pending |
+| RTG-02 | Phase 194 | Pending |
+| RTG-03 | Phase 194 | Pending |
+| RTG-04 | Phase 194 | Pending |
+| RTG-05 | Phase 194 | Pending |
+| RTG-06 | Phase 194 | Pending |
+| DSH-01 | Phase 195 | Pending |
+| DSH-02 | Phase 195 | Pending |
+| DSH-03 | Phase 195 | Pending |
+| DSH-04 | Phase 195 | Pending |
+| DSH-05 | Phase 195 | Pending |
+| DSH-06 | Phase 195 | Pending |
+| INF-01 | Phase 190 | Pending |
+| INF-02 | Phase 190 | Pending |
+| INF-03 | Phase 190 | Pending |
+| INF-04 | Phase 196 | Pending |
+| INF-05 | Phase 196 | Pending |
+| INF-06 | Phase 190 | Pending |
 
 **Coverage:**
 - v0.24 requirements: 33 total
-- Mapped to phases: 0
-- Unmapped: 33 ⚠️
+- Mapped to phases: 33
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-30*
-*Last updated: 2026-03-30 after initial definition*
+*Last updated: 2026-03-30 — traceability updated after roadmap creation*
