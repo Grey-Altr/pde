@@ -238,6 +238,65 @@ describe('GET /api/sessions', () => {
   });
 });
 
+// ─── Docker session_source tests ─────────────────────────────────────────────
+
+describe('POST /api/ingest — docker session_source', () => {
+  let POST: (req: Request) => Promise<Response>;
+
+  beforeEach(async () => {
+    vi.clearAllMocks();
+    process.env.PDE_RELAY_TOKEN = 'test-token';
+    mockPipelineExec.mockResolvedValue([]);
+    const mod = await import('@/app/api/ingest/route');
+    POST = mod.POST as unknown as (req: Request) => Promise<Response>;
+  });
+
+  it('Test SS-docker-01: stores session_source=docker on session_start when source=docker', async () => {
+    const sessionId = '550e8400-e29b-41d4-a716-446655440099';
+    const req = makeIngestRequest([
+      makeValidEnvelope({
+        session_id: sessionId,
+        event_type: 'session_start',
+        source: 'docker',
+      }),
+    ]);
+    await POST(req);
+
+    const hsetCalls = mockHset.mock.calls;
+    const sourceCall = hsetCalls.find(
+      (c) => c[0] === `pde:default:session:${sessionId}` && c[1]?.session_source !== undefined
+    );
+    expect(sourceCall).toBeDefined();
+    expect(sourceCall![1].session_source).toBe('docker');
+  });
+});
+
+describe('getSessions — docker source field mapping', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('Test SS-docker-02: getSessions returns source=docker when session_source=docker in Redis', async () => {
+    mockZrange.mockResolvedValue(['docker-session-1']);
+    mockPipelineExec.mockResolvedValue([
+      {
+        last_event_type: 'tool_use',
+        last_event_ts: '1711368000000',
+        started_at: '1711368000000',
+        phase: 'test',
+        plan: '01',
+        session_source: 'docker',
+      },
+    ]);
+
+    const { getSessions } = await import('@/lib/queries');
+    const sessions = await getSessions();
+
+    expect(sessions).toHaveLength(1);
+    expect(sessions[0].source).toBe('docker');
+  });
+});
+
 // ─── SessionStatus type tests ─────────────────────────────────────────────────
 
 describe('SessionStatus type variants', () => {

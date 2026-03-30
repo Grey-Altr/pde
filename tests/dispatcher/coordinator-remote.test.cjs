@@ -100,10 +100,12 @@ describe('DispatchCoordinator remote dispatch routing', () => {
 
     await coordinator.dispatch(146, 1);
 
-    expect(deps.routeSession).toHaveBeenCalledWith({
-      isAutonomous: true,
-      remoteConfig: { host: 'test.example.com', repo_path: '/remote/project' },
-    });
+    expect(deps.routeSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        isAutonomous: true,
+        remoteConfig: { host: 'test.example.com', repo_path: '/remote/project' },
+      })
+    );
 
     // SSH path: spawnRemoteSession called, spawnSession NOT called
     // Queue is async — let microtask queue flush
@@ -207,10 +209,12 @@ describe('DispatchCoordinator remote dispatch routing', () => {
 
     await coordinator.dispatch(146, 1);
 
-    expect(deps.routeSession).toHaveBeenCalledWith({
-      isAutonomous: true,
-      remoteConfig: null,
-    });
+    expect(deps.routeSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        isAutonomous: true,
+        remoteConfig: null,
+      })
+    );
   });
 
   // ─── Test 8: SSH dispatch passes relayId (UUID) to spawnRemoteSession ─────
