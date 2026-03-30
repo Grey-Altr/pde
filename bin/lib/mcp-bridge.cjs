@@ -11,11 +11,17 @@
  * returns lookup results for the workflow layer to execute.
  *
  * Phases 40-44 populate TOOL_MAP with canonical → raw tool name mappings.
+ * Phase 196 adds container blocks to stdio APPROVED_SERVERS entries.
  */
 
 const fs = require('fs');
 const path = require('path');
 const { safeReadFile } = require('./core.cjs');
+
+// ─── Dockerode (optional — graceful degradation when not installed) ───────────
+
+let Dockerode;
+try { Dockerode = require('dockerode'); } catch (_) { Dockerode = null; }
 
 // ─── Approved server registry ─────────────────────────────────────────────────
 
@@ -73,6 +79,11 @@ const APPROVED_SERVERS = {
     probeTimeoutMs: 15000,
     probeTool: 'mcp__stitch__list_projects', // TOOL_MAP_VERIFIED — lightest read-only tool
     probeArgs: {},
+    container: {
+      image: 'node:20-slim',
+      startupMs: 3000,
+      cmd: ['npx', '@_davideast/stitch-mcp', 'proxy'],
+    },
   },
   greptile: {
     displayName: 'Greptile',
@@ -91,6 +102,11 @@ const APPROVED_SERVERS = {
     probeTimeoutMs: 30000, // Browser launch can be slow on first use (~170MB Chromium download)
     probeTool: 'mcp__plugin_playwright_playwright__browser_snapshot', // TOOL_MAP_VERIFIED — lightest read-only tool
     probeArgs: {},
+    container: {
+      image: 'mcr.microsoft.com/playwright:v1.50.0-noble',
+      startupMs: 5000,
+      cmd: ['npx', '@playwright/mcp@latest', '--headless', '--allow-unrestricted-file-access'],
+    },
   },
   pde_remote: {
     displayName: 'PDE Remote',
@@ -658,6 +674,76 @@ function checkStitchQuota(generationType, configPath) {
   return { allowed: true, remaining, reason: 'ok' };
 }
 
+// ─── Docker container mode helpers ───────────────────────────────────────────
+
+let _dockerAvailableCache = null;
+
+/**
+ * Probe Docker daemon availability.
+ * Returns true if dockerode can connect to daemon, false otherwise.
+ * Cached after first call — daemon availability does not change mid-session.
+ * Gracefully handles missing dockerode (MODULE_NOT_FOUND) by returning false.
+ *
+ * @returns {Promise<boolean>}
+ */
+async function isDockerAvailable() {
+  if (_dockerAvailableCache !== null) return _dockerAvailableCache;
+  if (!Dockerode) {
+    _dockerAvailableCache = false;
+    return false;
+  }
+  try {
+    const docker = new Dockerode();
+    await docker.ping();
+    _dockerAvailableCache = true;
+  } catch (_) {
+    _dockerAvailableCache = false;
+  }
+  return _dockerAvailableCache;
+}
+
+/**
+ * Returns the effective install command for a server.
+ * When Docker is available and the server has a container block,
+ * returns the containerized docker run form. Otherwise returns the raw installCmd.
+ * Anti-pattern: never includes -t flag (corrupts MCP stdio framing).
+ *
+ * @param {string} serverKey
+ * @param {boolean} dockerAvailable - Pass true to use containerized form
+ * @returns {string|null}
+ */
+function getInstallCmd(serverKey, dockerAvailable) {
+  const server = APPROVED_SERVERS[serverKey] || DYNAMIC_SERVERS[serverKey];
+  if (!server) return null;
+  if (dockerAvailable && server.container) {
+    const { image, cmd } = server.container;
+    return `claude mcp add ${serverKey} -- docker run --rm -i ${image} ${cmd.join(' ')}`;
+  }
+  return server.installCmd;
+}
+
+/**
+ * Returns the effective probe timeout for a server.
+ * When Docker is available and the server has a container block,
+ * adds container.startupMs to the base probeTimeoutMs to account for cold start latency.
+ *
+ * @param {string} serverKey
+ * @param {boolean} dockerAvailable - Pass true to include container startup time
+ * @returns {number}
+ */
+function getProbeTimeoutMs(serverKey, dockerAvailable) {
+  const server = APPROVED_SERVERS[serverKey] || DYNAMIC_SERVERS[serverKey];
+  if (!server) return 10000;
+  const base = server.probeTimeoutMs || 10000;
+  if (dockerAvailable && server.container) {
+    return base + (server.container.startupMs || 5000);
+  }
+  return base;
+}
+
+// Warm Docker availability cache in background at module load (non-blocking)
+isDockerAvailable().then(() => {});
+
 // ─── Exports ──────────────────────────────────────────────────────────────────
 
 module.exports = {
@@ -679,4 +765,7 @@ module.exports = {
   readStitchQuota,
   incrementStitchQuota,
   checkStitchQuota,
+  isDockerAvailable,
+  getInstallCmd,
+  getProbeTimeoutMs,
 };
