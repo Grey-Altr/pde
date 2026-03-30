@@ -435,7 +435,7 @@ Plans:
 **Milestone Goal:** PDE can dispatch autonomous phase executions to ephemeral cloud containers and local Docker containers, synchronize .planning/ state back to the local orchestrator via git, and route tasks intelligently across local, Docker, SSH, and cloud backends with full dashboard visibility and cost tracking.
 
 - [x] **Phase 190: Infrastructure Foundation** — Extended registry backend enum, SessionSource shared type, lock.cjs cloud-aware PID handling, aggregator RemoteAggregator stub, dispatch config block extension, and cloud adapter package scaffold (completed 2026-03-30)
-- [ ] **Phase 191: Docker Container Backend** — remote-docker.cjs mirroring spawn.cjs interface, NDJSON stdout relay, coordinator Docker dispatch branch, [D] source label, and coordinator-docker tests
+- [x] **Phase 191: Docker Container Backend** — remote-docker.cjs mirroring spawn.cjs interface, NDJSON stdout relay, coordinator Docker dispatch branch, [D] source label, and coordinator-docker tests (completed 2026-03-30)
 - [ ] **Phase 192: Git-Based State Sync** — sync.cjs with pushPlanningState/fetchPlanningState, direction-aware merge strategy, simple-git in packages/, concurrent branch ordering, and sync tests against real worktree fixtures
 - [ ] **Phase 193: Cloud Web Backend** — remote-cloud.cjs with CloudPoller synthetic events, OAuth probe, cloud dispatch branch in coordinator, auto-teardown on completion, and graceful fallback chain
 - [ ] **Phase 194: Intelligent Routing** — Full classifyTaskRouting() integration, auto-classify from PLAN.md metadata, cost ceiling enforcement, manual --dispatch override, fast-path local guarantee, and routing event logging
@@ -582,7 +582,7 @@ Plans:
 | 188. Verification Coverage | v0.23 | 3/3 | Complete    | 2026-03-30 |
 | 189. Technical Debt Cleanup | v0.23 | 2/2 | Complete    | 2026-03-30 |
 | 190. Infrastructure Foundation | v0.24 | 1/2 | Complete    | 2026-03-30 |
-| 191. Docker Container Backend | v0.24 | 1/2 | In Progress|  |
+| 191. Docker Container Backend | v0.24 | 1/2 | Complete    | 2026-03-30 |
 | 192. Git-Based State Sync | v0.24 | 0/TBD | Not started | - |
 | 193. Cloud Web Backend | v0.24 | 0/TBD | Not started | - |
 | 194. Intelligent Routing | v0.24 | 0/TBD | Not started | - |
