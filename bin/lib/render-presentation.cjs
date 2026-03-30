@@ -118,6 +118,8 @@ function personaDisplayName(slug) {
   const names = {
     'executive-summary': 'Executive Summary',
     'case-study': 'Case Study / Portfolio Piece',
+    'investor-update': 'Investor Update',
+    'sprint-review': 'Sprint Review',
   };
   return names[slug] || slug;
 }
@@ -398,6 +400,66 @@ function buildTechnical(ir) {
   return `<ul>${list}</ul>`;
 }
 
+// ─── Investor update section builders ────────────────────────────────────────
+
+function buildMilestoneVelocity(ir) {
+  const sentinel = sentinelHtml(ir.phases, 'Phase progress');
+  if (sentinel) return sentinel;
+
+  const completed = ir.phases.completed || 0;
+  const total = ir.phases.total || 0;
+  const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+  const milestoneName = ir.phases.milestone_name ? escHtml(ir.phases.milestone_name) : null;
+
+  return `${milestoneName ? `<p><strong>Milestone:</strong> ${milestoneName}</p>` : ''}
+<p><strong>Phases complete:</strong> ${completed} of ${total} (${pct}%)</p>
+<div class="progress-bar" style="background:#30363d;border-radius:4px;height:12px;margin:0.5rem 0;">
+  <div style="background:#3fb950;width:${pct}%;height:100%;border-radius:4px;"></div>
+</div>`.trim();
+}
+
+// ─── Sprint review section builders ──────────────────────────────────────────
+
+function buildShipped(ir) {
+  const sentinel = sentinelHtml(ir.phases, 'Phase progress');
+  if (sentinel) return sentinel;
+
+  const phaseList = Array.isArray(ir.phases.phase_list) ? ir.phases.phase_list : [];
+  const completed = phaseList.filter(p => p.completed);
+
+  if (completed.length === 0) {
+    const count = ir.phases.completed || 0;
+    return `<p>${count} phase(s) completed (detail not available).</p>`;
+  }
+
+  const rows = completed.map(p =>
+    `<tr><td>${escHtml(p.name)}</td><td>&#10003;</td></tr>`
+  ).join('\n');
+
+  return `<table>
+  <thead><tr><th>Phase</th><th>Status</th></tr></thead>
+  <tbody>${rows}</tbody>
+</table>`;
+}
+
+function buildWhatsNext(ir) {
+  const sentinel = sentinelHtml(ir.phases, 'Phase progress');
+  if (sentinel) return sentinel;
+
+  const phaseList = Array.isArray(ir.phases.phase_list) ? ir.phases.phase_list : [];
+  const upcoming = phaseList.filter(p => !p.completed).slice(0, 3);
+
+  if (upcoming.length === 0) {
+    return '<p>All phases complete.</p>';
+  }
+
+  const items = upcoming.map(p =>
+    `<li>${escHtml(p.name)}</li>`
+  ).join('\n');
+
+  return `<ul>${items}</ul>`;
+}
+
 // ─── 6. buildExecutiveSummary ─────────────────────────────────────────────────
 
 /**
@@ -439,6 +501,43 @@ function buildCaseStudy(ir) {
     { id: 'lessons',    title: 'Lessons Learned',      level: 2, content: buildLessons(ir) },
     { id: 'technical',  title: 'Technical Decisions',  level: 2, content: buildTechnical(ir) },
     { id: 'artifacts',  title: 'Design Evidence',      level: 2, content: buildArtifacts(ir) },
+  ];
+}
+
+// ─── 8. buildInvestorUpdate ──────────────────────────────────────────────────
+
+/**
+ * Build investor update sections (CLU-02).
+ *
+ * @param {object} ir - IR from buildPresentationIR()
+ * @returns {Array<{id: string, title: string, level: number, content: string}>}
+ */
+function buildInvestorUpdate(ir) {
+  return [
+    { id: 'vision',    title: 'Product Vision',        level: 1, content: buildOverview(ir) },
+    { id: 'velocity',  title: 'Milestone Velocity',    level: 2, content: buildMilestoneVelocity(ir) },
+    { id: 'delivery',  title: 'Delivery Proof',        level: 2, content: buildRequirements(ir) },
+    { id: 'moat',      title: 'Technical Moat',        level: 2, content: buildTechnical(ir) },
+    { id: 'activity',  title: 'Development Activity',  level: 2, content: buildTimeline(ir) },
+    { id: 'v-chart',   title: 'Velocity Chart',        level: 2, content: charts.velocityChart(ir) },
+  ];
+}
+
+// ─── 9. buildSprintReview ────────────────────────────────────────────────────
+
+/**
+ * Build sprint review sections (CLU-03).
+ *
+ * @param {object} ir - IR from buildPresentationIR()
+ * @returns {Array<{id: string, title: string, level: number, content: string}>}
+ */
+function buildSprintReview(ir) {
+  return [
+    { id: 'shipped',    title: 'What Shipped',         level: 1, content: buildShipped(ir) },
+    { id: 'artifacts',  title: 'Demo Artifacts',       level: 2, content: buildArtifacts(ir) },
+    { id: 'acceptance', title: 'Acceptance Criteria',  level: 2, content: buildRequirements(ir) },
+    { id: 'next',       title: "What's Next",          level: 2, content: buildWhatsNext(ir) },
+    { id: 'burndown',   title: 'Burndown',             level: 2, content: charts.burndownChart(ir) },
   ];
 }
 
@@ -720,8 +819,14 @@ function render(ir, persona, htmlPath, mdPath) {
     case 'case-study':
       sections = buildCaseStudy(ir);
       break;
+    case 'investor-update':
+      sections = buildInvestorUpdate(ir);
+      break;
+    case 'sprint-review':
+      sections = buildSprintReview(ir);
+      break;
     default:
-      throw new Error(`Unknown persona: ${persona}. Available: executive-summary, case-study`);
+      throw new Error(`Unknown persona: ${persona}. Available: executive-summary, case-study, investor-update, sprint-review`);
   }
 
   // Claim verification (VER-01/02/03): compare rendered content against canonical IR
@@ -816,6 +921,8 @@ module.exports = {
   personaDisplayName,
   buildExecutiveSummary,
   buildCaseStudy,
+  buildInvestorUpdate,
+  buildSprintReview,
   renderHTML,
   renderMarkdown,
   render,
