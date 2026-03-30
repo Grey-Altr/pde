@@ -1,5 +1,23 @@
 # Milestones
 
+## v0.23 Quality & Reliability Hardening (Shipped: 2026-03-30)
+
+**Phases completed:** 5 phases, 9 plans, 16 tasks
+
+**Key accomplishments:**
+
+- Three stale v0.22 state documents corrected: Phase 180 VERIFICATION.md marked complete, 5 unchecked ROADMAP.md plan boxes fixed, and EXT-01 through EXT-10 requirements annotated with inline Phase 176 traceability references
+- 34 bare One-liner: placeholders replaced across v0.19-v0.22 sections of MILESTONES.md with accurate descriptions sourced from 34 SUMMARY.md files in the milestones archive — 1 phantom blank remains (no SUMMARY source exists for it).
+- Vitest configured with three exclude globs to eliminate 135 false node:test failures; @vitest/coverage-v8@4.1.1 installed with HTML baseline report generated for all 100+ bin/lib modules
+- Fixed buildCrossPatterns to read research.topics (not research.findings), reconciled makeMinimalIR mock to match extractResearch() shape, all 23 Phase 184 tests green
+- Rewrote 3 stub VALIDATION.md files and created 2 new ones for v0.22 phases 176-180 with nyquist_compliant: true and behavioral node/vitest assertions
+- 4 Nyquist-compliant VALIDATION.md files created for v0.22 phases 181-184 and one-liner frontmatter added to 5 v0.7 SUMMARY.md files
+- pde-tools health consistency subcommand that cross-checks REQUIREMENTS.md checkboxes against ROADMAP.md phase completion states for any milestone version
+- 4 stale pde-tools.cjs paths corrected to CLAUDE_PLUGIN_ROOT, knip and jscpd first-run reports produced with full triage (44 findings, 5 clones, 0.47% duplication rate)
+- ESLint 10 flat config with eslint-plugin-n configured for 123 CJS files; zero errors on first clean pass after adding missing Node 20 Web API globals
+
+---
+
 ## v0.22 Stakeholder Presentations (Shipped: 2026-03-30)
 
 **Phases completed:** 9 phases, 18 plans, 16 tasks

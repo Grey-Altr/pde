@@ -208,19 +208,15 @@ Any user can go from idea to shipped product through a single platform that hand
 - ✓ Production hardening: rate limiting, 7-day Redis TTL, event downsampling, 1000-event buffer cap, daily cron GC — v0.17
 - ✓ 107 tests across 15 files, 27/27 requirements satisfied, full Nyquist compliance — v0.17
 
-## Current Milestone: v0.23 Quality & Reliability Hardening
+## Current Milestone: None (v0.23 shipped, next milestone not started)
 
-**Goal:** Systematic quality sweep across all shipped milestones — fixing data integrity issues, closing verification gaps, polishing user-facing output, and cleaning accumulated technical debt before the v1.0 standalone CLI port.
-
-**Target features:**
-- Data integrity fixes — ROADMAP.md unchecked plan boxes on completed phases, MILESTONES.md placeholder one-liners, STATE.md stale progress/focus fields, cross-artifact consistency
-- Verification gap closure — phases that shipped without full Nyquist compliance, claim verification engine completeness, plan tracking accuracy across all milestones
-- User-facing polish — presentation output quality, command error handling, edge cases in the 15-persona suite, SVG chart rendering, PDF export reliability
-- Technical debt cleanup — stale code paths, unused imports, inconsistent patterns, dead references, accumulated cruft across 22 milestones of rapid development
+**v0.23 Quality & Reliability Hardening shipped** (2026-03-30). Next milestone TBD — run `/gsd:new-milestone` to start.
 
 ## Current State
 
-**All milestones through v0.22 shipped.** v0.23 Quality & Reliability Hardening in progress.
+**All milestones through v0.23 shipped.** 23 milestones, 189 phases, from idea to production in 15 days.
+
+**v0.23 Quality & Reliability Hardening shipped** (2026-03-30) — 5 phases (185-189), 9 plans, 15 requirements. Data integrity baseline, vitest infrastructure, IR field fix, Nyquist verification coverage for v0.22, health consistency CLI, ESLint/knip/jscpd static analysis baselines.
 
 **v0.22 Stakeholder Presentations shipped** (2026-03-30) — 9 phases (176-184), 18 plans, 58 requirements. Extraction-first IR pipeline, 15-persona presentation suite, dual HTML+Markdown rendering, SVG charts, claim verification, PDF export, auto-generation hooks, and cross-project portfolio synthesis.
 
@@ -263,7 +259,8 @@ Any user can go from idea to shipped product through a single platform that hand
 - **Shipped v0.13** on 2026-03-23: 9 phases, 15 plans (AutoResearch: safety boundaries, experiment schema, mutation agent, circuit breakers)
 - **Shipped v0.12** on 2026-03-23: 15 phases, 24 plans, 59 requirements, 235 Nyquist assertions (Business product type with venture design engine)
 - **Shipped v0.22** on 2026-03-30: 9 phases (176-184), 18 plans, 58 requirements (Stakeholder Presentations: extraction-first IR, 15-persona suite, dual HTML+MD, SVG charts, claim verification, PDF export, auto-generation, portfolio synthesis)
-- **Planned roadmap:** v0.23 Quality & Reliability Hardening → v1.0 Standalone CLI
+- **Shipped v0.23** on 2026-03-30: 5 phases (185-189), 9 plans, 15 requirements (Quality & Reliability Hardening: data integrity baseline, vitest infrastructure, IR field fix, Nyquist verification coverage, health consistency CLI, ESLint/knip/jscpd static analysis baselines)
+- **Planned roadmap:** v1.0 Standalone CLI
 - **v0.11** shipped 2026-03-22: 112 files changed, 116 commits (experience product type: detection, brief, tokens, flows, wireframes, critique, HIG, print, handoff, 48 requirements)
 - **v0.10** shipped 2026-03-21: 107 files changed, 56 commits (idle-time productivity: suggestion engine, catalog, context notes, 7-pane dashboard)
 - **v0.9** shipped 2026-03-21: 91 files changed, 76 commits (Google Stitch integration across 5 pipeline skills)
@@ -287,9 +284,11 @@ Any user can go from idea to shipped product through a single platform that hand
 - **Pipeline verification:** Research validation agent (3-tier claim classification, codebase verification), plan checker Dimensions 9-11 (dependencies, edge cases, integration Mode A), readiness B4/B5 checks, run_integration_checks consuming all 4 artifact types
 - **Known tech debt:**
   - Historical commits e067974 and efe3af0 lack Co-Authored-By trailer (pre-fix, cannot change)
-  - 5 v0.7 SUMMARY files missing one-liner frontmatter field (non-breaking, graceful null)
   - 3 human verification items for Phase 56 deferred (live dependency detection, edge case quality, AC approval gate)
   - 10 human verification items across Phases 58/59/61 (live hook auto-fire, dashboard E2E, real-time token display) — requires active tmux session to verify
+  - knip: 44 findings triaged — pde-mcp-server sub-package and lib/ui deferred to future cleanup (v0.23)
+  - jscpd: 1 refactor-candidate clone in commands.cjs (v0.23)
+  - ESLint: 144 no-unused-vars warnings at warn severity — documented in 189-eslint-exceptions.md (v0.23)
 
 ## Constraints
 - Use hex color values from DESIGN.md, not raw OKLCH from token files
