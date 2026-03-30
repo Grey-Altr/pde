@@ -181,66 +181,30 @@ Persona: ${PERSONA_SLUG} ({display_name})
 
 ---
 
-### Step 6/7: GENERATE MODE — Dispatch to persona generator
+### Step 6/7: GENERATE MODE — Render presentation
 
-This step is the generation stub. Phase 178 will replace this with actual rendering logic.
+Run the rendering engine to produce HTML and Markdown output:
 
-Log the persona being generated:
-
-```
-Generating presentation: {PERSONA_SLUG} ({display_name})
-  IR metadata: schema_version={schema_version}, extracted_at={extracted_at}
-  Output paths:
-    HTML: {HTML_PATH}
-    Markdown: {MD_PATH}
+```bash
+node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" presentation render "${PERSONA_SLUG}" "${HTML_PATH}" "${MD_PATH}"
 ```
 
-Look up the display name, audience, and description for PERSONA_SLUG from the Persona Registry table above.
-
-Write a placeholder HTML file at HTML_PATH:
-
-```html
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{display_name}</title>
-</head>
-<body>
-  <h1>{display_name}</h1>
-  <p><strong>Audience:</strong> {audience}</p>
-  <p><strong>Description:</strong> {description}</p>
-  <hr>
-  <p><em>Generation stub — Phase 178 will implement the full rendering engine.</em></p>
-  <p><strong>IR extracted at:</strong> {extracted_at}</p>
-  <p><strong>Generated:</strong> {DATE}</p>
-</body>
-</html>
-```
-
-Write a placeholder Markdown file at MD_PATH:
-
-```markdown
-# {display_name}
-
-**Audience:** {audience}
-**Description:** {description}
-
----
-
-*Generation stub — Phase 178 will implement the full rendering engine.*
-
-**IR extracted at:** {extracted_at}
-**Generated:** {DATE}
-```
-
-Log both output paths:
+If the command fails (non-zero exit), display error:
 
 ```
-Output written:
-  HTML: {HTML_PATH}
-  Markdown: {MD_PATH}
+Error: Rendering failed for persona "${PERSONA_SLUG}".
+  Check the IR extraction output and ensure .planning/ artifacts are intact.
+  Re-run /pde:present ${PERSONA_SLUG} after resolving any errors.
+```
+
+HALT on error.
+
+Log output:
+
+```
+Presentation rendered:
+  HTML: ${HTML_PATH}
+  Markdown: ${MD_PATH}
 ```
 
 ---
