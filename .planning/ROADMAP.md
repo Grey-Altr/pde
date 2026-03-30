@@ -616,7 +616,7 @@ Plans:
   4. sources-manifest.json is updated atomically when a new Firecrawl source is added — concurrent adds do not corrupt the manifest
 **Plans**: 2 plans
 Plans:
-- [ ] 199-01-PLAN.md -- firecrawl-cache.cjs TDD (cache module with slug, write/read, manifest, gitignore)
+- [x] 199-01-PLAN.md -- firecrawl-cache.cjs TDD (cache module with slug, write/read, manifest, gitignore)
 - [ ] 199-02-PLAN.md -- /pde:source command + source ingestion workflow
 
 ### Phase 200: Core Scraping Tools + Competitive/Recommend Integration
@@ -722,7 +722,7 @@ Plans:
 | 196. Containerized MCP Servers | v0.24 | 1/1 | Complete | 2026-03-30 |
 | 197. Cross-Host Session Resume | v0.24 | 1/2 | Complete | 2026-03-30 |
 | 198. Foundation — MCP Registration + Credit Guards | v0.25 | 3/3 | Complete | 2026-03-30 |
-| 199. Data Layer — Cache Module + Source Pipeline | v0.25 | 0/2 | Not started | - |
+| 199. Data Layer — Cache Module + Source Pipeline | v0.25 | 1/2 | In Progress|  |
 | 200. Core Scraping Tools + Competitive/Recommend Integration | v0.25 | 0/2 | Not started | - |
 | 201. Brief + Phase Researcher + Design Reference Integration | v0.25 | 0/2 | Not started | - |
 | 202. /pde:firecrawl Standalone Skill + Agent + Browser Sandbox | v0.25 | 0/2 | Not started | - |
