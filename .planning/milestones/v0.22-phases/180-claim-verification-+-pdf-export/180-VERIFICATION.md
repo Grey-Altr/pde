@@ -1,18 +1,9 @@
 ---
 phase: 180-claim-verification-+-pdf-export
 verified: 2026-03-30T19:39:30Z
-status: gaps_found
-score: 5/6 must-haves verified
-gaps:
-  - truth: "VER-01/02/03 marked complete in REQUIREMENTS.md"
-    status: partial
-    reason: "REQUIREMENTS.md traceability table and checkboxes still show VER-01, VER-02, VER-03 as Pending / unchecked (- [ ]) despite the implementation being fully delivered and all tests passing. The code fully satisfies the requirements; the requirements tracker was not updated."
-    artifacts:
-      - path: ".planning/REQUIREMENTS.md"
-        issue: "Lines 71-73 show `- [ ] VER-01/02/03`; lines 162-164 show status Pending. Should be `- [x]` and Complete."
-    missing:
-      - "Mark VER-01, VER-02, VER-03 as `- [x]` in the Claim Verification section of REQUIREMENTS.md"
-      - "Update the traceability table rows for VER-01, VER-02, VER-03 from Pending to Complete"
+status: complete
+score: 6/6 must-haves verified
+gap_resolution: "Gap was administrative — VER-01/02/03 checkboxes in v0.22-REQUIREMENTS.md were unchecked despite implementation being complete. Resolved: checkboxes now show [x] with Phase 180 traceability. Fixed in Phase 185 (INT-04)."
 human_verification:
   - test: "End-to-end --pdf flag in /pde:present workflow"
     expected: "Running `/pde:present executive-summary --pdf` produces an HTML file, a Markdown file, and a PDF file in .planning/presentations/. The PDF preserves the dark theme background, inline SVG charts, and embedded images."
@@ -23,7 +14,7 @@ human_verification:
 
 **Phase Goal:** Every generated presentation has been verified for factual accuracy against the IR before the user sees it, and any presentation can be exported to PDF on demand.
 **Verified:** 2026-03-30T19:39:30Z
-**Status:** gaps_found — 1 administrative gap (stale requirements tracker); all code complete
+**Status:** complete — all 6 must-haves verified; prior administrative gap resolved in Phase 185
 **Re-verification:** No — initial verification
 
 ---
