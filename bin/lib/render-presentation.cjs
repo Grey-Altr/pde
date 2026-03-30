@@ -1353,6 +1353,314 @@ function buildPortfolioOverview(ir) {
   ];
 }
 
+// ─── Cross-project portfolio render helpers ───────────────────────────────────
+
+/**
+ * Build the portfolio header section.
+ * Shows project count, available count, and extraction timestamp.
+ *
+ * @param {object} portfolioIR
+ * @returns {string} HTML content
+ */
+function buildPortfolioHeader(portfolioIR) {
+  const total = portfolioIR.project_count || 0;
+  const available = portfolioIR.available_count || 0;
+  const extractedAt = escHtml(portfolioIR.extracted_at || new Date().toISOString());
+
+  if (available === 0) {
+    return `<p class="pf-meta">No projects could be extracted from the provided paths (0 available out of ${total} provided).</p>
+<p class="pf-meta">Extracted: ${extractedAt}</p>`;
+  }
+
+  return `<p class="pf-meta"><strong>${available}</strong> of <strong>${total}</strong> project(s) available for synthesis.</p>
+<p class="pf-meta">Extracted: ${extractedAt}</p>`;
+}
+
+/**
+ * Build project list section.
+ * Available projects show metadata; unavailable show warning with reason.
+ *
+ * @param {object} portfolioIR
+ * @returns {string} HTML content
+ */
+function buildProjectList(portfolioIR) {
+  const projects = portfolioIR.projects || [];
+  if (projects.length === 0) {
+    return '<p>No projects provided.</p>';
+  }
+
+  const items = projects.map(function(project) {
+    if (project.unavailable) {
+      const projectPath = escHtml(project.path || 'unknown');
+      const reason = escHtml(project.reason || 'data unavailable');
+      return `<div class="pf-project pf-project--unavailable">
+  <h3 class="pf-project-name"><span class="badge badge--warning">Unavailable</span> ${projectPath}</h3>
+  <p class="pf-unavailable-reason">Data unavailable: ${reason}</p>
+</div>`;
+    }
+
+    const ir = project.ir || {};
+    const projectName = escHtml((ir.project && ir.project.name) || project.path || 'Unknown Project');
+    const phases = ir.phases || {};
+    const reqs = ir.requirements || {};
+    const milestones = project.milestoneHistory;
+
+    let milestoneInfo = '';
+    if (milestones && milestones.available && milestones.count > 0) {
+      milestoneInfo = `<li>${milestones.count} milestone(s) shipped</li>`;
+    }
+
+    return `<div class="pf-project">
+  <h3 class="pf-project-name">${projectName}</h3>
+  <ul class="pf-project-stats">
+    <li>Phases: ${phases.completed || 0} / ${phases.total || 0} completed (${phases.completion_pct || 0}%)</li>
+    <li>Requirements: ${reqs.completed || 0} / ${reqs.total || 0} completed (${reqs.completion_pct || 0}%)</li>
+    ${milestoneInfo}
+  </ul>
+</div>`;
+  });
+
+  return items.join('\n');
+}
+
+/**
+ * Aggregate cross-project patterns from available projects.
+ * Shows recurring tech stack items and common decision themes.
+ *
+ * @param {object} portfolioIR
+ * @returns {string} HTML content
+ */
+function buildCrossPatterns(portfolioIR) {
+  const availableProjects = (portfolioIR.projects || []).filter(function(p) { return !p.unavailable; });
+
+  if (availableProjects.length === 0) {
+    return '<p>No available projects to analyze for patterns.</p>';
+  }
+
+  // Collect all decisions across projects
+  const allDecisions = [];
+  availableProjects.forEach(function(project) {
+    const decisions = (project.ir && project.ir.decisions) || [];
+    decisions.forEach(function(d) {
+      const text = typeof d === 'string' ? d : (d.summary || '');
+      if (text) allDecisions.push(escHtml(text));
+    });
+  });
+
+  // Collect research findings
+  const allFindings = [];
+  availableProjects.forEach(function(project) {
+    const research = (project.ir && project.ir.research) || {};
+    const findings = Array.isArray(research.findings) ? research.findings : [];
+    findings.forEach(function(f) {
+      const text = typeof f === 'string' ? f : (f.finding || '');
+      if (text) allFindings.push(escHtml(text));
+    });
+  });
+
+  let html = `<p>Cross-project analysis across ${availableProjects.length} project(s):</p>`;
+
+  if (allDecisions.length > 0) {
+    const decisionsHtml = allDecisions.slice(0, 8).map(function(d) {
+      return `<li>${d}</li>`;
+    }).join('\n');
+    html += `<h4>Key Architectural Decisions</h4><ul>${decisionsHtml}</ul>`;
+  }
+
+  if (allFindings.length > 0) {
+    const findingsHtml = allFindings.slice(0, 6).map(function(f) {
+      return `<li>${f}</li>`;
+    }).join('\n');
+    html += `<h4>Research Findings</h4><ul>${findingsHtml}</ul>`;
+  }
+
+  if (allDecisions.length === 0 && allFindings.length === 0) {
+    html += '<p>No cross-project patterns extracted.</p>';
+  }
+
+  return html;
+}
+
+/**
+ * Build cumulative outcomes section.
+ * Sums phases and requirements across available projects.
+ *
+ * @param {object} portfolioIR
+ * @returns {string} HTML content
+ */
+function buildCumulativeOutcomes(portfolioIR) {
+  const availableProjects = (portfolioIR.projects || []).filter(function(p) { return !p.unavailable; });
+
+  if (availableProjects.length === 0) {
+    return '<p>No available projects to compute outcomes.</p>';
+  }
+
+  let totalPhases = 0;
+  let completedPhases = 0;
+  let totalReqs = 0;
+  let completedReqs = 0;
+
+  availableProjects.forEach(function(project) {
+    const phases = (project.ir && project.ir.phases) || {};
+    const reqs = (project.ir && project.ir.requirements) || {};
+    totalPhases += phases.total || 0;
+    completedPhases += phases.completed || 0;
+    totalReqs += reqs.total || 0;
+    completedReqs += reqs.completed || 0;
+  });
+
+  const phasesPct = totalPhases > 0 ? Math.round((completedPhases / totalPhases) * 100) : 0;
+  const reqsPct = totalReqs > 0 ? Math.round((completedReqs / totalReqs) * 100) : 0;
+
+  return `<table class="pf-outcomes-table">
+  <thead><tr><th>Metric</th><th>Completed</th><th>Total</th><th>Progress</th></tr></thead>
+  <tbody>
+    <tr><td>Phases</td><td>${completedPhases}</td><td>${totalPhases}</td><td>${phasesPct}%</td></tr>
+    <tr><td>Requirements</td><td>${completedReqs}</td><td>${totalReqs}</td><td>${reqsPct}%</td></tr>
+  </tbody>
+</table>
+<p class="pf-meta">Across ${availableProjects.length} project(s).</p>`;
+}
+
+/**
+ * Build milestone timeline section.
+ * Collects milestones from all available projects, sorted by shipped date.
+ *
+ * @param {object} portfolioIR
+ * @returns {string} HTML content
+ */
+function buildMilestoneTimeline(portfolioIR) {
+  const availableProjects = (portfolioIR.projects || []).filter(function(p) { return !p.unavailable; });
+
+  if (availableProjects.length === 0) {
+    return '<p>No available projects for milestone timeline.</p>';
+  }
+
+  const allMilestones = [];
+  availableProjects.forEach(function(project) {
+    const history = project.milestoneHistory;
+    if (!history || history.unavailable) return;
+    (history.milestones || []).forEach(function(m) {
+      allMilestones.push({
+        version: escHtml(m.version || ''),
+        name: escHtml(m.name || ''),
+        shipped: escHtml(m.shipped || ''),
+        phases_completed: m.phases_completed,
+        projectPath: escHtml(project.path || ''),
+        projectName: escHtml((project.ir && project.ir.project && project.ir.project.name) || project.path || ''),
+      });
+    });
+  });
+
+  if (allMilestones.length === 0) {
+    return '<p>No milestone history available across projects.</p>';
+  }
+
+  // Sort by shipped date (lexicographic ISO date comparison)
+  allMilestones.sort(function(a, b) {
+    return a.shipped.localeCompare(b.shipped);
+  });
+
+  const rows = allMilestones.map(function(m) {
+    const phases = m.phases_completed !== null ? m.phases_completed + ' phases' : '—';
+    return `<tr>
+      <td>${m.shipped}</td>
+      <td>${m.version}</td>
+      <td>${m.name}</td>
+      <td>${phases}</td>
+      <td>${m.projectName}</td>
+    </tr>`;
+  }).join('\n');
+
+  return `<table class="pf-timeline-table">
+  <thead><tr><th>Shipped</th><th>Version</th><th>Name</th><th>Phases</th><th>Project</th></tr></thead>
+  <tbody>${rows}</tbody>
+</table>`;
+}
+
+// ─── buildCrossProjectPortfolio ───────────────────────────────────────────────
+
+/**
+ * Build sections array for a cross-project portfolio.
+ * Takes portfolioIR (from buildPortfolioIR) — NOT single-project IR.
+ *
+ * Returns 5 sections: header, projects, patterns, outcomes, timeline.
+ *
+ * PORT-05: every helper checks project.unavailable before accessing project.ir.
+ *
+ * @param {object} portfolioIR - Output of buildPortfolioIR()
+ * @returns {Array<{id: string, title: string, level: number, content: string}>}
+ */
+function buildCrossProjectPortfolio(portfolioIR) {
+  return [
+    { id: 'header',   title: 'Portfolio Overview',        level: 1, content: buildPortfolioHeader(portfolioIR) },
+    { id: 'projects', title: 'Projects',                  level: 2, content: buildProjectList(portfolioIR) },
+    { id: 'patterns', title: 'Cross-Project Patterns',    level: 2, content: buildCrossPatterns(portfolioIR) },
+    { id: 'outcomes', title: 'Cumulative Outcomes',       level: 2, content: buildCumulativeOutcomes(portfolioIR) },
+    { id: 'timeline', title: 'Milestone Timeline',        level: 2, content: buildMilestoneTimeline(portfolioIR) },
+  ];
+}
+
+// ─── cmdPortfolioRender ───────────────────────────────────────────────────────
+
+/**
+ * CLI handler for `pde-tools portfolio render`.
+ * Reads portfolioIR JSON file, renders HTML+MD using buildCrossProjectPortfolio.
+ * Bypasses the persona dispatch in render() — uses renderHTML/renderMarkdown directly
+ * to avoid mixing single-project and multi-project IR shapes.
+ *
+ * @param {string} cwd - Invoking project's working directory
+ * @param {string} portfolioIRPath - Path to portfolioIR JSON file
+ * @param {string} htmlPath - Output HTML path
+ * @param {string} mdPath - Output Markdown path
+ */
+function cmdPortfolioRender(cwd, portfolioIRPath, htmlPath, mdPath) {
+  const { output, error } = require('./core.cjs');
+
+  if (!portfolioIRPath) {
+    error('Missing portfolio-ir-path argument. Usage: portfolio render <ir-path> <html-path> <md-path>');
+  }
+  if (!htmlPath) {
+    error('Missing html-path argument. Usage: portfolio render <ir-path> <html-path> <md-path>');
+  }
+  if (!mdPath) {
+    error('Missing md-path argument. Usage: portfolio render <ir-path> <html-path> <md-path>');
+  }
+
+  let portfolioIR;
+  try {
+    portfolioIR = JSON.parse(fs.readFileSync(portfolioIRPath, 'utf-8'));
+  } catch (e) {
+    error('Failed to parse portfolioIR file at ' + portfolioIRPath + ': ' + e.message);
+  }
+
+  const sections = buildCrossProjectPortfolio(portfolioIR);
+
+  // Build a minimal IR-like object for renderHTML/renderMarkdown title fields
+  // The portfolio-synthesis persona is not registered in render() switch —
+  // we call renderHTML/renderMarkdown directly with the sections array
+  const syntheticMeta = {
+    project: { name: 'Cross-Project Portfolio', unavailable: false },
+    extracted_at: portfolioIR.extracted_at || new Date().toISOString(),
+    source_hash: '',
+  };
+
+  const html = renderHTML(syntheticMeta, 'portfolio-synthesis', sections);
+  const md = renderMarkdown(syntheticMeta, 'portfolio-synthesis', sections);
+
+  // Ensure parent directories exist
+  const htmlDir = path.dirname(htmlPath);
+  const mdDir = path.dirname(mdPath);
+  if (htmlDir && !fs.existsSync(htmlDir)) fs.mkdirSync(htmlDir, { recursive: true });
+  if (mdDir && mdDir !== htmlDir && !fs.existsSync(mdDir)) fs.mkdirSync(mdDir, { recursive: true });
+
+  fs.writeFileSync(htmlPath, html, 'utf-8');
+  fs.writeFileSync(mdPath, md, 'utf-8');
+
+  const htmlBytes = Buffer.byteLength(html, 'utf-8');
+  output({ htmlPath, mdPath, htmlBytes });
+}
+
 // ─── CSS: PDE design tokens ───────────────────────────────────────────────────
 
 const PDE_CSS = `
@@ -1779,8 +2087,10 @@ module.exports = {
   buildAdrSummary,
   buildLaunchAnnouncement,
   buildPortfolioOverview,
+  buildCrossProjectPortfolio,
   renderHTML,
   renderMarkdown,
   render,
   cmdPresentationRender,
+  cmdPortfolioRender,
 };
