@@ -790,6 +790,7 @@ function cmdPresentationRender(cwd, persona, htmlPath, mdPath, irFilePath) {
 
 module.exports = {
   escHtml,
+  stripHtml,
   embedImage,
   buildTOC,
   personaDisplayName,
