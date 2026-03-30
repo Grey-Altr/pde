@@ -437,7 +437,7 @@ Plans:
 - [x] **Phase 190: Infrastructure Foundation** — Extended registry backend enum, SessionSource shared type, lock.cjs cloud-aware PID handling, aggregator RemoteAggregator stub, dispatch config block extension, and cloud adapter package scaffold (completed 2026-03-30)
 - [x] **Phase 191: Docker Container Backend** — remote-docker.cjs mirroring spawn.cjs interface, NDJSON stdout relay, coordinator Docker dispatch branch, [D] source label, and coordinator-docker tests (completed 2026-03-30)
 - [x] **Phase 192: Git-Based State Sync** — sync.cjs with pushPlanningState/fetchPlanningState, direction-aware merge strategy, simple-git in packages/, concurrent branch ordering, and sync tests against real worktree fixtures (completed 2026-03-30)
-- [ ] **Phase 193: Cloud Web Backend** — remote-cloud.cjs with CloudPoller synthetic events, OAuth probe, cloud dispatch branch in coordinator, auto-teardown on completion, and graceful fallback chain
+- [x] **Phase 193: Cloud Web Backend** — remote-cloud.cjs with CloudPoller synthetic events, OAuth probe, cloud dispatch branch in coordinator, auto-teardown on completion, and graceful fallback chain (completed 2026-03-30)
 - [ ] **Phase 194: Intelligent Routing** — Full classifyTaskRouting() integration, auto-classify from PLAN.md metadata, cost ceiling enforcement, manual --dispatch override, fast-path local guarantee, and routing event logging
 - [ ] **Phase 195: Dashboard Integration** — Cloud and Docker session labels, CloudPoller progress bars, start/stop/inspect UI, sync state display, cost tracking in Token Playground, and session_source type extension
 - [ ] **Phase 196: Containerized MCP Servers** — Per-server Docker containers for APPROVED_SERVERS with pinned runtimes and probe/degrade contract extension for container startup latency
@@ -498,7 +498,7 @@ Plans:
   2. Cloud session auth uses claude.ai OAuth probe (not ANTHROPIC_API_KEY) — detectManagedBackend() returns available:false on machines without claude.ai auth, confirmed by CLI stub test
   3. Cloud container is torn down automatically on task completion with configurable idle timeout — no cloud sessions remain running after coordinator-cloud test completes
   4. Fallback chain cloud -> SSH -> local activates automatically when cloud probe returns unavailable, emitting a routing_fallback event
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 - [ ] 193-01-PLAN.md — Core cloud modules: CloudPoller, spawnCloudSession, OAuth probe, RemoteAggregator wiring, cloud sourceLabel
 - [x] 193-02-PLAN.md — Router cloud rules, coordinator _runCloudSession, relay guard, routing_fallback, coordinator-cloud.test.cjs
 
@@ -589,7 +589,7 @@ Plans:
 | 190. Infrastructure Foundation | v0.24 | 1/2 | Complete    | 2026-03-30 |
 | 191. Docker Container Backend | v0.24 | 1/2 | Complete    | 2026-03-30 |
 | 192. Git-Based State Sync | v0.24 | 2/2 | Complete    | 2026-03-30 |
-| 193. Cloud Web Backend | v0.24 | 1/2 | In Progress|  |
+| 193. Cloud Web Backend | v0.24 | 1/2 | Complete    | 2026-03-30 |
 | 194. Intelligent Routing | v0.24 | 0/TBD | Not started | - |
 | 195. Dashboard Integration | v0.24 | 0/TBD | Not started | - |
 | 196. Containerized MCP Servers | v0.24 | 0/TBD | Not started | - |
