@@ -48,6 +48,9 @@ const VALID_CONFIG_KEYS = new Set([
   'dispatch.docker.enabled',      // Phase 190: enable Docker dispatch backend
   'dispatch.docker.image',        // Phase 190: Docker image for dispatch containers
   'dispatch.docker.idle_timeout', // Phase 190: idle timeout seconds before container teardown
+  'dispatch.session_persist.enabled',       // Phase 197: enable JSONL persistence to shared storage for cross-host resume
+  'dispatch.session_persist.storage_path',  // Phase 197: absolute path to shared storage directory
+  'dispatch.session_persist.max_size_mb',   // Phase 197: max JSONL file size in MB before skip-and-warn (default 10)
   'presentations.auto_generate', // Phase 183: enable/disable auto-generation of presentations on phase/milestone complete
   'presentations.auto_generate_personas', // Phase 183: JSON array of persona slugs for auto-generation
 ]);
