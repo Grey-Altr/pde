@@ -134,6 +134,11 @@ describe('render-presentation module (Phase 182)', () => {
     expect(typeof renderMod.buildDesignReport).toBe('function');
     expect(typeof renderMod.buildResearchReport).toBe('function');
   });
+
+  it('exports buildPostMortem and buildAdrSummary', () => {
+    expect(typeof renderMod.buildPostMortem).toBe('function');
+    expect(typeof renderMod.buildAdrSummary).toBe('function');
+  });
 });
 
 // ─── CLR-02: buildAgileReport ─────────────────────────────────────────────────
@@ -289,39 +294,131 @@ describe('buildResearchReport (CLR-04)', () => {
   });
 });
 
-// ─── CLR-05: buildPostMortem (scaffold) ──────────────────────────────────────
+// ─── CLR-05: buildPostMortem ─────────────────────────────────────────────────
 
 describe('buildPostMortem (CLR-05)', () => {
-  it.skip('returns an array of sections', () => {
-    // Will be implemented in 182-02-PLAN.md
+  it('returns an array of sections', () => {
     const sections = renderMod.buildPostMortem(MOCK_IR);
     expect(Array.isArray(sections)).toBe(true);
     expect(sections.length).toBeGreaterThanOrEqual(4);
   });
 
-  it.skip('includes expected section IDs', () => {
-    // Will be implemented in 182-02-PLAN.md
+  it('includes expected section IDs', () => {
     const sections = renderMod.buildPostMortem(MOCK_IR);
     const ids = sections.map(s => s.id);
     expect(ids).toContain('overview');
+    expect(ids).toContain('what-broke');
+    expect(ids).toContain('root-cause');
+    expect(ids).toContain('prevention');
+    expect(ids).toContain('timeline');
+    expect(ids).toContain('phase-chart');
+  });
+
+  it('each section has id, title, level, content', () => {
+    const sections = renderMod.buildPostMortem(MOCK_IR);
+    for (const s of sections) {
+      expect(typeof s.id).toBe('string');
+      expect(typeof s.title).toBe('string');
+      expect(typeof s.level).toBe('number');
+      expect(typeof s.content).toBe('string');
+    }
+  });
+
+  it('what-broke section lists blockers as incidents', () => {
+    const sections = renderMod.buildPostMortem(MOCK_IR);
+    const wb = sections.find(s => s.id === 'what-broke');
+    expect(wb).toBeTruthy();
+    // MOCK_IR has a blocker about SVG chart
+    expect(wb.content).toContain('SVG chart');
+  });
+
+  it('handles unavailable ir.blockers gracefully', () => {
+    const ir = { ...MOCK_IR, blockers: { unavailable: true, reason: 'no blocker data' } };
+    const sections = renderMod.buildPostMortem(ir);
+    const wb = sections.find(s => s.id === 'what-broke');
+    expect(wb).toBeTruthy();
+    expect(wb.content).not.toThrow;
+    expect(typeof wb.content).toBe('string');
+  });
+
+  it('handles unavailable ir.decisions gracefully', () => {
+    const ir = { ...MOCK_IR, decisions: { unavailable: true, reason: 'no decisions' } };
+    const sections = renderMod.buildPostMortem(ir);
+    const prevention = sections.find(s => s.id === 'prevention');
+    expect(prevention.content).toContain('unavailable');
+  });
+
+  it('does not throw when called with full MOCK_IR', () => {
+    expect(() => renderMod.buildPostMortem(MOCK_IR)).not.toThrow();
+  });
+
+  it('integration: render() accepts post-mortem persona and writes files', () => {
+    const htmlPath = path.join(tmpDir, 'post-mortem.html');
+    const mdPath = path.join(tmpDir, 'post-mortem.md');
+    expect(() => renderMod.render(MOCK_IR, 'post-mortem', htmlPath, mdPath)).not.toThrow();
+    expect(fs.existsSync(htmlPath)).toBe(true);
+    expect(fs.existsSync(mdPath)).toBe(true);
   });
 });
 
-// ─── CLR-06: buildAdrSummary (scaffold) ──────────────────────────────────────
+// ─── CLR-06: buildAdrSummary ─────────────────────────────────────────────────
 
 describe('buildAdrSummary (CLR-06)', () => {
-  it.skip('returns an array of sections', () => {
-    // Will be implemented in 182-02-PLAN.md
+  it('returns an array of sections', () => {
     const sections = renderMod.buildAdrSummary(MOCK_IR);
     expect(Array.isArray(sections)).toBe(true);
     expect(sections.length).toBeGreaterThanOrEqual(4);
   });
 
-  it.skip('includes expected section IDs', () => {
-    // Will be implemented in 182-02-PLAN.md
+  it('includes expected section IDs', () => {
     const sections = renderMod.buildAdrSummary(MOCK_IR);
     const ids = sections.map(s => s.id);
     expect(ids).toContain('overview');
+    expect(ids).toContain('decisions');
+    expect(ids).toContain('technical');
+    expect(ids).toContain('requirements');
+    expect(ids).toContain('effort');
+  });
+
+  it('each section has id, title, level, content', () => {
+    const sections = renderMod.buildAdrSummary(MOCK_IR);
+    for (const s of sections) {
+      expect(typeof s.id).toBe('string');
+      expect(typeof s.title).toBe('string');
+      expect(typeof s.level).toBe('number');
+      expect(typeof s.content).toBe('string');
+    }
+  });
+
+  it('decisions section formats each decision as ADR entry with status, context, decision fields', () => {
+    const sections = renderMod.buildAdrSummary(MOCK_IR);
+    const dec = sections.find(s => s.id === 'decisions');
+    expect(dec).toBeTruthy();
+    // MOCK_IR has 3 decisions
+    expect(dec.content).toContain('ADR-001');
+    expect(dec.content).toContain('Accepted');
+    // One of the decisions contains "Extraction-first"
+    expect(dec.content).toContain('Extraction-first');
+  });
+
+  it('handles unavailable ir.decisions gracefully', () => {
+    const ir = { ...MOCK_IR, decisions: { unavailable: true, reason: 'no decisions data' } };
+    const sections = renderMod.buildAdrSummary(ir);
+    const dec = sections.find(s => s.id === 'decisions');
+    expect(dec).toBeTruthy();
+    expect(dec.content).toContain('unavailable');
+  });
+
+  it('does not throw when called with full MOCK_IR', () => {
+    expect(() => renderMod.buildAdrSummary(MOCK_IR)).not.toThrow();
+  });
+
+  it('integration: render() accepts adr-summary persona and writes files', () => {
+    const htmlPath = path.join(tmpDir, 'adr-summary.html');
+    const mdPath = path.join(tmpDir, 'adr-summary.md');
+    expect(() => renderMod.render(MOCK_IR, 'adr-summary', htmlPath, mdPath)).not.toThrow();
+    expect(fs.existsSync(htmlPath)).toBe(true);
+    expect(fs.existsSync(mdPath)).toBe(true);
   });
 });
 
@@ -361,7 +458,7 @@ describe('buildPortfolioOverview (CLR-08)', () => {
   });
 });
 
-// ─── Integration: render() accepts 3 Cluster B persona slugs ─────────────────
+// ─── Integration: render() accepts Cluster B persona slugs ───────────────────
 
 describe('render() integration — CLR-02, CLR-03, CLR-04', () => {
   it('render() accepts agile-report persona', () => {

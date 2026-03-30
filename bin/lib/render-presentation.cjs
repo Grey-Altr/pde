@@ -127,6 +127,8 @@ function personaDisplayName(slug) {
     'agile-report':         'Agile Project Report',
     'design-report':        'Design Persona Report',
     'research-report':      'Research Persona Report',
+    'post-mortem':          'Technical Post-Mortem',
+    'adr-summary':          'ADR Summary',
   };
   return names[slug] || slug;
 }
@@ -1015,6 +1017,156 @@ function buildResearchReport(ir) {
   ];
 }
 
+// ─── Phase 182 Plan 02: Cluster B helpers (CLR-05, CLR-06) ───────────────────
+
+/**
+ * Build "what broke" section for post-mortem (CLR-05).
+ * Reads ir.blockers and ir.risks. Lists all blockers as incidents/issues encountered.
+ */
+function buildWhatBroke(ir) {
+  const blockerSentinel = sentinelHtml(ir.blockers, 'Blockers');
+  const riskSentinel = sentinelHtml(ir.risks, 'Risks');
+
+  const blockerItems = (!blockerSentinel && Array.isArray(ir.blockers && ir.blockers.items))
+    ? ir.blockers.items
+    : [];
+  const riskItems = (!riskSentinel && Array.isArray(ir.risks && ir.risks.items))
+    ? ir.risks.items
+    : [];
+
+  if (blockerSentinel && riskSentinel) {
+    return `<p>No significant issues recorded during this milestone.</p>`;
+  }
+
+  if (blockerItems.length === 0 && riskItems.length === 0) {
+    return '<p>No significant issues recorded during this milestone.</p>';
+  }
+
+  const blockerHtml = blockerItems.length > 0
+    ? `<h3>Issues / Incidents Encountered</h3><ul>${blockerItems.map(b =>
+        `<li>${escHtml(b.text || b)} <em class="source">[${escHtml(b.source || '')}]</em></li>`
+      ).join('\n')}</ul>`
+    : '';
+
+  const riskHtml = riskItems.length > 0
+    ? `<h3>Risks Identified</h3><ul>${riskItems.map(r =>
+        `<li>${escHtml(r.text || r)} <em class="source">[${escHtml(r.source || '')}]</em></li>`
+      ).join('\n')}</ul>`
+    : '';
+
+  return `${blockerSentinel || blockerHtml}
+${riskSentinel || riskHtml}`.trim();
+}
+
+/**
+ * Build root cause analysis section for post-mortem (CLR-05).
+ * Reads ir.blockers for cause data and ir.decisions for responsive decisions.
+ * Presents as cause-effect pairs where data exists.
+ */
+function buildRootCause(ir) {
+  const blockerSentinel = sentinelHtml(ir.blockers, 'Blockers');
+  const decisionsSentinel = sentinelHtml(ir.decisions, 'Decisions');
+
+  if (blockerSentinel && decisionsSentinel) {
+    return '<p>Root cause data not captured in structured format.</p>';
+  }
+
+  const blockerItems = (!blockerSentinel && Array.isArray(ir.blockers && ir.blockers.items))
+    ? ir.blockers.items
+    : [];
+
+  const decisionItems = (!decisionsSentinel && Array.isArray(ir.decisions && ir.decisions.items))
+    ? ir.decisions.items
+    : [];
+
+  if (blockerItems.length === 0 && decisionItems.length === 0) {
+    return '<p>Root cause data not captured in structured format.</p>';
+  }
+
+  const causeHtml = blockerItems.length > 0
+    ? `<h3>Causes (Blockers Encountered)</h3><ul>${blockerItems.map(b =>
+        `<li><strong>Cause:</strong> ${escHtml(b.text || b)} <em class="source">[${escHtml(b.source || '')}]</em></li>`
+      ).join('\n')}</ul>`
+    : '';
+
+  const effectHtml = decisionItems.length > 0
+    ? `<h3>Responses (Decisions Made)</h3><ul>${decisionItems.slice(0, 10).map(d =>
+        `<li><strong>Response:</strong> ${escHtml(d.text || d)} <em class="source">[${escHtml(d.source || '')}]</em></li>`
+      ).join('\n')}</ul>`
+    : '';
+
+  return `${causeHtml}
+${effectHtml}`.trim();
+}
+
+/**
+ * Build ADR-style decisions section for adr-summary (CLR-06).
+ * Reads ir.decisions. Formats each decision as an ADR entry:
+ * Status, Context, Decision, Consequences.
+ */
+function buildAdrDecisions(ir) {
+  const sentinel = sentinelHtml(ir.decisions, 'Decisions');
+  if (sentinel) return sentinel;
+
+  const items = Array.isArray(ir.decisions && ir.decisions.items)
+    ? ir.decisions.items
+    : (Array.isArray(ir.decisions) ? ir.decisions : []);
+
+  if (items.length === 0) {
+    return '<p>No architecture decisions recorded.</p>';
+  }
+
+  const entries = items.slice(0, 20).map((d, i) => {
+    const text = d.text || String(d);
+    const source = d.source || '';
+    return `<div class="adr-entry">
+  <p><strong>ADR-${String(i + 1).padStart(3, '0')}</strong> &mdash; <em>Status: Accepted</em></p>
+  <p><strong>Context:</strong> ${escHtml(source ? `[${source}]` : 'Documented during milestone execution')}</p>
+  <p><strong>Decision:</strong> ${escHtml(text)}</p>
+  <p><strong>Consequences:</strong> Recorded as accepted architectural direction. Review if requirements change significantly.</p>
+</div>`;
+  }).join('\n');
+
+  return entries;
+}
+
+// ─── Phase 182 Plan 02: Cluster B persona builders (CLR-05, CLR-06) ──────────
+
+/**
+ * Build technical post-mortem sections (CLR-05).
+ * Target audience: Engineering leads, SRE teams, incident reviewers.
+ *
+ * @param {object} ir - IR from buildPresentationIR()
+ * @returns {Array<{id: string, title: string, level: number, content: string}>}
+ */
+function buildPostMortem(ir) {
+  return [
+    { id: 'overview',     title: 'Post-Mortem Overview',   level: 1, content: buildOverview(ir) },
+    { id: 'what-broke',   title: 'What Broke',             level: 2, content: buildWhatBroke(ir) },
+    { id: 'root-cause',   title: 'Root Cause Analysis',    level: 2, content: buildRootCause(ir) },
+    { id: 'prevention',   title: 'Prevention Measures',    level: 2, content: buildDecisions(ir) },
+    { id: 'timeline',     title: 'Incident Timeline',      level: 2, content: buildTimeline(ir) },
+    { id: 'phase-chart',  title: 'Phase Timeline Chart',   level: 2, content: charts.phaseTimelineChart(ir) },
+  ];
+}
+
+/**
+ * Build architecture decision record summary sections (CLR-06).
+ * Target audience: Architects, new team members, audit reviewers.
+ *
+ * @param {object} ir - IR from buildPresentationIR()
+ * @returns {Array<{id: string, title: string, level: number, content: string}>}
+ */
+function buildAdrSummary(ir) {
+  return [
+    { id: 'overview',      title: 'ADR Overview',               level: 1, content: buildOverview(ir) },
+    { id: 'decisions',     title: 'Architecture Decisions',      level: 2, content: buildAdrDecisions(ir) },
+    { id: 'technical',     title: 'Technical Context',           level: 2, content: buildTechnical(ir) },
+    { id: 'requirements',  title: 'Requirements Traceability',   level: 2, content: buildRequirements(ir) },
+    { id: 'effort',        title: 'Effort Distribution',         level: 2, content: charts.effortBreakdownChart(ir) },
+  ];
+}
+
 // ─── CSS: PDE design tokens ───────────────────────────────────────────────────
 
 const PDE_CSS = `
@@ -1320,8 +1472,14 @@ function render(ir, persona, htmlPath, mdPath) {
     case 'research-report':
       sections = buildResearchReport(ir);
       break;
+    case 'post-mortem':
+      sections = buildPostMortem(ir);
+      break;
+    case 'adr-summary':
+      sections = buildAdrSummary(ir);
+      break;
     default:
-      throw new Error(`Unknown persona: ${persona}. Available: executive-summary, case-study, investor-update, sprint-review, client-deliverable, stakeholder-status, pm-view, project-manager-view, agile-report, design-report, research-report`);
+      throw new Error(`Unknown persona: ${persona}. Available: executive-summary, case-study, investor-update, sprint-review, client-deliverable, stakeholder-status, pm-view, project-manager-view, agile-report, design-report, research-report, post-mortem, adr-summary`);
   }
 
   // Claim verification (VER-01/02/03): compare rendered content against canonical IR
@@ -1425,6 +1583,8 @@ module.exports = {
   buildAgileReport,
   buildDesignReport,
   buildResearchReport,
+  buildPostMortem,
+  buildAdrSummary,
   renderHTML,
   renderMarkdown,
   render,
