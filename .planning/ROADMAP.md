@@ -375,4 +375,4 @@ Plans:
 | 181. Remaining Cluster A Personas | v0.22 | 1/3 | Complete    | 2026-03-30 |
 | 182. Remaining Cluster B Personas | v0.22 | 3/3 | Complete    | 2026-03-30 |
 | 183. Auto-Generation | v0.22 | 1/1 | Complete    | 2026-03-30 |
-| 184. Cross-Project Portfolio Synthesis | v0.22 | 2/2 | Complete   | 2026-03-30 |
+| 184. Cross-Project Portfolio Synthesis | v0.22 | 2/2 | Complete    | 2026-03-30 |
