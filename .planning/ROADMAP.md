@@ -245,9 +245,10 @@ Plans:
   3. Both personas produce a Markdown companion file alongside the HTML, written to .planning/presentations/ with the [persona]-[date] naming convention
   4. Design artifact screenshots from .planning/design/ are embedded as inline base64 images where the persona calls for visual evidence
   5. Regenerating either presentation overwrites the prior output with the current project state
-**Plans:** 1 plan
+**Plans:** 2 plans
 Plans:
-- [ ] 177-01-PLAN.md — Command file, workflow with persona registry and dispatch, skill-registry update
+- [ ] 178-01-PLAN.md — Rendering engine (render-presentation.cjs) with executive-summary + case-study persona builders, TDD tests, CLI wiring
+- [ ] 178-02-PLAN.md — Workflow Step 6 update (stub to real render call) + human-verify end-to-end
 **UI hint**: yes
 
 ### Phase 179: SVG Charts
@@ -361,7 +362,7 @@ Plans:
 | 175. Design Pipeline Integration | v0.21 | 2/2 | Complete | 2026-03-29 |
 | 176. Data Extraction IR Foundation | v0.22 | 1/3 | Complete    | 2026-03-30 |
 | 177. Command Interface + Workflow Shell | v0.22 | 1/1 | Complete    | 2026-03-30 |
-| 178. Reference Personas + Rendering Engine | v0.22 | 0/TBD | Not started | - |
+| 178. Reference Personas + Rendering Engine | v0.22 | 0/2 | Not started | - |
 | 179. SVG Charts | v0.22 | 0/TBD | Not started | - |
 | 180. Claim Verification + PDF Export | v0.22 | 0/TBD | Not started | - |
 | 181. Remaining Cluster A Personas | v0.22 | 0/TBD | Not started | - |
