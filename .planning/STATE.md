@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v0.22
 milestone_name: Stakeholder Presentations
 status: verifying
-stopped_at: Completed 180-02-PLAN.md
-last_updated: "2026-03-30T02:41:58.579Z"
+stopped_at: Completed 181-03-PLAN.md
+last_updated: "2026-03-30T03:13:33.232Z"
 last_activity: 2026-03-30
 progress:
   total_phases: 16
   completed_phases: 5
-  total_plans: 9
-  completed_plans: 9
+  total_plans: 12
+  completed_plans: 10
   percent: 0
 ---
 
@@ -62,6 +62,7 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 179-svg-charts]: Burndown chart uses synthetic linear approximation from IR aggregate counts — per-phase snapshots not stored in IR
 - [Phase 180]: exportPdf uses page.goto('file://') not page.setContent() — matches screenshot.cjs pattern, ensures relative resources resolve
 - [Phase 180]: PDF failure in present.md is non-blocking — HTML and MD already written before PDF export attempt
+- [Phase 181]: buildPhaseTracking omits .slice() cap — project managers need the full timeline, not truncated 10-item preview
 
 ### Pending Todos
 
@@ -74,7 +75,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-30T02:35:14.884Z
-Stopped at: Completed 180-02-PLAN.md
+Last session: 2026-03-30T03:13:33.229Z
+Stopped at: Completed 181-03-PLAN.md
 Resume with: `/gsd:plan-phase 176`
 Resume file: None

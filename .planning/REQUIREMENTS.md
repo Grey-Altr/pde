@@ -27,8 +27,8 @@ Requirements for this milestone. Each maps to roadmap phases.
 - [ ] **CLU-03**: User can generate a sprint review (what shipped, demo screenshots, what's next)
 - [ ] **CLU-04**: User can generate a client deliverable report (feature specs, ACs met, screenshots)
 - [ ] **CLU-05**: User can generate a stakeholder status update (RAG status, decisions needed, risks)
-- [ ] **CLU-06**: User can generate a product manager view (feature prioritization, requirement coverage, roadmap health, scope trade-offs)
-- [ ] **CLU-07**: User can generate a project manager view (timeline tracking, dependency analysis, risk register, resource allocation)
+- [x] **CLU-06**: User can generate a product manager view (feature prioritization, requirement coverage, roadmap health, scope trade-offs)
+- [x] **CLU-07**: User can generate a project manager view (timeline tracking, dependency analysis, risk register, resource allocation)
 
 ### Cluster B Personas (External / Retrospective)
 
@@ -169,8 +169,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CLU-03 | Phase 181 | Pending |
 | CLU-04 | Phase 181 | Pending |
 | CLU-05 | Phase 181 | Pending |
-| CLU-06 | Phase 181 | Pending |
-| CLU-07 | Phase 181 | Pending |
+| CLU-06 | Phase 181 | Complete |
+| CLU-07 | Phase 181 | Complete |
 | CLR-02 | Phase 182 | Pending |
 | CLR-03 | Phase 182 | Pending |
 | CLR-04 | Phase 182 | Pending |

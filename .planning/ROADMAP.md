@@ -289,11 +289,11 @@ Plans:
   3. Running `/pde:present client-deliverable` produces a feature-specs and ACs-met report with verification evidence
   4. Running `/pde:present stakeholder-status` produces a RAG-status, decisions-needed, and risks document
   5. Running `/pde:present pm-view` and `/pde:present project-manager-view` each produce their respective persona documents with the correct data emphasis and narrative arc
-**Plans:** 3 plans
+**Plans:** 1/3 plans executed
 Plans:
 - [ ] 181-01-PLAN.md — Investor update + sprint review builders, test scaffold
 - [ ] 181-02-PLAN.md — Client deliverable + stakeholder status builders, RAG logic
-- [ ] 181-03-PLAN.md — Product manager + project manager builders, complete test suite
+- [x] 181-03-PLAN.md — Product manager + project manager builders, complete test suite
 
 **UI hint**: yes
 
@@ -369,7 +369,7 @@ Plans:
 | 178. Reference Personas + Rendering Engine | v0.22 | 2/2 | Complete    | 2026-03-30 |
 | 179. SVG Charts | v0.22 | 1/1 | Complete    | 2026-03-30 |
 | 180. Claim Verification + PDF Export | v0.22 | 1/2 | Complete    | 2026-03-30 |
-| 181. Remaining Cluster A Personas | v0.22 | 0/3 | Not started | - |
+| 181. Remaining Cluster A Personas | v0.22 | 1/3 | In Progress|  |
 | 182. Remaining Cluster B Personas | v0.22 | 0/TBD | Not started | - |
 | 183. Auto-Generation | v0.22 | 0/TBD | Not started | - |
 | 184. Cross-Project Portfolio Synthesis | v0.22 | 0/TBD | Not started | - |
