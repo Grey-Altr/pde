@@ -1,66 +1,8 @@
 # Feature Research
 
-**Domain:** Stakeholder Presentation & Portfolio Synthesis Engine — PDE synthesis milestone
+**Domain:** Quality hardening and reliability improvements for a large Claude Code plugin (PDE v0.23)
 **Researched:** 2026-03-29
-**Confidence:** MEDIUM (ecosystem patterns verified via web search; no single authoritative spec source for this domain)
-
----
-
-## Context: What Already Exists in PDE
-
-The synthesis engine reads existing PDE artifacts — it does not generate them. All of the following are already built:
-
-| Already Shipped | Where It Lives | Relevance to Synthesis |
-|----------------|---------------|----------------------|
-| PROJECT.md — vision, goals, requirements | `.planning/PROJECT.md` | Core input: project identity |
-| ROADMAP.md — phase breakdown | `.planning/ROADMAP.md` | Phase timeline source |
-| Phase plans — task details, ACs | `.planning/phases/` | Task completion evidence |
-| VERIFICATION.md — test results, goal achievement | `.planning/phases/*/VERIFICATION.md` | Proof of work |
-| Design artifacts — wireframes, flows, mockups | `.planning/design/` | Visual evidence |
-| Git history integration | PDE git tooling | Commit velocity, contributor data |
-| NDJSON event bus + session archival | `.planning/events/` | Phase timing, cost metering |
-| Token/cost metering per session | Event bus extensions field | Budget narrative |
-| Research validation with claim extraction | v0.7 research-validation agent | Credibility layer |
-| tmux dashboard with 7 panes | `/pde:monitor` | Live status source |
-| Context sync (AGENTS.md, .mdc, GEMINI.md, SKILL.md) | v0.15 context-sync | Editor file sources |
-| Idle-time suggestion engine | v0.10 suggestion catalog | Opportunity surface |
-| All 5 product types (software/hardware/hybrid/experience/business) | v0.11–v0.12 | Type-conditional output |
-
-**Implication:** The synthesis engine is a reader + narrator, not a generator. It transforms structured artifacts into audience-appropriate communication documents. No new data collection infrastructure is needed.
-
----
-
-## Persona Types: Logic Sharing Analysis
-
-The 10 output personas break into two clusters with heavy shared logic:
-
-### Cluster A: Internal / Forward-Looking (Status-Oriented)
-
-| Persona | Audience | Timing | Primary Arc |
-|---------|----------|--------|-------------|
-| Executive Summary | C-suite, founders | During project | Problem → Progress → Blockers → Timeline confidence |
-| Investor Update | Angels, VCs, board | During project | Milestone velocity → Technical moat → Market positioning |
-| Sprint Review Deck | Team, PM, stakeholders | End of sprint | What shipped → Demos → What's next |
-| Client Deliverable Report | External client | Sprint or milestone | Feature specs → ACs met → Screenshots |
-| Stakeholder Status Update | Mixed internal | Weekly/biweekly | RAG status → Decisions needed → Risks |
-
-**Shared logic in Cluster A:** Phase completion % calculation, blocker extraction, timeline confidence scoring, next-phase preview, cost/budget narrative from token metering.
-
-### Cluster B: External / Retrospective (Proof-Oriented)
-
-| Persona | Audience | Timing | Primary Arc |
-|---------|----------|--------|-------------|
-| Case Study / Portfolio Piece | Prospects, community, hiring managers | Post-completion | Problem → Approach → Outcome → Lessons |
-| Technical Post-Mortem | Engineering community | Post-completion | What broke → Root cause → Prevention |
-| Architecture Decision Record (ADR) Summary | New team members, future engineers | Evergreen | Context → Options → Decision → Consequences |
-| Portfolio Overview | Recruiters, investors | Evergreen | Cross-project pattern → Skills demonstrated |
-| Launch Announcement | Public / press | At launch | What it is → Who it's for → How to start |
-
-**Shared logic in Cluster B:** Retrospective framing, outcome measurement (actual vs planned), lessons synthesis, artifact linking (screenshots, design files), before/after narrative.
-
-### Cross-Cluster Shared Logic (~70%)
-
-Both clusters share: artifact inventory scan, design artifact embedding, Git commit stats, phase summary extraction, cost/timeline extraction from event bus, PDE product-type detection.
+**Confidence:** HIGH — based on direct inspection of codebase artifacts, verification reports, and milestone audit files
 
 ---
 
@@ -68,193 +10,91 @@ Both clusters share: artifact inventory scan, design artifact embedding, Git com
 
 ### Table Stakes (Users Expect These)
 
-Features that must exist for the synthesis engine to feel useful at all. Missing these = the output is a toy.
+Features that are already partially present in the codebase but are known to be incomplete or broken. Shipping v0.23 without these means the milestone audit trail is untrustworthy.
 
-| Feature | Why Expected | Complexity | PDE Artifact Source | Notes |
-|---------|--------------|------------|--------------------|----|
-| Per-persona document generation | Each persona has different information needs | MEDIUM | PROJECT.md + ROADMAP.md + phase plans | Core command: `/pde:present [persona]` |
-| Dual HTML + Markdown output | HTML for sharing/presentation, Markdown for editing/version control | LOW | All text outputs | HTML rendered from Markdown; not a separate generation step |
-| Phase completion status summary | Every stakeholder report needs progress at a glance | LOW | VERIFICATION.md + phase plans | Count tasks completed vs planned |
-| Key metrics extraction | Dates, cost, task counts — the numbers that matter | LOW | Event bus sessions + phase plans | Token metering already captures cost |
-| Design artifact embedding | Wireframes and mockups are worth more than prose descriptions | MEDIUM | `.planning/design/` files | Reference screenshots already captured via Playwright |
-| Git commit velocity summary | Proves engineering cadence, not just claims | LOW | Git history (already integrated) | Commits per phase, contributors |
-| Blocker and risk callouts | Stakeholders need to know what's at risk | MEDIUM | Phase plans, RECONCILIATION.md files | Unresolved tasks + overdue phases |
-| Output file persistence | Reports must be saved, not ephemeral | LOW | `.planning/presentations/` directory | Filename includes persona + date |
-| Regeneration / refresh | Project state changes; reports must stay current | LOW | Re-run command, overwrite with timestamp | Not streaming — snapshot semantics |
-| Table of contents / navigation | Long reports need navigation, especially HTML | LOW | Auto-generated from section headers | Anchor links in HTML |
+| Feature | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| ROADMAP.md milestone status accuracy | v0.22 still shows `🚧 In Progress` despite being shipped 2026-03-30; users reading the tracking doc see false state | LOW | Text replacement; confirmed by direct inspection of ROADMAP.md line 26 |
+| MILESTONES.md one-liner completion | v0.22 has 10+ `- One-liner:` placeholder entries; v0.21, v0.20, v0.19 sections also contain placeholder entries; portfolio synthesis IR reads MILESTONES.md and gets literal placeholder text | MEDIUM | Must read each phase SUMMARY.md and extract the correct one-liner; some require judgment |
+| REQUIREMENTS.md checkbox reconciliation | Phase 176 VERIFICATION.md explicitly flags EXT-01 through EXT-10 as unchecked despite full implementation; similar gaps likely in earlier milestones | MEDIUM | Systematic audit against VERIFICATION.md pass records; each checkbox needs evidence before checking |
+| Phase 180 VERIFICATION.md status fix | Audit explicitly records `status: gaps_found` in frontmatter despite code being complete and admin checkbox issue resolved | LOW | Single frontmatter field; confirmed tech debt item in v0.22 MILESTONE-AUDIT.md |
+| buildCrossPatterns IR field name fix | Phase 184 VERIFICATION.md flags that `buildCrossPatterns` reads `research.findings` but real IR uses `topics`/`project_research_files`; currently produces silently empty cross-patterns section | MEDIUM | Field name mismatch in `bin/lib/render-presentation.cjs`; test mocks must also update to real IR shape |
 
 ### Differentiators (Competitive Advantage)
 
-What makes PDE's synthesis engine meaningfully better than Notion AI summaries, Jira release notes, or Linear updates.
+Features beyond checkbox repair — systematic improvements that add ongoing value to the quality infrastructure.
 
-| Feature | Value Proposition | Complexity | PDE Advantage | Notes |
-|---------|-------------------|------------|---------------|-------|
-| Persona-driven narrative arc | Same data, fundamentally different story structure per audience | HIGH | No existing tool does problem→approach→outcome arc from structured dev artifacts | Two arc templates: forward-looking (status) and retrospective (proof) |
-| Design artifact integration | Wireframes and mockups embedded as evidence, not just linked | MEDIUM | PDE already owns `.planning/design/` | GitHub Insights, Linear, Jira have no design artifact awareness |
-| Research validation sourcing | Claims are backed by verified research, not just asserted | MEDIUM | v0.7 research-validation agent provides three-tier claim classification | Unique to PDE — no competitor has this |
-| Cost transparency narrative | "We built X for $Y in token costs" is a genuine differentiator | LOW | Event bus + token metering already exists | Novel in this domain — no tool reports LLM cost per deliverable |
-| Cross-project portfolio synthesis | Single command generates portfolio-level case study from multiple `.planning/` directories | HIGH | Multi-project reading + pattern synthesis across projects | Requires scanning sibling directories; most tools are per-project only |
-| Product-type-aware framing | Experience products get venue/production narrative; business products get GTM/revenue narrative | MEDIUM | PDE product type detection already exists | No competitor has domain-specific stakeholder framing |
-| Auto-generation on phase completion | Reports triggered by phase verification gate passing, not manual request | MEDIUM | Claude Code hooks infrastructure already exists (v0.10) | Notion AI requires manual trigger; Linear updates are manually written |
-| Acceptance-criteria proof table | "Here are the ACs we committed to; here's the verification result" | LOW | AC-first planning (v0.6) + VERIFICATION.md already produces this data | Unique to PDE's methodology — most tools don't have AC→verification traceability |
-| Timeline confidence scoring | "We're 73% through planned phases; estimated completion based on velocity" | MEDIUM | Phase event timestamps + task completion rates | Derived from existing event data; no new instrumentation needed |
+| Feature | Value Proposition | Complexity | Notes |
+|---------|-------------------|------------|-------|
+| v0.22 Nyquist VALIDATION.md backfill | 6 phases (179–184) have MISSING VALIDATION.md; 3 phases (176–178) have PARTIAL (draft) status per MILESTONE-AUDIT.md; structural regression coverage protects future refactors | MEDIUM | 9 files; each derived from existing VERIFICATION.md observable truths tables; templated pattern |
+| v0.7 SUMMARY.md frontmatter one-liner field | 5 v0.7 SUMMARY files missing `one-liner` frontmatter key (documented in PROJECT.md tech debt); affects extractDecisions/extractCostTiming IR extraction | LOW | Targeted fix; 5 files in `.planning/milestones/v0.7-phases/` |
+| Cross-artifact consistency verification | Audit that every milestone's requirements file, roadmap entry, and MILESTONES.md entry agree on what shipped — detect class of drift before it accumulates into the next quality pass | MEDIUM | Could be a pde-tools health subcommand; walks all milestones and reports mismatches |
 
 ### Anti-Features (Commonly Requested, Often Problematic)
 
-Scope traps to explicitly avoid in this milestone.
-
-| Anti-Feature | Why Requested | Why Problematic | Alternative |
-|--------------|---------------|-----------------|-------------|
-| Interactive slide deck editor | "Make it look like Pitch or Google Slides" | Requires a full UI framework, drag-and-drop, layout engine — months of work orthogonal to PDE's value | Ship HTML with clean CSS; Markdown can be imported into any slide tool |
-| Real-time collaborative editing | "Multiple people should edit the report" | Requires auth, presence, CRDT, websockets — none of which PDE has | Markdown output is editable in any editor; HTML is a shareable artifact |
-| PDF export with pixel-perfect layout | "I need to attach this to an email" | Headless PDF generation (Puppeteer/wkhtmltopdf) has endless CSS quirks and viewport issues | Deliver HTML; browser print-to-PDF is sufficient for stakeholder use |
-| AI-generated charts from raw data | "Auto-generate Gantt charts and pie charts" | Chart generation from unstructured data is unreliable and produces misleading visuals | Use Mermaid for structural charts (already used in PDE); link to existing design artifacts for visuals |
-| Email delivery / Slack posting | "Send the report to the team automatically" | Outbound email/Slack requires auth, delivery confirmation, formatting per platform — separate project | Output the file; user pastes or attaches. Integrate in a later milestone. |
-| NPS / stakeholder feedback collection | "Include a way for stakeholders to respond" | Requires a web service, form handling, response storage | Not a document feature; build separately if needed |
-| Version control for reports | "Show me what changed between last week's report and this week's" | Diff-ing generated prose is unreliable — context changes, sentences shift | Reports are snapshots with date-stamped filenames; diff the source artifacts instead |
-| Full narrative prose for every section | "Write me a complete 2000-word case study automatically" | LLM-generated long-form prose requires heavy prompt engineering and produces inconsistent quality | Use structured templates with prose fills for key sections; keep data tables for factual content |
-| Burndown chart image generation | "I want a burndown chart image embedded in the report" | Image generation from data requires a charting library with browser rendering or canvas — significant dependency | Use Mermaid gantt or xychart syntax; renders in markdown, embeds cleanly in HTML |
+| Feature | Why Requested | Why Problematic | Alternative |
+|---------|---------------|-----------------|-------------|
+| Full Nyquist backfill for all 184 phases | "While we're fixing v0.22, let's do all phases" | Scope explosion — v0.1 through v0.21 have varying coverage; retroactive compliance for shipped work has diminishing returns; would consume entire milestone budget | Focus backfill on v0.22 (most recent, explicitly audited gap); establish going-forward policy |
+| LLM-automated MILESTONES.md one-liner generation | "Just have the AI fill them all in automatically in one pass" | LLM will invent plausible-sounding descriptions rather than reading the actual SUMMARY.md files; the one-liners need to accurately describe what shipped | LLM-assisted per plan entry, verified against actual SUMMARY.md content |
+| Global dead-code elimination sweep | Dead code is real debt | PDE is a plugin across 22 milestones; aggressive elimination risks removing code paths used only in specific product types or edge conditions not exercised in normal sessions | Scope to specific known-stale paths documented in PROJECT.md tech-debt section |
+| Test coverage percentage targets | Tempting during hardening | PDE's test strategy is behavioral (Nyquist observable truths) not coverage-percent based; a coverage target adds tests that duplicate existing integration checks without improving actual regression detection | Ensure existing tests are green and VALIDATION.md assertions reflect current behavior |
+| Rewriting stale docs sections for style | "These sections are wordy, let's clean them up" | Style rewrites introduce content drift risk; a quality pass should add missing accuracy, not change accurate content | Limit scope to known incorrect or missing data; never rewrite content that is factually correct |
 
 ---
 
 ## Feature Dependencies
 
 ```
-[Phase completion % calculation]
-    └──requires──> [VERIFICATION.md exists per phase]
-                       └──requires──> [AC-first planning — already shipped v0.6]
+[MILESTONES.md One-Liner Completion]
+    └──read-from──> [Phase SUMMARY.md files in .planning/milestones/vX.X-phases/]
 
-[Design artifact embedding]
-    └──requires──> [Playwright screenshot capture — already shipped v0.14]
+[Nyquist VALIDATION.md Backfill for v0.22]
+    └──derives-from──> [Phase VERIFICATION.md observable truths tables]
+                           └──all-complete-in──> [176–184 VERIFICATION.md files]
 
-[Cost transparency narrative]
-    └──requires──> [Event bus token metering — already shipped v0.8]
+[REQUIREMENTS.md Checkbox Reconciliation]
+    └──depends-on──> [Phase VERIFICATION.md pass/fail records]
+    └──consumes──> [v0.22 MILESTONE-AUDIT.md requirements coverage table]
 
-[Timeline confidence scoring]
-    └──requires──> [Phase event timestamps — already shipped v0.8]
-    └──requires──> [Phase completion % calculation]
+[buildCrossPatterns IR Field Fix]
+    └──must-not-break──> [23 phase-184 tests (currently all passing)]
+    └──updates──> [bin/lib/render-presentation.cjs buildCrossPatterns function]
+    └──updates-mocks-in──> [tests/phase-184/portfolio-render.test.mjs]
+    └──validates-against──> [actual IR shape from bin/lib/presentation.cjs buildPresentationIR]
 
-[Cross-project portfolio synthesis]
-    └──requires──> [Single-project synthesis working] (must come first)
-    └──requires──> [Multi-directory artifact scan]
-
-[Auto-generation on phase completion]
-    └──requires──> [Claude Code hooks infrastructure — already shipped v0.10]
-    └──requires──> [Single-project synthesis working]
-
-[Product-type-aware framing]
-    └──requires──> [Product type detection — already shipped v0.11–v0.12]
-
-[Research validation sourcing]
-    └──requires──> [Research validation agent — already shipped v0.7]
-    └──enhances──> [Case study / portfolio piece persona]
-
-[Dual HTML + Markdown output]
-    └──requires──> [Markdown generation] (Markdown is primary; HTML derived)
+[ROADMAP.md Status Update] ──standalone──> no dependencies
+[Phase 180 VERIFICATION.md Status Fix] ──standalone──> single field change
 ```
 
 ### Dependency Notes
 
-- **All persona output requires phase completion % calculation:** This is the shared kernel. Build it first.
-- **Cross-project portfolio synthesis requires single-project synthesis:** Do not build portfolio synthesis in the same phase as core synthesis — too much risk.
-- **Auto-generation requires synthesis to be stable:** Hook-triggered generation on flaky synthesis creates noise. Gate auto-generation behind validated synthesis output.
-- **HTML output is derived from Markdown:** Generate Markdown first, convert to HTML with a templating pass. Do not maintain two separate generation paths.
-- **Product-type-aware framing enhances all personas:** It is a conditional enrichment layer, not a separate pipeline. Apply it after base persona template is rendered.
-
----
-
-## Persona Complexity and "Good Enough" vs Gold-Plated
-
-The key question for scoping: what does "good enough" look like per persona before gold-plating it?
-
-| Persona | Good Enough (v1) | Gold-Plated (v2+) | Shared Logic % |
-|---------|-----------------|-------------------|---------------|
-| Executive Summary | 1-page: status RAG, key metrics, top 3 blockers, timeline confidence | Trend lines, risk heat map, board-ready formatting | 80% shared |
-| Sprint Review Deck | What shipped (task list + ACs), what's next (next phase preview) | Demo screenshots embedded, animated progress bars | 75% shared |
-| Client Deliverable Report | Feature list with AC verification status, design artifacts linked | Annotated screenshots, change log per sprint | 70% shared |
-| Investor Update | Milestone velocity, technical moat paragraph, cost efficiency | Comparable metrics to competitors, traction graphs | 65% shared |
-| Stakeholder Status Update | RAG status, decisions needed, risks table | Trend analysis, historical comparison | 85% shared |
-| Case Study | Problem → approach → outcome → lessons, key artifacts embedded | SEO-optimized HTML, metrics graphs, social share card | 60% shared |
-| Technical Post-Mortem | What broke, root cause, prevention — extracted from RECONCILIATION.md | Timeline replay, impact analysis | 55% shared |
-| ADR Summary | Design decisions from brief + design artifacts, rationale | Links to rejected alternatives, consequence tracking | 50% shared |
-| Portfolio Overview | Project list with product type, key metrics, tech stack | Visual timeline, skill frequency analysis | 40% shared (cross-project) |
-| Launch Announcement | What it is, who it's for, key features, how to start | Press kit, media assets, embargoed preview | 45% shared |
-
-**Implication for phase ordering:** Build Executive Summary + Sprint Review + Client Deliverable Report in Phase 1 (they share 75–85% of logic). Build Case Study + Post-Mortem in Phase 2 (retrospective arc differs). Portfolio Overview and Launch Announcement in Phase 3 (distinct inputs: cross-project scan and launch artifact set).
-
----
-
-## Competitor Feature Analysis: What Works and What Doesn't
-
-### Notion AI
-
-**What works:** Autonomous multi-step agent can synthesize across hundreds of pages simultaneously. Research Mode generates detailed reports with minimal input. Meeting summaries are genuinely useful. Consistent tone and structure.
-
-**What works poorly:** Requires manual trigger — no lifecycle awareness (doesn't know a phase just completed). No structured artifact awareness — it reads prose, not structured verification tables. No persona differentiation — same output structure regardless of audience. No cost transparency. No design artifact integration.
-
-**PDE advantage:** Lifecycle-aware (hooks trigger on phase completion), structured artifact awareness (reads VERIFICATION.md tables, not prose), persona differentiation is the core design.
-
-### Linear Project Updates
-
-**What works:** Initiative updates with cross-project health monitoring. Slack cross-posting with bidirectional sync. Cycle (sprint) tracking with automated rollover. Changelog-style release notes.
-
-**What works poorly:** Report depth is shallow for enterprise use. Analytics lack granular performance metrics. No AI narration — updates are written by humans. Single hierarchy limits cross-team portfolio views. No design artifact awareness.
-
-**PDE advantage:** AI-narrated updates with structured data backing. Design artifact embedding. Cross-project portfolio synthesis with no hierarchy constraints.
-
-### GitHub Project Insights
-
-**What works:** Burnup chart for overall project progress. Custom fields for advanced chart creation (via third-party tools like Screenful). Milestone-based velocity via Zenhub integration.
-
-**What works poorly:** No native burndown chart (highly requested, still missing as of 2025). Insights charts are considered "almost useless" by power users. Requires third-party plugins for standard agile metrics. No narrative generation — only raw charts.
-
-**PDE advantage:** Mermaid-based charts embedded in narrative context (not just raw data). Git commit velocity as proof of engineering cadence, not just issue closure rates.
-
-### Jira / ARNR
-
-**What works:** AI-powered release notes generation with persona-based prompt gallery. Grouping issues by Jira field for structured views. Good issue-type taxonomy for categorizing what shipped.
-
-**What works poorly:** Release pages grow large and hard to scan as releases accumulate. Reporting is issue-centric — no design artifact awareness, no cost/velocity narrative, no forward-looking confidence scoring. Stakeholder accessibility requires separate export step.
-
-**PDE advantage:** Phase-centric (not issue-centric) narrative that includes design artifacts, verification results, and timeline confidence in a single document.
+- **MILESTONES.md requires reading SUMMARY.md:** Each "One-liner:" entry must come from the actual plan SUMMARY.md; cannot be inferred from phase names alone. Source files are in `.planning/milestones/vX.X-phases/PHASE/PHASE-NN-SUMMARY.md`. Avoid reading all of them in a single pass — work milestone by milestone.
+- **Nyquist backfill derives from VERIFICATION.md:** All v0.22 VERIFICATION.md files are complete (confirmed by MILESTONE-AUDIT.md). This makes v0.22 backfill tractable. Earlier milestone backfill is out of scope.
+- **IR field fix must not regress 23 tests:** The `research.findings` → real field name fix must update both the implementation and the test mocks. The actual IR uses `research.topics` and `research.project_research_files` (confirmed from 176-VERIFICATION.md live IR output).
 
 ---
 
 ## MVP Definition
 
-### Launch With (v1) — Phase 1 of Milestone
+### Launch With (v0.23 milestone)
 
-Core synthesis engine with Cluster A personas.
+Minimum scope for the quality hardening milestone to deliver meaningful improvement.
 
-- [ ] Artifact scanner: reads PROJECT.md, ROADMAP.md, phase plans, VERIFICATION.md, event bus sessions — builds in-memory project state object
-- [ ] Phase completion % calculator: tasks completed vs planned per phase, overall project %
-- [ ] Metric extractor: dates, cost (from token metering), task counts, blocker count
-- [ ] Base narrative templates for 5 Cluster A personas (Executive Summary, Sprint Review, Client Deliverable, Investor Update, Stakeholder Status)
-- [ ] Dual Markdown + HTML output with CSS template
-- [ ] `/pde:present [persona]` slash command
-- [ ] Output persistence in `.planning/presentations/[persona]-[date].md` and `.html`
-- [ ] Product-type-aware framing applied as enrichment layer
+- [ ] ROADMAP.md milestone status — mark v0.22 as shipped, update header from `🚧 In Progress` to `✅` with shipped date — why essential: the primary tracking document is factually wrong
+- [ ] MILESTONES.md one-liner completion — fill all "One-liner:" placeholder entries with accurate summaries from SUMMARY.md files — why essential: MILESTONES.md feeds the portfolio synthesis IR; placeholder text corrupts `extractMilestoneHistory` output
+- [ ] REQUIREMENTS.md checkbox reconciliation — check all boxes confirmed implemented by VERIFICATION.md — why essential: EXT-01 through EXT-10 explicitly flagged as tracking hygiene gap in 176-VERIFICATION.md
+- [ ] Phase 180 VERIFICATION.md `status:` frontmatter fix — update from `gaps_found` to `passed` — why essential: explicitly listed in v0.22 MILESTONE-AUDIT.md tech debt section
+- [ ] buildCrossPatterns research.findings field fix — align field name with actual IR shape; update tests — why essential: explicitly listed in v0.22 MILESTONE-AUDIT.md tech debt; silently produces empty output for all real PDE projects
 
-### Add After Validation (v1.x) — Phase 2
+### Add After Validation (v1.x)
 
-Retrospective personas and design artifact embedding.
+- [ ] v0.22 Nyquist VALIDATION.md backfill — generate 6 missing + complete 3 draft files — trigger: after core data integrity fixes are merged and confirmed green
+- [ ] v0.7 SUMMARY.md frontmatter one-liner field — add missing `one-liner:` key to 5 v0.7 summary files — trigger: during Nyquist pass, low effort addition
 
-- [ ] Case Study persona with retrospective arc — trigger: when project marked complete
-- [ ] Technical Post-Mortem persona — reads RECONCILIATION.md files
-- [ ] ADR Summary persona — reads design artifact briefs and decision rationale
-- [ ] Design artifact embedding (screenshots from `.planning/design/`) in HTML output
-- [ ] Research validation sourcing — pulls verified claims from v0.7 validation agent output
-- [ ] Auto-generation hook: trigger synthesis on phase VERIFICATION.md completion
+### Future Consideration (v2+)
 
-### Future Consideration (v2+) — Phase 3
-
-Cross-project synthesis and external-facing personas.
-
-- [ ] Cross-project portfolio synthesis: multi-directory scan, portfolio-level narrative
-- [ ] Launch Announcement persona — reads launch artifacts (LDP, LKT, CNT from v0.12)
-- [ ] Timeline confidence scoring with velocity-based projection
-- [ ] Mermaid-based burndown/velocity chart generation from event timestamps
-- [ ] Portfolio Overview persona (requires cross-project scan to be working)
+- [ ] Cross-artifact consistency pde-tools health subcommand — defer: detection tooling is higher complexity and lower urgency than fixing known gaps
+- [ ] Pre-v0.22 Nyquist backfill (v0.1–v0.21) — defer: diminishing returns for shipped work; v0.22 captures the highest-value gap
 
 ---
 
@@ -262,40 +102,105 @@ Cross-project synthesis and external-facing personas.
 
 | Feature | User Value | Implementation Cost | Priority |
 |---------|------------|---------------------|----------|
-| Artifact scanner + project state object | HIGH | MEDIUM | P1 |
-| Phase completion % + metric extractor | HIGH | LOW | P1 |
-| Cluster A persona templates (5 personas) | HIGH | MEDIUM | P1 |
-| Dual Markdown + HTML output | HIGH | LOW | P1 |
-| `/pde:present` slash command | HIGH | LOW | P1 |
-| Product-type-aware framing | MEDIUM | LOW | P1 |
-| Design artifact embedding | HIGH | MEDIUM | P2 |
-| Case Study persona | HIGH | MEDIUM | P2 |
-| Post-Mortem persona | MEDIUM | LOW | P2 |
-| Auto-generation hook on phase completion | MEDIUM | MEDIUM | P2 |
-| Research validation sourcing | MEDIUM | LOW | P2 |
-| Timeline confidence scoring | MEDIUM | HIGH | P3 |
-| Cross-project portfolio synthesis | HIGH | HIGH | P3 |
-| Mermaid chart generation | LOW | MEDIUM | P3 |
-| Launch Announcement persona | MEDIUM | LOW | P3 |
+| ROADMAP.md milestone status update | HIGH — primary tracking doc | LOW — text replacement | P1 |
+| MILESTONES.md one-liner completion | HIGH — feeds portfolio IR | MEDIUM — ~40+ SUMMARY.md reads | P1 |
+| REQUIREMENTS.md checkbox reconciliation | HIGH — compliance record | MEDIUM — systematic + judgment | P1 |
+| Phase 180 VERIFICATION.md status fix | MEDIUM — audit accuracy | LOW — one field | P1 |
+| buildCrossPatterns IR field fix | MEDIUM — output quality | MEDIUM — code + test update | P1 |
+| v0.22 Nyquist VALIDATION.md backfill | MEDIUM — regression protection | MEDIUM — 9 files, templated | P2 |
+| v0.7 SUMMARY.md frontmatter fix | LOW — graceful null exists | LOW — 5 files, one field each | P2 |
+| Cross-artifact consistency tooling | LOW — automation of manual audit | MEDIUM | P3 |
 
-**Priority key:**
-- P1: Must have for milestone launch — these validate the core concept
-- P2: Should have — adds significant value once core is working
-- P3: Defer — high complexity or dependent on P2 being stable
+---
+
+## Issue Category Taxonomy for Quality Hardening
+
+These categories emerged from direct inspection of the codebase; they are the recurring defect classes in large plugin codebases with rapid-iteration development.
+
+### Category 1: Documentation State Drift
+
+**What it is:** Tracking documents (ROADMAP.md, MILESTONES.md, STATE.md, REQUIREMENTS.md) fall out of sync with implementation during rapid shipping.
+
+**How it happens:** Phases complete faster than tracking files get updated; VERIFICATION.md reports note the gap but the upstream tracking file is never amended.
+
+**Examples in PDE:**
+- ROADMAP.md v0.22 header still shows `🚧 In Progress`
+- MILESTONES.md has 20+ "One-liner:" placeholders across v0.19–v0.22
+- REQUIREMENTS.md EXT-01 through EXT-10 unchecked despite passing verification
+
+**Detection method:** Grep for `One-liner:` in MILESTONES.md; check ROADMAP.md `🚧` markers against shipping dates; grep unchecked boxes in REQUIREMENTS.md files then cross-reference against VERIFICATION.md pass records.
+
+**Complexity:** LOW to MEDIUM. Mechanical fix once located; MILESTONES.md requires reading source SUMMARY.md files.
+
+### Category 2: Structural Verification Gaps (Nyquist Compliance)
+
+**What it is:** Phases that shipped with complete code and passing VERIFICATION.md but without corresponding VALIDATION.md structural assertion files.
+
+**How it happens:** Rapid shipping causes VALIDATION.md to be deferred or drafted only partially.
+
+**Examples in PDE:**
+- v0.22 MILESTONE-AUDIT.md documents: 6 phases (179–184) MISSING, 3 phases (176–178) PARTIAL
+- Each VALIDATION.md requires extracting observable truths from VERIFICATION.md
+
+**Detection method:** Walk phase directories; check for VALIDATION.md existence and `nyquist_compliant: true` frontmatter.
+
+**Complexity:** MEDIUM. Each file is ~100–150 lines; pattern is mechanical once truths are extracted from VERIFICATION.md.
+
+### Category 3: IR Shape Mismatches
+
+**What it is:** Code written against a mock IR shape where the real IR evolved; runs without crashing due to graceful fallbacks but produces empty or wrong output silently.
+
+**Examples in PDE:**
+- `buildCrossPatterns` reads `research.findings` but real IR exposes `research.topics` and `research.project_research_files` — cross-patterns section always empty for real projects
+
+**Detection method:** Compare field accesses in consumer modules (render-presentation.cjs, portfolio.cjs) against actual schema produced by presentation.cjs `buildPresentationIR`. Look for `|| []` or `|| {}` fallbacks on field accesses that suggest schema uncertainty.
+
+**Complexity:** MEDIUM. Requires reading both producer schema and consumer code; test mock updates required alongside code fix.
+
+### Category 4: Technical Debt Documented in PROJECT.md
+
+**What it is:** Explicitly known issues listed in the "Known tech debt" section of PROJECT.md that have been deferred across multiple milestones.
+
+**Current inventory:**
+- 5 v0.7 SUMMARY files missing `one-liner` frontmatter field (non-breaking, graceful null)
+- 3 human verification items for Phase 56 (live dependency detection, edge case quality, AC approval gate) — requires live session to verify
+- 10 human verification items across Phases 58/59/61 (live hook auto-fire, dashboard E2E, real-time token display) — require active tmux session
+
+**Note:** Human verification items requiring a live tmux session are out-of-scope for an automated hardening pass. The frontmatter field additions are in scope.
+
+**Complexity:** LOW for frontmatter fixes; OUT OF SCOPE for live session verification items.
+
+### Category 5: Integration Wiring Defects (Found and Fixed, Prevent Recurrence)
+
+**What it is:** Producer→consumer slug/glob mismatches and missing registry entries that cause silent failures.
+
+**Historical examples from v0.22 audit:**
+- 4 stale persona slugs in present.md (`product-manager` → `pm-view`)
+- Fallback auto-gen persona name wrong (`project-manager` → `project-manager-view`)
+- PFL skill code missing from skill-registry.md
+
+**These were fixed during v0.22 audit.** For v0.23 hardening, check for similar patterns in other workflows that handle persona/slug routing.
+
+**Detection method:** Grep for slug literals in workflow files; cross-reference against the `personaDisplayName()` switch in render-presentation.cjs; cross-reference skill codes in commands/ against skill-registry.md.
+
+**Complexity:** LOW per individual fix; MEDIUM for systematic detection across all workflow files.
 
 ---
 
 ## Sources
 
-- Notion AI review and Notion 3.0 autonomous agent features: [Notion AI Review 2026](https://max-productive.ai/ai-tools/notion-ai/), [Notion product page](https://www.notion.com/product/ai)
-- Linear project updates and initiative health: [Linear Changelog — Initiative Updates](https://linear.app/changelog/2025-02-13-initiative-updates), [Linear reviews analysis](https://thedigitalprojectmanager.com/tools/linear-review/)
-- GitHub Projects Insights burndown limitations: [GitHub community discussion #38840](https://github.com/orgs/community/discussions/38840), [Screenful advanced charts](https://screenful.com/blog/create-advanced-charts-with-github-projects-custom-fields)
-- Jira ARNR release notes automation: [ARNR Atlassian Marketplace](https://marketplace.atlassian.com/apps/1215431/ai-powered-automated-release-notes-reports-for-jira), [Q4 2025 updates](https://amoeboids.com/blog/quarterly-update-q4-2025-arnr/)
-- AI project status reporting best practices: [Digital Project Manager AI reporting guide](https://thedigitalprojectmanager.com/project-management/ai-in-project-status-reporting/), [Agile Seekers automation guide](https://agileseekers.com/blog/how-project-managers-can-automate-status-reporting-with-ai)
-- Burndown chart generation from git history: [Zenhub burndown + velocity](https://www.zenhub.com/blog-posts/burndown-charts-in-github), [DEV community burndown guide 2025](https://dev.to/naik_sejal/free-burndown-chart-generator-the-developers-guide-to-agile-sprint-tracking-in-2025-2hbm)
-- PDE stakeholder presentations concept: `.claude/projects/memory/project_stakeholder_presentations.md`
-- PDE existing artifact inventory: `.planning/PROJECT.md`
+- Direct inspection: `.planning/ROADMAP.md` (v0.22 milestone status)
+- Direct inspection: `.planning/MILESTONES.md` (One-liner placeholder count)
+- Direct inspection: `.planning/STATE.md` (progress fields)
+- Direct inspection: `.planning/PROJECT.md` (tech debt section, v0.23 target features)
+- Direct inspection: `.planning/milestones/v0.22-MILESTONE-AUDIT.md` (Nyquist gaps, tech debt items)
+- Direct inspection: `.planning/milestones/v0.22-phases/176-data-extraction-ir-foundation/176-VERIFICATION.md` (EXT checkbox gap)
+- Direct inspection: `.planning/milestones/v0.22-phases/184-cross-project-portfolio-synthesis/184-VERIFICATION.md` (research.findings IR mismatch)
+- WebSearch: "quality hardening pass large plugin codebase categories issues 2026" — [Code Quality in 2026: Best Practice, Metrics and Techniques](https://www.getpanto.ai/blog/code-quality) | [8 Code Quality Metrics Every Engineering Team Should Track](https://blog.codacy.com/code-quality-metrics)
+- WebSearch: "technical debt cleanup categories plugin tooling dead code stale references 2025" — [What Is Dead Code? A Practical 2025 Guide for Engineering Leaders](https://axify.io/blog/dead-code) | [The Roadmap for Reducing Technical Debt in 2025](https://konghq.com/blog/learning-center/reducing-technical-debt)
+- WebSearch: "code hardening milestone checklist user-facing polish error handling edge cases CLI tool 2025" — [Edge Cases and Error Handling: Where AI Code Falls Short](https://codefix.dev/2026/02/02/ai-coding-edge-case-fix/)
 
 ---
-*Feature research for: Stakeholder Presentation & Portfolio Synthesis Engine*
+
+*Feature research for: PDE v0.23 Quality & Reliability Hardening*
 *Researched: 2026-03-29*

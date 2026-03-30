@@ -1,17 +1,17 @@
 # Project Research Summary
 
-**Project:** PDE Stakeholder Presentation & Portfolio Synthesis Engine
-**Domain:** Automated document synthesis from structured project artifacts
+**Project:** Platform Development Engine — Quality & Reliability Hardening (v0.23)
+**Domain:** Quality auditing, data integrity verification, and technical debt cleanup for a large Node.js CommonJS plugin codebase (22 milestones, 184 phases)
 **Researched:** 2026-03-29
 **Confidence:** HIGH
 
 ## Executive Summary
 
-The Stakeholder Presentation Synthesis Engine is a reader-and-narrator system that transforms existing PDE artifacts (`.planning/` state files, event bus records, design manifests, git history) into audience-specific communication documents. Experts in this domain — drawing lessons from Notion AI, Linear, Jira ARNR, and GitHub Project Insights — converge on the same principle: document generation must be pipeline-structured, not freeform. The recommended approach is a three-stage pipeline: deterministic data extraction into a structured Intermediate Representation (IR) first, persona-specific narrative framing second, and format rendering (HTML/Markdown) last. Each stage must be independently testable and the LLM must only touch stage two.
+PDE v0.23 is not a feature milestone — it is the first milestone where the product under development *is the existing codebase*. After 22 milestones of rapid capability shipping, accumulated defects fall into four categories: state document drift (ROADMAP.md, MILESTONES.md, REQUIREMENTS.md out of sync with what actually shipped), structural verification gaps (phases missing Nyquist VALIDATION.md files), IR shape mismatches (code written against mock shapes that diverged from real IR), and systemic technical debt (stale paths, dead imports, test runner incompatibility). The codebase is ~99 CJS production files across ~52,700 lines, with no existing linter, no coverage config, and no dead-code detection.
 
-The recommended stack is minimal by design. `ejs@5.0.1` handles all template rendering (CJS-native, zero config, handles 10 persona types without a framework), `markdown-it@14.1.1` converts `.planning/` Markdown state files to HTML sections, and all charts are hand-coded SVG (pure parametric functions — no library justifies the dependency footprint for 4–6 chart types). PDF export uses already-installed `playwright` behind an opt-in flag. No new packages enter the plugin root: the two new packages install into an isolated `bin/lib/presentation-pipeline/` subdirectory, following the established image-pipeline and video-pipeline pattern.
+The recommended approach is a four-work-stream structure executed in dependency order: data integrity fixes first (they are source-of-truth for all downstream verification), test runner cleanup second (137/236 test files produce false "No test suite found" failures that mask real regressions), verification gap closure third, and technical debt cleanup in parallel. The critical toolchain additions — ESLint 10 with eslint-plugin-n, @vitest/coverage-v8, knip, jscpd, and markdownlint-cli2 — are all devDependencies only, preserving the zero-runtime-deps constraint at the plugin root.
 
-The single largest risk is LLM narrative hallucination about project state. Research confirms GPT-class models hallucinate 28–39% of facts even when given source material (Stanford Legal RAG, 2025). This risk is fully preventable with strict pipeline discipline: all quantitative claims must be extracted by deterministic code before any LLM call, every numeric statement in generated prose must be verified against the extraction JSON, and the LLM must never read `.planning/` files directly. The second major risk is premature persona abstraction: building all 10 personas simultaneously creates an untestable shared engine. The research mandate is clear — build exactly two reference personas end-to-end first, then extract abstractions from confirmed duplication only.
+The primary risk in quality hardening is false confidence: marking checkboxes without verifying underlying artifacts, writing validators that pass against already-rotten data, and fixing symptoms in place without addressing the process that generates them. PDE's own retrospective record from v0.18 through v0.21 documents the same categories of drift recurring milestone after milestone — proof that symptom patches without root-cause fixes have dominated prior hardening attempts. v0.23 must distinguish "remediation" (fix the stale data) from "root cause fix" (fix the process that generates it), and track both explicitly.
 
 ---
 
@@ -19,125 +19,117 @@ The single largest risk is LLM narrative hallucination about project state. Rese
 
 ### Recommended Stack
 
-The stack is deliberately minimal, leveraging PDE's existing dependencies wherever possible. Two new packages are needed: `ejs` for template rendering and `markdown-it` for Markdown-to-HTML conversion. Everything else is already present in the plugin root or is a Node.js built-in.
+The hardening toolchain requires no new runtime dependencies — only devDependencies. ESLint 10 (flat config) with eslint-plugin-n covers static analysis and Node.js-specific rule enforcement for the CJS codebase. The `@vitest/coverage-v8` package activates native V8 coverage against the existing vitest v4 installation with a single config block. Knip 6 provides dead code and unused export detection via its explicit CommonJS guide. jscpd catches structural duplication that knip misses (both copies are reachable). markdownlint-cli2 enforces the structural consistency of PDE's Markdown state files, which are the primary data substrate for IR extraction.
 
 **Core technologies:**
-- `ejs@5.0.1`: HTML and Markdown template rendering — CJS-native, zero peer deps, 25M weekly downloads, sufficient for all 10 persona output types without a framework
-- `markdown-it@14.1.1`: `.planning/` Markdown state → structured HTML sections — strict CommonMark compliance handles edge cases in nested planning files that `marked` mishandles
-- Hand-coded SVG (zero dep): velocity, burndown, timeline, and effort charts as pure functions returning inline SVG strings — no library justified for 4–6 chart types
-- `playwright@1.58.2` (already installed): on-demand PDF export from generated HTML via `page.pdf()` — gated behind `--pdf` flag, not auto-generated
-- Node.js `fs.readdirSync` with `{ recursive: true }` (built-in, Node 18.17+): cross-project directory walking for portfolio synthesis — no `fast-glob` needed at expected scale
-
-**What to avoid:** `puppeteer` (duplicate Chromium when `playwright` is already installed), `vega`/`vega-lite` (requires `canvas` native binary, fails in clean CI), `jsdom` (28MB for a DOM shim), `chart.js` (browser-canvas dependent, no headless SVG path), `wkhtmltopdf`/`html-pdf` (system binary or archived project), any CDN-linked CSS or JS in generated HTML (breaks self-contained constraint).
+- `ESLint 10 + eslint-plugin-n 17`: Static analysis for 99 CJS production files — catches unresolvable `require()` paths, deprecated Node.js APIs, dead variables; flat config with `sourceType: "commonjs"` handles CJS natively
+- `@vitest/coverage-v8 4`: V8-backed coverage for the existing vitest v4 test harness — zero additional test-runner configuration; AST-based remapping since v3.2.0 gives Istanbul-equivalent accuracy
+- `knip 6`: Dead code and unused export detection with explicit CJS support — finds unreachable files AND unused exports AND unlisted deps in a single pass
+- `jscpd 4`: Structural duplication detection for large CJS modules — use `--min-lines 10 --min-tokens 70` threshold; complementary to knip (different failure class)
+- `markdownlint-cli2 0.22`: Structural consistency enforcement for `.planning/` Markdown files — catches heading mismatches, fence syntax errors, blank line violations that break downstream YAML frontmatter parsing
 
 ### Expected Features
 
+The feature set for v0.23 is entirely correctness work, not new capability. Five items are confirmed P1 (must ship): ROADMAP.md milestone status update, MILESTONES.md one-liner completion (40+ placeholder entries corrupting portfolio IR), REQUIREMENTS.md checkbox reconciliation (EXT-01 through EXT-10 explicitly flagged as unchecked despite full implementation), Phase 180 VERIFICATION.md status fix (single `status: gaps_found` → `passed` field), and the buildCrossPatterns IR field name fix (`research.findings` → `research.topics`/`research.project_research_files`), which silently produces empty cross-pattern sections for all real PDE projects.
+
 **Must have (table stakes):**
-- Per-persona document generation (`/pde:present [persona]`) — each of 10 personas has distinct information needs and narrative arc
-- Dual HTML + Markdown output — HTML is derived from Markdown; one generation path, not two separate LLM calls
-- Phase completion status summary — every stakeholder report requires progress at a glance
-- Key metrics extraction — dates, token cost, task counts from existing event bus records
-- Design artifact embedding — wireframes and mockups from `.planning/design/` as evidence
-- Git commit velocity summary — proves engineering cadence from existing git history integration
-- Blocker and risk callouts — extracted from phase plans and RECONCILIATION.md files
-- Output persistence in `.planning/presentations/` with timestamp-versioned filenames (never overwrite)
+- ROADMAP.md v0.22 milestone status — primary tracking document shows `In Progress` despite milestone shipping 2026-03-30; P1 fix
+- MILESTONES.md one-liner completion — 40+ placeholders corrupt `extractMilestoneHistory()` IR output; P1 fix
+- REQUIREMENTS.md EXT-01–10 checkbox reconciliation — explicitly documented tracking gap in 176-VERIFICATION.md; P1 fix
+- Phase 180 VERIFICATION.md `status:` frontmatter — explicitly listed in v0.22 MILESTONE-AUDIT.md tech debt; P1 fix
+- buildCrossPatterns `research.findings` field fix — silently empty cross-patterns section for all real projects; P1 fix
 
-**Should have (competitive differentiators):**
-- Persona-driven narrative arc — same data, fundamentally different story structure per audience (no existing tool does this from structured dev artifacts)
-- Research validation sourcing — claims backed by v0.7 validated research, not asserted (unique to PDE)
-- Cost transparency narrative — "built X for $Y in token costs" is novel; no competitor reports LLM cost per deliverable
-- Auto-generation on phase completion — hook-triggered via existing Claude Code hooks infrastructure
-- Acceptance-criteria proof table — AC→VERIFICATION.md traceability, unique to PDE methodology
-- Product-type-aware framing — experience/business/hardware products get domain-specific narrative
+**Should have (competitive):**
+- v0.22 Nyquist VALIDATION.md backfill — 6 phases missing, 3 phases partial per MILESTONE-AUDIT.md; structural regression protection
+- v0.7 SUMMARY.md frontmatter `one-liner` field additions — 5 files missing the key; low effort, defers gracefully
 
-**Defer to v2+:**
-- Cross-project portfolio synthesis — requires single-project synthesis stable first; introduces schema version complexity
-- Timeline confidence scoring with velocity projection — deferred to P3; depends on stable portfolio infrastructure
-- Launch Announcement persona — depends on cross-project synthesis infrastructure
-- Interactive slide deck editor, real-time collaborative editing, email/Slack delivery — anti-features; scope traps adding months of orthogonal work with no PDE infrastructure
+**Defer (v2+):**
+- Cross-artifact consistency `pde-tools health` subcommand — higher complexity, lower urgency than fixing known gaps
+- Pre-v0.22 Nyquist backfill (v0.1–v0.21) — diminishing returns for shipped work; v0.22 captures highest-value gap
 
 ### Architecture Approach
 
-The architecture follows the established context-sync.cjs emitter pattern. A single `presentation.cjs` library reads all `.planning/` artifacts into an IR object once; all 10 personas consume from the same IR. Individual persona modules (`bin/lib/personas/*.cjs`) are pure functions: `render(ir) → sections[]`. A separate `present-render.cjs` module wraps sections into the target format (HTML or Markdown). `pde-tools.cjs` gains a `presentation` subcommand family. Auto-generation fires via a new hook file (`hooks/present-on-phase.cjs`) registered with `async: true` — never blocking Claude Code execution.
+The existing PDE architecture is stable and v0.23 introduces no new top-level modules. Hardening work operates on existing modules within four parallel work streams: data integrity fixes on state files (ROADMAP.md, MILESTONES.md, STATE.md), verification gap closure (test runner incompatibility, Nyquist VALIDATION.md backfill), user-facing polish (IR edge cases, persona output quality, SVG chart edge cases), and technical debt cleanup (stale paths in workflow files, dead imports, context-sync/mcp-bridge audits). Work Streams 1 → 2 → 3 have sequential dependency; Work Stream 4 runs in parallel.
 
-**Major components:**
-1. `bin/lib/presentation.cjs` — artifact reader (`readArtifacts(cwd)`), IR builder, persona dispatcher, portfolio reader; sole file-system reader; reuses `cmdHistoryDigest` from `commands.cjs`
-2. `bin/lib/personas/*.cjs` — 10 isolated persona modules, each a pure `render(ir) → sections[]` function; mirrors the emitter architecture of context-sync.cjs
-3. `bin/lib/present-render.cjs` — dual-format renderer: `renderMarkdown(sections, meta)` and `renderHtml(sections, meta)`; format is a rendering concern, not a persona concern
-4. `bin/pde-tools.cjs` (extended) — `presentation` subcommand block routing to above libs; additive case block, isolated from existing subcommands
-5. `hooks/present-on-phase.cjs` — PostToolUse listener with SessionEnd/cooldown gate, detects `phase_complete` event in NDJSON, triggers background generation; `async: true`
-6. `commands/present.md` + `workflows/present.md` — slash command entry and execution workflow
-
-**Key data flows:**
-- `readArtifacts()` reuses `cmdHistoryDigest` from `commands.cjs` for phase traversal — no re-implementation of phase directory walking
-- `presentation_generated` event emitted to NDJSON; surfaces in tmux dashboard Pane 4 automatically
-- Milestone archive `.planning/milestones/v*-ROADMAP.md` files are the richest "what shipped when" source
-- Portfolio mode: `portfolioReader(cwdList)` calls `readArtifacts()` per project, returns IR array tagged with project paths
+**Major components affected:**
+1. **`.planning/` state files** — ROADMAP.md (5 unchecked plan boxes at confirmed lines 221–222, 279, 294–295), MILESTONES.md (46 placeholder one-liners), STATE.md (stale progress/focus fields)
+2. **`bin/lib/render-presentation.cjs`** — buildCrossPatterns field name fix; 2096 LOC; must not break 23 currently-passing phase-184 tests
+3. **`tests/` runner configuration** — 137/236 test files fail with "No test suite found" due to node:test vs vitest incompatibility; recommended fix is vitest `exclude` pattern for node:test files (zero-risk, 137 files in phases 100–117)
+4. **`bin/lib/presentation.cjs`** — IR extractor edge cases; sentinel `{ unavailable: true, reason }` pattern must be preserved, never silent zeros
+5. **`workflows/execute-phase.md` + `complete-milestone.md`** — stale `$HOME/.claude/pde-os/engines/gsd/` paths; must become `$CLAUDE_PLUGIN_ROOT/bin/pde-tools.cjs`
 
 ### Critical Pitfalls
 
-1. **LLM narrative hallucination about project state** — extract all quantitative claims deterministically first (structured JSON), verify each against its source file, only then call the LLM with "generate narrative only from this data; say '[data not available]' for missing fields." A post-generation pass must verify every numeric claim in generated prose matches the extraction JSON. Never allow the LLM to read `.planning/` files directly. (Stanford Legal RAG, 2025: 28–39% hallucination rate even with source material provided.)
+1. **Treating checkbox audits as proof of correctness** — Each unchecked plan box must be verified against a concrete artifact (SUMMARY.md with completion timestamp, passing test, or git log commit) before marking it checked. Bulk-check operations without per-item verification produce false completion signals; this exact pattern recurred in v0.18, v0.20, and v0.21 retrospectives.
 
-2. **Chart data divergence from actual records** — define one authoritative source per metric (phase completion → STATE.md frontmatter only; commit velocity → git log only). Validate extracted numbers against cross-references before rendering. All chart generation must be deterministic code, never LLM. Every chart value must pass a Nyquist assertion against its source before any persona can use it. (VectorGym benchmark, 2025: LLMs produce inaccurate path counts and incomplete SVGs in generated vector graphics.)
+2. **Writing validators that pass against rotten data** — Before building any validator, specify the intended invariant in prose (the acceptance criterion). The validator enforces the invariant, not the current state of the corpus. Every validator test suite must include negative cases — inputs that should fail. A test suite with no rejection cases does not prove the validator works.
 
-3. **Auto-generation firing on every PostToolUse event** — a normal `pde:plan-phase` execution triggers 20–40 Write events to `.planning/`. Wiring auto-generation to PostToolUse blocks workflows with stale mid-execution snapshots and fills the dashboard with noise. Wire to SessionEnd or a 30s idle cooldown instead. Gate additionally on STATE.md showing `status: Completed`. Default `auto_generate: false` in config.json; opt-in only.
+3. **Fixing symptoms without addressing root cause** — Every data fix must answer: "What process generated this incorrect state, and is it still running?" Remediation (fix the stale data) and root cause fix (fix the process) are separate sub-tasks. PDE's retrospective record documents that symptom-only patches produce the same issue one milestone later.
 
-4. **Premature persona abstraction creating an untestable engine** — build exactly two reference personas (executive summary + case study — the internal/external poles) end-to-end before extracting any shared abstractions. The 10 personas differ primarily in what data they need, not in rendering logic. A shared `PersonaConfig` built for all 10 personas before any is proven produces an engine that is correct structurally and wrong semantically.
+4. **CJS constraint violations introduced by hardening code** — Every new `.cjs` file must use `require()` and `module.exports`, never ESM `import`/`export`. Root `package.json` must not gain new `dependencies`. A Nyquist structural assertion should verify this: `grep -r "^import " bin/ --include="*.cjs"` must return empty.
 
-5. **Self-contained HTML edge cases** — enforce a 500KB hard file size budget on generated HTML; no inline `<script>` blocks (eliminates corporate CSP failures); no external URLs (no CDN fonts, no stylesheet links); no base64-embedded images by default; test in Chrome, Safari, and a text-based renderer. These constraints must be established before any HTML template is built — retrofitting them breaks all existing templates. (cucumber/html-formatter issue #62: reports growing from 7MB to 310MB in production.)
+5. **Breaking changes to shared utilities from new input validation** — Before adding validation to any shared utility, grep all callers and enumerate the values they can pass. Test against all five product types (software, hardware, hybrid, experience, business). New validation must be additive-safe: reject only what was never valid, not what was loosely accepted.
 
 ---
 
 ## Implications for Roadmap
 
-The research identifies four natural phases, driven by strict dependency ordering. The data extraction foundation must precede persona rendering; two reference personas must be proven before the shared engine is abstracted; HTML rendering constraints must be locked in early; and portfolio synthesis is last due to schema version complexity and cross-project risk.
+The work stream dependency order maps directly to phase ordering. Data integrity fixes are source-of-truth for all downstream work. Test runner cleanup gives reliable regression signal. Verification gap closure depends on clean state and working tests. Polish and debt cleanup are partially independent. The feature set is fully bounded with specific file targets and line numbers — no ambiguity about scope.
 
-### Phase 1: Data Extraction Foundation and Core Pipeline Infrastructure
+### Phase 1: Root Cause Analysis and Data Integrity Baseline
 
-**Rationale:** This is the critical path. All persona output depends on correct data extraction. Building personas before the extraction layer is validated is the most common cause of hallucinated presentations (Pitfall 1). The hook trigger logic also belongs here so it is designed correctly before any generation code runs (Pitfall 3). The IR object shape must accommodate all 10 personas before the first persona is built.
-**Delivers:** `bin/lib/presentation.cjs` with `readArtifacts(cwd)` and IR object; phase completion % calculator; metric extractor (dates, cost, task counts, blockers); `pde-tools.cjs presentation artifact-read` subcommand; `.planning/presentations/` output directory with file naming convention; hook trigger design (SessionEnd/cooldown, not PostToolUse); `auto_generate: false` default in config; data cross-reference validation layer
-**Addresses:** Per-persona document generation (prerequisite), phase completion status summary, key metrics extraction, output persistence, blocker/risk extraction
-**Avoids:** LLM narrative hallucination (extraction-first architecture established before any LLM call), auto-generation workflow noise (trigger logic designed upfront), chart data divergence (source-of-truth mapping defined at extraction layer)
+**Rationale:** State documents (ROADMAP.md, MILESTONES.md, STATE.md) are consumed by IR extractors, verification passes, and portfolio synthesis. All downstream work is unreliable until these are accurate. This phase also establishes the root-cause vs remediation categorization for all found issues, preventing the symptom-patching pattern documented in prior retrospectives. The STATE.md progress field recalculation wiring should be verified at the end of this phase before Phase 2 starts.
+**Delivers:** Corrected ROADMAP.md (5 plan boxes marked complete with per-box verification evidence), MILESTONES.md with all placeholder one-liners replaced from archived SUMMARY.md files, Phase 180 VERIFICATION.md status updated, STATE.md v0.23 initialization verified. Root-cause analysis inventory for each data drift item (process identified, recurrence prevention tracked).
+**Addresses:** ROADMAP.md status update (P1), MILESTONES.md one-liner completion (P1), Phase 180 status fix (P1)
+**Avoids:** Checkbox-as-proof fallacy (each box verified against SUMMARY.md completion timestamp before being marked); Symptom-only fixes (document root cause for each data drift item, not just the corrected value)
 
-### Phase 2: Two Reference Personas and Dual-Format Rendering
+### Phase 2: Test Runner Compatibility and Coverage Baseline
 
-**Rationale:** Build executive summary (Cluster A: internal/forward-looking) and case study (Cluster B: external/retrospective) as independent end-to-end implementations before abstracting any shared logic. These are the poles of the persona spectrum; duplication between them is the only valid basis for shared abstractions (Pitfall 4). HTML rendering constraints must be locked here before any other persona adds templates (Pitfall 5). FEATURES.md identifies 80% shared logic for executive summary and 60% shared logic for case study — validating these estimates requires both to exist first.
-**Delivers:** `personas/executive.cjs` and `personas/case-study.cjs` as proven reference implementations; `bin/lib/present-render.cjs` with `renderMarkdown()` and `renderHtml()` (500KB budget, no JS, no external URLs, self-contained enforced); `commands/present.md` + `workflows/present.md`; `/pde:present` slash command; EJS templates for both personas in HTML and Markdown; design artifact embedding from `.planning/design/`; product-type-aware framing applied as enrichment layer
-**Uses:** `ejs@5.0.1`, `markdown-it@14.1.1`, hand-coded SVG chart functions installed into `bin/lib/presentation-pipeline/`
-**Implements:** Common artifact-reading pipeline (IR pattern), pde-tools subcommand extension, dual HTML+Markdown renderer
-**Avoids:** Premature persona abstraction (two independent implementations first — shared abstractions extracted after both pass), self-contained HTML edge cases (constraints locked before additional templates)
+**Rationale:** 137/236 test files produce false "No test suite found" failures. These mask real regressions and make it impossible to know whether hardening work introduces breakage. Resolving the incompatibility before writing new tests is essential for reliable signal. This phase also establishes the static analysis infrastructure and coverage baseline that later phases use to measure improvement.
+**Delivers:** Vitest `exclude` pattern for node:test files (137 false failures eliminated, node:test tests remain runnable via `node --test`), coverage baseline report from `@vitest/coverage-v8` (lines/branches per module in bin/lib/), ESLint flat config at root (`eslint.config.cjs`) with no-missing-require and no-deprecated-api rules.
+**Uses:** @vitest/coverage-v8 4, ESLint 10, eslint-plugin-n 17, @eslint/js 10, globals 17
+**Avoids:** Tests-test-the-harness (negative test cases required for all new validators); CJS constraint violations (all new config files use CJS `require()` syntax, verified)
 
-### Phase 3: Remaining 8 Personas and Shared Engine
+### Phase 3: REQUIREMENTS.md Reconciliation and IR Field Fix
 
-**Rationale:** With two reference personas proven and duplication confirmed, extract shared abstractions and build the remaining 8 personas. The shared engine is built from observed duplication, not anticipated duplication. FEATURES.md groups personas into Cluster A (internal/forward-looking: sprint review, client deliverable, investor update, stakeholder status) and Cluster B (external/retrospective: post-mortem, ADR summary, launch announcement) with ~70% cross-cluster shared logic estimated — confirm this against the two reference implementations before committing to an abstraction boundary.
-**Delivers:** Full 10-persona suite (all `bin/lib/personas/*.cjs`); shared extraction utilities extracted from confirmed duplication; sprint review, client deliverable, investor update, stakeholder status, post-mortem, ADR summary, portfolio overview, launch announcement personas; auto-generation hook (`hooks/present-on-phase.cjs`) with SessionEnd/cooldown trigger registered in hooks.json; research validation sourcing integration (v0.7 agent output); acceptance-criteria proof table from VERIFICATION.md
-**Addresses:** All Cluster A and Cluster B personas; auto-generation on phase completion; research validation sourcing; cost transparency narrative
-**Avoids:** Premature abstraction (built from confirmed duplication only); context bleeding between persona narrative calls (isolated LLM contexts per persona)
+**Rationale:** EXT-01 through EXT-10 are explicitly flagged as unchecked in 176-VERIFICATION.md despite full implementation — this is a bounded audit with concrete evidence available. The buildCrossPatterns field mismatch silently produces empty output for all real PDE projects and is explicitly listed in v0.22 MILESTONE-AUDIT.md tech debt. Both are high-value, well-defined fixes.
+**Delivers:** REQUIREMENTS.md with all verified-implemented boxes checked (with VERIFICATION.md evidence cited inline), buildCrossPatterns `research.findings` → `research.topics`/`research.project_research_files` fix in render-presentation.cjs, updated test mocks in tests/phase-184/portfolio-render.test.mjs, confirmed 23 phase-184 tests still passing.
+**Addresses:** REQUIREMENTS.md checkbox reconciliation (P1), buildCrossPatterns IR field fix (P1)
+**Avoids:** Checkbox-as-proof fallacy (each checkbox checked against VERIFICATION.md evidence before marking); Breaking changes (mock updates accompany code fix atomically; 23 tests must remain green)
 
-### Phase 4: Cross-Project Portfolio Synthesis
+### Phase 4: Nyquist VALIDATION.md Backfill for v0.22
 
-**Rationale:** This phase is last because it depends on all single-project synthesis being stable, and it introduces the highest-risk new failure mode: schema version heterogeneity across older PDE projects (Pitfall 6 from PITFALLS.md — PDE schema has changed across every milestone v0.12–v0.21). Schema version detection must be built before any cross-project extraction runs. Portfolio synthesis is a compositional extension of single-project synthesis, not a rewrite.
-**Delivers:** `portfolioReader(cwdList)` in `presentation.cjs`; schema version detector (reads `gsd_state_version` from STATE.md frontmatter, selects extraction adapter); defensive cross-project extraction (null for absent fields, structured error for failed projects, never crash on missing keys); `commands/portfolio.md` + `workflows/portfolio.md`; `/pde:portfolio` slash command; portfolio-level narrative for executive and investor personas; IR caching with STATE.md mtime as cache key; parallel extraction for multiple projects
-**Addresses:** Cross-project portfolio synthesis; portfolio overview persona; scalability for 4–20 projects
-**Avoids:** Cross-project path/schema assumptions (version detection gate before any extraction); auto-discovery glob (explicit path list only — never traverse filesystem to find `.planning/` dirs); path traversal via user-supplied roots (validate absolute path with readable `.planning/` before processing)
+**Rationale:** Six phases (179–184) are missing VALIDATION.md entirely; three phases (176–178) have partial/draft status per MILESTONE-AUDIT.md. All v0.22 VERIFICATION.md files are confirmed complete — this makes the backfill tractable. Structural regression tests derived from observable truths protect all future refactors.
+**Delivers:** 6 new VALIDATION.md files for phases 179–184, 3 completed VALIDATION.md files for phases 176–178. Each file includes `nyquist_compliant: true` frontmatter and derives assertions exclusively from VERIFICATION.md observable truths tables.
+**Addresses:** v0.22 Nyquist VALIDATION.md backfill (P2)
+**Avoids:** Validators encoding rot (assertions derive from VERIFICATION.md observable truths, not from current file state); Tests-test-the-harness (assertions specify actual values, not just key existence; each assertion has a corresponding negative case)
+
+### Phase 5: Technical Debt Cleanup and Static Analysis Pass
+
+**Rationale:** The independent work stream — stale paths, dead imports, context-sync/mcp-bridge audit — can run after high-priority fixes are committed and verified. Running static analysis tools (knip, jscpd) as part of this phase produces artifact reports that bound remaining debt and establish baselines for future milestones.
+**Delivers:** Fixed `$CLAUDE_PLUGIN_ROOT` paths in execute-phase.md and complete-milestone.md (2 confirmed stale occurrences), audited context-sync.cjs 7 emitters, audited mcp-bridge.cjs APPROVED_SERVERS and tool maps, knip dead-code report (JSON artifact), jscpd duplication report (HTML artifact), markdownlint-cli2 structural consistency pass on `.planning/` files. v0.7 SUMMARY.md frontmatter one-liner fields added (5 files).
+**Uses:** knip 6, jscpd 4, markdownlint-cli2 0.22
+**Addresses:** v0.7 SUMMARY.md frontmatter fix (P2), technical debt documented in PROJECT.md
+**Avoids:** CJS constraint violations (all new utility scripts use require() syntax); Breaking changes (stale path fixes tested via dry-run before commit)
 
 ### Phase Ordering Rationale
 
-- **Extraction before rendering:** The research is unambiguous — LLM hallucination is the highest-damage failure mode, and the only prevention is strict extraction-first architecture. No persona can be built before the extraction layer is validated. Building personas first and adding verification later consistently fails in analogous systems.
-- **HTML constraints before additional templates:** Self-contained HTML edge cases (Pitfall 5) require constraints to be established before any template is built; retrofitting them breaks all existing templates. Phase 2 locks this in for the first two personas; all subsequent personas inherit the constraint.
-- **Two reference personas before shared engine:** Pitfall 4 (premature abstraction) is a confirmed failure mode. Building the shared engine from observed duplication rather than anticipated duplication is the primary guard.
-- **Portfolio synthesis last:** Pitfall 6 (schema version heterogeneity) is the highest-complexity failure. The schema version detection work has no dependencies on Phases 2–3 internals, but the integration risk warrants isolation in its own phase, after single-project synthesis is stable.
-- **Feature groupings match research clusters:** FEATURES.md identifies Cluster A (internal/forward-looking) and Cluster B (external/retrospective) personas with ~70% shared logic within each cluster. Phase 3 builds along these natural groupings after the reference implementations confirm the pattern.
+- Work Stream 1 (data integrity) must precede Work Stream 2 (verification) because STATE.md and ROADMAP.md are inputs to `recalculateFromArtifacts()`. Fixing them first means all subsequent verification passes run against accurate baselines.
+- Test runner cleanup (Phase 2) precedes code changes (Phases 3–5) because 137 false failures would otherwise mask real regressions introduced during hardening.
+- The IR field fix (Phase 3) requires updating both production code and test mocks atomically; this fits cleanly after the test runner is reliable.
+- Nyquist backfill (Phase 4) is deferred until after data integrity and code fixes are merged — VALIDATION.md assertions should reflect the corrected state.
+- Technical debt cleanup (Phase 5) is last and partially independent; it benefits from the clean test signal established in Phase 2.
 
 ### Research Flags
 
-Phases likely needing deeper research during planning:
-- **Phase 1 (IR design):** The specific set of fields needed across all 10 personas should be validated before finalizing the IR object shape. Recommended pre-planning exercise: list what each persona needs, deduplicate, confirm all fields are deterministically extractable from current `.planning/` artifacts. A persona-to-field mapping table is a worthwhile pre-planning artifact.
-- **Phase 4 (portfolio synthesis):** Schema version detection across PDE v0.12–v0.21 needs specific mapping of which frontmatter keys changed per milestone. Audit STATE.md frontmatter across representative older projects before planning this phase to build the version detection mapping.
+Phases with well-documented patterns (skip `/gsd:research-phase`):
+- **Phase 1:** Standard document auditing and text editing — artifact locations with specific file paths and line numbers are identified in ARCHITECTURE.md; no research needed
+- **Phase 2:** ESLint flat config for CJS and vitest exclude patterns are fully specified in STACK.md with exact config blocks; no additional research needed
+- **Phase 3:** REQUIREMENTS.md evidence-based checkbox reconciliation is mechanical with known source files; IR field fix is a bounded find/replace with test update; field names confirmed from 176-VERIFICATION.md live IR output
+- **Phase 4:** VALIDATION.md template pattern is established in phases 176–178; derive from VERIFICATION.md observable truths tables; mechanical templated process
+- **Phase 5:** Knip, jscpd, and markdownlint-cli2 usage fully documented in STACK.md; stale path occurrences identified and scoped in ARCHITECTURE.md
 
-Phases with standard patterns (skip `/gsd:research-phase`):
-- **Phase 2 (dual-format rendering):** EJS + markdown-it integration follows well-documented CJS patterns; HTML rendering constraints are enumerated explicitly in PITFALLS.md. No additional research needed.
-- **Phase 3 (persona engine):** Patterns are fully defined by the Phase 2 reference implementations. The task is execution against proven patterns, not discovery.
+No phases in this milestone require `/gsd:research-phase` — all research was completed up-front and the full technical scope is known from direct codebase inspection.
 
 ---
 
@@ -145,19 +137,18 @@ Phases with standard patterns (skip `/gsd:research-phase`):
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | All package versions verified against npm registry; integration patterns verified against existing PDE codebase (image-pipeline pattern, pde-tools.cjs subcommand routing, hooks/hooks.json format confirmed via source inspection) |
-| Features | MEDIUM | Ecosystem patterns verified via web search and competitive analysis (Notion AI, Linear, Jira ARNR, GitHub Insights); persona feature sets are research-informed judgments without a single authoritative spec source |
-| Architecture | HIGH | Based on direct inspection of existing PDE source code (pde-tools.cjs 1681 lines, context-sync.cjs emitter pattern, hooks.json registration format, event-bus.cjs event schema, commands.cjs cmdHistoryDigest); all integration points confirmed against actual code |
-| Pitfalls | HIGH | Hallucination rates from Stanford Legal RAG (2025); SVG generation pitfalls from VectorGym benchmark (2025); HTML file size failures from cucumber/html-formatter production issue #62; hook noise patterns from Claude Code hook contracts and PDE's own context-sync-hook.cjs source; cross-project schema pitfalls from PDE milestone history |
+| Stack | HIGH | All tool versions verified via `npm view` against registry on 2026-03-29; ESLint flat config for CJS patterns verified against official docs; version compatibility matrix confirmed |
+| Features | HIGH | Feature inventory derived from direct codebase inspection of ROADMAP.md, MILESTONES.md, MILESTONE-AUDIT.md, VERIFICATION.md files — not inferred; specific file paths and line numbers confirmed |
+| Architecture | HIGH | All component sizes, line counts, module responsibilities, and data flow paths verified by direct inspection of source files; test runner failure count from live test execution (137/236 confirmed); stale path locations confirmed in workflow files |
+| Pitfalls | HIGH | Pitfalls grounded in PDE's own retrospective records (v0.18–v0.21) showing documented recurrence of the same defect categories — not generic advice; root cause for each pitfall traced to a specific architectural decision |
 
 **Overall confidence:** HIGH
 
 ### Gaps to Address
 
-- **IR field completeness validation:** The IR object shape is defined architecturally but the complete field list across all 10 personas has not been enumerated. Map each persona's data requirements before finalizing Phase 1 implementation to avoid IR schema churn during Phase 2–3.
-- **Schema version inventory for portfolio synthesis:** The exact frontmatter key changes across PDE milestones v0.12–v0.21 are known qualitatively but not mapped to specific keys. Run a targeted audit of STATE.md frontmatter across representative older projects before Phase 4 planning.
-- **EJS vs template literals trade-off:** STACK.md recommends EJS but notes that persona output structures may be simple enough that EJS adds complexity without benefit. Validate during Phase 2 implementation; falling back to template literals in CJS modules is legitimate if EJS overhead is not justified.
-- **Default UX for `/pde:present`:** The default command behavior (which persona, which format, behavior when no presentations directory exists, behavior when artifacts are incomplete) should be finalized during Phase 1 planning rather than discovered during Phase 2 implementation.
+- **Progress field recalculation wiring (Phase 1):** STATE.md `recalculateFromArtifacts()` format dependency needs early validation — PITFALLS.md documents this as a Phase 1 check. Verify `completed_phases` increments after Phase 1 commits before Phase 2 starts.
+- **MILESTONES.md one-liner read strategy:** 40+ one-liners must come from archived SUMMARY.md files in `.planning/milestones/vX.X-phases/`. Reading all at once risks context overflow — work milestone-by-milestone (confirmed in FEATURES.md dependency notes). Phase 1 plan must specify this strategy explicitly.
+- **buildCrossPatterns mock update scope:** The fix requires updating both `render-presentation.cjs` and test mocks in `tests/phase-184/portfolio-render.test.mjs`. Verify the fix does not affect the `extractResearch()` (EXT-08) extractor interface itself — only the consumer field access path changes.
 
 ---
 
@@ -165,25 +156,28 @@ Phases with standard patterns (skip `/gsd:research-phase`):
 
 ### Primary (HIGH confidence)
 
-- PDE codebase direct inspection: `bin/pde-tools.cjs`, `bin/lib/context-sync.cjs`, `bin/lib/commands.cjs`, `hooks/hooks.json`, `hooks/context-sync-hook.cjs`, `hooks/emit-event.cjs`, `hooks/archive-session.cjs`, `bin/lib/event-bus.cjs`, `.planning/PROJECT.md`, `workflows/execute-phase.md`, `.planning/config.json` — architecture patterns and integration points (2026-03-29)
-- npm registry direct query: `ejs@5.0.1`, `markdown-it@14.1.1`, `playwright@1.58.2`, `d3@7.9.0`, `linkedom@0.18.12`, `pdfkit@0.18.0`, `jsdom@29.0.1`, `@observablehq/plot@0.6.17` — version and compatibility verification (2026-03-29)
-- Node.js release history: `fs.readdirSync` recursive option added in Node 18.17.0 LTS
+- Direct inspection: `bin/pde-tools.cjs` (1712 LOC), all `bin/lib/*.cjs` modules (~89 modules), `hooks/hooks.json`
+- Direct inspection: `.planning/ROADMAP.md` (5 unchecked plan boxes confirmed at lines 221–222, 279, 294–295)
+- Direct inspection: `.planning/MILESTONES.md` (46 "One-liner:" placeholders confirmed by grep)
+- Direct inspection: `.planning/STATE.md`, `.planning/PROJECT.md`
+- Direct inspection: `.planning/milestones/v0.22-MILESTONE-AUDIT.md`
+- Direct inspection: `tests/phase-176` through `tests/phase-184` (vitest pattern), `tests/phase-100` (node:test pattern)
+- Direct inspection: `workflows/execute-phase.md`, `workflows/complete-milestone.md` (stale `pde-os` path confirmed)
+- Runtime test execution: 137/236 "No test suite found" vitest failures confirmed
+- `npm view [package] version` — all versions verified from registry 2026-03-29
 
 ### Secondary (MEDIUM confidence)
 
-- Stanford Legal RAG Hallucinations (2025) — 28–39% hallucination rate even with source material; basis for extraction-first pipeline design
-- VectorGym benchmark (OpenReview, 2025) — LLM SVG generation pitfalls: inaccurate path counts, incomplete SVGs; basis for deterministic chart generation mandate
-- cucumber/html-formatter GitHub issue #62 — self-contained HTML file size explosion (7MB to 310MB in production); basis for 500KB budget
-- Notion AI Review 2026, Linear Changelog (initiative updates Feb 2025), Jira ARNR Atlassian Marketplace Q4 2025 updates, GitHub community discussion #38840 (missing burndown chart) — competitive feature analysis
-- "The Double-Edged Sword of Abstraction in Software Engineering" (blog.chinaza.dev, 2024) — basis for two-personas-before-abstraction recommendation
-- designmodo.com "HTML and CSS in Emails: What Works in 2026" — inline CSS constraints for email-safe generated HTML
-- Digital Project Manager AI reporting guide, Agile Seekers automation guide — AI project status reporting best practices
+- [knip.dev/guides/working-with-commonjs](https://knip.dev/guides/working-with-commonjs) — CommonJS export convention requirements
+- [github.com/eslint-community/eslint-plugin-n](https://github.com/eslint-community/eslint-plugin-n) — active fork, flat config `flat/recommended-script` support
+- [vitest.dev/guide/coverage](https://vitest.dev/guide/coverage) — V8 AST remapping since v3.2.0
+- [oxc.rs/blog/2026-03-11-oxlint-js-plugins-alpha](https://oxc.rs/blog/2026-03-11-oxlint-js-plugins-alpha) — Oxlint JS plugins alpha status (why Oxlint is deferred for v0.23)
+- PDE retrospective records v0.18–v0.22 — recurring defect patterns; used to ground pitfall identification
 
 ### Tertiary (LOW confidence)
 
-- Observable Plot GitHub discussions #847, #1759 — jsdom compatibility for server-side SVG (referenced for alternatives analysis)
-- Cursor 1.7 Hooks release (InfoQ, 2025) — hook event noise patterns in analogous hook system
-- Allure issue #755 on single-file HTML portability — corroborating evidence for file size constraints
+- tsmx.net — ESLint v9 flat config CJS migration guide; `sourceType: "commonjs"` for `.cjs` pattern
+- WebSearch: quality hardening practices for legacy codebases — corroborating background for issue taxonomy
 
 ---
 *Research completed: 2026-03-29*
