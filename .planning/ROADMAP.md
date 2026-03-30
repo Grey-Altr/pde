@@ -418,9 +418,10 @@ Plans:
   2. Running npx knip produces a dead-code report with each finding triaged as keep, remove, or defer — the report is committed as a tracked artifact
   3. Running npx jscpd produces a duplication report identifying copy-paste blocks above the configured threshold — the report is committed as a tracked artifact
   4. Running npx eslint . produces a clean pass or a documented exceptions file explaining each suppressed rule — no undocumented suppressions
-**Plans**: 1/1 plans
+**Plans**: 2 plans
 Plans:
-- [ ] 187-01-PLAN.md — Fix buildCrossPatterns field access + reconcile Phase 184 test mock shape
+- [ ] 189-01-PLAN.md — Fix stale paths + knip/jscpd triage reports
+- [ ] 189-02-PLAN.md — ESLint 10 config + clean pass
 
 
 ## Progress
