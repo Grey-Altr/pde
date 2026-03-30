@@ -455,7 +455,10 @@ Plans:
   3. aggregator.cjs routes cloud session IDs to RemoteAggregator instead of TailCursor — no ghost cursors accumulate for cloud session IDs
   4. packages/cloud-adapter/ directory exists with package.json and the root plugin passes node require check with no extra npm packages at root
   5. Dispatch config block accepts cloud and docker settings — verified by config schema parse test
-**Plans**: TBD
+**Plans:** 2 plans
+Plans:
+- [ ] 190-01-PLAN.md — CJS dispatcher infrastructure (lock, aggregator, config) + cloud-adapter package scaffold
+- [ ] 190-02-PLAN.md — Dashboard SessionSource enum + queries.ts narrowing fix
 
 ### Phase 191: Docker Container Backend
 **Goal**: Users can dispatch a plan to a local Docker container that streams real NDJSON events through the existing event bus, with the same onLine/onExit interface as local spawn
