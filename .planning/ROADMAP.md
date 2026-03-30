@@ -606,5 +606,5 @@ Plans:
 | 193. Cloud Web Backend | v0.24 | 1/2 | Complete    | 2026-03-30 |
 | 194. Intelligent Routing | v0.24 | 1/2 | Complete    | 2026-03-30 |
 | 195. Dashboard Integration | v0.24 | 2/2 | Complete    | 2026-03-30 |
-| 196. Containerized MCP Servers | v0.24 | 1/1 | Complete   | 2026-03-30 |
+| 196. Containerized MCP Servers | v0.24 | 1/1 | Complete    | 2026-03-30 |
 | 197. Cross-Host Session Resume | v0.24 | 0/TBD | Not started | - |
