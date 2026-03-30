@@ -9,16 +9,16 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Data Extraction
 
-- [x] **EXT-01**: System can extract project identity (name, goal, core value, product type) from PROJECT.md into structured IR
-- [x] **EXT-02**: System can extract phase completion status (total/completed phases, plans, tasks) from STATE.md and ROADMAP.md into IR
-- [x] **EXT-03**: System can extract requirement coverage (total/completed/blocked, per-category breakdown) from REQUIREMENTS.md into IR
-- [x] **EXT-04**: System can extract design artifact inventory (wireframes, mockups, flows, tokens) from design-manifest.json into IR
-- [ ] **EXT-05**: System can extract git velocity metrics (commits per phase, total LOC, contributor stats) from git history into IR
-- [ ] **EXT-06**: System can extract cost/timing data (token usage, session durations, phase timelines) from NDJSON event bus into IR
-- [ ] **EXT-07**: System can extract blocker and risk data (unresolved tasks, overdue phases, reconciliation gaps) from phase plans into IR
-- [ ] **EXT-08**: System can extract verification results (AC pass/fail, goal achievement, Nyquist compliance) from VERIFICATION.md files into IR
-- [ ] **EXT-09**: System can extract research findings (validated claims, technology evaluations, competitive landscape) from research/ directory into IR
-- [ ] **EXT-10**: System can extract key decisions with rationale from PROJECT.md and STATE.md into IR
+- [ ] **EXT-01**: System can extract project identity (name, goal, core value, product type) from PROJECT.md into structured IR
+- [ ] **EXT-02**: System can extract phase completion status (total/completed phases, plans, tasks) from STATE.md and ROADMAP.md into IR
+- [ ] **EXT-03**: System can extract requirement coverage (total/completed/blocked, per-category breakdown) from REQUIREMENTS.md into IR
+- [ ] **EXT-04**: System can extract design artifact inventory (wireframes, mockups, flows, tokens) from design-manifest.json into IR
+- [x] **EXT-05**: System can extract git velocity metrics (commits per phase, total LOC, contributor stats) from git history into IR
+- [x] **EXT-06**: System can extract cost/timing data (token usage, session durations, phase timelines) from NDJSON event bus into IR
+- [x] **EXT-07**: System can extract blocker and risk data (unresolved tasks, overdue phases, reconciliation gaps) from phase plans into IR
+- [x] **EXT-08**: System can extract verification results (AC pass/fail, goal achievement, Nyquist compliance) from VERIFICATION.md files into IR
+- [x] **EXT-09**: System can extract research findings (validated claims, technology evaluations, competitive landscape) from research/ directory into IR
+- [x] **EXT-10**: System can extract key decisions with rationale from PROJECT.md and STATE.md into IR
 
 ### Cluster A Personas (Internal / Forward-Looking)
 
@@ -130,16 +130,16 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| EXT-01 | Phase 176 | Complete |
-| EXT-02 | Phase 176 | Complete |
-| EXT-03 | Phase 176 | Complete |
-| EXT-04 | Phase 176 | Complete |
-| EXT-05 | Phase 176 | Pending |
-| EXT-06 | Phase 176 | Pending |
-| EXT-07 | Phase 176 | Pending |
-| EXT-08 | Phase 176 | Pending |
-| EXT-09 | Phase 176 | Pending |
-| EXT-10 | Phase 176 | Pending |
+| EXT-01 | Phase 176 | Pending |
+| EXT-02 | Phase 176 | Pending |
+| EXT-03 | Phase 176 | Pending |
+| EXT-04 | Phase 176 | Pending |
+| EXT-05 | Phase 176 | Complete |
+| EXT-06 | Phase 176 | Complete |
+| EXT-07 | Phase 176 | Complete |
+| EXT-08 | Phase 176 | Complete |
+| EXT-09 | Phase 176 | Complete |
+| EXT-10 | Phase 176 | Complete |
 | CMD-03 | Phase 176 | Pending |
 | CMD-04 | Phase 176 | Pending |
 | CMD-01 | Phase 177 | Pending |

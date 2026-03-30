@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v0.22
 milestone_name: Stakeholder Presentations
-status: executing
-stopped_at: Completed 176-01-PLAN.md
-last_updated: "2026-03-30T00:32:58.139Z"
-last_activity: 2026-03-30
+status: planning
+stopped_at: Completed 176-02-PLAN.md — EXT-05 through EXT-10 implemented
+last_updated: "2026-03-30T00:40:09.943Z"
+last_activity: 2026-03-29 — Roadmap created for v0.22 Stakeholder Presentations (9 phases, 58 requirements)
 progress:
   total_phases: 16
   completed_phases: 0
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-29)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 176 — data-extraction-ir-foundation
+**Current focus:** v0.22 Stakeholder Presentations — Phase 176: Data Extraction IR Foundation
 
 ## Current Position
 
-Phase: 176 (data-extraction-ir-foundation) — EXECUTING
-Plan: 2 of 3
-Status: Ready to execute
-Last activity: 2026-03-30
+Phase: 176 of 184 (Data Extraction IR Foundation)
+Plan: —
+Status: Ready to plan
+Last activity: 2026-03-29 — Roadmap created for v0.22 Stakeholder Presentations (9 phases, 58 requirements)
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -53,8 +53,8 @@ Progress: [░░░░░░░░░░] 0%
 - [Roadmap]: SVG charts (Phase 179) run in parallel dependency with reference personas (Phase 178) — both depend on Phase 176 IR, neither depends on the other
 - [Roadmap]: Auto-generation (Phase 183) after ALL personas are proven (Phase 181+182) — hook trigger depends on stable generation, not vice versa
 - [Roadmap]: Portfolio synthesis (Phase 184) last — schema version heterogeneity across v0.12–v0.21 is highest-complexity risk; isolated after single-project synthesis is stable
-- [Phase 176]: Return unavailable sentinel (not silent zeros) for all missing-file cases — prevents false confidence in downstream narration
-- [Phase 176]: Use plans_total/plans_completed naming (not total_plans/completed_plans) to avoid confusion with phase totals
+- [Phase 176]: EXT-06 reads SUMMARY.md frontmatter duration fields — not /tmp NDJSON event files
+- [Phase 176]: Blockers/decisions return empty arrays (valid state), not unavailable sentinels
 
 ### Pending Todos
 
@@ -67,7 +67,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-30T00:32:58.136Z
-Stopped at: Completed 176-01-PLAN.md
+Last session: 2026-03-30T00:40:09.940Z
+Stopped at: Completed 176-02-PLAN.md — EXT-05 through EXT-10 implemented
 Resume with: `/gsd:plan-phase 176`
 Resume file: None

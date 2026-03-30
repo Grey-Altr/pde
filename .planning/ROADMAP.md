@@ -218,8 +218,8 @@ _Phases 171-175 archived to milestones/v0.21-ROADMAP.md_
   5. Cross-reference validation runs before any persona call: extracted numbers are compared against their source files and mismatches are logged as warnings
 **Plans:** 1/3 plans executed
 Plans:
-- [x] 176-01-PLAN.md — Core extractors (project identity, phases, requirements, design artifacts) + unit tests
-- [ ] 176-02-PLAN.md — Remaining extractors (git velocity, cost/timing, blockers, verification, research, decisions) + unit tests
+- [ ] 176-01-PLAN.md — Core extractors (project identity, phases, requirements, design artifacts) + unit tests
+- [x] 176-02-PLAN.md — Remaining extractors (git velocity, cost/timing, blockers, verification, research, decisions) + unit tests
 - [ ] 176-03-PLAN.md — IR composer, cross-ref validation, pde-tools CLI routing, integration tests
 
 ### Phase 177: Command Interface + Workflow Shell

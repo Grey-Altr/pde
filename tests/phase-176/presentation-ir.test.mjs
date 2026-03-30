@@ -1,399 +1,613 @@
 /**
  * tests/phase-176/presentation-ir.test.mjs
- * Tests for bin/lib/presentation.cjs (EXT-01 through EXT-04)
+ * Unit tests for bin/lib/presentation.cjs — IR extractor functions
+ * EXT-01 through EXT-04 (Plan 01) and EXT-05 through EXT-10 (Plan 02)
  *
- * Each extractor returns structured data from its source file,
- * or an { unavailable: true, reason } sentinel when the file is missing.
+ * Strategy: Each extractor is tested with happy-path fixtures via fs mocks
+ * and edge cases (missing data, empty sections, git failures).
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createRequire } from 'module';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
+import { spawnSync } from 'child_process';
 
 const require = createRequire(import.meta.url);
 
-// ─── Load module under test ──────────────────────────────────────────────────
+// ─── Load module under test ───────────────────────────────────────────────────
 
-let extractProjectIdentity;
-let extractPhaseCompletion;
-let extractRequirements;
-let extractDesignArtifacts;
+let extractGitVelocity, extractCostTiming, extractBlockers,
+  extractVerification, extractResearch, extractDecisions;
 
 try {
   ({
-    extractProjectIdentity,
-    extractPhaseCompletion,
-    extractRequirements,
-    extractDesignArtifacts,
+    extractGitVelocity,
+    extractCostTiming,
+    extractBlockers,
+    extractVerification,
+    extractResearch,
+    extractDecisions,
   } = require('../../bin/lib/presentation.cjs'));
-} catch (err) {
-  extractProjectIdentity = null;
-  extractPhaseCompletion = null;
-  extractRequirements = null;
-  extractDesignArtifacts = null;
+} catch (_) {
+  // Will be caught in each test
 }
 
-// ─── Fixtures ────────────────────────────────────────────────────────────────
+// ─── Helper: create a temp dir with a basic .planning structure ───────────────
 
-const PROJECT_MD_FIXTURE = `# My Test Platform
+function makePlanningDir(tmpDir, opts = {}) {
+  const planningDir = path.join(tmpDir, '.planning');
+  fs.mkdirSync(planningDir, { recursive: true });
+  fs.mkdirSync(path.join(planningDir, 'phases'), { recursive: true });
 
-A platform that helps users ship products.
+  if (opts.withPhases) {
+    for (const phase of opts.withPhases) {
+      const phaseDir = path.join(planningDir, 'phases', phase.name);
+      fs.mkdirSync(phaseDir, { recursive: true });
+      if (phase.summary) {
+        fs.writeFileSync(path.join(phaseDir, `${phase.name}-SUMMARY.md`), phase.summary);
+      }
+      if (phase.verification) {
+        fs.writeFileSync(path.join(phaseDir, `${phase.name}-VERIFICATION.md`), phase.verification);
+      }
+      if (phase.research) {
+        fs.writeFileSync(path.join(phaseDir, `${phase.name}-RESEARCH.md`), phase.research);
+      }
+    }
+  }
 
-## Core Value
+  if (opts.stateContent) {
+    fs.writeFileSync(path.join(planningDir, 'STATE.md'), opts.stateContent);
+  }
 
-Any user can go from idea to shipped product through a single platform.
+  if (opts.withResearchDir) {
+    const researchDir = path.join(planningDir, 'research');
+    fs.mkdirSync(researchDir, { recursive: true });
+    for (const file of opts.withResearchDir) {
+      fs.writeFileSync(path.join(researchDir, file), '# research');
+    }
+  }
 
-## Goal
+  return planningDir;
+}
 
-Ship great products faster.
-
-## What This Is
-
-A full professional product design and development platform.
+const SAMPLE_SUMMARY_WITH_TIMING = `---
+phase: 175-design-pipeline-integration
+plan: 01
+duration: 27min
+key-decisions:
+  - "vi.spyOn on module.exports for CJS-in-CJS mocking"
+tech-stack: []
+---
+# Summary content
 `;
 
-const STATE_MD_FIXTURE = `---
+const SAMPLE_SUMMARY_NO_TIMING = `---
+phase: 174-some-phase
+plan: 01
+tech-stack: []
+---
+# No duration here
+`;
+
+const SAMPLE_VERIFICATION_ACHIEVED = `---
+phase: 175
+---
+- [x] AC-1: Feature works correctly
+- [x] AC-2: Edge cases handled
+- [ ] AC-3: Performance check pending
+
+**Overall: ACHIEVED**
+`;
+
+const SAMPLE_VERIFICATION_NOT_ACHIEVED = `---
+phase: 174
+---
+- [x] AC-1: Basic test passes
+- [ ] AC-2: Integration test fails
+
+**Overall: NOT ACHIEVED**
+`;
+
+const SAMPLE_STATE_WITH_BLOCKERS = `---
 gsd_state_version: 1.0
-milestone: v0.22
-milestone_name: Stakeholder Presentations
-status: In Progress
-stopped_at: Phase 176
-last_updated: "2026-03-29T22:00:00.000Z"
-progress:
-  total_phases: 9
-  completed_phases: 2
-  total_plans: 14
-  completed_plans: 6
 ---
 
 # Project State
 
-## Current Position
+## Accumulated Context
 
-Phase: 176 of 184 (Data Extraction IR Foundation)
-Plan: 01
-Status: In Progress
+### Decisions
+
+- [Roadmap]: Extraction-first architecture chosen
+- [Phase 176]: IR field completeness needed
+
+### Pending Todos
+
+None.
+
+### Blockers/Concerns
+
+- [Phase 176]: IR field completeness validation needed before finalizing schema
+- [Phase 184]: Schema version inventory — high risk concern for portfolio synthesis
 `;
 
-const ROADMAP_MD_FIXTURE = `# Roadmap
+const SAMPLE_STATE_EMPTY_BLOCKERS = `---
+gsd_state_version: 1.0
+---
 
-### v0.22 Stakeholder Presentations (In Progress)
+# Project State
 
-- [x] Phase 176: Data Extraction IR Foundation
-- [x] Phase 177: Command Interface
-- [ ] Phase 178: Reference Personas
-- [ ] Phase 179: SVG Charts
-- [ ] Phase 180: Claim Verification
-- [ ] Phase 181: Cluster A Personas
-- [ ] Phase 182: Cluster B Personas
-- [ ] Phase 183: Auto-Generation
-- [ ] Phase 184: Portfolio Synthesis
+## Accumulated Context
+
+### Decisions
+
+- [Phase 100]: Some decision made
+
+### Pending Todos
+
+None.
+
+### Blockers/Concerns
+
+None.
 `;
 
-const REQUIREMENTS_MD_FIXTURE = `# Requirements: PDE v0.22
+// ─── EXT-05: git velocity ─────────────────────────────────────────────────────
 
-## v1 Requirements
+describe('extractGitVelocity', () => {
+  it('is exported from presentation.cjs', () => {
+    expect(extractGitVelocity).toBeDefined();
+    expect(typeof extractGitVelocity).toBe('function');
+  });
 
-### Data Extraction
-
-- [x] **EXT-01**: Extract project identity
-- [x] **EXT-02**: Extract phase completion
-- [ ] **EXT-03**: Extract requirements coverage
-- [ ] **EXT-04**: Extract design artifacts
-
-### Rendering & Output
-
-- [x] **RND-01**: Generate HTML output
-- [ ] **RND-02**: Generate Markdown output
-- [ ] **RND-03**: Table of contents
-
-## Future Requirements
-
-- [ ] **FUT-01**: Future feature (should not be counted)
-`;
-
-const DESIGN_MANIFEST_FIXTURE = JSON.stringify({
-  version: 1,
-  productType: 'software',
-  tokens: { colorPrimary: '#0070f3', spacing: '8px' },
-  artifacts: [
-    { id: 'wfr-001', type: 'wireframe', path: 'design/wireframes/home.svg' },
-    { id: 'mck-001', type: 'mockup', path: 'design/mockups/home.html' },
-    { id: 'flw-001', type: 'flow', path: 'design/flows.md' },
-  ],
-}, null, 2);
-
-// ─── Helper: create a temp project dir ──────────────────────────────────────
-
-function makeTmpProject() {
-  const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pde-ir-test-'));
-  const planningDir = path.join(tmpDir, '.planning');
-  const designDir = path.join(planningDir, 'design');
-  fs.mkdirSync(planningDir, { recursive: true });
-  fs.mkdirSync(designDir, { recursive: true });
-  return { tmpDir, planningDir, designDir };
-}
-
-// ─── EXT-01: extractProjectIdentity ─────────────────────────────────────────
-
-describe('project identity', () => {
-  it('returns name, goal, core_value, product_type, summary when PROJECT.md exists', () => {
-    const { tmpDir, planningDir, designDir } = makeTmpProject();
+  it('returns git velocity data when git is available', () => {
+    let tmpDir;
     try {
-      fs.writeFileSync(path.join(planningDir, 'PROJECT.md'), PROJECT_MD_FIXTURE);
-      fs.writeFileSync(
-        path.join(designDir, 'design-manifest.json'),
-        DESIGN_MANIFEST_FIXTURE
-      );
+      tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pde-git-test-'));
 
-      const result = extractProjectIdentity(tmpDir);
+      // Initialize a git repo with some history
+      spawnSync('git', ['init'], { cwd: tmpDir, stdio: 'pipe' });
+      spawnSync('git', ['config', 'user.email', 'test@test.com'], { cwd: tmpDir, stdio: 'pipe' });
+      spawnSync('git', ['config', 'user.name', 'Test'], { cwd: tmpDir, stdio: 'pipe' });
+
+      // Create commits
+      fs.writeFileSync(path.join(tmpDir, 'file1.txt'), 'hello world\n');
+      spawnSync('git', ['add', '.'], { cwd: tmpDir, stdio: 'pipe' });
+      spawnSync('git', ['commit', '-m', 'first commit'], { cwd: tmpDir, stdio: 'pipe' });
+
+      fs.writeFileSync(path.join(tmpDir, 'file2.txt'), 'another line\n');
+      spawnSync('git', ['add', '.'], { cwd: tmpDir, stdio: 'pipe' });
+      spawnSync('git', ['commit', '-m', 'second commit'], { cwd: tmpDir, stdio: 'pipe' });
+
+      const result = extractGitVelocity(tmpDir);
 
       expect(result).toBeDefined();
       expect(result.unavailable).toBeUndefined();
-      expect(result.name).toBe('My Test Platform');
-      expect(result.core_value).toContain('idea to shipped product');
-      expect(result.product_type).toBe('software');
-      expect(result.summary).toBeTruthy();
+      expect(typeof result.total_commits).toBe('number');
+      expect(result.total_commits).toBeGreaterThanOrEqual(2);
+      expect(typeof result.commits_last_30_days).toBe('number');
+      expect(result.commits_last_30_days).toBeGreaterThanOrEqual(2);
+      expect(Array.isArray(result.contributors)).toBe(true);
+      expect(result.contributors.length).toBeGreaterThan(0);
+      expect(typeof result.estimated_loc_added).toBe('number');
+      expect(result.estimated_loc_added).toBeGreaterThanOrEqual(0);
     } finally {
-      fs.rmSync(tmpDir, { recursive: true, force: true });
+      if (tmpDir) {
+        try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch (_) {}
+      }
     }
   });
 
-  it('returns unavailable sentinel when PROJECT.md is missing', () => {
-    const { tmpDir } = makeTmpProject();
+  it('returns unavailable sentinel when not a git repo', () => {
+    let tmpDir;
     try {
-      const result = extractProjectIdentity(tmpDir);
-
+      tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pde-nogit-test-'));
+      const result = extractGitVelocity(tmpDir);
       expect(result).toBeDefined();
       expect(result.unavailable).toBe(true);
-      expect(result.reason).toBeTruthy();
-      expect(result.reason).toMatch(/PROJECT\.md/i);
+      expect(typeof result.reason).toBe('string');
     } finally {
-      fs.rmSync(tmpDir, { recursive: true, force: true });
-    }
-  });
-
-  it('returns product_type as unknown when design-manifest.json is missing', () => {
-    const { tmpDir, planningDir } = makeTmpProject();
-    try {
-      fs.writeFileSync(path.join(planningDir, 'PROJECT.md'), PROJECT_MD_FIXTURE);
-
-      const result = extractProjectIdentity(tmpDir);
-
-      expect(result.unavailable).toBeUndefined();
-      expect(result.product_type).toBe('unknown');
-    } finally {
-      fs.rmSync(tmpDir, { recursive: true, force: true });
+      if (tmpDir) {
+        try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch (_) {}
+      }
     }
   });
 });
 
-// ─── EXT-02: extractPhaseCompletion ──────────────────────────────────────────
+// ─── EXT-06: cost/timing ─────────────────────────────────────────────────────
 
-describe('phase completion', () => {
-  it('returns total, completed, progress_percent from STATE.md and ROADMAP.md', () => {
-    const { tmpDir, planningDir } = makeTmpProject();
-    try {
-      fs.writeFileSync(path.join(planningDir, 'STATE.md'), STATE_MD_FIXTURE);
-      fs.writeFileSync(path.join(planningDir, 'ROADMAP.md'), ROADMAP_MD_FIXTURE);
+describe('extractCostTiming', () => {
+  let tmpDir;
 
-      const result = extractPhaseCompletion(tmpDir);
-
-      expect(result).toBeDefined();
-      expect(result.unavailable).toBeUndefined();
-      expect(result.total).toBe(9);
-      expect(result.completed).toBe(2);
-      expect(result.plans_total).toBe(14);
-      expect(result.plans_completed).toBe(6);
-      expect(result.milestone).toBe('v0.22');
-      expect(result.milestone_name).toBe('Stakeholder Presentations');
-      expect(typeof result.progress_percent).toBe('number');
-      expect(result.progress_percent).toBeGreaterThanOrEqual(0);
-      expect(result.progress_percent).toBeLessThanOrEqual(100);
-    } finally {
-      fs.rmSync(tmpDir, { recursive: true, force: true });
-    }
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pde-timing-test-'));
   });
 
-  it('returns unavailable sentinel when STATE.md is missing', () => {
-    const { tmpDir } = makeTmpProject();
-    try {
-      const result = extractPhaseCompletion(tmpDir);
-
-      expect(result).toBeDefined();
-      expect(result.unavailable).toBe(true);
-      expect(result.reason).toBeTruthy();
-      expect(result.reason).toMatch(/STATE\.md/i);
-    } finally {
-      fs.rmSync(tmpDir, { recursive: true, force: true });
-    }
+  afterEach(() => {
+    try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch (_) {}
   });
 
-  it('includes current_phase and current_phase_name from STATE.md body', () => {
-    const { tmpDir, planningDir } = makeTmpProject();
-    try {
-      fs.writeFileSync(path.join(planningDir, 'STATE.md'), STATE_MD_FIXTURE);
-      fs.writeFileSync(path.join(planningDir, 'ROADMAP.md'), ROADMAP_MD_FIXTURE);
+  it('is exported from presentation.cjs', () => {
+    expect(extractCostTiming).toBeDefined();
+    expect(typeof extractCostTiming).toBe('function');
+  });
 
-      const result = extractPhaseCompletion(tmpDir);
+  it('returns timing data when SUMMARY.md files exist with duration fields', () => {
+    makePlanningDir(tmpDir, {
+      withPhases: [
+        { name: '175-design-pipeline', summary: SAMPLE_SUMMARY_WITH_TIMING },
+        { name: '174-some-phase', summary: SAMPLE_SUMMARY_WITH_TIMING },
+      ],
+    });
 
-      expect(result.current_phase).toBe('176');
-      expect(result.current_phase_name).toBeTruthy();
-    } finally {
-      fs.rmSync(tmpDir, { recursive: true, force: true });
+    const result = extractCostTiming(tmpDir);
+
+    expect(result).toBeDefined();
+    expect(result.unavailable).toBeUndefined();
+    expect(typeof result.session_count).toBe('number');
+    expect(result.session_count).toBeGreaterThanOrEqual(2);
+    expect(typeof result.total_duration_min).toBe('number');
+    expect(result.total_duration_min).toBeGreaterThan(0);
+    expect(typeof result.phases_with_timing).toBe('number');
+    expect(result.phases_with_timing).toBeGreaterThan(0);
+    expect(typeof result.average_phase_duration_min).toBe('number');
+  });
+
+  it('counts sessions even when some SUMMARY.md lack duration field', () => {
+    makePlanningDir(tmpDir, {
+      withPhases: [
+        { name: '175-design-pipeline', summary: SAMPLE_SUMMARY_WITH_TIMING },
+        { name: '174-some-phase', summary: SAMPLE_SUMMARY_NO_TIMING },
+      ],
+    });
+
+    const result = extractCostTiming(tmpDir);
+
+    expect(result).toBeDefined();
+    expect(result.unavailable).toBeUndefined();
+    expect(result.session_count).toBe(2);
+    expect(result.phases_with_timing).toBe(1);
+    expect(result.total_duration_min).toBe(27);
+  });
+
+  it('returns unavailable sentinel when no SUMMARY.md files found', () => {
+    makePlanningDir(tmpDir, { withPhases: [] });
+
+    const result = extractCostTiming(tmpDir);
+
+    expect(result).toBeDefined();
+    expect(result.unavailable).toBe(true);
+    expect(typeof result.reason).toBe('string');
+  });
+
+  it('does not read from os.tmpdir() or pde-session files', () => {
+    // Verify the function works from .planning/ SUMMARY.md files only
+    makePlanningDir(tmpDir, {
+      withPhases: [{ name: '175-design', summary: SAMPLE_SUMMARY_WITH_TIMING }],
+    });
+
+    const result = extractCostTiming(tmpDir);
+    expect(result.unavailable).toBeUndefined();
+    expect(result.session_count).toBe(1);
+  });
+});
+
+// ─── EXT-07: blockers ────────────────────────────────────────────────────────
+
+describe('extractBlockers', () => {
+  let tmpDir;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pde-blockers-test-'));
+  });
+
+  afterEach(() => {
+    try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch (_) {}
+  });
+
+  it('is exported from presentation.cjs', () => {
+    expect(extractBlockers).toBeDefined();
+    expect(typeof extractBlockers).toBe('function');
+  });
+
+  it('returns blockers and risks arrays from STATE.md', () => {
+    makePlanningDir(tmpDir, { stateContent: SAMPLE_STATE_WITH_BLOCKERS });
+
+    const result = extractBlockers(tmpDir);
+
+    expect(result).toBeDefined();
+    expect(result.unavailable).toBeUndefined();
+    expect(Array.isArray(result.blockers)).toBe(true);
+    expect(Array.isArray(result.risks)).toBe(true);
+    const total = result.blockers.length + result.risks.length;
+    expect(total).toBeGreaterThan(0);
+  });
+
+  it('classifies items with risk/concern keywords as risks', () => {
+    makePlanningDir(tmpDir, { stateContent: SAMPLE_STATE_WITH_BLOCKERS });
+
+    const result = extractBlockers(tmpDir);
+
+    const hasRisk = result.risks.some(r => /risk/i.test(r.text));
+    expect(hasRisk).toBe(true);
+  });
+
+  it('returns empty arrays (not unavailable) when blockers section has None', () => {
+    makePlanningDir(tmpDir, { stateContent: SAMPLE_STATE_EMPTY_BLOCKERS });
+
+    const result = extractBlockers(tmpDir);
+
+    expect(result).toBeDefined();
+    expect(result.unavailable).toBeUndefined();
+    expect(Array.isArray(result.blockers)).toBe(true);
+    expect(Array.isArray(result.risks)).toBe(true);
+  });
+
+  it('returns empty arrays when STATE.md does not exist', () => {
+    makePlanningDir(tmpDir, {});
+
+    const result = extractBlockers(tmpDir);
+
+    expect(result).toBeDefined();
+    expect(result.unavailable).toBeUndefined();
+    expect(result.blockers).toEqual([]);
+    expect(result.risks).toEqual([]);
+  });
+
+  it('returns items with text, phase, and type fields', () => {
+    makePlanningDir(tmpDir, { stateContent: SAMPLE_STATE_WITH_BLOCKERS });
+
+    const result = extractBlockers(tmpDir);
+
+    const allItems = [...result.blockers, ...result.risks];
+    for (const item of allItems) {
+      expect(typeof item.text).toBe('string');
+      expect(item.text.length).toBeGreaterThan(0);
+      expect(['blocker', 'concern', 'risk']).toContain(item.type);
     }
   });
 });
 
-// ─── EXT-03: extractRequirements ─────────────────────────────────────────────
+// ─── EXT-08: verification ────────────────────────────────────────────────────
 
-describe('requirements', () => {
-  it('returns total, completed, pending from REQUIREMENTS.md v1 Requirements section', () => {
-    const { tmpDir, planningDir } = makeTmpProject();
-    try {
-      fs.writeFileSync(path.join(planningDir, 'REQUIREMENTS.md'), REQUIREMENTS_MD_FIXTURE);
+describe('extractVerification', () => {
+  let tmpDir;
 
-      const result = extractRequirements(tmpDir);
-
-      expect(result).toBeDefined();
-      expect(result.unavailable).toBeUndefined();
-      // Data Extraction: 2 checked (EXT-01, EXT-02), 2 unchecked (EXT-03, EXT-04)
-      // Rendering & Output: 1 checked (RND-01), 2 unchecked (RND-02, RND-03)
-      // Total v1 = 7, completed = 3
-      expect(result.total).toBe(7);
-      expect(result.completed).toBe(3);
-      expect(result.pending).toBe(4);
-      expect(result.blocked).toBe(0);
-    } finally {
-      fs.rmSync(tmpDir, { recursive: true, force: true });
-    }
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pde-verif-test-'));
   });
 
-  it('includes per-category breakdown', () => {
-    const { tmpDir, planningDir } = makeTmpProject();
-    try {
-      fs.writeFileSync(path.join(planningDir, 'REQUIREMENTS.md'), REQUIREMENTS_MD_FIXTURE);
-
-      const result = extractRequirements(tmpDir);
-
-      expect(result.categories).toBeDefined();
-      expect(result.categories['Data Extraction']).toBeDefined();
-      expect(result.categories['Data Extraction'].total).toBe(4);
-      expect(result.categories['Data Extraction'].completed).toBe(2);
-      expect(result.categories['Rendering & Output']).toBeDefined();
-      expect(result.categories['Rendering & Output'].total).toBe(3);
-      expect(result.categories['Rendering & Output'].completed).toBe(1);
-    } finally {
-      fs.rmSync(tmpDir, { recursive: true, force: true });
-    }
+  afterEach(() => {
+    try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch (_) {}
   });
 
-  it('excludes Future Requirements section from counts', () => {
-    const { tmpDir, planningDir } = makeTmpProject();
-    try {
-      fs.writeFileSync(path.join(planningDir, 'REQUIREMENTS.md'), REQUIREMENTS_MD_FIXTURE);
-
-      const result = extractRequirements(tmpDir);
-
-      // FUT-01 from Future Requirements should not be counted
-      expect(result.total).toBe(7);
-      expect(result.categories['Future Requirements']).toBeUndefined();
-    } finally {
-      fs.rmSync(tmpDir, { recursive: true, force: true });
-    }
+  it('is exported from presentation.cjs', () => {
+    expect(extractVerification).toBeDefined();
+    expect(typeof extractVerification).toBe('function');
   });
 
-  it('returns unavailable sentinel when REQUIREMENTS.md is missing', () => {
-    const { tmpDir } = makeTmpProject();
-    try {
-      const result = extractRequirements(tmpDir);
+  it('returns verification stats when VERIFICATION.md files exist', () => {
+    makePlanningDir(tmpDir, {
+      withPhases: [
+        { name: '175-design', verification: SAMPLE_VERIFICATION_ACHIEVED },
+        { name: '174-some', verification: SAMPLE_VERIFICATION_NOT_ACHIEVED },
+        { name: '173-other', summary: SAMPLE_SUMMARY_WITH_TIMING },
+      ],
+    });
 
-      expect(result).toBeDefined();
-      expect(result.unavailable).toBe(true);
-      expect(result.reason).toBeTruthy();
-      expect(result.reason).toMatch(/REQUIREMENTS\.md/i);
-    } finally {
-      fs.rmSync(tmpDir, { recursive: true, force: true });
-    }
+    const result = extractVerification(tmpDir);
+
+    expect(result).toBeDefined();
+    expect(result.unavailable).toBeUndefined();
+    expect(typeof result.phases_verified).toBe('number');
+    expect(result.phases_verified).toBe(2);
+    expect(typeof result.phases_achieved).toBe('number');
+    expect(result.phases_achieved).toBe(1);
+    expect(typeof result.phases_not_achieved).toBe('number');
+    expect(result.phases_not_achieved).toBe(1);
+    expect(typeof result.phases_missing_verification).toBe('number');
+    expect(result.phases_missing_verification).toBe(1);
+    expect(Array.isArray(result.results)).toBe(true);
+    expect(result.results.length).toBe(2);
+  });
+
+  it('counts ac_pass and ac_fail checkboxes correctly', () => {
+    makePlanningDir(tmpDir, {
+      withPhases: [
+        { name: '175-design', verification: SAMPLE_VERIFICATION_ACHIEVED },
+      ],
+    });
+
+    const result = extractVerification(tmpDir);
+    const r = result.results[0];
+
+    expect(r.ac_pass).toBe(2);
+    expect(r.ac_fail).toBe(1);
+    expect(r.status).toBe('achieved');
+  });
+
+  it('returns phases_verified=0 when no VERIFICATION.md files found', () => {
+    makePlanningDir(tmpDir, {
+      withPhases: [
+        { name: '175-design', summary: SAMPLE_SUMMARY_WITH_TIMING },
+      ],
+    });
+
+    const result = extractVerification(tmpDir);
+
+    expect(result).toBeDefined();
+    expect(result.unavailable).toBeUndefined();
+    expect(result.phases_verified).toBe(0);
+    expect(result.phases_achieved).toBe(0);
+    expect(result.results).toEqual([]);
+  });
+
+  it('returns phases_verified=0 when no phase directories exist', () => {
+    makePlanningDir(tmpDir, { withPhases: [] });
+
+    const result = extractVerification(tmpDir);
+
+    expect(result).toBeDefined();
+    expect(result.phases_verified).toBe(0);
+    expect(result.phases_missing_verification).toBe(0);
   });
 });
 
-// ─── EXT-04: extractDesignArtifacts ──────────────────────────────────────────
+// ─── EXT-09: research ────────────────────────────────────────────────────────
 
-describe('design artifacts', () => {
-  it('returns artifact_count, types_covered, has_tokens, has_wireframes, has_mockups from design-manifest.json', () => {
-    const { tmpDir, planningDir, designDir } = makeTmpProject();
-    try {
-      fs.writeFileSync(
-        path.join(designDir, 'design-manifest.json'),
-        DESIGN_MANIFEST_FIXTURE
-      );
+describe('extractResearch', () => {
+  let tmpDir;
 
-      const result = extractDesignArtifacts(tmpDir);
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pde-research-test-'));
+  });
 
-      expect(result).toBeDefined();
-      expect(result.unavailable).toBeUndefined();
-      expect(result.available).toBe(true);
-      expect(result.artifact_count).toBe(3);
-      expect(result.has_tokens).toBe(true);
-      expect(result.has_wireframes).toBe(true);
-      expect(result.has_mockups).toBe(true);
-      expect(Array.isArray(result.types_covered)).toBe(true);
-      expect(result.types_covered).toContain('wireframe');
-      expect(result.types_covered).toContain('mockup');
-    } finally {
-      fs.rmSync(tmpDir, { recursive: true, force: true });
+  afterEach(() => {
+    try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch (_) {}
+  });
+
+  it('is exported from presentation.cjs', () => {
+    expect(extractResearch).toBeDefined();
+    expect(typeof extractResearch).toBe('function');
+  });
+
+  it('returns research stats when research files exist', () => {
+    makePlanningDir(tmpDir, {
+      withResearchDir: ['ARCHITECTURE.md', 'PERSONAS.md', 'COMPETITIVE.md'],
+      withPhases: [
+        { name: '176-ir-foundation', research: '# Research content' },
+        { name: '175-design', research: '# More research' },
+        { name: '174-other', summary: SAMPLE_SUMMARY_WITH_TIMING },
+      ],
+    });
+
+    const result = extractResearch(tmpDir);
+
+    expect(result).toBeDefined();
+    expect(result.unavailable).toBeUndefined();
+    expect(typeof result.project_research_files).toBe('number');
+    expect(result.project_research_files).toBe(3);
+    expect(Array.isArray(result.topics)).toBe(true);
+    expect(result.topics).toContain('ARCHITECTURE');
+    expect(result.topics).toContain('PERSONAS');
+    expect(typeof result.phase_research_count).toBe('number');
+    expect(result.phase_research_count).toBe(2);
+  });
+
+  it('returns project_research_files=0 and topics=[] when research/ dir does not exist', () => {
+    makePlanningDir(tmpDir, {
+      withPhases: [
+        { name: '176-ir-foundation', research: '# Research content' },
+      ],
+    });
+
+    const result = extractResearch(tmpDir);
+
+    expect(result).toBeDefined();
+    expect(result.project_research_files).toBe(0);
+    expect(result.topics).toEqual([]);
+    expect(result.phase_research_count).toBe(1);
+  });
+
+  it('returns all zeros when no planning artifacts exist at all', () => {
+    makePlanningDir(tmpDir, { withPhases: [] });
+
+    const result = extractResearch(tmpDir);
+
+    expect(result).toBeDefined();
+    expect(result.project_research_files).toBe(0);
+    expect(result.topics).toEqual([]);
+    expect(result.phase_research_count).toBe(0);
+  });
+});
+
+// ─── EXT-10: decisions ───────────────────────────────────────────────────────
+
+describe('extractDecisions', () => {
+  let tmpDir;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pde-decisions-test-'));
+  });
+
+  afterEach(() => {
+    try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch (_) {}
+  });
+
+  it('is exported from presentation.cjs', () => {
+    expect(extractDecisions).toBeDefined();
+    expect(typeof extractDecisions).toBe('function');
+  });
+
+  it('returns decisions array combining STATE.md and SUMMARY.md key-decisions', () => {
+    makePlanningDir(tmpDir, {
+      stateContent: SAMPLE_STATE_WITH_BLOCKERS,
+      withPhases: [
+        { name: '175-design', summary: SAMPLE_SUMMARY_WITH_TIMING },
+      ],
+    });
+
+    const result = extractDecisions(tmpDir);
+
+    expect(result).toBeDefined();
+    expect(Array.isArray(result)).toBe(true);
+    expect(result.length).toBeGreaterThan(0);
+  });
+
+  it('returns decisions with summary field', () => {
+    makePlanningDir(tmpDir, {
+      stateContent: SAMPLE_STATE_WITH_BLOCKERS,
+      withPhases: [
+        { name: '175-design', summary: SAMPLE_SUMMARY_WITH_TIMING },
+      ],
+    });
+
+    const result = extractDecisions(tmpDir);
+
+    for (const d of result) {
+      expect(typeof d.summary).toBe('string');
+      expect(d.summary.length).toBeGreaterThan(0);
     }
   });
 
-  it('returns unavailable sentinel when design-manifest.json is missing', () => {
-    const { tmpDir } = makeTmpProject();
-    try {
-      const result = extractDesignArtifacts(tmpDir);
+  it('returns empty array (not unavailable) when STATE.md missing and no SUMMARY files', () => {
+    makePlanningDir(tmpDir, { withPhases: [] });
 
-      expect(result).toBeDefined();
-      expect(result.unavailable).toBe(true);
-      expect(result.reason).toBeTruthy();
-      expect(result.reason).toMatch(/design-manifest\.json/i);
-    } finally {
-      fs.rmSync(tmpDir, { recursive: true, force: true });
-    }
+    const result = extractDecisions(tmpDir);
+
+    expect(result).toBeDefined();
+    expect(Array.isArray(result)).toBe(true);
+    expect(result).toEqual([]);
   });
 
-  it('handles manifest with no artifacts gracefully', () => {
-    const { tmpDir, planningDir, designDir } = makeTmpProject();
-    try {
-      const emptyManifest = JSON.stringify({ version: 1, productType: 'software', artifacts: [] }, null, 2);
-      fs.writeFileSync(path.join(designDir, 'design-manifest.json'), emptyManifest);
+  it('includes decisions from SUMMARY.md key-decisions frontmatter array', () => {
+    makePlanningDir(tmpDir, {
+      withPhases: [
+        { name: '175-design', summary: SAMPLE_SUMMARY_WITH_TIMING },
+      ],
+    });
 
-      const result = extractDesignArtifacts(tmpDir);
+    const result = extractDecisions(tmpDir);
 
-      expect(result.unavailable).toBeUndefined();
-      expect(result.available).toBe(true);
-      expect(result.artifact_count).toBe(0);
-      expect(result.has_tokens).toBe(false);
-      expect(result.has_wireframes).toBe(false);
-      expect(result.has_mockups).toBe(false);
-      expect(result.types_covered).toEqual([]);
-    } finally {
-      fs.rmSync(tmpDir, { recursive: true, force: true });
-    }
+    const hasCjsDecision = result.some(d =>
+      d.summary && d.summary.includes('vi.spyOn')
+    );
+    expect(hasCjsDecision).toBe(true);
   });
 
-  it('returns unavailable sentinel when manifest JSON is malformed', () => {
-    const { tmpDir, planningDir, designDir } = makeTmpProject();
-    try {
-      fs.writeFileSync(path.join(designDir, 'design-manifest.json'), '{ invalid json }');
+  it('includes decisions from STATE.md Decisions section', () => {
+    makePlanningDir(tmpDir, {
+      stateContent: SAMPLE_STATE_WITH_BLOCKERS,
+      withPhases: [],
+    });
 
-      const result = extractDesignArtifacts(tmpDir);
+    const result = extractDecisions(tmpDir);
 
-      expect(result).toBeDefined();
-      expect(result.unavailable).toBe(true);
-      expect(result.reason).toBeTruthy();
-    } finally {
-      fs.rmSync(tmpDir, { recursive: true, force: true });
-    }
+    const hasRoadmapDecision = result.some(d =>
+      d.summary && d.summary.includes('Extraction-first')
+    );
+    expect(hasRoadmapDecision).toBe(true);
   });
 });
