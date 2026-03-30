@@ -364,7 +364,10 @@ Plans:
   2. MILESTONES.md one-liner fields for v0.19 through v0.22 contain accurate human-readable descriptions (not placeholder text), sourced from archived SUMMARY.md files
   3. REQUIREMENTS.md checkboxes for EXT-01 through EXT-10 are checked with inline phase references matching the VERIFICATION.md evidence entries
   4. Phase 180 VERIFICATION.md frontmatter shows status: complete, with the root cause of the prior gaps_found value documented
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 185-01-PLAN.md — Fix Phase 180 VERIFICATION.md status, ROADMAP.md plan boxes, v0.22-REQUIREMENTS.md inline phase references
+- [ ] 185-02-PLAN.md — Populate MILESTONES.md one-liners for v0.19 through v0.22
 
 ### Phase 186: Test Infrastructure
 **Goal**: Running npx vitest run reports zero false "No test suite found" failures and npx vitest run --coverage produces a coverage baseline report, giving reliable regression signal before any code changes are made
