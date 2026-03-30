@@ -553,10 +553,10 @@ Plans:
   1. Agent SDK .jsonl session files are persisted to configured shared storage on session completion — verified by reading the updated session persistence code
   2. Session resume on a different host succeeds when the shared storage entry exists — coordinator loads .jsonl from shared storage and resumes with matching cwd encoding
   3. cwd encoding is portable across hosts — a session started in /Users/alice/project resumes correctly on /home/alice/project via cwd normalization
-**Plans:** 1/1 plans complete
+**Plans:** 1/2 plans executed
 Plans:
 - [ ] 197-01-PLAN.md — session-persist.cjs module (sanitization, persist, restore) + config keys + unit tests
-- [ ] 197-02-PLAN.md — Coordinator integration: capture claudeSessionId, persist on exit, restore on resume
+- [x] 197-02-PLAN.md — Coordinator integration: capture claudeSessionId, persist on exit, restore on resume
 
 
 
@@ -607,4 +607,4 @@ Plans:
 | 194. Intelligent Routing | v0.24 | 1/2 | Complete    | 2026-03-30 |
 | 195. Dashboard Integration | v0.24 | 2/2 | Complete    | 2026-03-30 |
 | 196. Containerized MCP Servers | v0.24 | 1/1 | Complete    | 2026-03-30 |
-| 197. Cross-Host Session Resume | v0.24 | 0/TBD | Not started | - |
+| 197. Cross-Host Session Resume | v0.24 | 1/2 | In Progress|  |

@@ -24,8 +24,8 @@ Requirements for Cloud Dispatch & State Sync. Each maps to roadmap phases.
 - [x] **SYN-02**: Local orchestrator merges cloud branch using 3-way merge (v0.16 engine)
 - [x] **SYN-03**: Merge direction is cloud-to-local aware (not --ours for STATE.md on inbound sync)
 - [x] **SYN-04**: Concurrent cloud sessions push to separate branches with sequential merge ordering
-- [ ] **SYN-05**: Agent SDK session .jsonl files can be persisted to shared storage for cross-host resume
-- [ ] **SYN-06**: Session resume on different host uses matching cwd encoding for session portability
+- [x] **SYN-05**: Agent SDK session .jsonl files can be persisted to shared storage for cross-host resume
+- [x] **SYN-06**: Session resume on different host uses matching cwd encoding for session portability
 - [x] **SYN-07**: simple-git integration in isolated `packages/` directory for git sync operations
 
 ### Intelligent Routing
@@ -102,8 +102,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SYN-02 | Phase 192 | Complete |
 | SYN-03 | Phase 192 | Complete |
 | SYN-04 | Phase 192 | Complete |
-| SYN-05 | Phase 197 | Pending |
-| SYN-06 | Phase 197 | Pending |
+| SYN-05 | Phase 197 | Complete |
+| SYN-06 | Phase 197 | Complete |
 | SYN-07 | Phase 192 | Complete |
 | RTG-01 | Phase 194 | Complete |
 | RTG-02 | Phase 194 | Complete |
