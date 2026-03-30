@@ -1,182 +1,269 @@
-# Stack Research — Quality Hardening
+# Stack Research — Cloud Dispatch, Container Isolation, Git State Sync, Intelligent Routing
 
-**Domain:** Quality auditing, data integrity verification, and technical debt cleanup for a large Node.js CommonJS plugin codebase
-**Researched:** 2026-03-29
-**Confidence:** HIGH (all versions verified via `npm view` against registry; tool capabilities verified against official docs)
-
----
-
-## Context: What This Is Hardening
-
-The PDE codebase consists of:
-- ~99 production `.cjs` files under `bin/` (~27K lines), with `bin/pde-tools.cjs` (1712 lines) as the primary dispatch surface
-- ~89 library modules under `bin/lib/` (~25.5K total lines), largest being `context-sync.cjs` (2175 lines) and `render-presentation.cjs` (2096 lines)
-- Vitest v4 already installed (root `vitest.config.ts`) with ~52 test files across phase directories
-- Node.js 20 runtime
-- Zero npm deps at plugin root (constraint: no `dependencies` in root `package.json` for plugin distribution)
-- `packages/` workspace with their own `package.json` files (dispatcher, mcp-server) — these CAN have their own deps
-- No existing linter, no coverage config, no dead-code detection
-
-The hardening pass needs: static analysis, dead code detection, duplication detection, coverage measurement, and markdown consistency — without pulling runtime deps into the plugin root.
+**Domain:** Cloud dispatch (claude --remote), Docker container execution, git-based .planning/ sync, intelligent routing, dashboard remote session integration
+**Researched:** 2026-03-30
+**Confidence:** HIGH (claude --remote, Agent SDK, devcontainer), MEDIUM (routing heuristics, git sync integration patterns)
 
 ---
 
-## Recommended Stack
+## Context: What Already Exists (Do Not Rebuild)
+
+The following infrastructure is validated and production-hardened in PDE v0.17–v0.18. New work integrates with these, it does not replace them.
+
+| Component | Location | What It Does |
+|-----------|----------|--------------|
+| `DispatchCoordinator` | `packages/dispatcher/lib/coordinator.cjs` | Full session lifecycle: queue, registry, worktree, merge, SSH |
+| `remote-router.cjs` | `packages/dispatcher/lib/remote-router.cjs` | Decision tree: `'local' | 'ssh' | 'managed'`; currently returns `'managed'` as unavailable stub |
+| `remote-managed.cjs` | `packages/dispatcher/lib/remote-managed.cjs` | Stub returning `available: false` — **this is the primary extension point** |
+| `SessionRegistry` | `packages/dispatcher/lib/registry.cjs` | Crash-recoverable `.planning/dispatcher.pids` with PID probing |
+| `relay.cjs` | `bin/lib/relay.cjs` | TailCursor + BatchQueue + CircuitBreaker; HTTP POST to dashboard |
+| `relay-protocol.cjs` | `bin/lib/relay-protocol.cjs` | Wire envelope schema (WireEnvelopeSchema) |
+| Dashboard | `dashboard/` | Next.js 15, Clerk auth, SSE streaming, Upstash Redis, approval gates |
+| `node-ssh` | `packages/dispatcher/lib/remote-ssh.cjs` | SSH remote execution backend (RMT-01–03) |
+
+---
+
+## Recommended Stack for New Capabilities
 
 ### Core Technologies
 
 | Technology | Version | Purpose | Why Recommended |
 |------------|---------|---------|-----------------|
-| ESLint | 10.1.0 | Static analysis and code quality rules | Industry standard for JS/CJS; flat config (v9+) works cleanly with CJS projects via `eslint.config.cjs`; `eslint-plugin-n` adds Node.js-specific rules (unresolved requires, deprecated APIs). Uses `sourceType: "commonjs"` for `.cjs` files automatically. Zero config needed for existing patterns. |
-| eslint-plugin-n | 17.24.0 | Node.js-specific ESLint rules | Detects unresolvable `require()` paths, deprecated Node.js API usage, and callback hygiene. Understands CommonJS module semantics natively. The actively maintained fork of the abandoned `eslint-plugin-node` (last published 2021). |
-| knip | 6.1.0 | Dead code and unused exports/deps detection | Builds a complete call graph to find unused files, unused exports, and unlisted dependencies simultaneously. Has explicit CommonJS guide at `knip.dev/guides/working-with-commonjs`. Runs zero-install via `npx knip`. The only tool that finds unreachable files alongside unused exports in a single pass. |
-| @vitest/coverage-v8 | 4.1.2 | Code coverage with V8 backend | PDE already uses Vitest v4; adding `@vitest/coverage-v8` activates native V8 coverage with no instrumentation overhead. Since Vitest v3.2.0 it uses AST-based remapping producing accuracy equivalent to Istanbul. Zero additional test-runner configuration — add a `coverage` block to the existing `vitest.config.ts`. |
+| `claude --remote` (CLI flag) | CLI v2.1.51+ | Cloud dispatch: creates Anthropic-managed VM sessions from terminal | Official, zero infrastructure — clones repo to cloud VM, runs Claude Code, pushes branch. No NDJSON streaming; session tracked via `/tasks` and session ID in JSON output |
+| `claude remote-control` (CLI command) | CLI v2.1.51+ | Local session exposed to remote devices / dashboard bridge | Outbound-only HTTPS to Anthropic API; no inbound ports; enables steering from dashboard |
+| `dockerode` | `4.0.10` | Docker Engine API for container-based session dispatch | Only production-ready Node.js Docker SDK (1,271+ dependents); Docker's own `node-sdk` is experimental |
+| `simple-git` | `3.33.0` | Git operations for .planning/ state sync: commit, push, fetch, diff, status | Wraps system git with promise API; lighter than isomorphic-git (no pure-JS overhead); already proven pattern in PDE's 3-way merge system |
+| `@anthropic-ai/claude-agent-sdk` | `0.2.87` | TypeScript Agent SDK for programmatic session queries: `listSessions()`, `getSessionInfo()`, session ID capture | Official SDK; enables `resume`, `fork`, `continue` patterns; exposes session JSONL on disk |
 
 ### Supporting Libraries
 
 | Library | Version | Purpose | When to Use |
 |---------|---------|---------|-------------|
-| @eslint/js | 10.0.1 | ESLint recommended ruleset for flat config | Required in `eslint.config.cjs` — replaces the old `extends: 'eslint:recommended'` pattern that does not exist in flat config. Install alongside ESLint. |
-| globals | 17.4.0 | Node.js global variable definitions | Needed by ESLint flat config to declare `globals.node` environment (replaces `env: {node: true}` in old config format). One small dep, no transitive complexity. |
-| jscpd | 4.0.8 | Copy-paste / structural duplication detection | Catches large duplicated blocks that knip misses because they ARE reachable code — both copies get called. Use `--min-lines 10 --min-tokens 70` threshold to filter trivial duplication. Run via `npx jscpd`. Produces HTML and JSON reports. |
-| markdownlint-cli2 | 0.22.0 | Markdown consistency enforcement | PDE's primary state format is Markdown (PLAN.md, SUMMARY.md, STATE.md, workflow files, design artifacts). markdownlint-cli2 is the modern successor to markdownlint-cli — faster, supports globs natively, and runs `npx markdownlint-cli2 "**/*.md"`. Use for workflow files and planning doc consistency. Catches structural issues (heading hierarchy, fence syntax, blank lines) that break downstream parsing. |
+| `node-ssh` | already installed | SSH remote dispatch | Continue using for SSH backend — do not replace |
+| `@anthropic-ai/sdk` | `0.80.0` | Anthropic REST API client | Already installed; use for Analytics API (`/v1/organizations/usage_report/claude_code`) to surface remote session cost in dashboard |
+| Built-in `node:child_process` | Node built-in | Spawning `claude --remote` and `claude remote-control` as subprocesses | Same pattern as `spawn.cjs` — zero deps, proven, CLAUDECODE= env prefix NOT used for --remote |
+| `dockerode` modem options | via dockerode | Docker socket vs TCP connection | Use `socketPath: '/var/run/docker.sock'` for local; `host + port + ca/cert/key` for remote Docker |
 
-### Development Tools (devDependencies only — zero runtime additions)
+### Development Tools
 
 | Tool | Purpose | Notes |
 |------|---------|-------|
-| `npx knip` | Dead code detection | No install needed. Add a `knip.config.json` at root to configure entry points and ignore test dirs. |
-| `npx jscpd` | Duplication scanning | No install needed. Configure with `--min-lines 10 --min-tokens 70` to filter trivial copies. Supports CJS via `--extensions js,cjs`. |
-| ESLint (devDep at root) | Static analysis | Install as devDependency only — never in `dependencies`. Plugin-root constraint applies to runtime deps for distribution; devDeps are not bundled or shipped to users. |
+| `claude --remote --output-format json` | Capture cloud session ID at spawn time | Returns `{ session_id, result }` JSON; session ID used for `/tasks` polling and teleport |
+| `docker pull anthropics/claude-code:latest` | Official Claude Code devcontainer image | Node.js 20, ZSH, git, firewall rules pre-configured; use as base for dispatcher container runs |
+| `claude devcontainer` reference | `.devcontainer/Dockerfile` from `anthropics/claude-code` | Standard security model: firewall, `--dangerously-skip-permissions`, scoped credentials |
 
 ---
 
 ## Installation
 
-All tools go as `devDependencies` at the project root. Zero runtime additions to plugin users.
-
 ```bash
-# Static analysis
-npm install -D eslint@10 @eslint/js@10 eslint-plugin-n@17 globals@17
+# New dispatcher additions
+npm install dockerode simple-git @anthropic-ai/claude-agent-sdk
 
-# Coverage (already have vitest — add the provider only)
-npm install -D @vitest/coverage-v8@4
-
-# Optional: install locally for scripts (can also use npx)
-npm install -D knip@6 jscpd@4 markdownlint-cli2@0.22
+# Type declarations for Docker
+npm install -D @types/dockerode
 ```
 
-### ESLint flat config for CJS (eslint.config.cjs at root)
+> `node-ssh`, `@anthropic-ai/sdk`, and all existing dispatcher deps are already installed.
+> Do NOT install `isomorphic-git` — it adds pure-JS git overhead without benefit when system git is guaranteed present.
+> Do NOT install `nodegit` — requires native bindings, breaks on Node version changes.
 
-```js
-'use strict';
-const js = require('@eslint/js');
-const globals = require('globals');
-const pluginN = require('eslint-plugin-n');
+---
 
-module.exports = [
-  js.configs.recommended,
-  pluginN.configs['flat/recommended-script'],  // treats .cjs files as CommonJS
-  {
-    files: ['bin/**/*.cjs', 'bin/lib/**/*.cjs'],
-    languageOptions: {
-      globals: globals.node,
-      sourceType: 'commonjs',
-    },
-    rules: {
-      'n/no-missing-require': 'error',        // catch broken require() paths
-      'n/no-deprecated-api': 'error',         // catch deprecated Node.js APIs
-      'no-unused-vars': ['warn', { args: 'none' }],  // flag dead variables
-      'no-console': 'off',                    // CLI tools use console intentionally
-    },
-  },
-  {
-    files: ['tests/**/*.cjs', 'tests/**/*.mjs'],
-    languageOptions: { globals: { ...globals.node, ...globals.nodeBuiltin } },
-    rules: { 'n/no-missing-require': 'off' }, // tests use relative paths freely
-  },
-];
+## Architecture of New Capabilities
+
+### 1. Cloud Dispatch via `claude --remote`
+
+**Current state:** `remote-managed.cjs` returns `available: false` with documented rationale: "no NDJSON streaming, research preview."
+
+**What has changed (2026-03-30):** `claude --remote` is now production-available for Pro/Max/Team/Enterprise. It creates a **GitHub-connected cloud VM session**, not a programmatic NDJSON stream. The architecture is inherently async:
+
+```
+claude --remote "Fix auth bug" --output-format json
+  → { session_id: "web-abc123", result: "Task started..." }
+  → Monitor via /tasks (CLI) or claude.ai/code (web)
+  → Session pushes branch when done; create PR from web UI
+  → Optional: claude --teleport <session-id> to pull back to local
 ```
 
-### knip.config.json at root
+**Integration point:** Replace `detectManagedBackend()` stub in `remote-managed.cjs` with actual probe:
 
-```json
-{
-  "entry": ["bin/pde-tools.cjs", "bin/lib/**/*.cjs"],
-  "project": ["bin/**/*.cjs", "packages/**/*.cjs"],
-  "ignore": ["tests/**", "**/*.test.*", ".planning/**"],
-  "ignoreDependencies": ["vitest"]
-}
+```javascript
+// Probe: verify claude CLI >= v2.1.51, authenticated with claude.ai OAuth (not API key)
+// Spawn: childProcess.execFileSync(['claude', '--remote', prompt, '--output-format', 'json'])
+// Track: session_id written to SessionRegistry with backend: 'managed', no local PID
+// Limitation: no NDJSON relay; relay.cjs cannot tail cloud sessions
 ```
 
-### vitest.config.ts coverage addition
+**Key constraint:** `claude --remote` requires `claude.ai` OAuth authentication (not `ANTHROPIC_API_KEY`). The `CLAUDECODE=` env prefix used for local spawns is NOT needed for `--remote` (it runs in a separate cloud process).
 
-```ts
-import { defineConfig } from 'vitest/config';
-export default defineConfig({
-  test: {
-    include: ['tests/**/*.{test,spec}.{cjs,mjs,js,ts}', 'tests/**/test-*.cjs'],
-    globals: true,
-    testTimeout: 15000,
-    coverage: {
-      provider: 'v8',
-      reporter: ['text', 'html', 'lcov'],
-      include: ['bin/lib/**/*.cjs'],
-      exclude: ['tests/**'],
-      thresholds: { lines: 60, branches: 50 },  // baseline; raise per phase
-    },
-    server: {
-      deps: { inline: ['zod'] },
-    },
+**Session tracking difference:** Local/SSH sessions use PID + NDJSON relay. Cloud sessions use `session_id` string only. Registry needs new status fields: `'cloud_running' | 'cloud_complete'`.
+
+### 2. Docker Container Dispatch
+
+Use `dockerode` to spawn isolated `claude -p` sessions inside containers. This is NOT `claude --remote` — it runs Claude Code locally in a Docker sandbox, not on Anthropic cloud.
+
+```javascript
+const Docker = require('dockerode');
+const docker = new Docker({ socketPath: '/var/run/docker.sock' });
+
+// Pattern: create container -> attach streams -> run claude -p -> collect output
+const container = await docker.createContainer({
+  Image: 'node:20-slim', // or anthropics/claude-code devcontainer image
+  Cmd: ['claude', '-p', prompt, '--output-format', 'stream-json', '--allowedTools', 'Read,Edit,Bash'],
+  Env: [
+    `ANTHROPIC_API_KEY=${process.env.ANTHROPIC_API_KEY}`,
+    'CLAUDECODE=',  // prevents nested session error
+  ],
+  HostConfig: {
+    Binds: [`${projectRoot}:/workspace:rw`],
+    AutoRemove: true,
   },
+  WorkingDir: '/workspace',
 });
 ```
+
+**Output capture:** Container stdout is NDJSON (`--output-format stream-json`) — compatible with existing relay infrastructure. `onLine` callback routes through existing `Aggregator` and `relay.cjs`.
+
+**Why `dockerode` over Docker CLI subprocess:** Structured API for container lifecycle (create/start/attach/wait/remove), proper stream multiplexing (stdout/stderr demux via `dockerode`'s `modem.demuxStream`), and programmatic cleanup on session failure.
+
+### 3. Git-Based `.planning/` State Sync
+
+Use `simple-git` to sync `.planning/` state across machines (local to remote worktree, remote VM to local after cloud session).
+
+```javascript
+const simpleGit = require('simple-git');
+const git = simpleGit(projectRoot);
+
+// Pre-dispatch: commit .planning/ snapshot to session branch
+await git.add('.planning/');
+await git.commit(`chore(pde): pre-dispatch snapshot [phase ${phase}]`);
+await git.push('origin', sessionBranch);
+
+// Post-cloud-session: fetch branch and extract .planning/ changes
+await git.fetch('origin', sessionBranch);
+const diff = await git.diff([`origin/${sessionBranch}`, '--', '.planning/']);
+```
+
+**Integration:** Plugs into existing `mergeSession()` in `merge.cjs`. The 3-way merge (v0.16) already handles `.planning/` conflicts. `simple-git` replaces raw `execFileSync('git', [...])` calls with a promise-based API that is easier to test (DI pattern already used throughout `coordinator.cjs`).
+
+**Sync trigger events:**
+- Pre-dispatch: snapshot `.planning/STATE.md`, `phases/`, `dispatcher.pids`
+- Post-SSH/container exit: existing `mergeSession()` path unchanged
+- Post-cloud (`claude --remote`): poll for branch push, then `git fetch` + `mergeSession()`
+
+### 4. Intelligent Routing Heuristics
+
+Extend `routeSession()` in `remote-router.cjs`. Current decision tree has 5 rules; add rules 3a–3d before the existing managed-backend check:
+
+```
+Decision tree (extended):
+1. !isAutonomous                         → 'local'   (interactive always local)
+2. !remoteConfig.host && !docker         → 'local'   (no remote configured)
+3a. taskProfile.hasSecretFiles           → 'local'   (credentials visible to container/cloud)
+3b. taskProfile.estimatedTokens > 100k   → 'managed' (cloud for large context, avoids SSH timeout)
+3c. taskProfile.requiresGUI              → 'local'   (Playwright, screen capture need local)
+3d. docker.available && !requiresGit     → 'docker'  (isolation for untrusted repos)
+4. preferred_backend === 'managed'       → probe managed → 'managed' or fall through
+5. remoteConfig.host set                 → 'ssh'
+6. default                               → 'local'
+```
+
+**Routing signal sources (statically analyzable from PLAN.md):**
+- `taskProfile.hasSecretFiles`: grep PLAN.md for `~/.ssh`, `.env`, `AWS_`, `ANTHROPIC_API_KEY` references
+- `taskProfile.estimatedTokens`: count lines in task file times heuristic (same chars/4 pattern as token meter)
+- `taskProfile.requiresGUI`: check for Playwright MCP tool references, screenshot steps
+- `taskProfile.requiresGit`: check for `git worktree`, `git push`, merge steps (Docker can't git push without credentials)
+
+**Implementation:** All signals are static regex/line-count — zero LLM, less than 100ms, same philosophy as `idle-suggestions.cjs`.
+
+### 5. Dashboard Remote Session Integration
+
+The existing dashboard (`dashboard/`) uses Clerk auth, Upstash Redis, SSE events, and approval gates. New cloud sessions need:
+
+**New session status types** in `SessionRegistry` and dashboard display:
+```typescript
+type SessionStatus =
+  | 'running'        // existing: local/SSH with PID
+  | 'failed'         // existing
+  | 'complete'       // existing
+  | 'orphaned'       // existing
+  | 'cloud_running'  // NEW: claude --remote, no local PID
+  | 'cloud_complete' // NEW: branch pushed, PR-ready
+  | 'docker_running' // NEW: container-isolated local
+```
+
+**Cloud session polling:** Since `claude --remote` sessions have no NDJSON relay, dashboard polls via:
+```
+GET /api/sessions -> includes cloud sessions with session_id
+cloud sessions: status checked via claude CLI `claude tasks --output-format json` or Anthropic Analytics API
+```
+
+**Teleport action:** Dashboard adds a "Pull local" action for `cloud_complete` sessions:
+```bash
+claude --teleport <session-id>
+# Verifies: same repo, clean git state, branch available on remote
+# Loads conversation history into local terminal session
+```
+
+**No new dashboard framework dependencies** — all additions use existing Next.js API routes, Upstash Redis for cloud session state, and SSE for real-time updates. The relay daemon's circuit breaker and HTTP batching patterns already handle intermittent connectivity.
 
 ---
 
 ## Alternatives Considered
 
-| Recommended | Alternative | When to Use Alternative |
-|-------------|-------------|-------------------------|
-| ESLint 10 (flat config) | Oxlint 1.57.0 | Oxlint is 50-100x faster (Rust-based) and reached v1.0 stable in June 2025 — but its JavaScript plugin system is still in alpha as of March 2026. Cannot yet run custom Node.js-specific rules. Use Oxlint as a fast pre-check pass alongside ESLint once plugins stabilize (likely mid-2026). |
-| knip 6 | depcheck 1.4.7 | Use depcheck if you only need unused `package.json` dependencies (not file-level dead code). Knip is a strict superset — it finds unused deps AND unreachable files AND unused exports. Choose depcheck only if knip's CommonJS false-positives are too noisy to manage. |
-| knip 6 | madge 8.0.0 | Use madge in addition to knip if you need a visual circular-dependency graph. Madge does not detect dead code; it only maps dependency graphs. Both answer different questions — run madge separately for architectural review. |
-| @vitest/coverage-v8 | c8 11.0.0 | c8 is standalone (works without vitest) and uses the same V8 backend. Only use c8 if you need coverage for scripts outside the vitest test harness (e.g., shell scripts running CJS directly). For the existing test suite, @vitest/coverage-v8 is zero additional configuration. |
-| markdownlint-cli2 | Vale | Vale enforces prose quality (grammar, style guide). markdownlint-cli2 enforces structural consistency (heading levels, blank lines, fence syntax). The actual failure mode in PDE's Markdown state files is structural — broken YAML frontmatter from heading mismatches, not prose style. Choose Vale if writing quality matters; choose markdownlint-cli2 for machine-readable doc consistency. |
+| Recommended | Alternative | Why Not |
+|-------------|-------------|---------|
+| `dockerode` | `docker` CLI subprocess via `execFileSync` | No structured stream multiplexing; harder to handle attach/detach lifecycle; error handling is string parsing |
+| `dockerode` | `@docker/sdk` (official Docker Node SDK) | Marked experimental; 14 stars on GitHub vs dockerode's maturity; APIs may change |
+| `simple-git` | Raw `execFileSync(['git', ...])` calls | Already used throughout dispatcher, but promise API + DI makes testing cleaner; same system git requirement |
+| `simple-git` | `isomorphic-git` | Pure-JS overhead with no benefit when system git is guaranteed; no SSH support without polyfills |
+| `simple-git` | `nodegit` | Native C++ bindings break across Node versions; incompatible with PDE's zero-native-deps philosophy |
+| Static routing heuristics | ML-based task classifier | Overkill for 4 routing targets; adds inference latency; static regex achieves sufficient accuracy for the relevant signals |
+| `claude --remote` (cloud VM) | Self-hosted runner (EC2/GCP) | `claude --remote` eliminates infra management; Anthropic-managed VM has pre-configured devcontainer image |
+| Polling for cloud session status | WebSocket subscription | `claude --remote` has no programmatic subscription API (research preview limitation); polling via `claude tasks --json` is the documented pattern |
 
 ---
 
-## What NOT to Use
+## What NOT to Add
 
 | Avoid | Why | Use Instead |
 |-------|-----|-------------|
-| SonarQube | Requires a server, Docker, or SaaS account setup. Overcomplicated for a single-plugin audit that should run in `npx` commands. Adds operational burden with no benefit over the simpler tools. | ESLint + knip + @vitest/coverage-v8 covers the same surface without infrastructure. |
-| ts-morph / ts-unused-exports | TypeScript AST tools — do not parse `.cjs` files without compiling them first. Will silently miss most of the PDE codebase since it is uncompiled CommonJS. | knip with CommonJS conventions; uses a different analysis approach that handles CJS natively. |
-| complexity-report / plato | Both abandoned (last npm publish: 2019). Complexity metrics they provided are available as an ESLint rule. | ESLint with `complexity: ['warn', 15]` rule in the config, no separate tool needed. |
-| eslint-plugin-node (original) | Abandoned — last published 2021, archived on GitHub. Will not receive security fixes or Node.js 20 compatibility updates. | `eslint-plugin-n@17` — the actively maintained community fork. |
-| Prettier (applied to all CJS) | Reformatting 99 production CJS files mid-milestones creates noise in git history and risks breaking hooks with whitespace diffs. A formatting pass on active code is indistinguishable from a logic change in diff review. | Apply ESLint `--fix` rules only to new files, or run a single formatting commit at the very end of the hardening milestone with a clear commit message. |
-| Biome | Biome replaces ESLint + Prettier combined. Adopting it is a larger DX migration than a hardening pass warrants — requires all contributors to switch tooling and reconfigure editors. | ESLint 10 for the hardening scope. Biome is worth evaluating for the planned v1 TypeScript CLI milestone (PDE standalone CLI) where the codebase starts fresh. |
+| `isomorphic-git` | Pure-JS implementation; no SSH; slower; over-engineered for CLI dispatch use case | `simple-git` wrapping system git |
+| `nodegit` | Native bindings; install failures common; project convention is zero native deps | `simple-git` |
+| `ws` (WebSocket library) | Dashboard already uses SSE (EventSource); adding WS adds protocol complexity with no gain | Existing `relay.cjs` SSE pattern |
+| `bullmq` / Redis queues | `ConcurrencyQueue` (`queue.cjs`) already handles dispatch queuing | `packages/dispatcher/lib/queue.cjs` |
+| `pm2` / process supervisor | Relay daemon already has circuit breaker; SSH has managed backend fallback | Existing `relay.cjs` CircuitBreaker |
+| Docker Compose | Single-container dispatch; Compose adds YAML config overhead without benefit for per-session isolation | `dockerode` createContainer() directly |
+| Kubernetes | Overkill for single-machine development tool; session lifetime is minutes not hours | `dockerode` for isolation |
+| `@anthropic-ai/claude-agent-sdk` for spawning | SDK is for multi-turn agent conversations, not one-shot dispatch | `claude -p` CLI subprocess (existing pattern in `spawn.cjs`) |
 
 ---
 
 ## Stack Patterns by Variant
 
-**If the goal is a one-time audit report before coding starts:**
-- Run `npx knip --reporter json > .planning/research/knip-report.json` for dead code inventory
-- Run `npx jscpd bin/lib --output .planning/research/jscpd-report/` for duplication map
-- Run `vitest run --coverage` for coverage baseline (after adding @vitest/coverage-v8)
-- Run `npx eslint bin/lib --output-file .planning/research/eslint-report.txt` for lint issues
-- Gives concrete numbers to scope hardening work before committing to phase breakdown
+**If deploying cloud dispatch (`claude --remote`):**
+- Use `childProcess.spawn(['claude', '--remote', prompt, '--output-format', 'json'])` from `remote-managed.cjs`
+- Capture `session_id` from JSON output, write to registry with `backend: 'managed'`
+- Poll `claude tasks --output-format json` every 30s for status updates
+- No relay daemon involvement (no NDJSON to tail)
+- Requires `claude.ai` OAuth auth — check `claude auth status` before routing
 
-**If the goal is a fast CI gate (under 15s total):**
-- ESLint `--max-warnings 0` scoped to `bin/lib/*.cjs` only (highest-value surface, fastest)
-- `npx knip --reporter compact` exits non-zero on any unused exports
-- Skip jscpd in the critical CI path — run it as a report-only weekly job
+**If deploying Docker container dispatch:**
+- Use `dockerode` createContainer with project bind mount + `CLAUDECODE=` env
+- Attach to container stdout BEFORE starting (avoid buffering race)
+- Route NDJSON lines through existing `aggregator.cjs` `onLine` callback
+- Register container ID (not PID) in SessionRegistry with `backend: 'docker'`
 
-**If circular dependency detection is needed:**
-- `npx madge --circular bin/lib/ --extensions cjs` as a standalone audit step
-- madge 8.0.0 works with CommonJS; set `--extensions cjs`
-- Circular deps between lib modules explain hard-to-test code and unpredictable load order in CLI dispatch
+**If only adding git state sync:**
+- `simple-git` replaces raw `execFileSync` calls in `merge.cjs` and `remote-ssh.cjs`
+- `.planning/` files auto-committed pre-dispatch using existing session branch pattern
+- Post-cloud-session fetch + `mergeSession()` unchanged
+
+**If Team/Enterprise plan (Remote Control server mode):**
+- `claude remote-control --spawn worktree --capacity 32` enables multi-session server mode
+- Each web session gets own git worktree (matches PDE's existing worktree isolation model)
+- No new dashboard API needed — Remote Control UI is claude.ai/code
 
 ---
 
@@ -184,27 +271,47 @@ export default defineConfig({
 
 | Package | Compatible With | Notes |
 |---------|-----------------|-------|
-| eslint@10 | Node.js >=18 | No issues. Project uses Node 20, fully in range. |
-| eslint-plugin-n@17 | eslint@9, eslint@10 | v17 supports ESLint 9+ flat config exclusively. Do not mix with eslint@8 or the old `.eslintrc` format. |
-| @vitest/coverage-v8@4 | vitest@4.x | Must match vitest major version. Root `package.json` already has `vitest: ^4.1.1` — exact match. |
-| knip@6 | Node.js >=18 | Works with CJS projects. Knip is itself ESM but analyzes your CJS code without running it. No conflicts with the project's CJS modules. |
-| jscpd@4 | Node.js >=14 | No compatibility concerns for Node 20. |
-| markdownlint-cli2@0.22 | Node.js >=18 | No issues. |
-| globals@17 | eslint@9, eslint@10 flat config | Required for flat config only — incompatible with old `.eslintrc` format by design. |
+| `dockerode@4.0.10` | Node.js 18+ | Requires Docker Engine >= 25 for full API compat; `socketPath` default works on macOS/Linux |
+| `simple-git@3.33.0` | Node.js 18+, git 2.x+ | Wraps system git — git must be on PATH (guaranteed in PDE environment) |
+| `@anthropic-ai/claude-agent-sdk@0.2.87` | Node.js 18+ | TypeScript-first; use from `.mjs` or with `esm` interop in `.cjs` files |
+| `claude --remote` | CLI v2.1.51+ | Check `claude --version`; requires claude.ai OAuth (not API key) |
+| `claude remote-control` | CLI v2.1.51+ | Team/Enterprise requires admin toggle at `claude.ai/admin-settings/claude-code` |
+
+---
+
+## Critical Constraint: `claude --remote` Authentication
+
+`claude --remote` requires `claude.ai` OAuth authentication. It does NOT work with `ANTHROPIC_API_KEY`. This means:
+
+1. The machine running `remote-managed.cjs` must have `claude auth login` completed with a claude.ai subscription
+2. `detectManagedBackend()` must probe auth status: `claude auth status --output-format json`
+3. If `ANTHROPIC_API_KEY` is set in environment, `claude --remote` will fail with "Remote Control requires a claude.ai subscription"
+4. The `CLAUDECODE=` environment variable trick (used for SSH dispatch) must NOT be set when invoking `claude --remote`
+5. Cloud sessions work with GitHub repos only — GitLab and other hosts are not supported
+
+**Probe implementation in `detectManagedBackend()`:**
+```javascript
+// 1. Check claude version >= 2.1.51
+// 2. Verify auth: claude auth status --output-format json -> { authenticated: true, type: 'oauth' }
+// 3. Verify not API key mode: check ANTHROPIC_API_KEY not set
+// 4. Return { available: true } only when all pass
+```
 
 ---
 
 ## Sources
 
-- `npm view [package] version` — all versions verified from registry 2026-03-29 (HIGH confidence)
-- [knip.dev/guides/working-with-commonjs](https://knip.dev/guides/working-with-commonjs) — CommonJS export convention requirements verified (HIGH confidence)
-- [knip.dev/reference/known-issues](https://knip.dev/reference/known-issues) — env var / config file limitation noted (HIGH confidence)
-- [github.com/eslint-community/eslint-plugin-n](https://github.com/eslint-community/eslint-plugin-n) — Confirmed active fork of eslint-plugin-node; flat config `flat/recommended-script` verified (HIGH confidence)
-- [vitest.dev/guide/coverage](https://vitest.dev/guide/coverage) — V8 provider with AST-based remapping since v3.2.0 confirmed (HIGH confidence)
-- [oxc.rs/blog/2026-03-11-oxlint-js-plugins-alpha](https://oxc.rs/blog/2026-03-11-oxlint-js-plugins-alpha) — JS plugin alpha status confirmed; not yet production-ready for custom plugin rules (HIGH confidence)
-- tsmx.net — ESLint v9 flat config CommonJS migration guide; `sourceType: "commonjs"` for `.cjs` verified (MEDIUM confidence, blog post)
+- [Claude Code on the web docs](https://code.claude.com/docs/en/claude-code-on-the-web) — `claude --remote` architecture, GitHub-only repos, cloud VM lifecycle, setup scripts, teleport — HIGH confidence (official docs, fetched 2026-03-30)
+- [Run Claude Code programmatically](https://code.claude.com/docs/en/headless) — `--output-format`, `--bare`, session ID capture, `stream-json` format — HIGH confidence (official docs, fetched 2026-03-30)
+- [Remote Control docs](https://code.claude.com/docs/en/remote-control) — `claude remote-control`, `--spawn worktree`, outbound-only architecture, v2.1.51 requirement — HIGH confidence (official docs, fetched 2026-03-30)
+- [Agent SDK Sessions](https://platform.claude.com/docs/en/agent-sdk/sessions) — `listSessions()`, `getSessionInfo()`, `resume`, `fork`, session file locations — HIGH confidence (official docs, fetched 2026-03-30)
+- [devcontainer reference](https://code.claude.com/docs/en/devcontainer) — Docker isolation model, firewall rules, `--dangerously-skip-permissions` pattern — HIGH confidence (official docs, fetched 2026-03-30)
+- [dockerode npm](https://www.npmjs.com/package/dockerode) — version 4.0.10, 1,271 dependents — MEDIUM confidence (npm registry verified via `npm show dockerode version`)
+- [simple-git npm](https://www.npmjs.com/package/simple-git) — version 3.33.0, 7,483 dependents — MEDIUM confidence (npm registry verified via `npm show simple-git version`)
+- `packages/dispatcher/lib/remote-managed.cjs` — v0.18 stub with documented constraints (RMT-06) — source code read directly
+- `packages/dispatcher/lib/remote-router.cjs` — existing routing decision tree (5 rules) — source code read directly
 
 ---
 
-*Stack research for: Quality hardening of large Node.js CommonJS plugin codebase (PDE v0.23)*
-*Researched: 2026-03-29*
+*Stack research for: PDE cloud dispatch, container isolation, git state sync, intelligent routing*
+*Researched: 2026-03-30*

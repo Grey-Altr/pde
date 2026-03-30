@@ -1,184 +1,183 @@
 # Project Research Summary
 
-**Project:** Platform Development Engine — Quality & Reliability Hardening (v0.23)
-**Domain:** Quality auditing, data integrity verification, and technical debt cleanup for a large Node.js CommonJS plugin codebase (22 milestones, 184 phases)
-**Researched:** 2026-03-29
-**Confidence:** HIGH
+**Project:** Platform Development Engine — v0.24 Cloud Dispatch & State Sync
+**Domain:** Cloud AI agent dispatch, Docker container isolation, git-based planning state sync, intelligent task routing
+**Researched:** 2026-03-30
+**Confidence:** HIGH (stack and architecture grounded in direct codebase reads + official Anthropic docs); MEDIUM (cloud dispatch specifics — `claude --remote` is still research preview)
 
 ## Executive Summary
 
-PDE v0.23 is not a feature milestone — it is the first milestone where the product under development *is the existing codebase*. After 22 milestones of rapid capability shipping, accumulated defects fall into four categories: state document drift (ROADMAP.md, MILESTONES.md, REQUIREMENTS.md out of sync with what actually shipped), structural verification gaps (phases missing Nyquist VALIDATION.md files), IR shape mismatches (code written against mock shapes that diverged from real IR), and systemic technical debt (stale paths, dead imports, test runner incompatibility). The codebase is ~99 CJS production files across ~52,700 lines, with no existing linter, no coverage config, and no dead-code detection.
+PDE v0.24 extends the existing distributed execution foundation (v0.17–v0.18) with three new execution backends: Anthropic-managed cloud sessions via `claude --remote`, Docker container isolation for local heavy workloads, and a git-native `.planning/` state sync protocol that works without SSH. The core architecture insight is that each backend is fundamentally different: local and Docker sessions produce real NDJSON streams that feed directly into the existing `TailCursor`-based aggregator, while cloud sessions return only a session ID and require a polling shim that emits synthetic NDJSON events. This asymmetry must be respected from day one — it drives the separation of `remote-cloud.cjs` (polling shim) from `remote-docker.cjs` (near-drop-in NDJSON), and it dictates that the existing `TailCursor` must never be started for cloud session IDs or the aggregator accumulates ghost cursors indefinitely.
 
-The recommended approach is a four-work-stream structure executed in dependency order: data integrity fixes first (they are source-of-truth for all downstream verification), test runner cleanup second (137/236 test files produce false "No test suite found" failures that mask real regressions), verification gap closure third, and technical debt cleanup in parallel. The critical toolchain additions — ESLint 10 with eslint-plugin-n, @vitest/coverage-v8, knip, jscpd, and markdownlint-cli2 — are all devDependencies only, preserving the zero-runtime-deps constraint at the plugin root.
+The recommended approach is build-from-dependencies: Docker first (no OAuth requirement, real NDJSON, validates the container dispatch pattern and backend interface contract), then state sync (required by both Docker cross-machine sync and cloud scenarios before the cloud VM can receive current `.planning/` context), then cloud dispatch (most constrained — OAuth-only, polling-only, GitHub repos only), and finally intelligent routing (meaningless without all three backends implemented and testable). This order is explicitly prescribed by the architecture research build-order phases A through E and is confirmed by the feature dependency graph which shows routing intelligence requiring all three dispatch destinations.
 
-The primary risk in quality hardening is false confidence: marking checkboxes without verifying underlying artifacts, writing validators that pass against already-rotten data, and fixing symptoms in place without addressing the process that generates them. PDE's own retrospective record from v0.18 through v0.21 documents the same categories of drift recurring milestone after milestone — proof that symptom patches without root-cause fixes have dominated prior hardening attempts. v0.23 must distinguish "remediation" (fix the stale data) from "root cause fix" (fix the process that generates it), and track both explicitly.
-
----
+The primary risk cluster is state integrity and the local dispatch path. The existing `--ours` merge strategy in `merge.cjs` silently drops remote-written progress updates when applied to cloud sync direction (where the remote is the authoritative writer, not the local machine). The `dispatcher.lock` does not cover cloud sync git operations, creating a second concurrent writer to main. And the routing decision in `routeSession()` currently resolves in under 1ms — adding a network probe for cloud availability without caching will block all parallel dispatch for 2–5 seconds per call. All three of these require explicit design decisions before implementation begins, not during it.
 
 ## Key Findings
 
 ### Recommended Stack
 
-The hardening toolchain requires no new runtime dependencies — only devDependencies. ESLint 10 (flat config) with eslint-plugin-n covers static analysis and Node.js-specific rule enforcement for the CJS codebase. The `@vitest/coverage-v8` package activates native V8 coverage against the existing vitest v4 installation with a single config block. Knip 6 provides dead code and unused export detection via its explicit CommonJS guide. jscpd catches structural duplication that knip misses (both copies are reachable). markdownlint-cli2 enforces the structural consistency of PDE's Markdown state files, which are the primary data substrate for IR extraction.
+The stack is minimal by design. PDE has a zero-npm-dependency constraint at the plugin root and a convention of system-git over pure-JS alternatives. Three net-new packages are required: `dockerode@4.0.10` for structured Docker container lifecycle management (preferred over CLI subprocess for proper stream multiplexing via `modem.demuxStream`), `simple-git@3.33.0` for promise-based git operations in the sync protocol (wraps system git, DI-friendly, matches the pattern already used throughout `coordinator.cjs`), and `@anthropic-ai/claude-agent-sdk@0.2.87` for session ID queries. The `claude --remote` CLI flag (v2.1.51+) is the cloud execution primitive — invoked as a child process via `node:child_process`, not via SDK.
 
 **Core technologies:**
-- `ESLint 10 + eslint-plugin-n 17`: Static analysis for 99 CJS production files — catches unresolvable `require()` paths, deprecated Node.js APIs, dead variables; flat config with `sourceType: "commonjs"` handles CJS natively
-- `@vitest/coverage-v8 4`: V8-backed coverage for the existing vitest v4 test harness — zero additional test-runner configuration; AST-based remapping since v3.2.0 gives Istanbul-equivalent accuracy
-- `knip 6`: Dead code and unused export detection with explicit CJS support — finds unreachable files AND unused exports AND unlisted deps in a single pass
-- `jscpd 4`: Structural duplication detection for large CJS modules — use `--min-lines 10 --min-tokens 70` threshold; complementary to knip (different failure class)
-- `markdownlint-cli2 0.22`: Structural consistency enforcement for `.planning/` Markdown files — catches heading mismatches, fence syntax errors, blank line violations that break downstream YAML frontmatter parsing
+- `claude --remote` CLI (v2.1.51+): Cloud VM dispatch — requires `claude.ai` OAuth (not `ANTHROPIC_API_KEY`), GitHub repos only, returns session ID immediately, task runs async on Anthropic-managed VM
+- `dockerode@4.0.10`: Docker container lifecycle — structured API avoids string-parsing exit codes; stream demux via `modem.demuxStream`; 1,271 npm dependents; `socketPath` default works on macOS/Linux
+- `simple-git@3.33.0`: Git state sync — promise API, DI-testable, wraps system git (guaranteed present in PDE environment); replaces raw `execFileSync` git calls in sync protocol
+- `@anthropic-ai/claude-agent-sdk@0.2.87`: Session queries (`listSessions`, `getSessionInfo`) — TypeScript-first; use from `.mjs` or with ESM interop in `.cjs`
+- `node:child_process` (built-in): Spawning `claude --remote` and `docker` CLI subprocesses — same pattern as existing `spawn.cjs`, zero dependencies
+
+**What NOT to add:** `isomorphic-git` (pure-JS overhead, no SSH support), `nodegit` (native C++ bindings break on Node version change), `ws` (dashboard already uses SSE), `bullmq` (`queue.cjs` already handles dispatch queuing), Docker Compose (single-container per-session dispatch, Compose adds YAML overhead with no benefit), Kubernetes (developer tool, not multi-tenant SaaS).
 
 ### Expected Features
 
-The feature set for v0.23 is entirely correctness work, not new capability. Five items are confirmed P1 (must ship): ROADMAP.md milestone status update, MILESTONES.md one-liner completion (40+ placeholder entries corrupting portfolio IR), REQUIREMENTS.md checkbox reconciliation (EXT-01 through EXT-10 explicitly flagged as unchecked despite full implementation), Phase 180 VERIFICATION.md status fix (single `status: gaps_found` → `passed` field), and the buildCrossPatterns IR field name fix (`research.findings` → `research.topics`/`research.project_research_files`), which silently produces empty cross-pattern sections for all real PDE projects.
+The feature landscape splits cleanly into a P1 launch set (minimum for the milestone to be shippable) and two deferred tiers. All P1 features are interconnected — cloud dispatch without state sync means cloud agents operate on stale planning context; dashboard visibility without proper `session_source` typing means cloud sessions masquerade as local.
 
-**Must have (table stakes):**
-- ROADMAP.md v0.22 milestone status — primary tracking document shows `In Progress` despite milestone shipping 2026-03-30; P1 fix
-- MILESTONES.md one-liner completion — 40+ placeholders corrupt `extractMilestoneHistory()` IR output; P1 fix
-- REQUIREMENTS.md EXT-01–10 checkbox reconciliation — explicitly documented tracking gap in 176-VERIFICATION.md; P1 fix
-- Phase 180 VERIFICATION.md `status:` frontmatter — explicitly listed in v0.22 MILESTONE-AUDIT.md tech debt; P1 fix
-- buildCrossPatterns `research.findings` field fix — silently empty cross-patterns section for all real projects; P1 fix
+**Must have (table stakes — P1):**
+- Cloud container dispatch via `claude --remote` — the milestone's primary deliverable; users can `--dispatch=cloud` on an autonomous plan phase
+- Git-native `.planning/` state sync — cloud agents that cannot sync state back render the local orchestrator blind to phase completions and task transitions
+- Dashboard visibility for cloud sessions — cloud sessions must appear in the existing health matrix with `[C]` source label and distinct icon
+- Graceful fallback chain (cloud → SSH → local) — same degradation UX as v0.18 SSH fallback; emit explicit `routing_fallback` event to dashboard so users know why cloud was bypassed
+- Ephemeral container cleanup — auto-teardown on `ResultMessage`; containers left running incur ongoing cost
+- Cost tracking for container layer — container uptime × provider rate emitted alongside existing token cost metering
 
-**Should have (competitive):**
-- v0.22 Nyquist VALIDATION.md backfill — 6 phases missing, 3 phases partial per MILESTONE-AUDIT.md; structural regression protection
-- v0.7 SUMMARY.md frontmatter `one-liner` field additions — 5 files missing the key; low effort, defers gracefully
+**Should have (competitive — P2, after P1 validated):**
+- Intelligent task router — automatic local-vs-cloud routing from PLAN.md frontmatter signals (`agent_type`, `estimated_minutes`); static regex heuristics, zero LLM, under 100ms per routing call
+- Containerized MCP server isolation — pinned-runtime containers per `APPROVED_SERVERS` entry; Docker already a confirmed dependency from cloud dispatch, so incremental cost is low
+- Cross-host session resume — Upstash Redis (already used in v0.19 Token Playground) for session `.jsonl` portability; enables true multi-machine agent continuity
 
-**Defer (v2+):**
-- Cross-artifact consistency `pde-tools health` subcommand — higher complexity, lower urgency than fixing known gaps
-- Pre-v0.22 Nyquist backfill (v0.1–v0.21) — diminishing returns for shipped work; v0.22 captures highest-value gap
+**Defer (v2+ — P3):**
+- Docker deploy sandbox for Stage 14 — low priority until host environment drift causes reported failures attributable to the deploy path
+- AutoResearch pinned container for visual metrics — defer until metric reproducibility failures are reported; solves a real problem but only if it is actually occurring
+- Multi-provider cloud dispatch abstraction (Modal, E2B, Fly) — anti-feature risk; start with one provider, add second only if user demand validates provider-specific needs
+
+**Anti-features to reject outright:** always-cloud by default (adds 5–15s cold start to every `/pde:quick`), real-time filesystem sync to cloud (NFS/SSHFS introduces race conditions with the event bus), container for every PDE operation (pure file I/O tasks gain no isolation benefit), stateless cloud agents without `.planning/` sync-back (disconnects cloud execution from the planning state machine entirely).
 
 ### Architecture Approach
 
-The existing PDE architecture is stable and v0.23 introduces no new top-level modules. Hardening work operates on existing modules within four parallel work streams: data integrity fixes on state files (ROADMAP.md, MILESTONES.md, STATE.md), verification gap closure (test runner incompatibility, Nyquist VALIDATION.md backfill), user-facing polish (IR edge cases, persona output quality, SVG chart edge cases), and technical debt cleanup (stale paths in workflow files, dead imports, context-sync/mcp-bridge audits). Work Streams 1 → 2 → 3 have sequential dependency; Work Stream 4 runs in parallel.
+The architecture extends the existing 5-layer dispatcher stack (Decision → Execution → Session Lifecycle → Observability → Dashboard) with two new execution backends and one new state sync module. The key structural decision is strict separation of execution paths: `_runLocalSession`, `_runRemoteSession (SSH)`, and `_runCloudSession` must not share `_handleExit` logic because cloud sessions have no local worktree, no local PID, and no git branch to merge. Calling `mergeSession` or `removeWorktree` on a cloud session path throws and corrupts the registry. Docker dispatch is a near-drop-in replacement for local: same `onLine`/`onExit` callbacks, same NDJSON streaming, only the container wrapper changes. Cloud dispatch requires a `CloudPoller` shim that emits synthetic NDJSON events by polling `claude /tasks` output — synthetic events have lower fidelity (no tool-level events) but are compatible with the existing aggregator and relay pipeline.
 
-**Major components affected:**
-1. **`.planning/` state files** — ROADMAP.md (5 unchecked plan boxes at confirmed lines 221–222, 279, 294–295), MILESTONES.md (46 placeholder one-liners), STATE.md (stale progress/focus fields)
-2. **`bin/lib/render-presentation.cjs`** — buildCrossPatterns field name fix; 2096 LOC; must not break 23 currently-passing phase-184 tests
-3. **`tests/` runner configuration** — 137/236 test files fail with "No test suite found" due to node:test vs vitest incompatibility; recommended fix is vitest `exclude` pattern for node:test files (zero-risk, 137 files in phases 100–117)
-4. **`bin/lib/presentation.cjs`** — IR extractor edge cases; sentinel `{ unavailable: true, reason }` pattern must be preserved, never silent zeros
-5. **`workflows/execute-phase.md` + `complete-milestone.md`** — stale `$HOME/.claude/pde-os/engines/gsd/` paths; must become `$CLAUDE_PLUGIN_ROOT/bin/pde-tools.cjs`
+**Major components (new or modified):**
+1. `remote-cloud.cjs` (NEW): Cloud web session backend — spawns `claude --remote`, captures session URL, starts `CloudPoller` for synthetic events, fetches result branch on completion via `sync.cjs`
+2. `remote-docker.cjs` (NEW): Docker container backend — mirrors `spawn.cjs` with `docker run` wrapper; real NDJSON streaming via stdout pipe; identical `onLine`/`onExit` wiring
+3. `sync.cjs` (NEW): Git-based `.planning/` state sync — `pushPlanningState()` pre-dispatch (cloud and SSH), `fetchPlanningState()` post-completion; wraps existing `merge.cjs` 3-way merge with sync-direction flag
+4. `remote-managed.cjs` (REPLACE): Functional `detectManagedBackend()` probe — checks CLI version ≥ 2.1.51, OAuth auth status (not API key), GitHub repo connectivity; cached with 30-second TTL
+5. `remote-router.cjs` (MODIFY): Extended routing decision tree returning `'local' | 'ssh' | 'managed' | 'cloud-web' | 'docker'`; receives `cloudConfig` and `dockerConfig` alongside existing `remoteConfig`
+6. `coordinator.cjs` (MODIFY): Cloud and Docker dispatch branches in `dispatch()` with per-backend `_handle*Exit` paths; separate concurrency queues per backend type
+7. `registry.cjs` (MODIFY): Extended backend enum; `sessionUrl` field for cloud sessions; new status values `cloud_running | cloud_complete | docker_running`
+8. `dashboard/components/cloud-session-panel.tsx` (NEW): Cloud instance management widget with sessionUrl display, sync state indicator, pull-local action for completed cloud sessions
 
 ### Critical Pitfalls
 
-1. **Treating checkbox audits as proof of correctness** — Each unchecked plan box must be verified against a concrete artifact (SUMMARY.md with completion timestamp, passing test, or git log commit) before marking it checked. Bulk-check operations without per-item verification produce false completion signals; this exact pattern recurred in v0.18, v0.20, and v0.21 retrospectives.
+1. **Breaking local dispatch path by shoehorning cloud into existing `_handleExit`** — Keep `_runLocalSession`, `_runRemoteSession`, and `_runCloudSession` as fully separate execution paths with no shared post-exit logic. `routeSession()` adds new return values without modifying existing return branches. Verify with `coordinator-smoke.test.cjs` Test 7 after every routing change.
 
-2. **Writing validators that pass against rotten data** — Before building any validator, specify the intended invariant in prose (the acceptance criterion). The validator enforces the invariant, not the current state of the corpus. Every validator test suite must include negative cases — inputs that should fail. A test suite with no rejection cases does not prove the validator works.
+2. **`--ours` merge strategy clobbering cloud-written STATE.md** — The existing `--ours` strategy is correct for worktree merges (local agent to main) but inverts for cloud sync (remote is the authoritative state writer). Introduce a sync-direction flag in `merge.cjs` before any git sync code is written: cloud sync uses `--theirs` for `STATE.md`, `--ours` for `REQUIREMENTS.md` and `ROADMAP.md` (which must never be mutated remotely).
 
-3. **Fixing symptoms without addressing root cause** — Every data fix must answer: "What process generated this incorrect state, and is it still running?" Remediation (fix the stale data) and root cause fix (fix the process) are separate sub-tasks. PDE's retrospective record documents that symptom-only patches produce the same issue one milestone later.
+3. **Git sync race condition — cloud sync as unguarded second writer to main** — The `dispatcher.lock` covers local dispatch operations only. The cloud sync merge job runs as a separate process and is not lock-protected. Cloud sync must acquire `dispatcher.lock` before any `git fetch/merge` on main, treating sync as a dispatch-equivalent operation.
 
-4. **CJS constraint violations introduced by hardening code** — Every new `.cjs` file must use `require()` and `module.exports`, never ESM `import`/`export`. Root `package.json` must not gain new `dependencies`. A Nyquist structural assertion should verify this: `grep -r "^import " bin/ --include="*.cjs"` must return empty.
+4. **TailCursor accumulation for ghost cloud sessions** — `aggregator.cjs` polls `/tmp/pde-session-*.ndjson` files that will never exist for cloud sessions. Register cloud sessions with a `RemoteAggregator` (Redis poll); never start a `TailCursor` for a cloud session ID. Failure mode: ~500 bytes per ghost cursor per poll interval accumulates until coordinator restart.
 
-5. **Breaking changes to shared utilities from new input validation** — Before adding validation to any shared utility, grep all callers and enumerate the values they can pass. Test against all five product types (software, hardware, hybrid, experience, business). New validation must be additive-safe: reject only what was never valid, not what was loosely accepted.
+5. **Uncached cloud backend probe blocking parallel dispatch** — `routeSession()` currently resolves in under 1ms. Adding a synchronous network probe to `detectManagedBackend()` without caching creates 2–5 second routing latency per call — multiplied by 3 parallel dispatches. Cache with 30-second TTL; 2-second timeout returning `{ available: false }` on timeout.
 
----
+6. **Zero-npm dependency constraint at plugin root violated by cloud SDK** — Cloud/Docker SDK calls belong in a separate package (`packages/cloud-adapter/`); `coordinator.cjs` invokes via spawn, never via `require()`. Verify with `node -e "require('./bin/lib/coordinator.cjs')"` on a clean machine with no extra packages.
+
+7. **`session_source` type drift between coordinator and dashboard** — Define `SessionSource` as a shared const in `wire-schema.ts` and import in both `coordinator.cjs` and `queries.ts`. Without this, new backend values written in the coordinator fall back silently to `'local'` in the dashboard query coercion (confirmed in `queries.ts` lines 57–58).
 
 ## Implications for Roadmap
 
-The work stream dependency order maps directly to phase ordering. Data integrity fixes are source-of-truth for all downstream work. Test runner cleanup gives reliable regression signal. Verification gap closure depends on clean state and working tests. Polish and debt cleanup are partially independent. The feature set is fully bounded with specific file targets and line numbers — no ambiguity about scope.
+Based on the dependency graph in FEATURES.md, the explicit A–E build order in ARCHITECTURE.md, and the pitfall-to-phase mapping in PITFALLS.md, the recommended phase structure is five phases.
 
-### Phase 1: Root Cause Analysis and Data Integrity Baseline
+### Phase 1: Routing Extension and Registry Foundation
+**Rationale:** All subsequent backends depend on the registry and router accepting new backend values, and the `SessionSource` shared type must exist before any backend writes session data. This phase has zero external dependencies — no Docker daemon, no OAuth, no network calls. It also establishes the zero-npm contract verification and the probe caching design before any cloud code is written.
+**Delivers:** Extended registry backend enum (`cloud-web`, `docker`), functional `detectManagedBackend()` probe with OAuth auth checks and 30-second TTL caching, extended `remote-router.cjs` with new routing targets and config shape, `classifyTaskRouting()` skeleton in `orchestrator.cjs`, shared `SessionSource` enum in `wire-schema.ts`, separate concurrency queue stubs per backend type.
+**Addresses:** Anti-features (routing logic prevents always-cloud default from day one), graceful fallback chain infrastructure.
+**Avoids:** Pitfall 1 (routing extension done in isolation before any dispatch code changes), Pitfall 5 (probe caching built from the start), Pitfall 7 (SessionSource defined once here, propagates via TypeScript errors).
 
-**Rationale:** State documents (ROADMAP.md, MILESTONES.md, STATE.md) are consumed by IR extractors, verification passes, and portfolio synthesis. All downstream work is unreliable until these are accurate. This phase also establishes the root-cause vs remediation categorization for all found issues, preventing the symptom-patching pattern documented in prior retrospectives. The STATE.md progress field recalculation wiring should be verified at the end of this phase before Phase 2 starts.
-**Delivers:** Corrected ROADMAP.md (5 plan boxes marked complete with per-box verification evidence), MILESTONES.md with all placeholder one-liners replaced from archived SUMMARY.md files, Phase 180 VERIFICATION.md status updated, STATE.md v0.23 initialization verified. Root-cause analysis inventory for each data drift item (process identified, recurrence prevention tracked).
-**Addresses:** ROADMAP.md status update (P1), MILESTONES.md one-liner completion (P1), Phase 180 status fix (P1)
-**Avoids:** Checkbox-as-proof fallacy (each box verified against SUMMARY.md completion timestamp before being marked); Symptom-only fixes (document root cause for each data drift item, not just the corrected value)
+### Phase 2: Docker Container Backend
+**Rationale:** Docker dispatch uses real NDJSON streaming — identical integration path to `spawn.cjs`. No OAuth required, so full test coverage is achievable immediately. Validates the backend interface contract (`spawnDockerSession` → `{ pid, kill }`) before the harder cloud path, and makes Docker a confirmed project dependency before MCP server containerization is considered. Image pre-pull probe belongs at PDE initialization time, not at dispatch time.
+**Delivers:** `remote-docker.cjs`, Docker dispatch branch in `coordinator.cjs` with separate `_handleDockerExit`, `[D]` source label in `tmux-fanout.cjs`, dashboard source label for Docker sessions, Docker image availability check at PDE startup (writes `docker-status.json`), `coordinator-docker.test.cjs` with DI stubs.
+**Uses:** `dockerode@4.0.10`, `node:child_process` for `docker` CLI invocation.
+**Implements:** Docker Dispatch as Near-Drop-In (Architecture Pattern 2).
+**Avoids:** Pitfall 5 (container startup latency — image probe runs at init, not at dispatch time), Pitfall 8 (zero-npm: `docker` CLI subprocess only in coordinator, no `dockerode` import in plugin root files).
 
-### Phase 2: Test Runner Compatibility and Coverage Baseline
+### Phase 3: Git-Based .planning/ State Sync
+**Rationale:** State sync is a hard prerequisite for cloud dispatch (cloud VM clones from last pushed commit — if `ROADMAP.md` or `STATE.md` are ahead locally, the remote operates on stale context). Building sync standalone before cloud means it can be tested against real git worktree fixtures without OAuth dependencies. The merge direction problem must be fully resolved and tested in this phase, not discovered in cloud production.
+**Delivers:** `sync.cjs` (`pushPlanningState`, `fetchPlanningState`), sync-direction flag added to `merge.cjs` (cloud sync direction uses `--theirs` for `STATE.md`), pre-dispatch sync wiring in `coordinator.cjs`, post-exit sync wiring in `_handleExit` for SSH sessions, `sync.test.cjs` against real git worktree fixtures, optional `POST /api/planning/sync` dashboard route with `validateRelayToken` auth.
+**Uses:** `simple-git@3.33.0`.
+**Avoids:** Pitfall 3 (`--ours` direction corrected here, verified with explicit test that remote-written STATE.md content survives the merge), Pitfall 6 (cloud sync lock acquisition designed and tested before cloud backend exists).
 
-**Rationale:** 137/236 test files produce false "No test suite found" failures. These mask real regressions and make it impossible to know whether hardening work introduces breakage. Resolving the incompatibility before writing new tests is essential for reliable signal. This phase also establishes the static analysis infrastructure and coverage baseline that later phases use to measure improvement.
-**Delivers:** Vitest `exclude` pattern for node:test files (137 false failures eliminated, node:test tests remain runnable via `node --test`), coverage baseline report from `@vitest/coverage-v8` (lines/branches per module in bin/lib/), ESLint flat config at root (`eslint.config.cjs`) with no-missing-require and no-deprecated-api rules.
-**Uses:** @vitest/coverage-v8 4, ESLint 10, eslint-plugin-n 17, @eslint/js 10, globals 17
-**Avoids:** Tests-test-the-harness (negative test cases required for all new validators); CJS constraint violations (all new config files use CJS `require()` syntax, verified)
+### Phase 4: Cloud Web Backend and Dashboard Integration
+**Rationale:** Cloud dispatch is the highest-risk phase — `claude --remote` is research preview, requires OAuth, is GitHub-only, has no NDJSON pipe. All prerequisite patterns (container dispatch, state sync, registry extension) must be stable first. Dashboard integration for cloud sessions is included in this phase rather than deferred because cloud sessions without dashboard visibility are invisible to users and the `RemoteAggregator` must be built alongside the cloud backend (they share the same design constraint: no local file to tail).
+**Delivers:** `remote-cloud.cjs` (`spawnCloudSession`, `CloudPoller` synthetic event emitter polling every 5 seconds), replacement `remote-managed.cjs` with functional OAuth probe, cloud dispatch branch in `coordinator.cjs` with separate `_handleCloudExit`, `RemoteAggregator` class (Redis poll, never creates `TailCursor`), `cloud-session-panel.tsx` dashboard component (sessionUrl, sync state, pull-local action for `cloud_complete` sessions), `coordinator-cloud.test.cjs` with CLI stubs.
+**Implements:** CloudPoller Pattern (Architecture Pattern 1), Unified Session Source Labels (Architecture Pattern 4).
+**Avoids:** Pitfall 4 (RemoteAggregator never creates TailCursor for cloud session IDs), Pitfall 2 (lock extended to include `cloudSessionId` for stale-lock reclaim check before reclaiming).
 
-### Phase 3: REQUIREMENTS.md Reconciliation and IR Field Fix
-
-**Rationale:** EXT-01 through EXT-10 are explicitly flagged as unchecked in 176-VERIFICATION.md despite full implementation — this is a bounded audit with concrete evidence available. The buildCrossPatterns field mismatch silently produces empty output for all real PDE projects and is explicitly listed in v0.22 MILESTONE-AUDIT.md tech debt. Both are high-value, well-defined fixes.
-**Delivers:** REQUIREMENTS.md with all verified-implemented boxes checked (with VERIFICATION.md evidence cited inline), buildCrossPatterns `research.findings` → `research.topics`/`research.project_research_files` fix in render-presentation.cjs, updated test mocks in tests/phase-184/portfolio-render.test.mjs, confirmed 23 phase-184 tests still passing.
-**Addresses:** REQUIREMENTS.md checkbox reconciliation (P1), buildCrossPatterns IR field fix (P1)
-**Avoids:** Checkbox-as-proof fallacy (each checkbox checked against VERIFICATION.md evidence before marking); Breaking changes (mock updates accompany code fix atomically; 23 tests must remain green)
-
-### Phase 4: Nyquist VALIDATION.md Backfill for v0.22
-
-**Rationale:** Six phases (179–184) are missing VALIDATION.md entirely; three phases (176–178) have partial/draft status per MILESTONE-AUDIT.md. All v0.22 VERIFICATION.md files are confirmed complete — this makes the backfill tractable. Structural regression tests derived from observable truths protect all future refactors.
-**Delivers:** 6 new VALIDATION.md files for phases 179–184, 3 completed VALIDATION.md files for phases 176–178. Each file includes `nyquist_compliant: true` frontmatter and derives assertions exclusively from VERIFICATION.md observable truths tables.
-**Addresses:** v0.22 Nyquist VALIDATION.md backfill (P2)
-**Avoids:** Validators encoding rot (assertions derive from VERIFICATION.md observable truths, not from current file state); Tests-test-the-harness (assertions specify actual values, not just key existence; each assertion has a corresponding negative case)
-
-### Phase 5: Technical Debt Cleanup and Static Analysis Pass
-
-**Rationale:** The independent work stream — stale paths, dead imports, context-sync/mcp-bridge audit — can run after high-priority fixes are committed and verified. Running static analysis tools (knip, jscpd) as part of this phase produces artifact reports that bound remaining debt and establish baselines for future milestones.
-**Delivers:** Fixed `$CLAUDE_PLUGIN_ROOT` paths in execute-phase.md and complete-milestone.md (2 confirmed stale occurrences), audited context-sync.cjs 7 emitters, audited mcp-bridge.cjs APPROVED_SERVERS and tool maps, knip dead-code report (JSON artifact), jscpd duplication report (HTML artifact), markdownlint-cli2 structural consistency pass on `.planning/` files. v0.7 SUMMARY.md frontmatter one-liner fields added (5 files).
-**Uses:** knip 6, jscpd 4, markdownlint-cli2 0.22
-**Addresses:** v0.7 SUMMARY.md frontmatter fix (P2), technical debt documented in PROJECT.md
-**Avoids:** CJS constraint violations (all new utility scripts use require() syntax); Breaking changes (stale path fixes tested via dry-run before commit)
+### Phase 5: Intelligent Routing and Cost Tracking
+**Rationale:** Routing intelligence is only meaningful with all three backends (local, Docker, cloud) operational and testable with DI stubs. Cost tracking for containers requires cloud sessions generating real usage data. This phase also adds the user-facing config schema (`dispatch.cloud.*`, `dispatch.docker.*`) that makes routing configurable without code changes.
+**Delivers:** Full `classifyTaskRouting()` integration into coordinator decision flow, static heuristics for `hasSecretFiles`/`estimatedTokens`/`requiresGUI`/`requiresGit` (regex + line-count, zero LLM, under 100ms), user config schema with `force` overrides in `config.json`, container cost events (uptime × provider rate) emitted alongside existing token cost metering, dashboard session filter by backend type, end-to-end routing validation with all four routing targets and forced overrides, `routing_fallback` event emitted to dashboard when cloud is unavailable.
+**Implements:** Hybrid Auto+Override Routing (Architecture Pattern 3).
+**Avoids:** Anti-feature "always-cloud by default" (router keeps interactive and fast-path tasks local by design).
 
 ### Phase Ordering Rationale
 
-- Work Stream 1 (data integrity) must precede Work Stream 2 (verification) because STATE.md and ROADMAP.md are inputs to `recalculateFromArtifacts()`. Fixing them first means all subsequent verification passes run against accurate baselines.
-- Test runner cleanup (Phase 2) precedes code changes (Phases 3–5) because 137 false failures would otherwise mask real regressions introduced during hardening.
-- The IR field fix (Phase 3) requires updating both production code and test mocks atomically; this fits cleanly after the test runner is reliable.
-- Nyquist backfill (Phase 4) is deferred until after data integrity and code fixes are merged — VALIDATION.md assertions should reflect the corrected state.
-- Technical debt cleanup (Phase 5) is last and partially independent; it benefits from the clean test signal established in Phase 2.
+- **Registry and routing first:** Every phase depends on the type system being correct. Extending `SessionSource` and registry enums before writing backend code eliminates type-drift pitfalls at compile time rather than runtime.
+- **Docker before cloud:** Real NDJSON streaming validates the backend interface without external auth dependencies. Container dispatch pattern is proven before the harder polling pattern. Full test coverage achievable from day one.
+- **State sync before cloud:** Cloud VM clones from last pushed commit. Without pre-dispatch `.planning/` sync, the remote agent operates on stale context — the milestone's primary value is broken. Merge direction correctness must be tested offline before cloud introduces OAuth as a testing dependency.
+- **Cloud with dashboard:** Cloud sessions that do not appear in the dashboard are invisible. `RemoteAggregator` and `CloudPoller` share the same design constraint (no local file), so building them together is more efficient than splitting across phases.
+- **Routing last:** All three backends must be testable with DI stubs before routing classification logic can be validated end-to-end.
 
 ### Research Flags
 
-Phases with well-documented patterns (skip `/gsd:research-phase`):
-- **Phase 1:** Standard document auditing and text editing — artifact locations with specific file paths and line numbers are identified in ARCHITECTURE.md; no research needed
-- **Phase 2:** ESLint flat config for CJS and vitest exclude patterns are fully specified in STACK.md with exact config blocks; no additional research needed
-- **Phase 3:** REQUIREMENTS.md evidence-based checkbox reconciliation is mechanical with known source files; IR field fix is a bounded find/replace with test update; field names confirmed from 176-VERIFICATION.md live IR output
-- **Phase 4:** VALIDATION.md template pattern is established in phases 176–178; derive from VERIFICATION.md observable truths tables; mechanical templated process
-- **Phase 5:** Knip, jscpd, and markdownlint-cli2 usage fully documented in STACK.md; stale path occurrences identified and scoped in ARCHITECTURE.md
+Phases likely needing deeper research during planning:
+- **Phase 4 (Cloud Web Backend):** `claude --remote` is documented as "research preview." The specific JSON schema of `claude auth status --output-format json`, the exact polling format of `claude tasks --output-format json`, and whether cloud VMs can push directly to GitHub origin (or require the dashboard `/api/planning/sync` endpoint as a fallback) should be verified against current CLI behavior immediately before Phase 4 begins — not at planning time.
+- **Phase 3 (State Sync merge direction):** No standard pattern exists for sync-direction-aware merge strategies in `merge.cjs`. The `OURS_ON_CONFLICT` list and its interaction with cloud sync direction needs explicit test fixture design before the implementation begins.
 
-No phases in this milestone require `/gsd:research-phase` — all research was completed up-front and the full technical scope is known from direct codebase inspection.
-
----
+Phases with standard patterns (skip `/gsd:research-phase`):
+- **Phase 1 (Routing Extension):** Straightforward TypeScript enum extension and modification of known modules. All code paths exist; no new protocols needed. Direct codebase reads have identified the exact files and extension points.
+- **Phase 2 (Docker Backend):** `spawn.cjs` is the reference implementation with identical interface. `dockerode` API is well-documented (1,271 dependents, stable API). Devcontainer spec is official and stable. Skip research.
+- **Phase 5 (Intelligent Routing):** Static heuristics via regex — well-understood pattern already used in `idle-suggestions.cjs`. Config schema follows the existing `config.json` `dispatch.remote.*` block pattern. No research needed.
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | All tool versions verified via `npm view` against registry on 2026-03-29; ESLint flat config for CJS patterns verified against official docs; version compatibility matrix confirmed |
-| Features | HIGH | Feature inventory derived from direct codebase inspection of ROADMAP.md, MILESTONES.md, MILESTONE-AUDIT.md, VERIFICATION.md files — not inferred; specific file paths and line numbers confirmed |
-| Architecture | HIGH | All component sizes, line counts, module responsibilities, and data flow paths verified by direct inspection of source files; test runner failure count from live test execution (137/236 confirmed); stale path locations confirmed in workflow files |
-| Pitfalls | HIGH | Pitfalls grounded in PDE's own retrospective records (v0.18–v0.21) showing documented recurrence of the same defect categories — not generic advice; root cause for each pitfall traced to a specific architectural decision |
+| Stack | HIGH | `dockerode` and `simple-git` verified against npm registry; `claude --remote` CLI behavior verified against official Anthropic docs fetched 2026-03-30; all existing modules read directly from codebase |
+| Features | HIGH | Feature landscape grounded in official Agent SDK docs, Docker Sandboxes docs, and direct reads of existing PDE infrastructure; P1/P2/P3 tiers supported by concrete dependency analysis |
+| Architecture | HIGH | New component specs derived from direct reads of `coordinator.cjs`, `spawn.cjs`, `merge.cjs`, `registry.cjs`, `queries.ts`; build order validated against module dependency graph; interface contracts specified explicitly |
+| Pitfalls | HIGH (existing codebase) / MEDIUM (cloud-specific) | Pitfalls 1, 3, 4, 6, 7, 8 grounded in direct codebase reads and specific line numbers; Pitfall 2 (cloud PID lock) and Pitfall 5 (probe latency) are architectural inference — not yet observed in production |
 
-**Overall confidence:** HIGH
+**Overall confidence:** HIGH for Docker and state sync phases; MEDIUM for cloud web dispatch due to research-preview status of `claude --remote` and two unverified behavioral details.
 
 ### Gaps to Address
 
-- **Progress field recalculation wiring (Phase 1):** STATE.md `recalculateFromArtifacts()` format dependency needs early validation — PITFALLS.md documents this as a Phase 1 check. Verify `completed_phases` increments after Phase 1 commits before Phase 2 starts.
-- **MILESTONES.md one-liner read strategy:** 40+ one-liners must come from archived SUMMARY.md files in `.planning/milestones/vX.X-phases/`. Reading all at once risks context overflow — work milestone-by-milestone (confirmed in FEATURES.md dependency notes). Phase 1 plan must specify this strategy explicitly.
-- **buildCrossPatterns mock update scope:** The fix requires updating both `render-presentation.cjs` and test mocks in `tests/phase-184/portfolio-render.test.mjs`. Verify the fix does not affect the `extractResearch()` (EXT-08) extractor interface itself — only the consumer field access path changes.
-
----
+- **`claude --remote` NDJSON unavailability:** ARCHITECTURE.md notes that NDJSON unavailability from cloud sessions is inferred from architecture (no local process stdout), not explicitly stated in Anthropic docs. Verify before implementing `CloudPoller`. If a future CLI version adds streaming, the polling shim can be replaced with a real `TailCursor` at that point.
+- **`claude auth status` JSON schema:** The `detectManagedBackend()` probe depends on the exact JSON output of `claude auth status --output-format json`. This schema is not confirmed in research. Read it from a real CLI invocation at the start of Phase 1 implementation.
+- **Cloud VM GitHub push permissions:** Research assumes cloud VMs push result branches to the GitHub origin via the installed GitHub App. If the VM cannot push directly (auth model differs), `POST /api/planning/sync` becomes mandatory rather than optional. Validate before Phase 4 begins — this determines whether the dashboard sync endpoint is a P1 or P2 deliverable.
+- **Container image public availability:** `ghcr.io/anthropics/claude-code:devcontainer-latest` is referenced in architecture. Verify the image is publicly pullable without auth on the target machines before committing to it as the Docker backend base image in Phase 2.
 
 ## Sources
 
 ### Primary (HIGH confidence)
-
-- Direct inspection: `bin/pde-tools.cjs` (1712 LOC), all `bin/lib/*.cjs` modules (~89 modules), `hooks/hooks.json`
-- Direct inspection: `.planning/ROADMAP.md` (5 unchecked plan boxes confirmed at lines 221–222, 279, 294–295)
-- Direct inspection: `.planning/MILESTONES.md` (46 "One-liner:" placeholders confirmed by grep)
-- Direct inspection: `.planning/STATE.md`, `.planning/PROJECT.md`
-- Direct inspection: `.planning/milestones/v0.22-MILESTONE-AUDIT.md`
-- Direct inspection: `tests/phase-176` through `tests/phase-184` (vitest pattern), `tests/phase-100` (node:test pattern)
-- Direct inspection: `workflows/execute-phase.md`, `workflows/complete-milestone.md` (stale `pde-os` path confirmed)
-- Runtime test execution: 137/236 "No test suite found" vitest failures confirmed
-- `npm view [package] version` — all versions verified from registry 2026-03-29
+- [Claude Code on the web docs](https://code.claude.com/docs/en/claude-code-on-the-web) — `claude --remote` architecture, GitHub-only repos, cloud VM lifecycle, setup scripts, teleport
+- [Claude Code headless docs](https://code.claude.com/docs/en/headless) — `--output-format`, `--bare`, session ID capture, `stream-json` format
+- [Remote Control docs](https://code.claude.com/docs/en/remote-control) — `claude remote-control`, `--spawn worktree`, outbound-only architecture, v2.1.51 requirement
+- [Agent SDK overview](https://platform.claude.com/docs/en/agent-sdk/overview) — subagents, hooks, MCP integration, TypeScript v0.2.71
+- [Agent SDK sessions](https://platform.claude.com/docs/en/agent-sdk/sessions) — session resume/fork, cross-host sync, `~/.claude/projects/<cwd>/*.jsonl` storage
+- [Development containers docs](https://code.claude.com/docs/en/devcontainer) — Dockerfile spec, firewall rules, `--dangerously-skip-permissions` in container
+- [Docker Sandboxes docs](https://docs.docker.com/ai/sandboxes/) — microVM isolation, ephemeral vs persistent, MCP server sandboxing
+- Codebase (read directly): `coordinator.cjs`, `spawn.cjs`, `merge.cjs`, `registry.cjs`, `remote-router.cjs`, `remote-managed.cjs`, `remote-ssh.cjs`, `lock.cjs`, `aggregator.cjs`, `relay.cjs`, `dashboard/lib/queries.ts`, `wire-schema.ts`
 
 ### Secondary (MEDIUM confidence)
+- [Claude Code Remote Control Guide](https://claudefa.st/blog/guide/development/remote-control-guide) — outbound HTTPS relay architecture, limitations, mobile access model
+- [Docker — Sandboxing AI Agents Safety (2026)](https://www.docker.com/blog/docker-sandboxes-a-new-approach-for-coding-agent-safety/) — workspace sync, per-sandbox private Docker daemons
+- [AWS Prescriptive Guidance — Routing Dynamic Dispatch Patterns](https://docs.aws.amazon.com/prescriptive-guidance/latest/agentic-ai-patterns/routing-dynamic-dispatch-patterns.html) — capability-based routing patterns, event-driven dispatch
+- [Microsoft Swarm Diaries](https://techcommunity.microsoft.com/blog/appsonazureblog/the-swarm-diaries-what-happens-when-you-let-ai-agents-loose-on-a-codebase/4501393) — git branch per agent pattern, merge-first strategy
+- [Northflank — How to sandbox AI agents (2026)](https://northflank.com/blog/how-to-sandbox-ai-agents) — MicroVM vs gVisor vs container isolation comparison
+- npmjs.com registry: `dockerode@4.0.10` (1,271 dependents), `simple-git@3.33.0` (7,483 dependents)
 
-- [knip.dev/guides/working-with-commonjs](https://knip.dev/guides/working-with-commonjs) — CommonJS export convention requirements
-- [github.com/eslint-community/eslint-plugin-n](https://github.com/eslint-community/eslint-plugin-n) — active fork, flat config `flat/recommended-script` support
-- [vitest.dev/guide/coverage](https://vitest.dev/guide/coverage) — V8 AST remapping since v3.2.0
-- [oxc.rs/blog/2026-03-11-oxlint-js-plugins-alpha](https://oxc.rs/blog/2026-03-11-oxlint-js-plugins-alpha) — Oxlint JS plugins alpha status (why Oxlint is deferred for v0.23)
-- PDE retrospective records v0.18–v0.22 — recurring defect patterns; used to ground pitfall identification
-
-### Tertiary (LOW confidence)
-
-- tsmx.net — ESLint v9 flat config CJS migration guide; `sourceType: "commonjs"` for `.cjs` pattern
-- WebSearch: quality hardening practices for legacy codebases — corroborating background for issue taxonomy
+### Tertiary (LOW confidence — verify during execution)
+- `claude --remote` NDJSON unavailability — inferred from architecture (no local stdout pipe), not explicitly confirmed in documentation; verify at Phase 4 start
+- GitHub App push permissions from cloud VMs — assumed from architecture description, not directly verified; validate before Phase 4 begins
 
 ---
-*Research completed: 2026-03-29*
+*Research completed: 2026-03-30*
 *Ready for roadmap: yes*
