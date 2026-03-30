@@ -324,7 +324,7 @@ Plans:
   3. Auto-generation only fires when STATE.md shows `status: Completed` — it does not fire on every PostToolUse Write event during mid-phase execution
   4. The default persona set for auto-generation is configurable in config.json and used when no explicit persona is specified
   5. Setting `auto_generate: false` in config.json disables auto-generation entirely without affecting on-demand `/pde:present`
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 Plans:
 - [x] 183-01-PLAN.md — Config keys, auto-generation workflow steps in execute-phase.md and complete-milestone.md
 
