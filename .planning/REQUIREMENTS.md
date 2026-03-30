@@ -24,8 +24,8 @@ Requirements for Quality & Reliability Hardening. Each maps to roadmap phases.
 
 ### Test Infrastructure
 
-- [ ] **TST-01**: Vitest configuration excludes node:test-based test files so that `npx vitest run` reports zero false "No test suite found" failures
-- [ ] **TST-02**: Running `npx vitest run --coverage` produces a coverage baseline report via @vitest/coverage-v8 for all vitest-compatible test files
+- [x] **TST-01**: Vitest configuration excludes node:test-based test files so that `npx vitest run` reports zero false "No test suite found" failures
+- [x] **TST-02**: Running `npx vitest run --coverage` produces a coverage baseline report via @vitest/coverage-v8 for all vitest-compatible test files
 
 ### Technical Debt
 
@@ -74,8 +74,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | VER-01 | Phase 188 | Complete |
 | VER-02 | Phase 188 | Complete |
 | VER-03 | Phase 188 | Complete |
-| TST-01 | Phase 186 | Pending |
-| TST-02 | Phase 186 | Pending |
+| TST-01 | Phase 186 | Complete |
+| TST-02 | Phase 186 | Complete |
 | DEB-01 | Phase 189 | Complete |
 | DEB-02 | Phase 189 | Complete |
 | DEB-03 | Phase 189 | Complete |
