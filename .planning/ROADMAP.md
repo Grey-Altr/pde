@@ -529,7 +529,7 @@ Plans:
   5. Token Playground shows container uptime times provider rate alongside token cost for cloud and Docker sessions
 **Plans**: 2 plans
 Plans:
-- [ ] 195-01-PLAN.md — Data layer extension, cloud session actions, test scaffold (DSH-03, DSH-06)
+- [x] 195-01-PLAN.md — Data layer extension, cloud session actions, test scaffold (DSH-03, DSH-06)
 - [ ] 195-02-PLAN.md — Health matrix UI, SyncStatePanel, PaneGrid 8-pane, Token Playground infra cost (DSH-01, DSH-02, DSH-04, DSH-05)
 **UI hint**: yes
 
@@ -597,6 +597,6 @@ Plans:
 | 192. Git-Based State Sync | v0.24 | 2/2 | Complete    | 2026-03-30 |
 | 193. Cloud Web Backend | v0.24 | 1/2 | Complete    | 2026-03-30 |
 | 194. Intelligent Routing | v0.24 | 1/2 | Complete    | 2026-03-30 |
-| 195. Dashboard Integration | v0.24 | 0/TBD | Not started | - |
+| 195. Dashboard Integration | v0.24 | 1/2 | In Progress|  |
 | 196. Containerized MCP Servers | v0.24 | 0/TBD | Not started | - |
 | 197. Cross-Host Session Resume | v0.24 | 0/TBD | Not started | - |

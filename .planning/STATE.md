@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v0.24
 milestone_name: Cloud Dispatch & State Sync
-status: planning
-stopped_at: Completed 194-02-PLAN.md
-last_updated: "2026-03-30T17:36:32.153Z"
+status: executing
+stopped_at: Completed 195-01-PLAN.md
+last_updated: "2026-03-30T17:58:51.190Z"
 last_activity: 2026-03-30
 progress:
   total_phases: 29
   completed_phases: 5
-  total_plans: 10
-  completed_plans: 10
+  total_plans: 12
+  completed_plans: 11
   percent: 0
 ---
 
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-30)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 190 — Infrastructure Foundation (v0.24 start)
+**Current focus:** Phase 195 — Dashboard Integration
 
 ## Current Position
 
-Phase: 195 of 197 (dashboard integration)
-Plan: Not started
-Status: Ready to plan
+Phase: 195 (Dashboard Integration) — EXECUTING
+Plan: 2 of 2
+Status: Ready to execute
 Last activity: 2026-03-30
 
 Progress: [░░░░░░░░░░] 0%
@@ -62,6 +62,8 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 193]: routing_fallback emitted in coordinator (not router) — keeps router pure, router returns backend string only
 - [Phase 194]: classify.cjs created in plan 02 (not plan 01) — worktree had no plan 01 artifacts, Rule 3 auto-fix
 - [Phase 194]: routing_decision event emitted after classifyResult applied — event reflects final backend not initialBackend from routeSession
+- [Phase 195]: stopCloudSession uses HTTP fetch to PDE_DISPATCHER_URL — never process.kill (cloud sessions have no local PID)
+- [Phase 195]: infraCostUsdCents computed at ingest time from container_uptime_s using PDE_INFRA_COST_RATE_CENTS_PER_HOUR env var on session_end event
 
 ### Pending Todos
 
@@ -74,7 +76,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-30T17:19:17.091Z
-Stopped at: Completed 194-02-PLAN.md
+Last session: 2026-03-30T17:58:51.186Z
+Stopped at: Completed 195-01-PLAN.md
 Resume with: /gsd:plan-phase 190
 Resume file: None
