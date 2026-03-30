@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.23
-milestone_name: Quality & Reliability Hardening
+milestone: v0.22
+milestone_name: Stakeholder Presentations — SHIPPED 2026-03-30
 status: executing
 stopped_at: Roadmap created for v0.23 (Phases 185-189)
-last_updated: "2026-03-30T06:13:53.941Z"
-last_activity: 2026-03-30 -- Phase 185 execution started
+last_updated: "2026-03-30T06:40:12.905Z"
+last_activity: 2026-03-30
 progress:
-  total_phases: 21
+  total_phases: 16
   completed_phases: 0
-  total_plans: 2
+  total_plans: 0
   completed_plans: 0
   percent: 0
 ---
@@ -25,10 +25,10 @@ See: .planning/PROJECT.md (updated 2026-03-29)
 
 ## Current Position
 
-Phase: 185 (data-integrity-baseline) — EXECUTING
-Plan: 1 of 2
+Phase: 185
+Plan: Not started
 Status: Executing Phase 185
-Last activity: 2026-03-30 -- Phase 185 execution started
+Last activity: 2026-03-30
 
 Progress: [░░░░░░░░░░] 0%
 
