@@ -86,7 +86,7 @@
 - [x] **Phase 178: Reference Personas + Rendering Engine** — executive summary and case study reference implementations, dual-format renderer (HTML+Markdown), EJS templates, self-contained HTML constraints, design artifact embedding (completed 2026-03-30)
 - [x] **Phase 179: SVG Charts** — burndown, velocity, phase timeline, effort breakdown charts as parametric inline SVG; accessible text alternatives (completed 2026-03-30)
 - [x] **Phase 180: Claim Verification + PDF Export** — post-generation claim verification against IR, mismatch flagging, verification footer, PDF export via Playwright (completed 2026-03-30)
-- [ ] **Phase 181: Remaining Cluster A Personas** — investor update, sprint review, client deliverable, stakeholder status update, product manager view, project manager view
+- [x] **Phase 181: Remaining Cluster A Personas** — investor update, sprint review, client deliverable, stakeholder status update, product manager view, project manager view (completed 2026-03-30)
 - [ ] **Phase 182: Remaining Cluster B Personas** — agile project report, design persona report, research persona report, technical post-mortem, ADR summary, launch announcement, portfolio overview
 - [ ] **Phase 183: Auto-Generation** — phase-completion hook, milestone-archive hook, state completion gate, configurable persona set, opt-out config flag
 - [ ] **Phase 184: Cross-Project Portfolio Synthesis** — multi-project reader, schema version detection, defensive extraction, /pde:portfolio command, portfolio narrative
@@ -289,7 +289,7 @@ Plans:
   3. Running `/pde:present client-deliverable` produces a feature-specs and ACs-met report with verification evidence
   4. Running `/pde:present stakeholder-status` produces a RAG-status, decisions-needed, and risks document
   5. Running `/pde:present pm-view` and `/pde:present project-manager-view` each produce their respective persona documents with the correct data emphasis and narrative arc
-**Plans:** 1/3 plans executed
+**Plans:** 3/3 plans complete
 Plans:
 - [ ] 181-01-PLAN.md — Investor update + sprint review builders, test scaffold
 - [ ] 181-02-PLAN.md — Client deliverable + stakeholder status builders, RAG logic
@@ -369,7 +369,7 @@ Plans:
 | 178. Reference Personas + Rendering Engine | v0.22 | 2/2 | Complete    | 2026-03-30 |
 | 179. SVG Charts | v0.22 | 1/1 | Complete    | 2026-03-30 |
 | 180. Claim Verification + PDF Export | v0.22 | 1/2 | Complete    | 2026-03-30 |
-| 181. Remaining Cluster A Personas | v0.22 | 1/3 | In Progress|  |
+| 181. Remaining Cluster A Personas | v0.22 | 1/3 | Complete    | 2026-03-30 |
 | 182. Remaining Cluster B Personas | v0.22 | 0/TBD | Not started | - |
 | 183. Auto-Generation | v0.22 | 0/TBD | Not started | - |
 | 184. Cross-Project Portfolio Synthesis | v0.22 | 0/TBD | Not started | - |
