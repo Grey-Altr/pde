@@ -1,5 +1,28 @@
 # Milestones
 
+## v0.24 Cloud Dispatch & State Sync (Shipped: 2026-03-30)
+
+**Phases completed:** 8 phases, 15 plans, 17 tasks
+
+**Key accomplishments:**
+
+- One-liner:
+- SessionSourceSchema Zod enum and VALID_SOURCES allowlist narrowing added to dashboard, enabling remote-cloud and docker session sources to flow correctly through queries.ts instead of silently falling back to 'local'
+- One-liner:
+- One-liner:
+- Sync.cjs wired into coordinator dispatch lifecycle: push before spawn for cloud backends, fetch+merge before session merge in _handleExit, with lock-based sequential ordering and fallback-to-local routing
+- One-liner:
+- Commit:
+- Priority-ordered classifyTaskRouting() pure function with cost ceiling, CLI/config override, and fast-path routing via 5-level decision tree
+- classifyTaskRouting() wired into coordinator.dispatch() with priority-ordered routing decisions, cost ceiling, fast-path, CLI --dispatch flag, and routing_decision observability events on every dispatch call
+- Extended SessionListItem with 5 sync/cost fields, added HTTP-based cloud session actions, and scaffolded DSH-01 through DSH-06 integration tests with source-inspection pattern
+- Source badges [C]/[D] with color styling, SyncStatePanel pane, Infrastructure Cost card, and 8-pane grid — all DSH-01/04/05 tests now passing
+- Per-server Docker container blocks on APPROVED_SERVERS playwright/stitch with isDockerAvailable() cache, getInstallCmd() docker run form, and getProbeTimeoutMs() startup-latency extension
+- One-liner:
+- One-liner:
+
+---
+
 ## v0.23 Quality & Reliability Hardening (Shipped: 2026-03-30)
 
 **Phases completed:** 5 phases, 9 plans, 16 tasks
