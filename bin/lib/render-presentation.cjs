@@ -1447,14 +1447,13 @@ function buildCrossPatterns(portfolioIR) {
     });
   });
 
-  // Collect research findings
-  const allFindings = [];
+  // Collect research topics
+  var allTopics = [];
   availableProjects.forEach(function(project) {
-    const research = (project.ir && project.ir.research) || {};
-    const findings = Array.isArray(research.findings) ? research.findings : [];
-    findings.forEach(function(f) {
-      const text = typeof f === 'string' ? f : (f.finding || '');
-      if (text) allFindings.push(escHtml(text));
+    var research = (project.ir && project.ir.research) || {};
+    var topics = Array.isArray(research.topics) ? research.topics : [];
+    topics.forEach(function(t) {
+      if (t) allTopics.push(escHtml(String(t)));
     });
   });
 
@@ -1467,14 +1466,14 @@ function buildCrossPatterns(portfolioIR) {
     html += `<h4>Key Architectural Decisions</h4><ul>${decisionsHtml}</ul>`;
   }
 
-  if (allFindings.length > 0) {
-    const findingsHtml = allFindings.slice(0, 6).map(function(f) {
-      return `<li>${f}</li>`;
+  if (allTopics.length > 0) {
+    var topicsHtml = allTopics.slice(0, 6).map(function(t) {
+      return '<li>' + t + '</li>';
     }).join('\n');
-    html += `<h4>Research Findings</h4><ul>${findingsHtml}</ul>`;
+    html += '<h4>Research Topics</h4><ul>' + topicsHtml + '</ul>';
   }
 
-  if (allDecisions.length === 0 && allFindings.length === 0) {
+  if (allDecisions.length === 0 && allTopics.length === 0) {
     html += '<p>No cross-project patterns extracted.</p>';
   }
 

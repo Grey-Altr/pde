@@ -63,7 +63,11 @@ function makeMinimalIR(name) {
       { summary: 'Extraction-first architecture', phase: 'roadmap' },
       { summary: 'TDD for all new modules', phase: 'phase-176' },
     ],
-    research: { findings: ['AI SDK patterns', 'schema version heterogeneity'] },
+    research: {
+      project_research_files: 2,
+      topics: ['ai-sdk-patterns', 'schema-heterogeneity'],
+      phase_research_count: 3,
+    },
     verification: { pass: true, checks: [] },
     cross_ref_warnings: [],
   };
