@@ -1,71 +1,58 @@
 'use strict';
 
 /**
- * remote-cloud.cjs — Cloud backend polling and session dispatch for PDE
+ * remote-cloud.cjs — Cloud session dispatch for Phase 193 Cloud Web Backend
  *
- * Phase 193: Cloud Web Backend
- * Satisfies: CLD-01, CLD-02
+ * Phase 193: Cloud Dispatch & State Sync
+ * Satisfies: CLD-01 (cloud session dispatch), CLD-02 (cloud polling lifecycle),
+ *            CLD-08 (auth probe integration)
  *
- * CloudPoller polls `claude task status <taskId> --json` on an interval to
- * track the lifecycle of a cloud-dispatched task. It emits synthetic NDJSON
- * event objects (cloud_heartbeat, session_end, cloud_error) that mirror the
- * shape expected by RemoteAggregator / Aggregator consumers.
+ * Provides:
+ *   CloudPoller — polls claude task status via CLI, emits synthetic NDJSON events
+ *   spawnCloudSession — async IIFE + synchronous kill handle (mirrors remote-ssh.cjs pattern)
  *
- * spawnCloudSession mirrors spawnRemoteSession() from remote-ssh.cjs:
- *   - Returns a synchronous kill handle immediately
- *   - Runs the async cloud lifecycle in a fire-and-forget IIFE
- *   - All CLI calls go through _deps.execCommand (DI for testability)
- *
- * CRITICAL NOTES:
- *   - `claude task start --remote` does NOT exist in CLI v2.1.87 — the async
- *     IIFE catches this gracefully and calls onExit(sessionId, 1).
- *   - CloudPoller.stop() is called on BOTH non-running status AND errors
- *     (Pitfall 5: prevents infinite error loop).
- *   - All CLI calls use execFile (safe, no shell injection).
+ * All CLI calls route through _deps.execCommand for testability.
+ * The `claude task start --remote` command does not exist in current CLI (v2.1.87);
+ * spawnCloudSession catches gracefully per Pitfall 2 from research.
  */
 
 const childProcess = require('node:child_process');
 
 /**
- * Default execCommand: safe execFile wrapper.
- * Splits a command string into binary + args array (no shell interpretation).
- * Returns a promise resolving to stdout.trim().
+ * Default execCommand: safe child_process.execFile wrapper.
+ * Splits command string into binary + args array (no shell injection).
  *
- * @param {string} cmd - Full command string (e.g. "claude task status abc123 --json")
- * @returns {Promise<string>}
+ * @param {string} cmd - Full command string (e.g. 'claude task status abc --json')
+ * @returns {Promise<string>} Resolves to stdout.trim()
  */
 function defaultExecCommand(cmd) {
+  const parts = cmd.split(/\s+/);
+  const bin = parts[0];
+  const args = parts.slice(1);
   return new Promise((resolve, reject) => {
-    const parts = cmd.split(/\s+/);
-    const bin = parts[0];
-    const args = parts.slice(1);
-    childProcess.execFile(bin, args, { timeout: 30000 }, (err, stdout, stderr) => {
-      if (err) {
-        reject(err);
-        return;
-      }
-      resolve(stdout.trim());
+    childProcess.execFile(bin, args, { timeout: 30000 }, (err, stdout) => {
+      if (err) reject(err);
+      else resolve(stdout.trim());
     });
   });
 }
 
 /**
- * CloudPoller — polls `claude task status <taskId> --json` at a fixed interval.
+ * CloudPoller — polls `claude task status {taskId} --json` on an interval.
+ * Emits synthetic NDJSON-compatible event objects via the onLine callback.
  *
- * Emits synthetic events to onLine:
+ * Event shapes:
  *   { event_type: 'cloud_heartbeat', session_id, ts, cloud_status: 'running' }
- *   { event_type: 'session_end', session_id, ts, cloud_status }
- *   { event_type: 'cloud_error', session_id, ts, error }
- *
- * Stops automatically when status is not 'running' or on CLI failure.
+ *   { event_type: 'session_end', session_id, ts, cloud_status: 'completed' }
+ *   { event_type: 'cloud_error', session_id, ts, error: string }
  */
 class CloudPoller {
   /**
-   * @param {string} taskId - Cloud task ID returned by `claude task start --remote`
-   * @param {function} onLine - Callback(event) for each poll result (event is an object)
+   * @param {string} taskId          - Cloud task ID to poll
+   * @param {function} onLine        - Callback(event object) for each poll result
    * @param {object} [opts]
-   * @param {number} [opts.pollInterval] - Poll interval in ms (default 5000)
-   * @param {function} [opts._execCommand] - DI override for execCommand
+   * @param {number} [opts.pollInterval=5000]  - Poll interval in ms
+   * @param {function} [opts._execCommand]     - Injectable execCommand for testing
    */
   constructor(taskId, onLine, opts) {
     this._taskId = taskId;
@@ -76,18 +63,14 @@ class CloudPoller {
   }
 
   /**
-   * Start polling. Begins emitting events every _interval ms.
+   * Start polling. Sets interval timer that calls _poll() periodically.
    */
   start() {
-    this._timer = setInterval(() => {
-      this._poll().catch(() => {
-        // _poll already handles errors internally; catch prevents unhandled rejection
-      });
-    }, this._interval);
+    this._timer = setInterval(() => { this._poll(); }, this._interval);
   }
 
   /**
-   * Stop polling. Safe to call multiple times.
+   * Stop polling. Clears the interval timer.
    */
   stop() {
     if (this._timer !== null) {
@@ -97,17 +80,23 @@ class CloudPoller {
   }
 
   /**
-   * Execute one poll cycle. Parses CLI JSON output and emits appropriate event.
-   * Stops polling when task is no longer running or on CLI failure.
+   * Execute one poll cycle. Called by the interval timer.
+   * On error or non-running status: stops the poller.
+   * @private
    */
   async _poll() {
     const ts = new Date().toISOString();
     try {
       const raw = await this._execCommand('claude task status ' + this._taskId + ' --json');
-      const parsed = JSON.parse(raw);
-      const cloudStatus = parsed.status || 'unknown';
+      let parsed;
+      try {
+        parsed = JSON.parse(raw);
+      } catch (_) {
+        parsed = {};
+      }
+      const status = parsed.status || 'unknown';
 
-      if (cloudStatus === 'running') {
+      if (status === 'running') {
         this._onLine({
           event_type: 'cloud_heartbeat',
           session_id: this._taskId,
@@ -115,14 +104,12 @@ class CloudPoller {
           cloud_status: 'running',
         });
       } else {
-        // Task completed (succeeded, failed, cancelled, or unknown status)
         this._onLine({
           event_type: 'session_end',
           session_id: this._taskId,
           ts,
-          cloud_status: cloudStatus,
+          cloud_status: status,
         });
-        // CRITICAL: stop polling — task is done (Pitfall 5)
         this.stop();
       }
     } catch (err) {
@@ -132,90 +119,77 @@ class CloudPoller {
         ts,
         error: err.message,
       });
-      // CRITICAL: stop polling on CLI failure — prevents infinite error loop (Pitfall 5)
       this.stop();
     }
   }
 }
 
 /**
- * Spawn a cloud task session via `claude task start --remote`.
- * Mirrors spawnRemoteSession() from remote-ssh.cjs: synchronous kill handle,
- * async IIFE for lifecycle management.
+ * Spawn a cloud session via the claude CLI.
+ * Mirrors spawnRemoteSession async IIFE + synchronous kill handle pattern.
  *
  * NOTE: `claude task start --remote` does not exist in CLI v2.1.87.
- * The async IIFE catches the CLI failure and calls onExit(sessionId, 1).
- * This is expected behavior per research (Pitfall 2).
+ * This function catches CLI failure gracefully — onExit(sessionId, 1) on error.
  *
  * @param {object} opts
- * @param {string} opts.sessionId      - PDE session ID
- * @param {number|string} opts.phase   - Phase number
- * @param {number|string} opts.plan    - Plan number
- * @param {object} [opts.cloudConfig]  - Cloud configuration block
- * @param {number} [opts.cloudConfig.poll_interval] - Override poll interval (ms)
- * @param {function} opts.onLine       - Callback(sessionId, event) for each cloud event
- * @param {function} opts.onExit       - Callback(sessionId, exitCode) on completion
- * @param {object} [opts._deps]        - DI: { execCommand } for testing
+ * @param {string} opts.sessionId       - PDE session ID for event correlation
+ * @param {string} [opts.relayId]       - UUID relay ID (passed through)
+ * @param {number|string} opts.phase    - Phase number
+ * @param {number|string} opts.plan     - Plan number
+ * @param {object} opts.cloudConfig     - dispatch.cloud config block
+ * @param {number} [opts.cloudConfig.poll_interval] - Poll interval ms (default 5000)
+ * @param {function} opts.onLine        - Callback(sessionId, eventObject)
+ * @param {function} opts.onExit        - Callback(sessionId, exitCode)
+ * @param {object} [opts._deps]         - DI: { execCommand } for testing
  * @returns {{ kill: function }}
  */
 function spawnCloudSession(opts) {
-  // DI for testability — production defaults to defaultExecCommand
   const execCommand = (opts._deps && opts._deps.execCommand) || defaultExecCommand;
-
-  // Declared in outer scope so kill() can reference poller before async IIFE settles
+  const sessionId = opts.sessionId;
+  const cloudConfig = opts.cloudConfig || {};
   let poller = null;
 
-  // Async IIFE — runs cloud lifecycle; synchronous return below gives caller kill handle
   (async () => {
-    const prompt =
-      'Execute phase ' + opts.phase + ', plan ' + opts.plan +
-      '. Run /gsd:execute-plan ' + opts.phase + ' ' + opts.plan + '.';
+    try {
+      const prompt = 'Run GSD plan phase=' + opts.phase + ' plan=' + opts.plan;
+      const raw = await execCommand('claude task start --remote "' + prompt + '"');
 
-    // Launch cloud task — this CLI command does not exist in v2.1.87 but is the
-    // intended interface; catches gracefully per Pitfall 2
-    const taskIdRaw = await execCommand('claude task start --remote "' + prompt + '"');
-    const taskId = taskIdRaw.trim();
-
-    const pollInterval = (opts.cloudConfig && opts.cloudConfig.poll_interval) || 5000;
-
-    poller = new CloudPoller(
-      taskId,
-      (event) => {
-        // Forward event to caller
-        opts.onLine(opts.sessionId, event);
-
-        // Handle terminal event types
-        if (event.event_type === 'session_end') {
-          opts.onExit(opts.sessionId, 0);
-        } else if (event.event_type === 'cloud_error') {
-          opts.onExit(opts.sessionId, 1);
-        }
-      },
-      {
-        pollInterval,
-        _execCommand: execCommand,
+      let taskId;
+      try {
+        const parsed = JSON.parse(raw);
+        taskId = parsed.taskId || parsed.id || raw.trim();
+      } catch (_) {
+        taskId = raw.trim();
       }
-    );
 
-    poller.start();
-  })().catch((err) => {
-    // Top-level async IIFE error (CLI not found, task start failed, etc.)
-    // Emit a cloud_error system event so callers can surface the failure
-    opts.onLine(opts.sessionId, {
-      event_type: 'cloud_error',
-      session_id: opts.sessionId,
-      ts: new Date().toISOString(),
-      error: err.message,
-    });
-    opts.onExit(opts.sessionId, 1);
+      poller = new CloudPoller(taskId, (event) => {
+        opts.onLine(sessionId, event);
+        if (event.event_type === 'session_end') {
+          opts.onExit(sessionId, 0);
+        } else if (event.event_type === 'cloud_error') {
+          opts.onExit(sessionId, 1);
+        }
+      }, {
+        pollInterval: cloudConfig.poll_interval || 5000,
+        _execCommand: execCommand,
+      });
+      poller.start();
+    } catch (err) {
+      opts.onLine(sessionId, {
+        event_type: 'cloud_error',
+        session_id: sessionId,
+        ts: new Date().toISOString(),
+        error: err.message,
+      });
+      opts.onExit(sessionId, 1);
+    }
+  })().catch(() => {
+    opts.onExit(sessionId, 1);
   });
 
-  // Return synchronous kill handle — callers can kill() before poller is created
   return {
     kill: () => {
-      if (poller) {
-        poller.stop();
-      }
+      if (poller) poller.stop();
     },
   };
 }

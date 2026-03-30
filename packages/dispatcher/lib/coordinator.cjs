@@ -58,6 +58,9 @@ const { spawnRemoteSession } = require('./remote-ssh.cjs');
 // Phase 191: Docker container dispatch
 const { spawnDockerSession } = require('../../cloud-adapter/index.cjs');
 
+// Phase 193: Cloud web backend dispatch
+const { spawnCloudSession } = require('./remote-cloud.cjs');
+
 // Phase 192: Git-based state sync
 const { pushPlanningState, fetchPlanningState, mergePlanningFromCloud } = require('./sync.cjs');
 
@@ -163,6 +166,10 @@ class DispatchCoordinator {
     // Phase 191: Docker container dispatch
     this._spawnDockerSession = deps.spawnDockerSession || spawnDockerSession;
     this._dockerConfig = (options.config && options.config.dispatch && options.config.dispatch.docker) || null;
+
+    // Phase 193: Cloud web backend dispatch
+    this._spawnCloudSession = deps.spawnCloudSession || spawnCloudSession;
+    this._cloudConfig = (options.config && options.config.dispatch && options.config.dispatch.cloud) || null;
   }
 
   /**
@@ -219,7 +226,22 @@ class DispatchCoordinator {
       isAutonomous,
       remoteConfig: this._remoteConfig,
       dockerConfig: this._dockerConfig,
+      cloudConfig: this._cloudConfig,
     });
+
+    // Phase 193: Determine requested backend BEFORE fallback — needed for routing_fallback event.
+    // Cloud is "requested" when either cloudConfig.enabled or remoteConfig.preferred_backend === 'cloud'.
+    const requestedBackend = (this._cloudConfig && this._cloudConfig.enabled)
+      ? 'cloud'
+      : (this._remoteConfig && this._remoteConfig.preferred_backend) || 'local';
+    if (requestedBackend === 'cloud' && backend !== 'cloud') {
+      this._aggregator.emit('event', 'system', {
+        type: 'system',
+        subtype: 'routing_fallback',
+        from: 'cloud',
+        to: backend,
+      });
+    }
 
     // 1. Acquire dispatcher lock
     const lockResult = this._acquireLock(this._root);
@@ -280,11 +302,14 @@ class DispatchCoordinator {
       this._relayIds.set(sessionId, relayId);
 
       // 7. Start aggregator watch — use relayId (UUID) so NDJSON path aligns with relay.cjs (D-11)
-      this._aggregator.watch(relayId);
+      // Phase 193: cloud sessions use RemoteAggregator (not TailCursor) — pass 'cloud' sessionType
+      const sessionType = (backend === 'cloud') ? 'cloud' : undefined;
+      this._aggregator.watch(relayId, sessionType);
 
       // Phase 152 (RLY-01): Spawn relay immediately (synchronous) so it is available before session
       // starts writing events. Keyed by coordinator sessionId for lookup in _handleExit.
-      if (backend !== 'ssh' && backend !== 'docker') {
+      // Phase 193: cloud sessions must NOT spawn relay — cloud manages its own lifecycle
+      if (backend !== 'ssh' && backend !== 'docker' && backend !== 'cloud') {
         const relayHandle = this._spawnRelay(relayId);
         this._relays.set(sessionId, relayHandle || { pid: null, kill: () => {} });
       }
@@ -294,6 +319,8 @@ class DispatchCoordinator {
         this._queue.add(() => this._runRemoteSession(sessionId, phaseNum, plan, worktreePath, branch, relayId));
       } else if (backend === 'docker') {
         this._queue.add(() => this._runDockerSession(sessionId, phaseNum, plan, worktreePath, branch, relayId));
+      } else if (backend === 'cloud') {
+        this._queue.add(() => this._runCloudSession(sessionId, phaseNum, plan, worktreePath, branch, relayId));
       } else {
         this._queue.add(() => this._runSession(sessionId, phaseNum, plan, worktreePath, branch, relayId));
       }
@@ -450,6 +477,42 @@ class DispatchCoordinator {
         },
       });
       // Note: no pid update for docker — container has no local PID. kill() uses containerInstance.kill()
+      this._sessions.set(sessionId, handle);
+    });
+  }
+
+  /**
+   * Internal: spawn and manage a cloud web backend session. Returns a Promise that
+   * resolves when the session completes (success or failure).
+   *
+   * Cloud sessions use RemoteAggregator (not TailCursor) — aggregator.watch is called
+   * with sessionType='cloud'. No relay is spawned — cloud manages its own lifecycle.
+   *
+   * @param {string} sessionId
+   * @param {number} phase
+   * @param {number|string} plan
+   * @param {string} worktreePath
+   * @param {string} branch
+   * @param {string} [relayId] - UUID relay ID for NDJSON correlation
+   * @returns {Promise<void>}
+   * @private
+   */
+  _runCloudSession(sessionId, phase, plan, worktreePath, branch, relayId) {
+    return new Promise((resolve) => {
+      const handle = this._spawnCloudSession({
+        sessionId,
+        relayId,
+        phase,
+        plan,
+        worktreePath,
+        cloudConfig: this._cloudConfig || {},
+        onLine: (sid, event) => {
+          this._aggregator.emit('event', sid, event);
+        },
+        onExit: (sid, exitCode) => {
+          this._handleExit(sid, exitCode, worktreePath, branch).then(resolve);
+        },
+      });
       this._sessions.set(sessionId, handle);
     });
   }

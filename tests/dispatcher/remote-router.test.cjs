@@ -76,11 +76,33 @@ describe('routeSession', () => {
 // ─── Tests: detectManagedBackend ─────────────────────────────────────────────
 
 describe('detectManagedBackend', () => {
-  it('returns unavailable in v0.18 (always { available: false })', async () => {
-    const result = await detectManagedBackend();
+  // Phase 193: detectManagedBackend now probes 'claude auth status --json' (CLD-08).
+  // Updated from v0.18 stub (always false) to real OAuth probe via _deps injection.
+  it('returns unavailable when authMethod !== "claude.ai" (stubbed _deps)', async () => {
+    const execCommand = vi.fn().mockResolvedValue(
+      JSON.stringify({ loggedIn: false, authMethod: 'none' })
+    );
+    const result = await detectManagedBackend({ execCommand });
     expect(result).toMatchObject({
       available: false,
-      reason: expect.stringContaining('GitHub'),
+      reason: expect.any(String),
+    });
+  });
+
+  it('returns available when authMethod === "claude.ai" (stubbed _deps)', async () => {
+    const execCommand = vi.fn().mockResolvedValue(
+      JSON.stringify({ loggedIn: true, authMethod: 'claude.ai' })
+    );
+    const result = await detectManagedBackend({ execCommand });
+    expect(result).toMatchObject({ available: true });
+  });
+
+  it('returns unavailable when CLI fails (stubbed _deps)', async () => {
+    const execCommand = vi.fn().mockRejectedValue(new Error('command not found'));
+    const result = await detectManagedBackend({ execCommand });
+    expect(result).toMatchObject({
+      available: false,
+      reason: expect.stringContaining('claude auth status failed'),
     });
   });
 });

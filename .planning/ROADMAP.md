@@ -499,8 +499,8 @@ Plans:
   3. Cloud container is torn down automatically on task completion with configurable idle timeout — no cloud sessions remain running after coordinator-cloud test completes
   4. Fallback chain cloud -> SSH -> local activates automatically when cloud probe returns unavailable, emitting a routing_fallback event
 **Plans:** 1/2 plans executed
-- [x] 193-01-PLAN.md — Core cloud modules: CloudPoller, spawnCloudSession, OAuth probe, RemoteAggregator wiring, cloud sourceLabel
-- [ ] 193-02-PLAN.md — Router cloud rules, coordinator _runCloudSession, relay guard, routing_fallback, coordinator-cloud.test.cjs
+- [ ] 193-01-PLAN.md — Core cloud modules: CloudPoller, spawnCloudSession, OAuth probe, RemoteAggregator wiring, cloud sourceLabel
+- [x] 193-02-PLAN.md — Router cloud rules, coordinator _runCloudSession, relay guard, routing_fallback, coordinator-cloud.test.cjs
 
 ### Phase 194: Intelligent Routing
 **Goal**: Tasks are automatically routed to the best execution backend based on PLAN.md metadata, user-configured cost ceilings, and manual overrides, with fast-path commands always staying local

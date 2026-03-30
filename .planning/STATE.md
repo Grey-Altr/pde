@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v0.24
 milestone_name: Cloud Dispatch & State Sync
 status: planning
-stopped_at: Completed 193-01-PLAN.md
-last_updated: "2026-03-30T16:34:18.084Z"
+stopped_at: Completed 193-02-PLAN.md
+last_updated: "2026-03-30T16:45:54.755Z"
 last_activity: 2026-03-30
 progress:
   total_phases: 29
@@ -58,8 +58,8 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 192]: CLOUD_BACKENDS=['docker','ssh','managed','cloud'] defined inline in coordinator dispatch() — no separate constant, matches research Pattern 5
 - [Phase 192]: Push after releaseLock in dispatch(): push is a slow network op that must not hold the dispatcher mutex
 - [Phase 192]: _handleExit cloud sync failure is non-fatal: session work stays in worktree, session merge recovers it — degraded mode not data loss
-- [Phase 193]: authMethod === 'claude.ai' (not github_connected) for OAuth probe — field does not exist in claude auth status --json v2.1.87
-- [Phase 193]: CloudPoller stops on BOTH non-running status AND errors to prevent infinite error loop
+- [Phase 193]: cloud routing probe via _detectManaged injection — same managed probe path, cloud is an elevated managed backend
+- [Phase 193]: routing_fallback emitted in coordinator (not router) — keeps router pure, router returns backend string only
 
 ### Pending Todos
 
@@ -72,7 +72,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-30T16:34:18.080Z
-Stopped at: Completed 193-01-PLAN.md
+Last session: 2026-03-30T16:45:54.752Z
+Stopped at: Completed 193-02-PLAN.md
 Resume with: /gsd:plan-phase 190
 Resume file: None
