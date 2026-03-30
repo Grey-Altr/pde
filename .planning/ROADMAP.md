@@ -377,7 +377,9 @@ Plans:
   1. Running npx vitest run reports pass/fail results only for vitest-compatible test files — the 137 node:test files no longer produce false "No test suite found" entries
   2. node:test files remain runnable via node --test and are not deleted or disabled — only excluded from vitest
   3. Running npx vitest run --coverage produces a coverage report showing lines and branch percentages per module in bin/lib/
-**Plans**: TBD
+**Plans**: 1/1 plans
+Plans:
+- [ ] 186-01-PLAN.md — Vitest exclude config for node:test files + coverage baseline setup
 
 ### Phase 187: IR Field Fix + Mock Reconciliation
 **Goal**: buildCrossPatterns reads the correct IR field names and produces non-empty cross-patterns sections for real PDE projects, and Phase 184 portfolio test mocks match the real IR shape so the test suite accurately reflects production behavior
@@ -388,7 +390,9 @@ Plans:
   2. buildCrossPatterns accesses ir.topics and ir.project_research_files instead of ir.research.findings — confirmed by reading the updated source
   3. All 23 Phase 184 portfolio tests pass after mock shapes are updated to match buildPresentationIR output — zero regressions
   4. The mock update is atomic with the code fix — no intermediate state where tests pass against wrong shapes
-**Plans**: TBD
+**Plans**: 1/1 plans
+Plans:
+- [ ] 186-01-PLAN.md — Vitest exclude config for node:test files + coverage baseline setup
 
 ### Phase 188: Verification Coverage
 **Goal**: All 9 v0.22 phases have Nyquist-compliant VALIDATION.md files, v0.7 SUMMARY.md files include one-liner frontmatter, and a pde-tools health consistency subcommand exists for detecting cross-artifact mismatches
@@ -399,7 +403,9 @@ Plans:
   2. Running any assertion from a VALIDATION.md file against its target produces a meaningful pass or fail — not just a key-existence check
   3. All 5 v0.7 SUMMARY.md files include a one-liner: frontmatter field with an accurate single-sentence description
   4. Running pde-tools health consistency [version] reports any mismatches between requirements file checkboxes, roadmap phase entries, and milestone plan entries for the given milestone version
-**Plans**: TBD
+**Plans**: 1/1 plans
+Plans:
+- [ ] 186-01-PLAN.md — Vitest exclude config for node:test files + coverage baseline setup
 
 ### Phase 189: Technical Debt Cleanup
 **Goal**: Stale workflow paths are corrected, dead-code and duplication reports are produced and triaged, and ESLint runs clean — establishing documented static-analysis baselines for future milestones
@@ -410,7 +416,9 @@ Plans:
   2. Running npx knip produces a dead-code report with each finding triaged as keep, remove, or defer — the report is committed as a tracked artifact
   3. Running npx jscpd produces a duplication report identifying copy-paste blocks above the configured threshold — the report is committed as a tracked artifact
   4. Running npx eslint . produces a clean pass or a documented exceptions file explaining each suppressed rule — no undocumented suppressions
-**Plans**: TBD
+**Plans**: 1/1 plans
+Plans:
+- [ ] 186-01-PLAN.md — Vitest exclude config for node:test files + coverage baseline setup
 
 
 ## Progress
