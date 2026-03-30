@@ -11,6 +11,7 @@ import type { SessionListItem } from '@/lib/queries';
 import type { ConnectionStatus } from '@/hooks/use-event-stream';
 import type { WireEnvelope } from '@/lib/wire-schema';
 import { ApprovalCard } from '@/components/approval-card';
+import { stopCloudSession, inspectCloudSession } from '@/app/actions';
 
 interface SessionDetailProps {
   session: SessionListItem;
@@ -52,6 +53,30 @@ export function SessionDetail({ session, connectionStatus, events, sessionId, in
           <p className="font-mono text-sm text-muted-foreground mt-2">
             Running {formatDuration(session.startedAt)}
           </p>
+          {(session.source === 'remote-cloud' || session.source === 'docker') && session.status === 'running' && (
+            <div className="flex gap-2 mt-3">
+              <button
+                className="px-3 py-1.5 text-xs font-medium rounded-md bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-colors"
+                onClick={async () => {
+                  const result = await stopCloudSession(session.id);
+                  if (!result.ok) alert(result.error);
+                }}
+              >
+                Stop Session
+              </button>
+              {session.cloudSessionUrl && (
+                <button
+                  className="px-3 py-1.5 text-xs font-medium rounded-md bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 transition-colors"
+                  onClick={async () => {
+                    const result = await inspectCloudSession(session.id);
+                    if (result.url) window.open(result.url, '_blank');
+                  }}
+                >
+                  Inspect
+                </button>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
 
