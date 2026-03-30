@@ -22,7 +22,7 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Cluster A Personas (Internal / Forward-Looking)
 
-- [ ] **CLU-01**: User can generate an executive summary (progress, blockers, timeline confidence, 1-page format)
+- [x] **CLU-01**: User can generate an executive summary (progress, blockers, timeline confidence, 1-page format)
 - [ ] **CLU-02**: User can generate an investor update (milestone velocity, technical moat, market positioning)
 - [ ] **CLU-03**: User can generate a sprint review (what shipped, demo screenshots, what's next)
 - [ ] **CLU-04**: User can generate a client deliverable report (feature specs, ACs met, screenshots)
@@ -32,7 +32,7 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Cluster B Personas (External / Retrospective)
 
-- [ ] **CLR-01**: User can generate a case study / portfolio piece (problem, approach, outcome, lessons)
+- [x] **CLR-01**: User can generate a case study / portfolio piece (problem, approach, outcome, lessons)
 - [ ] **CLR-02**: User can generate an agile project report (retro narrative + burndown/velocity metrics)
 - [ ] **CLR-03**: User can generate a design persona report (design decisions, system tokens, wireframe evolution, visual direction rationale)
 - [ ] **CLR-04**: User can generate a research persona report (findings summary, tech evaluations, competitive landscape, evidence-backed recommendations)
@@ -43,13 +43,13 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Rendering & Output
 
-- [ ] **RND-01**: Each persona generates self-contained HTML output (embedded CSS, no external URLs, no JavaScript, <500KB)
-- [ ] **RND-02**: Each persona generates Markdown output as secondary format (portable, diffable, git-friendly)
-- [ ] **RND-03**: HTML output includes auto-generated table of contents with anchor navigation
-- [ ] **RND-04**: HTML output embeds design artifact screenshots as inline base64 images where relevant
-- [ ] **RND-05**: HTML output uses PDE design tokens (colors, typography, spacing from DESIGN.md) for consistent branding
-- [ ] **RND-06**: Presentations persist to `.planning/presentations/` with `[persona]-[date].html` and `.md` naming
-- [ ] **RND-07**: User can regenerate/refresh a presentation (re-run overwrites with current project state)
+- [x] **RND-01**: Each persona generates self-contained HTML output (embedded CSS, no external URLs, no JavaScript, <500KB)
+- [x] **RND-02**: Each persona generates Markdown output as secondary format (portable, diffable, git-friendly)
+- [x] **RND-03**: HTML output includes auto-generated table of contents with anchor navigation
+- [x] **RND-04**: HTML output embeds design artifact screenshots as inline base64 images where relevant
+- [x] **RND-05**: HTML output uses PDE design tokens (colors, typography, spacing from DESIGN.md) for consistent branding
+- [x] **RND-06**: Presentations persist to `.planning/presentations/` with `[persona]-[date].html` and `.md` naming
+- [x] **RND-07**: User can regenerate/refresh a presentation (re-run overwrites with current project state)
 
 ### SVG Charts
 
@@ -144,15 +144,15 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CMD-04 | Phase 176 | Complete |
 | CMD-01 | Phase 177 | Complete |
 | CMD-02 | Phase 177 | Complete |
-| CLU-01 | Phase 178 | Pending |
-| CLR-01 | Phase 178 | Pending |
-| RND-01 | Phase 178 | Pending |
-| RND-02 | Phase 178 | Pending |
-| RND-03 | Phase 178 | Pending |
-| RND-04 | Phase 178 | Pending |
-| RND-05 | Phase 178 | Pending |
-| RND-06 | Phase 178 | Pending |
-| RND-07 | Phase 178 | Pending |
+| CLU-01 | Phase 178 | Complete |
+| CLR-01 | Phase 178 | Complete |
+| RND-01 | Phase 178 | Complete |
+| RND-02 | Phase 178 | Complete |
+| RND-03 | Phase 178 | Complete |
+| RND-04 | Phase 178 | Complete |
+| RND-05 | Phase 178 | Complete |
+| RND-06 | Phase 178 | Complete |
+| RND-07 | Phase 178 | Complete |
 | CHT-01 | Phase 179 | Pending |
 | CHT-02 | Phase 179 | Pending |
 | CHT-03 | Phase 179 | Pending |
