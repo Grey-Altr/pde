@@ -441,7 +441,7 @@ Plans:
 - [x] **Phase 194: Intelligent Routing** — Full classifyTaskRouting() integration, auto-classify from PLAN.md metadata, cost ceiling enforcement, manual --dispatch override, fast-path local guarantee, and routing event logging (completed 2026-03-30)
 - [x] **Phase 195: Dashboard Integration** — Cloud and Docker session labels, CloudPoller progress bars, start/stop/inspect UI, sync state display, cost tracking in Token Playground, and session_source type extension (completed 2026-03-30)
 - [x] **Phase 196: Containerized MCP Servers** — Per-server Docker containers for APPROVED_SERVERS with pinned runtimes and probe/degrade contract extension for container startup latency (completed 2026-03-30)
-- [ ] **Phase 197: Cross-Host Session Resume** — Agent SDK .jsonl persistence to shared storage and cwd encoding for cross-host session portability
+- [x] **Phase 197: Cross-Host Session Resume** — Agent SDK .jsonl persistence to shared storage and cwd encoding for cross-host session portability (completed 2026-03-30)
 
 #### Phase Details
 
@@ -553,7 +553,7 @@ Plans:
   1. Agent SDK .jsonl session files are persisted to configured shared storage on session completion — verified by reading the updated session persistence code
   2. Session resume on a different host succeeds when the shared storage entry exists — coordinator loads .jsonl from shared storage and resumes with matching cwd encoding
   3. cwd encoding is portable across hosts — a session started in /Users/alice/project resumes correctly on /home/alice/project via cwd normalization
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 Plans:
 - [ ] 197-01-PLAN.md — session-persist.cjs module (sanitization, persist, restore) + config keys + unit tests
 - [x] 197-02-PLAN.md — Coordinator integration: capture claudeSessionId, persist on exit, restore on resume
@@ -607,4 +607,4 @@ Plans:
 | 194. Intelligent Routing | v0.24 | 1/2 | Complete    | 2026-03-30 |
 | 195. Dashboard Integration | v0.24 | 2/2 | Complete    | 2026-03-30 |
 | 196. Containerized MCP Servers | v0.24 | 1/1 | Complete    | 2026-03-30 |
-| 197. Cross-Host Session Resume | v0.24 | 1/2 | In Progress|  |
+| 197. Cross-Host Session Resume | v0.24 | 1/2 | Complete    | 2026-03-30 |
