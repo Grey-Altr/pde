@@ -1673,6 +1673,17 @@ async function main() {
       break;
     }
 
+    case 'presentation': {
+      const subcommand = args[1];
+      const presentation = require('./lib/presentation.cjs');
+      if (subcommand === 'artifact-read') {
+        presentation.cmdPresentationArtifactRead(cwd, raw);
+      } else {
+        error('Unknown presentation subcommand. Available: artifact-read');
+      }
+      break;
+    }
+
     default:
       error(`Unknown command: ${command}`);
   }

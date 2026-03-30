@@ -685,6 +685,126 @@ function extractDecisions(cwd) {
   return decisions;
 }
 
+// ─── Cross-reference validation ───────────────────────────────────────────────
+
+/**
+ * Validate cross-references in the composed IR for consistency.
+ * Returns an array of warning strings (empty = clean). NON-BLOCKING.
+ *
+ * @param {object} ir - The composed presentation IR object
+ * @returns {string[]} Array of warning strings
+ */
+function crossRefValidate(ir) {
+  const warnings = [];
+
+  const phases = ir.phases;
+  const requirements = ir.requirements;
+  const verification = ir.verification;
+
+  // Only validate when data is available (no unavailable sentinel)
+  if (phases && !phases.unavailable) {
+    const total = phases.total;
+    const completed = phases.completed;
+
+    if (typeof completed === 'number' && typeof total === 'number') {
+      if (completed > total) {
+        warnings.push('completed phases exceeds total');
+      }
+    }
+
+    if (verification && !verification.unavailable) {
+      const phasesVerified = verification.phases_verified;
+      if (typeof phasesVerified === 'number' && typeof total === 'number') {
+        if (phasesVerified > total) {
+          warnings.push('verified phases exceeds total phases');
+        }
+      }
+    }
+  }
+
+  if (requirements && !requirements.unavailable) {
+    const reqTotal = requirements.total;
+    const reqCompleted = requirements.completed;
+
+    if (typeof reqCompleted === 'number' && typeof reqTotal === 'number') {
+      if (reqCompleted > reqTotal) {
+        warnings.push('completed requirements exceeds total');
+      }
+    }
+  }
+
+  return warnings;
+}
+
+// ─── IR composer ──────────────────────────────────────────────────────────────
+
+/**
+ * Build a complete Presentation IR by composing all 10 extractors.
+ * Adds metadata: schema_version, extracted_at, source_hash.
+ * Ensures .planning/presentations/ output directory exists.
+ * Runs cross-reference validation (non-blocking warnings).
+ *
+ * @param {string} cwd - Project root directory
+ * @returns {object} Complete presentation IR
+ */
+function buildPresentationIR(cwd) {
+  const crypto = require('crypto');
+
+  const blockerData = extractBlockers(cwd);
+
+  const ir = {
+    schema_version: '1.0',
+    extracted_at: new Date().toISOString(),
+    source_hash: '',
+    project: extractProjectIdentity(cwd),
+    phases: extractPhaseCompletion(cwd),
+    requirements: extractRequirements(cwd),
+    design_artifacts: extractDesignArtifacts(cwd),
+    git_velocity: extractGitVelocity(cwd),
+    cost_timing: extractCostTiming(cwd),
+    blockers: blockerData.blockers,
+    risks: blockerData.risks,
+    verification: extractVerification(cwd),
+    research: extractResearch(cwd),
+    decisions: extractDecisions(cwd),
+    output_dir: '.planning/presentations',
+    output_dir_created: false,
+    cross_ref_warnings: [],
+  };
+
+  // Compute source_hash: SHA-256 of key .planning files
+  const hashFiles = ['STATE.md', 'ROADMAP.md', 'REQUIREMENTS.md', 'PROJECT.md'];
+  const hashContent = hashFiles
+    .map(f => safeReadFile(path.join(cwd, '.planning', f)) || '')
+    .join('');
+  ir.source_hash = crypto.createHash('sha256').update(hashContent, 'utf-8').digest('hex');
+
+  // Run cross-reference validation
+  ir.cross_ref_warnings = crossRefValidate(ir);
+
+  // Ensure output directory exists
+  const presentationsDir = path.join(cwd, '.planning', 'presentations');
+  fs.mkdirSync(presentationsDir, { recursive: true });
+  ir.output_dir_created = true;
+
+  return ir;
+}
+
+// ─── CLI handler ──────────────────────────────────────────────────────────────
+
+/**
+ * CLI handler for `pde-tools presentation artifact-read`.
+ * Builds full IR and writes JSON to stdout via output().
+ *
+ * @param {string} cwd - Project root directory
+ * @param {boolean} raw - If true, pass raw flag to output()
+ */
+function cmdPresentationArtifactRead(cwd, raw) {
+  const { output } = require('./core.cjs');
+  const ir = buildPresentationIR(cwd);
+  output(ir, raw);
+}
+
 // ─── Exports ──────────────────────────────────────────────────────────────────
 
 module.exports = {
@@ -698,4 +818,7 @@ module.exports = {
   extractVerification,
   extractResearch,
   extractDecisions,
+  crossRefValidate,
+  buildPresentationIR,
+  cmdPresentationArtifactRead,
 };

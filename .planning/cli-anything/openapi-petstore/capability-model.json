@@ -1,0 +1,122 @@
+{
+  "meta": {
+    "source": "tests/phase-163/fixtures/openapi-petstore.json",
+    "type": "openapi",
+    "version": "3.0.0",
+    "auth": {
+      "api_key": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "api_key",
+        "scheme": null
+      }
+    },
+    "generatedAt": "2026-03-29T06:15:08.419Z"
+  },
+  "capabilities": [
+    {
+      "name": "listPets",
+      "description": "List all pets",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "limit": {
+            "type": "integer"
+          }
+        }
+      },
+      "outputSchema": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "required": [
+            "name"
+          ],
+          "properties": {
+            "id": {
+              "type": "integer"
+            },
+            "name": {
+              "type": "string"
+            },
+            "tag": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "method": "GET",
+      "path": "/pets",
+      "extensions": {
+        "operationId": "listPets",
+        "tags": []
+      }
+    },
+    {
+      "name": "createPet",
+      "description": "Create a pet",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "tag": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "outputSchema": null,
+      "method": "POST",
+      "path": "/pets",
+      "extensions": {
+        "operationId": "createPet",
+        "tags": []
+      }
+    },
+    {
+      "name": "getPet",
+      "description": "Get a pet by ID",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "petId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "petId"
+        ]
+      },
+      "outputSchema": {
+        "type": "object",
+        "required": [
+          "name"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "tag": {
+            "type": "string"
+          }
+        }
+      },
+      "method": "GET",
+      "path": "/pets/{petId}",
+      "extensions": {
+        "operationId": "getPet",
+        "tags": []
+      }
+    }
+  ]
+}

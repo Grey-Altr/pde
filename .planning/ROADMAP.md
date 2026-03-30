@@ -219,8 +219,8 @@ _Phases 171-175 archived to milestones/v0.21-ROADMAP.md_
 **Plans:** 1/3 plans executed
 Plans:
 - [ ] 176-01-PLAN.md — Core extractors (project identity, phases, requirements, design artifacts) + unit tests
-- [x] 176-02-PLAN.md — Remaining extractors (git velocity, cost/timing, blockers, verification, research, decisions) + unit tests
-- [ ] 176-03-PLAN.md — IR composer, cross-ref validation, pde-tools CLI routing, integration tests
+- [ ] 176-02-PLAN.md — Remaining extractors (git velocity, cost/timing, blockers, verification, research, decisions) + unit tests
+- [x] 176-03-PLAN.md — IR composer, cross-ref validation, pde-tools CLI routing, integration tests
 
 ### Phase 177: Command Interface + Workflow Shell
 **Goal**: Users can invoke `/pde:present [persona]` to generate a presentation, or `/pde:present` (no argument) to see all available personas with descriptions
