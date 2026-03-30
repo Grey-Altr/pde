@@ -87,7 +87,7 @@
 - [x] **Phase 179: SVG Charts** — burndown, velocity, phase timeline, effort breakdown charts as parametric inline SVG; accessible text alternatives (completed 2026-03-30)
 - [x] **Phase 180: Claim Verification + PDF Export** — post-generation claim verification against IR, mismatch flagging, verification footer, PDF export via Playwright (completed 2026-03-30)
 - [x] **Phase 181: Remaining Cluster A Personas** — investor update, sprint review, client deliverable, stakeholder status update, product manager view, project manager view (completed 2026-03-30)
-- [ ] **Phase 182: Remaining Cluster B Personas** — agile project report, design persona report, research persona report, technical post-mortem, ADR summary, launch announcement, portfolio overview
+- [x] **Phase 182: Remaining Cluster B Personas** — agile project report, design persona report, research persona report, technical post-mortem, ADR summary, launch announcement, portfolio overview (completed 2026-03-30)
 - [ ] **Phase 183: Auto-Generation** — phase-completion hook, milestone-archive hook, state completion gate, configurable persona set, opt-out config flag
 - [ ] **Phase 184: Cross-Project Portfolio Synthesis** — multi-project reader, schema version detection, defensive extraction, /pde:portfolio command, portfolio narrative
 
@@ -307,11 +307,11 @@ Plans:
   3. Running `/pde:present research-report` produces a findings summary with evidence-backed recommendations sourced from the research/ directory
   4. Running `/pde:present post-mortem`, `/pde:present adr-summary`, `/pde:present launch-announcement`, and `/pde:present portfolio-overview` each produce their respective documents with correct narrative arc and IR data
   5. All 15 personas are listed in the output of `/pde:present` (no argument) with accurate descriptions
-**Plans:** 2/3 plans executed
+**Plans:** 3/3 plans complete
 Plans:
 - [x] 182-01-PLAN.md — Agile report + design report + research report builders, test scaffold
 - [x] 182-02-PLAN.md — Post-mortem + ADR summary builders
-- [ ] 182-03-PLAN.md — Launch announcement + portfolio overview builders, complete test suite
+- [x] 182-03-PLAN.md — Launch announcement + portfolio overview builders, complete test suite
 **UI hint**: yes
 
 ### Phase 183: Auto-Generation
@@ -372,6 +372,6 @@ Plans:
 | 179. SVG Charts | v0.22 | 1/1 | Complete    | 2026-03-30 |
 | 180. Claim Verification + PDF Export | v0.22 | 1/2 | Complete    | 2026-03-30 |
 | 181. Remaining Cluster A Personas | v0.22 | 1/3 | Complete    | 2026-03-30 |
-| 182. Remaining Cluster B Personas | v0.22 | 2/3 | In Progress|  |
+| 182. Remaining Cluster B Personas | v0.22 | 3/3 | Complete   | 2026-03-30 |
 | 183. Auto-Generation | v0.22 | 0/TBD | Not started | - |
 | 184. Cross-Project Portfolio Synthesis | v0.22 | 0/TBD | Not started | - |
