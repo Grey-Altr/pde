@@ -36,8 +36,8 @@ Requirements for this milestone. Each maps to roadmap phases.
 - [x] **CLR-02**: User can generate an agile project report (retro narrative + burndown/velocity metrics)
 - [x] **CLR-03**: User can generate a design persona report (design decisions, system tokens, wireframe evolution, visual direction rationale)
 - [x] **CLR-04**: User can generate a research persona report (findings summary, tech evaluations, competitive landscape, evidence-backed recommendations)
-- [ ] **CLR-05**: User can generate a technical post-mortem (what broke, root cause, prevention)
-- [ ] **CLR-06**: User can generate an ADR summary (context, options considered, decision, consequences)
+- [x] **CLR-05**: User can generate a technical post-mortem (what broke, root cause, prevention)
+- [x] **CLR-06**: User can generate an ADR summary (context, options considered, decision, consequences)
 - [ ] **CLR-07**: User can generate a launch announcement (what it is, who it's for, how to start)
 - [ ] **CLR-08**: User can generate a portfolio overview (cross-project patterns, skills demonstrated)
 
@@ -174,8 +174,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CLR-02 | Phase 182 | Complete |
 | CLR-03 | Phase 182 | Complete |
 | CLR-04 | Phase 182 | Complete |
-| CLR-05 | Phase 182 | Pending |
-| CLR-06 | Phase 182 | Pending |
+| CLR-05 | Phase 182 | Complete |
+| CLR-06 | Phase 182 | Complete |
 | CLR-07 | Phase 182 | Pending |
 | CLR-08 | Phase 182 | Pending |
 | AUTO-01 | Phase 183 | Pending |
