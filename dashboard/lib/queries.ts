@@ -12,8 +12,10 @@ export interface SessionListItem {
   lastEventTs: number;
   startedAt: number;
   pendingApprovalId: string | null;  // APR-01: non-null when approval pending
-  source: 'local' | 'remote-ssh' | 'remote-managed';
+  source: 'local' | 'remote-ssh' | 'remote-managed' | 'remote-cloud' | 'docker';
 }
+
+const VALID_SOURCES: readonly string[] = ['local', 'remote-ssh', 'remote-managed', 'remote-cloud', 'docker'];
 
 /**
  * Returns the first approval_request event whose approval_id is not matched
@@ -53,8 +55,8 @@ export async function getSessions(): Promise<SessionListItem[]> {
     const startedAt = Number(raw.started_at ?? 0);
     const pendingApprovalId = raw.pending_approval_id || null;
     const rawSource = raw.session_source ?? 'local';
-    const source = (rawSource === 'remote-ssh' || rawSource === 'remote-managed')
-      ? (rawSource as 'remote-ssh' | 'remote-managed')
+    const source = VALID_SOURCES.includes(rawSource)
+      ? (rawSource as SessionListItem['source'])
       : 'local';
 
     sessions.push({
@@ -81,8 +83,8 @@ export async function getSessionMeta(sessionId: string): Promise<SessionListItem
   const startedAt = Number(raw.started_at ?? 0);
   const pendingApprovalId = raw.pending_approval_id || null;
   const rawSource = raw.session_source ?? 'local';
-  const source = (rawSource === 'remote-ssh' || rawSource === 'remote-managed')
-    ? (rawSource as 'remote-ssh' | 'remote-managed')
+  const source = VALID_SOURCES.includes(rawSource)
+    ? (rawSource as SessionListItem['source'])
     : 'local';
 
   return {

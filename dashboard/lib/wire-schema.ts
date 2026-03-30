@@ -1,5 +1,17 @@
 import { z } from 'zod';
 
+/** INF-03: Session source registry — all valid dispatch origins */
+export const SESSION_SOURCES = [
+  'local',
+  'remote-ssh',
+  'remote-managed',
+  'remote-cloud',
+  'docker',
+] as const;
+
+export const SessionSourceSchema = z.enum(SESSION_SOURCES);
+export type SessionSource = z.infer<typeof SessionSourceSchema>;
+
 export const WireEnvelopeSchema = z.object({
   seq:            z.number().int().nonnegative(),
   session_id:     z.string().uuid(),

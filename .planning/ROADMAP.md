@@ -457,8 +457,8 @@ Plans:
   5. Dispatch config block accepts cloud and docker settings — verified by config schema parse test
 **Plans:** 1/2 plans executed
 Plans:
-- [x] 190-01-PLAN.md — CJS dispatcher infrastructure (lock, aggregator, config) + cloud-adapter package scaffold
-- [ ] 190-02-PLAN.md — Dashboard SessionSource enum + queries.ts narrowing fix
+- [ ] 190-01-PLAN.md — CJS dispatcher infrastructure (lock, aggregator, config) + cloud-adapter package scaffold
+- [x] 190-02-PLAN.md — Dashboard SessionSource enum + queries.ts narrowing fix
 
 ### Phase 191: Docker Container Backend
 **Goal**: Users can dispatch a plan to a local Docker container that streams real NDJSON events through the existing event bus, with the same onLine/onExit interface as local spawn
