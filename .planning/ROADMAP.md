@@ -434,7 +434,7 @@ Plans:
 
 **Milestone Goal:** PDE can dispatch autonomous phase executions to ephemeral cloud containers and local Docker containers, synchronize .planning/ state back to the local orchestrator via git, and route tasks intelligently across local, Docker, SSH, and cloud backends with full dashboard visibility and cost tracking.
 
-- [ ] **Phase 190: Infrastructure Foundation** — Extended registry backend enum, SessionSource shared type, lock.cjs cloud-aware PID handling, aggregator RemoteAggregator stub, dispatch config block extension, and cloud adapter package scaffold
+- [x] **Phase 190: Infrastructure Foundation** — Extended registry backend enum, SessionSource shared type, lock.cjs cloud-aware PID handling, aggregator RemoteAggregator stub, dispatch config block extension, and cloud adapter package scaffold (completed 2026-03-30)
 - [ ] **Phase 191: Docker Container Backend** — remote-docker.cjs mirroring spawn.cjs interface, NDJSON stdout relay, coordinator Docker dispatch branch, [D] source label, and coordinator-docker tests
 - [ ] **Phase 192: Git-Based State Sync** — sync.cjs with pushPlanningState/fetchPlanningState, direction-aware merge strategy, simple-git in packages/, concurrent branch ordering, and sync tests against real worktree fixtures
 - [ ] **Phase 193: Cloud Web Backend** — remote-cloud.cjs with CloudPoller synthetic events, OAuth probe, cloud dispatch branch in coordinator, auto-teardown on completion, and graceful fallback chain
@@ -455,7 +455,7 @@ Plans:
   3. aggregator.cjs routes cloud session IDs to RemoteAggregator instead of TailCursor — no ghost cursors accumulate for cloud session IDs
   4. packages/cloud-adapter/ directory exists with package.json and the root plugin passes node require check with no extra npm packages at root
   5. Dispatch config block accepts cloud and docker settings — verified by config schema parse test
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 Plans:
 - [ ] 190-01-PLAN.md — CJS dispatcher infrastructure (lock, aggregator, config) + cloud-adapter package scaffold
 - [x] 190-02-PLAN.md — Dashboard SessionSource enum + queries.ts narrowing fix
@@ -578,7 +578,7 @@ Plans:
 | 187. IR Field Fix + Mock Reconciliation | v0.23 | 1/1 | Complete    | 2026-03-30 |
 | 188. Verification Coverage | v0.23 | 3/3 | Complete    | 2026-03-30 |
 | 189. Technical Debt Cleanup | v0.23 | 2/2 | Complete    | 2026-03-30 |
-| 190. Infrastructure Foundation | v0.24 | 1/2 | In Progress|  |
+| 190. Infrastructure Foundation | v0.24 | 1/2 | Complete    | 2026-03-30 |
 | 191. Docker Container Backend | v0.24 | 0/TBD | Not started | - |
 | 192. Git-Based State Sync | v0.24 | 0/TBD | Not started | - |
 | 193. Cloud Web Backend | v0.24 | 0/TBD | Not started | - |
