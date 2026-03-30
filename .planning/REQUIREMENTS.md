@@ -39,11 +39,11 @@ Requirements for Cloud Dispatch & State Sync. Each maps to roadmap phases.
 
 ### Dashboard Integration
 
-- [ ] **DSH-01**: Cloud sessions appear in dashboard health matrix with [C] source label
-- [ ] **DSH-02**: Cloud session progress bars and agent activity display using CloudPoller synthetic events
+- [x] **DSH-01**: Cloud sessions appear in dashboard health matrix with [C] source label
+- [x] **DSH-02**: Cloud session progress bars and agent activity display using CloudPoller synthetic events
 - [x] **DSH-03**: User can start, stop, and inspect cloud sessions from dashboard UI
-- [ ] **DSH-04**: Sync state display shows pending merges, last sync time, and conflict indicators
-- [ ] **DSH-05**: Container cost tracking shows uptime × rate alongside token cost in Token Playground
+- [x] **DSH-04**: Sync state display shows pending merges, last sync time, and conflict indicators
+- [x] **DSH-05**: Container cost tracking shows uptime × rate alongside token cost in Token Playground
 - [x] **DSH-06**: session_source union type extended with 'remote-cloud' and 'docker' values
 
 ### Infrastructure
@@ -111,11 +111,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | RTG-04 | Phase 194 | Complete |
 | RTG-05 | Phase 194 | Complete |
 | RTG-06 | Phase 194 | Complete |
-| DSH-01 | Phase 195 | Pending |
-| DSH-02 | Phase 195 | Pending |
+| DSH-01 | Phase 195 | Complete |
+| DSH-02 | Phase 195 | Complete |
 | DSH-03 | Phase 195 | Complete |
-| DSH-04 | Phase 195 | Pending |
-| DSH-05 | Phase 195 | Pending |
+| DSH-04 | Phase 195 | Complete |
+| DSH-05 | Phase 195 | Complete |
 | DSH-06 | Phase 195 | Complete |
 | INF-01 | Phase 190 | Pending |
 | INF-02 | Phase 190 | Pending |

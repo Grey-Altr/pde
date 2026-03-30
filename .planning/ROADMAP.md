@@ -439,7 +439,7 @@ Plans:
 - [x] **Phase 192: Git-Based State Sync** — sync.cjs with pushPlanningState/fetchPlanningState, direction-aware merge strategy, simple-git in packages/, concurrent branch ordering, and sync tests against real worktree fixtures (completed 2026-03-30)
 - [x] **Phase 193: Cloud Web Backend** — remote-cloud.cjs with CloudPoller synthetic events, OAuth probe, cloud dispatch branch in coordinator, auto-teardown on completion, and graceful fallback chain (completed 2026-03-30)
 - [x] **Phase 194: Intelligent Routing** — Full classifyTaskRouting() integration, auto-classify from PLAN.md metadata, cost ceiling enforcement, manual --dispatch override, fast-path local guarantee, and routing event logging (completed 2026-03-30)
-- [ ] **Phase 195: Dashboard Integration** — Cloud and Docker session labels, CloudPoller progress bars, start/stop/inspect UI, sync state display, cost tracking in Token Playground, and session_source type extension
+- [x] **Phase 195: Dashboard Integration** — Cloud and Docker session labels, CloudPoller progress bars, start/stop/inspect UI, sync state display, cost tracking in Token Playground, and session_source type extension (completed 2026-03-30)
 - [ ] **Phase 196: Containerized MCP Servers** — Per-server Docker containers for APPROVED_SERVERS with pinned runtimes and probe/degrade contract extension for container startup latency
 - [ ] **Phase 197: Cross-Host Session Resume** — Agent SDK .jsonl persistence to shared storage and cwd encoding for cross-host session portability
 
@@ -530,7 +530,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 - [x] 195-01-PLAN.md — Data layer extension, cloud session actions, test scaffold (DSH-03, DSH-06)
-- [ ] 195-02-PLAN.md — Health matrix UI, SyncStatePanel, PaneGrid 8-pane, Token Playground infra cost (DSH-01, DSH-02, DSH-04, DSH-05)
+- [x] 195-02-PLAN.md — Health matrix UI, SyncStatePanel, PaneGrid 8-pane, Token Playground infra cost (DSH-01, DSH-02, DSH-04, DSH-05)
 **UI hint**: yes
 
 ### Phase 196: Containerized MCP Servers
@@ -597,6 +597,6 @@ Plans:
 | 192. Git-Based State Sync | v0.24 | 2/2 | Complete    | 2026-03-30 |
 | 193. Cloud Web Backend | v0.24 | 1/2 | Complete    | 2026-03-30 |
 | 194. Intelligent Routing | v0.24 | 1/2 | Complete    | 2026-03-30 |
-| 195. Dashboard Integration | v0.24 | 1/2 | In Progress|  |
+| 195. Dashboard Integration | v0.24 | 2/2 | Complete   | 2026-03-30 |
 | 196. Containerized MCP Servers | v0.24 | 0/TBD | Not started | - |
 | 197. Cross-Host Session Resume | v0.24 | 0/TBD | Not started | - |

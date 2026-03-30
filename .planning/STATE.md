@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v0.24
 milestone_name: Cloud Dispatch & State Sync
-status: executing
-stopped_at: Completed 195-01-PLAN.md
-last_updated: "2026-03-30T17:58:51.190Z"
+status: verifying
+stopped_at: Completed 195-02-PLAN.md
+last_updated: "2026-03-30T18:04:07.922Z"
 last_activity: 2026-03-30
 progress:
   total_phases: 29
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 12
-  completed_plans: 11
+  completed_plans: 12
   percent: 0
 ---
 
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-03-30)
 
 Phase: 195 (Dashboard Integration) — EXECUTING
 Plan: 2 of 2
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-03-30
 
 Progress: [░░░░░░░░░░] 0%
@@ -64,6 +64,8 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 194]: routing_decision event emitted after classifyResult applied — event reflects final backend not initialBackend from routeSession
 - [Phase 195]: stopCloudSession uses HTTP fetch to PDE_DISPATCHER_URL — never process.kill (cloud sessions have no local PID)
 - [Phase 195]: infraCostUsdCents computed at ingest time from container_uptime_s using PDE_INFRA_COST_RATE_CENTS_PER_HOUR env var on session_end event
+- [Phase 195]: formatCost takes USD float not cents — divide infraCostUsdCents by 100 at all call sites
+- [Phase 195]: PaneGrid row 3 backwards-compat: col-span-3 on pane 6 when children[7] absent
 
 ### Pending Todos
 
@@ -76,7 +78,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-30T17:58:51.186Z
-Stopped at: Completed 195-01-PLAN.md
+Last session: 2026-03-30T18:04:07.918Z
+Stopped at: Completed 195-02-PLAN.md
 Resume with: /gsd:plan-phase 190
 Resume file: None
