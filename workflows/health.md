@@ -122,6 +122,51 @@ node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" validate health
 Report final status.
 </step>
 
+<step name="display_firecrawl_status">
+**Display Firecrawl MCP status and credit balance:**
+
+Check Firecrawl MCP status and credit balance:
+
+```bash
+node --input-type=module <<'FC_EOF'
+import { createRequire } from 'module';
+const req = createRequire(import.meta.url);
+const { probeFirecrawl, readFirecrawlCredits } = req(`${process.env.CLAUDE_PLUGIN_ROOT}/bin/lib/mcp-bridge.cjs`);
+const probe = probeFirecrawl({ skipMcpProbe: true });
+const credits = readFirecrawlCredits();
+const status = probe.available ? 'connected' : probe.reason;
+const creditLine = credits
+  ? `${credits.remaining.toLocaleString()} / ${credits.total.toLocaleString()} credits remaining`
+  : 'no credit data cached';
+const warning = probe.warning ? ' -- approaching credit limit' : '';
+process.stdout.write(JSON.stringify({ status, creditLine, warning }));
+FC_EOF
+```
+
+Display in health output:
+
+```
+## Firecrawl MCP
+
+| Check | Status |
+|-------|--------|
+| API Key | {FIRECRAWL_API_KEY set ? "configured" : "not set"} |
+| Connection | {Firecrawl: connected / not configured / quota_exhausted} |
+| Credits | {remaining / total credits remaining} |
+| Warning | {approaching credit limit / none} |
+```
+
+If probe.available is false and reason is 'no_api_key':
+```
+Firecrawl: not configured -- run AUTH_INSTRUCTIONS to set up
+```
+
+If probe.available is true:
+```
+Firecrawl: connected -- {credits.remaining}/{credits.total} credits remaining{warning}
+```
+</step>
+
 </process>
 
 <error_codes>

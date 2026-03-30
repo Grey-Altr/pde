@@ -470,6 +470,100 @@ When unavailable:
 {timestamp} | {skill_code} | context7 | {probe|resolve-library|get-docs} | {result} | {duration_ms}
 ```
 
+### Firecrawl MCP
+
+**Purpose:** Deep web scraping, search, crawl, structured extraction, and autonomous research agent.
+**Package:** `firecrawl-mcp` via npx
+**Transport:** stdio (via npx)
+**Install:** `claude mcp add firecrawl -e FIRECRAWL_API_KEY=$FIRECRAWL_API_KEY -- npx -y firecrawl-mcp`
+**Stability:** STABLE
+**Credit cost:** Variable (0.2-5 credits/operation). See credit costs table in 198-RESEARCH.md.
+
+#### Probe
+
+```
+Attempt: mcp__firecrawl__search with { query: "test", limit: 1 }
+Result:
+  - Tool responds with search results: FIRECRAWL_AVAILABLE = true
+  - Tool not found, auth error, or timeout: FIRECRAWL_AVAILABLE = false
+```
+
+**Timeout:** 15 seconds
+**Retry:** 0 (degrade immediately -- credit cost on each attempt)
+
+**Pre-probe checks (via probeFirecrawl() in mcp-bridge.cjs):**
+1. Check --no-firecrawl flag -> skip probe, FIRECRAWL_AVAILABLE = false
+2. Check process.env.FIRECRAWL_API_KEY exists -> if not, FIRECRAWL_AVAILABLE = false
+3. Check credit balance via checkFirecrawlCredits():
+   - quota_exhausted -> FIRECRAWL_AVAILABLE = false (degrade silently)
+   - quota_warning -> FIRECRAWL_AVAILABLE = true (proceed with warning)
+   - ok -> FIRECRAWL_AVAILABLE = true
+
+**Workflow integration pattern:**
+```
+node --input-type=module <<'PROBE_EOF'
+import { createRequire } from 'module';
+const req = createRequire(import.meta.url);
+const { probeFirecrawl } = req(`${process.env.CLAUDE_PLUGIN_ROOT}/bin/lib/mcp-bridge.cjs`);
+const result = probeFirecrawl();
+process.stdout.write(JSON.stringify(result));
+PROBE_EOF
+```
+
+Parse the JSON result. If `result.available === true`, set `FIRECRAWL_AVAILABLE = true`.
+If `result.warning === true`, emit: `Warning: Firecrawl credits at ${result.credits.remaining}/${result.credits.total} -- approaching limit`
+
+#### Enhancement Recipes
+
+**Web Scraping** (all Firecrawl-consuming workflows):
+1. Use firecrawl_scrape for JS-rendered pages that WebFetch cannot access
+2. Use firecrawl_search for web research with category/time filters
+3. Use firecrawl_extract for structured data extraction with JSON schema
+4. Use firecrawl_map to discover URLs before crawling
+5. Tag: `[Enhanced by Firecrawl MCP -- deep web scraping]`
+
+**Competitive Intelligence** (/pde:competitive, /pde:recommend):
+1. Use firecrawl_search to find competitor pages
+2. Use firecrawl_extract with pricing/features schema
+3. Tag: `[Enhanced by Firecrawl MCP -- competitor data extracted]`
+
+#### Degradation (Fallback to WebSearch/WebFetch)
+
+When FIRECRAWL_AVAILABLE = false (any reason: no API key, credits exhausted, probe failed, --no-firecrawl):
+- Replace firecrawl_scrape calls with WebFetch (free, no JS rendering)
+- Replace firecrawl_search calls with WebSearch (free, less precise)
+- Replace firecrawl_extract calls with WebFetch + manual parsing (no structured extraction)
+- Replace firecrawl_map calls with WebFetch on sitemap.xml (best effort)
+- firecrawl_crawl, firecrawl_agent, firecrawl_interact have NO free fallback -- skip those operations
+- Tag: `[Baseline mode -- Firecrawl unavailable, using WebSearch/WebFetch]`
+- No user prompt required -- silent fallback
+- No hard failure -- workflow continues with reduced capability
+
+**Fallback mapping table:**
+
+| Firecrawl Tool | Fallback | Limitation |
+|----------------|----------|------------|
+| firecrawl_scrape | WebFetch | No JS rendering, may miss dynamic content |
+| firecrawl_search | WebSearch | Less precise filtering, no category/time params |
+| firecrawl_extract | WebFetch + manual parse | No LLM-powered extraction, schema not enforced |
+| firecrawl_map | WebFetch sitemap.xml | Only works if sitemap exists |
+| firecrawl_crawl | Skip | No free equivalent for multi-page crawl |
+| firecrawl_agent | Skip | No free equivalent for autonomous research |
+| firecrawl_interact | Skip | No free equivalent for browser sessions |
+
+#### Credit Guard Integration
+
+Before every Firecrawl tool call in a workflow:
+1. Call `checkFirecrawlCredits()` -- if exhausted, fall back to WebSearch/WebFetch
+2. After successful call, call `incrementFirecrawlUsage(creditCost)` with the operation's credit cost
+3. Call `acquireFirecrawlSemaphore()` before the tool call, `release()` after -- enforces max-2-parallel
+
+#### Log Entry
+
+```
+{timestamp} | {skill_code} | firecrawl | {probe|scrape|search|extract|map|crawl|agent} | {result} | {duration_ms}
+```
+
 ### Reference MCP (PDE)
 
 **Purpose:** Efficient section-level queries into PDE reference files with tier-aware filtering.
@@ -733,6 +827,17 @@ Different MCP data has different freshness requirements.
 | Stale docs | Context7 index not updated | Clear session cache. Context7 updates their index independently |
 | Timeout (>10s) | Network issues | Fall back to training knowledge. Context7 requires internet |
 
+### Firecrawl MCP
+
+| Issue | Cause | Fix |
+|-------|-------|-----|
+| Tool not found | MCP not installed | `claude mcp add firecrawl -e FIRECRAWL_API_KEY=$FIRECRAWL_API_KEY -- npx -y firecrawl-mcp` |
+| Auth error / 401 | Invalid or missing FIRECRAWL_API_KEY | Get key from firecrawl.dev/app/api-keys. Set in .env |
+| Credits exhausted | Monthly budget consumed | Wait for reset or upgrade plan. Workflows fall back to WebSearch/WebFetch |
+| Timeout (>15s) | Network issues or Firecrawl service degraded | Degrade to WebSearch/WebFetch. Use --no-firecrawl flag |
+| FIRECRAWL_CONCURRENCY_LIMIT | 2+ parallel Firecrawl operations | Wait for running operation to finish. Semaphore auto-releases after 5 min |
+| Credit warning at 80% | Approaching monthly limit | Monitor usage. Consider reducing firecrawl_crawl/agent calls (highest cost) |
+
 ### Reference MCP (PDE)
 
 | Issue | Cause | Fix |
@@ -765,6 +870,9 @@ claude mcp add a11y -- npx -y a11y-mcp
 
 # Context7 (should already be installed):
 claude mcp add context7 -- npx -y @upstash/context7-mcp@latest
+
+# Firecrawl (requires API key from firecrawl.dev):
+claude mcp add firecrawl -e FIRECRAWL_API_KEY=$FIRECRAWL_API_KEY -- npx -y firecrawl-mcp
 
 # Reference MCP (PDE -- bundled with PDE-OS):
 # Installed automatically by /pde:setup or during PDE installation
