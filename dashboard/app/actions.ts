@@ -169,6 +169,55 @@ export async function killSession(sessionId: string): Promise<ActionResult> {
   return { ok: true };
 }
 
+export async function startCloudSession(phase: number, plan: number): Promise<ActionResult> {
+  const { isAuthenticated } = await auth();
+  if (!isAuthenticated) return { ok: false, error: 'Unauthorized' };
+
+  const dispatcherUrl = process.env.PDE_DISPATCHER_URL;
+  if (!dispatcherUrl) return { ok: false, error: 'PDE_DISPATCHER_URL not configured' };
+
+  try {
+    const res = await fetch(`${dispatcherUrl}/api/dispatch`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ phase, plan, backend: 'cloud' }),
+    });
+    if (!res.ok) return { ok: false, error: `Dispatcher returned ${res.status}` };
+    const data = await res.json() as { sessionId?: string };
+    return { ok: true, error: data.sessionId };
+  } catch (err) {
+    return { ok: false, error: String(err) };
+  }
+}
+
+export async function stopCloudSession(sessionId: string): Promise<ActionResult> {
+  const { isAuthenticated } = await auth();
+  if (!isAuthenticated) return { ok: false, error: 'Unauthorized' };
+
+  const dispatcherUrl = process.env.PDE_DISPATCHER_URL;
+  if (!dispatcherUrl) return { ok: false, error: 'PDE_DISPATCHER_URL not configured' };
+
+  try {
+    const res = await fetch(`${dispatcherUrl}/api/sessions/${sessionId}/kill`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    if (!res.ok) return { ok: false, error: `Dispatcher returned ${res.status}` };
+    return { ok: true };
+  } catch (err) {
+    return { ok: false, error: String(err) };
+  }
+}
+
+export async function inspectCloudSession(sessionId: string): Promise<{ url: string | null; status: string }> {
+  const raw = await redis.hgetall(`pde:default:session:${sessionId}`) as Record<string, string> | null;
+  if (!raw) return { url: null, status: 'not_found' };
+  return {
+    url: raw.cloud_session_url || null,
+    status: raw.status || 'unknown',
+  };
+}
+
 export async function persistSessionCost(
   sessionId: string,
   inputTokensDelta: number,
