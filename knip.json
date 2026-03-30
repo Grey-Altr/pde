@@ -1,0 +1,14 @@
+{
+  "entry": ["bin/pde-tools.cjs", "bin/*.cjs", "packages/*/index.cjs", "packages/*/discover.cjs", "packages/*/handlers.cjs"],
+  "project": ["bin/**/*.cjs", "lib/**/*.cjs", "packages/**/*.cjs", "packages/**/*.ts"],
+  "ignore": [
+    ".planning/**",
+    "dashboard/**",
+    "coverage/**",
+    ".claude/**",
+    ".sessions/**",
+    ".tmp-git-commit.mjs"
+  ],
+  "ignoreDependencies": ["@fontsource/inter", "@gltf-transform/cli", "@gltf-transform/core", "htm", "inter-ui"],
+  "ignoreExportsUsedInFile": true
+}
