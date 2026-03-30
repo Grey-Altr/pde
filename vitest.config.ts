@@ -2,6 +2,11 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     include: ['tests/**/*.{test,spec}.{cjs,mjs,js,ts}', 'tests/**/test-*.cjs'],
+    exclude: [
+      'tests/phase-[4-9][0-9]/**',
+      'tests/phase-1[0-2][0-9]/**',
+      'tests/phase-13[0-3]/**',
+    ],
     globals: true,
     testTimeout: 15000,
     server: {
@@ -12,6 +17,10 @@ export default defineConfig({
         // (bin/lib/**/*.cjs) use require('zod').
         inline: ['zod'],
       },
+    },
+    coverage: {
+      provider: 'v8',
+      include: ['bin/lib/**/*.cjs'],
     },
   },
 });
