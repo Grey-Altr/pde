@@ -1,16 +1,16 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.24
-milestone_name: Cloud Dispatch & State Sync
-status: verifying
-stopped_at: Completed 197-02-PLAN.md
-last_updated: "2026-03-30T19:06:20.052Z"
+milestone: v0.25
+milestone_name: Firecrawl Deep Web Integration
+status: defining_requirements
+stopped_at: null
+last_updated: "2026-03-30T20:00:00.000Z"
 last_activity: 2026-03-30
 progress:
-  total_phases: 29
-  completed_phases: 8
-  total_plans: 15
-  completed_plans: 15
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
   percent: 0
 ---
 
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-30)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 195 — Dashboard Integration
+**Current focus:** Defining requirements for v0.25
 
 ## Current Position
 
-Phase: 197
-Plan: Not started
-Status: Phase complete — ready for verification
-Last activity: 2026-03-30
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-03-30 — Milestone v0.25 started
 
 Progress: [░░░░░░░░░░] 0%
 

@@ -220,21 +220,27 @@ Any user can go from idea to shipped product through a single platform that hand
 - ✓ Production hardening: rate limiting, 7-day Redis TTL, event downsampling, 1000-event buffer cap, daily cron GC — v0.17
 - ✓ 107 tests across 15 files, 27/27 requirements satisfied, full Nyquist compliance — v0.17
 
-## Current Milestone: v0.24 Cloud Dispatch & State Sync
+## Current Milestone: v0.25 Firecrawl Deep Web Integration
 
-**Goal:** Enable PDE to route autonomous work to cloud instances (claude --remote, SSH, Docker containers) with git-based .planning/ state sync, intelligent task routing, and full dashboard integration for remote session management.
+**Goal:** Integrate Firecrawl's full capability set (scrape, search, crawl, map, browser, agent) across PDE's pipeline — source ingestion, research, competitive analysis, design reference, browser automation, and change tracking.
 
 **Target features:**
-- Cloud dispatch to `claude --remote` with session lifecycle management
-- Docker container dispatch for heavier/isolated workloads
-- SSH remote dispatch extended with cloud routing (builds on v0.18)
-- Git-based .planning/ state sync with conflict resolution (extends v0.16 3-way merge)
-- Hybrid auto+override routing — auto-classify phases as interactive/autonomous, user can override
-- Dashboard integration — remote session status, cloud instance management, sync state visibility
+- Firecrawl CLI setup and authentication infrastructure
+- Source material ingestion from URLs via `/pde:source` enhancement
+- Research agent enhancement with Firecrawl scrape+search
+- Competitive analysis with live site crawling and extraction
+- Documentation crawling for phase research context
+- Cloud browser sandbox integration (screenshots, visual testing, smoke tests)
+- Design reference scraping for wireframe/mockup/system inspiration
+- Firecrawl agent delegation for autonomous web research
+- Site mapping and discovery for CLI ingestion pipeline
+- Change tracking for competitor/dependency monitoring
 
 ## Current State
 
-**All milestones through v0.23 shipped.** 23 milestones, 189 phases, from idea to production in 15 days.
+**All milestones through v0.24 shipped.** 24 milestones, 197 phases, from idea to production in 15 days.
+
+**v0.24 Cloud Dispatch & State Sync shipped** (2026-03-30) — 8 phases (190-197), 15 plans, 33 requirements. Docker container dispatch, cloud VM dispatch via claude --remote, git-based state sync with direction-aware merge, intelligent cost-aware routing, cross-host session resume, containerized MCP servers.
 
 **v0.23 Quality & Reliability Hardening shipped** (2026-03-30) — 5 phases (185-189), 9 plans, 15 requirements. Data integrity baseline, vitest infrastructure, IR field fix, Nyquist verification coverage for v0.22, health consistency CLI, ESLint/knip/jscpd static analysis baselines.
 
