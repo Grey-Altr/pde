@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v0.22
 milestone_name: Stakeholder Presentations
 status: verifying
-stopped_at: Completed 178-02-PLAN.md
-last_updated: "2026-03-30T01:51:33.935Z"
+stopped_at: Completed 179-01-PLAN.md
+last_updated: "2026-03-30T02:08:21.703Z"
 last_activity: 2026-03-30
 progress:
   total_phases: 16
-  completed_phases: 3
-  total_plans: 6
-  completed_plans: 6
+  completed_phases: 4
+  total_plans: 7
+  completed_plans: 7
   percent: 0
 ---
 
@@ -58,6 +58,8 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 178]: Section-Based Document Model: single sections array drives both HTML and MD renderers for content parity
 - [Phase 178]: PDE design tokens hardcoded in renderer CSS: dark GitHub-inspired theme, discoverable via design-manifest.json in future
 - [Phase 178]: Workflow Step 6 delegates rendering to pde-tools CLI — keeps workflow thin, rendering logic encapsulated in render-presentation.cjs
+- [Phase 179-svg-charts]: SVG chart colors hardcoded as hex values — CSS custom properties unreliable in SVG fill attributes in self-contained HTML
+- [Phase 179-svg-charts]: Burndown chart uses synthetic linear approximation from IR aggregate counts — per-phase snapshots not stored in IR
 
 ### Pending Todos
 
@@ -70,7 +72,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-30T01:47:27.259Z
-Stopped at: Completed 178-02-PLAN.md
+Last session: 2026-03-30T02:08:21.700Z
+Stopped at: Completed 179-01-PLAN.md
 Resume with: `/gsd:plan-phase 176`
 Resume file: None

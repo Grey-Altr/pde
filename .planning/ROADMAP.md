@@ -84,7 +84,7 @@
 - [x] **Phase 176: Data Extraction IR Foundation** — artifact reader, IR builder, pde-tools subcommand, source-of-truth mapping, output directory, auto-gen gate design (completed 2026-03-30)
 - [x] **Phase 177: Command Interface + Workflow Shell** — /pde:present command, workflow file, persona listing, persona dispatch routing (completed 2026-03-30)
 - [x] **Phase 178: Reference Personas + Rendering Engine** — executive summary and case study reference implementations, dual-format renderer (HTML+Markdown), EJS templates, self-contained HTML constraints, design artifact embedding (completed 2026-03-30)
-- [ ] **Phase 179: SVG Charts** — burndown, velocity, phase timeline, effort breakdown charts as parametric inline SVG; accessible text alternatives
+- [x] **Phase 179: SVG Charts** — burndown, velocity, phase timeline, effort breakdown charts as parametric inline SVG; accessible text alternatives (completed 2026-03-30)
 - [ ] **Phase 180: Claim Verification + PDF Export** — post-generation claim verification against IR, mismatch flagging, verification footer, PDF export via Playwright
 - [ ] **Phase 181: Remaining Cluster A Personas** — investor update, sprint review, client deliverable, stakeholder status update, product manager view, project manager view
 - [ ] **Phase 182: Remaining Cluster B Personas** — agile project report, design persona report, research persona report, technical post-mortem, ADR summary, launch announcement, portfolio overview
@@ -261,9 +261,9 @@ Plans:
   3. A phase timeline chart showing planned vs actual duration per phase renders as valid inline SVG
   4. An effort breakdown chart showing token cost or task count by category renders as valid inline SVG
   5. Every chart includes an aria-label and a fallback data table so the information is accessible without visual rendering
-**Plans:** 1 plan
+**Plans:** 1/1 plans complete
 Plans:
-- [ ] 179-01-PLAN.md — Four SVG chart generators (burndown, velocity, timeline, effort) + renderer integration
+- [x] 179-01-PLAN.md — Four SVG chart generators (burndown, velocity, timeline, effort) + renderer integration
 
 ### Phase 180: Claim Verification + PDF Export
 **Goal**: Every generated presentation has been verified for factual accuracy against the IR before the user sees it, and any presentation can be exported to PDF on demand
@@ -363,7 +363,7 @@ Plans:
 | 176. Data Extraction IR Foundation | v0.22 | 1/3 | Complete    | 2026-03-30 |
 | 177. Command Interface + Workflow Shell | v0.22 | 1/1 | Complete    | 2026-03-30 |
 | 178. Reference Personas + Rendering Engine | v0.22 | 2/2 | Complete    | 2026-03-30 |
-| 179. SVG Charts | v0.22 | 0/1 | In progress | - |
+| 179. SVG Charts | v0.22 | 1/1 | Complete   | 2026-03-30 |
 | 180. Claim Verification + PDF Export | v0.22 | 0/TBD | Not started | - |
 | 181. Remaining Cluster A Personas | v0.22 | 0/TBD | Not started | - |
 | 182. Remaining Cluster B Personas | v0.22 | 0/TBD | Not started | - |

@@ -53,12 +53,12 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### SVG Charts
 
-- [ ] **CHT-01**: System can generate a burndown chart (remaining tasks/requirements over time) as inline SVG
-- [ ] **CHT-02**: System can generate a velocity chart (tasks completed per phase/sprint) as inline SVG
-- [ ] **CHT-03**: System can generate a phase timeline chart (planned vs actual duration per phase) as inline SVG
-- [ ] **CHT-04**: System can generate an effort breakdown chart (token cost or task count by category) as inline SVG
-- [ ] **CHT-05**: Charts are embedded directly in HTML presentations (no external dependencies)
-- [ ] **CHT-06**: Charts include accessible text alternatives (aria-labels, data tables as fallback)
+- [x] **CHT-01**: System can generate a burndown chart (remaining tasks/requirements over time) as inline SVG
+- [x] **CHT-02**: System can generate a velocity chart (tasks completed per phase/sprint) as inline SVG
+- [x] **CHT-03**: System can generate a phase timeline chart (planned vs actual duration per phase) as inline SVG
+- [x] **CHT-04**: System can generate an effort breakdown chart (token cost or task count by category) as inline SVG
+- [x] **CHT-05**: Charts are embedded directly in HTML presentations (no external dependencies)
+- [x] **CHT-06**: Charts include accessible text alternatives (aria-labels, data tables as fallback)
 
 ### PDF Export
 
@@ -153,12 +153,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | RND-05 | Phase 178 | Complete |
 | RND-06 | Phase 178 | Complete |
 | RND-07 | Phase 178 | Complete |
-| CHT-01 | Phase 179 | Pending |
-| CHT-02 | Phase 179 | Pending |
-| CHT-03 | Phase 179 | Pending |
-| CHT-04 | Phase 179 | Pending |
-| CHT-05 | Phase 179 | Pending |
-| CHT-06 | Phase 179 | Pending |
+| CHT-01 | Phase 179 | Complete |
+| CHT-02 | Phase 179 | Complete |
+| CHT-03 | Phase 179 | Complete |
+| CHT-04 | Phase 179 | Complete |
+| CHT-05 | Phase 179 | Complete |
+| CHT-06 | Phase 179 | Complete |
 | VER-01 | Phase 180 | Pending |
 | VER-02 | Phase 180 | Pending |
 | VER-03 | Phase 180 | Pending |
