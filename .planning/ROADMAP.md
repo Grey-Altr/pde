@@ -372,6 +372,6 @@ Plans:
 | 179. SVG Charts | v0.22 | 1/1 | Complete    | 2026-03-30 |
 | 180. Claim Verification + PDF Export | v0.22 | 1/2 | Complete    | 2026-03-30 |
 | 181. Remaining Cluster A Personas | v0.22 | 1/3 | Complete    | 2026-03-30 |
-| 182. Remaining Cluster B Personas | v0.22 | 3/3 | Complete   | 2026-03-30 |
+| 182. Remaining Cluster B Personas | v0.22 | 3/3 | Complete    | 2026-03-30 |
 | 183. Auto-Generation | v0.22 | 0/TBD | Not started | - |
 | 184. Cross-Project Portfolio Synthesis | v0.22 | 0/TBD | Not started | - |
