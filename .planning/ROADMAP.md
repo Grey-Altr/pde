@@ -292,8 +292,8 @@ Plans:
 **Plans:** 1/3 plans executed
 Plans:
 - [ ] 181-01-PLAN.md — Investor update + sprint review builders, test scaffold
-- [x] 181-02-PLAN.md — Client deliverable + stakeholder status builders, RAG logic
-- [ ] 181-03-PLAN.md — Product manager + project manager builders, complete test suite
+- [ ] 181-02-PLAN.md — Client deliverable + stakeholder status builders, RAG logic
+- [x] 181-03-PLAN.md — Product manager + project manager builders, complete test suite
 
 **UI hint**: yes
 
