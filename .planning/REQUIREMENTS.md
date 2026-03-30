@@ -1,0 +1,111 @@
+# Requirements: PDE v0.25 Firecrawl Deep Web Integration
+
+**Defined:** 2026-03-30
+**Core Value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
+
+## v1 Requirements
+
+Requirements for v0.25 milestone. Each maps to roadmap phases.
+
+### Foundation
+
+- [ ] **FND-01**: User can register Firecrawl as an approved MCP server in mcp-bridge.cjs with TOOL_MAP entries for all supported tools
+- [ ] **FND-02**: User can configure Firecrawl API key via PDE config.json with probe/degrade contract validating connectivity on first use
+- [ ] **FND-03**: User can view remaining Firecrawl credits in the tmux dashboard and session summaries, with 80% depletion warning
+- [ ] **FND-04**: User experiences graceful degradation when Firecrawl credits are exhausted or API is unreachable, falling back to WebSearch/WebFetch
+
+### Core Scraping & Search
+
+- [ ] **SCR-01**: User can scrape any URL to clean markdown via firecrawl_scrape MCP tool with onlyMainContent default
+- [ ] **SCR-02**: User can search the web via firecrawl_search MCP tool with source, category, and time filters
+- [ ] **SCR-03**: User can discover all URLs on a site via firecrawl_map MCP tool with search filtering and subdomain control
+- [ ] **SCR-04**: User can extract structured JSON from pages via firecrawl_extract with schema definitions
+- [ ] **SCR-05**: User can search and immediately scrape top results in a single firecrawl_search call with scrapeOptions
+
+### Deep Crawling & Ingestion
+
+- [ ] **CRL-01**: User can crawl entire sites via firecrawl_crawl with enforced --limit and --max-depth defaults preventing runaway credit burn
+- [ ] **CRL-02**: User can add URLs as source material via /pde:source add <url> which scrapes/crawls content into the source pipeline
+- [ ] **CRL-03**: Scraped and crawled content is stored in .planning/research/firecrawl-cache/ via firecrawl-cache.cjs with slug-based access and gitignore
+
+### Agent & Browser
+
+- [ ] **AGT-01**: User can delegate natural language web research to firecrawl_agent with mandatory maxCredits cap and user consent gate
+- [ ] **AGT-02**: User can check agent job status and retrieve structured JSON results via firecrawl_agent_status
+- [ ] **AGT-03**: User can launch cloud browser sessions via firecrawl_interact for auth-gated content extraction with session TTL management
+- [ ] **AGT-04**: User can execute Playwright code in browser sandbox sessions and extract content from authenticated pages
+
+### Pipeline Integration
+
+- [ ] **PIP-01**: Competitive analysis workflow uses Firecrawl to crawl competitor sites and extract pricing, features, and positioning
+- [ ] **PIP-02**: Research agents (project-researcher, phase-researcher) use Firecrawl scrape/search with escalation ladder (WebSearch free → Firecrawl when JS rendering or structured extraction needed)
+- [ ] **PIP-03**: Design reference URLs scraped via Firecrawl feed into wireframe, mockup, and system skill context
+- [ ] **PIP-04**: Brief workflow accepts URLs and scrapes them as reference material via Firecrawl, stored in source pipeline
+
+### Change Tracking & Monitoring
+
+- [ ] **CHG-01**: User can track changes on competitor/dependency sites via changeTracking format with semantic markdown diffs
+- [ ] **CHG-02**: Firecrawl operations emit structured NDJSON events to the event bus for dashboard display and session archival
+
+## Future Requirements
+
+Deferred to future release. Tracked but not in current roadmap.
+
+### Advanced Browser
+
+- **AGT-05**: User can persist browser profiles across sessions for repeated auth-gated access
+- **AGT-06**: User can run parallel browser sessions for batch content extraction
+
+### Scheduling
+
+- **CHG-03**: User can schedule periodic change tracking via external cron integration (GitHub Actions / Vercel cron)
+
+## Out of Scope
+
+| Feature | Reason |
+|---------|--------|
+| Replace Playwright MCP with browser sandbox | Different jobs — Playwright serves visual testing/screenshots for critique/mockup; browser sandbox serves auth-gated extraction |
+| Firecrawl for every URL fetch | 1 credit/page burns budget; WebFetch is free; routing policy enforces escalation |
+| Unlimited crawl depth | Burns hundreds of credits; enforced --max-depth 3 and --limit 100 defaults |
+| Store all scraped content in git | Gigabytes of noise ruins git diff; cache to gitignored .planning/research/firecrawl-cache/ |
+| JSON-mode change tracking by default | 5 credits/page vs 0 for git-diff mode; opt-in only |
+| In-PDE scraping scheduler | PDE is a design/dev pipeline, not a monitoring platform; document external cron instead |
+| Self-hosted Firecrawl support | Requires user to run Firecrawl OSS locally; out of scope for v0.25 |
+
+## Traceability
+
+Which phases cover which requirements. Updated during roadmap creation.
+
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| FND-01 | — | Pending |
+| FND-02 | — | Pending |
+| FND-03 | — | Pending |
+| FND-04 | — | Pending |
+| SCR-01 | — | Pending |
+| SCR-02 | — | Pending |
+| SCR-03 | — | Pending |
+| SCR-04 | — | Pending |
+| SCR-05 | — | Pending |
+| CRL-01 | — | Pending |
+| CRL-02 | — | Pending |
+| CRL-03 | — | Pending |
+| AGT-01 | — | Pending |
+| AGT-02 | — | Pending |
+| AGT-03 | — | Pending |
+| AGT-04 | — | Pending |
+| PIP-01 | — | Pending |
+| PIP-02 | — | Pending |
+| PIP-03 | — | Pending |
+| PIP-04 | — | Pending |
+| CHG-01 | — | Pending |
+| CHG-02 | — | Pending |
+
+**Coverage:**
+- v1 requirements: 22 total
+- Mapped to phases: 0
+- Unmapped: 22 ⚠️
+
+---
+*Requirements defined: 2026-03-30*
+*Last updated: 2026-03-30 after initial definition*
