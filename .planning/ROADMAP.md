@@ -599,10 +599,11 @@ Plans:
   2. User can set FIRECRAWL_API_KEY in .env and see a "Firecrawl: connected" confirmation in the session summary — no API key in config.json (version-controlled directory)
   3. The tmux dashboard and session summary display remaining Firecrawl credit balance with a visible warning when usage reaches 80% of the monthly allocation
   4. When Firecrawl credits are exhausted or the API is unreachable, the workflow continues using WebSearch/WebFetch — no hard failure, no user prompt required
-**Plans**: 2 plans
+**Plans**: 3 plans
 Plans:
 - [x] 198-01-PLAN.md — Firecrawl APPROVED_SERVERS registration, 12 TOOL_MAP entries, AUTH_INSTRUCTIONS, docs updates
 - [x] 198-02-PLAN.md — Credit guard functions, concurrency semaphore, graceful degradation contract
+- [ ] 198-03-PLAN.md — Gap closure: probe gate, session summary, credit display, fallback routing
 
 ### Phase 199: Data Layer — Cache Module + Source Pipeline
 **Goal**: All Firecrawl output flows to disk through a single, tested CJS module before any workflow is modified — preventing context window overflow and establishing the source pipeline that brief, researcher, and /pde:source all depend on
