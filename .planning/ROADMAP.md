@@ -98,7 +98,7 @@
 **Milestone Goal:** The PDE codebase has accurate state documents, reliable test infrastructure, complete Nyquist verification coverage for v0.22, and documented static-analysis baselines — eliminating the accumulated data drift, false test failures, IR field mismatches, and stale workflow paths from 22 prior milestones of rapid shipping.
 
 - [x] **Phase 185: Data Integrity Baseline** — correct ROADMAP.md milestone status, MILESTONES.md one-liners, REQUIREMENTS.md checkbox reconciliation, Phase 180 VERIFICATION.md status (completed 2026-03-30)
-- [ ] **Phase 186: Test Infrastructure** — vitest exclude config for node:test files, @vitest/coverage-v8 coverage baseline, ESLint 10 flat config for CJS codebase (not started)
+- [x] **Phase 186: Test Infrastructure** — vitest exclude config for node:test files, @vitest/coverage-v8 coverage baseline (completed 2026-03-30)
 - [ ] **Phase 187: IR Field Fix + Mock Reconciliation** — buildCrossPatterns field name fix, Phase 184 test mock shape alignment, 23 portfolio tests confirmed green (not started)
 - [ ] **Phase 188: Verification Coverage** — Nyquist VALIDATION.md backfill for all 9 v0.22 phases, v0.7 SUMMARY.md one-liner frontmatter, pde-tools health consistency subcommand (not started)
 - [ ] **Phase 189: Technical Debt Cleanup** — correct $CLAUDE_PLUGIN_ROOT paths in workflow files, knip dead-code report, jscpd duplication report, ESLint clean pass (not started)
@@ -379,7 +379,7 @@ Plans:
   3. Running npx vitest run --coverage produces a coverage report showing lines and branch percentages per module in bin/lib/
 **Plans**: 1/1 plans
 Plans:
-- [ ] 186-01-PLAN.md — Vitest exclude config for node:test files + coverage baseline setup
+- [ ] 187-01-PLAN.md — Fix buildCrossPatterns field access + reconcile Phase 184 test mock shape
 
 ### Phase 187: IR Field Fix + Mock Reconciliation
 **Goal**: buildCrossPatterns reads the correct IR field names and produces non-empty cross-patterns sections for real PDE projects, and Phase 184 portfolio test mocks match the real IR shape so the test suite accurately reflects production behavior
@@ -392,7 +392,7 @@ Plans:
   4. The mock update is atomic with the code fix — no intermediate state where tests pass against wrong shapes
 **Plans**: 1/1 plans
 Plans:
-- [ ] 186-01-PLAN.md — Vitest exclude config for node:test files + coverage baseline setup
+- [ ] 187-01-PLAN.md — Fix buildCrossPatterns field access + reconcile Phase 184 test mock shape
 
 ### Phase 188: Verification Coverage
 **Goal**: All 9 v0.22 phases have Nyquist-compliant VALIDATION.md files, v0.7 SUMMARY.md files include one-liner frontmatter, and a pde-tools health consistency subcommand exists for detecting cross-artifact mismatches
@@ -405,7 +405,7 @@ Plans:
   4. Running pde-tools health consistency [version] reports any mismatches between requirements file checkboxes, roadmap phase entries, and milestone plan entries for the given milestone version
 **Plans**: 1/1 plans
 Plans:
-- [ ] 186-01-PLAN.md — Vitest exclude config for node:test files + coverage baseline setup
+- [ ] 187-01-PLAN.md — Fix buildCrossPatterns field access + reconcile Phase 184 test mock shape
 
 ### Phase 189: Technical Debt Cleanup
 **Goal**: Stale workflow paths are corrected, dead-code and duplication reports are produced and triaged, and ESLint runs clean — establishing documented static-analysis baselines for future milestones
@@ -418,7 +418,7 @@ Plans:
   4. Running npx eslint . produces a clean pass or a documented exceptions file explaining each suppressed rule — no undocumented suppressions
 **Plans**: 1/1 plans
 Plans:
-- [ ] 186-01-PLAN.md — Vitest exclude config for node:test files + coverage baseline setup
+- [ ] 187-01-PLAN.md — Fix buildCrossPatterns field access + reconcile Phase 184 test mock shape
 
 
 ## Progress
