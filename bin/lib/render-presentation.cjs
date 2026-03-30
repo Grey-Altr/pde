@@ -22,6 +22,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const charts = require('./charts.cjs');
 
 // ─── 1. escHtml ───────────────────────────────────────────────────────────────
 
@@ -413,6 +414,8 @@ function buildExecutiveSummary(ir) {
     { id: 'blockers',      title: 'Blockers & Risks',    level: 2, content: buildBlockers(ir) },
     { id: 'decisions',     title: 'Key Decisions',       level: 2, content: buildDecisions(ir) },
     { id: 'timeline',      title: 'Timeline & Velocity', level: 2, content: buildTimeline(ir) },
+    { id: 'burndown',      title: 'Burndown',            level: 2, content: charts.burndownChart(ir) },
+    { id: 'velocity',      title: 'Velocity',            level: 2, content: charts.velocityChart(ir) },
     { id: 'artifacts',     title: 'Design Artifacts',    level: 2, content: buildArtifacts(ir) },
   ];
 }
@@ -431,6 +434,8 @@ function buildCaseStudy(ir) {
     { id: 'problem',    title: 'The Problem',          level: 1, content: buildProblem(ir) },
     { id: 'approach',   title: 'Our Approach',         level: 2, content: buildApproach(ir) },
     { id: 'outcome',    title: 'Outcome',              level: 2, content: buildOutcome(ir) },
+    { id: 'timeline-chart', title: 'Phase Timeline',   level: 2, content: charts.phaseTimelineChart(ir) },
+    { id: 'effort',     title: 'Effort Breakdown',     level: 2, content: charts.effortBreakdownChart(ir) },
     { id: 'lessons',    title: 'Lessons Learned',      level: 2, content: buildLessons(ir) },
     { id: 'technical',  title: 'Technical Decisions',  level: 2, content: buildTechnical(ir) },
     { id: 'artifacts',  title: 'Design Evidence',      level: 2, content: buildArtifacts(ir) },
@@ -587,6 +592,12 @@ const PDE_CSS = `
   }
   figure { margin: 0 0 var(--pde-space-md); }
   figcaption { font-size: 0.8rem; color: var(--pde-text-muted); margin-top: var(--pde-space-sm); }
+
+  /* Chart data tables */
+  .chart-data-table { margin-top: 0.5rem; font-size: 0.85rem; }
+  .chart-data-table summary { cursor: pointer; color: var(--pde-text-muted); }
+  .chart-data-table table { margin-top: 0.25rem; }
+  svg { display: block; }
 `;
 
 // ─── 8. renderHTML ────────────────────────────────────────────────────────────

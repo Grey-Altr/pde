@@ -465,6 +465,64 @@ describe('personaDisplayName', () => {
   });
 });
 
+// ─── Chart integration (CHT-05) ──────────────────────────────────────────────
+
+describe('Chart integration (CHT-05)', () => {
+  it('buildExecutiveSummary returns section with id "burndown"', () => {
+    const sections = renderMod.buildExecutiveSummary(MOCK_IR);
+    const burndown = sections.find(s => s.id === 'burndown');
+    expect(burndown).toBeDefined();
+  });
+
+  it('buildExecutiveSummary returns section with id "velocity"', () => {
+    const sections = renderMod.buildExecutiveSummary(MOCK_IR);
+    const velocity = sections.find(s => s.id === 'velocity');
+    expect(velocity).toBeDefined();
+  });
+
+  it('burndown section content contains <svg', () => {
+    const sections = renderMod.buildExecutiveSummary(MOCK_IR);
+    const burndown = sections.find(s => s.id === 'burndown');
+    expect(burndown.content).toContain('<svg');
+  });
+
+  it('velocity section content contains <svg', () => {
+    const sections = renderMod.buildExecutiveSummary(MOCK_IR);
+    const velocity = sections.find(s => s.id === 'velocity');
+    expect(velocity.content).toContain('<svg');
+  });
+
+  it('buildCaseStudy returns section with id "timeline-chart"', () => {
+    const sections = renderMod.buildCaseStudy(MOCK_IR);
+    const timeline = sections.find(s => s.id === 'timeline-chart');
+    expect(timeline).toBeDefined();
+  });
+
+  it('buildCaseStudy returns section with id "effort"', () => {
+    const sections = renderMod.buildCaseStudy(MOCK_IR);
+    const effort = sections.find(s => s.id === 'effort');
+    expect(effort).toBeDefined();
+  });
+
+  it('timeline-chart section content contains <svg', () => {
+    const sections = renderMod.buildCaseStudy(MOCK_IR);
+    const timeline = sections.find(s => s.id === 'timeline-chart');
+    expect(timeline.content).toContain('<svg');
+  });
+
+  it('effort section content contains <svg', () => {
+    const sections = renderMod.buildCaseStudy(MOCK_IR);
+    const effort = sections.find(s => s.id === 'effort');
+    expect(effort.content).toContain('<svg');
+  });
+
+  it('renderHTML for executive-summary contains burndown-title (chart SVG in final HTML)', () => {
+    const sections = renderMod.buildExecutiveSummary(MOCK_IR);
+    const html = renderMod.renderHTML(MOCK_IR, 'executive-summary', sections);
+    expect(html).toContain('burndown-title');
+  });
+});
+
 // ─── render() with case-study persona ────────────────────────────────────────
 
 describe('render() case-study persona', () => {
