@@ -108,6 +108,15 @@ const APPROVED_SERVERS = {
       cmd: ['npx', '@playwright/mcp@latest', '--headless', '--allow-unrestricted-file-access'],
     },
   },
+  firecrawl: {
+    displayName: 'Firecrawl',
+    transport: 'stdio',
+    url: null,  // Dynamic — npx transport, no URL needed; HTTP alternative embeds API key in URL (never store)
+    installCmd: null,  // Multi-step: env var + npx — see AUTH_INSTRUCTIONS
+    probeTimeoutMs: 15000,
+    probeTool: 'mcp__firecrawl__search',  // TOOL_MAP_VERIFY_REQUIRED — lightest read-only tool (0.2 credits)
+    probeArgs: { query: 'test', limit: 1 },
+  },
   pde_remote: {
     displayName: 'PDE Remote',
     transport: 'http',
@@ -248,6 +257,20 @@ const TOOL_MAP = {
   'playwright:network':           'mcp__plugin_playwright_playwright__browser_network_requests', // TOOL_MAP_VERIFIED
   'playwright:handle-dialog':     'mcp__plugin_playwright_playwright__browser_handle_dialog',    // TOOL_MAP_VERIFIED
   'playwright:install':           'mcp__plugin_playwright_playwright__browser_install',          // TOOL_MAP_VERIFIED
+
+  // Firecrawl — Phase 198 (tool names from docs.firecrawl.dev/mcp-server; VERIFY after first live probe)
+  'firecrawl:probe':              'mcp__firecrawl__search',               // TOOL_MAP_VERIFY_REQUIRED
+  'firecrawl:scrape':             'mcp__firecrawl__scrape',               // TOOL_MAP_VERIFY_REQUIRED
+  'firecrawl:search':             'mcp__firecrawl__search',               // TOOL_MAP_VERIFY_REQUIRED
+  'firecrawl:map':                'mcp__firecrawl__map',                  // TOOL_MAP_VERIFY_REQUIRED
+  'firecrawl:crawl':              'mcp__firecrawl__crawl',                // TOOL_MAP_VERIFY_REQUIRED
+  'firecrawl:check-crawl-status': 'mcp__firecrawl__check_crawl_status',   // TOOL_MAP_VERIFY_REQUIRED
+  'firecrawl:extract':            'mcp__firecrawl__extract',              // TOOL_MAP_VERIFY_REQUIRED
+  'firecrawl:agent':              'mcp__firecrawl__agent',                // TOOL_MAP_VERIFY_REQUIRED
+  'firecrawl:agent-status':       'mcp__firecrawl__agent_status',         // TOOL_MAP_VERIFY_REQUIRED
+  'firecrawl:interact':           'mcp__firecrawl__interact',             // TOOL_MAP_VERIFY_REQUIRED
+  'firecrawl:browser-create':     'mcp__firecrawl__browser_create',       // TOOL_MAP_VERIFY_REQUIRED — deprecated, use firecrawl:interact
+  'firecrawl:browser-delete':     'mcp__firecrawl__browser_delete',       // TOOL_MAP_VERIFY_REQUIRED — deprecated, use firecrawl:interact
 };
 
 // ─── Dynamic server loading ────────────────────────────────────────────────────
@@ -383,6 +406,14 @@ const AUTH_INSTRUCTIONS = {
     '2. Verify Playwright appears in Claude Code MCP list: run /mcp in Claude Code',
     '3. Chromium is downloaded automatically on first use (~170MB, one-time)',
     '4. Return here and run /pde:connect playwright --confirm',
+  ],
+  firecrawl: [
+    '1. Get your API key from https://www.firecrawl.dev/app/api-keys',
+    '2. Add export FIRECRAWL_API_KEY="fc-your-api-key" to your shell profile (~/.zshrc or ~/.bashrc)',
+    '3. Restart your terminal or run: source ~/.zshrc',
+    '4. Register Firecrawl MCP server: claude mcp add firecrawl -e FIRECRAWL_API_KEY=$FIRECRAWL_API_KEY -- npx -y firecrawl-mcp',
+    '5. Verify Firecrawl appears in Claude Code MCP list: run /mcp in Claude Code',
+    '6. Return here and run /pde:connect firecrawl --confirm',
   ],
 };
 

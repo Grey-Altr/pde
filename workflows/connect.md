@@ -15,7 +15,7 @@ Parse $ARGUMENTS to extract:
   ```
   Usage: /pde:connect <service>
 
-  Approved services: github, linear, figma, pencil, atlassian, stitch, greptile
+  Approved services: github, linear, figma, pencil, atlassian, stitch, greptile, firecrawl
 
   Run /pde:connect <service> to see auth instructions for that service.
   ```
@@ -49,7 +49,7 @@ EOF
 If the command exits non-zero, the error output contains the policy violation message. Display that message verbatim to the user. The message will include:
 - The rejected key
 - The phrase "is not an approved MCP server"
-- The list of approved servers (github, linear, figma, pencil, atlassian)
+- The list of approved servers (github, linear, figma, pencil, atlassian, stitch, greptile, firecrawl)
 
 Do NOT proceed after a policy violation. Stop here.
 

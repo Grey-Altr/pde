@@ -41,6 +41,7 @@ Skip a specific MCP while allowing others. Supported flags:
 | `--no-superpowers` | Superpowers MCP | Skip browser preview offers |
 | `--no-sequential-thinking` | Sequential Thinking MCP | Skip enhanced reasoning (faster, fewer tokens) |
 | `--no-reference-mcp` | Reference MCP (PDE) | Force @ inline loading instead of MCP queries |
+| `--no-firecrawl` | Firecrawl MCP | Skip Firecrawl web scraping when offline or credits exhausted |
 
 ### Flag Detection Pattern
 
