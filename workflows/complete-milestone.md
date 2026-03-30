@@ -686,6 +686,45 @@ Confirm: "Committed: chore: complete v[X.Y] milestone"
 
 </step>
 
+<step name="auto_generate_presentations">
+**Auto-generate presentations for completed milestone (Phase 183):**
+
+Check config — skip silently if disabled (AUTO-05):
+```bash
+AUTO_GENERATE=$(node "$HOME/.claude/pde-os/engines/gsd/bin/pde-tools.cjs" --raw config-get presentations.auto_generate 2>/dev/null || echo "false")
+```
+
+**If AUTO_GENERATE is not "true":** Skip this step entirely. No output, no error.
+
+**If AUTO_GENERATE is "true":**
+
+Read the configured persona set (AUTO-04):
+```bash
+PERSONAS_JSON=$(node "$HOME/.claude/pde-os/engines/gsd/bin/pde-tools.cjs" --raw config-get presentations.auto_generate_personas 2>/dev/null || echo '["executive-summary","project-manager"]')
+```
+
+Generate presentations for each persona (AUTO-02):
+
+```bash
+DATE=$(date +%Y-%m-%d)
+mkdir -p .planning/presentations/
+for PERSONA in $(echo "$PERSONAS_JSON" | node -e "process.stdin.setEncoding('utf8');let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{try{JSON.parse(d).forEach(p=>console.log(p))}catch(e){console.log('executive-summary');console.log('project-manager')}})"); do
+  HTML_PATH=".planning/presentations/${PERSONA}-${DATE}.html"
+  MD_PATH=".planning/presentations/${PERSONA}-${DATE}.md"
+  node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" presentation render "${PERSONA}" "${HTML_PATH}" "${MD_PATH}" && \
+    echo "Auto-generated: ${PERSONA}" || \
+    echo "Auto-generation failed for persona: ${PERSONA} (non-blocking)"
+done
+```
+
+Log completion:
+```
+Presentations auto-generated for milestone v[X.Y]: [list personas]
+```
+
+**Important:** Auto-generation failures are non-blocking. If a persona fails to render, log the error and continue. Do not fail the milestone completion workflow.
+</step>
+
 <step name="offer_next">
 
 ```
