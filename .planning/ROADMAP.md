@@ -291,8 +291,8 @@ Plans:
   5. Running `/pde:present pm-view` and `/pde:present project-manager-view` each produce their respective persona documents with the correct data emphasis and narrative arc
 **Plans:** 1/3 plans executed
 Plans:
-- [x] 181-01-PLAN.md — Investor update + sprint review builders, test scaffold
-- [ ] 181-02-PLAN.md — Client deliverable + stakeholder status builders, RAG logic
+- [ ] 181-01-PLAN.md — Investor update + sprint review builders, test scaffold
+- [x] 181-02-PLAN.md — Client deliverable + stakeholder status builders, RAG logic
 - [ ] 181-03-PLAN.md — Product manager + project manager builders, complete test suite
 
 **UI hint**: yes

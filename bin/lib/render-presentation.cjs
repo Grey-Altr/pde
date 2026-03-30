@@ -116,10 +116,12 @@ ${links}
  */
 function personaDisplayName(slug) {
   const names = {
-    'executive-summary': 'Executive Summary',
-    'case-study': 'Case Study / Portfolio Piece',
-    'investor-update': 'Investor Update',
-    'sprint-review': 'Sprint Review',
+    'executive-summary':  'Executive Summary',
+    'case-study':         'Case Study / Portfolio Piece',
+    'investor-update':    'Investor Update',
+    'sprint-review':      'Sprint Review',
+    'client-deliverable': 'Client Deliverable Report',
+    'stakeholder-status': 'Stakeholder Status Update',
   };
   return names[slug] || slug;
 }
@@ -418,6 +420,80 @@ function buildMilestoneVelocity(ir) {
 </div>`.trim();
 }
 
+// ─── Client deliverable section builders ─────────────────────────────────
+
+function buildVerificationEvidence(ir) {
+  const sentinel = sentinelHtml(ir.verification, 'Verification results');
+  if (sentinel) return sentinel;
+
+  const verified = ir.verification.phases_verified || 0;
+  const total = ir.verification.total_phases || 0;
+  const pct = ir.verification.pct != null ? ir.verification.pct : (total > 0 ? Math.round((verified / total) * 100) : 0);
+
+  const barWidth = Math.min(100, Math.max(0, pct));
+  const barColor = pct >= 75 ? '#3fb950' : (pct >= 40 ? '#d29922' : '#f85149');
+
+  return `<p><strong>Verification Coverage:</strong> ${verified}/${total} phases verified (${pct}%)</p>
+<div class="progress-bar" style="background:#30363d;border-radius:4px;height:12px;margin:0.5rem 0;">
+  <div style="background:${barColor};width:${barWidth}%;height:100%;border-radius:4px;"></div>
+</div>`;
+}
+
+// ─── Stakeholder status section builders ─────────────────────────────────
+
+function buildRAGStatus(ir) {
+  const sentinel = sentinelHtml(ir.phases, 'Phase progress');
+  if (sentinel) return sentinel;
+
+  const completed = ir.phases.completed || 0;
+  const total = ir.phases.total || 0;
+  const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+  let rag, ragClass;
+  if (pct >= 75) { rag = 'GREEN'; ragClass = 'pde-success'; }
+  else if (pct >= 40) { rag = 'AMBER'; ragClass = 'pde-warning'; }
+  else { rag = 'RED'; ragClass = 'pde-danger'; }
+
+  return `<p><strong>Status:</strong> <span class="${escHtml(ragClass)}">${rag}</span> — ${pct}% complete (${completed}/${total} phases)</p>`;
+}
+
+function buildCurrentFocus(ir) {
+  const sentinel = sentinelHtml(ir.phases, 'Phase progress');
+  if (sentinel) return sentinel;
+
+  const currentPhase = ir.phases.current_phase_name ? escHtml(ir.phases.current_phase_name) : null;
+  const milestoneName = ir.phases.milestone_name ? escHtml(ir.phases.milestone_name) : null;
+
+  if (!currentPhase && !milestoneName) {
+    return '<p>Current phase not specified.</p>';
+  }
+
+  return `${milestoneName ? `<p><strong>Milestone:</strong> ${milestoneName}</p>` : ''}
+${currentPhase ? `<p><strong>Current phase:</strong> ${currentPhase}</p>` : '<p>Current phase not specified.</p>'}`.trim();
+}
+
+function buildRiskRegister(ir) {
+  const sentinel = sentinelHtml(ir.risks, 'Risk data');
+  if (sentinel) return sentinel;
+
+  const items = Array.isArray(ir.risks && ir.risks.items)
+    ? ir.risks.items
+    : (Array.isArray(ir.risks) ? ir.risks : []);
+
+  if (items.length === 0) {
+    return '<p>No risks identified.</p>';
+  }
+
+  const rows = items.map(r =>
+    `<tr><td>${escHtml(r.text || r)}</td><td>${escHtml(r.source || '')}</td></tr>`
+  ).join('\n');
+
+  return `<table>
+  <thead><tr><th>Risk</th><th>Source</th></tr></thead>
+  <tbody>${rows}</tbody>
+</table>`;
+}
+
 // ─── Sprint review section builders ──────────────────────────────────────────
 
 function buildShipped(ir) {
@@ -538,6 +614,45 @@ function buildSprintReview(ir) {
     { id: 'acceptance', title: 'Acceptance Criteria',  level: 2, content: buildRequirements(ir) },
     { id: 'next',       title: "What's Next",          level: 2, content: buildWhatsNext(ir) },
     { id: 'burndown',   title: 'Burndown',             level: 2, content: charts.burndownChart(ir) },
+  ];
+}
+
+// ─── 10. buildClientDeliverable ─────────────────────────────────────────────
+
+/**
+ * Build client deliverable report sections (CLU-04).
+ * Shows feature specs, ACs met, and verification evidence for clients.
+ *
+ * @param {object} ir - IR from buildPresentationIR()
+ * @returns {Array<{id: string, title: string, level: number, content: string}>}
+ */
+function buildClientDeliverable(ir) {
+  return [
+    { id: 'scope',        title: 'Project Scope',        level: 1, content: buildOverview(ir) },
+    { id: 'features',     title: 'Features Delivered',   level: 2, content: buildRequirements(ir) },
+    { id: 'verification', title: 'Verification Evidence', level: 2, content: buildVerificationEvidence(ir) },
+    { id: 'artifacts',    title: 'Design Artifacts',     level: 2, content: buildArtifacts(ir) },
+    { id: 'effort',       title: 'Effort Summary',       level: 2, content: buildTimeline(ir) },
+  ];
+}
+
+// ─── 11. buildStakeholderStatus ──────────────────────────────────────────────
+
+/**
+ * Build stakeholder status update sections (CLU-05).
+ * Provides deterministic RAG status computed from IR, plus blockers and risks.
+ *
+ * @param {object} ir - IR from buildPresentationIR()
+ * @returns {Array<{id: string, title: string, level: number, content: string}>}
+ */
+function buildStakeholderStatus(ir) {
+  return [
+    { id: 'rag',          title: 'Status Overview',  level: 1, content: buildRAGStatus(ir) },
+    { id: 'focus',        title: 'Current Focus',    level: 2, content: buildCurrentFocus(ir) },
+    { id: 'blockers',     title: 'Active Blockers',  level: 2, content: buildBlockers(ir) },
+    { id: 'risks',        title: 'Risk Register',    level: 2, content: buildRiskRegister(ir) },
+    { id: 'decisions',    title: 'Decisions Log',    level: 2, content: buildDecisions(ir) },
+    { id: 'next-actions', title: 'Next Actions',     level: 2, content: buildWhatsNext(ir) },
   ];
 }
 
@@ -825,8 +940,14 @@ function render(ir, persona, htmlPath, mdPath) {
     case 'sprint-review':
       sections = buildSprintReview(ir);
       break;
+    case 'client-deliverable':
+      sections = buildClientDeliverable(ir);
+      break;
+    case 'stakeholder-status':
+      sections = buildStakeholderStatus(ir);
+      break;
     default:
-      throw new Error(`Unknown persona: ${persona}. Available: executive-summary, case-study, investor-update, sprint-review`);
+      throw new Error(`Unknown persona: ${persona}. Available: executive-summary, case-study, investor-update, sprint-review, client-deliverable, stakeholder-status`);
   }
 
   // Claim verification (VER-01/02/03): compare rendered content against canonical IR
@@ -923,6 +1044,8 @@ module.exports = {
   buildCaseStudy,
   buildInvestorUpdate,
   buildSprintReview,
+  buildClientDeliverable,
+  buildStakeholderStatus,
   renderHTML,
   renderMarkdown,
   render,

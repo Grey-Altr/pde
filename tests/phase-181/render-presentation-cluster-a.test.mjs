@@ -251,20 +251,111 @@ describe('buildSprintReview (CLU-03)', () => {
   });
 });
 
-// ─── CLU-04 scaffold (unskipped by plan 02) ───────────────────────────────────
+// ─── CLU-04: buildClientDeliverable ──────────────────────────────────────────
 
-describe.skip('buildTechBriefing (CLU-04)', () => {
-  it('returns an array of sections', () => {});
-  it('includes architecture, stack, decisions, risks sections', () => {});
-  it('handles unavailable decisions gracefully', () => {});
+describe('buildClientDeliverable (CLU-04)', () => {
+  it('exports buildClientDeliverable', () => {
+    expect(typeof renderMod.buildClientDeliverable).toBe('function');
+  });
+
+  it('returns an array of sections', () => {
+    const sections = renderMod.buildClientDeliverable(MOCK_IR);
+    expect(Array.isArray(sections)).toBe(true);
+    expect(sections.length).toBeGreaterThanOrEqual(4);
+  });
+
+  it('includes scope, features, verification, artifacts, effort sections', () => {
+    const sections = renderMod.buildClientDeliverable(MOCK_IR);
+    const ids = sections.map(s => s.id);
+    expect(ids).toContain('scope');
+    expect(ids).toContain('features');
+    expect(ids).toContain('verification');
+    expect(ids).toContain('artifacts');
+    expect(ids).toContain('effort');
+  });
+
+  it('verification section shows phases_verified count', () => {
+    const sections = renderMod.buildClientDeliverable(MOCK_IR);
+    const verSection = sections.find(s => s.id === 'verification');
+    expect(verSection).toBeDefined();
+    // MOCK_IR has phases_verified: 2, total_phases: 2
+    expect(verSection.content).toContain('2');
+    expect(verSection.content).toContain('%');
+  });
+
+  it('handles unavailable verification gracefully', () => {
+    const ir = { ...MOCK_IR, verification: { unavailable: true, reason: 'test sentinel' } };
+    expect(() => renderMod.buildClientDeliverable(ir)).not.toThrow();
+    const sections = renderMod.buildClientDeliverable(ir);
+    const verSection = sections.find(s => s.id === 'verification');
+    expect(verSection.content).toContain('unavailable');
+  });
 });
 
-// ─── CLU-05 scaffold (unskipped by plan 02) ───────────────────────────────────
+// ─── CLU-05: buildStakeholderStatus ──────────────────────────────────────────
 
-describe.skip('buildOnePager (CLU-05)', () => {
-  it('returns an array of sections', () => {});
-  it('includes overview, highlights, status sections', () => {});
-  it('handles all unavailable IR fields gracefully', () => {});
+describe('buildStakeholderStatus (CLU-05)', () => {
+  it('exports buildStakeholderStatus', () => {
+    expect(typeof renderMod.buildStakeholderStatus).toBe('function');
+  });
+
+  it('returns an array of sections', () => {
+    const sections = renderMod.buildStakeholderStatus(MOCK_IR);
+    expect(Array.isArray(sections)).toBe(true);
+    expect(sections.length).toBeGreaterThanOrEqual(5);
+  });
+
+  it('includes rag, focus, blockers, risks, decisions, next-actions sections', () => {
+    const sections = renderMod.buildStakeholderStatus(MOCK_IR);
+    const ids = sections.map(s => s.id);
+    expect(ids).toContain('rag');
+    expect(ids).toContain('focus');
+    expect(ids).toContain('blockers');
+    expect(ids).toContain('risks');
+    expect(ids).toContain('decisions');
+    expect(ids).toContain('next-actions');
+  });
+
+  it('RAG status is GREEN when >= 75% complete', () => {
+    const ir = {
+      ...MOCK_IR,
+      phases: { ...MOCK_IR.phases, total: 10, completed: 8, phase_list: [] },
+    };
+    const sections = renderMod.buildStakeholderStatus(ir);
+    const ragSection = sections.find(s => s.id === 'rag');
+    expect(ragSection).toBeDefined();
+    expect(ragSection.content).toContain('GREEN');
+  });
+
+  it('RAG status is AMBER when 40-74% complete', () => {
+    const ir = {
+      ...MOCK_IR,
+      phases: { ...MOCK_IR.phases, total: 10, completed: 5, phase_list: [] },
+    };
+    const sections = renderMod.buildStakeholderStatus(ir);
+    const ragSection = sections.find(s => s.id === 'rag');
+    expect(ragSection).toBeDefined();
+    expect(ragSection.content).toContain('AMBER');
+  });
+
+  it('RAG status is RED when < 40% complete', () => {
+    const ir = {
+      ...MOCK_IR,
+      phases: { ...MOCK_IR.phases, total: 10, completed: 2, phase_list: [] },
+    };
+    const sections = renderMod.buildStakeholderStatus(ir);
+    const ragSection = sections.find(s => s.id === 'rag');
+    expect(ragSection).toBeDefined();
+    expect(ragSection.content).toContain('RED');
+  });
+
+  it('handles unavailable phases gracefully', () => {
+    const ir = { ...MOCK_IR, phases: { unavailable: true, reason: 'test sentinel' } };
+    expect(() => renderMod.buildStakeholderStatus(ir)).not.toThrow();
+    const sections = renderMod.buildStakeholderStatus(ir);
+    const ragSection = sections.find(s => s.id === 'rag');
+    expect(ragSection.content).toContain('unavailable');
+  });
 });
 
 // ─── CLU-06 scaffold (unskipped by plan 03) ───────────────────────────────────
@@ -285,7 +376,7 @@ describe.skip('buildTeamUpdate (CLU-07)', () => {
 
 // ─── Integration: render() dispatch ──────────────────────────────────────────
 
-describe('render() integration (CLU-02 + CLU-03)', () => {
+describe('render() integration (CLU-02 + CLU-03 + CLU-04 + CLU-05)', () => {
   it('render() accepts investor-update persona', () => {
     const htmlPath = path.join(tmpDir, 'investor-update.html');
     const mdPath   = path.join(tmpDir, 'investor-update.md');
@@ -305,6 +396,28 @@ describe('render() integration (CLU-02 + CLU-03)', () => {
     expect(fs.existsSync(mdPath)).toBe(true);
     const html = fs.readFileSync(htmlPath, 'utf-8');
     expect(html).toContain('Sprint Review');
+    expect(html.length).toBeGreaterThan(500);
+  });
+
+  it('render() accepts client-deliverable persona', () => {
+    const htmlPath = path.join(tmpDir, 'client-deliverable.html');
+    const mdPath   = path.join(tmpDir, 'client-deliverable.md');
+    expect(() => renderMod.render(MOCK_IR, 'client-deliverable', htmlPath, mdPath)).not.toThrow();
+    expect(fs.existsSync(htmlPath)).toBe(true);
+    expect(fs.existsSync(mdPath)).toBe(true);
+    const html = fs.readFileSync(htmlPath, 'utf-8');
+    expect(html).toContain('Client Deliverable Report');
+    expect(html.length).toBeGreaterThan(500);
+  });
+
+  it('render() accepts stakeholder-status persona', () => {
+    const htmlPath = path.join(tmpDir, 'stakeholder-status.html');
+    const mdPath   = path.join(tmpDir, 'stakeholder-status.md');
+    expect(() => renderMod.render(MOCK_IR, 'stakeholder-status', htmlPath, mdPath)).not.toThrow();
+    expect(fs.existsSync(htmlPath)).toBe(true);
+    expect(fs.existsSync(mdPath)).toBe(true);
+    const html = fs.readFileSync(htmlPath, 'utf-8');
+    expect(html).toContain('Stakeholder Status Update');
     expect(html.length).toBeGreaterThan(500);
   });
 });
