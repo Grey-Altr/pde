@@ -81,7 +81,7 @@
 
 **Milestone Goal:** PDE can transform any project's `.planning/` artifacts into audience-specific communication documents — executive summaries, case studies, investor updates, post-mortems, and more — using a deterministic extraction-first pipeline that eliminates LLM hallucination about project state, with dual HTML+Markdown output, inline SVG charts, PDF export, claim verification, auto-generation on phase completion, and cross-project portfolio synthesis.
 
-- [ ] **Phase 176: Data Extraction IR Foundation** — artifact reader, IR builder, pde-tools subcommand, source-of-truth mapping, output directory, auto-gen gate design
+- [x] **Phase 176: Data Extraction IR Foundation** — artifact reader, IR builder, pde-tools subcommand, source-of-truth mapping, output directory, auto-gen gate design (completed 2026-03-30)
 - [ ] **Phase 177: Command Interface + Workflow Shell** — /pde:present command, workflow file, persona listing, persona dispatch routing
 - [ ] **Phase 178: Reference Personas + Rendering Engine** — executive summary and case study reference implementations, dual-format renderer (HTML+Markdown), EJS templates, self-contained HTML constraints, design artifact embedding
 - [ ] **Phase 179: SVG Charts** — burndown, velocity, phase timeline, effort breakdown charts as parametric inline SVG; accessible text alternatives
@@ -216,7 +216,7 @@ _Phases 171-175 archived to milestones/v0.21-ROADMAP.md_
   3. The .planning/presentations/ output directory is created if absent, and generated files follow the [persona]-[date].html / [persona]-[date].md naming convention
   4. The `pde-tools presentation` subcommand routes correctly and is isolated from existing subcommand blocks
   5. Cross-reference validation runs before any persona call: extracted numbers are compared against their source files and mismatches are logged as warnings
-**Plans:** 1/3 plans executed
+**Plans:** 3/3 plans complete
 Plans:
 - [ ] 176-01-PLAN.md — Core extractors (project identity, phases, requirements, design artifacts) + unit tests
 - [ ] 176-02-PLAN.md — Remaining extractors (git velocity, cost/timing, blockers, verification, research, decisions) + unit tests
@@ -343,7 +343,7 @@ Plans:
 | 173. MCP Bridge Dynamic Registration | v0.21 | 2/2 | Complete | 2026-03-29 |
 | 174. CLI Wrap Skill | v0.21 | 2/2 | Complete | 2026-03-29 |
 | 175. Design Pipeline Integration | v0.21 | 2/2 | Complete | 2026-03-29 |
-| 176. Data Extraction IR Foundation | v0.22 | 1/3 | In Progress|  |
+| 176. Data Extraction IR Foundation | v0.22 | 1/3 | Complete    | 2026-03-30 |
 | 177. Command Interface + Workflow Shell | v0.22 | 0/TBD | Not started | - |
 | 178. Reference Personas + Rendering Engine | v0.22 | 0/TBD | Not started | - |
 | 179. SVG Charts | v0.22 | 0/TBD | Not started | - |
