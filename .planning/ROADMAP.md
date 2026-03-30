@@ -469,7 +469,10 @@ Plans:
   2. Docker container dispatch uses the same onLine/onExit callback interface as spawn.cjs — no caller changes needed at the coordinator dispatch site
   3. Dashboard shows [D] source label for Docker-dispatched sessions
   4. Container is torn down after the task completes — no dangling containers after coordinator-docker test run
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 191-01-PLAN.md — spawnDockerSession implementation in cloud-adapter with dockerode + unit tests
+- [ ] 191-02-PLAN.md — Coordinator dispatch branch, router rule, aggregator fix, tmux label, dashboard tests
 
 ### Phase 192: Git-Based State Sync
 **Goal**: Planning state (.planning/) is pushed to a remote git branch before cloud dispatch and merged back locally after completion, with correct merge direction so cloud-written STATE.md content survives the merge
