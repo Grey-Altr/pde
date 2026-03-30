@@ -1,63 +1,88 @@
-# Requirements: PDE v0.23 Quality & Reliability Hardening
+# Requirements: PDE v0.24 Cloud Dispatch & State Sync
 
-**Defined:** 2026-03-29
+**Defined:** 2026-03-30
 **Core Value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
 
-## v0.23 Requirements
+## v0.24 Requirements
 
-Requirements for Quality & Reliability Hardening. Each maps to roadmap phases.
+Requirements for Cloud Dispatch & State Sync. Each maps to roadmap phases.
 
-### Data Integrity
+### Cloud Dispatch
 
-- [x] **INT-01**: ROADMAP.md milestone status for v0.22 shows "shipped" (not "in progress") and all completed phase entries have checked plan boxes
-- [x] **INT-02**: MILESTONES.md has accurate one-liner descriptions (not placeholder text) for every plan entry across v0.19–v0.22 milestones
-- [x] **INT-03**: REQUIREMENTS.md checkboxes for EXT-01 through EXT-10 are checked with phase references matching their VERIFICATION.md evidence
-- [x] **INT-04**: Phase 180 VERIFICATION.md frontmatter shows `status: complete` (not `gaps_found`) reflecting the resolved admin checkbox issue
-- [x] **INT-05**: `buildCrossPatterns` in render-presentation.cjs reads the correct IR field names (`topics`/`project_research_files` instead of `research.findings`) and produces non-empty cross-patterns sections for real PDE projects
-- [x] **INT-06**: Test mocks for Phase 184 portfolio tests use the real IR shape (matching `buildPresentationIR` output) rather than diverged mock structures
+- [ ] **CLD-01**: User can dispatch an autonomous phase to an ephemeral cloud container via Agent SDK
+- [ ] **CLD-02**: Cloud container is automatically torn down on task completion with configurable idle timeout
+- [ ] **CLD-03**: Cloud session emits NDJSON events consumable by existing event bus infrastructure
+- [ ] **CLD-04**: User can dispatch a plan to a local Docker container via dockerode with NDJSON stdout relay
+- [ ] **CLD-05**: Docker container dispatch mirrors spawn.cjs interface (onLine/onExit callbacks, same NDJSON format)
+- [ ] **CLD-06**: Cloud adapter package lives in isolated `packages/cloud-adapter/` respecting zero-npm root constraint
+- [ ] **CLD-07**: Graceful fallback chain: cloud → SSH → local with same degradation UX as v0.18 SSH fallback
+- [ ] **CLD-08**: Cloud session auth uses claude.ai OAuth (not ANTHROPIC_API_KEY), with probe before dispatch
 
-### Verification Coverage
+### State Sync
 
-- [x] **VER-01**: All 9 v0.22 phases (176–184) have VALIDATION.md files with `nyquist_compliant: true` frontmatter, derived from their existing VERIFICATION.md observable truths
-- [x] **VER-02**: All 5 v0.7 SUMMARY.md files include the `one-liner` frontmatter field with accurate descriptions
-- [x] **VER-03**: A `pde-tools health consistency` subcommand reports mismatches between requirements files, roadmap entries, and milestone entries for any given milestone version
+- [ ] **SYN-01**: Cloud container pushes .planning/ changes to a remote git branch on task completion
+- [ ] **SYN-02**: Local orchestrator merges cloud branch using 3-way merge (v0.16 engine)
+- [ ] **SYN-03**: Merge direction is cloud-to-local aware (not --ours for STATE.md on inbound sync)
+- [ ] **SYN-04**: Concurrent cloud sessions push to separate branches with sequential merge ordering
+- [ ] **SYN-05**: Agent SDK session .jsonl files can be persisted to shared storage for cross-host resume
+- [ ] **SYN-06**: Session resume on different host uses matching cwd encoding for session portability
+- [ ] **SYN-07**: simple-git integration in isolated `packages/` directory for git sync operations
 
-### Test Infrastructure
+### Intelligent Routing
 
-- [x] **TST-01**: Vitest configuration excludes node:test-based test files so that `npx vitest run` reports zero false "No test suite found" failures
-- [x] **TST-02**: Running `npx vitest run --coverage` produces a coverage baseline report via @vitest/coverage-v8 for all vitest-compatible test files
+- [ ] **RTG-01**: User can manually set dispatch target via `--dispatch=cloud|local|ssh|docker` flag
+- [ ] **RTG-02**: Auto-classify tasks as interactive/autonomous from PLAN.md metadata (agent_type, estimated_minutes)
+- [ ] **RTG-03**: User can override auto-classification for any plan or phase
+- [ ] **RTG-04**: Cost-aware routing respects user-configured cost ceiling per dispatch target
+- [ ] **RTG-05**: Routing decision is logged as a structured event for observability
+- [ ] **RTG-06**: Fast-path commands (/pde:quick, /pde:fast) always route to local regardless of config
 
-### Technical Debt
+### Dashboard Integration
 
-- [x] **DEB-01**: Workflow files `execute-phase.md` and `complete-milestone.md` reference the correct `$CLAUDE_PLUGIN_ROOT/bin/pde-tools.cjs` path (not stale `$HOME/.claude/pde-os/engines/gsd/bin/pde-tools.cjs`)
-- [x] **DEB-02**: Running `npx knip` produces a dead code report identifying unused files, exports, and dependencies with a documented triage of each finding
-- [x] **DEB-03**: Running `npx jscpd` produces a duplication report identifying copy-paste code blocks above a configurable threshold
-- [x] **DEB-04**: ESLint 10 with eslint-plugin-n is configured for the CJS codebase and `npx eslint .` produces a clean pass (or documented exceptions)
+- [ ] **DSH-01**: Cloud sessions appear in dashboard health matrix with [C] source label
+- [ ] **DSH-02**: Cloud session progress bars and agent activity display using CloudPoller synthetic events
+- [ ] **DSH-03**: User can start, stop, and inspect cloud sessions from dashboard UI
+- [ ] **DSH-04**: Sync state display shows pending merges, last sync time, and conflict indicators
+- [ ] **DSH-05**: Container cost tracking shows uptime × rate alongside token cost in Token Playground
+- [ ] **DSH-06**: session_source union type extended with 'remote-cloud' and 'docker' values
+
+### Infrastructure
+
+- [ ] **INF-01**: lock.cjs extended with cloud-aware PID handling (no process.kill for cloud sessions)
+- [ ] **INF-02**: aggregator.cjs uses RemoteAggregator for cloud sessions instead of file-based TailCursor
+- [ ] **INF-03**: SessionSource registry enum extended for cloud and docker dispatch types
+- [ ] **INF-04**: Containerized MCP servers wrap APPROVED_SERVERS in per-server Docker containers with pinned runtimes
+- [ ] **INF-05**: MCP probe/degrade contracts extended for container startup latency
+- [ ] **INF-06**: Dispatch configuration block extended with cloud and docker settings
 
 ## Future Requirements
 
 Deferred to future milestones. Tracked but not in current roadmap.
 
-### Full Historical Backfill
+### Deploy Sandbox
 
-- **FUT-01**: All 184 phases across v0.1–v0.22 have Nyquist-compliant VALIDATION.md files
-- **FUT-02**: All MILESTONES.md entries across v0.1–v0.18 have accurate one-liner descriptions
+- **DPL-01**: Stage 14 deploy workflow runs in ephemeral Docker container with scoped credentials
+- **DPL-02**: Deploy sandbox uses deploy-staging/ directory isolation (v0.12) as volume mount
 
-### Advanced Static Analysis
+### AutoResearch Container
 
-- **FUT-03**: Oxlint integration for fast supplemental linting (blocked on JS plugin alpha status)
-- **FUT-04**: Test coverage percentage targets per module
+- **ARC-01**: Visual metric scripts (_evalMetric) run in pinned Playwright container for reproducibility
+- **ARC-02**: Visual regression circuit breaker (v0.14) produces consistent deltas across environments
+
+### Multi-Provider
+
+- **MPR-01**: Second cloud provider adapter (E2B or Modal) when user demand validates it
 
 ## Out of Scope
 
 | Feature | Reason |
 |---------|--------|
-| Full Nyquist backfill for all 184 phases | Scope explosion — retroactive compliance for shipped work has diminishing returns |
-| LLM-automated one-liner generation | Risk of hallucinated descriptions; must read actual SUMMARY.md files |
-| Aggressive dead-code elimination | Plugin spans 22 milestones; aggressive removal risks breaking edge-case code paths |
-| Test coverage percentage targets | PDE uses behavioral Nyquist testing, not coverage-percent methodology |
-| Style rewrites of accurate documentation | Content drift risk; quality pass adds accuracy, not style changes |
-| Human verification items (Phases 56, 58, 59, 61) | Require live tmux session; correctly deferred |
+| Always-cloud by default | Adds container startup latency to every task; kills event bus locality |
+| Real-time filesystem sync | Network volume mounts introduce race conditions; git boundary sync is sufficient |
+| Kubernetes orchestration | PDE is a dev tool, not multi-tenant SaaS; K8s ops burden exceeds concurrency needs |
+| Multi-provider abstraction layer | Start with one provider; abstraction layer becomes maintenance burden |
+| Stateless cloud agents | Disconnects cloud execution from PDE planning state machine |
+| Container for every PDE operation | Skill authoring and planning are pure file I/O; containerizing adds overhead with no benefit |
 
 ## Traceability
 
@@ -65,27 +90,45 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INT-01 | Phase 185 | Complete |
-| INT-02 | Phase 185 | Complete |
-| INT-03 | Phase 185 | Complete |
-| INT-04 | Phase 185 | Complete |
-| INT-05 | Phase 187 | Complete |
-| INT-06 | Phase 187 | Complete |
-| VER-01 | Phase 188 | Complete |
-| VER-02 | Phase 188 | Complete |
-| VER-03 | Phase 188 | Complete |
-| TST-01 | Phase 186 | Complete |
-| TST-02 | Phase 186 | Complete |
-| DEB-01 | Phase 189 | Complete |
-| DEB-02 | Phase 189 | Complete |
-| DEB-03 | Phase 189 | Complete |
-| DEB-04 | Phase 189 | Complete |
+| CLD-01 | — | Pending |
+| CLD-02 | — | Pending |
+| CLD-03 | — | Pending |
+| CLD-04 | — | Pending |
+| CLD-05 | — | Pending |
+| CLD-06 | — | Pending |
+| CLD-07 | — | Pending |
+| CLD-08 | — | Pending |
+| SYN-01 | — | Pending |
+| SYN-02 | — | Pending |
+| SYN-03 | — | Pending |
+| SYN-04 | — | Pending |
+| SYN-05 | — | Pending |
+| SYN-06 | — | Pending |
+| SYN-07 | — | Pending |
+| RTG-01 | — | Pending |
+| RTG-02 | — | Pending |
+| RTG-03 | — | Pending |
+| RTG-04 | — | Pending |
+| RTG-05 | — | Pending |
+| RTG-06 | — | Pending |
+| DSH-01 | — | Pending |
+| DSH-02 | — | Pending |
+| DSH-03 | — | Pending |
+| DSH-04 | — | Pending |
+| DSH-05 | — | Pending |
+| DSH-06 | — | Pending |
+| INF-01 | — | Pending |
+| INF-02 | — | Pending |
+| INF-03 | — | Pending |
+| INF-04 | — | Pending |
+| INF-05 | — | Pending |
+| INF-06 | — | Pending |
 
 **Coverage:**
-- v0.23 requirements: 15 total
-- Mapped to phases: 15
-- Unmapped: 0 ✓
+- v0.24 requirements: 33 total
+- Mapped to phases: 0
+- Unmapped: 33 ⚠️
 
 ---
-*Requirements defined: 2026-03-29*
-*Last updated: 2026-03-29 after initial definition*
+*Requirements defined: 2026-03-30*
+*Last updated: 2026-03-30 after initial definition*
