@@ -307,9 +307,11 @@ Plans:
   3. Running `/pde:present research-report` produces a findings summary with evidence-backed recommendations sourced from the research/ directory
   4. Running `/pde:present post-mortem`, `/pde:present adr-summary`, `/pde:present launch-announcement`, and `/pde:present portfolio-overview` each produce their respective documents with correct narrative arc and IR data
   5. All 15 personas are listed in the output of `/pde:present` (no argument) with accurate descriptions
-**Plans:** 1 plan
+**Plans:** 3 plans
 Plans:
-- [ ] 177-01-PLAN.md — Command file, workflow with persona registry and dispatch, skill-registry update
+- [ ] 182-01-PLAN.md — Agile report + design report + research report builders, test scaffold
+- [ ] 182-02-PLAN.md — Post-mortem + ADR summary builders
+- [ ] 182-03-PLAN.md — Launch announcement + portfolio overview builders, complete test suite
 **UI hint**: yes
 
 ### Phase 183: Auto-Generation
@@ -370,6 +372,6 @@ Plans:
 | 179. SVG Charts | v0.22 | 1/1 | Complete    | 2026-03-30 |
 | 180. Claim Verification + PDF Export | v0.22 | 1/2 | Complete    | 2026-03-30 |
 | 181. Remaining Cluster A Personas | v0.22 | 1/3 | Complete    | 2026-03-30 |
-| 182. Remaining Cluster B Personas | v0.22 | 0/TBD | Not started | - |
+| 182. Remaining Cluster B Personas | v0.22 | 0/3 | Not started | - |
 | 183. Auto-Generation | v0.22 | 0/TBD | Not started | - |
 | 184. Cross-Project Portfolio Synthesis | v0.22 | 0/TBD | Not started | - |
