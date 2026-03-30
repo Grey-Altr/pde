@@ -309,14 +309,26 @@ describe('Aggregator watch() docker vs cloud routing', () => {
   // ─── Test CD-10: watch(id, 'docker') uses TailCursor, not RemoteAggregator ─
 
   it('Test CD-10: aggregator.watch(id, "docker") uses TailCursor (not RemoteAggregator)', () => {
-    const mockTailCursor = vi.fn(() => ({
-      start: vi.fn(),
-      stop: vi.fn(),
-    }));
-    const mockRemoteAggregator = vi.fn(() => ({
-      start: vi.fn(),
-      stop: vi.fn(),
-    }));
+    // Use class-like constructors (not arrow functions) for vi.fn so `new` works
+    const tailCursorInstances = [];
+    function MockTailCursor(filePath, onLine) {
+      this.filePath = filePath;
+      this.onLine = onLine;
+      this.start = vi.fn();
+      this.stop = vi.fn();
+      tailCursorInstances.push(this);
+    }
+    const mockTailCursor = vi.fn(MockTailCursor);
+
+    const remoteAggInstances = [];
+    function MockRemoteAggregator(filePath, onLine) {
+      this.filePath = filePath;
+      this.onLine = onLine;
+      this.start = vi.fn();
+      this.stop = vi.fn();
+      remoteAggInstances.push(this);
+    }
+    const mockRemoteAggregator = vi.fn(MockRemoteAggregator);
 
     const agg = new Aggregator(mockTailCursor, mockRemoteAggregator);
     agg.watch('docker-session-abc', 'docker');
@@ -328,14 +340,25 @@ describe('Aggregator watch() docker vs cloud routing', () => {
   });
 
   it('Test CD-10b: aggregator.watch(id, "cloud") still uses RemoteAggregator', () => {
-    const mockTailCursor = vi.fn(() => ({
-      start: vi.fn(),
-      stop: vi.fn(),
-    }));
-    const mockRemoteAggregator = vi.fn(() => ({
-      start: vi.fn(),
-      stop: vi.fn(),
-    }));
+    const tailCursorInstances = [];
+    function MockTailCursor(filePath, onLine) {
+      this.filePath = filePath;
+      this.onLine = onLine;
+      this.start = vi.fn();
+      this.stop = vi.fn();
+      tailCursorInstances.push(this);
+    }
+    const mockTailCursor = vi.fn(MockTailCursor);
+
+    const remoteAggInstances = [];
+    function MockRemoteAggregator(filePath, onLine) {
+      this.filePath = filePath;
+      this.onLine = onLine;
+      this.start = vi.fn();
+      this.stop = vi.fn();
+      remoteAggInstances.push(this);
+    }
+    const mockRemoteAggregator = vi.fn(MockRemoteAggregator);
 
     const agg = new Aggregator(mockTailCursor, mockRemoteAggregator);
     agg.watch('cloud-session-xyz', 'cloud');
