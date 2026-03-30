@@ -126,11 +126,11 @@ describe('INF-02: Aggregator — RemoteAggregator routing for cloud/docker sessi
     expect(MockTailCursor.instances).toHaveLength(0);
   });
 
-  it('watch(sid, "docker") creates RemoteAggregator, not TailCursor', () => {
+  it('watch(sid, "docker") creates TailCursor (docker writes local NDJSON — Phase 191 decision)', () => {
     const agg = new Aggregator(MockTailCursor, MockRemoteAggregator);
     agg.watch('test-docker', 'docker');
-    expect(MockRemoteAggregator.instances).toHaveLength(1);
-    expect(MockTailCursor.instances).toHaveLength(0);
+    expect(MockTailCursor.instances).toHaveLength(1);
+    expect(MockRemoteAggregator.instances).toHaveLength(0);
   });
 
   it('watch(sid) with no sessionType creates TailCursor (backward compat)', () => {
@@ -147,12 +147,12 @@ describe('INF-02: Aggregator — RemoteAggregator routing for cloud/docker sessi
     expect(typeof instance.stop).toBe('function');
   });
 
-  it('watch() with cloud and docker creates 2 RemoteAggregator instances total', () => {
+  it('watch() with cloud and docker creates 1 RemoteAggregator (cloud) + 1 TailCursor (docker)', () => {
     const agg = new Aggregator(MockTailCursor, MockRemoteAggregator);
     agg.watch('test-cloud', 'cloud');
     agg.watch('test-docker', 'docker');
-    expect(MockRemoteAggregator.instances).toHaveLength(2);
-    expect(MockTailCursor.instances).toHaveLength(0);
+    expect(MockRemoteAggregator.instances).toHaveLength(1);
+    expect(MockTailCursor.instances).toHaveLength(1);
   });
 });
 
