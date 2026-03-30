@@ -83,7 +83,7 @@
 
 - [x] **Phase 176: Data Extraction IR Foundation** — artifact reader, IR builder, pde-tools subcommand, source-of-truth mapping, output directory, auto-gen gate design (completed 2026-03-30)
 - [x] **Phase 177: Command Interface + Workflow Shell** — /pde:present command, workflow file, persona listing, persona dispatch routing (completed 2026-03-30)
-- [ ] **Phase 178: Reference Personas + Rendering Engine** — executive summary and case study reference implementations, dual-format renderer (HTML+Markdown), EJS templates, self-contained HTML constraints, design artifact embedding
+- [x] **Phase 178: Reference Personas + Rendering Engine** — executive summary and case study reference implementations, dual-format renderer (HTML+Markdown), EJS templates, self-contained HTML constraints, design artifact embedding (completed 2026-03-30)
 - [ ] **Phase 179: SVG Charts** — burndown, velocity, phase timeline, effort breakdown charts as parametric inline SVG; accessible text alternatives
 - [ ] **Phase 180: Claim Verification + PDF Export** — post-generation claim verification against IR, mismatch flagging, verification footer, PDF export via Playwright
 - [ ] **Phase 181: Remaining Cluster A Personas** — investor update, sprint review, client deliverable, stakeholder status update, product manager view, project manager view
@@ -245,10 +245,10 @@ Plans:
   3. Both personas produce a Markdown companion file alongside the HTML, written to .planning/presentations/ with the [persona]-[date] naming convention
   4. Design artifact screenshots from .planning/design/ are embedded as inline base64 images where the persona calls for visual evidence
   5. Regenerating either presentation overwrites the prior output with the current project state
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 Plans:
 - [x] 178-01-PLAN.md — Rendering engine (render-presentation.cjs) with executive-summary + case-study persona builders, TDD tests, CLI wiring
-- [ ] 178-02-PLAN.md — Workflow Step 6 update (stub to real render call) + human-verify end-to-end
+- [x] 178-02-PLAN.md — Workflow Step 6 update (stub to real render call) + human-verify end-to-end
 **UI hint**: yes
 
 ### Phase 179: SVG Charts
@@ -362,7 +362,7 @@ Plans:
 | 175. Design Pipeline Integration | v0.21 | 2/2 | Complete | 2026-03-29 |
 | 176. Data Extraction IR Foundation | v0.22 | 1/3 | Complete    | 2026-03-30 |
 | 177. Command Interface + Workflow Shell | v0.22 | 1/1 | Complete    | 2026-03-30 |
-| 178. Reference Personas + Rendering Engine | v0.22 | 1/2 | In Progress|  |
+| 178. Reference Personas + Rendering Engine | v0.22 | 2/2 | Complete   | 2026-03-30 |
 | 179. SVG Charts | v0.22 | 0/TBD | Not started | - |
 | 180. Claim Verification + PDF Export | v0.22 | 0/TBD | Not started | - |
 | 181. Remaining Cluster A Personas | v0.22 | 0/TBD | Not started | - |
