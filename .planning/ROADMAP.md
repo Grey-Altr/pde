@@ -614,7 +614,10 @@ Plans:
   2. The .planning/research/firecrawl-cache/ directory (scrapes/, crawls/, snapshots/ subdirectories) is present in .gitignore — scraped content is never committed to the repository
   3. firecrawl-cache.cjs round-trips a write and read without data loss, and calling the same slug twice is idempotent (no duplicate files, no overwrite without explicit force flag)
   4. sources-manifest.json is updated atomically when a new Firecrawl source is added — concurrent adds do not corrupt the manifest
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 199-01-PLAN.md -- firecrawl-cache.cjs TDD (cache module with slug, write/read, manifest, gitignore)
+- [ ] 199-02-PLAN.md -- /pde:source command + source ingestion workflow
 
 ### Phase 200: Core Scraping Tools + Competitive/Recommend Integration
 **Goal**: All five Firecrawl scraping/search MCP tools are available inline, firecrawl_crawl enforces its credit safety cap, and the two highest-value existing workflows (competitive analysis, recommend) use Firecrawl as their primary web intelligence layer
@@ -626,7 +629,10 @@ Plans:
   3. User can call firecrawl_extract with a JSON schema and receive structured data back — the schema is passed as a parameter, not hard-coded
   4. Running `/pde:firecrawl crawl <url>` never exceeds the FIRECRAWL_CRAWL_MAX_PAGES limit (50 pages default) — requests above the cap are truncated and the user is notified
   5. Running `/pde:competitive` uses firecrawl_search and firecrawl_extract to pull competitor pricing, features, and positioning — output quality visibly improves over the prior WebSearch-only result
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 199-01-PLAN.md -- firecrawl-cache.cjs TDD (cache module with slug, write/read, manifest, gitignore)
+- [ ] 199-02-PLAN.md -- /pde:source command + source ingestion workflow
 
 ### Phase 201: Brief + Phase Researcher + Design Reference Integration
 **Goal**: Firecrawl is wired into the three source-material-consuming workflows — brief, pde-phase-researcher, and design reference — so that any URL passed to these workflows produces cache-backed semantic context rather than an inline content dump
@@ -636,7 +642,10 @@ Plans:
   1. Running `/pde:brief --source-url <url>` scrapes the URL via Firecrawl, writes to firecrawl-cache, and injects a `## Source Material` section into the BRF artifact — the section contains extracted content, not a raw URL
   2. The pde-phase-researcher agent includes a `## Web Evidence` section sourced from Firecrawl search and scrape results when FIRECRAWL_AVAILABLE is true — the section is absent (not empty) when FIRECRAWL_AVAILABLE is false
   3. Design reference URLs passed to wireframe, mockup, or system workflows are scraped via Firecrawl and their content feeds into the design context — the workflow does not fetch the URL inline via WebFetch when Firecrawl is available
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 199-01-PLAN.md -- firecrawl-cache.cjs TDD (cache module with slug, write/read, manifest, gitignore)
+- [ ] 199-02-PLAN.md -- /pde:source command + source ingestion workflow
 
 ### Phase 202: /pde:firecrawl Standalone Skill + Agent + Browser Sandbox
 **Goal**: Users have a dedicated `/pde:firecrawl` command exposing all six Firecrawl operations — including the autonomous research agent and browser sandbox — with consent gates and credit caps on every high-cost operation
@@ -647,7 +656,10 @@ Plans:
   2. Running `/pde:firecrawl agent-status <job-id>` returns the current status and, when complete, the structured JSON results of the agent job
   3. Running `/pde:firecrawl interact <url>` launches a cloud browser session with a documented TTL — the session is terminated automatically on TTL expiry without user intervention
   4. User can execute Playwright code inside the browser sandbox session and extract content from an authentication-gated page that WebFetch cannot access
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 199-01-PLAN.md -- firecrawl-cache.cjs TDD (cache module with slug, write/read, manifest, gitignore)
+- [ ] 199-02-PLAN.md -- /pde:source command + source ingestion workflow
 **UI hint**: yes
 
 ### Phase 203: Change Tracking + Event Bus
@@ -658,7 +670,10 @@ Plans:
   1. Running `/pde:firecrawl watch <url>` on a competitor page for the second time produces a markdown diff showing what changed since the baseline snapshot — the diff is written to .planning/research/firecrawl-cache/snapshots/ and not injected inline
   2. Every Firecrawl operation (scrape, search, crawl, agent dispatch, watch) emits a structured NDJSON event to the event bus with url, slug, word_count, and operation fields — the events appear in the dashboard Pane 5 log stream
   3. The dashboard Pane 5 log stream displays a change summary when a monitored page diff is non-empty — the entry includes the URL, number of lines changed, and timestamp
-**Plans**: TBD
+**Plans**: 2 plans
+Plans:
+- [ ] 199-01-PLAN.md -- firecrawl-cache.cjs TDD (cache module with slug, write/read, manifest, gitignore)
+- [ ] 199-02-PLAN.md -- /pde:source command + source ingestion workflow
 
 ## Progress
 
@@ -707,8 +722,8 @@ Plans:
 | 196. Containerized MCP Servers | v0.24 | 1/1 | Complete | 2026-03-30 |
 | 197. Cross-Host Session Resume | v0.24 | 1/2 | Complete | 2026-03-30 |
 | 198. Foundation — MCP Registration + Credit Guards | v0.25 | 3/3 | Complete | 2026-03-30 |
-| 199. Data Layer — Cache Module + Source Pipeline | v0.25 | 0/TBD | Not started | - |
-| 200. Core Scraping Tools + Competitive/Recommend Integration | v0.25 | 0/TBD | Not started | - |
-| 201. Brief + Phase Researcher + Design Reference Integration | v0.25 | 0/TBD | Not started | - |
-| 202. /pde:firecrawl Standalone Skill + Agent + Browser Sandbox | v0.25 | 0/TBD | Not started | - |
-| 203. Change Tracking + Event Bus | v0.25 | 0/TBD | Not started | - |
+| 199. Data Layer — Cache Module + Source Pipeline | v0.25 | 0/2 | Not started | - |
+| 200. Core Scraping Tools + Competitive/Recommend Integration | v0.25 | 0/2 | Not started | - |
+| 201. Brief + Phase Researcher + Design Reference Integration | v0.25 | 0/2 | Not started | - |
+| 202. /pde:firecrawl Standalone Skill + Agent + Browser Sandbox | v0.25 | 0/2 | Not started | - |
+| 203. Change Tracking + Event Bus | v0.25 | 0/2 | Not started | - |
