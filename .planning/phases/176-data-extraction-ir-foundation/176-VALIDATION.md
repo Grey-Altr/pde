@@ -17,17 +17,17 @@ created: 2026-03-29
 
 | Property | Value |
 |----------|-------|
-| **Framework** | Node.js assert + direct CJS require |
-| **Config file** | none — Wave 0 installs |
-| **Quick run command** | `node tests/presentation-ir.test.cjs` |
-| **Full suite command** | `node tests/presentation-ir.test.cjs && node tests/presentation-validate.test.cjs` |
-| **Estimated runtime** | ~3 seconds |
+| **Framework** | vitest (inline TDD — tests created alongside production code) |
+| **Config file** | vitest.config or inline |
+| **Quick run command** | `npx vitest run tests/phase-176/presentation-ir.test.mjs --reporter=verbose` |
+| **Full suite command** | `npx vitest run tests/phase-176/ --reporter=verbose` |
+| **Estimated runtime** | ~5 seconds |
 
 ---
 
 ## Sampling Rate
 
-- **After every task commit:** Run `node tests/presentation-ir.test.cjs`
+- **After every task commit:** Run quick run command
 - **After every plan wave:** Run full suite command
 - **Before `/gsd:verify-work`:** Full suite must be green
 - **Max feedback latency:** 5 seconds
@@ -38,15 +38,10 @@ created: 2026-03-29
 
 | Task ID | Plan | Wave | Requirement | Test Type | Automated Command | File Exists | Status |
 |---------|------|------|-------------|-----------|-------------------|-------------|--------|
-| 176-01-01 | 01 | 0 | EXT-01 | unit | `node tests/presentation-ir.test.cjs` | ❌ W0 | ⬜ pending |
-| 176-01-02 | 01 | 1 | EXT-02 | unit | `node tests/presentation-ir.test.cjs` | ❌ W0 | ⬜ pending |
-| 176-01-03 | 01 | 1 | EXT-03 | unit | `node tests/presentation-ir.test.cjs` | ❌ W0 | ⬜ pending |
-| 176-02-01 | 02 | 1 | EXT-04,EXT-05 | unit | `node tests/presentation-ir.test.cjs` | ❌ W0 | ⬜ pending |
-| 176-02-02 | 02 | 1 | EXT-06 | unit | `node tests/presentation-ir.test.cjs` | ❌ W0 | ⬜ pending |
-| 176-02-03 | 02 | 1 | EXT-07 | unit | `node tests/presentation-ir.test.cjs` | ❌ W0 | ⬜ pending |
-| 176-03-01 | 03 | 2 | EXT-08,EXT-09 | unit | `node tests/presentation-validate.test.cjs` | ❌ W0 | ⬜ pending |
-| 176-03-02 | 03 | 2 | EXT-10 | unit | `node tests/presentation-validate.test.cjs` | ❌ W0 | ⬜ pending |
-| 176-03-03 | 03 | 2 | CMD-03,CMD-04 | integration | `node tests/presentation-validate.test.cjs` | ❌ W0 | ⬜ pending |
+| 176-01-01 | 01 | 1 | EXT-01,EXT-02,EXT-03,EXT-04 | unit | `npx vitest run tests/phase-176/presentation-ir.test.mjs` | ❌ TDD | ⬜ pending |
+| 176-02-01 | 02 | 2 | EXT-05,EXT-06,EXT-07,EXT-08,EXT-09,EXT-10 | unit | `npx vitest run tests/phase-176/presentation-ir.test.mjs` | ❌ TDD | ⬜ pending |
+| 176-03-01 | 03 | 3 | CMD-03 | integration | `node -e "const p = require('./bin/lib/presentation.cjs')..."` | ❌ TDD | ⬜ pending |
+| 176-03-02 | 03 | 3 | CMD-04 | integration | `npx vitest run tests/phase-176/ --reporter=verbose` | ❌ TDD | ⬜ pending |
 
 *Status: ⬜ pending · ✅ green · ❌ red · ⚠️ flaky*
 
@@ -54,10 +49,7 @@ created: 2026-03-29
 
 ## Wave 0 Requirements
 
-- [ ] `tests/presentation-ir.test.cjs` — stubs for EXT-01 through EXT-07
-- [ ] `tests/presentation-validate.test.cjs` — stubs for EXT-08 through EXT-10, CMD-03, CMD-04
-
-*Existing infrastructure (bin/lib/, tests/) covers the test runner pattern.*
+No separate Wave 0 — tests are created inline via TDD pattern (tdd=true on tasks). Each task creates both production code and test file simultaneously.
 
 ---
 
