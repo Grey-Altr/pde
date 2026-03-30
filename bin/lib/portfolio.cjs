@@ -1,96 +1,109 @@
 /**
- * portfolio.cjs — Multi-project IR extraction layer
+ * portfolio.cjs — Cross-project portfolio extraction layer
  *
- * Reads N project directories, detects schema versions, extracts milestone
- * history, and composes a portfolioIR object for cross-project synthesis.
+ * Extracts multi-project IR, schema version detection, and milestone history
+ * for the cross-project portfolio synthesis pipeline.
  *
- * Exports: detectSchemaVersion, extractMilestoneHistory, buildPortfolioIR, cmdPortfolioBuild
+ * PORT-01: buildPortfolioIR accepts N project paths, returns portfolioIR
+ * PORT-02: extractMilestoneHistory reads MILESTONES.md
+ * PORT-04: detectSchemaVersion reads STATE.md frontmatter
+ * PORT-05: All per-project errors return { unavailable: true, reason } — never throw
  */
 
 'use strict';
 
 const fs = require('fs');
 const path = require('path');
-const { safeReadFile, output, error } = require('./core.cjs');
-const { extractFrontmatter } = require('./frontmatter.cjs');
 
-// ─── detectSchemaVersion ──────────────────────────────────────────────────────
+// ─── 1. detectSchemaVersion ───────────────────────────────────────────────────
 
 /**
- * Detect the GSD schema version used in a project by reading STATE.md.
+ * Detect the .planning/ schema version for a project path.
+ * Reads STATE.md frontmatter — gsd_state_version field is authoritative.
  *
- * @param {string} cwd - Absolute path to the project root
- * @returns {{ version: string, source?: string, reason?: string }}
- *   version: '1.0' | 'pre-1.0-modern' | 'pre-1.0-legacy' | 'unknown'
+ * @param {string} cwd - Absolute project root path
+ * @returns {{ version: string, source: string } | { version: 'unknown', reason: string }}
  */
 function detectSchemaVersion(cwd) {
+  const { safeReadFile } = require('./core.cjs');
+  const { extractFrontmatter } = require('./frontmatter.cjs');
+
   const statePath = path.join(cwd, '.planning', 'STATE.md');
   const content = safeReadFile(statePath);
 
   if (!content) {
-    return { version: 'unknown', reason: 'STATE.md not found' };
+    return { version: 'unknown', reason: 'STATE.md not found at ' + statePath };
   }
 
-  // Check for gsd_state_version in frontmatter (v1.0+)
-  const hasFrontmatter = content.match(/^---\n/);
-  if (hasFrontmatter) {
-    const fm = extractFrontmatter(content);
-    if (fm.gsd_state_version) {
-      return {
-        version: String(fm.gsd_state_version),
-        source: 'STATE.md gsd_state_version',
-      };
-    }
+  const fm = extractFrontmatter(content);
 
-    // Has frontmatter but no gsd_state_version — check for progress block
-    if (fm.progress !== undefined || content.includes('progress:')) {
-      return { version: 'pre-1.0-modern', source: 'STATE.md progress block' };
-    }
+  // Check gsd_state_version field first (v1.0+ schema)
+  if (fm.gsd_state_version) {
+    return {
+      version: String(fm.gsd_state_version),
+      source: 'STATE.md gsd_state_version',
+    };
   }
 
-  // No frontmatter at all — legacy format
-  if (content.trim().length > 0) {
-    return { version: 'pre-1.0-legacy', source: 'STATE.md legacy format' };
+  // Check progress block (pre-1.0-modern schema)
+  if (fm.progress && typeof fm.progress === 'object') {
+    return {
+      version: 'pre-1.0-modern',
+      source: 'STATE.md progress block',
+    };
   }
 
-  return { version: 'unknown', reason: 'STATE.md empty or unrecognized' };
+  // Has STATE.md but no recognized structure
+  return {
+    version: 'unknown',
+    reason: 'STATE.md found but no recognized schema markers',
+  };
 }
 
-// ─── extractMilestoneHistory ──────────────────────────────────────────────────
+// ─── 2. extractMilestoneHistory ───────────────────────────────────────────────
 
 /**
  * Extract milestone history from MILESTONES.md.
+ * Regex: ## vX.Y Name (Shipped: date)
  *
- * @param {string} cwd - Absolute path to the project root
+ * @param {string} cwd - Absolute project root path
  * @returns {{ available: true, count: number, milestones: Array } | { unavailable: true, reason: string }}
  */
 function extractMilestoneHistory(cwd) {
+  const { safeReadFile } = require('./core.cjs');
+
   const milestonesPath = path.join(cwd, '.planning', 'MILESTONES.md');
   const content = safeReadFile(milestonesPath);
 
   if (!content) {
-    return { unavailable: true, reason: 'MILESTONES.md not found' };
+    return { unavailable: true, reason: 'MILESTONES.md not found at ' + milestonesPath };
   }
 
-  if (!content.trim()) {
-    return { unavailable: true, reason: 'MILESTONES.md is empty' };
-  }
-
-  // Parse milestone headings: ## vX.Y Name (Shipped: YYYY-MM-DD)
-  const milestoneRegex = /^##\s+(v[\d.]+)\s+(.+?)\s+\(Shipped:\s*([^)]+)\)/gm;
   const milestones = [];
+  // Match: ## v0.21 Desktop App Integration (Shipped: 2026-03-29)
+  const re = /^##\s+(v[\d.]+)\s+(.+?)\s+\(Shipped:\s*([^)]+)\)/gm;
   let match;
+  while ((match = re.exec(content)) !== null) {
+    const version = match[1];
+    const name = match[2];
+    const shipped = match[3];
 
-  while ((match = milestoneRegex.exec(content)) !== null) {
+    // Try to extract phases_completed from following content
+    let phases_completed = null;
+    const afterHeading = content.slice(match.index + match[0].length, match.index + match[0].length + 200);
+    const phasesMatch = afterHeading.match(/\*\*Phases completed:\*\*\s*(\d+)\s*phases/);
+    if (phasesMatch) phases_completed = parseInt(phasesMatch[1], 10);
+
     milestones.push({
-      version: match[1].trim(),
-      name: match[2].trim(),
-      shipped: match[3].trim(),
+      version: version.trim(),
+      name: name.trim(),
+      shipped: shipped.trim(),
+      phases_completed,
     });
   }
 
   if (milestones.length === 0) {
-    return { unavailable: true, reason: 'No shipped milestones found in MILESTONES.md' };
+    return { unavailable: true, reason: 'No milestone entries found in MILESTONES.md' };
   }
 
   return {
@@ -100,93 +113,91 @@ function extractMilestoneHistory(cwd) {
   };
 }
 
-// ─── buildPortfolioIR ─────────────────────────────────────────────────────────
+// ─── 3. buildPortfolioIR ──────────────────────────────────────────────────────
 
 /**
- * Build a portfolioIR object from an array of project directory paths.
- *
- * For each path:
- *   - Checks .planning/ directory exists
- *   - Calls buildPresentationIR (wrapped in try/catch)
- *   - Extracts milestone history and schema version
- *   - Returns per-project sentinel { unavailable: true, reason } on any failure
+ * Build a portfolioIR by aggregating per-project IRs.
+ * Each project either returns its data or an unavailable sentinel (PORT-05).
  *
  * @param {string[]} projectPaths - Array of absolute project root paths
  * @returns {object} portfolioIR
  */
 function buildPortfolioIR(projectPaths) {
-  const { buildPresentationIR } = require('./presentation.cjs');
-
-  const projects = (projectPaths || []).map(function(projectPath) {
-    const absPath = path.isAbsolute(projectPath)
-      ? projectPath
-      : path.resolve(projectPath);
-
-    // Check .planning/ exists
-    const planningDir = path.join(absPath, '.planning');
-    let planningExists = false;
+  const projects = projectPaths.map(function(rawPath) {
+    const projectPath = path.resolve(rawPath);
     try {
-      planningExists = fs.statSync(planningDir).isDirectory();
-    } catch (_) {
-      planningExists = false;
-    }
+      // Check .planning/ directory exists
+      const planningDir = path.join(projectPath, '.planning');
+      if (!fs.existsSync(planningDir)) {
+        return {
+          path: projectPath,
+          unavailable: true,
+          reason: '.planning/ directory not found at ' + projectPath,
+        };
+      }
 
-    if (!planningExists) {
+      // Extract single-project IR
+      const { buildPresentationIR } = require('./presentation.cjs');
+      let ir;
+      try {
+        ir = buildPresentationIR(projectPath);
+      } catch (e) {
+        return {
+          path: projectPath,
+          unavailable: true,
+          reason: 'buildPresentationIR failed: ' + e.message,
+        };
+      }
+
+      const milestoneHistory = extractMilestoneHistory(projectPath);
+      const schemaVersion = detectSchemaVersion(projectPath);
+
       return {
-        path: absPath,
+        path: projectPath,
+        unavailable: false,
+        ir,
+        milestoneHistory,
+        schemaVersion,
+      };
+    } catch (e) {
+      // PORT-05: never throw — catch any unexpected error
+      return {
+        path: projectPath,
         unavailable: true,
-        reason: '.planning/ directory not found at ' + absPath,
+        reason: 'Unexpected error: ' + e.message,
       };
     }
-
-    // Extract IR — wrap in try/catch so any error returns sentinel
-    let ir;
-    try {
-      ir = buildPresentationIR(absPath);
-    } catch (extractErr) {
-      return {
-        path: absPath,
-        unavailable: true,
-        reason: 'buildPresentationIR failed: ' + (extractErr && extractErr.message ? extractErr.message : String(extractErr)),
-      };
-    }
-
-    // Extract supporting data (these never throw — they return sentinels internally)
-    const milestoneHistory = extractMilestoneHistory(absPath);
-    const schemaVersion = detectSchemaVersion(absPath);
-
-    return {
-      path: absPath,
-      unavailable: false,
-      ir,
-      milestoneHistory,
-      schemaVersion,
-    };
   });
 
-  const availableCount = projects.filter(function(p) { return !p.unavailable; }).length;
+  const available_count = projects.filter(function(p) { return !p.unavailable; }).length;
 
   return {
     schema_version: '1.0',
     extracted_at: new Date().toISOString(),
-    project_count: projects.length,
-    available_count: availableCount,
+    project_count: projectPaths.length,
+    available_count,
     projects,
   };
 }
 
-// ─── cmdPortfolioBuild ────────────────────────────────────────────────────────
+// ─── 4. cmdPortfolioBuild ─────────────────────────────────────────────────────
 
 /**
- * CLI handler for `pde-tools portfolio build`.
+ * CLI handler for pde-tools portfolio build [paths...].
+ * Validates paths, builds portfolioIR, outputs JSON to stdout.
  *
- * @param {string} cwd - Working directory (used for relative path resolution)
- * @param {string[]} paths - Array of project paths (absolute or relative to cwd)
- * @param {boolean} raw - If true, pass raw flag to output()
+ * @param {string} cwd - Invoking project's working directory
+ * @param {string[]} paths - Project paths from CLI args
+ * @param {boolean} raw - Raw output flag
  */
 function cmdPortfolioBuild(cwd, paths, raw) {
+  const { output } = require('./core.cjs');
+
   if (!paths || paths.length === 0) {
-    error('At least one project path is required. Usage: pde-tools portfolio build <path1> [path2...]');
+    // Allow empty paths — returns empty portfolioIR
+    const portfolioIR = buildPortfolioIR([]);
+    output(portfolioIR, raw);
+    return;
   }
 
   // Resolve relative paths against cwd

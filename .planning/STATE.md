@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v0.22
 milestone_name: Stakeholder Presentations
-status: executing
-stopped_at: Completed 184-01-PLAN.md
-last_updated: "2026-03-30T04:38:35.266Z"
-last_activity: 2026-03-29
+status: completed
+stopped_at: Completed 184-02-PLAN.md
+last_updated: "2026-03-30T04:47:01.438Z"
+last_activity: 2026-03-30
 progress:
   total_phases: 16
-  completed_phases: 8
+  completed_phases: 9
   total_plans: 18
-  completed_plans: 17
+  completed_plans: 18
   percent: 50
 ---
 
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-03-29)
 ## Current Position
 
 Phase: 184
-Plan: 01 complete (1 of 3)
-Status: In progress
-Last activity: 2026-03-29
+Plan: Not started
+Status: Plan 01 complete
+Last activity: 2026-03-30
 
 Progress: [█████░░░░░] 50%
 
@@ -72,8 +72,8 @@ Progress: [█████░░░░░] 50%
 - [Phase 183-01]: presentations.auto_generate defaults to false (opt-in) — config-get exits 1 when unset; workflow uses || echo "false" fallback so auto-generation never fires unless explicitly enabled
 - [Phase 183-01]: auto_generate_presentations step uses CLAUDE_PLUGIN_ROOT for render command (not hard-coded path) — matches present.md convention
 - [Phase 183-01]: JSON persona array parsed via node -e pipe in bash to avoid jq dependency, with fallback to executive-summary,project-manager on parse error
-- [Phase 184-cross-project-portfolio-synthesis]: buildPortfolioIR wraps buildPresentationIR in try/catch per project — portfolio layer never blocked by single project failure (PORT-05)
-- [Phase 184-cross-project-portfolio-synthesis]: detectSchemaVersion uses three-tier detection: gsd_state_version frontmatter key -> progress block -> legacy text content
+- [Phase 184-cross-project-portfolio-synthesis]: cmdPortfolioRender bypasses render() persona switch — calls renderHTML/renderMarkdown directly to keep single-project and multi-project IR shapes cleanly separated
+- [Phase 184-cross-project-portfolio-synthesis]: buildCrossProjectPortfolio returns 5-section array (header, projects, patterns, outcomes, timeline) for portfolioIR — distinct from single-project persona builders
 
 ### Pending Todos
 
@@ -86,7 +86,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-30T04:38:35.263Z
-Stopped at: Completed 184-01-PLAN.md
+Last session: 2026-03-30T04:46:54.428Z
+Stopped at: Completed 184-02-PLAN.md
 Resume with: `/gsd:plan-phase 176`
 Resume file: None

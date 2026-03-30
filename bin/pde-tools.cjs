@@ -1690,6 +1690,20 @@ async function main() {
       break;
     }
 
+    case 'portfolio': {
+      const subcommand = args[1];
+      if (subcommand === 'build') {
+        const portfolio = require('./lib/portfolio.cjs');
+        portfolio.cmdPortfolioBuild(cwd, args.slice(2), raw);
+      } else if (subcommand === 'render') {
+        const renderPresentation = require('./lib/render-presentation.cjs');
+        renderPresentation.cmdPortfolioRender(cwd, args[2], args[3], args[4]);
+      } else {
+        error('Unknown portfolio subcommand. Available: build, render');
+      }
+      break;
+    }
+
     default:
       error(`Unknown command: ${command}`);
   }
