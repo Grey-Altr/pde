@@ -9,8 +9,8 @@ Requirements for v0.25 milestone. Each maps to roadmap phases.
 
 ### Foundation
 
-- [ ] **FND-01**: User can register Firecrawl as an approved MCP server in mcp-bridge.cjs with TOOL_MAP entries for all supported tools
-- [ ] **FND-02**: User can configure Firecrawl API key via PDE config.json with probe/degrade contract validating connectivity on first use
+- [x] **FND-01**: User can register Firecrawl as an approved MCP server in mcp-bridge.cjs with TOOL_MAP entries for all supported tools
+- [x] **FND-02**: User can configure Firecrawl API key via PDE config.json with probe/degrade contract validating connectivity on first use
 - [ ] **FND-03**: User can view remaining Firecrawl credits in the tmux dashboard and session summaries, with 80% depletion warning
 - [ ] **FND-04**: User experiences graceful degradation when Firecrawl credits are exhausted or API is unreachable, falling back to WebSearch/WebFetch
 
@@ -78,34 +78,34 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| FND-01 | — | Pending |
-| FND-02 | — | Pending |
-| FND-03 | — | Pending |
-| FND-04 | — | Pending |
-| SCR-01 | — | Pending |
-| SCR-02 | — | Pending |
-| SCR-03 | — | Pending |
-| SCR-04 | — | Pending |
-| SCR-05 | — | Pending |
-| CRL-01 | — | Pending |
-| CRL-02 | — | Pending |
-| CRL-03 | — | Pending |
-| AGT-01 | — | Pending |
-| AGT-02 | — | Pending |
-| AGT-03 | — | Pending |
-| AGT-04 | — | Pending |
-| PIP-01 | — | Pending |
-| PIP-02 | — | Pending |
-| PIP-03 | — | Pending |
-| PIP-04 | — | Pending |
-| CHG-01 | — | Pending |
-| CHG-02 | — | Pending |
+| FND-01 | Phase 198 | Complete |
+| FND-02 | Phase 198 | Complete |
+| FND-03 | Phase 198 | Pending |
+| FND-04 | Phase 198 | Pending |
+| CRL-03 | Phase 199 | Pending |
+| CRL-02 | Phase 199 | Pending |
+| SCR-01 | Phase 200 | Pending |
+| SCR-02 | Phase 200 | Pending |
+| SCR-03 | Phase 200 | Pending |
+| SCR-04 | Phase 200 | Pending |
+| SCR-05 | Phase 200 | Pending |
+| CRL-01 | Phase 200 | Pending |
+| PIP-01 | Phase 200 | Pending |
+| PIP-02 | Phase 201 | Pending |
+| PIP-03 | Phase 201 | Pending |
+| PIP-04 | Phase 201 | Pending |
+| AGT-01 | Phase 202 | Pending |
+| AGT-02 | Phase 202 | Pending |
+| AGT-03 | Phase 202 | Pending |
+| AGT-04 | Phase 202 | Pending |
+| CHG-01 | Phase 203 | Pending |
+| CHG-02 | Phase 203 | Pending |
 
 **Coverage:**
 - v1 requirements: 22 total
-- Mapped to phases: 0
-- Unmapped: 22 ⚠️
+- Mapped to phases: 22
+- Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2026-03-30*
-*Last updated: 2026-03-30 after initial definition*
+*Last updated: 2026-03-30 — traceability populated after roadmap creation*

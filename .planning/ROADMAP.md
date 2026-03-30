@@ -601,7 +601,7 @@ Plans:
   4. When Firecrawl credits are exhausted or the API is unreachable, the workflow continues using WebSearch/WebFetch — no hard failure, no user prompt required
 **Plans**: 2 plans
 Plans:
-- [ ] 198-01-PLAN.md — Firecrawl APPROVED_SERVERS registration, 12 TOOL_MAP entries, AUTH_INSTRUCTIONS, docs updates
+- [x] 198-01-PLAN.md — Firecrawl APPROVED_SERVERS registration, 12 TOOL_MAP entries, AUTH_INSTRUCTIONS, docs updates
 - [ ] 198-02-PLAN.md — Credit guard functions, concurrency semaphore, graceful degradation contract
 
 ### Phase 199: Data Layer — Cache Module + Source Pipeline
@@ -705,7 +705,7 @@ Plans:
 | 195. Dashboard Integration | v0.24 | 2/2 | Complete | 2026-03-30 |
 | 196. Containerized MCP Servers | v0.24 | 1/1 | Complete | 2026-03-30 |
 | 197. Cross-Host Session Resume | v0.24 | 1/2 | Complete | 2026-03-30 |
-| 198. Foundation — MCP Registration + Credit Guards | v0.25 | 0/TBD | Not started | - |
+| 198. Foundation — MCP Registration + Credit Guards | v0.25 | 1/2 | In Progress|  |
 | 199. Data Layer — Cache Module + Source Pipeline | v0.25 | 0/TBD | Not started | - |
 | 200. Core Scraping Tools + Competitive/Recommend Integration | v0.25 | 0/TBD | Not started | - |
 | 201. Brief + Phase Researcher + Design Reference Integration | v0.25 | 0/TBD | Not started | - |
