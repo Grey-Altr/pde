@@ -231,7 +231,9 @@ Plans:
   2. Running `/pde:present` with no argument displays a formatted list of all 15 available personas, each with a one-line description of its audience and purpose
   3. Running `/pde:present [unknown-persona]` produces a clear error message with the list of valid persona names
   4. The workflow reads from the IR (not raw .planning/ files) and passes structured data to the LLM for narration only
-**Plans**: TBD
+**Plans:** 1 plan
+Plans:
+- [ ] 177-01-PLAN.md — Command file, workflow with persona registry and dispatch, skill-registry update
 
 ### Phase 178: Reference Personas + Rendering Engine
 **Goal**: Users can generate a self-contained executive summary HTML/Markdown document and a case study HTML/Markdown document — the two reference implementations that prove the rendering pipeline and lock in all HTML constraints before any other persona is built
@@ -243,7 +245,9 @@ Plans:
   3. Both personas produce a Markdown companion file alongside the HTML, written to .planning/presentations/ with the [persona]-[date] naming convention
   4. Design artifact screenshots from .planning/design/ are embedded as inline base64 images where the persona calls for visual evidence
   5. Regenerating either presentation overwrites the prior output with the current project state
-**Plans**: TBD
+**Plans:** 1 plan
+Plans:
+- [ ] 177-01-PLAN.md — Command file, workflow with persona registry and dispatch, skill-registry update
 **UI hint**: yes
 
 ### Phase 179: SVG Charts
@@ -256,7 +260,9 @@ Plans:
   3. A phase timeline chart showing planned vs actual duration per phase renders as valid inline SVG
   4. An effort breakdown chart showing token cost or task count by category renders as valid inline SVG
   5. Every chart includes an aria-label and a fallback data table so the information is accessible without visual rendering
-**Plans**: TBD
+**Plans:** 1 plan
+Plans:
+- [ ] 177-01-PLAN.md — Command file, workflow with persona registry and dispatch, skill-registry update
 
 ### Phase 180: Claim Verification + PDF Export
 **Goal**: Every generated presentation has been verified for factual accuracy against the IR before the user sees it, and any presentation can be exported to PDF on demand
@@ -267,7 +273,9 @@ Plans:
   2. The verification result (claims checked, mismatches found, overall pass/fail) appears as a metadata footer section in the generated HTML and Markdown output
   3. Running `/pde:present executive-summary --pdf` produces a PDF file in .planning/presentations/ alongside the HTML output using Playwright page.pdf()
   4. The PDF preserves chart SVGs, embedded base64 images, and table formatting from the HTML source without requiring additional dependencies
-**Plans**: TBD
+**Plans:** 1 plan
+Plans:
+- [ ] 177-01-PLAN.md — Command file, workflow with persona registry and dispatch, skill-registry update
 
 ### Phase 181: Remaining Cluster A Personas
 **Goal**: Users can generate all six remaining internal/forward-looking personas — investor update, sprint review, client deliverable, stakeholder status update, product manager view, and project manager view — using the shared engine proven by the reference implementations
@@ -279,7 +287,9 @@ Plans:
   3. Running `/pde:present client-deliverable` produces a feature-specs and ACs-met report with verification evidence
   4. Running `/pde:present stakeholder-status` produces a RAG-status, decisions-needed, and risks document
   5. Running `/pde:present pm-view` and `/pde:present project-manager-view` each produce their respective persona documents with the correct data emphasis and narrative arc
-**Plans**: TBD
+**Plans:** 1 plan
+Plans:
+- [ ] 177-01-PLAN.md — Command file, workflow with persona registry and dispatch, skill-registry update
 **UI hint**: yes
 
 ### Phase 182: Remaining Cluster B Personas
@@ -292,7 +302,9 @@ Plans:
   3. Running `/pde:present research-report` produces a findings summary with evidence-backed recommendations sourced from the research/ directory
   4. Running `/pde:present post-mortem`, `/pde:present adr-summary`, `/pde:present launch-announcement`, and `/pde:present portfolio-overview` each produce their respective documents with correct narrative arc and IR data
   5. All 15 personas are listed in the output of `/pde:present` (no argument) with accurate descriptions
-**Plans**: TBD
+**Plans:** 1 plan
+Plans:
+- [ ] 177-01-PLAN.md — Command file, workflow with persona registry and dispatch, skill-registry update
 **UI hint**: yes
 
 ### Phase 183: Auto-Generation
@@ -305,7 +317,9 @@ Plans:
   3. Auto-generation only fires when STATE.md shows `status: Completed` — it does not fire on every PostToolUse Write event during mid-phase execution
   4. The default persona set for auto-generation is configurable in config.json and used when no explicit persona is specified
   5. Setting `auto_generate: false` in config.json disables auto-generation entirely without affecting on-demand `/pde:present`
-**Plans**: TBD
+**Plans:** 1 plan
+Plans:
+- [ ] 177-01-PLAN.md — Command file, workflow with persona registry and dispatch, skill-registry update
 
 ### Phase 184: Cross-Project Portfolio Synthesis
 **Goal**: Users can synthesize a portfolio narrative across multiple PDE projects by passing a list of .planning/ directory paths — with schema version detection ensuring older projects are extracted correctly regardless of which milestone they were built on
@@ -317,7 +331,9 @@ Plans:
   3. Missing or incompatible fields in any project surface a "data unavailable" marker in the output rather than silently zeroing or crashing
   4. A project directory that cannot be read (wrong path, missing .planning/) is skipped with an explicit error message, and the remaining projects are still synthesized
   5. The portfolio command validates all supplied paths as absolute paths with readable .planning/ directories before starting any extraction
-**Plans**: TBD
+**Plans:** 1 plan
+Plans:
+- [ ] 177-01-PLAN.md — Command file, workflow with persona registry and dispatch, skill-registry update
 
 ## Progress
 
@@ -344,7 +360,7 @@ Plans:
 | 174. CLI Wrap Skill | v0.21 | 2/2 | Complete | 2026-03-29 |
 | 175. Design Pipeline Integration | v0.21 | 2/2 | Complete | 2026-03-29 |
 | 176. Data Extraction IR Foundation | v0.22 | 1/3 | Complete    | 2026-03-30 |
-| 177. Command Interface + Workflow Shell | v0.22 | 0/TBD | Not started | - |
+| 177. Command Interface + Workflow Shell | v0.22 | 0/1 | Not started | - |
 | 178. Reference Personas + Rendering Engine | v0.22 | 0/TBD | Not started | - |
 | 179. SVG Charts | v0.22 | 0/TBD | Not started | - |
 | 180. Claim Verification + PDF Export | v0.22 | 0/TBD | Not started | - |
