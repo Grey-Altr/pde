@@ -24,6 +24,8 @@ const sourceLabels: Record<SessionListItem['source'], string> = {
   'local': 'Local',
   'remote-ssh': 'SSH',
   'remote-managed': 'Managed',
+  'remote-cloud': 'Cloud',
+  'docker': 'Docker',
 };
 
 export function SessionHealthMatrix({ sessions }: SessionHealthMatrixProps) {
