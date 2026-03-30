@@ -14,6 +14,7 @@ import { ActionChevron } from '@/components/action-chevron';
 import { EventLog } from '@/components/event-log';
 import { FailureCard } from '@/components/failure-card';
 import { retrySession, abandonSession, killSession } from '@/app/actions';
+import { SyncStatePanel } from '@/components/sync-state-panel';
 
 export default function HomePage() {
   const { sessionFilter, setSessionFilter } = useGlobalFilter();
@@ -155,15 +156,18 @@ export default function HomePage() {
         {/* Pane 6: Action Chevron — for selected or first session */}
         <ActionChevron events={events} sessionId={selectedSessionId} />
 
-        {/* Pane 7: Summary Status Bar — full width on laptop */}
+        {/* Pane 7: Summary Status Bar */}
         <AggregateStatusBar sessions={sessions} />
+
+        {/* Pane 8: Sync State */}
+        <SyncStatePanel sessions={filteredSessions} />
       </PaneGrid>
 
       {/* Laptop keyboard shortcut hint bar */}
       {isLaptop && (
         <div className="hidden lg:flex items-center gap-3 mt-4 text-xs text-muted-foreground">
           <span className="font-medium">Shortcuts:</span>
-          {[1, 2, 3, 4, 5, 6, 7].map(n => (
+          {[1, 2, 3, 4, 5, 6, 7, 8].map(n => (
             <span key={n} className="flex items-center gap-1">
               <kbd className="border border-border rounded px-1 font-mono">{n}</kbd>
               <span className="sr-only">pane {n}</span>

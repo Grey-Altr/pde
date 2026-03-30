@@ -4,7 +4,7 @@ import React from 'react';
 
 const PANE_NAMES = [
   'Health', 'Events', 'Progress',
-  'Status', 'Failures', 'Actions', 'Summary',
+  'Status', 'Failures', 'Actions', 'Summary', 'Sync',
 ] as const;
 
 interface PaneGridProps {
@@ -61,14 +61,23 @@ export function PaneGrid({ children, activePane }: PaneGridProps) {
             {child}
           </section>
         ))}
-        {/* Row 3: Pane 6 — full width */}
+        {/* Row 3: Panes 6-7 */}
         {children[6] && (
           <section
             id="pane-6"
             aria-label={PANE_NAMES[6]}
-            className="col-span-3"
+            className={children[7] ? '' : 'col-span-3'}
           >
             {children[6]}
+          </section>
+        )}
+        {children[7] && (
+          <section
+            id="pane-7"
+            aria-label={PANE_NAMES[7]}
+            className="col-span-2"
+          >
+            {children[7]}
           </section>
         )}
       </div>

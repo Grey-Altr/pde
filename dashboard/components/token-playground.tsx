@@ -15,9 +15,10 @@ interface TokenPlaygroundProps {
   connectionStatus: ConnectionStatus;
   sessionId: string;
   initialPersistedCostUsd: number;
+  infraCostUsdCents?: number;
 }
 
-export function TokenPlayground({ events, connectionStatus, sessionId, initialPersistedCostUsd }: TokenPlaygroundProps) {
+export function TokenPlayground({ events, connectionStatus, sessionId, initialPersistedCostUsd, infraCostUsdCents = 0 }: TokenPlaygroundProps) {
   const costState = useMemo(() => deriveCost(events), [events]);
   const breakdown = useMemo(() => deriveToolBreakdown(events), [events]);
   const contextUsage = useMemo(() => deriveContextUsage(events), [events]);
@@ -74,7 +75,19 @@ export function TokenPlayground({ events, connectionStatus, sessionId, initialPe
         </CardContent>
       </Card>
 
-      {/* Card 3: Per-Agent Breakdown */}
+      {/* Card 3: Infrastructure Cost */}
+      {infraCostUsdCents > 0 && (
+        <Card className="w-full">
+          <CardContent className="py-4">
+            <p className="text-sm font-semibold">Infrastructure Cost</p>
+            <Separator className="my-2" />
+            <p className="text-2xl font-mono font-semibold">{formatCost(infraCostUsdCents / 100)}</p>
+            <p className="text-xs text-muted-foreground mt-1">Container uptime x rate</p>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Card 4: Per-Agent Breakdown */}
       <Card className="w-full">
         <CardContent className="py-4">
           <p className="text-sm font-semibold">Per-Agent Breakdown</p>

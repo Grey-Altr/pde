@@ -72,6 +72,7 @@ export function SessionDetail({ session, connectionStatus, events, sessionId, in
         connectionStatus={connectionStatus}
         sessionId={sessionId}
         initialPersistedCostUsd={initialPersistedCostUsd}
+        infraCostUsdCents={session.infraCostUsdCents}
       />
 
       {/* Live event log with filtering (MON-03) */}
