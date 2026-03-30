@@ -81,11 +81,11 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Auto-Generation
 
-- [ ] **AUTO-01**: Presentations auto-generate when a phase is marked complete (via phase completion event)
-- [ ] **AUTO-02**: Presentations auto-generate when a milestone is archived (via `/gsd:complete-milestone`)
-- [ ] **AUTO-03**: Auto-generation is gated on state completion check (not PostToolUse frequency)
-- [ ] **AUTO-04**: Auto-generated presentations use a default persona set (configurable in config.json)
-- [ ] **AUTO-05**: Auto-generation can be disabled in config.json without affecting on-demand `/pde:present`
+- [x] **AUTO-01**: Presentations auto-generate when a phase is marked complete (via phase completion event)
+- [x] **AUTO-02**: Presentations auto-generate when a milestone is archived (via `/gsd:complete-milestone`)
+- [x] **AUTO-03**: Auto-generation is gated on state completion check (not PostToolUse frequency)
+- [x] **AUTO-04**: Auto-generated presentations use a default persona set (configurable in config.json)
+- [x] **AUTO-05**: Auto-generation can be disabled in config.json without affecting on-demand `/pde:present`
 
 ### Cross-Project Portfolio
 
@@ -178,11 +178,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CLR-06 | Phase 182 | Complete |
 | CLR-07 | Phase 182 | Complete |
 | CLR-08 | Phase 182 | Complete |
-| AUTO-01 | Phase 183 | Pending |
-| AUTO-02 | Phase 183 | Pending |
-| AUTO-03 | Phase 183 | Pending |
-| AUTO-04 | Phase 183 | Pending |
-| AUTO-05 | Phase 183 | Pending |
+| AUTO-01 | Phase 183 | Complete |
+| AUTO-02 | Phase 183 | Complete |
+| AUTO-03 | Phase 183 | Complete |
+| AUTO-04 | Phase 183 | Complete |
+| AUTO-05 | Phase 183 | Complete |
 | PORT-01 | Phase 184 | Pending |
 | PORT-02 | Phase 184 | Pending |
 | PORT-03 | Phase 184 | Pending |

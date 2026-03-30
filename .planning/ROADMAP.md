@@ -88,7 +88,7 @@
 - [x] **Phase 180: Claim Verification + PDF Export** — post-generation claim verification against IR, mismatch flagging, verification footer, PDF export via Playwright (completed 2026-03-30)
 - [x] **Phase 181: Remaining Cluster A Personas** — investor update, sprint review, client deliverable, stakeholder status update, product manager view, project manager view (completed 2026-03-30)
 - [x] **Phase 182: Remaining Cluster B Personas** — agile project report, design persona report, research persona report, technical post-mortem, ADR summary, launch announcement, portfolio overview (completed 2026-03-30)
-- [ ] **Phase 183: Auto-Generation** — phase-completion hook, milestone-archive hook, state completion gate, configurable persona set, opt-out config flag
+- [x] **Phase 183: Auto-Generation** — phase-completion hook, milestone-archive hook, state completion gate, configurable persona set, opt-out config flag (completed 2026-03-30)
 - [ ] **Phase 184: Cross-Project Portfolio Synthesis** — multi-project reader, schema version detection, defensive extraction, /pde:portfolio command, portfolio narrative
 
 ## Phase Details
@@ -326,7 +326,7 @@ Plans:
   5. Setting `auto_generate: false` in config.json disables auto-generation entirely without affecting on-demand `/pde:present`
 **Plans:** 1 plan
 Plans:
-- [ ] 183-01-PLAN.md — Config keys, auto-generation workflow steps in execute-phase.md and complete-milestone.md
+- [x] 183-01-PLAN.md — Config keys, auto-generation workflow steps in execute-phase.md and complete-milestone.md
 
 ### Phase 184: Cross-Project Portfolio Synthesis
 **Goal**: Users can synthesize a portfolio narrative across multiple PDE projects by passing a list of .planning/ directory paths — with schema version detection ensuring older projects are extracted correctly regardless of which milestone they were built on
@@ -373,5 +373,5 @@ Plans:
 | 180. Claim Verification + PDF Export | v0.22 | 1/2 | Complete    | 2026-03-30 |
 | 181. Remaining Cluster A Personas | v0.22 | 1/3 | Complete    | 2026-03-30 |
 | 182. Remaining Cluster B Personas | v0.22 | 3/3 | Complete    | 2026-03-30 |
-| 183. Auto-Generation | v0.22 | 0/1 | Not started | - |
+| 183. Auto-Generation | v0.22 | 1/1 | Complete    | 2026-03-30 |
 | 184. Cross-Project Portfolio Synthesis | v0.22 | 0/TBD | Not started | - |

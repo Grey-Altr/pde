@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v0.22
 milestone_name: Stakeholder Presentations
 status: verifying
-stopped_at: Completed 182-03-PLAN.md
-last_updated: "2026-03-30T03:54:48.125Z"
+stopped_at: Completed 183-01-PLAN.md
+last_updated: "2026-03-30T04:12:00.000Z"
 last_activity: 2026-03-30
 progress:
   total_phases: 16
-  completed_phases: 7
-  total_plans: 15
-  completed_plans: 15
-  percent: 0
+  completed_phases: 8
+  total_plans: 16
+  completed_plans: 16
+  percent: 50
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-03-29)
 ## Current Position
 
 Phase: 183
-Plan: Not started
-Status: Phase complete — ready for verification
+Plan: 01 complete
+Status: Plan 01 complete
 Last activity: 2026-03-30
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [█████░░░░░] 50%
 
 ## Performance Metrics
 
@@ -69,6 +69,9 @@ Progress: [░░░░░░░░░░] 0%
 - [Phase 182-remaining-cluster-b-personas]: buildAdrDecisions uses zero-padded ADR-001 numbering — readable and sortable, with generic consequences fallback since per-decision consequence data not in IR schema v1.0
 - [Phase 182-03]: buildPortfolioOverview patterns section uses per-field sentinel checks — allows partial rendering when some IR fields are available
 - [Phase 182-03]: 15-persona suite complete: all slugs registered in personaDisplayName(), render() switch, and module.exports
+- [Phase 183-01]: presentations.auto_generate defaults to false (opt-in) — config-get exits 1 when unset; workflow uses || echo "false" fallback so auto-generation never fires unless explicitly enabled
+- [Phase 183-01]: auto_generate_presentations step uses CLAUDE_PLUGIN_ROOT for render command (not hard-coded path) — matches present.md convention
+- [Phase 183-01]: JSON persona array parsed via node -e pipe in bash to avoid jq dependency, with fallback to executive-summary,project-manager on parse error
 
 ### Pending Todos
 
