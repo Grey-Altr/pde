@@ -691,7 +691,7 @@ Confirm: "Committed: chore: complete v[X.Y] milestone"
 
 Check config — skip silently if disabled (AUTO-05):
 ```bash
-AUTO_GENERATE=$(node "$HOME/.claude/pde-os/engines/gsd/bin/pde-tools.cjs" --raw config-get presentations.auto_generate 2>/dev/null || echo "false")
+AUTO_GENERATE=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" --raw config-get presentations.auto_generate 2>/dev/null || echo "false")
 ```
 
 **If AUTO_GENERATE is not "true":** Skip this step entirely. No output, no error.
@@ -700,7 +700,7 @@ AUTO_GENERATE=$(node "$HOME/.claude/pde-os/engines/gsd/bin/pde-tools.cjs" --raw 
 
 Read the configured persona set (AUTO-04):
 ```bash
-PERSONAS_JSON=$(node "$HOME/.claude/pde-os/engines/gsd/bin/pde-tools.cjs" --raw config-get presentations.auto_generate_personas 2>/dev/null || echo '["executive-summary","project-manager-view"]')
+PERSONAS_JSON=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" --raw config-get presentations.auto_generate_personas 2>/dev/null || echo '["executive-summary","project-manager-view"]')
 ```
 
 Generate presentations for each persona (AUTO-02):
