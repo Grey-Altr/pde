@@ -101,8 +101,6 @@
 - Mermaid flowchart parser + Playwright test scaffold generator; handoff spec grep-based gap detector with structured JSON + markdown report output.
 - CLI router wired to four utility modules (mermaid, tokens, flow-tests, handoff-verifier) with complete /pde: command skill files — Phase 170 milestone capstone complete.
 - `3d cad` CLI subcommand wired into pde-tools.cjs routing generateCAD from cad.cjs, with full /pde:3d cad documentation added to commands/3d.md including setup, options, examples, and CadQuery requirement note.
-- 1. [Rule 1 - Bug] Edge regex did not match inline node label syntax
-- One-liner:
 
 ---
 
