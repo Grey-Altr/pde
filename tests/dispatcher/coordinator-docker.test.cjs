@@ -74,6 +74,10 @@ function createDockerTestCoordinator(overrides = {}) {
     checkFileOverlap: vi.fn(() => ({ overlapping: [] })),
     summarizeFailure: vi.fn().mockResolvedValue(''),
     triageConflicts: vi.fn().mockResolvedValue({}),
+    // Phase 192: State sync — mock to avoid real git ops in these coordinator tests
+    pushPlanningState: vi.fn().mockResolvedValue({ ok: true }),
+    fetchPlanningState: vi.fn().mockResolvedValue({ ok: true }),
+    mergePlanningFromCloud: vi.fn().mockResolvedValue({ ok: true, conflicts: [], autoResolved: [] }),
   };
 
   const deps = { ...defaults, ...depOverrides };
@@ -234,7 +238,9 @@ describe('DispatchCoordinator docker dispatch routing', () => {
     expect(capturedOnExit).toBeDefined();
 
     // Simulate exit with code 0 — should trigger mergeSession
-    await capturedOnExit(sessionId, 0);
+    // _handleExit is async (cloud sync ops before mergeSession) — wait for it to settle
+    capturedOnExit(sessionId, 0);
+    await new Promise(r => setTimeout(r, 50));
 
     expect(deps.mergeSession).toHaveBeenCalled();
   });

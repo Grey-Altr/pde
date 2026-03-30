@@ -60,6 +60,10 @@ function createTestCoordinator(overrides = {}) {
     checkFileOverlap: vi.fn(() => ({ overlapping: [] })),
     summarizeFailure: vi.fn().mockResolvedValue(''),
     triageConflicts: vi.fn().mockResolvedValue({}),
+    // Phase 192: State sync — mock to avoid real git ops in these coordinator tests
+    pushPlanningState: vi.fn().mockResolvedValue({ ok: true }),
+    fetchPlanningState: vi.fn().mockResolvedValue({ ok: true }),
+    mergePlanningFromCloud: vi.fn().mockResolvedValue({ ok: true, conflicts: [], autoResolved: [] }),
   };
 
   const deps = { ...defaults, ...depOverrides };
