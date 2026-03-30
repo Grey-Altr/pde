@@ -125,7 +125,17 @@ function spawnDockerSession(opts) {
     });
 
     containerInstance = container;
+    const containerStartTime = Date.now();
     await container.start();
+
+    // Emit synthetic session_start with source so dashboard shows [D] badge (DSH-01 integration)
+    opts.onLine(opts.sessionId, {
+      type: 'session_start',
+      event_type: 'session_start',
+      session_id: opts.sessionId,
+      source: 'docker',
+      ts: new Date().toISOString(),
+    });
 
     // Open NDJSON write stream (Aggregator TailCursor watches this path)
     const ndjsonStream = fs.createWriteStream(ndjsonPath, { flags: 'a' });
@@ -183,6 +193,17 @@ function spawnDockerSession(opts) {
     });
 
     const exitCode = (waitResult && waitResult.StatusCode != null) ? waitResult.StatusCode : 1;
+    const containerUptimeS = Math.floor((Date.now() - containerStartTime) / 1000);
+
+    // Emit session_end with container_uptime_s for infra cost computation (DSH-05 integration)
+    opts.onLine(opts.sessionId, {
+      type: 'session_end',
+      event_type: 'session_end',
+      session_id: opts.sessionId,
+      source: 'docker',
+      container_uptime_s: containerUptimeS,
+      ts: new Date().toISOString(),
+    });
 
     // Failure cleanup: container already auto-removed (AutoRemove:true) on natural exit,
     // but timer guards against kill() call on lingering container (e.g. idle timeout scenario)

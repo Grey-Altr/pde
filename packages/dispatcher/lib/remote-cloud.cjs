@@ -162,6 +162,15 @@ function spawnCloudSession(opts) {
         taskId = raw.trim();
       }
 
+      // Emit synthetic session_start with source so dashboard shows [C] badge (DSH-01 integration)
+      opts.onLine(sessionId, {
+        type: 'session_start',
+        event_type: 'session_start',
+        session_id: sessionId,
+        source: 'remote-cloud',
+        ts: new Date().toISOString(),
+      });
+
       poller = new CloudPoller(taskId, (event) => {
         opts.onLine(sessionId, event);
         if (event.event_type === 'session_end') {
