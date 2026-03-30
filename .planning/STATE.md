@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v0.23
-milestone_name: Quality & Reliability Hardening
-status: active
-stopped_at: null
-last_updated: "2026-03-29T00:00:00.000Z"
-last_activity: 2026-03-29
+milestone: v0.22
+milestone_name: Stakeholder Presentations — SHIPPED 2026-03-30
+status: completed
+stopped_at: Completed 185-01-PLAN.md
+last_updated: "2026-03-30T06:19:38.963Z"
+last_activity: 2026-03-30
 progress:
-  total_phases: 5
+  total_phases: 16
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
-  percent: 0
+  percent: 50
 ---
 
 # Project State
@@ -21,24 +21,25 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-29)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 185 — Data Integrity Baseline
+**Current focus:** Phase 178 — reference-personas-+-rendering-engine
 
 ## Current Position
 
-Phase: 185 of 189 (Data Integrity Baseline)
-Plan: — of — in current phase
-Status: Ready to plan
-Last activity: 2026-03-29 — Roadmap created for v0.23
+Phase: 184
+Plan: Not started
+Status: Plan 01 complete
+Last activity: 2026-03-30
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [█████░░░░░] 50%
 
 ## Performance Metrics
 
 **Prior milestone reference:**
 
-- v0.22: 9 phases, 18 plans, 58 requirements (1 day)
 - v0.21: 5 phases, 12 plans, ~20 requirements (1 day)
 - v0.20: 8 phases, 23 plans, 41 requirements (1 day)
+- v0.19: 7 phases, 16 plans, 30 requirements (1 day)
+- v0.18: 13 phases, 28 plans, 54 requirements (2 days)
 
 *Updated after each plan completion*
 
@@ -46,11 +47,35 @@ Progress: [░░░░░░░░░░] 0%
 
 ### Decisions
 
-- [Roadmap]: Data integrity fixes first — state documents are source-of-truth for all downstream IR extraction; fixing them before any code changes prevents validators from running against rotten data
-- [Roadmap]: Test infrastructure second — 137/236 test files produce false "No test suite found" failures; reliable test signal required before any code changes in Phases 187-189
-- [Roadmap]: IR field fix (Phase 187) after test infrastructure — buildCrossPatterns fix touches production code and test mocks atomically; needs clean test signal to confirm zero regressions
-- [Roadmap]: Verification coverage (Phase 188) depends on Phase 185 (not 186) — VALIDATION.md assertions derive from corrected state documents, not from test infrastructure
-- [Roadmap]: Technical debt (Phase 189) depends on Phase 186 — static analysis tools benefit from clean test signal; runs in parallel with Phase 188
+- [Roadmap]: Extraction-first architecture — LLM never reads .planning/ files directly; all quantitative claims extracted by deterministic code before any LLM call (prevents 28–39% hallucination rate per Stanford Legal RAG 2025)
+- [Roadmap]: Two reference personas (CLU-01 executive summary + CLR-01 case study) built end-to-end independently in Phase 178 before any shared abstractions are extracted — proven duplication only
+- [Roadmap]: CMD-01/CMD-02 split into Phase 177 (command shell) separate from Phase 176 (IR extraction) so extraction is testable standalone before command routing is wired
+- [Roadmap]: SVG charts (Phase 179) run in parallel dependency with reference personas (Phase 178) — both depend on Phase 176 IR, neither depends on the other
+- [Roadmap]: Auto-generation (Phase 183) after ALL personas are proven (Phase 181+182) — hook trigger depends on stable generation, not vice versa
+- [Roadmap]: Portfolio synthesis (Phase 184) last — schema version heterogeneity across v0.12–v0.21 is highest-complexity risk; isolated after single-project synthesis is stable
+- [Phase 176]: crossRefValidate is non-blocking — warnings array only, never prevents IR output
+- [Phase 177-command-interface-+-workflow-shell]: PRS skill code chosen — unique 3-letter code for /pde:present in tooling domain with inline 15-persona registry and three-branch dispatch
+- [Phase 178]: Section-Based Document Model: single sections array drives both HTML and MD renderers for content parity
+- [Phase 178]: PDE design tokens hardcoded in renderer CSS: dark GitHub-inspired theme, discoverable via design-manifest.json in future
+- [Phase 178]: Workflow Step 6 delegates rendering to pde-tools CLI — keeps workflow thin, rendering logic encapsulated in render-presentation.cjs
+- [Phase 179-svg-charts]: SVG chart colors hardcoded as hex values — CSS custom properties unreliable in SVG fill attributes in self-contained HTML
+- [Phase 179-svg-charts]: Burndown chart uses synthetic linear approximation from IR aggregate counts — per-phase snapshots not stored in IR
+- [Phase 180]: exportPdf uses page.goto('file://') not page.setContent() — matches screenshot.cjs pattern, ensures relative resources resolve
+- [Phase 180]: PDF failure in present.md is non-blocking — HTML and MD already written before PDF export attempt
+- [Phase 181]: buildPhaseTracking omits .slice() cap — project managers need the full timeline, not truncated 10-item preview
+- [Phase 182-01]: buildDesignDecisions filters ir.decisions by design keyword list, falls back to all decisions if no match
+- [Phase 182-01]: buildResearchFindings handles both research.findings array-of-strings and research array-of-objects for flexibility
+- [Phase 182-remaining-cluster-b-personas]: buildPostMortem reuses buildDecisions() for prevention section — decisions represent corrective/preventive actions taken
+- [Phase 182-remaining-cluster-b-personas]: buildAdrDecisions uses zero-padded ADR-001 numbering — readable and sortable, with generic consequences fallback since per-decision consequence data not in IR schema v1.0
+- [Phase 182-03]: buildPortfolioOverview patterns section uses per-field sentinel checks — allows partial rendering when some IR fields are available
+- [Phase 182-03]: 15-persona suite complete: all slugs registered in personaDisplayName(), render() switch, and module.exports
+- [Phase 183-01]: presentations.auto_generate defaults to false (opt-in) — config-get exits 1 when unset; workflow uses || echo "false" fallback so auto-generation never fires unless explicitly enabled
+- [Phase 183-01]: auto_generate_presentations step uses CLAUDE_PLUGIN_ROOT for render command (not hard-coded path) — matches present.md convention
+- [Phase 183-01]: JSON persona array parsed via node -e pipe in bash to avoid jq dependency, with fallback to executive-summary,project-manager on parse error
+- [Phase 184-cross-project-portfolio-synthesis]: cmdPortfolioRender bypasses render() persona switch — calls renderHTML/renderMarkdown directly to keep single-project and multi-project IR shapes cleanly separated
+- [Phase 184-cross-project-portfolio-synthesis]: buildCrossProjectPortfolio returns 5-section array (header, projects, patterns, outcomes, timeline) for portfolioIR — distinct from single-project persona builders
+- [Phase 185]: Phase 180 VERIFICATION.md gap was administrative — code fully satisfied VER-01/02/03; only tracker was stale. gap_resolution field added to document fix history.
+- [Phase 185]: EXT-01..04 reference 176-01-PLAN and EXT-05..10 reference 176-02-PLAN — split per Phase 176 VERIFICATION.md evidence mapping showing which plan satisfied each requirement.
 
 ### Pending Todos
 
@@ -58,12 +83,12 @@ None.
 
 ### Blockers/Concerns
 
-- [Roadmap]: MILESTONES.md one-liner read strategy — 40+ one-liners must come from archived SUMMARY.md files in .planning/milestones/; work milestone-by-milestone to avoid context overflow
-- [Roadmap]: buildCrossPatterns mock update scope — fix requires updating both render-presentation.cjs and tests/phase-184/portfolio-render.test.mjs atomically; verify extractResearch() interface is unaffected
+- [Phase 176]: IR field completeness validation needed before finalizing schema — map each persona's data requirements to confirm all fields are deterministically extractable from current .planning/ artifacts
+- [Phase 184]: Schema version inventory for portfolio synthesis — exact frontmatter key changes across PDE milestones v0.12–v0.21 need targeted audit before planning
 
 ## Session Continuity
 
-Last session: 2026-03-29
-Stopped at: Roadmap created for v0.23 (Phases 185-189)
-Resume with: `/gsd:plan-phase 185`
+Last session: 2026-03-30T06:19:38.960Z
+Stopped at: Completed 185-01-PLAN.md
+Resume with: `/gsd:plan-phase 176`
 Resume file: None
