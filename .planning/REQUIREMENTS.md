@@ -62,9 +62,9 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### PDF Export
 
-- [ ] **PDF-01**: User can export any HTML presentation to PDF via `--pdf` flag
-- [ ] **PDF-02**: PDF export uses Playwright page.pdf() (already installed, no new deps)
-- [ ] **PDF-03**: PDF preserves chart SVGs, embedded images, and table formatting
+- [x] **PDF-01**: User can export any HTML presentation to PDF via `--pdf` flag
+- [x] **PDF-02**: PDF export uses Playwright page.pdf() (already installed, no new deps)
+- [x] **PDF-03**: PDF preserves chart SVGs, embedded images, and table formatting
 
 ### Claim Verification
 
@@ -162,9 +162,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | VER-01 | Phase 180 | Pending |
 | VER-02 | Phase 180 | Pending |
 | VER-03 | Phase 180 | Pending |
-| PDF-01 | Phase 180 | Pending |
-| PDF-02 | Phase 180 | Pending |
-| PDF-03 | Phase 180 | Pending |
+| PDF-01 | Phase 180 | Complete |
+| PDF-02 | Phase 180 | Complete |
+| PDF-03 | Phase 180 | Complete |
 | CLU-02 | Phase 181 | Pending |
 | CLU-03 | Phase 181 | Pending |
 | CLU-04 | Phase 181 | Pending |
