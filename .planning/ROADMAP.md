@@ -514,7 +514,7 @@ Plans:
   5. /pde:quick and /pde:fast always route to local — confirmed by routing tests with fast-path flag set
 **Plans**: 2 plans
 Plans:
-- [ ] 194-01-PLAN.md — classify.cjs pure function module + TDD test suite (RTG-01, RTG-02, RTG-03, RTG-04, RTG-06)
+- [x] 194-01-PLAN.md — classify.cjs pure function module + TDD test suite (RTG-01, RTG-02, RTG-03, RTG-04, RTG-06)
 - [ ] 194-02-PLAN.md — Coordinator wiring, readPlanMetadata, config keys, CLI flags, integration tests (RTG-01-06)
 
 ### Phase 195: Dashboard Integration
@@ -593,7 +593,7 @@ Plans:
 | 191. Docker Container Backend | v0.24 | 1/2 | Complete    | 2026-03-30 |
 | 192. Git-Based State Sync | v0.24 | 2/2 | Complete    | 2026-03-30 |
 | 193. Cloud Web Backend | v0.24 | 1/2 | Complete    | 2026-03-30 |
-| 194. Intelligent Routing | v0.24 | 0/TBD | Not started | - |
+| 194. Intelligent Routing | v0.24 | 1/2 | In Progress|  |
 | 195. Dashboard Integration | v0.24 | 0/TBD | Not started | - |
 | 196. Containerized MCP Servers | v0.24 | 0/TBD | Not started | - |
 | 197. Cross-Host Session Resume | v0.24 | 0/TBD | Not started | - |
