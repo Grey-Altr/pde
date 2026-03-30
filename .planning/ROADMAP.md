@@ -101,7 +101,7 @@
 - [x] **Phase 186: Test Infrastructure** — vitest exclude config for node:test files, @vitest/coverage-v8 coverage baseline (completed 2026-03-30)
 - [x] **Phase 187: IR Field Fix + Mock Reconciliation** — buildCrossPatterns field name fix, Phase 184 test mock shape alignment, 23 portfolio tests confirmed green (not started) (completed 2026-03-30)
 - [x] **Phase 188: Verification Coverage** — Nyquist VALIDATION.md backfill for all 9 v0.22 phases, v0.7 SUMMARY.md one-liner frontmatter, pde-tools health consistency subcommand (not started) (completed 2026-03-30)
-- [ ] **Phase 189: Technical Debt Cleanup** — correct $CLAUDE_PLUGIN_ROOT paths in workflow files, knip dead-code report, jscpd duplication report, ESLint clean pass (not started)
+- [x] **Phase 189: Technical Debt Cleanup** — correct $CLAUDE_PLUGIN_ROOT paths in workflow files, knip dead-code report, jscpd duplication report, ESLint clean pass (not started) (completed 2026-03-30)
 
 ## Phase Details
 
@@ -420,7 +420,7 @@ Plans:
   4. Running npx eslint . produces a clean pass or a documented exceptions file explaining each suppressed rule — no undocumented suppressions
 **Plans**: 2 plans
 Plans:
-- [ ] 189-01-PLAN.md — Fix stale paths + knip/jscpd triage reports
+- [x] 189-01-PLAN.md — Fix stale paths + knip/jscpd triage reports
 - [x] 189-02-PLAN.md — ESLint 10 config + clean pass
 
 
@@ -461,4 +461,4 @@ Plans:
 | 186. Test Infrastructure | v0.23 | 0/? | Not started | - |
 | 187. IR Field Fix + Mock Reconciliation | v0.23 | 1/1 | Complete    | 2026-03-30 |
 | 188. Verification Coverage | v0.23 | 3/3 | Complete    | 2026-03-30 |
-| 189. Technical Debt Cleanup | v0.23 | 1/2 | In Progress|  |
+| 189. Technical Debt Cleanup | v0.23 | 2/2 | Complete   | 2026-03-30 |

@@ -29,9 +29,9 @@ Requirements for Quality & Reliability Hardening. Each maps to roadmap phases.
 
 ### Technical Debt
 
-- [ ] **DEB-01**: Workflow files `execute-phase.md` and `complete-milestone.md` reference the correct `$CLAUDE_PLUGIN_ROOT/bin/pde-tools.cjs` path (not stale `$HOME/.claude/pde-os/engines/gsd/bin/pde-tools.cjs`)
-- [ ] **DEB-02**: Running `npx knip` produces a dead code report identifying unused files, exports, and dependencies with a documented triage of each finding
-- [ ] **DEB-03**: Running `npx jscpd` produces a duplication report identifying copy-paste code blocks above a configurable threshold
+- [x] **DEB-01**: Workflow files `execute-phase.md` and `complete-milestone.md` reference the correct `$CLAUDE_PLUGIN_ROOT/bin/pde-tools.cjs` path (not stale `$HOME/.claude/pde-os/engines/gsd/bin/pde-tools.cjs`)
+- [x] **DEB-02**: Running `npx knip` produces a dead code report identifying unused files, exports, and dependencies with a documented triage of each finding
+- [x] **DEB-03**: Running `npx jscpd` produces a duplication report identifying copy-paste code blocks above a configurable threshold
 - [x] **DEB-04**: ESLint 10 with eslint-plugin-n is configured for the CJS codebase and `npx eslint .` produces a clean pass (or documented exceptions)
 
 ## Future Requirements
@@ -76,9 +76,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | VER-03 | Phase 188 | Complete |
 | TST-01 | Phase 186 | Pending |
 | TST-02 | Phase 186 | Pending |
-| DEB-01 | Phase 189 | Pending |
-| DEB-02 | Phase 189 | Pending |
-| DEB-03 | Phase 189 | Pending |
+| DEB-01 | Phase 189 | Complete |
+| DEB-02 | Phase 189 | Complete |
+| DEB-03 | Phase 189 | Complete |
 | DEB-04 | Phase 189 | Complete |
 
 **Coverage:**
