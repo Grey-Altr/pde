@@ -498,9 +498,9 @@ Plans:
   2. Cloud session auth uses claude.ai OAuth probe (not ANTHROPIC_API_KEY) — detectManagedBackend() returns available:false on machines without claude.ai auth, confirmed by CLI stub test
   3. Cloud container is torn down automatically on task completion with configurable idle timeout — no cloud sessions remain running after coordinator-cloud test completes
   4. Fallback chain cloud -> SSH -> local activates automatically when cloud probe returns unavailable, emitting a routing_fallback event
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 - [ ] 193-01-PLAN.md — Core cloud modules: CloudPoller, spawnCloudSession, OAuth probe, RemoteAggregator wiring, cloud sourceLabel
-- [ ] 193-02-PLAN.md — Router cloud rules, coordinator _runCloudSession, relay guard, routing_fallback, coordinator-cloud.test.cjs
+- [x] 193-02-PLAN.md — Router cloud rules, coordinator _runCloudSession, relay guard, routing_fallback, coordinator-cloud.test.cjs
 
 ### Phase 194: Intelligent Routing
 **Goal**: Tasks are automatically routed to the best execution backend based on PLAN.md metadata, user-configured cost ceilings, and manual overrides, with fast-path commands always staying local
@@ -589,7 +589,7 @@ Plans:
 | 190. Infrastructure Foundation | v0.24 | 1/2 | Complete    | 2026-03-30 |
 | 191. Docker Container Backend | v0.24 | 1/2 | Complete    | 2026-03-30 |
 | 192. Git-Based State Sync | v0.24 | 2/2 | Complete    | 2026-03-30 |
-| 193. Cloud Web Backend | v0.24 | 0/TBD | Not started | - |
+| 193. Cloud Web Backend | v0.24 | 1/2 | In Progress|  |
 | 194. Intelligent Routing | v0.24 | 0/TBD | Not started | - |
 | 195. Dashboard Integration | v0.24 | 0/TBD | Not started | - |
 | 196. Containerized MCP Servers | v0.24 | 0/TBD | Not started | - |

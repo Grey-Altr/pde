@@ -9,14 +9,14 @@ Requirements for Cloud Dispatch & State Sync. Each maps to roadmap phases.
 
 ### Cloud Dispatch
 
-- [ ] **CLD-01**: User can dispatch an autonomous phase to an ephemeral cloud container via Agent SDK
-- [ ] **CLD-02**: Cloud container is automatically torn down on task completion with configurable idle timeout
+- [x] **CLD-01**: User can dispatch an autonomous phase to an ephemeral cloud container via Agent SDK
+- [x] **CLD-02**: Cloud container is automatically torn down on task completion with configurable idle timeout
 - [x] **CLD-03**: Cloud session emits NDJSON events consumable by existing event bus infrastructure
 - [x] **CLD-04**: User can dispatch a plan to a local Docker container via dockerode with NDJSON stdout relay
 - [x] **CLD-05**: Docker container dispatch mirrors spawn.cjs interface (onLine/onExit callbacks, same NDJSON format)
 - [ ] **CLD-06**: Cloud adapter package lives in isolated `packages/cloud-adapter/` respecting zero-npm root constraint
-- [ ] **CLD-07**: Graceful fallback chain: cloud → SSH → local with same degradation UX as v0.18 SSH fallback
-- [ ] **CLD-08**: Cloud session auth uses claude.ai OAuth (not ANTHROPIC_API_KEY), with probe before dispatch
+- [x] **CLD-07**: Graceful fallback chain: cloud → SSH → local with same degradation UX as v0.18 SSH fallback
+- [x] **CLD-08**: Cloud session auth uses claude.ai OAuth (not ANTHROPIC_API_KEY), with probe before dispatch
 
 ### State Sync
 
@@ -90,14 +90,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| CLD-01 | Phase 193 | Pending |
-| CLD-02 | Phase 193 | Pending |
+| CLD-01 | Phase 193 | Complete |
+| CLD-02 | Phase 193 | Complete |
 | CLD-03 | Phase 191 | Complete |
 | CLD-04 | Phase 191 | Complete |
 | CLD-05 | Phase 191 | Complete |
 | CLD-06 | Phase 190 | Pending |
-| CLD-07 | Phase 193 | Pending |
-| CLD-08 | Phase 193 | Pending |
+| CLD-07 | Phase 193 | Complete |
+| CLD-08 | Phase 193 | Complete |
 | SYN-01 | Phase 192 | Complete |
 | SYN-02 | Phase 192 | Complete |
 | SYN-03 | Phase 192 | Complete |
