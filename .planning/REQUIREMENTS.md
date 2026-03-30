@@ -68,9 +68,9 @@ Requirements for this milestone. Each maps to roadmap phases.
 
 ### Claim Verification
 
-- [ ] **VER-01**: Post-generation verification compares LLM narrative claims against the structured IR
-- [ ] **VER-02**: Factual mismatches (wrong counts, dates, status) are flagged before output is finalized
-- [ ] **VER-03**: Verification result is appended as metadata footer in generated presentations
+- [x] **VER-01**: Post-generation verification compares LLM narrative claims against the structured IR
+- [x] **VER-02**: Factual mismatches (wrong counts, dates, status) are flagged before output is finalized
+- [x] **VER-03**: Verification result is appended as metadata footer in generated presentations
 
 ### Command & Workflow
 
@@ -159,9 +159,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CHT-04 | Phase 179 | Complete |
 | CHT-05 | Phase 179 | Complete |
 | CHT-06 | Phase 179 | Complete |
-| VER-01 | Phase 180 | Pending |
-| VER-02 | Phase 180 | Pending |
-| VER-03 | Phase 180 | Pending |
+| VER-01 | Phase 180 | Complete |
+| VER-02 | Phase 180 | Complete |
+| VER-03 | Phase 180 | Complete |
 | PDF-01 | Phase 180 | Pending |
 | PDF-02 | Phase 180 | Pending |
 | PDF-03 | Phase 180 | Pending |

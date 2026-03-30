@@ -274,9 +274,9 @@ Plans:
   2. The verification result (claims checked, mismatches found, overall pass/fail) appears as a metadata footer section in the generated HTML and Markdown output
   3. Running `/pde:present executive-summary --pdf` produces a PDF file in .planning/presentations/ alongside the HTML output using Playwright page.pdf()
   4. The PDF preserves chart SVGs, embedded base64 images, and table formatting from the HTML source without requiring additional dependencies
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 Plans:
-- [ ] 180-01-PLAN.md — Claim verification engine (verify-presentation.cjs), render() integration, verification footer CSS, unit + integration tests
+- [x] 180-01-PLAN.md — Claim verification engine (verify-presentation.cjs), render() integration, verification footer CSS, unit + integration tests
 - [ ] 180-02-PLAN.md — PDF export module (export-pdf.cjs), pde-tools presentation pdf subcommand, workflow --pdf flag, smoke tests
 
 ### Phase 181: Remaining Cluster A Personas
@@ -365,7 +365,7 @@ Plans:
 | 177. Command Interface + Workflow Shell | v0.22 | 1/1 | Complete    | 2026-03-30 |
 | 178. Reference Personas + Rendering Engine | v0.22 | 2/2 | Complete    | 2026-03-30 |
 | 179. SVG Charts | v0.22 | 1/1 | Complete    | 2026-03-30 |
-| 180. Claim Verification + PDF Export | v0.22 | 0/2 | Not started | - |
+| 180. Claim Verification + PDF Export | v0.22 | 1/2 | In Progress|  |
 | 181. Remaining Cluster A Personas | v0.22 | 0/TBD | Not started | - |
 | 182. Remaining Cluster B Personas | v0.22 | 0/TBD | Not started | - |
 | 183. Auto-Generation | v0.22 | 0/TBD | Not started | - |
