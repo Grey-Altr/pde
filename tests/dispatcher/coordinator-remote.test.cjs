@@ -46,6 +46,8 @@ function createTestCoordinator(overrides = {}) {
     spawnRemoteSession: vi.fn(() => ({ kill: vi.fn() })),
     routeSession: vi.fn().mockResolvedValue('local'),
     readPlanAutonomous: vi.fn().mockReturnValue(true),
+    readPlanMetadata: vi.fn().mockReturnValue({ autonomous: true, estimated_minutes: 30, agent_type: 'autonomous', wave: 1 }),
+    classifyTaskRouting: vi.fn(({ initialBackend }) => ({ backend: initialBackend, reason: 'default', estimatedCost: null, events: [] })),
     createWorktree: vi.fn((r, sid) => ({
       worktreePath: path.join(r, '.sessions', sid),
       branch: 'pde/session/' + sid,
@@ -149,18 +151,18 @@ describe('DispatchCoordinator remote dispatch routing', () => {
     expect(deps.readPlanAutonomous).not.toHaveBeenCalled();
   });
 
-  // ─── Test 4: readPlanAutonomous called when opts.isAutonomous not set ──────
+  // ─── Test 4: readPlanMetadata called when opts.isAutonomous not set (Phase 194 update) ──
 
-  it('Test 4: dispatch uses readPlanAutonomous when opts.isAutonomous not provided', async () => {
+  it('Test 4: dispatch uses readPlanMetadata when opts.isAutonomous not provided', async () => {
     const { coordinator, deps } = createTestCoordinator({
       depOverrides: {
-        readPlanAutonomous: vi.fn().mockReturnValue(true),
+        readPlanMetadata: vi.fn().mockReturnValue({ autonomous: true, estimated_minutes: 30, agent_type: 'autonomous', wave: 1 }),
       },
     });
 
     await coordinator.dispatch(146, 1);
 
-    expect(deps.readPlanAutonomous).toHaveBeenCalled();
+    expect(deps.readPlanMetadata).toHaveBeenCalled();
   });
 
   // ─── Test 5: Registry includes backend and remoteHost for SSH ────────────
