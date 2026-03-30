@@ -139,6 +139,11 @@ describe('render-presentation module (Phase 182)', () => {
     expect(typeof renderMod.buildPostMortem).toBe('function');
     expect(typeof renderMod.buildAdrSummary).toBe('function');
   });
+
+  it('exports buildLaunchAnnouncement and buildPortfolioOverview', () => {
+    expect(typeof renderMod.buildLaunchAnnouncement).toBe('function');
+    expect(typeof renderMod.buildPortfolioOverview).toBe('function');
+  });
 });
 
 // ─── CLR-02: buildAgileReport ─────────────────────────────────────────────────
@@ -422,39 +427,200 @@ describe('buildAdrSummary (CLR-06)', () => {
   });
 });
 
-// ─── CLR-07: buildLaunchAnnouncement (scaffold) ───────────────────────────────
+// ─── CLR-07: buildLaunchAnnouncement ─────────────────────────────────────────
 
 describe('buildLaunchAnnouncement (CLR-07)', () => {
-  it.skip('returns an array of sections', () => {
-    // Will be implemented in 182-03-PLAN.md
+  it('returns an array of sections', () => {
     const sections = renderMod.buildLaunchAnnouncement(MOCK_IR);
     expect(Array.isArray(sections)).toBe(true);
     expect(sections.length).toBeGreaterThanOrEqual(4);
   });
 
-  it.skip('includes expected section IDs', () => {
-    // Will be implemented in 182-03-PLAN.md
+  it('includes expected section IDs: headline, whats-new, who-its-for, how-to-start, metrics', () => {
     const sections = renderMod.buildLaunchAnnouncement(MOCK_IR);
     const ids = sections.map(s => s.id);
-    expect(ids).toContain('overview');
+    expect(ids).toContain('headline');
+    expect(ids).toContain('whats-new');
+    expect(ids).toContain('who-its-for');
+    expect(ids).toContain('how-to-start');
+    expect(ids).toContain('metrics');
+  });
+
+  it('each section has id, title, level, content', () => {
+    const sections = renderMod.buildLaunchAnnouncement(MOCK_IR);
+    for (const s of sections) {
+      expect(typeof s.id).toBe('string');
+      expect(typeof s.title).toBe('string');
+      expect(typeof s.level).toBe('number');
+      expect(typeof s.content).toBe('string');
+    }
+  });
+
+  it('headline section contains project name and milestone', () => {
+    const sections = renderMod.buildLaunchAnnouncement(MOCK_IR);
+    const headline = sections.find(s => s.id === 'headline');
+    expect(headline).toBeTruthy();
+    expect(headline.content).toContain('Platform Development Engine');
+  });
+
+  it('whats-new section lists completed phases', () => {
+    const sections = renderMod.buildLaunchAnnouncement(MOCK_IR);
+    const whatsNew = sections.find(s => s.id === 'whats-new');
+    expect(whatsNew).toBeTruthy();
+    // MOCK_IR has 2 completed phases
+    expect(whatsNew.content).toContain('176-data-extraction-ir-foundation');
+  });
+
+  it('handles unavailable ir.project gracefully', () => {
+    const ir = { ...MOCK_IR, project: { unavailable: true, reason: 'project data not found' } };
+    const sections = renderMod.buildLaunchAnnouncement(ir);
+    const headline = sections.find(s => s.id === 'headline');
+    expect(headline).toBeTruthy();
+    expect(headline.content).toContain('unavailable');
+  });
+
+  it('handles unavailable ir.phases gracefully', () => {
+    const ir = { ...MOCK_IR, phases: { unavailable: true, reason: 'STATE.md not found' } };
+    const sections = renderMod.buildLaunchAnnouncement(ir);
+    const whatsNew = sections.find(s => s.id === 'whats-new');
+    expect(whatsNew).toBeTruthy();
+    expect(typeof whatsNew.content).toBe('string');
+  });
+
+  it('does not throw when called with full MOCK_IR', () => {
+    expect(() => renderMod.buildLaunchAnnouncement(MOCK_IR)).not.toThrow();
+  });
+
+  it('integration: render() accepts launch-announcement persona and writes files', () => {
+    const htmlPath = path.join(tmpDir, 'launch-announcement.html');
+    const mdPath = path.join(tmpDir, 'launch-announcement.md');
+    expect(() => renderMod.render(MOCK_IR, 'launch-announcement', htmlPath, mdPath)).not.toThrow();
+    expect(fs.existsSync(htmlPath)).toBe(true);
+    expect(fs.existsSync(mdPath)).toBe(true);
   });
 });
 
-// ─── CLR-08: buildPortfolioOverview (scaffold) ───────────────────────────────
+// ─── CLR-08: buildPortfolioOverview ──────────────────────────────────────────
 
 describe('buildPortfolioOverview (CLR-08)', () => {
-  it.skip('returns an array of sections', () => {
-    // Will be implemented in 182-03-PLAN.md
+  it('returns an array of sections', () => {
     const sections = renderMod.buildPortfolioOverview(MOCK_IR);
     expect(Array.isArray(sections)).toBe(true);
     expect(sections.length).toBeGreaterThanOrEqual(4);
   });
 
-  it.skip('includes expected section IDs', () => {
-    // Will be implemented in 182-03-PLAN.md
+  it('includes expected section IDs: overview, patterns, skills, outcomes, velocity, effort', () => {
     const sections = renderMod.buildPortfolioOverview(MOCK_IR);
     const ids = sections.map(s => s.id);
     expect(ids).toContain('overview');
+    expect(ids).toContain('patterns');
+    expect(ids).toContain('skills');
+    expect(ids).toContain('outcomes');
+    expect(ids).toContain('velocity');
+    expect(ids).toContain('effort');
+  });
+
+  it('each section has id, title, level, content', () => {
+    const sections = renderMod.buildPortfolioOverview(MOCK_IR);
+    for (const s of sections) {
+      expect(typeof s.id).toBe('string');
+      expect(typeof s.title).toBe('string');
+      expect(typeof s.level).toBe('number');
+      expect(typeof s.content).toBe('string');
+    }
+  });
+
+  it('patterns section shows phase and requirements statistics', () => {
+    const sections = renderMod.buildPortfolioOverview(MOCK_IR);
+    const patterns = sections.find(s => s.id === 'patterns');
+    expect(patterns).toBeTruthy();
+    // MOCK_IR has phases.total=9, phases.completed=2
+    expect(patterns.content).toContain('2');
+  });
+
+  it('skills section includes requirement categories and decisions', () => {
+    const sections = renderMod.buildPortfolioOverview(MOCK_IR);
+    const skills = sections.find(s => s.id === 'skills');
+    expect(skills).toBeTruthy();
+    // MOCK_IR.requirements.categories has 'Rendering' and 'Command'
+    expect(skills.content).toContain('Rendering');
+  });
+
+  it('handles unavailable ir.phases gracefully', () => {
+    const ir = { ...MOCK_IR, phases: { unavailable: true, reason: 'no data' } };
+    const sections = renderMod.buildPortfolioOverview(ir);
+    const patterns = sections.find(s => s.id === 'patterns');
+    expect(patterns).toBeTruthy();
+    expect(typeof patterns.content).toBe('string');
+  });
+
+  it('handles unavailable ir.requirements gracefully', () => {
+    const ir = { ...MOCK_IR, requirements: { unavailable: true, reason: 'no data' } };
+    const sections = renderMod.buildPortfolioOverview(ir);
+    expect(sections.length).toBeGreaterThan(0);
+  });
+
+  it('handles unavailable ir.git_velocity gracefully', () => {
+    const ir = { ...MOCK_IR, git_velocity: { unavailable: true, reason: 'no data' } };
+    const sections = renderMod.buildPortfolioOverview(ir);
+    const patterns = sections.find(s => s.id === 'patterns');
+    expect(patterns).toBeTruthy();
+    expect(typeof patterns.content).toBe('string');
+  });
+
+  it('does not throw when called with full MOCK_IR', () => {
+    expect(() => renderMod.buildPortfolioOverview(MOCK_IR)).not.toThrow();
+  });
+
+  it('integration: render() accepts portfolio-overview persona and writes files', () => {
+    const htmlPath = path.join(tmpDir, 'portfolio-overview.html');
+    const mdPath = path.join(tmpDir, 'portfolio-overview.md');
+    expect(() => renderMod.render(MOCK_IR, 'portfolio-overview', htmlPath, mdPath)).not.toThrow();
+    expect(fs.existsSync(htmlPath)).toBe(true);
+    expect(fs.existsSync(mdPath)).toBe(true);
+  });
+});
+
+// ─── Complete 15-persona suite ────────────────────────────────────────────────
+
+describe('Complete 15-persona suite', () => {
+  const ALL_15_SLUGS = [
+    'executive-summary',
+    'case-study',
+    'investor-update',
+    'sprint-review',
+    'client-deliverable',
+    'stakeholder-status',
+    'pm-view',
+    'project-manager-view',
+    'agile-report',
+    'design-report',
+    'research-report',
+    'post-mortem',
+    'adr-summary',
+    'launch-announcement',
+    'portfolio-overview',
+  ];
+
+  it('personaDisplayName() returns non-slug display names for all 15 slugs', () => {
+    for (const slug of ALL_15_SLUGS) {
+      const name = renderMod.personaDisplayName(slug);
+      // Display name must not equal the slug (it must be a human-readable name)
+      expect(name).not.toBe(slug);
+      expect(typeof name).toBe('string');
+      expect(name.length).toBeGreaterThan(0);
+    }
+  });
+
+  it('render() does not throw Unknown persona for any of the 15 slugs', () => {
+    for (const slug of ALL_15_SLUGS) {
+      const htmlPath = path.join(tmpDir, `suite-${slug}.html`);
+      const mdPath = path.join(tmpDir, `suite-${slug}.md`);
+      expect(
+        () => renderMod.render(MOCK_IR, slug, htmlPath, mdPath),
+        `render() threw for slug: ${slug}`
+      ).not.toThrow();
+    }
   });
 });
 

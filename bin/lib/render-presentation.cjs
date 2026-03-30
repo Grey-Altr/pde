@@ -129,6 +129,8 @@ function personaDisplayName(slug) {
     'research-report':      'Research Persona Report',
     'post-mortem':          'Technical Post-Mortem',
     'adr-summary':          'ADR Summary',
+    'launch-announcement':  'Launch Announcement',
+    'portfolio-overview':   'Portfolio Overview',
   };
   return names[slug] || slug;
 }
@@ -1167,6 +1169,190 @@ function buildAdrSummary(ir) {
   ];
 }
 
+// ─── Phase 182 Plan 03: Cluster B helpers (CLR-07, CLR-08) ───────────────────
+
+/**
+ * Build launch headline for launch-announcement (CLR-07).
+ * Reads ir.project name, goal, and phases milestone_name.
+ * Format: "[Project] [milestone] is here — [goal]"
+ */
+function buildLaunchHeadline(ir) {
+  const sentinel = sentinelHtml(ir.project, 'Project');
+  if (sentinel) return sentinel;
+
+  const name = escHtml(ir.project.name || 'Project');
+  const goal = escHtml(ir.project.goal || '');
+  const phaseSentinel = sentinelHtml(ir.phases, 'Phase progress');
+  const milestone = (!phaseSentinel && ir.phases && (ir.phases.milestone_name || ir.phases.milestone))
+    ? escHtml(ir.phases.milestone_name || ir.phases.milestone)
+    : '';
+
+  const headline = milestone
+    ? `${name} — ${milestone} is here`
+    : `${name} Launch`;
+
+  return `<p class="lead">${headline}${goal ? ` — ${goal}` : ''}</p>`;
+}
+
+/**
+ * Build "what's new" section for launch-announcement (CLR-07).
+ * Reads ir.phases.phase_list filtering for completed phases.
+ * Lists each completed phase as a feature bullet.
+ */
+function buildWhatsNew(ir) {
+  const sentinel = sentinelHtml(ir.phases, 'Phase progress');
+  if (sentinel) return sentinel;
+
+  const phaseList = Array.isArray(ir.phases.phase_list) ? ir.phases.phase_list : [];
+  const completed = phaseList.filter(p => p.completed);
+
+  if (completed.length === 0) {
+    return '<p>Launch details coming soon.</p>';
+  }
+
+  const list = completed.map(p => `<li>${escHtml(p.name)}</li>`).join('\n');
+  return `<p><strong>${completed.length} milestone(s) delivered:</strong></p><ul>${list}</ul>`;
+}
+
+/**
+ * Build audience statement for launch-announcement (CLR-07).
+ * Reads ir.project.target_users and ir.project.core_value.
+ */
+function buildAudience(ir) {
+  const sentinel = sentinelHtml(ir.project, 'Project');
+  if (sentinel) return sentinel;
+
+  const targetUsers = escHtml(ir.project.target_users || '');
+  const coreValue = escHtml(ir.project.core_value || '');
+
+  if (!targetUsers && !coreValue) {
+    return '<p>Built for teams who need to move fast without compromising quality.</p>';
+  }
+
+  return `${targetUsers ? `<p><strong>Built for:</strong> ${targetUsers}</p>` : ''}
+${coreValue ? `<p><strong>Core value:</strong> ${coreValue}</p>` : ''}`.trim();
+}
+
+/**
+ * Build getting started section for launch-announcement (CLR-07).
+ * Reads ir.project.name for generic onboarding guidance.
+ */
+function buildGettingStarted(ir) {
+  const sentinel = sentinelHtml(ir.project, 'Project');
+  if (sentinel) return sentinel;
+
+  const name = escHtml(ir.project.name || 'this project');
+
+  return `<p>To get started with ${name}:</p>
+<ol>
+  <li>Clone or access the project repository.</li>
+  <li>Follow the setup instructions in the project README.</li>
+  <li>Review the documentation to understand the platform capabilities.</li>
+  <li>Run the provided CLI commands to explore available features.</li>
+</ol>`;
+}
+
+/**
+ * Build cross-project patterns section for portfolio-overview (CLR-08).
+ * Reads ir.phases (total, completed), ir.requirements (total, completed), ir.git_velocity.
+ * Summarizes as quantitative patterns.
+ */
+function buildPatterns(ir) {
+  const parts = [];
+
+  const phasesSentinel = sentinelHtml(ir.phases, 'Phase progress');
+  if (!phasesSentinel) {
+    const total = ir.phases.total || 0;
+    const completed = ir.phases.completed || 0;
+    parts.push(`<p><strong>Phases delivered:</strong> ${completed} of ${total} phases complete (${total > 0 ? Math.round((completed / total) * 100) : 0}%)</p>`);
+  } else {
+    parts.push(phasesSentinel);
+  }
+
+  const reqSentinel = sentinelHtml(ir.requirements, 'Requirements');
+  if (!reqSentinel) {
+    const total = ir.requirements.total || 0;
+    const completed = ir.requirements.completed || 0;
+    parts.push(`<p><strong>Requirements met:</strong> ${completed} of ${total} (${total > 0 ? Math.round((completed / total) * 100) : 0}%)</p>`);
+  }
+
+  const velSentinel = sentinelHtml(ir.git_velocity, 'Git velocity');
+  if (!velSentinel) {
+    const totalCommits = ir.git_velocity.total_commits || 0;
+    const avgPerPhase = ir.git_velocity.commits_per_phase || 0;
+    parts.push(`<p><strong>Commits:</strong> ${totalCommits} total · ${avgPerPhase} avg/phase</p>`);
+  }
+
+  return parts.length > 0 ? parts.join('\n') : '<p>No pattern data available.</p>';
+}
+
+/**
+ * Build skills demonstrated section for portfolio-overview (CLR-08).
+ * Reads ir.requirements.categories (if available) and ir.decisions for technology choices.
+ */
+function buildSkillsDemonstrated(ir) {
+  const parts = [];
+
+  const reqSentinel = sentinelHtml(ir.requirements, 'Requirements');
+  if (!reqSentinel && Array.isArray(ir.requirements.categories) && ir.requirements.categories.length > 0) {
+    const catList = ir.requirements.categories.map(cat =>
+      `<li><strong>${escHtml(cat.name)}</strong> — ${cat.completed || 0}/${cat.total || 0} requirements met</li>`
+    ).join('\n');
+    parts.push(`<h3>Requirement Categories</h3><ul>${catList}</ul>`);
+  }
+
+  const decSentinel = sentinelHtml(ir.decisions, 'Decisions');
+  if (!decSentinel && Array.isArray(ir.decisions && ir.decisions.items) && ir.decisions.items.length > 0) {
+    const decList = ir.decisions.items.slice(0, 8).map(d =>
+      `<li>${escHtml(d.text || String(d))} <em class="source">[${escHtml(d.source || '')}]</em></li>`
+    ).join('\n');
+    parts.push(`<h3>Technology Decisions</h3><ul>${decList}</ul>`);
+  }
+
+  if (parts.length === 0) {
+    return '<p>Skill data derived from project requirements and decisions — see above sections for full coverage.</p>';
+  }
+
+  return parts.join('\n');
+}
+
+// ─── Phase 182 Plan 03: Cluster B persona builders (CLR-07, CLR-08) ──────────
+
+/**
+ * Build launch announcement sections (CLR-07).
+ * Target audience: Users, community, marketing, press.
+ *
+ * @param {object} ir - IR from buildPresentationIR()
+ * @returns {Array<{id: string, title: string, level: number, content: string}>}
+ */
+function buildLaunchAnnouncement(ir) {
+  return [
+    { id: 'headline',     title: 'Launch Announcement',  level: 1, content: buildLaunchHeadline(ir) },
+    { id: 'whats-new',    title: "What's New",           level: 2, content: buildWhatsNew(ir) },
+    { id: 'who-its-for',  title: "Who It's For",         level: 2, content: buildAudience(ir) },
+    { id: 'how-to-start', title: 'Getting Started',      level: 2, content: buildGettingStarted(ir) },
+    { id: 'metrics',      title: 'By the Numbers',       level: 2, content: buildProgress(ir) },
+  ];
+}
+
+/**
+ * Build portfolio overview sections (CLR-08).
+ * Target audience: Hiring managers, portfolio reviewers, self-assessment.
+ *
+ * @param {object} ir - IR from buildPresentationIR()
+ * @returns {Array<{id: string, title: string, level: number, content: string}>}
+ */
+function buildPortfolioOverview(ir) {
+  return [
+    { id: 'overview',  title: 'Portfolio Overview',      level: 1, content: buildOverview(ir) },
+    { id: 'patterns',  title: 'Cross-Project Patterns',  level: 2, content: buildPatterns(ir) },
+    { id: 'skills',    title: 'Skills Demonstrated',     level: 2, content: buildSkillsDemonstrated(ir) },
+    { id: 'outcomes',  title: 'Cumulative Outcomes',     level: 2, content: buildRequirements(ir) },
+    { id: 'velocity',  title: 'Development Velocity',    level: 2, content: charts.velocityChart(ir) },
+    { id: 'effort',    title: 'Effort Distribution',     level: 2, content: charts.effortBreakdownChart(ir) },
+  ];
+}
+
 // ─── CSS: PDE design tokens ───────────────────────────────────────────────────
 
 const PDE_CSS = `
@@ -1478,8 +1664,14 @@ function render(ir, persona, htmlPath, mdPath) {
     case 'adr-summary':
       sections = buildAdrSummary(ir);
       break;
+    case 'launch-announcement':
+      sections = buildLaunchAnnouncement(ir);
+      break;
+    case 'portfolio-overview':
+      sections = buildPortfolioOverview(ir);
+      break;
     default:
-      throw new Error(`Unknown persona: ${persona}. Available: executive-summary, case-study, investor-update, sprint-review, client-deliverable, stakeholder-status, pm-view, project-manager-view, agile-report, design-report, research-report, post-mortem, adr-summary`);
+      throw new Error(`Unknown persona: ${persona}. Available: executive-summary, case-study, investor-update, sprint-review, client-deliverable, stakeholder-status, pm-view, project-manager-view, agile-report, design-report, research-report, post-mortem, adr-summary, launch-announcement, portfolio-overview`);
   }
 
   // Claim verification (VER-01/02/03): compare rendered content against canonical IR
@@ -1585,6 +1777,8 @@ module.exports = {
   buildResearchReport,
   buildPostMortem,
   buildAdrSummary,
+  buildLaunchAnnouncement,
+  buildPortfolioOverview,
   renderHTML,
   renderMarkdown,
   render,
