@@ -700,7 +700,7 @@ AUTO_GENERATE=$(node "$HOME/.claude/pde-os/engines/gsd/bin/pde-tools.cjs" --raw 
 
 Read the configured persona set (AUTO-04):
 ```bash
-PERSONAS_JSON=$(node "$HOME/.claude/pde-os/engines/gsd/bin/pde-tools.cjs" --raw config-get presentations.auto_generate_personas 2>/dev/null || echo '["executive-summary","project-manager"]')
+PERSONAS_JSON=$(node "$HOME/.claude/pde-os/engines/gsd/bin/pde-tools.cjs" --raw config-get presentations.auto_generate_personas 2>/dev/null || echo '["executive-summary","project-manager-view"]')
 ```
 
 Generate presentations for each persona (AUTO-02):

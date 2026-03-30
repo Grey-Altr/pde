@@ -22,3 +22,4 @@
 | IMP | /pde:improve | workflows/improve.md | tooling | active |
 | PRT | /pde:pressure-test | workflows/pressure-test.md | tooling | active |
 | PRS | /pde:present | workflows/present.md | tooling | active |
+| PFL | /pde:portfolio | workflows/portfolio.md | tooling | active |

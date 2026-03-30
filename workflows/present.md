@@ -48,12 +48,12 @@ The following 15 personas are available. Use this table for LIST MODE and valida
 | `sprint-review` | Sprint Review | Development team | What shipped, demo screenshots, what's next |
 | `client-deliverable` | Client Deliverable Report | Clients | Feature specs, acceptance criteria met, screenshots |
 | `stakeholder-status` | Stakeholder Status Update | Project stakeholders | RAG status, decisions needed, risks |
-| `product-manager` | Product Manager View | Product managers | Feature prioritization, requirement coverage, roadmap health |
-| `project-manager` | Project Manager View | Project managers | Timeline tracking, dependency analysis, risk register |
+| `pm-view` | Product Manager View | Product managers | Feature prioritization, requirement coverage, roadmap health |
+| `project-manager-view` | Project Manager View | Project managers | Timeline tracking, dependency analysis, risk register |
 | `case-study` | Case Study / Portfolio Piece | Prospective clients, recruiters | Problem, approach, outcome, lessons learned |
 | `agile-report` | Agile Project Report | Agile coaches, retrospectives | Retro narrative with burndown and velocity metrics |
-| `design-persona` | Design Persona Report | Design reviewers, design teams | Design decisions, system tokens, wireframe evolution |
-| `research-persona` | Research Persona Report | Technical reviewers | Findings summary, tech evaluations, competitive landscape |
+| `design-report` | Design Persona Report | Design reviewers, design teams | Design decisions, system tokens, wireframe evolution |
+| `research-report` | Research Persona Report | Technical reviewers | Findings summary, tech evaluations, competitive landscape |
 | `post-mortem` | Technical Post-Mortem | Engineering teams | What broke, root cause, prevention strategies |
 | `adr-summary` | ADR Summary | Architects, technical leads | Context, options considered, decisions, consequences |
 | `launch-announcement` | Launch Announcement | Public, press, community | What it is, who it's for, how to get started |
@@ -118,8 +118,8 @@ Error: Unknown persona "$PERSONA_SLUG".
   /pde:present requires a valid persona slug.
   Valid personas:
     executive-summary, investor-update, sprint-review, client-deliverable,
-    stakeholder-status, product-manager, project-manager, case-study,
-    agile-report, design-persona, research-persona, post-mortem,
+    stakeholder-status, pm-view, project-manager-view, case-study,
+    agile-report, design-report, research-report, post-mortem,
     adr-summary, launch-announcement, portfolio-overview
   Usage: /pde:present executive-summary
 ```
