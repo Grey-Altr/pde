@@ -85,7 +85,7 @@
 - [x] **Phase 177: Command Interface + Workflow Shell** — /pde:present command, workflow file, persona listing, persona dispatch routing (completed 2026-03-30)
 - [x] **Phase 178: Reference Personas + Rendering Engine** — executive summary and case study reference implementations, dual-format renderer (HTML+Markdown), EJS templates, self-contained HTML constraints, design artifact embedding (completed 2026-03-30)
 - [x] **Phase 179: SVG Charts** — burndown, velocity, phase timeline, effort breakdown charts as parametric inline SVG; accessible text alternatives (completed 2026-03-30)
-- [ ] **Phase 180: Claim Verification + PDF Export** — post-generation claim verification against IR, mismatch flagging, verification footer, PDF export via Playwright
+- [x] **Phase 180: Claim Verification + PDF Export** — post-generation claim verification against IR, mismatch flagging, verification footer, PDF export via Playwright (completed 2026-03-30)
 - [ ] **Phase 181: Remaining Cluster A Personas** — investor update, sprint review, client deliverable, stakeholder status update, product manager view, project manager view
 - [ ] **Phase 182: Remaining Cluster B Personas** — agile project report, design persona report, research persona report, technical post-mortem, ADR summary, launch announcement, portfolio overview
 - [ ] **Phase 183: Auto-Generation** — phase-completion hook, milestone-archive hook, state completion gate, configurable persona set, opt-out config flag
@@ -274,7 +274,7 @@ Plans:
   2. The verification result (claims checked, mismatches found, overall pass/fail) appears as a metadata footer section in the generated HTML and Markdown output
   3. Running `/pde:present executive-summary --pdf` produces a PDF file in .planning/presentations/ alongside the HTML output using Playwright page.pdf()
   4. The PDF preserves chart SVGs, embedded base64 images, and table formatting from the HTML source without requiring additional dependencies
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 Plans:
 - [ ] 180-01-PLAN.md — Claim verification engine (verify-presentation.cjs), render() integration, verification footer CSS, unit + integration tests
 - [x] 180-02-PLAN.md — PDF export module (export-pdf.cjs), pde-tools presentation pdf subcommand, workflow --pdf flag, smoke tests
@@ -365,7 +365,7 @@ Plans:
 | 177. Command Interface + Workflow Shell | v0.22 | 1/1 | Complete    | 2026-03-30 |
 | 178. Reference Personas + Rendering Engine | v0.22 | 2/2 | Complete    | 2026-03-30 |
 | 179. SVG Charts | v0.22 | 1/1 | Complete    | 2026-03-30 |
-| 180. Claim Verification + PDF Export | v0.22 | 1/2 | In Progress|  |
+| 180. Claim Verification + PDF Export | v0.22 | 1/2 | Complete    | 2026-03-30 |
 | 181. Remaining Cluster A Personas | v0.22 | 0/TBD | Not started | - |
 | 182. Remaining Cluster B Personas | v0.22 | 0/TBD | Not started | - |
 | 183. Auto-Generation | v0.22 | 0/TBD | Not started | - |
