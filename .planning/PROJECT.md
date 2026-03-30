@@ -208,9 +208,17 @@ Any user can go from idea to shipped product through a single platform that hand
 - ✓ Production hardening: rate limiting, 7-day Redis TTL, event downsampling, 1000-event buffer cap, daily cron GC — v0.17
 - ✓ 107 tests across 15 files, 27/27 requirements satisfied, full Nyquist compliance — v0.17
 
-## Current Milestone: None (v0.23 shipped, next milestone not started)
+## Current Milestone: v0.24 Cloud Dispatch & State Sync
 
-**v0.23 Quality & Reliability Hardening shipped** (2026-03-30). Next milestone TBD — run `/gsd:new-milestone` to start.
+**Goal:** Enable PDE to route autonomous work to cloud instances (claude --remote, SSH, Docker containers) with git-based .planning/ state sync, intelligent task routing, and full dashboard integration for remote session management.
+
+**Target features:**
+- Cloud dispatch to `claude --remote` with session lifecycle management
+- Docker container dispatch for heavier/isolated workloads
+- SSH remote dispatch extended with cloud routing (builds on v0.18)
+- Git-based .planning/ state sync with conflict resolution (extends v0.16 3-way merge)
+- Hybrid auto+override routing — auto-classify phases as interactive/autonomous, user can override
+- Dashboard integration — remote session status, cloud instance management, sync state visibility
 
 ## Current State
 
@@ -400,4 +408,4 @@ This document evolves at phase transitions and milestone boundaries.
 3. Audit Out of Scope — reasons still valid?
 4. Update Context with current state
 
-*Last updated: 2026-03-29 after v0.21 milestone — Desktop App Integration complete*
+*Last updated: 2026-03-30 after v0.24 milestone started — Cloud Dispatch & State Sync*
