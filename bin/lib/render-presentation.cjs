@@ -598,6 +598,12 @@ const PDE_CSS = `
   .chart-data-table summary { cursor: pointer; color: var(--pde-text-muted); }
   .chart-data-table table { margin-top: 0.25rem; }
   svg { display: block; }
+
+  /* Verification footer (Phase 180) */
+  .verification-status { padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.9rem; border: 1px solid; }
+  .verification-status.pass { background: rgba(63, 185, 80, 0.1); border-color: rgba(63, 185, 80, 0.3); color: #3fb950; }
+  .verification-status.fail { background: rgba(248, 81, 73, 0.1); border-color: rgba(248, 81, 73, 0.3); color: #f85149; }
+  .verification-meta { color: #8b949e; font-size: 0.8rem; }
 `;
 
 // ─── 8. renderHTML ────────────────────────────────────────────────────────────
@@ -716,6 +722,20 @@ function render(ir, persona, htmlPath, mdPath) {
       break;
     default:
       throw new Error(`Unknown persona: ${persona}. Available: executive-summary, case-study`);
+  }
+
+  // Claim verification (VER-01/02/03): compare rendered content against canonical IR
+  // Verification is non-blocking — mismatches produce stderr warnings but never abort rendering
+  const { verifyPresentation, buildVerificationFooterHtml } = require('./verify-presentation.cjs');
+  const verificationResult = verifyPresentation(ir, sections);
+  sections.push({
+    id: 'verification',
+    title: 'Verification',
+    level: 2,
+    content: buildVerificationFooterHtml(verificationResult),
+  });
+  if (!verificationResult.pass) {
+    process.stderr.write(`[render-presentation] WARNING: ${verificationResult.mismatches.length} claim mismatch(es) detected in "${persona}" presentation.\n`);
   }
 
   const html = renderHTML(ir, persona, sections);
