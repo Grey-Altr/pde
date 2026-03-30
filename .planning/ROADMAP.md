@@ -25,7 +25,8 @@
 - ✅ **v0.21 Desktop App Integration** — Phases 171-175 (shipped 2026-03-29)
 - ✅ **v0.22 Stakeholder Presentations** — Phases 176-184 (shipped 2026-03-30)
 - ✅ **v0.23 Quality & Reliability Hardening** — Phases 185-189 (shipped 2026-03-30)
-- 🚧 **v0.24 Cloud Dispatch & State Sync** — Phases 190-197 (in progress)
+- ✅ **v0.24 Cloud Dispatch & State Sync** — Phases 190-197 (shipped 2026-03-30)
+- 🚧 **v0.25 Firecrawl Deep Web Integration** — Phases 198-203 (in progress)
 
 ## Phases
 
@@ -108,6 +109,35 @@
 - [x] **Phase 189: Technical Debt Cleanup** — correct $CLAUDE_PLUGIN_ROOT paths in workflow files, knip dead-code report, jscpd duplication report, ESLint clean pass (completed 2026-03-30)
 
 </details>
+
+<details>
+<summary>✅ v0.24 Cloud Dispatch & State Sync (Phases 190-197) — SHIPPED 2026-03-30</summary>
+
+### v0.24 Cloud Dispatch & State Sync
+
+**Milestone Goal:** PDE can dispatch autonomous phase executions to ephemeral cloud containers and local Docker containers, synchronize .planning/ state back to the local orchestrator via git, and route tasks intelligently across local, Docker, SSH, and cloud backends with full dashboard visibility and cost tracking.
+
+- [x] **Phase 190: Infrastructure Foundation** — Extended registry backend enum, SessionSource shared type, lock.cjs cloud-aware PID handling, aggregator RemoteAggregator stub, dispatch config block extension, and cloud adapter package scaffold (completed 2026-03-30)
+- [x] **Phase 191: Docker Container Backend** — remote-docker.cjs mirroring spawn.cjs interface, NDJSON stdout relay, coordinator Docker dispatch branch, [D] source label, and coordinator-docker tests (completed 2026-03-30)
+- [x] **Phase 192: Git-Based State Sync** — sync.cjs with pushPlanningState/fetchPlanningState, direction-aware merge strategy, simple-git in packages/, concurrent branch ordering, and sync tests against real worktree fixtures (completed 2026-03-30)
+- [x] **Phase 193: Cloud Web Backend** — remote-cloud.cjs with CloudPoller synthetic events, OAuth probe, cloud dispatch branch in coordinator, auto-teardown on completion, and graceful fallback chain (completed 2026-03-30)
+- [x] **Phase 194: Intelligent Routing** — Full classifyTaskRouting() integration, auto-classify from PLAN.md metadata, cost ceiling enforcement, manual --dispatch override, fast-path local guarantee, and routing event logging (completed 2026-03-30)
+- [x] **Phase 195: Dashboard Integration** — Cloud and Docker session labels, CloudPoller progress bars, start/stop/inspect UI, sync state display, cost tracking in Token Playground, and session_source type extension (completed 2026-03-30)
+- [x] **Phase 196: Containerized MCP Servers** — Per-server Docker containers for APPROVED_SERVERS with pinned runtimes and probe/degrade contract extension for container startup latency (completed 2026-03-30)
+- [x] **Phase 197: Cross-Host Session Resume** — Agent SDK .jsonl persistence to shared storage and cwd encoding for cross-host session portability (completed 2026-03-30)
+
+</details>
+
+### 🚧 v0.25 Firecrawl Deep Web Integration (In Progress)
+
+**Milestone Goal:** Firecrawl is PDE's eighth approved MCP server — the primary web intelligence layer for competitive analysis, source ingestion, research agents, and change monitoring. Users get JS-rendered scraping, structured extraction, full-site crawl, autonomous research agents, and competitor change tracking, all protected by credit guards and graceful degradation to WebSearch/WebFetch when the budget is exhausted.
+
+- [ ] **Phase 198: Foundation — MCP Registration + Credit Guards** — firecrawl in APPROVED_SERVERS, 12 TOOL_MAP entries, probe/degrade contract, API key config, credit warning thresholds, graceful degradation, escalation ladder in mcp-integration.md
+- [ ] **Phase 199: Data Layer — Cache Module + Source Pipeline** — firecrawl-cache.cjs (read/write/slug/diff/emit), .planning/research/firecrawl-cache/ directory structure, sources-manifest.json firecrawl source type, /pde:source add URL flow
+- [ ] **Phase 200: Core Scraping Tools + Competitive/Recommend Integration** — firecrawl_scrape/search/map/extract/search-with-scrape MCP tools available, firecrawl_crawl with enforced limit, competitive.md FIRECRAWL_AVAILABLE migration, recommend.md dual-probe, PIP-01 competitive extraction
+- [ ] **Phase 201: Brief + Phase Researcher + Design Reference Integration** — --source-url flag on brief.md (scrape→cache→BRF), pde-phase-researcher.md Web Evidence step, design reference URL scraping for wireframe/mockup/system context
+- [ ] **Phase 202: /pde:firecrawl Standalone Skill + Agent + Browser Sandbox** — workflows/firecrawl.md with scrape/search/map/crawl/watch/agent subcommands, firecrawl_agent with consent gate and maxCredits cap, firecrawl_agent_status, firecrawl_interact browser sessions, Playwright code execution in sandbox
+- [ ] **Phase 203: Change Tracking + Event Bus** — changeTracking format with semantic markdown diffs, firecrawl_content_changed NDJSON events to event bus, dashboard Pane 5 change summary, snapshot baseline on first watch
 
 ## Phase Details
 
@@ -558,9 +588,76 @@ Plans:
 - [ ] 197-01-PLAN.md — session-persist.cjs module (sanitization, persist, restore) + config keys + unit tests
 - [x] 197-02-PLAN.md — Coordinator integration: capture claudeSessionId, persist on exit, restore on resume
 
+---
 
+### Phase 198: Foundation — MCP Registration + Credit Guards
+**Goal**: Firecrawl is a registered, probe-verified MCP server in PDE with all cost-protection mechanisms in place — credit guards, graceful degradation, and tool routing policy — before any workflow calls a single Firecrawl endpoint
+**Depends on**: Phase 197 (v0.24 complete)
+**Requirements**: FND-01, FND-02, FND-03, FND-04
+**Success Criteria** (what must be TRUE):
+  1. Running any Firecrawl-enabled workflow calls `mcp__firecrawl__search` with limit:1 as the probe — FIRECRAWL_AVAILABLE is set true or false before the workflow body executes, and no Firecrawl tool is called when FIRECRAWL_AVAILABLE is false
+  2. User can set FIRECRAWL_API_KEY in .env and see a "Firecrawl: connected" confirmation in the session summary — no API key in config.json (version-controlled directory)
+  3. The tmux dashboard and session summary display remaining Firecrawl credit balance with a visible warning when usage reaches 80% of the monthly allocation
+  4. When Firecrawl credits are exhausted or the API is unreachable, the workflow continues using WebSearch/WebFetch — no hard failure, no user prompt required
+**Plans**: 2 plans
+Plans:
+- [ ] 198-01-PLAN.md — Firecrawl APPROVED_SERVERS registration, 12 TOOL_MAP entries, AUTH_INSTRUCTIONS, docs updates
+- [ ] 198-02-PLAN.md — Credit guard functions, concurrency semaphore, graceful degradation contract
 
+### Phase 199: Data Layer — Cache Module + Source Pipeline
+**Goal**: All Firecrawl output flows to disk through a single, tested CJS module before any workflow is modified — preventing context window overflow and establishing the source pipeline that brief, researcher, and /pde:source all depend on
+**Depends on**: Phase 198
+**Requirements**: CRL-03, CRL-02
+**Success Criteria** (what must be TRUE):
+  1. Running `/pde:source add <url>` scrapes or crawls the URL and writes the content to .planning/research/firecrawl-cache/ under a deterministic slug — the file is readable by slug on a subsequent call without re-fetching
+  2. The .planning/research/firecrawl-cache/ directory (scrapes/, crawls/, snapshots/ subdirectories) is present in .gitignore — scraped content is never committed to the repository
+  3. firecrawl-cache.cjs round-trips a write and read without data loss, and calling the same slug twice is idempotent (no duplicate files, no overwrite without explicit force flag)
+  4. sources-manifest.json is updated atomically when a new Firecrawl source is added — concurrent adds do not corrupt the manifest
+**Plans**: TBD
 
+### Phase 200: Core Scraping Tools + Competitive/Recommend Integration
+**Goal**: All five Firecrawl scraping/search MCP tools are available inline, firecrawl_crawl enforces its credit safety cap, and the two highest-value existing workflows (competitive analysis, recommend) use Firecrawl as their primary web intelligence layer
+**Depends on**: Phase 198
+**Requirements**: SCR-01, SCR-02, SCR-03, SCR-04, SCR-05, CRL-01, PIP-01
+**Success Criteria** (what must be TRUE):
+  1. User can call firecrawl_scrape on any URL and receive clean markdown with onlyMainContent — JS-rendered content that WebFetch cannot retrieve is returned correctly
+  2. User can call firecrawl_search with category and time filters, and call firecrawl_map to discover all URLs on a site before deciding whether to crawl
+  3. User can call firecrawl_extract with a JSON schema and receive structured data back — the schema is passed as a parameter, not hard-coded
+  4. Running `/pde:firecrawl crawl <url>` never exceeds the FIRECRAWL_CRAWL_MAX_PAGES limit (50 pages default) — requests above the cap are truncated and the user is notified
+  5. Running `/pde:competitive` uses firecrawl_search and firecrawl_extract to pull competitor pricing, features, and positioning — output quality visibly improves over the prior WebSearch-only result
+**Plans**: TBD
+
+### Phase 201: Brief + Phase Researcher + Design Reference Integration
+**Goal**: Firecrawl is wired into the three source-material-consuming workflows — brief, pde-phase-researcher, and design reference — so that any URL passed to these workflows produces cache-backed semantic context rather than an inline content dump
+**Depends on**: Phase 199, Phase 200
+**Requirements**: PIP-02, PIP-03, PIP-04
+**Success Criteria** (what must be TRUE):
+  1. Running `/pde:brief --source-url <url>` scrapes the URL via Firecrawl, writes to firecrawl-cache, and injects a `## Source Material` section into the BRF artifact — the section contains extracted content, not a raw URL
+  2. The pde-phase-researcher agent includes a `## Web Evidence` section sourced from Firecrawl search and scrape results when FIRECRAWL_AVAILABLE is true — the section is absent (not empty) when FIRECRAWL_AVAILABLE is false
+  3. Design reference URLs passed to wireframe, mockup, or system workflows are scraped via Firecrawl and their content feeds into the design context — the workflow does not fetch the URL inline via WebFetch when Firecrawl is available
+**Plans**: TBD
+
+### Phase 202: /pde:firecrawl Standalone Skill + Agent + Browser Sandbox
+**Goal**: Users have a dedicated `/pde:firecrawl` command exposing all six Firecrawl operations — including the autonomous research agent and browser sandbox — with consent gates and credit caps on every high-cost operation
+**Depends on**: Phase 199, Phase 200
+**Requirements**: AGT-01, AGT-02, AGT-03, AGT-04
+**Success Criteria** (what must be TRUE):
+  1. Running `/pde:firecrawl agent "<query>"` displays a consent prompt showing the estimated credit cost before dispatching — the agent call does not proceed without explicit user confirmation, and every dispatch includes a --max-credits cap
+  2. Running `/pde:firecrawl agent-status <job-id>` returns the current status and, when complete, the structured JSON results of the agent job
+  3. Running `/pde:firecrawl interact <url>` launches a cloud browser session with a documented TTL — the session is terminated automatically on TTL expiry without user intervention
+  4. User can execute Playwright code inside the browser sandbox session and extract content from an authentication-gated page that WebFetch cannot access
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 203: Change Tracking + Event Bus
+**Goal**: Users can monitor competitor or dependency pages for content changes, with semantic diffs surfaced in the dashboard and every Firecrawl operation producing a structured NDJSON event for session archival
+**Depends on**: Phase 199
+**Requirements**: CHG-01, CHG-02
+**Success Criteria** (what must be TRUE):
+  1. Running `/pde:firecrawl watch <url>` on a competitor page for the second time produces a markdown diff showing what changed since the baseline snapshot — the diff is written to .planning/research/firecrawl-cache/snapshots/ and not injected inline
+  2. Every Firecrawl operation (scrape, search, crawl, agent dispatch, watch) emits a structured NDJSON event to the event bus with url, slug, word_count, and operation fields — the events appear in the dashboard Pane 5 log stream
+  3. The dashboard Pane 5 log stream displays a change summary when a monitored page diff is non-empty — the entry includes the URL, number of lines changed, and timestamp
+**Plans**: TBD
 
 ## Progress
 
@@ -586,25 +683,31 @@ Plans:
 | 173. MCP Bridge Dynamic Registration | v0.21 | 2/2 | Complete | 2026-03-29 |
 | 174. CLI Wrap Skill | v0.21 | 2/2 | Complete | 2026-03-29 |
 | 175. Design Pipeline Integration | v0.21 | 2/2 | Complete | 2026-03-29 |
-| 176. Data Extraction IR Foundation | v0.22 | 1/3 | Complete    | 2026-03-30 |
-| 177. Command Interface + Workflow Shell | v0.22 | 1/1 | Complete    | 2026-03-30 |
-| 178. Reference Personas + Rendering Engine | v0.22 | 2/2 | Complete    | 2026-03-30 |
-| 179. SVG Charts | v0.22 | 1/1 | Complete    | 2026-03-30 |
-| 180. Claim Verification + PDF Export | v0.22 | 1/2 | Complete    | 2026-03-30 |
-| 181. Remaining Cluster A Personas | v0.22 | 1/3 | Complete    | 2026-03-30 |
-| 182. Remaining Cluster B Personas | v0.22 | 3/3 | Complete    | 2026-03-30 |
-| 183. Auto-Generation | v0.22 | 1/1 | Complete    | 2026-03-30 |
-| 184. Cross-Project Portfolio Synthesis | v0.22 | 2/2 | Complete    | 2026-03-30 |
+| 176. Data Extraction IR Foundation | v0.22 | 1/3 | Complete | 2026-03-30 |
+| 177. Command Interface + Workflow Shell | v0.22 | 1/1 | Complete | 2026-03-30 |
+| 178. Reference Personas + Rendering Engine | v0.22 | 2/2 | Complete | 2026-03-30 |
+| 179. SVG Charts | v0.22 | 1/1 | Complete | 2026-03-30 |
+| 180. Claim Verification + PDF Export | v0.22 | 1/2 | Complete | 2026-03-30 |
+| 181. Remaining Cluster A Personas | v0.22 | 1/3 | Complete | 2026-03-30 |
+| 182. Remaining Cluster B Personas | v0.22 | 3/3 | Complete | 2026-03-30 |
+| 183. Auto-Generation | v0.22 | 1/1 | Complete | 2026-03-30 |
+| 184. Cross-Project Portfolio Synthesis | v0.22 | 2/2 | Complete | 2026-03-30 |
 | 185. Data Integrity Baseline | v0.23 | 2/2 | Complete | 2026-03-30 |
 | 186. Test Infrastructure | v0.23 | 1/1 | Complete | 2026-03-30 |
-| 187. IR Field Fix + Mock Reconciliation | v0.23 | 1/1 | Complete    | 2026-03-30 |
-| 188. Verification Coverage | v0.23 | 3/3 | Complete    | 2026-03-30 |
-| 189. Technical Debt Cleanup | v0.23 | 2/2 | Complete    | 2026-03-30 |
-| 190. Infrastructure Foundation | v0.24 | 1/2 | Complete    | 2026-03-30 |
-| 191. Docker Container Backend | v0.24 | 1/2 | Complete    | 2026-03-30 |
-| 192. Git-Based State Sync | v0.24 | 2/2 | Complete    | 2026-03-30 |
-| 193. Cloud Web Backend | v0.24 | 1/2 | Complete    | 2026-03-30 |
-| 194. Intelligent Routing | v0.24 | 1/2 | Complete    | 2026-03-30 |
-| 195. Dashboard Integration | v0.24 | 2/2 | Complete    | 2026-03-30 |
-| 196. Containerized MCP Servers | v0.24 | 1/1 | Complete    | 2026-03-30 |
-| 197. Cross-Host Session Resume | v0.24 | 1/2 | Complete    | 2026-03-30 |
+| 187. IR Field Fix + Mock Reconciliation | v0.23 | 1/1 | Complete | 2026-03-30 |
+| 188. Verification Coverage | v0.23 | 3/3 | Complete | 2026-03-30 |
+| 189. Technical Debt Cleanup | v0.23 | 2/2 | Complete | 2026-03-30 |
+| 190. Infrastructure Foundation | v0.24 | 1/2 | Complete | 2026-03-30 |
+| 191. Docker Container Backend | v0.24 | 1/2 | Complete | 2026-03-30 |
+| 192. Git-Based State Sync | v0.24 | 2/2 | Complete | 2026-03-30 |
+| 193. Cloud Web Backend | v0.24 | 1/2 | Complete | 2026-03-30 |
+| 194. Intelligent Routing | v0.24 | 1/2 | Complete | 2026-03-30 |
+| 195. Dashboard Integration | v0.24 | 2/2 | Complete | 2026-03-30 |
+| 196. Containerized MCP Servers | v0.24 | 1/1 | Complete | 2026-03-30 |
+| 197. Cross-Host Session Resume | v0.24 | 1/2 | Complete | 2026-03-30 |
+| 198. Foundation — MCP Registration + Credit Guards | v0.25 | 0/TBD | Not started | - |
+| 199. Data Layer — Cache Module + Source Pipeline | v0.25 | 0/TBD | Not started | - |
+| 200. Core Scraping Tools + Competitive/Recommend Integration | v0.25 | 0/TBD | Not started | - |
+| 201. Brief + Phase Researcher + Design Reference Integration | v0.25 | 0/TBD | Not started | - |
+| 202. /pde:firecrawl Standalone Skill + Agent + Browser Sandbox | v0.25 | 0/TBD | Not started | - |
+| 203. Change Tracking + Event Bus | v0.25 | 0/TBD | Not started | - |
