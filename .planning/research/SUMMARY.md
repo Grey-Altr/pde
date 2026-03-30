@@ -1,182 +1,250 @@
 # Project Research Summary
 
-**Project:** Platform Development Engine — v0.24 Cloud Dispatch & State Sync
-**Domain:** Cloud AI agent dispatch, Docker container isolation, git-based planning state sync, intelligent task routing
+**Project:** PDE Firecrawl Integration
+**Domain:** Web scraping / MCP server integration into existing PDE plugin architecture
 **Researched:** 2026-03-30
-**Confidence:** HIGH (stack and architecture grounded in direct codebase reads + official Anthropic docs); MEDIUM (cloud dispatch specifics — `claude --remote` is still research preview)
+**Confidence:** HIGH
 
 ## Executive Summary
 
-PDE v0.24 extends the existing distributed execution foundation (v0.17–v0.18) with three new execution backends: Anthropic-managed cloud sessions via `claude --remote`, Docker container isolation for local heavy workloads, and a git-native `.planning/` state sync protocol that works without SSH. The core architecture insight is that each backend is fundamentally different: local and Docker sessions produce real NDJSON streams that feed directly into the existing `TailCursor`-based aggregator, while cloud sessions return only a session ID and require a polling shim that emits synthetic NDJSON events. This asymmetry must be respected from day one — it drives the separation of `remote-cloud.cjs` (polling shim) from `remote-docker.cjs` (near-drop-in NDJSON), and it dictates that the existing `TailCursor` must never be started for cloud session IDs or the aggregator accumulates ghost cursors indefinitely.
+This milestone adds Firecrawl as PDE's eighth approved MCP server, replacing WebSearch/WebFetch as the primary web intelligence layer for competitive analysis, source material ingestion, and research agent workflows. Firecrawl provides JS rendering, structured extraction, crawl jobs, change tracking, and optional autonomous research via the agent endpoint — capabilities that WebFetch fundamentally cannot provide. The integration uses a two-lane design: Lane A (MCP tools, HTTP transport) handles inline workflow tool calls; Lane B (npx-pinned firecrawl-cli) handles bulk operations writing output directly to `.planning/firecrawl-cache/`. Both lanes follow existing PDE patterns: probe/degrade contracts, zero-npm-deps-at-root, `.planning/` artifact storage, NDJSON event bus.
 
-The recommended approach is build-from-dependencies: Docker first (no OAuth requirement, real NDJSON, validates the container dispatch pattern and backend interface contract), then state sync (required by both Docker cross-machine sync and cloud scenarios before the cloud VM can receive current `.planning/` context), then cloud dispatch (most constrained — OAuth-only, polling-only, GitHub repos only), and finally intelligent routing (meaningless without all three backends implemented and testable). This order is explicitly prescribed by the architecture research build-order phases A through E and is confirmed by the feature dependency graph which shows routing intelligence requiring all three dispatch destinations.
+The recommended approach is incremental with a hard dependency sequence: register the MCP server and establish the cache module first (the shared foundation), then integrate into the three highest-value existing workflows (competitive.md, recommend.md, brief.md + pde-phase-researcher), then add the standalone `/pde:firecrawl` command, and finally wire change-tracking events to the dashboard. This ordering respects the dependency chain — every workflow integration depends on `mcp-bridge.cjs` TOOL_MAP entries existing first, and the cache-writing integrations (brief, researcher) depend on `firecrawl-cache.cjs` existing before they write. The standalone command can be built in parallel with workflow integrations once the foundation phases are complete.
 
-The primary risk cluster is state integrity and the local dispatch path. The existing `--ours` merge strategy in `merge.cjs` silently drops remote-written progress updates when applied to cloud sync direction (where the remote is the authoritative writer, not the local machine). The `dispatcher.lock` does not cover cloud sync git operations, creating a second concurrent writer to main. And the routing decision in `routeSession()` currently resolves in under 1ms — adding a network probe for cloud availability without caching will block all parallel dispatch for 2–5 seconds per call. All three of these require explicit design decisions before implementation begins, not during it.
+The dominant risk is cost: Firecrawl is a credit-based paid API and two endpoints — `firecrawl_crawl` (default 10,000-page limit) and `firecrawl_agent` (100–1,500+ credits per query) — can silently exhaust a monthly allocation in a single misconfigured invocation. Both require mandatory guards before any workflow integration touches them: a crawl `limit` cap constant and an agent consent gate, both in Phase 1. Secondary risk is context window overflow from multi-page crawl results returned inline; mitigation is writing crawl output to `.planning/firecrawl-cache/` rather than injecting it into the conversation. A third risk is tool confusion between deprecated `firecrawl_browser` (which must never be used) and the replacement `firecrawl_interact`, and between Firecrawl browser and Playwright MCP (hard architectural boundary: Playwright for PDE design evaluation, Firecrawl for external content extraction only). All three risks have documented prevention strategies and must be addressed in Phase 1, not deferred.
+
+---
 
 ## Key Findings
 
 ### Recommended Stack
 
-The stack is minimal by design. PDE has a zero-npm-dependency constraint at the plugin root and a convention of system-git over pure-JS alternatives. Three net-new packages are required: `dockerode@4.0.10` for structured Docker container lifecycle management (preferred over CLI subprocess for proper stream multiplexing via `modem.demuxStream`), `simple-git@3.33.0` for promise-based git operations in the sync protocol (wraps system git, DI-friendly, matches the pattern already used throughout `coordinator.cjs`), and `@anthropic-ai/claude-agent-sdk@0.2.87` for session ID queries. The `claude --remote` CLI flag (v2.1.51+) is the cloud execution primitive — invoked as a child process via `node:child_process`, not via SDK.
+Firecrawl enters the PDE environment as two artifacts: `firecrawl-mcp@3.11.0` registered via `claude mcp add` using HTTP transport (preferred — no cold-start latency, API key embedded in URL), and `firecrawl-cli@1.12.2` invoked via `npx firecrawl-cli@1.12.2` from CJS workflow scripts. Neither is added to `package.json` — PDE's zero-npm-deps-at-root constraint applies strictly. The only new source file PDE needs is `bin/lib/firecrawl-cache.cjs` (zero external deps, CJS module matching existing `bin/lib/` conventions). All other changes are modifications to existing markdown workflow, command, agent, and reference files.
 
 **Core technologies:**
-- `claude --remote` CLI (v2.1.51+): Cloud VM dispatch — requires `claude.ai` OAuth (not `ANTHROPIC_API_KEY`), GitHub repos only, returns session ID immediately, task runs async on Anthropic-managed VM
-- `dockerode@4.0.10`: Docker container lifecycle — structured API avoids string-parsing exit codes; stream demux via `modem.demuxStream`; 1,271 npm dependents; `socketPath` default works on macOS/Linux
-- `simple-git@3.33.0`: Git state sync — promise API, DI-testable, wraps system git (guaranteed present in PDE environment); replaces raw `execFileSync` git calls in sync protocol
-- `@anthropic-ai/claude-agent-sdk@0.2.87`: Session queries (`listSessions`, `getSessionInfo`) — TypeScript-first; use from `.mjs` or with ESM interop in `.cjs`
-- `node:child_process` (built-in): Spawning `claude --remote` and `docker` CLI subprocesses — same pattern as existing `spawn.cjs`, zero dependencies
+- `firecrawl-mcp@3.11.0` (HTTP MCP transport): Provides 12 tools callable inline by Claude Code during workflow execution — no subprocess spawn, no cold-start. Registered via `claude mcp add firecrawl --url https://mcp.firecrawl.dev/{key}/v2/mcp`. Probe tool: `firecrawl_search` with `limit:1` (lightest read-only operation).
+- `firecrawl-cli@1.12.2` (npx-pinned subprocess): Handles bulk crawl jobs and write-to-filesystem operations where the CLI's `--output` flag avoids large inline context payloads. Version-pinned to prevent silent flag changes from breaking workflow scripts.
+- `FIRECRAWL_API_KEY` env var: Single credential surface for both lanes. Stored via `firecrawl login --api-key` (platform keychain). Never committed to `.planning/config.json` — version-controlled directory violates credential hygiene.
+- `bin/lib/firecrawl-cache.cjs` (new, zero deps): All disk I/O for scraped content, crawl results, and change-tracking snapshots. Keeps workflow markdown files declarative.
 
-**What NOT to add:** `isomorphic-git` (pure-JS overhead, no SSH support), `nodegit` (native C++ bindings break on Node version change), `ws` (dashboard already uses SSE), `bullmq` (`queue.cjs` already handles dispatch queuing), Docker Compose (single-container per-session dispatch, Compose adds YAML overhead with no benefit), Kubernetes (developer tool, not multi-tenant SaaS).
+**Critical constraints:** Node.js >= 18 (already required). `firecrawl_browser` MCP tool is deprecated — use `firecrawl_interact`. Both `firecrawl-cli` and `firecrawl-mcp` are invoked via npx or `claude mcp add`, never added to `package.json`.
+
+---
 
 ### Expected Features
 
-The feature landscape splits cleanly into a P1 launch set (minimum for the milestone to be shippable) and two deferred tiers. All P1 features are interconnected — cloud dispatch without state sync means cloud agents operate on stale planning context; dashboard visibility without proper `session_source` typing means cloud sessions masquerade as local.
+**Must have (table stakes — v1 launch):**
+- MCP server registration in `mcp-bridge.cjs` APPROVED_SERVERS with probe/degrade contract — foundation for all downstream features
+- API key config via PDE's existing env/config system, same pattern as other MCP servers
+- `firecrawl_scrape` available in research and competitive workflows — replaces WebFetch for JS-rendered pages
+- `firecrawl_search` as primary search tool in competitive/recommend workflows — structured results vs raw WebSearch snippets
+- `firecrawl_map` for pre-crawl URL discovery (cheap; avoids unbounded crawl)
+- WebFetch → Firecrawl routing/escalation policy in `references/mcp-integration.md` — prevents free WebFetch being silently bypassed
+- Credit usage surfaced in session summary — prevents surprise bill shock
+- Graceful degradation at 80% credit consumption; fallback to WebSearch/WebFetch at exhaustion
+- Output written to `.planning/firecrawl-cache/` (gitignored), not inline context
 
-**Must have (table stakes — P1):**
-- Cloud container dispatch via `claude --remote` — the milestone's primary deliverable; users can `--dispatch=cloud` on an autonomous plan phase
-- Git-native `.planning/` state sync — cloud agents that cannot sync state back render the local orchestrator blind to phase completions and task transitions
-- Dashboard visibility for cloud sessions — cloud sessions must appear in the existing health matrix with `[C]` source label and distinct icon
-- Graceful fallback chain (cloud → SSH → local) — same degradation UX as v0.18 SSH fallback; emit explicit `routing_fallback` event to dashboard so users know why cloud was bypassed
-- Ephemeral container cleanup — auto-teardown on `ResultMessage`; containers left running incur ongoing cost
-- Cost tracking for container layer — container uptime × provider rate emitted alongside existing token cost metering
+**Should have (differentiators — v1.x after validation):**
+- `firecrawl_agent` wired into competitive analysis and research skills — requires consent gate and `--max-credits` cap
+- `changeTracking` format for competitor page diffs — git-diff mode only by default, JSON mode as explicit opt-in
+- `firecrawl_crawl` for deep doc site ingestion via `/pde:source` — requires async poll pattern
+- `firecrawl_extract` with Zod/JSON schema for structured competitor data extraction
+- Credit usage live in tmux dashboard Pane 7 — visibility during long crawl/agent jobs
 
-**Should have (competitive — P2, after P1 validated):**
-- Intelligent task router — automatic local-vs-cloud routing from PLAN.md frontmatter signals (`agent_type`, `estimated_minutes`); static regex heuristics, zero LLM, under 100ms per routing call
-- Containerized MCP server isolation — pinned-runtime containers per `APPROVED_SERVERS` entry; Docker already a confirmed dependency from cloud dispatch, so incremental cost is low
-- Cross-host session resume — Upstash Redis (already used in v0.19 Token Playground) for session `.jsonl` portability; enables true multi-machine agent continuity
+**Defer to v2+:**
+- Browser sandbox (`firecrawl_interact`) — preview-stage 20-session limit, high session management complexity, Playwright MCP covers most use cases
+- Parallel agents for batch competitive research — validate single-agent pattern first
+- Self-hosted Firecrawl for private content — document `FIRECRAWL_API_URL` pattern only, no PDE scaffolding
+- Firecrawl Observer / periodic monitoring — out of scope, PDE is not a monitoring platform
 
-**Defer (v2+ — P3):**
-- Docker deploy sandbox for Stage 14 — low priority until host environment drift causes reported failures attributable to the deploy path
-- AutoResearch pinned container for visual metrics — defer until metric reproducibility failures are reported; solves a real problem but only if it is actually occurring
-- Multi-provider cloud dispatch abstraction (Modal, E2B, Fly) — anti-feature risk; start with one provider, add second only if user demand validates provider-specific needs
-
-**Anti-features to reject outright:** always-cloud by default (adds 5–15s cold start to every `/pde:quick`), real-time filesystem sync to cloud (NFS/SSHFS introduces race conditions with the event bus), container for every PDE operation (pure file I/O tasks gain no isolation benefit), stateless cloud agents without `.planning/` sync-back (disconnects cloud execution from the planning state machine entirely).
+---
 
 ### Architecture Approach
 
-The architecture extends the existing 5-layer dispatcher stack (Decision → Execution → Session Lifecycle → Observability → Dashboard) with two new execution backends and one new state sync module. The key structural decision is strict separation of execution paths: `_runLocalSession`, `_runRemoteSession (SSH)`, and `_runCloudSession` must not share `_handleExit` logic because cloud sessions have no local worktree, no local PID, and no git branch to merge. Calling `mergeSession` or `removeWorktree` on a cloud session path throws and corrupts the registry. Docker dispatch is a near-drop-in replacement for local: same `onLine`/`onExit` callbacks, same NDJSON streaming, only the container wrapper changes. Cloud dispatch requires a `CloudPoller` shim that emits synthetic NDJSON events by polling `claude /tasks` output — synthetic events have lower fidelity (no tool-level events) but are compatible with the existing aggregator and relay pipeline.
+Firecrawl integrates into PDE as a layered addition, not a rewrite. At the foundation: `mcp-bridge.cjs` gains a `firecrawl` entry in APPROVED_SERVERS with 12 TOOL_MAP entries. Above that: `bin/lib/firecrawl-cache.cjs` provides the disk I/O layer — all scraped content flows through it to `.planning/firecrawl-cache/` subdirectories, with sources-manifest updates and NDJSON event emission. Above that: existing workflows gain probe/degrade sections using `FIRECRAWL_AVAILABLE` exactly as they currently use `WEBSEARCH_AVAILABLE`. New at the top: `workflows/firecrawl.md` + `commands/firecrawl.md` provide a standalone `/pde:firecrawl` command with 6 subcommands for power-user operations.
 
-**Major components (new or modified):**
-1. `remote-cloud.cjs` (NEW): Cloud web session backend — spawns `claude --remote`, captures session URL, starts `CloudPoller` for synthetic events, fetches result branch on completion via `sync.cjs`
-2. `remote-docker.cjs` (NEW): Docker container backend — mirrors `spawn.cjs` with `docker run` wrapper; real NDJSON streaming via stdout pipe; identical `onLine`/`onExit` wiring
-3. `sync.cjs` (NEW): Git-based `.planning/` state sync — `pushPlanningState()` pre-dispatch (cloud and SSH), `fetchPlanningState()` post-completion; wraps existing `merge.cjs` 3-way merge with sync-direction flag
-4. `remote-managed.cjs` (REPLACE): Functional `detectManagedBackend()` probe — checks CLI version ≥ 2.1.51, OAuth auth status (not API key), GitHub repo connectivity; cached with 30-second TTL
-5. `remote-router.cjs` (MODIFY): Extended routing decision tree returning `'local' | 'ssh' | 'managed' | 'cloud-web' | 'docker'`; receives `cloudConfig` and `dockerConfig` alongside existing `remoteConfig`
-6. `coordinator.cjs` (MODIFY): Cloud and Docker dispatch branches in `dispatch()` with per-backend `_handle*Exit` paths; separate concurrency queues per backend type
-7. `registry.cjs` (MODIFY): Extended backend enum; `sessionUrl` field for cloud sessions; new status values `cloud_running | cloud_complete | docker_running`
-8. `dashboard/components/cloud-session-panel.tsx` (NEW): Cloud instance management widget with sessionUrl display, sync state indicator, pull-local action for completed cloud sessions
+**Major components:**
+1. `bin/lib/mcp-bridge.cjs` (modified) — Adds `firecrawl` to APPROVED_SERVERS + 12 TOOL_MAP canonical names; probe uses `firecrawl:probe` → `mcp__firecrawl__search` with `limit:1`; includes `--no-firecrawl` flag support and credit guard constants
+2. `bin/lib/firecrawl-cache.cjs` (new) — read/write/slug/diff/emit; all disk I/O so workflow files stay declarative; emits `firecrawl_content_changed` events via `pde-tools.cjs event-emit` subprocess (NOT via emit-event.cjs hooks — Firecrawl events are application-level, not hook-level)
+3. `.planning/firecrawl-cache/` (new directory) — `scrapes/`, `crawls/`, `snapshots/` subdirectories; gitignored; mirrors `.planning/design/` and `.planning/phases/` structure
+4. Modified workflows — competitive.md (WEBSEARCH_AVAILABLE → FIRECRAWL_AVAILABLE probe), recommend.md (add Firecrawl search alongside WebSearch), brief.md (add `--source-url` flag + scrape→cache→BRF flow), pde-phase-researcher.md (add `## Web Evidence` step)
+5. `workflows/firecrawl.md` + `commands/firecrawl.md` (new) — standalone orchestration skill with scrape/search/map/crawl/watch/agent subcommands
+6. `references/mcp-integration.md` (modified) — adds Firecrawl section with Path A/B decision matrix, probe pattern, tool routing escalation ladder
+
+**Hard architectural boundary:** Playwright MCP handles PDE design evaluation (wireframes, critique, mockups, deploy smoke tests) against local artifacts. Firecrawl browser sandbox handles external content extraction only. No crossover. `firecrawl_browser` is deprecated; `firecrawl_interact` is the replacement but deferred to v2+.
+
+---
 
 ### Critical Pitfalls
 
-1. **Breaking local dispatch path by shoehorning cloud into existing `_handleExit`** — Keep `_runLocalSession`, `_runRemoteSession`, and `_runCloudSession` as fully separate execution paths with no shared post-exit logic. `routeSession()` adds new return values without modifying existing return branches. Verify with `coordinator-smoke.test.cjs` Test 7 after every routing change.
+1. **Unbounded crawl burning through credits (default 10,000-page limit)** — Add `FIRECRAWL_CRAWL_MAX_PAGES` constant (cap: 50) in `mcp-bridge.cjs` in Phase 1, before any workflow uses crawl. Prefer `firecrawl_map` + targeted `firecrawl_scrape` over full crawl. Never call `firecrawl_crawl` without an explicit `limit` parameter.
 
-2. **`--ours` merge strategy clobbering cloud-written STATE.md** — The existing `--ours` strategy is correct for worktree merges (local agent to main) but inverts for cloud sync (remote is the authoritative state writer). Introduce a sync-direction flag in `merge.cjs` before any git sync code is written: cloud sync uses `--theirs` for `STATE.md`, `--ours` for `REQUIREMENTS.md` and `ROADMAP.md` (which must never be mutated remotely).
+2. **`firecrawl_agent` unpredictable credit consumption (100–1,500+ credits/query)** — Treat as explicit-consent-only with a consent gate before dispatch, same pattern as Stitch CONSENT-01 in `workflows/wireframe.md`. Default `FIRECRAWL_AGENT_DISABLED = true`; require opt-in. Set `--max-credits` on every agent invocation. Design this gate in Phase 1 before any skill references the agent endpoint.
 
-3. **Git sync race condition — cloud sync as unguarded second writer to main** — The `dispatcher.lock` covers local dispatch operations only. The cloud sync merge job runs as a separate process and is not lock-protected. Cloud sync must acquire `dispatcher.lock` before any `git fetch/merge` on main, treating sync as a dispatch-equivalent operation.
+3. **Context window overflow from crawl/batch results** — Never inject raw crawl output inline into the conversation. Always write to `.planning/firecrawl-cache/` and read only the sections needed. Use JSON format with explicit schema for multi-page operations; markdown only for single-page scrapes under 5K tokens.
 
-4. **TailCursor accumulation for ghost cloud sessions** — `aggregator.cjs` polls `/tmp/pde-session-*.ndjson` files that will never exist for cloud sessions. Register cloud sessions with a `RemoteAggregator` (Redis poll); never start a `TailCursor` for a cloud session ID. Failure mode: ~500 bytes per ghost cursor per poll interval accumulates until coordinator restart.
+4. **Playwright vs Firecrawl browser confusion and deprecated `firecrawl_browser`** — The decision matrix must be in `references/mcp-integration.md` before any skill is updated. `firecrawl_browser` must never appear in any skill or workflow file. Never use Firecrawl for PDE design evaluation; never use Playwright for external competitor site scraping.
 
-5. **Uncached cloud backend probe blocking parallel dispatch** — `routeSession()` currently resolves in under 1ms. Adding a synchronous network probe to `detectManagedBackend()` without caching creates 2–5 second routing latency per call — multiplied by 3 parallel dispatches. Cache with 30-second TTL; 2-second timeout returning `{ available: false }` on timeout.
+5. **`firecrawl_search` silently replacing free WebSearch** — Define the escalation ladder in workflow prose: WebSearch/WebFetch first (free) → `firecrawl_scrape` when JS rendering needed (1 credit) → `firecrawl_search` only when search + structured extraction in one pass is required (2 credits/10 results). Skills must preserve WebSearch as the first-tier tool for discovery queries.
 
-6. **Zero-npm dependency constraint at plugin root violated by cloud SDK** — Cloud/Docker SDK calls belong in a separate package (`packages/cloud-adapter/`); `coordinator.cjs` invokes via spawn, never via `require()`. Verify with `node -e "require('./bin/lib/coordinator.cjs')"` on a clean machine with no extra packages.
-
-7. **`session_source` type drift between coordinator and dashboard** — Define `SessionSource` as a shared const in `wire-schema.ts` and import in both `coordinator.cjs` and `queries.ts`. Without this, new backend values written in the coordinator fall back silently to `'local'` in the dashboard query coercion (confirmed in `queries.ts` lines 57–58).
+---
 
 ## Implications for Roadmap
 
-Based on the dependency graph in FEATURES.md, the explicit A–E build order in ARCHITECTURE.md, and the pitfall-to-phase mapping in PITFALLS.md, the recommended phase structure is five phases.
+The dependency chain drives a 6-phase structure. Phases 1–2 are the strict foundation all others require. Phases 3 and 4 can run in parallel (Phase 3 only needs Phase 1; Phase 4 needs both Phases 1 and 2). Phase 5 can overlap Phases 3–4 once Phases 1–2 are stable. Phase 6 is a pure observability addition with no downstream dependents.
 
-### Phase 1: Routing Extension and Registry Foundation
-**Rationale:** All subsequent backends depend on the registry and router accepting new backend values, and the `SessionSource` shared type must exist before any backend writes session data. This phase has zero external dependencies — no Docker daemon, no OAuth, no network calls. It also establishes the zero-npm contract verification and the probe caching design before any cloud code is written.
-**Delivers:** Extended registry backend enum (`cloud-web`, `docker`), functional `detectManagedBackend()` probe with OAuth auth checks and 30-second TTL caching, extended `remote-router.cjs` with new routing targets and config shape, `classifyTaskRouting()` skeleton in `orchestrator.cjs`, shared `SessionSource` enum in `wire-schema.ts`, separate concurrency queue stubs per backend type.
-**Addresses:** Anti-features (routing logic prevents always-cloud default from day one), graceful fallback chain infrastructure.
-**Avoids:** Pitfall 1 (routing extension done in isolation before any dispatch code changes), Pitfall 5 (probe caching built from the start), Pitfall 7 (SessionSource defined once here, propagates via TypeScript errors).
+### Phase 1: Foundation — MCP Registration + Credit Guards
 
-### Phase 2: Docker Container Backend
-**Rationale:** Docker dispatch uses real NDJSON streaming — identical integration path to `spawn.cjs`. No OAuth required, so full test coverage is achievable immediately. Validates the backend interface contract (`spawnDockerSession` → `{ pid, kill }`) before the harder cloud path, and makes Docker a confirmed project dependency before MCP server containerization is considered. Image pre-pull probe belongs at PDE initialization time, not at dispatch time.
-**Delivers:** `remote-docker.cjs`, Docker dispatch branch in `coordinator.cjs` with separate `_handleDockerExit`, `[D]` source label in `tmux-fanout.cjs`, dashboard source label for Docker sessions, Docker image availability check at PDE startup (writes `docker-status.json`), `coordinator-docker.test.cjs` with DI stubs.
-**Uses:** `dockerode@4.0.10`, `node:child_process` for `docker` CLI invocation.
-**Implements:** Docker Dispatch as Near-Drop-In (Architecture Pattern 2).
-**Avoids:** Pitfall 5 (container startup latency — image probe runs at init, not at dispatch time), Pitfall 8 (zero-npm: `docker` CLI subprocess only in coordinator, no `dockerode` import in plugin root files).
+**Rationale:** Every subsequent phase calls through `mcp-bridge.cjs` TOOL_MAP. Without this registration, no probe can be issued and no tool called. The credit guard constants and agent consent pattern must exist at this layer before any workflow integration touches Firecrawl — one misconfigured call without guards can exhaust the monthly credit budget. This is the non-negotiable first phase, and all security and cost-protection mechanisms belong here.
 
-### Phase 3: Git-Based .planning/ State Sync
-**Rationale:** State sync is a hard prerequisite for cloud dispatch (cloud VM clones from last pushed commit — if `ROADMAP.md` or `STATE.md` are ahead locally, the remote operates on stale context). Building sync standalone before cloud means it can be tested against real git worktree fixtures without OAuth dependencies. The merge direction problem must be fully resolved and tested in this phase, not discovered in cloud production.
-**Delivers:** `sync.cjs` (`pushPlanningState`, `fetchPlanningState`), sync-direction flag added to `merge.cjs` (cloud sync direction uses `--theirs` for `STATE.md`), pre-dispatch sync wiring in `coordinator.cjs`, post-exit sync wiring in `_handleExit` for SSH sessions, `sync.test.cjs` against real git worktree fixtures, optional `POST /api/planning/sync` dashboard route with `validateRelayToken` auth.
-**Uses:** `simple-git@3.33.0`.
-**Avoids:** Pitfall 3 (`--ours` direction corrected here, verified with explicit test that remote-written STATE.md content survives the merge), Pitfall 6 (cloud sync lock acquisition designed and tested before cloud backend exists).
+**Delivers:** `firecrawl` in APPROVED_SERVERS with probe/degrade contract; 12 TOOL_MAP entries; `--no-firecrawl` flag; `FIRECRAWL_CRAWL_MAX_PAGES` constant (cap: 50); agent consent gate design; `FIRECRAWL_CREDIT_WARNING_THRESHOLD` + `FIRECRAWL_CREDIT_CRITICAL_THRESHOLD` in `.env.example`; credit graceful degradation logic; mcp-integration.md Firecrawl section with Path A/B decision matrix and tool routing escalation ladder.
 
-### Phase 4: Cloud Web Backend and Dashboard Integration
-**Rationale:** Cloud dispatch is the highest-risk phase — `claude --remote` is research preview, requires OAuth, is GitHub-only, has no NDJSON pipe. All prerequisite patterns (container dispatch, state sync, registry extension) must be stable first. Dashboard integration for cloud sessions is included in this phase rather than deferred because cloud sessions without dashboard visibility are invisible to users and the `RemoteAggregator` must be built alongside the cloud backend (they share the same design constraint: no local file to tail).
-**Delivers:** `remote-cloud.cjs` (`spawnCloudSession`, `CloudPoller` synthetic event emitter polling every 5 seconds), replacement `remote-managed.cjs` with functional OAuth probe, cloud dispatch branch in `coordinator.cjs` with separate `_handleCloudExit`, `RemoteAggregator` class (Redis poll, never creates `TailCursor`), `cloud-session-panel.tsx` dashboard component (sessionUrl, sync state, pull-local action for `cloud_complete` sessions), `coordinator-cloud.test.cjs` with CLI stubs.
-**Implements:** CloudPoller Pattern (Architecture Pattern 1), Unified Session Source Labels (Architecture Pattern 4).
-**Avoids:** Pitfall 4 (RemoteAggregator never creates TailCursor for cloud session IDs), Pitfall 2 (lock extended to include `cloudSessionId` for stale-lock reclaim check before reclaiming).
+**Addresses:** MCP server registration, API key config, graceful credit degradation (table stakes)
 
-### Phase 5: Intelligent Routing and Cost Tracking
-**Rationale:** Routing intelligence is only meaningful with all three backends (local, Docker, cloud) operational and testable with DI stubs. Cost tracking for containers requires cloud sessions generating real usage data. This phase also adds the user-facing config schema (`dispatch.cloud.*`, `dispatch.docker.*`) that makes routing configurable without code changes.
-**Delivers:** Full `classifyTaskRouting()` integration into coordinator decision flow, static heuristics for `hasSecretFiles`/`estimatedTokens`/`requiresGUI`/`requiresGit` (regex + line-count, zero LLM, under 100ms), user config schema with `force` overrides in `config.json`, container cost events (uptime × provider rate) emitted alongside existing token cost metering, dashboard session filter by backend type, end-to-end routing validation with all four routing targets and forced overrides, `routing_fallback` event emitted to dashboard when cloud is unavailable.
-**Implements:** Hybrid Auto+Override Routing (Architecture Pattern 3).
-**Avoids:** Anti-feature "always-cloud by default" (router keeps interactive and fast-path tasks local by design).
+**Avoids:** Unbounded crawl credit burn (Pitfall 1), agent runaway cost (Pitfall 2), deprecated `firecrawl_browser` confusion (Pitfall 4), API key exposure (security)
+
+**Research flag:** Standard pattern — follows existing Stitch/Playwright/GitHub entries in APPROVED_SERVERS. Skip research-phase.
+
+---
+
+### Phase 2: Data Layer — firecrawl-cache.cjs + Sources Manifest
+
+**Rationale:** Before any workflow can write scraped content to disk, the disk I/O module must exist. Brief, competitive, and the researcher agent all need to write to `.planning/firecrawl-cache/` and update `sources-manifest.json`. Building this before the workflow integrations ensures a stable, tested write path rather than each workflow inventing its own. Also provides the event emission substrate for Phase 6 (change tracking).
+
+**Delivers:** `bin/lib/firecrawl-cache.cjs` (read/write/slug/diff/emit); `.planning/firecrawl-cache/` directory structure (scrapes/, crawls/, snapshots/); extended `templates/sources-manifest.json` schema with firecrawl source type; unit tests for slug generation, read/write round-trip, manifest update idempotency.
+
+**Uses:** Node built-in `fs` (zero npm deps); existing `pde-tools.cjs` event-emit subprocess pattern
+
+**Implements:** Source material ingestion flow (Architecture Pattern 2)
+
+**Avoids:** Context window overflow (output to cache, not inline — Pitfall 3)
+
+**Research flag:** Standard CJS zero-deps module matching existing `bin/lib/` files. Skip research-phase.
+
+---
+
+### Phase 3: Competitive + Recommend Workflow Integration
+
+**Rationale:** Highest-value workflow integrations with minimal dependencies — they use MCP tools inline without requiring the cache module, so they only need Phase 1 complete. Migrating `competitive.md` from WEBSEARCH_AVAILABLE to FIRECRAWL_AVAILABLE and adding `firecrawl_search` to `recommend.md` delivers immediate research quality improvement to PDE's most-used skills. This phase can run in parallel with Phase 4 once Phases 1 and 2 are done.
+
+**Delivers:** `workflows/competitive.md` with FIRECRAWL_AVAILABLE probe replacing WEBSEARCH_AVAILABLE; `workflows/recommend.md` with dual WebSearch + Firecrawl probes; confidence labels updated to `[confirmed via Firecrawl — {date}]`; escalation ladder enforced in competitive prose (WebSearch first → firecrawl_search only for structured extraction).
+
+**Addresses:** `firecrawl_scrape`, `firecrawl_search`, `firecrawl_map` (table stakes); `changeTracking` groundwork for competitive diffs (v1.x differentiator)
+
+**Avoids:** `firecrawl_search` over-use replacing free WebSearch (Pitfall 5)
+
+**Research flag:** Direct migration from existing WEBSEARCH_AVAILABLE probe — pattern is well-established. Skip research-phase.
+
+---
+
+### Phase 4: Brief + Phase Researcher Integration
+
+**Rationale:** Depends on Phase 2 (cache write path). Adding `--source-url` to `brief.md` and a Firecrawl search step to `pde-phase-researcher.md` closes the source material ingestion loop — users can pass a competitor URL to any brief and have the content scraped, cached, and injected as semantic context. The researcher agent gains web-sourced evidence for external API and ecosystem knowledge. Both workflows must degrade gracefully when FIRECRAWL_AVAILABLE = false.
+
+**Delivers:** `--source-url` flag on `workflows/brief.md` with scrape → `firecrawl-cache.cjs` write → BRF `## Source Material` section; `agents/pde-phase-researcher.md` Standard Mode with Firecrawl search + scrape step producing `## Web Evidence` section; graceful degradation on FIRECRAWL_AVAILABLE = false for both.
+
+**Implements:** Source material ingestion flow end-to-end (Architecture Pattern 2)
+
+**Avoids:** Context window overflow (all scrape output written to cache, not inline — Pitfall 3)
+
+**Research flag:** Follows existing `--reference-url` Playwright flag pattern for brief.md (additive, not conflicting). Researcher agent gains one new conditional step. Standard. Skip research-phase.
+
+---
+
+### Phase 5: /pde:firecrawl Standalone Skill
+
+**Rationale:** Depends on Phases 1 and 2 (TOOL_MAP + cache). Exposes all Firecrawl capabilities as explicit user-facing commands rather than only embedded within other workflows. Covers operations (crawl, watch, agent) that don't belong embedded in competitive/brief workflows. The async crawl poll loop and agent consent gate both require care — recommend a targeted research-phase scan on the changeTracking format interaction before implementing the `watch` subcommand prose.
+
+**Delivers:** `workflows/firecrawl.md` with 6 subcommands (scrape/search/map/crawl/watch/agent); `commands/firecrawl.md` slash command entry; async crawl poll loop (crawl → job ID → poll `firecrawl_check_crawl_status`); agent consent gate enforced; `--max-credits` cap on every agent invocation; output to `firecrawl-cache` for all subcommands.
+
+**Addresses:** `firecrawl_agent` (v1.x differentiator), `firecrawl_crawl` deep ingestion (v1.x), `firecrawl_extract` with schema (v1.x)
+
+**Avoids:** Agent runaway cost (consent gate applied here — Pitfall 2), unbounded crawl (max-pages constant from Phase 1 — Pitfall 1)
+
+**Research flag:** The `watch` subcommand's changeTracking format has specific async complexity (markdown must be co-requested with changeTracking; git-diff vs JSON mode cost difference; diff algorithm depends on exact URL + team ID match). Recommend targeted research-phase scan on async crawl polling and changeTracking format requirements before writing `watch` subcommand prose.
+
+---
+
+### Phase 6: Change Tracking + Event Bus
+
+**Rationale:** Optional observability layer. Depends on Phase 2 (snapshot module) and Phase 5 (`watch` subcommand). Wires `firecrawl_content_changed` NDJSON events to the dashboard when a competitor page changes. No other phase depends on this — it can be deferred if scope pressure arises without blocking any other work.
+
+**Delivers:** `firecrawl_content_changed` event emitted to NDJSON bus when diff is non-empty; NDJSON line format validated (`{ url, slug, word_count, diff_lines }`); snapshot baseline written on first watch invocation; diff written on subsequent watches; dashboard Pane 5 (log stream) surfaces change summary; idle catalog updated with watch/change suggestions.
+
+**Implements:** Change tracking + event bus (Architecture Pattern 5)
+
+**Avoids:** Anti-pattern of emitting via `emit-event.cjs` HOOK_TO_EVENT_TYPE (Firecrawl events are application-level, not hook-level — emit via `pde-tools.cjs event-emit` subprocess from `firecrawl-cache.cjs`)
+
+**Research flag:** NDJSON event schema and dashboard pane integration follow well-documented PDE patterns. Skip research-phase.
+
+---
 
 ### Phase Ordering Rationale
 
-- **Registry and routing first:** Every phase depends on the type system being correct. Extending `SessionSource` and registry enums before writing backend code eliminates type-drift pitfalls at compile time rather than runtime.
-- **Docker before cloud:** Real NDJSON streaming validates the backend interface without external auth dependencies. Container dispatch pattern is proven before the harder polling pattern. Full test coverage achievable from day one.
-- **State sync before cloud:** Cloud VM clones from last pushed commit. Without pre-dispatch `.planning/` sync, the remote agent operates on stale context — the milestone's primary value is broken. Merge direction correctness must be tested offline before cloud introduces OAuth as a testing dependency.
-- **Cloud with dashboard:** Cloud sessions that do not appear in the dashboard are invisible. `RemoteAggregator` and `CloudPoller` share the same design constraint (no local file), so building them together is more efficient than splitting across phases.
-- **Routing last:** All three backends must be testable with DI stubs before routing classification logic can be validated end-to-end.
+- Phases 1–2 are strict prerequisites: TOOL_MAP must exist before probes can run; cache module must exist before any workflow writes to disk. No shortcuts here.
+- Phases 3 and 4 can run in parallel once Phases 1 and 2 are done (Phase 3 only needs TOOL_MAP; Phase 4 needs both TOOL_MAP and cache module).
+- Phase 5 can overlap Phases 3–4 once Phases 1–2 are stable — it exercises the same tools and cache paths that Phases 3–4 validate, and benefits from their tests being stable first.
+- Phase 6 is a pure addition with no downstream dependents — can be deferred or descoped without affecting any other phase.
+- Credit guards (Pitfalls 1 and 2) are resolved in Phase 1. This is the most important ordering constraint: all workflow integrations that use crawl or agent must come after the guards exist.
 
 ### Research Flags
 
-Phases likely needing deeper research during planning:
-- **Phase 4 (Cloud Web Backend):** `claude --remote` is documented as "research preview." The specific JSON schema of `claude auth status --output-format json`, the exact polling format of `claude tasks --output-format json`, and whether cloud VMs can push directly to GitHub origin (or require the dashboard `/api/planning/sync` endpoint as a fallback) should be verified against current CLI behavior immediately before Phase 4 begins — not at planning time.
-- **Phase 3 (State Sync merge direction):** No standard pattern exists for sync-direction-aware merge strategies in `merge.cjs`. The `OURS_ON_CONFLICT` list and its interaction with cloud sync direction needs explicit test fixture design before the implementation begins.
+Phases needing deeper research during planning:
+- **Phase 5 (`watch` subcommand and `changeTracking` format):** The changeTracking API requires `markdown` to be co-requested in the same call; omitting it produces silent empty diffs. Git-diff mode (free) vs JSON mode (5 credits/page) has significant cost implications. The diff algorithm matches on exact URL + team ID — implications for cache keying need verification. Recommend a targeted research-phase scan before writing `watch` prose.
 
-Phases with standard patterns (skip `/gsd:research-phase`):
-- **Phase 1 (Routing Extension):** Straightforward TypeScript enum extension and modification of known modules. All code paths exist; no new protocols needed. Direct codebase reads have identified the exact files and extension points.
-- **Phase 2 (Docker Backend):** `spawn.cjs` is the reference implementation with identical interface. `dockerode` API is well-documented (1,271 dependents, stable API). Devcontainer spec is official and stable. Skip research.
-- **Phase 5 (Intelligent Routing):** Static heuristics via regex — well-understood pattern already used in `idle-suggestions.cjs`. Config schema follows the existing `config.json` `dispatch.remote.*` block pattern. No research needed.
+Phases with standard patterns (skip research-phase):
+- **Phase 1:** Direct extension of existing APPROVED_SERVERS pattern; Stitch, Playwright, and GitHub precedents all present in codebase at known locations.
+- **Phase 2:** Standard CJS zero-deps module — same pattern as existing `bin/lib/` files (mcp-bridge.cjs, core.cjs).
+- **Phase 3:** Direct migration from WEBSEARCH_AVAILABLE probe; existing competitive.md is the reference implementation.
+- **Phase 4:** Follows `--reference-url` Playwright flag pattern in brief.md (additive). Researcher agent step structure already defined.
+- **Phase 6:** NDJSON event emission pattern follows hooks/emit-event.cjs and pde-tools.cjs documentation.
+
+---
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | `dockerode` and `simple-git` verified against npm registry; `claude --remote` CLI behavior verified against official Anthropic docs fetched 2026-03-30; all existing modules read directly from codebase |
-| Features | HIGH | Feature landscape grounded in official Agent SDK docs, Docker Sandboxes docs, and direct reads of existing PDE infrastructure; P1/P2/P3 tiers supported by concrete dependency analysis |
-| Architecture | HIGH | New component specs derived from direct reads of `coordinator.cjs`, `spawn.cjs`, `merge.cjs`, `registry.cjs`, `queries.ts`; build order validated against module dependency graph; interface contracts specified explicitly |
-| Pitfalls | HIGH (existing codebase) / MEDIUM (cloud-specific) | Pitfalls 1, 3, 4, 6, 7, 8 grounded in direct codebase reads and specific line numbers; Pitfall 2 (cloud PID lock) and Pitfall 5 (probe latency) are architectural inference — not yet observed in production |
+| Stack | HIGH | All versions verified via `npm show`; HTTP transport URL pattern confirmed from official MCP server docs; zero-npm constraint is enforced existing policy |
+| Features | HIGH | Sourced from official Firecrawl docs (CLI, MCP server, rate limits, agent); credit costs from official pricing page (MEDIUM — pricing subject to change without docs update) |
+| Architecture | HIGH | Patterns derived directly from PDE codebase reads (mcp-bridge.cjs, competitive.md, brief.md, pde-phase-researcher.md, wireframe.md); integration points specified at file and function level |
+| Pitfalls | HIGH | Rate limits and credit costs verified from official docs; browser session limits from official browser feature docs; real-world agent cost range corroborated by third-party analysis + official docs |
 
-**Overall confidence:** HIGH for Docker and state sync phases; MEDIUM for cloud web dispatch due to research-preview status of `claude --remote` and two unverified behavioral details.
+**Overall confidence:** HIGH
 
 ### Gaps to Address
 
-- **`claude --remote` NDJSON unavailability:** ARCHITECTURE.md notes that NDJSON unavailability from cloud sessions is inferred from architecture (no local process stdout), not explicitly stated in Anthropic docs. Verify before implementing `CloudPoller`. If a future CLI version adds streaming, the polling shim can be replaced with a real `TailCursor` at that point.
-- **`claude auth status` JSON schema:** The `detectManagedBackend()` probe depends on the exact JSON output of `claude auth status --output-format json`. This schema is not confirmed in research. Read it from a real CLI invocation at the start of Phase 1 implementation.
-- **Cloud VM GitHub push permissions:** Research assumes cloud VMs push result branches to the GitHub origin via the installed GitHub App. If the VM cannot push directly (auth model differs), `POST /api/planning/sync` becomes mandatory rather than optional. Validate before Phase 4 begins — this determines whether the dashboard sync endpoint is a P1 or P2 deliverable.
-- **Container image public availability:** `ghcr.io/anthropics/claude-code:devcontainer-latest` is referenced in architecture. Verify the image is publicly pullable without auth on the target machines before committing to it as the Docker backend base image in Phase 2.
+- **Firecrawl pricing stability:** Credit costs (especially agent endpoint 100–1,500+ range) are sourced from docs and third-party analysis. Firecrawl has historically changed pricing without prominent docs updates. Validate actual credit consumption on the first few production calls and calibrate consent gate thresholds.
+- **`firecrawl_interact` API surface:** The replacement for deprecated `firecrawl_browser` is confirmed in the MCP server README but its full parameter schema (code execution modes, sessionId lifecycle, error handling) is not fully documented. Read the MCP server source before implementing any browser-session flows in Phase 5.
+- **Concurrent worktree rate limiting:** PDE supports up to 20 parallel worktree agents. At Standard plan (50 crawl RPM), 20 agents simultaneously issuing crawl requests would exhaust the rate limit in seconds. The Phase 1 concurrent queue cap (max 2 parallel Firecrawl operations) addresses this, but the exact wiring point in `concurrent-queue.cjs` needs validation during Phase 1 planning.
+- **changeTracking diff algorithm keying:** The diff compares against the previous scrape matched on exact URL + team ID. The implications for `firecrawl-cache.cjs` slug-based keying (which strips team ID from the cache filename) need explicit verification during Phase 5 planning.
+
+---
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- [Claude Code on the web docs](https://code.claude.com/docs/en/claude-code-on-the-web) — `claude --remote` architecture, GitHub-only repos, cloud VM lifecycle, setup scripts, teleport
-- [Claude Code headless docs](https://code.claude.com/docs/en/headless) — `--output-format`, `--bare`, session ID capture, `stream-json` format
-- [Remote Control docs](https://code.claude.com/docs/en/remote-control) — `claude remote-control`, `--spawn worktree`, outbound-only architecture, v2.1.51 requirement
-- [Agent SDK overview](https://platform.claude.com/docs/en/agent-sdk/overview) — subagents, hooks, MCP integration, TypeScript v0.2.71
-- [Agent SDK sessions](https://platform.claude.com/docs/en/agent-sdk/sessions) — session resume/fork, cross-host sync, `~/.claude/projects/<cwd>/*.jsonl` storage
-- [Development containers docs](https://code.claude.com/docs/en/devcontainer) — Dockerfile spec, firewall rules, `--dangerously-skip-permissions` in container
-- [Docker Sandboxes docs](https://docs.docker.com/ai/sandboxes/) — microVM isolation, ephemeral vs persistent, MCP server sandboxing
-- Codebase (read directly): `coordinator.cjs`, `spawn.cjs`, `merge.cjs`, `registry.cjs`, `remote-router.cjs`, `remote-managed.cjs`, `remote-ssh.cjs`, `lock.cjs`, `aggregator.cjs`, `relay.cjs`, `dashboard/lib/queries.ts`, `wire-schema.ts`
+- [Firecrawl MCP Server docs](https://docs.firecrawl.dev/mcp-server) — 12 tool names, HTTP endpoint, `firecrawl_browser` deprecation
+- [Firecrawl CLI docs](https://docs.firecrawl.dev/sdks/cli) — all flags, auth, telemetry disable, credential storage paths
+- [Firecrawl Rate Limits](https://docs.firecrawl.dev/rate-limits) — RPM tables by plan and endpoint, concurrent browser session limits
+- [Firecrawl Crawl Feature](https://docs.firecrawl.dev/features/crawl) — 10,000-page default limit, async job model, 24h result retention
+- [Firecrawl Change Tracking](https://docs.firecrawl.dev/features/change-tracking) — git-diff vs JSON mode, changeStatus values, markdown co-request requirement
+- [Firecrawl Browser Feature](https://docs.firecrawl.dev/features/browser) — 2 credits/browser-minute, 20-session limit, TTL defaults
+- [firecrawl/cli GitHub](https://github.com/firecrawl/cli) — v1.12.2 confirmed, credential file paths
+- [firecrawl/firecrawl-mcp-server GitHub](https://github.com/firecrawl/firecrawl-mcp-server) — credit threshold env vars, `firecrawl_browser` deprecation confirmed
+- PDE `bin/lib/mcp-bridge.cjs` (direct codebase read) — APPROVED_SERVERS + TOOL_MAP structure, probe/degrade contract
+- PDE `workflows/competitive.md` (direct codebase read) — WEBSEARCH_AVAILABLE probe pattern being migrated
+- PDE `workflows/wireframe.md` (direct codebase read) — Stitch CONSENT-01 gate as model for agent consent gate
 
 ### Secondary (MEDIUM confidence)
-- [Claude Code Remote Control Guide](https://claudefa.st/blog/guide/development/remote-control-guide) — outbound HTTPS relay architecture, limitations, mobile access model
-- [Docker — Sandboxing AI Agents Safety (2026)](https://www.docker.com/blog/docker-sandboxes-a-new-approach-for-coding-agent-safety/) — workspace sync, per-sandbox private Docker daemons
-- [AWS Prescriptive Guidance — Routing Dynamic Dispatch Patterns](https://docs.aws.amazon.com/prescriptive-guidance/latest/agentic-ai-patterns/routing-dynamic-dispatch-patterns.html) — capability-based routing patterns, event-driven dispatch
-- [Microsoft Swarm Diaries](https://techcommunity.microsoft.com/blog/appsonazureblog/the-swarm-diaries-what-happens-when-you-let-ai-agents-loose-on-a-codebase/4501393) — git branch per agent pattern, merge-first strategy
-- [Northflank — How to sandbox AI agents (2026)](https://northflank.com/blog/how-to-sandbox-ai-agents) — MicroVM vs gVisor vs container isolation comparison
-- npmjs.com registry: `dockerode@4.0.10` (1,271 dependents), `simple-git@3.33.0` (7,483 dependents)
+- [Firecrawl Pricing](https://www.firecrawl.dev/pricing) — credit costs per operation; subject to change without docs update
+- [Firecrawl Browser Sandbox blog](https://www.firecrawl.dev/blog/introducing-browser-sandbox) — session limit context; marketing blog, not full API reference
+- [Spark 1 Pro and Mini models](https://www.firecrawl.dev/blog/introducing-spark-1) — agent model tiers (spark-1-mini vs spark-1-pro) and cost tradeoffs
+- `npm show firecrawl-mcp version` / `npm show firecrawl-cli version` — versions 3.11.0 and 1.12.2 confirmed locally
 
-### Tertiary (LOW confidence — verify during execution)
-- `claude --remote` NDJSON unavailability — inferred from architecture (no local stdout pipe), not explicitly confirmed in documentation; verify at Phase 4 start
-- GitHub App push permissions from cloud VMs — assumed from architecture description, not directly verified; validate before Phase 4 begins
+### Tertiary (LOW confidence — verify during implementation)
+- [Firecrawl Pricing Breakdown — ScrapeGraphAI](https://scrapegraphai.com/blog/firecrawl-pricing) — 9-credit/page worst case and agent 100–1,500+ credits range; third-party source, corroborates but does not replace official pricing
+- [Firecrawl vs Playwright — Grokipedia](https://grokipedia.com/page/Firecrawl_vs_Playwright) — use-case boundary analysis; single secondary source
 
 ---
 *Research completed: 2026-03-30*

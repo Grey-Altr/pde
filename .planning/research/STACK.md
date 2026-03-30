@@ -1,269 +1,200 @@
-# Stack Research — Cloud Dispatch, Container Isolation, Git State Sync, Intelligent Routing
+# Stack Research
 
-**Domain:** Cloud dispatch (claude --remote), Docker container execution, git-based .planning/ sync, intelligent routing, dashboard remote session integration
+**Domain:** Firecrawl CLI/MCP integration into PDE plugin architecture
 **Researched:** 2026-03-30
-**Confidence:** HIGH (claude --remote, Agent SDK, devcontainer), MEDIUM (routing heuristics, git sync integration patterns)
+**Confidence:** HIGH
+
+## Scope
+
+This file covers ONLY what is new for the Firecrawl integration milestone. Existing PDE stack (MCP bridge, Playwright MCP, WebSearch/WebFetch, Context7, research agents, CLI ingestion pipeline) is validated and out of scope.
 
 ---
 
-## Context: What Already Exists (Do Not Rebuild)
+## Recommended Stack
 
-The following infrastructure is validated and production-hardened in PDE v0.17–v0.18. New work integrates with these, it does not replace them.
-
-| Component | Location | What It Does |
-|-----------|----------|--------------|
-| `DispatchCoordinator` | `packages/dispatcher/lib/coordinator.cjs` | Full session lifecycle: queue, registry, worktree, merge, SSH |
-| `remote-router.cjs` | `packages/dispatcher/lib/remote-router.cjs` | Decision tree: `'local' | 'ssh' | 'managed'`; currently returns `'managed'` as unavailable stub |
-| `remote-managed.cjs` | `packages/dispatcher/lib/remote-managed.cjs` | Stub returning `available: false` — **this is the primary extension point** |
-| `SessionRegistry` | `packages/dispatcher/lib/registry.cjs` | Crash-recoverable `.planning/dispatcher.pids` with PID probing |
-| `relay.cjs` | `bin/lib/relay.cjs` | TailCursor + BatchQueue + CircuitBreaker; HTTP POST to dashboard |
-| `relay-protocol.cjs` | `bin/lib/relay-protocol.cjs` | Wire envelope schema (WireEnvelopeSchema) |
-| Dashboard | `dashboard/` | Next.js 15, Clerk auth, SSE streaming, Upstash Redis, approval gates |
-| `node-ssh` | `packages/dispatcher/lib/remote-ssh.cjs` | SSH remote execution backend (RMT-01–03) |
-
----
-
-## Recommended Stack for New Capabilities
-
-### Core Technologies
+### Core Technologies — New Additions
 
 | Technology | Version | Purpose | Why Recommended |
 |------------|---------|---------|-----------------|
-| `claude --remote` (CLI flag) | CLI v2.1.51+ | Cloud dispatch: creates Anthropic-managed VM sessions from terminal | Official, zero infrastructure — clones repo to cloud VM, runs Claude Code, pushes branch. No NDJSON streaming; session tracked via `/tasks` and session ID in JSON output |
-| `claude remote-control` (CLI command) | CLI v2.1.51+ | Local session exposed to remote devices / dashboard bridge | Outbound-only HTTPS to Anthropic API; no inbound ports; enables steering from dashboard |
-| `dockerode` | `4.0.10` | Docker Engine API for container-based session dispatch | Only production-ready Node.js Docker SDK (1,271+ dependents); Docker's own `node-sdk` is experimental |
-| `simple-git` | `3.33.0` | Git operations for .planning/ state sync: commit, push, fetch, diff, status | Wraps system git with promise API; lighter than isomorphic-git (no pure-JS overhead); already proven pattern in PDE's 3-way merge system |
-| `@anthropic-ai/claude-agent-sdk` | `0.2.87` | TypeScript Agent SDK for programmatic session queries: `listSessions()`, `getSessionInfo()`, session ID capture | Official SDK; enables `resume`, `fork`, `continue` patterns; exposes session JSONL on disk |
+| `firecrawl-mcp` | 3.11.0 | MCP server exposing 12 Firecrawl tools to Claude Code | Hosted HTTP endpoint `https://mcp.firecrawl.dev/{key}/v2/mcp` means zero npx-spawn complexity at runtime; follows same pattern as GitHub/Linear/Figma (HTTP transport). Official package from firecrawl org. |
+| `firecrawl-cli` | 1.12.2 | npx-invokable CLI for scrape/search/crawl/map/browser/agent from workflow scripts | Needed for non-MCP invocations: fire-and-forget crawl jobs, structured JSON output to filesystem, agent jobs with `--schema-file` and `--max-credits` guard. |
+| `FIRECRAWL_API_KEY` env var | n/a | Auth token for both firecrawl-mcp HTTP URL and firecrawl-cli | Both packages read this env var; single credential surface. Stored at `~/Library/Application Support/firecrawl-cli/credentials.json` (0600 permissions) after `firecrawl login --api-key`. |
 
-### Supporting Libraries
+### Supporting Libraries — No New npm Root Dependencies
 
 | Library | Version | Purpose | When to Use |
 |---------|---------|---------|-------------|
-| `node-ssh` | already installed | SSH remote dispatch | Continue using for SSH backend — do not replace |
-| `@anthropic-ai/sdk` | `0.80.0` | Anthropic REST API client | Already installed; use for Analytics API (`/v1/organizations/usage_report/claude_code`) to surface remote session cost in dashboard |
-| Built-in `node:child_process` | Node built-in | Spawning `claude --remote` and `claude remote-control` as subprocesses | Same pattern as `spawn.cjs` — zero deps, proven, CLAUDECODE= env prefix NOT used for --remote |
-| `dockerode` modem options | via dockerode | Docker socket vs TCP connection | Use `socketPath: '/var/run/docker.sock'` for local; `host + port + ca/cert/key` for remote Docker |
+| Node built-in `child_process.spawnSync` | built-in | CLI invocation from .cjs workflow scripts | Already used by `app-cli-wrap.cjs` and `bin/pde-tools.cjs`. Use for synchronous scrape/search calls where output is needed inline. |
+| Node built-in `child_process.spawn` (async) | built-in | Async crawl/agent job dispatch | Use for long-running crawl and agent jobs (`--wait` flag or poll pattern). Follows coordinator.cjs spawn model. |
 
-### Development Tools
+CRITICAL: PDE has a zero-npm-deps-at-root constraint. `firecrawl-cli` and `firecrawl-mcp` are NOT added to `package.json`. They are invoked via `npx firecrawl-cli@1.12.2` (pinned) from CJS scripts, or registered as an MCP server via `claude mcp add`. No `npm install` of these packages at repo root.
 
-| Tool | Purpose | Notes |
-|------|---------|-------|
-| `claude --remote --output-format json` | Capture cloud session ID at spawn time | Returns `{ session_id, result }` JSON; session ID used for `/tasks` polling and teleport |
-| `docker pull anthropics/claude-code:latest` | Official Claude Code devcontainer image | Node.js 20, ZSH, git, firewall rules pre-configured; use as base for dispatcher container runs |
-| `claude devcontainer` reference | `.devcontainer/Dockerfile` from `anthropics/claude-code` | Standard security model: firewall, `--dangerously-skip-permissions`, scoped credentials |
+### Development Tools — No Changes
+
+No new dev tooling required. Existing vitest, eslint, and knip configurations cover any new .cjs modules added for firecrawl integration.
 
 ---
 
 ## Installation
 
 ```bash
-# New dispatcher additions
-npm install dockerode simple-git @anthropic-ai/claude-agent-sdk
+# DO NOT add to package.json — zero-npm-deps-at-root constraint applies.
 
-# Type declarations for Docker
-npm install -D @types/dockerode
+# 1. Register firecrawl MCP server (HTTP transport — preferred, no npx spawn at runtime):
+claude mcp add firecrawl --url https://mcp.firecrawl.dev/$FIRECRAWL_API_KEY/v2/mcp
+
+# 2. Authenticate CLI for workflow-script invocations:
+firecrawl login --api-key fc-YOUR-API-KEY
+# Stores to ~/Library/Application Support/firecrawl-cli/credentials.json (macOS)
+# Linux: ~/.config/firecrawl-cli/credentials.json
+# Windows: %APPDATA%/firecrawl-cli/credentials.json
+
+# 3. Disable telemetry (PDE policy):
+export FIRECRAWL_NO_TELEMETRY=1
+
+# 4. Verify setup:
+firecrawl --status
+# Expected output: auth OK, concurrency 0/100, remaining credits
 ```
-
-> `node-ssh`, `@anthropic-ai/sdk`, and all existing dispatcher deps are already installed.
-> Do NOT install `isomorphic-git` — it adds pure-JS git overhead without benefit when system git is guaranteed present.
-> Do NOT install `nodegit` — requires native bindings, breaks on Node version changes.
 
 ---
 
-## Architecture of New Capabilities
+## Integration Architecture — Two-Lane Design
 
-### 1. Cloud Dispatch via `claude --remote`
+### Lane A: MCP Server (mcp-bridge.cjs registration)
 
-**Current state:** `remote-managed.cjs` returns `available: false` with documented rationale: "no NDJSON streaming, research preview."
-
-**What has changed (2026-03-30):** `claude --remote` is now production-available for Pro/Max/Team/Enterprise. It creates a **GitHub-connected cloud VM session**, not a programmatic NDJSON stream. The architecture is inherently async:
+Register `firecrawl` as the 10th APPROVED_SERVER in `bin/lib/mcp-bridge.cjs`. This gives Claude Code direct access to all 12 MCP tools during agentic workflow execution.
 
 ```
-claude --remote "Fix auth bug" --output-format json
-  → { session_id: "web-abc123", result: "Task started..." }
-  → Monitor via /tasks (CLI) or claude.ai/code (web)
-  → Session pushes branch when done; create PR from web UI
-  → Optional: claude --teleport <session-id> to pull back to local
+Transport:   HTTP
+URL:         https://mcp.firecrawl.dev/{FIRECRAWL_API_KEY}/v2/mcp
+Auth:        API key embedded in URL path (Firecrawl hosted MCP convention)
+Probe tool:  firecrawl_scrape (lightest single-page tool; no crawl job overhead)
+Probe args:  { url: 'https://example.com', formats: ['markdown'], onlyMainContent: true }
+Timeout:     15000ms (HTTP roundtrip + JS rendering buffer)
+Container:   none (HTTP transport; no Docker fallback needed)
 ```
 
-**Integration point:** Replace `detectManagedBackend()` stub in `remote-managed.cjs` with actual probe:
+MCP tool names (verified from official firecrawl-mcp 3.11.0 docs):
+- `mcp__firecrawl__firecrawl_scrape`
+- `mcp__firecrawl__firecrawl_search`
+- `mcp__firecrawl__firecrawl_crawl`
+- `mcp__firecrawl__firecrawl_check_crawl_status`
+- `mcp__firecrawl__firecrawl_map`
+- `mcp__firecrawl__firecrawl_extract`
+- `mcp__firecrawl__firecrawl_agent`
+- `mcp__firecrawl__firecrawl_agent_status`
+- `mcp__firecrawl__firecrawl_browser_create`
+- `mcp__firecrawl__firecrawl_browser_execute`
+- `mcp__firecrawl__firecrawl_browser_delete`
+- `mcp__firecrawl__firecrawl_browser_list`
+
+AUTH_INSTRUCTIONS block content:
+```
+'export FIRECRAWL_API_KEY=fc-YOUR-KEY\n' +
+'claude mcp add firecrawl --url https://mcp.firecrawl.dev/$FIRECRAWL_API_KEY/v2/mcp'
+```
+
+### Lane B: CLI Invocation (workflow scripts via new bin/lib/firecrawl-cli.cjs)
+
+For workflow scripts that need deterministic output written to `.planning/` (competitive analysis enrichment, source material ingestion, crawl-to-filesystem):
 
 ```javascript
-// Probe: verify claude CLI >= v2.1.51, authenticated with claude.ai OAuth (not API key)
-// Spawn: childProcess.execFileSync(['claude', '--remote', prompt, '--output-format', 'json'])
-// Track: session_id written to SessionRegistry with backend: 'managed', no local PID
-// Limitation: no NDJSON relay; relay.cjs cannot tail cloud sessions
-```
+// Pattern: spawnSync for short-lived scrape/search
+const result = spawnSync('npx', ['-y', 'firecrawl-cli@1.12.2', 'scrape', url,
+  '--only-main-content', '--json'], {
+  encoding: 'utf8', timeout: 30000,
+  env: { ...process.env, FIRECRAWL_NO_TELEMETRY: '1' }
+});
 
-**Key constraint:** `claude --remote` requires `claude.ai` OAuth authentication (not `ANTHROPIC_API_KEY`). The `CLAUDECODE=` env prefix used for local spawns is NOT needed for `--remote` (it runs in a separate cloud process).
-
-**Session tracking difference:** Local/SSH sessions use PID + NDJSON relay. Cloud sessions use `session_id` string only. Registry needs new status fields: `'cloud_running' | 'cloud_complete'`.
-
-### 2. Docker Container Dispatch
-
-Use `dockerode` to spawn isolated `claude -p` sessions inside containers. This is NOT `claude --remote` — it runs Claude Code locally in a Docker sandbox, not on Anthropic cloud.
-
-```javascript
-const Docker = require('dockerode');
-const docker = new Docker({ socketPath: '/var/run/docker.sock' });
-
-// Pattern: create container -> attach streams -> run claude -p -> collect output
-const container = await docker.createContainer({
-  Image: 'node:20-slim', // or anthropics/claude-code devcontainer image
-  Cmd: ['claude', '-p', prompt, '--output-format', 'stream-json', '--allowedTools', 'Read,Edit,Bash'],
-  Env: [
-    `ANTHROPIC_API_KEY=${process.env.ANTHROPIC_API_KEY}`,
-    'CLAUDECODE=',  // prevents nested session error
-  ],
-  HostConfig: {
-    Binds: [`${projectRoot}:/workspace:rw`],
-    AutoRemove: true,
-  },
-  WorkingDir: '/workspace',
+// Pattern: spawn (async) for crawl jobs — returns job ID, poll separately
+const crawlProc = spawn('npx', ['-y', 'firecrawl-cli@1.12.2', 'crawl', url,
+  '--wait', '--progress', '--json'], {
+  env: { ...process.env, FIRECRAWL_NO_TELEMETRY: '1' }
 });
 ```
 
-**Output capture:** Container stdout is NDJSON (`--output-format stream-json`) — compatible with existing relay infrastructure. `onLine` callback routes through existing `Aggregator` and `relay.cjs`.
+Version-pinning (`firecrawl-cli@1.12.2`) ensures reproducibility without lock file in node_modules.
 
-**Why `dockerode` over Docker CLI subprocess:** Structured API for container lifecycle (create/start/attach/wait/remove), proper stream multiplexing (stdout/stderr demux via `dockerode`'s `modem.demuxStream`), and programmatic cleanup on session failure.
+---
 
-### 3. Git-Based `.planning/` State Sync
+## Credit Tracking — Design
 
-Use `simple-git` to sync `.planning/` state across machines (local to remote worktree, remote VM to local after cloud session).
+| Concern | Approach |
+|---------|----------|
+| Per-operation cost visibility | `npx firecrawl-cli@1.12.2 credit-usage --json` emits structured JSON; parse in `bin/lib/firecrawl-credits.cjs` |
+| Agent job cost cap | Pass `--max-credits <n>` on every `firecrawl agent` invocation; surface via workflow arg |
+| Credit balance in dashboard | Add `firecrawl_credits_remaining` to telemetry event schema; display in existing monitoring pane |
+| Low-credit warning | Mirror Stitch quota pattern (warn at 80% consumed); store threshold in `.planning/config.json` under `firecrawl.creditWarningThreshold` |
+| Extraction surcharge awareness | AI extraction costs 5 credits/page vs 1 credit/page for plain scrape; always prefer `--formats markdown` unless structured extraction is explicitly needed |
 
-```javascript
-const simpleGit = require('simple-git');
-const git = simpleGit(projectRoot);
+---
 
-// Pre-dispatch: commit .planning/ snapshot to session branch
-await git.add('.planning/');
-await git.commit(`chore(pde): pre-dispatch snapshot [phase ${phase}]`);
-await git.push('origin', sessionBranch);
+## Rate Limiting — Awareness Layer
 
-// Post-cloud-session: fetch branch and extract .planning/ changes
-await git.fetch('origin', sessionBranch);
-const diff = await git.diff([`origin/${sessionBranch}`, '--', '.planning/']);
-```
+| Plan | /scrape RPM | /search RPM | /crawl RPM | /map RPM | /agent RPM |
+|------|------------|------------|-----------|---------|-----------|
+| Free | 10 | 5 | 1 | 10 | 10 |
+| Hobby | 100 | 50 | 15 | 100 | 100 |
+| Standard | 500 | 250 | 50 | 500 | 500 |
+| Growth | 5000 | 2500 | 250 | 5000 | 1000 |
 
-**Integration:** Plugs into existing `mergeSession()` in `merge.cjs`. The 3-way merge (v0.16) already handles `.planning/` conflicts. `simple-git` replaces raw `execFileSync('git', [...])` calls with a promise-based API that is easier to test (DI pattern already used throughout `coordinator.cjs`).
+PDE workflows must not issue parallel firecrawl calls without a concurrency guard. The existing coordinator.cjs concurrency queue pattern applies. Recommended default: max 3 parallel scrape calls, sequential crawl (/crawl RPM is the tightest limit on all plans).
 
-**Sync trigger events:**
-- Pre-dispatch: snapshot `.planning/STATE.md`, `phases/`, `dispatcher.pids`
-- Post-SSH/container exit: existing `mergeSession()` path unchanged
-- Post-cloud (`claude --remote`): poll for branch push, then `git fetch` + `mergeSession()`
+---
 
-### 4. Intelligent Routing Heuristics
+## API Key Storage — PDE Pattern
 
-Extend `routeSession()` in `remote-router.cjs`. Current decision tree has 5 rules; add rules 3a–3d before the existing managed-backend check:
+Firecrawl-cli stores credentials at `~/Library/Application Support/firecrawl-cli/credentials.json` (macOS, 0600 permissions). Fields: `{ "apiKey": "fc-...", "apiUrl": "..." }`.
 
-```
-Decision tree (extended):
-1. !isAutonomous                         → 'local'   (interactive always local)
-2. !remoteConfig.host && !docker         → 'local'   (no remote configured)
-3a. taskProfile.hasSecretFiles           → 'local'   (credentials visible to container/cloud)
-3b. taskProfile.estimatedTokens > 100k   → 'managed' (cloud for large context, avoids SSH timeout)
-3c. taskProfile.requiresGUI              → 'local'   (Playwright, screen capture need local)
-3d. docker.available && !requiresGit     → 'docker'  (isolation for untrusted repos)
-4. preferred_backend === 'managed'       → probe managed → 'managed' or fall through
-5. remoteConfig.host set                 → 'ssh'
-6. default                               → 'local'
-```
+PDE does NOT read or write this file directly. PDE reads `FIRECRAWL_API_KEY` from process environment (consistent with the MCP HTTP URL interpolation). Users run `firecrawl login --api-key` once during setup; the CLI picks up credentials automatically thereafter.
 
-**Routing signal sources (statically analyzable from PLAN.md):**
-- `taskProfile.hasSecretFiles`: grep PLAN.md for `~/.ssh`, `.env`, `AWS_`, `ANTHROPIC_API_KEY` references
-- `taskProfile.estimatedTokens`: count lines in task file times heuristic (same chars/4 pattern as token meter)
-- `taskProfile.requiresGUI`: check for Playwright MCP tool references, screenshot steps
-- `taskProfile.requiresGit`: check for `git worktree`, `git push`, merge steps (Docker can't git push without credentials)
+For the MCP lane, the API key is embedded in the HTTP URL — no separate env injection at MCP invocation time.
 
-**Implementation:** All signals are static regex/line-count — zero LLM, less than 100ms, same philosophy as `idle-suggestions.cjs`.
-
-### 5. Dashboard Remote Session Integration
-
-The existing dashboard (`dashboard/`) uses Clerk auth, Upstash Redis, SSE events, and approval gates. New cloud sessions need:
-
-**New session status types** in `SessionRegistry` and dashboard display:
-```typescript
-type SessionStatus =
-  | 'running'        // existing: local/SSH with PID
-  | 'failed'         // existing
-  | 'complete'       // existing
-  | 'orphaned'       // existing
-  | 'cloud_running'  // NEW: claude --remote, no local PID
-  | 'cloud_complete' // NEW: branch pushed, PR-ready
-  | 'docker_running' // NEW: container-isolated local
-```
-
-**Cloud session polling:** Since `claude --remote` sessions have no NDJSON relay, dashboard polls via:
-```
-GET /api/sessions -> includes cloud sessions with session_id
-cloud sessions: status checked via claude CLI `claude tasks --output-format json` or Anthropic Analytics API
-```
-
-**Teleport action:** Dashboard adds a "Pull local" action for `cloud_complete` sessions:
-```bash
-claude --teleport <session-id>
-# Verifies: same repo, clean git state, branch available on remote
-# Loads conversation history into local terminal session
-```
-
-**No new dashboard framework dependencies** — all additions use existing Next.js API routes, Upstash Redis for cloud session state, and SSE for real-time updates. The relay daemon's circuit breaker and HTTP batching patterns already handle intermittent connectivity.
+DO NOT store `fc-` keys in `.planning/config.json` — version-controlled directory; violates credential hygiene.
 
 ---
 
 ## Alternatives Considered
 
-| Recommended | Alternative | Why Not |
-|-------------|-------------|---------|
-| `dockerode` | `docker` CLI subprocess via `execFileSync` | No structured stream multiplexing; harder to handle attach/detach lifecycle; error handling is string parsing |
-| `dockerode` | `@docker/sdk` (official Docker Node SDK) | Marked experimental; 14 stars on GitHub vs dockerode's maturity; APIs may change |
-| `simple-git` | Raw `execFileSync(['git', ...])` calls | Already used throughout dispatcher, but promise API + DI makes testing cleaner; same system git requirement |
-| `simple-git` | `isomorphic-git` | Pure-JS overhead with no benefit when system git is guaranteed; no SSH support without polyfills |
-| `simple-git` | `nodegit` | Native C++ bindings break across Node versions; incompatible with PDE's zero-native-deps philosophy |
-| Static routing heuristics | ML-based task classifier | Overkill for 4 routing targets; adds inference latency; static regex achieves sufficient accuracy for the relevant signals |
-| `claude --remote` (cloud VM) | Self-hosted runner (EC2/GCP) | `claude --remote` eliminates infra management; Anthropic-managed VM has pre-configured devcontainer image |
-| Polling for cloud session status | WebSocket subscription | `claude --remote` has no programmatic subscription API (research preview limitation); polling via `claude tasks --json` is the documented pattern |
+| Recommended | Alternative | When to Use Alternative |
+|-------------|-------------|-------------------------|
+| `firecrawl-mcp` HTTP transport | `firecrawl-mcp` stdio via `npx -y firecrawl-mcp` | Only if the hosted HTTP endpoint is unavailable. Stdio adds 2–5s cold-start latency per session and requires npx spawn from the MCP runtime. |
+| npx-pinned `firecrawl-cli@1.12.2` in CJS scripts | Global install `npm install -g firecrawl-cli` | Only in CI environments where network npx is blocked. Breaks zero-npm-root-deps policy if added to package.json. |
+| `firecrawl-mcp` MCP tools for agent-invoked ops | Direct HTTP calls to `api.firecrawl.dev` from PDE scripts | Only if MCP server is unavailable. Bypasses mcp-bridge policy layer and duplicates auth management. |
+| Two-lane design (MCP + CLI) | MCP only | Acceptable for simple scrape/search. CLI lane is required for: `--schema-file` structured extraction, crawl job polling with progress, `--max-credits` enforcement, writing output directly to `.planning/` paths. |
 
 ---
 
-## What NOT to Add
+## What NOT to Use
 
 | Avoid | Why | Use Instead |
 |-------|-----|-------------|
-| `isomorphic-git` | Pure-JS implementation; no SSH; slower; over-engineered for CLI dispatch use case | `simple-git` wrapping system git |
-| `nodegit` | Native bindings; install failures common; project convention is zero native deps | `simple-git` |
-| `ws` (WebSocket library) | Dashboard already uses SSE (EventSource); adding WS adds protocol complexity with no gain | Existing `relay.cjs` SSE pattern |
-| `bullmq` / Redis queues | `ConcurrencyQueue` (`queue.cjs`) already handles dispatch queuing | `packages/dispatcher/lib/queue.cjs` |
-| `pm2` / process supervisor | Relay daemon already has circuit breaker; SSH has managed backend fallback | Existing `relay.cjs` CircuitBreaker |
-| Docker Compose | Single-container dispatch; Compose adds YAML config overhead without benefit for per-session isolation | `dockerode` createContainer() directly |
-| Kubernetes | Overkill for single-machine development tool; session lifetime is minutes not hours | `dockerode` for isolation |
-| `@anthropic-ai/claude-agent-sdk` for spawning | SDK is for multi-turn agent conversations, not one-shot dispatch | `claude -p` CLI subprocess (existing pattern in `spawn.cjs`) |
+| `@mendable/firecrawl-js` as root npm dep | Adds a root npm dependency for no capability beyond what firecrawl-mcp already exposes via MCP tools | firecrawl-mcp MCP tools (Lane A) or firecrawl-cli via npx (Lane B) |
+| `firecrawl-mcp` stdio transport as default | Cold-start npx spawn per Claude Code session; API key management requires `-e` flag vs cleaner URL embed | HTTP transport: `claude mcp add firecrawl --url https://mcp.firecrawl.dev/{key}/v2/mcp` |
+| Unpinned `npx firecrawl-cli@latest` | Version drift; CLI flag changes will silently break workflow scripts | Pin to `firecrawl-cli@1.12.2`, update deliberately with a changelog review |
+| `firecrawl agent` without `--max-credits` | Agent jobs consume credits autonomously; no cap = unbounded spend on a single invocation | Always pass `--max-credits` derived from config or user-provided limit |
+| Storing `fc-` key in `.planning/config.json` | Plaintext in version-controlled directory | Process env (`FIRECRAWL_API_KEY`) + `~/Library/Application Support/firecrawl-cli/credentials.json` |
+| Adding `firecrawl-cli` or `firecrawl-mcp` to `package.json` | Violates PDE zero-npm-deps-at-root constraint; locks entire project to firecrawl version | npx pinned invocation + `claude mcp add` registration |
 
 ---
 
 ## Stack Patterns by Variant
 
-**If deploying cloud dispatch (`claude --remote`):**
-- Use `childProcess.spawn(['claude', '--remote', prompt, '--output-format', 'json'])` from `remote-managed.cjs`
-- Capture `session_id` from JSON output, write to registry with `backend: 'managed'`
-- Poll `claude tasks --output-format json` every 30s for status updates
-- No relay daemon involvement (no NDJSON to tail)
-- Requires `claude.ai` OAuth auth — check `claude auth status` before routing
+**If user is on Free plan (500 credits/month):**
+- Restrict crawl depth: `--max-depth 2 --limit 20`
+- Disable firecrawl_extract and firecrawl_agent (5 credits/page cost is unviable for free tier)
+- Surface credit balance in dashboard; block operations when < 50 credits remain
 
-**If deploying Docker container dispatch:**
-- Use `dockerode` createContainer with project bind mount + `CLAUDECODE=` env
-- Attach to container stdout BEFORE starting (avoid buffering race)
-- Route NDJSON lines through existing `aggregator.cjs` `onLine` callback
-- Register container ID (not PID) in SessionRegistry with `backend: 'docker'`
+**If user is on Hobby/Standard plan:**
+- Enable full crawl with `--limit 100 --max-depth 3`
+- Enable agent with `--max-credits 50` default (configurable per workflow)
+- Enable browser sandbox for interactive scraping scenarios
 
-**If only adding git state sync:**
-- `simple-git` replaces raw `execFileSync` calls in `merge.cjs` and `remote-ssh.cjs`
-- `.planning/` files auto-committed pre-dispatch using existing session branch pattern
-- Post-cloud-session fetch + `mergeSession()` unchanged
-
-**If Team/Enterprise plan (Remote Control server mode):**
-- `claude remote-control --spawn worktree --capacity 32` enables multi-session server mode
-- Each web session gets own git worktree (matches PDE's existing worktree isolation model)
-- No new dashboard API needed — Remote Control UI is claude.ai/code
+**If self-hosted Firecrawl instance:**
+- Set `FIRECRAWL_API_URL=http://localhost:3002` (skips API key requirement in CLI)
+- MCP URL changes to `http://localhost:3002/v2/mcp`
+- Rate limits are user-managed; remove credit tracking from dashboard
 
 ---
 
@@ -271,47 +202,24 @@ claude --teleport <session-id>
 
 | Package | Compatible With | Notes |
 |---------|-----------------|-------|
-| `dockerode@4.0.10` | Node.js 18+ | Requires Docker Engine >= 25 for full API compat; `socketPath` default works on macOS/Linux |
-| `simple-git@3.33.0` | Node.js 18+, git 2.x+ | Wraps system git — git must be on PATH (guaranteed in PDE environment) |
-| `@anthropic-ai/claude-agent-sdk@0.2.87` | Node.js 18+ | TypeScript-first; use from `.mjs` or with `esm` interop in `.cjs` files |
-| `claude --remote` | CLI v2.1.51+ | Check `claude --version`; requires claude.ai OAuth (not API key) |
-| `claude remote-control` | CLI v2.1.51+ | Team/Enterprise requires admin toggle at `claude.ai/admin-settings/claude-code` |
-
----
-
-## Critical Constraint: `claude --remote` Authentication
-
-`claude --remote` requires `claude.ai` OAuth authentication. It does NOT work with `ANTHROPIC_API_KEY`. This means:
-
-1. The machine running `remote-managed.cjs` must have `claude auth login` completed with a claude.ai subscription
-2. `detectManagedBackend()` must probe auth status: `claude auth status --output-format json`
-3. If `ANTHROPIC_API_KEY` is set in environment, `claude --remote` will fail with "Remote Control requires a claude.ai subscription"
-4. The `CLAUDECODE=` environment variable trick (used for SSH dispatch) must NOT be set when invoking `claude --remote`
-5. Cloud sessions work with GitHub repos only — GitLab and other hosts are not supported
-
-**Probe implementation in `detectManagedBackend()`:**
-```javascript
-// 1. Check claude version >= 2.1.51
-// 2. Verify auth: claude auth status --output-format json -> { authenticated: true, type: 'oauth' }
-// 3. Verify not API key mode: check ANTHROPIC_API_KEY not set
-// 4. Return { available: true } only when all pass
-```
+| `firecrawl-mcp@3.11.0` | `@mendable/firecrawl-js@4.17.0` (internal) | firecrawl-mcp bundles firecrawl-js; do not install firecrawl-js separately |
+| `firecrawl-cli@1.12.2` | Node.js >= 18 | PDE already requires Node 18+ (vitest 4.x); no conflict |
+| `firecrawl-cli@1.12.2` | `commander@^14.0.2`, `@inquirer/prompts@^8.2.1` | Internal to CLI, not exposed to PDE root |
+| firecrawl HTTP MCP transport | Claude Code MCP runtime | Claude Code supports HTTP MCP natively; no adapter needed |
 
 ---
 
 ## Sources
 
-- [Claude Code on the web docs](https://code.claude.com/docs/en/claude-code-on-the-web) — `claude --remote` architecture, GitHub-only repos, cloud VM lifecycle, setup scripts, teleport — HIGH confidence (official docs, fetched 2026-03-30)
-- [Run Claude Code programmatically](https://code.claude.com/docs/en/headless) — `--output-format`, `--bare`, session ID capture, `stream-json` format — HIGH confidence (official docs, fetched 2026-03-30)
-- [Remote Control docs](https://code.claude.com/docs/en/remote-control) — `claude remote-control`, `--spawn worktree`, outbound-only architecture, v2.1.51 requirement — HIGH confidence (official docs, fetched 2026-03-30)
-- [Agent SDK Sessions](https://platform.claude.com/docs/en/agent-sdk/sessions) — `listSessions()`, `getSessionInfo()`, `resume`, `fork`, session file locations — HIGH confidence (official docs, fetched 2026-03-30)
-- [devcontainer reference](https://code.claude.com/docs/en/devcontainer) — Docker isolation model, firewall rules, `--dangerously-skip-permissions` pattern — HIGH confidence (official docs, fetched 2026-03-30)
-- [dockerode npm](https://www.npmjs.com/package/dockerode) — version 4.0.10, 1,271 dependents — MEDIUM confidence (npm registry verified via `npm show dockerode version`)
-- [simple-git npm](https://www.npmjs.com/package/simple-git) — version 3.33.0, 7,483 dependents — MEDIUM confidence (npm registry verified via `npm show simple-git version`)
-- `packages/dispatcher/lib/remote-managed.cjs` — v0.18 stub with documented constraints (RMT-06) — source code read directly
-- `packages/dispatcher/lib/remote-router.cjs` — existing routing decision tree (5 rules) — source code read directly
+- [Firecrawl CLI documentation](https://docs.firecrawl.dev/sdks/cli) — Full command reference, all flags, auth, telemetry disable — HIGH confidence (official docs, verified 2026-03-30)
+- [firecrawl/cli GitHub — package.json](https://github.com/firecrawl/cli/blob/main/package.json) — Version 1.12.2 confirmed, dependencies listed — HIGH confidence
+- [firecrawl/cli GitHub — src/utils/credentials.ts](https://github.com/firecrawl/cli) — Config path `~/Library/Application Support/firecrawl-cli/credentials.json`, 0600 permissions, JSON format — HIGH confidence
+- [Firecrawl MCP Server documentation](https://docs.firecrawl.dev/mcp-server) — 12 tool names, HTTP endpoint URL pattern, claude mcp add command — HIGH confidence
+- [Firecrawl Rate Limits](https://docs.firecrawl.dev/rate-limits) — RPM table by plan and endpoint — HIGH confidence
+- `npm show firecrawl-mcp version` — 3.11.0 verified locally — HIGH confidence
+- `npm show firecrawl-cli version` — 1.12.2 verified locally — HIGH confidence
+- [Firecrawl Pricing](https://www.firecrawl.dev/pricing) — Credit costs per operation (1 scrape, 5 AI extraction) — MEDIUM confidence (pricing subject to change without docs update)
 
 ---
-
-*Stack research for: PDE cloud dispatch, container isolation, git state sync, intelligent routing*
+*Stack research for: PDE Firecrawl CLI/MCP integration*
 *Researched: 2026-03-30*
