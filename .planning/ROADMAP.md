@@ -421,7 +421,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 - [ ] 189-01-PLAN.md — Fix stale paths + knip/jscpd triage reports
-- [ ] 189-02-PLAN.md — ESLint 10 config + clean pass
+- [x] 189-02-PLAN.md — ESLint 10 config + clean pass
 
 
 ## Progress
@@ -461,4 +461,4 @@ Plans:
 | 186. Test Infrastructure | v0.23 | 0/? | Not started | - |
 | 187. IR Field Fix + Mock Reconciliation | v0.23 | 1/1 | Complete    | 2026-03-30 |
 | 188. Verification Coverage | v0.23 | 3/3 | Complete    | 2026-03-30 |
-| 189. Technical Debt Cleanup | v0.23 | 0/? | Not started | - |
+| 189. Technical Debt Cleanup | v0.23 | 1/2 | In Progress|  |
