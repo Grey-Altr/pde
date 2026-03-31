@@ -10,6 +10,9 @@ allowed-tools:
   - Glob
   - Grep
   - Task
+  - mcp__firecrawl__firecrawl_scrape
+  - mcp__firecrawl__firecrawl_search
+  - mcp__firecrawl__firecrawl_extract
 ---
 <objective>
 Execute the /pde:competitive command.
