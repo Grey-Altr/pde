@@ -32,8 +32,8 @@ Requirements for v0.25 milestone. Each maps to roadmap phases.
 
 - [x] **AGT-01**: User can delegate natural language web research to firecrawl_agent with mandatory maxCredits cap and user consent gate
 - [x] **AGT-02**: User can check agent job status and retrieve structured JSON results via firecrawl_agent_status
-- [ ] **AGT-03**: User can launch cloud browser sessions via firecrawl_interact for auth-gated content extraction with session TTL management
-- [ ] **AGT-04**: User can execute Playwright code in browser sandbox sessions and extract content from authenticated pages
+- [x] **AGT-03**: User can launch cloud browser sessions via firecrawl_interact for auth-gated content extraction with session TTL management
+- [x] **AGT-04**: User can execute Playwright code in browser sandbox sessions and extract content from authenticated pages
 
 ### Pipeline Integration
 
@@ -96,8 +96,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PIP-04 | Phase 201 | Complete |
 | AGT-01 | Phase 202 | Complete |
 | AGT-02 | Phase 202 | Complete |
-| AGT-03 | Phase 202 | Pending |
-| AGT-04 | Phase 202 | Pending |
+| AGT-03 | Phase 202 | Complete |
+| AGT-04 | Phase 202 | Complete |
 | CHG-01 | Phase 203 | Pending |
 | CHG-02 | Phase 203 | Pending |
 
