@@ -256,6 +256,42 @@ function readSnapshot(slug, projectRoot) {
   return safeReadFile(filePath);
 }
 
+// ─── Diff I/O (snapshots/{slug}-diff.md) ─────────────────────────────────────
+
+/**
+ * Write a change diff file to snapshots/{slug}-diff.md.
+ * The file contains a header with URL, detection timestamp, lines changed,
+ * previous snapshot date, and a fenced diff block with the raw unified diff text.
+ *
+ * @param {string} url — original URL that was watched
+ * @param {string} diffText — raw unified diff text (from changeTracking.diff.text)
+ * @param {number} linesChanged — number of added/removed lines in the diff
+ * @param {string} previousScrapeAt — ISO timestamp of the previous snapshot
+ * @param {string} [projectRoot]
+ * @returns {{ slug: string, path: string, linesChanged: number }}
+ */
+function writeDiff(url, diffText, linesChanged, previousScrapeAt, projectRoot) {
+  const slug = slugifyUrl(url);
+  ensureCacheDir(projectRoot);
+
+  const filePath = path.join(resolveCacheDir(projectRoot), 'snapshots', slug + '-diff.md');
+
+  const content = [
+    `# Change Diff: ${url}`,
+    `**Detected:** ${new Date().toISOString()}`,
+    `**Lines changed:** ${linesChanged}`,
+    `**Previous snapshot:** ${previousScrapeAt}`,
+    '',
+    '```diff',
+    diffText,
+    '```',
+  ].join('\n');
+
+  fs.writeFileSync(filePath, content, 'utf-8');
+
+  return { slug, path: filePath, linesChanged };
+}
+
 // ─── Exports ─────────────────────────────────────────────────────────────────
 
 module.exports = {
@@ -270,4 +306,5 @@ module.exports = {
   writeCrawl,
   writeSnapshot,
   readSnapshot,
+  writeDiff,
 };
