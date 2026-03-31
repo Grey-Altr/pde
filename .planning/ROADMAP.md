@@ -658,7 +658,7 @@ Plans:
   4. User can execute Playwright code inside the browser sandbox session and extract content from an authentication-gated page that WebFetch cannot access
 **Plans**: 2 plans
 Plans:
-- [ ] 202-01-PLAN.md -- agent + agent-status subcommands with consent gate and credit cap (AGT-01, AGT-02)
+- [x] 202-01-PLAN.md -- agent + agent-status subcommands with consent gate and credit cap (AGT-01, AGT-02)
 - [ ] 202-02-PLAN.md -- interact subcommand with browser sandbox and Playwright execution (AGT-03, AGT-04)
 
 **UI hint**: yes
@@ -726,5 +726,5 @@ Plans:
 | 199. Data Layer — Cache Module + Source Pipeline | v0.25 | 2/2 | Complete   | 2026-03-30 |
 | 200. Core Scraping Tools + Competitive/Recommend Integration | v0.25 | 2/2 | Complete    | 2026-03-31 |
 | 201. Brief + Phase Researcher + Design Reference Integration | v0.25 | 1/2 | Complete    | 2026-03-31 |
-| 202. /pde:firecrawl Standalone Skill + Agent + Browser Sandbox | v0.25 | 0/2 | Not started | - |
+| 202. /pde:firecrawl Standalone Skill + Agent + Browser Sandbox | v0.25 | 1/2 | In Progress|  |
 | 203. Change Tracking + Event Bus | v0.25 | 0/2 | Not started | - |
