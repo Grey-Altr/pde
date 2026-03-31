@@ -74,7 +74,7 @@ Each task was committed atomically:
 1. **Task 1: writeDiff() helper + unit tests (TDD red-green)** - `26842c1` (feat)
 2. **Task 2: watch subcommand in workflows/firecrawl.md** - `1c88232` (feat)
 
-**Plan metadata:** TBD (docs commit)
+**Plan metadata:** `b0cf0a7` (docs: complete watch subcommand + writeDiff plan)
 
 ## Files Created/Modified
 
@@ -107,6 +107,17 @@ None — no external service configuration required.
 - `writeDiff()` is exported and unit-tested; ready for use in Plan 02 event emission hooks
 - watch subcommand documented and follows all existing patterns; ready for use
 - CHG-01 requirement complete; CHG-02 (event emission) addressed in Plan 02
+
+---
+## Self-Check: PASSED
+
+- FOUND: bin/lib/firecrawl-cache.cjs (writeDiff added + exported)
+- FOUND: tests/phase-203/test-watch-diff.cjs (12 tests all passing)
+- FOUND: workflows/firecrawl.md (watch subcommand added)
+- FOUND: .planning/phases/203-change-tracking-event-bus/203-01-SUMMARY.md
+- Commit 26842c1: FOUND (feat: writeDiff helper + tests)
+- Commit 1c88232: FOUND (feat: watch subcommand)
+- Commit b0cf0a7: FOUND (docs: plan metadata)
 
 ---
 *Phase: 203-change-tracking-event-bus*
