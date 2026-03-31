@@ -632,7 +632,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 - [ ] 200-01-PLAN.md -- /pde:firecrawl command + workflow (scrape, search, map, extract, crawl with credit guards)
-- [ ] 200-02-PLAN.md -- competitive.md + recommend.md Firecrawl integration (probe blocks + enhancement paths)
+- [x] 200-02-PLAN.md -- competitive.md + recommend.md Firecrawl integration (probe blocks + enhancement paths)
 
 ### Phase 201: Brief + Phase Researcher + Design Reference Integration
 **Goal**: Firecrawl is wired into the three source-material-consuming workflows — brief, pde-phase-researcher, and design reference — so that any URL passed to these workflows produces cache-backed semantic context rather than an inline content dump
@@ -723,7 +723,7 @@ Plans:
 | 197. Cross-Host Session Resume | v0.24 | 1/2 | Complete | 2026-03-30 |
 | 198. Foundation — MCP Registration + Credit Guards | v0.25 | 3/3 | Complete | 2026-03-30 |
 | 199. Data Layer — Cache Module + Source Pipeline | v0.25 | 2/2 | Complete   | 2026-03-30 |
-| 200. Core Scraping Tools + Competitive/Recommend Integration | v0.25 | 0/2 | Not started | - |
+| 200. Core Scraping Tools + Competitive/Recommend Integration | v0.25 | 1/2 | In Progress|  |
 | 201. Brief + Phase Researcher + Design Reference Integration | v0.25 | 0/2 | Not started | - |
 | 202. /pde:firecrawl Standalone Skill + Agent + Browser Sandbox | v0.25 | 0/2 | Not started | - |
 | 203. Change Tracking + Event Bus | v0.25 | 0/2 | Not started | - |

@@ -37,7 +37,7 @@ Requirements for v0.25 milestone. Each maps to roadmap phases.
 
 ### Pipeline Integration
 
-- [ ] **PIP-01**: Competitive analysis workflow uses Firecrawl to crawl competitor sites and extract pricing, features, and positioning
+- [x] **PIP-01**: Competitive analysis workflow uses Firecrawl to crawl competitor sites and extract pricing, features, and positioning
 - [ ] **PIP-02**: Research agents (project-researcher, phase-researcher) use Firecrawl scrape/search with escalation ladder (WebSearch free → Firecrawl when JS rendering or structured extraction needed)
 - [ ] **PIP-03**: Design reference URLs scraped via Firecrawl feed into wireframe, mockup, and system skill context
 - [ ] **PIP-04**: Brief workflow accepts URLs and scrapes them as reference material via Firecrawl, stored in source pipeline
@@ -90,7 +90,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SCR-04 | Phase 200 | Pending |
 | SCR-05 | Phase 200 | Pending |
 | CRL-01 | Phase 200 | Pending |
-| PIP-01 | Phase 200 | Pending |
+| PIP-01 | Phase 200 | Complete |
 | PIP-02 | Phase 201 | Pending |
 | PIP-03 | Phase 201 | Pending |
 | PIP-04 | Phase 201 | Pending |
