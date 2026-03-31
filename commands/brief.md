@@ -1,7 +1,7 @@
 ---
 name: pde:brief
 description: Generate a structured product design brief
-argument-hint: "[--from-github <issue-url-or-number>] [--quick] [--dry-run] [--verbose] [--no-mcp] [--force]"
+argument-hint: "[--from-github <issue-url-or-number>] [--source-url <url>] [--quick] [--dry-run] [--verbose] [--no-mcp] [--no-firecrawl] [--force]"
 allowed-tools:
   - Read
   - Write
@@ -11,6 +11,7 @@ allowed-tools:
   - Grep
   - Task
   - mcp__github__*
+  - mcp__firecrawl__firecrawl_scrape
 ---
 <objective>
 Execute the /pde:brief command.

@@ -23,13 +23,15 @@ Generate a structured product design brief from PROJECT.md context. Produces BRF
 | `--no-sequential-thinking` | Boolean | Skip Sequential Thinking MCP specifically while allowing other MCPs. |
 | `--force` | Boolean | Skill-specific flag. Skip the confirmation prompt when a brief already exists and auto-increment to the next version. |
 | `--reference-url` | String | URL to capture as reference screenshot. Requires Playwright MCP. Optional — omit for no reference capture. |
+| `--source-url` | URL | URL to scrape as source material for brief synthesis. Content scraped via Firecrawl (or WebFetch fallback) and injected as ## Source Material section. |
+| `--no-firecrawl` | Boolean | Skip Firecrawl MCP specifically while allowing other MCPs. |
 </flags>
 
 <process>
 
 ## /pde:brief — Design Brief Generation Pipeline
 
-Check for flags in $ARGUMENTS before beginning: `--dry-run`, `--quick`, `--verbose`, `--no-mcp`, `--no-sequential-thinking`, `--force`, `--reference-url`.
+Check for flags in $ARGUMENTS before beginning: `--dry-run`, `--quick`, `--verbose`, `--no-mcp`, `--no-sequential-thinking`, `--force`, `--reference-url`, `--source-url`, `--no-firecrawl`.
 
 Parse `--reference-url` flag value:
 ```
@@ -37,6 +39,14 @@ IF --reference-url in $ARGUMENTS:
   SET REFERENCE_URL = value following --reference-url
 ELSE:
   SET REFERENCE_URL = empty
+```
+
+Parse `--source-url` flag value:
+```
+IF --source-url in $ARGUMENTS:
+  SET SOURCE_URL = value following --source-url
+ELSE:
+  SET SOURCE_URL = empty
 ```
 
 ---
@@ -175,7 +185,32 @@ Attempt to call `mcp__sequential-thinking__think` with test prompt `"Analyze the
   - If retry succeeds: `SEQUENTIAL_THINKING_AVAILABLE = true`
   - If retry fails: `SEQUENTIAL_THINKING_AVAILABLE = false`. Log: `  -> Sequential Thinking MCP: unavailable (degraded mode)`
 
-Display: `Step 3/7: MCP probes complete. Sequential Thinking: {available | unavailable}.`
+**Probe Firecrawl MCP:**
+
+```
+IF --no-firecrawl NOT in $ARGUMENTS AND ALL_MCP_DISABLED = false:
+  Run probeFirecrawl() via node --input-type=module pattern:
+  ```bash
+  node --input-type=module <<'PROBE_EOF'
+  import { createRequire } from 'module';
+  const req = createRequire(import.meta.url);
+  const { probeFirecrawl } = req(`${process.env.CLAUDE_PLUGIN_ROOT}/bin/lib/mcp-bridge.cjs`);
+  const result = probeFirecrawl();
+  process.stdout.write(JSON.stringify(result));
+  PROBE_EOF
+  ```
+  If result.available === true: SET FIRECRAWL_AVAILABLE = true
+    Log: {timestamp} | BRF | firecrawl | probe | success | {duration_ms}
+    IF result.warning: emit credit warning to user
+  If result.available === false: SET FIRECRAWL_AVAILABLE = false
+    Log: {timestamp} | BRF | firecrawl | probe | failure | reason={result.reason} | 0
+    Tag: [Firecrawl unavailable ({reason}) -- using WebFetch fallback]
+ELSE:
+  SET FIRECRAWL_AVAILABLE = false
+  Log: {timestamp} | BRF | firecrawl | probe | skipped | 0
+```
+
+Display: `Step 3/7: MCP probes complete. Sequential Thinking: {available | unavailable}. Firecrawl: {available | unavailable}.`
 
 ---
 
@@ -231,6 +266,61 @@ IF REFERENCE_URL is not empty AND PLAYWRIGHT_AVAILABLE is true:
   On failure (any Playwright error):
   Log: "  -> Reference capture failed — continuing without reference screenshot"
   Continue to Step 4 (non-fatal).
+
+---
+
+### Step 3c: Source URL Scrape
+
+IF SOURCE_URL is empty:
+  Skip silently — no source URL provided.
+
+IF SOURCE_URL is not empty AND FIRECRAWL_AVAILABLE is false:
+  IF WebFetch is available:
+    Fetch SOURCE_URL via WebFetch tool.
+    Write content to /tmp/pde-source-content.md using Bash.
+    Write to cache via writeSource():
+    ```bash
+    node -e "
+    const c = require('./bin/lib/firecrawl-cache.cjs');
+    const content = require('fs').readFileSync('/tmp/pde-source-content.md', 'utf-8');
+    const r = c.writeSource('SOURCE_URL', content, { type: 'scrape', added_by: 'brief-source-url' }, {});
+    console.log(JSON.stringify(r));
+    "
+    ```
+    SET SOURCE_MATERIAL_CONTENT = content
+    Log: "  -> Source URL fetched via WebFetch fallback: {SOURCE_URL}"
+  ELSE:
+    SET SOURCE_MATERIAL_CONTENT = null
+    Log: "  -> Source URL skipped — Firecrawl and WebFetch both unavailable"
+
+IF SOURCE_URL is not empty AND FIRECRAWL_AVAILABLE is true:
+  Check cache first for SOURCE_URL slug:
+  ```bash
+  node -e "
+  const c = require('./bin/lib/firecrawl-cache.cjs');
+  const slug = c.slugifyUrl('SOURCE_URL');
+  const cached = c.readSource(slug);
+  process.stdout.write(cached ? 'CACHED' : 'MISS');
+  "
+  ```
+  IF CACHED:
+    Read from cache via readSource(slug).
+    SET SOURCE_MATERIAL_CONTENT = cached_content
+    Log: "  -> Source URL cache hit: {slug}"
+  ELSE:
+    Call mcp__firecrawl__firecrawl_scrape with { url: SOURCE_URL, onlyMainContent: true }.
+    Write scraped content to /tmp/pde-source-content.md.
+    Write to cache via writeSource():
+    ```bash
+    node -e "
+    const c = require('./bin/lib/firecrawl-cache.cjs');
+    const content = require('fs').readFileSync('/tmp/pde-source-content.md', 'utf-8');
+    const r = c.writeSource('SOURCE_URL', content, { type: 'scrape', added_by: 'brief-source-url' }, {});
+    console.log(JSON.stringify(r));
+    "
+    ```
+    SET SOURCE_MATERIAL_CONTENT = content
+    Log: "  -> Source URL scraped via Firecrawl: {SOURCE_URL} ({slug})"
 
 ---
 
@@ -636,6 +726,25 @@ IF REFERENCE_SCREENSHOT_PATH is not empty AND the reference screenshot was captu
 ```
 
 This section is only written when a reference was successfully captured. Downstream skills (wireframe, mockup, critique) can read this section via the standard brief artifact loading pattern.
+
+**Source Material (only when SOURCE_MATERIAL_CONTENT is not null):**
+
+IF SOURCE_MATERIAL_CONTENT is not null:
+  Insert the following section into the BRF artifact BEFORE the footer:
+
+  ```markdown
+  ## Source Material
+
+  > Scraped via Firecrawl and stored in firecrawl-cache. Content summarized below.
+
+  **Source URL:** {SOURCE_URL}
+  **Cached at:** {slug}.md
+  **Method:** {Firecrawl | WebFetch fallback}
+
+  {First 2000 characters of SOURCE_MATERIAL_CONTENT, with truncation notice if longer}
+  ```
+
+CRITICAL: The ## Source Material section must appear BEFORE the `---` footer line so it is a proper artifact section. It must be ABSENT (not an empty placeholder) when SOURCE_MATERIAL_CONTENT is null.
 
 **Footer:**
 ```markdown
