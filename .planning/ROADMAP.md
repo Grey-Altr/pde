@@ -673,8 +673,8 @@ Plans:
   3. The dashboard Pane 5 log stream displays a change summary when a monitored page diff is non-empty — the entry includes the URL, number of lines changed, and timestamp
 **Plans**: 2 plans
 Plans:
-- [ ] 199-01-PLAN.md -- firecrawl-cache.cjs TDD (cache module with slug, write/read, manifest, gitignore)
-- [ ] 199-02-PLAN.md -- /pde:source command + source ingestion workflow
+- [ ] 203-01-PLAN.md -- watch subcommand + writeDiff helper + snapshot diff logic (CHG-01)
+- [ ] 203-02-PLAN.md -- NDJSON event emission in all subcommands + pane-log-stream + dashboard filter (CHG-02)
 
 ## Progress
 
