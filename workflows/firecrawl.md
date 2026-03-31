@@ -87,7 +87,36 @@ console.log(JSON.stringify(r));
 "
 ```
 
-**Step 6: Display result**
+**Step 6: Emit event**
+
+```bash
+node -e "
+const { safeAppendEvent } = require('./bin/lib/event-bus.cjs');
+const fs = require('fs');
+let sessionId = 'unknown';
+try {
+  const cfg = JSON.parse(fs.readFileSync('.planning/config.json', 'utf-8'));
+  if (cfg.monitoring && cfg.monitoring.session_id) sessionId = cfg.monitoring.session_id;
+} catch {}
+const markdown = fs.readFileSync('/tmp/pde-firecrawl-scrape.md', 'utf-8').trim();
+const wordCount = markdown.split(/\s+/).filter(Boolean).length;
+safeAppendEvent(sessionId, {
+  schema_version: '1.0',
+  ts: new Date().toISOString(),
+  event_type: 'firecrawl_operation',
+  session_id: sessionId,
+  url: 'THE_URL',
+  slug: 'THE_SLUG',
+  word_count: wordCount,
+  operation: 'scrape',
+  extensions: {}
+});
+"
+```
+
+Replace `THE_URL` with the actual URL argument and `THE_SLUG` with the slug returned from Step 5.
+
+**Step 7: Display result**
 
 ```
 Scraped {url}
@@ -161,7 +190,40 @@ console.log(JSON.stringify(r));
 
 Run for each result with content. Track credits for each scraped result: `incrementFirecrawlUsage(1)` per page scraped.
 
-**Step 6: Display results**
+**Step 6: Emit event**
+
+```bash
+node -e "
+const { safeAppendEvent } = require('./bin/lib/event-bus.cjs');
+const fs = require('fs');
+let sessionId = 'unknown';
+try {
+  const cfg = JSON.parse(fs.readFileSync('.planning/config.json', 'utf-8'));
+  if (cfg.monitoring && cfg.monitoring.session_id) sessionId = cfg.monitoring.session_id;
+} catch {}
+// word_count = sum of description word counts across all search results
+const results = JSON.parse(fs.readFileSync('/tmp/pde-firecrawl-search.json', 'utf-8'));
+const wordCount = (results || []).reduce((sum, r) => {
+  const desc = r.description || r.snippet || '';
+  return sum + desc.split(/\s+/).filter(Boolean).length;
+}, 0);
+safeAppendEvent(sessionId, {
+  schema_version: '1.0',
+  ts: new Date().toISOString(),
+  event_type: 'firecrawl_operation',
+  session_id: sessionId,
+  url: 'QUERY_AS_URL',
+  slug: 'search-QUERY_SLUG',
+  word_count: wordCount,
+  operation: 'search',
+  extensions: {}
+});
+"
+```
+
+Replace `QUERY_AS_URL` with the search query string and `QUERY_SLUG` with a slug-ified form of the query.
+
+**Step 7: Display results**
 
 Format as table:
 
@@ -220,7 +282,36 @@ mcp__firecrawl__firecrawl_map({
 node -e "const m = require('./bin/lib/mcp-bridge.cjs'); m.incrementFirecrawlUsage(0.5);"
 ```
 
-**Step 5: Display results**
+**Step 5: Emit event**
+
+```bash
+node -e "
+const { safeAppendEvent } = require('./bin/lib/event-bus.cjs');
+const fs = require('fs');
+let sessionId = 'unknown';
+try {
+  const cfg = JSON.parse(fs.readFileSync('.planning/config.json', 'utf-8'));
+  if (cfg.monitoring && cfg.monitoring.session_id) sessionId = cfg.monitoring.session_id;
+} catch {}
+const c = require('./bin/lib/firecrawl-cache.cjs');
+const slug = c.slugifyUrl('THE_URL');
+safeAppendEvent(sessionId, {
+  schema_version: '1.0',
+  ts: new Date().toISOString(),
+  event_type: 'firecrawl_operation',
+  session_id: sessionId,
+  url: 'THE_URL',
+  slug: slug,
+  word_count: 0,
+  operation: 'map',
+  extensions: {}
+});
+"
+```
+
+Replace `THE_URL` with the actual URL argument. word_count is 0 for map — the tool returns a URL list, not content.
+
+**Step 6: Display results**
 
 ```
 Found {N} URLs on {url}
@@ -290,7 +381,36 @@ node -e "const m = require('./bin/lib/mcp-bridge.cjs'); m.incrementFirecrawlUsag
 
 Extract costs 5 credits (LLM extraction).
 
-**Step 5: Display results**
+**Step 5: Emit event**
+
+```bash
+node -e "
+const { safeAppendEvent } = require('./bin/lib/event-bus.cjs');
+const fs = require('fs');
+let sessionId = 'unknown';
+try {
+  const cfg = JSON.parse(fs.readFileSync('.planning/config.json', 'utf-8'));
+  if (cfg.monitoring && cfg.monitoring.session_id) sessionId = cfg.monitoring.session_id;
+} catch {}
+const c = require('./bin/lib/firecrawl-cache.cjs');
+const slug = c.slugifyUrl('THE_URL');
+safeAppendEvent(sessionId, {
+  schema_version: '1.0',
+  ts: new Date().toISOString(),
+  event_type: 'firecrawl_operation',
+  session_id: sessionId,
+  url: 'THE_URL',
+  slug: slug,
+  word_count: 0,
+  operation: 'extract',
+  extensions: {}
+});
+"
+```
+
+Replace `THE_URL` with the actual URL argument. word_count is 0 for extract — the tool returns structured JSON, not prose content.
+
+**Step 6: Display results**
 
 ```
 Extracted structured data from {url}
@@ -398,7 +518,37 @@ console.log(JSON.stringify(r));
 "
 ```
 
-**Step 8: Display result**
+**Step 8: Emit event**
+
+```bash
+node -e "
+const { safeAppendEvent } = require('./bin/lib/event-bus.cjs');
+const fs = require('fs');
+let sessionId = 'unknown';
+try {
+  const cfg = JSON.parse(fs.readFileSync('.planning/config.json', 'utf-8'));
+  if (cfg.monitoring && cfg.monitoring.session_id) sessionId = cfg.monitoring.session_id;
+} catch {}
+const c = require('./bin/lib/firecrawl-cache.cjs');
+const slug = c.slugifyUrl('THE_URL');
+// word_count = total_word_count from writeCrawl return value
+safeAppendEvent(sessionId, {
+  schema_version: '1.0',
+  ts: new Date().toISOString(),
+  event_type: 'firecrawl_operation',
+  session_id: sessionId,
+  url: 'THE_URL',
+  slug: slug,
+  word_count: TOTAL_WORD_COUNT,
+  operation: 'crawl',
+  extensions: {}
+});
+"
+```
+
+Replace `THE_URL` with the actual URL argument and `TOTAL_WORD_COUNT` with the `total_word_count` field from the writeCrawl return value in Step 7.
+
+**Step 9: Display result**
 
 ```
 Crawled {N} pages from {url}
@@ -529,7 +679,43 @@ console.log(JSON.stringify(r));
 
 Replace RESULT_DATA with `result.data` from the completed status response. Replace JOB_ID with the actual job ID string.
 
-**Step 9: Display results**
+**Step 9: Emit event**
+
+```bash
+node -e "
+const { safeAppendEvent } = require('./bin/lib/event-bus.cjs');
+const fs = require('fs');
+let sessionId = 'unknown';
+try {
+  const cfg = JSON.parse(fs.readFileSync('.planning/config.json', 'utf-8'));
+  if (cfg.monitoring && cfg.monitoring.session_id) sessionId = cfg.monitoring.session_id;
+} catch {}
+// word_count = result.data word count if string, else 0
+const resultData = RESULT_DATA_PLACEHOLDER;
+let wordCount = 0;
+if (typeof resultData === 'string') {
+  wordCount = resultData.split(/\s+/).filter(Boolean).length;
+} else if (resultData && typeof resultData === 'object') {
+  const s = JSON.stringify(resultData);
+  wordCount = s.split(/\s+/).filter(Boolean).length;
+}
+safeAppendEvent(sessionId, {
+  schema_version: '1.0',
+  ts: new Date().toISOString(),
+  event_type: 'firecrawl_operation',
+  session_id: sessionId,
+  url: 'firecrawl-agent-JOB_ID',
+  slug: 'firecrawl-agent-JOB_ID',
+  word_count: wordCount,
+  operation: 'agent',
+  extensions: {}
+});
+"
+```
+
+Replace `RESULT_DATA_PLACEHOLDER` with `result.data` from the completed status response and `JOB_ID` with the actual job ID string.
+
+**Step 10: Display results**
 
 ```
 Agent completed — {JOB_ID}
@@ -700,7 +886,41 @@ node -e "const m = require('./bin/lib/mcp-bridge.cjs'); m.incrementFirecrawlUsag
 
 Track 2 credits as a floor estimate for the session (conservative; actual billing is by Firecrawl cloud based on session duration). Actual session cost may be higher depending on session duration. Check Firecrawl dashboard for accurate billing. Release semaphore.
 
-**Step 9: Display result**
+**Step 9: Emit event**
+
+```bash
+node -e "
+const { safeAppendEvent } = require('./bin/lib/event-bus.cjs');
+const fs = require('fs');
+let sessionId = 'unknown';
+try {
+  const cfg = JSON.parse(fs.readFileSync('.planning/config.json', 'utf-8'));
+  if (cfg.monitoring && cfg.monitoring.session_id) sessionId = cfg.monitoring.session_id;
+} catch {}
+const c = require('./bin/lib/firecrawl-cache.cjs');
+const slug = c.slugifyUrl('THE_URL');
+// word_count = markdown word count if response has markdown, else 0
+const markdown = INTERACT_MARKDOWN_CONTENT || '';
+const wordCount = typeof markdown === 'string' && markdown.length > 0
+  ? markdown.split(/\s+/).filter(Boolean).length
+  : 0;
+safeAppendEvent(sessionId, {
+  schema_version: '1.0',
+  ts: new Date().toISOString(),
+  event_type: 'firecrawl_operation',
+  session_id: sessionId,
+  url: 'THE_URL',
+  slug: slug,
+  word_count: wordCount,
+  operation: 'interact',
+  extensions: {}
+});
+"
+```
+
+Replace `THE_URL` with the actual URL argument and `INTERACT_MARKDOWN_CONTENT` with `response.markdown` from the interact response (use empty string if absent).
+
+**Step 10: Display result**
 
 ```
 Browser session completed
@@ -795,6 +1015,34 @@ const r = c.writeSnapshot('URL_FROM_ARGS', 'MARKDOWN_CONTENT_FROM_RESPONSE');
 console.log(JSON.stringify(r));
 "
 ```
+
+Emit event for baseline establishment:
+```bash
+node -e "
+const { safeAppendEvent } = require('./bin/lib/event-bus.cjs');
+const fs = require('fs');
+let sessionId = 'unknown';
+try {
+  const cfg = JSON.parse(fs.readFileSync('.planning/config.json', 'utf-8'));
+  if (cfg.monitoring && cfg.monitoring.session_id) sessionId = cfg.monitoring.session_id;
+} catch {}
+const markdown = 'MARKDOWN_CONTENT_FROM_RESPONSE';
+const wordCount = markdown.split(/\s+/).filter(Boolean).length;
+safeAppendEvent(sessionId, {
+  schema_version: '1.0',
+  ts: new Date().toISOString(),
+  event_type: 'firecrawl_operation',
+  session_id: sessionId,
+  url: 'URL_FROM_ARGS',
+  slug: 'SLUG_FROM_STEP4',
+  word_count: wordCount,
+  operation: 'watch',
+  extensions: {}
+});
+"
+```
+
+Replace `MARKDOWN_CONTENT_FROM_RESPONSE` with the actual markdown from the scrape response, `URL_FROM_ARGS` with the URL, and `SLUG_FROM_STEP4` with the slug computed in Step 4.
 
 Release semaphore. Display:
 ```
@@ -907,7 +1155,35 @@ Page appears to have been removed since {previousScrapeAt}.
 ```
 Halt.
 
-**Step 6: Display result summary (changed only)**
+**Step 6: Emit event + display result summary (changed only)**
+
+Emit event for the watch operation:
+```bash
+node -e "
+const { safeAppendEvent } = require('./bin/lib/event-bus.cjs');
+const fs = require('fs');
+let sessionId = 'unknown';
+try {
+  const cfg = JSON.parse(fs.readFileSync('.planning/config.json', 'utf-8'));
+  if (cfg.monitoring && cfg.monitoring.session_id) sessionId = cfg.monitoring.session_id;
+} catch {}
+const markdown = 'MARKDOWN_CONTENT_FROM_RESPONSE';
+const wordCount = markdown.split(/\s+/).filter(Boolean).length;
+safeAppendEvent(sessionId, {
+  schema_version: '1.0',
+  ts: new Date().toISOString(),
+  event_type: 'firecrawl_operation',
+  session_id: sessionId,
+  url: 'URL_FROM_ARGS',
+  slug: 'SLUG_FROM_STEP4',
+  word_count: wordCount,
+  operation: 'watch',
+  extensions: {}
+});
+"
+```
+
+Replace `MARKDOWN_CONTENT_FROM_RESPONSE` with `response.markdown`, `URL_FROM_ARGS` with the URL, and `SLUG_FROM_STEP4` with the slug computed in Step 4.
 
 Do NOT inject diff content inline into the conversation. The diff is written to the file and the path is shown to the user:
 
