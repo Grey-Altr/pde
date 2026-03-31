@@ -16,15 +16,15 @@ Requirements for v0.25 milestone. Each maps to roadmap phases.
 
 ### Core Scraping & Search
 
-- [ ] **SCR-01**: User can scrape any URL to clean markdown via firecrawl_scrape MCP tool with onlyMainContent default
-- [ ] **SCR-02**: User can search the web via firecrawl_search MCP tool with source, category, and time filters
-- [ ] **SCR-03**: User can discover all URLs on a site via firecrawl_map MCP tool with search filtering and subdomain control
-- [ ] **SCR-04**: User can extract structured JSON from pages via firecrawl_extract with schema definitions
-- [ ] **SCR-05**: User can search and immediately scrape top results in a single firecrawl_search call with scrapeOptions
+- [x] **SCR-01**: User can scrape any URL to clean markdown via firecrawl_scrape MCP tool with onlyMainContent default
+- [x] **SCR-02**: User can search the web via firecrawl_search MCP tool with source, category, and time filters
+- [x] **SCR-03**: User can discover all URLs on a site via firecrawl_map MCP tool with search filtering and subdomain control
+- [x] **SCR-04**: User can extract structured JSON from pages via firecrawl_extract with schema definitions
+- [x] **SCR-05**: User can search and immediately scrape top results in a single firecrawl_search call with scrapeOptions
 
 ### Deep Crawling & Ingestion
 
-- [ ] **CRL-01**: User can crawl entire sites via firecrawl_crawl with enforced --limit and --max-depth defaults preventing runaway credit burn
+- [x] **CRL-01**: User can crawl entire sites via firecrawl_crawl with enforced --limit and --max-depth defaults preventing runaway credit burn
 - [x] **CRL-02**: User can add URLs as source material via /pde:source add <url> which scrapes/crawls content into the source pipeline
 - [x] **CRL-03**: Scraped and crawled content is stored in .planning/research/firecrawl-cache/ via firecrawl-cache.cjs with slug-based access and gitignore
 
@@ -84,12 +84,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | FND-04 | Phase 198 | Complete |
 | CRL-03 | Phase 199 | Complete |
 | CRL-02 | Phase 199 | Complete |
-| SCR-01 | Phase 200 | Pending |
-| SCR-02 | Phase 200 | Pending |
-| SCR-03 | Phase 200 | Pending |
-| SCR-04 | Phase 200 | Pending |
-| SCR-05 | Phase 200 | Pending |
-| CRL-01 | Phase 200 | Pending |
+| SCR-01 | Phase 200 | Complete |
+| SCR-02 | Phase 200 | Complete |
+| SCR-03 | Phase 200 | Complete |
+| SCR-04 | Phase 200 | Complete |
+| SCR-05 | Phase 200 | Complete |
+| CRL-01 | Phase 200 | Complete |
 | PIP-01 | Phase 200 | Complete |
 | PIP-02 | Phase 201 | Pending |
 | PIP-03 | Phase 201 | Pending |
