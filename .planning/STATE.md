@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v0.25
 milestone_name: Firecrawl Deep Web Integration
 status: executing
-stopped_at: Completed 200-01-PLAN.md and 200-02-PLAN.md
-last_updated: "2026-03-31T04:42:08.170Z"
+stopped_at: Completed 201-02-PLAN.md
+last_updated: "2026-03-31T05:01:33.210Z"
 last_activity: 2026-03-31
 progress:
   total_phases: 21
@@ -65,6 +65,9 @@ Progress: [███░░░░░░░] 33%
 - [Phase 199]: Workflow routes all disk I/O through firecrawl-cache.cjs -- no direct writes to cache directory
 - [Phase 200]: competitive.md: Firecrawl probe inserted in LOCKED Step 3; firecrawl_search+scrape+extract triple in Step 4b for live competitor pricing and positioning
 - [Phase 200]: recommend.md: Firecrawl ranked item 3 in 4b priority order (after mcp-compass and WebSearch); firecrawl_search for live tool discovery with deduplication
+- [Phase 201]: Design reference URL parsing placed in early Step 2; actual scraping deferred to Step 3a after FIRECRAWL_AVAILABLE is set by MCP probe
+- [Phase 201]: WebFetch fallback content is NOT cached — only Firecrawl-scraped content goes through writeSource(); WebFetch content is ephemeral per request
+- [Phase 201]: Consistent pattern across all three design workflows: WFR/MKP/SYS skill codes, same flag names, same scrape block structure, same DESIGN_REFERENCE_CONTENT variable
 
 ### Pending Todos
 
@@ -78,7 +81,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-31T04:16:00.000Z
-Stopped at: Completed 200-01-PLAN.md and 200-02-PLAN.md
+Last session: 2026-03-31T05:01:33.206Z
+Stopped at: Completed 201-02-PLAN.md
 Resume with: /gsd:execute-phase 200
 Resume file: None

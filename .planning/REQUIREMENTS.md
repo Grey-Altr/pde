@@ -39,7 +39,7 @@ Requirements for v0.25 milestone. Each maps to roadmap phases.
 
 - [x] **PIP-01**: Competitive analysis workflow uses Firecrawl to crawl competitor sites and extract pricing, features, and positioning
 - [ ] **PIP-02**: Research agents (project-researcher, phase-researcher) use Firecrawl scrape/search with escalation ladder (WebSearch free → Firecrawl when JS rendering or structured extraction needed)
-- [ ] **PIP-03**: Design reference URLs scraped via Firecrawl feed into wireframe, mockup, and system skill context
+- [x] **PIP-03**: Design reference URLs scraped via Firecrawl feed into wireframe, mockup, and system skill context
 - [ ] **PIP-04**: Brief workflow accepts URLs and scrapes them as reference material via Firecrawl, stored in source pipeline
 
 ### Change Tracking & Monitoring
@@ -92,7 +92,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CRL-01 | Phase 200 | Complete |
 | PIP-01 | Phase 200 | Complete |
 | PIP-02 | Phase 201 | Pending |
-| PIP-03 | Phase 201 | Pending |
+| PIP-03 | Phase 201 | Complete |
 | PIP-04 | Phase 201 | Pending |
 | AGT-01 | Phase 202 | Pending |
 | AGT-02 | Phase 202 | Pending |
