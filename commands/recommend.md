@@ -10,6 +10,7 @@ allowed-tools:
   - Glob
   - Grep
   - Task
+  - mcp__firecrawl__firecrawl_search
 ---
 <objective>
 Execute the /pde:recommend command.
