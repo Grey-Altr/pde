@@ -644,8 +644,8 @@ Plans:
   3. Design reference URLs passed to wireframe, mockup, or system workflows are scraped via Firecrawl and their content feeds into the design context — the workflow does not fetch the URL inline via WebFetch when Firecrawl is available
 **Plans**: 2 plans
 Plans:
-- [ ] 199-01-PLAN.md -- firecrawl-cache.cjs TDD (cache module with slug, write/read, manifest, gitignore)
-- [ ] 199-02-PLAN.md -- /pde:source command + source ingestion workflow
+- [ ] 201-01-PLAN.md -- brief --source-url + pde-phase-researcher ## Web Evidence (PIP-04, PIP-02)
+- [ ] 201-02-PLAN.md -- wireframe/mockup/system --design-reference-url Firecrawl integration (PIP-03)
 
 ### Phase 202: /pde:firecrawl Standalone Skill + Agent + Browser Sandbox
 **Goal**: Users have a dedicated `/pde:firecrawl` command exposing all six Firecrawl operations — including the autonomous research agent and browser sandbox — with consent gates and credit caps on every high-cost operation
