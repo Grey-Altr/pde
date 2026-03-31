@@ -631,8 +631,8 @@ Plans:
   5. Running `/pde:competitive` uses firecrawl_search and firecrawl_extract to pull competitor pricing, features, and positioning — output quality visibly improves over the prior WebSearch-only result
 **Plans**: 2 plans
 Plans:
-- [x] 199-01-PLAN.md -- firecrawl-cache.cjs TDD (cache module with slug, write/read, manifest, gitignore)
-- [ ] 199-02-PLAN.md -- /pde:source command + source ingestion workflow
+- [ ] 200-01-PLAN.md -- /pde:firecrawl command + workflow (scrape, search, map, extract, crawl with credit guards)
+- [ ] 200-02-PLAN.md -- competitive.md + recommend.md Firecrawl integration (probe blocks + enhancement paths)
 
 ### Phase 201: Brief + Phase Researcher + Design Reference Integration
 **Goal**: Firecrawl is wired into the three source-material-consuming workflows — brief, pde-phase-researcher, and design reference — so that any URL passed to these workflows produces cache-backed semantic context rather than an inline content dump
