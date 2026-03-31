@@ -134,7 +134,7 @@
 
 - [x] **Phase 198: Foundation — MCP Registration + Credit Guards** — firecrawl in APPROVED_SERVERS, 12 TOOL_MAP entries, probe/degrade contract, API key config, credit warning thresholds, graceful degradation, escalation ladder in mcp-integration.md (completed 2026-03-30)
 - [x] **Phase 199: Data Layer — Cache Module + Source Pipeline** — firecrawl-cache.cjs (read/write/slug/diff/emit), .planning/research/firecrawl-cache/ directory structure, sources-manifest.json firecrawl source type, /pde:source add URL flow (completed 2026-03-30)
-- [ ] **Phase 200: Core Scraping Tools + Competitive/Recommend Integration** — firecrawl_scrape/search/map/extract/search-with-scrape MCP tools available, firecrawl_crawl with enforced limit, competitive.md FIRECRAWL_AVAILABLE migration, recommend.md dual-probe, PIP-01 competitive extraction
+- [x] **Phase 200: Core Scraping Tools + Competitive/Recommend Integration** — firecrawl_scrape/search/map/extract/search-with-scrape MCP tools available, firecrawl_crawl with enforced limit, competitive.md FIRECRAWL_AVAILABLE migration, recommend.md dual-probe, PIP-01 competitive extraction (completed 2026-03-31)
 - [ ] **Phase 201: Brief + Phase Researcher + Design Reference Integration** — --source-url flag on brief.md (scrape→cache→BRF), pde-phase-researcher.md Web Evidence step, design reference URL scraping for wireframe/mockup/system context
 - [ ] **Phase 202: /pde:firecrawl Standalone Skill + Agent + Browser Sandbox** — workflows/firecrawl.md with scrape/search/map/crawl/watch/agent subcommands, firecrawl_agent with consent gate and maxCredits cap, firecrawl_agent_status, firecrawl_interact browser sessions, Playwright code execution in sandbox
 - [ ] **Phase 203: Change Tracking + Event Bus** — changeTracking format with semantic markdown diffs, firecrawl_content_changed NDJSON events to event bus, dashboard Pane 5 change summary, snapshot baseline on first watch
@@ -723,7 +723,7 @@ Plans:
 | 197. Cross-Host Session Resume | v0.24 | 1/2 | Complete | 2026-03-30 |
 | 198. Foundation — MCP Registration + Credit Guards | v0.25 | 3/3 | Complete | 2026-03-30 |
 | 199. Data Layer — Cache Module + Source Pipeline | v0.25 | 2/2 | Complete   | 2026-03-30 |
-| 200. Core Scraping Tools + Competitive/Recommend Integration | v0.25 | 2/2 | In Progress | 2026-03-31 |
+| 200. Core Scraping Tools + Competitive/Recommend Integration | v0.25 | 2/2 | Complete    | 2026-03-31 |
 | 201. Brief + Phase Researcher + Design Reference Integration | v0.25 | 0/2 | Not started | - |
 | 202. /pde:firecrawl Standalone Skill + Agent + Browser Sandbox | v0.25 | 0/2 | Not started | - |
 | 203. Change Tracking + Event Bus | v0.25 | 0/2 | Not started | - |
