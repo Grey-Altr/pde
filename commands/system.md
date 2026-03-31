@@ -1,7 +1,7 @@
 ---
 name: pde:system
 description: Generate a design system with tokens, typography, and color palette
-argument-hint: ""
+argument-hint: "[--design-reference-url <url>] [--no-firecrawl]"
 allowed-tools:
   - Read
   - Write
@@ -11,6 +11,7 @@ allowed-tools:
   - Grep
   - Task
   - mcp__pencil__*
+  - mcp__firecrawl__firecrawl_scrape
 ---
 <objective>
 Execute the /pde:system command.

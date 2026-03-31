@@ -69,6 +69,8 @@ IF --screen flag present:
 | `--use-stitch` | Boolean | Route generation through Google Stitch MCP instead of Claude HTML/CSS. Requires Stitch connection via /pde:connect stitch. |
 | `--webmcp` | Boolean | Append WebMCP tool context section to output for browser AI agent consumption. Does not affect artifact generation. |
 | `--no-app-tools` | Boolean | Skip all optional desktop app tool probes (GIMP, etc.). Steps 3.5 and 4-GIMP are disabled. |
+| `--design-reference-url` | URL | URL of a design reference site to scrape via Firecrawl. Scraped content feeds into mockup generation context. Falls back to WebFetch if Firecrawl unavailable. |
+| `--no-firecrawl` | Boolean | Skip Firecrawl MCP specifically while allowing other MCPs. |
 
 </flags>
 
@@ -76,7 +78,7 @@ IF --screen flag present:
 
 ## /pde:mockup -- Hi-Fi Mockup Generation Pipeline
 
-Check for flags in $ARGUMENTS before beginning: `--dry-run`, `--screen`, `--verbose`, `--no-mcp`, `--no-playwright`, `--force`, `--quick`, `--use-stitch`, `--webmcp`, `--no-app-tools`.
+Check for flags in $ARGUMENTS before beginning: `--dry-run`, `--screen`, `--verbose`, `--no-mcp`, `--no-playwright`, `--force`, `--quick`, `--use-stitch`, `--webmcp`, `--no-app-tools`, `--design-reference-url`, `--no-firecrawl`.
 
 ---
 
@@ -165,6 +167,14 @@ Warning: No design brief or design system found.
 ```
 Use the Read tool to load `.planning/PROJECT.md` as fallback.
 
+#### 2d.1. Parse --design-reference-url flag
+
+Check $ARGUMENTS for `--design-reference-url`:
+- If absent: SET DESIGN_REFERENCE_URL = empty. SET DESIGN_REFERENCE_CONTENT = null.
+- If present: SET DESIGN_REFERENCE_URL = value following --design-reference-url.
+
+(Design reference scraping is deferred to Step 3a after MCP probes complete.)
+
 #### 2e. Parse --use-stitch flag
 
 Check $ARGUMENTS for `--use-stitch`:
@@ -251,7 +261,61 @@ Attempt to call `mcp__stitch__list_projects` (the Stitch probe tool) with a 10-s
   ```
   Display: `  -> Stitch MCP: unavailable — falling back to Claude generation`
 
-Display: `Step 3/7: MCP probes complete. Playwright: {available | unavailable}. Stitch: {available | unavailable | not requested}.`
+**Probe Firecrawl MCP:**
+
+```
+IF --no-firecrawl NOT in $ARGUMENTS AND ALL_MCP_DISABLED = false:
+  Run probeFirecrawl() via node --input-type=module pattern:
+  ```bash
+  node --input-type=module <<'PROBE_EOF'
+  import { createRequire } from 'module';
+  const req = createRequire(import.meta.url);
+  const { probeFirecrawl } = req(`${process.env.CLAUDE_PLUGIN_ROOT}/bin/lib/mcp-bridge.cjs`);
+  const result = probeFirecrawl();
+  process.stdout.write(JSON.stringify(result));
+  PROBE_EOF
+  ```
+  If result.available === true: SET FIRECRAWL_AVAILABLE = true
+    Log: {timestamp} | MKP | firecrawl | probe | success | {duration_ms}
+    IF result.warning: emit credit warning to user
+  If result.available === false: SET FIRECRAWL_AVAILABLE = false
+    Log: {timestamp} | MKP | firecrawl | probe | failure | reason={result.reason} | 0
+    Tag: [Firecrawl unavailable ({reason}) -- using WebFetch fallback for design references]
+ELSE:
+  SET FIRECRAWL_AVAILABLE = false
+  Log: {timestamp} | MKP | firecrawl | probe | skipped | 0
+```
+
+Display: `Step 3/7: MCP probes complete. Playwright: {available | unavailable}. Stitch: {available | unavailable | not requested}. Firecrawl: {available | unavailable | skipped}.`
+
+---
+
+### Step 3a/7: Fetch design reference (if --design-reference-url provided)
+
+IF DESIGN_REFERENCE_URL is not empty:
+  IF FIRECRAWL_AVAILABLE = true:
+    Check cache first:
+    ```bash
+    node -e "
+    const c = require('./bin/lib/firecrawl-cache.cjs');
+    const slug = c.slugifyUrl('DESIGN_REFERENCE_URL');
+    const cached = c.readSource(slug);
+    process.stdout.write(cached ? 'CACHED' : 'MISS');
+    "
+    ```
+    IF CACHED:
+      Read from cache via readSource(slug).
+      SET DESIGN_REFERENCE_CONTENT = cached_content
+      Log: "  -> Design reference cache hit: {slug}"
+    ELSE:
+      Call mcp__firecrawl__firecrawl_scrape with { url: DESIGN_REFERENCE_URL, onlyMainContent: true }.
+      Write to cache via writeSource(DESIGN_REFERENCE_URL, content, { type: 'scrape', added_by: 'mockup-design-ref' }).
+      SET DESIGN_REFERENCE_CONTENT = content
+      Log: "  -> Design reference scraped via Firecrawl: {DESIGN_REFERENCE_URL}"
+  ELSE (FIRECRAWL_AVAILABLE = false):
+    Fetch DESIGN_REFERENCE_URL via WebFetch tool as fallback.
+    SET DESIGN_REFERENCE_CONTENT = WebFetch result (do NOT write to cache — WebFetch content is not cache-quality).
+    Log: "  -> Design reference fetched via WebFetch fallback (Firecrawl unavailable)"
 
 ---
 
@@ -471,6 +535,13 @@ If a source wireframe HTML file exists for this screen:
 If no source wireframe:
 - Set WIREFRAME_SOURCE = null
 - ANNOTATION list = []
+
+IF DESIGN_REFERENCE_CONTENT is not null:
+  Use the scraped design reference content to inform:
+  - Visual style patterns (spacing, typography hierarchy, color use)
+  - Component patterns (card layouts, navigation patterns, form designs)
+  - Layout approaches (grid structures, responsive breakpoints)
+  Log: "  -> Design reference content injected into mockup generation context"
 
 #### 4b. Generate the mockup HTML
 

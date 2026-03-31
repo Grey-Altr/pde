@@ -26,13 +26,15 @@ Generate a complete DTCG 2025.10 design token set from product brief context. Pr
 | `--no-sequential-thinking` | Boolean | Skip Sequential Thinking MCP specifically while allowing other MCPs. |
 | `--force` | Boolean | Skip the confirmation prompt when a design system already exists and auto-increment to the next version. |
 | `--preset` | String | Override default brief-derived token generation with a curated preset. Values: `minimal`, `corporate`, `playful`, `editorial`. Uses curated defaults from references/typography.md and references/color-systems.md. |
+| `--design-reference-url` | URL | URL of a design reference site to scrape via Firecrawl. Scraped content feeds into design system generation context. Falls back to WebFetch if Firecrawl unavailable. |
+| `--no-firecrawl` | Boolean | Skip Firecrawl MCP specifically while allowing other MCPs. |
 </flags>
 
 <process>
 
 ## /pde:system — Design System Generation Pipeline
 
-Check for flags in $ARGUMENTS before beginning: `--dry-run`, `--quick`, `--verbose`, `--no-mcp`, `--no-sequential-thinking`, `--force`, `--preset`.
+Check for flags in $ARGUMENTS before beginning: `--dry-run`, `--quick`, `--verbose`, `--no-mcp`, `--no-sequential-thinking`, `--force`, `--preset`, `--design-reference-url`, `--no-firecrawl`.
 
 If `--preset` is provided, extract the preset value (minimal|corporate|playful|editorial) and store as PRESET_NAME.
 
@@ -109,6 +111,14 @@ Use the Glob tool to search for `.planning/design/visual/SYS-tokens.json`.
 
 Display: `Step 2/7: Prerequisites satisfied. Brief: v{X} loaded. Input path: {a|b|c}. System version: v{N}.`
 
+#### 2z. Parse --design-reference-url flag
+
+Check $ARGUMENTS for `--design-reference-url`:
+- If absent: SET DESIGN_REFERENCE_URL = empty. SET DESIGN_REFERENCE_CONTENT = null.
+- If present: SET DESIGN_REFERENCE_URL = value following --design-reference-url.
+
+(Design reference scraping is deferred to Step 3a after MCP probes complete.)
+
 If `--dry-run` is active: display planned output and HALT:
 ```
 Dry run mode. No files will be written.
@@ -169,13 +179,73 @@ Attempt to call `mcp__sequential-thinking__think` with test prompt `"Analyze the
   - If retry succeeds: `SEQUENTIAL_THINKING_AVAILABLE = true`
   - If retry fails: `SEQUENTIAL_THINKING_AVAILABLE = false`. Log: `  -> Sequential Thinking MCP: unavailable (degraded mode)`
 
-Display: `Step 3/7: MCP probes complete. Sequential Thinking: {available | unavailable}.`
+**Probe Firecrawl MCP:**
+
+```
+IF --no-firecrawl NOT in $ARGUMENTS AND ALL_MCP_DISABLED = false:
+  Run probeFirecrawl() via node --input-type=module pattern:
+  ```bash
+  node --input-type=module <<'PROBE_EOF'
+  import { createRequire } from 'module';
+  const req = createRequire(import.meta.url);
+  const { probeFirecrawl } = req(`${process.env.CLAUDE_PLUGIN_ROOT}/bin/lib/mcp-bridge.cjs`);
+  const result = probeFirecrawl();
+  process.stdout.write(JSON.stringify(result));
+  PROBE_EOF
+  ```
+  If result.available === true: SET FIRECRAWL_AVAILABLE = true
+    Log: {timestamp} | SYS | firecrawl | probe | success | {duration_ms}
+    IF result.warning: emit credit warning to user
+  If result.available === false: SET FIRECRAWL_AVAILABLE = false
+    Log: {timestamp} | SYS | firecrawl | probe | failure | reason={result.reason} | 0
+    Tag: [Firecrawl unavailable ({reason}) -- using WebFetch fallback for design references]
+ELSE:
+  SET FIRECRAWL_AVAILABLE = false
+  Log: {timestamp} | SYS | firecrawl | probe | skipped | 0
+```
+
+Display: `Step 3/7: MCP probes complete. Sequential Thinking: {available | unavailable}. Firecrawl: {available | unavailable | skipped}.`
+
+---
+
+### Step 3a/7: Fetch design reference (if --design-reference-url provided)
+
+IF DESIGN_REFERENCE_URL is not empty:
+  IF FIRECRAWL_AVAILABLE = true:
+    Check cache first:
+    ```bash
+    node -e "
+    const c = require('./bin/lib/firecrawl-cache.cjs');
+    const slug = c.slugifyUrl('DESIGN_REFERENCE_URL');
+    const cached = c.readSource(slug);
+    process.stdout.write(cached ? 'CACHED' : 'MISS');
+    "
+    ```
+    IF CACHED:
+      Read from cache via readSource(slug). SET DESIGN_REFERENCE_CONTENT = cached_content.
+      Log: "  -> Design reference cache hit: {slug}"
+    ELSE:
+      Call mcp__firecrawl__firecrawl_scrape with { url: DESIGN_REFERENCE_URL, onlyMainContent: true }.
+      Write to cache via writeSource(DESIGN_REFERENCE_URL, content, { type: 'scrape', added_by: 'system-design-ref' }).
+      SET DESIGN_REFERENCE_CONTENT = content.
+      Log: "  -> Design reference scraped via Firecrawl: {DESIGN_REFERENCE_URL}"
+  ELSE (FIRECRAWL_AVAILABLE = false):
+    Fetch DESIGN_REFERENCE_URL via WebFetch tool as fallback.
+    SET DESIGN_REFERENCE_CONTENT = WebFetch result (do NOT write to cache).
+    Log: "  -> Design reference fetched via WebFetch fallback (Firecrawl unavailable)"
 
 ---
 
 ### Step 4/7: Generate token data
 
 This is the core generation step. Generate the complete DTCG JSON token tree and all derived CSS values. Work through each category in order. Do all computation in working memory — the output is written in Step 5.
+
+IF DESIGN_REFERENCE_CONTENT is not null:
+  Use the scraped design reference content to inform:
+  - Token values (color palettes, spacing scales, typography scales observed in reference)
+  - Component patterns (button styles, input styles, card patterns from reference)
+  - Design philosophy (minimalism, density, playfulness as expressed in reference)
+  Log: "  -> Design reference content injected into system generation context"
 
 ---
 
