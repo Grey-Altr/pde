@@ -38,6 +38,7 @@ Hard requirement: PROJECT.md must exist. All others degrade gracefully if absent
 | `--no-mcp` | Boolean | Skip ALL MCP probes. Pure baseline mode — uses inline catalog and training knowledge only. |
 | `--no-compass` | Boolean | Skip mcp-compass probe specifically while allowing other MCPs. |
 | `--no-websearch` | Boolean | Skip WebSearch MCP probe specifically while allowing other MCPs. |
+| `--no-firecrawl` | Boolean | Skip Firecrawl MCP specifically while allowing other MCPs. |
 | `--force` | Boolean | Skip the confirmation prompt when a REC artifact already exists and auto-increment to the next version. |
 </flags>
 
@@ -45,7 +46,7 @@ Hard requirement: PROJECT.md must exist. All others degrade gracefully if absent
 
 ## /pde:recommend — Tool & MCP Recommendations Pipeline
 
-Check for flags in $ARGUMENTS before beginning: `--dry-run`, `--quick`, `--verbose`, `--no-mcp`, `--no-compass`, `--no-websearch`, `--force`.
+Check for flags in $ARGUMENTS before beginning: `--dry-run`, `--quick`, `--verbose`, `--no-mcp`, `--no-compass`, `--no-websearch`, `--no-firecrawl`, `--force`.
 
 ---
 
@@ -180,7 +181,30 @@ ELSE:
   SET SEQUENTIAL_THINKING_AVAILABLE = false
 ```
 
-Display: `Step 3/7: MCP probes complete. mcp-compass: {available|unavailable}. WebSearch: {available|unavailable}. Sequential Thinking: {available|unavailable}.`
+**Probe Firecrawl MCP:**
+
+```
+IF --no-firecrawl NOT in $ARGUMENTS AND ALL_MCP_DISABLED = false:
+  Run probeFirecrawl() via node --input-type=module pattern:
+  ```bash
+  node --input-type=module <<'PROBE_EOF'
+  import { createRequire } from 'module';
+  const req = createRequire(import.meta.url);
+  const { probeFirecrawl } = req(`${process.env.CLAUDE_PLUGIN_ROOT}/bin/lib/mcp-bridge.cjs`);
+  const result = probeFirecrawl();
+  process.stdout.write(JSON.stringify(result));
+  PROBE_EOF
+  ```
+  If result.available === true: SET FIRECRAWL_AVAILABLE = true
+    Log: -> Firecrawl MCP: available (live tool discovery via structured search enabled)
+  If result.available === false: SET FIRECRAWL_AVAILABLE = false
+    Log: -> Firecrawl MCP: unavailable (Firecrawl tool discovery disabled)
+    Tag: [Firecrawl unavailable -- Firecrawl tool discovery disabled]
+ELSE:
+  SET FIRECRAWL_AVAILABLE = false
+```
+
+Display: `Step 3/7: MCP probes complete. mcp-compass: {available|unavailable}. WebSearch: {available|unavailable}. Sequential Thinking: {available|unavailable}. Firecrawl: {available|unavailable}.`
 
 ---
 <!-- /LOCKED -->
@@ -214,8 +238,9 @@ Derive a **project profile** with these fields:
 Priority order:
 1. **mcp-compass results** (if MCP_COMPASS_AVAILABLE = true): Use results from Step 3 probe. Map each result to the catalog categories below.
 2. **WebSearch results** (if WEBSEARCH_AVAILABLE = true): Search for "best MCP servers for {primary_language} {framework} development" and "essential developer tools for {product_type} {deployment_target}". Extract tool names and install commands.
-3. **Sequential Thinking analysis** (if SEQUENTIAL_THINKING_AVAILABLE = true): Use `mcp__sequential-thinking__think` to reason about which tool categories are most critical for this specific project profile. The reasoning helps prioritize the ranking in Step 4c.
-4. **Inline catalog fallback** (always available): Match the project profile against the curated catalog below.
+3. **Firecrawl results** (if FIRECRAWL_AVAILABLE = true): Call mcp__firecrawl__firecrawl_search with query: "MCP servers for {primary_language} {framework} 2026" with category: "technology", limit: 10. Extract tool names, install commands, and descriptions from results. Deduplicate against catalog results already found from mcp-compass and WebSearch. Tag: [Enhanced by Firecrawl MCP -- live tool discovery via structured search]
+4. **Sequential Thinking analysis** (if SEQUENTIAL_THINKING_AVAILABLE = true): Use `mcp__sequential-thinking__think` to reason about which tool categories are most critical for this specific project profile. The reasoning helps prioritize the ranking in Step 4c.
+5. **Inline catalog fallback** (always available): Match the project profile against the curated catalog below.
 
 **4c. Inline Curated MCP & Tool Catalog:**
 
@@ -446,6 +471,7 @@ Include data source tag at bottom of primary recommendations section:
 
 - If MCP_COMPASS_AVAILABLE = true: `[Enhanced by mcp-compass MCP -- live MCP registry search]`
 - If WEBSEARCH_AVAILABLE = true: `[Enhanced by WebSearch MCP -- live tool discovery]`
+- If FIRECRAWL_AVAILABLE = true: `[Enhanced by Firecrawl MCP -- live tool discovery]`
 - If both unavailable: `[Using offline catalog -- install mcp-compass for live MCP registry search]`
 
 **If `--dry-run` flag is active:** Display dry-run preview instead of writing files:

@@ -75,6 +75,7 @@ ELSE:
 | `--no-mcp` | Boolean | Skip ALL MCP probes. Pure baseline mode using training knowledge and local files only. |
 | `--no-websearch` | Boolean | Skip WebSearch MCP specifically while allowing other MCPs. |
 | `--no-sequential-thinking` | Boolean | Skip Sequential Thinking MCP specifically while allowing other MCPs. |
+| `--no-firecrawl` | Boolean | Skip Firecrawl MCP specifically while allowing other MCPs. |
 | `--force` | Boolean | Skip the confirmation prompt when a CMP artifact already exists and auto-increment to the next version. |
 | `--webmcp` | Boolean | Append WebMCP tool context section to output for browser AI agent consumption. Also triggers competitor tool stub generation (Step 8). Does not affect competitive analysis. |
 
@@ -227,7 +228,32 @@ If not disabled via flags, attempt to call `mcp__sequential-thinking__think` wit
   - If retry succeeds: `SEQUENTIAL_THINKING_AVAILABLE = true`
   - If retry fails: `SEQUENTIAL_THINKING_AVAILABLE = false`. Log: `  -> Sequential Thinking MCP: unavailable (degraded mode)`
 
-Display: `Step 3/8: MCP probes complete. WebSearch: {available|unavailable}. Sequential Thinking: {available|unavailable}.`
+**Probe Firecrawl MCP:**
+
+```
+IF --no-firecrawl NOT in $ARGUMENTS AND ALL_MCP_DISABLED = false:
+  Run probeFirecrawl() via node --input-type=module pattern:
+  ```bash
+  node --input-type=module <<'PROBE_EOF'
+  import { createRequire } from 'module';
+  const req = createRequire(import.meta.url);
+  const { probeFirecrawl } = req(`${process.env.CLAUDE_PLUGIN_ROOT}/bin/lib/mcp-bridge.cjs`);
+  const result = probeFirecrawl();
+  process.stdout.write(JSON.stringify(result));
+  PROBE_EOF
+  ```
+  If result.available === true: SET FIRECRAWL_AVAILABLE = true
+    Log: {timestamp} | CMP | firecrawl | probe | success | {duration_ms}
+    IF result.warning: emit credit warning to user
+  If result.available === false: SET FIRECRAWL_AVAILABLE = false
+    Log: {timestamp} | CMP | firecrawl | probe | failure | reason={result.reason} | 0
+    Tag: [Firecrawl unavailable ({reason}) -- using WebSearch for competitor intelligence]
+ELSE:
+  SET FIRECRAWL_AVAILABLE = false
+  Log: {timestamp} | CMP | firecrawl | probe | skipped | 0
+```
+
+Display: `Step 3/8: MCP probes complete. WebSearch: {available|unavailable}. Sequential Thinking: {available|unavailable}. Firecrawl: {available|unavailable}.`
 
 ---
 <!-- /LOCKED -->
@@ -289,6 +315,28 @@ If Sequential Thinking MCP is available: use `mcp__sequential-thinking__think` t
 Display: `  -> Identified {N} competitors for {scope} analysis.`
 
 #### 4b. Competitor profiles
+
+**Firecrawl enrichment (if FIRECRAWL_AVAILABLE = true):**
+
+```
+IF FIRECRAWL_AVAILABLE:
+  For each competitor URL identified in Step 4a:
+    1. Call mcp__firecrawl__firecrawl_search with query: "{competitor_name} pricing features"
+       -> Use top result URLs to identify current pricing page
+    2. Call mcp__firecrawl__firecrawl_scrape on competitor main URL with { onlyMainContent: true }
+       -> Cache result via writeSource for future reference
+    3. If pricing page found, call mcp__firecrawl__firecrawl_extract on pricing URL with schema:
+       { "type": "object", "properties": {
+           "pricing_tiers": { "type": "array", "items": { "type": "object", "properties": { "name": { "type": "string" }, "price": { "type": "string" }, "features": { "type": "array" } } } },
+           "positioning": { "type": "string" }
+       }}
+       Note: This schema is a SUGGESTED starting point. The extract call costs 5 credits.
+    4. Cache extracted data via writeSource() if content is substantial
+    Tag: [Enhanced by Firecrawl MCP -- competitor data extracted from live site]
+ELSE (WebSearch fallback):
+  Use existing WebSearch path (already present in the workflow)
+  Tag: [Baseline mode -- Firecrawl unavailable, using WebSearch]
+```
 
 For each identified competitor, produce a profile covering:
 - Name, URL `[confidence]`, founding year `[confidence]`, HQ `[confidence]`, funding status `[confidence]`
@@ -552,6 +600,7 @@ Include at least 3 Opportunity Highlights (more for deep scope). Each entry must
 
 {If WebSearch MCP was used: "[Enhanced by WebSearch MCP -- live market data as of {date}]"}
 {If WebSearch MCP was unavailable: "[Using training knowledge -- install WebSearch MCP for current market data]"}
+{If Firecrawl MCP was used: "[Enhanced by Firecrawl MCP -- live competitor data as of {date}]"}
 ```
 
 Use the Write tool to create the artifact.
