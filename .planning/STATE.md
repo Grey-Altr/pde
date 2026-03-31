@@ -86,9 +86,7 @@ None.
 
 ### Blockers/Concerns
 
-- Phase 202 (watch subcommand): changeTracking format requires markdown to be co-requested in the same call as changeTracking; omitting it produces silent empty diffs — verify before writing watch subcommand prose
-- Phase 202 (watch subcommand): git-diff mode (free) vs JSON mode (5 credits/page) cost difference must be enforced in workflow prose — default to git-diff, JSON mode explicit opt-in only
-- Phase 198: concurrent worktree rate limiting — at Standard plan (50 crawl RPM), 20 parallel agents could exhaust rate limit in seconds; Phase 198 must include max-2-parallel Firecrawl operations guard wired into concurrent-queue.cjs
+None.
 
 ## Session Continuity
 
