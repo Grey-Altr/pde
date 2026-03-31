@@ -726,5 +726,5 @@ Plans:
 | 199. Data Layer — Cache Module + Source Pipeline | v0.25 | 2/2 | Complete   | 2026-03-30 |
 | 200. Core Scraping Tools + Competitive/Recommend Integration | v0.25 | 2/2 | Complete    | 2026-03-31 |
 | 201. Brief + Phase Researcher + Design Reference Integration | v0.25 | 1/2 | Complete    | 2026-03-31 |
-| 202. /pde:firecrawl Standalone Skill + Agent + Browser Sandbox | v0.25 | 2/2 | Complete   | 2026-03-31 |
+| 202. /pde:firecrawl Standalone Skill + Agent + Browser Sandbox | v0.25 | 2/2 | Complete    | 2026-03-31 |
 | 203. Change Tracking + Event Bus | v0.25 | 0/2 | Not started | - |
