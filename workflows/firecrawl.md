@@ -597,8 +597,6 @@ Agent job {JOB_ID} was cancelled.
 
 **Purpose:** Launch a cloud browser sandbox session via Firecrawl to extract content from auth-gated or JavaScript-heavy pages. Supports both natural language prompts and Playwright code execution inside the live session.
 
-**Note:** This subcommand is documented here for routing purposes. Full implementation is in Plan 02.
-
 **Step 1: Parse arguments**
 
 ```
@@ -616,6 +614,8 @@ Example: /pde:firecrawl interact https://example.com --prompt "extract the prici
 Example: /pde:firecrawl interact https://app.example.com --playwright my-script.js --language node
 ```
 
+Determine RATE: If NATURAL_PROMPT is set, RATE = 7 credits/min. If CODE_FILE only, RATE = 2 credits/min.
+
 **Step 2: Credit guard check**
 
 ```bash
@@ -631,9 +631,7 @@ PROBE_EOF
 If `result.available === false`: Display `Error: Firecrawl unavailable — {result.reason}. Cannot launch browser session.` Halt.
 If `result.warning === true`: Display credit warning noting browser sessions cost 2–7 credits/minute. Continue.
 
-**Step 3: Consent gate (REQUIRED — interact does NOT proceed without explicit user confirmation)**
-
-Determine rate: If `--prompt` is provided (AI-assisted), rate = 7 credits/min. If `--playwright` only, rate = 2 credits/min.
+**Step 3: Consent gate (REQUIRED — browser session does NOT proceed without explicit user confirmation)**
 
 Display:
 ```
@@ -641,9 +639,11 @@ Firecrawl Browser Sandbox
   URL: {URL}
   Session TTL: 10 minutes (auto-terminated)
   Idle TTL: 5 minutes (auto-terminated if no activity)
-  Credit cost: {rate} credits/minute
-  Estimated max cost (full 10min session): {10 * rate} credits
+  Credit cost: {RATE} credits/minute ({code-only: 2/min; with AI prompt: 7/min})
+  Estimated max cost (full 10min session): {10 * RATE} credits
   Current balance: {result.credits.remaining} credits
+
+  Note: This will first scrape the URL (1 credit) then open a browser session.
 
   Proceed? Type "yes" to confirm, anything else to cancel.
 ```
@@ -665,17 +665,19 @@ mcp__firecrawl__firecrawl_scrape({
 })
 ```
 
-Extract `scrapeId` from `response.metadata.scrapeId`. Track 1 credit for the scrape:
+Note: `onlyMainContent` is `false` for interact — browser interaction requires the full page, not just the main content subset.
+
+Extract `scrapeId` from the response — check both `response.metadata.scrapeId` and `response.scrapeId` (exact path may vary per MCP response format). Track 1 credit for the scrape:
 
 ```bash
 node -e "const m = require('./bin/lib/mcp-bridge.cjs'); m.incrementFirecrawlUsage(1);"
 ```
 
-If `scrapeId` is absent from response: Display `Error: Could not obtain scrapeId from initial scrape. The interact subcommand requires a valid scrapeId.` Release semaphore. Halt.
+If `scrapeId` is not found in response: Display `Error: Could not obtain scrapeId from scrape response. The interact feature may not be available with your current Firecrawl plan.` Release semaphore. Halt.
 
 **Step 6: Read code if --playwright flag used**
 
-If `--playwright` provided: Read CODE_FILE content as CODE_STRING.
+If `--playwright` provided: Read CODE_FILE content using the Read tool. Set CODE_STRING = file contents.
 If `--prompt` provided: CODE_STRING = null; NATURAL_PROMPT is used as the prompt parameter.
 
 **Step 7: Call mcp__firecrawl__firecrawl_interact**
@@ -695,30 +697,18 @@ mcp__firecrawl__firecrawl_interact({
 node -e "const m = require('./bin/lib/mcp-bridge.cjs'); m.incrementFirecrawlUsage(2);"
 ```
 
-Track 2 credits as a floor estimate (conservative minimum). Actual billing is determined by Firecrawl cloud based on session duration and mode. Users should verify actual usage in the Firecrawl dashboard. Release semaphore.
+Track 2 credits as a floor estimate for the session (conservative; actual billing is by Firecrawl cloud based on session duration). Actual session cost may be higher depending on session duration. Check Firecrawl dashboard for accurate billing. Release semaphore.
 
-**Step 9: Cache result**
-
-```bash
-node -e "
-const c = require('./bin/lib/firecrawl-cache.cjs');
-const r = c.writeSource('SCRAPE_ID', RESULT_CONTENT,
-  { type: 'interact', added_by: 'pde:firecrawl interact' });
-console.log(JSON.stringify(r));
-"
-```
-
-Replace SCRAPE_ID with the actual scrape ID and RESULT_CONTENT with the returned markdown or structured data.
-
-**Step 10: Display result**
+**Step 9: Display result**
 
 ```
 Browser session completed
+  URL: {URL}
   Session: {SCRAPE_ID}
-  Cached at: .planning/research/firecrawl-cache/scrapes/{slug}.md
+  Credits tracked: 3 (1 scrape + 2 session floor)
   Note: Session TTL is 10 minutes. Re-run /pde:firecrawl interact {URL} for a new session.
 
-  {result markdown or structured data}
+{extracted content from interact response}
 ```
 
 ---
@@ -770,7 +760,6 @@ Subcommands:
     Requires explicit consent before dispatch. Session auto-terminates at TTL.
     Cost: 2–7 credits/minute (code-only: 2/min; with AI prompt: 7/min)
     Session TTL: 10 minutes total, 5 minutes idle
-    (Implemented in Plan 02)
 
 Examples:
   /pde:firecrawl scrape https://example.com/docs
