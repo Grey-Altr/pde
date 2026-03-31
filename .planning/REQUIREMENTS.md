@@ -45,7 +45,7 @@ Requirements for v0.25 milestone. Each maps to roadmap phases.
 ### Change Tracking & Monitoring
 
 - [x] **CHG-01**: User can track changes on competitor/dependency sites via changeTracking format with semantic markdown diffs
-- [ ] **CHG-02**: Firecrawl operations emit structured NDJSON events to the event bus for dashboard display and session archival
+- [x] **CHG-02**: Firecrawl operations emit structured NDJSON events to the event bus for dashboard display and session archival
 
 ## Future Requirements
 
@@ -99,7 +99,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AGT-03 | Phase 202 | Complete |
 | AGT-04 | Phase 202 | Complete |
 | CHG-01 | Phase 203 | Complete |
-| CHG-02 | Phase 203 | Pending |
+| CHG-02 | Phase 203 | Complete |
 
 **Coverage:**
 - v1 requirements: 22 total

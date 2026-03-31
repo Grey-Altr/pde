@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v0.25
 milestone_name: Firecrawl Deep Web Integration
-status: executing
-stopped_at: Completed 203-01-PLAN.md
-last_updated: "2026-03-31T05:43:04.236Z"
+status: verifying
+stopped_at: Completed 203-02-PLAN.md
+last_updated: "2026-03-31T05:49:34.577Z"
 last_activity: 2026-03-31
 progress:
   total_phases: 21
@@ -27,7 +27,7 @@ See: .planning/PROJECT.md (updated 2026-03-30)
 
 Phase: 203 (Change Tracking + Event Bus) — EXECUTING
 Plan: 2 of 2
-Status: Ready to execute
+Status: Phase complete — ready for verification
 Last activity: 2026-03-31
 
 Progress: [███░░░░░░░] 33%
@@ -78,6 +78,7 @@ Progress: [███░░░░░░░] 33%
 - [Phase 202]: dual scrapeId path check (response.metadata.scrapeId AND response.scrapeId) guards against MCP response format variation
 - [Phase 203]: writeDiff placed in firecrawl-cache.cjs (not inline bash) for testability and reuse; git-diff mode free default, JSON mode opt-in with cost warning; diff files to snapshots/ as {slug}-diff.md
 - [Phase 203]: First watch call uses markdown-only scrape (no changeTracking) to avoid silent empty diffs on baseline establishment (Pitfall 3)
+- [Phase 203]: safeAppendEvent over bus.dispatch() for cross-process NDJSON visibility; word_count=0 for map/extract; watch has 2 emission blocks (baseline+changed); agent-status excluded from event emission
 
 ### Pending Todos
 
@@ -91,7 +92,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-31T05:43:04.232Z
-Stopped at: Completed 203-01-PLAN.md
+Last session: 2026-03-31T05:49:34.573Z
+Stopped at: Completed 203-02-PLAN.md
 Resume with: /gsd:execute-phase 200
 Resume file: None

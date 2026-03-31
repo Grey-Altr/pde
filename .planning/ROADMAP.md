@@ -137,7 +137,7 @@
 - [x] **Phase 200: Core Scraping Tools + Competitive/Recommend Integration** — firecrawl_scrape/search/map/extract/search-with-scrape MCP tools available, firecrawl_crawl with enforced limit, competitive.md FIRECRAWL_AVAILABLE migration, recommend.md dual-probe, PIP-01 competitive extraction (completed 2026-03-31)
 - [x] **Phase 201: Brief + Phase Researcher + Design Reference Integration** — --source-url flag on brief.md (scrape→cache→BRF), pde-phase-researcher.md Web Evidence step, design reference URL scraping for wireframe/mockup/system context (completed 2026-03-31)
 - [x] **Phase 202: /pde:firecrawl Standalone Skill + Agent + Browser Sandbox** — workflows/firecrawl.md with scrape/search/map/crawl/watch/agent subcommands, firecrawl_agent with consent gate and maxCredits cap, firecrawl_agent_status, firecrawl_interact browser sessions, Playwright code execution in sandbox (completed 2026-03-31)
-- [ ] **Phase 203: Change Tracking + Event Bus** — changeTracking format with semantic markdown diffs, firecrawl_content_changed NDJSON events to event bus, dashboard Pane 5 change summary, snapshot baseline on first watch
+- [x] **Phase 203: Change Tracking + Event Bus** — changeTracking format with semantic markdown diffs, firecrawl_content_changed NDJSON events to event bus, dashboard Pane 5 change summary, snapshot baseline on first watch (completed 2026-03-31)
 
 ## Phase Details
 
@@ -674,7 +674,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 - [x] 203-01-PLAN.md -- watch subcommand + writeDiff helper + snapshot diff logic (CHG-01)
-- [ ] 203-02-PLAN.md -- NDJSON event emission in all subcommands + pane-log-stream + dashboard filter (CHG-02)
+- [x] 203-02-PLAN.md -- NDJSON event emission in all subcommands + pane-log-stream + dashboard filter (CHG-02)
 
 ## Progress
 
@@ -727,4 +727,4 @@ Plans:
 | 200. Core Scraping Tools + Competitive/Recommend Integration | v0.25 | 2/2 | Complete    | 2026-03-31 |
 | 201. Brief + Phase Researcher + Design Reference Integration | v0.25 | 1/2 | Complete    | 2026-03-31 |
 | 202. /pde:firecrawl Standalone Skill + Agent + Browser Sandbox | v0.25 | 2/2 | Complete    | 2026-03-31 |
-| 203. Change Tracking + Event Bus | v0.25 | 1/2 | In Progress|  |
+| 203. Change Tracking + Event Bus | v0.25 | 2/2 | Complete   | 2026-03-31 |
