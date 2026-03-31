@@ -673,7 +673,7 @@ Plans:
   3. The dashboard Pane 5 log stream displays a change summary when a monitored page diff is non-empty — the entry includes the URL, number of lines changed, and timestamp
 **Plans**: 2 plans
 Plans:
-- [ ] 203-01-PLAN.md -- watch subcommand + writeDiff helper + snapshot diff logic (CHG-01)
+- [x] 203-01-PLAN.md -- watch subcommand + writeDiff helper + snapshot diff logic (CHG-01)
 - [ ] 203-02-PLAN.md -- NDJSON event emission in all subcommands + pane-log-stream + dashboard filter (CHG-02)
 
 ## Progress
@@ -727,4 +727,4 @@ Plans:
 | 200. Core Scraping Tools + Competitive/Recommend Integration | v0.25 | 2/2 | Complete    | 2026-03-31 |
 | 201. Brief + Phase Researcher + Design Reference Integration | v0.25 | 1/2 | Complete    | 2026-03-31 |
 | 202. /pde:firecrawl Standalone Skill + Agent + Browser Sandbox | v0.25 | 2/2 | Complete    | 2026-03-31 |
-| 203. Change Tracking + Event Bus | v0.25 | 0/2 | Not started | - |
+| 203. Change Tracking + Event Bus | v0.25 | 1/2 | In Progress|  |

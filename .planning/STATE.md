@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v0.25
 milestone_name: Firecrawl Deep Web Integration
-status: verifying
-stopped_at: Completed 202-02
-last_updated: "2026-03-31T05:28:28.617Z"
+status: executing
+stopped_at: Completed 203-01-PLAN.md
+last_updated: "2026-03-31T05:43:04.236Z"
 last_activity: 2026-03-31
 progress:
   total_phases: 21
@@ -21,13 +21,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-30)
 
 **Core value:** Any user can go from idea to shipped product through a single platform that handles the full development lifecycle.
-**Current focus:** Phase 202 — /pde:firecrawl Standalone Skill + Agent + Browser Sandbox
+**Current focus:** Phase 203 — Change Tracking + Event Bus
 
 ## Current Position
 
-Phase: 202
-Plan: Not started
-Status: Phase complete — ready for verification
+Phase: 203 (Change Tracking + Event Bus) — EXECUTING
+Plan: 2 of 2
+Status: Ready to execute
 Last activity: 2026-03-31
 
 Progress: [███░░░░░░░] 33%
@@ -76,6 +76,8 @@ Progress: [███░░░░░░░] 33%
 - [Phase 202]: interact subcommand fully documented in routing prose with consent gate — full implementation deferred to Plan 02 as planned
 - [Phase 202]: interact consent gate includes scrape-1-credit note for full cost transparency before session launch
 - [Phase 202]: dual scrapeId path check (response.metadata.scrapeId AND response.scrapeId) guards against MCP response format variation
+- [Phase 203]: writeDiff placed in firecrawl-cache.cjs (not inline bash) for testability and reuse; git-diff mode free default, JSON mode opt-in with cost warning; diff files to snapshots/ as {slug}-diff.md
+- [Phase 203]: First watch call uses markdown-only scrape (no changeTracking) to avoid silent empty diffs on baseline establishment (Pitfall 3)
 
 ### Pending Todos
 
@@ -89,7 +91,7 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-31T05:25:27.382Z
-Stopped at: Completed 202-02
+Last session: 2026-03-31T05:43:04.232Z
+Stopped at: Completed 203-01-PLAN.md
 Resume with: /gsd:execute-phase 200
 Resume file: None
