@@ -644,7 +644,7 @@ Plans:
   3. Design reference URLs passed to wireframe, mockup, or system workflows are scraped via Firecrawl and their content feeds into the design context — the workflow does not fetch the URL inline via WebFetch when Firecrawl is available
 **Plans**: 2 plans
 Plans:
-- [ ] 201-01-PLAN.md -- brief --source-url + pde-phase-researcher ## Web Evidence (PIP-04, PIP-02)
+- [x] 201-01-PLAN.md -- brief --source-url + pde-phase-researcher ## Web Evidence (PIP-04, PIP-02)
 - [ ] 201-02-PLAN.md -- wireframe/mockup/system --design-reference-url Firecrawl integration (PIP-03)
 
 ### Phase 202: /pde:firecrawl Standalone Skill + Agent + Browser Sandbox
@@ -724,6 +724,6 @@ Plans:
 | 198. Foundation — MCP Registration + Credit Guards | v0.25 | 3/3 | Complete | 2026-03-30 |
 | 199. Data Layer — Cache Module + Source Pipeline | v0.25 | 2/2 | Complete   | 2026-03-30 |
 | 200. Core Scraping Tools + Competitive/Recommend Integration | v0.25 | 2/2 | Complete    | 2026-03-31 |
-| 201. Brief + Phase Researcher + Design Reference Integration | v0.25 | 0/2 | Not started | - |
+| 201. Brief + Phase Researcher + Design Reference Integration | v0.25 | 1/2 | In Progress|  |
 | 202. /pde:firecrawl Standalone Skill + Agent + Browser Sandbox | v0.25 | 0/2 | Not started | - |
 | 203. Change Tracking + Event Bus | v0.25 | 0/2 | Not started | - |
