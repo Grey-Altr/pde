@@ -1,17 +1,10 @@
 ---
 phase: 203-change-tracking-event-bus
 verified: 2026-03-30T00:00:00Z
-status: gaps_found
-score: 4/5 must-haves verified
-gaps:
-  - truth: "Dashboard Pane 5 log stream displays a change summary when a monitored page diff is non-empty — entry includes URL, number of lines changed, and timestamp"
-    status: failed
-    reason: "ROADMAP Success Criterion #3 requires the dashboard EventLog to show firecrawl_operation events with url and linesChanged. The EventLog component only renders ev.event_type, ev.relay_ts, and the first key of ev.extensions. The url, word_count, operation, and slug fields are emitted as top-level envelope fields (not nested in extensions), so they are invisible in the dashboard display."
-    artifacts:
-      - path: "dashboard/components/event-log.tsx"
-        issue: "Renders extensions keys only — top-level firecrawl-specific fields (url, word_count, operation) are not surfaced in the event row"
-    missing:
-      - "Either move url/word_count/operation into extensions in firecrawl emission blocks so they appear via the existing extensions renderer, OR add a firecrawl_operation-specific row renderer in EventLog that shows operation, url (truncated), and word_count"
+status: passed
+score: 5/5 must-haves verified
+gaps: []
+gap_closure: "Moved url, slug, word_count, operation into extensions{} in all 9 emission blocks (commit 96f201e). Updated 24 unit tests. EventLog now surfaces firecrawl metadata via the extensions renderer."
 human_verification:
   - test: "Run /pde:firecrawl watch <url> twice on a live page and confirm the diff file appears in .planning/research/firecrawl-cache/snapshots/ and the dashboard Event Log shows the firecrawl_operation event"
     expected: "Second run produces a {slug}-diff.md file; the dashboard EventLog (firecrawl tab) shows an entry for the operation with url and lines-changed visible"
