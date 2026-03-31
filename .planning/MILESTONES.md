@@ -1,5 +1,15 @@
 # Milestones
 
+## v0.25 Firecrawl Deep Web Integration (Shipped: 2026-03-31)
+
+**Phases completed:** 0 phases, 0 plans, 0 tasks
+
+**Key accomplishments:**
+
+- (none recorded)
+
+---
+
 ## v0.24 Cloud Dispatch & State Sync (Shipped: 2026-03-30)
 
 **Phases completed:** 8 phases, 15 plans, 17 tasks
