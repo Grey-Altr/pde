@@ -56,18 +56,19 @@ function validateEventEnvelope(envelope) {
   assert.strictEqual(typeof envelope.session_id, 'string', 'session_id must be a string');
   assert.ok(envelope.session_id.length > 0, 'session_id must not be empty');
 
-  assert.strictEqual(typeof envelope.url, 'string', 'url must be a string');
-  assert.ok(envelope.url.length > 0, 'url must not be empty');
-
-  assert.strictEqual(typeof envelope.slug, 'string', 'slug must be a string');
-  assert.ok(envelope.slug.length > 0, 'slug must not be empty');
-
-  assert.strictEqual(typeof envelope.word_count, 'number', 'word_count must be a number');
-  assert.ok(envelope.word_count >= 0, 'word_count must be >= 0');
-
-  assert.ok(VALID_OPERATIONS.includes(envelope.operation), `operation must be one of: ${VALID_OPERATIONS.join(', ')}`);
-
   assert.strictEqual(typeof envelope.extensions, 'object', 'extensions must be an object');
+  assert.ok(envelope.extensions !== null, 'extensions must not be null');
+
+  assert.strictEqual(typeof envelope.extensions.url, 'string', 'extensions.url must be a string');
+  assert.ok(envelope.extensions.url.length > 0, 'extensions.url must not be empty');
+
+  assert.strictEqual(typeof envelope.extensions.slug, 'string', 'extensions.slug must be a string');
+  assert.ok(envelope.extensions.slug.length > 0, 'extensions.slug must not be empty');
+
+  assert.strictEqual(typeof envelope.extensions.word_count, 'number', 'extensions.word_count must be a number');
+  assert.ok(envelope.extensions.word_count >= 0, 'extensions.word_count must be >= 0');
+
+  assert.ok(VALID_OPERATIONS.includes(envelope.extensions.operation), `extensions.operation must be one of: ${VALID_OPERATIONS.join(', ')}`);
 }
 
 // ── Session ID reading logic (mirrors workflow emission blocks) ────────────────
@@ -102,11 +103,7 @@ test('event_type is "firecrawl_operation"', () => {
     ts: new Date().toISOString(),
     event_type: 'firecrawl_operation',
     session_id: 'test-session-id',
-    url: 'https://example.com/pricing',
-    slug: 'example-com-pricing',
-    word_count: 500,
-    operation: 'scrape',
-    extensions: {},
+    extensions: { url: 'https://example.com/pricing', slug: 'example-com-pricing', word_count: 500, operation: 'scrape' },
   };
   assert.strictEqual(envelope.event_type, 'firecrawl_operation');
 });
@@ -118,11 +115,7 @@ test('wrong event_type fails validation', () => {
       ts: new Date().toISOString(),
       event_type: 'tool_called',  // wrong
       session_id: 'test-session-id',
-      url: 'https://example.com',
-      slug: 'example-com',
-      word_count: 0,
-      operation: 'scrape',
-      extensions: {},
+      extensions: { url: 'https://example.com', slug: 'example-com', word_count: 0, operation: 'scrape' },
     };
     validateEventEnvelope(envelope);
   }, /firecrawl_operation/);
@@ -137,11 +130,7 @@ test('valid scrape envelope passes validation', () => {
     ts: new Date().toISOString(),
     event_type: 'firecrawl_operation',
     session_id: 'ae4d3cf7-83bb-4f3d-906e-749f39fc2f47',
-    url: 'https://example.com/pricing',
-    slug: 'example-com-pricing',
-    word_count: 1234,
-    operation: 'scrape',
-    extensions: {},
+    extensions: { url: 'https://example.com/pricing', slug: 'example-com-pricing', word_count: 1234, operation: 'scrape' },
   };
   validateEventEnvelope(envelope);  // should not throw
 });
@@ -153,11 +142,7 @@ test('missing url field fails validation', () => {
       ts: new Date().toISOString(),
       event_type: 'firecrawl_operation',
       session_id: 'test',
-      // url missing
-      slug: 'example-com',
-      word_count: 0,
-      operation: 'scrape',
-      extensions: {},
+      extensions: { slug: 'example-com', word_count: 0, operation: 'scrape' },
     };
     validateEventEnvelope(envelope);
   });
@@ -170,11 +155,7 @@ test('missing slug field fails validation', () => {
       ts: new Date().toISOString(),
       event_type: 'firecrawl_operation',
       session_id: 'test',
-      url: 'https://example.com',
-      // slug missing
-      word_count: 0,
-      operation: 'scrape',
-      extensions: {},
+      extensions: { url: 'https://example.com', word_count: 0, operation: 'scrape' },
     };
     validateEventEnvelope(envelope);
   });
@@ -187,11 +168,7 @@ test('missing word_count field fails validation', () => {
       ts: new Date().toISOString(),
       event_type: 'firecrawl_operation',
       session_id: 'test',
-      url: 'https://example.com',
-      slug: 'example-com',
-      // word_count missing
-      operation: 'scrape',
-      extensions: {},
+      extensions: { url: 'https://example.com', slug: 'example-com', operation: 'scrape' },
     };
     validateEventEnvelope(envelope);
   });
@@ -204,11 +181,7 @@ test('missing operation field fails validation', () => {
       ts: new Date().toISOString(),
       event_type: 'firecrawl_operation',
       session_id: 'test',
-      url: 'https://example.com',
-      slug: 'example-com',
-      word_count: 0,
-      // operation missing
-      extensions: {},
+      extensions: { url: 'https://example.com', slug: 'example-com', word_count: 0 },
     };
     validateEventEnvelope(envelope);
   });
@@ -262,11 +235,7 @@ test('word_count of 0 is valid (map/extract operations)', () => {
     ts: new Date().toISOString(),
     event_type: 'firecrawl_operation',
     session_id: 'test',
-    url: 'https://example.com',
-    slug: 'example-com',
-    word_count: 0,
-    operation: 'map',
-    extensions: {},
+    extensions: { url: 'https://example.com', slug: 'example-com', word_count: 0, operation: 'map' },
   };
   validateEventEnvelope(envelope);
 });
@@ -277,11 +246,7 @@ test('word_count of positive integer is valid', () => {
     ts: new Date().toISOString(),
     event_type: 'firecrawl_operation',
     session_id: 'test',
-    url: 'https://example.com',
-    slug: 'example-com',
-    word_count: 2500,
-    operation: 'scrape',
-    extensions: {},
+    extensions: { url: 'https://example.com', slug: 'example-com', word_count: 2500, operation: 'scrape' },
   };
   validateEventEnvelope(envelope);
 });
@@ -293,11 +258,7 @@ test('word_count as string fails validation', () => {
       ts: new Date().toISOString(),
       event_type: 'firecrawl_operation',
       session_id: 'test',
-      url: 'https://example.com',
-      slug: 'example-com',
-      word_count: '1234',  // string, not number
-      operation: 'scrape',
-      extensions: {},
+      extensions: { url: 'https://example.com', slug: 'example-com', word_count: '1234', operation: 'scrape' },  // word_count is string, not number
     };
     validateEventEnvelope(envelope);
   });
@@ -313,11 +274,7 @@ VALID_OPERATIONS.forEach(op => {
       ts: new Date().toISOString(),
       event_type: 'firecrawl_operation',
       session_id: 'test',
-      url: 'https://example.com',
-      slug: 'example-com',
-      word_count: 0,
-      operation: op,
-      extensions: {},
+      extensions: { url: 'https://example.com', slug: 'example-com', word_count: 0, operation: op },
     };
     validateEventEnvelope(envelope);
   });
@@ -330,11 +287,7 @@ test('invalid operation "agent-status" fails (no event for read-only check)', ()
       ts: new Date().toISOString(),
       event_type: 'firecrawl_operation',
       session_id: 'test',
-      url: 'https://example.com',
-      slug: 'example-com',
-      word_count: 0,
-      operation: 'agent-status',  // invalid — read-only, no event emitted
-      extensions: {},
+      extensions: { url: 'https://example.com', slug: 'example-com', word_count: 0, operation: 'agent-status' },  // invalid — read-only, no event emitted
     };
     validateEventEnvelope(envelope);
   });
@@ -355,11 +308,7 @@ test('safeAppendEvent writes event to NDJSON file with correct fields', () => {
     ts: new Date().toISOString(),
     event_type: 'firecrawl_operation',
     session_id: testSessionId,
-    url: 'https://example.com/pricing',
-    slug: 'example-com-pricing',
-    word_count: 850,
-    operation: 'scrape',
-    extensions: {},
+    extensions: { url: 'https://example.com/pricing', slug: 'example-com-pricing', word_count: 850, operation: 'scrape' },
   };
 
   safeAppendEvent(testSessionId, envelope);
@@ -371,10 +320,10 @@ test('safeAppendEvent writes event to NDJSON file with correct fields', () => {
 
   assert.strictEqual(parsed.event_type, 'firecrawl_operation');
   assert.strictEqual(parsed.session_id, testSessionId);
-  assert.strictEqual(parsed.url, 'https://example.com/pricing');
-  assert.strictEqual(parsed.slug, 'example-com-pricing');
-  assert.strictEqual(parsed.word_count, 850);
-  assert.strictEqual(parsed.operation, 'scrape');
+  assert.strictEqual(parsed.extensions.url, 'https://example.com/pricing');
+  assert.strictEqual(parsed.extensions.slug, 'example-com-pricing');
+  assert.strictEqual(parsed.extensions.word_count, 850);
+  assert.strictEqual(parsed.extensions.operation, 'scrape');
 
   // Clean up
   try { fs.unlinkSync(logPath); } catch {}
@@ -388,11 +337,7 @@ test('safeAppendEvent does not throw on error (swallows silently)', () => {
       ts: new Date().toISOString(),
       event_type: 'firecrawl_operation',
       session_id: '',
-      url: 'https://example.com',
-      slug: 'example-com',
-      word_count: 0,
-      operation: 'scrape',
-      extensions: {},
+      extensions: { url: 'https://example.com', slug: 'example-com', word_count: 0, operation: 'scrape' },
     });
   });
 });

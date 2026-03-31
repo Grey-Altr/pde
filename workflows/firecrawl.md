@@ -105,11 +105,7 @@ safeAppendEvent(sessionId, {
   ts: new Date().toISOString(),
   event_type: 'firecrawl_operation',
   session_id: sessionId,
-  url: 'THE_URL',
-  slug: 'THE_SLUG',
-  word_count: wordCount,
-  operation: 'scrape',
-  extensions: {}
+  extensions: { url: 'THE_URL', slug: 'THE_SLUG', word_count: wordCount, operation: 'scrape' }
 });
 "
 ```
@@ -212,11 +208,7 @@ safeAppendEvent(sessionId, {
   ts: new Date().toISOString(),
   event_type: 'firecrawl_operation',
   session_id: sessionId,
-  url: 'QUERY_AS_URL',
-  slug: 'search-QUERY_SLUG',
-  word_count: wordCount,
-  operation: 'search',
-  extensions: {}
+  extensions: { url: 'QUERY_AS_URL', slug: 'search-QUERY_SLUG', word_count: wordCount, operation: 'search' }
 });
 "
 ```
@@ -300,11 +292,7 @@ safeAppendEvent(sessionId, {
   ts: new Date().toISOString(),
   event_type: 'firecrawl_operation',
   session_id: sessionId,
-  url: 'THE_URL',
-  slug: slug,
-  word_count: 0,
-  operation: 'map',
-  extensions: {}
+  extensions: { url: 'THE_URL', slug: slug, word_count: 0, operation: 'map' }
 });
 "
 ```
@@ -399,11 +387,7 @@ safeAppendEvent(sessionId, {
   ts: new Date().toISOString(),
   event_type: 'firecrawl_operation',
   session_id: sessionId,
-  url: 'THE_URL',
-  slug: slug,
-  word_count: 0,
-  operation: 'extract',
-  extensions: {}
+  extensions: { url: 'THE_URL', slug: slug, word_count: 0, operation: 'extract' }
 });
 "
 ```
@@ -537,11 +521,7 @@ safeAppendEvent(sessionId, {
   ts: new Date().toISOString(),
   event_type: 'firecrawl_operation',
   session_id: sessionId,
-  url: 'THE_URL',
-  slug: slug,
-  word_count: TOTAL_WORD_COUNT,
-  operation: 'crawl',
-  extensions: {}
+  extensions: { url: 'THE_URL', slug: slug, word_count: TOTAL_WORD_COUNT, operation: 'crawl' }
 });
 "
 ```
@@ -704,11 +684,7 @@ safeAppendEvent(sessionId, {
   ts: new Date().toISOString(),
   event_type: 'firecrawl_operation',
   session_id: sessionId,
-  url: 'firecrawl-agent-JOB_ID',
-  slug: 'firecrawl-agent-JOB_ID',
-  word_count: wordCount,
-  operation: 'agent',
-  extensions: {}
+  extensions: { url: 'firecrawl-agent-JOB_ID', slug: 'firecrawl-agent-JOB_ID', word_count: wordCount, operation: 'agent' }
 });
 "
 ```
@@ -909,11 +885,7 @@ safeAppendEvent(sessionId, {
   ts: new Date().toISOString(),
   event_type: 'firecrawl_operation',
   session_id: sessionId,
-  url: 'THE_URL',
-  slug: slug,
-  word_count: wordCount,
-  operation: 'interact',
-  extensions: {}
+  extensions: { url: 'THE_URL', slug: slug, word_count: wordCount, operation: 'interact' }
 });
 "
 ```
@@ -1033,11 +1005,7 @@ safeAppendEvent(sessionId, {
   ts: new Date().toISOString(),
   event_type: 'firecrawl_operation',
   session_id: sessionId,
-  url: 'URL_FROM_ARGS',
-  slug: 'SLUG_FROM_STEP4',
-  word_count: wordCount,
-  operation: 'watch',
-  extensions: {}
+  extensions: { url: 'URL_FROM_ARGS', slug: 'SLUG_FROM_STEP4', word_count: wordCount, operation: 'watch' }
 });
 "
 ```
@@ -1174,11 +1142,7 @@ safeAppendEvent(sessionId, {
   ts: new Date().toISOString(),
   event_type: 'firecrawl_operation',
   session_id: sessionId,
-  url: 'URL_FROM_ARGS',
-  slug: 'SLUG_FROM_STEP4',
-  word_count: wordCount,
-  operation: 'watch',
-  extensions: {}
+  extensions: { url: 'URL_FROM_ARGS', slug: 'SLUG_FROM_STEP4', word_count: wordCount, operation: 'watch' }
 });
 "
 ```
