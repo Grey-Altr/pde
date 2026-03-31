@@ -63,6 +63,13 @@ tail -F "${NDJSON}" 2>/dev/null | while IFS= read -r line; do
       # Cyan — experiment lifecycle events (Phase 106)
       printf "${prefix}\033[36m[%s] %-20s %s\033[0m\n" "$ts" "$event_type" "$slug"
       ;;
+    firecrawl_operation)
+      # Cyan — Firecrawl operation events (Phase 203)
+      op=$(echo "$line" | jq -r '.operation // ""' 2>/dev/null)
+      wc=$(echo "$line" | jq -r '.word_count // 0' 2>/dev/null)
+      url_short=$(echo "$line" | jq -r '.url // ""' 2>/dev/null | sed 's|https\?://||' | cut -c1-40)
+      printf "${prefix}\033[36m[%s] %-20s %-8s %s (%s words)\033[0m\n" "$ts" "$event_type" "$op" "$url_short" "$wc"
+      ;;
     *)
       # Default gray for unknown event types — forward-compatible
       printf "${prefix}\033[90m[%s] %s\033[0m\n" "$ts" "$event_type"

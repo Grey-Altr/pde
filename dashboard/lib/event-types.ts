@@ -8,6 +8,7 @@ export const EVENT_FILTER_GROUPS = {
   errors:    ['error'],
   tokens:    ['token_usage'],
   approvals: ['approval_request', 'approval_response'],
+  firecrawl: ['firecrawl_operation'],
 } as const;
 
 export type FilterGroup = keyof typeof EVENT_FILTER_GROUPS;
