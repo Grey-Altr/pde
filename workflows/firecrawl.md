@@ -1,5 +1,5 @@
 <purpose>
-Direct Firecrawl MCP tool access — scrape, search, map, extract, and crawl with credit guards, cache integration, and crawl cap enforcement. All Firecrawl output flows through firecrawl-cache.cjs for disk I/O.
+Direct Firecrawl MCP tool access — scrape, search, map, extract, crawl, autonomous agent research, and browser sandbox (interact) with credit guards, consent gates, cache integration, and crawl cap enforcement. All Firecrawl output flows through firecrawl-cache.cjs for disk I/O. Agent and interact subcommands require explicit user consent before dispatch due to variable and potentially high credit costs.
 </purpose>
 
 <required_reading>
@@ -18,6 +18,9 @@ Parse the first token of $ARGUMENTS to determine the subcommand:
 - `map` → [Subcommand: map](#subcommand-map-url---search-filter---subdomains)
 - `extract` → [Subcommand: extract](#subcommand-extract-url---schema-json)
 - `crawl` → [Subcommand: crawl](#subcommand-crawl-url---limit-n---max-depth-n)
+- `agent` → [Subcommand: agent](#subcommand-agent-query---max-credits-n---model-minipro---urls-url1url2)
+- `agent-status` → [Subcommand: agent-status](#subcommand-agent-status-job_id)
+- `interact` → [Subcommand: interact](#subcommand-interact-url---playwright-code_file---prompt-text)
 - No subcommand or unrecognized → [Usage help](#default-no-subcommand-or-help)
 
 ---
@@ -406,6 +409,320 @@ Crawled {N} pages from {url}
 
 ---
 
+### Subcommand: agent QUERY [--max-credits N] [--model mini|pro] [--urls URL1,URL2]
+
+**Purpose:** Delegate autonomous natural language web research to Firecrawl's agent with a mandatory consent gate and credit cap. The agent performs multi-domain research across multiple URLs and returns structured results.
+
+**Step 1: Parse arguments**
+
+```
+SET QUERY = all tokens before first -- flag (or all tokens if no flags)
+SET MAX_CREDITS = value after --max-credits (default: 500)
+SET MODEL = value after --model ("spark-1-mini" default, "spark-1-pro" if "pro" specified)
+SET URLS = comma-split value after --urls (optional, list of URLs to restrict research to)
+SET SCHEMA_STRING = value after --schema (optional, JSON schema for structured output)
+```
+
+If `--schema` is provided, parse SCHEMA_STRING as JSON. If invalid JSON: Display `Error: Invalid JSON in --schema: {parse error}` and halt.
+
+**Step 2: Credit guard check**
+
+```bash
+node --input-type=module <<'PROBE_EOF'
+import { createRequire } from 'module';
+const req = createRequire(import.meta.url);
+const { probeFirecrawl } = req(`${process.env.CLAUDE_PLUGIN_ROOT}/bin/lib/mcp-bridge.cjs`);
+const result = probeFirecrawl();
+process.stdout.write(JSON.stringify(result));
+PROBE_EOF
+```
+
+If `result.available === false`: Display `Error: Firecrawl unavailable — {result.reason}. Cannot dispatch agent.` Halt.
+If `result.warning === true`: Display `Warning: Firecrawl credits at {result.credits.remaining}/{result.credits.total} — approaching limit. Agent may use up to {MAX_CREDITS} credits.` Continue.
+
+**Step 3: Consent gate (REQUIRED — agent does NOT proceed without explicit user confirmation)**
+
+Display the following consent prompt:
+
+```
+Firecrawl Agent Research
+  Query: {QUERY}
+  Credit cap: {MAX_CREDITS} (use --max-credits N to adjust)
+  Model: {MODEL}
+  Current balance: {result.credits.remaining} credits
+  Estimated cost: up to {MAX_CREDITS} credits (most runs: a few hundred)
+
+  Note: maxCredits may be advisory-only if the MCP tool does not accept this parameter.
+  The consent gate is the primary safety mechanism regardless.
+
+  Proceed? Type "yes" to confirm, anything else to cancel.
+```
+
+Wait for user response.
+
+IF user does not respond "yes": Display "Agent dispatch cancelled." and halt immediately. Do NOT proceed to Step 4.
+
+**Step 4: Acquire semaphore**
+
+```bash
+node -e "const m = require('./bin/lib/mcp-bridge.cjs'); const s = m.acquireFirecrawlSemaphore(); console.log(JSON.stringify({lockPath: s.lockPath}));"
+```
+
+Record the semaphore handle. Release after Step 7.
+
+**Step 5: Call mcp__firecrawl__firecrawl_agent**
+
+```
+mcp__firecrawl__firecrawl_agent({
+  prompt: QUERY,
+  maxCredits: MAX_CREDITS,
+  ...(URLS && URLS.length > 0 && { urls: URLS }),
+  ...(SCHEMA_STRING && { schema: PARSED_SCHEMA })
+})
+```
+
+This returns `{ id: "agent-job-xxxx" }` immediately (asynchronous dispatch). Record JOB_ID from `result.id`.
+
+**Step 6: Poll mcp__firecrawl__firecrawl_agent_status (5-minute timeout)**
+
+Track start time (POLL_START). Poll every 15 seconds:
+
+```
+mcp__firecrawl__firecrawl_agent_status({ id: JOB_ID })
+```
+
+After each poll:
+- Calculate elapsed = (current time - POLL_START) in seconds.
+- If status is `processing`: Display `Agent processing... ({elapsed}s elapsed)` Continue polling.
+- If status is `completed`: Exit loop and continue to Step 7.
+- If status is `failed`: Display `Agent job failed: {result.error}` Release semaphore. Halt.
+- If status is `cancelled`: Display `Agent job was cancelled.` Release semaphore. Halt.
+- If elapsed > 300 seconds (5 minutes): Display the following and halt:
+  ```
+  Agent timed out after 5 minutes. Job is still running.
+  Job ID: {JOB_ID}
+  To check status later: /pde:firecrawl agent-status {JOB_ID}
+  Results are retained for 24 hours.
+  ```
+  Release semaphore. Halt.
+
+**Step 7: Track credits + release semaphore**
+
+```bash
+node -e "const m = require('./bin/lib/mcp-bridge.cjs'); m.incrementFirecrawlUsage(CREDITS_USED || MAX_CREDITS);"
+```
+
+Replace CREDITS_USED with `result.creditsUsed` from the completed agent status response. If `result.creditsUsed` is absent or zero, fall back to MAX_CREDITS as a conservative over-deduct. Release semaphore.
+
+**Step 8: Cache results**
+
+```bash
+node -e "
+const c = require('./bin/lib/firecrawl-cache.cjs');
+const content = JSON.stringify(RESULT_DATA, null, 2);
+const r = c.writeSource('firecrawl-agent-JOB_ID', content,
+  { type: 'agent', added_by: 'pde:firecrawl agent' });
+console.log(JSON.stringify(r));
+"
+```
+
+Replace RESULT_DATA with `result.data` from the completed status response. Replace JOB_ID with the actual job ID string.
+
+**Step 9: Display results**
+
+```
+Agent completed — {JOB_ID}
+  Credits used: {result.creditsUsed}
+  Cached at: .planning/research/firecrawl-cache/scrapes/firecrawl-agent-{JOB_ID}.md
+
+  {pretty-printed result.data}
+```
+
+---
+
+### Subcommand: agent-status JOB_ID
+
+**Purpose:** Check the status of an in-progress or completed agent job and display results when complete.
+
+**Step 1: Parse arguments**
+
+```
+SET JOB_ID = first argument after "agent-status"
+```
+
+If JOB_ID is missing: Display the following and halt:
+```
+Error: job ID required.
+Usage: /pde:firecrawl agent-status <job-id>
+Example: /pde:firecrawl agent-status agent-job-abc123
+```
+
+**Step 2: Call mcp__firecrawl__firecrawl_agent_status**
+
+```
+mcp__firecrawl__firecrawl_agent_status({ id: JOB_ID })
+```
+
+**Step 3: Display result based on status**
+
+If status is `processing`:
+```
+Agent {JOB_ID} is still running.
+Re-run /pde:firecrawl agent-status {JOB_ID} to check again.
+Note: Firecrawl retains results for 24 hours after completion.
+```
+
+If status is `completed`:
+```
+Agent {JOB_ID} completed.
+  Credits used: {result.creditsUsed}
+
+  {pretty-printed result.data}
+```
+
+If status is `failed`:
+```
+Agent {JOB_ID} failed.
+  Error: {result.error}
+```
+
+If status is `cancelled`:
+```
+Agent job {JOB_ID} was cancelled.
+```
+
+---
+
+### Subcommand: interact URL [--playwright CODE_FILE | --prompt TEXT] [--language node|python|bash]
+
+**Purpose:** Launch a cloud browser sandbox session via Firecrawl to extract content from auth-gated or JavaScript-heavy pages. Supports both natural language prompts and Playwright code execution inside the live session.
+
+**Note:** This subcommand is documented here for routing purposes. Full implementation is in Plan 02.
+
+**Step 1: Parse arguments**
+
+```
+SET URL = first argument after "interact"
+SET CODE_FILE = path after --playwright (optional)
+SET NATURAL_PROMPT = value after --prompt (optional)
+SET LANGUAGE = value after --language (default: "node")
+```
+
+If neither `--playwright` nor `--prompt` is provided: Display the following and halt:
+```
+Error: --playwright or --prompt is required for the interact subcommand.
+Usage: /pde:firecrawl interact URL [--playwright CODE_FILE | --prompt "TEXT"] [--language node|python|bash]
+Example: /pde:firecrawl interact https://example.com --prompt "extract the pricing table"
+Example: /pde:firecrawl interact https://app.example.com --playwright my-script.js --language node
+```
+
+**Step 2: Credit guard check**
+
+```bash
+node --input-type=module <<'PROBE_EOF'
+import { createRequire } from 'module';
+const req = createRequire(import.meta.url);
+const { probeFirecrawl } = req(`${process.env.CLAUDE_PLUGIN_ROOT}/bin/lib/mcp-bridge.cjs`);
+const result = probeFirecrawl();
+process.stdout.write(JSON.stringify(result));
+PROBE_EOF
+```
+
+If `result.available === false`: Display `Error: Firecrawl unavailable — {result.reason}. Cannot launch browser session.` Halt.
+If `result.warning === true`: Display credit warning noting browser sessions cost 2–7 credits/minute. Continue.
+
+**Step 3: Consent gate (REQUIRED — interact does NOT proceed without explicit user confirmation)**
+
+Determine rate: If `--prompt` is provided (AI-assisted), rate = 7 credits/min. If `--playwright` only, rate = 2 credits/min.
+
+Display:
+```
+Firecrawl Browser Sandbox
+  URL: {URL}
+  Session TTL: 10 minutes (auto-terminated)
+  Idle TTL: 5 minutes (auto-terminated if no activity)
+  Credit cost: {rate} credits/minute
+  Estimated max cost (full 10min session): {10 * rate} credits
+  Current balance: {result.credits.remaining} credits
+
+  Proceed? Type "yes" to confirm, anything else to cancel.
+```
+
+IF user does not respond "yes": Display "Browser session cancelled." and halt immediately. Do NOT proceed to Step 4.
+
+**Step 4: Acquire semaphore**
+
+```bash
+node -e "const m = require('./bin/lib/mcp-bridge.cjs'); const s = m.acquireFirecrawlSemaphore(); console.log(JSON.stringify({lockPath: s.lockPath}));"
+```
+
+**Step 5: Scrape URL to obtain scrapeId**
+
+```
+mcp__firecrawl__firecrawl_scrape({
+  url: URL,
+  onlyMainContent: false
+})
+```
+
+Extract `scrapeId` from `response.metadata.scrapeId`. Track 1 credit for the scrape:
+
+```bash
+node -e "const m = require('./bin/lib/mcp-bridge.cjs'); m.incrementFirecrawlUsage(1);"
+```
+
+If `scrapeId` is absent from response: Display `Error: Could not obtain scrapeId from initial scrape. The interact subcommand requires a valid scrapeId.` Release semaphore. Halt.
+
+**Step 6: Read code if --playwright flag used**
+
+If `--playwright` provided: Read CODE_FILE content as CODE_STRING.
+If `--prompt` provided: CODE_STRING = null; NATURAL_PROMPT is used as the prompt parameter.
+
+**Step 7: Call mcp__firecrawl__firecrawl_interact**
+
+```
+mcp__firecrawl__firecrawl_interact({
+  scrapeId: SCRAPE_ID,
+  ...(CODE_STRING && { code: CODE_STRING, language: LANGUAGE }),
+  ...(NATURAL_PROMPT && { prompt: NATURAL_PROMPT }),
+  timeout: 30
+})
+```
+
+**Step 8: Track credits + release semaphore**
+
+```bash
+node -e "const m = require('./bin/lib/mcp-bridge.cjs'); m.incrementFirecrawlUsage(2);"
+```
+
+Track 2 credits as a floor estimate (conservative minimum). Actual billing is determined by Firecrawl cloud based on session duration and mode. Users should verify actual usage in the Firecrawl dashboard. Release semaphore.
+
+**Step 9: Cache result**
+
+```bash
+node -e "
+const c = require('./bin/lib/firecrawl-cache.cjs');
+const r = c.writeSource('SCRAPE_ID', RESULT_CONTENT,
+  { type: 'interact', added_by: 'pde:firecrawl interact' });
+console.log(JSON.stringify(r));
+"
+```
+
+Replace SCRAPE_ID with the actual scrape ID and RESULT_CONTENT with the returned markdown or structured data.
+
+**Step 10: Display result**
+
+```
+Browser session completed
+  Session: {SCRAPE_ID}
+  Cached at: .planning/research/firecrawl-cache/scrapes/{slug}.md
+  Note: Session TTL is 10 minutes. Re-run /pde:firecrawl interact {URL} for a new session.
+
+  {result markdown or structured data}
+```
+
+---
+
 ### Default: No subcommand or help
 
 Display usage:
@@ -438,6 +755,23 @@ Subcommands:
     Cost: 1 credit/page
     Default limit: 50, default max-depth: 3
 
+  agent QUERY [--max-credits N] [--model mini|pro] [--urls URL1,URL2]
+    Delegate autonomous multi-domain web research to Firecrawl's agent.
+    Requires explicit consent before dispatch. Results cached on completion.
+    Cost: variable (up to max-credits cap, default 500)
+    Default max-credits: 500 (use --max-credits N to adjust)
+
+  agent-status JOB_ID
+    Check the status of an in-progress or completed agent job and display results.
+    Cost: free (status check only)
+
+  interact URL [--playwright CODE_FILE | --prompt TEXT] [--language node|python|bash]
+    Launch a cloud browser sandbox session for auth-gated or JS-heavy content.
+    Requires explicit consent before dispatch. Session auto-terminates at TTL.
+    Cost: 2–7 credits/minute (code-only: 2/min; with AI prompt: 7/min)
+    Session TTL: 10 minutes total, 5 minutes idle
+    (Implemented in Plan 02)
+
 Examples:
   /pde:firecrawl scrape https://example.com/docs
   /pde:firecrawl scrape https://example.com/pricing --force
@@ -446,8 +780,12 @@ Examples:
   /pde:firecrawl map https://example.com --search pricing --subdomains
   /pde:firecrawl extract https://example.com/pricing --schema '{"type":"object","properties":{"tiers":{"type":"array"},"price":{"type":"string"}}}'
   /pde:firecrawl crawl https://example.com --limit 20 --max-depth 2
+  /pde:firecrawl agent "research React server components vs Next.js App Router" --max-credits 500
+  /pde:firecrawl agent-status agent-job-abc123
+  /pde:firecrawl interact https://example.com --prompt "extract the pricing table"
 
 Credit guard: Every subcommand checks Firecrawl credit balance before calling the API.
+Consent gate: agent and interact subcommands require explicit "yes" confirmation before dispatch.
 Cache: All output is stored in .planning/research/firecrawl-cache/ via firecrawl-cache.cjs.
 Cap: Crawl requests above FIRECRAWL_CRAWL_MAX_PAGES are automatically truncated.
 ```
