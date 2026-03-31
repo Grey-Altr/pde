@@ -21,6 +21,7 @@ Parse the first token of $ARGUMENTS to determine the subcommand:
 - `agent` → [Subcommand: agent](#subcommand-agent-query---max-credits-n---model-minipro---urls-url1url2)
 - `agent-status` → [Subcommand: agent-status](#subcommand-agent-status-job_id)
 - `interact` → [Subcommand: interact](#subcommand-interact-url---playwright-code_file---prompt-text)
+- `watch` → [Subcommand: watch](#subcommand-watch-url---json-diff)
 - No subcommand or unrecognized → [Usage help](#default-no-subcommand-or-help)
 
 ---
@@ -713,6 +714,213 @@ Browser session completed
 
 ---
 
+### Subcommand: watch URL [--json-diff]
+
+**Purpose:** Track changes on a competitor or dependency page. First call establishes a baseline snapshot. Subsequent calls produce a semantic markdown diff showing what changed since the baseline.
+
+**Step 1: Parse arguments**
+
+```
+SET URL = first argument after "watch"
+SET JSON_DIFF_MODE = true if --json-diff flag is present, else false
+```
+
+If URL is missing: Display the following and halt:
+```
+Error: URL is required for the watch subcommand.
+Usage: /pde:firecrawl watch URL [--json-diff]
+Example: /pde:firecrawl watch https://competitor.com/pricing
+```
+
+**Step 2: Credit guard check**
+
+```bash
+node --input-type=module <<'PROBE_EOF'
+import { createRequire } from 'module';
+const req = createRequire(import.meta.url);
+const { probeFirecrawl } = req(`${process.env.CLAUDE_PLUGIN_ROOT}/bin/lib/mcp-bridge.cjs`);
+const result = probeFirecrawl();
+process.stdout.write(JSON.stringify(result));
+PROBE_EOF
+```
+
+Parse the JSON result:
+- If `result.available === false`: Display `Error: Firecrawl unavailable — {result.reason}. Cannot track page changes.` Halt.
+- If `result.warning === true`: Display `Warning: Firecrawl credits at {result.credits.remaining}/{result.credits.total} — approaching limit.` Continue.
+- If `result.available === true`: Continue.
+
+**Step 3: Acquire concurrency semaphore**
+
+```bash
+node -e "const m = require('./bin/lib/mcp-bridge.cjs'); const s = m.acquireFirecrawlSemaphore(); console.log(JSON.stringify({lockPath: s.lockPath}));"
+```
+
+Record the semaphore handle. Release after the MCP call completes.
+
+**Step 4: Check for existing baseline**
+
+```bash
+node -e "
+const c = require('./bin/lib/firecrawl-cache.cjs');
+const slug = c.slugifyUrl('URL_FROM_ARGS');
+const baseline = c.readSnapshot(slug);
+console.log(JSON.stringify({ hasBaseline: !!baseline, slug }));
+"
+```
+
+Replace `URL_FROM_ARGS` with the actual URL argument. Parse the JSON result. Store `hasBaseline` and `slug`.
+
+**Step 4a: If hasBaseline is FALSE (first call) — establish baseline**
+
+This is the first time this URL has been watched. Call Firecrawl with markdown-only format (no changeTracking on first call — there is nothing to compare against):
+
+```
+mcp__firecrawl__firecrawl_scrape({
+  url: URL,
+  formats: ["markdown"],
+  onlyMainContent: true
+})
+```
+
+Track 1 credit:
+```bash
+node -e "const m = require('./bin/lib/mcp-bridge.cjs'); m.incrementFirecrawlUsage(1);"
+```
+
+Write the baseline snapshot:
+```bash
+node -e "
+const c = require('./bin/lib/firecrawl-cache.cjs');
+const r = c.writeSnapshot('URL_FROM_ARGS', 'MARKDOWN_CONTENT_FROM_RESPONSE');
+console.log(JSON.stringify(r));
+"
+```
+
+Release semaphore. Display:
+```
+Baseline snapshot saved for {URL}
+  Slug: {slug}
+  Path: .planning/research/firecrawl-cache/snapshots/{slug}.md
+
+Run /pde:firecrawl watch {URL} again to detect changes.
+```
+
+Halt (no diff to show on first call).
+
+**Step 4b: If hasBaseline is TRUE (subsequent call) — scrape with changeTracking**
+
+CRITICAL (Pitfall 1): formats array MUST include both "markdown" AND "changeTracking" in the same call. Omitting markdown produces silent empty diffs where changeStatus is always "new".
+
+Default (no --json-diff flag): git-diff mode — free.
+```
+mcp__firecrawl__firecrawl_scrape({
+  url: URL,
+  formats: ["markdown", "changeTracking"],
+  onlyMainContent: true
+})
+```
+
+With --json-diff flag: JSON mode — costs 5 additional credits per page. Display cost warning before proceeding:
+```
+Warning: JSON diff mode costs 5 additional credits per page in addition to the 1 credit scrape cost. Git-diff mode (default) is free.
+```
+
+Then call:
+```
+mcp__firecrawl__firecrawl_scrape({
+  url: URL,
+  formats: ["markdown", { "type": "changeTracking", "modes": ["json"] }],
+  onlyMainContent: true
+})
+```
+
+Track credits after the call:
+```bash
+node -e "const m = require('./bin/lib/mcp-bridge.cjs'); m.incrementFirecrawlUsage(JSON_DIFF_MODE ? 6 : 1);"
+```
+
+(1 credit for scrape + 5 extra for JSON mode if --json-diff was specified.)
+
+**Step 5: Process changeTracking response**
+
+Release semaphore.
+
+Parse `response.changeTracking`:
+
+**If `changeStatus === "new"`:**
+```
+First tracked scrape — no previous data on Firecrawl's side. Baseline saved locally.
+  URL: {URL}
+  Slug: {slug}
+```
+Write the baseline locally via `writeSnapshot` so subsequent calls have a local record. Halt.
+
+**If `changeStatus === "same"`:**
+```
+No changes detected on {URL}
+  Last checked: {previousScrapeAt}
+  Baseline snapshot is current.
+```
+Halt.
+
+**If `changeStatus === "changed"`:**
+
+Compute linesChanged from the diff text:
+```bash
+node -e "
+const diffText = 'DIFF_TEXT_FROM_RESPONSE';
+const linesChanged = diffText.split('\n')
+  .filter(l => (l.startsWith('+') || l.startsWith('-')) && !l.startsWith('+++') && !l.startsWith('---'))
+  .length;
+console.log(linesChanged);
+"
+```
+
+Write the diff file:
+```bash
+node -e "
+const c = require('./bin/lib/firecrawl-cache.cjs');
+const r = c.writeDiff(
+  'URL_FROM_ARGS',
+  'DIFF_TEXT_FROM_RESPONSE',
+  LINES_CHANGED,
+  'PREVIOUS_SCRAPE_AT_FROM_RESPONSE'
+);
+console.log(JSON.stringify(r));
+"
+```
+
+Update baseline with the latest content:
+```bash
+node -e "
+const c = require('./bin/lib/firecrawl-cache.cjs');
+const r = c.writeSnapshot('URL_FROM_ARGS', 'MARKDOWN_CONTENT_FROM_RESPONSE');
+console.log(JSON.stringify(r));
+"
+```
+
+**If `changeStatus === "removed"`:**
+```
+Page appears to have been removed since {previousScrapeAt}.
+  URL: {URL}
+  Previous snapshot retained at: .planning/research/firecrawl-cache/snapshots/{slug}.md
+```
+Halt.
+
+**Step 6: Display result summary (changed only)**
+
+Do NOT inject diff content inline into the conversation. The diff is written to the file and the path is shown to the user:
+
+```
+Changes detected on {URL}
+  Lines changed: {linesChanged}
+  Previous snapshot: {previousScrapeAt}
+  Diff saved to: .planning/research/firecrawl-cache/snapshots/{slug}-diff.md
+  Baseline updated: .planning/research/firecrawl-cache/snapshots/{slug}.md
+```
+
+---
+
 ### Default: No subcommand or help
 
 Display usage:
@@ -761,6 +969,13 @@ Subcommands:
     Cost: 2–7 credits/minute (code-only: 2/min; with AI prompt: 7/min)
     Session TTL: 10 minutes total, 5 minutes idle
 
+  watch URL [--json-diff]
+    Track changes on a competitor or dependency page using Firecrawl changeTracking.
+    First call establishes baseline snapshot. Subsequent calls produce markdown diffs.
+    Diffs written to .planning/research/firecrawl-cache/snapshots/{slug}-diff.md
+    Cost: 1 credit/call (git-diff mode, free default); 6 credits/call with --json-diff
+    Note: --json-diff adds 5 credits/page for LLM-powered JSON diff extraction.
+
 Examples:
   /pde:firecrawl scrape https://example.com/docs
   /pde:firecrawl scrape https://example.com/pricing --force
@@ -772,6 +987,8 @@ Examples:
   /pde:firecrawl agent "research React server components vs Next.js App Router" --max-credits 500
   /pde:firecrawl agent-status agent-job-abc123
   /pde:firecrawl interact https://example.com --prompt "extract the pricing table"
+  /pde:firecrawl watch https://competitor.com/pricing
+  /pde:firecrawl watch https://competitor.com/pricing --json-diff
 
 Credit guard: Every subcommand checks Firecrawl credit balance before calling the API.
 Consent gate: agent and interact subcommands require explicit "yes" confirmation before dispatch.
