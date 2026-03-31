@@ -658,8 +658,9 @@ Plans:
   4. User can execute Playwright code inside the browser sandbox session and extract content from an authentication-gated page that WebFetch cannot access
 **Plans**: 2 plans
 Plans:
-- [ ] 199-01-PLAN.md -- firecrawl-cache.cjs TDD (cache module with slug, write/read, manifest, gitignore)
-- [ ] 199-02-PLAN.md -- /pde:source command + source ingestion workflow
+- [ ] 202-01-PLAN.md -- agent + agent-status subcommands with consent gate and credit cap (AGT-01, AGT-02)
+- [ ] 202-02-PLAN.md -- interact subcommand with browser sandbox and Playwright execution (AGT-03, AGT-04)
+
 **UI hint**: yes
 
 ### Phase 203: Change Tracking + Event Bus
