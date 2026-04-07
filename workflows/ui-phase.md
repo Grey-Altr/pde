@@ -10,8 +10,8 @@ UI-SPEC.md locks spacing, typography, color, copywriting, and design system deci
 
 <available_agent_types>
 Valid GSD subagent types (use exact names — do not fall back to 'general-purpose'):
-- gsd-ui-researcher — Researches UI/UX approaches
-- gsd-ui-checker — Reviews UI implementation quality
+- pde-ui-researcher — Researches UI/UX approaches
+- pde-ui-checker — Reviews UI implementation quality
 </available_agent_types>
 
 <process>
@@ -21,8 +21,16 @@ Valid GSD subagent types (use exact names — do not fall back to 'general-purpo
 ```bash
 INIT=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" init plan-phase "$PHASE")
 if [[ "$INIT" == @file:* ]]; then INIT=$(cat "${INIT#@file:}"); fi
-AGENT_SKILLS_UI=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" agent-skills gsd-ui-researcher 2>/dev/null)
-AGENT_SKILLS_UI_CHECKER=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" agent-skills gsd-ui-checker 2>/dev/null)
+AGENT_SKILLS_UI=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" agent-skills pde-ui-researcher 2>/dev/null)
+AGENT_SKILLS_UI_CHECKER=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" agent-skills pde-ui-checker 2>/dev/null)
+```
+
+Parse JSON for: `phase_dir`, `phase_number`, `phase_name`, `phase_slug`, `padded_phase`, `has_context`, `has_research`, `commit_docs`.
+
+**File paths:** `state_path`, `roadmap_path`, `requirements_path`, `context_path`, `research_path`.
+
+Resolve UI agent models:
+
 ```bash
 UI_RESEARCHER_MODEL=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" resolve-model pde-ui-researcher --raw)
 UI_CHECKER_MODEL=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" resolve-model pde-ui-checker --raw)
@@ -101,7 +109,7 @@ Display:
 Build prompt:
 
 ```markdown
-Read $HOME/.claude/agents/pde-ui-researcher.md for instructions.
+Read $HOME/.claude/agents/pde:ui-researcher.md for instructions.
 
 <objective>
 Create UI design contract for Phase {phase_number}: {phase_name}
@@ -117,6 +125,16 @@ Answer: "What visual and interaction contracts does this phase need?"
 </files_to_read>
 
 ${AGENT_SKILLS_UI}
+
+<output>
+Write to: {phase_dir}/{padded_phase}-UI-SPEC.md
+Template: $HOME/.claude/pde-os/engines/gsd/templates/UI-SPEC.md
+</output>
+
+<config>
+commit_docs: {commit_docs}
+phase_dir: {phase_dir}
+padded_phase: {padded_phase}
 </config>
 ```
 
@@ -153,7 +171,7 @@ Display:
 Build prompt:
 
 ```markdown
-Read $HOME/.claude/agents/pde-ui-checker.md for instructions.
+Read $HOME/.claude/agents/pde:ui-checker.md for instructions.
 
 <objective>
 Validate UI design contract for Phase {phase_number}: {phase_name}
@@ -168,6 +186,19 @@ Check all 6 dimensions. Return APPROVED or BLOCKED.
 
 ${AGENT_SKILLS_UI_CHECKER}
 
+<config>
+ui_safety_gate: {ui_safety_gate config value}
+</config>
+```
+
+```
+Task(
+  prompt=ui_checker_prompt,
+  subagent_type="pde-ui-checker",
+  model="{UI_CHECKER_MODEL}",
+  description="Verify UI-SPEC Phase {N}"
+)
+```
 
 ## 8. Handle Checker Return
 
@@ -232,9 +263,9 @@ Dimensions: 6/6 passed
 
 **Plan Phase {N}** — planner will use UI-SPEC.md as design context
 
-`/pde:plan-phase {N}`
+`/clear` then:
 
-<sub>/clear first → fresh context window</sub>
+`/pde:plan-phase {N}`
 
 ───────────────────────────────────────────────────────────────
 ```

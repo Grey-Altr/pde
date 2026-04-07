@@ -11,8 +11,8 @@ Read all files referenced by the invoking prompt's execution_context before star
 <step name="parse_arguments">
 Parse the command arguments:
 - Argument is the phase number to remove (integer or decimal)
-- Example: `/pde:remove-phase 17` -> phase = 17
-- Example: `/pde:remove-phase 16.1` -> phase = 16.1
+- Example: `/pde:remove-phase 17` → phase = 17
+- Example: `/pde:remove-phase 16.1` → phase = 16.1
 
 If no argument provided:
 
@@ -153,4 +153,3 @@ Phase removal is complete when:
 - [ ] Changes committed with descriptive message
 - [ ] User informed of changes
 </success_criteria>
-</output>

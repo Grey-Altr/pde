@@ -123,11 +123,11 @@ Template for `.planning/codebase/STRUCTURE.md` - captures physical file organiza
 ## Directory Layout
 
 ```
-pde/
+get-shit-done/
 ├── bin/                # Executable entry points
 ├── commands/           # Slash command definitions
-│   └── pde/           # PDE-specific commands
-├── pde/     # Skill resources
+│   └── gsd/           # GSD-specific commands
+├── get-shit-done/     # Skill resources
 │   ├── references/    # Principle documents
 │   ├── templates/     # File templates
 │   └── workflows/     # Multi-step procedures
@@ -145,25 +145,25 @@ pde/
 - Key files: install.js - handles npx installation
 - Subdirectories: None
 
-**commands/pde/**
+**commands/gsd/**
 - Purpose: Slash command definitions for Claude Code
 - Contains: *.md files (one per command)
 - Key files: new-project.md, plan-phase.md, execute-plan.md
 - Subdirectories: None (flat structure)
 
-**pde/references/**
+**get-shit-done/references/**
 - Purpose: Core philosophy and guidance documents
 - Contains: principles.md, questioning.md, plan-format.md
 - Key files: principles.md - system philosophy
 - Subdirectories: None
 
-**pde/templates/**
+**get-shit-done/templates/**
 - Purpose: Document templates for .planning/ files
 - Contains: Template definitions with frontmatter
 - Key files: project.md, roadmap.md, plan.md, summary.md
 - Subdirectories: codebase/ (new - for stack/architecture/structure templates)
 
-**pde/workflows/**
+**get-shit-done/workflows/**
 - Purpose: Reusable multi-step procedures
 - Contains: Workflow definitions called by commands
 - Key files: execute-plan.md, research-phase.md
@@ -206,20 +206,20 @@ pde/
 ## Where to Add New Code
 
 **New Slash Command:**
-- Primary code: `commands/pde/{command-name}.md`
+- Primary code: `commands/gsd/{command-name}.md`
 - Tests: `tests/commands/{command-name}.test.js` (if testing implemented)
 - Documentation: Update `README.md` with new command
 
 **New Template:**
-- Implementation: `pde/templates/{name}.md`
+- Implementation: `get-shit-done/templates/{name}.md`
 - Documentation: Template is self-documenting (includes guidelines)
 
 **New Workflow:**
-- Implementation: `pde/workflows/{name}.md`
-- Usage: Reference from command with `@${CLAUDE_PLUGIN_ROOT}/workflows/{name}.md`
+- Implementation: `get-shit-done/workflows/{name}.md`
+- Usage: Reference from command with `@$HOME/.claude/pde-os/engines/gsd/workflows/{name}.md`
 
 **New Reference Document:**
-- Implementation: `pde/references/{name}.md`
+- Implementation: `get-shit-done/references/{name}.md`
 - Usage: Reference from commands/workflows as needed
 
 **Utilities:**
@@ -228,13 +228,13 @@ pde/
 
 ## Special Directories
 
-**pde/**
-- Purpose: Resources installed to ${CLAUDE_PLUGIN_ROOT}/
+**get-shit-done/**
+- Purpose: Resources installed to $HOME/.claude/
 - Source: Copied by bin/install.js during installation
 - Committed: Yes (source of truth)
 
 **commands/**
-- Purpose: Slash commands installed to ${CLAUDE_PLUGIN_ROOT}/commands/
+- Purpose: Slash commands installed to $HOME/.claude/commands/
 - Source: Copied by bin/install.js during installation
 - Committed: Yes (source of truth)
 

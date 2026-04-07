@@ -112,7 +112,7 @@ Present:
 ## Current Position
 Phase [N] of [total]: [phase-name]
 Plan [M] of [phase-total]: [status]
-CONTEXT: [checkmark if has_context | - if not]
+CONTEXT: [✓ if has_context | - if not]
 
 ## Key Decisions Made
 - [extract from $STATE.decisions[]]
@@ -165,7 +165,7 @@ Track:
 
 **Step 1.6: Cross-phase health check**
 
-Scan ALL phases in the current milestone for outstanding verification debt using the CLI:
+Scan ALL phases in the current milestone for outstanding verification debt using the CLI (which respects milestone boundaries via `getMilestonePhaseFilter`):
 
 ```bash
 DEBT=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" audit-uat --raw 2>/dev/null)
@@ -185,8 +185,8 @@ Track: `outstanding_debt` — `summary.total_items` from the audit.
 | {phase} | {filename} | {pending_count} pending, {skipped_count} skipped, {blocked_count} blocked |
 | {phase} | {filename} | human_needed — {count} items |
 
-Review: `/pde:audit-uat` — full cross-phase audit
-Resume testing: `/pde:verify-work {phase}` — retest specific phase
+Review: `/pde:audit-uat ${GSD_WS}` — full cross-phase audit
+Resume testing: `/pde:verify-work {phase} ${GSD_WS}` — retest specific phase
 ```
 
 This is a WARNING, not a blocker — routing proceeds normally. The debt is visible so the user can make an informed choice.
@@ -211,13 +211,13 @@ Read its `<objective>` section.
 ```
 ---
 
-## Next Up
+## ▶ Next Up
 
 **{phase}-{plan}: [Plan Name]** — [objective summary from PLAN.md]
 
-`/pde:execute-phase {phase}`
+`/clear` then:
 
-<sub>`/clear` first -> fresh context window</sub>
+`/pde:execute-phase {phase} ${GSD_WS}`
 
 ---
 ```
@@ -240,14 +240,14 @@ PHASE_HAS_UI=$(echo "$PHASE_SECTION" | grep -qi "UI hint.*yes" && echo "true" ||
 ```
 ---
 
-## Next Up
+## ▶ Next Up
 
 **Phase {N}: {Name}** — {Goal from ROADMAP.md}
-<sub>Context gathered, ready to plan</sub>
+<sub>✓ Context gathered, ready to plan</sub>
 
-`/pde:plan-phase {phase-number}`
+`/clear` then:
 
-<sub>`/clear` first -> fresh context window</sub>
+`/pde:plan-phase {phase-number} ${GSD_WS}`
 
 ---
 ```
@@ -257,13 +257,13 @@ PHASE_HAS_UI=$(echo "$PHASE_SECTION" | grep -qi "UI hint.*yes" && echo "true" ||
 ```
 ---
 
-## Next Up
+## ▶ Next Up
 
 **Phase {N}: {Name}** — {Goal from ROADMAP.md}
 
-`/pde:discuss-phase {phase}` — gather context and clarify approach
+`/clear` then:
 
-<sub>`/clear` first -> fresh context window</sub>
+`/pde:discuss-phase {phase}` — gather context and clarify approach
 
 ---
 
@@ -280,19 +280,19 @@ PHASE_HAS_UI=$(echo "$PHASE_SECTION" | grep -qi "UI hint.*yes" && echo "true" ||
 ```
 ---
 
-## Next Up
+## ▶ Next Up
 
 **Phase {N}: {Name}** — {Goal from ROADMAP.md}
 
-`/pde:discuss-phase {phase}` — gather context and clarify approach
+`/clear` then:
 
-<sub>`/clear` first -> fresh context window</sub>
+`/pde:discuss-phase {phase} ${GSD_WS}` — gather context and clarify approach
 
 ---
 
 **Also available:**
-- `/pde:plan-phase {phase}` — skip discussion, plan directly
-- `/pde:list-phase-assumptions {phase}` — see Claude's assumptions
+- `/pde:plan-phase {phase} ${GSD_WS}` — skip discussion, plan directly
+- `/pde:list-phase-assumptions {phase} ${GSD_WS}` — see Claude's assumptions
 
 ---
 ```
@@ -306,19 +306,19 @@ UAT.md exists with gaps (diagnosed issues). User needs to plan fixes.
 ```
 ---
 
-## UAT Gaps Found
+## ⚠ UAT Gaps Found
 
 **{phase_num}-UAT.md** has {N} gaps requiring fixes.
 
-`/pde:plan-phase {phase} --gaps`
+`/clear` then:
 
-<sub>`/clear` first -> fresh context window</sub>
+`/pde:plan-phase {phase} --gaps ${GSD_WS}`
 
 ---
 
 **Also available:**
-- `/pde:execute-phase {phase}` — execute phase plans
-- `/pde:verify-work {phase}` — run more UAT testing
+- `/pde:execute-phase {phase} ${GSD_WS}` — execute phase plans
+- `/pde:verify-work {phase} ${GSD_WS}` — run more UAT testing
 
 ---
 ```
@@ -336,15 +336,15 @@ UAT.md exists with `status: partial` — testing session ended before all items 
 
 **{phase_num}-UAT.md** has {N} unresolved tests (pending, blocked, or skipped).
 
-`/pde:verify-work {phase}` — resume testing from where you left off
+`/clear` then:
 
-<sub>`/clear` first -> fresh context window</sub>
+`/pde:verify-work {phase} ${GSD_WS}` — resume testing from where you left off
 
 ---
 
 **Also available:**
-- `/pde:audit-uat` — full cross-phase UAT audit
-- `/pde:execute-phase {phase}` — execute phase plans
+- `/pde:audit-uat ${GSD_WS}` — full cross-phase UAT audit
+- `/pde:execute-phase {phase} ${GSD_WS}` — execute phase plans
 
 ---
 ```
@@ -386,15 +386,15 @@ NEXT_HAS_UI=$(echo "$NEXT_PHASE_SECTION" | grep -qi "UI hint.*yes" && echo "true
 ```
 ---
 
-## Phase {Z} Complete
+## ✓ Phase {Z} Complete
 
-## Next Up
+## ▶ Next Up
 
 **Phase {Z+1}: {Name}** — {Goal from ROADMAP.md}
 
-`/pde:discuss-phase {Z+1}` — gather context and clarify approach
+`/clear` then:
 
-<sub>`/clear` first -> fresh context window</sub>
+`/pde:discuss-phase {Z+1}` — gather context and clarify approach
 
 ---
 
@@ -411,21 +411,21 @@ NEXT_HAS_UI=$(echo "$NEXT_PHASE_SECTION" | grep -qi "UI hint.*yes" && echo "true
 ```
 ---
 
-## Phase {Z} Complete
+## ✓ Phase {Z} Complete
 
-## Next Up
+## ▶ Next Up
 
 **Phase {Z+1}: {Name}** — {Goal from ROADMAP.md}
 
-`/pde:discuss-phase {Z+1}` — gather context and clarify approach
+`/clear` then:
 
-<sub>`/clear` first -> fresh context window</sub>
+`/pde:discuss-phase {Z+1} ${GSD_WS}` — gather context and clarify approach
 
 ---
 
 **Also available:**
-- `/pde:plan-phase {Z+1}` — skip discussion, plan directly
-- `/pde:verify-work {Z}` — user acceptance test before continuing
+- `/pde:plan-phase {Z+1} ${GSD_WS}` — skip discussion, plan directly
+- `/pde:verify-work {Z} ${GSD_WS}` — user acceptance test before continuing
 
 ---
 ```
@@ -437,22 +437,22 @@ NEXT_HAS_UI=$(echo "$NEXT_PHASE_SECTION" | grep -qi "UI hint.*yes" && echo "true
 ```
 ---
 
-## Milestone Complete
+## 🎉 Milestone Complete
 
 All {N} phases finished!
 
-## Next Up
+## ▶ Next Up
 
 **Complete Milestone** — archive and prepare for next
 
-`/pde:complete-milestone`
+`/clear` then:
 
-<sub>`/clear` first -> fresh context window</sub>
+`/pde:complete-milestone ${GSD_WS}`
 
 ---
 
 **Also available:**
-- `/pde:verify-work` — user acceptance test before completing milestone
+- `/pde:verify-work ${GSD_WS}` — user acceptance test before completing milestone
 
 ---
 ```
@@ -468,17 +468,17 @@ Read MILESTONES.md to find the last completed milestone version.
 ```
 ---
 
-## Milestone v{X.Y} Complete
+## ✓ Milestone v{X.Y} Complete
 
 Ready to plan the next milestone.
 
-## Next Up
+## ▶ Next Up
 
-**Start Next Milestone** — questioning -> research -> requirements -> roadmap
+**Start Next Milestone** — questioning → research → requirements → roadmap
 
-`/pde:new-milestone`
+`/clear` then:
 
-<sub>`/clear` first -> fresh context window</sub>
+`/pde:new-milestone ${GSD_WS}`
 
 ---
 ```
@@ -488,10 +488,10 @@ Ready to plan the next milestone.
 <step name="edge_cases">
 **Handle edge cases:**
 
-- Phase complete but next phase not planned -> offer `/pde:plan-phase [next]`
-- All work complete -> offer milestone completion
-- Blockers present -> highlight before offering to continue
-- Handoff file exists -> mention it, offer `/pde:resume-work`
+- Phase complete but next phase not planned → offer `/pde:plan-phase [next] ${GSD_WS}`
+- All work complete → offer milestone completion
+- Blockers present → highlight before offering to continue
+- Handoff file exists → mention it, offer `/pde:resume-work ${GSD_WS}`
   </step>
 
 </process>
@@ -505,4 +505,3 @@ Ready to plan the next milestone.
 - [ ] User confirms before any action
 - [ ] Seamless handoff to appropriate gsd command
       </success_criteria>
-</output>

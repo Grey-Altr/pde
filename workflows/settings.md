@@ -34,6 +34,7 @@ Parse current values (default to `true` if not present):
 - `workflow.ui_safety_gate` — prompt to run /pde:ui-phase before planning frontend phases (default: true if absent)
 - `model_profile` — which model each agent uses (default: `balanced`)
 - `git.branching_strategy` — branching approach (default: `"none"`)
+- `workflow.use_worktrees` — whether parallel executor agents run in worktree isolation (default: `true`)
 </step>
 
 <step name="present_settings">
@@ -80,7 +81,7 @@ AskUserQuestion([
     ]
   },
   {
-    question: "Auto-advance pipeline? (discuss -> plan -> execute automatically)",
+    question: "Auto-advance pipeline? (discuss → plan → execute automatically)",
     header: "Auto",
     multiSelect: false,
     options: [
@@ -97,6 +98,8 @@ AskUserQuestion([
       { label: "No", description: "Skip validation research. Good for rapid prototyping or no-test phases." }
     ]
   },
+  // Note: Nyquist validation depends on research output. If research is disabled,
+  // plan-phase automatically skips Nyquist steps (no RESEARCH.md to extract from).
   {
     question: "Enable UI Phase? (generates UI-SPEC.md design contracts for frontend phases)",
     header: "UI Phase",
@@ -149,7 +152,16 @@ AskUserQuestion([
     multiSelect: false,
     options: [
       { label: "No (Recommended)", description: "Run smart discuss before each phase — surfaces gray areas and captures decisions." },
-      { label: "Yes", description: "Skip discuss in autonomous mode — chain directly to plan. Best for backend/pipeline work where phase descriptions are the spec." }
+      { label: "Yes", description: "Skip discuss in /pde:autonomous — chain directly to plan. Best for backend/pipeline work where phase descriptions are the spec." }
+    ]
+  },
+  {
+    question: "Use git worktrees for parallel agent isolation?",
+    header: "Worktrees",
+    multiSelect: false,
+    options: [
+      { label: "Yes (Recommended)", description: "Each parallel executor runs in its own worktree branch — no conflicts between agents." },
+      { label: "No", description: "Disable worktree isolation. Use on platforms where EnterWorktree is broken (e.g. Windows with feature branches). Agents run sequentially on the main working tree." }
     ]
   }
 ])
@@ -162,7 +174,7 @@ Merge new settings into existing config.json:
 ```json
 {
   ...existing_config,
-  "model_profile": "quality" | "balanced" | "budget" | "inherit",
+  "model_profile": "quality" | "balanced" | "budget" | "adaptive" | "inherit",
   "workflow": {
     "research": true/false,
     "plan_check": true/false,
@@ -171,9 +183,11 @@ Merge new settings into existing config.json:
     "nyquist_validation": true/false,
     "ui_phase": true/false,
     "ui_safety_gate": true/false,
+    "text_mode": true/false,
     "research_before_questions": true/false,
     "discuss_mode": "discuss" | "assumptions",
-    "skip_discuss": true/false
+    "skip_discuss": true/false,
+    "use_worktrees": true/false
   },
   "git": {
     "branching_strategy": "none" | "phase" | "milestone",
@@ -239,9 +253,11 @@ Write `~/.gsd/defaults.json` with:
 <step name="confirm">
 Display:
 
-```bash
-node "$HOME/.claude/pde-os/lib/ui/render.cjs" banner "SETTINGS UPDATED"
 ```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► SETTINGS UPDATED
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 | Setting              | Value |
 |----------------------|-------|
 | Model Profile        | {quality/balanced/budget/inherit} |
@@ -264,15 +280,15 @@ Quick commands:
 - /pde:plan-phase --research — force research
 - /pde:plan-phase --skip-research — skip research
 - /pde:plan-phase --skip-verify — skip plan check
+```
 </step>
 
 </process>
 
 <success_criteria>
 - [ ] Current config read
-- [ ] User presented with 10+ settings (profile + workflow toggles + git branching)
-- [ ] Config updated with model_profile, workflow, git, and hooks sections
+- [ ] User presented with 10 settings (profile + 8 workflow toggles + git branching)
+- [ ] Config updated with model_profile, workflow, and git sections
 - [ ] User offered to save as global defaults (~/.gsd/defaults.json)
 - [ ] Changes confirmed to user
 </success_criteria>
-</output>

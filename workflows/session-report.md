@@ -32,18 +32,6 @@ Read `.planning/STATE.md` to get:
 
 Read `.planning/ROADMAP.md` to get milestone name and goals.
 
-**Firecrawl MCP Status:**
-```bash
-node --input-type=module <<'FC_EOF'
-import { createRequire } from 'module';
-const req = createRequire(import.meta.url);
-const { probeFirecrawl } = req(`${process.env.CLAUDE_PLUGIN_ROOT}/bin/lib/mcp-bridge.cjs`);
-const result = probeFirecrawl({ skipMcpProbe: true });
-process.stdout.write(JSON.stringify(result));
-FC_EOF
-```
-Store the result for the MCP Status section in the report.
-
 Check for existing reports:
 ```bash
 ls -la .planning/reports/SESSION_REPORT*.md 2>/dev/null || echo "No previous reports"
@@ -87,16 +75,6 @@ Write `.planning/reports/SESSION_REPORT.md` (or `.planning/reports/YYYYMMDD-sess
 **Phase Progress:** [from STATE.md]
 **Plans Executed:** [count of summaries written this session]
 **Commits Made:** [count from git log]
-
-## MCP Status
-
-| Service | Status | Details |
-|---------|--------|---------|
-| Firecrawl | {connected / not configured / credits exhausted} | {credits remaining or setup instructions} |
-
-When Firecrawl probe result.available is true: show "Firecrawl: connected" with credit balance.
-When Firecrawl probe result.reason is 'no_api_key': show "Firecrawl: not configured".
-When Firecrawl probe result.reason is 'quota_exhausted': show "Firecrawl: credits exhausted -- falling back to WebSearch/WebFetch".
 
 ## Work Performed
 

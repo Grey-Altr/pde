@@ -9,7 +9,7 @@ Read all files referenced by the invoking prompt's execution_context before star
 
 Key references:
 - @$HOME/.claude/pde-os/engines/gsd/references/ui-brand.md (display patterns)
-- @$HOME/.claude/pde-os/engines/gsd/agents/pde-user-profiler.md (profiler agent definition)
+- @$HOME/.claude/pde-os/engines/gsd/agents/pde:user-profiler.md (profiler agent definition)
 - @$HOME/.claude/pde-os/engines/gsd/references/user-profiling.md (profiling reference doc)
 </required_reading>
 
@@ -215,7 +215,7 @@ Collect all answers into an answers JSON object mapping dimension keys to select
 
 **Save answers to temp file:**
 ```bash
-ANSWERS_PATH=$(mktemp /tmp/gsd-profile-answers-XXXXXX.json)
+ANSWERS_PATH=$(mktemp /tmp/pde:profile-answers-XXXXXX.json)
 ```
 
 Write the answers JSON to `$ANSWERS_PATH`.
@@ -229,7 +229,7 @@ Parse the analysis JSON from the result.
 
 Save analysis JSON to a temp file:
 ```bash
-ANALYSIS_PATH=$(mktemp /tmp/gsd-profile-analysis-XXXXXX.json)
+ANALYSIS_PATH=$(mktemp /tmp/pde:profile-analysis-XXXXXX.json)
 ```
 
 Write the analysis JSON to `$ANALYSIS_PATH`.

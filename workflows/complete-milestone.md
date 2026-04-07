@@ -157,6 +157,7 @@ Extract one-liners from SUMMARY.md files using summary-extract:
 # For each phase in milestone, extract one-liner
 for summary in .planning/phases/*-*/*-SUMMARY.md; do
   [ -e "$summary" ] || continue
+  node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" summary-extract "$summary" --fields one_liner --pick one_liner
 done
 ```
 
@@ -447,10 +448,11 @@ rm .planning/REQUIREMENTS.md
 Check for existing retrospective:
 ```bash
 ls .planning/RETROSPECTIVE.md 2>/dev/null || true
+```
 
 **If exists:** Read the file, append new milestone section before the "## Cross-Milestone Trends" section.
 
-**If doesn't exist:** Create from template at `/Users/greyaltaer/.claude/pde-os/engines/gsd/templates/retrospective.md`.
+**If doesn't exist:** Create from template at `$HOME/.claude/pde-os/engines/gsd/templates/retrospective.md`.
 
 **Gather retrospective data:**
 
@@ -535,6 +537,15 @@ if [[ "$INIT" == @file:* ]]; then INIT=$(cat "${INIT#@file:}"); fi
 
 Extract `branching_strategy`, `phase_branch_template`, `milestone_branch_template`, and `commit_docs` from init JSON.
 
+Detect base branch:
+```bash
+BASE_BRANCH=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" config-get git.base_branch 2>/dev/null || echo "")
+if [ -z "$BASE_BRANCH" ] || [ "$BASE_BRANCH" = "null" ]; then
+  BASE_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's|^refs/remotes/origin/||')
+  BASE_BRANCH="${BASE_BRANCH:-main}"
+fi
+```
+
 **If "none":** Skip to git_tag.
 
 **For "phase" strategy:**
@@ -573,7 +584,7 @@ AskUserQuestion with options: Squash merge (Recommended), Merge with history, De
 
 ```bash
 CURRENT_BRANCH=$(git branch --show-current)
-git checkout main
+git checkout ${BASE_BRANCH}
 
 if [ "$BRANCHING_STRATEGY" = "phase" ]; then
   for branch in $PHASE_BRANCHES; do
@@ -602,7 +613,7 @@ git checkout "$CURRENT_BRANCH"
 
 ```bash
 CURRENT_BRANCH=$(git branch --show-current)
-git checkout main
+git checkout ${BASE_BRANCH}
 
 if [ "$BRANCHING_STRATEGY" = "phase" ]; then
   for branch in $PHASE_BRANCHES; do
@@ -686,45 +697,6 @@ Confirm: "Committed: chore: complete v[X.Y] milestone"
 
 </step>
 
-<step name="auto_generate_presentations">
-**Auto-generate presentations for completed milestone (Phase 183):**
-
-Check config — skip silently if disabled (AUTO-05):
-```bash
-AUTO_GENERATE=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" --raw config-get presentations.auto_generate 2>/dev/null || echo "false")
-```
-
-**If AUTO_GENERATE is not "true":** Skip this step entirely. No output, no error.
-
-**If AUTO_GENERATE is "true":**
-
-Read the configured persona set (AUTO-04):
-```bash
-PERSONAS_JSON=$(node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" --raw config-get presentations.auto_generate_personas 2>/dev/null || echo '["executive-summary","project-manager-view"]')
-```
-
-Generate presentations for each persona (AUTO-02):
-
-```bash
-DATE=$(date +%Y-%m-%d)
-mkdir -p .planning/presentations/
-for PERSONA in $(echo "$PERSONAS_JSON" | node -e "process.stdin.setEncoding('utf8');let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{try{JSON.parse(d).forEach(p=>console.log(p))}catch(e){console.log('executive-summary');console.log('project-manager')}})"); do
-  HTML_PATH=".planning/presentations/${PERSONA}-${DATE}.html"
-  MD_PATH=".planning/presentations/${PERSONA}-${DATE}.md"
-  node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" presentation render "${PERSONA}" "${HTML_PATH}" "${MD_PATH}" && \
-    echo "Auto-generated: ${PERSONA}" || \
-    echo "Auto-generation failed for persona: ${PERSONA} (non-blocking)"
-done
-```
-
-Log completion:
-```
-Presentations auto-generated for milestone v[X.Y]: [list personas]
-```
-
-**Important:** Auto-generation failures are non-blocking. If a persona fails to render, log the error and continue. Do not fail the milestone completion workflow.
-</step>
-
 <step name="offer_next">
 
 ```
@@ -747,9 +719,9 @@ Tag: v[X.Y]
 
 **Start Next Milestone** — questioning → research → requirements → roadmap
 
-`/pde:new-milestone`
+`/clear` then:
 
-<sub>`/clear` first → fresh context window</sub>
+`/pde:new-milestone`
 
 ---
 ```

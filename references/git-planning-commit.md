@@ -1,13 +1,13 @@
 # Git Planning Commit
 
-Commit planning artifacts using the pde-tools CLI, which automatically checks `commit_docs` config and gitignore status.
+Commit planning artifacts using the gsd-tools CLI, which automatically checks `commit_docs` config and gitignore status.
 
 ## Commit via CLI
 
-Always use `pde-tools.cjs commit` for `.planning/` files — it handles `commit_docs` and gitignore checks automatically:
+Always use `gsd-tools.cjs commit` for `.planning/` files — it handles `commit_docs` and gitignore checks automatically:
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" commit "docs({scope}): {description}" --files .planning/STATE.md .planning/ROADMAP.md
+node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" commit "docs({scope}): {description}" --files .planning/STATE.md .planning/ROADMAP.md
 ```
 
 The CLI will return `skipped` (with reason) if `commit_docs` is `false` or `.planning/` is gitignored. No manual conditional checks needed.
@@ -17,7 +17,7 @@ The CLI will return `skipped` (with reason) if `commit_docs` is `false` or `.pla
 To fold `.planning/` file changes into the previous commit:
 
 ```bash
-node "${CLAUDE_PLUGIN_ROOT}/bin/pde-tools.cjs" commit "" --files .planning/codebase/*.md --amend
+node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" commit "" --files .planning/codebase/*.md --amend
 ```
 
 ## Commit Message Patterns

@@ -1,5 +1,5 @@
 <purpose>
-List all GSD workspaces found in ~/gsd-workspaces/ with their status.
+List all GSD workspaces found in ~/pde:workspaces/ with their status.
 </purpose>
 
 <required_reading>
@@ -22,7 +22,7 @@ Parse JSON for: `workspace_base`, `workspaces`, `workspace_count`.
 **If `workspace_count` is 0:**
 
 ```
-No workspaces found in ~/gsd-workspaces/
+No workspaces found in ~/pde:workspaces/
 
 Create one with:
   /pde:new-workspace --name my-workspace --repos repo1,repo2
@@ -35,7 +35,7 @@ Done.
 Display a table:
 
 ```
-GSD Workspaces (~/gsd-workspaces/)
+GSD Workspaces (~/pde:workspaces/)
 
 | Name | Repos | Strategy | GSD Project |
 |------|-------|----------|-------------|
@@ -43,7 +43,7 @@ GSD Workspaces (~/gsd-workspaces/)
 | feature-b | 2 | clone | No |
 
 Manage:
-  cd ~/gsd-workspaces/<name>     # Enter a workspace
+  cd ~/pde:workspaces/<name>     # Enter a workspace
   /pde:remove-workspace <name>   # Remove a workspace
 ```
 

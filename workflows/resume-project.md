@@ -11,7 +11,7 @@ Instantly restore full project context so "Where were we?" has an immediate, com
 </purpose>
 
 <required_reading>
-@/Users/greyaltaer/.claude/pde-os/engines/gsd/references/continuation-format.md
+@$HOME/.claude/pde-os/engines/gsd/references/continuation-format.md
 </required_reading>
 
 <process>
@@ -72,6 +72,7 @@ ls .planning/phases/*/.continue-here*.md 2>/dev/null || true
 # Check for plans without summaries (incomplete execution)
 for plan in .planning/phases/*/*-PLAN.md; do
   [ -e "$plan" ] || continue
+  summary="${plan/PLAN/SUMMARY}"
   [ ! -f "$summary" ] && echo "Incomplete: $plan"
 done 2>/dev/null || true
 
@@ -113,22 +114,25 @@ fi
 <step name="present_status">
 Present complete project status to user:
 
-```bash
-node "$HOME/.claude/pde-os/lib/ui/render.cjs" panel "PROJECT STATUS" --type checkpoint --content "Building: [one-liner from PROJECT.md]"
 ```
-
-Then display as markdown:
-  Phase: [X] of [Y] - [Phase name]
-  Plan:  [A] of [B] - [Status]
-  Progress: [bar] XX%
-  Last activity: [date] - [what happened]
+╔══════════════════════════════════════════════════════════════╗
+║  PROJECT STATUS                                               ║
+╠══════════════════════════════════════════════════════════════╣
+║  Building: [one-liner from PROJECT.md "What This Is"]         ║
+║                                                               ║
+║  Phase: [X] of [Y] - [Phase name]                            ║
+║  Plan:  [A] of [B] - [Status]                                ║
+║  Progress: [██████░░░░] XX%                                  ║
+║                                                               ║
+║  Last activity: [date] - [what happened]                     ║
+╚══════════════════════════════════════════════════════════════╝
 
 [If incomplete work found:]
-Incomplete work detected:
+⚠️  Incomplete work detected:
     - [.continue-here file or incomplete plan]
 
 [If interrupted agent found:]
-Interrupted agent detected:
+⚠️  Interrupted agent detected:
     Agent ID: [id]
     Task: [task description from agent-history.json]
     Interrupted: [timestamp]
@@ -136,15 +140,15 @@ Interrupted agent detected:
     Resume with: Task tool (resume parameter with agent ID)
 
 [If pending todos exist:]
-[N] pending todos — /pde:check-todos to review
+📋 [N] pending todos — /pde:check-todos to review
 
 [If blockers exist:]
-Carried concerns:
+⚠️  Carried concerns:
     - [blocker 1]
     - [blocker 2]
 
-[If alignment is not good:]
-Brief alignment: [status] - [assessment]
+[If alignment is not ✓:]
+⚠️  Brief alignment: [status] - [assessment]
 ```
 
 </step>
@@ -153,38 +157,38 @@ Brief alignment: [status] - [assessment]
 Based on project state, determine the most logical next action:
 
 **If interrupted agent exists:**
--> Primary: Resume interrupted agent (Task tool with resume parameter)
--> Option: Start fresh (abandon agent work)
+→ Primary: Resume interrupted agent (Task tool with resume parameter)
+→ Option: Start fresh (abandon agent work)
 
 **If HANDOFF.json exists:**
--> Primary: Resume from structured handoff (highest priority — specific task/blocker context)
--> Option: Discard handoff and reassess from files
+→ Primary: Resume from structured handoff (highest priority — specific task/blocker context)
+→ Option: Discard handoff and reassess from files
 
 **If .continue-here file exists:**
--> Fallback: Resume from checkpoint
--> Option: Start fresh on current plan
+→ Fallback: Resume from checkpoint
+→ Option: Start fresh on current plan
 
 **If incomplete plan (PLAN without SUMMARY):**
--> Primary: Complete the incomplete plan
--> Option: Abandon and move on
+→ Primary: Complete the incomplete plan
+→ Option: Abandon and move on
 
 **If phase in progress, all plans complete:**
--> Primary: Advance to next phase (via internal transition workflow)
--> Option: Review completed work
+→ Primary: Advance to next phase (via internal transition workflow)
+→ Option: Review completed work
 
 **If phase ready to plan:**
--> Check if CONTEXT.md exists for this phase:
+→ Check if CONTEXT.md exists for this phase:
 
 - If CONTEXT.md missing:
-  -> Primary: Discuss phase vision (how user imagines it working)
-  -> Secondary: Plan directly (skip context gathering)
+  → Primary: Discuss phase vision (how user imagines it working)
+  → Secondary: Plan directly (skip context gathering)
 - If CONTEXT.md exists:
-  -> Primary: Plan the phase
-  -> Option: Review roadmap
+  → Primary: Plan the phase
+  → Option: Review roadmap
 
 **If phase ready to execute:**
--> Primary: Execute next plan
--> Option: Review the plan first
+→ Primary: Execute next plan
+→ Option: Review the plan first
 </step>
 
 <step name="offer_options">
@@ -196,11 +200,11 @@ What would you like to do?
 [Primary action based on state - e.g.:]
 1. Resume interrupted agent [if interrupted agent found]
    OR
-1. Execute phase (/pde:execute-phase {phase})
+1. Execute phase (/pde:execute-phase {phase} ${GSD_WS})
    OR
-1. Discuss Phase 3 context (/pde:discuss-phase 3) [if CONTEXT.md missing]
+1. Discuss Phase 3 context (/pde:discuss-phase 3 ${GSD_WS}) [if CONTEXT.md missing]
    OR
-1. Plan Phase 3 (/pde:plan-phase 3) [if CONTEXT.md exists or discuss option declined]
+1. Plan Phase 3 (/pde:plan-phase 3 ${GSD_WS}) [if CONTEXT.md exists or discuss option declined]
 
 [Secondary options:]
 2. Review current phase status
@@ -213,6 +217,7 @@ What would you like to do?
 
 ```bash
 ls .planning/phases/XX-name/*-CONTEXT.md 2>/dev/null || true
+```
 
 If missing, suggest discuss-phase before plan. If exists, offer plan directly.
 
@@ -222,44 +227,44 @@ Wait for user selection.
 <step name="route_to_workflow">
 Based on user selection, route to appropriate workflow:
 
-- **Execute plan** -> Show command for user to run after clearing:
+- **Execute plan** → Show command for user to run after clearing:
   ```
   ---
 
-  ## Next Up
+  ## ▶ Next Up
 
   **{phase}-{plan}: [Plan Name]** — [objective from PLAN.md]
 
-  `/pde:execute-phase {phase}`
+  `/clear` then:
 
-  <sub>`/clear` first -> fresh context window</sub>
+  `/pde:execute-phase {phase} ${GSD_WS}`
 
   ---
   ```
-- **Plan phase** -> Show command for user to run after clearing:
+- **Plan phase** → Show command for user to run after clearing:
   ```
   ---
 
-  ## Next Up
+  ## ▶ Next Up
 
   **Phase [N]: [Name]** — [Goal from ROADMAP.md]
 
-  `/pde:plan-phase [phase-number]`
+  `/clear` then:
 
-  <sub>`/clear` first -> fresh context window</sub>
+  `/pde:plan-phase [phase-number] ${GSD_WS}`
 
   ---
 
   **Also available:**
-  - `/pde:discuss-phase [N]` — gather context first
-  - `/pde:research-phase [N]` — investigate unknowns
+  - `/pde:discuss-phase [N] ${GSD_WS}` — gather context first
+  - `/pde:research-phase [N] ${GSD_WS}` — investigate unknowns
 
   ---
   ```
-- **Advance to next phase** -> ./transition.md (internal workflow, invoked inline — NOT a user command)
-- **Check todos** -> Read .planning/todos/pending/, present summary
-- **Review alignment** -> Read PROJECT.md, compare to current state
-- **Something else** -> Ask what they need
+- **Advance to next phase** → ./transition.md (internal workflow, invoked inline — NOT a user command)
+- **Check todos** → Read .planning/todos/pending/, present summary
+- **Review alignment** → Read PROJECT.md, compare to current state
+- **Something else** → Ask what they need
 </step>
 
 <step name="update_session">
@@ -285,11 +290,11 @@ If STATE.md is missing but other artifacts exist:
 
 "STATE.md missing. Reconstructing from artifacts..."
 
-1. Read PROJECT.md -> Extract "What This Is" and Core Value
-2. Read ROADMAP.md -> Determine phases, find current position
-3. Scan \*-SUMMARY.md files -> Extract decisions, concerns
+1. Read PROJECT.md → Extract "What This Is" and Core Value
+2. Read ROADMAP.md → Determine phases, find current position
+3. Scan \*-SUMMARY.md files → Extract decisions, concerns
 4. Count pending todos in .planning/todos/pending/
-5. Check for .continue-here files -> Session continuity
+5. Check for .continue-here files → Session continuity
 
 Reconstruct and write STATE.md, then proceed normally.
 
@@ -319,4 +324,3 @@ Resume is complete when:
 - [ ] User knows exactly where project stands
 - [ ] Session continuity updated
       </success_criteria>
-</output>

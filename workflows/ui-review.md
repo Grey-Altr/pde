@@ -8,12 +8,23 @@ Retroactive 6-pillar visual audit of implemented frontend code. Standalone comma
 
 <available_agent_types>
 Valid GSD subagent types (use exact names — do not fall back to 'general-purpose'):
-- gsd-ui-auditor — Audits UI against design requirements
+- pde-ui-auditor — Audits UI against design requirements
 </available_agent_types>
 
+<process>
+
+## 0. Initialize
+
+```bash
 INIT=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" init phase-op "${PHASE_ARG}")
 if [[ "$INIT" == @file:* ]]; then INIT=$(cat "${INIT#@file:}"); fi
-AGENT_SKILLS_UI_REVIEWER=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" agent-skills gsd-ui-reviewer 2>/dev/null)
+AGENT_SKILLS_UI_REVIEWER=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" agent-skills pde-ui-reviewer 2>/dev/null)
+```
+
+Parse: `phase_dir`, `phase_number`, `phase_name`, `phase_slug`, `padded_phase`, `commit_docs`.
+
+```bash
+UI_AUDITOR_MODEL=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" resolve-model pde-ui-auditor --raw)
 ```
 
 Display banner:
@@ -60,7 +71,7 @@ Build file list for auditor:
 Build prompt:
 
 ```markdown
-Read $HOME/.claude/agents/pde-ui-auditor.md for instructions.
+Read $HOME/.claude/agents/pde:ui-auditor.md for instructions.
 
 <objective>
 Conduct 6-pillar visual audit of Phase {phase_number}: {phase_name}
@@ -77,6 +88,15 @@ Conduct 6-pillar visual audit of Phase {phase_number}: {phase_name}
 
 ${AGENT_SKILLS_UI_REVIEWER}
 
+<config>
+phase_dir: {phase_dir}
+padded_phase: {padded_phase}
+</config>
+```
+
+Omit null file paths.
+
+```
 Task(
   prompt=ui_audit_prompt,
   subagent_type="pde-ui-auditor",
@@ -118,13 +138,36 @@ Full review: {path to UI-REVIEW.md}
 
 ## ▶ Next
 
+`/clear` then one of:
+
 - `/pde:verify-work {N}` — UAT testing
 - `/pde:plan-phase {N+1}` — plan next phase
 
-<sub>/clear first → fresh context window</sub>
+- `/pde:verify-work {N}` — UAT testing
+- `/pde:plan-phase {N+1}` — plan next phase
 
 ───────────────────────────────────────────────────────────────
 ```
+
+## Automated UI Verification (when Playwright-MCP is available)
+
+If `mcp__playwright__*` tools are accessible in this session:
+
+1. Navigate to each UI component described in the phase's UI-SPEC.md using
+   `mcp__playwright__navigate` (or equivalent Playwright-MCP tool).
+2. Take a screenshot of each component using `mcp__playwright__screenshot`.
+3. Compare against the spec's visual requirements — dimensions, color palette,
+   layout, spacing scale, and typography.
+4. Report any dimension, color, or layout discrepancies automatically as
+   additional findings within the relevant pillar section of UI-REVIEW.md.
+5. Flag items that require human judgment (brand feel, content tone) as
+   `needs_human_review: true` in the findings — these are surfaced to the user
+   separately after the automated pass completes.
+
+If Playwright-MCP is not available in this session, this section is skipped
+entirely. The audit falls back to the standard code-only review described above.
+No configuration change is required — the availability of `mcp__playwright__*`
+tools is detected at runtime.
 
 ## 5. Commit (if configured)
 

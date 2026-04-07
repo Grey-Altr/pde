@@ -8,17 +8,19 @@ Read all files referenced by the invoking prompt's execution_context before star
 
 <available_agent_types>
 Valid GSD subagent types (use exact names — do not fall back to 'general-purpose'):
-- gsd-project-researcher — Researches project-level technical decisions
-- gsd-research-synthesizer — Synthesizes findings from parallel research agents
-- gsd-roadmapper — Creates phased execution roadmaps
+- pde-project-researcher — Researches project-level technical decisions
+- pde-research-synthesizer — Synthesizes findings from parallel research agents
+- pde-roadmapper — Creates phased execution roadmaps
 </available_agent_types>
 
 <auto_mode>
+
 ## Auto Mode Detection
 
 Check if `--auto` flag is present in $ARGUMENTS.
 
 **If auto mode:**
+
 - Skip brownfield mapping offer (assume greenfield)
 - Skip deep questioning (extract context from provided document)
 - Config: YOLO mode is implicit (skip that question), but ask granularity/git/agents FIRST (Step 2a)
@@ -30,6 +32,7 @@ Check if `--auto` flag is present in $ARGUMENTS.
 
 **Document requirement:**
 Auto mode requires an idea document — either:
+
 - File reference: `/pde:new-project --auto @prd.md`
 - Pasted/written text in the prompt
 
@@ -44,6 +47,7 @@ Usage:
 
 The document should describe what you want to build.
 ```
+
 </auto_mode>
 
 <process>
@@ -55,13 +59,52 @@ The document should describe what you want to build.
 ```bash
 INIT=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" init new-project)
 if [[ "$INIT" == @file:* ]]; then INIT=$(cat "${INIT#@file:}"); fi
-AGENT_SKILLS_RESEARCHER=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" agent-skills gsd-project-researcher 2>/dev/null)
-AGENT_SKILLS_SYNTHESIZER=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" agent-skills gsd-synthesizer 2>/dev/null)
-AGENT_SKILLS_ROADMAPPER=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" agent-skills gsd-roadmapper 2>/dev/null)
+AGENT_SKILLS_RESEARCHER=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" agent-skills pde-project-researcher 2>/dev/null)
+AGENT_SKILLS_SYNTHESIZER=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" agent-skills pde-synthesizer 2>/dev/null)
+AGENT_SKILLS_ROADMAPPER=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" agent-skills pde-roadmapper 2>/dev/null)
+```
+
+Parse JSON for: `researcher_model`, `synthesizer_model`, `roadmapper_model`, `commit_docs`, `project_exists`, `has_codebase_map`, `planning_exists`, `has_existing_code`, `has_package_file`, `is_brownfield`, `needs_codebase_map`, `has_git`, `project_path`.
+
+**Detect runtime and set instruction file name:**
+
+Derive `RUNTIME` from the invoking prompt's `execution_context` path:
+- Path contains `/.codex/` → `RUNTIME=codex`
+- Path contains `/.gemini/` → `RUNTIME=gemini`
+- Path contains `/.config/opencode/` or `/.opencode/` → `RUNTIME=opencode`
+- Otherwise → `RUNTIME=claude`
+
+If `execution_context` path is not available, fall back to env vars:
+```bash
+if [ -n "$CODEX_HOME" ]; then RUNTIME="codex"
+elif [ -n "$GEMINI_CONFIG_DIR" ]; then RUNTIME="gemini"
+elif [ -n "$OPENCODE_CONFIG_DIR" ] || [ -n "$OPENCODE_CONFIG" ]; then RUNTIME="opencode"
+else RUNTIME="claude"; fi
+```
+
+Set the instruction file variable:
+```bash
+if [ "$RUNTIME" = "codex" ]; then INSTRUCTION_FILE="AGENTS.md"; else INSTRUCTION_FILE="CLAUDE.md"; fi
+```
+
+All subsequent references to the project instruction file use `$INSTRUCTION_FILE`.
+
+**If `project_exists` is true:** Error — project already initialized. Use `/pde:progress`.
+
+**If `has_git` is false:** Initialize git:
+
+```bash
+git init
+```
+
+## 2. Brownfield Offer
+
+**If auto mode:** Skip to Step 4 (assume greenfield, synthesize PROJECT.md from provided document).
 
 **If `needs_codebase_map` is true** (from init — existing code detected but no codebase map):
 
 Use AskUserQuestion:
+
 - header: "Codebase"
 - question: "I detected existing code in this directory. Would you like to map the codebase first?"
 - options:
@@ -69,9 +112,11 @@ Use AskUserQuestion:
   - "Skip mapping" — Proceed with project initialization
 
 **If "Map codebase first":**
+
 ```
 Run `/pde:map-codebase` first, then return to `/pde:new-project`
 ```
+
 Exit command.
 
 **If "Skip mapping" OR `needs_codebase_map` is false:** Continue to Step 3.
@@ -155,29 +200,18 @@ AskUserQuestion([
     options: [
       { label: "Balanced (Recommended)", description: "Sonnet for most agents — good quality/cost ratio" },
       { label: "Quality", description: "Opus for research/roadmap — higher cost, deeper analysis" },
-      { label: "Budget", description: "Haiku where possible — fastest, lowest cost" }
+      { label: "Budget", description: "Haiku where possible — fastest, lowest cost" },
+      { label: "Inherit", description: "Use the current session model for all agents (OpenCode /model)" }
     ]
   }
 ])
 ```
 
-Create `.planning/config.json` with mode set to "yolo":
+Create `.planning/config.json` with all settings (CLI fills in remaining defaults automatically):
 
-```json
-{
-  "mode": "yolo",
-  "granularity": "[selected]",
-  "parallelization": true|false,
-  "commit_docs": true|false,
-  "model_profile": "quality|balanced|budget",
-  "workflow": {
-    "research": true|false,
-    "plan_check": true|false,
-    "verifier": true|false,
-    "nyquist_validation": depth !== "quick",
-    "auto_advance": true
-  }
-}
+```bash
+mkdir -p .planning
+node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" config-new-project '{"mode":"yolo","granularity":"[selected]","parallelization":true|false,"commit_docs":true|false,"model_profile":"quality|balanced|budget|inherit","workflow":{"research":true|false,"plan_check":true|false,"verifier":true|false,"nyquist_validation":true|false,"auto_advance":true}}'
 ```
 
 **If commit_docs = No:** Add `.planning/` to `.gitignore`.
@@ -203,8 +237,10 @@ Proceed to Step 4 (skip Steps 3 and 5).
 
 **Display stage banner:**
 
-```bash
-node "$HOME/.claude/pde-os/lib/ui/render.cjs" banner "QUESTIONING"
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► QUESTIONING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
 **Open the conversation:**
@@ -228,6 +264,7 @@ When disabled (default), ask questions directly as before.
 Based on what they said, ask follow-up questions that dig into their response. Use AskUserQuestion with options that probe what they mentioned — interpretations, clarifications, concrete examples.
 
 Keep following threads. Each answer opens new threads to explore. Ask about:
+
 - What excited them
 - What problem sparked this
 - What they mean by vague terms
@@ -235,6 +272,7 @@ Keep following threads. Each answer opens new threads to explore. Ask about:
 - What's already decided
 
 Consult `questioning.md` for techniques:
+
 - Challenge vagueness
 - Make abstract concrete
 - Surface assumptions
@@ -268,7 +306,8 @@ Synthesize all context into `.planning/PROJECT.md` using the template from `temp
 **For greenfield projects:**
 
 Initialize requirements as hypotheses:
-markdown
+
+```markdown
 ## Requirements
 
 ### Validated
@@ -302,9 +341,9 @@ Infer Validated requirements from existing code:
 
 ### Validated
 
-- [Existing capability 1] — existing
-- [Existing capability 2] — existing
-- [Existing capability 3] — existing
+- ✓ [Existing capability 1] — existing
+- ✓ [Existing capability 2] — existing
+- ✓ [Existing capability 3] — existing
 
 ### Active
 
@@ -328,6 +367,13 @@ Initialize with any decisions made during questioning:
 | [Choice from questioning] | [Why] | — Pending |
 ```
 
+**Last updated footer:**
+
+```markdown
+---
+*Last updated: [date] after initialization*
+```
+
 **Evolution section** (include at the end of PROJECT.md, before the footer):
 
 ```markdown
@@ -335,25 +381,18 @@ Initialize with any decisions made during questioning:
 
 This document evolves at phase transitions and milestone boundaries.
 
-**After each phase transition** (via transition workflow):
-1. Requirements invalidated? -> Move to Out of Scope with reason
-2. Requirements validated? -> Move to Validated with phase reference
-3. New requirements emerged? -> Add to Active
-4. Decisions to log? -> Add to Key Decisions
-5. "What This Is" still accurate? -> Update if drifted
+**After each phase transition** (via `/pde:transition`):
+1. Requirements invalidated? → Move to Out of Scope with reason
+2. Requirements validated? → Move to Validated with phase reference
+3. New requirements emerged? → Add to Active
+4. Decisions to log? → Add to Key Decisions
+5. "What This Is" still accurate? → Update if drifted
 
 **After each milestone** (via `/pde:complete-milestone`):
 1. Full review of all sections
 2. Core Value check — still the right priority?
 3. Audit Out of Scope — reasons still valid?
 4. Update Context with current state
-```
-
-**Last updated footer:**
-
-```markdown
----
-*Last updated: [date] after initialization*
 ```
 
 Do not compress. Capture everything gathered.
@@ -481,35 +520,29 @@ questions: [
     options: [
       { label: "Balanced (Recommended)", description: "Sonnet for most agents — good quality/cost ratio" },
       { label: "Quality", description: "Opus for research/roadmap — higher cost, deeper analysis" },
-      { label: "Budget", description: "Haiku where possible — fastest, lowest cost" }
+      { label: "Budget", description: "Haiku where possible — fastest, lowest cost" },
+      { label: "Inherit", description: "Use the current session model for all agents (OpenCode /model)" }
     ]
   }
 ]
 ```
 
-Create `.planning/config.json` with all settings:
+Create `.planning/config.json` with all settings (CLI fills in remaining defaults automatically):
 
-```json
-{
-  "mode": "yolo|interactive",
-  "granularity": "coarse|standard|fine",
-  "parallelization": true|false,
-  "commit_docs": true|false,
-  "model_profile": "quality|balanced|budget",
-  "workflow": {
-    "research": true|false,
-    "plan_check": true|false,
-    "verifier": true|false,
-    "nyquist_validation": depth !== "quick"
-  }
-}
+```bash
+mkdir -p .planning
+node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" config-new-project '{"mode":"[yolo|interactive]","granularity":"[selected]","parallelization":true|false,"commit_docs":true|false,"model_profile":"quality|balanced|budget|inherit","workflow":{"research":true|false,"plan_check":true|false,"verifier":true|false,"nyquist_validation":[false if granularity=coarse, true otherwise]}}'
 ```
 
+**Note:** Run `/pde:settings` anytime to update model profile, workflow agents, branching strategy, and other preferences.
+
 **If commit_docs = No:**
+
 - Set `commit_docs: false` in config.json
 - Add `.planning/` to `.gitignore` (create if needed)
 
 **If commit_docs = Yes:**
+
 - No additional gitignore entries needed
 
 **Commit config.json:**
@@ -517,8 +550,6 @@ Create `.planning/config.json` with all settings:
 ```bash
 node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" commit "chore: add project config" --files .planning/config.json
 ```
-
-**Note:** Run `/pde:settings` anytime to update these preferences.
 
 ## 5.1. Sub-Repo Detection
 
@@ -532,7 +563,7 @@ find . -maxdepth 1 -type d -not -name ".*" -not -name "node_modules" -exec test 
 
 **If sub-repos found:**
 
-Strip the `./` prefix to get directory names (e.g., `./backend` -> `backend`).
+Strip the `./` prefix to get directory names (e.g., `./backend` → `backend`).
 
 Use AskUserQuestion:
 
@@ -561,6 +592,7 @@ Use models from init: `researcher_model`, `synthesizer_model`, `roadmapper_model
 **If auto mode:** Default to "Research first" without asking.
 
 Use AskUserQuestion:
+
 - header: "Research"
 - question: "Research the domain ecosystem before defining requirements?"
 - options:
@@ -570,12 +602,17 @@ Use AskUserQuestion:
 **If "Research first":**
 
 Display stage banner:
-```bash
-node "$HOME/.claude/pde-os/lib/ui/render.cjs" banner "RESEARCHING"
+
 ```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► RESEARCHING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 Researching [domain] ecosystem...
+```
 
 Create research directory:
+
 ```bash
 mkdir -p .planning/research
 ```
@@ -583,16 +620,18 @@ mkdir -p .planning/research
 **Determine milestone context:**
 
 Check if this is greenfield or subsequent milestone:
-- If no "Validated" requirements in PROJECT.md -> Greenfield (building from scratch)
-- If "Validated" requirements exist -> Subsequent milestone (adding to existing app)
+
+- If no "Validated" requirements in PROJECT.md → Greenfield (building from scratch)
+- If "Validated" requirements exist → Subsequent milestone (adding to existing app)
 
 Display spawning indicator:
+
 ```
-Spawning 4 researchers in parallel...
-  -> Stack research
-  -> Features research
-  -> Architecture research
-  -> Pitfalls research
+◆ Spawning 4 researchers in parallel...
+  → Stack research
+  → Features research
+  → Architecture research
+  → Pitfalls research
 ```
 
 Spawn 4 parallel pde-project-researcher agents with path references:
@@ -634,7 +673,7 @@ Your STACK.md feeds into roadmap creation. Be prescriptive:
 
 <output>
 Write to: .planning/research/STACK.md
-Use template: /Users/greyaltaer/.claude/pde-os/engines/gsd/templates/research-project/STACK.md
+Use template: $HOME/.claude/pde-os/engines/gsd/templates/research-project/STACK.md
 </output>
 ", subagent_type="pde-project-researcher", model="{researcher_model}", description="Stack research")
 
@@ -659,6 +698,22 @@ What features do [domain] products have? What's table stakes vs differentiating?
 
 ${AGENT_SKILLS_RESEARCHER}
 
+<downstream_consumer>
+Your FEATURES.md feeds into requirements definition. Categorize clearly:
+- Table stakes (must have or users leave)
+- Differentiators (competitive advantage)
+- Anti-features (things to deliberately NOT build)
+</downstream_consumer>
+
+<quality_gate>
+- [ ] Categories are clear (table stakes vs differentiators vs anti-features)
+- [ ] Complexity noted for each feature
+- [ ] Dependencies between features identified
+</quality_gate>
+
+<output>
+Write to: .planning/research/FEATURES.md
+Use template: $HOME/.claude/pde-os/engines/gsd/templates/research-project/FEATURES.md
 </output>
 ", subagent_type="pde-project-researcher", model="{researcher_model}", description="Features research")
 
@@ -683,6 +738,24 @@ How are [domain] systems typically structured? What are major components?
 
 ${AGENT_SKILLS_RESEARCHER}
 
+<downstream_consumer>
+Your ARCHITECTURE.md informs phase structure in roadmap. Include:
+- Component boundaries (what talks to what)
+- Data flow (how information moves)
+- Suggested build order (dependencies between components)
+</downstream_consumer>
+
+<quality_gate>
+- [ ] Components clearly defined with boundaries
+- [ ] Data flow direction explicit
+- [ ] Build order implications noted
+</quality_gate>
+
+<output>
+Write to: .planning/research/ARCHITECTURE.md
+Use template: $HOME/.claude/pde-os/engines/gsd/templates/research-project/ARCHITECTURE.md
+</output>
+", subagent_type="pde-project-researcher", model="{researcher_model}", description="Architecture research")
 
 Task(prompt="<research_type>
 Project Research — Pitfalls dimension for [domain].
@@ -720,7 +793,7 @@ Your PITFALLS.md prevents mistakes in roadmap/planning. For each pitfall:
 
 <output>
 Write to: .planning/research/PITFALLS.md
-Use template: /Users/greyaltaer/.claude/pde-os/engines/gsd/templates/research-project/PITFALLS.md
+Use template: $HOME/.claude/pde-os/engines/gsd/templates/research-project/PITFALLS.md
 </output>
 ", subagent_type="pde-project-researcher", model="{researcher_model}", description="Pitfalls research")
 ```
@@ -742,16 +815,46 @@ Synthesize research outputs into SUMMARY.md.
 
 ${AGENT_SKILLS_SYNTHESIZER}
 
+<output>
+Write to: .planning/research/SUMMARY.md
+Use template: $HOME/.claude/pde-os/engines/gsd/templates/research-project/SUMMARY.md
+Commit after writing.
+</output>
+", subagent_type="pde-research-synthesizer", model="{synthesizer_model}", description="Synthesize research")
+```
+
+Display research complete banner and key findings:
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► RESEARCH COMPLETE ✓
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+## Key Findings
+
+**Stack:** [from SUMMARY.md]
+**Table Stakes:** [from SUMMARY.md]
+**Watch Out For:** [from SUMMARY.md]
+
+Files: `.planning/research/`
+```
+
+**If "Skip research":** Continue to Step 7.
+
 ## 7. Define Requirements
 
 Display stage banner:
-```bash
-node "$HOME/.claude/pde-os/lib/ui/render.cjs" banner "DEFINING REQUIREMENTS"
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► DEFINING REQUIREMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
 **Load context:**
 
 Read PROJECT.md and extract:
+
 - Core value (the ONE thing that must work)
 - Stated constraints (budget, timeline, tech limitations)
 - Any explicit scope boundaries
@@ -759,6 +862,7 @@ Read PROJECT.md and extract:
 **If research exists:** Read research/FEATURES.md and extract feature categories.
 
 **If auto mode:**
+
 - Auto-include all table stakes features (users expect these)
 - Include features explicitly mentioned in provided document
 - Auto-defer differentiators not mentioned in document
@@ -797,6 +901,7 @@ Here are the features for [domain]:
 Ask: "What are the main things users need to be able to do?"
 
 For each capability mentioned:
+
 - Ask clarifying questions to make it specific
 - Probe for related capabilities
 - Group into categories
@@ -815,13 +920,15 @@ For each category, use AskUserQuestion:
   - "None for v1" — Defer entire category
 
 Track responses:
-- Selected features -> v1 requirements
-- Unselected table stakes -> v2 (users expect these)
-- Unselected differentiators -> out of scope
+
+- Selected features → v1 requirements
+- Unselected table stakes → v2 (users expect these)
+- Unselected differentiators → out of scope
 
 **Identify gaps:**
 
 Use AskUserQuestion:
+
 - header: "Additions"
 - question: "Any requirements research missed? (Features specific to your vision)"
 - options:
@@ -835,6 +942,7 @@ Cross-check requirements against Core Value from PROJECT.md. If gaps detected, s
 **Generate REQUIREMENTS.md:**
 
 Create `.planning/REQUIREMENTS.md` with:
+
 - v1 Requirements grouped by category (checkboxes, REQ-IDs)
 - v2 Requirements (deferred)
 - Out of Scope (explicit exclusions with reasoning)
@@ -845,14 +953,16 @@ Create `.planning/REQUIREMENTS.md` with:
 **Requirement quality criteria:**
 
 Good requirements are:
+
 - **Specific and testable:** "User can reset password via email link" (not "Handle password reset")
 - **User-centric:** "User can X" (not "System does Y")
 - **Atomic:** One capability per requirement (not "User can login and manage profile")
 - **Independent:** Minimal dependencies on other requirements
 
 Reject vague requirements. Push for specificity:
-- "Handle authentication" -> "User can log in with email/password and stay logged in across sessions"
-- "Support sharing" -> "User can share post via link that opens in recipient's browser"
+
+- "Handle authentication" → "User can log in with email/password and stay logged in across sessions"
+- "Support sharing" → "User can share post via link that opens in recipient's browser"
 
 **Present full requirements list (interactive mode only):**
 
@@ -888,10 +998,14 @@ node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" commit "docs: define v
 ## 8. Create Roadmap
 
 Display stage banner:
-```bash
-node "$HOME/.claude/pde-os/lib/ui/render.cjs" banner "CREATING ROADMAP"
+
 ```
-Spawning roadmapper...
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► CREATING ROADMAP
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+◆ Spawning roadmapper...
+```
 
 Spawn pde-roadmapper agent with path references:
 
@@ -927,6 +1041,7 @@ Write files first, then return. This ensures artifacts persist even if context i
 **Handle roadmapper return:**
 
 **If `## ROADMAP BLOCKED`:**
+
 - Present blocker information
 - Work with user to resolve
 - Re-spawn when resolved
@@ -940,7 +1055,7 @@ Read the created ROADMAP.md and present it nicely inline:
 
 ## Proposed Roadmap
 
-**[N] phases** | **[X] requirements mapped** | All v1 requirements covered
+**[N] phases** | **[X] requirements mapped** | All v1 requirements covered ✓
 
 | # | Phase | Goal | Requirements | Success Criteria |
 |---|-------|------|--------------|------------------|
@@ -976,6 +1091,7 @@ Success criteria:
 **CRITICAL: Ask for approval before committing (interactive mode only):**
 
 Use AskUserQuestion:
+
 - header: "Roadmap"
 - question: "Does this roadmap structure work for you?"
 - options:
@@ -986,8 +1102,10 @@ Use AskUserQuestion:
 **If "Approve":** Continue to commit.
 
 **If "Adjust phases":**
+
 - Get user's adjustment notes
 - Re-spawn roadmapper with revision context:
+
   ```
   Task(prompt="
   <revision>
@@ -1000,23 +1118,114 @@ Use AskUserQuestion:
 
   ${AGENT_SKILLS_ROADMAPPER}
 
-## Next Up
+  Update the roadmap based on feedback. Edit files in place.
+  Return ROADMAP REVISED with changes made.
+  </revision>
+  ", subagent_type="pde-roadmapper", model="{roadmapper_model}", description="Revise roadmap")
+  ```
+
+- Present revised roadmap
+- Loop until user approves
+
+**If "Review full file":** Display raw `cat .planning/ROADMAP.md`, then re-ask.
+
+**Generate or refresh project instruction file before final commit:**
+
+```bash
+node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" generate-claude-md --output "$INSTRUCTION_FILE"
+```
+
+This ensures new projects get the default GSD workflow-enforcement guidance and current project context in `$INSTRUCTION_FILE`.
+
+**Commit roadmap (after approval or auto mode):**
+
+```bash
+node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" commit "docs: create roadmap ([N] phases)" --files .planning/ROADMAP.md .planning/STATE.md .planning/REQUIREMENTS.md "$INSTRUCTION_FILE"
+```
+
+## 9. Done
+
+Present completion summary:
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► PROJECT INITIALIZED ✓
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+**[Project Name]**
+
+| Artifact       | Location                    |
+|----------------|-----------------------------|
+| Project        | `.planning/PROJECT.md`      |
+| Config         | `.planning/config.json`     |
+| Research       | `.planning/research/`       |
+| Requirements   | `.planning/REQUIREMENTS.md` |
+| Roadmap        | `.planning/ROADMAP.md`      |
+| Project guide  | `$INSTRUCTION_FILE`         |
+
+**[N] phases** | **[X] requirements** | Ready to build ✓
+```
+
+**If auto mode:**
+
+```
+╔══════════════════════════════════════════╗
+║  AUTO-ADVANCING → DISCUSS PHASE 1        ║
+╚══════════════════════════════════════════╝
+```
+
+Exit skill and invoke SlashCommand("/pde:discuss-phase 1 --auto")
+
+**If interactive mode:**
+
+Check if Phase 1 has UI indicators (look for `**UI hint**: yes` in Phase 1 detail section of ROADMAP.md):
+
+```bash
+PHASE1_SECTION=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" roadmap get-phase 1 2>/dev/null)
+PHASE1_HAS_UI=$(echo "$PHASE1_SECTION" | grep -qi "UI hint.*yes" && echo "true" || echo "false")
+```
+
+**If Phase 1 has UI (`PHASE1_HAS_UI` is `true`):**
+
+```
+───────────────────────────────────────────────────────────────
+
+## ▶ Next Up
 
 **Phase 1: [Phase Name]** — [Goal from ROADMAP.md]
 
-/pde:discuss-phase 1 — gather context and clarify approach
+/clear then:
 
-<sub>/clear first -> fresh context window</sub>
+/pde:discuss-phase 1 — gather context and clarify approach
 
 ---
 
 **Also available:**
-- /pde:recommend — discover MCPs, tools, and libraries relevant to your project
+- /pde:ui-phase 1 — generate UI design contract (recommended for frontend phases)
 - /pde:plan-phase 1 — skip discussion, plan directly
 
-```bash
-node "$HOME/.claude/pde-os/lib/ui/render.cjs" divider
+───────────────────────────────────────────────────────────────
 ```
+
+**If Phase 1 has no UI:**
+
+```
+───────────────────────────────────────────────────────────────
+
+## ▶ Next Up
+
+**Phase 1: [Phase Name]** — [Goal from ROADMAP.md]
+
+/clear then:
+
+/pde:discuss-phase 1 — gather context and clarify approach
+
+---
+
+**Also available:**
+- /pde:plan-phase 1 — skip discussion, plan directly
+
+───────────────────────────────────────────────────────────────
 ```
 
 </process>
@@ -1034,6 +1243,7 @@ node "$HOME/.claude/pde-os/lib/ui/render.cjs" divider
 - `.planning/REQUIREMENTS.md`
 - `.planning/ROADMAP.md`
 - `.planning/STATE.md`
+- `$INSTRUCTION_FILE` (`AGENTS.md` for Codex, `CLAUDE.md` for all other runtimes)
 
 </output>
 
@@ -1043,22 +1253,21 @@ node "$HOME/.claude/pde-os/lib/ui/render.cjs" divider
 - [ ] Git repo initialized
 - [ ] Brownfield detection completed
 - [ ] Deep questioning completed (threads followed, not rushed)
-- [ ] PROJECT.md captures full context -> **committed**
-- [ ] config.json has workflow mode, granularity, parallelization -> **committed**
-- [ ] Research completed (if selected) — 4 parallel agents spawned -> **committed**
+- [ ] PROJECT.md captures full context → **committed**
+- [ ] config.json has workflow mode, granularity, parallelization → **committed**
+- [ ] Research completed (if selected) — 4 parallel agents spawned → **committed**
 - [ ] Requirements gathered (from research or conversation)
 - [ ] User scoped each category (v1/v2/out of scope)
-- [ ] REQUIREMENTS.md created with REQ-IDs -> **committed**
+- [ ] REQUIREMENTS.md created with REQ-IDs → **committed**
 - [ ] pde-roadmapper spawned with context
 - [ ] Roadmap files written immediately (not draft)
 - [ ] User feedback incorporated (if any)
 - [ ] ROADMAP.md created with phases, requirement mappings, success criteria
 - [ ] STATE.md initialized
 - [ ] REQUIREMENTS.md traceability updated
-- [ ] User informed about `/pde:recommend` for ecosystem tool discovery (suggested, not auto-run)
+- [ ] `$INSTRUCTION_FILE` generated with GSD workflow guidance (AGENTS.md for Codex, CLAUDE.md otherwise)
 - [ ] User knows next step is `/pde:discuss-phase 1`
 
 **Atomic commits:** Each phase commits its artifacts immediately. If context is lost, artifacts persist.
 
 </success_criteria>
-</output>

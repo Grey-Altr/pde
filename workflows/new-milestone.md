@@ -12,11 +12,18 @@ Read all files referenced by the invoking prompt's execution_context before star
 
 <available_agent_types>
 Valid GSD subagent types (use exact names — do not fall back to 'general-purpose'):
-- gsd-project-researcher — Researches project-level technical decisions
-- gsd-research-synthesizer — Synthesizes findings from parallel research agents
-- gsd-roadmapper — Creates phased execution roadmaps
+- pde-project-researcher — Researches project-level technical decisions
+- pde-research-synthesizer — Synthesizes findings from parallel research agents
+- pde-roadmapper — Creates phased execution roadmaps
 </available_agent_types>
 
+<process>
+
+## 1. Load Context
+
+Parse `$ARGUMENTS` before doing anything else:
+- `--reset-phase-numbers` flag → opt into restarting roadmap phase numbering at `1`
+- remaining text → use as milestone name if present
 
 If the flag is absent, keep the current behavior of continuing phase numbering from the previous milestone.
 
@@ -40,7 +47,7 @@ If the flag is absent, keep the current behavior of continuing phase numbering f
 ## 3. Determine Milestone Version
 
 - Parse last version from MILESTONES.md
-- Suggest next version (v1.0 -> v1.1, or v2.0 for major)
+- Suggest next version (v1.0 → v1.1, or v2.0 for major)
 - Confirm with user
 
 ## 3.5. Verify Milestone Understanding
@@ -48,16 +55,20 @@ If the flag is absent, keep the current behavior of continuing phase numbering f
 Before writing any files, present a summary of what was gathered and ask for confirmation.
 
 ```
-Milestone v[X.Y]: [Name]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► MILESTONE SUMMARY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Goal: [One sentence]
+**Milestone v[X.Y]: [Name]**
 
-Target features:
+**Goal:** [One sentence]
+
+**Target features:**
 - [Feature 1]
 - [Feature 2]
 - [Feature 3]
 
-Key context: [Any important constraints, decisions, or notes from questioning]
+**Key context:** [Any important constraints, decisions, or notes from questioning]
 ```
 
 AskUserQuestion:
@@ -95,12 +106,12 @@ Ensure the `## Evolution` section exists in PROJECT.md. If missing (projects cre
 
 This document evolves at phase transitions and milestone boundaries.
 
-**After each phase transition** (via transition workflow):
-1. Requirements invalidated? -> Move to Out of Scope with reason
-2. Requirements validated? -> Move to Validated with phase reference
-3. New requirements emerged? -> Add to Active
-4. Decisions to log? -> Add to Key Decisions
-5. "What This Is" still accurate? -> Update if drifted
+**After each phase transition** (via `/pde:transition`):
+1. Requirements invalidated? → Move to Out of Scope with reason
+2. Requirements validated? → Move to Validated with phase reference
+3. New requirements emerged? → Add to Active
+4. Decisions to log? → Add to Key Decisions
+5. "What This Is" still accurate? → Update if drifted
 
 **After each milestone** (via `/pde:complete-milestone`):
 1. Full review of all sections
@@ -126,6 +137,12 @@ Keep Accumulated Context section from previous milestone.
 
 Delete MILESTONE-CONTEXT.md if exists (consumed).
 
+Clear leftover phase directories from the previous milestone:
+
+```bash
+node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" phases clear --confirm
+```
+
 ```bash
 node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" commit "docs: start milestone v[X.Y] [Name]" --files .planning/PROJECT.md .planning/STATE.md
 ```
@@ -135,9 +152,23 @@ node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" commit "docs: start mi
 ```bash
 INIT=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" init new-milestone)
 if [[ "$INIT" == @file:* ]]; then INIT=$(cat "${INIT#@file:}"); fi
-AGENT_SKILLS_RESEARCHER=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" agent-skills gsd-project-researcher 2>/dev/null)
-AGENT_SKILLS_SYNTHESIZER=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" agent-skills gsd-synthesizer 2>/dev/null)
-AGENT_SKILLS_ROADMAPPER=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" agent-skills gsd-roadmapper 2>/dev/null)
+AGENT_SKILLS_RESEARCHER=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" agent-skills pde-project-researcher 2>/dev/null)
+AGENT_SKILLS_SYNTHESIZER=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" agent-skills pde-synthesizer 2>/dev/null)
+AGENT_SKILLS_ROADMAPPER=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" agent-skills pde-roadmapper 2>/dev/null)
+```
+
+Extract from init JSON: `researcher_model`, `synthesizer_model`, `roadmapper_model`, `commit_docs`, `research_enabled`, `current_milestone`, `project_exists`, `roadmap_exists`, `latest_completed_milestone`, `phase_dir_count`, `phase_archive_path`.
+
+## 7.5 Reset-phase safety (only when `--reset-phase-numbers`)
+
+If `--reset-phase-numbers` is active:
+
+1. Set starting phase number to `1` for the upcoming roadmap.
+2. If `phase_dir_count > 0`, archive the old phase directories before roadmapping so new `01-*` / `02-*` directories cannot collide with stale milestone directories.
+
+If `phase_dir_count > 0` and `phase_archive_path` is available:
+
+```bash
 mkdir -p "${phase_archive_path}"
 find .planning/phases -mindepth 1 -maxdepth 1 -type d -exec mv {} "${phase_archive_path}/" \;
 ```
@@ -146,7 +177,7 @@ Then verify `.planning/phases/` no longer contains old milestone directories bef
 
 If `phase_dir_count > 0` but `phase_archive_path` is missing:
 - Stop and explain that reset numbering is unsafe without a completed milestone archive target.
-- Tell the user to complete/archive the previous milestone first, then rerun `/pde:new-milestone --reset-phase-numbers`.
+- Tell the user to complete/archive the previous milestone first, then rerun `/pde:new-milestone --reset-phase-numbers ${GSD_WS}`.
 
 ## 8. Research Decision
 
@@ -168,11 +199,14 @@ AskUserQuestion: "Research the domain ecosystem for new features before defining
 
 **If user chose "Research first":**
 
-```bash
-node "$HOME/.claude/pde-os/lib/ui/render.cjs" banner "RESEARCHING"
 ```
-Spawning 4 researchers in parallel...
-  -> Stack, Features, Architecture, Pitfalls
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► RESEARCHING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+◆ Spawning 4 researchers in parallel...
+  → Stack, Features, Architecture, Pitfalls
+```
 
 ```bash
 mkdir -p .planning/research
@@ -199,6 +233,25 @@ Focus ONLY on what's needed for the NEW features.
 
 ${AGENT_SKILLS_RESEARCHER}
 
+<downstream_consumer>{CONSUMER}</downstream_consumer>
+
+<quality_gate>{GATES}</quality_gate>
+
+<output>
+Write to: .planning/research/{FILE}
+Use template: $HOME/.claude/pde-os/engines/gsd/templates/research-project/{FILE}
+</output>
+", subagent_type="pde-project-researcher", model="{researcher_model}", description="{DIMENSION} research")
+```
+
+**Dimension-specific fields:**
+
+| Field | Stack | Features | Architecture | Pitfalls |
+|-------|-------|----------|-------------|----------|
+| EXISTING_CONTEXT | Existing validated capabilities (DO NOT re-research): [from PROJECT.md] | Existing features (already built): [from PROJECT.md] | Existing architecture: [from PROJECT.md or codebase map] | Focus on common mistakes when ADDING these features to existing system |
+| QUESTION | What stack additions/changes are needed for [new features]? | How do [target features] typically work? Expected behavior? | How do [target features] integrate with existing architecture? | Common mistakes when adding [target features] to [domain]? |
+| CONSUMER | Specific libraries with versions for NEW capabilities, integration points, what NOT to add | Table stakes vs differentiators vs anti-features, complexity noted, dependencies on existing | Integration points, new components, data flow changes, suggested build order | Warning signs, prevention strategy, which phase should address it |
+| GATES | Versions current (verify with Context7), rationale explains WHY, integration considered | Categories clear, complexity noted, dependencies identified | Integration points identified, new vs modified explicit, build order considers deps | Pitfalls specific to adding these features, integration pitfalls covered, prevention actionable |
 | FILE | STACK.md | FEATURES.md | ARCHITECTURE.md | PITFALLS.md |
 
 After all 4 complete, spawn synthesizer:
@@ -217,25 +270,30 @@ Synthesize research outputs into SUMMARY.md.
 ${AGENT_SKILLS_SYNTHESIZER}
 
 Write to: .planning/research/SUMMARY.md
-Use template: /Users/greyaltaer/.claude/pde-os/engines/gsd/templates/research-project/SUMMARY.md
+Use template: $HOME/.claude/pde-os/engines/gsd/templates/research-project/SUMMARY.md
 Commit after writing.
 ", subagent_type="pde-research-synthesizer", model="{synthesizer_model}", description="Synthesize research")
 ```
 
 Display key findings from SUMMARY.md:
-```bash
-node "$HOME/.claude/pde-os/lib/ui/render.cjs" banner "RESEARCH COMPLETE"
 ```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► RESEARCH COMPLETE ✓
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 **Stack additions:** [from SUMMARY.md]
 **Feature table stakes:** [from SUMMARY.md]
 **Watch Out For:** [from SUMMARY.md]
+```
 
 **If "Skip research":** Continue to Step 9.
 
 ## 9. Define Requirements
 
-```bash
-node "$HOME/.claude/pde-os/lib/ui/render.cjs" banner "DEFINING REQUIREMENTS"
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► DEFINING REQUIREMENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 
 Read PROJECT.md: core value, current milestone goals, validated requirements (what exists).
@@ -257,7 +315,7 @@ Present features by category:
 - "[Feature 2]" — [brief description]
 - "None for this milestone" — Defer entire category
 
-Track: Selected -> this milestone. Unselected table stakes -> future. Unselected differentiators -> out of scope.
+Track: Selected → this milestone. Unselected table stakes → future. Unselected differentiators → out of scope.
 
 **Identify gaps** via AskUserQuestion:
 - "No, research covered it" — Proceed
@@ -303,14 +361,17 @@ node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" commit "docs: define m
 
 ## 10. Create Roadmap
 
-```bash
-node "$HOME/.claude/pde-os/lib/ui/render.cjs" banner "CREATING ROADMAP"
 ```
-Spawning roadmapper...
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► CREATING ROADMAP
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+◆ Spawning roadmapper...
+```
 
 **Starting phase number:**
 - If `--reset-phase-numbers` is active, start at **Phase 1**
-- Otherwise, continue from the previous milestone's last phase number (v1.0 ended at phase 5 -> v1.1 starts at phase 6)
+- Otherwise, continue from the previous milestone's last phase number (v1.0 ended at phase 5 → v1.1 starts at phase 6)
 
 ```
 Task(prompt="
@@ -325,6 +386,39 @@ Task(prompt="
 
 ${AGENT_SKILLS_ROADMAPPER}
 
+</planning_context>
+
+<instructions>
+Create roadmap for milestone v[X.Y]:
+1. Respect the selected numbering mode:
+   - `--reset-phase-numbers` → start at Phase 1
+   - default behavior → continue from the previous milestone's last phase number
+2. Derive phases from THIS MILESTONE's requirements only
+3. Map every requirement to exactly one phase
+4. Derive 2-5 success criteria per phase (observable user behaviors)
+5. Validate 100% coverage
+6. Write files immediately (ROADMAP.md, STATE.md, update REQUIREMENTS.md traceability)
+7. Return ROADMAP CREATED with summary
+
+Write files first, then return.
+</instructions>
+", subagent_type="pde-roadmapper", model="{roadmapper_model}", description="Create roadmap")
+```
+
+**Handle return:**
+
+**If `## ROADMAP BLOCKED`:** Present blocker, work with user, re-spawn.
+
+**If `## ROADMAP CREATED`:** Read ROADMAP.md, present inline:
+
+```
+## Proposed Roadmap
+
+**[N] phases** | **[X] requirements mapped** | All covered ✓
+
+| # | Phase | Goal | Requirements | Success Criteria |
+|---|-------|------|--------------|------------------|
+| [N] | [Name] | [Goal] | [REQ-IDs] | [count] |
 
 ### Phase Details
 
@@ -351,9 +445,11 @@ node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" commit "docs: create m
 
 ## 11. Done
 
-```bash
-node "$HOME/.claude/pde-os/lib/ui/render.cjs" banner "MILESTONE INITIALIZED"
 ```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► MILESTONE INITIALIZED ✓
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 **Milestone v[X.Y]: [Name]**
 
 | Artifact       | Location                    |
@@ -363,17 +459,18 @@ node "$HOME/.claude/pde-os/lib/ui/render.cjs" banner "MILESTONE INITIALIZED"
 | Requirements   | `.planning/REQUIREMENTS.md` |
 | Roadmap        | `.planning/ROADMAP.md`      |
 
-**[N] phases** | **[X] requirements** | Ready to build
+**[N] phases** | **[X] requirements** | Ready to build ✓
 
-## Next Up
+## ▶ Next Up
 
 **Phase [N]: [Phase Name]** — [Goal]
 
-`/pde:discuss-phase [N]` — gather context and clarify approach
+`/clear` then:
 
-<sub>`/clear` first -> fresh context window</sub>
+`/pde:discuss-phase [N] ${GSD_WS}` — gather context and clarify approach
 
-Also: `/pde:plan-phase [N]` — skip discussion, plan directly
+Also: `/pde:plan-phase [N] ${GSD_WS}` — skip discussion, plan directly
+```
 
 </process>
 
@@ -389,8 +486,7 @@ Also: `/pde:plan-phase [N]` — skip discussion, plan directly
 - [ ] User feedback incorporated (if any)
 - [ ] Phase numbering mode respected (continued or reset)
 - [ ] All commits made (if planning docs committed)
-- [ ] User knows next step: `/pde:discuss-phase [N]`
+- [ ] User knows next step: `/pde:discuss-phase [N] ${GSD_WS}`
 
 **Atomic commits:** Each phase commits its artifacts immediately.
 </success_criteria>
-</output>

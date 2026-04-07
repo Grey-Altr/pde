@@ -229,9 +229,9 @@ All requirements covered. Cross-phase integration verified. E2E flows complete.
 
 **Complete milestone** — archive and tag
 
-/pde:complete-milestone {version}
+/clear then:
 
-<sub>/clear first → fresh context window</sub>
+/pde:complete-milestone {version}
 
 ───────────────────────────────────────────────────────────────
 
@@ -274,9 +274,9 @@ Phases needing validation: run `/pde:validate-phase {N}` for each flagged phase.
 
 **Plan gap closure** — create phases to complete milestone
 
-/pde:plan-milestone-gaps
+/clear then:
 
-<sub>/clear first → fresh context window</sub>
+/pde:plan-milestone-gaps
 
 ───────────────────────────────────────────────────────────────
 
@@ -316,9 +316,9 @@ All requirements met. No critical blockers. Accumulated tech debt needs review.
 
 **B. Plan cleanup phase** — address debt before completing
 
-/pde:plan-milestone-gaps
+/clear then:
 
-<sub>/clear first → fresh context window</sub>
+/pde:plan-milestone-gaps
 
 ───────────────────────────────────────────────────────────────
 </offer_next>

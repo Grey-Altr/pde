@@ -59,9 +59,10 @@ This command works on completed phases. Run /pde:execute-phase first.
 Exit.
 
 Present banner:
-```bash
-node "$HOME/.claude/pde-os/lib/ui/render.cjs" banner "ADD TESTS — Phase ${phase_number}: ${phase_name}"
 ```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► ADD TESTS — Phase ${phase_number}: ${phase_name}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
 </step>
 
@@ -107,6 +108,7 @@ Read each file to verify classification. Don't classify based on filename alone.
 <step name="present_classification">
 Present the classification to the user for confirmation before proceeding:
 
+```
 AskUserQuestion(
   header: "Test Classification",
   question: |
@@ -227,7 +229,7 @@ For each approved TDD test:
    - **Test passes**: Good — the implementation satisfies the test. Verify the test checks meaningful behavior (not just that it compiles).
    - **Test fails with assertion error**: This may be a genuine bug discovered by the test. Flag it:
      ```
-     Potential bug found: {test name}
+     ⚠️ Potential bug found: {test name}
      Expected: {expected}
      Actual: {actual}
      File: {implementation file}
@@ -242,6 +244,7 @@ For each approved E2E test:
 1. **Check for existing tests** covering the same scenario:
    ```bash
    grep -r "{scenario keyword}" {e2e test directory} 2>/dev/null || true
+   ```
    If found, extend rather than duplicate.
 
 2. **Create test file** targeting the user scenario from CONTEXT.md/VERIFICATION.md
@@ -255,13 +258,13 @@ For each approved E2E test:
    - **GREEN (passes)**: Record success
    - **RED (fails)**: Determine if it's a test issue or a genuine application bug. Flag bugs:
      ```
-     E2E failure: {test name}
+     ⚠️ E2E failure: {test name}
      Scenario: {description}
      Error: {error message}
      ```
    - **Cannot run**: Report blocker. Do NOT mark as complete.
      ```
-     E2E blocker: {reason tests cannot run}
+     🛑 E2E blocker: {reason tests cannot run}
      ```
 
 **No-skip rule:** If E2E tests cannot execute (missing dependencies, environment issues), report the blocker and mark the test as incomplete. Never mark success without actually running the test.
@@ -270,9 +273,11 @@ For each approved E2E test:
 <step name="summary_and_commit">
 Create a test coverage report and present to user:
 
-```bash
-node "$HOME/.claude/pde-os/lib/ui/render.cjs" banner "TEST GENERATION COMPLETE"
 ```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► TEST GENERATION COMPLETE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 ## Results
 
 | Category | Generated | Passing | Failing | Blocked |
@@ -288,6 +293,7 @@ node "$HOME/.claude/pde-os/lib/ui/render.cjs" banner "TEST GENERATION COMPLETE"
 
 ## Bugs Discovered
 {any assertion failures that indicate implementation bugs}
+```
 
 Record test generation in project state:
 ```bash

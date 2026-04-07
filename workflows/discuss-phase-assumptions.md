@@ -8,9 +8,14 @@ believe based on evidence, and ask the user only to correct what's wrong.
 
 <available_agent_types>
 Valid GSD subagent types (use exact names — do not fall back to 'general-purpose'):
-- gsd-assumptions-analyzer — Analyzes codebase to surface implementation assumptions
+- pde-assumptions-analyzer — Analyzes codebase to surface implementation assumptions
 </available_agent_types>
 
+<downstream_awareness>
+**CONTEXT.md feeds into:**
+
+1. **pde-phase-researcher** — Reads CONTEXT.md to know WHAT to research
+2. **pde-planner** — Reads CONTEXT.md to know WHAT decisions are locked
 
 **Your job:** Capture decisions clearly enough that downstream agents can act on them
 without asking the user again. Output is identical to discuss mode — same CONTEXT.md format.
@@ -61,7 +66,13 @@ Phase number from argument (required).
 ```bash
 INIT=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" init phase-op "${PHASE}")
 if [[ "$INIT" == @file:* ]]; then INIT=$(cat "${INIT#@file:}"); fi
-AGENT_SKILLS_ANALYZER=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" agent-skills gsd-assumptions-analyzer 2>/dev/null)
+AGENT_SKILLS_ANALYZER=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" agent-skills pde-assumptions-analyzer 2>/dev/null)
+```
+
+Parse JSON for: `commit_docs`, `phase_found`, `phase_dir`, `phase_number`, `phase_name`,
+`phase_slug`, `padded_phase`, `has_research`, `has_context`, `has_plans`, `has_verification`,
+`plan_count`, `roadmap_exists`, `planning_exists`.
+
 **If `phase_found` is false:**
 ```
 Phase [X] not found in roadmap.
@@ -175,6 +186,24 @@ Parse JSON for: `todo_count`, `matches[]`.
 **Auto mode (`--auto`):** Fold all todos with score >= 0.4 automatically. Log the selection.
 </step>
 
+<step name="load_methodology">
+Read the project-level methodology file if it exists. This must happen before assumption analysis
+so that active lenses shape how assumptions are generated and evaluated.
+
+```bash
+cat .planning/METHODOLOGY.md 2>/dev/null || true
+```
+
+**If METHODOLOGY.md exists:**
+- Parse each named lens: its diagnoses, recommendations, and triggering conditions
+- Store as internal `<active_lenses>` for use in deep_codebase_analysis and present_assumptions
+- When spawning the pde-assumptions-analyzer, pass the lens list so it can flag which lenses apply
+- When presenting assumptions, append a "Methodology" section showing which lenses were applied
+  and what they flagged (if anything)
+
+**If METHODOLOGY.md does not exist:** Skip silently. This artifact is optional.
+</step>
+
 <step name="scout_codebase">
 Lightweight scan of existing code to inform assumption generation.
 
@@ -201,7 +230,7 @@ Identify reusable assets, established patterns, integration points, and creative
 </step>
 
 <step name="deep_codebase_analysis">
-Spawn a `gsd-assumptions-analyzer` agent to deeply analyze the codebase for this phase. This
+Spawn a `pde-assumptions-analyzer` agent to deeply analyze the codebase for this phase. This
 keeps raw file contents out of the main context window, protecting token budget.
 
 **Resolve calibration tier (if USER-PROFILE.md exists):**
@@ -262,6 +291,15 @@ Return EXACTLY this structure:
 ecosystem best practices, etc. Leave empty if codebase provides enough evidence.]
 
 ${AGENT_SKILLS_ANALYZER}
+""")
+```
+
+Parse the subagent's response. Extract:
+- `assumptions[]` — each with area, statement, evidence, consequence, confidence
+- `needs_research[]` — topics requiring external research (may be empty)
+
+**Initialize canonical refs accumulator:**
+- Source 1: Copy `Canonical refs:` from ROADMAP.md for this phase, expand to full paths
 - Source 2: Check REQUIREMENTS.md and PROJECT.md for specs/ADRs referenced
 - Source 3: Add any docs referenced in codebase scout results
 </step>
@@ -559,9 +597,9 @@ Created: .planning/phases/${PADDED_PHASE}-${SLUG}/${PADDED_PHASE}-CONTEXT.md
 
 **Phase ${PHASE}: {phase_name}** — {Goal from ROADMAP.md}
 
-`/pde:plan-phase ${PHASE}`
+`/clear` then:
 
-<sub>`/clear` first → fresh context window</sub>
+`/pde:plan-phase ${PHASE}`
 
 ---
 
@@ -606,7 +644,7 @@ Display banner:
 Context captured (assumptions mode). Launching plan-phase...
 ```
 
-Launch: `Skill(skill="gsd:plan-phase", args="${PHASE} --auto")`
+Launch: `Skill(skill="pde-plan-phase", args="${PHASE} --auto")`
 
 Handle return: PHASE COMPLETE / PLANNING COMPLETE / INCONCLUSIVE / GAPS FOUND
 (identical handling to discuss-phase.md auto_advance step)

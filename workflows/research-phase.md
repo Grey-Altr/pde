@@ -9,13 +9,18 @@ Valid GSD subagent types (use exact names — do not fall back to 'general-purpo
 - pde-phase-researcher — Researches technical approaches for a phase
 </available_agent_types>
 
+<process>
+
+## Step 0: Resolve Model Profile
+
+@$HOME/.claude/pde-os/engines/gsd/references/model-profile-resolution.md
 
 Resolve model for:
 - `pde-phase-researcher`
 
 ## Step 1: Normalize and Validate Phase
 
-@/Users/greyaltaer/.claude/pde-os/engines/gsd/references/phase-argument-parsing.md
+@$HOME/.claude/pde-os/engines/gsd/references/phase-argument-parsing.md
 
 ```bash
 PHASE_INFO=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" roadmap get-phase "${PHASE}")
@@ -38,6 +43,12 @@ INIT=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" init phase-op "
 if [[ "$INIT" == @file:* ]]; then INIT=$(cat "${INIT#@file:}"); fi
 # Extract: phase_dir, padded_phase, phase_number, state_path, requirements_path, context_path
 AGENT_SKILLS_RESEARCHER=$(node "$HOME/.claude/pde-os/engines/gsd/bin/gsd-tools.cjs" agent-skills pde-researcher 2>/dev/null)
+```
+
+## Step 4: Spawn Researcher
+
+```
+Task(
   prompt="<objective>
 Research implementation approach for Phase {phase}: {name}
 </objective>
@@ -50,6 +61,15 @@ Research implementation approach for Phase {phase}: {name}
 
 ${AGENT_SKILLS_RESEARCHER}
 
+<additional_context>
+Phase description: {description}
+</additional_context>
+
+<output>
+Write to: .planning/phases/${PHASE}-{slug}/${PHASE}-RESEARCH.md
+</output>",
+  subagent_type="pde-phase-researcher",
+  model="{researcher_model}"
 )
 ```
 
@@ -60,4 +80,3 @@ ${AGENT_SKILLS_RESEARCHER}
 - `## RESEARCH INCONCLUSIVE` — Show attempts, offer: Add context/Try different mode/Manual
 
 </process>
-</output>

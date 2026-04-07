@@ -118,9 +118,23 @@ Execute all plans in a phase, or run a specific wave.
 Usage: `/pde:execute-phase 5`
 Usage: `/pde:execute-phase 5 --wave 2`
 
+### Smart Router
+
+**`/pde:do <description>`**
+Route freeform text to the right GSD command automatically.
+
+- Analyzes natural language input to find the best matching GSD command
+- Acts as a dispatcher — never does the work itself
+- Resolves ambiguity by asking you to pick between top matches
+- Use when you know what you want but don't know which `/pde:*` command to run
+
+Usage: `/pde:do fix the login button`
+Usage: `/pde:do refactor the auth system`
+Usage: `/pde:do I want to start a new milestone`
+
 ### Quick Mode
 
-**`/pde:quick [--full] [--discuss] [--research]`**
+**`/pde:quick [--full] [--validate] [--discuss] [--research]`**
 Execute small, ad-hoc tasks with GSD guarantees but skip optional agents.
 
 Quick mode uses the same system with a shorter path:
@@ -129,14 +143,16 @@ Quick mode uses the same system with a shorter path:
 - Updates STATE.md tracking (not ROADMAP.md)
 
 Flags enable additional quality steps:
+- `--full` — Complete quality pipeline: discussion + research + plan-checking + verification
+- `--validate` — Plan-checking (max 2 iterations) and post-execution verification only
 - `--discuss` — Lightweight discussion to surface gray areas before planning
 - `--research` — Focused research agent investigates approaches before planning
-- `--full` — Adds plan-checking (max 2 iterations) and post-execution verification
 
-Flags are composable: `--discuss --research --full` gives the complete quality pipeline for a single task.
+Granular flags are composable: `--discuss --research --validate` gives the same as `--full`.
 
 Usage: `/pde:quick`
-Usage: `/pde:quick --research --full`
+Usage: `/pde:quick --full`
+Usage: `/pde:quick --research --validate`
 Result: Creates `.planning/quick/NNN-slug/PLAN.md`, `.planning/quick/NNN-slug/SUMMARY.md`
 
 ---
@@ -195,7 +211,6 @@ Start a new milestone through unified flow.
 - Optional domain research (spawns 4 parallel researcher agents)
 - Requirements definition with scoping
 - Roadmap creation with phase breakdown
-
 - Optional `--reset-phase-numbers` flag restarts numbering at Phase 1 and archives old phase dirs first for safety
 
 Mirrors `/pde:new-project` flow for brownfield projects (existing PROJECT.md).
@@ -261,6 +276,21 @@ Systematic debugging with persistent state across context resets.
 Usage: `/pde:debug "login button doesn't work"`
 Usage: `/pde:debug` (resume active session)
 
+### Quick Notes
+
+**`/pde:note <text>`**
+Zero-friction idea capture — one command, instant save, no questions.
+
+- Saves timestamped note to `.planning/notes/` (or `$HOME/.claude/notes/` globally)
+- Three subcommands: append (default), list, promote
+- Promote converts a note into a structured todo
+- Works without a project (falls back to global scope)
+
+Usage: `/pde:note refactor the hook system`
+Usage: `/pde:note list`
+Usage: `/pde:note promote 3`
+Usage: `/pde:note --global cross-project idea`
+
 ### Todo Management
 
 **`/pde:add-todo [description]`**
@@ -299,28 +329,6 @@ Validate built features through conversational UAT.
 
 Usage: `/pde:verify-work 3`
 
-### Milestone Auditing
-
-**`/pde:audit-milestone [version]`**
-Audit milestone completion against original intent.
-
-- Reads all phase VERIFICATION.md files
-- Checks requirements coverage
-- Spawns integration checker for cross-phase wiring
-- Creates MILESTONE-AUDIT.md with gaps and tech debt
-
-Usage: `/pde:audit-milestone`
-
-**`/pde:plan-milestone-gaps`**
-Create phases to close gaps identified by audit.
-
-- Reads MILESTONE-AUDIT.md and groups gaps into phases
-- Prioritizes by requirement priority (must/should/nice)
-- Adds gap closure phases to ROADMAP.md
-- Ready for `/pde:plan-phase` on new phases
-
-Usage: `/pde:plan-milestone-gaps`
-
 ### Ship Work
 
 **`/pde:ship [phase]`**
@@ -334,6 +342,19 @@ Create a PR from completed phase work with an auto-generated body.
 Prerequisites: Phase verified, `gh` CLI installed and authenticated.
 
 Usage: `/pde:ship 4` or `/pde:ship 4 --draft`
+
+---
+
+**`/pde:review --phase N [--gemini] [--claude] [--codex] [--coderabbit] [--all]`**
+Cross-AI peer review — invoke external AI CLIs to independently review phase plans.
+
+- Detects available CLIs (gemini, claude, codex, coderabbit)
+- Each CLI reviews plans independently with the same structured prompt
+- CodeRabbit reviews the current git diff (not a prompt) — may take up to 5 minutes
+- Produces REVIEWS.md with per-reviewer feedback and consensus summary
+- Feed reviews back into planning: `/pde:plan-phase N --reviews`
+
+Usage: `/pde:review --phase 3 --all`
 
 ---
 
@@ -367,6 +388,28 @@ Cross-phase audit of all outstanding UAT and verification items.
 - Use before starting a new milestone to clear verification debt
 
 Usage: `/pde:audit-uat`
+
+### Milestone Auditing
+
+**`/pde:audit-milestone [version]`**
+Audit milestone completion against original intent.
+
+- Reads all phase VERIFICATION.md files
+- Checks requirements coverage
+- Spawns integration checker for cross-phase wiring
+- Creates MILESTONE-AUDIT.md with gaps and tech debt
+
+Usage: `/pde:audit-milestone`
+
+**`/pde:plan-milestone-gaps`**
+Create phases to close gaps identified by audit.
+
+- Reads MILESTONE-AUDIT.md and groups gaps into phases
+- Prioritizes by requirement priority (must/should/nice)
+- Adds gap closure phases to ROADMAP.md
+- Ready for `/pde:plan-phase` on new phases
+
+Usage: `/pde:plan-milestone-gaps`
 
 ### Configuration
 
