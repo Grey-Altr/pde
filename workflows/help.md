@@ -1,11 +1,11 @@
 <purpose>
-Display the complete GSD command reference. Output ONLY the reference content. Do NOT add project-specific analysis, git status, next-step suggestions, or any commentary beyond the reference.
+Display the complete PDE command reference. Output ONLY the reference content. Do NOT add project-specific analysis, git status, next-step suggestions, or any commentary beyond the reference.
 </purpose>
 
 <reference>
-# GSD Command Reference
+# PDE Command Reference
 
-**GSD** (Get Shit Done) creates hierarchical project plans optimized for solo agentic development with Claude Code.
+**PDE** (Platform Development Engine) creates hierarchical project plans optimized for solo agentic development with Claude Code.
 
 ## Quick Start
 
@@ -15,7 +15,7 @@ Display the complete GSD command reference. Output ONLY the reference content. D
 
 ## Staying Updated
 
-GSD evolves fast. Update periodically:
+PDE evolves fast. Update periodically:
 
 ```bash
 npx pde-os-engine-gsd@latest
@@ -121,9 +121,9 @@ Usage: `/pde:execute-phase 5 --wave 2`
 ### Smart Router
 
 **`/pde:do <description>`**
-Route freeform text to the right GSD command automatically.
+Route freeform text to the right PDE command automatically.
 
-- Analyzes natural language input to find the best matching GSD command
+- Analyzes natural language input to find the best matching PDE command
 - Acts as a dispatcher — never does the work itself
 - Resolves ambiguity by asking you to pick between top matches
 - Use when you know what you want but don't know which `/pde:*` command to run
@@ -135,7 +135,7 @@ Usage: `/pde:do I want to start a new milestone`
 ### Quick Mode
 
 **`/pde:quick [--full] [--validate] [--discuss] [--research]`**
-Execute small, ad-hoc tasks with GSD guarantees but skip optional agents.
+Execute small, ad-hoc tasks with PDE guarantees but skip optional agents.
 
 Quick mode uses the same system with a shorter path:
 - Spawns planner + executor (skips researcher, checker, verifier by default)
@@ -363,7 +363,7 @@ Create a clean branch for pull requests by filtering out .planning/ commits.
 
 - Classifies commits: code-only (include), planning-only (exclude), mixed (include sans .planning/)
 - Cherry-picks code commits onto a clean branch
-- Reviewers see only code changes, no GSD artifacts
+- Reviewers see only code changes, no PDE artifacts
 
 Usage: `/pde:pr-branch` or `/pde:pr-branch main`
 
@@ -423,7 +423,7 @@ Configure workflow toggles and model profile interactively.
 Usage: `/pde:settings`
 
 **`/pde:set-profile <profile>`**
-Quick switch model profile for GSD agents.
+Quick switch model profile for PDE agents.
 
 - `quality` — Opus everywhere except verification
 - `balanced` — Opus for planning, Sonnet for execution (default)
@@ -448,7 +448,7 @@ Usage: `/pde:cleanup`
 Show this command reference.
 
 **`/pde:update`**
-Update GSD to latest version with changelog preview.
+Update PDE to latest version with changelog preview.
 
 - Shows installed vs latest version comparison
 - Displays changelog entries for versions you've missed
@@ -459,10 +459,10 @@ Update GSD to latest version with changelog preview.
 Usage: `/pde:update`
 
 **`/pde:join-discord`**
-Join the GSD Discord community.
+Join the PDE Discord community.
 
 - Get help, share what you're building, stay updated
-- Connect with other GSD users
+- Connect with other PDE users
 
 Usage: `/pde:join-discord`
 
